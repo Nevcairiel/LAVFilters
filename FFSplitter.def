@@ -1,0 +1,9 @@
+; FFSplitter.def ; declares the exports
+
+LIBRARY         "FFSplitter.ax"
+
+EXPORTS
+                DllGetClassObject PRIVATE
+                DllCanUnloadNow PRIVATE
+                DllRegisterServer PRIVATE
+                DllUnregisterServer PRIVATE

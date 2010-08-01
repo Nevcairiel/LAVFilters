@@ -1,0 +1,12 @@
+
+*.user
+*.suo
+*.sdf
+*.opensdf
+
+lib/strmbas[de].lib
+
+/Debug
+/Release
+/bin
+/ffmpeg
