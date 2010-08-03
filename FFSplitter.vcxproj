@@ -102,12 +102,20 @@
     <ClCompile Include="src/stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\FFSplitter.cpp" />
+    <ClCompile Include="src\DSGuidHelper.cpp" />
+    <ClCompile Include="src\PacketQueue.cpp" />
+    <ClCompile Include="src\DSStreamInfo.cpp" />
+    <ClCompile Include="src\LAVFOutputPin.cpp" />
+    <ClCompile Include="src\LAVFSplitter.cpp" />
     <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/stdafx.h" />
-    <ClInclude Include="src\FFSplitter.h" />
+    <ClInclude Include="src\DSGuidHelper.h" />
+    <ClInclude Include="src\PacketQueue.h" />
+    <ClInclude Include="src\DSStreamInfo.h" />
+    <ClInclude Include="src\LAVFOutputPin.h" />
+    <ClInclude Include="src\LAVFSplitter.h" />
     <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

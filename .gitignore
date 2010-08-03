@@ -6,6 +6,7 @@
 
 lib/strmbas[de].lib
 
+/ipch
 /Debug
 /Release
 /bin
