@@ -15,7 +15,6 @@ CUnknown* WINAPI CLAVFSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVFSplitter::CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this))
   , m_rtDuration(0), m_rtStart(0), m_rtStop(0), m_rtCurrent(0)
-  , m_rtNewStart(0), m_rtNewStop(0)
   , m_dRate(1.0)
   , m_avFormat(NULL)
 {
@@ -28,10 +27,10 @@ CLAVFSplitter::~CLAVFSplitter()
 {
   CAutoLock cAutoLock(this);
 
-  DeleteOutputs();
-
   CAMThread::CallWorker(CMD_EXIT);
   CAMThread::Close();
+
+  DeleteOutputs();
 
   CoTaskMemFree(m_fileName);
 }
@@ -44,7 +43,7 @@ STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return 
     QI(IFileSourceFilter)
-    //QI(IMediaSeeking)
+    QI(IMediaSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -111,6 +110,20 @@ STDMETHODIMP CLAVFSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pm
   return S_OK;
 }
 
+int CLAVFSplitter::GetStreamLength()
+{
+  if (m_avFormat->duration == (int64_t)AV_NOPTS_VALUE || m_avFormat->duration < 0LL) {
+    // no duration is available for us
+    // try to calculate it
+    int iLength = 0;
+    if (m_rtCurrent != Packet::INVALID_TIME && m_avFormat->file_size > 0 && m_avFormat->pb && m_avFormat->pb->pos > 0) {
+      iLength = (int)(((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
+    }
+    return iLength;
+  }
+  return (int)(m_avFormat->duration / (AV_TIME_BASE / 1000));
+}
+
 // Pin creation
 STDMETHODIMP CLAVFSplitter::CreateOutputs()
 {
@@ -139,6 +152,9 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
 
   // try to use non-blocking methods
   m_avFormat->flags |= AVFMT_FLAG_NONBLOCK;
+
+  m_rtNewStart = m_rtStart = m_rtCurrent = 0;
+  m_rtNewStop = m_rtStop = m_rtDuration = (REFERENCE_TIME)DVD_MSEC_TO_TIME(GetStreamLength());
 
   // TODO Programms support
   ASSERT(m_avFormat->nb_programs == 0);
@@ -215,6 +231,8 @@ STDMETHODIMP CLAVFSplitter::DeleteOutputs()
   // Release pins
   std::vector<CLAVFOutputPin *>::iterator it;
   for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+    if(IPin* pPinTo = (*it)->GetConnected()) pPinTo->Disconnect();
+    (*it)->Disconnect();
     (*it)->Release();
   }
   m_pPins.clear();
@@ -322,8 +340,8 @@ HRESULT CLAVFSplitter::DemuxSeek(REFERENCE_TIME rtStart)
     seek_pts += m_avFormat->start_time;
   }
 
-  // TODO new seeking API
-  int ret = av_seek_frame(m_avFormat, -1, seek_pts, 0);
+  int ret = avformat_seek_file(m_avFormat, -1, _I64_MIN, seek_pts, _I64_MAX, 0);
+  //int ret = av_seek_frame(m_avFormat, -1, seek_pts, 0);
 
   return S_OK;
 }
@@ -531,6 +549,117 @@ void CLAVFSplitter::DeliverEndFlush()
   m_fFlushing = false;
   m_eEndFlush.Set();
 }
+
+// IMediaSeeking
+STDMETHODIMP CLAVFSplitter::GetCapabilities(DWORD* pCapabilities)
+{
+  CheckPointer(pCapabilities, E_POINTER);
+
+  *pCapabilities =
+    AM_SEEKING_CanGetStopPos   |
+    AM_SEEKING_CanGetDuration  |
+    AM_SEEKING_CanSeekAbsolute |
+    AM_SEEKING_CanSeekForwards |
+    AM_SEEKING_CanSeekBackwards;
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::CheckCapabilities(DWORD* pCapabilities)
+{
+  CheckPointer(pCapabilities, E_POINTER);
+  // capabilities is empty, all is good
+  if(*pCapabilities == 0) return S_OK;
+  // read caps
+  DWORD caps;
+  GetCapabilities(&caps);
+
+  // Store the caps that we wanted
+  DWORD wantCaps = *pCapabilities;
+  // Update pCapabilities with what we have
+  *pCapabilities = caps & wantCaps;
+
+  // if nothing matches, its a disaster!
+  if(*pCapabilities == 0) return E_FAIL;
+  // if all matches, its all good
+  if(*pCapabilities == wantCaps) return S_OK;
+  // otherwise, a partial match
+  return S_FALSE;
+}
+
+STDMETHODIMP CLAVFSplitter::IsFormatSupported(const GUID* pFormat) {return !pFormat ? E_POINTER : *pFormat == TIME_FORMAT_MEDIA_TIME ? S_OK : S_FALSE;}
+STDMETHODIMP CLAVFSplitter::QueryPreferredFormat(GUID* pFormat) {return GetTimeFormat(pFormat);}
+STDMETHODIMP CLAVFSplitter::GetTimeFormat(GUID* pFormat) {return pFormat ? *pFormat = TIME_FORMAT_MEDIA_TIME, S_OK : E_POINTER;}
+STDMETHODIMP CLAVFSplitter::IsUsingTimeFormat(const GUID* pFormat) {return IsFormatSupported(pFormat);}
+STDMETHODIMP CLAVFSplitter::SetTimeFormat(const GUID* pFormat) {return S_OK == IsFormatSupported(pFormat) ? S_OK : E_INVALIDARG;}
+STDMETHODIMP CLAVFSplitter::GetDuration(LONGLONG* pDuration) {CheckPointer(pDuration, E_POINTER); *pDuration = m_rtDuration; return S_OK;}
+STDMETHODIMP CLAVFSplitter::GetStopPosition(LONGLONG* pStop) {return GetDuration(pStop);}
+STDMETHODIMP CLAVFSplitter::GetCurrentPosition(LONGLONG* pCurrent) {return E_NOTIMPL;}
+STDMETHODIMP CLAVFSplitter::ConvertTimeFormat(LONGLONG* pTarget, const GUID* pTargetFormat, LONGLONG Source, const GUID* pSourceFormat) {return E_NOTIMPL;}
+STDMETHODIMP CLAVFSplitter::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags)
+{
+  CAutoLock cAutoLock(this);
+
+  if(!pCurrent && !pStop
+    || (dwCurrentFlags&AM_SEEKING_PositioningBitsMask) == AM_SEEKING_NoPositioning 
+    && (dwStopFlags&AM_SEEKING_PositioningBitsMask) == AM_SEEKING_NoPositioning) {
+      return S_OK;
+  }
+
+  REFERENCE_TIME
+    rtCurrent = m_rtCurrent,
+    rtStop = m_rtStop;
+
+  if(pCurrent) {
+    switch(dwCurrentFlags&AM_SEEKING_PositioningBitsMask)
+    {
+    case AM_SEEKING_NoPositioning: break;
+    case AM_SEEKING_AbsolutePositioning: rtCurrent = *pCurrent; break;
+    case AM_SEEKING_RelativePositioning: rtCurrent = rtCurrent + *pCurrent; break;
+    case AM_SEEKING_IncrementalPositioning: rtCurrent = rtCurrent + *pCurrent; break;
+    }
+  }
+
+  if(pStop){
+    switch(dwStopFlags&AM_SEEKING_PositioningBitsMask)
+    {
+    case AM_SEEKING_NoPositioning: break;
+    case AM_SEEKING_AbsolutePositioning: rtStop = *pStop; break;
+    case AM_SEEKING_RelativePositioning: rtStop += *pStop; break;
+    case AM_SEEKING_IncrementalPositioning: rtStop = rtCurrent + *pStop; break;
+    }
+  }
+
+  if(m_rtCurrent == rtCurrent && m_rtStop == rtStop) {
+    return S_OK;
+  }
+
+  m_rtNewStart = m_rtCurrent = rtCurrent;
+  m_rtNewStop = rtStop;
+
+  if(ThreadExists())
+  {
+    DeliverBeginFlush();
+    CallWorker(CMD_SEEK);
+    DeliverEndFlush();
+  }
+
+  return S_OK;
+}
+STDMETHODIMP CLAVFSplitter::GetPositions(LONGLONG* pCurrent, LONGLONG* pStop)
+{
+  if(pCurrent) *pCurrent = m_rtCurrent;
+  if(pStop) *pStop = m_rtStop;
+  return S_OK;
+}
+STDMETHODIMP CLAVFSplitter::GetAvailable(LONGLONG* pEarliest, LONGLONG* pLatest)
+{
+  if(pEarliest) *pEarliest = 0;
+  return GetDuration(pLatest);
+}
+STDMETHODIMP CLAVFSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = dRate, S_OK : E_INVALIDARG;}
+STDMETHODIMP CLAVFSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
+STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
 
 // CStreamList
 const WCHAR* CLAVFSplitter::CStreamList::ToString(int type)

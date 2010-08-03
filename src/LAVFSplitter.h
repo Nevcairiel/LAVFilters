@@ -12,6 +12,7 @@
 #define DVD_TIME_BASE 10000000        // DirectShow times are in 100ns units
 #define DVD_SEC_TO_TIME(x)  ((double)(x) * DVD_TIME_BASE)
 #define DVD_TIME_TO_MSEC(x) ((int)((double)(x) * 1000 / DVD_TIME_BASE))
+#define DVD_MSEC_TO_TIME(x) ((double)(x) * DVD_TIME_BASE / 1000)
 
 class CDSStreamInfo;
 class CLAVFOutputPin;
@@ -22,6 +23,7 @@ class CLAVFSplitter
   , public CCritSec
   , protected CAMThread
   , public IFileSourceFilter
+  , public IMediaSeeking
 {
 public:
   // constructor method used by class factory
@@ -43,12 +45,32 @@ public:
   STDMETHODIMP Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt);
   STDMETHODIMP GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt);
 
+  // IMediaSeeking
+  STDMETHODIMP GetCapabilities(DWORD* pCapabilities);
+  STDMETHODIMP CheckCapabilities(DWORD* pCapabilities);
+  STDMETHODIMP IsFormatSupported(const GUID* pFormat);
+  STDMETHODIMP QueryPreferredFormat(GUID* pFormat);
+  STDMETHODIMP GetTimeFormat(GUID* pFormat);
+  STDMETHODIMP IsUsingTimeFormat(const GUID* pFormat);
+  STDMETHODIMP SetTimeFormat(const GUID* pFormat);
+  STDMETHODIMP GetDuration(LONGLONG* pDuration);
+  STDMETHODIMP GetStopPosition(LONGLONG* pStop);
+  STDMETHODIMP GetCurrentPosition(LONGLONG* pCurrent);
+  STDMETHODIMP ConvertTimeFormat(LONGLONG* pTarget, const GUID* pTargetFormat, LONGLONG Source, const GUID* pSourceFormat);
+  STDMETHODIMP SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags);
+  STDMETHODIMP GetPositions(LONGLONG* pCurrent, LONGLONG* pStop);
+  STDMETHODIMP GetAvailable(LONGLONG* pEarliest, LONGLONG* pLatest);
+  STDMETHODIMP SetRate(double dRate);
+  STDMETHODIMP GetRate(double* pdRate);
+  STDMETHODIMP GetPreroll(LONGLONG* pllPreroll);
+
   bool IsAnyPinDrying();
 protected:
   // CAMThread
   enum {CMD_EXIT, CMD_SEEK};
   DWORD ThreadProc();
 
+  int GetStreamLength();
   HRESULT DemuxSeek(REFERENCE_TIME rtStart);
   HRESULT DemuxNextPacket();
   REFERENCE_TIME ConvertTimestamp(int64_t pts, int den, int num);
