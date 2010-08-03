@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFSplitter", "FFSplitter.vcxproj", "{F475F86F-3F7F-4B1D-82A6-078339F599FD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVFSplitter", "LAVFSplitter.vcxproj", "{F475F86F-3F7F-4B1D-82A6-078339F599FD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA} = {E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}
 	EndProjectSection
