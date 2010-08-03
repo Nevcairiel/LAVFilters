@@ -107,7 +107,6 @@
     <ClCompile Include="src\DSStreamInfo.cpp" />
     <ClCompile Include="src\LAVFOutputPin.cpp" />
     <ClCompile Include="src\LAVFSplitter.cpp" />
-    <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/stdafx.h" />
@@ -116,7 +115,6 @@
     <ClInclude Include="src\DSStreamInfo.h" />
     <ClInclude Include="src\LAVFOutputPin.h" />
     <ClInclude Include="src\LAVFSplitter.h" />
-    <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

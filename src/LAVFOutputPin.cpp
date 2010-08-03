@@ -1,24 +1,50 @@
+/*
+ *      Copyright (C) 2005-2010 Team XBMC
+ *      http://www.xbmc.org
+ *
+ *      Copyright (C) 2010 Hendrik Leppkes
+ *      http://www.1f0.de
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with XBMC; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  http://www.gnu.org/copyleft/gpl.html
+ *
+ *  Initial design and concept by Gabest and the MPC-HC Team, copyright under GPLv2
+ */
+
 #include "stdafx.h"
 #include "LAVFOutputPin.h"
 #include "LAVFSplitter.h"
-#include "utils.h"
 #include "moreuuids.h"
 
-CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, int nBuffers)
-  : CBaseOutputPin(NAME("CLAVFOutputPin"), pFilter, pLock, phr, pName)
+CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container, int nBuffers)
+  : CBaseOutputPin(NAME("lavfsplitter output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
   , m_eEndFlush(TRUE)
+  , m_containerFormat(container)
 {
   m_mts = mts;
   m_nBuffers = max(nBuffers, 1);
 }
 
-CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, int nBuffers)
-  : CBaseOutputPin(NAME("CLAVFOutputPin"), pFilter, pLock, phr, pName)
+CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container, int nBuffers)
+  : CBaseOutputPin(NAME("lavfsplitter output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
   , m_eEndFlush(TRUE)
+  , m_containerFormat(container)
 {
   m_nBuffers = max(nBuffers, 1);
 }

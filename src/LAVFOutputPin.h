@@ -1,5 +1,33 @@
+/*
+ *      Copyright (C) 2005-2010 Team XBMC
+ *      http://www.xbmc.org
+ *
+ *      Copyright (C) 2010 Hendrik Leppkes
+ *      http://www.1f0.de
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with XBMC; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  http://www.gnu.org/copyleft/gpl.html
+ *
+ *  Initial design and concept by Gabest and the MPC-HC Team, copyright under GPLv2
+ */
+
+#ifndef __LAVF_OUTPUT_PIN_H__
+#define __LAVF_OUTPUT_PIN_H__
 
 #include <vector>
+#include <string>
 #include "PacketQueue.h"
 
 class CLAVFOutputPin
@@ -7,8 +35,8 @@ class CLAVFOutputPin
   , protected CAMThread
 {
 public:
-  CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, int nBuffers = 0);
-  CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, int nBuffers = 0);
+  CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container = "", int nBuffers = 0);
+  CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container = "", int nBuffers = 0);
   ~CLAVFOutputPin();
 
   DECLARE_IUNKNOWN;
@@ -47,6 +75,8 @@ private:
   std::vector<CMediaType> m_mts;
   CPacketQueue m_queue;
 
+  std::string m_containerFormat;
+
   REFERENCE_TIME m_rtStart;
 
   // Flush control
@@ -59,3 +89,5 @@ private:
 
   DWORD m_streamId;
 };
+
+#endif

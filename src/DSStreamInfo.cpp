@@ -1,12 +1,33 @@
+/*
+ *      Copyright (C) 2005-2010 Team XBMC
+ *      http://www.xbmc.org
+ *
+ *      Copyright (C) 2010 Hendrik Leppkes
+ *      http://www.1f0.de
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with XBMC; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  http://www.gnu.org/copyleft/gpl.html
+ */
+
 #include "stdafx.h"
 #include "DSStreamInfo.h"
 #include "DSGuidHelper.h"
 
 CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat)
 {
-  int len = strlen(containerFormat) + 1;
-  m_containerFormat = (char *)malloc(sizeof(char) * len);
-  strncpy_s(m_containerFormat, len, containerFormat, _TRUNCATE);
+  m_containerFormat = std::string(containerFormat);
 
   mtype.InitMediaType();
 
@@ -27,7 +48,6 @@ CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat)
 
 CDSStreamInfo::~CDSStreamInfo()
 {
-  free(m_containerFormat);
 }
 
 STDMETHODIMP CDSStreamInfo::CreateAudioMediaType(AVStream *avstream)
@@ -84,7 +104,7 @@ STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_GuidHelper.CreateMPEG1VI(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
-    mtype.pbFormat = (BYTE *)g_GuidHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, (strcmp(m_containerFormat, "mpegts") == 0));
+    mtype.pbFormat = (BYTE *)g_GuidHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
   }
 
   return S_OK;

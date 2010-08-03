@@ -1,8 +1,32 @@
+/*
+ *      Copyright (C) 2005-2010 Team XBMC
+ *      http://www.xbmc.org
+ *
+ *      Copyright (C) 2010 Hendrik Leppkes
+ *      http://www.1f0.de
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with XBMC; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  http://www.gnu.org/copyleft/gpl.html
+ *
+ *  Initial design and concept by Gabest and the MPC-HC Team, copyright under GPLv2
+ */
+
 #include "stdafx.h"
 #include "LAVFSplitter.h"
 #include "DSStreamInfo.h"
 #include "LAVFOutputPin.h"
-#include "utils.h"
 
 #include <string>
 
@@ -13,7 +37,7 @@ CUnknown* WINAPI CLAVFSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 }
 
 CLAVFSplitter::CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
-  : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this))
+  : CBaseFilter(NAME("lavfsplitter source filter"), pUnk, this,  __uuidof(this), phr)
   , m_rtDuration(0), m_rtStart(0), m_rtStop(0), m_rtCurrent(0)
   , m_dRate(1.0)
   , m_avFormat(NULL)
@@ -32,8 +56,6 @@ CLAVFSplitter::~CLAVFSplitter()
 
   m_State = State_Stopped;
   DeleteOutputs();
-
-  CoTaskMemFree(m_fileName);
 }
 
 STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -81,10 +103,7 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
 {
   CheckPointer(pszFileName, E_POINTER);
 
-  // Copy the filename, just in case
-  int strlen = wcslen(pszFileName) + 1;
-  m_fileName = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * (strlen + 1));
-  wcsncpy_s(m_fileName, strlen, pszFileName, _TRUNCATE);
+  m_fileName = std::wstring(pszFileName);
 
   HRESULT hr = S_OK;
 
@@ -101,13 +120,13 @@ STDMETHODIMP CLAVFSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pm
 {
   CheckPointer(ppszFileName, E_POINTER);
 
-  int strlen = wcslen(m_fileName) + 1;
-  *ppszFileName = (LPOLESTR)CoTaskMemAlloc(sizeof(WCHAR) * (strlen + 1));
+  int strlen = m_fileName.length();
+  *ppszFileName = (LPOLESTR)CoTaskMemAlloc(sizeof(wchar_t) * (strlen + 1));
 
   if(!(*ppszFileName))
     return E_OUTOFMEMORY;
 
-  wcsncpy_s(*ppszFileName, strlen, m_fileName, _TRUNCATE);
+  wcsncpy_s(*ppszFileName, strlen, m_fileName.c_str(), _TRUNCATE);
   return S_OK;
 }
 
@@ -134,9 +153,9 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
 
   int ret; // return code from avformat functions
 
-  // Conver the filename from wchar to char for avformat
+  // Convert the filename from wchar to char for avformat
   char fileName[1024];
-  wcstombs_s(NULL, fileName, 1024, m_fileName, _TRUNCATE);
+  wcstombs_s(NULL, fileName, 1024, m_fileName.c_str(), _TRUNCATE);
 
   ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
   if (ret < 0) {
@@ -203,7 +222,7 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
       std::vector<CMediaType> mts;
       mts.push_back(it->streamInfo->mtype);
 
-      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr);
+      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, container);
       if(SUCCEEDED(hr)) {
         pPin->SetStreamId(it->pid);
         m_pPins.push_back(pPin);
@@ -312,6 +331,7 @@ DWORD CLAVFSplitter::ThreadProc()
 }
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
+// Based on DVDDemuxFFMPEG
 REFERENCE_TIME CLAVFSplitter::ConvertTimestamp(int64_t pts, int den, int num)
 {
   if (pts == (int64_t)AV_NOPTS_VALUE) {
@@ -336,6 +356,8 @@ REFERENCE_TIME CLAVFSplitter::ConvertTimestamp(int64_t pts, int den, int num)
   return (REFERENCE_TIME)(timestamp * DVD_TIME_BASE);
 }
 
+// Seek to the specified time stamp
+// Based on DVDDemuxFFMPEG
 HRESULT CLAVFSplitter::DemuxSeek(REFERENCE_TIME rtStart)
 {
   int time = DVD_TIME_TO_MSEC(rtStart);
@@ -352,6 +374,8 @@ HRESULT CLAVFSplitter::DemuxSeek(REFERENCE_TIME rtStart)
   return S_OK;
 }
 
+// Demux the next packet and deliver it to the output pins
+// Based on DVDDemuxFFMPEG
 HRESULT CLAVFSplitter::DemuxNextPacket()
 {
   bool bReturnEmpty = false;
