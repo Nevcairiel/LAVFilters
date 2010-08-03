@@ -246,8 +246,7 @@ HRESULT CLAVFOutputPin::DeliverPacket(Packet *pPacket)
     goto done;
   }
 
-  if(FAILED(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0)))
-    goto done;
+  CHECK_HR(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0));
 
   // Resize buffer if it is too small
   if(nBytes > pSample->GetSize()) {

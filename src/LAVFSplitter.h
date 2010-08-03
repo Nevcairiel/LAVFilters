@@ -70,7 +70,7 @@ protected:
   enum {CMD_EXIT, CMD_SEEK};
   DWORD ThreadProc();
 
-  int GetStreamLength();
+  REFERENCE_TIME GetStreamLength();
   HRESULT DemuxSeek(REFERENCE_TIME rtStart);
   HRESULT DemuxNextPacket();
   REFERENCE_TIME ConvertTimestamp(int64_t pts, int den, int num);

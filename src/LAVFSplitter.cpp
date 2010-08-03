@@ -30,6 +30,7 @@ CLAVFSplitter::~CLAVFSplitter()
   CAMThread::CallWorker(CMD_EXIT);
   CAMThread::Close();
 
+  m_State = State_Stopped;
   DeleteOutputs();
 
   CoTaskMemFree(m_fileName);
@@ -110,18 +111,20 @@ STDMETHODIMP CLAVFSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pm
   return S_OK;
 }
 
-int CLAVFSplitter::GetStreamLength()
+REFERENCE_TIME CLAVFSplitter::GetStreamLength()
 {
+  double iLength = 0;
   if (m_avFormat->duration == (int64_t)AV_NOPTS_VALUE || m_avFormat->duration < 0LL) {
     // no duration is available for us
     // try to calculate it
-    int iLength = 0;
-    if (m_rtCurrent != Packet::INVALID_TIME && m_avFormat->file_size > 0 && m_avFormat->pb && m_avFormat->pb->pos > 0) {
-      iLength = (int)(((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
-    }
-    return iLength;
+    // TODO
+    /*if (m_rtCurrent != Packet::INVALID_TIME && m_avFormat->file_size > 0 && m_avFormat->pb && m_avFormat->pb->pos > 0) {
+      iLength = (((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
+    }*/
+  } else {
+    iLength = (double)m_avFormat->duration / (AV_TIME_BASE / 1000);
   }
-  return (int)(m_avFormat->duration / (AV_TIME_BASE / 1000));
+  return (REFERENCE_TIME)DVD_MSEC_TO_TIME(iLength);
 }
 
 // Pin creation
@@ -154,10 +157,10 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
   m_avFormat->flags |= AVFMT_FLAG_NONBLOCK;
 
   m_rtNewStart = m_rtStart = m_rtCurrent = 0;
-  m_rtNewStop = m_rtStop = m_rtDuration = (REFERENCE_TIME)DVD_MSEC_TO_TIME(GetStreamLength());
+  m_rtNewStop = m_rtStop = m_rtDuration = GetStreamLength();
 
   // TODO Programms support
-  ASSERT(m_avFormat->nb_programs == 0);
+  ASSERT(m_avFormat->nb_programs == 0 || m_avFormat->nb_programs == 1);
 
   for(int i = 0; i < countof(m_streams); i++) {
     m_streams[i].Clear();
@@ -201,10 +204,13 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
       mts.push_back(it->streamInfo->mtype);
 
       CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr);
-      // We need to addref this so IUnknown can do proper ref counting here
-      pPin->AddRef();
-      pPin->SetStreamId(it->pid);
-      m_pPins.push_back(pPin);
+      if(SUCCEEDED(hr)) {
+        pPin->SetStreamId(it->pid);
+        m_pPins.push_back(pPin);
+        break;
+      } else {
+        delete pPin;
+      }
     }
   }
 
@@ -233,7 +239,7 @@ STDMETHODIMP CLAVFSplitter::DeleteOutputs()
   for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
     if(IPin* pPinTo = (*it)->GetConnected()) pPinTo->Disconnect();
     (*it)->Disconnect();
-    (*it)->Release();
+    delete (*it);
   }
   m_pPins.clear();
 
