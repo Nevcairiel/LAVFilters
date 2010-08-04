@@ -323,7 +323,7 @@ DWORD CLAVFSplitter::ThreadProc()
     if(!CheckRequest(&cmd)) {
       std::vector<CLAVFOutputPin *>::iterator it;
       for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
-        (*it)->DeliverEndOfStream();
+        (*it)->QueueEndOfStream();
       }
     }
 
