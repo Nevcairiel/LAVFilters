@@ -23,8 +23,7 @@
  *  Initial design and concept by Gabest and the MPC-HC Team, copyright under GPLv2
  */
 
-#ifndef __LAVF_SPLITTER_H__
-#define __LAVF_SPLITTER_H__
+#pragma once
 
 #include <string>
 #include <list>
@@ -161,5 +160,3 @@ private:
   bool m_fFlushing;
   CAMEvent m_eEndFlush;
 };
-
-#endif

@@ -19,8 +19,7 @@
  *
  */
 
-#ifndef __LAVF_FILTER_REG_H__
-#define __LAVF_FILTER_REG_H__
+#pragma once
 
 #include <string>
 #include <list>
@@ -28,5 +27,3 @@
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkbytes, ...);
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LPCWSTR> chkbytes, ...);
 extern void UnRegisterSourceFilter(const GUID& subtype);
-
-#endif

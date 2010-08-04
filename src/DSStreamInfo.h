@@ -21,8 +21,7 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-#ifndef __LAVF_DS_STREAMINFO_H__
-#define __LAVF_DS_STREAMINFO_H__
+#pragma once
 
 #include <string>
 
@@ -41,5 +40,3 @@ public:
 private:
   std::string m_containerFormat;
 };
-
-#endif

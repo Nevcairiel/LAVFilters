@@ -21,8 +21,7 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-#ifndef __LAVF_DS_GUID_HELPER_H__
-#define __LAVF_DS_GUID_HELPER_H__
+#pragma once
 
 #include "dvdmedia.h"
 
@@ -393,5 +392,3 @@ public:
 };
 
 extern CDSGuidHelper g_GuidHelper;
-
-#endif

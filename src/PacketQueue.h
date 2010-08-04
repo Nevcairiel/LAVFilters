@@ -21,8 +21,7 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-#ifndef __LAVF_PACKET_QUEUE_H__
-#define __LAVF_PACKET_QUEUE_H__
+#pragma once
 
 #include <deque>
 
@@ -74,5 +73,3 @@ private:
   // The actual storage class
   std::deque<Packet *> m_queue;
 };
-
-#endif

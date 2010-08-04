@@ -23,8 +23,7 @@
  *  Initial design and concept by Gabest and the MPC-HC Team, copyright under GPLv2
  */
 
-#ifndef __LAVF_OUTPUT_PIN_H__
-#define __LAVF_OUTPUT_PIN_H__
+#pragma once
 
 #include <vector>
 #include <string>
@@ -93,5 +92,3 @@ private:
   DWORD m_streamId;
   CMediaType *m_newMT;
 };
-
-#endif

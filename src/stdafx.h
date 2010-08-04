@@ -23,8 +23,7 @@
 
 // pre-compiled header
 
-#ifndef __LAVF_STDAFX_H__
-#define __LAVF_STDAFX_H__
+#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
@@ -47,5 +46,3 @@ extern "C" {
 #define __STDC_CONSTANT_MACROS
 #include "libavformat/avformat.h"
 }
-
-#endif
