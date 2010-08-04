@@ -36,6 +36,9 @@
     <ClCompile Include="src\LAVFSplitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\filterreg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/stdafx.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\LAVFSplitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\filterreg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

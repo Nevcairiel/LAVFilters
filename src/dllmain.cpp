@@ -32,6 +32,12 @@
 #include "stdafx.h"
 #include "LAVFSplitter.h"
 
+// Initialize the GUIDs
+#include <InitGuid.h>
+#include "moreuuids.h"
+
+#include "filterreg.h"
+
 // --- COM factory table and registration code --------------
 
 const AMOVIESETUP_MEDIATYPE 
@@ -101,18 +107,22 @@ int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 // self-registration entrypoint
 STDAPI DllRegisterServer()
 {
-  // base classes will handle registration using the factory template table
-  HRESULT hr = AMovieDllRegisterServer2(true);
+  RegisterSourceFilter(
+    __uuidof(CLAVFSplitter),
+    MEDIASUBTYPE_Matroska,
+    _T("0,4,,1A45DFA3"),
+    _T(".mkv"), _T(".mka"), _T(".mks"));
 
-  return hr;
+  // base classes will handle registration using the factory template table
+  return AMovieDllRegisterServer2(true);
 }
 
 STDAPI DllUnregisterServer()
 {
-  // base classes will handle de-registration using the factory template table
-  HRESULT hr = AMovieDllRegisterServer2(false);
+  UnRegisterSourceFilter(MEDIASUBTYPE_Matroska);
 
-  return hr;
+  // base classes will handle de-registration using the factory template table
+  return AMovieDllRegisterServer2(false);
 }
 
 // if we declare the correct C runtime entrypoint and then forward it to the DShow base

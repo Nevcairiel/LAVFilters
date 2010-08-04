@@ -49,6 +49,7 @@ class CLAVFSplitter
   , protected CAMThread
   , public IFileSourceFilter
   , public IMediaSeeking
+  , public IAMStreamSelect
 {
 public:
   // constructor method used by class factory
@@ -89,6 +90,11 @@ public:
   STDMETHODIMP GetRate(double* pdRate);
   STDMETHODIMP GetPreroll(LONGLONG* pllPreroll);
 
+  // IAMStreamSelect
+  STDMETHODIMP Count(DWORD *pcStreams);
+  STDMETHODIMP Enable(long lIndex, DWORD dwFlags);
+  STDMETHODIMP Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk);
+
   bool IsAnyPinDrying();
 protected:
   // CAMThread
@@ -118,7 +124,7 @@ public:
   };
 
   enum StreamType {video, audio, subpic, unknown};
-  class CStreamList : public std::list<stream> 
+  class CStreamList : public std::vector<stream>
   {
   public:
     static const WCHAR* ToString(int type);
@@ -127,6 +133,7 @@ public:
   } m_streams[unknown];
 
   CLAVFOutputPin *GetOutputPin(DWORD streamId);
+  STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt);
 
 private:
   // construct only via class factory
@@ -134,6 +141,7 @@ private:
   ~CLAVFSplitter();
 
 private:
+  CCritSec m_csPins;
   std::vector<CLAVFOutputPin *> m_pPins;
   std::set<DWORD> m_bDiscontinuitySent;
 

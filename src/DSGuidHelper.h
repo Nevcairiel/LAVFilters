@@ -75,7 +75,7 @@ const AVCodecTag ff2_codec_wav_tags[] = {
   { CODEC_ID_AAC,             0x4143 },
   { CODEC_ID_FLAC,            0xF1AC },
   { CODEC_ID_ADPCM_SWF,       ('S'<<8)+'F' },
-  { CODEC_ID_VORBIS,          ('V'<<8)+'o' }, //HACK/FIXME, does vorbis in WAV/AVI have an (in)official id?
+  { CODEC_ID_VORBIS,          0x6771 }, //HACK/FIXME, does vorbis in WAV/AVI have an (in)official id?
 
   /* FIXME: All of the IDs below are not 16 bit and thus illegal. */
   // for NuppelVideo (nuv.c)

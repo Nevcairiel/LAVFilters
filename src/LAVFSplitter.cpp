@@ -67,6 +67,7 @@ STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   return 
     QI(IFileSourceFilter)
     QI(IMediaSeeking)
+    QI(IAMStreamSelect)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -89,6 +90,8 @@ CBasePin *CLAVFSplitter::GetPin(int n)
 
 CLAVFOutputPin *CLAVFSplitter::GetOutputPin(DWORD streamId)
 {
+  CAutoLock lock(&m_csPins);
+
   std::vector<CLAVFOutputPin *>::iterator it;
   for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
     if ((*it)->GetStreamId() == streamId) {
@@ -120,8 +123,8 @@ STDMETHODIMP CLAVFSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pm
 {
   CheckPointer(ppszFileName, E_POINTER);
 
-  int strlen = m_fileName.length();
-  *ppszFileName = (LPOLESTR)CoTaskMemAlloc(sizeof(wchar_t) * (strlen + 1));
+  int strlen = m_fileName.length() + 1;
+  *ppszFileName = (LPOLESTR)CoTaskMemAlloc(sizeof(wchar_t) * strlen);
 
   if(!(*ppszFileName))
     return E_OUTOFMEMORY;
@@ -138,7 +141,7 @@ REFERENCE_TIME CLAVFSplitter::GetStreamLength()
     // try to calculate it
     // TODO
     /*if (m_rtCurrent != Packet::INVALID_TIME && m_avFormat->file_size > 0 && m_avFormat->pb && m_avFormat->pb->pos > 0) {
-      iLength = (((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
+    iLength = (((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
     }*/
   } else {
     iLength = (double)m_avFormat->duration / (AV_TIME_BASE / 1000);
@@ -215,7 +218,7 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
 
   // Try to create pins
   for(int i = 0; i < countof(m_streams); i++) {
-    std::list<stream>::iterator it;
+    std::vector<stream>::iterator it;
     for ( it = m_streams[i].begin(); it != m_streams[i].end(); it++ ) {
       const WCHAR* name = CStreamList::ToString(i);
 
@@ -253,6 +256,7 @@ STDMETHODIMP CLAVFSplitter::DeleteOutputs()
     m_avFormat = NULL;
   }
 
+  CAutoLock pinLock(&m_csPins);
   // Release pins
   std::vector<CLAVFOutputPin *>::iterator it;
   for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
@@ -691,6 +695,108 @@ STDMETHODIMP CLAVFSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = 
 STDMETHODIMP CLAVFSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
 STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
 
+STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt)
+{
+  CAutoLock lock(&m_csPins);
+
+  CLAVFOutputPin* pPin = GetOutputPin(TrackNumSrc);
+  if (pPin) {
+    if(IPin *pinTo = pPin->GetConnected()) {
+      if(pmt && FAILED(pinTo->QueryAccept(pmt))) {
+        return VFW_E_TYPE_NOT_ACCEPTED;
+      }
+      pPin->SetStreamId(TrackNumDst);
+
+      if(pmt) {
+        pPin->SetNewMediaType(*pmt);
+      }
+    }
+  }
+  return E_FAIL;
+}
+
+// IAMStreamSelect
+STDMETHODIMP CLAVFSplitter::Count(DWORD *pcStreams)
+{
+  CheckPointer(pcStreams, E_POINTER);
+
+  *pcStreams = 0;
+  for(int i = 0; i < countof(m_streams); i++) {
+    *pcStreams += m_streams[i].size();
+  }
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
+{
+  if(!(dwFlags & AMSTREAMSELECTENABLE_ENABLE)) {
+    return E_NOTIMPL;
+  }
+
+  for(int i = 0, j = 0; i < countof(m_streams); i++) {
+    int cnt = m_streams[i].size();
+
+    if(lIndex >= j && lIndex < j+cnt) {
+      long idx = (lIndex - j);
+
+      stream& to = m_streams[i].at(idx);
+
+      std::vector<stream>::iterator it;
+      for(it = m_streams[i].begin(); it != m_streams[i].end(); it++) {
+        if(!GetOutputPin(it->pid)) {
+          continue;
+        }
+
+        HRESULT hr;
+        if(FAILED(hr = RenameOutputPin(*it, to, &to.streamInfo->mtype))) {
+          return hr;
+        }
+        return S_OK;
+      }
+    }
+    j += cnt;
+  }
+  return S_FALSE;
+}
+
+STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk)
+{
+  for(int i = 0, j = 0; i < countof(m_streams); i++) {
+    int cnt = m_streams[i].size();
+
+    if(lIndex >= j && lIndex < j+cnt) {
+      long idx = (lIndex - j);
+
+      stream& s = m_streams[i].at(idx);
+
+      if(ppmt) *ppmt = CreateMediaType(&s.streamInfo->mtype);
+      if(pdwFlags) *pdwFlags = GetOutputPin(s) ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
+      if(plcid) *plcid = 0; // TODO: locale
+      if(pdwGroup) *pdwGroup = i;
+      if(ppObject) *ppObject = NULL;
+      if(ppUnk) *ppUnk = NULL;
+
+      if(ppszName) {
+        char format[128];
+        avcodec_string(format, 128, m_avFormat->streams[s.pid]->codec, 0);
+        // Get the actual length (+ leading zero)
+        int formatlen = strlen(format) + 1;
+
+        // Alloc space
+        *ppszName = (WCHAR*)CoTaskMemAlloc(formatlen * sizeof(WCHAR));
+        if(*ppszName == NULL) return E_OUTOFMEMORY;
+
+        // Copy format over
+        mbstowcs_s(NULL, *ppszName, formatlen, format, _TRUNCATE);
+      }
+    }
+    j += cnt;
+  }
+
+  return S_OK;
+}
+
 // CStreamList
 const WCHAR* CLAVFSplitter::CStreamList::ToString(int type)
 {
@@ -703,7 +809,7 @@ const WCHAR* CLAVFSplitter::CStreamList::ToString(int type)
 
 const CLAVFSplitter::stream* CLAVFSplitter::CStreamList::FindStream(DWORD pid)
 {
-  std::list<stream>::iterator it;
+  std::vector<stream>::iterator it;
   for ( it = begin(); it != end(); it++ ) {
     if ((*it).pid == pid) {
       return &(*it);
@@ -715,7 +821,7 @@ const CLAVFSplitter::stream* CLAVFSplitter::CStreamList::FindStream(DWORD pid)
 
 void CLAVFSplitter::CStreamList::Clear()
 {
-  std::list<stream>::iterator it;
+  std::vector<stream>::iterator it;
   for ( it = begin(); it != end(); it++ ) {
     delete (*it).streamInfo;
   }

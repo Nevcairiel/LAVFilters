@@ -103,6 +103,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\DSGuidHelper.cpp" />
+    <ClCompile Include="src\filterreg.cpp" />
     <ClCompile Include="src\PacketQueue.cpp" />
     <ClCompile Include="src\DSStreamInfo.cpp" />
     <ClCompile Include="src\LAVFOutputPin.cpp" />
@@ -111,6 +112,7 @@
   <ItemGroup>
     <ClInclude Include="src/stdafx.h" />
     <ClInclude Include="src\DSGuidHelper.h" />
+    <ClInclude Include="src\filterreg.h" />
     <ClInclude Include="src\PacketQueue.h" />
     <ClInclude Include="src\DSStreamInfo.h" />
     <ClInclude Include="src\LAVFOutputPin.h" />

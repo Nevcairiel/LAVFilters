@@ -34,9 +34,10 @@ CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBas
   , m_fFlushing(false)
   , m_eEndFlush(TRUE)
   , m_containerFormat(container)
+  , m_newMT(NULL)
 {
   m_mts = mts;
-  m_nBuffers = max(nBuffers, 1);
+  m_nBuffers = max(nBuffers, 2);
 }
 
 CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container, int nBuffers)
@@ -45,12 +46,14 @@ CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pL
   , m_fFlushing(false)
   , m_eEndFlush(TRUE)
   , m_containerFormat(container)
+  , m_newMT(NULL)
 {
-  m_nBuffers = max(nBuffers, 1);
+  m_nBuffers = max(nBuffers, 2);
 }
 
 CLAVFOutputPin::~CLAVFOutputPin()
 {
+  SAFE_DELETE(m_newMT);
 }
 
 STDMETHODIMP CLAVFOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -82,13 +85,6 @@ HRESULT CLAVFOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPER
 
   pProperties->cBuffers = m_nBuffers;
   pProperties->cbBuffer = max(m_mt.lSampleSize, 1);
-
-  // TODO
-  /* if(m_mt.subtype == MEDIASUBTYPE_Vorbis && m_mt.formattype == FORMAT_VorbisFormat)
-  {
-  // oh great, the oggds vorbis decoder assumes there will be two at least, stupid thing...\r
-  pProperties->cBuffers = max(pProperties->cBuffers, 2);
-  } */
 
   // Sanity checks
   ALLOCATOR_PROPERTIES Actual;
@@ -189,10 +185,16 @@ HRESULT CLAVFOutputPin::QueuePacket(Packet *pPacket)
     || m_queue.Size() > MAX_PACKETS_IN_QUEUE))
     Sleep(1);
 
-  DbgLog((LOG_ERROR, 0, TEXT("Queue length (stream %d): %d"), m_streamId, m_queue.Size()));
-
   if(S_OK != m_hrDeliver)
     return m_hrDeliver;
+
+  {
+    CAutoLock lock(&m_csMT);
+    if(m_newMT) {
+      pPacket->pmt = CreateMediaType(m_newMT);
+      SAFE_DELETE(m_newMT);
+    }
+  }
 
   m_queue.Queue(pPacket);
 
@@ -280,7 +282,7 @@ HRESULT CLAVFOutputPin::DeliverPacket(Packet *pPacket)
     ALLOCATOR_PROPERTIES props, actual;
     CHECK_HR(hr = m_pAllocator->GetProperties(&props));
     // Give us 1.5 times the requested size, so we don't resize every time
-    props.cbBuffer = nBytes*3/2; 
+    props.cbBuffer = nBytes*3/2;
     if(props.cBuffers > 1) {
       CHECK_HR(hr = __super::DeliverBeginFlush());
       CHECK_HR(hr = __super::DeliverEndFlush());

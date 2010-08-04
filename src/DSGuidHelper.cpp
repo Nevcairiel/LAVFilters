@@ -22,9 +22,6 @@
  */
 #include "stdafx.h"
 #include "DSGuidHelper.h"
-
-// Initialize the GUIDs
-#include <InitGuid.h>
 #include "moreuuids.h"
 
 CDSGuidHelper g_GuidHelper;
@@ -51,6 +48,12 @@ CMediaType CDSGuidHelper::initAudioType(CodecID codecId)
     break;
   case CODEC_ID_TRUEHD:
     mediaType.subtype = MEDIASUBTYPE_DOLBY_AC3;
+    break;
+  case CODEC_ID_VORBIS:
+    //TODO
+    //media.formattype = FORMAT_VorbisFormat;
+    mediaType.subtype = MEDIASUBTYPE_Vorbis;
+    break;
   }
   return mediaType;
 }

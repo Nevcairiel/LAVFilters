@@ -65,6 +65,8 @@ public:
   DWORD GetStreamId() { return m_streamId; };
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
 
+  void SetNewMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_newMT = new CMediaType(pmt); }
+
 private:
   enum {CMD_EXIT};
   DWORD ThreadProc();
@@ -72,6 +74,7 @@ private:
   HRESULT DeliverPacket(Packet *pPacket);
 
 private:
+  CCritSec m_csMT;
   std::vector<CMediaType> m_mts;
   CPacketQueue m_queue;
 
@@ -88,6 +91,7 @@ private:
   int m_nBuffers;
 
   DWORD m_streamId;
+  CMediaType *m_newMT;
 };
 
 #endif
