@@ -25,6 +25,7 @@
 
 #include <deque>
 
+#define MIN_PACKETS_IN_QUEUE 10           // Below this is considered "drying pin"
 #define MAX_PACKETS_IN_QUEUE 100
 
 // Data Packet for queue storage

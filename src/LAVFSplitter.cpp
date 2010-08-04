@@ -271,8 +271,15 @@ STDMETHODIMP CLAVFSplitter::DeleteOutputs()
 
 bool CLAVFSplitter::IsAnyPinDrying()
 {
-  // TODO
-  return true;
+  // MPC changes thread priority here
+  // TODO: Investigate if that is needed
+  std::vector<CLAVFOutputPin *>::iterator it;
+  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+    if(!(*it)->IsDiscontinuous() && (*it)->QueueCount() < MIN_PACKETS_IN_QUEUE) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // Worker Thread

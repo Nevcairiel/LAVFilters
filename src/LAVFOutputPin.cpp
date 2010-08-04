@@ -171,6 +171,11 @@ HRESULT CLAVFOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME 
   return __super::DeliverNewSegment(tStart, tStop, dRate);
 }
 
+int CLAVFOutputPin::QueueCount()
+{
+  return m_queue.Size();
+}
+
 HRESULT CLAVFOutputPin::QueueEndOfStream()
 {
   return QueuePacket(NULL); // NULL means EndOfStream
@@ -180,9 +185,10 @@ HRESULT CLAVFOutputPin::QueuePacket(Packet *pPacket)
 {
   if(!ThreadExists()) return S_FALSE;
 
+  // While everything is good AND no pin is drying AND the queue is full .. sleep
   while(S_OK == m_hrDeliver 
-    && (!(static_cast<CLAVFSplitter*>(m_pFilter))->IsAnyPinDrying()
-    || m_queue.Size() > MAX_PACKETS_IN_QUEUE))
+    && !(static_cast<CLAVFSplitter*>(m_pFilter))->IsAnyPinDrying()
+    && m_queue.Size() > MAX_PACKETS_IN_QUEUE)
     Sleep(1);
 
   if(S_OK != m_hrDeliver)
