@@ -1,11 +1,11 @@
 #!/bin/bash 
 
-cd ffmpeg
-
-if [ -d .libs ]
+if [ ! -d bin_Win32/lib ]
 then
-rm -r .libs
+mkdir -p bin_Win32/lib
 fi
+
+cd ffmpeg
 
 make distclean
 
@@ -37,13 +37,9 @@ OPTIONS="
 ./configure --extra-cflags="-U__STRICT_ANSI__ -fno-strict-aliasing -fno-common" ${OPTIONS} &&
  
 make -j3 && 
-mkdir .libs &&
-cp lib*/*-*.dll .libs/ &&
-cp lib*/*.def .libs/ &&
-cp lib*/*.lib .libs/ &&
-cp lib*/*.exp .libs/ &&
-cp .libs/*  ../lib
-cp .libs/*.dll ../bin
+cp lib*/*-*.dll ../bin_Win32
+cp lib*/*.lib ../bin_Win32/lib
+cp ffprobe.exe ../bin_Win32
 cp libavutil/avconfig.h include/libavutil/
 
 cd ..

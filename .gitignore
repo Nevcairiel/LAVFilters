@@ -3,11 +3,8 @@
 *.suo
 *.sdf
 *.opensdf
-
-lib/strmbas[de].lib
+*.aps
 
 /ipch
-/Debug
-/Release
-/bin
+/bin_Win32
 /ffmpeg
