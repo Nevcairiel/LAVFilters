@@ -29,7 +29,16 @@ void CPacketQueue::Queue(Packet *pPacket)
 {
   CAutoLock cAutoLock(this);
 
-  // TODO merging appendable packets
+  if (pPacket) {
+    if (pPacket->bAppendable && !pPacket->bDiscontinuity && !pPacket->pmt
+      && pPacket->rtStart == Packet::INVALID_TIME && !IsEmpty()
+      && m_queue.back()->rtStart != Packet::INVALID_TIME) {
+        Packet* tail = m_queue.back();
+        tail->Append(pPacket);
+
+        return;
+    }
+  }
   m_queue.push_back(pPacket);
 }
 

@@ -105,6 +105,12 @@ STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
     mtype.pbFormat = (BYTE *)g_GuidHelper.CreateMPEG1VI(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
     mtype.pbFormat = (BYTE *)g_GuidHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
+    // mpeg-ts ships its stuff in annexb form, and MS defines annexb to go with H264 instead of AVC1
+    // sadly, ffdshow doesnt connect to H264 (and doesnt work on annexb in general)
+    if (m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_H264) {
+      mtype.subtype = MEDIASUBTYPE_H264;
+      ((MPEG2VIDEOINFO *)mtype.pbFormat)->hdr.bmiHeader.biCompression = FOURCCMap(&MEDIASUBTYPE_H264).Data1;
+    }
   }
 
   return S_OK;

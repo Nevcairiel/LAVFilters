@@ -428,9 +428,10 @@ MPEG2VIDEOINFO *CDSGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *si
   {
     extradata = (BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1;
 
-    if(avstream->codec->codec_id == CODEC_ID_H264)
+    // Don't even go there for mpeg-ts for now, we supply annex-b
+    if(avstream->codec->codec_id == CODEC_ID_H264 && !is_mpegts_format)
     {
-      if(!is_mpegts_format)
+      if (!is_mpegts_format)
       {
         mp2vi->dwProfile = extradata[1];
         mp2vi->dwLevel = extradata[3];

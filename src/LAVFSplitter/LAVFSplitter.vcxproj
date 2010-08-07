@@ -59,12 +59,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LAVFSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>..\includes;..\..\ffmpeg;..\baseclasses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\includes;..\baseclasses;..\..\ffmpeg;..\DSUtilLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;strmbasd.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;strmbasd.lib;dsutild.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVFSplitter.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
@@ -86,7 +86,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LAVFSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\includes;..\..\ffmpeg;..\baseclasses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\includes;..\baseclasses;..\..\ffmpeg;..\DSUtilLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

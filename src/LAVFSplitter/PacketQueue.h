@@ -45,10 +45,26 @@ public:
   // Getter
   DWORD GetDataSize() { return m_dSize; }
   BYTE *GetData() { return m_pbData; }
+  BYTE GetAt(DWORD pos) { return m_pbData[pos]; }
+  bool IsEmpty() { return m_dSize == 0; }
 
   // Setter
   void SetDataSize(DWORD len) { m_dSize = len; m_pbData = (BYTE *)realloc(m_pbData, len); }
-  void SetData(const void* ptr, DWORD len) { SetDataSize(len); memcpy(GetData(), ptr, len); }
+  void SetData(const void* ptr, DWORD len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
+
+  // Append the data of the package to our data buffer
+  void Append(Packet *ptr) {
+    DWORD prevSize = m_dSize;
+    SetDataSize(prevSize + ptr->GetDataSize());
+    memcpy(m_pbData+prevSize, ptr->GetData(), ptr->GetDataSize());
+  }
+
+  // Remove count bytes from position index
+  void RemoveHead(DWORD count) {
+    count = max(count, m_dSize);
+    memmove(m_pbData, m_pbData+count, m_dSize-count);
+    SetDataSize(m_dSize - count);
+  }
 
 private:
   DWORD m_dSize;
@@ -70,6 +86,11 @@ public:
 
   // Clear the List (all elements are free'ed)
   void Clear();
+
+  // Get access to the internal queue
+  std::deque<Packet *> *GetQueue() { return &m_queue; }
+
+  bool IsEmpty() { return Size() == 0; }
 private:
   // The actual storage class
   std::deque<Packet *> m_queue;
