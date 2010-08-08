@@ -21,23 +21,11 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-// pre-compiled header
+// some common macros
+#define SAFE_DELETE(pPtr) { delete pPtr; pPtr = NULL; }
+#define CHECK_HR(hr) if (FAILED(hr)) { goto done; }
+#define QI(i) (riid == __uuidof(i)) ? GetInterface((i*)this, ppv) :
+#define QI2(i) (riid == IID_##i) ? GetInterface((i*)this, ppv) :
+#define countof( array ) ( sizeof( array )/sizeof( array[0] ) )
 
-#pragma once
-
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-
-// include headers
-#include <Windows.h>
-#include <atlstr.h>
-
-#include <intsafe.h>
-#include <streams.h>
-
-extern "C" {
-#define __STDC_CONSTANT_MACROS
-#include "libavformat/avformat.h"
-}
-
-#include "DShowUtil.h"
+#include "filterreg.h"

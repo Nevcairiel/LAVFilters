@@ -94,7 +94,7 @@ void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkb
   va_list marker;
   va_start(marker, chkbytes);
   LPCWSTR ext = va_arg(marker, LPCWSTR);
-  DeleteRegKey(_T("Media Type\\Extensions"), ext);
+  if (ext) { DeleteRegKey(_T("Media Type\\Extensions"), ext); }
   va_end(marker);
 }
 
@@ -121,7 +121,7 @@ void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LP
   va_list marker;
   va_start(marker, chkbytes);
   LPCWSTR ext = va_arg(marker, LPCWSTR);
-  DeleteRegKey(_T("Media Type\\Extensions"), ext);
+  if (ext) { DeleteRegKey(_T("Media Type\\Extensions"), ext); }
   va_end(marker);
 }
 

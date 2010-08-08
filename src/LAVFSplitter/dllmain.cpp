@@ -36,7 +36,9 @@
 #include <InitGuid.h>
 #include "moreuuids.h"
 
-#include "filterreg.h"
+// The GUID we use to register the splitter media types
+DEFINE_GUID(MEDIATYPE_LAVFSplitter,
+  0x9c53931c, 0x7d5a, 0x4a75, 0xb2, 0x6f, 0x4e, 0x51, 0x65, 0x4d, 0xb2, 0xc0);
 
 // --- COM factory table and registration code --------------
 
@@ -107,11 +109,33 @@ int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 // self-registration entrypoint
 STDAPI DllRegisterServer()
 {
-  RegisterSourceFilter(
-    __uuidof(CLAVFSplitter),
-    MEDIASUBTYPE_Matroska,
-    _T("0,4,,1A45DFA3"),
-    _T(".mkv"), _T(".mka"), _T(".mks"));
+  std::list<LPCWSTR> chkbytes;
+
+  // MKV
+  chkbytes.push_back(L"0,4,,1A45DFA3");
+
+  // MPEG1
+  chkbytes.push_back(L"0,16,FFFFFFFFF100010001800001FFFFFFFF,000001BA2100010001800001000001BB");
+  // MPEG-PS
+  chkbytes.push_back(L"0,5,FFFFFFFFC0,000001BA40");
+  // MPEG-PVA
+  chkbytes.push_back(L"0,8,fffffc00ffe00000,4156000055000000");
+  // MPEG-TS
+  chkbytes.push_back(L"0,1,,47,188,1,,47,376,1,,47");
+  chkbytes.push_back(L"4,1,,47,196,1,,47,388,1,,47");
+  chkbytes.push_back(L"0,4,,54467263,1660,1,,47");
+
+  // AVI
+  chkbytes.push_back(_T("0,4,,52494646,8,4,,41564920")); // 'RIFF' ... 'AVI '
+  chkbytes.push_back(_T("0,4,,52494646,8,4,,41564958")); // 'RIFF' ... 'AVIX'
+
+  RegisterSourceFilter(__uuidof(CLAVFSplitter),
+    MEDIATYPE_LAVFSplitter,
+    chkbytes,
+    L".mkv", L".mka", L".mks", // MKV
+    L".avi", L".divx",  // AVI
+    L".ts", L".m2ts", L".mpg" // MPEG
+  );
 
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);
@@ -119,7 +143,7 @@ STDAPI DllRegisterServer()
 
 STDAPI DllUnregisterServer()
 {
-  UnRegisterSourceFilter(MEDIASUBTYPE_Matroska);
+  UnRegisterSourceFilter(MEDIATYPE_LAVFSplitter);
 
   // base classes will handle de-registration using the factory template table
   return AMovieDllRegisterServer2(false);

@@ -67,15 +67,6 @@
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;strmbasd.lib;dsutild.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVFSplitter.def</ModuleDefinitionFile>
     </Link>
-    <CustomBuildStep>
-      <Command>
-      </Command>
-      <Outputs>
-      </Outputs>
-    </CustomBuildStep>
-    <PostBuildEvent>
-      <Command>copy $(TargetDir)\LAVFSplitter.ax $(SolutionDir)\bin</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -93,11 +84,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>strmbase.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;strmbase.lib;dsutil.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
+      <ModuleDefinitionFile>LAVFSplitter.def</ModuleDefinitionFile>
     </Link>
-    <PostBuildEvent>
-      <Command>copy $(TargetDir)\LAVFSplitter.ax $(SolutionDir)\bin</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -105,7 +94,6 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="DSGuidHelper.cpp" />
-    <ClCompile Include="filterreg.cpp" />
     <ClCompile Include="PacketQueue.cpp" />
     <ClCompile Include="DSStreamInfo.cpp" />
     <ClCompile Include="LAVFOutputPin.cpp" />
@@ -114,7 +102,6 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="DSGuidHelper.h" />
-    <ClInclude Include="filterreg.h" />
     <ClInclude Include="PacketQueue.h" />
     <ClInclude Include="DSStreamInfo.h" />
     <ClInclude Include="LAVFOutputPin.h" />

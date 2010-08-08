@@ -461,6 +461,11 @@ HRESULT CLAVFSplitter::DemuxNextPacket()
       rt = dts;
     }
 
+    // stupid VC1
+    if (stream->codec->codec_id == CODEC_ID_VC1 && dts != Packet::INVALID_TIME) {
+      rt = dts;
+    }
+
     pPacket->rtStart = rt;
     pPacket->rtStop = rt + ((duration > 0) ? duration : 1);
 
