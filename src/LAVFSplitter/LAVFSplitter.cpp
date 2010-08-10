@@ -709,20 +709,43 @@ STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll 
 
 STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt)
 {
-  CAutoLock lock(&m_csPins);
-
   CLAVFOutputPin* pPin = GetOutputPin(TrackNumSrc);
+  // Output Pin was found
+  // Stop the Graph, remove the old filter, render the graph again, start it up again
   if (pPin) {
-    if(IPin *pinTo = pPin->GetConnected()) {
-      if(pmt && FAILED(pinTo->QueryAccept(pmt))) {
-        return VFW_E_TYPE_NOT_ACCEPTED;
-      }
-      pPin->SetStreamId(TrackNumDst);
+    CAutoLock lock(this);
+    HRESULT hr = S_OK;
 
-      if(pmt) {
-        pPin->SetNewMediaType(*pmt);
-      }
+    IMediaControl *pControl = NULL;
+    hr = m_pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
+
+    // Stop the filter graph
+    pControl->Stop();
+    // Update Output Pin
+    pPin->SetStreamId(TrackNumDst);
+    pPin->SetNewMediaType(*pmt);
+
+    // Get the Info about the old transform filter
+    PIN_INFO pInfo;
+    pPin->GetConnected()->QueryPinInfo(&pInfo);
+
+    // Remove old transform filter
+    m_pGraph->RemoveFilter(pInfo.pFilter);
+
+    // Use IGraphBuilder to rebuild the graph
+    IGraphBuilder *pGraphBuilder = NULL;
+    if(SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
+      // Instruct the GraphBuilder to connect us again
+      hr = pGraphBuilder->Render(pPin);
+      pGraphBuilder->Release();
     }
+    if (SUCCEEDED(hr)) {
+      // Re-start the graph
+      hr = pControl->Run();
+    }
+    pControl->Release();
+
+    return hr;
   }
   return E_FAIL;
 }

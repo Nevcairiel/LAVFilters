@@ -65,7 +65,7 @@ public:
   DWORD GetStreamId() { return m_streamId; };
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
 
-  void SetNewMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_newMT = new CMediaType(pmt); }
+  void SetNewMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_mts.clear(); m_mts.push_back(pmt); }
 
 private:
   enum {CMD_EXIT};
