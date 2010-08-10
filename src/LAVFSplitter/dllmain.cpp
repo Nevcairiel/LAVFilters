@@ -111,7 +111,7 @@ STDAPI DllRegisterServer()
 {
   std::list<LPCWSTR> chkbytes;
 
-  // MKV
+  // MKV/WEBM
   chkbytes.push_back(L"0,4,,1A45DFA3");
 
   // MPEG1
@@ -137,13 +137,17 @@ STDAPI DllRegisterServer()
   chkbytes.push_back(_T("4,12,ffffffff00000000ffffffff,77696465027fe3706d646174")); // wide ? mdat
   chkbytes.push_back(_T("3,3,,000001")); // mpeg4 video
 
+  // FLV
+  chkbytes.push_back(_T("0,4,,464C5601"));
+
   RegisterSourceFilter(__uuidof(CLAVFSplitter),
     MEDIATYPE_LAVFSplitter,
     chkbytes,
     L".mkv", L".mka", L".mks", // MKV
     L".avi", L".divx",  // AVI
     L".ts", L".m2ts", L".mpg", // MPEG
-    L".mp4", L".mov" // MP4
+    L".mp4", L".mov", // MP4
+    L".flv", L".webm" // Web Formats
     );
 
   // base classes will handle registration using the factory template table
