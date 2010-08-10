@@ -317,7 +317,7 @@ VIDEOINFOHEADER *CDSGuidHelper::CreateVIH(const AVStream* avstream, ULONG *size)
   return pvi;
 }
 
-VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *size)
+VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *size, bool is_mpegts_format)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -325,13 +325,14 @@ VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *siz
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
 
-  if(vih->bmiHeader.biSize > sizeof(BITMAPINFOHEADER)) 
-  {
-    extra = vih->bmiHeader.biSize - sizeof(BITMAPINFOHEADER);
-    // increase extra size by one, because VIH2 requires one 0 byte between header and extra data
-    //extra++;
+  if(avstream->codec->extradata_size > 0) {
+    extra = avstream->codec->extradata_size;
+    //increase extra size by one, because VIH2 requires one 0 byte between header and extra data
+    if (is_mpegts_format) {
+      extra++;
+    }
 
-    extradata = (BYTE*)&vih->bmiHeader + sizeof(BITMAPINFOHEADER);
+    extradata = avstream->codec->extradata;
   }
 
   VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)CoTaskMemAlloc(sizeof(VIDEOINFOHEADER2) + extra); 
@@ -353,10 +354,14 @@ VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *siz
   vih2->dwReserved2 = 0;
 
   if(extra) {
-    // The first byte after the infoheader has to be 0
-    //*((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
-    // after that, the extradata .. size reduced by one again
-    memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extra);
+    // The first byte after the infoheader has to be 0 in mpeg-ts
+    if (is_mpegts_format) {
+      *((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
+      // after that, the extradata .. size reduced by one again
+      memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1, extradata, extra - 1);
+    } else {
+      memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extra);
+    }
   }
 
   // Free the VIH that we converted
@@ -374,10 +379,9 @@ MPEG1VIDEOINFO *CDSGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *si
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
 
-  if(vih->bmiHeader.biSize > sizeof(BITMAPINFOHEADER)) 
-  {
-    extra = vih->bmiHeader.biSize - sizeof(BITMAPINFOHEADER);
-    extradata = (BYTE*)&vih->bmiHeader + sizeof(BITMAPINFOHEADER);
+  if(avstream->codec->extradata_size > 0) {
+    extra = avstream->codec->extradata_size;
+    extradata = avstream->codec->extradata;
   }
 
   MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG1VIDEOINFO) + max(extra - 1, 0)); 
@@ -410,11 +414,11 @@ MPEG2VIDEOINFO *CDSGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *si
   // Create a VIH that we'll convert
   VIDEOINFOHEADER2 *vih2 = CreateVIH2(avstream, size);
 
-  if(*size > sizeof(VIDEOINFOHEADER2))
-  {
-    extra = *size - sizeof(VIDEOINFOHEADER2);
-    extra--;
+  if(avstream->codec->extradata_size > 0) {
+    extra = avstream->codec->extradata_size;
+    extradata = avstream->codec->extradata;
   }
+
   MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG2VIDEOINFO) + max(extra - 4, 0)); 
   memset(mp2vi, 0, sizeof(MPEG2VIDEOINFO));
   memcpy(&mp2vi->hdr, vih2, sizeof(VIDEOINFOHEADER2));
@@ -425,10 +429,8 @@ MPEG2VIDEOINFO *CDSGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *si
   mp2vi->dwLevel = (avstream->codec->level != FF_LEVEL_UNKNOWN) ? avstream->codec->level : 0;
   //mp2vi->dwFlags = 4; // where do we get flags otherwise..?
 
-  if(extra) 
+  if(extra > 0)
   {
-    extradata = (BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1;
-
     // Don't even go there for mpeg-ts for now, we supply annex-b
     if(avstream->codec->codec_id == CODEC_ID_H264 && !is_mpegts_format)
     {

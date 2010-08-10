@@ -386,9 +386,9 @@ public:
   CMediaType initVideoType(CodecID codecId);
 
   VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size);
-  VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size);
+  VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, bool is_mpegts_format = false);
   MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size);
-  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format);
+  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format = false);
 };
 
 extern CDSGuidHelper g_GuidHelper;

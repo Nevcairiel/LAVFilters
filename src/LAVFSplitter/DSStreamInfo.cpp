@@ -100,7 +100,7 @@ STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
   if (mtype.formattype == FORMAT_VideoInfo) {
     mtype.pbFormat = (BYTE *)g_GuidHelper.CreateVIH(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_VideoInfo2) {
-    mtype.pbFormat = (BYTE *)g_GuidHelper.CreateVIH2(avstream, &mtype.cbFormat);
+    mtype.pbFormat = (BYTE *)g_GuidHelper.CreateVIH2(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_GuidHelper.CreateMPEG1VI(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
