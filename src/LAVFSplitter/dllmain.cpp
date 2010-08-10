@@ -129,13 +129,22 @@ STDAPI DllRegisterServer()
   chkbytes.push_back(_T("0,4,,52494646,8,4,,41564920")); // 'RIFF' ... 'AVI '
   chkbytes.push_back(_T("0,4,,52494646,8,4,,41564958")); // 'RIFF' ... 'AVIX'
 
+  // MP4
+  chkbytes.push_back(_T("4,4,,66747970")); // ftyp
+  chkbytes.push_back(_T("4,4,,6d6f6f76")); // moov
+  chkbytes.push_back(_T("4,4,,6d646174")); // mdat
+  chkbytes.push_back(_T("4,4,,736b6970")); // skip
+  chkbytes.push_back(_T("4,12,ffffffff00000000ffffffff,77696465027fe3706d646174")); // wide ? mdat
+  chkbytes.push_back(_T("3,3,,000001")); // mpeg4 video
+
   RegisterSourceFilter(__uuidof(CLAVFSplitter),
     MEDIATYPE_LAVFSplitter,
     chkbytes,
     L".mkv", L".mka", L".mks", // MKV
     L".avi", L".divx",  // AVI
-    L".ts", L".m2ts", L".mpg" // MPEG
-  );
+    L".ts", L".m2ts", L".mpg", // MPEG
+    L".mp4", L".mov" // MP4
+    );
 
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);
