@@ -92,8 +92,8 @@ STDMETHODIMP CDSStreamInfo::CreateAudioMediaType(AVStream *avstream)
 STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
 {
   mtype = g_GuidHelper.initVideoType(avstream->codec->codec_id);
-  mtype.bTemporalCompression = 0;
-  mtype.bFixedSizeSamples = 1; // TODO
+  mtype.bTemporalCompression = 1;
+  mtype.bFixedSizeSamples = 0; // TODO
 
   avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
 

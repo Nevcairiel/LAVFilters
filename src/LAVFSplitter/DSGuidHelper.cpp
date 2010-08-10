@@ -98,6 +98,7 @@ CMediaType CDSGuidHelper::initVideoType(CodecID codecId)
   case CODEC_ID_RV40:
     mediaType.formattype = FORMAT_VideoInfo2;
     break;
+  case CODEC_ID_WMV3:
   case CODEC_ID_VC1:
     mediaType.formattype = FORMAT_VideoInfo2;
     break;
@@ -328,7 +329,7 @@ VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *siz
   {
     extra = vih->bmiHeader.biSize - sizeof(BITMAPINFOHEADER);
     // increase extra size by one, because VIH2 requires one 0 byte between header and extra data
-    extra++;
+    //extra++;
 
     extradata = (BYTE*)&vih->bmiHeader + sizeof(BITMAPINFOHEADER);
   }
@@ -344,7 +345,7 @@ VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *siz
   vih2->dwPictAspectRatioX = vih->bmiHeader.biWidth;
   vih2->dwPictAspectRatioY = vih->bmiHeader.biHeight;
   memcpy(&vih2->bmiHeader, &vih->bmiHeader, sizeof(BITMAPINFOHEADER));
-  vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+  vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extra;
 
   vih2->dwInterlaceFlags = 0;
   vih2->dwCopyProtectFlags = 0;
@@ -353,9 +354,9 @@ VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *siz
 
   if(extra) {
     // The first byte after the infoheader has to be 0
-    *((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
+    //*((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
     // after that, the extradata .. size reduced by one again
-    memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1, extradata, extra - 1);
+    memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extra);
   }
 
   // Free the VIH that we converted
