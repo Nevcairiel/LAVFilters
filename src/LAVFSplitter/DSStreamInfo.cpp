@@ -24,6 +24,7 @@
 #include "stdafx.h"
 #include "DSStreamInfo.h"
 #include "DSGuidHelper.h"
+#include "moreuuids.h"
 
 CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat)
 {
@@ -119,8 +120,35 @@ STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
 STDMETHODIMP CDSStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
 {
   mtype.InitMediaType();
-  // TODO
-  //mtype.majortype = MEDIATYPE_Subtitle;
-  //mtype.formattype = FORMAT_SubtitleInfo;
+  mtype.majortype = MEDIATYPE_Subtitle;
+  mtype.formattype = FORMAT_SubtitleInfo;
+  // create format info
+  SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO) + avstream->codec->extradata_size);
+  memset(subInfo, 0, mtype.FormatLength());
+
+  if (av_metadata_get(avstream->metadata, "language", NULL, 0))
+  {
+    char *lang = av_metadata_get(avstream->metadata, "language", NULL, 0)->value;
+    strncpy_s(subInfo->IsoLang, 4, lang, _TRUNCATE);
+  }
+
+  if (av_metadata_get(avstream->metadata, "title", NULL, 0))
+  {
+    // read metadata
+    char *title = av_metadata_get(avstream->metadata, "title", NULL, 0)->value;
+    // convert to wchar
+    mbstowcs_s(NULL, subInfo->TrackName, 256, title, _TRUNCATE);
+  }
+
+  // Extradata
+  memcpy(mtype.pbFormat + (subInfo->dwOffset = sizeof(SUBTITLEINFO)), avstream->codec->extradata, avstream->codec->extradata_size);
+
+  // TODO CODEC_ID_MOV_TEXT
+  mtype.subtype = avstream->codec->codec_id == CODEC_ID_TEXT ? MEDIASUBTYPE_UTF8 :
+                  avstream->codec->codec_id == CODEC_ID_SSA ? MEDIASUBTYPE_SSA :
+                  avstream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE ? MEDIASUBTYPE_HDMVSUB :
+                  avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE ? MEDIASUBTYPE_VOBSUB :
+                  MEDIASUBTYPE_NULL;
+
   return S_OK;
 }

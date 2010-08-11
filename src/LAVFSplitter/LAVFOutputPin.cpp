@@ -196,7 +196,7 @@ HRESULT CLAVFOutputPin::QueuePacket(Packet *pPacket)
 
   {
     CAutoLock lock(&m_csMT);
-    if(m_newMT) {
+    if(m_newMT && pPacket) {
       pPacket->pmt = CreateMediaType(m_newMT);
       SAFE_DELETE(m_newMT);
     }

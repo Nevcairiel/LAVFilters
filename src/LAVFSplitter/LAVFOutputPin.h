@@ -29,6 +29,8 @@
 #include <string>
 #include "PacketQueue.h"
 
+#include "moreuuids.h"
+
 class CLAVFOutputPin
   : public CBaseOutputPin
   , protected CAMThread
@@ -66,6 +68,11 @@ public:
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
 
   void SetNewMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_mts.clear(); m_mts.push_back(pmt); }
+  void QueueMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_newMT = new CMediaType(pmt); }
+
+  BOOL IsVideoPin() { CAutoLock lock(&m_csMT); return m_mt.majortype == MEDIATYPE_Video || (m_mts.size() > 0 && m_mts[0].majortype == MEDIATYPE_Video); }
+  BOOL IsAudioPin() { CAutoLock lock(&m_csMT); return m_mt.majortype == MEDIATYPE_Audio || (m_mts.size() > 0 && m_mts[0].majortype == MEDIATYPE_Audio); }
+  BOOL IsSubtitlePin(){ CAutoLock lock(&m_csMT); return m_mt.majortype == MEDIATYPE_Subtitle || m_mt.majortype == MEDIATYPE_Text || (m_mts.size() > 0 && (m_mts[0].majortype == MEDIATYPE_Subtitle || m_mts[0].majortype == MEDIATYPE_Text)); }
 
 private:
   enum {CMD_EXIT};

@@ -712,7 +712,10 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
   CLAVFOutputPin* pPin = GetOutputPin(TrackNumSrc);
   // Output Pin was found
   // Stop the Graph, remove the old filter, render the graph again, start it up again
-  if (pPin) {
+  // -- only for audio --
+  // other pins we can't dynamically reconnect, its not supported for video on most codecs/renderes
+  // and subtitles are done by those as well, most of the time
+  if (pPin && pPin->IsAudioPin()) {
     CAutoLock lock(this);
     HRESULT hr = S_OK;
 
@@ -725,12 +728,15 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     pPin->SetStreamId(TrackNumDst);
     pPin->SetNewMediaType(*pmt);
 
-    // Get the Info about the old transform filter
-    PIN_INFO pInfo;
-    pPin->GetConnected()->QueryPinInfo(&pInfo);
+    // If the pin was connected, disconnect it
+    if (pPin->IsConnected()) {
+      // Get the Info about the old transform filter
+      PIN_INFO pInfo;
+      pPin->GetConnected()->QueryPinInfo(&pInfo);
 
-    // Remove old transform filter
-    m_pGraph->RemoveFilter(pInfo.pFilter);
+      // Remove old transform filter
+      m_pGraph->RemoveFilter(pInfo.pFilter);
+    }
 
     // Use IGraphBuilder to rebuild the graph
     IGraphBuilder *pGraphBuilder = NULL;
@@ -746,6 +752,19 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     pControl->Release();
 
     return hr;
+  } else if (pPin) {
+    CAutoLock pinLock(&m_csPins);
+    // Old fashioned reconnect
+    if(IPin *pinTo = pPin->GetConnected()) {
+      if(pmt && FAILED(pinTo->QueryAccept(pmt))) {
+        return VFW_E_TYPE_NOT_ACCEPTED;
+      }
+      pPin->SetStreamId(TrackNumDst);
+      if(pmt) {
+        pPin->QueueMediaType(*pmt);
+      }
+      return S_OK;
+    }
   }
   return E_FAIL;
 }
