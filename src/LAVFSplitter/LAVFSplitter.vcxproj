@@ -42,8 +42,6 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <CustomBuildAfterTargets>
-    </CustomBuildAfterTargets>
     <TargetExt>.ax</TargetExt>
     <OutDir>$(SolutionDir)bin_$(PlatformName)\</OutDir>
   </PropertyGroup>
