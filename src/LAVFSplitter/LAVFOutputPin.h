@@ -31,13 +31,15 @@
 
 #include "moreuuids.h"
 
+#include "LAVFSplitter.h"
+
 class CLAVFOutputPin
   : public CBaseOutputPin
   , protected CAMThread
 {
 public:
-  CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container = "", int nBuffers = 0);
-  CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container = "", int nBuffers = 0);
+  CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType = CLAVFSplitter::unknown,const char* container = "", int nBuffers = 0);
+  CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType = CLAVFSplitter::unknown, const char* container = "", int nBuffers = 0);
   ~CLAVFOutputPin();
 
   DECLARE_IUNKNOWN;
@@ -70,9 +72,9 @@ public:
   void SetNewMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_mts.clear(); m_mts.push_back(pmt); }
   void QueueMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_newMT = new CMediaType(pmt); }
 
-  BOOL IsVideoPin() { CAutoLock lock(&m_csMT); return m_mt.majortype == MEDIATYPE_Video || (m_mts.size() > 0 && m_mts[0].majortype == MEDIATYPE_Video); }
-  BOOL IsAudioPin() { CAutoLock lock(&m_csMT); return m_mt.majortype == MEDIATYPE_Audio || (m_mts.size() > 0 && m_mts[0].majortype == MEDIATYPE_Audio); }
-  BOOL IsSubtitlePin(){ CAutoLock lock(&m_csMT); return m_mt.majortype == MEDIATYPE_Subtitle || m_mt.majortype == MEDIATYPE_Text || (m_mts.size() > 0 && (m_mts[0].majortype == MEDIATYPE_Subtitle || m_mts[0].majortype == MEDIATYPE_Text)); }
+  BOOL IsVideoPin() { return m_pinType == CLAVFSplitter::video; }
+  BOOL IsAudioPin() { return m_pinType == CLAVFSplitter::audio; }
+  BOOL IsSubtitlePin(){ return m_pinType == CLAVFSplitter::subpic; }
 
 private:
   enum {CMD_EXIT};
@@ -99,4 +101,6 @@ private:
 
   DWORD m_streamId;
   CMediaType *m_newMT;
+
+  CLAVFSplitter::StreamType m_pinType;
 };

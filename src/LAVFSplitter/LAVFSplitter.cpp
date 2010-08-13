@@ -68,6 +68,7 @@ STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(IFileSourceFilter)
     QI(IMediaSeeking)
     QI(IAMStreamSelect)
+    QI(IKeyFrameInfo)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -225,7 +226,7 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
       std::vector<CMediaType> mts;
       mts.push_back(it->streamInfo->mtype);
 
-      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, container);
+      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (StreamType)i, container);
       if(SUCCEEDED(hr)) {
         pPin->SetStreamId(it->pid);
         m_pPins.push_back(pPin);
@@ -281,6 +282,18 @@ bool CLAVFSplitter::IsAnyPinDrying()
   }
   return false;
 }
+
+DWORD CLAVFSplitter::GetVideoStreamId()
+{
+  std::vector<CLAVFOutputPin *>::iterator it;
+  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+    if((*it)->IsVideoPin()) {
+      return (*it)->GetStreamId();
+    }
+  }
+  return m_pPins[0]->GetStreamId();
+}
+
 
 // Worker Thread
 DWORD CLAVFSplitter::ThreadProc()
@@ -343,7 +356,7 @@ DWORD CLAVFSplitter::ThreadProc()
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
-REFERENCE_TIME CLAVFSplitter::ConvertTimestamp(int64_t pts, int den, int num)
+REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den)
 {
   if (pts == (int64_t)AV_NOPTS_VALUE) {
     return Packet::INVALID_TIME;
@@ -351,35 +364,50 @@ REFERENCE_TIME CLAVFSplitter::ConvertTimestamp(int64_t pts, int den, int num)
 
   // do calculations in double-precision floats as they can easily overflow otherwise
   // we don't care for having a completly exact timestamp anyway
-  double timestamp = (double)pts * num  / den;
+  REFERENCE_TIME timestamp = av_rescale(pts, num * DVD_TIME_BASE, den);
   double starttime = 0.0f;
 
   if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE) {
-    starttime = (double)m_avFormat->start_time / AV_TIME_BASE;
+    starttime = (double)m_avFormat->start_time / ((double)AV_TIME_BASE / DVD_TIME_BASE);
   }
 
   if(timestamp > starttime) {
-    timestamp -= starttime;
+    timestamp -= (REFERENCE_TIME)starttime;
   } else if( timestamp + 0.1f > starttime ) {
     timestamp = 0;
   }
 
-  return (REFERENCE_TIME)(timestamp * DVD_TIME_BASE);
+  return timestamp;
+}
+
+// Converts the lavf pts timestamp to a DShow REFERENCE_TIME
+// Based on DVDDemuxFFMPEG
+int64_t CLAVFSplitter::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den)
+{
+  if (timestamp == Packet::INVALID_TIME) {
+    return (int64_t)AV_NOPTS_VALUE;
+  }
+
+  double starttime = 0.0f;
+  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE) {
+    timestamp += (REFERENCE_TIME)(m_avFormat->start_time / ((double)AV_TIME_BASE / DVD_TIME_BASE));
+  }
+
+  return av_rescale(timestamp, den, num * DVD_TIME_BASE);
 }
 
 // Seek to the specified time stamp
 // Based on DVDDemuxFFMPEG
 HRESULT CLAVFSplitter::DemuxSeek(REFERENCE_TIME rtStart)
 {
-  int time = DVD_TIME_TO_MSEC(rtStart);
-  if(time < 0) { time = 0; }
+  if(rtStart < 0) { rtStart = 0; }
 
-  __int64 seek_pts = (__int64)time * (AV_TIME_BASE / 1000);
-  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE) {
-    seek_pts += m_avFormat->start_time;
-  }
+  DWORD streamId = GetVideoStreamId();
+  AVStream *stream = m_avFormat->streams[streamId];
 
-  int ret = avformat_seek_file(m_avFormat, -1, _I64_MIN, seek_pts, _I64_MAX, 0);
+  int64_t seek_pts = ConvertRTToTimestamp(rtStart, stream->time_base.num, stream->time_base.den);
+
+  int ret = avformat_seek_file(m_avFormat, streamId, _I64_MIN, seek_pts, _I64_MAX, 0);
   //int ret = av_seek_frame(m_avFormat, -1, seek_pts, 0);
 
   return S_OK;
@@ -449,9 +477,9 @@ HRESULT CLAVFSplitter::DemuxNextPacket()
 
     pPacket->StreamId = (DWORD)pkt.stream_index;
 
-    REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestamp(pkt.pts, stream->time_base.den, stream->time_base.num);
-    REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestamp(pkt.dts, stream->time_base.den, stream->time_base.num);
-    REFERENCE_TIME duration =  (REFERENCE_TIME)DVD_SEC_TO_TIME((double)pkt.duration * stream->time_base.num / stream->time_base.den);
+    REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
+    REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
+    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den);
 
     REFERENCE_TIME rt = m_rtCurrent;
     // Try the different times set, pts first, dts when pts is not valid
@@ -706,6 +734,28 @@ STDMETHODIMP CLAVFSplitter::GetAvailable(LONGLONG* pEarliest, LONGLONG* pLatest)
 STDMETHODIMP CLAVFSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = dRate, S_OK : E_INVALIDARG;}
 STDMETHODIMP CLAVFSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
 STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
+
+STDMETHODIMP CLAVFSplitter::GetKeyFrameCount(UINT& nKFs)
+{
+  DWORD videoStream = GetVideoStreamId();
+  nKFs = m_avFormat->streams[videoStream]->nb_index_entries;
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs)
+{
+  CheckPointer(pFormat, E_POINTER);
+  CheckPointer(pKFs, E_POINTER);
+
+  if(*pFormat != TIME_FORMAT_MEDIA_TIME) return E_INVALIDARG;
+
+  AVStream *stream = m_avFormat->streams[GetVideoStreamId()];
+  nKFs = stream->nb_index_entries;
+  for(unsigned int i = 0; i < nKFs; i++) {
+    pKFs[i] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
+  }
+  return S_OK;
+}
 
 STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt)
 {

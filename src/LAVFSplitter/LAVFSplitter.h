@@ -31,6 +31,8 @@
 #include <vector>
 #include "PacketQueue.h"
 
+#include "IKeyFrameInfo.h"
+
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
 
 #define DVD_TIME_BASE 10000000        // DirectShow times are in 100ns units
@@ -49,6 +51,7 @@ class CLAVFSplitter
   , public IFileSourceFilter
   , public IMediaSeeking
   , public IAMStreamSelect
+  , public IKeyFrameInfo
 {
 public:
   // constructor method used by class factory
@@ -94,6 +97,10 @@ public:
   STDMETHODIMP Enable(long lIndex, DWORD dwFlags);
   STDMETHODIMP Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk);
 
+  // IKeyFrameInfo
+  STDMETHODIMP GetKeyFrameCount(UINT& nKFs);
+  STDMETHODIMP GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs);
+
   bool IsAnyPinDrying();
 protected:
   // CAMThread
@@ -103,7 +110,8 @@ protected:
   REFERENCE_TIME GetStreamLength();
   HRESULT DemuxSeek(REFERENCE_TIME rtStart);
   HRESULT DemuxNextPacket();
-  REFERENCE_TIME ConvertTimestamp(int64_t pts, int den, int num);
+  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num);
+  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num);
 
   HRESULT DeliverPacket(Packet *pPacket);
 
@@ -133,6 +141,7 @@ public:
 
   CLAVFOutputPin *GetOutputPin(DWORD streamId);
   STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt);
+  DWORD GetVideoStreamId();
 
 private:
   // construct only via class factory

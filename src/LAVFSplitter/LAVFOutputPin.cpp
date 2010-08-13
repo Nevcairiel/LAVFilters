@@ -28,7 +28,7 @@
 #include "LAVFSplitter.h"
 #include "moreuuids.h"
 
-CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container, int nBuffers)
+CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType, const char* container, int nBuffers)
   : CBaseOutputPin(NAME("lavfsplitter output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
@@ -40,7 +40,7 @@ CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBas
   m_nBuffers = max(nBuffers, 2);
 }
 
-CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, const char* container, int nBuffers)
+CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType, const char* container, int nBuffers)
   : CBaseOutputPin(NAME("lavfsplitter output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
