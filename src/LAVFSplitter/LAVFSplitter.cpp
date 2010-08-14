@@ -364,17 +364,11 @@ REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den
 
   // do calculations in double-precision floats as they can easily overflow otherwise
   // we don't care for having a completly exact timestamp anyway
-  REFERENCE_TIME timestamp = av_rescale(pts, num * DVD_TIME_BASE, den);
-  double starttime = 0.0f;
+  REFERENCE_TIME timestamp = av_rescale(pts, (int64_t)num * DVD_TIME_BASE, den);
+  REFERENCE_TIME starttime = 0;
 
-  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE) {
-    starttime = (double)m_avFormat->start_time / ((double)AV_TIME_BASE / DVD_TIME_BASE);
-  }
-
-  if(timestamp > starttime) {
-    timestamp -= (REFERENCE_TIME)starttime;
-  } else if( timestamp + 0.1f > starttime ) {
-    timestamp = 0;
+ if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
+    timestamp -= av_rescale(m_avFormat->start_time, DVD_TIME_BASE, AV_TIME_BASE);
   }
 
   return timestamp;
@@ -389,11 +383,11 @@ int64_t CLAVFSplitter::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, i
   }
 
   double starttime = 0.0f;
-  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE) {
-    timestamp += (REFERENCE_TIME)(m_avFormat->start_time / ((double)AV_TIME_BASE / DVD_TIME_BASE));
+  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
+    timestamp += av_rescale(m_avFormat->start_time, DVD_TIME_BASE, AV_TIME_BASE);
   }
 
-  return av_rescale(timestamp, den, num * DVD_TIME_BASE);
+  return av_rescale(timestamp, den, (int64_t)num * DVD_TIME_BASE);
 }
 
 // Seek to the specified time stamp
