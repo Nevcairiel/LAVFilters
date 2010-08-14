@@ -362,12 +362,10 @@ REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den
     return Packet::INVALID_TIME;
   }
 
-  // do calculations in double-precision floats as they can easily overflow otherwise
-  // we don't care for having a completly exact timestamp anyway
+  // Let av_rescale do the work, its smart enough to not overflow
   REFERENCE_TIME timestamp = av_rescale(pts, (int64_t)num * DVD_TIME_BASE, den);
-  REFERENCE_TIME starttime = 0;
 
- if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
+  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
     timestamp -= av_rescale(m_avFormat->start_time, DVD_TIME_BASE, AV_TIME_BASE);
   }
 
@@ -382,7 +380,7 @@ int64_t CLAVFSplitter::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, i
     return (int64_t)AV_NOPTS_VALUE;
   }
 
-  double starttime = 0.0f;
+  // Let av_rescale do the work, its smart enough to not overflow
   if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
     timestamp += av_rescale(m_avFormat->start_time, DVD_TIME_BASE, AV_TIME_BASE);
   }
