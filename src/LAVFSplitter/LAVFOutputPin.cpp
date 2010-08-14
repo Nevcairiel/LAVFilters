@@ -27,7 +27,7 @@
 #include "moreuuids.h"
 
 CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType, const char* container, int nBuffers)
-  : CBaseOutputPin(NAME("lavfsplitter output pin"), pFilter, pLock, phr, pName)
+  : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
   , m_eEndFlush(TRUE)
@@ -39,7 +39,7 @@ CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBas
 }
 
 CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType, const char* container, int nBuffers)
-  : CBaseOutputPin(NAME("lavfsplitter output pin"), pFilter, pLock, phr, pName)
+  : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
   , m_eEndFlush(TRUE)

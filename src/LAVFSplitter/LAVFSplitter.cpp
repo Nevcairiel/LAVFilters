@@ -35,7 +35,7 @@ CUnknown* WINAPI CLAVFSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 }
 
 CLAVFSplitter::CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
-  : CBaseFilter(NAME("lavfsplitter source filter"), pUnk, this,  __uuidof(this), phr)
+  : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
   , m_rtDuration(0), m_rtStart(0), m_rtStop(0), m_rtCurrent(0)
   , m_dRate(1.0)
   , m_avFormat(NULL)

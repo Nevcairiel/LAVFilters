@@ -81,7 +81,7 @@ const AMOVIESETUP_PIN sudOutputPins[] =
 const AMOVIESETUP_FILTER sudFilterReg =
 {
   &__uuidof(CLAVFSplitter),       // filter clsid
-  L"lavfsplitter source filter",  // filter name
+  L"lavf dshow source filter",  // filter name
   MERIT_NORMAL,                   // merit
   2,                              // count of registered pins
   sudOutputPins                   // list of pins to register
