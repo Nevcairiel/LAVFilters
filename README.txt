@@ -2,7 +2,7 @@ LAVFSplitter - a libavformat based directshow media splitter
 
 Prereqs
 =============================
-VC++2010 Runtime (http://www.microsoft.com/downloads/details.aspx?FamilyID=a7b7a05e-6de6-4d3a-a423-37bf0912db8)
+VC++2010 Runtime (http://www.microsoft.com/downloads/details.aspx?FamilyID=a7b7a05e-6de6-4d3a-a423-37bf0912db84)
 
 Install
 =============================

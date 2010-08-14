@@ -1,7 +1,4 @@
 /*
- *      Copyright (C) 2005-2010 Team XBMC
- *      http://www.xbmc.org
- *
  *      Copyright (C) 2010 Hendrik Leppkes
  *      http://www.1f0.de
  *
@@ -16,10 +13,11 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, write to
+ *  along with this program; see the file COPYING.  If not, write to
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *  http://www.gnu.org/copyleft/gpl.html
  */
+
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN

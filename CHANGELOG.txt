@@ -1,8 +1,8 @@
 LAVFSplitter Changelog
 ===================================
 
-0.2
+0.2 - 2010/08/14
 - Fixed overflow in timestamp calculation causing AVIs to play too fast
 
-0.1
+0.1 - 2010/08/14
 - Initial Release
