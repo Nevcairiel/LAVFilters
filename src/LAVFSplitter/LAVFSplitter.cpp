@@ -732,9 +732,9 @@ STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll 
 // IKeyFrameInfo
 STDMETHODIMP CLAVFSplitter::GetKeyFrameCount(UINT& nKFs)
 {
-  DWORD videoStream = GetVideoStreamId();
-  nKFs = m_avFormat->streams[videoStream]->nb_index_entries;
-  return S_OK;
+  AVStream *stream = m_avFormat->streams[GetVideoStreamId()];
+  nKFs = stream->nb_index_entries;
+  return (stream->nb_index_entries == stream->nb_frames) ? S_FALSE : S_OK;
 }
 
 STDMETHODIMP CLAVFSplitter::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs)
