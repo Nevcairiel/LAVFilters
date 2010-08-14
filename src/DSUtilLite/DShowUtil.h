@@ -21,6 +21,13 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
+#pragma once
+
+#include <list>
+#include <string>
+
+#define LCID_NOSUBTITLES			-1
+
 // some common macros
 #define SAFE_DELETE(pPtr) { delete pPtr; pPtr = NULL; }
 #define CHECK_HR(hr) if (FAILED(hr)) { goto done; }
@@ -28,4 +35,17 @@
 #define QI2(i) (riid == IID_##i) ? GetInterface((i*)this, ppv) :
 #define countof( array ) ( sizeof( array )/sizeof( array[0] ) )
 
-#include "filterreg.h"
+// Filter Registration
+extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkbytes, ...);
+extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LPCWSTR> chkbytes, ...);
+extern void UnRegisterSourceFilter(const GUID& subtype);
+
+// Locale
+extern std::string ISO6391ToLanguage(LPCSTR code);
+extern std::string ISO6392ToLanguage(LPCSTR code);
+extern std::string ProbeLangForLanguage(LPCSTR code);
+extern LCID ISO6391ToLcid(LPCSTR code);
+extern LCID ISO6392ToLcid(LPCSTR code);
+extern LCID ProbeLangForLCID(LPCSTR code);
+extern std::string ISO6391To6392(LPCSTR code);
+extern std::string ISO6392To6391(LPCSTR code);

@@ -735,6 +735,7 @@ STDMETHODIMP CLAVFSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = 
 STDMETHODIMP CLAVFSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
 STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
 
+// IKeyFrameInfo
 STDMETHODIMP CLAVFSplitter::GetKeyFrameCount(UINT& nKFs)
 {
   DWORD videoStream = GetVideoStreamId();
@@ -864,6 +865,7 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
   return S_FALSE;
 }
 
+#define INFOBUFSIZE 128
 STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk)
 {
   for(int i = 0, j = 0; i < countof(m_streams); i++) {
@@ -876,23 +878,46 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
 
       if(ppmt) *ppmt = CreateMediaType(&s.streamInfo->mtype);
       if(pdwFlags) *pdwFlags = GetOutputPin(s) ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
-      if(plcid) *plcid = 0; // TODO: locale
       if(pdwGroup) *pdwGroup = i;
       if(ppObject) *ppObject = NULL;
       if(ppUnk) *ppUnk = NULL;
 
+      std::string sLanguage = std::string();
+      // Probe language
+      if (av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)) {
+        char *lang = av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)->value;
+        if(plcid) *plcid = ProbeLangForLCID(lang);
+        sLanguage = ProbeLangForLanguage(lang);
+        if(sLanguage.empty()) {
+          sLanguage = std::string(lang);
+        }
+      }
+
+      // TODO: This needs some serious refactoring
       if(ppszName) {
-        char format[128];
-        avcodec_string(format, 128, m_avFormat->streams[s.pid]->codec, 0);
-        // Get the actual length (+ leading zero)
-        int formatlen = strlen(format) + 1;
-
+        char buffer[INFOBUFSIZE];
+        unsigned short pos = 0;
+        // Subtitles just get their name, and the codec (if its known)
+        if(i == subpic) {
+          pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, "Subtitle: ");
+          if (!sLanguage.empty()) {
+            pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, "%s", sLanguage.c_str());
+          } else {
+            pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, "#%ld", s.pid);
+          }
+          if (strlen(m_avFormat->streams[s.pid]->codec->codec_name)) {
+            pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, " (%s)", m_avFormat->streams[s.pid]->codec->codec_name);
+          }
+        } else {
+          avcodec_string(buffer + pos, INFOBUFSIZE - pos, m_avFormat->streams[s.pid]->codec, 0);
+          // Get the actual length (+ leading zero)
+          pos += strlen(buffer);
+        }
         // Alloc space
-        *ppszName = (WCHAR*)CoTaskMemAlloc(formatlen * sizeof(WCHAR));
+        *ppszName = (WCHAR*)CoTaskMemAlloc((pos + 1) * sizeof(WCHAR));
         if(*ppszName == NULL) return E_OUTOFMEMORY;
-
         // Copy format over
-        mbstowcs_s(NULL, *ppszName, formatlen, format, _TRUNCATE);
+        mbstowcs_s(NULL, *ppszName, pos + 1, buffer, _TRUNCATE);
       }
     }
     j += cnt;

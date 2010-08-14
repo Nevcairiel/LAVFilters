@@ -19,7 +19,7 @@
  *
  */
 #include "stdafx.h"
-#include "filterreg.h"
+#include "DShowUtil.h"
 
 std::wstring CStringFromGUID(const GUID& guid)
 {
