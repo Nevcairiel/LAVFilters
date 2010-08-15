@@ -1,6 +1,11 @@
 LAVFSplitter Changelog
 ===================================
 
+0.3 - 2010/08/15
+- Added Chapter support
+- Improved stream descriptions
+- 64-bit support
+
 0.2 - 2010/08/14
 - Fixed overflow in timestamp calculation causing AVIs to play too fast
 
