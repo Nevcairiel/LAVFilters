@@ -7,4 +7,5 @@
 
 /ipch
 /bin_Win32
+/bin_x64
 /ffmpeg

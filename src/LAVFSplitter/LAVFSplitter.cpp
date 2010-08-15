@@ -75,8 +75,7 @@ int CLAVFSplitter::GetPinCount()
 {
   CAutoLock lock(this);
 
-  int count = m_pPins.size();
-  return count;
+  return (int)m_pPins.size();
 }
 
 CBasePin *CLAVFSplitter::GetPin(int n)
@@ -122,7 +121,7 @@ STDMETHODIMP CLAVFSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pm
 {
   CheckPointer(ppszFileName, E_POINTER);
 
-  int strlen = m_fileName.length() + 1;
+  size_t strlen = m_fileName.length() + 1;
   *ppszFileName = (LPOLESTR)CoTaskMemAlloc(sizeof(wchar_t) * strlen);
 
   if(!(*ppszFileName))
@@ -817,7 +816,7 @@ STDMETHODIMP CLAVFSplitter::Count(DWORD *pcStreams)
 
   *pcStreams = 0;
   for(int i = 0; i < countof(m_streams); i++) {
-    *pcStreams += m_streams[i].size();
+    *pcStreams += (DWORD)m_streams[i].size();
   }
 
   return S_OK;
@@ -830,7 +829,7 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
   }
 
   for(int i = 0, j = 0; i < countof(m_streams); i++) {
-    int cnt = m_streams[i].size();
+    int cnt = (int)m_streams[i].size();
 
     if(lIndex >= j && lIndex < j+cnt) {
       long idx = (lIndex - j);
@@ -859,7 +858,7 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
 STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk)
 {
   for(int i = 0, j = 0; i < countof(m_streams); i++) {
-    int cnt = m_streams[i].size();
+    int cnt = (int)m_streams[i].size();
 
     if(lIndex >= j && lIndex < j+cnt) {
       long idx = (lIndex - j);
@@ -886,7 +885,7 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
       // TODO: This needs some serious refactoring
       if(ppszName) {
         char buffer[INFOBUFSIZE];
-        unsigned short pos = 0;
+        int pos = 0;
         // Subtitles just get their name, and the codec (if its known)
         if(i == subpic) {
           pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, "Subtitle: ");
@@ -901,7 +900,7 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
         } else {
           avcodec_string(buffer + pos, INFOBUFSIZE - pos, m_avFormat->streams[s.pid]->codec, 0);
           // Get the actual length (+ leading zero)
-          pos += strlen(buffer);
+          pos += (int)strlen(buffer);
         }
         // Alloc space
         *ppszName = (WCHAR*)CoTaskMemAlloc((pos + 1) * sizeof(WCHAR));

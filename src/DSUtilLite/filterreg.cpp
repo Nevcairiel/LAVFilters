@@ -66,7 +66,7 @@ bool SetRegKeyValue(std::wstring szKey, std::wstring szSubkey, std::wstring szVa
     {
       ec = ::RegSetValueEx(hKey, szValueName.c_str(), 0, REG_SZ,
         reinterpret_cast<BYTE*>(const_cast<LPTSTR>(szValue.c_str())),
-        (_tcslen(szValue.c_str()) + 1) * sizeof(TCHAR));
+        (DWORD)(_tcslen(szValue.c_str()) + 1) * sizeof(TCHAR));
     }
 
     bOK = (ec == ERROR_SUCCESS);

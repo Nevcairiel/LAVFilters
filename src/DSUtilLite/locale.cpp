@@ -566,7 +566,7 @@ std::string ISO6391ToLanguage(LPCSTR code)
 		if(!strcmp(s_isolangs[i].iso6391, tmp))
 		{
 			std::string ret = std::string(s_isolangs[i].name);
-			int i = ret.find(';');
+			size_t i = ret.find(';');
 			if(i != std::string::npos) {
         ret = ret.substr(i+1);
       }
@@ -585,7 +585,7 @@ std::string ISO6392ToLanguage(LPCSTR code)
 		if(!strcmp(s_isolangs[i].iso6392, tmp))
 		{
 			std::string ret = std::string(s_isolangs[i].name);
-			int i = ret.find(';');
+			size_t i = ret.find(';');
 			if(i != std::string::npos) {
         ret = ret.substr(i+1);
       }
