@@ -26,6 +26,8 @@
 #include "DSStreamInfo.h"
 #include "LAVFOutputPin.h"
 
+#include "lavfutils.h"
+
 #include <string>
 
 // static constructor
@@ -934,42 +936,15 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
       if(ppObject) *ppObject = NULL;
       if(ppUnk) *ppUnk = NULL;
 
-      std::string sLanguage = std::string();
       // Probe language
       if (av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)) {
         char *lang = av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)->value;
         if(plcid) *plcid = ProbeLangForLCID(lang);
-        sLanguage = ProbeLangForLanguage(lang);
-        if(sLanguage.empty()) {
-          sLanguage = std::string(lang);
-        }
       }
 
       // TODO: This needs some serious refactoring
       if(ppszName) {
-        char buffer[INFOBUFSIZE];
-        int pos = 0;
-        // Subtitles just get their name, and the codec (if its known)
-        if(i == subpic) {
-          pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, "Subtitle: ");
-          if (!sLanguage.empty()) {
-            pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, "%s", sLanguage.c_str());
-          } else {
-            pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, "#%ld", s.pid);
-          }
-          if (strlen(m_avFormat->streams[s.pid]->codec->codec_name)) {
-            pos += sprintf_s(buffer + pos, INFOBUFSIZE - pos, " (%s)", m_avFormat->streams[s.pid]->codec->codec_name);
-          }
-        } else {
-          avcodec_string(buffer + pos, INFOBUFSIZE - pos, m_avFormat->streams[s.pid]->codec, 0);
-          // Get the actual length (+ leading zero)
-          pos += (int)strlen(buffer);
-        }
-        // Alloc space
-        *ppszName = (WCHAR*)CoTaskMemAlloc((pos + 1) * sizeof(WCHAR));
-        if(*ppszName == NULL) return E_OUTOFMEMORY;
-        // Copy format over
-        mbstowcs_s(NULL, *ppszName, pos + 1, buffer, _TRUNCATE);
+        lavf_describe_stream(m_avFormat->streams[s.pid], ppszName);
       }
     }
     j += cnt;

@@ -161,6 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="lavfutils.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -171,6 +172,7 @@
     <ClCompile Include="LAVFSplitter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lavfutils.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="DSGuidHelper.h" />
     <ClInclude Include="PacketQueue.h" />
