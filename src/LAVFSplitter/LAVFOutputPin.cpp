@@ -265,7 +265,7 @@ DWORD CLAVFOutputPin::ThreadProc()
           break;
         }
       }
-    } while(--cnt > 0);
+    } while(cnt > 1);
   }
   return 0;
 }
