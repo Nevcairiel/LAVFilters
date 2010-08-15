@@ -66,6 +66,7 @@ STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(IFileSourceFilter)
     QI(IMediaSeeking)
     QI(IAMStreamSelect)
+    QI2(IAMExtendedSeeking)
     QI(IKeyFrameInfo)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
@@ -723,6 +724,68 @@ STDMETHODIMP CLAVFSplitter::GetAvailable(LONGLONG* pEarliest, LONGLONG* pLatest)
 STDMETHODIMP CLAVFSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = dRate, S_OK : E_INVALIDARG;}
 STDMETHODIMP CLAVFSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
 STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
+
+// IAMExtendedSeeking
+STDMETHODIMP CLAVFSplitter::get_ExSeekCapabilities(long* pExCapabilities)
+{
+  CheckPointer(pExCapabilities, E_POINTER);
+  *pExCapabilities = AM_EXSEEK_CANSEEK;
+  if(m_avFormat->nb_chapters > 0) *pExCapabilities |= AM_EXSEEK_MARKERSEEK;
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::get_MarkerCount(long* pMarkerCount)
+{
+  CheckPointer(pMarkerCount, E_POINTER);
+  *pMarkerCount = (long)m_avFormat->nb_chapters;
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::get_CurrentMarker(long* pCurrentMarker)
+{
+  CheckPointer(pCurrentMarker, E_POINTER);
+  // Can the time_base change in between chapters?
+  // Anyhow, we do the calculation in the loop, just to be safe
+  for(unsigned int i = 0; i < m_avFormat->nb_chapters; i++) {
+    int64_t pts = ConvertRTToTimestamp(m_rtCurrent, m_avFormat->chapters[i]->time_base.den, m_avFormat->chapters[i]->time_base.num);
+    if (pts >= m_avFormat->chapters[i]->start && pts <= m_avFormat->chapters[i]->end) {
+      *pCurrentMarker = (i + 1);
+      return S_OK;
+    }
+  }
+  return E_FAIL;
+}
+
+STDMETHODIMP CLAVFSplitter::GetMarkerTime(long MarkerNum, double* pMarkerTime)
+{
+  CheckPointer(pMarkerTime, E_POINTER);
+  // Chapters go by a 1-based index, doh
+  unsigned int index = MarkerNum - 1;
+  if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
+
+  REFERENCE_TIME rt = ConvertTimestampToRT(m_avFormat->chapters[index]->start, m_avFormat->chapters[index]->time_base.num, m_avFormat->chapters[index]->time_base.den);
+  *pMarkerTime = (double)rt / 10000000;
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
+{
+  CheckPointer(pbstrMarkerName, E_POINTER);
+  // Chapters go by a 1-based index, doh
+  unsigned int index = MarkerNum - 1;
+  if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
+  // Get the title, or generate one
+  OLECHAR wTitle[128];
+  if (av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
+    char *title = av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)->value;
+    mbstowcs_s(NULL, wTitle, title, _TRUNCATE);
+  } else {
+    swprintf_s(wTitle, L"Chapter %d", MarkerNum);
+  }
+  *pbstrMarkerName = SysAllocString(wTitle);
+  return S_OK;
+}
 
 // IKeyFrameInfo
 STDMETHODIMP CLAVFSplitter::GetKeyFrameCount(UINT& nKFs)

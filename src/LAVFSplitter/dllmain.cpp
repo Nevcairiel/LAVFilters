@@ -27,10 +27,11 @@
 // --------------------------------------------------------------------------------
 
 #include "stdafx.h"
-#include "LAVFSplitter.h"
 
 // Initialize the GUIDs
 #include <InitGuid.h>
+
+#include "LAVFSplitter.h"
 #include "moreuuids.h"
 
 // The GUID we use to register the splitter media types

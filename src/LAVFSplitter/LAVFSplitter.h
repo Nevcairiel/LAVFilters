@@ -27,6 +27,7 @@
 #include <list>
 #include <set>
 #include <vector>
+#include <Qnetwork.h>
 #include "PacketQueue.h"
 
 #include "IKeyFrameInfo.h"
@@ -49,6 +50,7 @@ class CLAVFSplitter
   , public IFileSourceFilter
   , public IMediaSeeking
   , public IAMStreamSelect
+  , public IAMExtendedSeeking
   , public IKeyFrameInfo
 {
 public:
@@ -58,6 +60,12 @@ public:
   // IUnknown
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
+  // IDispatch
+  STDMETHODIMP GetTypeInfoCount(UINT* pctinfo) {return E_NOTIMPL;}
+  STDMETHODIMP GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo** pptinfo) {return E_NOTIMPL;}
+  STDMETHODIMP GetIDsOfNames(REFIID riid, OLECHAR** rgszNames, UINT cNames, LCID lcid, DISPID* rgdispid) {return E_NOTIMPL;}
+  STDMETHODIMP Invoke(DISPID dispidMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult, EXCEPINFO* pexcepinfo, UINT* puArgErr) {return E_NOTIMPL;}
 
   // CBaseFilter methods
   int GetPinCount();
@@ -94,6 +102,15 @@ public:
   STDMETHODIMP Count(DWORD *pcStreams);
   STDMETHODIMP Enable(long lIndex, DWORD dwFlags);
   STDMETHODIMP Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk);
+
+  // IAMExtendedSeeking
+  STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
+  STDMETHODIMP get_MarkerCount(long* pMarkerCount);
+  STDMETHODIMP get_CurrentMarker(long* pCurrentMarker);
+  STDMETHODIMP GetMarkerTime(long MarkerNum, double* pMarkerTime);
+  STDMETHODIMP GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName);
+  STDMETHODIMP put_PlaybackSpeed(double Speed) {return E_NOTIMPL;}
+  STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
 
   // IKeyFrameInfo
   STDMETHODIMP GetKeyFrameCount(UINT& nKFs);
