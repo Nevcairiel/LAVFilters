@@ -134,7 +134,7 @@ STDMETHODIMP CLAVFSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pm
 
 REFERENCE_TIME CLAVFSplitter::GetStreamLength()
 {
-  double iLength = 0;
+  int64_t iLength = 0;
   if (m_avFormat->duration == (int64_t)AV_NOPTS_VALUE || m_avFormat->duration < 0LL) {
     // no duration is available for us
     // try to calculate it
@@ -143,9 +143,9 @@ REFERENCE_TIME CLAVFSplitter::GetStreamLength()
     iLength = (((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
     }*/
   } else {
-    iLength = (double)m_avFormat->duration / (AV_TIME_BASE / 1000);
+    iLength = m_avFormat->duration;
   }
-  return (REFERENCE_TIME)DVD_MSEC_TO_TIME(iLength);
+  return ConvertTimestampToRT(iLength, 1, AV_TIME_BASE);
 }
 
 // Pin creation
@@ -361,10 +361,10 @@ REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den
   }
 
   // Let av_rescale do the work, its smart enough to not overflow
-  REFERENCE_TIME timestamp = av_rescale(pts, (int64_t)num * DVD_TIME_BASE, den);
+  REFERENCE_TIME timestamp = av_rescale(pts, (int64_t)num * DSHOW_TIME_BASE, den);
 
   if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
-    timestamp -= av_rescale(m_avFormat->start_time, DVD_TIME_BASE, AV_TIME_BASE);
+    timestamp -= av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
   }
 
   return timestamp;
@@ -380,10 +380,10 @@ int64_t CLAVFSplitter::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, i
 
   // Let av_rescale do the work, its smart enough to not overflow
   if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
-    timestamp += av_rescale(m_avFormat->start_time, DVD_TIME_BASE, AV_TIME_BASE);
+    timestamp += av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
   }
 
-  return av_rescale(timestamp, den, (int64_t)num * DVD_TIME_BASE);
+  return av_rescale(timestamp, den, (int64_t)num * DSHOW_TIME_BASE);
 }
 
 // Seek to the specified time stamp
@@ -764,7 +764,7 @@ STDMETHODIMP CLAVFSplitter::GetMarkerTime(long MarkerNum, double* pMarkerTime)
   if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
 
   REFERENCE_TIME rt = ConvertTimestampToRT(m_avFormat->chapters[index]->start, m_avFormat->chapters[index]->time_base.num, m_avFormat->chapters[index]->time_base.den);
-  *pMarkerTime = (double)rt / 10000000;
+  *pMarkerTime = (double)rt / DSHOW_TIME_BASE;
 
   return S_OK;
 }

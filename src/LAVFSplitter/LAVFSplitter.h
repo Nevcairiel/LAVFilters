@@ -34,10 +34,7 @@
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
 
-#define DVD_TIME_BASE 10000000        // DirectShow times are in 100ns units
-#define DVD_SEC_TO_TIME(x)  ((double)(x) * DVD_TIME_BASE)
-#define DVD_TIME_TO_MSEC(x) ((int)((double)(x) * 1000 / DVD_TIME_BASE))
-#define DVD_MSEC_TO_TIME(x) ((double)(x) * DVD_TIME_BASE / 1000)
+#define DSHOW_TIME_BASE 10000000        // DirectShow times are in 100ns units
 
 class CDSStreamInfo;
 class CLAVFOutputPin;
