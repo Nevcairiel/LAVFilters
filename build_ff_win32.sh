@@ -36,10 +36,9 @@ OPTIONS="
 
 ./configure --extra-cflags="-U__STRICT_ANSI__ -fno-strict-aliasing -fno-common" ${OPTIONS} &&
  
-make -j3 && 
-cp lib*/*-*.dll ../bin_Win32
-cp lib*/*.lib ../bin_Win32/lib
+make -j4 &&
+cp lib*/*-*.dll ../bin_Win32 &&
+cp lib*/*.lib ../bin_Win32/lib &&
 cp ffprobe.exe ../bin_Win32
-cp libavutil/avconfig.h include/libavutil/
 
 cd ..
