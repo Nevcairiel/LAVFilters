@@ -79,7 +79,7 @@ public:
   Packet *Get();
 
   // Get the size of the queue
-  int Size();
+  size_t Size();
 
   // Clear the List (all elements are free'ed)
   void Clear();

@@ -53,7 +53,7 @@ Packet *CPacketQueue::Get()
 }
 
 // Get the size of the queue
-int CPacketQueue::Size()
+size_t CPacketQueue::Size()
 {
   CAutoLock cAutoLock(this);
 

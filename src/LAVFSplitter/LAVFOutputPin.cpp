@@ -169,7 +169,7 @@ HRESULT CLAVFOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME 
   return __super::DeliverNewSegment(tStart, tStop, dRate);
 }
 
-int CLAVFOutputPin::QueueCount()
+size_t CLAVFOutputPin::QueueCount()
 {
   return m_queue.Size();
 }
@@ -237,7 +237,7 @@ DWORD CLAVFOutputPin::ThreadProc()
       return 0;
     }
 
-    int cnt = 0;
+    size_t cnt = 0;
     do {
       Packet *pPacket = NULL;
 

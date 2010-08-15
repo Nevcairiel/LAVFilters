@@ -59,7 +59,7 @@ public:
 
   HRESULT DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
-  int QueueCount();
+  size_t QueueCount();
   HRESULT QueuePacket(Packet *pPacket);
   HRESULT QueueEndOfStream();
   bool IsDiscontinuous();

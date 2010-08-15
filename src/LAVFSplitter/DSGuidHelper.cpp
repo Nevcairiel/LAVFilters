@@ -253,9 +253,9 @@ DWORD avs_parse_annexb(BYTE *src, BYTE *dst, int extralen)
     // if a position is set, but doesnt have a length yet, its just been discovered
     // (or something went wrong)
     if(spspos && !spslen) {
-      spslen = p - spspos;
+      spslen = (UINT16)(p - spspos);
     } else if (ppspos && !ppslen) {
-      ppslen = p - ppspos;
+      ppslen = (UINT16)(p - ppspos);
     }
   }
 
@@ -282,7 +282,7 @@ DWORD avs_parse_annexb(BYTE *src, BYTE *dst, int extralen)
   memcpy(dst, ppspos, ppslen);
   dst += ppslen;
 
-  return (dst - dstmarker);
+  return (DWORD)(dst - dstmarker);
 }
 
 VIDEOINFOHEADER *CDSGuidHelper::CreateVIH(const AVStream* avstream, ULONG *size)
