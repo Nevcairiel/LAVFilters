@@ -946,12 +946,14 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
       if(ppUnk) *ppUnk = NULL;
 
       // Probe language
-      if (av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)) {
-        char *lang = av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)->value;
-        if(plcid) *plcid = ProbeLangForLCID(lang);
+      if (plcid) {
+        if (av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)) {
+          char *lang = av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)->value;
+          *plcid = ProbeLangForLCID(lang);
+        }
       }
 
-      // TODO: This needs some serious refactoring
+      // Populate stream name
       if(ppszName) {
         lavf_describe_stream(m_avFormat->streams[s.pid], ppszName);
       }
