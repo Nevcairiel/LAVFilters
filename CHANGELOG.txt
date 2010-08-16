@@ -1,5 +1,8 @@
 LAVFSplitter Changelog
 ===================================
+0.4 - 2010/08/16
+- Improved SSA Subtitle support
+- Fixed freeze-on-stop issue
 
 0.3 - 2010/08/15
 - Added Chapter support
