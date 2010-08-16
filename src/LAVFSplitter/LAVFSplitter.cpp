@@ -197,6 +197,11 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
     s.pid = streamId;
     s.streamInfo = new CDSStreamInfo(pStream, container);
 
+    // HACK: Change codec_id to TEXT for SSA to prevent some evil doings
+    if (pStream->codec->codec_id == CODEC_ID_SSA) {
+      pStream->codec->codec_id = CODEC_ID_TEXT;
+    }
+
     switch(pStream->codec->codec_type)
     {
     case AVMEDIA_TYPE_VIDEO:
@@ -489,8 +494,12 @@ HRESULT CLAVFSplitter::DemuxNextPacket()
     pPacket->rtStart = rt;
     pPacket->rtStop = rt + ((duration > 0) ? duration : 1);
 
-    pPacket->bSyncPoint = (duration > 0) ? 1 : 0;
-    pPacket->bAppendable = !pPacket->bSyncPoint;
+    if (stream->codec->codec_type == CODEC_TYPE_SUBTITLE) {
+      pPacket->bDiscontinuity = TRUE;
+    } else {
+      pPacket->bSyncPoint = (duration > 0) ? 1 : 0;
+      pPacket->bAppendable = !pPacket->bSyncPoint;
+    }
 
     av_free_packet(&pkt);
   }
