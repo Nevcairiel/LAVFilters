@@ -82,6 +82,9 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
     lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
     sLanguage = ProbeLangForLanguage(lang);
+    if (sLanguage.empty()) {
+      sLanguage = lang;
+    }
   }
 
   char *title = NULL;
@@ -93,12 +96,13 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   switch(enc->codec_type) {
   case AVMEDIA_TYPE_VIDEO:
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "Video: ");
+    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "V: ");
     // Title/Language
-    if (title) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (%s, ", title, lang);
-    } else if (lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (", sLanguage.empty() ? lang : sLanguage.c_str());
+    if (title && lang) {
+      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s [%s] (", title, lang);
+    } else if (title || lang) {
+      // Print either title or lang
+      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (", title ? title : sLanguage.c_str());
     }
     // Codec
     pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s", codec_name);
@@ -120,12 +124,13 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     break;
   case AVMEDIA_TYPE_AUDIO:
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "Audio: ");
+    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "A: ");
     // Title/Language
-    if (title) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (%s, ", title, lang);
-    } else if (lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (", sLanguage.empty() ? lang : sLanguage.c_str());
+    if (title && lang) {
+      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s [%s] (", title, lang);
+    } else if (title || lang) {
+      // Print either title or lang
+      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (", title ? title : sLanguage.c_str());
     }
     // Codec
     pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s", codec_name);
@@ -151,12 +156,13 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     break;
   case AVMEDIA_TYPE_SUBTITLE:
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "Subtitle: ");
+    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "S: ");
     // Title/Language
-    if (title) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (%s)", title, lang);
-    } else if (lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s", sLanguage.empty() ? lang : sLanguage.c_str());
+    if (title && lang) {
+      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s [%s]", title, lang);
+    } else if (title || lang) {
+      // Print either title or lang
+      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s", title ? title : sLanguage.c_str());
     } else {
       pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "Stream #%d", pStream->index);
     }
