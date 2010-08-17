@@ -122,8 +122,8 @@ protected:
   REFERENCE_TIME GetStreamLength();
   HRESULT DemuxSeek(REFERENCE_TIME rtStart);
   HRESULT DemuxNextPacket();
-  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num);
-  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num);
+  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, BOOL subStart = true);
+  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, BOOL addStart = true);
 
   HRESULT DeliverPacket(Packet *pPacket);
 

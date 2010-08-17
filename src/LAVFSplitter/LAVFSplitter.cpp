@@ -144,10 +144,11 @@ REFERENCE_TIME CLAVFSplitter::GetStreamLength()
     /*if (m_rtCurrent != Packet::INVALID_TIME && m_avFormat->file_size > 0 && m_avFormat->pb && m_avFormat->pb->pos > 0) {
     iLength = (((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
     }*/
+    DbgLog((LOG_ERROR, 1, TEXT("duration is not available")));
   } else {
     iLength = m_avFormat->duration;
   }
-  return ConvertTimestampToRT(iLength, 1, AV_TIME_BASE);
+  return ConvertTimestampToRT(iLength, 1, AV_TIME_BASE, false);
 }
 
 // Pin creation
@@ -361,7 +362,7 @@ DWORD CLAVFSplitter::ThreadProc()
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
-REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den)
+REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den, BOOL subStart)
 {
   if (pts == (int64_t)AV_NOPTS_VALUE) {
     return Packet::INVALID_TIME;
@@ -370,7 +371,7 @@ REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den
   // Let av_rescale do the work, its smart enough to not overflow
   REFERENCE_TIME timestamp = av_rescale(pts, (int64_t)num * DSHOW_TIME_BASE, den);
 
-  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
+  if (subStart && m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
     timestamp -= av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
   }
 
@@ -379,14 +380,14 @@ REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
-int64_t CLAVFSplitter::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den)
+int64_t CLAVFSplitter::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den, BOOL addStart)
 {
   if (timestamp == Packet::INVALID_TIME) {
     return (int64_t)AV_NOPTS_VALUE;
   }
 
   // Let av_rescale do the work, its smart enough to not overflow
-  if (m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
+  if (addStart && m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
     timestamp += av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
   }
 
