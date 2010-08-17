@@ -119,6 +119,8 @@ protected:
   enum {CMD_EXIT, CMD_SEEK};
   DWORD ThreadProc();
 
+  void AddStream(int streamId);
+
   REFERENCE_TIME GetStreamLength();
   HRESULT DemuxSeek(REFERENCE_TIME rtStart);
   HRESULT DemuxNextPacket();
@@ -168,7 +170,7 @@ private:
   std::wstring m_fileName;
 
   AVFormatContext *m_avFormat;
-
+  unsigned int m_program;
   bool m_bMatroska;
   bool m_bAVI;
 

@@ -27,7 +27,7 @@
 class CDSStreamInfo
 {
 public:
-  CDSStreamInfo(AVStream *avstream, const char* containerFormat = "");
+  CDSStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr);
   ~CDSStreamInfo();
 
   CMediaType mtype;

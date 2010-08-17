@@ -25,7 +25,7 @@
 #include "DSGuidHelper.h"
 #include "moreuuids.h"
 
-CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat)
+CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
 {
   m_containerFormat = std::string(containerFormat);
 
@@ -33,15 +33,16 @@ CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat)
 
   switch(avstream->codec->codec_type) {
   case AVMEDIA_TYPE_AUDIO:
-    CreateAudioMediaType(avstream);
+    hr = CreateAudioMediaType(avstream);
     break;
   case AVMEDIA_TYPE_VIDEO:
-    CreateVideoMediaType(avstream);
+    hr = CreateVideoMediaType(avstream);
     break;
   case AVMEDIA_TYPE_SUBTITLE:
-    CreateSubtitleMediaType(avstream);
+    hr = CreateSubtitleMediaType(avstream);
     break;
   default:
+    hr = E_FAIL;
     break;
   }
 }
@@ -118,6 +119,10 @@ STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
 
 STDMETHODIMP CDSStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
 {
+  // Skip teletext
+  if (avstream->codec->codec_id == CODEC_ID_DVB_TELETEXT) {
+    return E_FAIL;
+  }
   mtype.InitMediaType();
   mtype.majortype = MEDIATYPE_Subtitle;
   mtype.formattype = FORMAT_SubtitleInfo;
@@ -147,6 +152,7 @@ STDMETHODIMP CDSStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
                   avstream->codec->codec_id == CODEC_ID_SSA ? MEDIASUBTYPE_SSA :
                   avstream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE ? MEDIASUBTYPE_HDMVSUB :
                   avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE ? MEDIASUBTYPE_VOBSUB :
+                  avstream->codec->codec_id == CODEC_ID_DVB_SUBTITLE ? MEDIASUBTYPE_DVB_SUBTITLES :
                   MEDIASUBTYPE_NULL;
 
   return S_OK;

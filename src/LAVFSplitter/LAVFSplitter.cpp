@@ -151,6 +151,41 @@ REFERENCE_TIME CLAVFSplitter::GetStreamLength()
   return ConvertTimestampToRT(iLength, 1, AV_TIME_BASE, false);
 }
 
+void CLAVFSplitter::AddStream(int streamId)
+{
+  HRESULT hr = S_OK;
+  AVStream* pStream = m_avFormat->streams[streamId];
+  stream s;
+  s.pid = streamId;
+  s.streamInfo = new CDSStreamInfo(pStream, m_avFormat->iformat->name, hr);
+
+  if(FAILED(hr)) {
+    return;
+  }
+
+  // HACK: Change codec_id to TEXT for SSA to prevent some evil doings
+  if (pStream->codec->codec_id == CODEC_ID_SSA || pStream->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
+    pStream->codec->codec_id = CODEC_ID_TEXT;
+  }
+
+  switch(pStream->codec->codec_type)
+  {
+  case AVMEDIA_TYPE_VIDEO:
+    m_streams[video].push_back(s);
+    break;
+  case AVMEDIA_TYPE_AUDIO:
+    m_streams[audio].push_back(s);
+    break;
+  case AVMEDIA_TYPE_SUBTITLE:
+    m_streams[subpic].push_back(s);
+    break;
+  default:
+    // unsupported stream
+    delete s.streamInfo;
+    break;
+  }
+}
+
 // Pin creation
 STDMETHODIMP CLAVFSplitter::CreateOutputs()
 {
@@ -183,41 +218,32 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
   m_rtNewStart = m_rtStart = m_rtCurrent = 0;
   m_rtNewStop = m_rtStop = m_rtDuration = GetStreamLength();
 
-  // TODO Programms support
-  ASSERT(m_avFormat->nb_programs == 0 || m_avFormat->nb_programs == 1);
-
   for(int i = 0; i < countof(m_streams); i++) {
     m_streams[i].Clear();
   }
 
-  const char* container = m_avFormat->iformat->name;
-  for(unsigned int streamId = 0; streamId < m_avFormat->nb_streams; streamId++)
-  {
-    AVStream* pStream = m_avFormat->streams[streamId];
-    stream s;
-    s.pid = streamId;
-    s.streamInfo = new CDSStreamInfo(pStream, container);
+  if (m_avFormat->nb_programs) {
+    m_program = UINT_MAX;
+    // look for first non empty stream and discard nonselected programs
+    for (unsigned int i = 0; i < m_avFormat->nb_programs; i++) {
+      if(m_program == UINT_MAX && m_avFormat->programs[i]->nb_stream_indexes > 0) {
+        m_program = i;
+      }
 
-    // HACK: Change codec_id to TEXT for SSA to prevent some evil doings
-    if (pStream->codec->codec_id == CODEC_ID_SSA) {
-      pStream->codec->codec_id = CODEC_ID_TEXT;
+      if(i != m_program) {
+        m_avFormat->programs[i]->discard = AVDISCARD_ALL;
+      }
     }
-
-    switch(pStream->codec->codec_type)
-    {
-    case AVMEDIA_TYPE_VIDEO:
-      m_streams[video].push_back(s);
-      break;
-    case AVMEDIA_TYPE_AUDIO:
-      m_streams[audio].push_back(s);
-      break;
-    case AVMEDIA_TYPE_SUBTITLE:
-      m_streams[subpic].push_back(s);
-      break;
-    default:
-      // unsupported stream
-      delete s.streamInfo;
-      break;
+    if(m_program == UINT_MAX) {
+      m_program = 0;
+    }
+    // add streams from selected program
+    for (unsigned int i = 0; i < m_avFormat->programs[m_program]->nb_stream_indexes; i++) {
+      AddStream(m_avFormat->programs[m_program]->stream_index[i]);
+    }
+  } else {
+    for(unsigned int streamId = 0; streamId < m_avFormat->nb_streams; streamId++) {
+      AddStream(streamId);
     }
   }
 
@@ -232,7 +258,7 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
       std::vector<CMediaType> mts;
       mts.push_back(it->streamInfo->mtype);
 
-      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (StreamType)i, container);
+      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (StreamType)i, m_avFormat->iformat->name);
       if(SUCCEEDED(hr)) {
         pPin->SetStreamId(it->pid);
         m_pPins.push_back(pPin);
