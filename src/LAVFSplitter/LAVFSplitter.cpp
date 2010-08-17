@@ -160,6 +160,7 @@ void CLAVFSplitter::AddStream(int streamId)
   s.streamInfo = new CDSStreamInfo(pStream, m_avFormat->iformat->name, hr);
 
   if(FAILED(hr)) {
+    delete s.streamInfo;
     return;
   }
 
@@ -181,6 +182,7 @@ void CLAVFSplitter::AddStream(int streamId)
     break;
   default:
     // unsupported stream
+    // Normally this should be caught while creating the stream info already.
     delete s.streamInfo;
     break;
   }
