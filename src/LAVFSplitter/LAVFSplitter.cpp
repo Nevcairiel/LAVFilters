@@ -858,13 +858,14 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
   // -- only for audio --
   // other pins we can't dynamically reconnect, its not supported for video on most codecs/renderes
   // and subtitles are done by those as well, most of the time
-  if (pPin && pPin->IsAudioPin()) {
+  if (pPin) {
     CAutoLock lock(this);
     HRESULT hr = S_OK;
 
     IMediaControl *pControl = NULL;
     hr = m_pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
 
+    FILTER_STATE oldState = m_State;
     // Stop the filter graph
     pControl->Stop();
     // Update Output Pin
@@ -873,13 +874,20 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
 
     // If the pin was connected, disconnect it
     if (pPin->IsConnected()) {
-      // Get the Info about the old transform filter
-      PIN_INFO pInfo;
-      pPin->GetConnected()->QueryPinInfo(&pInfo);
+      if (pPin->IsAudioPin()) {
+        // Get the Info about the old transform filter
+        PIN_INFO pInfo;
+        pPin->GetConnected()->QueryPinInfo(&pInfo);
 
-      // Remove old transform filter
-      m_pGraph->RemoveFilter(pInfo.pFilter);
+        // Remove old transform filter
+        m_pGraph->RemoveFilter(pInfo.pFilter);
+      } else {
+        m_pGraph->Disconnect(pPin->GetConnected());
+        m_pGraph->Disconnect(pPin);
+      }
     }
+    // TODO: We could iterate over all filters in the graph now, and delete all that don't have a connected input pin anymore
+    // Except renderers, of course.
 
     // Use IGraphBuilder to rebuild the graph
     IGraphBuilder *pGraphBuilder = NULL;
@@ -890,12 +898,19 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     }
     if (SUCCEEDED(hr)) {
       // Re-start the graph
-      hr = pControl->Run();
+      if(oldState == State_Paused) {
+        hr = pControl->Pause();
+      } else if (oldState == State_Running) {
+        hr = pControl->Run();
+      }
     }
     pControl->Release();
 
     return hr;
-  } else if (pPin) {
+  }
+
+  /** Old Method
+  if (pPin) {
     CAutoLock pinLock(&m_csPins);
     // Old fashioned reconnect
     if(IPin *pinTo = pPin->GetConnected()) {
@@ -908,7 +923,7 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
       }
       return S_OK;
     }
-  }
+  } */
   return E_FAIL;
 }
 
