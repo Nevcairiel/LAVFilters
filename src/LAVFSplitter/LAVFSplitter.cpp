@@ -883,14 +883,18 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     pPin->SetStreamId(TrackNumDst);
     pPin->SetNewMediaType(*pmt);
 
-    IPin *oldPin = pPin->GetConnected();
-    m_pGraph->Disconnect(pPin->GetConnected());
-    m_pGraph->Disconnect(pPin);
-
-    // Audio Filter always gets a cleanup, others are left to reconnect to their previous filter
-    if(pPin->IsAudioPin()) {
-      FilterGraphCleanup(m_pGraph);
+    // Audio Filters get their connected filter removed
+    // This way we make sure we reconnect to the proper filter
+    // Other filters just disconnect and try to reconnect later on
+    PIN_INFO pInfo;
+    hr = pPin->GetConnected()->QueryPinInfo(&pInfo);
+    if(pPin->IsAudioPin() && SUCCEEDED(hr) && pInfo.pFilter) {
+      m_pGraph->RemoveFilter(pInfo.pFilter);
+    } else {
+      m_pGraph->Disconnect(pPin->GetConnected());
+      m_pGraph->Disconnect(pPin);
     }
+    if(pInfo.pFilter) { pInfo.pFilter->Release(); }
 
     // Use IGraphBuilder to rebuild the graph
     IGraphBuilder *pGraphBuilder = NULL;
