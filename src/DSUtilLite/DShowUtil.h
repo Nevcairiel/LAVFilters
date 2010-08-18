@@ -24,6 +24,7 @@
 
 #include <list>
 #include <string>
+#include <DShow.h>
 
 #define LCID_NOSUBTITLES			-1
 
@@ -48,3 +49,6 @@ extern LCID ISO6392ToLcid(LPCSTR code);
 extern LCID ProbeLangForLCID(LPCSTR code);
 extern std::string ISO6391To6392(LPCSTR code);
 extern std::string ISO6392To6391(LPCSTR code);
+
+// FilterGraphUtils
+extern HRESULT FilterGraphCleanup(IFilterGraph *pGraph);

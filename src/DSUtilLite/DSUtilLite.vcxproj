@@ -145,6 +145,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FilterGraphUtils.cpp" />
     <ClCompile Include="filterreg.cpp" />
     <ClCompile Include="H264Nalu.cpp" />
     <ClCompile Include="locale.cpp" />
