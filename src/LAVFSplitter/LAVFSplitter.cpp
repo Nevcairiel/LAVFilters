@@ -249,11 +249,24 @@ STDMETHODIMP CLAVFSplitter::CreateOutputs()
     }
   }
 
-  HRESULT hr = S_OK;
+  // Create fake subtitle pin
+  if(!m_streams[subpic].empty()) {
+    stream s;
+    s.pid = NO_SUBTITLE_PID;
+    s.streamInfo = new CDSStreamInfo();
+    s.streamInfo->mtype.majortype = MEDIATYPE_Subtitle;
+    s.streamInfo->mtype.subtype = MEDIASUBTYPE_NULL;
+    s.streamInfo->mtype.formattype = FORMAT_SubtitleInfo;
+    SUBTITLEINFO* psi = (SUBTITLEINFO *)s.streamInfo->mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO));
+    memset(psi, 0, sizeof(SUBTITLEINFO));
+    strcpy_s(psi->IsoLang, "---");
+    m_streams[subpic].push_front(s);
+  }
 
+  HRESULT hr = S_OK;
   // Try to create pins
   for(int i = 0; i < countof(m_streams); i++) {
-    std::vector<stream>::iterator it;
+    std::deque<stream>::iterator it;
     for ( it = m_streams[i].begin(); it != m_streams[i].end(); it++ ) {
       const WCHAR* name = CStreamList::ToString(i);
 
@@ -954,7 +967,7 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
 
       stream& to = m_streams[i].at(idx);
 
-      std::vector<stream>::iterator it;
+      std::deque<stream>::iterator it;
       for(it = m_streams[i].begin(); it != m_streams[i].end(); it++) {
         if(!GetOutputPin(it->pid)) {
           continue;
@@ -966,6 +979,7 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
         }
         return S_OK;
       }
+      break;
     }
     j += cnt;
   }
@@ -989,6 +1003,18 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
       if(ppObject) *ppObject = NULL;
       if(ppUnk) *ppUnk = NULL;
 
+      // Special case for the "no subtitles" pin
+      if(s.pid == NO_SUBTITLE_PID) {
+        if (plcid) *plcid = LCID_NOSUBTITLES;
+        if (ppszName) {
+          WCHAR str[] = _T("S: No subtitles");
+          size_t len = wcslen(str) + 1;
+          *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
+          wcsncpy_s(*ppszName, len, str, _TRUNCATE);
+        }
+        break;
+      }
+
       // Probe language
       if (plcid) {
         if (av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)) {
@@ -1001,6 +1027,7 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
       if(ppszName) {
         lavf_describe_stream(m_avFormat->streams[s.pid], ppszName);
       }
+      break;
     }
     j += cnt;
   }
@@ -1020,7 +1047,7 @@ const WCHAR* CLAVFSplitter::CStreamList::ToString(int type)
 
 const CLAVFSplitter::stream* CLAVFSplitter::CStreamList::FindStream(DWORD pid)
 {
-  std::vector<stream>::iterator it;
+  std::deque<stream>::iterator it;
   for ( it = begin(); it != end(); it++ ) {
     if ((*it).pid == pid) {
       return &(*it);
@@ -1032,7 +1059,7 @@ const CLAVFSplitter::stream* CLAVFSplitter::CStreamList::FindStream(DWORD pid)
 
 void CLAVFSplitter::CStreamList::Clear()
 {
-  std::vector<stream>::iterator it;
+  std::deque<stream>::iterator it;
   for ( it = begin(); it != end(); it++ ) {
     delete (*it).streamInfo;
   }

@@ -25,6 +25,11 @@
 #include "DSGuidHelper.h"
 #include "moreuuids.h"
 
+CDSStreamInfo::CDSStreamInfo()
+{
+  mtype.InitMediaType();
+}
+
 CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
 {
   m_containerFormat = std::string(containerFormat);

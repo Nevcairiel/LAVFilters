@@ -27,6 +27,7 @@
 class CDSStreamInfo
 {
 public:
+  CDSStreamInfo();
   CDSStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr);
   ~CDSStreamInfo();
 

@@ -36,6 +36,8 @@
 
 #define DSHOW_TIME_BASE 10000000        // DirectShow times are in 100ns units
 
+#define NO_SUBTITLE_PID DWORD_MAX
+
 class CDSStreamInfo;
 class CLAVFOutputPin;
 
@@ -145,7 +147,7 @@ public:
   };
 
   enum StreamType {video, audio, subpic, unknown};
-  class CStreamList : public std::vector<stream>
+  class CStreamList : public std::deque<stream>
   {
   public:
     static const WCHAR* ToString(int type);
