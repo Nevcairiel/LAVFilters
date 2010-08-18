@@ -1,5 +1,11 @@
 LAVFSplitter Changelog
 ===================================
+0.5 - 2010/08/18
+- Fixed duration of MPEG-TS files
+- Added support for DVB subtitles
+- Fixed switching of Audio and Subtitle Streams
+- Added a "No Subtitles" Stream
+
 0.4 - 2010/08/16
 - Improved SSA Subtitle support
 - Fixed freeze-on-stop issue
