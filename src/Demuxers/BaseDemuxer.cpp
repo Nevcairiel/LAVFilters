@@ -35,7 +35,7 @@ void CBaseDemuxer::CreateNoSubtitleStream()
 {
   stream s;
   s.pid = NO_SUBTITLE_PID;
-  //s.streamInfo = new CDSStreamInfo();
+  s.streamInfo = new CStreamInfo();
   s.streamInfo->mtype.majortype = MEDIATYPE_Subtitle;
   s.streamInfo->mtype.subtype = MEDIASUBTYPE_NULL;
   s.streamInfo->mtype.formattype = FORMAT_SubtitleInfo;

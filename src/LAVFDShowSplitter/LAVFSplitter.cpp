@@ -55,7 +55,8 @@ CLAVFSplitter::~CLAVFSplitter()
   m_State = State_Stopped;
   DeleteOutputs();
 
-  SAFE_DELETE(m_pDemuxer);
+  m_pDemuxer->Release();
+  //SAFE_DELETE(m_pDemuxer);
 }
 
 STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -118,6 +119,7 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
     SAFE_DELETE(m_pDemuxer);
     return hr;
   }
+  m_pDemuxer->AddRef();
 
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
