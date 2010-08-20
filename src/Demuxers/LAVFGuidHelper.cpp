@@ -46,7 +46,12 @@ CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId)
   case CODEC_ID_DTS:
     mediaType.subtype = MEDIASUBTYPE_DTS;
     break;
+  case CODEC_ID_EAC3:
+    mediaType.subtype = MEDIASUBTYPE_DOLBY_DDPLUS;
+    break;
   case CODEC_ID_TRUEHD:
+    // Some filters don't work 100% when its set to TrueHD (ffdshow, doh!)
+    //mediaType.subtype = MEDIASUBTYPE_DOLBY_TRUEHD;
     mediaType.subtype = MEDIASUBTYPE_DOLBY_AC3;
     break;
   case CODEC_ID_VORBIS:
