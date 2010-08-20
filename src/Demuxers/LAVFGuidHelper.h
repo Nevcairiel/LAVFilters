@@ -377,10 +377,10 @@ const AVCodecTag ff2_codec_bmp_tags[] = {
 };
 const struct AVCodecTag * const mp_bmp_taglists[] = {ff2_codec_bmp_tags, mp_bmp_tags, 0};
 
-class CDSGuidHelper
+class CLAVFGuidHelper
 {
 public:
-  CDSGuidHelper() {};
+  CLAVFGuidHelper() {};
   CMediaType initAudioType(CodecID codecId);
   CMediaType initVideoType(CodecID codecId);
 
@@ -390,4 +390,4 @@ public:
   MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format = false);
 };
 
-extern CDSGuidHelper g_GuidHelper;
+extern CLAVFGuidHelper g_GuidHelper;

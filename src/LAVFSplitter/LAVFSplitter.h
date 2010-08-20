@@ -27,19 +27,15 @@
 #include <list>
 #include <set>
 #include <vector>
-#include <Qnetwork.h>
 #include "PacketQueue.h"
 
-#include "IKeyFrameInfo.h"
+#include "BaseDemuxer.h"
 
-#define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
-
-#define DSHOW_TIME_BASE 10000000        // DirectShow times are in 100ns units
-
-#define NO_SUBTITLE_PID DWORD_MAX
-
-class CDSStreamInfo;
 class CLAVFOutputPin;
+
+#ifdef	_MSC_VER
+#pragma warning(disable: 4355)
+#endif
 
 [uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]
 class CLAVFSplitter 
@@ -49,8 +45,6 @@ class CLAVFSplitter
   , public IFileSourceFilter
   , public IMediaSeeking
   , public IAMStreamSelect
-  , public IAMExtendedSeeking
-  , public IKeyFrameInfo
 {
 public:
   // constructor method used by class factory
@@ -59,12 +53,6 @@ public:
   // IUnknown
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
-
-  // IDispatch
-  STDMETHODIMP GetTypeInfoCount(UINT* pctinfo) {return E_NOTIMPL;}
-  STDMETHODIMP GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo** pptinfo) {return E_NOTIMPL;}
-  STDMETHODIMP GetIDsOfNames(REFIID riid, OLECHAR** rgszNames, UINT cNames, LCID lcid, DISPID* rgdispid) {return E_NOTIMPL;}
-  STDMETHODIMP Invoke(DISPID dispidMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult, EXCEPINFO* pexcepinfo, UINT* puArgErr) {return E_NOTIMPL;}
 
   // CBaseFilter methods
   int GetPinCount();
@@ -102,19 +90,6 @@ public:
   STDMETHODIMP Enable(long lIndex, DWORD dwFlags);
   STDMETHODIMP Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk);
 
-  // IAMExtendedSeeking
-  STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
-  STDMETHODIMP get_MarkerCount(long* pMarkerCount);
-  STDMETHODIMP get_CurrentMarker(long* pCurrentMarker);
-  STDMETHODIMP GetMarkerTime(long MarkerNum, double* pMarkerTime);
-  STDMETHODIMP GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName);
-  STDMETHODIMP put_PlaybackSpeed(double Speed) {return E_NOTIMPL;}
-  STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
-
-  // IKeyFrameInfo
-  STDMETHODIMP GetKeyFrameCount(UINT& nKFs);
-  STDMETHODIMP GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs);
-
   bool IsAnyPinDrying();
 protected:
   // CAMThread
@@ -123,41 +98,18 @@ protected:
 
   void AddStream(int streamId);
 
-  REFERENCE_TIME GetStreamLength();
   HRESULT DemuxSeek(REFERENCE_TIME rtStart);
   HRESULT DemuxNextPacket();
-  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, BOOL subStart = true);
-  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, BOOL addStart = true);
-
   HRESULT DeliverPacket(Packet *pPacket);
 
   void DeliverBeginFlush();
   void DeliverEndFlush();
 
-  STDMETHODIMP CreateOutputs();
   STDMETHODIMP DeleteOutputs();
 
 public:
-  struct stream {
-    CDSStreamInfo *streamInfo;
-    DWORD pid;
-    struct stream() { streamInfo = NULL; pid = 0; }
-    operator DWORD() const { return pid; }
-    bool operator == (const struct stream& s) const { return (DWORD)*this == (DWORD)s; }
-  };
-
-  enum StreamType {video, audio, subpic, unknown};
-  class CStreamList : public std::deque<stream>
-  {
-  public:
-    static const WCHAR* ToString(int type);
-    const stream* FindStream(DWORD pid);
-    void Clear();
-  } m_streams[unknown];
-
   CLAVFOutputPin *GetOutputPin(DWORD streamId);
   STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt);
-  DWORD GetVideoStreamId();
 
 private:
   // construct only via class factory
@@ -171,13 +123,9 @@ private:
 
   std::wstring m_fileName;
 
-  AVFormatContext *m_avFormat;
-  unsigned int m_program;
-  bool m_bMatroska;
-  bool m_bAVI;
+  CBaseDemuxer *m_pDemuxer;
 
   // Times
-  REFERENCE_TIME m_rtDuration; // derived filter should set this at the end of CreateOutputs
   REFERENCE_TIME m_rtStart, m_rtStop, m_rtCurrent, m_rtNewStart, m_rtNewStop;
   double m_dRate;
 

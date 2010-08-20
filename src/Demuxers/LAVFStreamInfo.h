@@ -16,22 +16,25 @@
  *  along with this program; see the file COPYING.  If not, write to
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *  http://www.gnu.org/copyleft/gpl.html
+ *
+ *  Contributions by Ti-BEN from the XBMC DSPlayer Project, also under GPLv2
  */
-
-// pre-compiled header
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
+#include <string>
+#include "StreamInfo.h"
 
-// include headers
-#include <Windows.h>
+class CLAVFStreamInfo : public CStreamInfo
+{
+public:
+  CLAVFStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr);
+  ~CLAVFStreamInfo();
 
-extern "C" {
-#include <stdint.h>
-}
-#include "streams.h"
+  STDMETHODIMP CreateAudioMediaType(AVStream *avstream);
+  STDMETHODIMP CreateVideoMediaType(AVStream *avstream);
+  STDMETHODIMP CreateSubtitleMediaType(AVStream *avstream);
 
-#include "DShowUtil.h"
-#include "BaseDemuxer.h"
+private:
+  std::string m_containerFormat;
+};

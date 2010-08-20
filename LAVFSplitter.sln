@@ -4,6 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVFSplitter", "src\LAVFSplitter\LAVFSplitter.vcxproj", "{F475F86F-3F7F-4B1D-82A6-078339F599FD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0A058024-41F4-4509-97D2-803A1806CE86} = {0A058024-41F4-4509-97D2-803A1806CE86}
+		{E2012DB5-33CB-44A7-B521-04287F6D0D80} = {E2012DB5-33CB-44A7-B521-04287F6D0D80}
 		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA} = {E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}
 	EndProjectSection
 EndProject
@@ -11,6 +12,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "baseclasses", "src\baseclas
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DSUtilLite", "src\DSUtilLite\DSUtilLite.vcxproj", "{0A058024-41F4-4509-97D2-803A1806CE86}"
 	ProjectSection(ProjectDependencies) = postProject
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA} = {E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demuxers", "src\Demuxers\Demuxers.vcxproj", "{E2012DB5-33CB-44A7-B521-04287F6D0D80}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0A058024-41F4-4509-97D2-803A1806CE86} = {0A058024-41F4-4509-97D2-803A1806CE86}
 		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA} = {E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}
 	EndProjectSection
 EndProject
@@ -46,6 +53,12 @@ Global
 		{0A058024-41F4-4509-97D2-803A1806CE86}.Release|Win32.Build.0 = Release|Win32
 		{0A058024-41F4-4509-97D2-803A1806CE86}.Release|x64.ActiveCfg = Release|x64
 		{0A058024-41F4-4509-97D2-803A1806CE86}.Release|x64.Build.0 = Release|x64
+		{E2012DB5-33CB-44A7-B521-04287F6D0D80}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E2012DB5-33CB-44A7-B521-04287F6D0D80}.Debug|Win32.Build.0 = Debug|Win32
+		{E2012DB5-33CB-44A7-B521-04287F6D0D80}.Debug|x64.ActiveCfg = Debug|Win32
+		{E2012DB5-33CB-44A7-B521-04287F6D0D80}.Release|Win32.ActiveCfg = Release|Win32
+		{E2012DB5-33CB-44A7-B521-04287F6D0D80}.Release|Win32.Build.0 = Release|Win32
+		{E2012DB5-33CB-44A7-B521-04287F6D0D80}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -21,20 +21,14 @@
  */
 
 #include "stdafx.h"
-#include "DSStreamInfo.h"
-#include "DSGuidHelper.h"
+#include "LAVFStreamInfo.h"
+#include "LAVFGuidHelper.h"
 #include "moreuuids.h"
 
-CDSStreamInfo::CDSStreamInfo()
-{
-  mtype.InitMediaType();
-}
-
-CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
+CLAVFStreamInfo::CLAVFStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
+  : CStreamInfo(), m_containerFormat(containerFormat)
 {
   m_containerFormat = std::string(containerFormat);
-
-  mtype.InitMediaType();
 
   switch(avstream->codec->codec_type) {
   case AVMEDIA_TYPE_AUDIO:
@@ -52,11 +46,11 @@ CDSStreamInfo::CDSStreamInfo(AVStream *avstream, const char* containerFormat, HR
   }
 }
 
-CDSStreamInfo::~CDSStreamInfo()
+CLAVFStreamInfo::~CLAVFStreamInfo()
 {
 }
 
-STDMETHODIMP CDSStreamInfo::CreateAudioMediaType(AVStream *avstream)
+STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
 {
   mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id);
   WAVEFORMATEX* wvfmt = (WAVEFORMATEX*)mtype.AllocFormatBuffer(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
@@ -95,7 +89,7 @@ STDMETHODIMP CDSStreamInfo::CreateAudioMediaType(AVStream *avstream)
   return S_OK;
 }
 
-STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
+STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
 {
   mtype = g_GuidHelper.initVideoType(avstream->codec->codec_id);
   mtype.bTemporalCompression = 1;
@@ -122,7 +116,7 @@ STDMETHODIMP CDSStreamInfo::CreateVideoMediaType(AVStream *avstream)
   return S_OK;
 }
 
-STDMETHODIMP CDSStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
+STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
 {
   // Skip teletext
   if (avstream->codec->codec_id == CODEC_ID_DVB_TELETEXT) {

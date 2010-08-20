@@ -25,48 +25,7 @@
 #define MIN_PACKETS_IN_QUEUE 10           // Below this is considered "drying pin"
 #define MAX_PACKETS_IN_QUEUE 100
 
-// Data Packet for queue storage
-class Packet
-{
-public:
-  static const REFERENCE_TIME INVALID_TIME = _I64_MIN;
-
-  DWORD StreamId;
-  BOOL bDiscontinuity, bSyncPoint, bAppendable;
-  REFERENCE_TIME rtStart, rtStop;
-  AM_MEDIA_TYPE* pmt;
-
-  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; }
-  virtual ~Packet() { if(pmt) DeleteMediaType(pmt); if(m_pbData) free(m_pbData); }
-
-  // Getter
-  DWORD GetDataSize() { return m_dSize; }
-  BYTE *GetData() { return m_pbData; }
-  BYTE GetAt(DWORD pos) { return m_pbData[pos]; }
-  bool IsEmpty() { return m_dSize == 0; }
-
-  // Setter
-  void SetDataSize(DWORD len) { m_dSize = len; m_pbData = (BYTE *)realloc(m_pbData, len); }
-  void SetData(const void* ptr, DWORD len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
-
-  // Append the data of the package to our data buffer
-  void Append(Packet *ptr) {
-    DWORD prevSize = m_dSize;
-    SetDataSize(prevSize + ptr->GetDataSize());
-    memcpy(m_pbData+prevSize, ptr->GetData(), ptr->GetDataSize());
-  }
-
-  // Remove count bytes from position index
-  void RemoveHead(DWORD count) {
-    count = max(count, m_dSize);
-    memmove(m_pbData, m_pbData+count, m_dSize-count);
-    SetDataSize(m_dSize - count);
-  }
-
-private:
-  DWORD m_dSize;
-  BYTE *m_pbData;
-};
+class Packet;
 
 // FIFO Packet Queue
 class CPacketQueue : public CCritSec

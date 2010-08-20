@@ -23,10 +23,10 @@
 
 #include "stdafx.h"
 #include "LAVFSplitter.h"
-#include "DSStreamInfo.h"
 #include "LAVFOutputPin.h"
 
-#include "lavfutils.h"
+#include "BaseDemuxer.h"
+#include "LAVFDemuxer.h"
 
 #include <string>
 
@@ -38,12 +38,10 @@ CUnknown* WINAPI CLAVFSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVFSplitter::CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
-  , m_rtDuration(0), m_rtStart(0), m_rtStop(0), m_rtCurrent(0)
+  , m_rtStart(0), m_rtStop(0), m_rtCurrent(0)
   , m_dRate(1.0)
-  , m_avFormat(NULL)
+  , m_pDemuxer(NULL)
 {
-  av_register_all();
-
   if(phr) { *phr = S_OK; }
 }
 
@@ -56,6 +54,8 @@ CLAVFSplitter::~CLAVFSplitter()
 
   m_State = State_Stopped;
   DeleteOutputs();
+
+  SAFE_DELETE(m_pDemuxer);
 }
 
 STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -64,12 +64,14 @@ STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   *ppv = NULL;
 
+  if (m_pDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == IID_IAMExtendedSeeking)) {
+    return m_pDemuxer->QueryInterface(riid, ppv);
+  }
+
   return 
     QI(IFileSourceFilter)
     QI(IMediaSeeking)
     QI(IAMStreamSelect)
-    QI2(IAMExtendedSeeking)
-    QI(IKeyFrameInfo)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -110,13 +112,42 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
   m_fileName = std::wstring(pszFileName);
 
   HRESULT hr = S_OK;
-
-  if(FAILED(hr = DeleteOutputs()) || FAILED(hr = CreateOutputs()))
-  {
-    m_fileName = L"";
+  SAFE_DELETE(m_pDemuxer);
+  m_pDemuxer = new CLAVFDemuxer(this);
+  if(FAILED(hr = m_pDemuxer->Open(pszFileName))) {
+    SAFE_DELETE(m_pDemuxer);
+    return hr;
   }
 
-  return hr;
+  m_rtStart = m_rtNewStart = m_rtCurrent = 0;
+  m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
+
+  // Try to create pins
+  for(int i = 0; i < CBaseDemuxer::unknown; i++) {
+    CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
+    std::deque<CBaseDemuxer::stream>::iterator it;
+    for ( it = streams->begin(); it != streams->end(); it++ ) {
+      const WCHAR* name = CBaseDemuxer::CStreamList::ToString(i);
+
+      std::vector<CMediaType> mts;
+      mts.push_back(it->streamInfo->mtype);
+
+      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (CBaseDemuxer::StreamType)i, m_pDemuxer->GetContainerFormat());
+      if(SUCCEEDED(hr)) {
+        pPin->SetStreamId(it->pid);
+        m_pPins.push_back(pPin);
+        m_pDemuxer->SetActiveStream((CBaseDemuxer::StreamType)i, it->pid);
+        break;
+      } else {
+        delete pPin;
+      }
+    }
+  }
+  if(SUCCEEDED(hr)) {
+    return !m_pPins.empty();
+  } else {
+    return hr;
+  }
 }
 
 // Get the currently loaded file
@@ -134,175 +165,10 @@ STDMETHODIMP CLAVFSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pm
   return S_OK;
 }
 
-REFERENCE_TIME CLAVFSplitter::GetStreamLength()
-{
-  int64_t iLength = 0;
-  if (m_avFormat->duration == (int64_t)AV_NOPTS_VALUE || m_avFormat->duration < 0LL) {
-    // no duration is available for us
-    // try to calculate it
-    // TODO
-    /*if (m_rtCurrent != Packet::INVALID_TIME && m_avFormat->file_size > 0 && m_avFormat->pb && m_avFormat->pb->pos > 0) {
-    iLength = (((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
-    }*/
-    DbgLog((LOG_ERROR, 1, TEXT("duration is not available")));
-  } else {
-    iLength = m_avFormat->duration;
-  }
-  return ConvertTimestampToRT(iLength, 1, AV_TIME_BASE, false);
-}
-
-void CLAVFSplitter::AddStream(int streamId)
-{
-  HRESULT hr = S_OK;
-  AVStream* pStream = m_avFormat->streams[streamId];
-  stream s;
-  s.pid = streamId;
-  s.streamInfo = new CDSStreamInfo(pStream, m_avFormat->iformat->name, hr);
-
-  if(FAILED(hr)) {
-    delete s.streamInfo;
-    return;
-  }
-
-  // HACK: Change codec_id to TEXT for SSA to prevent some evil doings
-  if (pStream->codec->codec_id == CODEC_ID_SSA || pStream->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
-    pStream->codec->codec_id = CODEC_ID_TEXT;
-  }
-
-  switch(pStream->codec->codec_type)
-  {
-  case AVMEDIA_TYPE_VIDEO:
-    m_streams[video].push_back(s);
-    break;
-  case AVMEDIA_TYPE_AUDIO:
-    m_streams[audio].push_back(s);
-    break;
-  case AVMEDIA_TYPE_SUBTITLE:
-    m_streams[subpic].push_back(s);
-    break;
-  default:
-    // unsupported stream
-    // Normally this should be caught while creating the stream info already.
-    delete s.streamInfo;
-    break;
-  }
-}
-
-// Pin creation
-STDMETHODIMP CLAVFSplitter::CreateOutputs()
-{
-  CAutoLock lock(this);
-
-  int ret; // return code from avformat functions
-
-  // Convert the filename from wchar to char for avformat
-  char fileName[1024];
-  wcstombs_s(NULL, fileName, 1024, m_fileName.c_str(), _TRUNCATE);
-
-  ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
-  if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_open_input_file failed")));
-    goto fail;
-  }
-
-  ret = av_find_stream_info(m_avFormat);
-  if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_find_stream_info failed")));
-    goto fail;
-  }
-
-  m_bMatroska = (_stricmp(m_avFormat->iformat->name, "matroska") == 0);
-  m_bAVI = (_stricmp(m_avFormat->iformat->name, "avi") == 0);
-
-  // try to use non-blocking methods
-  m_avFormat->flags |= AVFMT_FLAG_NONBLOCK;
-
-  m_rtNewStart = m_rtStart = m_rtCurrent = 0;
-  m_rtNewStop = m_rtStop = m_rtDuration = GetStreamLength();
-
-  for(int i = 0; i < countof(m_streams); i++) {
-    m_streams[i].Clear();
-  }
-
-  if (m_avFormat->nb_programs) {
-    m_program = UINT_MAX;
-    // look for first non empty stream and discard nonselected programs
-    for (unsigned int i = 0; i < m_avFormat->nb_programs; i++) {
-      if(m_program == UINT_MAX && m_avFormat->programs[i]->nb_stream_indexes > 0) {
-        m_program = i;
-      }
-
-      if(i != m_program) {
-        m_avFormat->programs[i]->discard = AVDISCARD_ALL;
-      }
-    }
-    if(m_program == UINT_MAX) {
-      m_program = 0;
-    }
-    // add streams from selected program
-    for (unsigned int i = 0; i < m_avFormat->programs[m_program]->nb_stream_indexes; i++) {
-      AddStream(m_avFormat->programs[m_program]->stream_index[i]);
-    }
-  } else {
-    for(unsigned int streamId = 0; streamId < m_avFormat->nb_streams; streamId++) {
-      AddStream(streamId);
-    }
-  }
-
-  // Create fake subtitle pin
-  if(!m_streams[subpic].empty()) {
-    stream s;
-    s.pid = NO_SUBTITLE_PID;
-    s.streamInfo = new CDSStreamInfo();
-    s.streamInfo->mtype.majortype = MEDIATYPE_Subtitle;
-    s.streamInfo->mtype.subtype = MEDIASUBTYPE_NULL;
-    s.streamInfo->mtype.formattype = FORMAT_SubtitleInfo;
-    SUBTITLEINFO* psi = (SUBTITLEINFO *)s.streamInfo->mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO));
-    memset(psi, 0, sizeof(SUBTITLEINFO));
-    strcpy_s(psi->IsoLang, "---");
-    m_streams[subpic].push_front(s);
-  }
-
-  HRESULT hr = S_OK;
-  // Try to create pins
-  for(int i = 0; i < countof(m_streams); i++) {
-    std::deque<stream>::iterator it;
-    for ( it = m_streams[i].begin(); it != m_streams[i].end(); it++ ) {
-      const WCHAR* name = CStreamList::ToString(i);
-
-      std::vector<CMediaType> mts;
-      mts.push_back(it->streamInfo->mtype);
-
-      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (StreamType)i, m_avFormat->iformat->name);
-      if(SUCCEEDED(hr)) {
-        pPin->SetStreamId(it->pid);
-        m_pPins.push_back(pPin);
-        break;
-      } else {
-        delete pPin;
-      }
-    }
-  }
-
-  return S_OK;
-fail:
-  // Cleanup
-  if (m_avFormat) {
-    av_close_input_file(m_avFormat);
-    m_avFormat = NULL;
-  }
-  return E_FAIL;
-}
-
 STDMETHODIMP CLAVFSplitter::DeleteOutputs()
 {
   CAutoLock lock(this);
   if(m_State != State_Stopped) return VFW_E_NOT_STOPPED;
-
-  if(m_avFormat) {
-    av_close_input_file(m_avFormat);
-    m_avFormat = NULL;
-  }
 
   CAutoLock pinLock(&m_csPins);
   // Release pins
@@ -330,24 +196,13 @@ bool CLAVFSplitter::IsAnyPinDrying()
   return false;
 }
 
-DWORD CLAVFSplitter::GetVideoStreamId()
-{
-  std::vector<CLAVFOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
-    if((*it)->IsVideoPin()) {
-      return (*it)->GetStreamId();
-    }
-  }
-  return m_pPins[0]->GetStreamId();
-}
-
-
 // Worker Thread
 DWORD CLAVFSplitter::ThreadProc()
 {
+  CheckPointer(m_pDemuxer, 0);
+
   m_fFlushing = false;
   m_eEndFlush.Set();
-
   for(DWORD cmd = (DWORD)-1; ; cmd = GetRequest())
   {
     if(cmd == CMD_EXIT)
@@ -401,158 +256,27 @@ DWORD CLAVFSplitter::ThreadProc()
   return 0;
 }
 
-// Converts the lavf pts timestamp to a DShow REFERENCE_TIME
-// Based on DVDDemuxFFMPEG
-REFERENCE_TIME CLAVFSplitter::ConvertTimestampToRT(int64_t pts, int num, int den, BOOL subStart)
-{
-  if (pts == (int64_t)AV_NOPTS_VALUE) {
-    return Packet::INVALID_TIME;
-  }
-
-  // Let av_rescale do the work, its smart enough to not overflow
-  REFERENCE_TIME timestamp = av_rescale(pts, (int64_t)num * DSHOW_TIME_BASE, den);
-
-  if (subStart && m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
-    timestamp -= av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
-  }
-
-  return timestamp;
-}
-
-// Converts the lavf pts timestamp to a DShow REFERENCE_TIME
-// Based on DVDDemuxFFMPEG
-int64_t CLAVFSplitter::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den, BOOL addStart)
-{
-  if (timestamp == Packet::INVALID_TIME) {
-    return (int64_t)AV_NOPTS_VALUE;
-  }
-
-  // Let av_rescale do the work, its smart enough to not overflow
-  if (addStart && m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
-    timestamp += av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
-  }
-
-  return av_rescale(timestamp, den, (int64_t)num * DSHOW_TIME_BASE);
-}
-
 // Seek to the specified time stamp
 // Based on DVDDemuxFFMPEG
 HRESULT CLAVFSplitter::DemuxSeek(REFERENCE_TIME rtStart)
 {
   if(rtStart < 0) { rtStart = 0; }
-
-  DWORD streamId = GetVideoStreamId();
-  AVStream *stream = m_avFormat->streams[streamId];
-
-  int64_t seek_pts = ConvertRTToTimestamp(rtStart, stream->time_base.num, stream->time_base.den);
-
-  int ret = avformat_seek_file(m_avFormat, streamId, _I64_MIN, seek_pts, _I64_MAX, 0);
-  //int ret = av_seek_frame(m_avFormat, -1, seek_pts, 0);
-
-  return S_OK;
+  
+  return m_pDemuxer->Seek(rtStart);
 }
 
 // Demux the next packet and deliver it to the output pins
 // Based on DVDDemuxFFMPEG
 HRESULT CLAVFSplitter::DemuxNextPacket()
 {
-  bool bReturnEmpty = false;
-
-  // Read packet
-  AVPacket pkt;
-  Packet *pPacket = NULL;
-
-  // assume we are not eof
-  if(m_avFormat->pb) {
-    m_avFormat->pb->eof_reached = 0;
+  Packet *pPacket;
+  HRESULT hr = S_OK;
+  hr = m_pDemuxer->GetNextPacket(&pPacket);
+  // Only S_OK indicates we have a proper packet
+  // S_FALSE is a "soft error", don't deliver the packet
+  if (hr != S_OK) {
+    return hr;
   }
-
-  int result = 0;
-  try {
-    result = av_read_frame(m_avFormat, &pkt);
-  } catch(...) {
-    // ignore..
-  }
-
-  if (result == AVERROR(EINTR) || result == AVERROR(EAGAIN))
-  {
-    // timeout, probably no real error, return empty packet
-    bReturnEmpty = true;
-  } else if (result < 0) {
-    // meh, fail
-  } else if (pkt.size < 0 || pkt.stream_index >= MAX_STREAMS) {
-    // XXX, in some cases ffmpeg returns a negative packet size
-    if(m_avFormat->pb && !m_avFormat->pb->eof_reached) {
-      bReturnEmpty = true;
-    }
-    av_free_packet(&pkt);
-  } else {
-    AVStream *stream = m_avFormat->streams[pkt.stream_index];
-    pPacket = new Packet();
-
-    // libavformat sometimes bugs and sends dts/pts 0 instead of invalid.. correct this
-    if(pkt.dts == 0) {
-      pkt.dts = AV_NOPTS_VALUE;
-    }
-    if(pkt.pts == 0) {
-      pkt.pts = AV_NOPTS_VALUE;
-    }
-
-    // we need to get duration slightly different for matroska embedded text subtitels
-    if(m_bMatroska && stream->codec->codec_id == CODEC_ID_TEXT && pkt.convergence_duration != 0) {
-      pkt.duration = (int)pkt.convergence_duration;
-    }
-
-    if(m_bAVI && stream->codec && stream->codec->codec_type == CODEC_TYPE_VIDEO)
-    {
-      // AVI's always have borked pts, specially if m_pFormatContext->flags includes
-      // AVFMT_FLAG_GENPTS so always use dts
-      pkt.pts = AV_NOPTS_VALUE;
-    }
-
-    if(pkt.data) {
-      pPacket->SetData(pkt.data, pkt.size);
-    }
-
-    pPacket->StreamId = (DWORD)pkt.stream_index;
-
-    REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
-    REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
-    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den);
-
-    REFERENCE_TIME rt = m_rtCurrent;
-    // Try the different times set, pts first, dts when pts is not valid
-    if (pts != Packet::INVALID_TIME) {
-      rt = pts;
-    } else if (dts != Packet::INVALID_TIME) {
-      rt = dts;
-    }
-
-    // stupid VC1
-    if (stream->codec->codec_id == CODEC_ID_VC1 && dts != Packet::INVALID_TIME) {
-      rt = dts;
-    }
-
-    pPacket->rtStart = rt;
-    pPacket->rtStop = rt + ((duration > 0) ? duration : 1);
-
-    if (stream->codec->codec_type == CODEC_TYPE_SUBTITLE) {
-      pPacket->bDiscontinuity = TRUE;
-    } else {
-      pPacket->bSyncPoint = (duration > 0) ? 1 : 0;
-      pPacket->bAppendable = !pPacket->bSyncPoint;
-    }
-
-    av_free_packet(&pkt);
-  }
-
-  if (bReturnEmpty && !pPacket) {
-    return S_FALSE;
-  }
-  if (!pPacket) {
-    return E_FAIL;
-  }
-
   return DeliverPacket(pPacket);
 }
 
@@ -709,7 +433,7 @@ STDMETHODIMP CLAVFSplitter::QueryPreferredFormat(GUID* pFormat) {return GetTimeF
 STDMETHODIMP CLAVFSplitter::GetTimeFormat(GUID* pFormat) {return pFormat ? *pFormat = TIME_FORMAT_MEDIA_TIME, S_OK : E_POINTER;}
 STDMETHODIMP CLAVFSplitter::IsUsingTimeFormat(const GUID* pFormat) {return IsFormatSupported(pFormat);}
 STDMETHODIMP CLAVFSplitter::SetTimeFormat(const GUID* pFormat) {return S_OK == IsFormatSupported(pFormat) ? S_OK : E_INVALIDARG;}
-STDMETHODIMP CLAVFSplitter::GetDuration(LONGLONG* pDuration) {CheckPointer(pDuration, E_POINTER); *pDuration = m_rtDuration; return S_OK;}
+STDMETHODIMP CLAVFSplitter::GetDuration(LONGLONG* pDuration) {CheckPointer(pDuration, E_POINTER); CheckPointer(m_pDemuxer, E_UNEXPECTED); *pDuration = m_pDemuxer->GetDuration(); return S_OK;}
 STDMETHODIMP CLAVFSplitter::GetStopPosition(LONGLONG* pStop) {return GetDuration(pStop);}
 STDMETHODIMP CLAVFSplitter::GetCurrentPosition(LONGLONG* pCurrent) {return E_NOTIMPL;}
 STDMETHODIMP CLAVFSplitter::ConvertTimeFormat(LONGLONG* pTarget, const GUID* pTargetFormat, LONGLONG Source, const GUID* pSourceFormat) {return E_NOTIMPL;}
@@ -778,93 +502,9 @@ STDMETHODIMP CLAVFSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = 
 STDMETHODIMP CLAVFSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
 STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
 
-// IAMExtendedSeeking
-STDMETHODIMP CLAVFSplitter::get_ExSeekCapabilities(long* pExCapabilities)
-{
-  CheckPointer(pExCapabilities, E_POINTER);
-  *pExCapabilities = AM_EXSEEK_CANSEEK;
-  if(m_avFormat->nb_chapters > 0) *pExCapabilities |= AM_EXSEEK_MARKERSEEK;
-  return S_OK;
-}
-
-STDMETHODIMP CLAVFSplitter::get_MarkerCount(long* pMarkerCount)
-{
-  CheckPointer(pMarkerCount, E_POINTER);
-  *pMarkerCount = (long)m_avFormat->nb_chapters;
-  return S_OK;
-}
-
-STDMETHODIMP CLAVFSplitter::get_CurrentMarker(long* pCurrentMarker)
-{
-  CheckPointer(pCurrentMarker, E_POINTER);
-  // Can the time_base change in between chapters?
-  // Anyhow, we do the calculation in the loop, just to be safe
-  for(unsigned int i = 0; i < m_avFormat->nb_chapters; i++) {
-    int64_t pts = ConvertRTToTimestamp(m_rtCurrent, m_avFormat->chapters[i]->time_base.den, m_avFormat->chapters[i]->time_base.num);
-    if (pts >= m_avFormat->chapters[i]->start && pts <= m_avFormat->chapters[i]->end) {
-      *pCurrentMarker = (i + 1);
-      return S_OK;
-    }
-  }
-  return E_FAIL;
-}
-
-STDMETHODIMP CLAVFSplitter::GetMarkerTime(long MarkerNum, double* pMarkerTime)
-{
-  CheckPointer(pMarkerTime, E_POINTER);
-  // Chapters go by a 1-based index, doh
-  unsigned int index = MarkerNum - 1;
-  if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
-
-  REFERENCE_TIME rt = ConvertTimestampToRT(m_avFormat->chapters[index]->start, m_avFormat->chapters[index]->time_base.num, m_avFormat->chapters[index]->time_base.den);
-  *pMarkerTime = (double)rt / DSHOW_TIME_BASE;
-
-  return S_OK;
-}
-
-STDMETHODIMP CLAVFSplitter::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
-{
-  CheckPointer(pbstrMarkerName, E_POINTER);
-  // Chapters go by a 1-based index, doh
-  unsigned int index = MarkerNum - 1;
-  if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
-  // Get the title, or generate one
-  OLECHAR wTitle[128];
-  if (av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
-    char *title = av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)->value;
-    mbstowcs_s(NULL, wTitle, title, _TRUNCATE);
-  } else {
-    swprintf_s(wTitle, L"Chapter %d", MarkerNum);
-  }
-  *pbstrMarkerName = SysAllocString(wTitle);
-  return S_OK;
-}
-
-// IKeyFrameInfo
-STDMETHODIMP CLAVFSplitter::GetKeyFrameCount(UINT& nKFs)
-{
-  AVStream *stream = m_avFormat->streams[GetVideoStreamId()];
-  nKFs = stream->nb_index_entries;
-  return (stream->nb_index_entries == stream->nb_frames) ? S_FALSE : S_OK;
-}
-
-STDMETHODIMP CLAVFSplitter::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs)
-{
-  CheckPointer(pFormat, E_POINTER);
-  CheckPointer(pKFs, E_POINTER);
-
-  if(*pFormat != TIME_FORMAT_MEDIA_TIME) return E_INVALIDARG;
-
-  AVStream *stream = m_avFormat->streams[GetVideoStreamId()];
-  nKFs = stream->nb_index_entries;
-  for(unsigned int i = 0; i < nKFs; i++) {
-    pKFs[i] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
-  }
-  return S_OK;
-}
-
 STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt)
 {
+  CheckPointer(m_pDemuxer, E_UNEXPECTED);
   CLAVFOutputPin* pPin = GetOutputPin(TrackNumSrc);
   // Output Pin was found
   // Stop the Graph, remove the old filter, render the graph again, start it up again
@@ -881,6 +521,7 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     pControl->Stop();
     // Update Output Pin
     pPin->SetStreamId(TrackNumDst);
+    m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
     pPin->SetNewMediaType(*pmt);
 
     // Audio Filters get their connected filter removed
@@ -923,10 +564,11 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
 STDMETHODIMP CLAVFSplitter::Count(DWORD *pcStreams)
 {
   CheckPointer(pcStreams, E_POINTER);
+  CheckPointer(m_pDemuxer, E_UNEXPECTED);
 
   *pcStreams = 0;
-  for(int i = 0; i < countof(m_streams); i++) {
-    *pcStreams += (DWORD)m_streams[i].size();
+  for(int i = 0; i < CBaseDemuxer::unknown; i++) {
+    *pcStreams += (DWORD)m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i)->size();
   }
 
   return S_OK;
@@ -934,20 +576,22 @@ STDMETHODIMP CLAVFSplitter::Count(DWORD *pcStreams)
 
 STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
 {
+  CheckPointer(m_pDemuxer, E_UNEXPECTED);
   if(!(dwFlags & AMSTREAMSELECTENABLE_ENABLE)) {
     return E_NOTIMPL;
   }
 
-  for(int i = 0, j = 0; i < countof(m_streams); i++) {
-    int cnt = (int)m_streams[i].size();
+  for(int i = 0, j = 0; i < CBaseDemuxer::unknown; i++) {
+    CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
+    int cnt = (int)streams->size();
 
     if(lIndex >= j && lIndex < j+cnt) {
       long idx = (lIndex - j);
 
-      stream& to = m_streams[i].at(idx);
+      CBaseDemuxer::stream& to = streams->at(idx);
 
-      std::deque<stream>::iterator it;
-      for(it = m_streams[i].begin(); it != m_streams[i].end(); it++) {
+      std::deque<CBaseDemuxer::stream>::iterator it;
+      for(it = streams->begin(); it != streams->end(); it++) {
         if(!GetOutputPin(it->pid)) {
           continue;
         }
@@ -968,13 +612,15 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
 #define INFOBUFSIZE 128
 STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk)
 {
-  for(int i = 0, j = 0; i < countof(m_streams); i++) {
-    int cnt = (int)m_streams[i].size();
+  CheckPointer(m_pDemuxer, E_UNEXPECTED);
+  for(int i = 0, j = 0; i < CBaseDemuxer::unknown; i++) {
+    CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
+    int cnt = (int)streams->size();
 
     if(lIndex >= j && lIndex < j+cnt) {
       long idx = (lIndex - j);
 
-      stream& s = m_streams[i].at(idx);
+      CBaseDemuxer::stream& s = streams->at(idx);
 
       if(ppmt) *ppmt = CreateMediaType(&s.streamInfo->mtype);
       if(pdwFlags) *pdwFlags = GetOutputPin(s) ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
@@ -986,25 +632,14 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
       if(s.pid == NO_SUBTITLE_PID) {
         if (plcid) *plcid = LCID_NOSUBTITLES;
         if (ppszName) {
-          WCHAR str[] = _T("S: No subtitles");
+          WCHAR str[] = L"S: No subtitles";
           size_t len = wcslen(str) + 1;
           *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
           wcsncpy_s(*ppszName, len, str, _TRUNCATE);
         }
-        break;
-      }
-
-      // Probe language
-      if (plcid) {
-        if (av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)) {
-          char *lang = av_metadata_get(m_avFormat->streams[s.pid]->metadata, "language", NULL, 0)->value;
-          *plcid = ProbeLangForLCID(lang);
-        }
-      }
-
-      // Populate stream name
-      if(ppszName) {
-        lavf_describe_stream(m_avFormat->streams[s.pid], ppszName);
+      } else {
+        // Populate stream name and language code
+        m_pDemuxer->StreamInfo(s.pid, plcid, ppszName);
       }
       break;
     }
@@ -1012,35 +647,4 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
   }
 
   return S_OK;
-}
-
-// CStreamList
-const WCHAR* CLAVFSplitter::CStreamList::ToString(int type)
-{
-  return 
-    type == video ? L"Video" :
-    type == audio ? L"Audio" :
-    type == subpic ? L"Subtitle" :
-    L"Unknown";
-}
-
-const CLAVFSplitter::stream* CLAVFSplitter::CStreamList::FindStream(DWORD pid)
-{
-  std::deque<stream>::iterator it;
-  for ( it = begin(); it != end(); it++ ) {
-    if ((*it).pid == pid) {
-      return &(*it);
-    }
-  }
-
-  return NULL;
-}
-
-void CLAVFSplitter::CStreamList::Clear()
-{
-  std::deque<stream>::iterator it;
-  for ( it = begin(); it != end(); it++ ) {
-    delete (*it).streamInfo;
-  }
-  __super::clear();
 }

@@ -21,12 +21,12 @@
  */
 
 #include "stdafx.h"
-#include "DSGuidHelper.h"
+#include "LAVFGuidHelper.h"
 #include "moreuuids.h"
 
-CDSGuidHelper g_GuidHelper;
+CLAVFGuidHelper g_GuidHelper;
 
-CMediaType CDSGuidHelper::initAudioType(CodecID codecId)
+CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -58,7 +58,7 @@ CMediaType CDSGuidHelper::initAudioType(CodecID codecId)
   return mediaType;
 }
 
-CMediaType CDSGuidHelper::initVideoType(CodecID codecId)
+CMediaType CLAVFGuidHelper::initVideoType(CodecID codecId)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -105,54 +105,6 @@ CMediaType CDSGuidHelper::initVideoType(CodecID codecId)
   }
 
   return mediaType;
-}
-
-int64_t lavc_gcd(int64_t a, int64_t b)
-{
-  if(b) return lavc_gcd(b, a%b);
-  else  return a;
-}
-uint64_t ff_abs(int64_t x)
-{
-  return uint64_t((x<0) ? -x : x);
-}
-
-int math_reduce(int *dst_nom, int *dst_den, int64_t nom, int64_t den, int64_t max)
-{
-  AVRational a0={0,1}, a1={1,0};
-  int sign= (nom<0) ^ (den<0);
-  int64_t gcd = lavc_gcd(ff_abs(nom), ff_abs(den));
-
-  if(gcd){
-    nom = ff_abs(nom)/gcd;
-    den = ff_abs(den)/gcd;
-  }
-
-  if(nom<=max && den<=max){
-    a1.num=(int)nom;a1.den=(int)den;//= (AVRational){nom, den};
-    den=0;
-  }
-
-  while(den){
-    int64_t x        = nom / den;
-    int64_t next_den = nom - den*x;
-    int64_t a2n = x*a1.num + a0.num;
-    int64_t a2d = x*a1.den + a0.den;
-
-    if(a2n > max || a2d > max) break;
-
-    a0 = a1;
-    a1.num = (int)a2n;
-    a1.den = (int)a2d;//= (AVRational){a2n, a2d};
-    nom = den;
-    den = next_den;
-  }
-  ASSERT(lavc_gcd(a1.num, a1.den) == 1U);
-
-  *dst_nom = sign ? -a1.num : a1.num;
-  *dst_den = a1.den;
-
-  return (den == 0);
 }
 
 DWORD avc_quant(BYTE *src, BYTE *dst, int extralen)
@@ -285,7 +237,7 @@ DWORD avs_parse_annexb(BYTE *src, BYTE *dst, int extralen)
   return (DWORD)(dst - dstmarker);
 }
 
-VIDEOINFOHEADER *CDSGuidHelper::CreateVIH(const AVStream* avstream, ULONG *size)
+VIDEOINFOHEADER *CLAVFGuidHelper::CreateVIH(const AVStream* avstream, ULONG *size)
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
@@ -317,7 +269,7 @@ VIDEOINFOHEADER *CDSGuidHelper::CreateVIH(const AVStream* avstream, ULONG *size)
   return pvi;
 }
 
-VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *size, bool is_mpegts_format)
+VIDEOINFOHEADER2 *CLAVFGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *size, bool is_mpegts_format)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -371,7 +323,7 @@ VIDEOINFOHEADER2 *CDSGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *siz
   return vih2;
 }
 
-MPEG1VIDEOINFO *CDSGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *size)
+MPEG1VIDEOINFO *CLAVFGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *size)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -406,7 +358,7 @@ MPEG1VIDEOINFO *CDSGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *si
   return mp1vi;
 }
 
-MPEG2VIDEOINFO *CDSGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format)
+MPEG2VIDEOINFO *CLAVFGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format)
 {
   int extra = 0;
   BYTE *extradata = NULL;

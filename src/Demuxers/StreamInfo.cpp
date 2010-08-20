@@ -16,27 +16,16 @@
  *  along with this program; see the file COPYING.  If not, write to
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *  http://www.gnu.org/copyleft/gpl.html
- *
- *  Contributions by Ti-BEN from the XBMC DSPlayer Project, also under GPLv2
  */
+#include "stdafx.h"
+#include "StreamInfo.h"
 
-#pragma once
 
-#include <string>
-
-class CDSStreamInfo
+CStreamInfo::CStreamInfo()
 {
-public:
-  CDSStreamInfo();
-  CDSStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr);
-  ~CDSStreamInfo();
+  mtype.InitMediaType();
+}
 
-  CMediaType mtype;
-
-  STDMETHODIMP CreateAudioMediaType(AVStream *avstream);
-  STDMETHODIMP CreateVideoMediaType(AVStream *avstream);
-  STDMETHODIMP CreateSubtitleMediaType(AVStream *avstream);
-
-private:
-  std::string m_containerFormat;
-};
+CStreamInfo::~CStreamInfo()
+{
+}

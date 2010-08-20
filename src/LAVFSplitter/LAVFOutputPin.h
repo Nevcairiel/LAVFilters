@@ -36,8 +36,8 @@ class CLAVFOutputPin
   , protected CAMThread
 {
 public:
-  CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType = CLAVFSplitter::unknown,const char* container = "", int nBuffers = 0);
-  CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CLAVFSplitter::StreamType pinType = CLAVFSplitter::unknown, const char* container = "", int nBuffers = 0);
+  CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "", int nBuffers = 0);
+  CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown, const char* container = "", int nBuffers = 0);
   ~CLAVFOutputPin();
 
   DECLARE_IUNKNOWN;
@@ -70,9 +70,10 @@ public:
   void SetNewMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_mts.clear(); m_mts.push_back(pmt); }
   void QueueMediaType(CMediaType pmt) { CAutoLock lock(&m_csMT); m_newMT = new CMediaType(pmt); }
 
-  BOOL IsVideoPin() { return m_pinType == CLAVFSplitter::video; }
-  BOOL IsAudioPin() { return m_pinType == CLAVFSplitter::audio; }
-  BOOL IsSubtitlePin(){ return m_pinType == CLAVFSplitter::subpic; }
+  BOOL IsVideoPin() { return m_pinType == CBaseDemuxer::video; }
+  BOOL IsAudioPin() { return m_pinType == CBaseDemuxer::audio; }
+  BOOL IsSubtitlePin(){ return m_pinType == CBaseDemuxer::subpic; }
+  CBaseDemuxer::StreamType GetPinType() { return m_pinType; }
 
 private:
   enum {CMD_EXIT};
@@ -100,5 +101,5 @@ private:
   DWORD m_streamId;
   CMediaType *m_newMT;
 
-  CLAVFSplitter::StreamType m_pinType;
+  CBaseDemuxer::StreamType m_pinType;
 };

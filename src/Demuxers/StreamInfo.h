@@ -18,20 +18,14 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-// pre-compiled header
-
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
+class CStreamInfo
+{
+public:
+  CStreamInfo();
+  ~CStreamInfo();
 
-// include headers
-#include <Windows.h>
+  CMediaType mtype;
+};
 
-extern "C" {
-#include <stdint.h>
-}
-#include "streams.h"
-
-#include "DShowUtil.h"
-#include "BaseDemuxer.h"
