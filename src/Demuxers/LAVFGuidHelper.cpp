@@ -91,6 +91,7 @@ CMediaType CLAVFGuidHelper::initVideoType(CodecID codecId)
     break;
   case CODEC_ID_MPEG2VIDEO:
     mediaType.formattype = FORMAT_MPEG2Video;
+    mediaType.subtype = MEDIASUBTYPE_MPEG2_VIDEO;
     break;
   case CODEC_ID_RV10:
   case CODEC_ID_RV20:
