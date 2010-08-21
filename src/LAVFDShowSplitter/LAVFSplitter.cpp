@@ -318,6 +318,9 @@ HRESULT CLAVFSplitter::DeliverPacket(Packet *pPacket)
     m_bDiscontinuitySent.insert(streamId);
   }
 
+  // After delivery, we can let other threads actually process the data
+  Sleep(1);
+
   return hr;
 }
 
