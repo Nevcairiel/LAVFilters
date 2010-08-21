@@ -44,11 +44,11 @@ public:
 
   // CBaseDemuxer
   STDMETHODIMP Open(LPCOLESTR pszFileName);
-  REFERENCE_TIME GetDuration();
+  REFERENCE_TIME GetDuration() const;
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
-  const char *GetContainerFormat();
-  HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName);
+  const char *GetContainerFormat() const;
+  HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const;
 
 
   // IAMExtendedSeeking
@@ -68,8 +68,8 @@ private:
   STDMETHODIMP AddStream(int streamId);
   STDMETHODIMP CreateStreams();
 
-  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, BOOL subStart = true);
-  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, BOOL addStart = true);
+  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, BOOL subStart = true) const;
+  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, BOOL addStart = true) const;
 
 private:
   AVFormatContext *m_avFormat;

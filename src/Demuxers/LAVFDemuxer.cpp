@@ -74,9 +74,9 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
     goto done;
   }
 
-  m_bMatroska = (_stricmp(m_avFormat->iformat->name, "matroska") == 0);
-  m_bAVI = (_stricmp(m_avFormat->iformat->name, "avi") == 0);
-  m_bMPEGTS = (_stricmp(m_avFormat->iformat->name, "mpegts") == 0);
+  m_bMatroska = (_strnicmp(m_avFormat->iformat->name, "matroska", 8) == 0);
+  m_bAVI = (_strnicmp(m_avFormat->iformat->name, "avi", 3) == 0);
+  m_bMPEGTS = (_strnicmp(m_avFormat->iformat->name, "mpegts", 6) == 0);
 
   CHECK_HR(hr = CreateStreams());
 
@@ -90,7 +90,7 @@ done:
   return E_FAIL;
 }
 
-REFERENCE_TIME CLAVFDemuxer::GetDuration()
+REFERENCE_TIME CLAVFDemuxer::GetDuration() const
 {
   int64_t iLength = 0;
   if (m_avFormat->duration == (int64_t)AV_NOPTS_VALUE || m_avFormat->duration < 0LL) {
@@ -223,16 +223,19 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
 
   int ret = avformat_seek_file(m_avFormat, m_dActiveStreams[video], _I64_MIN, seek_pts, _I64_MAX, 0);
   //int ret = av_seek_frame(m_avFormat, -1, seek_pts, 0);
+  if(ret < 0) {
+    DbgLog((LOG_ERROR, 1, L"Seek failed"));
+  }
 
   return S_OK;
 }
 
-const char *CLAVFDemuxer::GetContainerFormat()
+const char *CLAVFDemuxer::GetContainerFormat() const
 {
   return m_avFormat->iformat->name;
 }
 
-HRESULT CLAVFDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName)
+HRESULT CLAVFDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const
 {
   if (streamId >= (DWORD)m_avFormat->nb_streams) { return E_FAIL; }
 
@@ -427,7 +430,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
-REFERENCE_TIME CLAVFDemuxer::ConvertTimestampToRT(int64_t pts, int num, int den, BOOL subStart)
+REFERENCE_TIME CLAVFDemuxer::ConvertTimestampToRT(int64_t pts, int num, int den, BOOL subStart) const
 {
   if (pts == (int64_t)AV_NOPTS_VALUE) {
     return Packet::INVALID_TIME;
@@ -445,7 +448,7 @@ REFERENCE_TIME CLAVFDemuxer::ConvertTimestampToRT(int64_t pts, int num, int den,
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
-int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den, BOOL addStart)
+int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den, BOOL addStart) const
 {
   if (timestamp == Packet::INVALID_TIME) {
     return (int64_t)AV_NOPTS_VALUE;

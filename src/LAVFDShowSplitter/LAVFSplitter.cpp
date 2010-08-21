@@ -304,7 +304,7 @@ HRESULT CLAVFSplitter::DeliverPacket(Packet *pPacket)
   }
 
   if(m_bDiscontinuitySent.find(pPacket->StreamId) == m_bDiscontinuitySent.end()) {
-    pPacket->bDiscontinuity = true;
+    pPacket->bDiscontinuity = TRUE;
   }
 
   BOOL bDiscontinuity = pPacket->bDiscontinuity; 

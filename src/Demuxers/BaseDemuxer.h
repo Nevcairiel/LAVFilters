@@ -39,13 +39,13 @@ public:
   AM_MEDIA_TYPE* pmt;
 
   Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; }
-  ~Packet() { if(pmt) DeleteMediaType(pmt); if(m_pbData) free(m_pbData); }
+  ~Packet() { DeleteMediaType(pmt); free(m_pbData); }
 
   // Getter
-  DWORD GetDataSize() { return m_dSize; }
+  DWORD GetDataSize() const { return m_dSize; }
   BYTE *GetData() { return m_pbData; }
-  BYTE GetAt(DWORD pos) { return m_pbData[pos]; }
-  bool IsEmpty() { return m_dSize == 0; }
+  BYTE GetAt(DWORD pos) const { return m_pbData[pos]; }
+  bool IsEmpty() const { return m_dSize == 0; }
 
   // Setter
   void SetDataSize(DWORD len) { m_dSize = len; m_pbData = (BYTE *)realloc(m_pbData, len); }
@@ -82,15 +82,15 @@ public:
   // Open the file
   virtual STDMETHODIMP Open(LPCOLESTR pszFileName) = 0;
   // Get Duration
-  virtual REFERENCE_TIME GetDuration() = 0;
+  virtual REFERENCE_TIME GetDuration() const = 0;
   // Get the next packet from the file
   virtual STDMETHODIMP GetNextPacket(Packet **ppPacket) = 0;
   // Seek to the given position
   virtual STDMETHODIMP Seek(REFERENCE_TIME rTime) = 0;
   // Get the container format
-  virtual const char *GetContainerFormat() = 0;
+  virtual const char *GetContainerFormat() const = 0;
   // Create Stream Description
-  virtual HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) = 0;
+  virtual HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const = 0;
   
   // Set the currently active stream of one type
   // The demuxers can use this to filter packets before returning back to the caller on GetNextPacket
