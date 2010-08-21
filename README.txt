@@ -23,8 +23,20 @@ to use them. The Haali Media Splitter is one of those, and to give priority
 to the LAVFSplitter you have to either uninstall Haali or rename its .ax file
 at least temporarily.
 
+Compiling
+=============================
+Compiling is pretty straight forward using VC++2010 (included project files).
+It does, however, require that you build your own ffmpeg.
+You need to place the full ffmpeg package in a directory called "ffmpeg" in the 
+main source directory (the directory this file was in). There are scripts to 
+build a proper ffmpeg included.
+
+I recommend using my fork of ffmpeg, as it includes additional patches for 
+media compatibility:
+http://git.1f0.de/gitweb?p=ffmpeg.git;a=summary
+
 Feedback
 =============================
-There currently is no official place for feedback.
-A thread on Doom9 is going to be created eventually.
-You can, however, reach me on IRC in the MPC-HC channel on freenode (#mpc-hc)
+GitHub Project: http://github.com/Nevcairiel/LAVFSplitter
+Doom9: http://forum.doom9.org/showthread.php?t=156191
+You can, additionally, reach me on IRC in the MPC-HC channel on freenode (#mpc-hc)
