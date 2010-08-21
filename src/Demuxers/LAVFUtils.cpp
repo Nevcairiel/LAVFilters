@@ -57,7 +57,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   AVCodecContext *enc = pStream->codec;
 
-  char buffer[DESCRIBE_BUF_LEN];
+  char buffer[DESCRIBE_BUF_LEN] = {0};
   int pos = 0;
   char tmpbuf1[32];
 
@@ -174,7 +174,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   size_t len = strlen(buffer) + 1;
   *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
-  mbstowcs_s(NULL, *ppszName, len, buffer, _TRUNCATE);
+  MultiByteToWideChar(CP_UTF8, 0, buffer, -1, *ppszName, len);
 
   return S_OK;
 }
