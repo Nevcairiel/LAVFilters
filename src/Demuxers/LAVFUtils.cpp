@@ -25,7 +25,7 @@ extern "C" {
 #include "libavcodec/audioconvert.h"
 }
 
-#define DESCRIBE_BUF_LEN 128
+#include <sstream>
 
 static int get_bit_rate(AVCodecContext *ctx)
 {
@@ -57,8 +57,6 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   AVCodecContext *enc = pStream->codec;
 
-  char buffer[DESCRIBE_BUF_LEN] = {0};
-  int pos = 0;
   char tmpbuf1[32];
 
   // Grab the codec
@@ -90,91 +88,98 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   char *title = NULL;
   if (av_metadata_get(pStream->metadata, "title", NULL, 0)) {
     title = av_metadata_get(pStream->metadata, "title", NULL, 0)->value;
+    // Cut it at 200 chars
+    if(strlen(title) > 200) {
+      title[200] = 0;
+    }
   }
 
   int bitrate = get_bit_rate(enc);
 
+
+  std::ostringstream buf;
   switch(enc->codec_type) {
   case AVMEDIA_TYPE_VIDEO:
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "V: ");
+    buf << "V: ";
     // Title/Language
     if (title && lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s [%s] (", title, lang);
+      buf << title << " [" << lang << "] (";
     } else if (title || lang) {
       // Print either title or lang
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (", title ? title : sLanguage.c_str());
+      buf << (title ? title : sLanguage) << " (";
     }
     // Codec
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s", codec_name);
+    buf << codec_name;
     // Pixel Format
     if (enc->pix_fmt != PIX_FMT_NONE) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ", %s", avcodec_get_pix_fmt_name(enc->pix_fmt));
+      buf << ", " << avcodec_get_pix_fmt_name(enc->pix_fmt);
     }
     // Dimensions
     if (enc->width) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ", %dx%d", enc->width, enc->height);
+      buf << ", " << enc->width << "x" << enc->height;
     }
     // Bitrate
     if (bitrate > 0) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ", %d kb/s", bitrate / 1000);
+      buf << ", " << (bitrate / 1000) << " kb/s";
     }
     // Closing tag
     if (title || lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ")");
+      buf << ")";
     }
     break;
   case AVMEDIA_TYPE_AUDIO:
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "A: ");
+    buf << "A: ";
     // Title/Language
     if (title && lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s [%s] (", title, lang);
+      buf << title << " [" << lang << "] (";
     } else if (title || lang) {
       // Print either title or lang
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s (", title ? title : sLanguage.c_str());
+      buf << (title ? title : sLanguage) << " (";
     }
     // Codec
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s", codec_name);
+    buf << codec_name;
     // Sample Rate
     if (enc->sample_rate) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ", %d Hz", enc->sample_rate);
+      buf << ", " << enc->sample_rate << " Hz";
     }
     // Get channel layout
     char channel[32];
     avcodec_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ", %s", channel);
+    buf << ", " << channel;
     // Sample Format
     if (enc->sample_fmt != SAMPLE_FMT_NONE) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ", %s", avcodec_get_sample_fmt_name(enc->sample_fmt));
+      buf << ", " << avcodec_get_sample_fmt_name(enc->sample_fmt);
     }
     // Bitrate
     if (bitrate > 0) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ", %d kb/s", bitrate / 1000);
+      buf << ", " << (bitrate / 1000) << " kb/s";
     }
     // Closing tag
     if (title || lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, ")");
+      buf << ")";
     }
     break;
   case AVMEDIA_TYPE_SUBTITLE:
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "S: ");
+    buf << "S: ";
     // Title/Language
     if (title && lang) {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s [%s]", title, lang);
+      buf << title << " [" << lang << "]";
     } else if (title || lang) {
       // Print either title or lang
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "%s", title ? title : sLanguage.c_str());
+      buf << (title ? title : sLanguage);
     } else {
-      pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "Stream #%d", pStream->index);
+      buf << "Stream #" << pStream->index;
     }
     break;
   default:
-    pos += sprintf_s(buffer + pos, DESCRIBE_BUF_LEN - pos, "Unknown: Stream %d", pStream->index);
+    buf << "Unknown: Stream " << pStream->index;
     break;
   }
 
-  size_t len = strlen(buffer) + 1;
+  std::string info = buf.str();
+  size_t len = info.size() + 1;
   *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
-  MultiByteToWideChar(CP_UTF8, 0, buffer, -1, *ppszName, len);
+  MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, len);
 
   return S_OK;
 }
