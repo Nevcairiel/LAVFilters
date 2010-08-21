@@ -29,7 +29,9 @@
 #include <Windows.h>
 
 extern "C" {
+#define __STDC_CONSTANT_MACROS
 #include <stdint.h>
+#include "libavformat/avformat.h"
 }
 #include "streams.h"
 

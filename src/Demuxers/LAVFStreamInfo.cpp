@@ -54,29 +54,46 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
 {
   mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id);
   WAVEFORMATEX* wvfmt = (WAVEFORMATEX*)mtype.AllocFormatBuffer(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
+  memset(wvfmt, 0, sizeof(WAVEFORMATEX));
 
   avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
+
+  // Check if its LATM by any chance
+  // This doesn't seem to work with any decoders i tested, but at least we won't connect to any wrong decoder
+  if(m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_AAC) {
+    // PESContext in mpegts.c
+    int *pes = (int *)avstream->priv_data;
+    if(pes[2] == 0x11) {
+      avstream->codec->codec_tag = WAVE_FORMAT_LATM_AAC;
+      mtype.subtype = MEDIASUBTYPE_LATM_AAC;
+    }
+  }
 
   // TODO: values for this are non-trivial, see <mmreg.h>
   wvfmt->wFormatTag = avstream->codec->codec_tag;
 
   wvfmt->nChannels = avstream->codec->channels;
   wvfmt->nSamplesPerSec = avstream->codec->sample_rate;
-  wvfmt->wBitsPerSample = avstream->codec->bits_per_coded_sample;
-  if (wvfmt->wBitsPerSample == 0) {
-    wvfmt->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
-  }
-
-  if ( avstream->codec->block_align > 0 ) {
-    wvfmt->nBlockAlign = avstream->codec->block_align;
-  } else {
-    if ( wvfmt->wBitsPerSample == 0 ) {
-      DbgOutString(L"BitsPerSample is 0, no good!");
-    }
-    wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * wvfmt->wBitsPerSample) / 8);
-  }
-
   wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
+
+  if(avstream->codec->codec_id == CODEC_ID_AAC) {
+    wvfmt->wBitsPerSample = 0;
+    wvfmt->nBlockAlign = 1;
+  } else {
+    wvfmt->wBitsPerSample = avstream->codec->bits_per_coded_sample;
+    if (wvfmt->wBitsPerSample == 0) {
+      wvfmt->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
+    }
+
+    if ( avstream->codec->block_align > 0 ) {
+      wvfmt->nBlockAlign = avstream->codec->block_align;
+    } else {
+      if ( wvfmt->wBitsPerSample == 0 ) {
+        DbgOutString(L"BitsPerSample is 0, no good!");
+      }
+      wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * wvfmt->wBitsPerSample) / 8);
+    }
+  }
 
   wvfmt->cbSize = avstream->codec->extradata_size;
   if (avstream->codec->extradata_size > 0) {

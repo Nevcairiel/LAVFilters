@@ -22,12 +22,10 @@
 
 #include <Qnetwork.h>
 
-#include "basedemuxer.h"
+#include "BaseDemuxer.h"
 #include "IKeyFrameInfo.h"
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
-
-struct AVFormatContext;
 class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo
 {
 public:
