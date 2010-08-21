@@ -88,10 +88,6 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   char *title = NULL;
   if (av_metadata_get(pStream->metadata, "title", NULL, 0)) {
     title = av_metadata_get(pStream->metadata, "title", NULL, 0)->value;
-    // Cut it at 200 chars
-    if(strlen(title) > 200) {
-      title[200] = 0;
-    }
   }
 
   int bitrate = get_bit_rate(enc);
