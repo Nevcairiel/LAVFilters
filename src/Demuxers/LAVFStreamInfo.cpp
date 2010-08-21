@@ -114,6 +114,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
 
   avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
 
+  // If we need aspect info, we switch to VIH2
+  AVRational r = avstream->sample_aspect_ratio;
+  if (mtype.formattype == FORMAT_VideoInfo && (r.den > 0 && r.num > 0 && (r.den > 1 || r.num > 1))) {
+    mtype.formattype = FORMAT_VideoInfo2;
+  }
+
   if (mtype.formattype == FORMAT_VideoInfo) {
     mtype.pbFormat = (BYTE *)g_GuidHelper.CreateVIH(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_VideoInfo2) {

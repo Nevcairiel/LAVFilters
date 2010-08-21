@@ -304,7 +304,7 @@ VIDEOINFOHEADER2 *CLAVFGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *s
 
   // Calculate aspect ratio
   AVRational r = avstream->sample_aspect_ratio;
-  if (r.den > 0 && r.num > 0) {
+  if (r.den > 0 && r.num > 0 && (r.den > 1 || r.num > 1)) {
     int num = 0, den = 0;
     av_reduce(&num, &den, (int64_t)r.num * vih->bmiHeader.biWidth, (int64_t)r.den * vih->bmiHeader.biHeight, 255);
     vih2->dwPictAspectRatioX = num;
