@@ -39,7 +39,7 @@ public:
   AM_MEDIA_TYPE* pmt;
 
   Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; }
-  virtual ~Packet() { if(pmt) DeleteMediaType(pmt); if(m_pbData) free(m_pbData); }
+  ~Packet() { if(pmt) DeleteMediaType(pmt); if(m_pbData) free(m_pbData); }
 
   // Getter
   DWORD GetDataSize() { return m_dSize; }
@@ -110,7 +110,8 @@ public:
   class CStreamList : public std::deque<stream>
   {
   public:
-    static const WCHAR* ToString(int type);
+    static const WCHAR* ToStringW(int type);
+    static const CHAR* ToString(int type);
     const stream* FindStream(DWORD pid);
     void Clear();
   };

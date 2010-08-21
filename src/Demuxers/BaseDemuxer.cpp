@@ -50,13 +50,22 @@ void CBaseDemuxer::CreateNoSubtitleStream()
 }
 
 // CStreamList
-const WCHAR* CBaseDemuxer::CStreamList::ToString(int type)
+const WCHAR* CBaseDemuxer::CStreamList::ToStringW(int type)
 {
   return 
     type == video ? L"Video" :
     type == audio ? L"Audio" :
     type == subpic ? L"Subtitle" :
     L"Unknown";
+}
+
+const CHAR* CBaseDemuxer::CStreamList::ToString(int type)
+{
+  return
+    type == video ? "Video" :
+    type == audio ? "Audio" :
+    type == subpic ? "Subtitle" :
+    "Unknown";
 }
 
 const CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid)

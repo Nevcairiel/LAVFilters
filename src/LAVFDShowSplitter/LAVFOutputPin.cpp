@@ -22,6 +22,7 @@
  */
 
 #include "stdafx.h"
+#include "BaseDemuxer.h"
 #include "LAVFOutputPin.h"
 #include "LAVFSplitter.h"
 #include "moreuuids.h"
@@ -191,8 +192,10 @@ HRESULT CLAVFOutputPin::QueuePacket(Packet *pPacket)
     && m_queue.Size() > MAX_PACKETS_IN_QUEUE)
     Sleep(1);
 
-  if(S_OK != m_hrDeliver)
+  if(S_OK != m_hrDeliver) {
+    SAFE_DELETE(pPacket);
     return m_hrDeliver;
+  }
 
   {
     CAutoLock lock(&m_csMT);
@@ -219,6 +222,8 @@ bool CLAVFOutputPin::IsDiscontinuous()
 
 DWORD CLAVFOutputPin::ThreadProc()
 {
+  std::string name = "CLAVFOutputPin " + std::string(CBaseDemuxer::CStreamList::ToString(m_pinType));
+  SetThreadName(-1, name.c_str());
   // Anything thats not video is low bandwidth and should have a lower priority
   if (m_mt.majortype != MEDIATYPE_Video) {
     SetThreadPriority(m_hThread, THREAD_PRIORITY_BELOW_NORMAL);

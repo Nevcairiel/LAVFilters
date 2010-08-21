@@ -35,6 +35,8 @@
 #define QI2(i) (riid == IID_##i) ? GetInterface((i*)this, ppv) :
 #define countof( array ) ( sizeof( array )/sizeof( array[0] ) )
 
+extern void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName);
+
 // Filter Registration
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkbytes, ...);
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LPCWSTR> chkbytes, ...);

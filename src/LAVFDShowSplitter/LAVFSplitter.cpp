@@ -129,7 +129,7 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
     CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
     std::deque<CBaseDemuxer::stream>::iterator it;
     for ( it = streams->begin(); it != streams->end(); it++ ) {
-      const WCHAR* name = CBaseDemuxer::CStreamList::ToString(i);
+      const WCHAR* name = CBaseDemuxer::CStreamList::ToStringW(i);
 
       std::vector<CMediaType> mts;
       mts.push_back(it->streamInfo->mtype);
@@ -202,6 +202,8 @@ bool CLAVFSplitter::IsAnyPinDrying()
 DWORD CLAVFSplitter::ThreadProc()
 {
   CheckPointer(m_pDemuxer, 0);
+
+  SetThreadName(-1, "CLAVSplitter Demux");
 
   m_fFlushing = false;
   m_eEndFlush.Set();
@@ -306,13 +308,14 @@ HRESULT CLAVFSplitter::DeliverPacket(Packet *pPacket)
   }
 
   BOOL bDiscontinuity = pPacket->bDiscontinuity; 
+  DWORD streamId = pPacket->StreamId;
 
   hr = pPin->QueuePacket(pPacket);
 
   // TODO track active pins
 
   if(bDiscontinuity) {
-    m_bDiscontinuitySent.insert(pPacket->StreamId);
+    m_bDiscontinuitySent.insert(streamId);
   }
 
   return hr;

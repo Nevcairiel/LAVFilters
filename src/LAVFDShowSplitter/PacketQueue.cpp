@@ -32,7 +32,7 @@ void CPacketQueue::Queue(Packet *pPacket)
       && m_queue.back()->rtStart != Packet::INVALID_TIME) {
         Packet* tail = m_queue.back();
         tail->Append(pPacket);
-
+        delete pPacket;
         return;
     }
   }
@@ -67,7 +67,7 @@ void CPacketQueue::Clear()
 
   std::deque<Packet *>::iterator it;
   for (it = m_queue.begin(); it != m_queue.end(); it++) {
-    free(*it);
+    delete *it;
   }
   m_queue.clear();
 }
