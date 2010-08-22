@@ -101,8 +101,9 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
   }
 
   //TODO Fix the sample size
-  if (avstream->codec->bits_per_coded_sample == 0)
-    mtype.SetSampleSize(256000);
+  //if (avstream->codec->bits_per_coded_sample == 0)
+  mtype.SetSampleSize(256000);
+
   return S_OK;
 }
 
@@ -135,6 +136,9 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
       ((MPEG2VIDEOINFO *)mtype.pbFormat)->hdr.bmiHeader.biCompression = FOURCCMap(&MEDIASUBTYPE_H264).Data1;
     }
   }
+
+  // TODO fix sample size
+  mtype.SetSampleSize(256000);
 
   return S_OK;
 }

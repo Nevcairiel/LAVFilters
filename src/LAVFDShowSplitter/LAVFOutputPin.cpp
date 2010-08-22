@@ -37,7 +37,7 @@ CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBas
   , m_pinType(pinType)
 {
   m_mts = mts;
-  m_nBuffers = max(nBuffers, 1);
+  m_nBuffers = max(nBuffers, 2);
 }
 
 CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
@@ -49,7 +49,7 @@ CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pL
   , m_newMT(NULL)
   , m_pinType(pinType)
 {
-  m_nBuffers = max(nBuffers, 1);
+  m_nBuffers = max(nBuffers, 2);
 }
 
 CLAVFOutputPin::~CLAVFOutputPin()

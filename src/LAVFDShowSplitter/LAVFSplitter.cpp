@@ -55,7 +55,9 @@ CLAVFSplitter::~CLAVFSplitter()
   m_State = State_Stopped;
   DeleteOutputs();
 
-  m_pDemuxer->Release();
+  if(m_pDemuxer) {
+    m_pDemuxer->Release();
+  }
   //SAFE_DELETE(m_pDemuxer);
 }
 
