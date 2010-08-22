@@ -233,9 +233,9 @@ DWORD CLAVFOutputPin::ThreadProc()
   if (m_mt.majortype != MEDIATYPE_Video) {
     SetThreadPriority(m_hThread, THREAD_PRIORITY_BELOW_NORMAL);
   }
-  m_hrDeliver = S_OK;
-  m_fFlushing = m_fFlushed = false;
-  m_eEndFlush.Set();
+
+  DeliverBeginFlush();
+  DeliverEndFlush();
 
   while(1) {
     Sleep(1);

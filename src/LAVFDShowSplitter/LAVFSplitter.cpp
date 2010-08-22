@@ -381,6 +381,7 @@ STDMETHODIMP CLAVFSplitter::Run(REFERENCE_TIME tStart)
 void CLAVFSplitter::DeliverBeginFlush()
 {
   m_fFlushing = true;
+  m_eEndFlush.Reset();
 
   // flush all pins
   std::vector<CLAVFOutputPin *>::iterator it;
