@@ -175,7 +175,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   std::string info = buf.str();
   size_t len = info.size() + 1;
   *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
-  MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, len);
+  MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, (int)len);
 
   return S_OK;
 }
