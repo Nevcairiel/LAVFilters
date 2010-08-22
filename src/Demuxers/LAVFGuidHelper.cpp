@@ -248,8 +248,12 @@ VIDEOINFOHEADER *CLAVFGuidHelper::CreateVIH(const AVStream* avstream, ULONG *siz
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
-  pvi->AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num);
-  //pvi->AvgTimePerFrame = (REFERENCE_TIME)(10000000 / ((float)avstream->r_frame_rate.num / (float)avstream->r_frame_rate.den));
+  // Get the frame rate
+  if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0) {
+    pvi->AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num);
+  } else if (avstream->r_frame_rate.den > 0 &&  avstream->r_frame_rate.num > 0) {
+    pvi->AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num);
+  }
   pvi->dwBitErrorRate = 0;
   pvi->dwBitRate = avstream->codec->bit_rate;
   RECT empty_tagrect = {0,0,0,0};
