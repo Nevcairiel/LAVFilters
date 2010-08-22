@@ -23,6 +23,7 @@
 #include "stdafx.h"
 #include "LAVFGuidHelper.h"
 #include "moreuuids.h"
+#include "BaseDemuxer.h"
 
 CLAVFGuidHelper g_GuidHelper;
 
@@ -247,7 +248,8 @@ VIDEOINFOHEADER *CLAVFGuidHelper::CreateVIH(const AVStream* avstream, ULONG *siz
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
-  pvi->AvgTimePerFrame = (REFERENCE_TIME)(10000000 / ((float)avstream->r_frame_rate.num / (float)avstream->r_frame_rate.den));;
+  pvi->AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num);
+  //pvi->AvgTimePerFrame = (REFERENCE_TIME)(10000000 / ((float)avstream->r_frame_rate.num / (float)avstream->r_frame_rate.den));
   pvi->dwBitErrorRate = 0;
   pvi->dwBitRate = avstream->codec->bit_rate;
   RECT empty_tagrect = {0,0,0,0};
@@ -255,12 +257,12 @@ VIDEOINFOHEADER *CLAVFGuidHelper::CreateVIH(const AVStream* avstream, ULONG *siz
   pvi->rcTarget = empty_tagrect;
   pvi->rcTarget.right = pvi->rcSource.right = avstream->codec->width;
   pvi->rcTarget.bottom = pvi->rcSource.bottom = avstream->codec->height;
-  pvi->bmiHeader.biSize = ULONG(sizeof(BITMAPINFOHEADER) + avstream->codec->extradata_size);
 
   memcpy((BYTE*)&pvi->bmiHeader + sizeof(BITMAPINFOHEADER), avstream->codec->extradata, avstream->codec->extradata_size);
+  pvi->bmiHeader.biSize = ULONG(sizeof(BITMAPINFOHEADER) + avstream->codec->extradata_size);
+
   pvi->bmiHeader.biWidth = avstream->codec->width;
   pvi->bmiHeader.biHeight = avstream->codec->height;
-
   pvi->bmiHeader.biBitCount = avstream->codec->bits_per_coded_sample;
   pvi->bmiHeader.biSizeImage = avstream->codec->width * avstream->codec->height * pvi->bmiHeader.biBitCount / 8;
   pvi->bmiHeader.biCompression = FOURCCMap(avstream->codec->codec_tag).Data1;
