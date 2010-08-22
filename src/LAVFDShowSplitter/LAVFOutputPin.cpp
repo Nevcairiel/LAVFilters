@@ -37,7 +37,7 @@ CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBas
   , m_pinType(pinType)
 {
   m_mts = mts;
-  m_nBuffers = max(nBuffers, 2);
+  m_nBuffers = max(nBuffers, 1);
 }
 
 CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
@@ -49,7 +49,7 @@ CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pL
   , m_newMT(NULL)
   , m_pinType(pinType)
 {
-  m_nBuffers = max(nBuffers, 2);
+  m_nBuffers = max(nBuffers, 1);
 }
 
 CLAVFOutputPin::~CLAVFOutputPin()
@@ -86,6 +86,11 @@ HRESULT CLAVFOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPER
 
   pProperties->cBuffers = m_nBuffers;
   pProperties->cbBuffer = max(m_mt.lSampleSize, 1);
+
+  // Vorbis requires at least 2 buffers
+  if(m_mt.subtype == MEDIASUBTYPE_Vorbis && m_mt.formattype == FORMAT_VorbisFormat) {
+    pProperties->cBuffers = max(pProperties->cBuffers, 2);
+  }
 
   // Sanity checks
   ALLOCATOR_PROPERTIES Actual;
