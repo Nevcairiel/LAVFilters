@@ -311,15 +311,15 @@ VIDEOINFOHEADER2 *CLAVFGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *s
 
   // Calculate aspect ratio
   AVRational r = avstream->sample_aspect_ratio;
+  AVRational rc = avstream->codec->sample_aspect_ratio;
+  int num = vih->bmiHeader.biWidth, den = vih->bmiHeader.biHeight;
   if (r.den > 0 && r.num > 0 && (r.den > 1 || r.num > 1)) {
-    int num = 0, den = 0;
-    av_reduce(&num, &den, (int64_t)r.num * vih->bmiHeader.biWidth, (int64_t)r.den * vih->bmiHeader.biHeight, 255);
-    vih2->dwPictAspectRatioX = num;
-    vih2->dwPictAspectRatioY = den;
-  } else {
-    vih2->dwPictAspectRatioX = vih->bmiHeader.biWidth;
-    vih2->dwPictAspectRatioY = vih->bmiHeader.biHeight;
+    av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, 255);
+  } else if (rc.den > 0 && rc.num > 0 && (rc.den > 1 || rc.num > 1)) {
+    av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, 255);
   }
+  vih2->dwPictAspectRatioX = num;
+  vih2->dwPictAspectRatioY = den;
 
   memcpy(&vih2->bmiHeader, &vih->bmiHeader, sizeof(BITMAPINFOHEADER));
   vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extra;
