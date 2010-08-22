@@ -545,13 +545,8 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
       m_pGraph->RemoveFilter(pInfo.pFilter);
       doRender = TRUE;
     } else {
-      IPin *old = pPin->GetConnected();
-      IFilterGraph2 *fg2 = NULL;
-      if(SUCCEEDED(hr = old->QueryAccept(pmt)) && SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IFilterGraph2), (void **)&fg2))) {
-        fg2->ReconnectEx(pPin, pmt);
-        fg2->Release();
-      } else {
-        m_pGraph->Disconnect(old);
+      if (FAILED(hr = ReconnectPin(pPin, pmt))) {
+        m_pGraph->Disconnect(pPin->GetConnected());
         m_pGraph->Disconnect(pPin);
         doRender = TRUE;
       }
