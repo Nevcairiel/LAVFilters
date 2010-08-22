@@ -37,7 +37,7 @@ CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBas
   , m_pinType(pinType)
 {
   m_mts = mts;
-  m_nBuffers = max(nBuffers, 2);
+  m_nBuffers = max(nBuffers, 1);
 }
 
 CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
@@ -49,7 +49,7 @@ CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pL
   , m_newMT(NULL)
   , m_pinType(pinType)
 {
-  m_nBuffers = max(nBuffers, 2);
+  m_nBuffers = max(nBuffers, 1);
 }
 
 CLAVFOutputPin::~CLAVFOutputPin()
@@ -84,8 +84,8 @@ HRESULT CLAVFOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPER
 
   HRESULT hr = S_OK;
 
-  pProperties->cBuffers = m_nBuffers;
-  pProperties->cbBuffer = max(m_mt.lSampleSize, 1);
+  pProperties->cBuffers = max(pProperties->cBuffers, m_nBuffers);
+  pProperties->cbBuffer = max(max(m_mt.lSampleSize, 256000), (ULONG)pProperties->cbBuffer);
 
   // Vorbis requires at least 2 buffers
   if(m_mt.subtype == MEDIASUBTYPE_Vorbis && m_mt.formattype == FORMAT_VorbisFormat) {
@@ -296,6 +296,7 @@ HRESULT CLAVFOutputPin::DeliverPacket(Packet *pPacket)
   CHECK_HR(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0));
 
   // Resize buffer if it is too small
+  // This can cause a playback hick-up, we should avoid this if possible by setting a big enough buffer size
   if(nBytes > pSample->GetSize()) {
     pSample->Release(); 
     ALLOCATOR_PROPERTIES props, actual;

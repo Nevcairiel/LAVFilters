@@ -137,9 +137,6 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
     }
   }
 
-  // TODO fix sample size
-  mtype.SetSampleSize(256000);
-
   return S_OK;
 }
 
