@@ -25,10 +25,16 @@
 #include "LAVFGuidHelper.h"
 #include "moreuuids.h"
 
+#include <vector>
+
 CLAVFStreamInfo::CLAVFStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
   : CStreamInfo(), m_containerFormat(containerFormat)
 {
   m_containerFormat = std::string(containerFormat);
+  // FFMpeg renamed the format at some point in time
+  if(m_containerFormat == "matroska,webm") {
+    m_containerFormat = "matroska";
+  }
 
   switch(avstream->codec->codec_type) {
   case AVMEDIA_TYPE_AUDIO:
@@ -53,51 +59,92 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
 {
   mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id);
-  WAVEFORMATEX* wvfmt = (WAVEFORMATEX*)mtype.AllocFormatBuffer(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
-  memset(wvfmt, 0, sizeof(WAVEFORMATEX));
 
   avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
 
-  // Check if its LATM by any chance
-  // This doesn't seem to work with any decoders i tested, but at least we won't connect to any wrong decoder
-  if(m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_AAC) {
-    // PESContext in mpegts.c
-    int *pes = (int *)avstream->priv_data;
-    if(pes[2] == 0x11) {
-      avstream->codec->codec_tag = WAVE_FORMAT_LATM_AAC;
-      mtype.subtype = MEDIASUBTYPE_LATM_AAC;
-    }
-  }
+  if(mtype.formattype == FORMAT_WaveFormatEx) {
+    WAVEFORMATEX* wvfmt = (WAVEFORMATEX*)mtype.AllocFormatBuffer(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
+    memset(wvfmt, 0, sizeof(WAVEFORMATEX));
 
-  // TODO: values for this are non-trivial, see <mmreg.h>
-  wvfmt->wFormatTag = avstream->codec->codec_tag;
-
-  wvfmt->nChannels = avstream->codec->channels;
-  wvfmt->nSamplesPerSec = avstream->codec->sample_rate;
-  wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
-
-  if(avstream->codec->codec_id == CODEC_ID_AAC) {
-    wvfmt->wBitsPerSample = 0;
-    wvfmt->nBlockAlign = 1;
-  } else {
-    wvfmt->wBitsPerSample = avstream->codec->bits_per_coded_sample;
-    if (wvfmt->wBitsPerSample == 0) {
-      wvfmt->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
-    }
-
-    if ( avstream->codec->block_align > 0 ) {
-      wvfmt->nBlockAlign = avstream->codec->block_align;
-    } else {
-      if ( wvfmt->wBitsPerSample == 0 ) {
-        DbgOutString(L"BitsPerSample is 0, no good!");
+    // Check if its LATM by any chance
+    // This doesn't seem to work with any decoders i tested, but at least we won't connect to any wrong decoder
+    if(m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_AAC) {
+      // PESContext in mpegts.c
+      int *pes = (int *)avstream->priv_data;
+      if(pes[2] == 0x11) {
+        avstream->codec->codec_tag = WAVE_FORMAT_LATM_AAC;
+        mtype.subtype = MEDIASUBTYPE_LATM_AAC;
       }
-      wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * wvfmt->wBitsPerSample) / 8);
     }
-  }
 
-  wvfmt->cbSize = avstream->codec->extradata_size;
-  if (avstream->codec->extradata_size > 0) {
-    memcpy(wvfmt + 1, avstream->codec->extradata, avstream->codec->extradata_size);
+    // TODO: values for this are non-trivial, see <mmreg.h>
+    wvfmt->wFormatTag = avstream->codec->codec_tag;
+
+    wvfmt->nChannels = avstream->codec->channels;
+    wvfmt->nSamplesPerSec = avstream->codec->sample_rate;
+    wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
+
+    if(avstream->codec->codec_id == CODEC_ID_AAC) {
+      wvfmt->wBitsPerSample = 0;
+      wvfmt->nBlockAlign = 1;
+    } else {
+      wvfmt->wBitsPerSample = avstream->codec->bits_per_coded_sample;
+      if (wvfmt->wBitsPerSample == 0) {
+        wvfmt->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
+      }
+
+      if ( avstream->codec->block_align > 0 ) {
+        wvfmt->nBlockAlign = avstream->codec->block_align;
+      } else {
+        if ( wvfmt->wBitsPerSample == 0 ) {
+          DbgOutString(L"BitsPerSample is 0, no good!");
+        }
+        wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * wvfmt->wBitsPerSample) / 8);
+      }
+    }
+
+    wvfmt->cbSize = avstream->codec->extradata_size;
+    if (avstream->codec->extradata_size > 0) {
+      memcpy(wvfmt + 1, avstream->codec->extradata, avstream->codec->extradata_size);
+    }
+  } else if (mtype.formattype == FORMAT_VorbisFormat) {
+    if (m_containerFormat == "matroska") {
+      BYTE *p = avstream->codec->extradata;
+      std::vector<int> sizes;
+      for(BYTE n = *p++; n > 0; n--) {
+        int size = 0;
+        // Xiph Lacing
+        do { size = *p; } while (*p++ == 0xFF);
+        sizes.push_back(size);
+      }
+      int totalsize = 0;
+      for(unsigned int i = 0; i < sizes.size(); i++)
+        totalsize += sizes[i];
+
+      sizes.push_back(avstream->codec->extradata_size - (p - avstream->codec->extradata) - totalsize);
+      totalsize += sizes[sizes.size()-1];
+
+      if(sizes.size() == 3) {
+        mtype.subtype = MEDIASUBTYPE_Vorbis2;
+        mtype.formattype = FORMAT_VorbisFormat2;
+        VORBISFORMAT2* pvf2 = (VORBISFORMAT2*)mtype.AllocFormatBuffer(sizeof(VORBISFORMAT2) + totalsize);
+        memset(pvf2, 0, sizeof(VORBISFORMAT2));
+        pvf2->Channels = avstream->codec->channels;
+        pvf2->SamplesPerSec = avstream->codec->sample_rate;
+        pvf2->BitsPerSample = avstream->codec->bits_per_coded_sample;
+        BYTE* p2 = mtype.pbFormat + sizeof(VORBISFORMAT2);
+        for(unsigned int i = 0; i < sizes.size(); p += sizes[i], p2 += sizes[i], i++) {
+          memcpy(p2, p, pvf2->HeaderSize[i] = sizes[i]);
+        }
+      }
+    } else {
+      VORBISFORMAT *vfmt = (VORBISFORMAT *)mtype.AllocFormatBuffer(sizeof(VORBISFORMAT) + avstream->codec->extradata_size);
+      memset(vfmt, 0, sizeof(VORBISFORMAT));
+      vfmt->nChannels = avstream->codec->channels;
+      vfmt->nSamplesPerSec = avstream->codec->sample_rate;
+      vfmt->nAvgBitsPerSec = avstream->codec->bit_rate;
+      vfmt->nMinBitsPerSec = vfmt->nMaxBitsPerSec = (DWORD)-1;
+    }
   }
 
   //TODO Fix the sample size

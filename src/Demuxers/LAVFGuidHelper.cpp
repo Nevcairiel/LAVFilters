@@ -57,7 +57,7 @@ CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId)
     break;
   case CODEC_ID_VORBIS:
     //TODO
-    //media.formattype = FORMAT_VorbisFormat;
+    mediaType.formattype = FORMAT_VorbisFormat;
     mediaType.subtype = MEDIASUBTYPE_Vorbis;
     break;
   }
