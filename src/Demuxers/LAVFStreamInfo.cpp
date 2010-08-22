@@ -163,7 +163,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
     // read metadata
     char *title = av_metadata_get(avstream->metadata, "title", NULL, 0)->value;
     // convert to wchar
-    mbstowcs_s(NULL, subInfo->TrackName, 256, title, _TRUNCATE);
+    MultiByteToWideChar(CP_UTF8, 0, title, -1, subInfo->TrackName, 256);
   }
 
   // Extradata
@@ -171,7 +171,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
 
   // TODO CODEC_ID_MOV_TEXT
   mtype.subtype = avstream->codec->codec_id == CODEC_ID_TEXT ? MEDIASUBTYPE_UTF8 :
-                  avstream->codec->codec_id == CODEC_ID_SSA ? MEDIASUBTYPE_SSA :
+                  avstream->codec->codec_id == CODEC_ID_SSA ? MEDIASUBTYPE_ASS :
                   avstream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE ? MEDIASUBTYPE_HDMVSUB :
                   avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE ? MEDIASUBTYPE_VOBSUB :
                   avstream->codec->codec_id == CODEC_ID_DVB_SUBTITLE ? MEDIASUBTYPE_DVB_SUBTITLES :
