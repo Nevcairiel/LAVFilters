@@ -538,19 +538,29 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     // Audio Filters get their connected filter removed
     // This way we make sure we reconnect to the proper filter
     // Other filters just disconnect and try to reconnect later on
+    BOOL doRender = FALSE;
     PIN_INFO pInfo;
     hr = pPin->GetConnected()->QueryPinInfo(&pInfo);
     if(pPin->IsAudioPin() && SUCCEEDED(hr) && pInfo.pFilter) {
       m_pGraph->RemoveFilter(pInfo.pFilter);
+      doRender = TRUE;
     } else {
-      m_pGraph->Disconnect(pPin->GetConnected());
-      m_pGraph->Disconnect(pPin);
+      IPin *old = pPin->GetConnected();
+      IFilterGraph2 *fg2 = NULL;
+      if(SUCCEEDED(hr = old->QueryAccept(pmt)) && SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IFilterGraph2), (void **)&fg2))) {
+        fg2->ReconnectEx(pPin, pmt);
+        fg2->Release();
+      } else {
+        m_pGraph->Disconnect(old);
+        m_pGraph->Disconnect(pPin);
+        doRender = TRUE;
+      }
     }
     if(pInfo.pFilter) { pInfo.pFilter->Release(); }
 
     // Use IGraphBuilder to rebuild the graph
     IGraphBuilder *pGraphBuilder = NULL;
-    if(SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
+    if(doRender && SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
       // Instruct the GraphBuilder to connect us again
       hr = pGraphBuilder->Render(pPin);
       pGraphBuilder->Release();
