@@ -133,8 +133,7 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
     for ( it = streams->begin(); it != streams->end(); it++ ) {
       const WCHAR* name = CBaseDemuxer::CStreamList::ToStringW(i);
 
-      std::vector<CMediaType> mts;
-      mts.push_back(it->streamInfo->mtype);
+      std::vector<CMediaType> mts = it->streamInfo->mtypes;
 
       CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (CBaseDemuxer::StreamType)i, m_pDemuxer->GetContainerFormat());
       if(SUCCEEDED(hr)) {
@@ -513,7 +512,7 @@ STDMETHODIMP CLAVFSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = 
 STDMETHODIMP CLAVFSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
 STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
 
-STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt)
+STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
   CLAVFOutputPin* pPin = GetOutputPin(TrackNumSrc);
@@ -533,7 +532,7 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     // Update Output Pin
     pPin->SetStreamId(TrackNumDst);
     m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
-    pPin->SetNewMediaType(*pmt);
+    pPin->SetNewMediaTypes(pmts);
 
     // Audio Filters get their connected filter removed
     // This way we make sure we reconnect to the proper filter
@@ -545,7 +544,14 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
       m_pGraph->RemoveFilter(pInfo.pFilter);
       doRender = TRUE;
     } else {
-      if (FAILED(hr = ReconnectPin(pPin, pmt))) {
+      unsigned int index = 0;
+      for(unsigned int i = 0; i < pmts.size(); i++) {
+        if (SUCCEEDED(hr = pPin->GetConnected()->QueryAccept(&pmts[i]))) {
+          index = i;
+          break;
+        }
+      }
+      if (FAILED(hr) || FAILED(hr = ReconnectPin(pPin, &pmts[index]))) {
         m_pGraph->Disconnect(pPin->GetConnected());
         m_pGraph->Disconnect(pPin);
         doRender = TRUE;
@@ -577,7 +583,7 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     // However, in graphstudio it is now possible to change the stream before connecting
     pPin->SetStreamId(TrackNumDst);
     m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
-    pPin->SetNewMediaType(*pmt);
+    pPin->SetNewMediaTypes(pmts);
   }
 
   return E_FAIL;
@@ -620,7 +626,7 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
         }
 
         HRESULT hr;
-        if(FAILED(hr = RenameOutputPin(*it, to, &to.streamInfo->mtype))) {
+        if(FAILED(hr = RenameOutputPin(*it, to, to.streamInfo->mtypes))) {
           return hr;
         }
         return S_OK;
@@ -645,7 +651,7 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
 
       CBaseDemuxer::stream& s = streams->at(idx);
 
-      if(ppmt) *ppmt = CreateMediaType(&s.streamInfo->mtype);
+      if(ppmt) *ppmt = CreateMediaType(&s.streamInfo->mtypes[0]);
       if(pdwFlags) *pdwFlags = GetOutputPin(s) ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
       if(pdwGroup) *pdwGroup = i;
       if(ppObject) *ppObject = NULL;

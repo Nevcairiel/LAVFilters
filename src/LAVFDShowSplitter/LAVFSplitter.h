@@ -109,7 +109,7 @@ protected:
 
 public:
   CLAVFOutputPin *GetOutputPin(DWORD streamId);
-  STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, const AM_MEDIA_TYPE* pmt);
+  STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts);
 
 private:
   // construct only via class factory

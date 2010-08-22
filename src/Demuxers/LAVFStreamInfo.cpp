@@ -58,7 +58,7 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
 {
-  mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id);
+  CMediaType mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id);
 
   avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
 
@@ -136,27 +136,31 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         for(unsigned int i = 0; i < sizes.size(); p += sizes[i], p2 += sizes[i], i++) {
           memcpy(p2, p, pvf2->HeaderSize[i] = sizes[i]);
         }
+        mtypes.push_back(mtype);
       }
-    } else {
-      VORBISFORMAT *vfmt = (VORBISFORMAT *)mtype.AllocFormatBuffer(sizeof(VORBISFORMAT) + avstream->codec->extradata_size);
-      memset(vfmt, 0, sizeof(VORBISFORMAT));
-      vfmt->nChannels = avstream->codec->channels;
-      vfmt->nSamplesPerSec = avstream->codec->sample_rate;
-      vfmt->nAvgBitsPerSec = avstream->codec->bit_rate;
-      vfmt->nMinBitsPerSec = vfmt->nMaxBitsPerSec = (DWORD)-1;
     }
+
+    mtype.subtype = MEDIASUBTYPE_Vorbis;
+    mtype.formattype = FORMAT_VorbisFormat;
+
+    VORBISFORMAT *vfmt = (VORBISFORMAT *)mtype.AllocFormatBuffer(sizeof(VORBISFORMAT));
+    memset(vfmt, 0, sizeof(VORBISFORMAT));
+    vfmt->nChannels = avstream->codec->channels;
+    vfmt->nSamplesPerSec = avstream->codec->sample_rate;
+    vfmt->nAvgBitsPerSec = avstream->codec->bit_rate;
+    vfmt->nMinBitsPerSec = vfmt->nMaxBitsPerSec = (DWORD)-1;
   }
 
   //TODO Fix the sample size
   //if (avstream->codec->bits_per_coded_sample == 0)
-  mtype.SetSampleSize(256000);
 
+  mtypes.push_back(mtype);
   return S_OK;
 }
 
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
 {
-  mtype = g_GuidHelper.initVideoType(avstream->codec->codec_id);
+  CMediaType mtype = g_GuidHelper.initVideoType(avstream->codec->codec_id);
   mtype.bTemporalCompression = 1;
   mtype.bFixedSizeSamples = 0; // TODO
 
@@ -184,6 +188,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
     }
   }
 
+  mtypes.push_back(mtype);
   return S_OK;
 }
 
@@ -193,7 +198,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
   if (avstream->codec->codec_id == CODEC_ID_DVB_TELETEXT) {
     return E_FAIL;
   }
-  mtype.InitMediaType();
+  CMediaType mtype;
   mtype.majortype = MEDIATYPE_Subtitle;
   mtype.formattype = FORMAT_SubtitleInfo;
   // create format info
@@ -225,5 +230,6 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
                   avstream->codec->codec_id == CODEC_ID_DVB_SUBTITLE ? MEDIASUBTYPE_DVB_SUBTITLES :
                   MEDIASUBTYPE_NULL;
 
+  mtypes.push_back(mtype);
   return S_OK;
 }

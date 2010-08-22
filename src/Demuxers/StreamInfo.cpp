@@ -23,7 +23,6 @@
 
 CStreamInfo::CStreamInfo()
 {
-  mtype.InitMediaType();
 }
 
 CStreamInfo::~CStreamInfo()

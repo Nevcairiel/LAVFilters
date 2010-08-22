@@ -20,12 +20,14 @@
 
 #pragma once
 
+#include <vector>
+
 class CStreamInfo
 {
 public:
   CStreamInfo();
   ~CStreamInfo();
 
-  CMediaType mtype;
+  std::vector<CMediaType> mtypes;
 };
 

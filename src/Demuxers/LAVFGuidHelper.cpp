@@ -34,6 +34,7 @@ CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId)
   mediaType.majortype = MEDIATYPE_Audio;
   mediaType.subtype = FOURCCMap(av_codec_get_tag(mp_wav_taglists, codecId));
   mediaType.formattype = FORMAT_WaveFormatEx; //default value
+  mediaType.SetSampleSize(256000);
 
   // special cases
   switch(codecId)
