@@ -577,7 +577,14 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     pControl->Release();
 
     return hr;
+  } else if (pPin) {
+    // In normal operations, this won't make much sense
+    // However, in graphstudio it is now possible to change the stream before connecting
+    pPin->SetStreamId(TrackNumDst);
+    m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
+    pPin->SetNewMediaType(*pmt);
   }
+
   return E_FAIL;
 }
 
