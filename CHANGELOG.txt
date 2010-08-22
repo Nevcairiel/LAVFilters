@@ -1,5 +1,17 @@
 LAVFSplitter Changelog
 ===================================
+0.6 - 2010/08/22
+- Added support for E-AC3
+- Fixed MPEG2 Media Types
+- Added support for RealVideo in MKV
+- Set proper aspect ratio in media type
+- Fixed memory leaks in packet handling code
+- Unicode support for stream names
+- Threading changes for more fluid playback at startup
+- Changed Flushing behaviour that solves a conflict with the MS DTV-DVD Decoder
+- Better support for Vorbis audio
+- Registers for the OGG Container Format
+
 0.5 - 2010/08/18
 - Fixed duration of MPEG-TS files
 - Added support for DVB subtitles
