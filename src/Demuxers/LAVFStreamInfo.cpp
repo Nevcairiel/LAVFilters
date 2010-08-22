@@ -108,9 +108,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
       memcpy(wvfmt + 1, avstream->codec->extradata, avstream->codec->extradata_size);
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat) {
+    // With Matroska and Ogg we know how to split up the extradata
+    // and put it into a VorbisFormat2
     if (m_containerFormat == "matroska" || m_containerFormat == "ogg") {
       BYTE *p = avstream->codec->extradata;
       std::vector<int> sizes;
+      // read the number of blocks, and then the sizes of the individual blocks
       for(BYTE n = *p++; n > 0; n--) {
         int size = 0;
         // Xiph Lacing
@@ -121,9 +124,11 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
       for(unsigned int i = 0; i < sizes.size(); i++)
         totalsize += sizes[i];
 
+      // Get the size of the last block
       sizes.push_back(avstream->codec->extradata_size - (p - avstream->codec->extradata) - totalsize);
       totalsize += sizes[sizes.size()-1];
 
+      // 3 blocks is the currently valid Vorbis format
       if(sizes.size() == 3) {
         mtype.subtype = MEDIASUBTYPE_Vorbis2;
         mtype.formattype = FORMAT_VorbisFormat2;
@@ -139,7 +144,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         mtypes.push_back(mtype);
       }
     }
-
+    // Old vorbis header without extradata
     mtype.subtype = MEDIASUBTYPE_Vorbis;
     mtype.formattype = FORMAT_VorbisFormat;
 
