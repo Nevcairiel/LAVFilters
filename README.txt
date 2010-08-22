@@ -16,7 +16,7 @@ Using it
 By default the splitter will register for all media formats that have been
 tested and found working at least partially.
 This currently includes (but is not limited to)
-	MKV/WebM, AVI, MP4/MOV, TS/M2TS/MPG, FLV
+	MKV/WebM, AVI, MP4/MOV, TS/M2TS/MPG, FLV, OGG
 
 However, some other splitters register in a "bad" way and force all players
 to use them. The Haali Media Splitter is one of those, and to give priority

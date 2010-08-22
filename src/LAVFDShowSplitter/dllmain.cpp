@@ -139,6 +139,9 @@ STDAPI DllRegisterServer()
   // FLV
   chkbytes.push_back(L"0,4,,464C5601");
 
+  // Ogg
+ chkbytes.push_back(L"0,4,,4F676753");
+
   RegisterSourceFilter(__uuidof(CLAVFSplitter),
     MEDIATYPE_LAVFSplitter,
     chkbytes,
@@ -146,7 +149,8 @@ STDAPI DllRegisterServer()
     L".avi", L".divx",  // AVI
     L".ts", L".m2ts", L".mpg", // MPEG
     L".mp4", L".mov", // MP4
-    L".flv", L".webm" // Web Formats
+    L".flv", L".webm", // Web Formats
+    L".ogg", L".ogm" // Ogg
     );
 
   // base classes will handle registration using the factory template table

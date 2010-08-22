@@ -108,7 +108,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
       memcpy(wvfmt + 1, avstream->codec->extradata, avstream->codec->extradata_size);
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat) {
-    if (m_containerFormat == "matroska") {
+    if (m_containerFormat == "matroska" || m_containerFormat == "ogg") {
       BYTE *p = avstream->codec->extradata;
       std::vector<int> sizes;
       for(BYTE n = *p++; n > 0; n--) {
