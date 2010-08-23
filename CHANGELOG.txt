@@ -1,5 +1,11 @@
 LAVFSplitter Changelog
 ===================================
+0.7 - 2010/08/23
+- Further improvements to aspect ratio detection
+- Restore old FPS detection
+- Adjusted flushing to fix subtitle delays
+- Reverted a timing change that broke TrueHD
+
 0.6 - 2010/08/22
 - Added support for E-AC3
 - Fixed MPEG2 Media Types
