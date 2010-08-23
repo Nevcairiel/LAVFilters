@@ -174,7 +174,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
     REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
-    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den);
+    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den, FALSE);
 
     REFERENCE_TIME rt = m_rtCurrent;
     // Try the different times set, pts first, dts when pts is not valid
@@ -359,7 +359,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
   }
 
   // HACK: Change codec_id to TEXT for SSA to prevent some evil doings
-  if (pStream->codec->codec_id == CODEC_ID_SSA || pStream->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
+  if (pStream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
     pStream->codec->codec_id = CODEC_ID_TEXT;
   }
 

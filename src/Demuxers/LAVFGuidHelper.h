@@ -65,6 +65,7 @@ const AVCodecTag ff2_codec_wav_tags[] = {
   { CODEC_ID_GSM_MS,          0x1500 },
   { CODEC_ID_TRUESPEECH,      0x1501 },
   { CODEC_ID_AC3,             0x2000 },
+  { CODEC_ID_TRUEHD,          0x2000 }, /* HACK: TrueHD is being send as AC3 to make ffdshow happy */
   { CODEC_ID_DTS,             0x2001 },
   { CODEC_ID_SONIC,           0x2048 },
   { CODEC_ID_SONIC_LS,        0x2048 },
