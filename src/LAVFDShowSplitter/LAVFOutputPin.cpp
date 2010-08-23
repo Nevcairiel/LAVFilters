@@ -234,8 +234,13 @@ DWORD CLAVFOutputPin::ThreadProc()
     SetThreadPriority(m_hThread, THREAD_PRIORITY_BELOW_NORMAL);
   }
 
-  DeliverBeginFlush();
-  DeliverEndFlush();
+  m_hrDeliver = S_OK;
+  m_fFlushing = m_fFlushed = false;
+  m_eEndFlush.Set();
+  if(IsVideoPin() && IsConnected()) {
+    GetConnected()->BeginFlush();
+    GetConnected()->EndFlush();
+  }
 
   while(1) {
     Sleep(1);
