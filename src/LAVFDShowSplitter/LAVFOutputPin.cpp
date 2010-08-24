@@ -118,7 +118,7 @@ HRESULT CLAVFOutputPin::GetMediaType(int iPosition, CMediaType* pmt)
   CAutoLock cAutoLock(m_pLock);
 
   if(iPosition < 0) return E_INVALIDARG;
-  if((unsigned int)iPosition >= m_mts.size()) return VFW_S_NO_MORE_ITEMS;
+  if((size_t)iPosition >= m_mts.size()) return VFW_S_NO_MORE_ITEMS;
 
   *pmt = m_mts[iPosition];
 
