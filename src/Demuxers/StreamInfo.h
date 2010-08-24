@@ -26,7 +26,7 @@ class CStreamInfo
 {
 public:
   CStreamInfo();
-  ~CStreamInfo();
+  virtual ~CStreamInfo();
 
   std::vector<CMediaType> mtypes;
 };

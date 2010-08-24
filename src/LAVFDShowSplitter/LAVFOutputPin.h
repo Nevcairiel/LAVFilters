@@ -38,7 +38,7 @@ class CLAVFOutputPin
 public:
   CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "", int nBuffers = 0);
   CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown, const char* container = "", int nBuffers = 0);
-  ~CLAVFOutputPin();
+  virtual ~CLAVFOutputPin();
 
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
@@ -53,11 +53,6 @@ public:
   HRESULT GetMediaType(int iPosition, CMediaType* pmt);
   HRESULT Active();
   HRESULT Inactive();
-
-  HRESULT DeliverBeginFlush();
-  HRESULT DeliverEndFlush();
-
-  HRESULT DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
   size_t QueueCount();
   HRESULT QueuePacket(Packet *pPacket);
@@ -74,11 +69,19 @@ public:
   BOOL IsSubtitlePin(){ return m_pinType == CBaseDemuxer::subpic; }
   CBaseDemuxer::StreamType GetPinType() { return m_pinType; }
 
+public:
+  // Packet handling functions
+  virtual HRESULT DeliverBeginFlush();
+  virtual HRESULT DeliverEndFlush();
+
+  virtual HRESULT DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
+
+protected:
+  virtual HRESULT DeliverPacket(Packet *pPacket);
+
 private:
   enum {CMD_EXIT};
   DWORD ThreadProc();
-
-  HRESULT DeliverPacket(Packet *pPacket);
 
 private:
   CCritSec m_csMT;
