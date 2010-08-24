@@ -32,7 +32,7 @@ class CPacketQueue : public CCritSec
 {
 public:
   // Queue a new packet at the end of the list
-  void Queue(Packet *pPacket);
+  void Queue(Packet *pPacket, BOOL tryAppend = TRUE);
 
   // Get a packet from the beginning of the list
   Packet *Get();

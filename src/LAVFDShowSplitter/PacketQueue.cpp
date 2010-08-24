@@ -22,11 +22,11 @@
 #include "PacketQueue.h"
 
 // Queue a new packet at the end of the list
-void CPacketQueue::Queue(Packet *pPacket)
+void CPacketQueue::Queue(Packet *pPacket, BOOL tryAppend)
 {
   CAutoLock cAutoLock(this);
 
-  if (pPacket) {
+  if (tryAppend && pPacket) {
     if (pPacket->bAppendable && !pPacket->bDiscontinuity && !pPacket->pmt
       && pPacket->rtStart == Packet::INVALID_TIME && !IsEmpty()
       && m_queue.back()->rtStart != Packet::INVALID_TIME) {
