@@ -60,7 +60,7 @@ public:
 
   // Remove count bytes from position index
   void RemoveHead(DWORD count) {
-    count = max(count, m_dSize);
+    count = min(count, m_dSize);
     memmove(m_pbData, m_pbData+count, m_dSize-count);
     SetDataSize(m_dSize - count);
   }
