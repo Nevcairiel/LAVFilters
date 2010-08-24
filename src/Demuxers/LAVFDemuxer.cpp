@@ -104,7 +104,7 @@ REFERENCE_TIME CLAVFDemuxer::GetDuration() const
   } else {
     iLength = m_avFormat->duration;
   }
-  return ConvertTimestampToRT(iLength, 1, AV_TIME_BASE, false);
+  return ConvertTimestampToRT(iLength, 1, AV_TIME_BASE, 0);
 }
 
 STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
@@ -174,7 +174,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
     REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
-    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den, FALSE);
+    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den, 0);
 
     REFERENCE_TIME rt = m_rtCurrent;
     // Try the different times set, pts first, dts when pts is not valid
@@ -430,34 +430,42 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
-REFERENCE_TIME CLAVFDemuxer::ConvertTimestampToRT(int64_t pts, int num, int den, BOOL subStart) const
+REFERENCE_TIME CLAVFDemuxer::ConvertTimestampToRT(int64_t pts, int num, int den, int64_t starttime) const
 {
   if (pts == (int64_t)AV_NOPTS_VALUE) {
     return Packet::INVALID_TIME;
   }
 
+  if(starttime == (int64_t)AV_NOPTS_VALUE) {
+    starttime = av_rescale(m_avFormat->start_time, den, (int64_t)AV_TIME_BASE * num);
+  }
+
+  if(starttime != 0) {
+    pts -= starttime;
+  }
+
   // Let av_rescale do the work, its smart enough to not overflow
   REFERENCE_TIME timestamp = av_rescale(pts, (int64_t)num * DSHOW_TIME_BASE, den);
-
-  if (subStart && m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
-    timestamp -= av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
-  }
 
   return timestamp;
 }
 
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
-int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den, BOOL addStart) const
+int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den, int64_t starttime) const
 {
   if (timestamp == Packet::INVALID_TIME) {
     return (int64_t)AV_NOPTS_VALUE;
   }
 
-  // Let av_rescale do the work, its smart enough to not overflow
-  if (addStart && m_avFormat->start_time != (int64_t)AV_NOPTS_VALUE && m_avFormat->start_time != 0) {
-    timestamp += av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
+  if(starttime == (int64_t)AV_NOPTS_VALUE) {
+    starttime = av_rescale(m_avFormat->start_time, den, (int64_t)AV_TIME_BASE * num);
   }
 
-  return av_rescale(timestamp, den, (int64_t)num * DSHOW_TIME_BASE);
+  int64_t pts = av_rescale(timestamp, den, (int64_t)num * DSHOW_TIME_BASE);
+  if(starttime != 0) {
+    pts += starttime;
+  }
+
+  return pts;
 }

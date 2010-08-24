@@ -68,8 +68,8 @@ private:
   STDMETHODIMP AddStream(int streamId);
   STDMETHODIMP CreateStreams();
 
-  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, BOOL subStart = true) const;
-  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, BOOL addStart = true) const;
+  REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
+  int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
 
 private:
   AVFormatContext *m_avFormat;
