@@ -143,6 +143,19 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
     av_free_packet(&pkt);
   } else {
+    // Check right here if the stream is active, we can drop the package otherwise.
+    BOOL streamActive = FALSE;
+    for(int i = 0; i < unknown; i++) {
+      if(m_dActiveStreams[i] == pkt.stream_index) {
+        streamActive = TRUE;
+        break;
+      }
+    }
+    if(!streamActive) {
+      av_free_packet(&pkt);
+      return S_FALSE;
+    }
+
     AVStream *stream = m_avFormat->streams[pkt.stream_index];
     pPacket = new Packet();
 
