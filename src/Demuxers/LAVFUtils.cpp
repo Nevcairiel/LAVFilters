@@ -79,6 +79,11 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   std::string sLanguage;
   if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
     lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
+  } else if(pStream->language && strlen(pStream->language) > 0) {
+    lang = pStream->language;
+  }
+
+  if(lang) {
     sLanguage = ProbeLangForLanguage(lang);
     if (sLanguage.empty()) {
       sLanguage = lang;
