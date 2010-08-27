@@ -41,6 +41,7 @@ CLAVFSplitter::CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtStart(0), m_rtStop(0), m_rtCurrent(0)
   , m_dRate(1.0)
   , m_pDemuxer(NULL)
+  , m_eEndFlush(TRUE)
 {
   if(phr) { *phr = S_OK; }
 }
@@ -376,8 +377,11 @@ STDMETHODIMP CLAVFSplitter::Run(REFERENCE_TIME tStart)
 // Flushing
 void CLAVFSplitter::DeliverBeginFlush()
 {
-  m_fFlushing = true;
+  // In case we're flushing already, wait for the end of the flush
+  // Otherwise this can deadlock the worker
+  m_eEndFlush.Wait();
   m_eEndFlush.Reset();
+  m_fFlushing = true;
 
   // flush all pins
   std::vector<CLAVFOutputPin *>::iterator it;

@@ -147,6 +147,9 @@ HRESULT CLAVFOutputPin::Inactive()
 
 HRESULT CLAVFOutputPin::DeliverBeginFlush()
 {
+  // In case we're flushing already, wait for the end of the flush
+  // Otherwise this can deadlock the worker
+  m_eEndFlush.Wait();
   m_eEndFlush.Reset();
   m_fFlushed = false;
   m_fFlushing = true;
