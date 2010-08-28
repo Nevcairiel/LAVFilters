@@ -231,10 +231,17 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
 STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
 {
-  AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-  int64_t seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
+  int videoStreamId = m_dActiveStreams[video];
+  int64_t seek_pts = 0;
+  // If we have a video stream, seek on that one. If we don't, well, then don't!
+  if (videoStreamId != -1) {
+    AVStream *stream = m_avFormat->streams[videoStreamId];
+    seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
+  } else {
+    seek_pts = ConvertRTToTimestamp(rTime, 1, AV_TIME_BASE);
+  }
 
-  int ret = avformat_seek_file(m_avFormat, m_dActiveStreams[video], _I64_MIN, seek_pts, _I64_MAX, 0);
+  int ret = avformat_seek_file(m_avFormat, videoStreamId, _I64_MIN, seek_pts, _I64_MAX, 0);
   //int ret = av_seek_frame(m_avFormat, -1, seek_pts, 0);
   if(ret < 0) {
     DbgLog((LOG_ERROR, 1, L"Seek failed"));
