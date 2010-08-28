@@ -30,4 +30,3 @@ public:
 
   std::vector<CMediaType> mtypes;
 };
-
