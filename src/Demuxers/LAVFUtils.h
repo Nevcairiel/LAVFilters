@@ -20,4 +20,5 @@
 
 #pragma once
 
+const char *get_stream_language(AVStream *pStream);
 HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName);

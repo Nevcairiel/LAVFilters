@@ -50,6 +50,17 @@ static int get_bit_rate(AVCodecContext *ctx)
   return bit_rate;
 }
 
+const char *get_stream_language(AVStream *pStream)
+{
+  char *lang = NULL;
+  if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
+    lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
+  } else if(pStream->language && strlen(pStream->language) > 0) {
+    lang = pStream->language;
+  }
+  return lang;
+}
+
 HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 {
   CheckPointer(pStream, E_POINTER);
@@ -75,13 +86,8 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     codec_name = tmpbuf1;
   }
 
-  char *lang = NULL;
+  const char *lang = get_stream_language(pStream);
   std::string sLanguage;
-  if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
-    lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
-  } else if(pStream->language && strlen(pStream->language) > 0) {
-    lang = pStream->language;
-  }
 
   if(lang) {
     sLanguage = ProbeLangForLanguage(lang);
