@@ -634,7 +634,6 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
   return S_FALSE;
 }
 
-#define INFOBUFSIZE 128
 STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);

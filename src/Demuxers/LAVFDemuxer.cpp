@@ -260,9 +260,16 @@ HRESULT CLAVFDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) 
   if (streamId >= (DWORD)m_avFormat->nb_streams) { return E_FAIL; }
 
   if (plcid) {
+    char *lang = NULL;
     if (av_metadata_get(m_avFormat->streams[streamId]->metadata, "language", NULL, 0)) {
-      char *lang = av_metadata_get(m_avFormat->streams[streamId]->metadata, "language", NULL, 0)->value;
+      lang = av_metadata_get(m_avFormat->streams[streamId]->metadata, "language", NULL, 0)->value;
+    } else if (m_avFormat->streams[streamId]->language && strlen(m_avFormat->streams[streamId]->language) > 0) {
+      lang = m_avFormat->streams[streamId]->language;
+    }
+    if (lang) {
       *plcid = ProbeLangForLCID(lang);
+    } else {
+      *plcid = 0;
     }
   }
 
