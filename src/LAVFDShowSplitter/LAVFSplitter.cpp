@@ -522,7 +522,10 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     IMediaControl *pControl = NULL;
     hr = m_pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
 
-    FILTER_STATE oldState = m_State;
+    FILTER_STATE oldState;
+    // Get the graph state
+    // If the graph is in transition, we'll get the next state, not the previous
+    pControl->GetState(10, (OAFilterState *)&oldState);
     // Stop the filter graph
     pControl->Stop();
     // Update Output Pin
