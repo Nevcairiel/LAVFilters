@@ -1,5 +1,12 @@
 LAVFSplitter Changelog
 ===================================
+0.8 - 2010/08/30
+- Alot of internal changes to enhance performance and maintainability
+- Fixed a potential deadlock on seeking
+- Fixed playing files without a video stream
+- Fixed an issue that caused some players to hang on playback start
+- Improved language detection
+
 0.7 - 2010/08/23
 - Further improvements to aspect ratio detection
 - Restore old FPS detection
