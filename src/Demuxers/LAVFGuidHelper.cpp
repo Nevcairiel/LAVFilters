@@ -156,7 +156,7 @@ UINT64 next_bits(BYTE *buf, int nBits)
   return ret;
 }
 
-DWORD avs_parse_annexb(BYTE *src, BYTE *dst, int extralen)
+DWORD avc_parse_annexb(BYTE *src, BYTE *dst, int extralen)
 {
   BYTE *endpos = src + extralen;
   BYTE *spspos = 0, *ppspos = 0;
@@ -420,7 +420,7 @@ MPEG2VIDEOINFO *CLAVFGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *
       } else {
         // EXPERIMENTAL FUNCTION!
         mp2vi->dwFlags = 4;
-        mp2vi->cbSequenceHeader = avs_parse_annexb(extradata,
+        mp2vi->cbSequenceHeader = avc_parse_annexb(extradata,
           (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
       }
     }
