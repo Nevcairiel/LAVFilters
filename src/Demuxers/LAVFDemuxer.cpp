@@ -298,7 +298,8 @@ STDMETHODIMP CLAVFDemuxer::get_CurrentMarker(long* pCurrentMarker)
   // Can the time_base change in between chapters?
   // Anyhow, we do the calculation in the loop, just to be safe
   for(unsigned int i = 0; i < m_avFormat->nb_chapters; i++) {
-    int64_t pts = ConvertRTToTimestamp(m_rtCurrent, m_avFormat->chapters[i]->time_base.den, m_avFormat->chapters[i]->time_base.num);
+    int64_t pts = ConvertRTToTimestamp(m_rtCurrent, m_avFormat->chapters[i]->time_base.num, m_avFormat->chapters[i]->time_base.den);
+    // Check if the pts is in between the bounds of the chapter
     if (pts >= m_avFormat->chapters[i]->start && pts <= m_avFormat->chapters[i]->end) {
       *pCurrentMarker = (i + 1);
       return S_OK;
