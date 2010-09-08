@@ -331,7 +331,7 @@ STDMETHODIMP CLAVFDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
   OLECHAR wTitle[128];
   if (av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
     char *title = av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)->value;
-    mbstowcs_s(NULL, wTitle, title, _TRUNCATE);
+    MultiByteToWideChar(CP_UTF8, 0, title, -1, wTitle, 128);
   } else {
     swprintf_s(wTitle, L"Chapter %d", MarkerNum);
   }
