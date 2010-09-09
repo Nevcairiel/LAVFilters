@@ -414,7 +414,7 @@ MPEG2VIDEOINFO *CLAVFGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *
       {
         mp2vi->dwProfile = extradata[1];
         mp2vi->dwLevel = extradata[3];
-        mp2vi->dwFlags = (extradata[4] & 3 + 1);
+        mp2vi->dwFlags = (extradata[4] & 3) + 1;
         mp2vi->cbSequenceHeader = avc_quant(extradata,
           (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
       } else {
