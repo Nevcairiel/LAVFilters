@@ -27,12 +27,12 @@
 
 CLAVFGuidHelper g_GuidHelper;
 
-CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId)
+CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId, unsigned int codecTag)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
   mediaType.majortype = MEDIATYPE_Audio;
-  mediaType.subtype = FOURCCMap(av_codec_get_tag(mp_wav_taglists, codecId));
+  mediaType.subtype = FOURCCMap(codecTag);
   mediaType.formattype = FORMAT_WaveFormatEx; //default value
   mediaType.SetSampleSize(256000);
 
@@ -65,12 +65,12 @@ CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId)
   return mediaType;
 }
 
-CMediaType CLAVFGuidHelper::initVideoType(CodecID codecId)
+CMediaType CLAVFGuidHelper::initVideoType(CodecID codecId, unsigned int codecTag)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
   mediaType.majortype = MEDIATYPE_Video;
-  mediaType.subtype = FOURCCMap(av_codec_get_tag(mp_bmp_taglists, codecId));
+  mediaType.subtype = FOURCCMap(codecTag);
   mediaType.formattype = FORMAT_VideoInfo; //default value
 
   switch(codecId)

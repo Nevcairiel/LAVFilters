@@ -58,9 +58,10 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
 {
-  CMediaType mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id);
-
-  avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
+  if (avstream->codec->codec_tag == 0) {
+    avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
+  }
+  CMediaType mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id, avstream->codec->codec_tag);
 
   if(mtype.formattype == FORMAT_WaveFormatEx) {
     WAVEFORMATEX* wvfmt = (WAVEFORMATEX*)mtype.AllocFormatBuffer(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
@@ -165,11 +166,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
 
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
 {
-  CMediaType mtype = g_GuidHelper.initVideoType(avstream->codec->codec_id);
+  if (avstream->codec->codec_tag == 0) {
+    avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
+  }
+  CMediaType mtype = g_GuidHelper.initVideoType(avstream->codec->codec_id, avstream->codec->codec_tag);
+
   mtype.bTemporalCompression = 1;
   mtype.bFixedSizeSamples = 0; // TODO
-
-  avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
 
   // If we need aspect info, we switch to VIH2
   AVRational r = avstream->sample_aspect_ratio;
