@@ -63,6 +63,13 @@ CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId, unsigned int codecTag
     mediaType.formattype = FORMAT_VorbisFormat;
     mediaType.subtype = MEDIASUBTYPE_Vorbis;
     break;
+  case CODEC_ID_MP1:
+  case CODEC_ID_MP2:
+    mediaType.subtype = MEDIASUBTYPE_MPEG1AudioPayload;
+    break;
+  case CODEC_ID_MP3:
+    mediaType.subtype = MEDIASUBTYPE_MP3;
+    break;
   }
   return mediaType;
 }

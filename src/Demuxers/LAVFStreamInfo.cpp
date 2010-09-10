@@ -64,49 +64,68 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
   CMediaType mtype = g_GuidHelper.initAudioType(avstream->codec->codec_id, avstream->codec->codec_tag);
 
   if(mtype.formattype == FORMAT_WaveFormatEx) {
-    WAVEFORMATEX* wvfmt = (WAVEFORMATEX*)mtype.AllocFormatBuffer(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
-    memset(wvfmt, 0, sizeof(WAVEFORMATEX));
+    // Special Logic for the MPEG1 Audio Formats (MP1, MP2)
+    if(mtype.subtype == MEDIASUBTYPE_MPEG1AudioPayload) {
+      MPEG1WAVEFORMAT* wvfmt = (MPEG1WAVEFORMAT*)mtype.AllocFormatBuffer(sizeof(MPEG1WAVEFORMAT));
+      memset(wvfmt, 0, sizeof(MPEG1WAVEFORMAT));
+      wvfmt->wfx.wFormatTag = WAVE_FORMAT_MPEG;
+      wvfmt->wfx.nChannels = avstream->codec->channels;
+      wvfmt->wfx.nSamplesPerSec = avstream->codec->sample_rate;
+      wvfmt->wfx.nAvgBytesPerSec = avstream->codec->bit_rate / 8;
+      wvfmt->wfx.nBlockAlign = (avstream->codec->codec_id == CODEC_ID_MP1)
+        ? (12 * avstream->codec->bit_rate / avstream->codec->sample_rate) * 4
+        : 144 * avstream->codec->bit_rate / avstream->codec->sample_rate;
 
-    // Check if its LATM by any chance
-    // This doesn't seem to work with any decoders i tested, but at least we won't connect to any wrong decoder
-    if(m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_AAC) {
-      // PESContext in mpegts.c
-      int *pes = (int *)avstream->priv_data;
-      if(pes[2] == 0x11) {
-        avstream->codec->codec_tag = WAVE_FORMAT_LATM_AAC;
-        mtype.subtype = MEDIASUBTYPE_LATM_AAC;
-      }
-    }
+      wvfmt->dwHeadBitrate = avstream->codec->bit_rate;
+      wvfmt->fwHeadMode = avstream->codec->channels == 1 ? ACM_MPEG_SINGLECHANNEL : ACM_MPEG_DUALCHANNEL;
+      wvfmt->fwHeadLayer = (avstream->codec->codec_id == CODEC_ID_MP1) ? ACM_MPEG_LAYER1 : ACM_MPEG_LAYER2;
 
-    // TODO: values for this are non-trivial, see <mmreg.h>
-    wvfmt->wFormatTag = avstream->codec->codec_tag;
-
-    wvfmt->nChannels = avstream->codec->channels;
-    wvfmt->nSamplesPerSec = avstream->codec->sample_rate;
-    wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
-
-    if(avstream->codec->codec_id == CODEC_ID_AAC) {
-      wvfmt->wBitsPerSample = 0;
-      wvfmt->nBlockAlign = 1;
+      wvfmt->wfx.cbSize = sizeof(MPEG1WAVEFORMAT) - sizeof(WAVEFORMATEX);
     } else {
-      wvfmt->wBitsPerSample = avstream->codec->bits_per_coded_sample;
-      if (wvfmt->wBitsPerSample == 0) {
-        wvfmt->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
-      }
+      WAVEFORMATEX* wvfmt = (WAVEFORMATEX*)mtype.AllocFormatBuffer(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
+      memset(wvfmt, 0, sizeof(WAVEFORMATEX));
 
-      if ( avstream->codec->block_align > 0 ) {
-        wvfmt->nBlockAlign = avstream->codec->block_align;
-      } else {
-        if ( wvfmt->wBitsPerSample == 0 ) {
-          DbgOutString(L"BitsPerSample is 0, no good!");
+      // Check if its LATM by any chance
+      // This doesn't seem to work with any decoders i tested, but at least we won't connect to any wrong decoder
+      if(m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_AAC) {
+        // PESContext in mpegts.c
+        int *pes = (int *)avstream->priv_data;
+        if(pes[2] == 0x11) {
+          avstream->codec->codec_tag = WAVE_FORMAT_LATM_AAC;
+          mtype.subtype = MEDIASUBTYPE_LATM_AAC;
         }
-        wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * wvfmt->wBitsPerSample) / 8);
       }
-    }
 
-    wvfmt->cbSize = avstream->codec->extradata_size;
-    if (avstream->codec->extradata_size > 0) {
-      memcpy(wvfmt + 1, avstream->codec->extradata, avstream->codec->extradata_size);
+      // TODO: values for this are non-trivial, see <mmreg.h>
+      wvfmt->wFormatTag = avstream->codec->codec_tag;
+
+      wvfmt->nChannels = avstream->codec->channels;
+      wvfmt->nSamplesPerSec = avstream->codec->sample_rate;
+      wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
+
+      if(avstream->codec->codec_id == CODEC_ID_AAC) {
+        wvfmt->wBitsPerSample = 0;
+        wvfmt->nBlockAlign = 1;
+      } else {
+        wvfmt->wBitsPerSample = avstream->codec->bits_per_coded_sample;
+        if (wvfmt->wBitsPerSample == 0) {
+          wvfmt->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
+        }
+
+        if ( avstream->codec->block_align > 0 ) {
+          wvfmt->nBlockAlign = avstream->codec->block_align;
+        } else {
+          if ( wvfmt->wBitsPerSample == 0 ) {
+            DbgOutString(L"BitsPerSample is 0, no good!");
+          }
+          wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * wvfmt->wBitsPerSample) / 8);
+        }
+      }
+
+      wvfmt->cbSize = avstream->codec->extradata_size;
+      if (avstream->codec->extradata_size > 0) {
+        memcpy(wvfmt + 1, avstream->codec->extradata, avstream->codec->extradata_size);
+      }
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat) {
     // With Matroska and Ogg we know how to split up the extradata
