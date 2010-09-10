@@ -34,8 +34,10 @@ CByteParser::~CByteParser()
 
 uint32_t CByteParser::BitRead(uint8_t numBits, bool peek)
 {
-  ASSERT(numBits > 0 && numBits <= 32);
-  ASSERT(numBits < (m_bitLen + (8 * (m_pEnd - m_pCurrent))));
+  ASSERT(numBits <= 32);
+  ASSERT(numBits <= (m_bitLen + (8 * (m_pEnd - m_pCurrent))));
+
+  if (numBits == 0) { return 0; }
 
   bool atEnd = false;
   // Read more data in the buffer

@@ -115,6 +115,8 @@ STDAPI DllRegisterServer()
 
   // MPEG1
   chkbytes.push_back(L"0,16,FFFFFFFFF100010001800001FFFFFFFF,000001BA2100010001800001000001BB");
+  // General Purpose MPEG - some broken files
+  chkbytes.push_back(L"0,4,FFFFFFFF,000001BA");
   // MPEG-PS
   chkbytes.push_back(L"0,5,FFFFFFFFC0,000001BA40");
   // MPEG-PVA

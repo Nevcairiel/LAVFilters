@@ -25,6 +25,8 @@
 #include "moreuuids.h"
 #include "BaseDemuxer.h"
 
+#include "ExtradataParser.h"
+
 CLAVFGuidHelper g_GuidHelper;
 
 CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId, unsigned int codecTag)
@@ -360,7 +362,7 @@ MPEG1VIDEOINFO *CLAVFGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *
     extradata = avstream->codec->extradata;
   }
 
-  MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG1VIDEOINFO) + max(extra - 1, 0)); 
+  MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG1VIDEOINFO) + extra);
   memset(mp1vi, 0, sizeof(MPEG1VIDEOINFO));
 
   // The MPEG1VI is a thin wrapper around a VIH, so its easy!
@@ -368,11 +370,13 @@ MPEG1VIDEOINFO *CLAVFGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *
   mp1vi->hdr.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 
   mp1vi->dwStartTimeCode = 0; // is this not 0 anywhere..?
+  mp1vi->hdr.bmiHeader.biPlanes = 0;
+  mp1vi->hdr.bmiHeader.biCompression = 0;
 
   // copy extradata over
   if(extra) {
-    mp1vi->cbSequenceHeader = extra;
-    memcpy(mp1vi->bSequenceHeader, extradata, extra);
+    CExtradataParser parser = CExtradataParser(extradata, extra);
+    mp1vi->cbSequenceHeader = parser.ParseMPEGSequenceHeader(mp1vi->bSequenceHeader);
   }
 
   // Free the VIH that we converted
@@ -423,9 +427,12 @@ MPEG2VIDEOINFO *CLAVFGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *
         mp2vi->cbSequenceHeader = avc_parse_annexb(extradata,
           (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
       }
-    }
-    else
-    {
+    } else if (avstream->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
+      CExtradataParser parser = CExtradataParser(extradata, extra);
+      mp2vi->cbSequenceHeader = parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
+      mp2vi->hdr.bmiHeader.biPlanes = 0;
+      mp2vi->hdr.bmiHeader.biCompression = 0;
+    } else {
       mp2vi->cbSequenceHeader = extra;
       memcpy(&mp2vi->dwSequenceHeader[0], extradata, extra);
     }
