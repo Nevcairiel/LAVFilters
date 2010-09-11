@@ -70,6 +70,9 @@ CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId, unsigned int codecTag
   case CODEC_ID_MP3:
     mediaType.subtype = MEDIASUBTYPE_MP3;
     break;
+  case CODEC_ID_PCM_BLURAY:
+    mediaType.subtype = MEDIASUBTYPE_HDMV_LPCM_AUDIO;
+    break;
   }
   return mediaType;
 }
