@@ -70,7 +70,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
     if(mtype.subtype == MEDIASUBTYPE_MPEG1AudioPayload) {
       doExtra = false;
       MPEG1WAVEFORMAT* mfmt = (MPEG1WAVEFORMAT*)mtype.AllocFormatBuffer(sizeof(MPEG1WAVEFORMAT));
-      memset(wvfmt, 0, sizeof(MPEG1WAVEFORMAT));
+      memset(mfmt, 0, sizeof(MPEG1WAVEFORMAT));
 
       avstream->codec->codec_tag = WAVE_FORMAT_MPEG;
       avstream->codec->block_align = (avstream->codec->codec_id == CODEC_ID_MP1)
