@@ -23,10 +23,10 @@ OPTIONS="
 --disable-muxers \
 --disable-encoders \
 --disable-debug \
---enable-ffplay \
+--disable-ffplay \
 --disable-ffserver \
 --disable-ffmpeg \
---enable-ffprobe \
+--disable-ffprobe \
 --disable-devices \
 --disable-filters \
 --disable-avfilter \
@@ -42,6 +42,5 @@ OPTIONS="
 make -j4 &&
 cp lib*/*-*.dll ../bin_x64 &&
 cp lib*/*.lib ../bin_x64/lib &&
-cp ffprobe.exe ../bin_x64
 
 cd ..
