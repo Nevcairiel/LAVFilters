@@ -568,7 +568,7 @@ std::string ISO6391ToLanguage(LPCSTR code)
 			std::string ret = std::string(s_isolangs[i].name);
 			size_t i = ret.find(';');
 			if(i != std::string::npos) {
-        ret = ret.substr(i+1);
+        ret = ret.substr(0, i);
       }
 			return ret;
 		}
@@ -587,7 +587,7 @@ std::string ISO6392ToLanguage(LPCSTR code)
 			std::string ret = std::string(s_isolangs[i].name);
 			size_t i = ret.find(';');
 			if(i != std::string::npos) {
-        ret = ret.substr(i+1);
+        ret = ret.substr(0, i);
       }
 			return ret;
 		}
