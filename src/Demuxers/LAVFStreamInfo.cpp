@@ -75,12 +75,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
 
       // Check if its LATM by any chance
       // This doesn't seem to work with any decoders i tested, but at least we won't connect to any wrong decoder
-      if(m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_AAC) {
-        // PESContext in mpegts.c
+      if(avstream->codec->codec_id == CODEC_ID_AAC) {
         int *pes = (int *)avstream->priv_data;
-        if(pes[2] == 0x11) {
+        if (m_containerFormat == "mpegts" && pes[2] == 0x11) {
           wvfmt->wFormatTag = WAVE_FORMAT_LATM_AAC;
           mtype.subtype = MEDIASUBTYPE_LATM_AAC;
+        } else {
+          wvfmt->wFormatTag = WAVE_FORMAT_AAC;
         }
       }
       mtype.pbFormat = (BYTE *)wvfmt;
