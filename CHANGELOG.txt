@@ -1,5 +1,15 @@
 LAVFSplitter Changelog
 ===================================
+0.9 - 2010/09/12
+- Added support for distinguishing hearing impaired subtitles in mpeg-ts streams
+- Added BluRay LPCM support
+- MP1/MP2 audio media type fixes
+- Honor the original FourCC of the file in media type generation
+- Added support for using the Cyberlink VC-1 decoder
+- Fixed an issue with some H264/AVC1 files that caused video to not play at all
+- Fixed unicode in chapter names
+- Fixed getting the current chapter
+
 0.8 - 2010/08/30
 - Alot of internal changes to enhance performance and maintainability
 - Fixed a potential deadlock on seeking
