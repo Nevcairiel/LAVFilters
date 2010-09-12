@@ -27,9 +27,6 @@
     <ClInclude Include="LAVFUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LAVFGuidHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LAVFStreamInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -40,6 +37,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtradataParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LAVFVideoHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LAVFAudioHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -56,9 +59,6 @@
     <ClCompile Include="LAVFUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LAVFGuidHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LAVFStreamInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,6 +69,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ExtradataParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LAVFAudioHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LAVFVideoHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

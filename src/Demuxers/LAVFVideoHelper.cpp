@@ -21,63 +21,15 @@
  */
 
 #include "stdafx.h"
-#include "LAVFGuidHelper.h"
+#include "LAVFVideoHelper.h"
 #include "moreuuids.h"
 #include "BaseDemuxer.h"
 
 #include "ExtradataParser.h"
 
-CLAVFGuidHelper g_GuidHelper;
+CLAVFVideoHelper g_VideoHelper;
 
-CMediaType CLAVFGuidHelper::initAudioType(CodecID codecId, unsigned int codecTag)
-{
-  CMediaType mediaType;
-  mediaType.InitMediaType();
-  mediaType.majortype = MEDIATYPE_Audio;
-  mediaType.subtype = FOURCCMap(codecTag);
-  mediaType.formattype = FORMAT_WaveFormatEx; //default value
-  mediaType.SetSampleSize(256000);
-
-  // special cases
-  switch(codecId)
-  {
-  case CODEC_ID_AC3:
-    mediaType.subtype = MEDIASUBTYPE_DOLBY_AC3;
-    break;
-  case CODEC_ID_AAC:
-    mediaType.subtype = MEDIASUBTYPE_AAC;
-    break;
-  case CODEC_ID_DTS:
-    mediaType.subtype = MEDIASUBTYPE_DTS;
-    break;
-  case CODEC_ID_EAC3:
-    mediaType.subtype = MEDIASUBTYPE_DOLBY_DDPLUS;
-    break;
-  case CODEC_ID_TRUEHD:
-    // Some filters don't work 100% when its set to TrueHD (ffdshow, doh!)
-    //mediaType.subtype = MEDIASUBTYPE_DOLBY_TRUEHD;
-    mediaType.subtype = MEDIASUBTYPE_DOLBY_AC3;
-    break;
-  case CODEC_ID_VORBIS:
-    //TODO
-    mediaType.formattype = FORMAT_VorbisFormat;
-    mediaType.subtype = MEDIASUBTYPE_Vorbis;
-    break;
-  case CODEC_ID_MP1:
-  case CODEC_ID_MP2:
-    mediaType.subtype = MEDIASUBTYPE_MPEG1AudioPayload;
-    break;
-  case CODEC_ID_MP3:
-    mediaType.subtype = MEDIASUBTYPE_MP3;
-    break;
-  case CODEC_ID_PCM_BLURAY:
-    mediaType.subtype = MEDIASUBTYPE_HDMV_LPCM_AUDIO;
-    break;
-  }
-  return mediaType;
-}
-
-CMediaType CLAVFGuidHelper::initVideoType(CodecID codecId, unsigned int codecTag)
+CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int codecTag)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -257,7 +209,7 @@ DWORD avc_parse_annexb(BYTE *src, BYTE *dst, int extralen)
   return (DWORD)(dst - dstmarker);
 }
 
-VIDEOINFOHEADER *CLAVFGuidHelper::CreateVIH(const AVStream* avstream, ULONG *size)
+VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size)
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
@@ -294,7 +246,7 @@ VIDEOINFOHEADER *CLAVFGuidHelper::CreateVIH(const AVStream* avstream, ULONG *siz
   return pvi;
 }
 
-VIDEOINFOHEADER2 *CLAVFGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *size, bool is_mpegts_format)
+VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *size, bool is_mpegts_format)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -359,7 +311,7 @@ VIDEOINFOHEADER2 *CLAVFGuidHelper::CreateVIH2(const AVStream* avstream, ULONG *s
   return vih2;
 }
 
-MPEG1VIDEOINFO *CLAVFGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *size)
+MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *size)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -396,7 +348,7 @@ MPEG1VIDEOINFO *CLAVFGuidHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *
   return mp1vi;
 }
 
-MPEG2VIDEOINFO *CLAVFGuidHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format)
+MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format)
 {
   int extra = 0;
   BYTE *extradata = NULL;

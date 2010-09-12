@@ -147,8 +147,9 @@
     <ClInclude Include="BaseDemuxer.h" />
     <ClInclude Include="ByteParser.h" />
     <ClInclude Include="ExtradataParser.h" />
+    <ClInclude Include="LAVFAudioHelper.h" />
     <ClInclude Include="LAVFDemuxer.h" />
-    <ClInclude Include="LAVFGuidHelper.h" />
+    <ClInclude Include="LAVFVideoHelper.h" />
     <ClInclude Include="LAVFStreamInfo.h" />
     <ClInclude Include="LAVFUtils.h" />
     <ClInclude Include="stdafx.h" />
@@ -158,8 +159,9 @@
     <ClCompile Include="BaseDemuxer.cpp" />
     <ClCompile Include="ByteParser.cpp" />
     <ClCompile Include="ExtradataParser.cpp" />
+    <ClCompile Include="LAVFAudioHelper.cpp" />
     <ClCompile Include="LAVFDemuxer.cpp" />
-    <ClCompile Include="LAVFGuidHelper.cpp" />
+    <ClCompile Include="LAVFVideoHelper.cpp" />
     <ClCompile Include="LAVFStreamInfo.cpp" />
     <ClCompile Include="LAVFUtils.cpp" />
     <ClCompile Include="stdafx.cpp">
