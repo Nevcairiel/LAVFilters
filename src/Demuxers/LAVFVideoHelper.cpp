@@ -71,7 +71,10 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int codecTa
     mediaType.formattype = FORMAT_VideoInfo2;
     break;
   case CODEC_ID_WMV3:
+    mediaType.formattype = FORMAT_VideoInfo2;
+    break;
   case CODEC_ID_VC1:
+    mediaType.subtype = MEDIASUBTYPE_WVC1;
     mediaType.formattype = FORMAT_VideoInfo2;
     break;
   }

@@ -128,6 +128,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_VideoInfo2) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH2(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
+    if (avstream->codec->codec_id == CODEC_ID_VC1) {
+      ((VIDEOINFOHEADER2 *)mtype.pbFormat)->bmiHeader.biCompression = MKTAG('W', 'V', 'C', '1');
+      // TODO: Give them an UI switch to completly switch to the cyberlink guid, having both doesn't work..
+      //mtypes.push_back(mtype);
+      //mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
+    }
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
