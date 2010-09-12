@@ -130,9 +130,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH2(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
     if (avstream->codec->codec_id == CODEC_ID_VC1) {
       ((VIDEOINFOHEADER2 *)mtype.pbFormat)->bmiHeader.biCompression = MKTAG('W', 'V', 'C', '1');
-      // TODO: Give them an UI switch to completly switch to the cyberlink guid, having both doesn't work..
-      //mtypes.push_back(mtype);
-      //mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
+      // If we send the cyberlink subtype first, it'll work with it, and with ffdshow, dmo and mpc-hc internal
+      mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
+      mtypes.push_back(mtype);
+      mtype.subtype = MEDIASUBTYPE_WVC1;
     }
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat);
