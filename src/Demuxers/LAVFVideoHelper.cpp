@@ -78,6 +78,10 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecT
     codecTag = MKTAG('W','V','C','1');
     mediaType.formattype = FORMAT_VideoInfo2;
     break;
+  case CODEC_ID_MJPEG:
+    mediaType.subtype = MEDIASUBTYPE_MJPG;
+    codecTag = MKTAG('M','J','P','G');
+    break;
   }
 
   return mediaType;
