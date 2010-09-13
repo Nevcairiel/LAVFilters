@@ -29,7 +29,7 @@
 
 CLAVFVideoHelper g_VideoHelper;
 
-CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int codecTag)
+CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecTag)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -75,6 +75,7 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int codecTa
     break;
   case CODEC_ID_VC1:
     mediaType.subtype = MEDIASUBTYPE_WVC1;
+    codecTag = MKTAG('W','V','C','1');
     mediaType.formattype = FORMAT_VideoInfo2;
     break;
   }

@@ -127,7 +127,7 @@ class CLAVFAudioHelper
 {
 public:
   CLAVFAudioHelper() {};
-  CMediaType initAudioType(CodecID codecId, unsigned int codecTag);
+  CMediaType initAudioType(CodecID codecId, unsigned int &codecTag);
 
   WAVEFORMATEX *CreateWVFMTEX(const AVStream *avstream, ULONG *size);
   WAVEFORMATEX_HDMV_LPCM *CreateWVFMTEX_LPCM(const AVStream *avstream, ULONG *size);

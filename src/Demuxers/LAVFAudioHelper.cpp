@@ -29,7 +29,7 @@
 
 CLAVFAudioHelper g_AudioHelper;
 
-CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int codecTag)
+CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecTag)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();

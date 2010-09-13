@@ -129,7 +129,6 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   } else if (mtype.formattype == FORMAT_VideoInfo2) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH2(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
     if (avstream->codec->codec_id == CODEC_ID_VC1) {
-      ((VIDEOINFOHEADER2 *)mtype.pbFormat)->bmiHeader.biCompression = MKTAG('W', 'V', 'C', '1');
       // If we send the cyberlink subtype first, it'll work with it, and with ffdshow, dmo and mpc-hc internal
       mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
       mtypes.push_back(mtype);

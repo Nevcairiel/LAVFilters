@@ -288,7 +288,7 @@ class CLAVFVideoHelper
 {
 public:
   CLAVFVideoHelper() {};
-  CMediaType initVideoType(CodecID codecId, unsigned int codecTag);
+  CMediaType initVideoType(CodecID codecId, unsigned int &codecTag);
 
   VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size);
   VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, bool is_mpegts_format = false);
