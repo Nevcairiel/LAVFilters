@@ -135,7 +135,7 @@ STDAPI DllRegisterServer()
   chkbytes.push_back(L"4,4,,6d6f6f76"); // moov
   chkbytes.push_back(L"4,4,,6d646174"); // mdat
   chkbytes.push_back(L"4,4,,736b6970"); // skip
-  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,77696465027fe3706d646174"); // wide ? mdat
+  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,77696465000000006d646174"); // wide ? mdat
   chkbytes.push_back(L"3,3,,000001"); // mpeg4 video
 
   // FLV
