@@ -75,7 +75,22 @@ STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(IFileSourceFilter)
     QI(IMediaSeeking)
     QI(IAMStreamSelect)
+    QI2(ISpecifyPropertyPages)
+    QI2(ILAVFSettings)
     __super::NonDelegatingQueryInterface(riid, ppv);
+}
+
+// ISpecifyPropertyPages
+STDMETHODIMP CLAVFSplitter::GetPages(CAUUID *pPages)
+{
+  CheckPointer(pPages, E_POINTER);
+  pPages->cElems = 1;
+  pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
+  if (pPages->pElems == NULL) {
+    return E_OUTOFMEMORY;
+  }
+  pPages->pElems[0] = CLSID_LAVFSettingsProp;
+  return S_OK;
 }
 
 // CBaseSplitter

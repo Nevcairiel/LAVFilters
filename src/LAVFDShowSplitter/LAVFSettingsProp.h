@@ -18,23 +18,25 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-// pre-compiled header
-
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
+#include "cprop.h"
 
-// include headers
-#include <Windows.h>
+// GUID: a19de2f2-2f74-4927-8436-61129d26c141
+DEFINE_GUID(CLSID_LAVFSettingsProp, 0xa19de2f2, 0x2f74, 
+  0x4927, 0x84, 0x36, 0x61, 0x12, 0x9d, 0x26, 0xc1, 0x41);
 
-extern "C" {
-#define __STDC_CONSTANT_MACROS
-#include "libavformat/avformat.h"
-}
-#include "streams.h"
+class CLAVFSettingsProp :
+  public CBasePropertyPage
+{
+public:
+  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
 
-#include "DShowUtil.h"
-#include "BaseDemuxer.h"
+  virtual ~CLAVFSettingsProp(void);
 
-#include "resource.h"
+  HRESULT OnActivate();
+
+private:
+  CLAVFSettingsProp(IUnknown *pUnk);
+
+};

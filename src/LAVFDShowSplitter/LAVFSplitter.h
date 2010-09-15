@@ -31,6 +31,9 @@
 
 #include "BaseDemuxer.h"
 
+#include "LAVFSettings.h"
+#include "LAVFSettingsProp.h"
+
 class CLAVFOutputPin;
 
 #ifdef	_MSC_VER
@@ -45,6 +48,8 @@ class CLAVFSplitter
   , public IFileSourceFilter
   , public IMediaSeeking
   , public IAMStreamSelect
+  , public ILAVFSettings
+  , public ISpecifyPropertyPages
 {
 public:
   // constructor method used by class factory
@@ -89,6 +94,15 @@ public:
   STDMETHODIMP Count(DWORD *pcStreams);
   STDMETHODIMP Enable(long lIndex, DWORD dwFlags);
   STDMETHODIMP Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk);
+
+  // ISpecifyPropertyPages
+  STDMETHODIMP GetPages(CAUUID *pPages);
+
+  // ILAVFSettings
+  HRESULT GetPreferredLanguages(char **languages);
+  HRESULT SetPreferredLanguages(char *languages);
+  HRESULT GetPreferredSubtitleLanguages(char **languages);
+  HRESULT SetPreferredSubtitleLanguages(char *languages);
 
   bool IsAnyPinDrying();
 protected:

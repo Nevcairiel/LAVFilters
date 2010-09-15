@@ -102,6 +102,14 @@ CFactoryTemplate g_Templates[] = {
       NULL,
       &sudFilterReg
   },
+  // This entry is for the property page.
+  { 
+      L"Saturation Props",
+      &CLSID_LAVFSettingsProp,
+      CLAVFSettingsProp::CreateInstance, 
+      NULL, NULL
+  }
+
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 

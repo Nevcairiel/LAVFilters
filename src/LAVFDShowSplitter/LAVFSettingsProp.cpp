@@ -18,23 +18,39 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-// pre-compiled header
+#include "stdafx.h"
+#include "LAVFSettingsProp.h"
 
-#pragma once
+#include <Commctrl.h>
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-
-// include headers
-#include <Windows.h>
-
-extern "C" {
-#define __STDC_CONSTANT_MACROS
-#include "libavformat/avformat.h"
+// static constructor
+CUnknown* WINAPI CLAVFSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
+{
+  CLAVFSettingsProp *propPage = new CLAVFSettingsProp(pUnk);
+  if (!propPage) {
+    *phr = E_OUTOFMEMORY;
+  }
+  return propPage;
 }
-#include "streams.h"
 
-#include "DShowUtil.h"
-#include "BaseDemuxer.h"
+CLAVFSettingsProp::CLAVFSettingsProp(IUnknown *pUnk)
+  : CBasePropertyPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, 0)
+{
+}
 
-#include "resource.h"
+
+CLAVFSettingsProp::~CLAVFSettingsProp(void)
+{
+}
+
+HRESULT CLAVFSettingsProp::OnActivate()
+{
+  INITCOMMONCONTROLSEX icc;
+  icc.dwSize = sizeof(INITCOMMONCONTROLSEX);
+  icc.dwICC = ICC_BAR_CLASSES;
+  if (InitCommonControlsEx(&icc) == FALSE)
+  {
+    return E_FAIL;
+  }
+  return S_OK;
+}
