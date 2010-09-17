@@ -83,6 +83,11 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         } else {
           wvfmt->wFormatTag = WAVE_FORMAT_AAC;
         }
+      } else if (avstream->codec->codec_tag == WAVE_FORMAT_EXTENSIBLE && avstream->codec->extradata_size >= 22) {
+        // The WAVEFORMATEXTENSIBLE GUID is not recognized by the audio renderers
+        // Set the actual subtype as GUID
+        WAVEFORMATEXTENSIBLE *wvfmtex = (WAVEFORMATEXTENSIBLE *)wvfmt;
+        mtype.subtype = wvfmtex->SubFormat;
       }
       mtype.pbFormat = (BYTE *)wvfmt;
     }
