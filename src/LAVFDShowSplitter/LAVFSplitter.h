@@ -96,8 +96,6 @@ protected:
   enum {CMD_EXIT, CMD_SEEK};
   DWORD ThreadProc();
 
-  void AddStream(int streamId);
-
   HRESULT DemuxSeek(REFERENCE_TIME rtStart);
   HRESULT DemuxNextPacket();
   HRESULT DeliverPacket(Packet *pPacket);
