@@ -24,3 +24,8 @@ const char *get_stream_language(AVStream *pStream);
 HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName);
 
 extern URLProtocol ufile_protocol;
+
+inline int get_bits_per_sample(AVCodecContext *ctx)
+{
+  return (ctx->bits_per_raw_sample ? ctx->bits_per_raw_sample : av_get_bits_per_sample_format(ctx->sample_fmt));
+}

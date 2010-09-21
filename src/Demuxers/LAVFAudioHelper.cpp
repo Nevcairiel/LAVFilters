@@ -24,6 +24,7 @@
 #include "moreuuids.h"
 #include "BaseDemuxer.h"
 #include "LAVFAudioHelper.h"
+#include "LAVFUtils.h"
 
 #include "ExtradataParser.h"
 
@@ -93,10 +94,7 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
     wvfmt->wBitsPerSample = 0;
     wvfmt->nBlockAlign = 1;
   } else {
-    wvfmt->wBitsPerSample = avstream->codec->bits_per_coded_sample;
-    if (wvfmt->wBitsPerSample == 0) {
-      wvfmt->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
-    }
+    wvfmt->wBitsPerSample = get_bits_per_sample(avstream->codec);
 
     if ( avstream->codec->block_align > 0 ) {
       wvfmt->nBlockAlign = avstream->codec->block_align;
@@ -104,7 +102,7 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
       if ( wvfmt->wBitsPerSample == 0 ) {
         DbgOutString(L"BitsPerSample is 0, no good!");
       }
-      wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * wvfmt->wBitsPerSample) / 8);
+      wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * av_get_bits_per_sample_format(avstream->codec->sample_fmt)) / 8);
     }
   }
 
@@ -195,7 +193,7 @@ VORBISFORMAT2 *CLAVFAudioHelper::CreateVorbis2(const AVStream *avstream, ULONG *
     
     pvf2->Channels = avstream->codec->channels;
     pvf2->SamplesPerSec = avstream->codec->sample_rate;
-    pvf2->BitsPerSample = avstream->codec->bits_per_coded_sample;
+    pvf2->BitsPerSample = get_bits_per_sample(avstream->codec);
     
     BYTE *p2 = (BYTE *)pvf2 + sizeof(VORBISFORMAT2);
     for(unsigned int i = 0; i < sizes.size(); p += sizes[i], p2 += sizes[i], i++) {

@@ -159,8 +159,8 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     avcodec_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
     buf << ", " << channel;
     // Sample Format
-    if (enc->sample_fmt != SAMPLE_FMT_NONE) {
-      buf << ", " << avcodec_get_sample_fmt_name(enc->sample_fmt);
+    if (get_bits_per_sample(enc)) {
+      buf << ", s" << get_bits_per_sample(enc);
     }
     // Bitrate
     if (bitrate > 0) {
