@@ -90,6 +90,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         mtype.subtype = wvfmtex->SubFormat;
       }
       mtype.pbFormat = (BYTE *)wvfmt;
+
+      if (avstream->codec->codec_id == CODEC_ID_FLAC) {
+        mtype.subtype = MEDIASUBTYPE_FLAC_FRAMED;
+        mtypes.push_back(mtype);
+        mtype.subtype = MEDIASUBTYPE_FLAC;
+      }
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat) {
     // With Matroska and Ogg we know how to split up the extradata
