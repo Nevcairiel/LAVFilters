@@ -189,7 +189,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
     REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den, 0);
 
-    REFERENCE_TIME rt = m_rtCurrent;
+    REFERENCE_TIME rt = Packet::INVALID_TIME; // m_rtCurrent;
     // Try the different times set, pts first, dts when pts is not valid
     if (pts != Packet::INVALID_TIME) {
       rt = pts;
@@ -202,14 +202,16 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       rt = dts;
     }
 
-    pPacket->rtStart = rt;
-    pPacket->rtStop = rt + ((duration > 0) ? duration : 1);
+    pPacket->rtStart = pPacket->rtStop = rt;
+    if (rt != Packet::INVALID_TIME) {
+      pPacket->rtStop += (duration > 0) ? duration : 1;
+    }
 
     if (stream->codec->codec_type == CODEC_TYPE_SUBTITLE) {
       pPacket->bDiscontinuity = TRUE;
     } else {
-      pPacket->bSyncPoint = (duration > 0) ? 1 : 0;
-      pPacket->bAppendable = !pPacket->bSyncPoint;
+      pPacket->bSyncPoint = (rt != Packet::INVALID_TIME && duration > 0) ? 1 : 0;
+      pPacket->bAppendable = 0; //!pPacket->bSyncPoint;
     }
 
     // Update current time
