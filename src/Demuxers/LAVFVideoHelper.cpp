@@ -382,8 +382,9 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
   if(extra > 0)
   {
     // Don't even go there for mpeg-ts for now, we supply annex-b
-    if(avstream->codec->codec_id == CODEC_ID_H264 && !is_mpegts_format)
+    if(avstream->codec->codec_id == CODEC_ID_H264)
     {
+      mp2vi->hdr.AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame,  avstream->codec->time_base.den);
       if (!is_mpegts_format)
       {
         mp2vi->dwProfile = extradata[1];
@@ -391,7 +392,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
         mp2vi->dwFlags = (extradata[4] & 3) + 1;
         mp2vi->cbSequenceHeader = avc_quant(extradata,
           (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
-      } else {
+      } else if (0) {
         // EXPERIMENTAL FUNCTION!
         mp2vi->dwFlags = 4;
         mp2vi->cbSequenceHeader = avc_parse_annexb(extradata,
