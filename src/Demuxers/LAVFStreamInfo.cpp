@@ -129,6 +129,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   mtype.bTemporalCompression = 1;
   mtype.bFixedSizeSamples = 0; // TODO
 
+  // Somewhat hackish to force VIH for AVI content.
+  // TODO: Figure out why exactly this is required
+  if (m_containerFormat == "avi") {
+    mtype.formattype = FORMAT_VideoInfo;
+  }
+
   // If we need aspect info, we switch to VIH2
   AVRational r = avstream->sample_aspect_ratio;
   if (mtype.formattype == FORMAT_VideoInfo && (r.den > 0 && r.num > 0 && (r.den > 1 || r.num > 1))) {
