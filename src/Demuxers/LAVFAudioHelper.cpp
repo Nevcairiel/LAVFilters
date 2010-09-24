@@ -73,6 +73,9 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
   case CODEC_ID_PCM_BLURAY:
     mediaType.subtype = MEDIASUBTYPE_HDMV_LPCM_AUDIO;
     break;
+  case CODEC_ID_PCM_DVD:
+    mediaType.subtype = MEDIASUBTYPE_DVD_LPCM_AUDIO;
+    break;
   }
   return mediaType;
 }
