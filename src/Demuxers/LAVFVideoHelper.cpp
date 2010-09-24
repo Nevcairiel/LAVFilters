@@ -257,7 +257,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   return pvi;
 }
 
-VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *size, bool is_mpegts_format)
+VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *size, std::string container)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -268,7 +268,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
     //increase extra size by one, because VIH2 requires one 0 byte between header and extra data
-    if (is_mpegts_format) {
+    if (container == "mpegts") {
       extra++;
     }
 
@@ -306,7 +306,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 
   if(extra) {
     // The first byte after the infoheader has to be 0 in mpeg-ts
-    if (is_mpegts_format) {
+    if (container == "mpegts") {
       *((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
       // after that, the extradata .. size reduced by one again
       memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1, extradata, extra - 1);
@@ -359,7 +359,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   return mp1vi;
 }
 
-MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format)
+MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -388,7 +388,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
     if(avstream->codec->codec_id == CODEC_ID_H264)
     {
       mp2vi->hdr.AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame,  avstream->codec->time_base.den);
-      if (!is_mpegts_format)
+      if (container != "mpegts")
       {
         mp2vi->dwProfile = extradata[1];
         mp2vi->dwLevel = extradata[3];

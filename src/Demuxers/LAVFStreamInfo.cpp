@@ -138,7 +138,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   if (mtype.formattype == FORMAT_VideoInfo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_VideoInfo2) {
-    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH2(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
+    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH2(avstream, &mtype.cbFormat, m_containerFormat);
     if (avstream->codec->codec_id == CODEC_ID_VC1) {
       // If we send the cyberlink subtype first, it'll work with it, and with ffdshow, dmo and mpc-hc internal
       mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
@@ -148,7 +148,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
-    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, (m_containerFormat == "mpegts"));
+    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat);
     // mpeg-ts ships its stuff in annexb form, and MS defines annexb to go with H264 instead of AVC1
     // sadly, ffdshow doesnt connect to H264 (and doesnt work on annexb in general)
     if (m_containerFormat == "mpegts" && avstream->codec->codec_id == CODEC_ID_H264) {

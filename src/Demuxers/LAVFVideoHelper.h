@@ -291,9 +291,9 @@ public:
   CMediaType initVideoType(CodecID codecId, unsigned int &codecTag);
 
   VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size);
-  VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, bool is_mpegts_format = false);
+  VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container = "");
   MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size);
-  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, bool is_mpegts_format = false);
+  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container = "");
 };
 
 extern CLAVFVideoHelper g_VideoHelper;
