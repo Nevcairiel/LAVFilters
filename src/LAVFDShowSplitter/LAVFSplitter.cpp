@@ -511,6 +511,11 @@ STDMETHODIMP CLAVFSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll 
 STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
+
+#ifndef DEBUG
+  if (TrackNumSrc == TrackNumDst) return S_OK;
+#endif
+
   CLAVFOutputPin* pPin = GetOutputPin(TrackNumSrc);
   // Output Pin was found
   // Stop the Graph, remove the old filter, render the graph again, start it up again
