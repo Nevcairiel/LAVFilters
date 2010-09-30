@@ -95,6 +95,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         mtype.subtype = MEDIASUBTYPE_FLAC_FRAMED;
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_FLAC;
+      } else if (avstream->codec->codec_id == CODEC_ID_DTS) {
+        mtypes.push_back(mtype);
+        mtype.subtype = FOURCCMap(WAVE_FORMAT_DTS2);
+        wvfmt->wFormatTag = WAVE_FORMAT_DTS2;
       }
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat) {

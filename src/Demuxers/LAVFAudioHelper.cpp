@@ -49,6 +49,7 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     break;
   case CODEC_ID_DTS:
     mediaType.subtype = MEDIASUBTYPE_DTS;
+    codecTag = WAVE_FORMAT_DTS;
     break;
   case CODEC_ID_EAC3:
     mediaType.subtype = MEDIASUBTYPE_DOLBY_DDPLUS;
