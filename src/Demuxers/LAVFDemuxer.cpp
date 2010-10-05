@@ -60,9 +60,10 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   int ret; // return code from avformat functions
 
   // Convert the filename from wchar to char for avformat
+  // The "ufile" protocol then converts it back to wchar_t to pass it to windows APIs
+  // Isn't it great?
   char fileName[4096] = "ufile:";
   ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName+6, 4090, NULL, NULL);
-  //wcstombs_s(NULL, fileName, 1024, pszFileName, _TRUNCATE);
 
   ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
   if (ret < 0) {
