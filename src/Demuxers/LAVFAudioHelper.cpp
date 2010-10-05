@@ -55,9 +55,7 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     mediaType.subtype = MEDIASUBTYPE_DOLBY_DDPLUS;
     break;
   case CODEC_ID_TRUEHD:
-    // Some filters don't work 100% when its set to TrueHD (ffdshow, doh!)
-    //mediaType.subtype = MEDIASUBTYPE_DOLBY_TRUEHD;
-    mediaType.subtype = MEDIASUBTYPE_DOLBY_AC3;
+    mediaType.subtype = MEDIASUBTYPE_DOLBY_TRUEHD;
     break;
   case CODEC_ID_VORBIS:
     //TODO
