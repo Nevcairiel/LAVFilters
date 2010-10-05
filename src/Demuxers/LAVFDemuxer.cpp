@@ -27,6 +27,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
   : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0)
 {
   av_register_all();
+  register_protocol(&ufile_protocol);
 }
 
 CLAVFDemuxer::~CLAVFDemuxer()
@@ -59,8 +60,9 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   int ret; // return code from avformat functions
 
   // Convert the filename from wchar to char for avformat
-  char fileName[1024];
-  wcstombs_s(NULL, fileName, 1024, pszFileName, _TRUNCATE);
+  char fileName[4096] = "ufile:";
+  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName+6, 4090, NULL, NULL);
+  //wcstombs_s(NULL, fileName, 1024, pszFileName, _TRUNCATE);
 
   ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
   if (ret < 0) {

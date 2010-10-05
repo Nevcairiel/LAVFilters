@@ -21,8 +21,13 @@
 #include "stdafx.h"
 #include "lavfutils.h"
 
+#include <io.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
 extern "C" {
 #include "libavcodec/audioconvert.h"
+#include "libavutil/avstring.h"
 }
 
 #include <sstream>
@@ -197,3 +202,87 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   return S_OK;
 }
+
+static int ufile_open(URLContext *h, const char *filename, int flags)
+{
+    int access;
+    int fd;
+
+    av_strstart(filename, "ufile:", &filename);
+
+    /// 4096 should be enough for a path name
+    wchar_t wfilename[4096];
+    int nChars = MultiByteToWideChar(
+        CP_UTF8,
+        MB_ERR_INVALID_CHARS,
+        filename,
+        -1,    // string is NULL terminated
+        wfilename,
+        sizeof(wfilename) / sizeof(*wfilename)
+        );
+
+    if(nChars <= 0) {
+        return AVERROR(ENOENT);
+    }
+
+    if (flags & URL_RDWR) {
+        access = _O_CREAT | _O_TRUNC | _O_RDWR;
+    } else if (flags & URL_WRONLY) {
+        access = _O_CREAT | _O_TRUNC | _O_WRONLY;
+    } else {
+        access = _O_RDONLY;
+    }
+#ifdef O_BINARY
+    access |= O_BINARY;
+#endif
+    _wsopen_s(&fd, wfilename, access, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+    //fd = _wopen(wfilename, access, 0666);
+    h->priv_data = (void *)(size_t)fd;
+    if (fd < 0) {
+        const int err = AVERROR(ENOENT);
+        //assert (err < 0);
+        return err;
+    }
+    return 0;
+}
+
+static int ufile_read(URLContext *h, unsigned char *buf, int size)
+{
+    int fd = (size_t)h->priv_data;
+    int nBytes = _read(fd, buf, size);
+    return nBytes;
+}
+
+static int ufile_write(URLContext *h, const unsigned char *buf, int size)
+{
+    int fd = (size_t)h->priv_data;
+    int nBytes = _write(fd, buf, size);
+    return nBytes;
+}
+
+static int64_t ufile_seek(URLContext *h, int64_t pos, int whence)
+{
+    //assert(whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END);
+    const int fd = (size_t)h->priv_data;
+    const __int64 nBytes = _lseeki64(fd, pos, whence);
+    return nBytes;
+}
+
+static int ufile_close(URLContext *h)
+{
+    int fd = (size_t)h->priv_data;
+    if(fd >= 0) {
+        return _close(fd);
+    }
+
+    return 0;
+}
+
+URLProtocol ufile_protocol = {
+    "ufile",
+    ufile_open,
+    ufile_read,
+    ufile_write,
+    ufile_seek,
+    ufile_close,
+};
