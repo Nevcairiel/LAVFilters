@@ -135,14 +135,19 @@ STDAPI DllRegisterServer()
   chkbytes.push_back(L"4,4,,6d6f6f76"); // moov
   chkbytes.push_back(L"4,4,,6d646174"); // mdat
   chkbytes.push_back(L"4,4,,736b6970"); // skip
+  chkbytes.push_back(L"4,4,,75647461"); // udta
   chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,77696465000000006d646174"); // wide ? mdat
+  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,776964650000000066726565"); // wide ? free
+  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,6672656500000000636D6F76"); // free ? cmov
+  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,66726565000000006D766864"); // free ? mvhd
+  chkbytes.push_back(L"4,14,ffffffff000000000000ffffffff,706E6F7400000000000050494354"); // pnot ? PICT
   chkbytes.push_back(L"3,3,,000001"); // mpeg4 video
 
   // FLV
   chkbytes.push_back(L"0,4,,464C5601");
 
   // Ogg
- chkbytes.push_back(L"0,4,,4F676753");
+  chkbytes.push_back(L"0,4,,4F676753");
 
   RegisterSourceFilter(__uuidof(CLAVFSplitter),
     MEDIATYPE_LAVFSplitter,
