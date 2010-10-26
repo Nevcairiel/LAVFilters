@@ -1,5 +1,18 @@
 LAVFSplitter Changelog
 ===================================
+0.10 - 2010/10/26
+- Added more MOV/MP4 byte markers
+- Added support for multichannel PCM tracks
+- Added support for DVD LPCM tracks
+- Added support for usign the ArcSoft HD decoder for DTS and TrueHD tracks
+- Send the proper media type for TrueHD instead of trying to connect with AC-3
+- Improved H264 frame rate detection
+- Improved FLAC support
+- Fix loading of files with unicode characters in their names
+- Fixed timestamping issues that caused certain videos to play too fast
+- Fixed M-JPEG media type
+- Fixed corruption with MPEG-4 ASP (DivX/Xvid) when using the Xvid decoder
+
 0.9 - 2010/09/12
 - Added support for distinguishing hearing impaired subtitles in mpeg-ts streams
 - Added BluRay LPCM support
