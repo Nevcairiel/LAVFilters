@@ -34,6 +34,8 @@ OPTIONS="
 --disable-avdevice \
 --disable-hwaccels \
 --disable-bsfs \
+--disable-network \
+--disable-protocols \
 --arch=x86 --target-os=mingw32"
 
 ./configure --extra-cflags="-U__STRICT_ANSI__ -fno-strict-aliasing -march=i686 -mmmx -msse -mfpmath=sse" ${OPTIONS} &&
