@@ -38,14 +38,9 @@ void CBaseDemuxer::CreateNoSubtitleStream()
   s.streamInfo = new CStreamInfo();
   // Create the media type
   CMediaType mtype;
-  mtype.majortype = MEDIATYPE_Subtitle;
+  mtype.majortype = MEDIATYPE_Text;
   mtype.subtype = MEDIASUBTYPE_NULL;
-  mtype.formattype = FORMAT_SubtitleInfo;
-  // Create SUBTITLEINFO and populate it
-  SUBTITLEINFO* psi = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO));
-  memset(psi, 0, sizeof(SUBTITLEINFO));
-  strcpy_s(psi->IsoLang, "---");
-  wcscpy_s(psi->TrackName, L"No Subtitles");
+  mtype.formattype = MEDIASUBTYPE_NULL;
   s.streamInfo->mtypes.push_back(mtype);
   // Append it to the list
   m_streams[subpic].push_front(s);

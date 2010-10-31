@@ -588,6 +588,8 @@ STDMETHODIMP CLAVFSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst
     pPin->SetStreamId(TrackNumDst);
     m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
     pPin->SetNewMediaTypes(pmts);
+
+    return S_OK;
   }
 
   return E_FAIL;
