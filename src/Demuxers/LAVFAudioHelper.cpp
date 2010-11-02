@@ -48,6 +48,10 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
   case CODEC_ID_AAC:
     mediaType.subtype = MEDIASUBTYPE_AAC;
     break;
+  case CODEC_ID_AAC_LATM:
+    mediaType.subtype = MEDIASUBTYPE_LATM_AAC;
+    codecTag = WAVE_FORMAT_LATM_AAC;
+    break;
   case CODEC_ID_DTS:
     mediaType.subtype = MEDIASUBTYPE_DTS;
     codecTag = WAVE_FORMAT_DTS;
@@ -90,7 +94,7 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
   wvfmt->nSamplesPerSec = avstream->codec->sample_rate;
   wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
 
-  if(avstream->codec->codec_id == CODEC_ID_AAC) {
+  if(avstream->codec->codec_id == CODEC_ID_AAC || avstream->codec->codec_id == CODEC_ID_AAC_LATM) {
     wvfmt->wBitsPerSample = 0;
     wvfmt->nBlockAlign = 1;
   } else {

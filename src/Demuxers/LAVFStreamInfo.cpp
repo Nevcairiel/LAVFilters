@@ -73,17 +73,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
     } else {
       WAVEFORMATEX *wvfmt = g_AudioHelper.CreateWVFMTEX(avstream, &mtype.cbFormat);
 
-      // Check if its LATM by any chance
-      // This doesn't seem to work with any decoders i tested, but at least we won't connect to any wrong decoder
-      if(avstream->codec->codec_id == CODEC_ID_AAC) {
-        int *pes = (int *)avstream->priv_data;
-        if (m_containerFormat == "mpegts" && pes[2] == 0x11) {
-          wvfmt->wFormatTag = WAVE_FORMAT_LATM_AAC;
-          mtype.subtype = MEDIASUBTYPE_LATM_AAC;
-        } else {
-          wvfmt->wFormatTag = WAVE_FORMAT_AAC;
-        }
-      } else if (avstream->codec->codec_tag == WAVE_FORMAT_EXTENSIBLE && avstream->codec->extradata_size >= 22) {
+      if (avstream->codec->codec_tag == WAVE_FORMAT_EXTENSIBLE && avstream->codec->extradata_size >= 22) {
         // The WAVEFORMATEXTENSIBLE GUID is not recognized by the audio renderers
         // Set the actual subtype as GUID
         WAVEFORMATEXTENSIBLE *wvfmtex = (WAVEFORMATEXTENSIBLE *)wvfmt;
