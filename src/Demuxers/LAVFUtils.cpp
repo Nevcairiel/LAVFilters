@@ -203,6 +203,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   return S_OK;
 }
 
+extern "C" {
 static int ufile_open(URLContext *h, const char *filename, int flags)
 {
     int access;
@@ -236,46 +237,45 @@ static int ufile_open(URLContext *h, const char *filename, int flags)
     access |= O_BINARY;
 #endif
     _wsopen_s(&fd, wfilename, access, _SH_DENYNO, _S_IREAD | _S_IWRITE);
-    //fd = _wopen(wfilename, access, 0666);
-    h->priv_data = (void *)(size_t)fd;
-    if (fd < 0) {
-        const int err = AVERROR(ENOENT);
-        //assert (err < 0);
-        return err;
-    }
+    if (fd == -1)
+        return AVERROR(errno);
+    h->priv_data = (void *) (intptr_t) fd;
     return 0;
 }
 
 static int ufile_read(URLContext *h, unsigned char *buf, int size)
 {
-    int fd = (size_t)h->priv_data;
-    int nBytes = _read(fd, buf, size);
-    return nBytes;
+    int fd = (intptr_t) h->priv_data;
+    return _read(fd, buf, size);
 }
 
 static int ufile_write(URLContext *h, const unsigned char *buf, int size)
 {
-    int fd = (size_t)h->priv_data;
-    int nBytes = _write(fd, buf, size);
-    return nBytes;
+    int fd = (intptr_t) h->priv_data;
+    return _write(fd, buf, size);
 }
 
+static int ufile_get_handle(URLContext *h)
+{
+    return (intptr_t) h->priv_data;
+}
+
+/* XXX: use llseek */
 static int64_t ufile_seek(URLContext *h, int64_t pos, int whence)
 {
-    //assert(whence == SEEK_SET || whence == SEEK_CUR || whence == SEEK_END);
-    const int fd = (size_t)h->priv_data;
-    const __int64 nBytes = _lseeki64(fd, pos, whence);
-    return nBytes;
+    int fd = (intptr_t) h->priv_data;
+    if (whence == AVSEEK_SIZE) {
+        struct stat st;
+        int ret = fstat(fd, &st);
+        return ret < 0 ? AVERROR(errno) : st.st_size;
+    }
+    return _lseek(fd, pos, whence);
 }
 
 static int ufile_close(URLContext *h)
 {
-    int fd = (size_t)h->priv_data;
-    if(fd >= 0) {
-        return _close(fd);
-    }
-
-    return 0;
+    int fd = (intptr_t) h->priv_data;
+    return _close(fd);
 }
 
 URLProtocol ufile_protocol = {
@@ -285,4 +285,9 @@ URLProtocol ufile_protocol = {
     ufile_write,
     ufile_seek,
     ufile_close,
+    NULL,
+    NULL,
+    NULL,
+    ufile_get_handle,
 };
+}
