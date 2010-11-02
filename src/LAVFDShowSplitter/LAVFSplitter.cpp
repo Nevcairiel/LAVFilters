@@ -702,7 +702,8 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
 STDMETHODIMP CLAVFSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
 {
   CheckPointer(ppLanguages, E_POINTER);
-  *ppLanguages = L"eng";
+  *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * 4);
+  wcsncpy_s(*ppLanguages, 4, L"eng", _TRUNCATE);
   return S_OK;
 }
 
@@ -714,7 +715,8 @@ STDMETHODIMP CLAVFSplitter::SetPreferredLanguages(WCHAR *pLanguages)
 STDMETHODIMP CLAVFSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
 {
   CheckPointer(ppLanguages, E_POINTER);
-  *ppLanguages = L"eng";
+  *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * 4);
+  wcsncpy_s(*ppLanguages, 4, L"eng", _TRUNCATE);
   return S_OK;
 }
 

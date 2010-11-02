@@ -31,6 +31,7 @@ interface ILAVFSettings : public IUnknown
 {
   // Retrieve the preferred languages as ISO 639-2 language codes, comma seperated
   // If the result is NULL, no language has been set
+  // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
   STDMETHOD(GetPreferredLanguages)(WCHAR **ppLanguages) = 0;
 
   // Set the preferred languages as ISO 639-2 language codes, comma seperated
@@ -40,6 +41,7 @@ interface ILAVFSettings : public IUnknown
   // Retrieve the preferred subtitle languages as ISO 639-2 language codes, comma seperated
   // If the result is NULL, no language has been set
   // If no subtitle language is set, the main language preference is used.
+  // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
   STDMETHOD(GetPreferredSubtitleLanguages)(WCHAR **ppLanguages) = 0;
 
   // Set the preferred subtitle languages as ISO 639-2 language codes, comma seperated

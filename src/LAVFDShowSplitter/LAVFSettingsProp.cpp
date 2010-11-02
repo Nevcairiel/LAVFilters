@@ -40,13 +40,17 @@ CUnknown* WINAPI CLAVFSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVFSettingsProp::CLAVFSettingsProp(IUnknown *pUnk)
   : CBasePropertyPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
-  , m_pLAVF(NULL)
+  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL)
 {
 }
 
 
 CLAVFSettingsProp::~CLAVFSettingsProp(void)
 {
+  if(m_pszPrefLang)
+    CoTaskMemFree(m_pszPrefLang);
+  if(m_pszPrefSubLang)
+    CoTaskMemFree(m_pszPrefSubLang);
 }
 
 HRESULT CLAVFSettingsProp::OnConnect(IUnknown *pUnk)
@@ -106,10 +110,6 @@ HRESULT CLAVFSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_SETTEXT, 0, (LPARAM)m_pszPrefSubLang);
 
 done:
-  if (FAILED(hr)) {
-    SAFE_DELETE(m_pszPrefLang);
-    SAFE_DELETE(m_pszPrefSubLang);
-  }
   return hr;
 }
 
