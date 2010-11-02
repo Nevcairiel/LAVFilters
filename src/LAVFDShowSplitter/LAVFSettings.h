@@ -26,23 +26,24 @@
 DEFINE_GUID(IID_ILAVFSettings, 0x72b2c5fa, 0xa7a5, 
 0x4463, 0x9c, 0x1b, 0x9f, 0x47, 0x49, 0xc3, 0x5c, 0x79);
 
+[uuid("72b2c5fa-a7a5-4463-9c1b-9f4749c35c79")]
 interface ILAVFSettings : public IUnknown
 {
   // Retrieve the preferred languages as ISO 639-2 language codes, comma seperated
   // If the result is NULL, no language has been set
-  HRESULT GetPreferredLanguages(char **languages);
+  STDMETHOD(GetPreferredLanguages)(WCHAR **ppLanguages) = 0;
 
   // Set the preferred languages as ISO 639-2 language codes, comma seperated
   // To reset to no preferred language, pass NULL or the empty string
-  HRESULT SetPreferredLanguages(char *languages);
+  STDMETHOD(SetPreferredLanguages)(WCHAR *pLanguages) = 0;
   
   // Retrieve the preferred subtitle languages as ISO 639-2 language codes, comma seperated
   // If the result is NULL, no language has been set
   // If no subtitle language is set, the main language preference is used.
-  HRESULT GetPreferredSubtitleLanguages(char **languages);
+  STDMETHOD(GetPreferredSubtitleLanguages)(WCHAR **ppLanguages) = 0;
 
   // Set the preferred subtitle languages as ISO 639-2 language codes, comma seperated
   // To reset to no preferred language, pass NULL or the empty string
   // If no subtitle language is set, the main language preference is used.
-  HRESULT SetPreferredSubtitleLanguages(char *languages);
+  STDMETHOD(SetPreferredSubtitleLanguages)(WCHAR *pLanguages) = 0;
 };

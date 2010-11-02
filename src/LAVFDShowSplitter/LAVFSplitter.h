@@ -99,10 +99,10 @@ public:
   STDMETHODIMP GetPages(CAUUID *pPages);
 
   // ILAVFSettings
-  HRESULT GetPreferredLanguages(char **languages);
-  HRESULT SetPreferredLanguages(char *languages);
-  HRESULT GetPreferredSubtitleLanguages(char **languages);
-  HRESULT SetPreferredSubtitleLanguages(char *languages);
+  STDMETHODIMP GetPreferredLanguages(WCHAR **ppLanguages);
+  STDMETHODIMP SetPreferredLanguages(WCHAR *pLanguages);
+  STDMETHODIMP GetPreferredSubtitleLanguages(WCHAR **ppLanguages);
+  STDMETHODIMP SetPreferredSubtitleLanguages(WCHAR *pLanguages);
 
   bool IsAnyPinDrying();
 protected:

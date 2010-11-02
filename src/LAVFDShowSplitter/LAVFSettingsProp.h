@@ -21,6 +21,7 @@
 #pragma once
 
 #include "cprop.h"
+#include "LAVFSettings.h"
 
 // GUID: a19de2f2-2f74-4927-8436-61129d26c141
 DEFINE_GUID(CLSID_LAVFSettingsProp, 0xa19de2f2, 0x2f74, 
@@ -35,8 +36,29 @@ public:
   virtual ~CLAVFSettingsProp(void);
 
   HRESULT OnActivate();
+  HRESULT OnConnect(IUnknown *pUnk);
+  HRESULT OnDisconnect();
+  HRESULT OnApplyChanges();
+  BOOL OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
   CLAVFSettingsProp(IUnknown *pUnk);
+
+  void SetDirty()
+  {
+    m_bDirty = TRUE;
+    if (m_pPageSite)
+    {
+      m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+    }
+  }
+
+
+private:
+  ILAVFSettings *m_pLAVF;
+
+  // Settings
+  WCHAR *m_pszPrefLang;
+  WCHAR *m_pszPrefSubLang;
 
 };

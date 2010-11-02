@@ -697,3 +697,28 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
 
   return S_OK;
 }
+
+// Settings
+STDMETHODIMP CLAVFSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
+{
+  CheckPointer(ppLanguages, E_POINTER);
+  *ppLanguages = L"eng";
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::SetPreferredLanguages(WCHAR *pLanguages)
+{
+  return E_NOTIMPL;
+}
+
+STDMETHODIMP CLAVFSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
+{
+  CheckPointer(ppLanguages, E_POINTER);
+  *ppLanguages = L"eng";
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::SetPreferredSubtitleLanguages(WCHAR *pLanguages)
+{
+  return E_NOTIMPL;
+}

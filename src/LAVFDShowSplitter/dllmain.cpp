@@ -104,7 +104,7 @@ CFactoryTemplate g_Templates[] = {
   },
   // This entry is for the property page.
   { 
-      L"Saturation Props",
+      L"LAVFSplitter Properties",
       &CLSID_LAVFSettingsProp,
       CLAVFSettingsProp::CreateInstance, 
       NULL, NULL

@@ -19,9 +19,14 @@
  */
 
 #include "stdafx.h"
+
+#include <assert.h>
+
 #include "LAVFSettingsProp.h"
 
 #include <Commctrl.h>
+
+#define LANG_BUFFER_SIZE 256
 
 // static constructor
 CUnknown* WINAPI CLAVFSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
@@ -34,7 +39,8 @@ CUnknown* WINAPI CLAVFSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 }
 
 CLAVFSettingsProp::CLAVFSettingsProp(IUnknown *pUnk)
-  : CBasePropertyPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, 0)
+  : CBasePropertyPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
+  , m_pLAVF(NULL)
 {
 }
 
@@ -43,14 +49,96 @@ CLAVFSettingsProp::~CLAVFSettingsProp(void)
 {
 }
 
+HRESULT CLAVFSettingsProp::OnConnect(IUnknown *pUnk)
+{
+  if (pUnk == NULL)
+  {
+    return E_POINTER;
+  }
+  ASSERT(m_pLAVF == NULL);
+  return pUnk->QueryInterface(&m_pLAVF);
+}
+
+HRESULT CLAVFSettingsProp::OnDisconnect()
+{
+  if (m_pLAVF) {
+    // Save Settings
+    OnApplyChanges();
+    m_pLAVF->Release();
+    m_pLAVF = NULL;
+  }
+  return S_OK;
+}
+
+HRESULT CLAVFSettingsProp::OnApplyChanges()
+{
+  ASSERT(m_pLAVF != NULL);
+  HRESULT hr = S_OK;
+
+  WCHAR buffer[LANG_BUFFER_SIZE];
+  // Save audio language
+  SendDlgItemMessage(m_Dlg, IDC_PREF_LANG, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+  CHECK_HR(hr = m_pLAVF->SetPreferredLanguages(buffer));
+
+  // Save subtitle language
+  SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+  CHECK_HR(hr = m_pLAVF->SetPreferredSubtitleLanguages(buffer));
+
+done:    
+  return hr;
+} 
+
 HRESULT CLAVFSettingsProp::OnActivate()
 {
+  HRESULT hr = S_OK;
   INITCOMMONCONTROLSEX icc;
   icc.dwSize = sizeof(INITCOMMONCONTROLSEX);
-  icc.dwICC = ICC_BAR_CLASSES;
+  icc.dwICC = ICC_BAR_CLASSES | ICC_STANDARD_CLASSES;
   if (InitCommonControlsEx(&icc) == FALSE)
   {
     return E_FAIL;
   }
-  return S_OK;
+  ASSERT(m_pLAVF != NULL);
+  // Query current settings
+  CHECK_HR(hr = m_pLAVF->GetPreferredLanguages(&m_pszPrefLang));
+  CHECK_HR(hr = m_pLAVF->GetPreferredSubtitleLanguages(&m_pszPrefSubLang));
+
+  // Notify the UI about those settings
+  SendDlgItemMessage(m_Dlg, IDC_PREF_LANG, WM_SETTEXT, 0, (LPARAM)m_pszPrefLang);
+  SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_SETTEXT, 0, (LPARAM)m_pszPrefSubLang);
+
+done:
+  if (FAILED(hr)) {
+    SAFE_DELETE(m_pszPrefLang);
+    SAFE_DELETE(m_pszPrefSubLang);
+  }
+  return hr;
+}
+
+BOOL CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  switch (uMsg)
+  {
+  case WM_COMMAND:
+    if (HIWORD(wParam) == EN_CHANGE
+      && (LOWORD(wParam) == IDC_PREF_LANG || LOWORD(wParam) == IDC_PREF_LANG_SUBS)) {
+      
+      WCHAR buffer[LANG_BUFFER_SIZE];
+      SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+
+      int dirty = 0;
+      if(LOWORD(wParam) == IDC_PREF_LANG) {
+        dirty = _wcsicmp(buffer, m_pszPrefLang);
+      } else {
+        dirty = _wcsicmp(buffer, m_pszPrefSubLang);
+      }
+      
+      if(dirty != 0) {
+        SetDirty();
+      }
+    }
+    break;
+  }
+  // Let the parent class handle the message.
+  return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }
