@@ -62,8 +62,6 @@ HRESULT CLAVFSettingsProp::OnConnect(IUnknown *pUnk)
 HRESULT CLAVFSettingsProp::OnDisconnect()
 {
   if (m_pLAVF) {
-    // Save Settings
-    OnApplyChanges();
     m_pLAVF->Release();
     m_pLAVF = NULL;
   }
@@ -120,7 +118,8 @@ BOOL CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
   switch (uMsg)
   {
   case WM_COMMAND:
-    if (HIWORD(wParam) == EN_CHANGE
+    // Mark the page dirty if the text changed
+    if (IsPageDirty() != S_OK && HIWORD(wParam) == EN_CHANGE
       && (LOWORD(wParam) == IDC_PREF_LANG || LOWORD(wParam) == IDC_PREF_LANG_SUBS)) {
       
       WCHAR buffer[LANG_BUFFER_SIZE];
