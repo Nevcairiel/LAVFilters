@@ -38,7 +38,7 @@ OPTIONS="
 --disable-protocols \
 --arch=x86 --target-os=mingw32"
 
-./configure --extra-cflags="-U__STRICT_ANSI__ -fno-strict-aliasing -march=i686 -mmmx -msse -mfpmath=sse" ${OPTIONS} &&
+./configure --extra-cflags="-U__STRICT_ANSI__ -march=i686 -mmmx" ${OPTIONS} &&
  
 make -j4 &&
 cp lib*/*-*.dll ../bin_Win32 &&

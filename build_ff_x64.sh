@@ -39,7 +39,7 @@ OPTIONS="
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32"
 
-./configure --extra-cflags="-U__STRICT_ANSI__ -fno-strict-aliasing" ${OPTIONS} &&
+./configure --extra-cflags="-U__STRICT_ANSI__" ${OPTIONS} &&
  
 make -j4 &&
 cp lib*/*-*.dll ../bin_x64 &&
