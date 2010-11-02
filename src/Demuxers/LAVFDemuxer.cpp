@@ -218,7 +218,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     // Update current time
-    m_rtCurrent = pPacket->rtStart;
+    if (rt != Packet::INVALID_TIME) {
+      m_rtCurrent = rt;
+    }
 
     av_free_packet(&pkt);
   }
