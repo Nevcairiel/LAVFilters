@@ -47,6 +47,7 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     break;
   case CODEC_ID_AAC:
     mediaType.subtype = MEDIASUBTYPE_AAC;
+    codecTag = WAVE_FORMAT_AAC;
     break;
   case CODEC_ID_AAC_LATM:
     mediaType.subtype = MEDIASUBTYPE_LATM_AAC;
