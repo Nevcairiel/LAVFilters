@@ -127,9 +127,17 @@ BOOL CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 
       int dirty = 0;
       if(LOWORD(wParam) == IDC_PREF_LANG) {
-        dirty = _wcsicmp(buffer, m_pszPrefLang);
-      } else {
-        dirty = _wcsicmp(buffer, m_pszPrefSubLang);
+        if (m_pszPrefLang) {
+          dirty = _wcsicmp(buffer, m_pszPrefLang);
+        } else {
+          dirty = wcslen(buffer);
+        }
+      } else if(LOWORD(wParam) == IDC_PREF_LANG_SUBS && m_pszPrefSubLang) {
+       if (m_pszPrefLang) {
+          dirty = _wcsicmp(buffer, m_pszPrefSubLang);
+        } else {
+          dirty = wcslen(buffer);
+        }
       }
       
       if(dirty != 0) {

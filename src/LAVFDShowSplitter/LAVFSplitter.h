@@ -34,6 +34,8 @@
 #include "LAVFSettings.h"
 #include "LAVFSettingsProp.h"
 
+#define LAVF_REGISTRY_KEY L"Software\\LAVFSplitter"
+
 class CLAVFOutputPin;
 
 #ifdef	_MSC_VER
@@ -128,6 +130,9 @@ private:
   CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVFSplitter();
 
+  STDMETHODIMP LoadSettings();
+  STDMETHODIMP SaveSettings();
+
 private:
   CCritSec m_csPins;
   std::vector<CLAVFOutputPin *> m_pPins;
@@ -144,4 +149,10 @@ private:
   // flushing
   bool m_fFlushing;
   CAMEvent m_eEndFlush;
+
+  // Settings
+  struct Settings {
+    std::wstring prefAudioLangs;
+    std::wstring prefSubLangs;
+  } m_settings;
 };

@@ -30,6 +30,9 @@
 
 #include <string>
 
+#include "registry.h"
+
+
 // static constructor
 CUnknown* WINAPI CLAVFSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
@@ -59,6 +62,28 @@ CLAVFSplitter::~CLAVFSplitter()
     m_pDemuxer->Release();
   }
   //SAFE_DELETE(m_pDemuxer);
+}
+
+STDMETHODIMP CLAVFSplitter::LoadSettings()
+{
+  HRESULT hr;
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
+  if (SUCCEEDED(hr)) {
+    m_settings.prefAudioLangs = reg.ReadString(L"prefAudioLangs", hr);
+    m_settings.prefSubLangs = reg.ReadString(L"prefSubLangs", hr);
+  }
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::SaveSettings()
+{
+  HRESULT hr;
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
+  if (SUCCEEDED(hr)) {
+    reg.WriteString(L"prefAudioLangs", m_settings.prefAudioLangs.c_str());
+    reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
+  }
+  return S_OK;
 }
 
 STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -126,6 +151,8 @@ CLAVFOutputPin *CLAVFSplitter::GetOutputPin(DWORD streamId)
 STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt)
 {
   CheckPointer(pszFileName, E_POINTER);
+
+  LoadSettings();
 
   m_fileName = std::wstring(pszFileName);
 
@@ -702,25 +729,37 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
 STDMETHODIMP CLAVFSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
 {
   CheckPointer(ppLanguages, E_POINTER);
-  *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * 4);
-  wcsncpy_s(*ppLanguages, 4, L"eng", _TRUNCATE);
+  size_t len = m_settings.prefAudioLangs.length() + 1;
+  if (len > 1) {
+    *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
+    wcsncpy_s(*ppLanguages, len,  m_settings.prefAudioLangs.c_str(), _TRUNCATE);
+  } else {
+    *ppLanguages = NULL;
+  }
   return S_OK;
 }
 
 STDMETHODIMP CLAVFSplitter::SetPreferredLanguages(WCHAR *pLanguages)
 {
-  return E_NOTIMPL;
+  m_settings.prefAudioLangs = std::wstring(pLanguages);
+  return SaveSettings();
 }
 
 STDMETHODIMP CLAVFSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
 {
   CheckPointer(ppLanguages, E_POINTER);
-  *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * 4);
-  wcsncpy_s(*ppLanguages, 4, L"eng", _TRUNCATE);
+  size_t len = m_settings.prefSubLangs.length() + 1;
+  if (len > 1) {
+    *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
+    wcsncpy_s(*ppLanguages, len,  m_settings.prefSubLangs.c_str(), _TRUNCATE);
+  } else {
+    *ppLanguages = NULL;
+  }
   return S_OK;
 }
 
 STDMETHODIMP CLAVFSplitter::SetPreferredSubtitleLanguages(WCHAR *pLanguages)
 {
-  return E_NOTIMPL;
+  m_settings.prefSubLangs = std::wstring(pLanguages);
+  return SaveSettings();
 }

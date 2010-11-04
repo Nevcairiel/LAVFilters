@@ -122,6 +122,7 @@
   <ItemGroup>
     <ClInclude Include="DShowUtil.h" />
     <ClInclude Include="H264Nalu.h" />
+    <ClInclude Include="registry.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +130,7 @@
     <ClCompile Include="filterreg.cpp" />
     <ClCompile Include="H264Nalu.cpp" />
     <ClCompile Include="locale.cpp" />
+    <ClCompile Include="registry.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
