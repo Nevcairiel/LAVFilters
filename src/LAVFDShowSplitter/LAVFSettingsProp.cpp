@@ -121,28 +121,27 @@ BOOL CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
     // Mark the page dirty if the text changed
     if (IsPageDirty() != S_OK && HIWORD(wParam) == EN_CHANGE
       && (LOWORD(wParam) == IDC_PREF_LANG || LOWORD(wParam) == IDC_PREF_LANG_SUBS)) {
-      
-      WCHAR buffer[LANG_BUFFER_SIZE];
-      SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
 
-      int dirty = 0;
-      if(LOWORD(wParam) == IDC_PREF_LANG) {
-        if (m_pszPrefLang) {
-          dirty = _wcsicmp(buffer, m_pszPrefLang);
+        WCHAR buffer[LANG_BUFFER_SIZE];
+        SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+
+        int dirty = 0;
+        WCHAR *source = NULL;
+        if(LOWORD(wParam) == IDC_PREF_LANG) {
+          source = m_pszPrefLang;
+        } else {
+          source = m_pszPrefSubLang;
+        }
+
+        if (source) {
+          dirty = _wcsicmp(buffer, source);
         } else {
           dirty = wcslen(buffer);
         }
-      } else if(LOWORD(wParam) == IDC_PREF_LANG_SUBS && m_pszPrefSubLang) {
-       if (m_pszPrefLang) {
-          dirty = _wcsicmp(buffer, m_pszPrefSubLang);
-        } else {
-          dirty = wcslen(buffer);
+
+        if(dirty != 0) {
+          SetDirty();
         }
-      }
-      
-      if(dirty != 0) {
-        SetDirty();
-      }
     }
     break;
   }
