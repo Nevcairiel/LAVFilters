@@ -637,7 +637,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
 }
 
 // Select the best subtitle stream
-const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode)
+const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching)
 {
   const stream *best = NULL;
   CStreamList *streams = GetStreams(subpic);
@@ -685,7 +685,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   }
 
   // If no language was set, or no matching streams were found
-  if (checkedStreams.empty()) {
+  if (checkedStreams.empty() && !bOnlyMatching) {
     std::deque<stream>::iterator sit;
     for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
       checkedStreams.push_back(&*sit);

@@ -137,7 +137,7 @@ public:
 #define SUBMODE_FORCED_SUBS 1
 #define SUBMODE_ALWAYS_SUBS 2
   // Select the best subtitle stream
-  virtual const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode) = 0;
+  virtual const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) = 0;
 
 protected:
   CCritSec *m_pLock;

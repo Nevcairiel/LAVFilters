@@ -55,7 +55,7 @@ public:
   // Select the best audio stream
   const stream* SelectAudioStream(std::list<std::string> prefLanguages);
   // Select the best subtitle stream
-  const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode);
+  const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching);
 
 
   // IAMExtendedSeeking
