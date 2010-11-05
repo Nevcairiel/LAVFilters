@@ -210,7 +210,7 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
   }
   const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleLangs, m_settings.subtitleMode);
   if (subtitleStream) {
-    CLAVFOutputPin* pPin = new CLAVFOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
+    CLAVFOutputPin* pPin = new CLAVFOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(subtitleStream->pid);
       m_pPins.push_back(pPin);
