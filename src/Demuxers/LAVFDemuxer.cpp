@@ -696,19 +696,15 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
     std::deque<stream*>::iterator sit;
     for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
       AVStream *pStream = m_avFormat->streams[(*sit)->pid];
-      // We want forced subs, and we found a stream with forced subs, just bail out already
-      if (subtitleMode == SUBMODE_FORCED_SUBS && pStream->disposition & AV_DISPOSITION_FORCED) {
+      // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
+      if ((subtitleMode == SUBMODE_ALWAYS_SUBS && !(pStream->disposition & AV_DISPOSITION_FORCED))
+        || (subtitleMode == SUBMODE_FORCED_SUBS && (pStream->disposition & AV_DISPOSITION_FORCED))) {
         best = *sit;
         break;
       } else if (subtitleMode == SUBMODE_ALWAYS_SUBS) {
-        if(!best) { best = *sit; continue; }
-        AVStream *oldStream = m_avFormat->streams[best->pid];
-        // If the old best stream had a forced flag, and this one doesn't, then switch
-        // We have been asked for full subs, so give it to them
-        if ((oldStream->disposition & AV_DISPOSITION_FORCED) && !(pStream->disposition & AV_DISPOSITION_FORCED)) {
+        // we found a forced track, but want full. Cycle through until we run out of tracks, or find a new full
+        if(!best)
           best = *sit;
-          break;
-        }
       }
     }
   }
