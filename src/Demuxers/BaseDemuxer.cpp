@@ -43,7 +43,7 @@ void CBaseDemuxer::CreateNoSubtitleStream()
   mtype.formattype = MEDIASUBTYPE_NULL;
   s.streamInfo->mtypes.push_back(mtype);
   // Append it to the list
-  m_streams[subpic].push_front(s);
+  m_streams[subpic].push_back(s);
 }
 
 // CStreamList
