@@ -67,15 +67,21 @@ CLAVFSplitter::~CLAVFSplitter()
 STDMETHODIMP CLAVFSplitter::LoadSettings()
 {
   HRESULT hr;
+  DWORD dwVal;
+
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
-  if (SUCCEEDED(hr)) {
-    DWORD dwVal;
-    m_settings.prefAudioLangs = reg.ReadString(L"prefAudioLangs", hr);
-    m_settings.prefSubLangs = reg.ReadString(L"prefSubLangs", hr);
-    // Subtitle mode, defaults to all subtitles
-    dwVal = reg.ReadDWORD(L"subtitleMode", hr);
-    m_settings.subtitleMode = SUCCEEDED(hr) ? dwVal : SUBMODE_ALWAYS_SUBS;
-  }
+  // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
+  // and we need to fill the settings with defaults.
+  // ReadString returns an empty string in case of failure, so thats fine!
+
+  // Language preferences
+  m_settings.prefAudioLangs = reg.ReadString(L"prefAudioLangs", hr);
+  m_settings.prefSubLangs = reg.ReadString(L"prefSubLangs", hr);
+
+  // Subtitle mode, defaults to all subtitles
+  dwVal = reg.ReadDWORD(L"subtitleMode", hr);
+  m_settings.subtitleMode = SUCCEEDED(hr) ? dwVal : SUBMODE_ALWAYS_SUBS;
+
   return S_OK;
 }
 

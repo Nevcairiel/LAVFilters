@@ -134,7 +134,7 @@ DWORD CRegistry::ReadDWORD(LPCTSTR pszKey, HRESULT &hr)
 
   hr = S_OK;
 
-  if (m_key == NULL) { return E_UNEXPECTED; }
+  if (m_key == NULL) { hr = E_UNEXPECTED; return 0; }
 
   lRet = RegQueryValueEx(*m_key, pszKey, 0, NULL, (LPBYTE)&dwVal, &dwSize);
 
