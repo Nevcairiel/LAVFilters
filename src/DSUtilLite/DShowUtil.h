@@ -30,12 +30,15 @@
 
 // some common macros
 #define SAFE_DELETE(pPtr) { delete pPtr; pPtr = NULL; }
+#define SAFE_CO_FREE(pPtr) { CoTaskMemFree(pPtr); pPtr = NULL; }
 #define CHECK_HR(hr) if (FAILED(hr)) { goto done; }
 #define QI(i) (riid == __uuidof(i)) ? GetInterface((i*)this, ppv) :
 #define QI2(i) (riid == IID_##i) ? GetInterface((i*)this, ppv) :
 #define countof( array ) ( sizeof( array )/sizeof( array[0] ) )
 
 extern void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName);
+
+void split(std::string& text, std::string& separators, std::list<std::string>& words);
 
 // Filter Registration
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkbytes, ...);

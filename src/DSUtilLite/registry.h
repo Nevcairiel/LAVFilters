@@ -18,23 +18,30 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-// pre-compiled header
-
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
+#include <string>
 
-// include headers
-#include <Windows.h>
+bool CreateRegistryKey(HKEY hKeyRoot, LPCTSTR pszSubKey);
 
-extern "C" {
-#define __STDC_CONSTANT_MACROS
-#include "libavformat/avformat.h"
-}
-#include "streams.h"
+class CRegistry
+{
+public:
+  CRegistry();
+  CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr);
+  ~CRegistry();
+  
+  HRESULT Open(HKEY hkeyRoot, LPCTSTR pszSubKey);
 
-#include "DShowUtil.h"
-#include "BaseDemuxer.h"
+  std::wstring ReadString(LPCTSTR pszKey, HRESULT &hr);
+  HRESULT WriteString(LPCTSTR pszKey, LPCTSTR pszValue);
 
-#include "resource.h"
+  DWORD ReadDWORD(LPCTSTR pszKey, HRESULT &hr);
+  HRESULT WriteDWORD(LPCTSTR pszKey, DWORD dwValue);
+
+  BOOL ReadBOOL(LPCTSTR pszKey, HRESULT &hr);
+  HRESULT WriteBOOL(LPCTSTR pszKey, BOOL bValue);
+
+private:
+  HKEY *m_key;
+};

@@ -125,6 +125,20 @@ public:
   // Get the StreamList of the correponding type
   CStreamList *GetStreams(StreamType type) { return &m_streams[type]; }
 
+  
+  // Select the best video stream
+  virtual const stream* SelectVideoStream() = 0;
+  
+  // Select the best audio stream
+  virtual const stream* SelectAudioStream(std::list<std::string> prefLanguages) = 0;
+  
+  // Subtitle modes
+#define SUBMODE_NO_SUBS 0
+#define SUBMODE_FORCED_SUBS 1
+#define SUBMODE_ALWAYS_SUBS 2
+  // Select the best subtitle stream
+  virtual const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) = 0;
+
 protected:
   CCritSec *m_pLock;
   CStreamList m_streams[unknown];

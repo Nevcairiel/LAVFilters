@@ -95,7 +95,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;strmbasd.lib;dsutild.lib;demuxersd.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;strmbasd.lib;dsutild.lib;demuxersd.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVFDShowSplitter.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="LAVFSettingsProp.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -149,10 +150,16 @@
     <ClCompile Include="LAVFSplitter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LAVFSettings.h" />
+    <ClInclude Include="LAVFSettingsProp.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="PacketQueue.h" />
     <ClInclude Include="LAVFOutputPin.h" />
     <ClInclude Include="LAVFSplitter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LAVFDShowSplitter.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

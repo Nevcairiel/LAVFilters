@@ -30,6 +30,9 @@
 
 #include <string>
 
+#include "registry.h"
+
+
 // static constructor
 CUnknown* WINAPI CLAVFSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
@@ -61,6 +64,44 @@ CLAVFSplitter::~CLAVFSplitter()
   //SAFE_DELETE(m_pDemuxer);
 }
 
+STDMETHODIMP CLAVFSplitter::LoadSettings()
+{
+  HRESULT hr;
+  DWORD dwVal;
+  BOOL bFlag;
+
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
+  // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
+  // and we need to fill the settings with defaults.
+  // ReadString returns an empty string in case of failure, so thats fine!
+
+  // Language preferences
+  m_settings.prefAudioLangs = reg.ReadString(L"prefAudioLangs", hr);
+  m_settings.prefSubLangs = reg.ReadString(L"prefSubLangs", hr);
+
+  // Subtitle mode, defaults to all subtitles
+  dwVal = reg.ReadDWORD(L"subtitleMode", hr);
+  m_settings.subtitleMode = SUCCEEDED(hr) ? dwVal : SUBMODE_ALWAYS_SUBS;
+
+  bFlag = reg.ReadDWORD(L"subtitleMatching", hr);
+  m_settings.subtitleMatching = SUCCEEDED(hr) ? bFlag : TRUE;
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::SaveSettings()
+{
+  HRESULT hr;
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
+  if (SUCCEEDED(hr)) {
+    reg.WriteString(L"prefAudioLangs", m_settings.prefAudioLangs.c_str());
+    reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
+    reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
+    reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
+  }
+  return S_OK;
+}
+
 STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
@@ -75,7 +116,22 @@ STDMETHODIMP CLAVFSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(IFileSourceFilter)
     QI(IMediaSeeking)
     QI(IAMStreamSelect)
+    QI2(ISpecifyPropertyPages)
+    QI2(ILAVFSettings)
     __super::NonDelegatingQueryInterface(riid, ppv);
+}
+
+// ISpecifyPropertyPages
+STDMETHODIMP CLAVFSplitter::GetPages(CAUUID *pPages)
+{
+  CheckPointer(pPages, E_POINTER);
+  pPages->cElems = 1;
+  pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
+  if (pPages->pElems == NULL) {
+    return E_OUTOFMEMORY;
+  }
+  pPages->pElems[0] = CLSID_LAVFSettingsProp;
+  return S_OK;
 }
 
 // CBaseSplitter
@@ -112,6 +168,8 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
 {
   CheckPointer(pszFileName, E_POINTER);
 
+  LoadSettings();
+
   m_fileName = std::wstring(pszFileName);
 
   HRESULT hr = S_OK;
@@ -126,26 +184,47 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
 
-  // Try to create pins
-  for(int i = 0; i < CBaseDemuxer::unknown; i++) {
-    CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
-    std::deque<CBaseDemuxer::stream>::iterator it;
-    for ( it = streams->begin(); it != streams->end(); it++ ) {
-      const WCHAR* name = CBaseDemuxer::CStreamList::ToStringW(i);
-
-      std::vector<CMediaType> mts = it->streamInfo->mtypes;
-
-      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (CBaseDemuxer::StreamType)i, m_pDemuxer->GetContainerFormat());
-      if(SUCCEEDED(hr)) {
-        pPin->SetStreamId(it->pid);
-        m_pPins.push_back(pPin);
-        m_pDemuxer->SetActiveStream((CBaseDemuxer::StreamType)i, it->pid);
-        break;
-      } else {
-        delete pPin;
-      }
+  const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
+  if (videoStream) {
+    CLAVFOutputPin* pPin = new CLAVFOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat());
+    if(SUCCEEDED(hr)) {
+      pPin->SetStreamId(videoStream->pid);
+      m_pPins.push_back(pPin);
+      m_pDemuxer->SetActiveStream(CBaseDemuxer::video, videoStream->pid);
+    } else {
+      delete pPin;
     }
   }
+
+  std::list<std::string> audioLangs = GetPreferredAudioLanguageList();
+  const CBaseDemuxer::stream *audioStream = m_pDemuxer->SelectAudioStream(audioLangs);
+  if (audioStream) {
+    CLAVFOutputPin* pPin = new CLAVFOutputPin(audioStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::audio), this, this, &hr, CBaseDemuxer::audio, m_pDemuxer->GetContainerFormat());
+    if(SUCCEEDED(hr)) {
+      pPin->SetStreamId(audioStream->pid);
+      m_pPins.push_back(pPin);
+      m_pDemuxer->SetActiveStream(CBaseDemuxer::audio, audioStream->pid);
+    } else {
+      delete pPin;
+    }
+  }
+
+  std::list<std::string> subtitleLangs = GetPreferredSubtitleLanguageList();
+  if (subtitleLangs.empty() && !audioLangs.empty()) {
+    subtitleLangs = audioLangs;
+  }
+  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleLangs, m_settings.subtitleMode, m_settings.subtitleMatching);
+  if (subtitleStream) {
+    CLAVFOutputPin* pPin = new CLAVFOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
+    if(SUCCEEDED(hr)) {
+      pPin->SetStreamId(subtitleStream->pid);
+      m_pPins.push_back(pPin);
+      m_pDemuxer->SetActiveStream(CBaseDemuxer::subpic, subtitleStream->pid);
+    } else {
+      delete pPin;
+    }
+  }
+
   if(SUCCEEDED(hr)) {
     return !m_pPins.empty();
   } else {
@@ -681,4 +760,94 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
   }
 
   return S_OK;
+}
+
+// setting helpers
+std::list<std::string> CLAVFSplitter::GetPreferredAudioLanguageList()
+{
+  // Convert to multi-byte ascii
+  size_t bufSize = sizeof(WCHAR) * (m_settings.prefAudioLangs.length() + 1);
+  char *buffer = (char *)CoTaskMemAlloc(bufSize);
+  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
+
+  std::list<std::string> list;
+
+  split(std::string(buffer), std::string(",; "), list);
+
+  return list;
+}
+
+std::list<std::string> CLAVFSplitter::GetPreferredSubtitleLanguageList()
+{
+  // Convert to multi-byte ascii
+  size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
+  char *buffer = (char *)CoTaskMemAlloc(bufSize);
+  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
+
+  std::list<std::string> list;
+
+  split(std::string(buffer), std::string(",; "), list);
+
+  return list;
+}
+
+// Settings
+STDMETHODIMP CLAVFSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
+{
+  CheckPointer(ppLanguages, E_POINTER);
+  size_t len = m_settings.prefAudioLangs.length() + 1;
+  if (len > 1) {
+    *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
+    wcsncpy_s(*ppLanguages, len,  m_settings.prefAudioLangs.c_str(), _TRUNCATE);
+  } else {
+    *ppLanguages = NULL;
+  }
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::SetPreferredLanguages(WCHAR *pLanguages)
+{
+  m_settings.prefAudioLangs = std::wstring(pLanguages);
+  return SaveSettings();
+}
+
+STDMETHODIMP CLAVFSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
+{
+  CheckPointer(ppLanguages, E_POINTER);
+  size_t len = m_settings.prefSubLangs.length() + 1;
+  if (len > 1) {
+    *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
+    wcsncpy_s(*ppLanguages, len,  m_settings.prefSubLangs.c_str(), _TRUNCATE);
+  } else {
+    *ppLanguages = NULL;
+  }
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFSplitter::SetPreferredSubtitleLanguages(WCHAR *pLanguages)
+{
+  m_settings.prefSubLangs = std::wstring(pLanguages);
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVFSplitter::GetSubtitleMode()
+{
+  return m_settings.subtitleMode;
+}
+
+STDMETHODIMP CLAVFSplitter::SetSubtitleMode(DWORD dwMode)
+{
+  m_settings.subtitleMode = dwMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVFSplitter::GetSubtitleMatchingLanguage()
+{
+  return m_settings.subtitleMatching;
+}
+
+STDMETHODIMP CLAVFSplitter::SetSubtitleMatchingLanguage(BOOL dwMode)
+{
+  m_settings.subtitleMatching = dwMode;
+  return SaveSettings();
 }

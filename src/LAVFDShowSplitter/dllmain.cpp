@@ -35,6 +35,8 @@
 #include "LAVFSplitter.h"
 #include "moreuuids.h"
 
+#include "registry.h"
+
 // The GUID we use to register the splitter media types
 DEFINE_GUID(MEDIATYPE_LAVFSplitter,
   0x9c53931c, 0x7d5a, 0x4a75, 0xb2, 0x6f, 0x4e, 0x51, 0x65, 0x4d, 0xb2, 0xc0);
@@ -102,6 +104,14 @@ CFactoryTemplate g_Templates[] = {
       NULL,
       &sudFilterReg
   },
+  // This entry is for the property page.
+  { 
+      L"LAVFSplitter Properties",
+      &CLSID_LAVFSettingsProp,
+      CLAVFSettingsProp::CreateInstance, 
+      NULL, NULL
+  }
+
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 
@@ -109,6 +119,8 @@ int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 STDAPI DllRegisterServer()
 {
   std::list<LPCWSTR> chkbytes;
+
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY);
 
   // MKV/WEBM
   chkbytes.push_back(L"0,4,,1A45DFA3");

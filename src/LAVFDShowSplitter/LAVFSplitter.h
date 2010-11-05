@@ -31,6 +31,11 @@
 
 #include "BaseDemuxer.h"
 
+#include "LAVFSettings.h"
+#include "LAVFSettingsProp.h"
+
+#define LAVF_REGISTRY_KEY L"Software\\LAVFSplitter"
+
 class CLAVFOutputPin;
 
 #ifdef	_MSC_VER
@@ -45,6 +50,8 @@ class CLAVFSplitter
   , public IFileSourceFilter
   , public IMediaSeeking
   , public IAMStreamSelect
+  , public ILAVFSettings
+  , public ISpecifyPropertyPages
 {
 public:
   // constructor method used by class factory
@@ -90,6 +97,23 @@ public:
   STDMETHODIMP Enable(long lIndex, DWORD dwFlags);
   STDMETHODIMP Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk);
 
+  // ISpecifyPropertyPages
+  STDMETHODIMP GetPages(CAUUID *pPages);
+
+  // ILAVFSettings
+  STDMETHODIMP GetPreferredLanguages(WCHAR **ppLanguages);
+  STDMETHODIMP SetPreferredLanguages(WCHAR *pLanguages);
+  STDMETHODIMP GetPreferredSubtitleLanguages(WCHAR **ppLanguages);
+  STDMETHODIMP SetPreferredSubtitleLanguages(WCHAR *pLanguages);
+  STDMETHODIMP_(DWORD) GetSubtitleMode();
+  STDMETHODIMP SetSubtitleMode(DWORD dwMode);
+  STDMETHODIMP_(BOOL) GetSubtitleMatchingLanguage();
+  STDMETHODIMP SetSubtitleMatchingLanguage(BOOL dwMode);
+
+  // Settings helper
+  std::list<std::string> GetPreferredAudioLanguageList();
+  std::list<std::string> GetPreferredSubtitleLanguageList();
+
   bool IsAnyPinDrying();
 protected:
   // CAMThread
@@ -114,6 +138,9 @@ private:
   CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVFSplitter();
 
+  STDMETHODIMP LoadSettings();
+  STDMETHODIMP SaveSettings();
+
 private:
   CCritSec m_csPins;
   std::vector<CLAVFOutputPin *> m_pPins;
@@ -130,4 +157,12 @@ private:
   // flushing
   bool m_fFlushing;
   CAMEvent m_eEndFlush;
+
+  // Settings
+  struct Settings {
+    std::wstring prefAudioLangs;
+    std::wstring prefSubLangs;
+    DWORD subtitleMode;
+    BOOL subtitleMatching;
+  } m_settings;
 };

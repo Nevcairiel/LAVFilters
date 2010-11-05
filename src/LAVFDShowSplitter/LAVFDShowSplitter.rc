@@ -1,0 +1,114 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 236, 156
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    LTEXT           "Preferred Languages\nEnter your preferred languages as their 3-letter language codes, comma seperated. (Example: ""eng,ger,fre"")",IDC_LBL_PREF_LANG,7,7,222,27
+    EDITTEXT        IDC_PREF_LANG,7,46,222,14,ES_AUTOHSCROLL
+    LTEXT           "Audio:",IDC_LBL_PREF_LANG_AUDIO,7,36,31,8
+    EDITTEXT        IDC_PREF_LANG_SUBS,7,76,222,14,ES_AUTOHSCROLL
+    LTEXT           "Subtitles:",IDC_LBL_PREF_LANG_SUBS,7,66,47,8
+    COMBOBOX        IDC_SUBTITLE_MODE,7,103,112,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Subtitle Selection Mode:",IDC_LBL_SUBMODE,7,92,88,8
+    CONTROL         "Only with matching language",IDC_SUBMODE_ONLY_MATCHING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,104,107,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_PROPPAGE_LAVFSETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 229
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 149
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_PAGE_TITLE          "LAVFSplitter"
+    IDS_SUBMODE_NO_SUBS     "No Subtitles"
+    IDS_SUBMODE_FORCED_SUBS "Only Forced Subs"
+    IDS_SUBMODE_ALL_SUBS    "Full Subtiles"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
