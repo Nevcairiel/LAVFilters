@@ -166,13 +166,13 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     if (bitrate > 0) {
       buf << ", " << (bitrate / 1000) << " kb/s";
     }
-    // Default tag
-    if (pStream->disposition & AV_DISPOSITION_DEFAULT)
-      buf << " [default]";
     // Closing tag
     if (title || lang) {
       buf << ")";
     }
+    // Default tag
+    if (pStream->disposition & AV_DISPOSITION_DEFAULT)
+      buf << " [default]";
     break;
   case AVMEDIA_TYPE_SUBTITLE:
     buf << "S: ";
@@ -205,7 +205,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     break;
   default:
-    buf << "Unknown: Stream " << pStream->index;
+    buf << "Unknown: Stream #" << pStream->index;
     break;
   }
 
