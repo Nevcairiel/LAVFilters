@@ -140,7 +140,7 @@ HRESULT CLAVFSettingsProp::LoadData()
   // Free old strings
   SAFE_CO_FREE(m_pszPrefLang);
   SAFE_CO_FREE(m_pszPrefSubLang);
-  
+
   // Query current settings
   CHECK_HR(hr = m_pLAVF->GetPreferredLanguages(&m_pszPrefLang));
   CHECK_HR(hr = m_pLAVF->GetPreferredSubtitleLanguages(&m_pszPrefSubLang));
@@ -161,38 +161,38 @@ BOOL CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
       if(HIWORD(wParam) == EN_CHANGE
         && (LOWORD(wParam) == IDC_PREF_LANG || LOWORD(wParam) == IDC_PREF_LANG_SUBS)) {
 
-        WCHAR buffer[LANG_BUFFER_SIZE];
-        SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+          WCHAR buffer[LANG_BUFFER_SIZE];
+          SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
 
-        int dirty = 0;
-        WCHAR *source = NULL;
-        if(LOWORD(wParam) == IDC_PREF_LANG) {
-          source = m_pszPrefLang;
-        } else {
-          source = m_pszPrefSubLang;
-        }
+          int dirty = 0;
+          WCHAR *source = NULL;
+          if(LOWORD(wParam) == IDC_PREF_LANG) {
+            source = m_pszPrefLang;
+          } else {
+            source = m_pszPrefSubLang;
+          }
 
-        if (source) {
-          dirty = _wcsicmp(buffer, source);
-        } else {
-          dirty = wcslen(buffer);
-        }
+          if (source) {
+            dirty = _wcsicmp(buffer, source);
+          } else {
+            dirty = wcslen(buffer);
+          }
 
-        if(dirty != 0) {
-          SetDirty();
-        }
+          if(dirty != 0) {
+            SetDirty();
+          }
       } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_SUBTITLE_MODE) {
         DWORD dwVal = SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
         if (dwVal != m_subtitleMode) {
           SetDirty();
         }
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBMODE_ONLY_MATCHING) {
-          BOOL bFlag = SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
-          if (bFlag != m_subtitleMatching) {
-            SetDirty();
-          }
+        BOOL bFlag = SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
+        if (bFlag != m_subtitleMatching) {
+          SetDirty();
         }
       }
+    }
     break;
   }
   // Let the parent class handle the message.

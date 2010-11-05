@@ -503,7 +503,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 {
   const stream *best = NULL;
   CStreamList *streams = GetStreams(video);
-  
+
   std::deque<stream>::iterator it;
   for ( it = streams->begin(); it != streams->end(); it++ ) {
     stream *check = &*it;
@@ -551,9 +551,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
 {
   const stream *best = NULL;
   CStreamList *streams = GetStreams(audio);
-  
+
   std::deque<stream*> checkedStreams;
-  
+
   // Filter for language
   if(!prefLanguages.empty()) {
     std::list<std::string>::iterator it;
@@ -646,9 +646,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
     // Find the no-subs stream
     return streams->FindStream(NO_SUBTITLE_PID);
   }
-  
+
   std::deque<stream*> checkedStreams;
-  
+
   // Filter for language
   if(!prefLanguages.empty()) {
     std::list<std::string>::iterator it;
@@ -701,8 +701,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
       // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
       if ((subtitleMode == SUBMODE_ALWAYS_SUBS && !(pStream->disposition & AV_DISPOSITION_FORCED))
         || (subtitleMode == SUBMODE_FORCED_SUBS && (pStream->disposition & AV_DISPOSITION_FORCED))) {
-        best = *sit;
-        break;
+          best = *sit;
+          break;
       } else if (subtitleMode == SUBMODE_ALWAYS_SUBS) {
         // we found a forced track, but want full. Cycle through until we run out of tracks, or find a new full
         if(!best)
