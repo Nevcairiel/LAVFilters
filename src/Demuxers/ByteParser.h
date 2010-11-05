@@ -51,7 +51,7 @@ public:
   /** Overall length (in bytes) of the byte array */
   uint32_t Length() const { return m_dwLen; }
   /** Current byte position in the array. Any incomplete bytes ( buffer < 8 bits ) will not be counted */
-  uint32_t Pos() const { return (m_pCurrent - m_pData) - (m_bitLen>>3); }
+  uint32_t Pos() const { return uint32_t(m_pCurrent - m_pData) - (m_bitLen>>3); }
   /** Number of bytes remaining in the array */
   uint32_t Remaining() const { return Length() - Pos(); }
 
