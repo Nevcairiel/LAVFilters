@@ -24,6 +24,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 
 extern "C" {
 #include "libavcodec/audioconvert.h"
@@ -304,4 +305,45 @@ URLProtocol ufile_protocol = {
     NULL,
     ufile_get_handle,
 };
+
+#define LOG_BUF_LEN 1024
+void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
+{
+  static int print_prefix=1;
+  static int count;
+  static char line[LOG_BUF_LEN], prev[LOG_BUF_LEN];
+
+  AVClass* avc= ptr ? *(AVClass**)ptr : NULL;
+  line[0]=0;
+
+  if(print_prefix && avc) {
+    if(avc->version >= (50<<16 | 15<<8 | 3) && avc->parent_log_context_offset){
+      AVClass** parent= *(AVClass***)(((uint8_t*)ptr) + avc->parent_log_context_offset);
+      if(parent && *parent){
+        sprintf_s(line, LOG_BUF_LEN, "[%s @ %p] ", (*parent)->item_name(parent), parent);
+      }
+    }
+    sprintf_s(line + strlen(line), LOG_BUF_LEN - strlen(line), "[%s @ %p] ", avc->item_name(ptr), ptr);
+  }
+
+  vsnprintf(line + strlen(line), LOG_BUF_LEN - strlen(line), fmt, vl);
+
+  print_prefix= line[strlen(line)-1] == '\n';
+
+  if(print_prefix && !strcmp(line, prev)){
+    count++;
+    return;
+  }
+  if(count>0){
+    fprintf(stderr, "    Last message repeated %d times\n", count);
+    count=0;
+  }
+  if (line[strlen(line)-1] == '\n') {
+    line[strlen(line)-1] = 0;
+  }
+
+  DbgLog((LOG_CUSTOM1, level, L"%S", line));
+  strcpy(prev, line);
+}
+
 }

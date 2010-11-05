@@ -23,11 +23,17 @@
 #include "LAVFUtils.h"
 #include "LAVFStreamInfo.h"
 
+extern "C" {
+#include "libavutil/log.h"
+}
+
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
   : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0)
 {
   av_register_all();
   register_protocol(&ufile_protocol);
+  av_log_set_callback(lavf_log_callback);
+  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX);
 }
 
 CLAVFDemuxer::~CLAVFDemuxer()
