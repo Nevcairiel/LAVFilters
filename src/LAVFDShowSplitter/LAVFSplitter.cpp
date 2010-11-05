@@ -69,8 +69,12 @@ STDMETHODIMP CLAVFSplitter::LoadSettings()
   HRESULT hr;
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
+    DWORD dwVal;
     m_settings.prefAudioLangs = reg.ReadString(L"prefAudioLangs", hr);
     m_settings.prefSubLangs = reg.ReadString(L"prefSubLangs", hr);
+    // Subtitle mode, defaults to all subtitles
+    dwVal = reg.ReadDWORD(L"subtitleMode", hr);
+    m_settings.subtitleMode = SUCCEEDED(hr) ? dwVal : SUBMODE_ALWAYS_SUBS;
   }
   return S_OK;
 }
@@ -82,6 +86,7 @@ STDMETHODIMP CLAVFSplitter::SaveSettings()
   if (SUCCEEDED(hr)) {
     reg.WriteString(L"prefAudioLangs", m_settings.prefAudioLangs.c_str());
     reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
+    reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
   }
   return S_OK;
 }
@@ -192,7 +197,7 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
     }
   }
 
-  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(GetPreferredSubtitleLanguageList(), 0);
+  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(GetPreferredSubtitleLanguageList(), m_settings.subtitleMode);
   if (subtitleStream) {
     CLAVFOutputPin* pPin = new CLAVFOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {

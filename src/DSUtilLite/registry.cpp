@@ -125,3 +125,38 @@ HRESULT CRegistry::WriteString(LPCTSTR pszKey, const LPCTSTR pszValue)
   }
   return S_OK;
 }
+
+DWORD CRegistry::ReadDWORD(LPCTSTR pszKey, HRESULT &hr)
+{
+  LONG lRet;
+  DWORD dwSize = sizeof(DWORD);
+  DWORD dwVal = 0;
+
+  hr = S_OK;
+
+  if (m_key == NULL) { return E_UNEXPECTED; }
+
+  lRet = RegQueryValueEx(*m_key, pszKey, 0, NULL, (LPBYTE)&dwVal, &dwSize);
+
+  if (lRet != ERROR_SUCCESS) {
+    hr = E_FAIL;
+  }
+
+  return dwVal;
+}
+
+HRESULT CRegistry::WriteDWORD(LPCTSTR pszKey, DWORD dwValue)
+{
+  LONG lRet;
+  HRESULT hr;
+
+  hr = S_OK;
+
+  if (m_key == NULL) { return E_UNEXPECTED; }
+
+  lRet = RegSetValueEx(*m_key, pszKey, 0, REG_DWORD, (const BYTE *)&dwValue, sizeof(dwValue));
+  if (lRet != ERROR_SUCCESS) {
+    return E_FAIL;
+  }
+  return S_OK;
+}

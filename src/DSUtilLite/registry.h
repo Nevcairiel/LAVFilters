@@ -32,8 +32,12 @@ public:
   ~CRegistry();
   
   HRESULT Open(HKEY hkeyRoot, LPCTSTR pszSubKey);
+
   std::wstring ReadString(LPCTSTR pszKey, HRESULT &hr);
   HRESULT WriteString(LPCTSTR pszKey, LPCTSTR pszValue);
+
+  DWORD ReadDWORD(LPCTSTR pszKey, HRESULT &hr);
+  HRESULT WriteDWORD(LPCTSTR pszKey, DWORD dwValue);
 
 private:
   HKEY *m_key;

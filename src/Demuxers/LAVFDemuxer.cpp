@@ -661,6 +661,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
       std::deque<stream>::iterator sit;
       for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
         int pid = sit->pid;
+        if (pid == NO_SUBTITLE_PID) { continue; }
         const char *lang = get_stream_language(m_avFormat->streams[pid]);
         if (lang) {
           std::string language = std::string(lang);
@@ -695,6 +696,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   if (!checkedStreams.empty()) {
     std::deque<stream*>::iterator sit;
     for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+      if ((*sit)->pid == NO_SUBTITLE_PID) { continue; }
       AVStream *pStream = m_avFormat->streams[(*sit)->pid];
       // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
       if ((subtitleMode == SUBMODE_ALWAYS_SUBS && !(pStream->disposition & AV_DISPOSITION_FORCED))

@@ -158,5 +158,6 @@ private:
   struct Settings {
     std::wstring prefAudioLangs;
     std::wstring prefSubLangs;
+    DWORD subtitleMode;
   } m_settings;
 };
