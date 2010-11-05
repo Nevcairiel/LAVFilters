@@ -306,6 +306,7 @@ URLProtocol ufile_protocol = {
     ufile_get_handle,
 };
 
+#ifdef DEBUG
 #define LOG_BUF_LEN 1024
 void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
 {
@@ -345,5 +346,5 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   DbgLog((LOG_CUSTOM1, level, L"%S", line));
   strcpy_s(prev, LOG_BUF_LEN, line);
 }
-
+#endif
 }

@@ -32,5 +32,7 @@ inline int get_bits_per_sample(AVCodecContext *ctx)
 
 extern "C" {
 extern URLProtocol ufile_protocol;
+#ifdef DEBUG
 void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl);
+#endif
 }
