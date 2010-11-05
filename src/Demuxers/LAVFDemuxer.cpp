@@ -536,18 +536,35 @@ static int audio_codec_priority(AVCodecContext *codec)
   switch(codec->codec_id) {
   case CODEC_ID_FLAC:
   case CODEC_ID_TRUEHD:
-  case CODEC_ID_PCM_BLURAY:
+  // All the PCM codecs
+  case CODEC_ID_PCM_S16LE:
+  case CODEC_ID_PCM_S16BE:
+  case CODEC_ID_PCM_U16LE:
+  case CODEC_ID_PCM_U16BE:
+  case CODEC_ID_PCM_S32LE:
+  case CODEC_ID_PCM_S32BE:
+  case CODEC_ID_PCM_U32LE:
+  case CODEC_ID_PCM_U32BE:
+  case CODEC_ID_PCM_S24LE:
+  case CODEC_ID_PCM_S24BE:
+  case CODEC_ID_PCM_U24LE:
+  case CODEC_ID_PCM_U24BE:
+  case CODEC_ID_PCM_F32BE:
+  case CODEC_ID_PCM_F32LE:
+  case CODEC_ID_PCM_F64BE:
+  case CODEC_ID_PCM_F64LE:
   case CODEC_ID_PCM_DVD:
+  case CODEC_ID_PCM_BLURAY:
     priority = 10;
     break;
   case CODEC_ID_DTS:
-    priority = 9;
+    priority = 8;
     break;
   case CODEC_ID_AC3:
   case CODEC_ID_EAC3:
   case CODEC_ID_AAC:
   case CODEC_ID_AAC_LATM:
-    priority = 8;
+    priority = 7;
     break;
   }
 
