@@ -536,6 +536,7 @@ static int audio_codec_priority(AVCodecContext *codec)
   case CODEC_ID_AC3:
   case CODEC_ID_EAC3:
   case CODEC_ID_AAC:
+  case CODEC_ID_AAC_LATM:
     priority = 8;
     break;
   }
