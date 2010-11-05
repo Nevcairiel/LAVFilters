@@ -326,7 +326,7 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
     sprintf_s(line + strlen(line), LOG_BUF_LEN - strlen(line), "[%s @ %p] ", avc->item_name(ptr), ptr);
   }
 
-  vsnprintf(line + strlen(line), LOG_BUF_LEN - strlen(line), fmt, vl);
+  vsnprintf_s(line + strlen(line), LOG_BUF_LEN - strlen(line), _TRUNCATE, fmt, vl);
 
   print_prefix= line[strlen(line)-1] == '\n';
 
@@ -343,7 +343,7 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   }
 
   DbgLog((LOG_CUSTOM1, level, L"%S", line));
-  strcpy(prev, line);
+  strcpy_s(prev, LOG_BUF_LEN, line);
 }
 
 }

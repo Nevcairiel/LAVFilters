@@ -111,7 +111,7 @@ void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LP
   for(it = chkbytes.begin(); it != chkbytes.end(); it++)
   {
     WCHAR idx[10] = {0};
-    swprintf(idx, 9, _T("%d"), i);
+    swprintf_s(idx, _T("%d"), i);
     SetRegKeyValue(_T("Media Type\\") + majortype, subtype, idx, *it);
     i++;
   }
