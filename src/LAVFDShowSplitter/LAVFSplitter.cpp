@@ -185,7 +185,8 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
     }
   }
 
-  const CBaseDemuxer::stream *audioStream = m_pDemuxer->SelectAudioStream(GetPreferredAudioLanguageList());
+  std::list<std::string> audioLangs = GetPreferredAudioLanguageList();
+  const CBaseDemuxer::stream *audioStream = m_pDemuxer->SelectAudioStream(audioLangs);
   if (audioStream) {
     CLAVFOutputPin* pPin = new CLAVFOutputPin(audioStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::audio), this, this, &hr, CBaseDemuxer::audio, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
@@ -197,7 +198,11 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
     }
   }
 
-  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(GetPreferredSubtitleLanguageList(), m_settings.subtitleMode);
+  std::list<std::string> subtitleLangs = GetPreferredSubtitleLanguageList();
+  if (subtitleLangs.empty() && !audioLangs.empty()) {
+    subtitleLangs = audioLangs;
+  }
+  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleLangs, m_settings.subtitleMode);
   if (subtitleStream) {
     CLAVFOutputPin* pPin = new CLAVFOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
