@@ -135,7 +135,7 @@ public:
   // Subtitle modes
 #define SUBMODE_NO_SUBS 0
 #define SUBMODE_FORCED_SUBS 1
-#define SUBMODE_ALL_SUBS 2
+#define SUBMODE_ALWAYS_SUBS 2
   // Select the best subtitle stream
   virtual const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode) = 0;
 

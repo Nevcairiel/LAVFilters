@@ -501,7 +501,7 @@ int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, in
 // Select the best video stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 {
-  stream *best = NULL;
+  const stream *best = NULL;
   CStreamList *streams = GetStreams(video);
   
   std::deque<stream>::iterator it;
@@ -549,7 +549,7 @@ static int audio_codec_priority(AVCodecContext *codec)
 // Select the best audio stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::string> prefLanguages)
 {
-  stream *best = NULL;
+  const stream *best = NULL;
   CStreamList *streams = GetStreams(audio);
   
   std::deque<stream*> checkedStreams;
@@ -635,8 +635,87 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
 
   return best;
 }
+
 // Select the best subtitle stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode)
 {
-  return NULL;
+  const stream *best = NULL;
+  CStreamList *streams = GetStreams(subpic);
+
+  if (subtitleMode == SUBMODE_NO_SUBS) {
+    // Find the no-subs stream
+    return streams->FindStream(NO_SUBTITLE_PID);
+  }
+  
+  std::deque<stream*> checkedStreams;
+  
+  // Filter for language
+  if(!prefLanguages.empty()) {
+    std::list<std::string>::iterator it;
+    for ( it = prefLanguages.begin(); it != prefLanguages.end(); it++ ) {
+      std::string checkLanguage = *it;
+      // Convert 2-character code to 3-character
+      if (checkLanguage.length() == 2) {
+        checkLanguage = ISO6391To6392(checkLanguage.c_str());
+      }
+      std::deque<stream>::iterator sit;
+      for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+        int pid = sit->pid;
+        const char *lang = get_stream_language(m_avFormat->streams[pid]);
+        if (lang) {
+          std::string language = std::string(lang);
+          // Convert 2-character code to 3-character
+          if (language.length() == 2) {
+            language = ISO6391To6392(lang);
+          }
+          // check if the language matches
+          if (language == checkLanguage) {
+            if (subtitleMode == SUBMODE_ALWAYS_SUBS || ((subtitleMode == SUBMODE_FORCED_SUBS) && (m_avFormat->streams[pid]->disposition & AV_DISPOSITION_FORCED))) {
+              checkedStreams.push_back(&*sit);
+            }
+          }
+        }
+      }
+      // First language that has any streams is a match
+      if (!checkedStreams.empty()) {
+        break;
+      }
+    }
+  }
+
+  // If no language was set, or no matching streams were found
+  if (checkedStreams.empty()) {
+    std::deque<stream>::iterator sit;
+    for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+      checkedStreams.push_back(&*sit);
+    }
+  }
+
+  // Select the best stream based on subtitle mode
+  if (!checkedStreams.empty()) {
+    std::deque<stream*>::iterator sit;
+    for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+      AVStream *pStream = m_avFormat->streams[(*sit)->pid];
+      // We want forced subs, and we found a stream with forced subs, just bail out already
+      if (subtitleMode == SUBMODE_FORCED_SUBS && pStream->disposition & AV_DISPOSITION_FORCED) {
+        best = *sit;
+        break;
+      } else if (subtitleMode == SUBMODE_ALWAYS_SUBS) {
+        if(!best) { best = *sit; continue; }
+        AVStream *oldStream = m_avFormat->streams[best->pid];
+        // If the old best stream had a forced flag, and this one doesn't, then switch
+        // We have been asked for full subs, so give it to them
+        if ((oldStream->disposition & AV_DISPOSITION_FORCED) && !(pStream->disposition & AV_DISPOSITION_FORCED)) {
+          best = *sit;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!best) {
+    best = streams->FindStream(NO_SUBTITLE_PID);
+  }
+
+  return best;
 }
