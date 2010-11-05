@@ -119,7 +119,7 @@ HRESULT CRegistry::WriteString(LPCTSTR pszKey, const LPCTSTR pszValue)
 
   if (m_key == NULL) { return E_UNEXPECTED; }
 
-  lRet = RegSetValueEx(*m_key, pszKey, 0, REG_SZ, (const BYTE *)pszValue, (wcslen(pszValue) + 1) * sizeof(WCHAR));
+  lRet = RegSetValueEx(*m_key, pszKey, 0, REG_SZ, (const BYTE *)pszValue, (DWORD)((wcslen(pszValue) + 1) * sizeof(WCHAR)));
   if (lRet != ERROR_SUCCESS) {
     return E_FAIL;
   }

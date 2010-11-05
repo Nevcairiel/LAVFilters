@@ -766,7 +766,7 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
 std::list<std::string> CLAVFSplitter::GetPreferredAudioLanguageList()
 {
   // Convert to multi-byte ascii
-  size_t bufSize = sizeof(WCHAR) * (m_settings.prefAudioLangs.length() + 1);
+  int bufSize = (int)(sizeof(WCHAR) * (m_settings.prefAudioLangs.length() + 1));
   char *buffer = (char *)CoTaskMemAlloc(bufSize);
   WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
 
@@ -780,7 +780,7 @@ std::list<std::string> CLAVFSplitter::GetPreferredAudioLanguageList()
 std::list<std::string> CLAVFSplitter::GetPreferredSubtitleLanguageList()
 {
   // Convert to multi-byte ascii
-  size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
+  int bufSize = (int)(sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1));
   char *buffer = (char *)CoTaskMemAlloc(bufSize);
   WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
 

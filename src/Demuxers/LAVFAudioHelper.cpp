@@ -188,7 +188,7 @@ VORBISFORMAT2 *CLAVFAudioHelper::CreateVorbis2(const AVStream *avstream, ULONG *
     totalsize += sizes[i];
 
   // Get the size of the last block
-  sizes.push_back(avstream->codec->extradata_size - (p - avstream->codec->extradata) - totalsize);
+  sizes.push_back(avstream->codec->extradata_size - (int)(p - avstream->codec->extradata) - totalsize);
   totalsize += sizes[sizes.size()-1];
 
   // 3 blocks is the currently valid Vorbis format

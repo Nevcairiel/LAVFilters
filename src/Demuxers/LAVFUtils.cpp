@@ -260,25 +260,25 @@ static int ufile_open(URLContext *h, const char *filename, int flags)
 
 static int ufile_read(URLContext *h, unsigned char *buf, int size)
 {
-    int fd = (intptr_t) h->priv_data;
+    int fd = (int) h->priv_data;
     return _read(fd, buf, size);
 }
 
 static int ufile_write(URLContext *h, const unsigned char *buf, int size)
 {
-    int fd = (intptr_t) h->priv_data;
+    int fd = (int) h->priv_data;
     return _write(fd, buf, size);
 }
 
 static int ufile_get_handle(URLContext *h)
 {
-    return (intptr_t) h->priv_data;
+    return (int) h->priv_data;
 }
 
 /* XXX: use llseek */
 static int64_t ufile_seek(URLContext *h, int64_t pos, int whence)
 {
-    int fd = (intptr_t) h->priv_data;
+    int fd = (int) h->priv_data;
     if (whence == AVSEEK_SIZE) {
         struct stat st;
         int ret = fstat(fd, &st);
@@ -289,7 +289,7 @@ static int64_t ufile_seek(URLContext *h, int64_t pos, int whence)
 
 static int ufile_close(URLContext *h)
 {
-    int fd = (intptr_t) h->priv_data;
+    int fd = (int) h->priv_data;
     return _close(fd);
 }
 

@@ -39,7 +39,7 @@ public:
   HRESULT OnConnect(IUnknown *pUnk);
   HRESULT OnDisconnect();
   HRESULT OnApplyChanges();
-  BOOL OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+  INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
   CLAVFSettingsProp(IUnknown *pUnk);

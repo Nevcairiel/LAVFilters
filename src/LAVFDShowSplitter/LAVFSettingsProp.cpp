@@ -88,10 +88,10 @@ HRESULT CLAVFSettingsProp::OnApplyChanges()
   CHECK_HR(hr = m_pLAVF->SetPreferredSubtitleLanguages(buffer));
 
   // Save subtitle mode
-  dwVal = SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetSubtitleMode(dwVal));
 
-  BOOL flag = SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
+  BOOL flag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetSubtitleMatchingLanguage(flag));
 
   LoadData();
@@ -151,7 +151,7 @@ done:
   return hr;
 }
 
-BOOL CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   switch (uMsg)
   {
@@ -175,19 +175,19 @@ BOOL CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LP
           if (source) {
             dirty = _wcsicmp(buffer, source);
           } else {
-            dirty = wcslen(buffer);
+            dirty = (int)wcslen(buffer);
           }
 
           if(dirty != 0) {
             SetDirty();
           }
       } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_SUBTITLE_MODE) {
-        DWORD dwVal = SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
+        DWORD dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
         if (dwVal != m_subtitleMode) {
           SetDirty();
         }
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBMODE_ONLY_MATCHING) {
-        BOOL bFlag = SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
+        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
         if (bFlag != m_subtitleMatching) {
           SetDirty();
         }

@@ -51,8 +51,8 @@ void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName)
 
 void split(std::string& text, std::string& separators, std::list<std::string>& words)
 {
-    int n = text.length();
-    int start, stop;
+    size_t n = text.length();
+    size_t start, stop;
  
     start = text.find_first_not_of(separators);
     while ((start >= 0) && (start < n)) 
