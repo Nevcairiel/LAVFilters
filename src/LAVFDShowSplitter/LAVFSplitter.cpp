@@ -168,26 +168,42 @@ STDMETHODIMP CLAVFSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pm
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
 
-  // Try to create pins
-  for(int i = 0; i < CBaseDemuxer::unknown; i++) {
-    CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
-    std::deque<CBaseDemuxer::stream>::iterator it;
-    for ( it = streams->begin(); it != streams->end(); it++ ) {
-      const WCHAR* name = CBaseDemuxer::CStreamList::ToStringW(i);
-
-      std::vector<CMediaType> mts = it->streamInfo->mtypes;
-
-      CLAVFOutputPin* pPin = new CLAVFOutputPin(mts, name, this, this, &hr, (CBaseDemuxer::StreamType)i, m_pDemuxer->GetContainerFormat());
-      if(SUCCEEDED(hr)) {
-        pPin->SetStreamId(it->pid);
-        m_pPins.push_back(pPin);
-        m_pDemuxer->SetActiveStream((CBaseDemuxer::StreamType)i, it->pid);
-        break;
-      } else {
-        delete pPin;
-      }
+  const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
+  if (videoStream) {
+    CLAVFOutputPin* pPin = new CLAVFOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat());
+    if(SUCCEEDED(hr)) {
+      pPin->SetStreamId(videoStream->pid);
+      m_pPins.push_back(pPin);
+      m_pDemuxer->SetActiveStream(CBaseDemuxer::video, videoStream->pid);
+    } else {
+      delete pPin;
     }
   }
+
+  const CBaseDemuxer::stream *audioStream = m_pDemuxer->SelectAudioStream(GetPreferredAudioLanguageList());
+  if (audioStream) {
+    CLAVFOutputPin* pPin = new CLAVFOutputPin(audioStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::audio), this, this, &hr, CBaseDemuxer::audio, m_pDemuxer->GetContainerFormat());
+    if(SUCCEEDED(hr)) {
+      pPin->SetStreamId(audioStream->pid);
+      m_pPins.push_back(pPin);
+      m_pDemuxer->SetActiveStream(CBaseDemuxer::audio, audioStream->pid);
+    } else {
+      delete pPin;
+    }
+  }
+
+  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(GetPreferredSubtitleLanguageList(), 0);
+  if (subtitleStream) {
+    CLAVFOutputPin* pPin = new CLAVFOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
+    if(SUCCEEDED(hr)) {
+      pPin->SetStreamId(subtitleStream->pid);
+      m_pPins.push_back(pPin);
+      m_pDemuxer->SetActiveStream(CBaseDemuxer::subpic, subtitleStream->pid);
+    } else {
+      delete pPin;
+    }
+  }
+
   if(SUCCEEDED(hr)) {
     return !m_pPins.empty();
   } else {
@@ -723,6 +739,35 @@ STDMETHODIMP CLAVFSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFl
   }
 
   return S_OK;
+}
+
+// setting helpers
+std::list<std::string> CLAVFSplitter::GetPreferredAudioLanguageList()
+{
+  // Convert to multi-byte ascii
+  size_t bufSize = sizeof(WCHAR) * (m_settings.prefAudioLangs.length() + 1);
+  char *buffer = (char *)CoTaskMemAlloc(bufSize);
+  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
+
+  std::list<std::string> list;
+
+  split(std::string(buffer), std::string(",; "), list);
+
+  return list;
+}
+
+std::list<std::string> CLAVFSplitter::GetPreferredSubtitleLanguageList()
+{
+  // Convert to multi-byte ascii
+  size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
+  char *buffer = (char *)CoTaskMemAlloc(bufSize);
+  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
+
+  std::list<std::string> list;
+
+  split(std::string(buffer), std::string(",; "), list);
+
+  return list;
 }
 
 // Settings

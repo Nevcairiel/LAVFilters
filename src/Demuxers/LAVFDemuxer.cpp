@@ -497,3 +497,146 @@ int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, in
 
   return pts;
 }
+
+// Select the best video stream
+const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
+{
+  stream *best = NULL;
+  CStreamList *streams = GetStreams(video);
+  
+  std::deque<stream>::iterator it;
+  for ( it = streams->begin(); it != streams->end(); it++ ) {
+    stream *check = &*it;
+    if (!best) { best = check; continue; }
+    uint64_t bestPixels = m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
+    uint64_t checkPixels = m_avFormat->streams[check->pid]->codec->width * m_avFormat->streams[check->pid]->codec->height;
+    if (checkPixels > bestPixels) {
+      best = check;
+    }
+  }
+
+  return best;
+}
+
+static int audio_codec_priority(AVCodecContext *codec)
+{
+  int priority = 0;
+  switch(codec->codec_id) {
+  case CODEC_ID_FLAC:
+  case CODEC_ID_TRUEHD:
+  case CODEC_ID_PCM_BLURAY:
+  case CODEC_ID_PCM_DVD:
+    priority = 10;
+    break;
+  case CODEC_ID_DTS:
+    priority = 9;
+    break;
+  case CODEC_ID_AC3:
+  case CODEC_ID_EAC3:
+  case CODEC_ID_AAC:
+    priority = 8;
+    break;
+  }
+
+  // WAVE_FORMAT_EXTENSIBLE is multi-channel PCM, which doesn't have a proper tag otherwise
+  if(codec->codec_tag == WAVE_FORMAT_EXTENSIBLE) {
+    priority = 10;
+  }
+
+  return priority;
+}
+
+// Select the best audio stream
+const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::string> prefLanguages)
+{
+  stream *best = NULL;
+  CStreamList *streams = GetStreams(audio);
+  
+  std::deque<stream*> checkedStreams;
+  
+  // Filter for language
+  if(!prefLanguages.empty()) {
+    std::list<std::string>::iterator it;
+    for ( it = prefLanguages.begin(); it != prefLanguages.end(); it++ ) {
+      std::string checkLanguage = *it;
+      // Convert 2-character code to 3-character
+      if (checkLanguage.length() == 2) {
+        checkLanguage = ISO6391To6392(checkLanguage.c_str());
+      }
+      std::deque<stream>::iterator sit;
+      for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+        int pid = sit->pid;
+        const char *lang = get_stream_language(m_avFormat->streams[pid]);
+        if (lang) {
+          std::string language = std::string(lang);
+          // Convert 2-character code to 3-character
+          if (language.length() == 2) {
+            language = ISO6391To6392(lang);
+          }
+          // check if the language matches
+          if (language == checkLanguage) {
+            checkedStreams.push_back(&*sit);
+          }
+        }
+      }
+      // First language that has any streams is a match
+      if (!checkedStreams.empty()) {
+        break;
+      }
+    }
+  }
+
+  // If no language was set, or no matching streams were found
+  if (checkedStreams.empty()) {
+    // Check for a stream with a default flag
+    std::deque<stream>::iterator sit;
+    for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+      if (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT) {
+        checkedStreams.push_back(&*sit);
+      }
+    }
+
+    // If its still empty, just put all streams in there
+    if (checkedStreams.empty()) {
+      std::deque<stream>::iterator sit;
+      for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+        checkedStreams.push_back(&*sit);
+      }
+    }
+  }
+
+  if (!checkedStreams.empty()) {
+    // If only one stream is left, just use that one
+    if (checkedStreams.size() == 1) {
+      best = checkedStreams.at(0);
+    } else {
+      // Check for quality
+      std::deque<stream*>::iterator sit;
+      for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+        if(!best) { best = *sit; continue; }
+        AVStream *old_stream = m_avFormat->streams[best->pid];
+        AVStream *new_stream = m_avFormat->streams[(*sit)->pid];
+        // First, check number of channels
+        int old_num_chans = old_stream->codec->channels;
+        int new_num_chans = new_stream->codec->channels;
+        if (new_num_chans > old_num_chans) {
+          best = *sit;
+        } else if (new_num_chans == old_num_chans) {
+          // Same number of channels, check codec
+          int old_priority = audio_codec_priority(old_stream->codec);
+          int new_priority = audio_codec_priority(new_stream->codec);
+          if (new_priority > old_priority) {
+            best = *sit;
+          }
+        }
+      }
+    }
+  }
+
+  return best;
+}
+// Select the best subtitle stream
+const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode)
+{
+  return NULL;
+}

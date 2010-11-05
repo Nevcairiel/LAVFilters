@@ -50,6 +50,13 @@ public:
   const char *GetContainerFormat() const;
   HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const;
 
+  // Select the best video stream
+  const stream* SelectVideoStream();
+  // Select the best audio stream
+  const stream* SelectAudioStream(std::list<std::string> prefLanguages);
+  // Select the best subtitle stream
+  const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode);
+
 
   // IAMExtendedSeeking
   STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);

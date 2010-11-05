@@ -106,6 +106,10 @@ public:
   STDMETHODIMP GetPreferredSubtitleLanguages(WCHAR **ppLanguages);
   STDMETHODIMP SetPreferredSubtitleLanguages(WCHAR *pLanguages);
 
+  // Settings helper
+  std::list<std::string> GetPreferredAudioLanguageList();
+  std::list<std::string> GetPreferredSubtitleLanguageList();
+
   bool IsAnyPinDrying();
 protected:
   // CAMThread

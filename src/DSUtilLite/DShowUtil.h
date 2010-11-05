@@ -37,6 +37,8 @@
 
 extern void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName);
 
+void split(std::string& text, std::string& separators, std::list<std::string>& words);
+
 // Filter Registration
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkbytes, ...);
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LPCWSTR> chkbytes, ...);
