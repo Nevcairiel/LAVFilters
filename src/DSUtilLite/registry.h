@@ -39,6 +39,9 @@ public:
   DWORD ReadDWORD(LPCTSTR pszKey, HRESULT &hr);
   HRESULT WriteDWORD(LPCTSTR pszKey, DWORD dwValue);
 
+  BOOL ReadBOOL(LPCTSTR pszKey, HRESULT &hr);
+  HRESULT WriteBOOL(LPCTSTR pszKey, BOOL bValue);
+
 private:
   HKEY *m_key;
 };

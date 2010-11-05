@@ -44,6 +44,8 @@ public:
 private:
   CLAVFSettingsProp(IUnknown *pUnk);
 
+  HRESULT LoadData();
+
   void SetDirty()
   {
     m_bDirty = TRUE;
@@ -61,4 +63,8 @@ private:
   WCHAR *m_pszPrefLang;
   WCHAR *m_pszPrefSubLang;
 
+  DWORD m_subtitleMode;
+  BOOL m_subtitleMatching;
+
+  WCHAR stringBuffer[256];
 };

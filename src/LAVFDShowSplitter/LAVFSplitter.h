@@ -105,6 +105,10 @@ public:
   STDMETHODIMP SetPreferredLanguages(WCHAR *pLanguages);
   STDMETHODIMP GetPreferredSubtitleLanguages(WCHAR **ppLanguages);
   STDMETHODIMP SetPreferredSubtitleLanguages(WCHAR *pLanguages);
+  STDMETHODIMP_(DWORD) GetSubtitleMode();
+  STDMETHODIMP SetSubtitleMode(DWORD dwMode);
+  STDMETHODIMP_(BOOL) GetSubtitleMatchingLanguage();
+  STDMETHODIMP SetSubtitleMatchingLanguage(BOOL dwMode);
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -159,5 +163,6 @@ private:
     std::wstring prefAudioLangs;
     std::wstring prefSubLangs;
     DWORD subtitleMode;
+    BOOL subtitleMatching;
   } m_settings;
 };

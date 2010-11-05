@@ -68,6 +68,7 @@ STDMETHODIMP CLAVFSplitter::LoadSettings()
 {
   HRESULT hr;
   DWORD dwVal;
+  BOOL bFlag;
 
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
   // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
@@ -82,6 +83,9 @@ STDMETHODIMP CLAVFSplitter::LoadSettings()
   dwVal = reg.ReadDWORD(L"subtitleMode", hr);
   m_settings.subtitleMode = SUCCEEDED(hr) ? dwVal : SUBMODE_ALWAYS_SUBS;
 
+  bFlag = reg.ReadDWORD(L"subtitleMatching", hr);
+  m_settings.subtitleMatching = SUCCEEDED(hr) ? bFlag : TRUE;
+
   return S_OK;
 }
 
@@ -93,6 +97,7 @@ STDMETHODIMP CLAVFSplitter::SaveSettings()
     reg.WriteString(L"prefAudioLangs", m_settings.prefAudioLangs.c_str());
     reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
     reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
+    reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
   }
   return S_OK;
 }
@@ -822,5 +827,27 @@ STDMETHODIMP CLAVFSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
 STDMETHODIMP CLAVFSplitter::SetPreferredSubtitleLanguages(WCHAR *pLanguages)
 {
   m_settings.prefSubLangs = std::wstring(pLanguages);
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVFSplitter::GetSubtitleMode()
+{
+  return m_settings.subtitleMode;
+}
+
+STDMETHODIMP CLAVFSplitter::SetSubtitleMode(DWORD dwMode)
+{
+  m_settings.subtitleMode = dwMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVFSplitter::GetSubtitleMatchingLanguage()
+{
+  return m_settings.subtitleMatching;
+}
+
+STDMETHODIMP CLAVFSplitter::SetSubtitleMatchingLanguage(BOOL dwMode)
+{
+  m_settings.subtitleMatching = dwMode;
   return SaveSettings();
 }

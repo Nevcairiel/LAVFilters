@@ -160,3 +160,14 @@ HRESULT CRegistry::WriteDWORD(LPCTSTR pszKey, DWORD dwValue)
   }
   return S_OK;
 }
+
+BOOL CRegistry::ReadBOOL(LPCTSTR pszKey, HRESULT &hr)
+{
+  DWORD dwVal = ReadDWORD(pszKey, hr);
+  return dwVal ? TRUE : FALSE;
+}
+
+HRESULT CRegistry::WriteBOOL(LPCTSTR pszKey, BOOL bValue)
+{
+  return WriteDWORD(pszKey, bValue);
+}
