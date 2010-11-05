@@ -327,7 +327,7 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
     sprintf_s(line + strlen(line), LOG_BUF_LEN - strlen(line), "[%s @ %p] ", avc->item_name(ptr), ptr);
   }
 
-  vsnprintf_s(line + strlen(line), LOG_BUF_LEN - strlen(line), _TRUNCATE, fmt, vl);
+  vsnprintf(line + strlen(line), LOG_BUF_LEN - strlen(line), fmt, vl);
 
   print_prefix= line[strlen(line)-1] == '\n';
 
