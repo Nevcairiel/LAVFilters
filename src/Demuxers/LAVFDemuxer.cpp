@@ -616,25 +616,25 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
   }
 
   // If no language was set, or no matching streams were found
+  // Put all streams in there
   if (checkedStreams.empty()) {
-    // Check for a stream with a default flag
     std::deque<stream>::iterator sit;
     for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
-      if (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT) {
-        checkedStreams.push_back(&*sit);
-      }
-    }
-
-    // If its still empty, just put all streams in there
-    if (checkedStreams.empty()) {
-      std::deque<stream>::iterator sit;
-      for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
-        checkedStreams.push_back(&*sit);
-      }
+      checkedStreams.push_back(&*sit);
     }
   }
 
-  if (!checkedStreams.empty()) {
+  // Check for a stream with a default flag
+  // If in our current set is one, that one prevails
+  std::deque<stream*>::iterator sit;
+  for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+    if (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_DEFAULT) {
+      best = *sit;
+      break;
+    }
+  }
+
+  if (!best && !checkedStreams.empty()) {
     // If only one stream is left, just use that one
     if (checkedStreams.size() == 1) {
       best = checkedStreams.at(0);
@@ -720,15 +720,26 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
     }
   }
 
+  // Check for a stream with a default flag
+  // If in our current set is one, that one prevails
+  std::deque<stream*>::iterator sit;
+  for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+    if (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_DEFAULT) {
+      if ((subtitleMode == SUBMODE_FORCED_SUBS) == (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {
+        best = *sit;
+        break;
+      }
+    }
+  }
+
   // Select the best stream based on subtitle mode
-  if (!checkedStreams.empty()) {
+  if (!best && !checkedStreams.empty()) {
     std::deque<stream*>::iterator sit;
     for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
       if ((*sit)->pid == NO_SUBTITLE_PID) { continue; }
       AVStream *pStream = m_avFormat->streams[(*sit)->pid];
       // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
-      if ((subtitleMode == SUBMODE_ALWAYS_SUBS && !(pStream->disposition & AV_DISPOSITION_FORCED))
-        || (subtitleMode == SUBMODE_FORCED_SUBS && (pStream->disposition & AV_DISPOSITION_FORCED))) {
+      if ((subtitleMode == SUBMODE_FORCED_SUBS) == (pStream->disposition & AV_DISPOSITION_FORCED)) {
           best = *sit;
           break;
       } else if (subtitleMode == SUBMODE_ALWAYS_SUBS) {
