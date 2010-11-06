@@ -595,8 +595,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
       }
       std::deque<stream>::iterator sit;
       for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
-        int pid = sit->pid;
-        const char *lang = get_stream_language(m_avFormat->streams[pid]);
+        const char *lang = get_stream_language(m_avFormat->streams[sit->pid]);
         if (lang) {
           std::string language = std::string(lang);
           // Convert 2-character code to 3-character
@@ -690,9 +689,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
       }
       std::deque<stream>::iterator sit;
       for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
-        int pid = sit->pid;
-        if (pid == NO_SUBTITLE_PID) { continue; }
-        const char *lang = get_stream_language(m_avFormat->streams[pid]);
+        if (sit->pid == NO_SUBTITLE_PID) { continue; }
+        const char *lang = get_stream_language(m_avFormat->streams[sit->pid]);
         if (lang) {
           std::string language = std::string(lang);
           // Convert 2-character code to 3-character
@@ -701,7 +699,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
           }
           // check if the language matches
           if (language == checkLanguage) {
-            if (subtitleMode == SUBMODE_ALWAYS_SUBS || ((subtitleMode == SUBMODE_FORCED_SUBS) && (m_avFormat->streams[pid]->disposition & AV_DISPOSITION_FORCED))) {
+            if (subtitleMode == SUBMODE_ALWAYS_SUBS || ((subtitleMode == SUBMODE_FORCED_SUBS) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_FORCED))) {
               checkedStreams.push_back(&*sit);
             }
           }
@@ -715,7 +713,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   }
 
   // If no language was set, or no matching streams were found
-  if (checkedStreams.empty() && !bOnlyMatching) {
+  if (checkedStreams.empty() && (!bOnlyMatching || prefLanguages.empty())) {
     std::deque<stream>::iterator sit;
     for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
       checkedStreams.push_back(&*sit);
