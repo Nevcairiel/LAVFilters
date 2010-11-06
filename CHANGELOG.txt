@@ -1,5 +1,12 @@
 LAVFSplitter Changelog
 ===================================
+0.11 - 2010/11/06
+- Smart stream pre-selection based on language, flags and quality
+- Properties page for configuration (languages, stream selection logic)
+- Added support for AAC LATM (single stream)
+- Changed the "No Subtitles" pin to a more "friendly" Media Type
+- Fixed a crash with certain AAC tracks
+
 0.10 - 2010/10/26
 - Added more MOV/MP4 byte markers
 - Added support for multichannel PCM tracks
