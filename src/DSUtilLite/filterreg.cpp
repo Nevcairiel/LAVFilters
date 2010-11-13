@@ -108,7 +108,7 @@ void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LP
 
   int i = 0;
   std::list<LPCWSTR>::iterator it;
-  for(it = chkbytes.begin(); it != chkbytes.end(); it++)
+  for(it = chkbytes.begin(); it != chkbytes.end(); ++it)
   {
     WCHAR idx[10] = {0};
     swprintf_s(idx, _T("%d"), i);

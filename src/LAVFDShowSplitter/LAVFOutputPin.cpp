@@ -104,7 +104,7 @@ HRESULT CLAVFOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPER
 HRESULT CLAVFOutputPin::CheckMediaType(const CMediaType* pmt)
 {
   std::vector<CMediaType>::iterator it;
-  for(it = m_mts.begin(); it != m_mts.end(); it++)
+  for(it = m_mts.begin(); it != m_mts.end(); ++it)
   {
     if(*pmt == *it)
       return S_OK;

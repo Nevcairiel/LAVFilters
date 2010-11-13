@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0)
+  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0)
 {
   av_register_all();
   register_protocol(&ufile_protocol);
@@ -158,7 +158,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
   } else {
     // Check right here if the stream is active, we can drop the package otherwise.
     BOOL streamActive = FALSE;
-    for(int i = 0; i < unknown; i++) {
+    for(int i = 0; i < unknown; ++i) {
       if(m_dActiveStreams[i] == pkt.stream_index) {
         streamActive = TRUE;
         break;
@@ -314,7 +314,7 @@ STDMETHODIMP CLAVFDemuxer::get_CurrentMarker(long* pCurrentMarker)
   CheckPointer(pCurrentMarker, E_POINTER);
   // Can the time_base change in between chapters?
   // Anyhow, we do the calculation in the loop, just to be safe
-  for(unsigned int i = 0; i < m_avFormat->nb_chapters; i++) {
+  for(unsigned int i = 0; i < m_avFormat->nb_chapters; ++i) {
     int64_t pts = ConvertRTToTimestamp(m_rtCurrent, m_avFormat->chapters[i]->time_base.num, m_avFormat->chapters[i]->time_base.den);
     // Check if the pts is in between the bounds of the chapter
     if (pts >= m_avFormat->chapters[i]->start && pts <= m_avFormat->chapters[i]->end) {
@@ -377,7 +377,7 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
 
   AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
   nKFs = stream->nb_index_entries;
-  for(unsigned int i = 0; i < nKFs; i++) {
+  for(unsigned int i = 0; i < nKFs; ++i) {
     pKFs[i] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
   }
   return S_OK;
@@ -432,14 +432,14 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   // try to use non-blocking methods
   m_avFormat->flags |= AVFMT_FLAG_NONBLOCK;
 
-  for(int i = 0; i < countof(m_streams); i++) {
+  for(int i = 0; i < countof(m_streams); ++i) {
     m_streams[i].Clear();
   }
 
   if (m_avFormat->nb_programs) {
     m_program = UINT_MAX;
     // look for first non empty stream and discard nonselected programs
-    for (unsigned int i = 0; i < m_avFormat->nb_programs; i++) {
+    for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i) {
       if(m_program == UINT_MAX && m_avFormat->programs[i]->nb_stream_indexes > 0) {
         m_program = i;
       }
@@ -452,11 +452,11 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
       m_program = 0;
     }
     // add streams from selected program
-    for (unsigned int i = 0; i < m_avFormat->programs[m_program]->nb_stream_indexes; i++) {
+    for (unsigned int i = 0; i < m_avFormat->programs[m_program]->nb_stream_indexes; ++i) {
       AddStream(m_avFormat->programs[m_program]->stream_index[i]);
     }
   } else {
-    for(unsigned int streamId = 0; streamId < m_avFormat->nb_streams; streamId++) {
+    for(unsigned int streamId = 0; streamId < m_avFormat->nb_streams; ++streamId) {
       AddStream(streamId);
     }
   }
@@ -517,7 +517,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
   CStreamList *streams = GetStreams(video);
 
   std::deque<stream>::iterator it;
-  for ( it = streams->begin(); it != streams->end(); it++ ) {
+  for ( it = streams->begin(); it != streams->end(); ++it ) {
     stream *check = &*it;
     if (!best) { best = check; continue; }
     uint64_t bestPixels = m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
@@ -587,14 +587,14 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
   // Filter for language
   if(!prefLanguages.empty()) {
     std::list<std::string>::iterator it;
-    for ( it = prefLanguages.begin(); it != prefLanguages.end(); it++ ) {
+    for ( it = prefLanguages.begin(); it != prefLanguages.end(); ++it ) {
       std::string checkLanguage = *it;
       // Convert 2-character code to 3-character
       if (checkLanguage.length() == 2) {
         checkLanguage = ISO6391To6392(checkLanguage.c_str());
       }
       std::deque<stream>::iterator sit;
-      for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+      for ( sit = streams->begin(); sit != streams->end(); ++sit ) {
         const char *lang = get_stream_language(m_avFormat->streams[sit->pid]);
         if (lang) {
           std::string language = std::string(lang);
@@ -619,7 +619,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
   // Put all streams in there
   if (checkedStreams.empty()) {
     std::deque<stream>::iterator sit;
-    for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+    for ( sit = streams->begin(); sit != streams->end(); ++sit ) {
       checkedStreams.push_back(&*sit);
     }
   }
@@ -627,7 +627,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
   // Check for a stream with a default flag
   // If in our current set is one, that one prevails
   std::deque<stream*>::iterator sit;
-  for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+  for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); ++sit ) {
     if (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_DEFAULT) {
       best = *sit;
       break;
@@ -641,7 +641,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
     } else {
       // Check for quality
       std::deque<stream*>::iterator sit;
-      for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+      for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); ++sit ) {
         if(!best) { best = *sit; continue; }
         AVStream *old_stream = m_avFormat->streams[best->pid];
         AVStream *new_stream = m_avFormat->streams[(*sit)->pid];
@@ -681,14 +681,14 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   // Filter for language
   if(!prefLanguages.empty()) {
     std::list<std::string>::iterator it;
-    for ( it = prefLanguages.begin(); it != prefLanguages.end(); it++ ) {
+    for ( it = prefLanguages.begin(); it != prefLanguages.end(); ++it ) {
       std::string checkLanguage = *it;
       // Convert 2-character code to 3-character
       if (checkLanguage.length() == 2) {
         checkLanguage = ISO6391To6392(checkLanguage.c_str());
       }
       std::deque<stream>::iterator sit;
-      for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+      for ( sit = streams->begin(); sit != streams->end(); ++sit ) {
         // Don't even try to check the no-subtitles stream
         if (sit->pid == NO_SUBTITLE_PID) { continue; }
         const char *lang = get_stream_language(m_avFormat->streams[sit->pid]);
@@ -716,7 +716,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   // If no language was set, or no matching streams were found
   if (checkedStreams.empty() && (!bOnlyMatching || prefLanguages.empty())) {
     std::deque<stream>::iterator sit;
-    for ( sit = streams->begin(); sit != streams->end(); sit++ ) {
+    for ( sit = streams->begin(); sit != streams->end(); ++sit ) {
       // Don't insert the no-subtitle stream in the list of possible candidates
       if ((*sit).pid == NO_SUBTITLE_PID) { continue; }
       checkedStreams.push_back(&*sit);
@@ -726,7 +726,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   // Check for a stream with a default flag
   // If in our current set is one, that one prevails
   std::deque<stream*>::iterator sit;
-  for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+  for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); ++sit ) {
     if (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_DEFAULT) {
       if ((subtitleMode == SUBMODE_FORCED_SUBS) == (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {
         best = *sit;
@@ -738,7 +738,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   // Select the best stream based on subtitle mode
   if (!best && !checkedStreams.empty()) {
     std::deque<stream*>::iterator sit;
-    for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); sit++ ) {
+    for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); ++sit ) {
       AVStream *pStream = m_avFormat->streams[(*sit)->pid];
       // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
       if ((subtitleMode == SUBMODE_FORCED_SUBS) == (pStream->disposition & AV_DISPOSITION_FORCED)) {

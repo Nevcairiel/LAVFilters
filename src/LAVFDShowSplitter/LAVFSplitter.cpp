@@ -155,7 +155,7 @@ CLAVFOutputPin *CLAVFSplitter::GetOutputPin(DWORD streamId)
   CAutoLock lock(&m_csPins);
 
   std::vector<CLAVFOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
     if ((*it)->GetStreamId() == streamId) {
       return *it;
     }
@@ -255,7 +255,7 @@ STDMETHODIMP CLAVFSplitter::DeleteOutputs()
   CAutoLock pinLock(&m_csPins);
   // Release pins
   std::vector<CLAVFOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
     if(IPin* pPinTo = (*it)->GetConnected()) pPinTo->Disconnect();
     (*it)->Disconnect();
     delete (*it);
@@ -270,7 +270,7 @@ bool CLAVFSplitter::IsAnyPinDrying()
   // MPC changes thread priority here
   // TODO: Investigate if that is needed
   std::vector<CLAVFOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
     if((*it)->IsConnected() && !(*it)->IsDiscontinuous() && (*it)->QueueCount() < MIN_PACKETS_IN_QUEUE) {
       return true;
     }
@@ -311,7 +311,7 @@ DWORD CLAVFSplitter::ThreadProc()
 
     if(!m_fFlushing) {
       std::vector<CLAVFOutputPin *>::iterator it;
-      for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+      for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
         if ((*it)->IsConnected()) {
           (*it)->DeliverNewSegment(m_rtStart, m_rtStop, m_dRate);
         }
@@ -328,7 +328,7 @@ DWORD CLAVFSplitter::ThreadProc()
     // If we didnt exit by request, deliver end-of-stream
     if(!CheckRequest(&cmd)) {
       std::vector<CLAVFOutputPin *>::iterator it;
-      for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+      for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
         (*it)->QueueEndOfStream();
       }
     }
@@ -459,7 +459,7 @@ void CLAVFSplitter::DeliverBeginFlush()
 
   // flush all pins
   std::vector<CLAVFOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
     (*it)->DeliverBeginFlush();
   }
 }
@@ -468,7 +468,7 @@ void CLAVFSplitter::DeliverEndFlush()
 {
   // flush all pins
   std::vector<CLAVFOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); it++) {
+  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
     (*it)->DeliverEndFlush();
   }
 
@@ -705,7 +705,7 @@ STDMETHODIMP CLAVFSplitter::Enable(long lIndex, DWORD dwFlags)
       CBaseDemuxer::stream& to = streams->at(idx);
 
       std::deque<CBaseDemuxer::stream>::iterator it;
-      for(it = streams->begin(); it != streams->end(); it++) {
+      for(it = streams->begin(); it != streams->end(); ++it) {
         if(!GetOutputPin(it->pid)) {
           continue;
         }

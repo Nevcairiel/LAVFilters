@@ -26,7 +26,7 @@
 CBaseDemuxer::CBaseDemuxer(LPCTSTR pName, CCritSec *pLock)
   : CUnknown(pName, NULL), m_pLock(pLock)
 {
-  for(int i = 0; i < unknown; i++) {
+  for(int i = 0; i < unknown; ++i) {
     m_dActiveStreams[i] = -1;
   }
 }
@@ -68,7 +68,7 @@ const CHAR* CBaseDemuxer::CStreamList::ToString(int type)
 const CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid)
 {
   std::deque<stream>::iterator it;
-  for ( it = begin(); it != end(); it++ ) {
+  for ( it = begin(); it != end(); ++it ) {
     if ((*it).pid == pid) {
       return &(*it);
     }
@@ -80,7 +80,7 @@ const CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid)
 void CBaseDemuxer::CStreamList::Clear()
 {
   std::deque<stream>::iterator it;
-  for ( it = begin(); it != end(); it++ ) {
+  for ( it = begin(); it != end(); ++it ) {
     delete (*it).streamInfo;
   }
   __super::clear();

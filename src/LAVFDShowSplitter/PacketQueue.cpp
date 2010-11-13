@@ -66,7 +66,7 @@ void CPacketQueue::Clear()
   CAutoLock cAutoLock(this);
 
   std::deque<Packet *>::iterator it;
-  for (it = m_queue.begin(); it != m_queue.end(); it++) {
+  for (it = m_queue.begin(); it != m_queue.end(); ++it) {
     delete *it;
   }
   m_queue.clear();
