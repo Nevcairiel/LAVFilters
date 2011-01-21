@@ -40,7 +40,7 @@ OPTIONS="
 
 ./configure --extra-cflags="-U__STRICT_ANSI__ -march=i686 -mmmx" ${OPTIONS} &&
  
-make -j4 &&
+make -j8 &&
 cp lib*/*-*.dll ../bin_Win32 &&
 cp lib*/*.lib ../bin_Win32/lib &&
 

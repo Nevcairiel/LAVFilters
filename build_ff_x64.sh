@@ -41,7 +41,7 @@ OPTIONS="
 
 ./configure --extra-cflags="-U__STRICT_ANSI__" ${OPTIONS} &&
  
-make -j4 &&
+make -j8 &&
 cp lib*/*-*.dll ../bin_x64 &&
 cp lib*/*.lib ../bin_x64/lib &&
 
