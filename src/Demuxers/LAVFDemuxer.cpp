@@ -106,6 +106,13 @@ done:
 REFERENCE_TIME CLAVFDemuxer::GetDuration() const
 {
   int64_t iLength = 0;
+  for(int streamIdx = 0; streamIdx < m_avFormat->nb_streams; ++streamIdx) {
+    if (m_avFormat->streams[streamIdx]->codec->codec_type == CODEC_TYPE_VIDEO) {
+      if (m_avFormat->streams[streamIdx]->duration != (int64_t)AV_NOPTS_VALUE && m_avFormat->streams[streamIdx]->duration > 0) {
+        return ConvertTimestampToRT(m_avFormat->streams[streamIdx]->duration, m_avFormat->streams[streamIdx]->time_base.num, m_avFormat->streams[streamIdx]->time_base.den, 0);
+      }
+    }
+  }
   if (m_avFormat->duration == (int64_t)AV_NOPTS_VALUE || m_avFormat->duration < 0LL) {
     // no duration is available for us
     // try to calculate it
