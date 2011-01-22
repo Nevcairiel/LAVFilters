@@ -5,6 +5,11 @@ then
 mkdir -p bin_x64/lib
 fi
 
+if [ ! -d bin_x64d/lib ]
+then
+mkdir -p bin_x64d/lib
+fi
+
 cd ffmpeg
 
 make distclean
@@ -44,5 +49,7 @@ OPTIONS="
 make -j8 &&
 cp lib*/*-*.dll ../bin_x64 &&
 cp lib*/*.lib ../bin_x64/lib &&
+cp lib*/*-*.dll ../bin_x64d &&
+cp lib*/*.lib ../bin_x64d/lib &&
 
 cd ..

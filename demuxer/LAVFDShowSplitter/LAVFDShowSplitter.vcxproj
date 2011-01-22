@@ -70,12 +70,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.ax</TargetExt>
-    <OutDir>$(SolutionDir)bin_$(PlatformName)\</OutDir>
+    <OutDir>$(SolutionDir)bin_$(PlatformName)d\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.ax</TargetExt>
-    <OutDir>$(SolutionDir)bin_$(PlatformName)\</OutDir>
+    <OutDir>$(SolutionDir)bin_$(PlatformName)d\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

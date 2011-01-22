@@ -2,6 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <OutDir>$(SolutionDir)bin_$(PlatformName)d\lib\</OutDir>
+    <IntDir>$(SolutionDir)bin_$(PlatformName)d\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <OutDir>$(SolutionDir)bin_$(PlatformName)\lib\</OutDir>
     <IntDir>$(SolutionDir)bin_$(PlatformName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -12,14 +18,14 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
-    <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin_$(PlatformName)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin_$(PlatformName)d\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
@@ -28,5 +34,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin_$(PlatformName)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
 </Project>
