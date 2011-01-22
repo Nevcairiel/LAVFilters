@@ -2,8 +2,8 @@ LAVFSplitter Changelog
 ===================================
 0.12 - 2011/01/21
 - Fixed a crash issue with certain configurations and files with subtitles
-- Revisited file duration logic, now trys to prefer the duration of the video stream. This fixes MPEG-TS duration issues.
-- Updated ffmpeg (alot of issues resolved)
+- Revisited file duration logic, now tries to prefer the duration of the video stream. This fixes MPEG-TS duration issues.
+- Updated ffmpeg (a lot of issues resolved)
 
 0.11 - 2010/11/06
 - Smart stream pre-selection based on language, flags and quality
