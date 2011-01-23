@@ -24,6 +24,9 @@
     <ClCompile Include="LAVCAudio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LAVCMedia.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

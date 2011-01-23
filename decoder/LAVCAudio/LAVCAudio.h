@@ -20,6 +20,15 @@
 
 #pragma once
 
+struct scmap_t {
+  WORD nChannels;
+  BYTE ch[8];
+  DWORD dwChannelMask;
+};
+
+extern CodecID FindCodecId(const CMediaType *mt);
+extern scmap_t m_scmap_default[];
+
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
 class CLAVCAudio : public CTransformFilter
 {
