@@ -121,6 +121,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="DShowUtil.h" />
+    <ClInclude Include="growarray.h" />
     <ClInclude Include="H264Nalu.h" />
     <ClInclude Include="registry.h" />
     <ClInclude Include="stdafx.h" />

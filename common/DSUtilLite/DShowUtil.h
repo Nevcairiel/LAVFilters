@@ -28,6 +28,23 @@
 
 #define LCID_NOSUBTITLES			-1
 
+// SafeRelease Template, for type safety
+template <class T> void SafeRelease(T **ppT)
+{
+  if (*ppT)
+  {
+    (*ppT)->Release();
+    *ppT = NULL;
+  }
+}
+
+// SAFE_ARRAY_DELETE macro.
+// Deletes an array allocated with new [].
+
+#ifndef SAFE_ARRAY_DELETE
+#define SAFE_ARRAY_DELETE(x) if (x) { delete [] x; x = NULL; }
+#endif
+
 // some common macros
 #define SAFE_DELETE(pPtr) { delete pPtr; pPtr = NULL; }
 #define SAFE_CO_FREE(pPtr) { CoTaskMemFree(pPtr); pPtr = NULL; }
