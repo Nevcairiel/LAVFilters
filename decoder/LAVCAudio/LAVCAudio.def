@@ -1,0 +1,9 @@
+; LAVCAudio.def ; declares the exports
+
+LIBRARY         "LAVCAudio.ax"
+
+EXPORTS
+                DllGetClassObject PRIVATE
+                DllCanUnloadNow PRIVATE
+                DllRegisterServer PRIVATE
+                DllUnregisterServer PRIVATE
