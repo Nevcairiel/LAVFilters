@@ -216,7 +216,7 @@ CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSampl
   wfe->nChannels = nChannels;
   wfe->nSamplesPerSec = nSamplesPerSec;
   if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
-    wfe->wBitsPerSample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : 24;
+    wfe->wBitsPerSample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : (m_pAVCtx->bits_per_raw_sample > 16 ? 24 : 16);
   } else {
     wfe->wBitsPerSample = av_get_bits_per_sample_fmt(outputFormat);
   }
@@ -541,10 +541,12 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
           // So to properly support 24-bit samples, we have to process it here, and store it properly.
 
           // Figure out the number of bits actually valid in there
+          // We only support writing 32, 24 and 16 (16 shouldn't be using AV_SAMPLE_FMT_S32, but who knows)
           short bits_per_sample = 32;
           if (m_pAVCtx->bits_per_raw_sample > 0 && m_pAVCtx->bits_per_raw_sample < 32) {
-            bits_per_sample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : 24;
+            bits_per_sample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : (m_pAVCtx->bits_per_raw_sample > 16 ? 24 : 16);
           }
+
           const short bytes_per_sample = bits_per_sample >> 3;
           // Number of bits to shift the value to the left
           const short shift = 32 - bits_per_sample;
