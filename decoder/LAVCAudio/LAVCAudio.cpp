@@ -34,11 +34,13 @@ typedef struct {
 
 FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_AAC, CODEC_ID_AAC },
+  { &MEDIASUBTYPE_DOLBY_TRUEHD, CODEC_ID_TRUEHD },
 };
 
 // Define Input Media Types
 const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC }
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DOLBY_TRUEHD },
 };
 const int CLAVCAudio::sudPinTypesInCount = countof(CLAVCAudio::sudPinTypesIn);
 
@@ -84,7 +86,7 @@ CUnknown* WINAPI CLAVCAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 // Constructor
 CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
-  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVCAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0)
+  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVCAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_SampleFormat(SampleFormat_16)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_pParser(NULL)
 {
   avcodec_init();
@@ -143,7 +145,8 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     return VFW_S_NO_MORE_ITEMS;
   }
   WAVEFORMATEX* wfein = (WAVEFORMATEX*)m_pInput->CurrentMediaType().Format();
-  *pMediaType = CreateMediaType(m_pAVCodec->sample_fmts[0], wfein->nSamplesPerSec, wfein->nChannels);
+  AVSampleFormat sample_fmt = m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
+  *pMediaType = CreateMediaType(sample_fmt, wfein->nSamplesPerSec, wfein->nChannels);
   return S_OK;
 }
 
@@ -212,7 +215,11 @@ CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSampl
   wfe->wFormatTag = (WORD)mt.subtype.Data1;
   wfe->nChannels = nChannels;
   wfe->nSamplesPerSec = nSamplesPerSec;
-  wfe->wBitsPerSample = av_get_bits_per_sample_fmt(outputFormat);
+  if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
+    wfe->wBitsPerSample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : 24;
+  } else {
+    wfe->wBitsPerSample = av_get_bits_per_sample_fmt(outputFormat);
+  }
   wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
 	wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
@@ -224,7 +231,11 @@ CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSampl
 		wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
 		wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
 		wfex.dwChannelMask = dwChannelMask;
-		wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
+		if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
+      wfex.Samples.wValidBitsPerSample = m_pAVCtx->bits_per_raw_sample;
+    } else {
+      wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
+    }
 		wfex.SubFormat = mt.subtype;
 	}
   
@@ -510,7 +521,7 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
       scmap = &m_scmap_default[m_pAVCtx->channels-1];
 
       switch (m_pAVCtx->sample_fmt) {
-      case SAMPLE_FMT_S16:
+      case AV_SAMPLE_FMT_S16:
         {
           int16_t *pDataOut = (int16_t *)pBuff.Ptr();
 
@@ -522,21 +533,48 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
             }
           }
         }
+        m_SampleFormat = SampleFormat_16;
         break;
-      case SAMPLE_FMT_S32:
+      case AV_SAMPLE_FMT_S32:
         {
-          int32_t *pDataOut = (int32_t *)pBuff.Ptr();
+          // In FFMPEG, the 32-bit Sample Format is also used for 24-bit samples.
+          // So to properly support 24-bit samples, we have to process it here, and store it properly.
 
+          // Figure out the number of bits actually valid in there
+          short bits_per_sample = 32;
+          if (m_pAVCtx->bits_per_raw_sample > 0 && m_pAVCtx->bits_per_raw_sample < 32) {
+            bits_per_sample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : 24;
+          }
+          const short bytes_per_sample = bits_per_sample >> 3;
+          // Number of bits to shift the value to the left
+          const short shift = 32 - bits_per_sample;
+          pBuff.SetSize((nPCMLength >> 2) * bytes_per_sample);
+
+          // We use BYTE instead of int32_t because we don't know if its actually a 32-bit value we want to write
+          BYTE *pDataOut = (BYTE *)pBuff.Ptr();
+
+          // The source is always in 32-bit values
           size_t num_elements = pBuff.GetCount() / sizeof(int32_t) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
-              *pDataOut = ((int32_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
-              pDataOut++;
+              // Get the 32-bit sample
+              int32_t sample = ((int32_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
+              // Create a pointer to the sample for easier access
+              BYTE * const b_sample = (BYTE *)&sample;
+              // Drop the empty bits
+              sample >>= shift;
+              // Copy Data into the ouput
+              for(short k = 0; k < bytes_per_sample; ++k) {
+                pDataOut[k] = b_sample[k];
+              }
+              pDataOut += bytes_per_sample;
             }
           }
+
+          m_SampleFormat = bits_per_sample == 32 ? SampleFormat_32 : SampleFormat_24;
         }
         break;
-      case SAMPLE_FMT_FLT:
+      case AV_SAMPLE_FMT_FLT:
         {
           float *pDataOut = (float *)pBuff.Ptr();
 
@@ -548,6 +586,7 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
             }
           }
         }
+        m_SampleFormat = SampleFormat_FP32;
         break;
       default:
         assert(FALSE);
@@ -634,6 +673,7 @@ HRESULT CLAVCAudio::Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WO
   pOut->SetActualDataLength(pBuff.GetCount());
 
   // TODO: sample format stuff
+  // m_SampleFormat contains the format the last packet was encoded in
   memcpy(pDataOut, pBuff.Ptr(), pBuff.GetCount());
 
   hr = m_pOutput->Deliver(pOut);

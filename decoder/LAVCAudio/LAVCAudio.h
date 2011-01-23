@@ -51,6 +51,13 @@ public:
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesOut[];
   const static int                      sudPinTypesOutCount;
 
+  enum LAVCSampleFormat {
+    SampleFormat_16,
+    SampleFormat_24,
+    SampleFormat_32,
+    SampleFormat_FP32
+  };
+
 private:
   CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVCAudio();
@@ -77,4 +84,5 @@ private:
   BOOL                 m_fDiscontinuity; // Discontinuity
   REFERENCE_TIME       m_rtStart;        // Start time
   GrowableArray<BYTE>  m_buff;           // Input Buffer
+  LAVCSampleFormat     m_SampleFormat;  // Number of bits in the samples
 };
