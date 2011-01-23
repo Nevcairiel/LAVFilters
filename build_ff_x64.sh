@@ -19,8 +19,8 @@ OPTIONS="
 --enable-memalign-hack \
 --enable-gpl \
 --enable-w32threads \
---disable-runtime-cpudetect \
---disable-asm \
+--enable-runtime-cpudetect \
+--enable-asm \
 --disable-postproc \
 --enable-zlib \
 --disable-static \
@@ -41,6 +41,7 @@ OPTIONS="
 --disable-bsfs \
 --disable-network \
 --disable-protocols \
+--disable-parser=aac \
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32"
 
