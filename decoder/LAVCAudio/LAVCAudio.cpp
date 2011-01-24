@@ -38,7 +38,7 @@ CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_pParser(NULL)
 {
   avcodec_init();
-	avcodec_register_all();
+  avcodec_register_all();
 }
 
 CLAVCAudio::~CLAVCAudio()
@@ -103,58 +103,58 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 
 HRESULT CLAVCAudio::ReconnectOutput(int nSamples, CMediaType& mt)
 {
-	HRESULT hr = S_FALSE;
+  HRESULT hr = S_FALSE;
 
   IMemInputPin *pPin = NULL;
   IMemAllocator *pAllocator = NULL;
 
-	CHECK_HR(hr = m_pOutput->GetConnected()->QueryInterface(&pPin));
-	
+  CHECK_HR(hr = m_pOutput->GetConnected()->QueryInterface(&pPin));
+
   if(FAILED(hr = pPin->GetAllocator(&pAllocator)) || !pAllocator) {
-		goto done;
-	}
+    goto done;
+  }
 
-	ALLOCATOR_PROPERTIES props, actual;
-	if(FAILED(hr = pAllocator->GetProperties(&props))) {
-		goto done;
-	}
+  ALLOCATOR_PROPERTIES props, actual;
+  CHECK_HR(hr = pAllocator->GetProperties(&props));
 
-	WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
-	long cbBuffer = nSamples * wfe->nBlockAlign;
+  WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
+  long cbBuffer = nSamples * wfe->nBlockAlign;
 
-	if(mt != m_pOutput->CurrentMediaType() || cbBuffer > props.cbBuffer) {
-		if(cbBuffer > props.cbBuffer) {
-			props.cBuffers = 4;
-			props.cbBuffer = cbBuffer*3/2;
+  hr = S_FALSE;
 
-			if(FAILED(hr = m_pOutput->DeliverBeginFlush())
-					|| FAILED(hr = m_pOutput->DeliverEndFlush())
-					|| FAILED(hr = pAllocator->Decommit())
-					|| FAILED(hr = pAllocator->SetProperties(&props, &actual))
-					|| FAILED(hr = pAllocator->Commit())) {
-				goto done;
-			}
+  if(mt != m_pOutput->CurrentMediaType() || cbBuffer > props.cbBuffer) {
+    if(cbBuffer > props.cbBuffer) {
+      props.cBuffers = 4;
+      props.cbBuffer = cbBuffer*3/2;
 
-			if(props.cBuffers > actual.cBuffers || props.cbBuffer > actual.cbBuffer) {
-				NotifyEvent(EC_ERRORABORT, hr, 0);
-				hr = E_FAIL;
+      if(FAILED(hr = m_pOutput->DeliverBeginFlush())
+        || FAILED(hr = m_pOutput->DeliverEndFlush())
+        || FAILED(hr = pAllocator->Decommit())
+        || FAILED(hr = pAllocator->SetProperties(&props, &actual))
+        || FAILED(hr = pAllocator->Commit())) {
+          goto done;
+      }
+
+      if(props.cBuffers > actual.cBuffers || props.cbBuffer > actual.cbBuffer) {
+        NotifyEvent(EC_ERRORABORT, hr, 0);
+        hr = E_FAIL;
         goto done;
-			}
-		}
+      }
+    }
 
-		hr = S_OK;
-	}
+    hr = S_OK;
+  }
 
 done:
   SafeRelease(&pPin);
   SafeRelease(&pAllocator);
-	return hr;
+  return hr;
 }
 
 CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask)
 {
   CMediaType mt;
-  
+
   mt.majortype = MEDIATYPE_Audio;
   mt.subtype = (outputFormat == AV_SAMPLE_FMT_FLT) ? MEDIASUBTYPE_IEEE_FLOAT : MEDIASUBTYPE_PCM;
   mt.formattype = FORMAT_WaveFormatEx;
@@ -172,28 +172,28 @@ CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSampl
     wfe->wBitsPerSample = av_get_bits_per_sample_fmt(outputFormat);
   }
   wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
-	wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
+  wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
   if(dwChannelMask == 0 && wfe->wBitsPerSample > 16) {
-		dwChannelMask = nChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
-	}
+    dwChannelMask = nChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
+  }
 
-	if(dwChannelMask) {
-		wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-		wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
-		wfex.dwChannelMask = dwChannelMask;
-		if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
+  if(dwChannelMask) {
+    wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+    wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
+    wfex.dwChannelMask = dwChannelMask;
+    if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
       wfex.Samples.wValidBitsPerSample = m_pAVCtx->bits_per_raw_sample;
     } else {
       wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
     }
-		wfex.SubFormat = mt.subtype;
-	}
-  
+    wfex.SubFormat = mt.subtype;
+  }
+
   mt.SetSampleSize(wfe->wBitsPerSample * wfe->nChannels / 8);
   mt.SetFormat((BYTE*)&wfex, sizeof(wfex.Format) + wfex.Format.cbSize);
 
-	return mt;
+  return mt;
 }
 
 // Check if the types are compatible
@@ -240,44 +240,45 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     if (codec == CODEC_ID_NONE) {
       return VFW_E_TYPE_NOT_ACCEPTED;
     }
-    if (codec != m_nCodecId) {
-      
-      ffmpeg_shutdown();
 
+    ffmpeg_shutdown();
+
+    if (codec == CODEC_ID_MP3) {
+      m_pAVCodec    = avcodec_find_decoder_by_name("mp3float");
+    } else {
       m_pAVCodec    = avcodec_find_decoder(codec);
-      CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_AUDIO);
+    }
+    CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_AUDIO);
 
-      m_pAVCtx = avcodec_alloc_context();
-      CheckPointer(m_pAVCtx, E_POINTER);
+    m_pAVCtx = avcodec_alloc_context();
+    CheckPointer(m_pAVCtx, E_POINTER);
 
-      m_pParser = av_parser_init(codec);
+    m_pParser = av_parser_init(codec);
 
-      WAVEFORMATEX*	wfein	= (WAVEFORMATEX*)pmt->Format();
+    WAVEFORMATEX*	wfein	= (WAVEFORMATEX*)pmt->Format();
 
-      m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
-      m_pAVCtx->codec_id              = (CodecID)codec;
-      m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
-      m_pAVCtx->channels              = wfein->nChannels;
-      m_pAVCtx->bit_rate              = wfein->nAvgBytesPerSec * 8;
-      m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
-      m_pAVCtx->block_align           = wfein->nBlockAlign;
-      m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
-      
-      if (wfein->cbSize) {
-        m_pAVCtx->extradata_size      = wfein->cbSize;
-        m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
-        memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
-      }
-      
-      int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
-      if (ret >= 0) {
-        m_pPCMData	= (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-      } else {
-        return VFW_E_UNSUPPORTED_AUDIO;
-      }
+    m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
+    m_pAVCtx->codec_id              = (CodecID)codec;
+    m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
+    m_pAVCtx->channels              = wfein->nChannels;
+    m_pAVCtx->bit_rate              = wfein->nAvgBytesPerSec * 8;
+    m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
+    m_pAVCtx->block_align           = wfein->nBlockAlign;
+    m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
 
-      // All successfull, store the codec
-      m_nCodecId    = codec;
+    m_nCodecId                      = codec;
+
+    if (wfein->cbSize) {
+      m_pAVCtx->extradata_size      = wfein->cbSize;
+      m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+      memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
+    }
+
+    int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
+    if (ret >= 0) {
+      m_pPCMData	= (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    } else {
+      return VFW_E_UNSUPPORTED_AUDIO;
     }
   }
   return __super::SetMediaType(dir, pmt);
@@ -294,30 +295,30 @@ HRESULT CLAVCAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 
 HRESULT CLAVCAudio::EndOfStream()
 {
-	CAutoLock cAutoLock(&m_csReceive);
-	return __super::EndOfStream();
+  CAutoLock cAutoLock(&m_csReceive);
+  return __super::EndOfStream();
 }
 
 HRESULT CLAVCAudio::BeginFlush()
 {
-	return __super::BeginFlush();
+  return __super::BeginFlush();
 }
 
 HRESULT CLAVCAudio::EndFlush()
 {
-	CAutoLock cAutoLock(&m_csReceive);
-	m_buff.SetSize(0);
-	return __super::EndFlush();
+  CAutoLock cAutoLock(&m_csReceive);
+  m_buff.SetSize(0);
+  return __super::EndFlush();
 }
 
 HRESULT CLAVCAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
-	CAutoLock cAutoLock(&m_csReceive);
-	m_buff.SetSize(0);
-	if (m_pAVCtx) {
-		avcodec_flush_buffers (m_pAVCtx);
-	}
-	return __super::NewSegment(tStart, tStop, dRate);
+  CAutoLock cAutoLock(&m_csReceive);
+  m_buff.SetSize(0);
+  if (m_pAVCtx) {
+    avcodec_flush_buffers (m_pAVCtx);
+  }
+  return __super::NewSegment(tStart, tStop, dRate);
 }
 
 HRESULT CLAVCAudio::Receive(IMediaSample *pIn)
@@ -350,13 +351,13 @@ HRESULT CLAVCAudio::Receive(IMediaSample *pIn)
   hr = pIn->GetTime(&rtStart, &rtStop);
 
   if(pIn->IsDiscontinuity() == S_OK) {
-		m_fDiscontinuity = true;
-		m_buff.SetSize(0);
+    m_fDiscontinuity = true;
+    m_buff.SetSize(0);
     if(FAILED(hr)) {
-			return S_OK;
-		}
-		m_rtStart = rtStart;
-	}
+      return S_OK;
+    }
+    m_rtStart = rtStart;
+  }
 
   if(SUCCEEDED(hr) && _abs64((m_rtStart - rtStart)) > 1000000i64) { // +-100ms jitter is allowed for now
     m_buff.SetSize(0);
@@ -364,9 +365,9 @@ HRESULT CLAVCAudio::Receive(IMediaSample *pIn)
   }
 
   int bufflen = m_buff.GetCount();
-	m_buff.SetSize(bufflen + len);
-	memcpy(m_buff.Ptr() + bufflen, pDataIn, len);
-	len += bufflen;
+  m_buff.SetSize(bufflen + len);
+  memcpy(m_buff.Ptr() + bufflen, pDataIn, len);
+  len += bufflen;
 
   hr = ProcessBuffer();
 
@@ -378,8 +379,8 @@ HRESULT CLAVCAudio::ProcessBuffer()
   HRESULT hr = S_OK;
 
   BYTE *p = m_buff.Ptr();
-	BYTE *base = p;
-	BYTE *end = p + m_buff.GetCount();
+  BYTE *base = p;
+  BYTE *end = p + m_buff.GetCount();
 
   int consumed = 0;
 
@@ -417,7 +418,7 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
       m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
     }
 
-    
+
     // Required number of additionally allocated bytes at the end of the input bitstream for decoding.
     // This is mainly needed because some optimized bitstream readers read
     // 32 or 64 bit at once and could read over the end.<br>
@@ -611,6 +612,7 @@ HRESULT CLAVCAudio::Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WO
   }
 
   if(hr == S_OK) {
+    DbgLog((LOG_CUSTOM1, 1, L"Sending new Media Type"));
     m_pOutput->SetMediaType(&mt);
     pOut->SetMediaType(&mt);
   }
@@ -633,4 +635,29 @@ HRESULT CLAVCAudio::Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WO
 done:
   SafeRelease(&pOut);
   return hr;
+}
+
+HRESULT CLAVCAudio::StartStreaming()
+{
+  HRESULT hr = __super::StartStreaming();
+  if(FAILED(hr)) {
+    return hr;
+  }
+
+  m_fDiscontinuity = false;
+
+  return S_OK;
+}
+
+HRESULT CLAVCAudio::StopStreaming()
+{
+  return __super::StopStreaming();
+}
+
+HRESULT CLAVCAudio::BreakConnect(PIN_DIRECTION dir)
+{
+  if(dir == PINDIR_INPUT) {
+    ffmpeg_shutdown();
+  }
+  return __super::BreakConnect(dir);
 }
