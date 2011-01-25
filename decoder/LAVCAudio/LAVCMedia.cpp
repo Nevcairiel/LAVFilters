@@ -13,9 +13,9 @@ typedef struct {
 
 // Map Media Subtype <> FFMPEG Codec Id
 FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
-  { &MEDIASUBTYPE_AAC, CODEC_ID_AAC },
+  { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC },
   { &MEDIASUBTYPE_DOLBY_TRUEHD, CODEC_ID_TRUEHD },
-  { &MEDIASUBTYPE_MP3, CODEC_ID_MP3 },
+  { &MEDIASUBTYPE_MP3,          CODEC_ID_MP3 },
 };
 
 // Define Input Media Types
