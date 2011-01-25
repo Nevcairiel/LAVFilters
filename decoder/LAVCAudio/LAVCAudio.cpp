@@ -96,8 +96,11 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     return VFW_S_NO_MORE_ITEMS;
   }
   WAVEFORMATEX* wfein = (WAVEFORMATEX*)m_pInput->CurrentMediaType().Format();
-  AVSampleFormat sample_fmt = m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
-  *pMediaType = CreateMediaType(sample_fmt, wfein->nSamplesPerSec, wfein->nChannels);
+
+  const AVSampleFormat sample_fmt = (m_pAVCodec && m_pAVCodec->sample_fmts) ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
+  const DWORD dwChannelMask = m_scmap_default[wfein->nChannels - 1].dwChannelMask;
+
+  *pMediaType = CreateMediaType(sample_fmt, wfein->nSamplesPerSec, wfein->nChannels, dwChannelMask);
   return S_OK;
 }
 
