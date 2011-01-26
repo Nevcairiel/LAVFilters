@@ -13,18 +13,18 @@ typedef struct {
 
 // Map Media Subtype <> FFMPEG Codec Id
 FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
-  { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC },
+  { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC      },
   { &MEDIASUBTYPE_LATM_AAC,     CODEC_ID_AAC_LATM },
-  { &MEDIASUBTYPE_DOLBY_TRUEHD, CODEC_ID_TRUEHD },
-  { &MEDIASUBTYPE_MP3,          CODEC_ID_MP3 },
+  { &MEDIASUBTYPE_DOLBY_TRUEHD, CODEC_ID_TRUEHD   },
+  { &MEDIASUBTYPE_MP3,          CODEC_ID_MP3      },
 };
 
 // Define Input Media Types
 const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC },
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_LATM_AAC },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC          },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_LATM_AAC     },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DOLBY_TRUEHD },
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MP3 },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MP3          },
 };
 const int CLAVCAudio::sudPinTypesInCount = countof(CLAVCAudio::sudPinTypesIn);
 
