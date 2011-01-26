@@ -13,18 +13,70 @@ typedef struct {
 
 // Map Media Subtype <> FFMPEG Codec Id
 FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
+  // AAC
   { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC      },
   { &MEDIASUBTYPE_LATM_AAC,     CODEC_ID_AAC_LATM },
+  { &MEDIASUBTYPE_MP4A,         CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_mp4a,         CODEC_ID_AAC      },
+
+  // Dolby
+  { &MEDIASUBTYPE_DOLBY_AC3,    CODEC_ID_AC3      },
+  { &MEDIASUBTYPE_DOLBY_DDPLUS, CODEC_ID_EAC3     },
   { &MEDIASUBTYPE_DOLBY_TRUEHD, CODEC_ID_TRUEHD   },
+  { &MEDIASUBTYPE_WAVE_DOLBY_AC3, CODEC_ID_AC3    },
+
+  // DTS
+  { &MEDIASUBTYPE_DTS,          CODEC_ID_DTS      },
+  { &MEDIASUBTYPE_DTS_HD,       CODEC_ID_DTS      },
+  { &MEDIASUBTYPE_WAVE_DTS,     CODEC_ID_DTS      },
+
+  // MPEG Audio
+  { &MEDIASUBTYPE_MPEG1Packet,  CODEC_ID_MP1      },
+  { &MEDIASUBTYPE_MPEG1Payload, CODEC_ID_MP1      },
+  { &MEDIASUBTYPE_MPEG1AudioPayload, CODEC_ID_MP1 },
+  { &MEDIASUBTYPE_MPEG2_AUDIO,  CODEC_ID_MP2      },
   { &MEDIASUBTYPE_MP3,          CODEC_ID_MP3      },
+
+  // FLAC
+  { &MEDIASUBTYPE_FLAC,         CODEC_ID_FLAC     },
+  { &MEDIASUBTYPE_FLAC_FRAMED,  CODEC_ID_FLAC     },
+
+  // Ogg Vorbis
+  { &MEDIASUBTYPE_Vorbis2,      CODEC_ID_VORBIS   },
 };
 
 // Define Input Media Types
 const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
+  // AAC
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC          },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_LATM_AAC     },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MP4A         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_mp4a         },
+
+  // Dolby
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DOLBY_AC3    },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DOLBY_DDPLUS },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DOLBY_TRUEHD },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_WAVE_DOLBY_AC3 },
+
+  // DTS
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DTS          },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_WAVE_DTS     },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DTS_HD       },
+
+  // MPEG Audio
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MPEG1Packet  },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MPEG1Payload },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MPEG1AudioPayload },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MPEG2_AUDIO  },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_MP3          },
+
+  // FLAC
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_FLAC,        },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_FLAC_FRAMED  },
+
+  // Ogg Vorbis
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_Vorbis2      },
 };
 const int CLAVCAudio::sudPinTypesInCount = countof(CLAVCAudio::sudPinTypesIn);
 
