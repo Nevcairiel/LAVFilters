@@ -27,7 +27,20 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName);
 
 inline int get_bits_per_sample(AVCodecContext *ctx)
 {
-  return (ctx->bits_per_raw_sample ? ctx->bits_per_raw_sample : av_get_bits_per_sample_format(ctx->sample_fmt));
+  int bits = av_get_bits_per_sample(ctx->codec_id);
+  if (!bits) {
+    if (ctx->codec_id == CODEC_ID_PCM_DVD || ctx->codec_id == CODEC_ID_PCM_BLURAY) {
+      bits = ctx->bits_per_coded_sample;
+    }
+    if(!bits) {
+      if (ctx->sample_fmt == AV_SAMPLE_FMT_S32 && ctx->bits_per_raw_sample) {
+        bits = ctx->bits_per_raw_sample;
+      } else {
+        bits = av_get_bits_per_sample_format(ctx->sample_fmt);
+      }
+    }
+  }
+  return bits;
 }
 
 extern "C" {

@@ -283,6 +283,11 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     } else {
       return VFW_E_UNSUPPORTED_AUDIO;
     }
+
+    // This could probably be a bit smarter..
+    if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
+      m_pAVCtx->bits_per_raw_sample = wfein->wBitsPerSample;
+    }
   }
   return __super::SetMediaType(dir, pmt);
 }

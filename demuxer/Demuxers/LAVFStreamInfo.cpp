@@ -70,6 +70,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
       mtype.pbFormat = (BYTE *)g_AudioHelper.CreateMP1WVFMT(avstream, &mtype.cbFormat);
     } else if (mtype.subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
       mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWVFMTEX_LPCM(avstream, &mtype.cbFormat);
+      mtypes.push_back(mtype);
+      mtype.subtype = MEDIASUBTYPE_BD_LPCM_AUDIO;
     } else {
       WAVEFORMATEX *wvfmt = g_AudioHelper.CreateWVFMTEX(avstream, &mtype.cbFormat);
 

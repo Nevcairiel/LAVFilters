@@ -43,6 +43,10 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
 
   // Ogg Vorbis
   { &MEDIASUBTYPE_Vorbis2,      CODEC_ID_VORBIS   },
+
+  // BluRay LPVM
+  { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
+  { &MEDIASUBTYPE_BD_LPCM_AUDIO, CODEC_ID_PCM_BLURAY },
 };
 
 // Define Input Media Types
@@ -77,6 +81,10 @@ const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
 
   // Ogg Vorbis
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_Vorbis2      },
+
+  // BluRay LPVM
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_BD_LPCM_AUDIO },
 };
 const int CLAVCAudio::sudPinTypesInCount = countof(CLAVCAudio::sudPinTypesIn);
 
