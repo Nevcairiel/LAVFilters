@@ -150,7 +150,6 @@ void CLAVCAudio::CreateBDLPCMHeader(BYTE *pBuf, WAVEFORMATEX_HDMV_LPCM *wfex_lpc
 {
   pBuf[0] = 0;
   pBuf[1] = 0;
-  pBuf[2] = (wfex_lpcm->channel_conf) << 4;
-  pBuf[2] += get_lpcm_sample_rate_index(wfex_lpcm->nSamplesPerSec);
+  pBuf[2] = ((wfex_lpcm->channel_conf) << 4) | (get_lpcm_sample_rate_index(wfex_lpcm->nSamplesPerSec) & 0x0f);
   pBuf[3] = get_lpcm_bit_per_sample_index(wfex_lpcm->wBitsPerSample) << 6;
 }
