@@ -157,7 +157,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     // Get channel layout
     char channel[32];
-    avcodec_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
+    av_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
     buf << ", " << channel;
     // Sample Format
     if (get_bits_per_sample(enc)) {

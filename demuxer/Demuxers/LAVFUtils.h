@@ -36,7 +36,7 @@ inline int get_bits_per_sample(AVCodecContext *ctx)
       if (ctx->sample_fmt == AV_SAMPLE_FMT_S32 && ctx->bits_per_raw_sample) {
         bits = ctx->bits_per_raw_sample;
       } else {
-        bits = av_get_bits_per_sample_format(ctx->sample_fmt);
+        bits = av_get_bits_per_sample_fmt(ctx->sample_fmt);
       }
     }
   }
