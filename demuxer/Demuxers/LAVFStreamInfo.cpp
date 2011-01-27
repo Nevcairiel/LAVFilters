@@ -68,10 +68,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
     // Special Logic for the MPEG1 Audio Formats (MP1, MP2)
     if(mtype.subtype == MEDIASUBTYPE_MPEG1AudioPayload) {
       mtype.pbFormat = (BYTE *)g_AudioHelper.CreateMP1WVFMT(avstream, &mtype.cbFormat);
-    } else if (mtype.subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
+    } else if (mtype.subtype == MEDIASUBTYPE_BD_LPCM_AUDIO) {
       mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWVFMTEX_LPCM(avstream, &mtype.cbFormat);
       mtypes.push_back(mtype);
-      mtype.subtype = MEDIASUBTYPE_BD_LPCM_AUDIO;
+      mtype.subtype = MEDIASUBTYPE_HDMV_LPCM_AUDIO;
     } else {
       WAVEFORMATEX *wvfmt = g_AudioHelper.CreateWVFMTEX(avstream, &mtype.cbFormat);
 

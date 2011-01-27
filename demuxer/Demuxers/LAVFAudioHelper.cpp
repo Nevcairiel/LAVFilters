@@ -76,7 +76,7 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     mediaType.subtype = MEDIASUBTYPE_MP3;
     break;
   case CODEC_ID_PCM_BLURAY:
-    mediaType.subtype = MEDIASUBTYPE_HDMV_LPCM_AUDIO;
+    mediaType.subtype = MEDIASUBTYPE_BD_LPCM_AUDIO;
     break;
   case CODEC_ID_PCM_DVD:
     mediaType.subtype = MEDIASUBTYPE_DVD_LPCM_AUDIO;
@@ -128,6 +128,42 @@ WAVEFORMATEX_HDMV_LPCM *CLAVFAudioHelper::CreateWVFMTEX_LPCM(const AVStream *avs
   memcpy(lpcm, wvfmt, sizeof(WAVEFORMATEX));
 
   lpcm->cbSize = sizeof(WAVEFORMATEX_HDMV_LPCM) - sizeof(WAVEFORMATEX);
+  BYTE channel_conf = 0;
+  switch (avstream->codec->channel_layout) {
+  case AV_CH_LAYOUT_MONO:
+    channel_conf = 1;
+    break;
+  case AV_CH_LAYOUT_STEREO:
+    channel_conf = 3;
+    break;
+  case AV_CH_LAYOUT_SURROUND:
+    channel_conf = 4;
+    break;
+  case AV_CH_LAYOUT_2_1:
+    channel_conf = 5;
+    break;
+  case AV_CH_LAYOUT_4POINT0:
+    channel_conf = 6;
+    break;
+  case AV_CH_LAYOUT_2_2:
+    channel_conf = 7;
+    break;
+  case AV_CH_LAYOUT_5POINT0:
+    channel_conf = 8;
+    break;
+  case AV_CH_LAYOUT_5POINT1:
+    channel_conf = 9;
+    break;
+  case AV_CH_LAYOUT_7POINT0:
+    channel_conf = 10;
+    break;
+  case AV_CH_LAYOUT_7POINT1:
+    channel_conf = 11;
+    break;
+  default:
+    channel_conf = 0;
+  }
+  lpcm->channel_conf = channel_conf;
 
   CoTaskMemFree(wvfmt);
 
