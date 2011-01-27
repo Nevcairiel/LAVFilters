@@ -376,10 +376,11 @@ HRESULT CLAVCAudio::Receive(IMediaSample *pIn)
   int bufflen = m_buff.GetCount();
 
   // Hack to re-create the BD LPCM header because in the MPC-HC format its stripped off.
-  if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
+  CMediaType inMt(m_pInput->CurrentMediaType());
+  if (inMt.subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO && inMt.formattype == FORMAT_WaveFormatEx) {
     m_buff.SetSize(bufflen + 4);
     BYTE *buf = m_buff.Ptr() + bufflen;
-    CreateBDLPCMHeader(buf, (WAVEFORMATEX_HDMV_LPCM *)m_pInput->CurrentMediaType().pbFormat);
+    CreateBDLPCMHeader(buf, (WAVEFORMATEX_HDMV_LPCM *)inMt.pbFormat);
     bufflen = m_buff.GetCount();
   }
 
