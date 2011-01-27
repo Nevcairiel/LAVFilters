@@ -44,9 +44,10 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   // Ogg Vorbis
   { &MEDIASUBTYPE_Vorbis2,      CODEC_ID_VORBIS   },
 
-  // BluRay LPVM
+  // BluRay LPCM
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
   { &MEDIASUBTYPE_BD_LPCM_AUDIO, CODEC_ID_PCM_BLURAY },
+  { &MEDIASUBTYPE_HDMV_LPCM_AUDIO, CODEC_ID_PCM_BLURAY }, // MPC-HC MPEG Splitter type with header stripped off
 };
 
 // Define Input Media Types
@@ -82,9 +83,10 @@ const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
   // Ogg Vorbis
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_Vorbis2      },
 
-  // BluRay LPVM
+  // BluRay LPCM
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_BD_LPCM_AUDIO },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_HDMV_LPCM_AUDIO }, // MPC-HC MPEG Splitter type with header stripped off
 };
 const int CLAVCAudio::sudPinTypesInCount = countof(CLAVCAudio::sudPinTypesIn);
 
@@ -117,3 +119,38 @@ scmap_t m_scmap_default[] = {
   {7, { 0, 1, 2, 3, 4, 5, 6,-1 }, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT|SPEAKER_BACK_CENTER},	// 3/4			FL, FR, FC, BL, Bls, Brs, BR
   {8, { 0, 1, 2, 3, 6, 7, 4, 5 }, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT},// 3/4+LFe		FL, FR, FC, BL, Bls, Brs, BR, LFe
 };
+
+static BYTE get_lpcm_sample_rate_index(int sample_rate)
+{
+  switch(sample_rate) {
+  case 48000:
+    return 1;
+  case 96000:
+    return 4;
+  case 192000:
+    return 5;
+  }
+  return 0;
+}
+
+static BYTE get_lpcm_bit_per_sample_index(int bit_per_sample)
+{
+  switch(bit_per_sample) {
+  case 16:
+    return 1;
+  case 20:
+    return 2;
+  case 24:
+    return 3;
+  }
+  return 0;
+}
+
+void CLAVCAudio::CreateBDLPCMHeader(BYTE *pBuf, WAVEFORMATEX_HDMV_LPCM *wfex_lpcm)
+{
+  pBuf[0] = 0;
+  pBuf[1] = 0;
+  pBuf[2] = (wfex_lpcm->channel_conf) << 4;
+  pBuf[2] += get_lpcm_sample_rate_index(wfex_lpcm->nSamplesPerSec);
+  pBuf[3] = get_lpcm_bit_per_sample_index(wfex_lpcm->wBitsPerSample) << 6;
+}

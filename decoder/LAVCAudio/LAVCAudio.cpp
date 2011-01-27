@@ -24,6 +24,7 @@
 #include <MMReg.h>
 #include <assert.h>
 
+#include "moreuuids.h"
 #include "DShowUtil.h"
 
 // static constructor
@@ -373,6 +374,15 @@ HRESULT CLAVCAudio::Receive(IMediaSample *pIn)
   }
 
   int bufflen = m_buff.GetCount();
+
+  // Hack to re-create the BD LPCM header because in the MPC-HC format its stripped off.
+  if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
+    m_buff.SetSize(bufflen + 4);
+    BYTE *buf = m_buff.Ptr() + bufflen;
+    CreateBDLPCMHeader(buf, (WAVEFORMATEX_HDMV_LPCM *)m_pInput->CurrentMediaType().pbFormat);
+    bufflen = m_buff.GetCount();
+  }
+
   m_buff.SetSize(bufflen + len);
   memcpy(m_buff.Ptr() + bufflen, pDataIn, len);
   len += bufflen;

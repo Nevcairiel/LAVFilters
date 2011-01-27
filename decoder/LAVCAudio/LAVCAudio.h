@@ -29,6 +29,8 @@ struct scmap_t {
 extern CodecID FindCodecId(const CMediaType *mt);
 extern scmap_t m_scmap_default[];
 
+struct WAVEFORMATEX_HDMV_LPCM;
+
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
 class CLAVCAudio : public CTransformFilter
 {
@@ -83,6 +85,8 @@ private:
   HRESULT Decode(BYTE *p, int buffsize, int &consumed);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
   HRESULT Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask);
+
+  void CreateBDLPCMHeader(BYTE *pBuf, WAVEFORMATEX_HDMV_LPCM *wfex_lpcm);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
