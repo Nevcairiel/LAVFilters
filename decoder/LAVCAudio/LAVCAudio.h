@@ -27,7 +27,7 @@ struct scmap_t {
 };
 
 extern CodecID FindCodecId(const CMediaType *mt);
-extern scmap_t m_scmap_default[];
+extern const scmap_t m_scmap_default[];
 
 struct WAVEFORMATEX_HDMV_LPCM;
 

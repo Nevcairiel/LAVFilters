@@ -108,7 +108,7 @@ CodecID FindCodecId(const CMediaType *mt)
 }
 
 // Default Channel to Speaker Map
-scmap_t m_scmap_default[] = {
+const scmap_t m_scmap_default[] = {
   //    FL  FR  FC  LFe BL  BR  FLC FRC
   {1, { 0,-1,-1,-1,-1,-1,-1,-1 }, 0},		// Mono			M1, 0
   {2, { 0, 1,-1,-1,-1,-1,-1,-1 }, 0},		// Stereo		FL, FR
@@ -148,7 +148,7 @@ static BYTE get_lpcm_bit_per_sample_index(int bit_per_sample)
 
 void CLAVCAudio::CreateBDLPCMHeader(BYTE *pBuf, WAVEFORMATEX_HDMV_LPCM *wfex_lpcm)
 {
-  BYTE channel_conf = (wfex_lpcm->cbSize >= 1) ? wfex_lpcm->channel_conf : 0;
+  const BYTE channel_conf = (wfex_lpcm->cbSize >= 1) ? wfex_lpcm->channel_conf : 0;
   pBuf[0] = 0;
   pBuf[1] = 0;
   pBuf[2] = ((channel_conf) << 4) | (get_lpcm_sample_rate_index(wfex_lpcm->nSamplesPerSec) & 0x0f);

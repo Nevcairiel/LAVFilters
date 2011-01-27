@@ -425,7 +425,7 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
   int nPCMLength	= 0;
   BYTE *pDataInBuff = p;
   GrowableArray<BYTE> pBuffOut;
-  scmap_t *scmap = NULL;
+  const scmap_t *scmap = NULL;
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
