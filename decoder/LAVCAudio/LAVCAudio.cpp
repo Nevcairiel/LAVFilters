@@ -414,7 +414,7 @@ HRESULT CLAVCAudio::ProcessBuffer()
   int consumed = 0;
 
   // Consume the buffer data
-  Decode(p, end-p, consumed);
+  Decode(p, (int)(end-p), consumed);
 
   if (consumed <= 0) {
     return S_OK;
@@ -424,7 +424,7 @@ HRESULT CLAVCAudio::ProcessBuffer()
   memmove(base, p, end - p);
   end = base + (end - p);
   p = base;
-  m_buff.SetSize(end - p);
+  m_buff.SetSize((DWORD)(end - p));
 
   return hr;
 }
