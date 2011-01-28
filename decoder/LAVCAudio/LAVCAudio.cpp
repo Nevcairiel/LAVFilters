@@ -458,6 +458,19 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
       scmap = &m_scmap_default[m_pAVCtx->channels-1];
 
       switch (m_pAVCtx->sample_fmt) {
+      case AV_SAMPLE_FMT_U8:
+        {
+          pBuffOut.SetSize(idx_start + nPCMLength);
+          uint8_t *pDataOut = (uint8_t *)(pBuffOut.Ptr() + idx_start);
+
+          size_t num_elements = nPCMLength / sizeof(uint8_t) / m_pAVCtx->channels;
+          for (size_t i = 0; i < num_elements; ++i) {
+            for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
+              *pDataOut = ((uint8_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
+              pDataOut++;
+            }
+          }
+        }
       case AV_SAMPLE_FMT_S16:
         {
           pBuffOut.SetSize(idx_start + nPCMLength);
