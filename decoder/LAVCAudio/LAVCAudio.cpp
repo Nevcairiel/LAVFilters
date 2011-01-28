@@ -36,7 +36,7 @@ CUnknown* WINAPI CLAVCAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 // Constructor
 CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVCAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_SampleFormat(SampleFormat_16)
-  , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_pParser(NULL)
+  , m_pFFBuffer(NULL), m_nFFBufferSize(0)
 {
   avcodec_init();
   avcodec_register_all();
@@ -56,11 +56,6 @@ void CLAVCAudio::ffmpeg_shutdown()
     av_free(m_pAVCtx->extradata);
     av_free(m_pAVCtx);
     m_pAVCtx = NULL;
-  }
-
-  if (m_pParser) {
-    av_parser_close(m_pParser);
-    m_pParser = NULL;
   }
 
   if (m_pPCMData) {
@@ -257,8 +252,6 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     m_pAVCtx = avcodec_alloc_context();
     CheckPointer(m_pAVCtx, E_POINTER);
 
-    m_pParser = av_parser_init(codec);
-
     WAVEFORMATEX*	wfein	= (WAVEFORMATEX*)pmt->Format();
 
     m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
@@ -446,43 +439,17 @@ HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
     memcpy(m_pFFBuffer, pDataInBuff, buffsize);
     memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
 
-    int used_bytes = 0;
-    if (m_pParser) {
-      BYTE *pOut = NULL;
-      int pOut_size = 0;
-      used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, AV_NOPTS_VALUE);
-      if (used_bytes < 0 || (used_bytes == 0 && pOut_size == 0)) {
-        return S_OK;
-      }
+    avpkt.data = (uint8_t *)m_pFFBuffer;
+    avpkt.size = buffsize;
 
-      buffsize -= used_bytes;
-      pDataInBuff += used_bytes;
+    int used_bytes = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
 
-      if (pOut_size > 0) {
-        avpkt.data = (uint8_t *)pOut;
-        avpkt.size = pOut_size;
-
-        int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
-        if (ret2 < 0) {
-          consumed = used_bytes;
-          return S_OK;
-        }
-      } else {
-        continue;
-      }
-    } else {
-      avpkt.data = (uint8_t *)m_pFFBuffer;
-      avpkt.size = buffsize;
-
-      used_bytes = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
-
-      if(used_bytes < 0 || used_bytes == 0 && nPCMLength <= 0 ) {
-        consumed = used_bytes;
-        return S_OK;
-      }
-      buffsize -= used_bytes;
-      pDataInBuff += used_bytes;
+    if(used_bytes < 0 || used_bytes == 0 && nPCMLength <= 0 ) {
+      consumed = used_bytes;
+      return S_OK;
     }
+    buffsize -= used_bytes;
+    pDataInBuff += used_bytes;
     consumed += used_bytes;
 
     // Channel re-mapping and sample format conversion

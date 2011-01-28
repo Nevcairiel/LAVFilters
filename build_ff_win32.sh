@@ -41,7 +41,6 @@ OPTIONS="
 --disable-bsfs \
 --disable-network \
 --disable-protocols \
---disable-parser=aac \
 --arch=x86 --target-os=mingw32"
 
 ./configure --extra-cflags="-U__STRICT_ANSI__ -march=i686 -mmmx" ${OPTIONS} &&
