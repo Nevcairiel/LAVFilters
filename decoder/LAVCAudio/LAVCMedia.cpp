@@ -13,6 +13,9 @@ typedef struct {
 
 // Map Media Subtype <> FFMPEG Codec Id
 FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
+  // Special LAVFSplitter interface
+  { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
+
   // AAC
   { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC      },
   { &MEDIASUBTYPE_LATM_AAC,     CODEC_ID_AAC_LATM },
@@ -52,6 +55,9 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
 
 // Define Input Media Types
 const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
+  // Special LAVFSplitter interface
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
+
   // AAC
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC          },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_LATM_AAC     },

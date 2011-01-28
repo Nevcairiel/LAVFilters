@@ -70,7 +70,7 @@ HRESULT CLAVCAudio::CheckInputType(const CMediaType *mtIn)
 {
   for(int i = 0; i < sudPinTypesInCount; i++) {
     if(*sudPinTypesIn[i].clsMajorType == mtIn->majortype
-      && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && mtIn->formattype == FORMAT_WaveFormatEx) {
+      && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && (mtIn->formattype == FORMAT_WaveFormatEx || mtIn->formattype == FORMAT_WaveFormatExFFMPEG)) {
         return S_OK;
     }
   }
@@ -91,12 +91,14 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   if(iPosition > 0) {
     return VFW_S_NO_MORE_ITEMS;
   }
-  WAVEFORMATEX* wfein = (WAVEFORMATEX*)m_pInput->CurrentMediaType().Format();
+
+  int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
+  int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
 
   const AVSampleFormat sample_fmt = (m_pAVCodec && m_pAVCodec->sample_fmts) ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
-  const DWORD dwChannelMask = m_scmap_default[wfein->nChannels - 1].dwChannelMask;
+  const DWORD dwChannelMask = m_scmap_default[0].dwChannelMask;
 
-  *pMediaType = CreateMediaType(sample_fmt, wfein->nSamplesPerSec, wfein->nChannels, dwChannelMask);
+  *pMediaType = CreateMediaType(sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
   return S_OK;
 }
 
@@ -235,7 +237,20 @@ HRESULT CLAVCAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPER
 HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
   if (dir == PINDIR_INPUT) {
-    CodecID codec = FindCodecId(pmt);
+    CodecID codec = CODEC_ID_NONE;
+    void *format = pmt->Format();
+    GUID format_type = format_type = pmt->formattype;
+
+    // Override the format type
+    if (pmt->subtype == MEDIASUBTYPE_FFMPEG_AUDIO && pmt->formattype == FORMAT_WaveFormatExFFMPEG) {
+      WAVEFORMATEXFFMPEG *wfexff = (WAVEFORMATEXFFMPEG *)pmt->Format();
+      codec = (CodecID)wfexff->nCodecId;
+      format = &wfexff->wfex;
+      format_type = FORMAT_WaveFormatEx;
+    } else {
+      codec = FindCodecId(pmt);
+    }
+
     if (codec == CODEC_ID_NONE) {
       return VFW_E_TYPE_NOT_ACCEPTED;
     }
@@ -252,35 +267,37 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     m_pAVCtx = avcodec_alloc_context();
     CheckPointer(m_pAVCtx, E_POINTER);
 
-    WAVEFORMATEX*	wfein	= (WAVEFORMATEX*)pmt->Format();
-
     m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
     m_pAVCtx->codec_id              = (CodecID)codec;
-    m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
-    m_pAVCtx->channels              = wfein->nChannels;
-    m_pAVCtx->bit_rate              = wfein->nAvgBytesPerSec * 8;
-    m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
-    m_pAVCtx->block_align           = wfein->nBlockAlign;
     m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
 
-    m_nCodecId                      = codec;
+    if (format_type == FORMAT_WaveFormatEx) {
+      WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;
+      m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
+      m_pAVCtx->channels              = wfein->nChannels;
+      m_pAVCtx->bit_rate              = wfein->nAvgBytesPerSec * 8;
+      m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
+      m_pAVCtx->block_align           = wfein->nBlockAlign;
 
-    if (wfein->cbSize) {
-      m_pAVCtx->extradata_size      = wfein->cbSize;
-      m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
-      memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
+      if (wfein->cbSize) {
+        m_pAVCtx->extradata_size      = wfein->cbSize;
+        m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+        memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
+      }
+
+      // This could probably be a bit smarter..
+      if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
+        m_pAVCtx->bits_per_raw_sample = wfein->wBitsPerSample;
+      }
     }
+
+    m_nCodecId                      = codec;
 
     int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
     if (ret >= 0) {
       m_pPCMData	= (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     } else {
       return VFW_E_UNSUPPORTED_AUDIO;
-    }
-
-    // This could probably be a bit smarter..
-    if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
-      m_pAVCtx->bits_per_raw_sample = wfein->wBitsPerSample;
     }
   }
   return __super::SetMediaType(dir, pmt);
