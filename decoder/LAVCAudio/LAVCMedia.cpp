@@ -13,9 +13,6 @@ typedef struct {
 
 // Map Media Subtype <> FFMPEG Codec Id
 FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
-  // Special LAVFSplitter interface
-  { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
-
   // AAC
   { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC      },
   { &MEDIASUBTYPE_LATM_AAC,     CODEC_ID_AAC_LATM },
@@ -51,13 +48,13 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
   { &MEDIASUBTYPE_BD_LPCM_AUDIO, CODEC_ID_PCM_BLURAY },
   { &MEDIASUBTYPE_HDMV_LPCM_AUDIO, CODEC_ID_PCM_BLURAY }, // MPC-HC MPEG Splitter type with header stripped off
+
+  // Special LAVFSplitter interface
+  { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
 };
 
 // Define Input Media Types
 const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
-  // Special LAVFSplitter interface
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
-
   // AAC
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC          },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_LATM_AAC     },
@@ -93,6 +90,9 @@ const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_BD_LPCM_AUDIO },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_HDMV_LPCM_AUDIO }, // MPC-HC MPEG Splitter type with header stripped off
+
+  // Special LAVFSplitter interface
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
 };
 const int CLAVCAudio::sudPinTypesInCount = countof(CLAVCAudio::sudPinTypesIn);
 
