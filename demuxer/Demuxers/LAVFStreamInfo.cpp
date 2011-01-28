@@ -63,16 +63,6 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
     avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
   }
 
-  // Create our special media type
-  CMediaType ff_mtype;
-  ff_mtype.InitMediaType();
-  ff_mtype.SetSampleSize(256000);
-  ff_mtype.majortype = MEDIATYPE_Audio;
-  ff_mtype.subtype = MEDIASUBTYPE_FFMPEG_AUDIO;
-  ff_mtype.formattype = FORMAT_WaveFormatExFFMPEG;
-  ff_mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWVFMTEX_FF(avstream, &ff_mtype.cbFormat);
-  mtypes.push_back(ff_mtype);
-
   CMediaType mtype = g_AudioHelper.initAudioType(avstream->codec->codec_id, avstream->codec->codec_tag);
 
   if(mtype.formattype == FORMAT_WaveFormatEx) {
@@ -127,6 +117,17 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
   }
 
   mtypes.push_back(mtype);
+
+  // Create our special media type
+  CMediaType ff_mtype;
+  ff_mtype.InitMediaType();
+  ff_mtype.SetSampleSize(256000);
+  ff_mtype.majortype = MEDIATYPE_Audio;
+  ff_mtype.subtype = MEDIASUBTYPE_FFMPEG_AUDIO;
+  ff_mtype.formattype = FORMAT_WaveFormatExFFMPEG;
+  ff_mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWVFMTEX_FF(avstream, &ff_mtype.cbFormat);
+  mtypes.push_back(ff_mtype);
+
   return S_OK;
 }
 
