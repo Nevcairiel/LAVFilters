@@ -46,7 +46,7 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
 
   // BluRay LPCM
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
-  { &MEDIASUBTYPE_BD_LPCM_AUDIO, CODEC_ID_PCM_BLURAY },
+  { &MEDIASUBTYPE_BD_LPCM_AUDIO,   CODEC_ID_PCM_BLURAY },
   { &MEDIASUBTYPE_HDMV_LPCM_AUDIO, CODEC_ID_PCM_BLURAY }, // MPC-HC MPEG Splitter type with header stripped off
 
   // Special LAVFSplitter interface
@@ -87,8 +87,8 @@ const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_Vorbis2      },
 
   // BluRay LPCM
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO },
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_BD_LPCM_AUDIO },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO  },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_BD_LPCM_AUDIO   },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_HDMV_LPCM_AUDIO }, // MPC-HC MPEG Splitter type with header stripped off
 
   // Special LAVFSplitter interface
