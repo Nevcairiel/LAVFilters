@@ -1004,6 +1004,26 @@ struct WAVEFORMATEX_HDMV_LPCM : public WAVEFORMATEX
 	}
 };
 
+// {AFBC2343-3DCB-4047-9655-E1E62A61B1C5}
+DEFINE_GUID(MEDIASUBTYPE_FFMPEG_AUDIO,
+0xafbc2343, 0x3dcb, 0x4047, 0x96, 0x55, 0xe1, 0xe6, 0x2a, 0x61, 0xb1, 0xc5);
+
+
+// {35189950-CAC9-4C8D-819D-B6FAEE15DD9D}
+DEFINE_GUID(FORMAT_WaveFormatExFFMPEG,
+0x35189950, 0xcac9, 0x4c8d, 0x81, 0x9d, 0xb6, 0xfa, 0xee, 0x15, 0xdd, 0x9d);
+
+struct WAVEFORMATEXFFMPEG
+{
+	int nCodecId;
+	WAVEFORMATEX wfex;
+
+	struct WAVEFORMATEXFFMPEG()
+	{
+		nCodecId = 0;
+	}
+};
+
 
 // Guid from wmcodecdsp.h (Windows SDK)
 

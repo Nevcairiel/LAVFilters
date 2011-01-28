@@ -120,6 +120,20 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
   return wvfmt;
 }
 
+WAVEFORMATEXFFMPEG *CLAVFAudioHelper::CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size) {
+  WAVEFORMATEX *wvfmt = CreateWVFMTEX(avstream, size);
+
+  WAVEFORMATEXFFMPEG *wfex_ff = (WAVEFORMATEXFFMPEG *)CoTaskMemAlloc(sizeof(WAVEFORMATEXFFMPEG));
+  memset(wfex_ff, 0, sizeof(WAVEFORMATEXFFMPEG));
+  memcpy(&(wfex_ff->wfex), wvfmt, *size);
+
+  wfex_ff->nCodecId = avstream->codec->codec_id;
+  CoTaskMemFree(wvfmt);
+
+  *size = sizeof(WAVEFORMATEXFFMPEG) + wfex_ff->wfex.cbSize;
+  return wfex_ff;
+}
+
 WAVEFORMATEX_HDMV_LPCM *CLAVFAudioHelper::CreateWVFMTEX_LPCM(const AVStream *avstream, ULONG *size) {
   WAVEFORMATEX *wvfmt = CreateWVFMTEX(avstream, size);
 

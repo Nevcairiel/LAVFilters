@@ -130,6 +130,7 @@ public:
   CMediaType initAudioType(CodecID codecId, unsigned int &codecTag);
 
   WAVEFORMATEX *CreateWVFMTEX(const AVStream *avstream, ULONG *size);
+  WAVEFORMATEXFFMPEG *CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size);
   WAVEFORMATEX_HDMV_LPCM *CreateWVFMTEX_LPCM(const AVStream *avstream, ULONG *size);
   MPEG1WAVEFORMAT *CreateMP1WVFMT(const AVStream *avstream, ULONG *size);
   VORBISFORMAT *CreateVorbis(const AVStream *avstream, ULONG *size);
