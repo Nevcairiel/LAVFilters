@@ -1,5 +1,12 @@
-LAVFSplitter Changelog
+libav DirectShow Filters Changelog
 ===================================
+0.13 - 2011/01/29
+LAVFSplitter
+- Added support for demuxing BluRay LPCM tracks into the MPC-HC format
+- Added a new LAVFSplitter specific media type to all audio streams
+LAVCAudio
+- First version of LAVCAudio implemented
+
 0.12 - 2011/01/21
 - Fixed a crash issue with certain configurations and files with subtitles
 - Revisited file duration logic, now tries to prefer the duration of the video stream. This fixes MPEG-TS duration issues.
