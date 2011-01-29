@@ -82,7 +82,7 @@ private:
   CMediaType CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask = 0);
   HRESULT ReconnectOutput(int nSamples, CMediaType& mt);
   HRESULT ProcessBuffer();
-  HRESULT Decode(BYTE *p, int buffsize, int &consumed);
+  HRESULT Decode(const BYTE *p, int buffsize, int &consumed);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
   HRESULT Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask);
 

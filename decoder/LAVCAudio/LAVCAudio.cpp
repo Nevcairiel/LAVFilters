@@ -92,8 +92,8 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     return VFW_S_NO_MORE_ITEMS;
   }
 
-  int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
-  int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
+  const int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
+  const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
 
   const AVSampleFormat sample_fmt = (m_pAVCodec && m_pAVCodec->sample_fmts) ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
   const DWORD dwChannelMask = m_scmap_default[0].dwChannelMask;
@@ -238,7 +238,7 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
   if (dir == PINDIR_INPUT) {
     CodecID codec = CODEC_ID_NONE;
-    void *format = pmt->Format();
+    const void *format = pmt->Format();
     GUID format_type = format_type = pmt->formattype;
 
     // Override the format type
@@ -429,11 +429,11 @@ HRESULT CLAVCAudio::ProcessBuffer()
   return hr;
 }
 
-HRESULT CLAVCAudio::Decode(BYTE *p, int buffsize, int &consumed)
+HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
 {
   HRESULT hr = S_OK;
   int nPCMLength	= 0;
-  BYTE *pDataInBuff = p;
+  const BYTE *pDataInBuff = p;
   GrowableArray<BYTE> pBuffOut;
   const scmap_t *scmap = NULL;
 
