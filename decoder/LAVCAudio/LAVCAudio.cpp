@@ -499,6 +499,8 @@ HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
             }
           }
         }
+        m_SampleFormat = SampleFormat_U8;
+        break;
       case AV_SAMPLE_FMT_S16:
         {
           pBuffOut.SetSize(idx_start + nPCMLength);

@@ -70,6 +70,7 @@ public:
     SampleFormat_16,
     SampleFormat_24,
     SampleFormat_32,
+    SampleFormat_U8,
     SampleFormat_FP32
   };
 
