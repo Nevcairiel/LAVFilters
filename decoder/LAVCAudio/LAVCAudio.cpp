@@ -152,7 +152,7 @@ done:
   return hr;
 }
 
-CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask)
+CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSampleOverride)
 {
   CMediaType mt;
 
@@ -167,7 +167,9 @@ CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSampl
   wfe->wFormatTag = (WORD)mt.subtype.Data1;
   wfe->nChannels = nChannels;
   wfe->nSamplesPerSec = nSamplesPerSec;
-  if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
+  if (wBitsPerSampleOverride) {
+    wfe->wBitsPerSample = wBitsPerSampleOverride;
+  } else if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
     wfe->wBitsPerSample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : (m_pAVCtx->bits_per_raw_sample > 16 ? 24 : 16);
   } else {
     wfe->wBitsPerSample = av_get_bits_per_sample_fmt(outputFormat);
@@ -183,7 +185,7 @@ CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSampl
     wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
     wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
     wfex.dwChannelMask = dwChannelMask;
-    if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
+    if (!wBitsPerSampleOverride && (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0)) {
       wfex.Samples.wValidBitsPerSample = m_pAVCtx->bits_per_raw_sample;
     } else {
       wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
