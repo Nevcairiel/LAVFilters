@@ -234,6 +234,57 @@ HRESULT CLAVCAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPER
     : NOERROR;
 }
 
+HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_type)
+{
+  ffmpeg_shutdown();
+
+  if (codec == CODEC_ID_MP3) {
+    m_pAVCodec    = avcodec_find_decoder_by_name("mp3float");
+  } else {
+    m_pAVCodec    = avcodec_find_decoder(codec);
+  }
+  CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_AUDIO);
+
+  m_pAVCtx = avcodec_alloc_context();
+  CheckPointer(m_pAVCtx, E_POINTER);
+
+  m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
+  m_pAVCtx->codec_id              = (CodecID)codec;
+  m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
+  m_pAVCtx->drc_scale             = 0.0f;
+
+  if (format_type == FORMAT_WaveFormatEx) {
+    WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;
+    m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
+    m_pAVCtx->channels              = wfein->nChannels;
+    m_pAVCtx->bit_rate              = wfein->nAvgBytesPerSec * 8;
+    m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
+    m_pAVCtx->block_align           = wfein->nBlockAlign;
+
+    if (wfein->cbSize) {
+      m_pAVCtx->extradata_size      = wfein->cbSize;
+      m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+      memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
+    }
+
+    // This could probably be a bit smarter..
+    if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
+      m_pAVCtx->bits_per_raw_sample = wfein->wBitsPerSample;
+    }
+  }
+
+  m_nCodecId                      = codec;
+
+  int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
+  if (ret >= 0) {
+    m_pPCMData	= (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+  } else {
+    return VFW_E_UNSUPPORTED_AUDIO;
+  }
+
+  return S_OK;
+}
+
 HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
   if (dir == PINDIR_INPUT) {
@@ -255,50 +306,9 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
       return VFW_E_TYPE_NOT_ACCEPTED;
     }
 
-    ffmpeg_shutdown();
-
-    if (codec == CODEC_ID_MP3) {
-      m_pAVCodec    = avcodec_find_decoder_by_name("mp3float");
-    } else {
-      m_pAVCodec    = avcodec_find_decoder(codec);
-    }
-    CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_AUDIO);
-
-    m_pAVCtx = avcodec_alloc_context();
-    CheckPointer(m_pAVCtx, E_POINTER);
-
-    m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
-    m_pAVCtx->codec_id              = (CodecID)codec;
-    m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
-    m_pAVCtx->drc_scale             = 0.0f;
-
-    if (format_type == FORMAT_WaveFormatEx) {
-      WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;
-      m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
-      m_pAVCtx->channels              = wfein->nChannels;
-      m_pAVCtx->bit_rate              = wfein->nAvgBytesPerSec * 8;
-      m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
-      m_pAVCtx->block_align           = wfein->nBlockAlign;
-
-      if (wfein->cbSize) {
-        m_pAVCtx->extradata_size      = wfein->cbSize;
-        m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
-        memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
-      }
-
-      // This could probably be a bit smarter..
-      if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
-        m_pAVCtx->bits_per_raw_sample = wfein->wBitsPerSample;
-      }
-    }
-
-    m_nCodecId                      = codec;
-
-    int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
-    if (ret >= 0) {
-      m_pPCMData	= (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-    } else {
-      return VFW_E_UNSUPPORTED_AUDIO;
+    HRESULT hr = ffmpeg_init(codec, format, format_type);
+    if (FAILED(hr)) {
+      return hr;
     }
   }
   return __super::SetMediaType(dir, pmt);

@@ -77,6 +77,7 @@ private:
   CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVCAudio();
 
+  HRESULT ffmpeg_init(CodecID codec, const void *format, GUID format_type);
   void ffmpeg_shutdown();
 
   CMediaType CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask = 0);
