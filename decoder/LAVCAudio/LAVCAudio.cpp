@@ -270,6 +270,7 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
     m_pAVCtx->codec_id              = (CodecID)codec;
     m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
+    m_pAVCtx->drc_scale             = 0.0f;
 
     if (format_type == FORMAT_WaveFormatEx) {
       WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;
