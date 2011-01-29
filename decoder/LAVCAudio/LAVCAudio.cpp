@@ -96,7 +96,7 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
 
   const AVSampleFormat sample_fmt = (m_pAVCodec && m_pAVCodec->sample_fmts) ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
-  const DWORD dwChannelMask = m_scmap_default[0].dwChannelMask;
+  const DWORD dwChannelMask = m_scmap_default[nChannels - 1].dwChannelMask;
 
   *pMediaType = CreateMediaType(sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
   return S_OK;
