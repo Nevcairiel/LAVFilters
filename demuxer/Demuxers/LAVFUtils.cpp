@@ -161,7 +161,12 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     buf << ", " << channel;
     // Sample Format
     if (get_bits_per_sample(enc)) {
-      buf << ", s" << get_bits_per_sample(enc);
+      if (enc->sample_fmt == AV_SAMPLE_FMT_FLT || enc->sample_fmt == AV_SAMPLE_FMT_DBL) {
+        buf << ", fp";
+      } else {
+        buf << ", s";
+      }
+      buf << get_bits_per_sample(enc);
     }
     // Bitrate
     if (bitrate > 0) {
