@@ -152,7 +152,7 @@ static BYTE get_lpcm_bit_per_sample_index(int bit_per_sample)
   return 0;
 }
 
-void CLAVCAudio::CreateBDLPCMHeader(BYTE *pBuf, WAVEFORMATEX_HDMV_LPCM *wfex_lpcm)
+void CLAVCAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LPCM * const wfex_lpcm) const
 {
   const BYTE channel_conf = (wfex_lpcm->cbSize >= 1) ? wfex_lpcm->channel_conf : 0;
   pBuf[0] = 0;

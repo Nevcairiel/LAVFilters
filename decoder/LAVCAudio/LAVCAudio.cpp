@@ -162,7 +162,7 @@ done:
   return hr;
 }
 
-CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSampleOverride)
+CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSampleOverride) const
 {
   CMediaType mt;
 
@@ -516,7 +516,7 @@ HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
 
     // Channel re-mapping and sample format conversion
     if (nPCMLength > 0) {
-      DWORD idx_start = pBuffOut.GetCount();
+      const DWORD idx_start = pBuffOut.GetCount();
       scmap = &m_scmap_default[m_pAVCtx->channels-1];
 
       switch (m_pAVCtx->sample_fmt) {
@@ -525,7 +525,7 @@ HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
           pBuffOut.SetSize(idx_start + nPCMLength);
           uint8_t *pDataOut = (uint8_t *)(pBuffOut.Ptr() + idx_start);
 
-          size_t num_elements = nPCMLength / sizeof(uint8_t) / m_pAVCtx->channels;
+          const size_t num_elements = nPCMLength / sizeof(uint8_t) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
               *pDataOut = ((uint8_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
@@ -540,7 +540,7 @@ HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
           pBuffOut.SetSize(idx_start + nPCMLength);
           int16_t *pDataOut = (int16_t *)(pBuffOut.Ptr() + idx_start);
 
-          size_t num_elements = nPCMLength / sizeof(int16_t) / m_pAVCtx->channels;
+          const size_t num_elements = nPCMLength / sizeof(int16_t) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
               *pDataOut = ((int16_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
@@ -566,13 +566,13 @@ HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
           // Number of bits to shift the value to the left
           const short shift = 32 - bits_per_sample;
 
-          DWORD size = (nPCMLength >> 2) * bytes_per_sample;
+          const DWORD size = (nPCMLength >> 2) * bytes_per_sample;
           pBuffOut.SetSize(idx_start + size);
           // We use BYTE instead of int32_t because we don't know if its actually a 32-bit value we want to write
           BYTE *pDataOut = (BYTE *)(pBuffOut.Ptr() + idx_start);
 
           // The source is always in 32-bit values
-          size_t num_elements = nPCMLength / sizeof(int32_t) / m_pAVCtx->channels;
+          const size_t num_elements = nPCMLength / sizeof(int32_t) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
               // Get the 32-bit sample
@@ -597,7 +597,7 @@ HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
           pBuffOut.SetSize(idx_start + nPCMLength);
           float *pDataOut = (float *)(pBuffOut.Ptr() + idx_start);
 
-          size_t num_elements = nPCMLength / sizeof(float) / m_pAVCtx->channels;
+          const size_t num_elements = nPCMLength / sizeof(float) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
               *pDataOut = ((float *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];

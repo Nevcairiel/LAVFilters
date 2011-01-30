@@ -81,14 +81,14 @@ private:
   HRESULT ffmpeg_init(CodecID codec, const void *format, GUID format_type);
   void ffmpeg_shutdown();
 
-  CMediaType CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask = 0, WORD wBitsPerSampleOverride = 0);
+  CMediaType CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask = 0, WORD wBitsPerSampleOverride = 0) const;
   HRESULT ReconnectOutput(int nSamples, CMediaType& mt);
   HRESULT ProcessBuffer();
   HRESULT Decode(const BYTE *p, int buffsize, int &consumed);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
   HRESULT Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask);
 
-  void CreateBDLPCMHeader(BYTE *pBuf, WAVEFORMATEX_HDMV_LPCM *wfex_lpcm);
+  void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
