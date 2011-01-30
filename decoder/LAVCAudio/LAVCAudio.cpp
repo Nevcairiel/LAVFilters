@@ -41,6 +41,11 @@ CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
   avcodec_init();
   avcodec_register_all();
 
+  m_bSampleSupport[SampleFormat_16] = TRUE;
+  m_bSampleSupport[SampleFormat_24] = TRUE;
+  m_bSampleSupport[SampleFormat_32] = TRUE;
+  m_bSampleSupport[SampleFormat_FP32] = TRUE;
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
 #endif
@@ -328,6 +333,26 @@ HRESULT CLAVCAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
   if (dir == PINDIR_INPUT) {
     // TODO: Check if the upstream source filter is LAVFSplitter, and store that somewhere
     // Validate that this is called before any media type negotiation
+  } else if (dir == PINDIR_OUTPUT) {
+    CMediaType check_mt;
+    const int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
+    const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
+    const DWORD dwChannelMask = m_scmap_default[nChannels - 1].dwChannelMask;
+
+    check_mt = CreateMediaType(AV_SAMPLE_FMT_FLT, nSamplesPerSec, nChannels, dwChannelMask);
+    m_bSampleSupport[SampleFormat_FP32] = pPin->QueryAccept(&check_mt) == S_OK;
+
+    check_mt = CreateMediaType(AV_SAMPLE_FMT_S32, nSamplesPerSec, nChannels, dwChannelMask, 32);
+    m_bSampleSupport[SampleFormat_32] = pPin->QueryAccept(&check_mt) == S_OK;
+
+    check_mt = CreateMediaType(AV_SAMPLE_FMT_S32, nSamplesPerSec, nChannels, dwChannelMask, 24);
+    m_bSampleSupport[SampleFormat_24] = pPin->QueryAccept(&check_mt) == S_OK;
+
+    check_mt = CreateMediaType(AV_SAMPLE_FMT_S16, nSamplesPerSec, nChannels, dwChannelMask);
+    m_bSampleSupport[SampleFormat_16] = pPin->QueryAccept(&check_mt) == S_OK;
+
+    check_mt = CreateMediaType(AV_SAMPLE_FMT_U8, nSamplesPerSec, nChannels, dwChannelMask);
+    m_bSampleSupport[SampleFormat_U8] = pPin->QueryAccept(&check_mt) == S_OK;
   }
   return __super::CheckConnect(dir, pPin);
 }

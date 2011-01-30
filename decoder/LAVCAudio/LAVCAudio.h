@@ -103,4 +103,6 @@ private:
   REFERENCE_TIME       m_rtStart;        // Start time
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVCSampleFormat     m_SampleFormat;  // Number of bits in the samples
+
+  BOOL                 m_bSampleSupport[SampleFormat_FP32];
 };
