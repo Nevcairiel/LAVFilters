@@ -40,6 +40,10 @@ CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
 {
   avcodec_init();
   avcodec_register_all();
+
+#ifdef DEBUG
+  DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
+#endif
 }
 
 CLAVCAudio::~CLAVCAudio()
@@ -81,6 +85,7 @@ HRESULT CLAVCAudio::CheckInputType(const CMediaType *mtIn)
 // Get the output media types
 HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 {
+  DbgLog((LOG_TRACE, 5, L"GetMediaType"));
   if(m_pInput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
   }
@@ -289,6 +294,7 @@ HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_t
 
 HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
+  DbgLog((LOG_TRACE, 5, L"SetMediaType -- %S", dir == PINDIR_INPUT ? "in" : "out"));
   if (dir == PINDIR_INPUT) {
     CodecID codec = CODEC_ID_NONE;
     const void *format = pmt->Format();
@@ -318,6 +324,7 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 
 HRESULT CLAVCAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 {
+  DbgLog((LOG_TRACE, 5, L"CheckConnect -- %S", dir == PINDIR_INPUT ? "in" : "out"));
   if (dir == PINDIR_INPUT) {
     // TODO: Check if the upstream source filter is LAVFSplitter, and store that somewhere
     // Validate that this is called before any media type negotiation
