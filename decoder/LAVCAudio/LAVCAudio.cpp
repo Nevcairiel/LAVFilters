@@ -91,7 +91,7 @@ HRESULT CLAVCAudio::CheckInputType(const CMediaType *mtIn)
 HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 {
   DbgLog((LOG_TRACE, 5, L"GetMediaType"));
-  if(m_pInput->IsConnected() == FALSE) {
+  if(m_pInput->IsConnected() == FALSE || !m_pAVCtx || !m_pAVCodec) {
     return E_UNEXPECTED;
   }
 
@@ -102,10 +102,10 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     return VFW_S_NO_MORE_ITEMS;
   }
 
-  const int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
-  const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
+  const int nChannels = m_pAVCtx->channels;
+  const int nSamplesPerSec = m_pAVCtx->sample_rate;
 
-  const AVSampleFormat sample_fmt = (m_pAVCodec && m_pAVCodec->sample_fmts) ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16;
+  const AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16);
   const DWORD dwChannelMask = m_scmap_default[nChannels - 1].dwChannelMask;
 
   *pMediaType = CreateMediaType(sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
