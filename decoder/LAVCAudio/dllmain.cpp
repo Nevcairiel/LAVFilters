@@ -33,6 +33,7 @@
 
 #include <qnetwork.h>
 #include "LAVCAudio.h"
+#include "LAVCAudioSettingsProp.h"
 #include "moreuuids.h"
 
 #include "registry.h"
@@ -67,13 +68,18 @@ CFactoryTemplate g_Templates[] = {
       &sudFilterReg
   },
   // This entry is for the property page.
-  /*{ 
+  { 
       L"LAVCAudio Properties",
-      &CLSID_LAVFSettingsProp,
-      CLAVFSettingsProp::CreateInstance, 
+      &CLSID_LAVCAudioSettingsProp,
+      CLAVCAudioSettingsProp::CreateInstance, 
       NULL, NULL
-  }*/
-
+  },
+  { 
+      L"LAVCAudio Status",
+      &CLSID_LAVCAudioStatusProp,
+      CLAVCAudioStatusProp::CreateInstance, 
+      NULL, NULL
+  }
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 

@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="LAVCAudio.cpp" />
+    <ClCompile Include="LAVCAudioSettingsProp.cpp" />
     <ClCompile Include="LAVCMedia.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -145,7 +146,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LAVCAudio.h" />
+    <ClInclude Include="LAVCAudioSettings.h" />
+    <ClInclude Include="LAVCAudioSettingsProp.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LAVCAudio.rc">
+      <FileType>RC</FileType>
+    </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

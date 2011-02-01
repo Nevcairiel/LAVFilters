@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "LAVCAudioSettings.h"
+
 struct scmap_t {
   WORD nChannels;
   BYTE ch[8];
@@ -32,11 +34,22 @@ extern const scmap_t m_scmap_default[];
 struct WAVEFORMATEX_HDMV_LPCM;
 
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
-class CLAVCAudio : public CTransformFilter
+class CLAVCAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVCAudioSettings
 {
 public:
   // constructor method used by class factory
   static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+
+  // IUnknown
+  DECLARE_IUNKNOWN;
+  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
+  // ISpecifyPropertyPages
+  STDMETHODIMP GetPages(CAUUID *pPages);
+
+  // ILAVCAudioSettings
+  STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVCSampleFormat sfCheck);
+  STDMETHODIMP GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate);
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -65,14 +78,6 @@ public:
   const static int                      sudPinTypesInCount;
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesOut[];
   const static int                      sudPinTypesOutCount;
-
-  enum LAVCSampleFormat {
-    SampleFormat_16,
-    SampleFormat_24,
-    SampleFormat_32,
-    SampleFormat_U8,
-    SampleFormat_FP32
-  };
 
 private:
   CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr);

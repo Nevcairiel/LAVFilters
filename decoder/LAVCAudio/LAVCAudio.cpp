@@ -27,6 +27,8 @@
 #include "moreuuids.h"
 #include "DShowUtil.h"
 
+#include "LAVCAudioSettingsProp.h"
+
 // static constructor
 CUnknown* WINAPI CLAVCAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
@@ -41,6 +43,7 @@ CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
   avcodec_init();
   avcodec_register_all();
 
+  m_bSampleSupport[SampleFormat_U8] = TRUE;
   m_bSampleSupport[SampleFormat_16] = TRUE;
   m_bSampleSupport[SampleFormat_24] = TRUE;
   m_bSampleSupport[SampleFormat_32] = TRUE;
@@ -72,6 +75,59 @@ void CLAVCAudio::ffmpeg_shutdown()
     m_pPCMData = NULL;
   }
   m_nCodecId = CODEC_ID_NONE;
+}
+
+// IUnknown
+STDMETHODIMP CLAVCAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+{
+  CheckPointer(ppv, E_POINTER);
+
+  *ppv = NULL;
+
+  return 
+    QI2(ISpecifyPropertyPages)
+    QI2(ILAVCAudioSettings)
+    __super::NonDelegatingQueryInterface(riid, ppv);
+}
+
+// ISpecifyPropertyPages
+STDMETHODIMP CLAVCAudio::GetPages(CAUUID *pPages)
+{
+  CheckPointer(pPages, E_POINTER);
+  pPages->cElems = 2;
+  pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
+  if (pPages->pElems == NULL) {
+    return E_OUTOFMEMORY;
+  }
+  pPages->pElems[0] = CLSID_LAVCAudioSettingsProp;
+  pPages->pElems[1] = CLSID_LAVCAudioStatusProp;
+  return S_OK;
+}
+
+// ILAVCAudioSettings
+BOOL CLAVCAudio::IsSampleFormatSupported(LAVCSampleFormat sfCheck)
+{
+  if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
+    return FALSE;
+  }
+  return m_bSampleSupport[sfCheck];
+}
+
+HRESULT CLAVCAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate)
+{
+  if(!m_pInput || m_pInput->IsConnected() == FALSE) {
+    return E_UNEXPECTED;
+  }
+  if (pCodec) {
+    *pCodec = m_pAVCodec->name;
+  }
+  if (pnChannels) {
+    *pnChannels = m_pAVCtx->channels;
+  }
+  if (pSampleRate) {
+    *pSampleRate = m_pAVCtx->sample_rate;
+  }
+  return S_OK;
 }
 
 // CTransformFilter
