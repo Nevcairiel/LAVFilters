@@ -31,6 +31,9 @@ struct scmap_t {
 extern CodecID FindCodecId(const CMediaType *mt);
 extern const scmap_t m_scmap_default[];
 
+const char *get_sample_format_desc(LAVCSampleFormat sfFormat);
+const char *get_sample_format_desc(CMediaType &mt);
+
 struct WAVEFORMATEX_HDMV_LPCM;
 
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
@@ -50,6 +53,7 @@ public:
   // ILAVCAudioSettings
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVCSampleFormat sfCheck);
   STDMETHODIMP GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate);
+  STDMETHODIMP GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask);
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);

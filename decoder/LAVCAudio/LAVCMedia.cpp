@@ -126,6 +126,47 @@ const scmap_t m_scmap_default[] = {
   {8, { 0, 1, 2, 3, 6, 7, 4, 5 }, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT},// 3/4+LFe		FL, FR, FC, BL, Bls, Brs, BR, LFe
 };
 
+static const char *sample_format_strings[] = {
+  "16bit Integer",
+  "24bit Integer",
+  "32bit Integer",
+  "8bit Integer",
+  "32bit Float"
+};
+
+const char *get_sample_format_desc(LAVCSampleFormat sfFormat)
+{
+  return sample_format_strings[sfFormat];
+}
+
+const char *get_sample_format_desc(CMediaType &mt)
+{
+  LAVCSampleFormat format;
+  if(mt.subtype == MEDIASUBTYPE_IEEE_FLOAT) {
+    format = SampleFormat_FP32;
+  } else {
+    WAVEFORMATEX *wfout = (WAVEFORMATEX *)mt.Format();
+
+    switch(wfout->wBitsPerSample) {
+    case 8:
+      format = SampleFormat_U8;
+      break;
+    case 16:
+      format = SampleFormat_16;
+      break;
+    case 24:
+      format = SampleFormat_24;
+      break;
+    case 32:
+      format = SampleFormat_32;
+      break;
+    default:
+      ASSERT(false);
+    }
+  }
+  return get_sample_format_desc(format);
+}
+
 static BYTE get_lpcm_sample_rate_index(int sample_rate)
 {
   switch(sample_rate) {

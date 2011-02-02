@@ -130,6 +130,33 @@ HRESULT CLAVCAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *p
   return S_OK;
 }
 
+HRESULT CLAVCAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask)
+{
+  if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
+    return E_UNEXPECTED;
+  }
+  if (pDecodeFormat) {
+    if (IsActive()) {
+      *pDecodeFormat = get_sample_format_desc(m_SampleFormat);
+    } else {
+      *pDecodeFormat = "Not Running";
+    }
+  }
+  if (pOutputFormat) {
+    *pOutputFormat = get_sample_format_desc(m_pOutput->CurrentMediaType());
+  }
+  if (pChannelMask) {
+    WAVEFORMATEX *wfout = (WAVEFORMATEX *)m_pOutput->CurrentMediaType().Format();
+    if (wfout->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
+      WAVEFORMATEXTENSIBLE *wfext = (WAVEFORMATEXTENSIBLE *)wfout;
+      *pChannelMask = wfext->dwChannelMask;
+    } else {
+      *pChannelMask = 0;
+    }
+  }
+  return S_OK;
+}
+
 // CTransformFilter
 HRESULT CLAVCAudio::CheckInputType(const CMediaType *mtIn)
 {

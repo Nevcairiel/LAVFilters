@@ -196,5 +196,22 @@ HRESULT CLAVCAudioStatusProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_INT32, BM_SETCHECK, m_pAudioSettings->IsSampleFormatSupported(SampleFormat_32), 0);
   SendDlgItemMessage(m_Dlg, IDC_FP32, BM_SETCHECK, m_pAudioSettings->IsSampleFormatSupported(SampleFormat_FP32), 0);
 
+  const char *decodeFormat = NULL;
+  const char *outputFormat = NULL;
+  DWORD dwChannelMask;
+  hr = m_pAudioSettings->GetOutputDetails(&decodeFormat, &outputFormat, &dwChannelMask);
+  if (SUCCEEDED(hr)) {
+    WCHAR buffer[100];
+
+    _snwprintf_s(buffer, _TRUNCATE, L"%S", decodeFormat);
+    SendDlgItemMessage(m_Dlg, IDC_DECODE_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
+
+    _snwprintf_s(buffer, _TRUNCATE, L"%S", outputFormat);
+    SendDlgItemMessage(m_Dlg, IDC_OUTPUT_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
+
+    _snwprintf_s(buffer, _TRUNCATE, L"0x%x", dwChannelMask);
+    SendDlgItemMessage(m_Dlg, IDC_CHANNEL_MASK, WM_SETTEXT, 0, (LPARAM)buffer);
+  }
+
   return hr;
 }

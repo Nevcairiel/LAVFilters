@@ -39,4 +39,5 @@ interface ILAVCAudioSettings : public IUnknown
   // Interfaces used by the Status page
   STDMETHOD_(BOOL,IsSampleFormatSupported)(LAVCSampleFormat sfCheck) = 0;
   STDMETHOD(GetInputDetails)(const char **pCodec, int *pnChannels, int *pSampleRate) = 0;
+  STDMETHOD(GetOutputDetails)(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask) = 0;
 };
