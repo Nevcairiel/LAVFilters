@@ -87,6 +87,7 @@ STDMETHODIMP CLAVCAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   return 
     QI2(ISpecifyPropertyPages)
     QI2(ILAVCAudioSettings)
+    QI2(ILAVCAudioStatus)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -104,7 +105,7 @@ STDMETHODIMP CLAVCAudio::GetPages(CAUUID *pPages)
   return S_OK;
 }
 
-// ILAVCAudioSettings
+// ILAVCAudioStatus
 BOOL CLAVCAudio::IsSampleFormatSupported(LAVCSampleFormat sfCheck)
 {
   if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {

@@ -37,7 +37,7 @@ const char *get_sample_format_desc(CMediaType &mt);
 struct WAVEFORMATEX_HDMV_LPCM;
 
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
-class CLAVCAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVCAudioSettings
+class CLAVCAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVCAudioSettings, public ILAVCAudioStatus
 {
 public:
   // constructor method used by class factory
@@ -50,7 +50,7 @@ public:
   // ISpecifyPropertyPages
   STDMETHODIMP GetPages(CAUUID *pPages);
 
-  // ILAVCAudioSettings
+  // ILAVCAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVCSampleFormat sfCheck);
   STDMETHODIMP GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate);
   STDMETHODIMP GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask);

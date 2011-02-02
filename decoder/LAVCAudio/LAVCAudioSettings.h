@@ -24,6 +24,11 @@
 DEFINE_GUID(IID_ILAVCAudioSettings, 
 0x5b7dcfa5, 0x589f, 0x407c, 0x8e, 0x32, 0xab, 0x2d, 0xe, 0xfd, 0xbf, 0xcc);
 
+// {A668B8F2-BA87-4F63-9D41-768F7DE9C50E}
+DEFINE_GUID(IID_ILAVCAudioStatus,
+0xa668b8f2, 0xba87, 0x4f63, 0x9d, 0x41, 0x76, 0x8f, 0x7d, 0xe9, 0xc5, 0xe);
+
+
 typedef enum LAVCSampleFormat {
   SampleFormat_16,
   SampleFormat_24,
@@ -35,8 +40,12 @@ typedef enum LAVCSampleFormat {
 [uuid("5B7DCFA5-589F-407C-8E32-AB2D0EFDBFCC")]
 interface ILAVCAudioSettings : public IUnknown
 {
-  
-  // Interfaces used by the Status page
+
+};
+
+[uuid("A668B8F2-BA87-4F63-9D41-768F7DE9C50E")]
+interface ILAVCAudioStatus : public IUnknown
+{
   STDMETHOD_(BOOL,IsSampleFormatSupported)(LAVCSampleFormat sfCheck) = 0;
   STDMETHOD(GetInputDetails)(const char **pCodec, int *pnChannels, int *pSampleRate) = 0;
   STDMETHOD(GetOutputDetails)(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask) = 0;

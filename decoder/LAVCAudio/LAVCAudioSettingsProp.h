@@ -69,5 +69,5 @@ private:
   CLAVCAudioStatusProp(IUnknown *pUnk);
 
 private:
-  ILAVCAudioSettings *m_pAudioSettings;
+  ILAVCAudioStatus *m_pAudioStatus;
 };

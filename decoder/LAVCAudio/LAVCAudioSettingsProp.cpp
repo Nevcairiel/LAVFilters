@@ -124,7 +124,7 @@ CUnknown* WINAPI CLAVCAudioStatusProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* p
 }
 
 CLAVCAudioStatusProp::CLAVCAudioStatusProp(IUnknown *pUnk)
-  : CBasePropertyPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioSettings(NULL)
+  : CBasePropertyPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL)
 {
 }
 
@@ -139,13 +139,13 @@ HRESULT CLAVCAudioStatusProp::OnConnect(IUnknown *pUnk)
   {
     return E_POINTER;
   }
-  ASSERT(m_pAudioSettings == NULL);
-  return pUnk->QueryInterface(&m_pAudioSettings);
+  ASSERT(m_pAudioStatus == NULL);
+  return pUnk->QueryInterface(&m_pAudioStatus);
 }
 
 HRESULT CLAVCAudioStatusProp::OnDisconnect()
 {
-  SafeRelease(&m_pAudioSettings);
+  SafeRelease(&m_pAudioStatus);
   return S_OK;
 }
 
@@ -159,7 +159,7 @@ HRESULT CLAVCAudioStatusProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pAudioSettings != NULL);
+  ASSERT(m_pAudioStatus != NULL);
 
   // Set CPU Flag buttons
   int flags = av_get_cpu_flags();
@@ -177,7 +177,7 @@ HRESULT CLAVCAudioStatusProp::OnActivate()
   const char *codec = NULL;
   int nChannels;
   int nSampleRate;
-  hr = m_pAudioSettings->GetInputDetails(&codec, &nChannels, &nSampleRate);
+  hr = m_pAudioStatus->GetInputDetails(&codec, &nChannels, &nSampleRate);
   if (SUCCEEDED(hr)) {
     WCHAR buffer[100];
     _snwprintf_s(buffer, _TRUNCATE, L"%d", nChannels);
@@ -190,16 +190,16 @@ HRESULT CLAVCAudioStatusProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_CODEC, WM_SETTEXT, 0, (LPARAM)buffer);
   }
 
-  SendDlgItemMessage(m_Dlg, IDC_INT8, BM_SETCHECK, m_pAudioSettings->IsSampleFormatSupported(SampleFormat_U8), 0);
-  SendDlgItemMessage(m_Dlg, IDC_INT16, BM_SETCHECK, m_pAudioSettings->IsSampleFormatSupported(SampleFormat_16), 0);
-  SendDlgItemMessage(m_Dlg, IDC_INT24, BM_SETCHECK, m_pAudioSettings->IsSampleFormatSupported(SampleFormat_24), 0);
-  SendDlgItemMessage(m_Dlg, IDC_INT32, BM_SETCHECK, m_pAudioSettings->IsSampleFormatSupported(SampleFormat_32), 0);
-  SendDlgItemMessage(m_Dlg, IDC_FP32, BM_SETCHECK, m_pAudioSettings->IsSampleFormatSupported(SampleFormat_FP32), 0);
+  SendDlgItemMessage(m_Dlg, IDC_INT8, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_U8), 0);
+  SendDlgItemMessage(m_Dlg, IDC_INT16, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_16), 0);
+  SendDlgItemMessage(m_Dlg, IDC_INT24, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_24), 0);
+  SendDlgItemMessage(m_Dlg, IDC_INT32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_32), 0);
+  SendDlgItemMessage(m_Dlg, IDC_FP32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_FP32), 0);
 
   const char *decodeFormat = NULL;
   const char *outputFormat = NULL;
   DWORD dwChannelMask;
-  hr = m_pAudioSettings->GetOutputDetails(&decodeFormat, &outputFormat, &dwChannelMask);
+  hr = m_pAudioStatus->GetOutputDetails(&decodeFormat, &outputFormat, &dwChannelMask);
   if (SUCCEEDED(hr)) {
     WCHAR buffer[100];
 
