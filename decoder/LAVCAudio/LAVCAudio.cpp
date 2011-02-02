@@ -564,7 +564,7 @@ HRESULT CLAVCAudio::ProcessBuffer()
   return hr;
 }
 
-HRESULT CLAVCAudio::Decode(const BYTE *p, int buffsize, int &consumed)
+HRESULT CLAVCAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
 {
   HRESULT hr = S_OK;
   int nPCMLength	= 0;
