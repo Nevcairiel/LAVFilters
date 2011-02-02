@@ -16,7 +16,6 @@
 #define IDC_CPU_SSE3                    1009
 #define IDC_CPU_SSSE3                   1010
 #define IDC_CPU_SSE42                   1011
-#define IDC_CHECK11                     1012
 #define IDC_CPU_SSE41                   1012
 #define IDC_INPUT_STATUS                1013
 #define IDC_LBL_CHANNELS                1014
@@ -30,14 +29,11 @@
 #define IDC_INT24                       1022
 #define IDC_INT32                       1023
 #define IDC_FP32                        1024
-#define IDC_INT17                       1025
 #define IDC_INT8                        1025
-#define IDC_INPUT_STATUS2               1026
 #define IDC_OUTPUT_STATUS               1026
 #define IDC_LBL_DECODE                  1027
 #define IDC_LBL_OUTPUT                  1028
 #define IDC_LBL_CH_MASK                 1029
-#define IDC_CHANNELS2                   1030
 #define IDC_CHANNEL_MASK                1030
 #define IDC_OUTPUT_FORMAT               1031
 #define IDC_DECODE_FORMAT               1032
@@ -46,9 +42,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        102
+#define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
