@@ -536,18 +536,24 @@ HRESULT CLAVCAudio::ProcessBuffer()
 {
   HRESULT hr = S_OK;
 
+  int buffer_size = m_buff.GetCount();
+
   BYTE *p = m_buff.Ptr();
   BYTE *base = p;
-  BYTE *end = p + m_buff.GetCount();
+  BYTE *end = p + buffer_size;
 
   int consumed = 0;
 
   // Consume the buffer data
-  Decode(p, (int)(end-p), consumed);
+  Decode(p, buffer_size, consumed);
 
   if (consumed <= 0) {
     return S_OK;
   }
+
+  // This really shouldn't be needed, but apparently it is.
+  consumed = min(consumed, buffer_size);
+
   // Remove the consumed data from the buffer
   p += consumed;
   memmove(base, p, end - p);
