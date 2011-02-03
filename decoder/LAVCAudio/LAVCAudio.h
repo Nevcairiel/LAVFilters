@@ -29,7 +29,8 @@ struct scmap_t {
 };
 
 extern CodecID FindCodecId(const CMediaType *mt);
-extern const scmap_t m_scmap_default[];
+
+const scmap_t* get_channel_map(AVCodecContext *avctx);
 
 const char *get_sample_format_desc(LAVCSampleFormat sfFormat);
 const char *get_sample_format_desc(CMediaType &mt);

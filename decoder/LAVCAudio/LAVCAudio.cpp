@@ -190,7 +190,7 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   const int nSamplesPerSec = m_pAVCtx->sample_rate;
 
   const AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16);
-  const DWORD dwChannelMask = m_scmap_default[nChannels - 1].dwChannelMask;
+  const DWORD dwChannelMask = get_channel_map(m_pAVCtx)->dwChannelMask;
 
   *pMediaType = CreateMediaType(sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
   return S_OK;
@@ -421,7 +421,7 @@ HRESULT CLAVCAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
     CMediaType check_mt;
     const int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
     const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
-    const DWORD dwChannelMask = m_scmap_default[nChannels - 1].dwChannelMask;
+    const DWORD dwChannelMask = get_channel_map(m_pAVCtx)->dwChannelMask;
 
     check_mt = CreateMediaType(AV_SAMPLE_FMT_FLT, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_FP32] = pPin->QueryAccept(&check_mt) == S_OK;
@@ -607,7 +607,7 @@ HRESULT CLAVCAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
     // Channel re-mapping and sample format conversion
     if (nPCMLength > 0) {
       const DWORD idx_start = pBuffOut.GetCount();
-      scmap = &m_scmap_default[m_pAVCtx->channels-1];
+      scmap = get_channel_map(m_pAVCtx);
 
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
