@@ -29,6 +29,8 @@ extern "C" {
 }
 #endif
 
+static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
+
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
   : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0)
 {
@@ -68,6 +70,7 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   HRESULT hr = S_OK;
 
   int ret; // return code from avformat functions
+  unsigned int idx;
 
   // Convert the filename from wchar to char for avformat
   // The "ufile" protocol then converts it back to wchar_t to pass it to windows APIs
@@ -85,6 +88,22 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("av_find_stream_info failed")));
     goto done;
+  }
+
+  // Re-compute the overall file duration based on video and audio durations
+  int64_t duration = INT64_MIN;
+  int64_t st_duration = 0;
+
+  for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
+    AVStream *st = m_avFormat->streams[idx];
+    if (st->duration != AV_NOPTS_VALUE && (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO)) {
+      st_duration = av_rescale_q(st->duration, st->time_base, AV_RATIONAL_TIMEBASE);
+      if (st_duration > duration)
+        duration = st_duration;
+    }
+  }
+  if (duration != INT64_MIN) {
+    m_avFormat->duration = duration;
   }
 
   m_bMatroska = (_strnicmp(m_avFormat->iformat->name, "matroska", 8) == 0);
@@ -106,13 +125,6 @@ done:
 REFERENCE_TIME CLAVFDemuxer::GetDuration() const
 {
   int64_t iLength = 0;
-  for(unsigned int streamIdx = 0; streamIdx < m_avFormat->nb_streams; ++streamIdx) {
-    if (m_avFormat->streams[streamIdx]->codec->codec_type == CODEC_TYPE_VIDEO) {
-      if (m_avFormat->streams[streamIdx]->duration != (int64_t)AV_NOPTS_VALUE && m_avFormat->streams[streamIdx]->duration > 0) {
-        return ConvertTimestampToRT(m_avFormat->streams[streamIdx]->duration, m_avFormat->streams[streamIdx]->time_base.num, m_avFormat->streams[streamIdx]->time_base.den, 0);
-      }
-    }
-  }
   if (m_avFormat->duration == (int64_t)AV_NOPTS_VALUE || m_avFormat->duration < 0LL) {
     // no duration is available for us
     // try to calculate it
