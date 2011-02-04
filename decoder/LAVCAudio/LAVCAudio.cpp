@@ -29,6 +29,8 @@
 
 #include "LAVCAudioSettingsProp.h"
 
+#include "registry.h"
+
 // static constructor
 CUnknown* WINAPI CLAVCAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
@@ -49,6 +51,8 @@ CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
   m_bSampleSupport[SampleFormat_32] = TRUE;
   m_bSampleSupport[SampleFormat_FP32] = TRUE;
 
+  LoadSettings();
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
 #endif
@@ -58,6 +62,37 @@ CLAVCAudio::~CLAVCAudio()
 {
   ffmpeg_shutdown();
   free(m_pFFBuffer);
+}
+
+HRESULT CLAVCAudio::LoadSettings()
+{
+  HRESULT hr;
+  DWORD dwVal;
+  BOOL bFlag;
+
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY);
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
+  // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
+  // and we need to fill the settings with defaults.
+  // ReadString returns an empty string in case of failure, so thats fine!
+  bFlag = bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
+  m_settings.DRCEnabled = SUCCEEDED(hr) ? bFlag : FALSE;
+
+  dwVal = reg.ReadDWORD(L"DRCLevel", hr);
+  m_settings.DRCLevel = SUCCEEDED(hr) ? (int)dwVal : 100;
+
+  return S_OK;
+}
+
+HRESULT CLAVCAudio::SaveSettings()
+{
+  HRESULT hr;
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
+  if (SUCCEEDED(hr)) {
+    reg.WriteBOOL(L"DRCEnabled", m_settings.DRCEnabled);
+    reg.WriteDWORD(L"DRCLevel", m_settings.DRCLevel);
+  }
+  return S_OK;
 }
 
 void CLAVCAudio::ffmpeg_shutdown()
@@ -106,20 +141,29 @@ STDMETHODIMP CLAVCAudio::GetPages(CAUUID *pPages)
 }
 
 // ILAVCAudioSettings
-HRESULT CLAVCAudio::GetDRC(BOOL *pbDRCEnabled, float *pfDRCLevel)
+HRESULT CLAVCAudio::GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel)
 {
   if (pbDRCEnabled) {
-    *pbDRCEnabled = FALSE;
+    *pbDRCEnabled = m_settings.DRCEnabled;
   }
-  if (pfDRCLevel) {
-    *pfDRCLevel = 1.0f;
+  if (piDRCLevel) {
+    *piDRCLevel = m_settings.DRCLevel;
   }
   return S_OK;
 }
 
 // ILAVCAudioSettings
-HRESULT CLAVCAudio::SetDRC(BOOL bDRCEnabled, float fDRCLevel)
+HRESULT CLAVCAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
 {
+  m_settings.DRCEnabled = bDRCEnabled;
+  m_settings.DRCLevel = fDRCLevel;
+
+  if (m_pAVCtx) {
+    float fDRC = bDRCEnabled ? (float)fDRCLevel / 100.0f : 0.0f;
+    m_pAVCtx->drc_scale = fDRC;
+  }
+
+  SaveSettings();
   return S_OK;
 }
 
@@ -365,7 +409,7 @@ HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_t
   m_pAVCtx->codec_type            = CODEC_TYPE_AUDIO;
   m_pAVCtx->codec_id              = (CodecID)codec;
   m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
-  m_pAVCtx->drc_scale             = 0.0f;
+  m_pAVCtx->drc_scale             = m_settings.DRCEnabled ? (float)m_settings.DRCLevel / 100.0f : 0.0f;
 
   if (format_type == FORMAT_WaveFormatEx) {
     WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;

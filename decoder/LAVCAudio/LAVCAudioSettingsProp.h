@@ -63,7 +63,7 @@ private:
   ILAVCAudioSettings *m_pAudioSettings;
 
   BOOL m_bDRCEnabled;
-  float m_fDRCLevel;
+  int m_iDRCLevel;
 };
 
 class CLAVCAudioStatusProp : public CBasePropertyPage

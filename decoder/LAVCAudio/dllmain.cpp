@@ -86,7 +86,6 @@ int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 // self-registration entrypoint
 STDAPI DllRegisterServer()
 {
-  //CreateRegistryKey(HKEY_CURRENT_USER, LAVCAUDIO_REGISTRY_KEY);
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);
 }

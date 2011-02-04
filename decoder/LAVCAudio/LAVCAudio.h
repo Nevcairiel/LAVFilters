@@ -22,6 +22,8 @@
 
 #include "LAVCAudioSettings.h"
 
+#define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
+
 struct scmap_t {
   WORD nChannels;
   BYTE ch[8];
@@ -52,8 +54,8 @@ public:
   STDMETHODIMP GetPages(CAUUID *pPages);
 
   // ILAVCAudioSettings
-  STDMETHODIMP GetDRC(BOOL *pbDRCEnabled, float *pfDRCLevel);
-  STDMETHODIMP SetDRC(BOOL bDRCEnabled, float fDRCLevel);
+  STDMETHODIMP GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel);
+  STDMETHODIMP SetDRC(BOOL bDRCEnabled, int iDRCLevel);
 
   // ILAVCAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVCSampleFormat sfCheck);
@@ -92,6 +94,9 @@ private:
   CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVCAudio();
 
+  HRESULT LoadSettings();
+  HRESULT SaveSettings();
+
   HRESULT ffmpeg_init(CodecID codec, const void *format, GUID format_type);
   void ffmpeg_shutdown();
 
@@ -119,4 +124,10 @@ private:
   LAVCSampleFormat     m_SampleFormat;  // Number of bits in the samples
 
   BOOL                 m_bSampleSupport[SampleFormat_FP32];
+
+  // Settings
+  struct Settings {
+    BOOL DRCEnabled;
+    int DRCLevel;
+  } m_settings;
 };
