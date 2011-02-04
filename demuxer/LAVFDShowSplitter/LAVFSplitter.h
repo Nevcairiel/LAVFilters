@@ -34,7 +34,7 @@
 #include "LAVFSettings.h"
 #include "LAVFSettingsProp.h"
 
-#define LAVF_REGISTRY_KEY L"Software\\LAVFSplitter"
+#define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
 
 class CLAVFOutputPin;
 
