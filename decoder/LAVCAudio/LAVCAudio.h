@@ -51,6 +51,10 @@ public:
   // ISpecifyPropertyPages
   STDMETHODIMP GetPages(CAUUID *pPages);
 
+  // ILAVCAudioSettings
+  STDMETHODIMP GetDRC(BOOL *pbDRCEnabled, float *pfDRCLevel);
+  STDMETHODIMP SetDRC(BOOL bDRCEnabled, float fDRCLevel);
+
   // ILAVCAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVCSampleFormat sfCheck);
   STDMETHODIMP GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate);

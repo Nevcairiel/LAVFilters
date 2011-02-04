@@ -40,7 +40,8 @@ typedef enum LAVCSampleFormat {
 [uuid("5B7DCFA5-589F-407C-8E32-AB2D0EFDBFCC")]
 interface ILAVCAudioSettings : public IUnknown
 {
-
+  STDMETHOD(GetDRC)(BOOL *pbDRCEnabled, float *pfDRCLevel) = 0;
+  STDMETHOD(SetDRC)(BOOL bDRCEnabled, float fDRCLevel) = 0;
 };
 
 [uuid("A668B8F2-BA87-4F63-9D41-768F7DE9C50E")]

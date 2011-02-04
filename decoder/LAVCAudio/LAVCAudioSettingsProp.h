@@ -50,8 +50,20 @@ private:
 
   HRESULT LoadData();
 
+  void SetDirty()
+  {
+    m_bDirty = TRUE;
+    if (m_pPageSite)
+    {
+      m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+    }
+  }
+
 private:
   ILAVCAudioSettings *m_pAudioSettings;
+
+  BOOL m_bDRCEnabled;
+  float m_fDRCLevel;
 };
 
 class CLAVCAudioStatusProp : public CBasePropertyPage

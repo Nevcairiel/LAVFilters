@@ -36,7 +36,7 @@ CUnknown* WINAPI CLAVCAudioSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT*
 }
 
 CLAVCAudioSettingsProp::CLAVCAudioSettingsProp(IUnknown *pUnk)
-  : CBasePropertyPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS), m_pAudioSettings(NULL)
+  : CBasePropertyPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS), m_pAudioSettings(NULL), m_bDRCEnabled(FALSE), m_fDRCLevel(1.0f)
 {
 }
 
@@ -66,11 +66,13 @@ HRESULT CLAVCAudioSettingsProp::OnApplyChanges()
 {
   ASSERT(m_pAudioSettings != NULL);
   HRESULT hr = S_OK;
-  DWORD dwVal;
+
+  LONG lDRCLevel = SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_GETPOS, 0, 0);
+  BOOL bDRC = SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetDRC(bDRC, lDRCLevel / 100.0f);
 
   LoadData();
 
-done:    
   return hr;
 } 
 
@@ -86,14 +88,27 @@ HRESULT CLAVCAudioSettingsProp::OnActivate()
   }
   ASSERT(m_pAudioSettings != NULL);
 
+  hr = LoadData();
+  if (SUCCEEDED(hr)) {
+    SendDlgItemMessage(m_Dlg, IDC_DRC, BM_SETCHECK, m_bDRCEnabled, 0);
+
+    EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), m_bDRCEnabled);
+    SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_SETRANGE, 0, MAKELONG(0, 100));
+    SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_SETTICFREQ, 10, 0);
+    SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_SETPOS, 1, (LONG)(m_fDRCLevel * 100));
+
+    WCHAR buffer[10];
+    _snwprintf_s(buffer, _TRUNCATE, L"%d%%", (LONG)(m_fDRCLevel * 100));
+    SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
+  }
+
   return hr;
 }
 
 HRESULT CLAVCAudioSettingsProp::LoadData()
 {
   HRESULT hr = S_OK;
-
-done:
+  hr = m_pAudioSettings->GetDRC(&m_bDRCEnabled, &m_fDRCLevel);
   return hr;
 }
 
@@ -102,10 +117,19 @@ INT_PTR CLAVCAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wP
   switch (uMsg)
   {
   case WM_COMMAND:
-    // Mark the page dirty if an option changed
-    if (IsPageDirty() != S_OK) {
-      
+    if (LOWORD(wParam) == IDC_DRC && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bDRC = SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
+      EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), bDRC);
     }
+    break;
+  case WM_HSCROLL:
+    LONG lValue = SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL,TBM_GETPOS, 0, 0);
+    if (lValue != (LONG)(m_fDRCLevel * 100)) {
+      SetDirty();
+    }
+    WCHAR buffer[10];
+    _snwprintf_s(buffer, _TRUNCATE, L"%d%%", lValue);
+    SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
     break;
   }
   // Let the parent class handle the message.

@@ -50,11 +50,16 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_AUDIO_SETTINGS DIALOGEX 0, 0, 210, 154
+IDD_PROPPAGE_AUDIO_SETTINGS DIALOGEX 0, 0, 214, 152
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    LTEXT           "TODO: layout property page",IDC_STATIC,60,73,90,8
+    GROUPBOX        "Dynamic Range Compression",IDC_DRC_BOX,7,7,196,40
+    CONTROL         "Apply DRC on formats that support it (AC3, EAC3)",IDC_DRC,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,17,177,10
+    CONTROL         "",IDC_DRC_LEVEL,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,50,30,100,12
+    LTEXT           "Level: ",IDC_LBL_DRC_LEVEL,15,30,28,8
+    LTEXT           "100%",IDC_DRC_LEVEL_TEXT,147,30,23,8,0,WS_EX_RIGHT
 END
 
 IDD_PROPPAGE_STATUS DIALOGEX 0, 0, 214, 152

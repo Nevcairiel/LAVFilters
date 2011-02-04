@@ -105,6 +105,24 @@ STDMETHODIMP CLAVCAudio::GetPages(CAUUID *pPages)
   return S_OK;
 }
 
+// ILAVCAudioSettings
+HRESULT CLAVCAudio::GetDRC(BOOL *pbDRCEnabled, float *pfDRCLevel)
+{
+  if (pbDRCEnabled) {
+    *pbDRCEnabled = FALSE;
+  }
+  if (pfDRCLevel) {
+    *pfDRCLevel = 1.0f;
+  }
+  return S_OK;
+}
+
+// ILAVCAudioSettings
+HRESULT CLAVCAudio::SetDRC(BOOL bDRCEnabled, float fDRCLevel)
+{
+  return S_OK;
+}
+
 // ILAVCAudioStatus
 BOOL CLAVCAudio::IsSampleFormatSupported(LAVCSampleFormat sfCheck)
 {
