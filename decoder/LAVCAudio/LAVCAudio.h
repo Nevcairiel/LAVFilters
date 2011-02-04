@@ -123,10 +123,10 @@ private:
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVCSampleFormat     m_SampleFormat;  // Number of bits in the samples
 
-  BOOL                 m_bSampleSupport[SampleFormat_FP32];
+  BOOL                 m_bSampleSupport[SampleFormat_NB];
 
   // Settings
-  struct Settings {
+  struct AudioSettings {
     BOOL DRCEnabled;
     int DRCLevel;
   } m_settings;

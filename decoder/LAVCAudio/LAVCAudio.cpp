@@ -75,7 +75,7 @@ HRESULT CLAVCAudio::LoadSettings()
   // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
   // and we need to fill the settings with defaults.
   // ReadString returns an empty string in case of failure, so thats fine!
-  bFlag = bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
+  bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
   m_settings.DRCEnabled = SUCCEEDED(hr) ? bFlag : FALSE;
 
   dwVal = reg.ReadDWORD(L"DRCLevel", hr);

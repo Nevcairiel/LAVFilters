@@ -119,7 +119,10 @@ INT_PTR CLAVCAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wP
   case WM_COMMAND:
     if (LOWORD(wParam) == IDC_DRC && HIWORD(wParam) == BN_CLICKED) {
       BOOL bDRC = SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
-      EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), bDRC);
+      if (bDRC != m_bDRCEnabled) {
+        SetDirty();
+        EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), bDRC);
+      }
     }
     break;
   case WM_HSCROLL:

@@ -34,7 +34,8 @@ typedef enum LAVCSampleFormat {
   SampleFormat_24,
   SampleFormat_32,
   SampleFormat_U8,
-  SampleFormat_FP32
+  SampleFormat_FP32,
+  SampleFormat_NB   // Dummy, do not use
 };
 
 [uuid("5B7DCFA5-589F-407C-8E32-AB2D0EFDBFCC")]
