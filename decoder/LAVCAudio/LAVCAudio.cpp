@@ -430,7 +430,7 @@ HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_t
 
   int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
   if (ret >= 0) {
-    m_pPCMData	= (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_pPCMData = (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
   } else {
     return VFW_E_UNSUPPORTED_AUDIO;
   }
