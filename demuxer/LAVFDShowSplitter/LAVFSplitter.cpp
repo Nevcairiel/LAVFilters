@@ -70,6 +70,7 @@ STDMETHODIMP CLAVFSplitter::LoadSettings()
   DWORD dwVal;
   BOOL bFlag;
 
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
   // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
   // and we need to fill the settings with defaults.

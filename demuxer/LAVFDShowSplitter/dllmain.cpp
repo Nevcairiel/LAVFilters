@@ -120,8 +120,6 @@ STDAPI DllRegisterServer()
 {
   std::list<LPCWSTR> chkbytes;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY);
-
   // MKV/WEBM
   chkbytes.push_back(L"0,4,,1A45DFA3");
 
