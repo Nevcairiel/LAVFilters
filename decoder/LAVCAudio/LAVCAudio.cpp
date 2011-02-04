@@ -424,11 +424,6 @@ HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_t
       m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
       memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
     }
-
-    // This could probably be a bit smarter..
-    if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
-      m_pAVCtx->bits_per_raw_sample = wfein->wBitsPerSample;
-    }
   }
 
   m_nCodecId                      = codec;
@@ -438,6 +433,11 @@ HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_t
     m_pPCMData	= (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
   } else {
     return VFW_E_UNSUPPORTED_AUDIO;
+  }
+
+  // This could probably be a bit smarter..
+  if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
+    m_pAVCtx->bits_per_raw_sample = m_pAVCtx->bits_per_coded_sample;
   }
 
   return S_OK;
