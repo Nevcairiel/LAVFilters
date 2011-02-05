@@ -67,8 +67,8 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   ASSERT(m_pAudioSettings != NULL);
   HRESULT hr = S_OK;
 
-  int iDRCLevel = SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_GETPOS, 0, 0);
-  BOOL bDRC = SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
+  int iDRCLevel = (int)SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_GETPOS, 0, 0);
+  BOOL bDRC = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
   hr = m_pAudioSettings->SetDRC(bDRC, iDRCLevel);
 
   LoadData();
