@@ -22,6 +22,12 @@
 
 #include "LAVAudioSettings.h"
 
+#define CODEC_ID_PCM_SxxBE (CodecID)0x19001
+#define CODEC_ID_PCM_SxxLE (CodecID)0x19002
+#define CODEC_ID_PCM_UxxBE (CodecID)0x19003
+#define CODEC_ID_PCM_UxxLE (CodecID)0x19004
+#define CODEC_ID_PCM_QTRAW (CodecID)0x19005
+
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
 
 struct scmap_t {

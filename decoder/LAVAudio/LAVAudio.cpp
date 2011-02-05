@@ -396,6 +396,31 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
 {
   ffmpeg_shutdown();
 
+  // Fake codecs that are dependant in input bits per sample, mostly to handle QT PCM tracks
+  if (codec == CODEC_ID_PCM_QTRAW || codec == CODEC_ID_PCM_SxxBE || codec == CODEC_ID_PCM_SxxLE || codec == CODEC_ID_PCM_UxxBE || codec == CODEC_ID_PCM_UxxLE) {
+    if (format_type == FORMAT_WaveFormatEx) {
+      WAVEFORMATEX *wfein = (WAVEFORMATEX *)format;
+      ASSERT(wfein->wBitsPerSample == 8 || wfein->wBitsPerSample == 16);
+      switch(codec) {
+      case CODEC_ID_PCM_QTRAW:
+        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_U8 : CODEC_ID_PCM_S16BE;
+        break;
+      case CODEC_ID_PCM_SxxBE:
+        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_S8 : CODEC_ID_PCM_S16BE;
+        break;
+      case CODEC_ID_PCM_SxxLE:
+        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_S8 : CODEC_ID_PCM_S16LE;
+        break;
+      case CODEC_ID_PCM_UxxBE:
+        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_U8 : CODEC_ID_PCM_U16BE;
+        break;
+      case CODEC_ID_PCM_UxxLE:
+        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_U8 : CODEC_ID_PCM_U16LE;
+        break;
+      }
+    }
+  }
+
   if (codec == CODEC_ID_MP3) {
     m_pAVCodec    = avcodec_find_decoder_by_name("mp3float");
   } else {
