@@ -1,4 +1,9 @@
-LAVFSplitter - a libavformat based directshow media splitter
+LAV Filters - ffmpeg based DirectShow Splitter and Decoders
+
+LAV Filters are a set of DirectShow filters based on the libavformat and libavcodec libraries
+from the ffmpeg project, which will allow you to play virtually any format in a DirectShow player.
+
+The filters are still under Development, so not every feature is finished, or every format supported.
 
 Prereqs
 =============================
@@ -8,7 +13,7 @@ Install
 =============================
 - Unpack
 - Register (regsvr32 LAVFSplitter.ax)
-	Registering requires adminitrative rights.
+	Registering requires administrative rights.
 	On Vista/7 also make sure to start it in an elevated shell.
 
 Using it
@@ -22,6 +27,10 @@ However, some other splitters register in a "bad" way and force all players
 to use them. The Haali Media Splitter is one of those, and to give priority
 to the LAVFSplitter you have to either uninstall Haali or rename its .ax file
 at least temporarily.
+
+The Audio Decoder will register with a relatively high merit, which should make
+it the preferred decoder by default. Most players offer a way to choose the preferred
+decoder however.
 
 Compiling
 =============================
