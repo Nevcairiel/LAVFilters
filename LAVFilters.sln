@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVFDShowSplitter", "demuxer\LAVFDShowSplitter\LAVFDShowSplitter.vcxproj", "{F475F86F-3F7F-4B1D-82A6-078339F599FD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVSplitter", "demuxer\LAVSplitter\LAVSplitter.vcxproj", "{F475F86F-3F7F-4B1D-82A6-078339F599FD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0A058024-41F4-4509-97D2-803A1806CE86} = {0A058024-41F4-4509-97D2-803A1806CE86}
 		{E2012DB5-33CB-44A7-B521-04287F6D0D80} = {E2012DB5-33CB-44A7-B521-04287F6D0D80}

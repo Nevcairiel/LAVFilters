@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F475F86F-3F7F-4B1D-82A6-078339F599FD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>LAVFSplitter</RootNamespace>
+    <RootNamespace>LAVSplitter</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -89,31 +89,31 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LAVFSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LAVSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;strmbasd.lib;dsutild.lib;demuxersd.lib;avcore-0.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
-      <ModuleDefinitionFile>LAVFDShowSplitter.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LAVFSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LAVSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;strmbasd.lib;dsutild.lib;demuxersd.lib;avcore-0.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
-      <ModuleDefinitionFile>LAVFDShowSplitter.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LAVFSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LAVSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -122,12 +122,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;strmbase.lib;dsutil.lib;demuxers.lib;avcore-0.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
-      <ModuleDefinitionFile>LAVFDShowSplitter.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LAVFSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LAVSPLITTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -136,30 +136,30 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;strmbase.lib;dsutil.lib;demuxers.lib;avcore-0.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
-      <ModuleDefinitionFile>LAVFDShowSplitter.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="LAVFSettingsProp.cpp" />
+    <ClCompile Include="SettingsProp.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PacketQueue.cpp" />
-    <ClCompile Include="LAVFOutputPin.cpp" />
-    <ClCompile Include="LAVFSplitter.cpp" />
+    <ClCompile Include="OutputPin.cpp" />
+    <ClCompile Include="LAVSplitter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LAVFSettings.h" />
-    <ClInclude Include="LAVFSettingsProp.h" />
+    <ClInclude Include="LAVSplitterSettings.h" />
+    <ClInclude Include="SettingsProp.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="PacketQueue.h" />
-    <ClInclude Include="LAVFOutputPin.h" />
-    <ClInclude Include="LAVFSplitter.h" />
+    <ClInclude Include="OutputPin.h" />
+    <ClInclude Include="LAVSplitter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="LAVFDShowSplitter.rc" />
+    <ResourceCompile Include="LAVSplitter.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

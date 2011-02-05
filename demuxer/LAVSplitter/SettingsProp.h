@@ -21,19 +21,19 @@
 #pragma once
 
 #include "cprop.h"
-#include "LAVFSettings.h"
+#include "LAVSplitterSettings.h"
 
 // GUID: a19de2f2-2f74-4927-8436-61129d26c141
-DEFINE_GUID(CLSID_LAVFSettingsProp, 0xa19de2f2, 0x2f74, 
+DEFINE_GUID(CLSID_LAVSplitterSettingsProp, 0xa19de2f2, 0x2f74, 
   0x4927, 0x84, 0x36, 0x61, 0x12, 0x9d, 0x26, 0xc1, 0x41);
 
-class CLAVFSettingsProp :
+class CLAVSplitterSettingsProp :
   public CBasePropertyPage
 {
 public:
   static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
 
-  virtual ~CLAVFSettingsProp(void);
+  virtual ~CLAVSplitterSettingsProp(void);
 
   HRESULT OnActivate();
   HRESULT OnConnect(IUnknown *pUnk);
@@ -42,7 +42,7 @@ public:
   INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-  CLAVFSettingsProp(IUnknown *pUnk);
+  CLAVSplitterSettingsProp(IUnknown *pUnk);
 
   HRESULT LoadData();
 

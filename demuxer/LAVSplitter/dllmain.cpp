@@ -32,13 +32,13 @@
 #include <InitGuid.h>
 
 #include <qnetwork.h>
-#include "LAVFSplitter.h"
+#include "LAVSplitter.h"
 #include "moreuuids.h"
 
 #include "registry.h"
 
 // The GUID we use to register the splitter media types
-DEFINE_GUID(MEDIATYPE_LAVFSplitter,
+DEFINE_GUID(MEDIATYPE_LAVSplitter,
   0x9c53931c, 0x7d5a, 0x4a75, 0xb2, 0x6f, 0x4e, 0x51, 0x65, 0x4d, 0xb2, 0xc0);
 
 // --- COM factory table and registration code --------------
@@ -84,8 +84,8 @@ const AMOVIESETUP_PIN sudOutputPins[] =
 
 const AMOVIESETUP_FILTER sudFilterReg =
 {
-  &__uuidof(CLAVFSplitter),       // filter clsid
-  L"lavf dshow source filter",  // filter name
+  &__uuidof(CLAVSplitter),       // filter clsid
+  L"LAV Splitter",                // filter name
   MERIT_NORMAL,                   // merit
   2,                              // count of registered pins
   sudOutputPins                   // list of pins to register
@@ -100,15 +100,15 @@ CFactoryTemplate g_Templates[] = {
   {
     sudFilterReg.strName,
       sudFilterReg.clsID,
-      CLAVFSplitter::CreateInstance,
+      CLAVSplitter::CreateInstance,
       NULL,
       &sudFilterReg
   },
   // This entry is for the property page.
   { 
-      L"LAVFSplitter Properties",
-      &CLSID_LAVFSettingsProp,
-      CLAVFSettingsProp::CreateInstance, 
+      L"LAV Splitter Properties",
+      &CLSID_LAVSplitterSettingsProp,
+      CLAVSplitterSettingsProp::CreateInstance, 
       NULL, NULL
   }
 
@@ -159,8 +159,8 @@ STDAPI DllRegisterServer()
   // Ogg
   chkbytes.push_back(L"0,4,,4F676753");
 
-  RegisterSourceFilter(__uuidof(CLAVFSplitter),
-    MEDIATYPE_LAVFSplitter,
+  RegisterSourceFilter(__uuidof(CLAVSplitter),
+    MEDIATYPE_LAVSplitter,
     chkbytes,
     L".mkv", L".mka", L".mks", // MKV
     L".avi", L".divx",  // AVI
@@ -176,7 +176,7 @@ STDAPI DllRegisterServer()
 
 STDAPI DllUnregisterServer()
 {
-  UnRegisterSourceFilter(MEDIATYPE_LAVFSplitter);
+  UnRegisterSourceFilter(MEDIATYPE_LAVSplitter);
 
   // base classes will handle de-registration using the factory template table
   return AMovieDllRegisterServer2(false);

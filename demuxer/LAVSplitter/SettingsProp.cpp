@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <Commctrl.h>
 
-#include "LAVFSettingsProp.h"
+#include "SettingsProp.h"
 
 #include "DShowUtil.h"
 
@@ -31,29 +31,29 @@
 #define LANG_BUFFER_SIZE 256
 
 // static constructor
-CUnknown* WINAPI CLAVFSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
+CUnknown* WINAPI CLAVSplitterSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
-  CLAVFSettingsProp *propPage = new CLAVFSettingsProp(pUnk);
+  CLAVSplitterSettingsProp *propPage = new CLAVSplitterSettingsProp(pUnk);
   if (!propPage) {
     *phr = E_OUTOFMEMORY;
   }
   return propPage;
 }
 
-CLAVFSettingsProp::CLAVFSettingsProp(IUnknown *pUnk)
+CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(IUnknown *pUnk)
   : CBasePropertyPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
   , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL)
 {
 }
 
 
-CLAVFSettingsProp::~CLAVFSettingsProp(void)
+CLAVSplitterSettingsProp::~CLAVSplitterSettingsProp(void)
 {
   SAFE_CO_FREE(m_pszPrefLang);
   SAFE_CO_FREE(m_pszPrefSubLang);
 }
 
-HRESULT CLAVFSettingsProp::OnConnect(IUnknown *pUnk)
+HRESULT CLAVSplitterSettingsProp::OnConnect(IUnknown *pUnk)
 {
   if (pUnk == NULL)
   {
@@ -63,7 +63,7 @@ HRESULT CLAVFSettingsProp::OnConnect(IUnknown *pUnk)
   return pUnk->QueryInterface(&m_pLAVF);
 }
 
-HRESULT CLAVFSettingsProp::OnDisconnect()
+HRESULT CLAVSplitterSettingsProp::OnDisconnect()
 {
   if (m_pLAVF) {
     m_pLAVF->Release();
@@ -72,7 +72,7 @@ HRESULT CLAVFSettingsProp::OnDisconnect()
   return S_OK;
 }
 
-HRESULT CLAVFSettingsProp::OnApplyChanges()
+HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
 {
   ASSERT(m_pLAVF != NULL);
   HRESULT hr = S_OK;
@@ -100,7 +100,7 @@ done:
   return hr;
 } 
 
-HRESULT CLAVFSettingsProp::OnActivate()
+HRESULT CLAVSplitterSettingsProp::OnActivate()
 {
   HRESULT hr = S_OK;
   INITCOMMONCONTROLSEX icc;
@@ -133,7 +133,7 @@ HRESULT CLAVFSettingsProp::OnActivate()
 
   return hr;
 }
-HRESULT CLAVFSettingsProp::LoadData()
+HRESULT CLAVSplitterSettingsProp::LoadData()
 {
   HRESULT hr = S_OK;
 
@@ -151,7 +151,7 @@ done:
   return hr;
 }
 
-INT_PTR CLAVFSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   switch (uMsg)
   {

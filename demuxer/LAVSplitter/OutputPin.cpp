@@ -23,11 +23,11 @@
 
 #include "stdafx.h"
 #include "BaseDemuxer.h"
-#include "LAVFOutputPin.h"
-#include "LAVFSplitter.h"
+#include "OutputPin.h"
+#include "LAVSplitter.h"
 #include "moreuuids.h"
 
-CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
+CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
@@ -40,7 +40,7 @@ CLAVFOutputPin::CLAVFOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBas
   m_nBuffers = max(nBuffers, 1);
 }
 
-CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
+CLAVOutputPin::CLAVOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
@@ -52,12 +52,12 @@ CLAVFOutputPin::CLAVFOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pL
   m_nBuffers = max(nBuffers, 1);
 }
 
-CLAVFOutputPin::~CLAVFOutputPin()
+CLAVOutputPin::~CLAVOutputPin()
 {
   SAFE_DELETE(m_newMT);
 }
 
-STDMETHODIMP CLAVFOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
@@ -68,7 +68,7 @@ STDMETHODIMP CLAVFOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
-HRESULT CLAVFOutputPin::CheckConnect(IPin* pPin) {
+HRESULT CLAVOutputPin::CheckConnect(IPin* pPin) {
   int iPosition = 0;
   CMediaType mt;
   while(S_OK == GetMediaType(iPosition++, &mt)) {
@@ -77,7 +77,7 @@ HRESULT CLAVFOutputPin::CheckConnect(IPin* pPin) {
   return __super::CheckConnect(pPin);
 }
 
-HRESULT CLAVFOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERTIES* pProperties)
+HRESULT CLAVOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERTIES* pProperties)
 {
   CheckPointer(pAlloc, E_POINTER);
   CheckPointer(pProperties, E_POINTER);
@@ -101,7 +101,7 @@ HRESULT CLAVFOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPER
   return S_OK;
 }
 
-HRESULT CLAVFOutputPin::CheckMediaType(const CMediaType* pmt)
+HRESULT CLAVOutputPin::CheckMediaType(const CMediaType* pmt)
 {
   std::vector<CMediaType>::iterator it;
   for(it = m_mts.begin(); it != m_mts.end(); ++it)
@@ -113,7 +113,7 @@ HRESULT CLAVFOutputPin::CheckMediaType(const CMediaType* pmt)
   return E_INVALIDARG;
 }
 
-HRESULT CLAVFOutputPin::GetMediaType(int iPosition, CMediaType* pmt)
+HRESULT CLAVOutputPin::GetMediaType(int iPosition, CMediaType* pmt)
 {
   CAutoLock cAutoLock(m_pLock);
 
@@ -125,7 +125,7 @@ HRESULT CLAVFOutputPin::GetMediaType(int iPosition, CMediaType* pmt)
   return S_OK;
 }
 
-HRESULT CLAVFOutputPin::Active()
+HRESULT CLAVOutputPin::Active()
 {
   CAutoLock cAutoLock(m_pLock);
 
@@ -135,7 +135,7 @@ HRESULT CLAVFOutputPin::Active()
   return __super::Active();
 }
 
-HRESULT CLAVFOutputPin::Inactive()
+HRESULT CLAVOutputPin::Inactive()
 {
   CAutoLock cAutoLock(m_pLock);
 
@@ -145,7 +145,7 @@ HRESULT CLAVFOutputPin::Inactive()
   return __super::Inactive();
 }
 
-HRESULT CLAVFOutputPin::DeliverBeginFlush()
+HRESULT CLAVOutputPin::DeliverBeginFlush()
 {
   m_eEndFlush.Reset();
   m_fFlushed = false;
@@ -157,7 +157,7 @@ HRESULT CLAVFOutputPin::DeliverBeginFlush()
   return hr;
 }
 
-HRESULT CLAVFOutputPin::DeliverEndFlush()
+HRESULT CLAVOutputPin::DeliverEndFlush()
 {
   if(!ThreadExists()) return S_FALSE;
   HRESULT hr = IsConnected() ? GetConnected()->EndFlush() : S_OK;
@@ -168,7 +168,7 @@ HRESULT CLAVFOutputPin::DeliverEndFlush()
   return hr;
 }
 
-HRESULT CLAVFOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
+HRESULT CLAVOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
   if(m_fFlushing) return S_FALSE;
   m_rtStart = tStart;
@@ -177,23 +177,23 @@ HRESULT CLAVFOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME 
   return __super::DeliverNewSegment(tStart, tStop, dRate);
 }
 
-size_t CLAVFOutputPin::QueueCount()
+size_t CLAVOutputPin::QueueCount()
 {
   return m_queue.Size();
 }
 
-HRESULT CLAVFOutputPin::QueueEndOfStream()
+HRESULT CLAVOutputPin::QueueEndOfStream()
 {
   return QueuePacket(NULL); // NULL means EndOfStream
 }
 
-HRESULT CLAVFOutputPin::QueuePacket(Packet *pPacket)
+HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
 {
   if(!ThreadExists()) return S_FALSE;
 
   // While everything is good AND no pin is drying AND the queue is full .. sleep
   while(S_OK == m_hrDeliver 
-    && !(static_cast<CLAVFSplitter*>(m_pFilter))->IsAnyPinDrying()
+    && !(static_cast<CLAVSplitter*>(m_pFilter))->IsAnyPinDrying()
     && m_queue.Size() > MAX_PACKETS_IN_QUEUE)
     Sleep(1);
 
@@ -215,7 +215,7 @@ HRESULT CLAVFOutputPin::QueuePacket(Packet *pPacket)
   return m_hrDeliver;
 }
 
-bool CLAVFOutputPin::IsDiscontinuous()
+bool CLAVOutputPin::IsDiscontinuous()
 {
   return m_mt.majortype == MEDIATYPE_Text
     || m_mt.majortype == MEDIATYPE_ScriptCommand
@@ -225,9 +225,9 @@ bool CLAVFOutputPin::IsDiscontinuous()
     || m_mt.subtype == MEDIASUBTYPE_SVCD_SUBPICTURE;
 }
 
-DWORD CLAVFOutputPin::ThreadProc()
+DWORD CLAVOutputPin::ThreadProc()
 {
-  std::string name = "CLAVFOutputPin " + std::string(CBaseDemuxer::CStreamList::ToString(m_pinType));
+  std::string name = "CLAVOutputPin " + std::string(CBaseDemuxer::CStreamList::ToString(m_pinType));
   SetThreadName(-1, name.c_str());
   // Anything thats not video is low bandwidth and should have a lower priority
   if (m_mt.majortype != MEDIATYPE_Video) {
@@ -287,7 +287,7 @@ DWORD CLAVFOutputPin::ThreadProc()
   return 0;
 }
 
-HRESULT CLAVFOutputPin::DeliverPacket(Packet *pPacket)
+HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
 {
   HRESULT hr = S_OK;
   IMediaSample *pSample = NULL;

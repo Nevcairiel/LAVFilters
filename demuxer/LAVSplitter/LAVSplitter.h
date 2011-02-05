@@ -31,19 +31,19 @@
 
 #include "BaseDemuxer.h"
 
-#include "LAVFSettings.h"
-#include "LAVFSettingsProp.h"
+#include "LAVSplitterSettings.h"
+#include "SettingsProp.h"
 
 #define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
 
-class CLAVFOutputPin;
+class CLAVOutputPin;
 
 #ifdef	_MSC_VER
 #pragma warning(disable: 4355)
 #endif
 
 [uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]
-class CLAVFSplitter 
+class CLAVSplitter 
   : public CBaseFilter
   , public CCritSec
   , protected CAMThread
@@ -130,20 +130,20 @@ protected:
   STDMETHODIMP DeleteOutputs();
 
 public:
-  CLAVFOutputPin *GetOutputPin(DWORD streamId);
+  CLAVOutputPin *GetOutputPin(DWORD streamId);
   STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts);
 
 private:
   // construct only via class factory
-  CLAVFSplitter(LPUNKNOWN pUnk, HRESULT* phr);
-  ~CLAVFSplitter();
+  CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
+  ~CLAVSplitter();
 
   STDMETHODIMP LoadSettings();
   STDMETHODIMP SaveSettings();
 
 private:
   CCritSec m_csPins;
-  std::vector<CLAVFOutputPin *> m_pPins;
+  std::vector<CLAVOutputPin *> m_pPins;
   std::set<DWORD> m_bDiscontinuitySent;
 
   std::wstring m_fileName;
