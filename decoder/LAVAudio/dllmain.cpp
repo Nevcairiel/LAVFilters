@@ -50,7 +50,7 @@ const AMOVIESETUP_FILTER sudFilterReg =
 {
   &__uuidof(CLAVAudio),       // filter clsid
   L"LAV Audio Decoder",  // filter name
-  MERIT_NORMAL,                   // merit
+  MERIT_PREFERRED + 3,                   // merit
   countof(sudpPinsAudioDec), sudpPinsAudioDec
 };
 
