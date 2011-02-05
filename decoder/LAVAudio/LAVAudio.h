@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "LAVCAudioSettings.h"
+#include "LAVAudioSettings.h"
 
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
 
@@ -34,13 +34,13 @@ extern CodecID FindCodecId(const CMediaType *mt);
 
 const scmap_t* get_channel_map(AVCodecContext *avctx);
 
-const char *get_sample_format_desc(LAVCSampleFormat sfFormat);
+const char *get_sample_format_desc(LAVAudioSampleFormat sfFormat);
 const char *get_sample_format_desc(CMediaType &mt);
 
 struct WAVEFORMATEX_HDMV_LPCM;
 
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
-class CLAVCAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVCAudioSettings, public ILAVCAudioStatus
+class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVAudioSettings, public ILAVAudioStatus
 {
 public:
   // constructor method used by class factory
@@ -53,12 +53,12 @@ public:
   // ISpecifyPropertyPages
   STDMETHODIMP GetPages(CAUUID *pPages);
 
-  // ILAVCAudioSettings
+  // ILAVAudioSettings
   STDMETHODIMP GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel);
   STDMETHODIMP SetDRC(BOOL bDRCEnabled, int iDRCLevel);
 
-  // ILAVCAudioStatus
-  STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVCSampleFormat sfCheck);
+  // ILAVAudioStatus
+  STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
   STDMETHODIMP GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate);
   STDMETHODIMP GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask);
 
@@ -91,8 +91,8 @@ public:
   const static int                      sudPinTypesOutCount;
 
 private:
-  CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr);
-  ~CLAVCAudio();
+  CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr);
+  ~CLAVAudio();
 
   HRESULT LoadSettings();
   HRESULT SaveSettings();
@@ -121,7 +121,7 @@ private:
   BOOL                 m_fDiscontinuity; // Discontinuity
   REFERENCE_TIME       m_rtStart;        // Start time
   GrowableArray<BYTE>  m_buff;           // Input Buffer
-  LAVCSampleFormat     m_SampleFormat;  // Number of bits in the samples
+  LAVAudioSampleFormat     m_SampleFormat;  // Number of bits in the samples
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 

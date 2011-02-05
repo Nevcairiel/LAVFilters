@@ -20,24 +20,24 @@
 
 #pragma once
 
-#include "LAVCAudioSettings.h"
+#include "LAVAudioSettings.h"
 
 // {2D8F1801-A70D-48F4-B76B-7F5AE022AB54}
-DEFINE_GUID(CLSID_LAVCAudioSettingsProp, 
+DEFINE_GUID(CLSID_LAVAudioSettingsProp, 
 0x2d8f1801, 0xa70d, 0x48f4, 0xb7, 0x6b, 0x7f, 0x5a, 0xe0, 0x22, 0xab, 0x54);
 
 // {20ED4A03-6AFD-4FD9-980B-2F6143AA0892}
-DEFINE_GUID(CLSID_LAVCAudioStatusProp, 
+DEFINE_GUID(CLSID_LAVAudioStatusProp, 
 0x20ed4a03, 0x6afd, 0x4fd9, 0x98, 0xb, 0x2f, 0x61, 0x43, 0xaa, 0x8, 0x92);
 
 
 
-class CLAVCAudioSettingsProp : public CBasePropertyPage
+class CLAVAudioSettingsProp : public CBasePropertyPage
 {
 public:
   static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
 
-  ~CLAVCAudioSettingsProp();
+  ~CLAVAudioSettingsProp();
 
   HRESULT OnActivate();
   HRESULT OnConnect(IUnknown *pUnk);
@@ -46,7 +46,7 @@ public:
   INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-  CLAVCAudioSettingsProp(IUnknown *pUnk);
+  CLAVAudioSettingsProp(IUnknown *pUnk);
 
   HRESULT LoadData();
 
@@ -60,26 +60,26 @@ private:
   }
 
 private:
-  ILAVCAudioSettings *m_pAudioSettings;
+  ILAVAudioSettings *m_pAudioSettings;
 
   BOOL m_bDRCEnabled;
   int m_iDRCLevel;
 };
 
-class CLAVCAudioStatusProp : public CBasePropertyPage
+class CLAVAudioStatusProp : public CBasePropertyPage
 {
 public:
   static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
 
-  ~CLAVCAudioStatusProp();
+  ~CLAVAudioStatusProp();
 
   HRESULT OnActivate();
   HRESULT OnConnect(IUnknown *pUnk);
   HRESULT OnDisconnect();
 
 private:
-  CLAVCAudioStatusProp(IUnknown *pUnk);
+  CLAVAudioStatusProp(IUnknown *pUnk);
 
 private:
-  ILAVCAudioStatus *m_pAudioStatus;
+  ILAVAudioStatus *m_pAudioStatus;
 };

@@ -19,7 +19,7 @@
  */
 
 #include "stdafx.h"
-#include "LAVCAudio.h"
+#include "LAVAudio.h"
 
 #include <MMReg.h>
 #include <assert.h>
@@ -27,19 +27,19 @@
 #include "moreuuids.h"
 #include "DShowUtil.h"
 
-#include "LAVCAudioSettingsProp.h"
+#include "AudioSettingsProp.h"
 
 #include "registry.h"
 
 // static constructor
-CUnknown* WINAPI CLAVCAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
+CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
-  return new CLAVCAudio(pUnk, phr);
+  return new CLAVAudio(pUnk, phr);
 }
 
 // Constructor
-CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
-  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVCAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_SampleFormat(SampleFormat_16)
+CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
+  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_SampleFormat(SampleFormat_16)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0)
 {
   avcodec_init();
@@ -58,13 +58,13 @@ CLAVCAudio::CLAVCAudio(LPUNKNOWN pUnk, HRESULT* phr)
 #endif
 }
 
-CLAVCAudio::~CLAVCAudio()
+CLAVAudio::~CLAVAudio()
 {
   ffmpeg_shutdown();
   free(m_pFFBuffer);
 }
 
-HRESULT CLAVCAudio::LoadSettings()
+HRESULT CLAVAudio::LoadSettings()
 {
   HRESULT hr;
   DWORD dwVal;
@@ -84,7 +84,7 @@ HRESULT CLAVCAudio::LoadSettings()
   return S_OK;
 }
 
-HRESULT CLAVCAudio::SaveSettings()
+HRESULT CLAVAudio::SaveSettings()
 {
   HRESULT hr;
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
@@ -95,7 +95,7 @@ HRESULT CLAVCAudio::SaveSettings()
   return S_OK;
 }
 
-void CLAVCAudio::ffmpeg_shutdown()
+void CLAVAudio::ffmpeg_shutdown()
 {
   m_pAVCodec	= NULL;
   if (m_pAVCtx) {
@@ -113,7 +113,7 @@ void CLAVCAudio::ffmpeg_shutdown()
 }
 
 // IUnknown
-STDMETHODIMP CLAVCAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+STDMETHODIMP CLAVAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
@@ -121,13 +121,13 @@ STDMETHODIMP CLAVCAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return 
     QI2(ISpecifyPropertyPages)
-    QI2(ILAVCAudioSettings)
-    QI2(ILAVCAudioStatus)
+    QI2(ILAVAudioSettings)
+    QI2(ILAVAudioStatus)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
 // ISpecifyPropertyPages
-STDMETHODIMP CLAVCAudio::GetPages(CAUUID *pPages)
+STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
   pPages->cElems = 2;
@@ -135,13 +135,13 @@ STDMETHODIMP CLAVCAudio::GetPages(CAUUID *pPages)
   if (pPages->pElems == NULL) {
     return E_OUTOFMEMORY;
   }
-  pPages->pElems[0] = CLSID_LAVCAudioSettingsProp;
-  pPages->pElems[1] = CLSID_LAVCAudioStatusProp;
+  pPages->pElems[0] = CLSID_LAVAudioSettingsProp;
+  pPages->pElems[1] = CLSID_LAVAudioStatusProp;
   return S_OK;
 }
 
-// ILAVCAudioSettings
-HRESULT CLAVCAudio::GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel)
+// ILAVAudioSettings
+HRESULT CLAVAudio::GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel)
 {
   if (pbDRCEnabled) {
     *pbDRCEnabled = m_settings.DRCEnabled;
@@ -152,8 +152,8 @@ HRESULT CLAVCAudio::GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel)
   return S_OK;
 }
 
-// ILAVCAudioSettings
-HRESULT CLAVCAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
+// ILAVAudioSettings
+HRESULT CLAVAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
 {
   m_settings.DRCEnabled = bDRCEnabled;
   m_settings.DRCLevel = fDRCLevel;
@@ -167,8 +167,8 @@ HRESULT CLAVCAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
   return S_OK;
 }
 
-// ILAVCAudioStatus
-BOOL CLAVCAudio::IsSampleFormatSupported(LAVCSampleFormat sfCheck)
+// ILAVAudioStatus
+BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
 {
   if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
     return FALSE;
@@ -176,7 +176,7 @@ BOOL CLAVCAudio::IsSampleFormatSupported(LAVCSampleFormat sfCheck)
   return m_bSampleSupport[sfCheck];
 }
 
-HRESULT CLAVCAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate)
+HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate)
 {
   if(!m_pInput || m_pInput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
@@ -193,7 +193,7 @@ HRESULT CLAVCAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *p
   return S_OK;
 }
 
-HRESULT CLAVCAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask)
+HRESULT CLAVAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask)
 {
   if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
@@ -221,7 +221,7 @@ HRESULT CLAVCAudio::GetOutputDetails(const char **pDecodeFormat, const char **pO
 }
 
 // CTransformFilter
-HRESULT CLAVCAudio::CheckInputType(const CMediaType *mtIn)
+HRESULT CLAVAudio::CheckInputType(const CMediaType *mtIn)
 {
   for(int i = 0; i < sudPinTypesInCount; i++) {
     if(*sudPinTypesIn[i].clsMajorType == mtIn->majortype
@@ -234,7 +234,7 @@ HRESULT CLAVCAudio::CheckInputType(const CMediaType *mtIn)
 }
 
 // Get the output media types
-HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
+HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 {
   DbgLog((LOG_TRACE, 5, L"GetMediaType"));
   if(m_pInput->IsConnected() == FALSE || !m_pAVCtx || !m_pAVCodec) {
@@ -258,7 +258,7 @@ HRESULT CLAVCAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   return S_OK;
 }
 
-HRESULT CLAVCAudio::ReconnectOutput(int nSamples, CMediaType& mt)
+HRESULT CLAVAudio::ReconnectOutput(int nSamples, CMediaType& mt)
 {
   HRESULT hr = S_FALSE;
 
@@ -308,7 +308,7 @@ done:
   return hr;
 }
 
-CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSampleOverride) const
+CMediaType CLAVAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSampleOverride) const
 {
   CMediaType mt;
 
@@ -356,7 +356,7 @@ CMediaType CLAVCAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSampl
 }
 
 // Check if the types are compatible
-HRESULT CLAVCAudio::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut)
+HRESULT CLAVAudio::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut)
 {
   return SUCCEEDED(CheckInputType(mtIn))
     && mtOut->majortype == MEDIATYPE_Audio
@@ -365,7 +365,7 @@ HRESULT CLAVCAudio::CheckTransform(const CMediaType* mtIn, const CMediaType* mtO
     : VFW_E_TYPE_NOT_ACCEPTED;
 }
 
-HRESULT CLAVCAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERTIES* pProperties)
+HRESULT CLAVAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERTIES* pProperties)
 {
   if(m_pInput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
@@ -392,7 +392,7 @@ HRESULT CLAVCAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPER
     : NOERROR;
 }
 
-HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_type)
+HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_type)
 {
   ffmpeg_shutdown();
 
@@ -443,7 +443,7 @@ HRESULT CLAVCAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_t
   return S_OK;
 }
 
-HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
+HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
   DbgLog((LOG_TRACE, 5, L"SetMediaType -- %S", dir == PINDIR_INPUT ? "in" : "out"));
   if (dir == PINDIR_INPUT) {
@@ -473,7 +473,7 @@ HRESULT CLAVCAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
   return __super::SetMediaType(dir, pmt);
 }
 
-HRESULT CLAVCAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
+HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 {
   DbgLog((LOG_TRACE, 5, L"CheckConnect -- %S", dir == PINDIR_INPUT ? "in" : "out"));
   if (dir == PINDIR_INPUT) {
@@ -503,25 +503,25 @@ HRESULT CLAVCAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
   return __super::CheckConnect(dir, pPin);
 }
 
-HRESULT CLAVCAudio::EndOfStream()
+HRESULT CLAVAudio::EndOfStream()
 {
   CAutoLock cAutoLock(&m_csReceive);
   return __super::EndOfStream();
 }
 
-HRESULT CLAVCAudio::BeginFlush()
+HRESULT CLAVAudio::BeginFlush()
 {
   return __super::BeginFlush();
 }
 
-HRESULT CLAVCAudio::EndFlush()
+HRESULT CLAVAudio::EndFlush()
 {
   CAutoLock cAutoLock(&m_csReceive);
   m_buff.SetSize(0);
   return __super::EndFlush();
 }
 
-HRESULT CLAVCAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
+HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
   CAutoLock cAutoLock(&m_csReceive);
   m_buff.SetSize(0);
@@ -531,7 +531,7 @@ HRESULT CLAVCAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doub
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
-HRESULT CLAVCAudio::Receive(IMediaSample *pIn)
+HRESULT CLAVAudio::Receive(IMediaSample *pIn)
 {
   CAutoLock cAutoLock(&m_csReceive);
 
@@ -594,7 +594,7 @@ HRESULT CLAVCAudio::Receive(IMediaSample *pIn)
   return hr;
 }
 
-HRESULT CLAVCAudio::ProcessBuffer()
+HRESULT CLAVAudio::ProcessBuffer()
 {
   HRESULT hr = S_OK;
 
@@ -626,7 +626,7 @@ HRESULT CLAVCAudio::ProcessBuffer()
   return hr;
 }
 
-HRESULT CLAVCAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
+HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
 {
   HRESULT hr = S_OK;
   int nPCMLength	= 0;
@@ -773,7 +773,7 @@ HRESULT CLAVCAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
   return hr;
 }
 
-HRESULT CLAVCAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
+HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
 {
   HRESULT hr;
 
@@ -794,7 +794,7 @@ HRESULT CLAVCAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
   return S_OK;
 }
 
-HRESULT CLAVCAudio::Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask)
+HRESULT CLAVAudio::Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask)
 {
   HRESULT hr = S_OK;
 
@@ -847,7 +847,7 @@ done:
   return hr;
 }
 
-HRESULT CLAVCAudio::StartStreaming()
+HRESULT CLAVAudio::StartStreaming()
 {
   HRESULT hr = __super::StartStreaming();
   if(FAILED(hr)) {
@@ -859,12 +859,12 @@ HRESULT CLAVCAudio::StartStreaming()
   return S_OK;
 }
 
-HRESULT CLAVCAudio::StopStreaming()
+HRESULT CLAVAudio::StopStreaming()
 {
   return __super::StopStreaming();
 }
 
-HRESULT CLAVCAudio::BreakConnect(PIN_DIRECTION dir)
+HRESULT CLAVAudio::BreakConnect(PIN_DIRECTION dir)
 {
   if(dir == PINDIR_INPUT) {
     ffmpeg_shutdown();

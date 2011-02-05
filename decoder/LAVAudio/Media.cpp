@@ -1,6 +1,6 @@
 
 #include "stdafx.h"
-#include "LAVCAudio.h"
+#include "LAVAudio.h"
 
 #include <MMReg.h>
 
@@ -54,7 +54,7 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
 };
 
 // Define Input Media Types
-const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
+const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   // AAC
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC          },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_LATM_AAC     },
@@ -94,13 +94,13 @@ const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesIn[] = {
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
 };
-const int CLAVCAudio::sudPinTypesInCount = countof(CLAVCAudio::sudPinTypesIn);
+const int CLAVAudio::sudPinTypesInCount = countof(CLAVAudio::sudPinTypesIn);
 
 // Define Output Media Types
-const AMOVIESETUP_MEDIATYPE CLAVCAudio::sudPinTypesOut[] = {
+const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesOut[] = {
 	{ &MEDIATYPE_Audio, &MEDIASUBTYPE_PCM },
 };
-const int CLAVCAudio::sudPinTypesOutCount = countof(CLAVCAudio::sudPinTypesOut);
+const int CLAVAudio::sudPinTypesOutCount = countof(CLAVAudio::sudPinTypesOut);
 
 // Crawl the lavc_audio_codecs array for the proper codec
 CodecID FindCodecId(const CMediaType *mt)
@@ -157,14 +157,14 @@ static const char *sample_format_strings[] = {
   "32bit Float"
 };
 
-const char *get_sample_format_desc(LAVCSampleFormat sfFormat)
+const char *get_sample_format_desc(LAVAudioSampleFormat sfFormat)
 {
   return sample_format_strings[sfFormat];
 }
 
 const char *get_sample_format_desc(CMediaType &mt)
 {
-  LAVCSampleFormat format;
+  LAVAudioSampleFormat format;
   if(mt.subtype == MEDIASUBTYPE_IEEE_FLOAT) {
     format = SampleFormat_FP32;
   } else {
@@ -216,7 +216,7 @@ static BYTE get_lpcm_bit_per_sample_index(int bit_per_sample)
   return 0;
 }
 
-void CLAVCAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LPCM * const wfex_lpcm) const
+void CLAVAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LPCM * const wfex_lpcm) const
 {
   const BYTE channel_conf = (wfex_lpcm->cbSize >= 1) ? wfex_lpcm->channel_conf : 0;
   pBuf[0] = 0;

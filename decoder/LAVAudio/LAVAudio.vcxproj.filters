@@ -21,13 +21,13 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LAVCAudio.cpp">
+    <ClCompile Include="Media.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LAVCMedia.cpp">
+    <ClCompile Include="LAVAudio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LAVCAudioSettingsProp.cpp">
+    <ClCompile Include="AudioSettingsProp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,21 +35,21 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LAVCAudio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LAVCAudioSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LAVCAudioSettingsProp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LAVAudio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LAVAudioSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioSettingsProp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="LAVCAudio.rc">
+    <ResourceCompile Include="LAVAudio.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

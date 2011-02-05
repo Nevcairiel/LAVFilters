@@ -1,6 +1,6 @@
-; LAVCAudio.def ; declares the exports
+; LAVAudio.def ; declares the exports
 
-LIBRARY         "LAVCAudio.ax"
+LIBRARY         "LAVAudio.ax"
 
 EXPORTS
                 DllGetClassObject PRIVATE

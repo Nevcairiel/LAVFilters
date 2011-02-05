@@ -19,33 +19,33 @@
  */
 
 #include "stdafx.h"
-#include "LAVCAudioSettingsProp.h"
+#include "AudioSettingsProp.h"
 
 #include <Commctrl.h>
 
 #include "resource.h"
 
 // static constructor
-CUnknown* WINAPI CLAVCAudioSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
+CUnknown* WINAPI CLAVAudioSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
-  CLAVCAudioSettingsProp *propPage = new CLAVCAudioSettingsProp(pUnk);
+  CLAVAudioSettingsProp *propPage = new CLAVAudioSettingsProp(pUnk);
   if (!propPage) {
     *phr = E_OUTOFMEMORY;
   }
   return propPage;
 }
 
-CLAVCAudioSettingsProp::CLAVCAudioSettingsProp(IUnknown *pUnk)
+CLAVAudioSettingsProp::CLAVAudioSettingsProp(IUnknown *pUnk)
   : CBasePropertyPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS), m_pAudioSettings(NULL), m_bDRCEnabled(FALSE), m_iDRCLevel(100)
 {
 }
 
 
-CLAVCAudioSettingsProp::~CLAVCAudioSettingsProp()
+CLAVAudioSettingsProp::~CLAVAudioSettingsProp()
 {
 }
 
-HRESULT CLAVCAudioSettingsProp::OnConnect(IUnknown *pUnk)
+HRESULT CLAVAudioSettingsProp::OnConnect(IUnknown *pUnk)
 {
   if (pUnk == NULL)
   {
@@ -55,14 +55,14 @@ HRESULT CLAVCAudioSettingsProp::OnConnect(IUnknown *pUnk)
   return pUnk->QueryInterface(&m_pAudioSettings);
 }
 
-HRESULT CLAVCAudioSettingsProp::OnDisconnect()
+HRESULT CLAVAudioSettingsProp::OnDisconnect()
 {
   SafeRelease(&m_pAudioSettings);
   return S_OK;
 }
 
 
-HRESULT CLAVCAudioSettingsProp::OnApplyChanges()
+HRESULT CLAVAudioSettingsProp::OnApplyChanges()
 {
   ASSERT(m_pAudioSettings != NULL);
   HRESULT hr = S_OK;
@@ -76,7 +76,7 @@ HRESULT CLAVCAudioSettingsProp::OnApplyChanges()
   return hr;
 } 
 
-HRESULT CLAVCAudioSettingsProp::OnActivate()
+HRESULT CLAVAudioSettingsProp::OnActivate()
 {
   HRESULT hr = S_OK;
   INITCOMMONCONTROLSEX icc;
@@ -105,14 +105,14 @@ HRESULT CLAVCAudioSettingsProp::OnActivate()
   return hr;
 }
 
-HRESULT CLAVCAudioSettingsProp::LoadData()
+HRESULT CLAVAudioSettingsProp::LoadData()
 {
   HRESULT hr = S_OK;
   hr = m_pAudioSettings->GetDRC(&m_bDRCEnabled, &m_iDRCLevel);
   return hr;
 }
 
-INT_PTR CLAVCAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   switch (uMsg)
   {
@@ -141,26 +141,26 @@ INT_PTR CLAVCAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wP
 
 
 // static constructor
-CUnknown* WINAPI CLAVCAudioStatusProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
+CUnknown* WINAPI CLAVAudioStatusProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
-  CLAVCAudioStatusProp *propPage = new CLAVCAudioStatusProp(pUnk);
+  CLAVAudioStatusProp *propPage = new CLAVAudioStatusProp(pUnk);
   if (!propPage) {
     *phr = E_OUTOFMEMORY;
   }
   return propPage;
 }
 
-CLAVCAudioStatusProp::CLAVCAudioStatusProp(IUnknown *pUnk)
+CLAVAudioStatusProp::CLAVAudioStatusProp(IUnknown *pUnk)
   : CBasePropertyPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL)
 {
 }
 
 
-CLAVCAudioStatusProp::~CLAVCAudioStatusProp()
+CLAVAudioStatusProp::~CLAVAudioStatusProp()
 {
 }
 
-HRESULT CLAVCAudioStatusProp::OnConnect(IUnknown *pUnk)
+HRESULT CLAVAudioStatusProp::OnConnect(IUnknown *pUnk)
 {
   if (pUnk == NULL)
   {
@@ -170,13 +170,13 @@ HRESULT CLAVCAudioStatusProp::OnConnect(IUnknown *pUnk)
   return pUnk->QueryInterface(&m_pAudioStatus);
 }
 
-HRESULT CLAVCAudioStatusProp::OnDisconnect()
+HRESULT CLAVAudioStatusProp::OnDisconnect()
 {
   SafeRelease(&m_pAudioStatus);
   return S_OK;
 }
 
-HRESULT CLAVCAudioStatusProp::OnActivate()
+HRESULT CLAVAudioStatusProp::OnActivate()
 {
   HRESULT hr = S_OK;
   INITCOMMONCONTROLSEX icc;

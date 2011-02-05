@@ -32,8 +32,8 @@
 #include <InitGuid.h>
 
 #include <qnetwork.h>
-#include "LAVCAudio.h"
-#include "LAVCAudioSettingsProp.h"
+#include "LAVAudio.h"
+#include "AudioSettingsProp.h"
 #include "moreuuids.h"
 
 #include "registry.h"
@@ -42,14 +42,14 @@
 
 // Workaround: graphedit crashes when a filter exposes more than 115 input MediaTypes!
 const AMOVIESETUP_PIN sudpPinsAudioDec[] = {
-	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVCAudio::sudPinTypesInCount > 115 ? 115 : CLAVCAudio::sudPinTypesInCount,  CLAVCAudio::sudPinTypesIn},
-	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVCAudio::sudPinTypesOutCount, CLAVCAudio::sudPinTypesOut}
+	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVAudio::sudPinTypesInCount > 115 ? 115 : CLAVAudio::sudPinTypesInCount,  CLAVAudio::sudPinTypesIn},
+	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVAudio::sudPinTypesOutCount, CLAVAudio::sudPinTypesOut}
 };
 
 const AMOVIESETUP_FILTER sudFilterReg =
 {
-  &__uuidof(CLAVCAudio),       // filter clsid
-  L"lavc audio decoder",  // filter name
+  &__uuidof(CLAVAudio),       // filter clsid
+  L"LAV Audio Decoder",  // filter name
   MERIT_NORMAL,                   // merit
   countof(sudpPinsAudioDec), sudpPinsAudioDec
 };
@@ -63,21 +63,21 @@ CFactoryTemplate g_Templates[] = {
   {
     sudFilterReg.strName,
       sudFilterReg.clsID,
-      CLAVCAudio::CreateInstance,
+      CLAVAudio::CreateInstance,
       NULL,
       &sudFilterReg
   },
   // This entry is for the property page.
   { 
-      L"LAVCAudio Properties",
-      &CLSID_LAVCAudioSettingsProp,
-      CLAVCAudioSettingsProp::CreateInstance, 
+      L"LAV Audio Properties",
+      &CLSID_LAVAudioSettingsProp,
+      CLAVAudioSettingsProp::CreateInstance, 
       NULL, NULL
   },
   { 
-      L"LAVCAudio Status",
-      &CLSID_LAVCAudioStatusProp,
-      CLAVCAudioStatusProp::CreateInstance, 
+      L"LAV Audio Status",
+      &CLSID_LAVAudioStatusProp,
+      CLAVAudioStatusProp::CreateInstance, 
       NULL, NULL
   }
 };
