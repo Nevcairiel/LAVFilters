@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010 Hendrik Leppkes
+ *      Copyright (C) 2011 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This Program is free software; you can redistribute it and/or modify
