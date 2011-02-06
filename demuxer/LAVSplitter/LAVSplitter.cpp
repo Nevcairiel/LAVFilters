@@ -45,6 +45,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_dRate(1.0)
   , m_pDemuxer(NULL)
 {
+  LoadSettings();
   if(phr) { *phr = S_OK; }
 }
 
@@ -168,8 +169,6 @@ CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId)
 STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt)
 {
   CheckPointer(pszFileName, E_POINTER);
-
-  LoadSettings();
 
   m_fileName = std::wstring(pszFileName);
 
