@@ -168,7 +168,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     bReturnEmpty = true;
   } else if (result < 0) {
     // meh, fail
-  } else if (pkt.size < 0 || pkt.stream_index >= MAX_STREAMS) {
+  } else if (pkt.size < 0 || pkt.stream_index >= m_avFormat->nb_streams) {
     // XXX, in some cases ffmpeg returns a negative packet size
     if(m_avFormat->pb && !m_avFormat->pb->eof_reached) {
       bReturnEmpty = true;

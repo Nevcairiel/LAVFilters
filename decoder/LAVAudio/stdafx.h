@@ -30,7 +30,7 @@
 
 extern "C" {
 #define __STDC_CONSTANT_MACROS
-#include "libavformat/avformat.h"
+#define FF_API_MAX_STREAMS 0
 #include "libavcodec/avcodec.h"
 }
 #include "streams.h"

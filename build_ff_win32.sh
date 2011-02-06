@@ -43,7 +43,7 @@ OPTIONS="
 --disable-protocols \
 --arch=x86 --target-os=mingw32"
 
-./configure --extra-cflags="-U__STRICT_ANSI__ -march=i686 -mmmx" ${OPTIONS} &&
+./configure --extra-cflags="-U__STRICT_ANSI__ -march=i686 -mmmx -DFF_API_MAX_STREAMS=0" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_Win32 &&
