@@ -39,6 +39,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
 #ifdef DEBUG
   av_log_set_callback(lavf_log_callback);
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX);
+  DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
 #endif
 }
 
