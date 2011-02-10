@@ -1,5 +1,26 @@
-libav DirectShow Filters Changelog
+LAV DirectShow Filters Changelog
 ===================================
+0.14 - 2011/02/10
+General
+- The project and filters have been renamed slightly for consistency
+
+LAV Splitter
+- The settings have been moved to a different place in the Registry. You will need to re-apply them.
+- Improved MPEG-TS duration calculations.
+- The settings will now always be properly saved and loaded.
+- Disabled the limit of 20 Streams per file.
+- Fixed two seperate issues that caused files to not start playing.
+
+LAV Audio Decoder
+- Property Page for Configuration and Status has been added
+- Dynamic Range Compression is now off by default, but configurable.
+- Media Type creation has been improved, fixes filter connection issues.
+- Processing of UINT8 Samples has been fixed.
+- Fixed a crash with some Audio codecs.
+- Fixed Channel Order for 7.1 Streams
+- Increased the decoders Merit
+- Added support for decoding QT PCM
+
 0.13 - 2011/01/29
 LAVFSplitter
 - Added support for demuxing BluRay LPCM tracks into the MPC-HC format
