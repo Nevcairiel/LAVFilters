@@ -301,7 +301,8 @@ DWORD CLAVSplitter::ThreadProc()
     m_rtStart = m_rtNewStart;
     m_rtStop = m_rtNewStop;
 
-    DemuxSeek(m_rtStart);
+    if(cmd == CMD_SEEK)
+      DemuxSeek(m_rtStart);
 
     if(cmd != (DWORD)-1)
       Reply(S_OK);
