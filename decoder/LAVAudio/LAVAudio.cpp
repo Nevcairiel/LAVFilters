@@ -573,6 +573,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
     pmt = NULL;
+    m_buff.SetSize(0);
   }
 
   BYTE *pDataIn = NULL;
