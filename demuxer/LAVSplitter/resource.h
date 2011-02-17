@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by LAVFDShowSplitter.rc
+// Used by LAVSplitter.rc
 //
 #define IDD_PROPPAGE_LAVFSETTINGS       9
 #define IDS_PAGE_TITLE                  101

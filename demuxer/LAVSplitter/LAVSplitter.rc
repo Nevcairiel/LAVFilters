@@ -17,6 +17,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -91,7 +92,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_PAGE_TITLE          "LAVFSplitter"
+    IDS_PAGE_TITLE          "LAV Splitter"
     IDS_SUBMODE_NO_SUBS     "No Subtitles"
     IDS_SUBMODE_FORCED_SUBS "Only Forced Subs"
     IDS_SUBMODE_ALL_SUBS    "Full Subtiles"
