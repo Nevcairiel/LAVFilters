@@ -21,6 +21,7 @@
 #pragma once
 
 #include "LAVAudioSettings.h"
+#include "FloatingAverage.h"
 
 #define CODEC_ID_PCM_SxxBE (CodecID)0x19001
 #define CODEC_ID_PCM_SxxLE (CodecID)0x19002
@@ -67,6 +68,9 @@ public:
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
   STDMETHODIMP GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate);
   STDMETHODIMP GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask);
+  STDMETHODIMP EnableVolumeStats();
+  STDMETHODIMP DisableVolumeStats();
+  STDMETHODIMP GetChannelVolumeAverage(WORD nChannel, float *pfDb);
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -115,6 +119,8 @@ private:
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
 
+  void UpdateVolumeStats(const BYTE *pBuffer, DWORD dwSize, LAVAudioSampleFormat sfFormat, WORD nChannels);
+
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
@@ -136,4 +142,7 @@ private:
     BOOL DRCEnabled;
     int DRCLevel;
   } m_settings;
+
+  BOOL                m_bVolumeStats;    // Volume Stats gathering enabled
+  FloatingAverage     m_faVolume[8];     // Floating Average for volume (8 channels)
 };

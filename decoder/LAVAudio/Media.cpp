@@ -238,6 +238,22 @@ const char *get_sample_format_desc(CMediaType &mt)
   return get_sample_format_desc(format);
 }
 
+BYTE get_byte_per_sample(LAVAudioSampleFormat sfFormat)
+{
+  switch(sfFormat) {
+  case SampleFormat_U8:
+    return 1;
+  case SampleFormat_16:
+    return 2;
+  case SampleFormat_24:
+    return 3;
+  case SampleFormat_32:
+  case SampleFormat_FP32:
+    return 4;
+  }
+  return 0;
+}
+
 static BYTE get_lpcm_sample_rate_index(int sample_rate)
 {
   switch(sample_rate) {
@@ -271,4 +287,58 @@ void CLAVAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LP
   pBuf[1] = 0;
   pBuf[2] = ((channel_conf) << 4) | (get_lpcm_sample_rate_index(wfex_lpcm->nSamplesPerSec) & 0x0f);
   pBuf[3] = get_lpcm_bit_per_sample_index(wfex_lpcm->wBitsPerSample) << 6;
+}
+
+// Gets a sample from the buffer for processing
+// The sample is returned as a floating point with 32-bit precision
+float get_sample_from_buffer_f(const BYTE * const pBuffer, LAVAudioSampleFormat sfFormat)
+{
+  float fSample = 0.0f;
+  switch(sfFormat) {
+  case SampleFormat_U8:
+    fSample = (float)(*(uint8_t *)pBuffer);
+    fSample = (fSample + INT8_MIN) / INT8_MAX;
+    break;
+  case SampleFormat_16:
+    fSample = (float)(*(int16_t *)pBuffer);
+    fSample /= INT16_MAX;
+    break;
+  case SampleFormat_24:
+    fSample += pBuffer[0] << 8;
+    fSample += pBuffer[1] << 16;
+    fSample += pBuffer[2] << 24;
+    fSample /= INT32_MAX;
+    break;
+  case SampleFormat_32:
+    fSample = (float)(*(int32_t *)pBuffer);
+    fSample /= INT32_MAX;
+    break;
+  case SampleFormat_FP32:
+    fSample = *(float *)pBuffer;
+    break;
+  }
+  return fSample;
+}
+
+// This function calculates the Root mean square (RMS) of all samples in the buffer,
+// converts the result into a reference dB value, and adds it to the volume floating average
+void CLAVAudio::UpdateVolumeStats(const BYTE *pBuffer, DWORD dwSize, LAVAudioSampleFormat sfFormat, WORD nChannels)
+{
+  const BYTE bSampleSize = get_byte_per_sample(sfFormat);
+  const DWORD dwSamplesPerChannel = dwSize / bSampleSize / nChannels;
+  float * const fChAvg = (float *)calloc(nChannels, sizeof(float));
+  for (DWORD i = 0; i < dwSamplesPerChannel; ++i) {
+    for (WORD ch = 0; ch < nChannels; ++ch) {
+      const float fSample = get_sample_from_buffer_f(pBuffer, sfFormat);
+      fChAvg[ch] += fSample * fSample;
+      pBuffer += bSampleSize;
+    }
+  }
+
+  for (int ch = 0; ch < nChannels; ++ch) {
+    const float fAvgSqrt = sqrt(fChAvg[ch] / dwSamplesPerChannel);
+    const float fDb = 20.0f * log10(fAvgSqrt);
+    m_faVolume[ch].Sample(fDb);
+  }
+  free(fChAvg);
 }

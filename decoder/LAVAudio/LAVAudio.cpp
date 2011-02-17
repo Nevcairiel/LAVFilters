@@ -40,7 +40,7 @@ CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_SampleFormat(SampleFormat_16)
-  , m_pFFBuffer(NULL), m_nFFBufferSize(0)
+  , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_bVolumeStats(FALSE)
 {
   avcodec_init();
   avcodec_register_all();
@@ -217,6 +217,33 @@ HRESULT CLAVAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOu
       *pChannelMask = 0;
     }
   }
+  return S_OK;
+}
+
+HRESULT CLAVAudio::EnableVolumeStats()
+{
+  DbgLog((LOG_TRACE, 1, L"Volume Statistics Enabled"));
+  m_bVolumeStats = TRUE;
+  return S_OK;
+}
+
+HRESULT CLAVAudio::DisableVolumeStats()
+{
+  DbgLog((LOG_TRACE, 1, L"Volume Statistics Disabled"));
+  m_bVolumeStats = FALSE;
+  return S_OK;
+}
+
+HRESULT CLAVAudio::GetChannelVolumeAverage(WORD nChannel, float *pfDb)
+{
+  CheckPointer(pfDb, E_POINTER);
+  if (!m_pOutput || m_pOutput->IsConnected() == FALSE || !m_bVolumeStats) {
+    return E_UNEXPECTED;
+  }
+  if (nChannel >= m_pAVCtx->channels) {
+    return E_INVALIDARG;
+  }
+  *pfDb = m_faVolume[nChannel].Average();
   return S_OK;
 }
 
@@ -793,6 +820,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
   }
 
   if(pBuffOut.GetCount() > 0) {
+    if (m_bVolumeStats) {
+      UpdateVolumeStats(pBuffOut.Ptr(), pBuffOut.GetCount(), m_SampleFormat, scmap->nChannels);
+    }
     hr = Deliver(pBuffOut, m_pAVCtx->sample_rate, scmap->nChannels, scmap->dwChannelMask);
   }
 
