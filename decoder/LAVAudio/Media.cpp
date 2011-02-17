@@ -342,3 +342,71 @@ void CLAVAudio::UpdateVolumeStats(const BYTE *pBuffer, DWORD dwSize, LAVAudioSam
   }
   free(fChAvg);
 }
+
+#define MAX_SPEAKER_LAYOUT 18
+
+// Get the channel index for the given speaker flag
+// First channel starts at index 0
+WORD get_channel_from_flag(DWORD dwMask, DWORD dwFlag)
+{
+  WORD nChannel = 0;
+  for(int i = 0; i < MAX_SPEAKER_LAYOUT; i++) {
+    DWORD flag = 1 << i;
+    if (dwMask & flag) {
+      if (dwFlag == flag)
+        break;
+      else
+        nChannel++;
+    }
+  }
+  return nChannel;
+}
+
+// Get the speaker flag for the given channel in the mask
+// First channel starts at index 0
+DWORD get_flag_from_channel(DWORD dwMask, WORD wChannel)
+{
+  WORD nChannel = 0;
+  for(int i = 0; i < MAX_SPEAKER_LAYOUT; i++) {
+    DWORD flag = 1 << i;
+    if (dwMask & flag) {
+      if (nChannel == wChannel)
+        return flag;
+      else
+        nChannel++;
+    }
+  }
+  return 0;
+}
+
+static const char *channel_short_descs[] = {
+  "L",
+  "R",
+  "C",
+  "LFE",
+  "BL",
+  "BR",
+  "SL",
+  "SR",
+  "BC",
+  "SL",
+  "SR",
+  "TC",
+  "TFL",
+  "TFC",
+  "TFR",
+  "TBL",
+  "TBC",
+  "TBR"
+};
+
+const char *get_channel_desc(DWORD dwFlag)
+{
+  for(int i = 0; i < MAX_SPEAKER_LAYOUT; i++) {
+    DWORD flag = 1 << i;
+    if (flag & dwFlag) {
+      return channel_short_descs[i];
+    }
+  }
+  return "-";
+}

@@ -1,22 +1,11 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by LAVCAudio.rc
+// Used by LAVAudio.rc
 //
 #define IDD_PROPPAGE_AUDIO_SETTINGS     9
 #define IDS_SETTINGS                    101
 #define IDS_STATUS                      102
 #define IDD_PROPPAGE_STATUS             106
-#define IDC_CPUFLAGS                    1001
-#define IDC_CPU_MMX                     1002
-#define IDC_CPU_MMX2                    1003
-#define IDC_CPU_3DNOW                   1004
-#define IDC_CPU_3DNOWEXT                1005
-#define IDC_CPU_SSE                     1006
-#define IDC_CPU_SSE2                    1007
-#define IDC_CPU_SSE3                    1009
-#define IDC_CPU_SSSE3                   1010
-#define IDC_CPU_SSE42                   1011
-#define IDC_CPU_SSE41                   1012
 #define IDC_INPUT_STATUS                1013
 #define IDC_LBL_CHANNELS                1014
 #define IDC_LBL_SAMPLE_RATE             1015
@@ -42,6 +31,23 @@
 #define IDC_DRC_BOX                     1036
 #define IDC_DRC_LEVEL_TEXT              1037
 #define IDC_LBL_DRC_LEVEL               1038
+#define IDC_VOLUME                      1039
+#define IDC_VOLUME1                     1040
+#define IDC_VOLUME2                     1041
+#define IDC_VOLUME3                     1042
+#define IDC_VOLUME4                     1043
+#define IDC_VOLUME5                     1044
+#define IDC_VOLUME6                     1045
+#define IDC_VOLUME7                     1046
+#define IDC_VOLUME8                     1047
+#define IDC_VOLUME1_DESC                1048
+#define IDC_VOLUME2_DESC                1049
+#define IDC_VOLUME3_DESC                1050
+#define IDC_VOLUME4_DESC                1051
+#define IDC_VOLUME5_DESC                1052
+#define IDC_VOLUME6_DESC                1053
+#define IDC_VOLUME7_DESC                1054
+#define IDC_VOLUME8_DESC                1055
 
 // Next default values for new objects
 // 
@@ -49,7 +55,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1049
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

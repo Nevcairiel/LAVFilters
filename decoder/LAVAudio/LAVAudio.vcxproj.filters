@@ -47,6 +47,9 @@
     <ClInclude Include="AudioSettingsProp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Media.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVAudio.rc">

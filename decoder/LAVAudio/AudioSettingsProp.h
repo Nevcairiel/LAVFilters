@@ -74,12 +74,16 @@ public:
   ~CLAVAudioStatusProp();
 
   HRESULT OnActivate();
+  HRESULT OnDeactivate();
   HRESULT OnConnect(IUnknown *pUnk);
   HRESULT OnDisconnect();
+  INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
   CLAVAudioStatusProp(IUnknown *pUnk);
+  void UpdateVolumeDisplay();
 
 private:
   ILAVAudioStatus *m_pAudioStatus;
+  int m_nChannels;
 };

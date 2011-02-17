@@ -22,6 +22,7 @@
 
 #include "LAVAudioSettings.h"
 #include "FloatingAverage.h"
+#include "Media.h"
 
 #define CODEC_ID_PCM_SxxBE (CodecID)0x19001
 #define CODEC_ID_PCM_SxxLE (CodecID)0x19002
@@ -30,19 +31,6 @@
 #define CODEC_ID_PCM_QTRAW (CodecID)0x19005
 
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
-
-struct scmap_t {
-  WORD nChannels;
-  BYTE ch[8];
-  DWORD dwChannelMask;
-};
-
-extern CodecID FindCodecId(const CMediaType *mt);
-
-const scmap_t* get_channel_map(AVCodecContext *avctx);
-
-const char *get_sample_format_desc(LAVAudioSampleFormat sfFormat);
-const char *get_sample_format_desc(CMediaType &mt);
 
 struct WAVEFORMATEX_HDMV_LPCM;
 

@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "AudioSettingsProp.h"
+#include "Media.h"
 
 #include <Commctrl.h>
 
@@ -114,6 +115,7 @@ HRESULT CLAVAudioSettingsProp::LoadData()
 
 INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  LRESULT lValue;
   switch (uMsg)
   {
   case WM_COMMAND:
@@ -126,7 +128,7 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     }
     break;
   case WM_HSCROLL:
-    int lValue = SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL,TBM_GETPOS, 0, 0);
+    lValue = SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL,TBM_GETPOS, 0, 0);
     if (lValue != m_iDRCLevel) {
       SetDirty();
     }
@@ -138,6 +140,10 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
   // Let the parent class handle the message.
   return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }
+
+#define MAX_CHANNELS 8
+static int iddVolumeControls[MAX_CHANNELS] = {IDC_VOLUME1, IDC_VOLUME2, IDC_VOLUME3, IDC_VOLUME4, IDC_VOLUME5, IDC_VOLUME6, IDC_VOLUME7, IDC_VOLUME8};
+static int iddVolumeDescs[MAX_CHANNELS] = {IDC_VOLUME1_DESC, IDC_VOLUME2_DESC, IDC_VOLUME3_DESC, IDC_VOLUME4_DESC, IDC_VOLUME5_DESC, IDC_VOLUME6_DESC, IDC_VOLUME7_DESC, IDC_VOLUME8_DESC};
 
 
 // static constructor
@@ -151,7 +157,7 @@ CUnknown* WINAPI CLAVAudioStatusProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* ph
 }
 
 CLAVAudioStatusProp::CLAVAudioStatusProp(IUnknown *pUnk)
-  : CBasePropertyPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL)
+  : CBasePropertyPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL), m_nChannels(0)
 {
 }
 
@@ -181,25 +187,12 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   HRESULT hr = S_OK;
   INITCOMMONCONTROLSEX icc;
   icc.dwSize = sizeof(INITCOMMONCONTROLSEX);
-  icc.dwICC = ICC_STANDARD_CLASSES;
+  icc.dwICC = ICC_STANDARD_CLASSES | ICC_BAR_CLASSES;
   if (InitCommonControlsEx(&icc) == FALSE)
   {
     return E_FAIL;
   }
   ASSERT(m_pAudioStatus != NULL);
-
-  // Set CPU Flag buttons
-  int flags = av_get_cpu_flags();
-  SendDlgItemMessage(m_Dlg, IDC_CPU_MMX, BM_SETCHECK, flags & AV_CPU_FLAG_MMX, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_MMX2, BM_SETCHECK, flags & AV_CPU_FLAG_MMX2, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_3DNOW, BM_SETCHECK, flags & AV_CPU_FLAG_3DNOW, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_3DNOWEXT, BM_SETCHECK, flags & AV_CPU_FLAG_3DNOWEXT, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_SSE, BM_SETCHECK, flags & AV_CPU_FLAG_SSE, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_SSE2, BM_SETCHECK, flags & AV_CPU_FLAG_SSE2, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_SSE3, BM_SETCHECK, flags & AV_CPU_FLAG_SSE3, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_SSSE3, BM_SETCHECK, flags & AV_CPU_FLAG_SSSE3, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_SSE41, BM_SETCHECK, flags & AV_CPU_FLAG_SSE4, 0);
-  SendDlgItemMessage(m_Dlg, IDC_CPU_SSE42, BM_SETCHECK, flags & AV_CPU_FLAG_SSE42, 0);
 
   const char *codec = NULL;
   int nChannels;
@@ -209,6 +202,7 @@ HRESULT CLAVAudioStatusProp::OnActivate()
     WCHAR buffer[100];
     _snwprintf_s(buffer, _TRUNCATE, L"%d", nChannels);
     SendDlgItemMessage(m_Dlg, IDC_CHANNELS, WM_SETTEXT, 0, (LPARAM)buffer);
+    m_nChannels = nChannels;
 
     _snwprintf_s(buffer, _TRUNCATE, L"%d", nSampleRate);
     SendDlgItemMessage(m_Dlg, IDC_SAMPLE_RATE, WM_SETTEXT, 0, (LPARAM)buffer);
@@ -240,5 +234,47 @@ HRESULT CLAVAudioStatusProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_CHANNEL_MASK, WM_SETTEXT, 0, (LPARAM)buffer);
   }
 
+  SetTimer(m_Dlg, 1, 250, NULL);
+  m_pAudioStatus->EnableVolumeStats();
+
+  WCHAR chBuffer[5];
+  for(int i = 0; i < MAX_CHANNELS; ++i) {
+    SendDlgItemMessage(m_Dlg, iddVolumeControls[i], PBM_SETRANGE, 0, MAKELPARAM(0, 50));
+    _snwprintf_s(chBuffer, _TRUNCATE, L"%S", get_channel_desc(get_flag_from_channel(dwChannelMask, i)));
+    SendDlgItemMessage(m_Dlg, iddVolumeDescs[i], WM_SETTEXT, 0, (LPARAM)chBuffer);
+  }
+
   return hr;
+}
+
+HRESULT CLAVAudioStatusProp::OnDeactivate()
+{
+  KillTimer(m_Dlg, 1);
+  m_pAudioStatus->DisableVolumeStats();
+  return S_OK;
+}
+
+void CLAVAudioStatusProp::UpdateVolumeDisplay()
+{
+  for(int i = 0; i < m_nChannels; ++i) {
+    float fDB = 0.0f;
+    if (SUCCEEDED(m_pAudioStatus->GetChannelVolumeAverage(i, &fDB))) {
+      int value = (int)fDB + 50;
+      SendDlgItemMessage(m_Dlg, iddVolumeControls[i], PBM_SETPOS, value, 0);
+    } else {
+      SendDlgItemMessage(m_Dlg, iddVolumeControls[i], PBM_SETPOS, 0, 0);
+    }
+  }
+}
+
+INT_PTR CLAVAudioStatusProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  switch (uMsg)
+  {
+  case WM_TIMER:
+    UpdateVolumeDisplay();
+    break;
+  }
+  // Let the parent class handle the message.
+  return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }
