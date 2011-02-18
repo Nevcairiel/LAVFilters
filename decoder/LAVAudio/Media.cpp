@@ -290,17 +290,19 @@ void CLAVAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LP
 }
 
 // Gets a sample from the buffer for processing
-// The sample is returned as a floating point with 32-bit precision
-float get_sample_from_buffer_f(const BYTE * const pBuffer, LAVAudioSampleFormat sfFormat)
+// The sample is returned as a floating point, with either single or double precision, depending on the template type
+// DO NOT USE WITH AN INTEGER TYPE - only double and float are allowed
+template <class T>
+T get_sample_from_buffer(const BYTE * const pBuffer, LAVAudioSampleFormat sfFormat)
 {
-  float fSample = 0.0f;
+  T fSample = 0.0;
   switch(sfFormat) {
   case SampleFormat_U8:
-    fSample = (float)(*(uint8_t *)pBuffer);
+    fSample = (T)(*(uint8_t *)pBuffer);
     fSample = (fSample + INT8_MIN) / INT8_MAX;
     break;
   case SampleFormat_16:
-    fSample = (float)(*(int16_t *)pBuffer);
+    fSample = (T)(*(int16_t *)pBuffer);
     fSample /= INT16_MAX;
     break;
   case SampleFormat_24:
@@ -310,11 +312,11 @@ float get_sample_from_buffer_f(const BYTE * const pBuffer, LAVAudioSampleFormat 
     fSample /= INT32_MAX;
     break;
   case SampleFormat_32:
-    fSample = (float)(*(int32_t *)pBuffer);
+    fSample = (T)(*(int32_t *)pBuffer);
     fSample /= INT32_MAX;
     break;
   case SampleFormat_FP32:
-    fSample = *(float *)pBuffer;
+    fSample = (T)*(float *)pBuffer;
     break;
   }
   return fSample;
@@ -330,7 +332,7 @@ void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
   float * const fChAvg = (float *)calloc(buffer.wChannels, sizeof(float));
   for (DWORD i = 0; i < dwSamplesPerChannel; ++i) {
     for (WORD ch = 0; ch < buffer.wChannels; ++ch) {
-      const float fSample = get_sample_from_buffer_f(pBuffer, buffer.sfFormat);
+      const float fSample = get_sample_from_buffer<float>(pBuffer, buffer.sfFormat);
       fChAvg[ch] += fSample * fSample;
       pBuffer += bSampleSize;
     }

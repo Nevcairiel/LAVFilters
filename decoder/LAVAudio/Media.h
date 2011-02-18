@@ -36,3 +36,9 @@ const char *get_sample_format_desc(CMediaType &mt);
 WORD get_channel_from_flag(DWORD dwMask, DWORD dwFlag);
 DWORD get_flag_from_channel(DWORD dwMask, WORD wChannel);
 const char *get_channel_desc(DWORD dwFlag);
+
+// Gets a sample from the buffer for processing
+// The sample is returned as a floating point, with either single or double precision, depending on the template type
+// DO NOT USE WITH AN INTEGER TYPE - only double and float are allowed
+template <class T>
+T get_sample_from_buffer(const BYTE *pBuffer, LAVAudioSampleFormat sfFormat);
