@@ -34,6 +34,16 @@
 
 struct WAVEFORMATEX_HDMV_LPCM;
 
+struct BufferDetails_s {
+  GrowableArray<BYTE>   *bBuffer;
+  LAVAudioSampleFormat  sfFormat;
+  DWORD                 dwSamplesPerSec;
+  WORD                  wChannels;
+  DWORD                 dwChannelMask;
+  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0) {};
+};
+typedef struct BufferDetails_s BufferDetails;
+
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
 class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVAudioSettings, public ILAVAudioStatus
 {
@@ -101,13 +111,14 @@ private:
   CMediaType CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask = 0, WORD wBitsPerSampleOverride = 0) const;
   HRESULT ReconnectOutput(int nSamples, CMediaType& mt);
   HRESULT ProcessBuffer();
-  HRESULT Decode(const BYTE *p, int buffsize, int &consumed);
+  HRESULT Decode(const BYTE *p, int buffsize, int &consumed, BufferDetails *out);
+  HRESULT PostProcess(BufferDetails *buffer);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
-  HRESULT Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask);
+  HRESULT Deliver(const BufferDetails &buffer);
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
 
-  void UpdateVolumeStats(const BYTE *pBuffer, DWORD dwSize, LAVAudioSampleFormat sfFormat, WORD nChannels);
+  void UpdateVolumeStats(const BufferDetails &buffer);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
@@ -121,7 +132,7 @@ private:
   BOOL                 m_fDiscontinuity; // Discontinuity
   REFERENCE_TIME       m_rtStart;        // Start time
   GrowableArray<BYTE>  m_buff;           // Input Buffer
-  LAVAudioSampleFormat     m_SampleFormat;  // Number of bits in the samples
+  LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 

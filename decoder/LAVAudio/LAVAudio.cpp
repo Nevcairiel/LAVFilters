@@ -39,7 +39,7 @@ CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
-  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_SampleFormat(SampleFormat_16)
+  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_DecodeFormat(SampleFormat_16)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_bVolumeStats(FALSE)
 {
   avcodec_init();
@@ -200,7 +200,7 @@ HRESULT CLAVAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOu
   }
   if (pDecodeFormat) {
     if (IsActive()) {
-      *pDecodeFormat = get_sample_format_desc(m_SampleFormat);
+      *pDecodeFormat = get_sample_format_desc(m_DecodeFormat);
     } else {
       *pDecodeFormat = "Not Running";
     }
@@ -660,7 +660,14 @@ HRESULT CLAVAudio::ProcessBuffer()
   int consumed = 0;
 
   // Consume the buffer data
-  Decode(p, buffer_size, consumed);
+  BufferDetails output_buffer;
+  if (SUCCEEDED(Decode(p, buffer_size, consumed, &output_buffer))) {
+    if (SUCCEEDED(PostProcess(&output_buffer))) {
+      hr = Deliver(output_buffer);
+    }
+  }
+  // Delete the processing buffer
+  delete output_buffer.bBuffer;
 
   if (consumed <= 0) {
     return S_OK;
@@ -679,13 +686,15 @@ HRESULT CLAVAudio::ProcessBuffer()
   return hr;
 }
 
-HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
+HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out)
 {
-  HRESULT hr = S_OK;
+  CheckPointer(out, E_POINTER);
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
-  GrowableArray<BYTE> pBuffOut;
   const scmap_t *scmap = NULL;
+
+  ASSERT(out->bBuffer == NULL);
+  out->bBuffer = new GrowableArray<BYTE>();
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -721,14 +730,18 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
 
     // Channel re-mapping and sample format conversion
     if (nPCMLength > 0) {
-      const DWORD idx_start = pBuffOut.GetCount();
+      const DWORD idx_start = out->bBuffer->GetCount();
       scmap = get_channel_map(m_pAVCtx);
+
+      out->wChannels = m_pAVCtx->channels;
+      out->dwSamplesPerSec = m_pAVCtx->sample_rate;
+      out->dwChannelMask = scmap->dwChannelMask;
 
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
         {
-          pBuffOut.SetSize(idx_start + nPCMLength);
-          uint8_t *pDataOut = (uint8_t *)(pBuffOut.Ptr() + idx_start);
+          out->bBuffer->SetSize(idx_start + nPCMLength);
+          uint8_t *pDataOut = (uint8_t *)(out->bBuffer->Ptr() + idx_start);
 
           const size_t num_elements = nPCMLength / sizeof(uint8_t) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
@@ -738,12 +751,12 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
             }
           }
         }
-        m_SampleFormat = SampleFormat_U8;
+        out->sfFormat = SampleFormat_U8;
         break;
       case AV_SAMPLE_FMT_S16:
         {
-          pBuffOut.SetSize(idx_start + nPCMLength);
-          int16_t *pDataOut = (int16_t *)(pBuffOut.Ptr() + idx_start);
+          out->bBuffer->SetSize(idx_start + nPCMLength);
+          int16_t *pDataOut = (int16_t *)(out->bBuffer->Ptr() + idx_start);
 
           const size_t num_elements = nPCMLength / sizeof(int16_t) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
@@ -753,7 +766,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
             }
           }
         }
-        m_SampleFormat = SampleFormat_16;
+        out->sfFormat = SampleFormat_16;
         break;
       case AV_SAMPLE_FMT_S32:
         {
@@ -772,9 +785,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
           const short shift = 32 - bits_per_sample;
 
           const DWORD size = (nPCMLength >> 2) * bytes_per_sample;
-          pBuffOut.SetSize(idx_start + size);
+          out->bBuffer->SetSize(idx_start + size);
           // We use BYTE instead of int32_t because we don't know if its actually a 32-bit value we want to write
-          BYTE *pDataOut = (BYTE *)(pBuffOut.Ptr() + idx_start);
+          BYTE *pDataOut = (BYTE *)(out->bBuffer->Ptr() + idx_start);
 
           // The source is always in 32-bit values
           const size_t num_elements = nPCMLength / sizeof(int32_t) / m_pAVCtx->channels;
@@ -794,13 +807,13 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
             }
           }
 
-          m_SampleFormat = bits_per_sample == 32 ? SampleFormat_32 : SampleFormat_24;
+          out->sfFormat = bits_per_sample == 32 ? SampleFormat_32 : (bits_per_sample == 24 ? SampleFormat_24 : SampleFormat_16);
         }
         break;
       case AV_SAMPLE_FMT_FLT:
         {
-          pBuffOut.SetSize(idx_start + nPCMLength);
-          float *pDataOut = (float *)(pBuffOut.Ptr() + idx_start);
+          out->bBuffer->SetSize(idx_start + nPCMLength);
+          float *pDataOut = (float *)(out->bBuffer->Ptr() + idx_start);
 
           const size_t num_elements = nPCMLength / sizeof(float) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
@@ -810,7 +823,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
             }
           }
         }
-        m_SampleFormat = SampleFormat_FP32;
+        out->sfFormat = SampleFormat_FP32;
         break;
       default:
         assert(FALSE);
@@ -819,14 +832,20 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed)
     }
   }
 
-  if(pBuffOut.GetCount() > 0) {
-    if (m_bVolumeStats) {
-      UpdateVolumeStats(pBuffOut.Ptr(), pBuffOut.GetCount(), m_SampleFormat, scmap->nChannels);
-    }
-    hr = Deliver(pBuffOut, m_pAVCtx->sample_rate, scmap->nChannels, scmap->dwChannelMask);
+  if(out->bBuffer->GetCount() <= 0) {
+    return E_FAIL;
   }
+  m_DecodeFormat = out->sfFormat;
 
-  return hr;
+  return S_OK;
+}
+
+HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
+{
+  if (m_bVolumeStats) {
+    UpdateVolumeStats(*buffer);
+  }
+  return S_OK;
 }
 
 HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
@@ -850,14 +869,14 @@ HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
   return S_OK;
 }
 
-HRESULT CLAVAudio::Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask)
+HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
 {
   HRESULT hr = S_OK;
 
-  CMediaType mt = CreateMediaType(m_pAVCtx->sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
+  CMediaType mt = CreateMediaType(m_pAVCtx->sample_fmt, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
-  int nSamples = pBuff.GetCount() / wfe->nChannels;
+  int nSamples = buffer.bBuffer->GetCount() / wfe->nChannels;
 
   if(FAILED(hr = ReconnectOutput(nSamples, mt))) {
     return hr;
@@ -891,11 +910,11 @@ HRESULT CLAVAudio::Deliver(GrowableArray<BYTE> &pBuff, DWORD nSamplesPerSec, WOR
   m_fDiscontinuity = false;
   pOut->SetSyncPoint(TRUE);
 
-  pOut->SetActualDataLength(pBuff.GetCount());
+  pOut->SetActualDataLength(buffer.bBuffer->GetCount());
 
   // TODO: sample format stuff
   // m_SampleFormat contains the format the last packet was encoded in
-  memcpy(pDataOut, pBuff.Ptr(), pBuff.GetCount());
+  memcpy(pDataOut, buffer.bBuffer->Ptr(), buffer.bBuffer->GetCount());
 
   hr = m_pOutput->Deliver(pOut);
 done:

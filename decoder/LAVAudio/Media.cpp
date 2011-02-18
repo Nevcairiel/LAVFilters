@@ -322,20 +322,21 @@ float get_sample_from_buffer_f(const BYTE * const pBuffer, LAVAudioSampleFormat 
 
 // This function calculates the Root mean square (RMS) of all samples in the buffer,
 // converts the result into a reference dB value, and adds it to the volume floating average
-void CLAVAudio::UpdateVolumeStats(const BYTE *pBuffer, DWORD dwSize, LAVAudioSampleFormat sfFormat, WORD nChannels)
+void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
 {
-  const BYTE bSampleSize = get_byte_per_sample(sfFormat);
-  const DWORD dwSamplesPerChannel = dwSize / bSampleSize / nChannels;
-  float * const fChAvg = (float *)calloc(nChannels, sizeof(float));
+  const BYTE bSampleSize = get_byte_per_sample(buffer.sfFormat);
+  const DWORD dwSamplesPerChannel = buffer.bBuffer->GetCount() / bSampleSize / buffer.wChannels;
+  const BYTE *pBuffer = buffer.bBuffer->Ptr();
+  float * const fChAvg = (float *)calloc(buffer.wChannels, sizeof(float));
   for (DWORD i = 0; i < dwSamplesPerChannel; ++i) {
-    for (WORD ch = 0; ch < nChannels; ++ch) {
-      const float fSample = get_sample_from_buffer_f(pBuffer, sfFormat);
+    for (WORD ch = 0; ch < buffer.wChannels; ++ch) {
+      const float fSample = get_sample_from_buffer_f(pBuffer, buffer.sfFormat);
       fChAvg[ch] += fSample * fSample;
       pBuffer += bSampleSize;
     }
   }
 
-  for (int ch = 0; ch < nChannels; ++ch) {
+  for (int ch = 0; ch < buffer.wChannels; ++ch) {
     const float fAvgSqrt = sqrt(fChAvg[ch] / dwSamplesPerChannel);
     const float fDb = 20.0f * log10(fAvgSqrt);
     m_faVolume[ch].Sample(fDb);
