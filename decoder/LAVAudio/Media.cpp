@@ -383,24 +383,9 @@ DWORD get_flag_from_channel(DWORD dwMask, WORD wChannel)
 }
 
 static const char *channel_short_descs[] = {
-  "L",
-  "R",
-  "C",
-  "LFE",
-  "BL",
-  "BR",
-  "SL",
-  "SR",
-  "BC",
-  "SL",
-  "SR",
-  "TC",
-  "TFL",
-  "TFC",
-  "TFR",
-  "TBL",
-  "TBC",
-  "TBR"
+  "L", "R", "C", "LFE", "BL", "BR", "SL", "SR",
+  "BC", "SL", "SR", "TC", "TFL", "TFC", "TFR",
+  "TBL", "TBC", "TBR"
 };
 
 const char *get_channel_desc(DWORD dwFlag)
