@@ -666,8 +666,6 @@ HRESULT CLAVAudio::ProcessBuffer()
       hr = Deliver(output_buffer);
     }
   }
-  // Delete the processing buffer
-  delete output_buffer.bBuffer;
 
   if (consumed <= 0) {
     return S_OK;
@@ -692,9 +690,6 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
   const scmap_t *scmap = NULL;
-
-  ASSERT(out->bBuffer == NULL);
-  out->bBuffer = new GrowableArray<BYTE>();
 
   AVPacket avpkt;
   av_init_packet(&avpkt);

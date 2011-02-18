@@ -40,7 +40,13 @@ struct BufferDetails_s {
   DWORD                 dwSamplesPerSec;
   WORD                  wChannels;
   DWORD                 dwChannelMask;
-  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0) {};
+
+  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0) {
+    bBuffer = new GrowableArray<BYTE>();
+  };
+  ~BufferDetails_s() {
+    delete bBuffer;
+  }
 };
 typedef struct BufferDetails_s BufferDetails;
 
