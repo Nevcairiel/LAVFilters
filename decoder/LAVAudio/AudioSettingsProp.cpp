@@ -195,8 +195,8 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   ASSERT(m_pAudioStatus != NULL);
 
   const char *codec = NULL;
-  int nChannels;
-  int nSampleRate;
+  int nChannels = 0;
+  int nSampleRate = 0;
   hr = m_pAudioStatus->GetInputDetails(&codec, &nChannels, &nSampleRate);
   if (SUCCEEDED(hr)) {
     WCHAR buffer[100];
@@ -219,7 +219,7 @@ HRESULT CLAVAudioStatusProp::OnActivate()
 
   const char *decodeFormat = NULL;
   const char *outputFormat = NULL;
-  DWORD dwChannelMask;
+  DWORD dwChannelMask = 0;
   hr = m_pAudioStatus->GetOutputDetails(&decodeFormat, &outputFormat, &dwChannelMask);
   if (SUCCEEDED(hr)) {
     WCHAR buffer[100];
@@ -238,6 +238,10 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   m_pAudioStatus->EnableVolumeStats();
 
   WCHAR chBuffer[5];
+  if (dwChannelMask == 0 && nChannels != 0) {
+    // 0x4 is only front center, 0x3 is front left+right
+    dwChannelMask = nChannels == 1 ? 0x4 : 0x3;
+  }
   for(int i = 0; i < MAX_CHANNELS; ++i) {
     SendDlgItemMessage(m_Dlg, iddVolumeControls[i], PBM_SETRANGE, 0, MAKELPARAM(0, 50));
     _snwprintf_s(chBuffer, _TRUNCATE, L"%S", get_channel_desc(get_flag_from_channel(dwChannelMask, i)));
