@@ -123,8 +123,8 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       BOOL bDRC = SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
       if (bDRC != m_bDRCEnabled) {
         SetDirty();
-        EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), bDRC);
       }
+      EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), bDRC);
     }
     break;
   case WM_HSCROLL:
