@@ -191,11 +191,6 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     } else {
       buf << "Stream #" << pStream->index;
     }
-    // AV_DISPOSITION_HEARING_IMPAIRED is an addition in my own ffmpeg fork
-    // To support compiling with "normal" ffmpeg, define it here
-#ifndef AV_DISPOSITION_HEARING_IMPAIRED
-#define AV_DISPOSITION_HEARING_IMPAIRED 0
-#endif
     // Subtitle flags
     // TODO: This is rather ugly, make it nicer!
     if (pStream->disposition & AV_DISPOSITION_FORCED || pStream->disposition & AV_DISPOSITION_HEARING_IMPAIRED) {
