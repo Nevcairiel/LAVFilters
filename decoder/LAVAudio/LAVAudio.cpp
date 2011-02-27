@@ -652,7 +652,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
 
   hr = ProcessBuffer();
 
-  return hr;
+  return S_OK;
 }
 
 HRESULT CLAVAudio::ProcessBuffer()
