@@ -280,8 +280,8 @@ static int64_t ufile_seek(URLContext *h, int64_t pos, int whence)
 {
     int fd = (int) h->priv_data;
     if (whence == AVSEEK_SIZE) {
-        struct stat st;
-        int ret = fstat(fd, &st);
+        struct _stat64 st;
+        int ret = _fstat64(fd, &st);
         return ret < 0 ? AVERROR(errno) : st.st_size;
     }
     return _lseeki64(fd, pos, whence);
