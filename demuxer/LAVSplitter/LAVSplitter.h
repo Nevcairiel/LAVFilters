@@ -150,6 +150,8 @@ private:
 
   CBaseDemuxer *m_pDemuxer;
 
+  BOOL m_bPlaybackStarted;
+
   // Times
   REFERENCE_TIME m_rtStart, m_rtStop, m_rtCurrent, m_rtNewStart, m_rtNewStop;
   double m_dRate;

@@ -41,7 +41,7 @@ CUnknown* WINAPI CLAVSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
-  , m_rtStart(0), m_rtStop(0), m_rtCurrent(0)
+  , m_rtStart(0), m_rtStop(0), m_rtCurrent(0), m_bPlaybackStarted(FALSE)
   , m_dRate(1.0)
   , m_pDemuxer(NULL)
 {
@@ -169,6 +169,8 @@ CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId)
 STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt)
 {
   CheckPointer(pszFileName, E_POINTER);
+
+  m_bPlaybackStarted = FALSE;
 
   m_fileName = std::wstring(pszFileName);
 
@@ -301,7 +303,7 @@ DWORD CLAVSplitter::ThreadProc()
     m_rtStart = m_rtNewStart;
     m_rtStop = m_rtNewStop;
 
-    if(cmd == CMD_SEEK)
+    if(m_bPlaybackStarted || m_rtStart != 0 || cmd == CMD_SEEK)
       DemuxSeek(m_rtStart);
 
     if(cmd != (DWORD)-1)
@@ -320,6 +322,8 @@ DWORD CLAVSplitter::ThreadProc()
     }
 
     m_bDiscontinuitySent.clear();
+
+    m_bPlaybackStarted = TRUE;
 
     HRESULT hr = S_OK;
     while(SUCCEEDED(hr) && !CheckRequest(&cmd)) {
