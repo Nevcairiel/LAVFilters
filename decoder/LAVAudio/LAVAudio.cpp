@@ -717,7 +717,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
     if(used_bytes < 0 || used_bytes == 0 && nPCMLength <= 0 ) {
       consumed = used_bytes;
-      return S_OK;
+      return E_FAIL;
     }
     buffsize -= used_bytes;
     pDataInBuff += used_bytes;
