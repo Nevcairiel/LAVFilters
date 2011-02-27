@@ -1,5 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.17 - 2011/02/27
+LAV Splitter
+- Fixed seeking before starting playback
+
 0.16 - 2011/02/27
 LAV Audio Decoder
 - Fixed missing audio after seeks
