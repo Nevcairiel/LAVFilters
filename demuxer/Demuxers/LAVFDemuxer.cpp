@@ -197,7 +197,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       pkt.duration = (int)pkt.convergence_duration;
     }
 
-    if(m_bAVI && stream->codec && stream->codec->codec_type == CODEC_TYPE_VIDEO)
+    if(m_bAVI && stream->codec && stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
     {
       // AVI's always have borked pts, specially if m_pFormatContext->flags includes
       // AVFMT_FLAG_GENPTS so always use dts
@@ -232,7 +232,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       pPacket->rtStop += (duration > 0) ? duration : 1;
     }
 
-    if (stream->codec->codec_type == CODEC_TYPE_SUBTITLE) {
+    if (stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
       pPacket->bDiscontinuity = TRUE;
     } else {
       pPacket->bSyncPoint = (rt != Packet::INVALID_TIME && duration > 0) ? 1 : 0;
