@@ -130,6 +130,7 @@ private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
   AVCodecContext       *m_pAVCtx;        // AVCodecContext reference
+  AVCodecParserContext *m_pParser;       // AVCodecParserContext reference
 
   BYTE                 *m_pPCMData;      // Output buffer
   BYTE                 *m_pFFBuffer;     // FFMPEG processing buffer (padded)
