@@ -139,14 +139,14 @@ STDMETHODIMP CLAVSplitter::GetPages(CAUUID *pPages)
 // CBaseSplitter
 int CLAVSplitter::GetPinCount()
 {
-  CAutoLock lock(this);
+  CAutoLock lock(&m_csPins);
 
   return (int)m_pPins.size();
 }
 
 CBasePin *CLAVSplitter::GetPin(int n)
 {
-  CAutoLock lock(this);
+  CAutoLock lock(&m_csPins);
 
   if (n < 0 ||n >= GetPinCount()) return NULL;
   return m_pPins[n];
