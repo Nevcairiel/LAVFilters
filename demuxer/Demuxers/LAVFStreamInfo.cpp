@@ -161,6 +161,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
       // If we send the cyberlink subtype first, it'll work with it, and with ffdshow, dmo and mpc-hc internal
       mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
       mtypes.push_back(mtype);
+      mtype.subtype = MEDIASUBTYPE_WVC1_ARCSOFT;
+      mtypes.push_back(mtype);
       mtype.subtype = MEDIASUBTYPE_WVC1;
     }
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
