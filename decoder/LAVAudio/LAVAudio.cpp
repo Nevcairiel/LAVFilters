@@ -939,8 +939,6 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
 
   pOut->SetActualDataLength(buffer.bBuffer->GetCount());
 
-  // TODO: sample format stuff
-  // m_SampleFormat contains the format the last packet was encoded in
   memcpy(pDataOut, buffer.bBuffer->Ptr(), buffer.bBuffer->GetCount());
 
   hr = m_pOutput->Deliver(pOut);
