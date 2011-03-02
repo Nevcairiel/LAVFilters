@@ -915,7 +915,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
     return E_FAIL;
   }
 
-  REFERENCE_TIME rtDur = 10000000i64 * buffer.nSamples / wfe->nSamplesPerSec;
+  REFERENCE_TIME rtDur = av_rescale(10000000i64, buffer.nSamples, wfe->nSamplesPerSec);
   REFERENCE_TIME rtStart = m_rtStart, rtStop = m_rtStart + rtDur;
   m_rtStart += rtDur;
 
