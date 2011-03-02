@@ -35,13 +35,14 @@
 struct WAVEFORMATEX_HDMV_LPCM;
 
 struct BufferDetails_s {
-  GrowableArray<BYTE>   *bBuffer;
-  LAVAudioSampleFormat  sfFormat;
-  DWORD                 dwSamplesPerSec;
-  WORD                  wChannels;
-  DWORD                 dwChannelMask;
+  GrowableArray<BYTE>   *bBuffer;         // PCM Buffer
+  LAVAudioSampleFormat  sfFormat;         // Sample Format
+  DWORD                 dwSamplesPerSec;  // Samples per second
+  int                   nSamples;         // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
+  WORD                  wChannels;        // Number of channels
+  DWORD                 dwChannelMask;    // channel mask
 
-  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0) {
+  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0) {
     bBuffer = new GrowableArray<BYTE>();
   };
   ~BufferDetails_s() {

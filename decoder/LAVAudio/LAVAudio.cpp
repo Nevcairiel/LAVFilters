@@ -863,6 +863,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
   if(out->bBuffer->GetCount() <= 0) {
     return E_FAIL;
   }
+  out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
   m_DecodeFormat = out->sfFormat;
 
   return S_OK;
@@ -904,9 +905,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   CMediaType mt = CreateMediaType(m_pAVCtx->sample_fmt, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
-  int nSamples = buffer.bBuffer->GetCount() / wfe->nChannels;
-
-  if(FAILED(hr = ReconnectOutput(nSamples, mt))) {
+  if(FAILED(hr = ReconnectOutput(buffer.nSamples, mt))) {
     return hr;
   }
 
@@ -916,7 +915,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
     return E_FAIL;
   }
 
-  REFERENCE_TIME rtDur = 10000000i64 * nSamples / wfe->nSamplesPerSec;
+  REFERENCE_TIME rtDur = 10000000i64 * buffer.nSamples / wfe->nSamplesPerSec;
   REFERENCE_TIME rtStart = m_rtStart, rtStop = m_rtStart + rtDur;
   m_rtStart += rtDur;
 

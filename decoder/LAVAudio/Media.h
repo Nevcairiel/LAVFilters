@@ -33,6 +33,8 @@ const scmap_t* get_channel_map(AVCodecContext *avctx);
 const char *get_sample_format_desc(LAVAudioSampleFormat sfFormat);
 const char *get_sample_format_desc(CMediaType &mt);
 
+BYTE get_byte_per_sample(LAVAudioSampleFormat sfFormat);
+
 WORD get_channel_from_flag(DWORD dwMask, DWORD dwFlag);
 DWORD get_flag_from_channel(DWORD dwMask, WORD wChannel);
 const char *get_channel_desc(DWORD dwFlag);
