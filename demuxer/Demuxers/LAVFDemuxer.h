@@ -49,6 +49,7 @@ public:
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
   const char *GetContainerFormat() const;
   HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const;
+  void SettingsChanged(ILAVFSettings *pSettings);
 
   // Select the best video stream
   const stream* SelectVideoStream();
@@ -84,6 +85,7 @@ private:
   bool m_bMatroska;
   bool m_bAVI;
   bool m_bMPEGTS;
+  bool m_bVC1Correction;
 
   unsigned int m_program;
 

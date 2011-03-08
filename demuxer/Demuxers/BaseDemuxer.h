@@ -27,6 +27,8 @@
 #define DSHOW_TIME_BASE 10000000        // DirectShow times are in 100ns units
 #define NO_SUBTITLE_PID DWORD_MAX
 
+struct ILAVFSettings;
+
 // Data Packet for queue storage
 class Packet
 {
@@ -97,6 +99,9 @@ public:
   // This functionality is optional however, so the caller should not rely on only receiving packets
   // for active streams.
   HRESULT SetActiveStream(StreamType type, int pid) { m_dActiveStreams[type] = pid; return S_OK; }
+
+  // Called when the settings of the splitter change
+  virtual void SettingsChanged(ILAVFSettings *pSettings) {};
 
 public:
   struct stream {

@@ -42,7 +42,7 @@ CUnknown* WINAPI CLAVSplitterSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESUL
 
 CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(IUnknown *pUnk)
   : CBasePropertyPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
-  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL)
+  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL), m_hHint(0)
 {
 }
 
@@ -51,6 +51,33 @@ CLAVSplitterSettingsProp::~CLAVSplitterSettingsProp(void)
 {
   SAFE_CO_FREE(m_pszPrefLang);
   SAFE_CO_FREE(m_pszPrefSubLang);
+}
+
+HWND CLAVSplitterSettingsProp::createHintWindow(HWND parent,int timePop,int timeInit,int timeReshow)
+{
+  HWND hhint = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL,
+    WS_POPUP|TTS_NOPREFIX|TTS_ALWAYSTIP,
+    CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
+    parent, NULL, NULL, NULL);
+  SetWindowPos(hhint,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
+  SendMessage(hhint,TTM_SETDELAYTIME,TTDT_AUTOPOP,MAKELONG(timePop,0));
+  SendMessage(hhint,TTM_SETDELAYTIME,TTDT_INITIAL,MAKELONG(timeInit,0));
+  SendMessage(hhint,TTM_SETDELAYTIME,TTDT_RESHOW,MAKELONG(timeReshow,0));
+  SendMessage(hhint,TTM_SETMAXTIPWIDTH,0,470);
+  return hhint;
+}
+
+TOOLINFO CLAVSplitterSettingsProp::addHint(int id, const LPWSTR text)
+{
+  if (!m_hHint) m_hHint = createHintWindow(m_Dlg,15000);
+  TOOLINFO ti;
+  ti.cbSize = sizeof(TOOLINFO);
+  ti.uFlags = TTF_SUBCLASS|TTF_IDISHWND;
+  ti.hwnd = m_Dlg;
+  ti.uId = (LPARAM)GetDlgItem(m_Dlg, id);
+  ti.lpszText = text;
+  SendMessage(m_hHint, TTM_ADDTOOL, 0, (LPARAM)&ti);
+  return ti;
 }
 
 HRESULT CLAVSplitterSettingsProp::OnConnect(IUnknown *pUnk)
@@ -94,6 +121,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   BOOL flag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetSubtitleMatchingLanguage(flag));
 
+  int vc1flag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetVC1TimestampMode(vc1flag));
+
   LoadData();
 
 done:    
@@ -130,6 +160,8 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_SETCURSEL, m_subtitleMode, 0);
 
   SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_SETCHECK, m_subtitleMatching, 0);
+  SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_SETCHECK, m_VC1Mode, 0);
+  addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected\nUnchecked - Frame timings will be send untouched\nGrey: Auto - Timings will be corrected for decoders that need it)");
 
   return hr;
 }
@@ -146,6 +178,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   CHECK_HR(hr = m_pLAVF->GetPreferredSubtitleLanguages(&m_pszPrefSubLang));
   m_subtitleMode = m_pLAVF->GetSubtitleMode();
   m_subtitleMatching = m_pLAVF->GetSubtitleMatchingLanguage();
+  m_VC1Mode = m_pLAVF->GetVC1TimestampMode();
 
 done:
   return hr;
@@ -189,6 +222,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBMODE_ONLY_MATCHING) {
         BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
         if (bFlag != m_subtitleMatching) {
+          SetDirty();
+        }
+      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VC1TIMESTAMP) {
+        int iFlag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
+        if (iFlag != m_VC1Mode) {
           SetDirty();
         }
       }

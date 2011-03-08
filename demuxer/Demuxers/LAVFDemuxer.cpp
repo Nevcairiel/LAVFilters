@@ -23,6 +23,8 @@
 #include "LAVFUtils.h"
 #include "LAVFStreamInfo.h"
 
+#include "LAVSplitterSettings.h"
+
 #ifdef DEBUG
 extern "C" {
 #include "libavutil/log.h"
@@ -32,7 +34,7 @@ extern "C" {
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0)
+  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true)
 {
   av_register_all();
   register_protocol(&ufile_protocol);
@@ -121,6 +123,23 @@ done:
     m_avFormat = NULL;
   }
   return E_FAIL;
+}
+
+void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
+{
+  int vc1Mode = pSettings->GetVC1TimestampMode();
+  if (vc1Mode == 1 || (vc1Mode == 2 && !pSettings->IsVC1CompatModeRequired())) {
+    m_bVC1Correction = true;
+  } else {
+    m_bVC1Correction = false;
+  }
+
+  for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
+    AVStream *st = m_avFormat->streams[idx];
+    if (st->codec->codec_id == CODEC_ID_VC1) {
+      st->need_parsing = m_bVC1Correction ? AVSTREAM_PARSE_TIMESTAMPS : AVSTREAM_PARSE_NONE;
+    }
+  }
 }
 
 REFERENCE_TIME CLAVFDemuxer::GetDuration() const
@@ -223,7 +242,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     // stupid VC1
-    if (stream->codec->codec_id == CODEC_ID_VC1 && dts != Packet::INVALID_TIME) {
+    if (m_bVC1Correction && stream->codec->codec_id == CODEC_ID_VC1 && dts != Packet::INVALID_TIME) {
       rt = dts;
     }
 

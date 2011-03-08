@@ -88,6 +88,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"subtitleMatching", hr);
   m_settings.subtitleMatching = SUCCEEDED(hr) ? bFlag : TRUE;
 
+  dwVal = reg.ReadDWORD(L"vc1TimestampMode", hr);
+  m_settings.vc1Mode = SUCCEEDED(hr) ? dwVal : 2;
+
   return S_OK;
 }
 
@@ -100,6 +103,10 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
     reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
     reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
+    reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
+  }
+  if (m_pDemuxer) {
+    m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
   }
   return S_OK;
 }
@@ -439,6 +446,10 @@ STDMETHODIMP CLAVSplitter::Pause()
   // Note that the splitter will always be running,
   // and even in pause mode fill up the buffers
   if(fs == State_Stopped) {
+    // At this point, the graph is hopefully finished, tell the demuxer about all the cool things
+    m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
+
+    // Create demuxing thread
     Create();
   }
 
@@ -855,4 +866,27 @@ STDMETHODIMP CLAVSplitter::SetSubtitleMatchingLanguage(BOOL dwMode)
 {
   m_settings.subtitleMatching = dwMode;
   return SaveSettings();
+}
+
+STDMETHODIMP_(int) CLAVSplitter::GetVC1TimestampMode()
+{
+  return m_settings.vc1Mode;
+}
+
+STDMETHODIMP CLAVSplitter::SetVC1TimestampMode(int iMode)
+{
+  m_settings.vc1Mode = iMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::IsVC1CompatModeRequired()
+{
+  IBaseFilter *pFilter = NULL;
+  BOOL bFilterFound = FALSE;
+  if (((pFilter = FindFilter(CLSID_CyberlinkVidDec, m_pGraph)) != NULL)) {
+    DbgLog((LOG_CUSTOM1, 1, L"Cyberlink Video Decoder found"));
+    SafeRelease(&pFilter);
+    bFilterFound = TRUE;
+  }
+  return bFilterFound;
 }

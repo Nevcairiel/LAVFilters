@@ -109,6 +109,9 @@ public:
   STDMETHODIMP SetSubtitleMode(DWORD dwMode);
   STDMETHODIMP_(BOOL) GetSubtitleMatchingLanguage();
   STDMETHODIMP SetSubtitleMatchingLanguage(BOOL dwMode);
+  STDMETHODIMP_(int) GetVC1TimestampMode();
+  STDMETHODIMP SetVC1TimestampMode(int iMode);
+  STDMETHODIMP_(BOOL) IsVC1CompatModeRequired();
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -166,5 +169,6 @@ private:
     std::wstring prefSubLangs;
     DWORD subtitleMode;
     BOOL subtitleMatching;
+    int vc1Mode;
   } m_settings;
 };

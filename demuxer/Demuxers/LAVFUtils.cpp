@@ -307,7 +307,7 @@ URLProtocol ufile_protocol = {
 };
 
 #ifdef DEBUG
-#define LOG_BUF_LEN 1024
+#define LOG_BUF_LEN 2048
 void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
 {
   static int print_prefix=1;

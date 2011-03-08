@@ -63,3 +63,22 @@ void split(std::string& text, std::string& separators, std::list<std::string>& w
         start = text.find_first_not_of(separators, stop+1);
     }
 }
+
+IBaseFilter* FindFilter(const GUID& clsid, IFilterGraph *pFG)
+{
+  IBaseFilter *pFilter = NULL;
+  IEnumFilters *pEnumFilters = NULL;
+  if(pFG && SUCCEEDED(pFG->EnumFilters(&pEnumFilters))) {
+    for(IBaseFilter *pBF = NULL; S_OK == pEnumFilters->Next(1, &pBF, 0); ) {
+      GUID clsid2;
+      if(SUCCEEDED(pBF->GetClassID(&clsid2)) && clsid == clsid2) {
+        pFilter = pBF;
+        break;
+      }
+      SafeRelease(&pBF);
+    }
+    SafeRelease(&pEnumFilters);
+  }
+
+  return pFilter;
+}

@@ -150,7 +150,11 @@
     <ClCompile Include="LAVSplitter.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LAVSplitterSettings.h" />
+    <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h" />
+    <ClInclude Include="..\..\common\includes\inttypes.h" />
+    <ClInclude Include="..\..\common\includes\LAVSplitterSettings.h" />
+    <ClInclude Include="..\..\common\includes\moreuuids.h" />
+    <ClInclude Include="..\..\common\includes\stdint.h" />
     <ClInclude Include="SettingsProp.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
