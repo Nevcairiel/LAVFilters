@@ -82,3 +82,15 @@ IBaseFilter* FindFilter(const GUID& clsid, IFilterGraph *pFG)
 
   return pFilter;
 }
+
+BOOL FilterInGraph(const GUID& clsid, IFilterGraph *pFG)
+{
+  BOOL bFound = FALSE;
+  IBaseFilter *pFilter = NULL;
+
+  pFilter = FindFilter(clsid, pFG);
+  bFound = (pFilter != NULL);
+  SafeRelease(&pFilter);
+
+  return bFound;
+}

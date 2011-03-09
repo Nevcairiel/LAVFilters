@@ -881,12 +881,5 @@ STDMETHODIMP CLAVSplitter::SetVC1TimestampMode(int iMode)
 
 STDMETHODIMP_(BOOL) CLAVSplitter::IsVC1CompatModeRequired()
 {
-  IBaseFilter *pFilter = NULL;
-  BOOL bFilterFound = FALSE;
-  if (((pFilter = FindFilter(CLSID_CyberlinkVidDec, m_pGraph)) != NULL)) {
-    DbgLog((LOG_CUSTOM1, 1, L"Cyberlink Video Decoder found"));
-    SafeRelease(&pFilter);
-    bFilterFound = TRUE;
-  }
-  return bFilterFound;
+  return FilterInGraph(CLSID_CyberlinkVidDec, m_pGraph) || FilterInGraph(CLSID_ArcSoftVidDec, m_pGraph);
 }
