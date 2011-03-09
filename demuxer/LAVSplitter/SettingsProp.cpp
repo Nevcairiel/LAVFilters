@@ -161,7 +161,7 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
 
   SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_SETCHECK, m_subtitleMatching, 0);
   SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_SETCHECK, m_VC1Mode, 0);
-  addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected\nUnchecked - Frame timings will be send untouched\nGrey: Auto - Timings will be corrected for decoders that need it)");
+  addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected.\nUnchecked - Frame timings will be sent untouched.\nIndeterminate (Auto) - Enabled, except for decoders that do their own correction.");
 
   return hr;
 }
