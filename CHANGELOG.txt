@@ -1,5 +1,14 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.18 - 2011/03/09
+LAV Splitter
+- Improved compatibility when decoding VC-1 with the ArcSoft and Cyberlink Decoders
+- Increased the splitters merit
+- Fixed an issue that caused the splitter to deadlock when changing streams with madVR
+
+LAV Audio Decoder
+- Fixed a bug that caused sample durations to be calculated wrong, causing playback glitches
+
 0.17 - 2011/02/27
 LAV Splitter
 - Fixed seeking before starting playback
