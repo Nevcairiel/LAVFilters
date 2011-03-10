@@ -78,7 +78,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   // Grab the codec
   AVCodec *p = avcodec_find_decoder(enc->codec_id);
-  const char *profile = p ? av_get_profile_name(p, enc->profile) : "";
+  const char *profile = p ? av_get_profile_name(p, enc->profile) : NULL;
 
   const char *codec_name = NULL;
   if (p) {
