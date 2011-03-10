@@ -77,9 +77,10 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   char tmpbuf1[32];
 
   // Grab the codec
-  const char *codec_name;
   AVCodec *p = avcodec_find_decoder(enc->codec_id);
+  const char *profile = p ? av_get_profile_name(p, enc->profile) : "";
 
+  const char *codec_name = NULL;
   if (p) {
     codec_name = p->name;
   } else if (enc->codec_name[0] != '\0') {
@@ -109,7 +110,6 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   int bitrate = get_bit_rate(enc);
 
-
   std::ostringstream buf;
   switch(enc->codec_type) {
   case AVMEDIA_TYPE_VIDEO:
@@ -123,6 +123,9 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     // Codec
     buf << codec_name;
+    if (profile) {
+      buf << " (" << profile << ")";
+    }
     // Pixel Format
     if (enc->pix_fmt != PIX_FMT_NONE) {
       buf << ", " << avcodec_get_pix_fmt_name(enc->pix_fmt);
@@ -151,6 +154,9 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     // Codec
     buf << codec_name;
+    if (profile) {
+      buf << " (" << profile << ")";
+    }
     // Sample Rate
     if (enc->sample_rate) {
       buf << ", " << enc->sample_rate << " Hz";
