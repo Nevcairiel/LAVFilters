@@ -120,6 +120,7 @@ typedef struct _AMOVIESETUP_FILTER
   DWORD      dwMerit;
   UINT       nPins;
   const AMOVIESETUP_PIN * lpPin;
+  const CLSID filterCategory;
 }
 AMOVIESETUP_FILTER, * PAMOVIESETUP_FILTER, * FAR LPAMOVIESETUP_FILTER;
 

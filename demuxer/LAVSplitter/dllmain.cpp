@@ -88,7 +88,8 @@ const AMOVIESETUP_FILTER sudFilterReg =
   L"LAV Splitter",                // filter name
   MERIT_PREFERRED + 4,            // merit
   2,                              // count of registered pins
-  sudOutputPins                   // list of pins to register
+  sudOutputPins,                  // list of pins to register
+  CLSID_LegacyAmFilterCategory
 };
 
 // --- COM factory table and registration code --------------

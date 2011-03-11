@@ -285,7 +285,7 @@ AMovieSetupRegisterFilter2( const AMOVIESETUP_FILTER * const psetupdata
     hr = pIFM2->RegisterFilter(*psetupdata->clsID
                              , psetupdata->strName
                              , 0 // moniker
-                             , 0 // category
+                             , &psetupdata->filterCategory // category
                              , NULL // instance
                              , &rf2);
   }
