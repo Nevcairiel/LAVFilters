@@ -26,6 +26,8 @@
 
 #include <dvdmedia.h>
 
+#include "format_guids.h"
+
 // 30323449-0000-0010-8000-00AA00389B71  'I420' == MEDIASUBTYPE_I420
 DEFINE_GUID(MEDIASUBTYPE_I420,
 			0x30323449, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
