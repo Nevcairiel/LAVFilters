@@ -112,114 +112,6 @@ DWORD avc_quant(BYTE *src, BYTE *dst, int extralen)
   return cb;
 }
 
-// Helper function to get the next number of bits from the buffer
-// Supports reading 0 to 64 bits.
-UINT64 next_bits(BYTE *buf, int nBits)
-{
-  ASSERT(nBits >= 0 && nBits <= 64);
-
-  UINT64 bitbuf = 0;
-
-  int bitlen = 0;
-  for (; bitlen < nBits; bitlen += 8)
-  {
-    bitbuf <<= 8;
-    bitbuf |= *buf++;
-  }
-  UINT64 ret = (bitbuf >> (bitlen - nBits)) & ((1ui64 << nBits) - 1);
-
-  return ret;
-}
-
-DWORD avc_parse_annexb(BYTE *src, BYTE *dst, int extralen)
-{
-  BYTE *endpos = src + extralen;
-  BYTE *spspos = 0, *ppspos = 0;
-  UINT16 spslen = 0, ppslen = 0;
-
-  BYTE *p = src;
-
-  // ISO/IEC 14496-10:2004 Annex B Byte stream format
-  // skip any trailing bytes until we find a header
-  while(p < (endpos-4) && next_bits(p, 24) != 0x000001 && 
-    next_bits(p, 32) != 0x00000001)
-  {
-    // skip one
-    p++;
-  }
-
-  // Repeat while:
-  //    We're not at the end of the stream
-  //    We're at a section start
-  //    We still need SPS or PPS
-  while(p < (endpos-4) && (next_bits(p, 24) == 0x000001 || next_bits(p, 32) == 0x00000001) && (!spspos || !ppspos))
-  {
-    // Skip the bytestream nal header
-    if (next_bits(p, 32) == 0x000001) {
-      p++;
-    }
-    p += 3;
-
-    // first byte in the nal unit and their bit-width:
-    //    zero bit  (1)
-    //    ref_idc   (2)
-    //    unit_type (5)
-    BYTE ref_idc = *p & 0x60;
-    BYTE unit_type = *p & 0x1f;
-    // unit types lookup table, figure 7-1, chapter 7.4.1
-    if (unit_type == 7 && ref_idc != 0) // Sequence parameter set
-    {
-      spspos = p;
-    }
-    else if (unit_type == 8 && ref_idc != 0) { // Picture parameter set
-      ppspos = p;
-    }
-
-    // go to end of block
-    while(1) {
-      // either we find another NAL unit block, or the end of the stream
-      if((p < (endpos-4) && (next_bits(p, 24) == 0x000001 || next_bits(p, 32) == 0x00000001))
-        || (p == endpos)) {
-          break;
-      } else {
-        p++;
-      }
-    }
-    // if a position is set, but doesnt have a length yet, its just been discovered
-    // (or something went wrong)
-    if(spspos && !spslen) {
-      spslen = (UINT16)(p - spspos);
-    } else if (ppspos && !ppslen) {
-      ppslen = (UINT16)(p - ppspos);
-    }
-  }
-
-  // if we can't parse the header, we just don't do anything with it
-  // Alternative: copy it as-is, without parsing?
-  if (!spspos || !spslen || !ppspos || !ppslen)
-    return 0;
-
-  // Keep marker for length calcs
-  BYTE *dstmarker = dst;
-
-  // The final extradata format is quite simple
-  //  A 16-bit size value of the sections, followed by the actual section data
-
-  // copy SPS over
-  *dst++ = spslen >> 8;
-  *dst++ = spslen & 0xff;
-  memcpy(dst, spspos, spslen);
-  dst += spslen;
-
-  // and PPS
-  *dst++ = ppslen >> 8;
-  *dst++ = ppslen & 0xff;
-  memcpy(dst, ppspos, ppslen);
-  dst += ppslen;
-
-  return (DWORD)(dst - dstmarker);
-}
-
 VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size)
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
@@ -384,6 +276,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
 
   if(extra > 0)
   {
+    BOOL bCopyUntouched = FALSE;
     // Don't even go there for mpeg-ts for now, we supply annex-b
     if(avstream->codec->codec_id == CODEC_ID_H264)
     {
@@ -391,18 +284,16 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
       if ((mp2vi->hdr.AvgTimePerFrame / 10) == 41666 && (avg / 10) == 41708) {
         mp2vi->hdr.AvgTimePerFrame = avg;
       }
-      if (container != "mpegts")
-      {
-        mp2vi->dwProfile = extradata[1];
-        mp2vi->dwLevel = extradata[3];
+      if (*(char *)extradata == 1) {
+        if (extradata[1])
+          mp2vi->dwProfile = extradata[1];
+        if (extradata[3])
+          mp2vi->dwLevel = extradata[3];
         mp2vi->dwFlags = (extradata[4] & 3) + 1;
         mp2vi->cbSequenceHeader = avc_quant(extradata,
           (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
-      } else if (0) {
-        // EXPERIMENTAL FUNCTION!
-        mp2vi->dwFlags = 4;
-        mp2vi->cbSequenceHeader = avc_parse_annexb(extradata,
-          (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
+      } else {
+        bCopyUntouched = TRUE;
       }
     } else if (avstream->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);
@@ -410,6 +301,9 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
       mp2vi->hdr.bmiHeader.biPlanes = 0;
       mp2vi->hdr.bmiHeader.biCompression = 0;
     } else {
+      bCopyUntouched = TRUE;
+    }
+    if (bCopyUntouched) {
       mp2vi->cbSequenceHeader = extra;
       memcpy(&mp2vi->dwSequenceHeader[0], extradata, extra);
     }
