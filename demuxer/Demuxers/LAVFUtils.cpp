@@ -64,7 +64,10 @@ const char *get_stream_language(AVStream *pStream)
   } else if(pStream->language && strlen(pStream->language) > 0) {
     lang = pStream->language;
   }
-  return lang;
+  // Don't bother with undetermined languages (fallback value in some containers)
+  if(strncmp(lang, "und", 3))
+    return lang;
+  return NULL;
 }
 
 struct s_codec_names {
