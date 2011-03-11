@@ -67,6 +67,92 @@ const char *get_stream_language(AVStream *pStream)
   return lang;
 }
 
+struct s_codec_names {
+  CodecID id;
+  const char *name;
+} nice_codec_names[] = {
+  // Video
+  { CODEC_ID_VC1, "VC-1" },
+  { CODEC_ID_MPEG2VIDEO, "MPEG-2" },
+  // Audio
+  { CODEC_ID_TRUEHD, "TrueHD" },
+  { CODEC_ID_AC3, "AC-3" },
+  { CODEC_ID_EAC3, "E-AC3" },
+  { CODEC_ID_AAC_LATM, "AAC (LATM)" },
+};
+
+// Uppercase the given string
+static std::string up(const char *str) {
+  size_t len = strlen(str);
+  std::string ret(len, char());
+  for (size_t i = 0; i < len; ++i) {
+    ret[i] = (str[i] <= 'z' && str[i] >= 'a') ? str[i]-('a'-'A') : str[i];
+  }
+  return ret;
+}
+
+static std::string get_codec_name(AVCodecContext *pCodecCtx)
+{
+
+  // Grab the codec
+  AVCodec *p = avcodec_find_decoder(pCodecCtx->codec_id);
+  const char *profile = p ? av_get_profile_name(p, pCodecCtx->profile) : NULL;
+
+  std::ostringstream codec_name;
+
+  const char *nice_name = NULL;
+  for (int i = 0; i < sizeof(nice_codec_names); ++i)
+  {
+    if (nice_codec_names[i].id == pCodecCtx->codec_id) {
+      nice_name = nice_codec_names[i].name;
+      break;
+    }
+  }
+
+  if (pCodecCtx->codec_id == CODEC_ID_H264 && profile) {
+    codec_name << "H.264 " << profile;
+    if (pCodecCtx->level && pCodecCtx->level != FF_LEVEL_UNKNOWN && pCodecCtx->level < 1000) {
+      char l_buf[5];
+      sprintf_s(l_buf, "%.1f", pCodecCtx->level / 10.0);
+      codec_name << " L" << l_buf;
+    }
+  } else if (pCodecCtx->codec_id == CODEC_ID_DTS && profile) {
+    codec_name << profile;
+  } else if (nice_name) {
+    codec_name << nice_name;
+  } else if (p) {
+    codec_name << up(p->name);
+  } else if (pCodecCtx->codec_name[0] != '\0') {
+    codec_name << up(pCodecCtx->codec_name);
+  } else {
+    /* output avi tags */
+    char buf[32];
+    av_get_codec_tag_string(buf, sizeof(buf), pCodecCtx->codec_tag);
+    codec_name << buf;
+    sprintf_s(buf, "0x%04X", pCodecCtx->codec_tag);
+    codec_name  << " / " << buf;
+  }
+  return codec_name.str();
+}
+
+static bool show_sample_fmt(CodecID codec_id) {
+  // PCM Codecs
+  if (codec_id >= 0x10000 && codec_id < 0x12000) {
+    return true;
+  }
+  // Lossless Codecs
+  if (codec_id == CODEC_ID_MLP
+   || codec_id == CODEC_ID_TRUEHD
+   || codec_id == CODEC_ID_FLAC
+   || codec_id == CODEC_ID_WMALOSSLESS
+   || codec_id == CODEC_ID_WAVPACK
+   || codec_id == CODEC_ID_MP4ALS
+   || codec_id == CODEC_ID_ALAC) {
+     return true;
+  }
+  return false;
+}
+
 HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 {
   CheckPointer(pStream, E_POINTER);
@@ -74,24 +160,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
 
   AVCodecContext *enc = pStream->codec;
 
-  char tmpbuf1[32];
-
-  // Grab the codec
-  AVCodec *p = avcodec_find_decoder(enc->codec_id);
-  const char *profile = p ? av_get_profile_name(p, enc->profile) : NULL;
-
-  const char *codec_name = NULL;
-  if (p) {
-    codec_name = p->name;
-  } else if (enc->codec_name[0] != '\0') {
-    codec_name = enc->codec_name;
-  } else {
-    /* output avi tags */
-    char tag_buf[32];
-    av_get_codec_tag_string(tag_buf, sizeof(tag_buf), enc->codec_tag);
-    sprintf_s(tmpbuf1, "%s / 0x%04X", tag_buf, enc->codec_tag);
-    codec_name = tmpbuf1;
-  }
+  std::string codec_name = get_codec_name(enc);
 
   const char *lang = get_stream_language(pStream);
   std::string sLanguage;
@@ -123,9 +192,6 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     // Codec
     buf << codec_name;
-    if (profile) {
-      buf << " (" << profile << ")";
-    }
     // Pixel Format
     if (enc->pix_fmt != PIX_FMT_NONE) {
       buf << ", " << avcodec_get_pix_fmt_name(enc->pix_fmt);
@@ -154,9 +220,6 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     }
     // Codec
     buf << codec_name;
-    if (profile) {
-      buf << " (" << profile << ")";
-    }
     // Sample Rate
     if (enc->sample_rate) {
       buf << ", " << enc->sample_rate << " Hz";
@@ -166,7 +229,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     av_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
     buf << ", " << channel;
     // Sample Format
-    if (get_bits_per_sample(enc)) {
+    if (show_sample_fmt(enc->codec_id) && get_bits_per_sample(enc)) {
       if (enc->sample_fmt == AV_SAMPLE_FMT_FLT || enc->sample_fmt == AV_SAMPLE_FMT_DBL) {
         buf << ", fp";
       } else {
