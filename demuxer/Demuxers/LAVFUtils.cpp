@@ -79,6 +79,14 @@ struct s_codec_names {
   { CODEC_ID_AC3, "AC-3" },
   { CODEC_ID_EAC3, "E-AC3" },
   { CODEC_ID_AAC_LATM, "AAC (LATM)" },
+  // Subs
+  { CODEC_ID_TEXT, "Text" },
+  { CODEC_ID_SRT, "SRT" },
+  { CODEC_ID_HDMV_PGS_SUBTITLE, "PGS" },
+  { CODEC_ID_DVD_SUBTITLE, "DVD/VOB" },
+  { CODEC_ID_DVB_SUBTITLE, "DVB" },
+  { CODEC_ID_SSA, "SSA/ASS" },
+  { CODEC_ID_XSUB, "XSUB" },
 };
 
 // Uppercase the given string
@@ -93,9 +101,10 @@ static std::string up(const char *str) {
 
 static std::string get_codec_name(AVCodecContext *pCodecCtx)
 {
+  CodecID id = pCodecCtx->codec_type == AVMEDIA_TYPE_SUBTITLE ? *(CodecID *)pCodecCtx->opaque : pCodecCtx->codec_id;
 
   // Grab the codec
-  AVCodec *p = avcodec_find_decoder(pCodecCtx->codec_id);
+  AVCodec *p = avcodec_find_decoder(id);
   const char *profile = p ? av_get_profile_name(p, pCodecCtx->profile) : NULL;
 
   std::ostringstream codec_name;
@@ -103,20 +112,20 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
   const char *nice_name = NULL;
   for (int i = 0; i < sizeof(nice_codec_names); ++i)
   {
-    if (nice_codec_names[i].id == pCodecCtx->codec_id) {
+    if (nice_codec_names[i].id == id) {
       nice_name = nice_codec_names[i].name;
       break;
     }
   }
 
-  if (pCodecCtx->codec_id == CODEC_ID_H264 && profile) {
+  if (id == CODEC_ID_H264 && profile) {
     codec_name << "H.264 " << profile;
     if (pCodecCtx->level && pCodecCtx->level != FF_LEVEL_UNKNOWN && pCodecCtx->level < 1000) {
       char l_buf[5];
       sprintf_s(l_buf, "%.1f", pCodecCtx->level / 10.0);
       codec_name << " L" << l_buf;
     }
-  } else if (pCodecCtx->codec_id == CODEC_ID_DTS && profile) {
+  } else if (id == CODEC_ID_DTS && profile) {
     codec_name << profile;
   } else if (nice_name) {
     codec_name << nice_name;
@@ -253,12 +262,15 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     buf << "S: ";
     // Title/Language
     if (title && lang) {
-      buf << title << " [" << lang << "]";
+      buf << title << " [" << lang << "] (";
     } else if (title || lang) {
       // Print either title or lang
-      buf << (title ? title : sLanguage);
-    } else {
-      buf << "Stream #" << pStream->index;
+      buf << (title ? title : sLanguage) << " (";
+    }
+    // Codec
+    buf << codec_name;
+    if (title || lang) {
+      buf << ")";
     }
     // Subtitle flags
     // TODO: This is rather ugly, make it nicer!

@@ -48,6 +48,8 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
 CLAVFDemuxer::~CLAVFDemuxer()
 {
   if(m_avFormat) {
+    for (unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx)
+      free(m_avFormat->streams[idx]->codec->opaque);
     av_close_input_file(m_avFormat);
     m_avFormat = NULL;
   }
@@ -119,6 +121,8 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
 done:
   // Cleanup
   if (m_avFormat) {
+    for (idx = 0; idx < m_avFormat->nb_streams; ++idx)
+      free(m_avFormat->streams[idx]->codec->opaque);
     av_close_input_file(m_avFormat);
     m_avFormat = NULL;
   }
@@ -433,8 +437,11 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     return hr;
   }
 
+  pStream->codec->opaque = NULL;
   // HACK: Change codec_id to TEXT for SSA to prevent some evil doings
   if (pStream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+    pStream->codec->opaque = malloc(sizeof(CodecID));
+    *((CodecID *)pStream->codec->opaque) = pStream->codec->codec_id;
     pStream->codec->codec_id = CODEC_ID_TEXT;
   }
 
