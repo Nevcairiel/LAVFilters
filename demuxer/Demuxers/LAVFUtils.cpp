@@ -141,8 +141,12 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
     codec_name << profile;
   } else if (nice_name) {
     codec_name << nice_name;
+    if (profile)
+      codec_name << " " << profile;
   } else if (p) {
     codec_name << up(p->name);
+    if (profile)
+      codec_name << " " << profile;
   } else if (pCodecCtx->codec_name[0] != '\0') {
     codec_name << up(pCodecCtx->codec_name);
   } else {
