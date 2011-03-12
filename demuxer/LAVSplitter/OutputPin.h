@@ -63,6 +63,7 @@ public:
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
 
   void SetNewMediaTypes(std::vector<CMediaType> pmts) { CAutoLock lock(&m_csMT); m_mts = pmts; }
+  void SendMediaType(CMediaType *mt) { CAutoLock lock(&m_csMT); m_newMT = mt;}
 
   BOOL IsVideoPin() { return m_pinType == CBaseDemuxer::video; }
   BOOL IsAudioPin() { return m_pinType == CBaseDemuxer::audio; }

@@ -623,10 +623,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
   // Stop the Graph, remove the old filter, render the graph again, start it up again
   // This only works on pins that were connected before, or the filter graph could .. well, break
   if (pPin && pPin->IsConnected()) {
-    CAutoLock lock(this);
     HRESULT hr = S_OK;
-
-    DumpGraph(m_pGraph, 10);
 
     IMediaControl *pControl = NULL;
     hr = m_pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
@@ -634,12 +631,16 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     FILTER_STATE oldState;
     // Get the graph state
     // If the graph is in transition, we'll get the next state, not the previous
-    hr = pControl->GetState(10, (OAFilterState *)&oldState);
-    DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::GetState returned %d (hr %x)", oldState, hr));
+    do {
+      hr = pControl->GetState(10, (OAFilterState *)&oldState);
+      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::GetState returned %d (hr %x)", oldState, hr));
+    } while (hr == VFW_S_STATE_INTERMEDIATE);
 
     // Stop the filter graph
-    pControl->Stop();
+    hr = pControl->Stop();
     DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Stop (hr %x)", hr));
+
+    Lock();
 
     // Update Output Pin
     pPin->SetStreamId(TrackNumDst);
@@ -649,7 +650,6 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     // Audio Filters get their connected filter removed
     // This way we make sure we reconnect to the proper filter
     // Other filters just disconnect and try to reconnect later on
-    BOOL doRender = FALSE;
     PIN_INFO pInfo;
     hr = pPin->GetConnected()->QueryPinInfo(&pInfo);
 
@@ -660,8 +660,16 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
       pInfo.pFilter->GetClassID(&guidFilter);
       DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IFilterGraph::RemoveFilter - %s (hr %x)", WStringFromGUID(guidFilter).c_str(), hr));
 #endif
-      doRender = TRUE;
+      // Use IGraphBuilder to rebuild the graph
+      IGraphBuilder *pGraphBuilder = NULL;
+      if(SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
+        // Instruct the GraphBuilder to connect us again
+        hr = pGraphBuilder->Render(pPin);
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IGraphBuilder::Render (hr %x)", hr));
+        pGraphBuilder->Release();
+      }
     } else {
+      // Video/Subtitle just get a new media type delivered, they don't deal with dynamic reconnection so well..
       unsigned int index = 0;
       for(unsigned int i = 0; i < pmts.size(); i++) {
         if (SUCCEEDED(hr = pPin->GetConnected()->QueryAccept(&pmts[i]))) {
@@ -670,23 +678,14 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
           break;
         }
       }
-      if (FAILED(hr) || FAILED(hr = ReconnectPin(pPin, &pmts[index]))) {
-        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IPin:ReconnectPin failed (hr %x)", hr));
-        m_pGraph->Disconnect(pPin->GetConnected());
-        m_pGraph->Disconnect(pPin);
-        doRender = TRUE;
+      if (SUCCEEDED(hr)) {
+        CMediaType *mt = new CMediaType(pmts[index]);
+        pPin->SendMediaType(mt);
       }
     }
     if(pInfo.pFilter) { pInfo.pFilter->Release(); }
 
-    // Use IGraphBuilder to rebuild the graph
-    IGraphBuilder *pGraphBuilder = NULL;
-    if(doRender && SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
-      // Instruct the GraphBuilder to connect us again
-      hr = pGraphBuilder->Render(pPin);
-      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IGraphBuilder::Render (hr %x)", hr));
-      pGraphBuilder->Release();
-    }
+    Unlock();
 
     if (SUCCEEDED(hr)) {
       // Re-start the graph
@@ -700,10 +699,9 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     }
     pControl->Release();
 
-    DumpGraph(m_pGraph, 10);
-
     return hr;
   } else if (pPin) {
+    CAutoLock lock(this);
     // In normal operations, this won't make much sense
     // However, in graphstudio it is now possible to change the stream before connecting
     pPin->SetStreamId(TrackNumDst);
