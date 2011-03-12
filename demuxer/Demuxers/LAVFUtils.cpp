@@ -70,15 +70,19 @@ const char *get_stream_language(AVStream *pStream)
   return NULL;
 }
 
-struct s_codec_names {
-  CodecID id;
+struct s_id_map {
+  int id;
   const char *name;
-} nice_codec_names[] = {
+};
+
+struct s_id_map nice_codec_names[] = {
   // Video
+  { CODEC_ID_H264, "H.264" },
   { CODEC_ID_VC1, "VC-1" },
   { CODEC_ID_MPEG2VIDEO, "MPEG-2" },
   // Audio
   { CODEC_ID_TRUEHD, "TrueHD" },
+  { CODEC_ID_DTS, "DTS" },
   { CODEC_ID_AC3, "AC-3" },
   { CODEC_ID_EAC3, "E-AC3" },
   { CODEC_ID_AAC_LATM, "AAC (LATM)" },
@@ -122,14 +126,14 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
   }
 
   if (id == CODEC_ID_H264 && profile) {
-    codec_name << "H.264 " << profile;
+    codec_name << nice_name << " " << profile;
     if (pCodecCtx->level && pCodecCtx->level != FF_LEVEL_UNKNOWN && pCodecCtx->level < 1000) {
       char l_buf[5];
       sprintf_s(l_buf, "%.1f", pCodecCtx->level / 10.0);
       codec_name << " L" << l_buf;
     }
   } else if (id == CODEC_ID_VC1 && profile) {
-    codec_name << "VC-1 " << profile;
+    codec_name << nice_name << " " << profile;
     if (pCodecCtx->level != FF_LEVEL_UNKNOWN) {
       codec_name << " L" << pCodecCtx->level;
     }
