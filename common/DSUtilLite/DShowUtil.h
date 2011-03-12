@@ -76,3 +76,5 @@ extern std::string ISO6392To6391(LPCSTR code);
 extern HRESULT FilterGraphCleanup(IFilterGraph *pGraph);
 extern IBaseFilter *FindFilter(const GUID& clsid, IFilterGraph *pFG);
 extern BOOL FilterInGraph(const GUID& clsid, IFilterGraph *pFG);
+
+std::wstring WStringFromGUID(const GUID& guid);

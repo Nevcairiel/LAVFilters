@@ -94,3 +94,10 @@ BOOL FilterInGraph(const GUID& clsid, IFilterGraph *pFG)
 
   return bFound;
 }
+
+std::wstring WStringFromGUID(const GUID& guid)
+{
+  WCHAR null[128] = {0}, buff[128];
+  StringFromGUID2(GUID_NULL, null, 127);
+  return std::wstring(StringFromGUID2(guid, buff, 127) > 0 ? buff : null);
+}

@@ -39,9 +39,8 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
   av_register_all();
   register_protocol(&ufile_protocol);
 #ifdef DEBUG
+  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
   av_log_set_callback(lavf_log_callback);
-  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX);
-  DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
 #endif
 }
 

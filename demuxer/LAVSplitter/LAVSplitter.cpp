@@ -47,6 +47,11 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 {
   LoadSettings();
   if(phr) { *phr = S_OK; }
+
+#ifdef DEBUG
+  DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
+  DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
+#endif
 }
 
 CLAVSplitter::~CLAVSplitter()
@@ -612,6 +617,8 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
 #endif
 
   CLAVOutputPin* pPin = GetOutputPin(TrackNumSrc);
+
+  DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - Switching %s Stream %d to %d", CBaseDemuxer::CStreamList::ToStringW(pPin->GetPinType()), TrackNumSrc, TrackNumDst));
   // Output Pin was found
   // Stop the Graph, remove the old filter, render the graph again, start it up again
   // This only works on pins that were connected before, or the filter graph could .. well, break
@@ -619,15 +626,21 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     CAutoLock lock(this);
     HRESULT hr = S_OK;
 
+    DumpGraph(m_pGraph, 10);
+
     IMediaControl *pControl = NULL;
     hr = m_pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
 
     FILTER_STATE oldState;
     // Get the graph state
     // If the graph is in transition, we'll get the next state, not the previous
-    pControl->GetState(10, (OAFilterState *)&oldState);
+    hr = pControl->GetState(10, (OAFilterState *)&oldState);
+    DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::GetState returned %d (hr %x)", oldState, hr));
+
     // Stop the filter graph
     pControl->Stop();
+    DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Stop (hr %x)", hr));
+
     // Update Output Pin
     pPin->SetStreamId(TrackNumDst);
     m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
@@ -639,18 +652,26 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     BOOL doRender = FALSE;
     PIN_INFO pInfo;
     hr = pPin->GetConnected()->QueryPinInfo(&pInfo);
+
     if(pPin->IsAudioPin() && SUCCEEDED(hr) && pInfo.pFilter) {
-      m_pGraph->RemoveFilter(pInfo.pFilter);
+      hr = m_pGraph->RemoveFilter(pInfo.pFilter);
+#ifdef DEBUG
+      CLSID guidFilter;
+      pInfo.pFilter->GetClassID(&guidFilter);
+      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IFilterGraph::RemoveFilter - %s (hr %x)", WStringFromGUID(guidFilter).c_str(), hr));
+#endif
       doRender = TRUE;
     } else {
       unsigned int index = 0;
       for(unsigned int i = 0; i < pmts.size(); i++) {
         if (SUCCEEDED(hr = pPin->GetConnected()->QueryAccept(&pmts[i]))) {
+          DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IPin:QueryAccept succeeded (hr %x)", hr));
           index = i;
           break;
         }
       }
       if (FAILED(hr) || FAILED(hr = ReconnectPin(pPin, &pmts[index]))) {
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IPin:ReconnectPin failed (hr %x)", hr));
         m_pGraph->Disconnect(pPin->GetConnected());
         m_pGraph->Disconnect(pPin);
         doRender = TRUE;
@@ -663,6 +684,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     if(doRender && SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
       // Instruct the GraphBuilder to connect us again
       hr = pGraphBuilder->Render(pPin);
+      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IGraphBuilder::Render (hr %x)", hr));
       pGraphBuilder->Release();
     }
 
@@ -670,11 +692,15 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
       // Re-start the graph
       if(oldState == State_Paused) {
         hr = pControl->Pause();
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Pause (hr %x)", hr));
       } else if (oldState == State_Running) {
         hr = pControl->Run();
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Run (hr %x)", hr));
       }
     }
     pControl->Release();
+
+    DumpGraph(m_pGraph, 10);
 
     return hr;
   } else if (pPin) {
