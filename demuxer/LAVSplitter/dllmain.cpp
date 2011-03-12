@@ -155,7 +155,7 @@ STDAPI DllRegisterServer()
   RegisterSourceFilter(__uuidof(CLAVSplitter),
     MEDIASUBTYPE_LAVMP4,
     chkbytes,
-    L".mp4", L".mov");
+    L".mp4", L".mov", L".3gp");
 
   chkbytes.clear();
 
