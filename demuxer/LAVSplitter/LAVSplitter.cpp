@@ -631,10 +631,8 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     FILTER_STATE oldState;
     // Get the graph state
     // If the graph is in transition, we'll get the next state, not the previous
-    do {
-      hr = pControl->GetState(10, (OAFilterState *)&oldState);
-      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::GetState returned %d (hr %x)", oldState, hr));
-    } while (hr == VFW_S_STATE_INTERMEDIATE);
+    hr = pControl->GetState(10, (OAFilterState *)&oldState);
+    DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::GetState returned %d (hr %x)", oldState, hr));
 
     // Stop the filter graph
     hr = pControl->Stop();
