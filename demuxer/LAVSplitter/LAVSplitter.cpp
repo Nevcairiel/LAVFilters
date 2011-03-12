@@ -669,7 +669,6 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
         pGraphBuilder->Release();
       }
     } else {
-      // Video/Subtitle just get a new media type delivered, they don't deal with dynamic reconnection so well..
       unsigned int index = 0;
       for(unsigned int i = 0; i < pmts.size(); i++) {
         if (SUCCEEDED(hr = pPin->GetConnected()->QueryAccept(&pmts[i]))) {
@@ -678,7 +677,10 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
           break;
         }
       }
-      if (SUCCEEDED(hr)) {
+      if (SUCCEEDED(hr) && !pPin->IsVideoPin()) {
+        hr = ReconnectPin(pPin, &pmts[index]);
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - ReconnectPin (hr %x)", hr));
+      } else if (SUCCEEDED(hr)) {
         CMediaType *mt = new CMediaType(pmts[index]);
         pPin->SendMediaType(mt);
       }
