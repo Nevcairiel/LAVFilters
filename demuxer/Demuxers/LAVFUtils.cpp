@@ -65,7 +65,7 @@ const char *get_stream_language(AVStream *pStream)
     lang = pStream->language;
   }
   // Don't bother with undetermined languages (fallback value in some containers)
-  if(strncmp(lang, "und", 3))
+  if(lang && strncmp(lang, "und", 3))
     return lang;
   return NULL;
 }
