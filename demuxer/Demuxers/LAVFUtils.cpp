@@ -128,6 +128,11 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
       sprintf_s(l_buf, "%.1f", pCodecCtx->level / 10.0);
       codec_name << " L" << l_buf;
     }
+  } else if (id == CODEC_ID_VC1 && profile) {
+    codec_name << "VC-1 " << profile;
+    if (pCodecCtx->level != FF_LEVEL_UNKNOWN) {
+      codec_name << " L" << pCodecCtx->level;
+    }
   } else if (id == CODEC_ID_DTS && profile) {
     codec_name << profile;
   } else if (nice_name) {
