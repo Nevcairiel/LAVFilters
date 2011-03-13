@@ -43,3 +43,6 @@ extern "C" {
 #include "BaseDemuxer.h"
 
 #include "resource.h"
+
+
+struct BLURAY;

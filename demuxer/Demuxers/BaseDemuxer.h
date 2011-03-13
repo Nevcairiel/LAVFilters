@@ -128,7 +128,7 @@ protected:
 
 public:
   // Get the StreamList of the correponding type
-  CStreamList *GetStreams(StreamType type) { return &m_streams[type]; }
+  virtual CStreamList *GetStreams(StreamType type) { return &m_streams[type]; }
 
   
   // Select the best video stream

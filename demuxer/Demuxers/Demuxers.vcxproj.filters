@@ -45,6 +45,9 @@
     <ClInclude Include="LAVFAudioHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BDDemuxer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -75,6 +78,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LAVFVideoHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BDDemuxer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

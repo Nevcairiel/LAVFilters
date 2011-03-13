@@ -82,11 +82,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)libbluray\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -121,6 +123,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BaseDemuxer.h" />
+    <ClInclude Include="BDDemuxer.h" />
     <ClInclude Include="ByteParser.h" />
     <ClInclude Include="ExtradataParser.h" />
     <ClInclude Include="LAVFAudioHelper.h" />
@@ -133,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseDemuxer.cpp" />
+    <ClCompile Include="BDDemuxer.cpp" />
     <ClCompile Include="ByteParser.cpp" />
     <ClCompile Include="ExtradataParser.cpp" />
     <ClCompile Include="LAVFAudioHelper.cpp" />

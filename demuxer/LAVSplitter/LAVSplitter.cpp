@@ -27,7 +27,9 @@
 
 #include "BaseDemuxer.h"
 #include "LAVFDemuxer.h"
+#include "BDDemuxer.h"
 
+#include <Shlwapi.h>
 #include <string>
 
 #include "registry.h"
@@ -192,7 +194,13 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
 
   HRESULT hr = S_OK;
   SAFE_DELETE(m_pDemuxer);
-  m_pDemuxer = new CLAVFDemuxer(this, this);
+  LPWSTR extension = PathFindExtensionW(pszFileName);
+  // BDMV uses the BD demuxer, everything else LAVF
+  if (_wcsicmp(extension, L".bdmv") == 0) {
+    m_pDemuxer = new CBDDemuxer(this);
+  } else {
+    m_pDemuxer = new CLAVFDemuxer(this, this);
+  }
   if(FAILED(hr = m_pDemuxer->Open(pszFileName))) {
     SAFE_DELETE(m_pDemuxer);
     return hr;

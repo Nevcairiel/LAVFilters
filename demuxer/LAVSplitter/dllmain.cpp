@@ -189,6 +189,13 @@ STDAPI DllRegisterServer()
     L"0,4,,4F676753",
     L".ogg", L".ogm");
 
+  // BluRay
+  RegisterSourceFilter(__uuidof(CLAVSplitter),
+    MEDIASUBTYPE_LAVBluRay,
+    L"0,4,,494E4458", // INDX (index.bdmv)
+    L"0,4,,4D4F424A", // MOBJ (MovieObject.bdmv)
+    L".bdmv");
+
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);
 }
@@ -202,6 +209,7 @@ STDAPI DllUnregisterServer()
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVMPEG);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVFLV);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVOgg);
+  UnRegisterSourceFilter(MEDIASUBTYPE_LAVBluRay);
 
   // base classes will handle de-registration using the factory template table
   return AMovieDllRegisterServer2(false);
