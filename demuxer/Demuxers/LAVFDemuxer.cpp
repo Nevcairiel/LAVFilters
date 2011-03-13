@@ -34,7 +34,7 @@ extern "C" {
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true)
+  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true)
 {
   av_register_all();
   register_protocol(&ufile_protocol);
@@ -46,12 +46,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
 
 CLAVFDemuxer::~CLAVFDemuxer()
 {
-  if(m_avFormat) {
-    for (unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx)
-      free(m_avFormat->streams[idx]->codec->opaque);
-    av_close_input_file(m_avFormat);
-    m_avFormat = NULL;
-  }
+  CleanupAVFormat();
 }
 
 STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -74,7 +69,6 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   HRESULT hr = S_OK;
 
   int ret; // return code from avformat functions
-  unsigned int idx;
 
   // Convert the filename from wchar to char for avformat
   // The "ufile" protocol then converts it back to wchar_t to pass it to windows APIs
@@ -84,13 +78,57 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
 
   ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
   if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_open_input_file failed")));
+    DbgLog((LOG_ERROR, 0, TEXT("av_open_input_file failed (%d)"), ret));
     goto done;
   }
 
-  ret = av_find_stream_info(m_avFormat);
+  CHECK_HR(hr = InitAVFormat());
+
+  return S_OK;
+done:
+  CleanupAVFormat();
+  return E_FAIL;
+}
+
+STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext)
+{
+  CAutoLock lock(m_pLock);
+  HRESULT hr = S_OK;
+
+  int ret; // return code from avformat functions
+
+  AVInputFormat *fmt = NULL;
+
+  m_bIsStream = true;
+
+  ret = av_probe_input_buffer(byteContext, &fmt, "", NULL, 0, FFMPEG_FILE_BUFFER_SIZE);
   if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_find_stream_info failed")));
+    DbgLog((LOG_ERROR, 0, TEXT("av_probe_input_buffer failed (%d)"), ret));
+    goto done;
+  }
+  ret = av_open_input_stream(&m_avFormat, byteContext, "", fmt, NULL);
+  if (ret < 0) {
+    DbgLog((LOG_ERROR, 0, TEXT("av_open_input_stream failed (%d)"), ret));
+    goto done;
+  }
+
+  CHECK_HR(hr = InitAVFormat());
+
+  return S_OK;
+done:
+  CleanupAVFormat();
+  return E_FAIL;
+}
+
+STDMETHODIMP CLAVFDemuxer::InitAVFormat()
+{
+  HRESULT hr = S_OK;
+
+  unsigned int idx = 0;
+
+  int ret = av_find_stream_info(m_avFormat);
+  if (ret < 0) {
+    DbgLog((LOG_ERROR, 0, TEXT("av_find_stream_info failed (%d)"), ret));
     goto done;
   }
 
@@ -118,14 +156,21 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
 
   return S_OK;
 done:
-  // Cleanup
+  CleanupAVFormat();
+  return E_FAIL;
+}
+
+void CLAVFDemuxer::CleanupAVFormat()
+{
   if (m_avFormat) {
-    for (idx = 0; idx < m_avFormat->nb_streams; ++idx)
+    for (unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx)
       free(m_avFormat->streams[idx]->codec->opaque);
-    av_close_input_file(m_avFormat);
+    if (m_bIsStream)
+      av_close_input_stream(m_avFormat);
+    else
+      av_close_input_file(m_avFormat);
     m_avFormat = NULL;
   }
-  return E_FAIL;
 }
 
 void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)

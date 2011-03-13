@@ -72,9 +72,13 @@ public:
   STDMETHODIMP GetKeyFrameCount(UINT& nKFs);
   STDMETHODIMP GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs);
 
+  STDMETHODIMP OpenInputStream(AVIOContext *byteContext);
+
 private:
   STDMETHODIMP AddStream(int streamId);
   STDMETHODIMP CreateStreams();
+  STDMETHODIMP InitAVFormat();
+  void CleanupAVFormat();
 
   REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
   int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
@@ -82,6 +86,7 @@ private:
 private:
   AVFormatContext *m_avFormat;
 
+  bool m_bIsStream;
   bool m_bMatroska;
   bool m_bAVI;
   bool m_bMPEGTS;
