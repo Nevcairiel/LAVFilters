@@ -78,9 +78,10 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
 
   ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
   if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_open_input_file failed (%d)"), ret));
+    DbgLog((LOG_ERROR, 0, TEXT("::Open(): av_open_input_file failed (%d)"), ret));
     goto done;
   }
+  DbgLog((LOG_TRACE, 10, TEXT("::Open(): av_open_input_file opened file of type '%S'"), m_avFormat->iformat->name));
 
   CHECK_HR(hr = InitAVFormat());
 
@@ -103,12 +104,14 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext)
 
   ret = av_probe_input_buffer(byteContext, &fmt, "", NULL, 0, FFMPEG_FILE_BUFFER_SIZE);
   if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_probe_input_buffer failed (%d)"), ret));
+    DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): av_probe_input_buffer failed (%d)"), ret));
     goto done;
   }
+  DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): av_probe_input_buffer detected format '%S'"), fmt->name));
+
   ret = av_open_input_stream(&m_avFormat, byteContext, "", fmt, NULL);
   if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_open_input_stream failed (%d)"), ret));
+    DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): av_open_input_stream failed (%d)"), ret));
     goto done;
   }
 
@@ -128,7 +131,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
 
   int ret = av_find_stream_info(m_avFormat);
   if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("av_find_stream_info failed (%d)"), ret));
+    DbgLog((LOG_ERROR, 0, TEXT("::InitAVFormat(): av_find_stream_info failed (%d)"), ret));
     goto done;
   }
 
