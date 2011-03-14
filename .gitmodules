@@ -3,4 +3,4 @@
 	url = git://git.1f0.de/ffmpeg.git
 [submodule "libbluray"]
 	path = libbluray
-	url = git://git.videolan.org/libbluray.git
+	url = git://git.1f0.de/libbluray.git

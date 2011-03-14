@@ -80,12 +80,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.ax</TargetExt>
-    <OutDir>$(SolutionDir)bin_$(PlatformName)\</OutDir>
+    <OutDir>$(SolutionDir)bin_$(PlatformName)\$(ProjectName)\</OutDir>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.ax</TargetExt>
-    <OutDir>$(SolutionDir)bin_$(PlatformName)\</OutDir>
+    <OutDir>$(SolutionDir)bin_$(PlatformName)\$(ProjectName)\</OutDir>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -121,6 +123,10 @@
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;strmbase.lib;dsutil.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVAudio.def</ModuleDefinitionFile>
     </Link>
+    <CustomBuildStep>
+      <Command>copy $(TargetDir)\$(TargetName)$(TargetExt) $(OutDir)..</Command>
+      <Outputs>$(OutDir)..\$(TargetFileName)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -134,6 +140,10 @@
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;strmbase.lib;dsutil.lib;avformat-52.lib;avutil-50.lib;avcodec-52.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVAudio.def</ModuleDefinitionFile>
     </Link>
+    <CustomBuildStep>
+      <Command>copy $(TargetDir)\$(TargetName)$(TargetExt) $(OutDir)..</Command>
+      <Outputs>$(OutDir)..\$(TargetFileName)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />

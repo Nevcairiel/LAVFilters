@@ -52,21 +52,3 @@ cp lib*/*-*.dll ../bin_Win32d &&
 cp lib*/*.lib ../bin_Win32d/lib &&
 
 cd ..
-
-cd libbluray
-autoreconf -vf &&
-./configure &&
-echo "#undef HAVE_LIBXML2" >> config.h
-echo "#undef __STRICT_ANSI__" >> config.h
-make -j8 &> /dev/null &&
-
-cd src/.libs &&
-gcc -shared -o libbluray.dll *.o -Wl,--out-implib,libbluray.dll.a -Wl,--output-def,libbluray.def &&
-lib.exe /machine:x86 /def:libbluray.def /out:libbluray.lib &&
-
-cp libbluray.dll ../../../bin_Win32 &&
-cp libbluray.dll ../../../bin_Win32d &&
-cp libbluray.lib ../../../bin_Win32/lib &&
-cp libbluray.lib ../../../bin_Win32d/lib
-
-cd ../../..
