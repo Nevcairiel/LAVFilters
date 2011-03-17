@@ -22,6 +22,8 @@
 #include "stdafx.h"
 #include "BDDemuxer.h"
 
+#define BD_READ_BUFFER_SIZE (6144 * 5)
+
 int BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size)
 {
   return bd_read((BLURAY *)opaque, buf, buf_size);
@@ -32,36 +34,40 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
   BLURAY *bd = (BLURAY *)opaque;
 
   int64_t pos = 0;
-  if (whence == SEEK_SET)
+  if (whence == SEEK_SET) {
     pos = offset;
-  else if (whence == SEEK_CUR)
+  } else if (whence == SEEK_CUR) {
+    if (offset == 0)
+      return bd_tell(bd);
     pos = bd_tell(bd) + offset;
-  else if (whence == SEEK_END)
+  } else if (whence == SEEK_END) {
     pos = bd_get_title_size(bd) - offset;
-  else if (whence == AVSEEK_SIZE)
+  } else if (whence == AVSEEK_SIZE) {
     return bd_get_title_size(bd);
-  else
+  } else
     return -1;
-
   return bd_seek(bd, pos);
 }
 
 CBDDemuxer::CBDDemuxer(CCritSec *pLock)
-  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL)
+  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL)
 {
 }
 
 
 CBDDemuxer::~CBDDemuxer(void)
 {
+  if (m_pTitle) {
+    bd_free_title_info(m_pTitle);
+    m_pTitle = NULL;
+  }
+
   if (m_pBD) {
     bd_close(m_pBD);
     m_pBD = NULL;
   }
 
-  if (m_lavfDemuxer) {
-    SafeRelease(&m_lavfDemuxer);
-  }
+  SafeRelease(&m_lavfDemuxer);
 }
 
 STDMETHODIMP CBDDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -119,6 +125,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
       }
     }
 
+    m_pTitle = bd_get_title_info(bd, longest_id);
     ret = bd_select_title(bd, longest_id);
     if (ret == 0) {
       return E_FAIL;
@@ -126,8 +133,8 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
 
     m_pBD = bd;
 
-    uint8_t *buffer = (uint8_t *)av_mallocz(FFMPEG_FILE_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-    m_pb = avio_alloc_context(buffer, FFMPEG_FILE_BUFFER_SIZE, 0, bd, BDByteStreamRead, NULL, BDByteStreamSeek);
+    uint8_t *buffer = (uint8_t *)av_mallocz(BD_READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, bd, BDByteStreamRead, NULL, BDByteStreamSeek);
 
     m_lavfDemuxer = new CLAVFDemuxer(m_pLock);
     m_lavfDemuxer->OpenInputStream(m_pb);
@@ -139,11 +146,8 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
 
 REFERENCE_TIME CBDDemuxer::GetDuration() const
 {
-  BLURAY_TITLE_INFO *info = bd_get_title_info(m_pBD, bd_get_current_title(m_pBD));
-  if(info) {
-    REFERENCE_TIME time = av_rescale(info->duration, 1000, 9);
-    bd_free_title_info(info);
-    return time;
+  if(m_pTitle) {
+    return av_rescale(m_pTitle->duration, 1000, 9);
   }
   return m_lavfDemuxer->GetDuration();
 }

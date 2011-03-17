@@ -46,3 +46,4 @@ extern "C" {
 
 
 struct BLURAY;
+struct BLURAY_TITLE_INFO;

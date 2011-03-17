@@ -60,4 +60,6 @@ private:
   AVIOContext *m_pb;
 
   CLAVFDemuxer *m_lavfDemuxer;
+
+  BLURAY_TITLE_INFO *m_pTitle;
 };
