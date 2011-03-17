@@ -379,6 +379,15 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
   return S_OK;
 }
 
+STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
+{
+  int ret = av_seek_frame(m_avFormat, -1, pos, flags | AVSEEK_FLAG_BYTE);
+  if(ret < 0) {
+    DbgLog((LOG_ERROR, 1, L"::SeekByte() -- Seek failed"));
+  }
+  return S_OK;
+}
+
 const char *CLAVFDemuxer::GetContainerFormat() const
 {
   return m_avFormat->iformat->name;

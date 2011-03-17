@@ -73,6 +73,7 @@ public:
   STDMETHODIMP GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs);
 
   STDMETHODIMP OpenInputStream(AVIOContext *byteContext);
+  STDMETHODIMP SeekByte(int64_t pos, int flags);
 
 private:
   STDMETHODIMP AddStream(int streamId);
