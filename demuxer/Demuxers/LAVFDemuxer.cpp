@@ -181,6 +181,26 @@ void CLAVFDemuxer::CleanupAVFormat()
   }
 }
 
+HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
+{
+  HRESULT hr = __super::SetActiveStream(type, pid);
+  if (SUCCEEDED(hr)) {
+    for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
+      AVStream *st = m_avFormat->streams[idx];
+
+      BOOL active = FALSE;
+      for(int i = 0; i < unknown; ++i) {
+        if(m_dActiveStreams[i] == st->index) {
+          active = TRUE;
+          break;
+        }
+      }
+      st->discard = active ? AVDISCARD_NONE : AVDISCARD_ALL;
+    }
+  }
+  return hr;
+}
+
 void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
 {
   int vc1Mode = pSettings->GetVC1TimestampMode();
