@@ -141,6 +141,11 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
 
   for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
+    if (st->codec->codec_id == CODEC_ID_PROBE) {
+      st->codec->codec_id = CODEC_ID_NONE;
+      st->discard = AVDISCARD_ALL;
+      continue;
+    }
     if (st->duration != AV_NOPTS_VALUE && (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO)) {
       st_duration = av_rescale_q(st->duration, st->time_base, AV_RATIONAL_TIMEBASE);
       if (st_duration > duration)
@@ -475,6 +480,10 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 {
   HRESULT hr = S_OK;
   AVStream *pStream = m_avFormat->streams[streamId];
+
+  if (pStream->codec->codec_id == CODEC_ID_NONE)
+    return S_FALSE;
+
   stream s;
   s.pid = streamId;
   s.streamInfo = new CLAVFStreamInfo(pStream, m_avFormat->iformat->name, hr);
