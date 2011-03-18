@@ -77,31 +77,27 @@ struct s_id_map {
 
 struct s_id_map nice_codec_names[] = {
   // Video
-  { CODEC_ID_H264, "H.264" },
-  { CODEC_ID_VC1, "VC-1" },
-  { CODEC_ID_MPEG2VIDEO, "MPEG-2" },
+  { CODEC_ID_H264, "h264" }, // XXX: Do not remove, required for custom profile/level formatting
+  { CODEC_ID_VC1, "vc-1" },  // XXX: Do not remove, required for custom profile/level formatting
   // Audio
-  { CODEC_ID_TRUEHD, "TrueHD" },
-  { CODEC_ID_DTS, "DTS" },
-  { CODEC_ID_AC3, "AC-3" },
-  { CODEC_ID_EAC3, "E-AC3" },
-  { CODEC_ID_AAC_LATM, "AAC (LATM)" },
+  { CODEC_ID_DTS, "dts" },
+  { CODEC_ID_AAC_LATM, "aac (latm)" },
   // Subs
-  { CODEC_ID_TEXT, "Text" },
-  { CODEC_ID_SRT, "SRT" },
-  { CODEC_ID_HDMV_PGS_SUBTITLE, "PGS" },
-  { CODEC_ID_DVD_SUBTITLE, "DVD/VOB" },
-  { CODEC_ID_DVB_SUBTITLE, "DVB" },
-  { CODEC_ID_SSA, "SSA/ASS" },
-  { CODEC_ID_XSUB, "XSUB" },
+  { CODEC_ID_TEXT, "txt" },
+  { CODEC_ID_SRT, "srt" },
+  { CODEC_ID_HDMV_PGS_SUBTITLE, "pgs" },
+  { CODEC_ID_DVD_SUBTITLE, "vobsub" },
+  { CODEC_ID_DVB_SUBTITLE, "dvbsub" },
+  { CODEC_ID_SSA, "ssa/ass" },
+  { CODEC_ID_XSUB, "xsub" },
 };
 
 // Uppercase the given string
-static std::string up(const char *str) {
+static std::string tolower(const char *str) {
   size_t len = strlen(str);
   std::string ret(len, char());
   for (size_t i = 0; i < len; ++i) {
-    ret[i] = (str[i] <= 'z' && str[i] >= 'a') ? str[i]-('a'-'A') : str[i];
+    ret[i] = (str[i] <= 'Z' && str[i] >= 'A') ? str[i]+('a'-'A') : str[i];
   }
   return ret;
 }
@@ -126,29 +122,29 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
   }
 
   if (id == CODEC_ID_H264 && profile) {
-    codec_name << nice_name << " " << profile;
+    codec_name << nice_name << " " << tolower(profile);
     if (pCodecCtx->level && pCodecCtx->level != FF_LEVEL_UNKNOWN && pCodecCtx->level < 1000) {
       char l_buf[5];
       sprintf_s(l_buf, "%.1f", pCodecCtx->level / 10.0);
       codec_name << " L" << l_buf;
     }
   } else if (id == CODEC_ID_VC1 && profile) {
-    codec_name << nice_name << " " << profile;
+    codec_name << nice_name << " " << tolower(profile);
     if (pCodecCtx->level != FF_LEVEL_UNKNOWN) {
       codec_name << " L" << pCodecCtx->level;
     }
   } else if (id == CODEC_ID_DTS && profile) {
-    codec_name << profile;
+    codec_name << tolower(profile);
   } else if (nice_name) {
     codec_name << nice_name;
     if (profile)
-      codec_name << " " << profile;
+      codec_name << " " << tolower(profile);
   } else if (p) {
-    codec_name << up(p->name);
+    codec_name << p->name;
     if (profile)
-      codec_name << " " << profile;
+      codec_name << " " << tolower(profile);
   } else if (pCodecCtx->codec_name[0] != '\0') {
-    codec_name << up(pCodecCtx->codec_name);
+    codec_name << pCodecCtx->codec_name;
   } else {
     /* output avi tags */
     char buf[32];
