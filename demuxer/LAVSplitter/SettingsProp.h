@@ -70,6 +70,7 @@ private:
   DWORD m_subtitleMode;
   BOOL m_subtitleMatching;
   int m_VC1Mode;
+  BOOL m_substreams;
 
   WCHAR stringBuffer[256];
 

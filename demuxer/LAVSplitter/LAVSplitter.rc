@@ -50,7 +50,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 236, 159
+IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 236, 170
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
@@ -63,9 +63,10 @@ BEGIN
     LTEXT           "Subtitle Selection Mode:",IDC_LBL_SUBMODE,7,92,88,8
     CONTROL         "Only with matching language",IDC_SUBMODE_ONLY_MATCHING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,104,107,10
+    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,119,222,44
     CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
-                    "Button",BS_AUTO3STATE | WS_TABSTOP,16,135,126,10
-    GROUPBOX        "Format Settings",IDC_FORMAT_SETTINGS,7,122,222,30
+                    "Button",BS_AUTO3STATE | WS_TABSTOP,15,147,126,10
+    CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,115,10
 END
 
 
@@ -82,7 +83,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 229
         TOPMARGIN, 7
-        BOTTOMMARGIN, 152
+        BOTTOMMARGIN, 163
     END
 END
 #endif    // APSTUDIO_INVOKED

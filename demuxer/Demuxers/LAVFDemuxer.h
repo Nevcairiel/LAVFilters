@@ -29,7 +29,7 @@
 class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo
 {
 public:
-  CLAVFDemuxer(CCritSec *pLock);
+  CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings);
   ~CLAVFDemuxer();
 
   // IUnknown
@@ -93,6 +93,8 @@ private:
   bool m_bAVI;
   bool m_bMPEGTS;
   bool m_bVC1Correction;
+
+  BOOL m_bSubStreams;
 
   unsigned int m_program;
 

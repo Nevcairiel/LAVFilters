@@ -74,4 +74,10 @@ interface ILAVFSettings : public IUnknown
   STDMETHOD(SetVC1TimestampMode)(int iMode) = 0;
 
   STDMETHOD_(BOOL,IsVC1CompatModeRequired)() = 0;
+
+  // Set whether substreams (AC3 in TrueHD, for example) should be shown as a seperate stream
+  STDMETHOD(SetSubstreamsEnabled)(BOOL bSubStreams) = 0;
+
+  // Check whether substreams (AC3 in TrueHD, for example) should be shown as a seperate stream
+  STDMETHOD_(BOOL,GetSubstreamsEnabled)() = 0;
 };

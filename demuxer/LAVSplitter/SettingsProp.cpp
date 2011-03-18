@@ -104,6 +104,7 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   ASSERT(m_pLAVF != NULL);
   HRESULT hr = S_OK;
   DWORD dwVal;
+  BOOL bFlag;
 
   WCHAR buffer[LANG_BUFFER_SIZE];
   // Save audio language
@@ -118,11 +119,14 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetSubtitleMode(dwVal));
 
-  BOOL flag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
-  CHECK_HR(hr = m_pLAVF->SetSubtitleMatchingLanguage(flag));
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetSubtitleMatchingLanguage(bFlag));
 
   int vc1flag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetVC1TimestampMode(vc1flag));
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetSubstreamsEnabled(bFlag));
 
   LoadData();
 
@@ -166,6 +170,9 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_SETCHECK, m_VC1Mode, 0);
   addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected.\nUnchecked - Frame timings will be sent untouched.\nIndeterminate (Auto) - Enabled, except for decoders that do their own correction.");
 
+  SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_SETCHECK, m_substreams, 0);
+  addHint(IDC_SUBSTREAMS, L"Controls if sub-streams should be exposed as a separate stream.\nSub-streams are typically streams for backwards compatibility, for example the AC3 part of TrueHD streams on BluRays");
+
   return hr;
 }
 HRESULT CLAVSplitterSettingsProp::LoadData()
@@ -182,6 +189,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_subtitleMode = m_pLAVF->GetSubtitleMode();
   m_subtitleMatching = m_pLAVF->GetSubtitleMatchingLanguage();
   m_VC1Mode = m_pLAVF->GetVC1TimestampMode();
+  m_substreams = m_pLAVF->GetSubstreamsEnabled();
 
 done:
   return hr;
@@ -230,6 +238,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VC1TIMESTAMP) {
         int iFlag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
         if (iFlag != m_VC1Mode) {
+          SetDirty();
+        }
+      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBSTREAMS) {
+        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_GETCHECK, 0, 0);
+        if (bFlag != m_substreams) {
           SetDirty();
         }
       }

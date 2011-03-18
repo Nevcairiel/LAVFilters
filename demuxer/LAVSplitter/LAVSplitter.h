@@ -112,6 +112,8 @@ public:
   STDMETHODIMP_(int) GetVC1TimestampMode();
   STDMETHODIMP SetVC1TimestampMode(int iMode);
   STDMETHODIMP_(BOOL) IsVC1CompatModeRequired();
+  STDMETHODIMP SetSubstreamsEnabled(BOOL bSubStreams);
+  STDMETHODIMP_(BOOL) GetSubstreamsEnabled();
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -170,5 +172,6 @@ private:
     DWORD subtitleMode;
     BOOL subtitleMatching;
     int vc1Mode;
+    BOOL substreams;
   } m_settings;
 };

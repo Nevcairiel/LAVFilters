@@ -33,11 +33,14 @@ extern "C" {
 
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
-CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock)
+CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
   : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true)
 {
   av_register_all();
   register_protocol(&ufile_protocol);
+
+  m_bSubStreams = settings->GetSubstreamsEnabled();
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
   av_log_set_callback(lavf_log_callback);
@@ -519,7 +522,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
   HRESULT hr = S_OK;
   AVStream *pStream = m_avFormat->streams[streamId];
 
-  if (pStream->codec->codec_id == CODEC_ID_NONE)
+  if (pStream->codec->codec_id == CODEC_ID_NONE || (!m_bSubStreams && (pStream->disposition & LAVF_DISPOSITION_SUB_STREAM)))
     return S_FALSE;
 
   stream s;

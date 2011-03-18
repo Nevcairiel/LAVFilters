@@ -96,6 +96,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   dwVal = reg.ReadDWORD(L"vc1TimestampMode", hr);
   m_settings.vc1Mode = SUCCEEDED(hr) ? dwVal : 2;
 
+  bFlag = reg.ReadDWORD(L"substreams", hr);
+  m_settings.substreams = SUCCEEDED(hr) ? bFlag : TRUE;
+
   return S_OK;
 }
 
@@ -109,6 +112,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
     reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
+    reg.WriteBOOL(L"substreams", m_settings.substreams);
   }
   if (m_pDemuxer) {
     m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
@@ -188,7 +192,7 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
 
   HRESULT hr = S_OK;
   SAFE_DELETE(m_pDemuxer);
-  m_pDemuxer = new CLAVFDemuxer(this);
+  m_pDemuxer = new CLAVFDemuxer(this, this);
   if(FAILED(hr = m_pDemuxer->Open(pszFileName))) {
     SAFE_DELETE(m_pDemuxer);
     return hr;
@@ -906,4 +910,15 @@ STDMETHODIMP CLAVSplitter::SetVC1TimestampMode(int iMode)
 STDMETHODIMP_(BOOL) CLAVSplitter::IsVC1CompatModeRequired()
 {
   return FilterInGraph(CLSID_CyberlinkVidDec, m_pGraph) || FilterInGraph(CLSID_ArcSoftVidDec, m_pGraph);
+}
+
+STDMETHODIMP CLAVSplitter::SetSubstreamsEnabled(BOOL bSubStreams)
+{
+  m_settings.substreams = bSubStreams;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetSubstreamsEnabled()
+{
+  return m_settings.substreams;
 }
