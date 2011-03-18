@@ -156,6 +156,26 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
   return codec_name.str();
 }
 
+#define SUPPORTED_FLAGS (AV_DISPOSITION_FORCED|AV_DISPOSITION_DEFAULT|AV_DISPOSITION_HEARING_IMPAIRED|AV_DISPOSITION_VISUAL_IMPAIRED|LAVF_DISPOSITION_SUB_STREAM)
+
+static std::string format_flags(int flags){
+  std::ostringstream out;
+
+#define FLAG_TAG(f, s) if(flags & f) { if(!first) out << ","; out << s; first = false; }
+
+  if (flags & SUPPORTED_FLAGS) {
+    bool first = true;
+    out << " [";
+    FLAG_TAG(AV_DISPOSITION_DEFAULT, "default");
+    FLAG_TAG(AV_DISPOSITION_FORCED, "forced");
+    FLAG_TAG(AV_DISPOSITION_HEARING_IMPAIRED, "hearing impaired");
+    FLAG_TAG(AV_DISPOSITION_VISUAL_IMPAIRED, "visual impaired");
+    FLAG_TAG(LAVF_DISPOSITION_SUB_STREAM, "sub");
+    out << "]";
+  }
+  return out.str();
+}
+
 static bool show_sample_fmt(CodecID codec_id) {
   // PCM Codecs
   if (codec_id >= 0x10000 && codec_id < 0x12000) {
@@ -229,6 +249,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     if (title || lang) {
       buf << ")";
     }
+    buf << format_flags(pStream->disposition);
     break;
   case AVMEDIA_TYPE_AUDIO:
     buf << "A: ";
@@ -266,9 +287,8 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     if (title || lang) {
       buf << ")";
     }
-    // Default tag
-    if (pStream->disposition & AV_DISPOSITION_DEFAULT)
-      buf << " [default]";
+    // Flags
+    buf << format_flags(pStream->disposition);
     break;
   case AVMEDIA_TYPE_SUBTITLE:
     buf << "S: ";
@@ -285,18 +305,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
       buf << ")";
     }
     // Subtitle flags
-    // TODO: This is rather ugly, make it nicer!
-    if (pStream->disposition & AV_DISPOSITION_FORCED || pStream->disposition & AV_DISPOSITION_HEARING_IMPAIRED) {
-      buf << " [";
-      if (pStream->disposition & AV_DISPOSITION_FORCED)
-        buf << "forced";
-      if (pStream->disposition & AV_DISPOSITION_HEARING_IMPAIRED) {
-        if (pStream->disposition & AV_DISPOSITION_FORCED)
-          buf << ", ";
-        buf << "hearing impaired";
-      }
-      buf << "]";
-    }
+    buf << format_flags(pStream->disposition);
     break;
   default:
     buf << "Unknown: Stream #" << pStream->index;

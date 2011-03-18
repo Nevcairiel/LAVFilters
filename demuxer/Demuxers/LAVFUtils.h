@@ -23,7 +23,7 @@
 const char *get_stream_language(AVStream *pStream);
 HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName);
 
-
+#define LAVF_DISPOSITION_SUB_STREAM 0x8000
 
 inline int get_bits_per_sample(AVCodecContext *ctx)
 {

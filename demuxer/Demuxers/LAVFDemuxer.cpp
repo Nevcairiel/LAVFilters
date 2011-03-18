@@ -129,6 +129,10 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
 
   unsigned int idx = 0;
 
+  m_bMatroska = (_strnicmp(m_avFormat->iformat->name, "matroska", 8) == 0);
+  m_bAVI = (_strnicmp(m_avFormat->iformat->name, "avi", 3) == 0);
+  m_bMPEGTS = (_strnicmp(m_avFormat->iformat->name, "mpegts", 6) == 0);
+
   int ret = av_find_stream_info(m_avFormat);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::InitAVFormat(): av_find_stream_info failed (%d)"), ret));
@@ -151,14 +155,28 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
       if (st_duration > duration)
         duration = st_duration;
     }
+
+    // Find and flag the AC-3 substream
+    if (m_bMPEGTS && st->codec->codec_id == CODEC_ID_TRUEHD) {
+      int id = st->id;
+      AVStream *sub_st = NULL;
+
+      for (unsigned int i = 0; i < m_avFormat->nb_streams; ++i) {
+        AVStream *sst = m_avFormat->streams[i];
+        if (idx != i && sst->id == id) {
+          sub_st = sst;
+          break;
+        }
+      }
+      if (sub_st) {
+       sub_st->disposition = st->disposition | LAVF_DISPOSITION_SUB_STREAM;
+       av_metadata_copy(&sub_st->metadata, st->metadata, 0);
+      }
+    }
   }
   if (duration != INT64_MIN) {
     m_avFormat->duration = duration;
   }
-
-  m_bMatroska = (_strnicmp(m_avFormat->iformat->name, "matroska", 8) == 0);
-  m_bAVI = (_strnicmp(m_avFormat->iformat->name, "avi", 3) == 0);
-  m_bMPEGTS = (_strnicmp(m_avFormat->iformat->name, "mpegts", 6) == 0);
 
   CHECK_HR(hr = CreateStreams());
 
