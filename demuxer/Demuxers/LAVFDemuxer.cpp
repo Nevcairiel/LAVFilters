@@ -213,7 +213,7 @@ HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
           break;
         }
       }
-      st->discard = active ? AVDISCARD_NONE : AVDISCARD_ALL;
+      st->discard = active ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
     }
   }
   return hr;
