@@ -5,7 +5,9 @@
 #define IDD_PROPPAGE_AUDIO_SETTINGS     9
 #define IDS_SETTINGS                    101
 #define IDS_STATUS                      102
+#define IDS_FORMATS                     103
 #define IDD_PROPPAGE_STATUS             106
+#define IDD_PROPPAGE_FORMATS            107
 #define IDC_INPUT_STATUS                1013
 #define IDC_LBL_CHANNELS                1014
 #define IDC_LBL_SAMPLE_RATE             1015
@@ -48,6 +50,8 @@
 #define IDC_VOLUME6_DESC                1053
 #define IDC_VOLUME7_DESC                1054
 #define IDC_VOLUME8_DESC                1055
+#define IDC_CODECS                      1056
+#define IDC_CODECS_NONE                 1059
 
 // Next default values for new objects
 // 
@@ -55,7 +59,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1049
+#define _APS_NEXT_CONTROL_VALUE         1060
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

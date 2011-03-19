@@ -22,6 +22,7 @@
 
 #include "LAVAudioSettings.h"
 #include "BaseDSPropPage.h"
+#include "Media.h"
 
 // {2D8F1801-A70D-48F4-B76B-7F5AE022AB54}
 DEFINE_GUID(CLSID_LAVAudioSettingsProp, 
@@ -31,6 +32,9 @@ DEFINE_GUID(CLSID_LAVAudioSettingsProp,
 DEFINE_GUID(CLSID_LAVAudioStatusProp, 
 0x20ed4a03, 0x6afd, 0x4fd9, 0x98, 0xb, 0x2f, 0x61, 0x43, 0xaa, 0x8, 0x92);
 
+// {BD72668E-6BFF-4CD1-8480-D465708B336B}
+DEFINE_GUID(CLSID_LAVAudioFormatsProp,
+0xbd72668e, 0x6bff, 0x4cd1, 0x84, 0x80, 0xd4, 0x65, 0x70, 0x8b, 0x33, 0x6b);
 
 class CLAVAudioSettingsProp : public CBaseDSPropPage
 {
@@ -65,6 +69,40 @@ private:
   BOOL m_bDRCEnabled;
   int m_iDRCLevel;
 };
+
+class CLAVAudioFormatsProp : public CBaseDSPropPage
+{
+public:
+  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+
+  ~CLAVAudioFormatsProp();
+
+  HRESULT OnActivate();
+  HRESULT OnConnect(IUnknown *pUnk);
+  HRESULT OnDisconnect();
+  HRESULT OnApplyChanges();
+  INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+  HRESULT LoadData();
+
+  void SetDirty()
+  {
+    m_bDirty = TRUE;
+    if (m_pPageSite)
+    {
+      m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+    }
+  }
+
+private:
+  CLAVAudioFormatsProp(IUnknown *pUnk);
+
+private:
+  ILAVAudioSettings *m_pAudioSettings;
+
+  bool m_bFormats[CC_NB];
+};
+
 
 class CLAVAudioStatusProp : public CBaseDSPropPage
 {

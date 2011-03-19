@@ -141,6 +141,154 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
   return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Format Configurations
+
+// static constructor
+CUnknown* WINAPI CLAVAudioFormatsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
+{
+  CLAVAudioFormatsProp *propPage = new CLAVAudioFormatsProp(pUnk);
+  if (!propPage) {
+    *phr = E_OUTOFMEMORY;
+  }
+  return propPage;
+}
+
+CLAVAudioFormatsProp::CLAVAudioFormatsProp(IUnknown *pUnk)
+  : CBaseDSPropPage(NAME("LAVCAudioFormats"), pUnk, IDD_PROPPAGE_FORMATS, IDS_FORMATS), m_pAudioSettings(NULL)
+{
+}
+
+
+CLAVAudioFormatsProp::~CLAVAudioFormatsProp()
+{
+}
+
+HRESULT CLAVAudioFormatsProp::OnConnect(IUnknown *pUnk)
+{
+  if (pUnk == NULL)
+  {
+    return E_POINTER;
+  }
+  ASSERT(m_pAudioSettings == NULL);
+  return pUnk->QueryInterface(&m_pAudioSettings);
+}
+
+HRESULT CLAVAudioFormatsProp::OnDisconnect()
+{
+  SafeRelease(&m_pAudioSettings);
+  return S_OK;
+}
+
+
+HRESULT CLAVAudioFormatsProp::OnApplyChanges()
+{
+  ASSERT(m_pAudioSettings != NULL);
+  HRESULT hr = S_OK;
+
+  HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
+
+  bool bFormats[CC_NB];
+
+  // Get checked state
+  for (int nItem = 0; nItem < ListView_GetItemCount(hlv); nItem++) {
+    bFormats[nItem] = ListView_GetCheckState(hlv, nItem) ? true : false;
+  }
+  m_pAudioSettings->SetFormatConfiguration(bFormats);
+
+  LoadData();
+
+  return hr;
+}
+
+HRESULT CLAVAudioFormatsProp::OnActivate()
+{
+  HRESULT hr = S_OK;
+  INITCOMMONCONTROLSEX icc;
+  icc.dwSize = sizeof(INITCOMMONCONTROLSEX);
+  icc.dwICC = ICC_BAR_CLASSES | ICC_STANDARD_CLASSES | ICC_LISTVIEW_CLASSES;
+  if (InitCommonControlsEx(&icc) == FALSE)
+  {
+    return E_FAIL;
+  }
+  ASSERT(m_pAudioSettings != NULL);
+
+  // Setup ListView control for format configuration
+  HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
+  ListView_SetExtendedListViewStyle(hlv, LVS_EX_CHECKBOXES|LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+
+  int nCol = 1;
+  LVCOLUMN lvc = {LVCF_WIDTH, 0, 20, 0};
+  ListView_InsertColumn(hlv, 0, &lvc);
+  ListView_AddCol(hlv, nCol,  75, L"Codec", false);
+  ListView_AddCol(hlv, nCol, 194, L"Description", false);
+
+  ListView_DeleteAllItems(hlv);
+  ListView_SetItemCount(hlv, CC_NB);
+
+  // Create entrys for the formats
+  LVITEM lvi;
+  memset(&lvi, 0, sizeof(lvi));
+  lvi.mask = LVIF_TEXT|LVIF_PARAM;
+
+  int nItem = 0;
+  for (nItem = 0; nItem < CC_NB; ++nItem) {
+    const codec_config_t *config = get_codec_config((ConfigCodecs)nItem);
+
+    // Create main entry
+    lvi.iItem = nItem + 1;
+    ListView_InsertItem(hlv, &lvi);
+
+    // Set sub item texts
+    ListView_SetItemText(hlv, nItem, 1, (LPWSTR)config->name);
+    ListView_SetItemText(hlv, nItem, 2, (LPWSTR)config->description);
+  }
+
+  hr = LoadData();
+  if (SUCCEEDED(hr)) {
+    // Set checked state
+    for (nItem = 0; nItem < ListView_GetItemCount(hlv); nItem++) {
+      ListView_SetCheckState(hlv, nItem, m_bFormats[nItem]);
+    }
+  }
+
+  return hr;
+}
+
+HRESULT CLAVAudioFormatsProp::LoadData()
+{
+  HRESULT hr = S_OK;
+  hr = m_pAudioSettings->GetFormatConfiguration(m_bFormats);
+  return hr;
+}
+
+INT_PTR CLAVAudioFormatsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  LRESULT lValue;
+  switch (uMsg)
+  {
+  case WM_NOTIFY:
+    NMHDR *hdr = (LPNMHDR)lParam;
+    if (hdr->idFrom == IDC_CODECS) {
+      switch (hdr->code) {
+      case LVN_ITEMCHANGED:
+        LPNMLISTVIEW nmlv = (LPNMLISTVIEW)lParam;
+        bool check = ListView_GetCheckState(hdr->hwndFrom, nmlv->iItem) ? true : false;
+        if (check != m_bFormats[nmlv->iItem]) {
+          SetDirty();
+        }
+        return TRUE;
+      }
+    }
+    break;
+  }
+  // Let the parent class handle the message.
+  return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Audio Status Panel
+
 #define MAX_CHANNELS 8
 static int iddVolumeControls[MAX_CHANNELS] = {IDC_VOLUME1, IDC_VOLUME2, IDC_VOLUME3, IDC_VOLUME4, IDC_VOLUME5, IDC_VOLUME6, IDC_VOLUME7, IDC_VOLUME8};
 static int iddVolumeDescs[MAX_CHANNELS] = {IDC_VOLUME1_DESC, IDC_VOLUME2_DESC, IDC_VOLUME3_DESC, IDC_VOLUME4_DESC, IDC_VOLUME5_DESC, IDC_VOLUME6_DESC, IDC_VOLUME7_DESC, IDC_VOLUME8_DESC};

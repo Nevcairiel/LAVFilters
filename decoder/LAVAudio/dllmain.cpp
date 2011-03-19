@@ -77,6 +77,12 @@ CFactoryTemplate g_Templates[] = {
       NULL, NULL
   },
   { 
+    L"LAV Audio Format Settings",
+      &CLSID_LAVAudioFormatsProp,
+      CLAVAudioFormatsProp::CreateInstance,
+      NULL, NULL
+  },
+  {
       L"LAV Audio Status",
       &CLSID_LAVAudioStatusProp,
       CLAVAudioStatusProp::CreateInstance, 

@@ -68,6 +68,8 @@ public:
   // ILAVAudioSettings
   STDMETHODIMP GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel);
   STDMETHODIMP SetDRC(BOOL bDRCEnabled, int iDRCLevel);
+  STDMETHODIMP GetFormatConfiguration(bool *bFormat);
+  STDMETHODIMP SetFormatConfiguration(bool *bFormat);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -148,6 +150,7 @@ private:
   struct AudioSettings {
     BOOL DRCEnabled;
     int DRCLevel;
+    bool bFormats[CC_NB];
   } m_settings;
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled

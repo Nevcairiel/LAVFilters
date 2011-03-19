@@ -26,6 +26,33 @@ struct scmap_t {
   DWORD dwChannelMask;
 };
 
+#define MAX_NUM_CC_CODECS 2
+
+struct codec_config_t {
+  int nCodecs;
+  CodecID codecs[MAX_NUM_CC_CODECS];
+  const wchar_t *name;
+  const wchar_t *description;
+};
+
+typedef enum ConfigCodecs {
+  CC_AAC,
+  CC_AC3,
+  CC_EAC3,
+  CC_DTS,
+  CC_MP2,
+  CC_MP3,
+  CC_TRUEHD,
+  CC_FLAC,
+  CC_VORBIS,
+  CC_LPCM,
+  CC_PCM,
+
+  CC_NB        // Number of entrys
+};
+
+const codec_config_t *get_codec_config(ConfigCodecs codec);
+
 CodecID FindCodecId(const CMediaType *mt);
 
 const scmap_t* get_channel_map(AVCodecContext *avctx);

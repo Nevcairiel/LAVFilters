@@ -398,3 +398,43 @@ const char *get_channel_desc(DWORD dwFlag)
   }
   return "-";
 }
+
+// Strings will be filled in eventually.
+// CODEC_ID_NONE means there is some special handling going on.
+// Order is Important, has to be the same as the CC Enum
+// Also, the order is used for storage in the Registry
+static codec_config_t m_codec_config[] = {
+  { 2, { CODEC_ID_AAC, CODEC_ID_AAC_LATM }},       // CC_AAC
+  { 1, { CODEC_ID_AC3 }},                          // CC_AC3
+  { 1, { CODEC_ID_EAC3 }},                         // CC_EAC3
+  { 1, { CODEC_ID_DTS }},                          // CC_DTS
+  { 2, { CODEC_ID_MP2, CODEC_ID_MP1 }},            // CC_MP2
+  { 1, { CODEC_ID_MP3 }},                          // CC_MP3
+  { 2, { CODEC_ID_TRUEHD, CODEC_ID_MLP }},         // CC_TRUEHD
+  { 1, { CODEC_ID_FLAC }},                         // CC_FLAC
+  { 1, { CODEC_ID_VORBIS }},                       // CC_VORBIS
+  { 2, { CODEC_ID_PCM_BLURAY, CODEC_ID_PCM_DVD }, L"lpcm", L"Linear PCM (BluRay & DVD)"}, // CC_LPCM
+  { 1, { CODEC_ID_NONE }, L"pcm", L"Raw PCM Types (including QT PCM)" }, // CC_LPCM
+};
+
+const codec_config_t *get_codec_config(ConfigCodecs codec)
+{
+  codec_config_t *config = &m_codec_config[codec];
+  if (!config->name) {
+    AVCodec *codec = avcodec_find_decoder(config->codecs[0]);
+    if (codec) {
+      size_t name_len = strlen(codec->name) + 1;
+      wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
+      MultiByteToWideChar(CP_UTF8, 0, codec->name, -1, name, name_len);
+
+      size_t desc_len = strlen(codec->long_name) + 1;
+      wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
+      MultiByteToWideChar(CP_UTF8, 0, codec->long_name, -1, desc, desc_len);
+
+      config->name = name;
+      config->description = desc;
+    }
+  }
+
+  return &m_codec_config[codec];
+}

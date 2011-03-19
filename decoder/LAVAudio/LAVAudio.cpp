@@ -81,6 +81,16 @@ HRESULT CLAVAudio::LoadSettings()
   dwVal = reg.ReadDWORD(L"DRCLevel", hr);
   m_settings.DRCLevel = SUCCEEDED(hr) ? (int)dwVal : 100;
 
+  // Default all Codecs to enabled
+  for(int i = 0; i < CC_NB; ++i)
+    m_settings.bFormats[i] = true;
+
+  BYTE *buf = reg.ReadBinary(L"Formats", dwVal, hr);
+  if (SUCCEEDED(hr)) {
+    memcpy(&m_settings.bFormats, buf, min(dwVal, sizeof(m_settings.bFormats)));
+    SAFE_CO_FREE(buf);
+  }
+
   return S_OK;
 }
 
@@ -91,6 +101,7 @@ HRESULT CLAVAudio::SaveSettings()
   if (SUCCEEDED(hr)) {
     reg.WriteBOOL(L"DRCEnabled", m_settings.DRCEnabled);
     reg.WriteDWORD(L"DRCLevel", m_settings.DRCLevel);
+    reg.WriteBinary(L"Formats", (BYTE *)m_settings.bFormats, sizeof(m_settings.bFormats));
   }
   return S_OK;
 }
@@ -135,13 +146,14 @@ STDMETHODIMP CLAVAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
-  pPages->cElems = 2;
+  pPages->cElems = 3;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
   if (pPages->pElems == NULL) {
     return E_OUTOFMEMORY;
   }
   pPages->pElems[0] = CLSID_LAVAudioSettingsProp;
-  pPages->pElems[1] = CLSID_LAVAudioStatusProp;
+  pPages->pElems[1] = CLSID_LAVAudioFormatsProp;
+  pPages->pElems[2] = CLSID_LAVAudioStatusProp;
   return S_OK;
 }
 
@@ -168,6 +180,23 @@ HRESULT CLAVAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
     m_pAVCtx->drc_scale = fDRC;
   }
 
+  SaveSettings();
+  return S_OK;
+}
+
+HRESULT CLAVAudio::GetFormatConfiguration(bool *bFormat)
+{
+  CheckPointer(bFormat, E_POINTER);
+
+  memcpy(bFormat, &m_settings.bFormats, sizeof(m_settings.bFormats));
+  return S_OK;
+}
+
+HRESULT CLAVAudio::SetFormatConfiguration(bool *bFormat)
+{
+  CheckPointer(bFormat, E_POINTER);
+
+  memcpy(&m_settings.bFormats, bFormat, sizeof(m_settings.bFormats));
   SaveSettings();
   return S_OK;
 }
@@ -450,6 +479,24 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
         codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_U8 : CODEC_ID_PCM_U16LE;
         break;
       }
+    }
+  }
+
+  // Special check for enabled PCM
+  if (codec >= 0x10000 && codec < 0x12000 && codec != CODEC_ID_PCM_BLURAY && codec != CODEC_ID_PCM_DVD && !m_settings.bFormats[CC_PCM])
+    return VFW_E_UNSUPPORTED_AUDIO;
+
+  for(int i = 0; i < CC_NB; ++i) {
+    const codec_config_t *config = get_codec_config((ConfigCodecs)i);
+    bool bMatched = false;
+    for (int k = 0; k < config->nCodecs; ++k) {
+      if (config->codecs[k] == codec) {
+        bMatched = true;
+        break;
+      }
+    }
+    if (bMatched && !m_settings.bFormats[i]) {
+      return VFW_E_UNSUPPORTED_AUDIO;
     }
   }
 
