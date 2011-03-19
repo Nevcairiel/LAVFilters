@@ -56,4 +56,9 @@
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="LAVAudio.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>

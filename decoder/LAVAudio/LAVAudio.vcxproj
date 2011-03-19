@@ -157,6 +157,9 @@
       <FileType>RC</FileType>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="LAVAudio.rc2" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
