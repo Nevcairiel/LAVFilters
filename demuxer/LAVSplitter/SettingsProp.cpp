@@ -26,6 +26,7 @@
 #include "SettingsProp.h"
 
 #include "DShowUtil.h"
+#include "version.h"
 
 
 #define LANG_BUFFER_SIZE 256
@@ -118,6 +119,9 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
     return E_FAIL;
   }
   ASSERT(m_pLAVF != NULL);
+
+  const WCHAR *version = TEXT(LAV_SPLITTER) L" " TEXT(LAV_VERSION_STR);
+  SendDlgItemMessage(m_Dlg, IDC_SPLITTER_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
 
   hr = LoadData();
 

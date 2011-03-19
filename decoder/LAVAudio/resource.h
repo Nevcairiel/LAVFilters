@@ -52,6 +52,7 @@
 #define IDC_VOLUME8_DESC                1055
 #define IDC_CODECS                      1056
 #define IDC_CODECS_NONE                 1059
+#define IDC_LAVAUDIO_FOOTER             1060
 
 // Next default values for new objects
 // 
@@ -59,7 +60,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1060
+#define _APS_NEXT_CONTROL_VALUE         1061
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

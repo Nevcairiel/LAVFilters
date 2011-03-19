@@ -25,6 +25,7 @@
 #include <Commctrl.h>
 
 #include "resource.h"
+#include "version.h"
 
 // static constructor
 CUnknown* WINAPI CLAVAudioSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
@@ -88,6 +89,9 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     return E_FAIL;
   }
   ASSERT(m_pAudioSettings != NULL);
+
+  const WCHAR *version = TEXT(LAV_AUDIO) L" " TEXT(LAV_VERSION_STR);
+  SendDlgItemMessage(m_Dlg, IDC_LAVAUDIO_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
 
   hr = LoadData();
   if (SUCCEEDED(hr)) {

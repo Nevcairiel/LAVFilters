@@ -26,8 +26,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,19,0,0
- PRODUCTVERSION 0,19,0,0
+ FILEVERSION LAV_VERSION_TAG
+ PRODUCTVERSION LAV_VERSION_TAG
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -44,12 +44,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "1f0.de - Hendrik Leppkes"
             VALUE "FileDescription", "LAV Audio Decoder - DirectShow Audio Decoder"
-            VALUE "FileVersion", "0.19"
+            VALUE "FileVersion", LAV_VERSION_STR
             VALUE "InternalName", "LAVAudio.ax"
             VALUE "LegalCopyright", "Copyright (C) 2011 Hendrik Leppkes"
             VALUE "OriginalFilename", "LAVAudio.ax"
             VALUE "ProductName", "LAV Audio Decoder"
-            VALUE "ProductVersion", "0.19"
+            VALUE "ProductVersion", LAV_VERSION_STR
         END
     END
     BLOCK "VarFileInfo"
@@ -101,6 +101,7 @@ BEGIN
     CONTROL         "",IDC_DRC_LEVEL,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,50,30,100,12
     LTEXT           "Level: ",IDC_LBL_DRC_LEVEL,15,30,28,8
     LTEXT           "100%",IDC_DRC_LEVEL_TEXT,150,30,20,8,0,WS_EX_RIGHT
+    LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,7,139,196,8,0,WS_EX_RIGHT
 END
 
 IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 214, 152
