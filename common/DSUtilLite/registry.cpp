@@ -171,3 +171,44 @@ HRESULT CRegistry::WriteBOOL(LPCTSTR pszKey, BOOL bValue)
 {
   return WriteDWORD(pszKey, bValue);
 }
+
+BYTE *CRegistry::ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr)
+{
+  LONG lRet;
+  BYTE *result = NULL;
+
+  hr = S_OK;
+
+  if (m_key == NULL) { hr = E_UNEXPECTED;  return result; }
+
+  lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, NULL, &dwSize);
+
+  if (lRet == ERROR_SUCCESS) {
+    // Alloc Buffer to fit the data
+    result = (BYTE *)CoTaskMemAlloc(dwSize);
+    memset(result, 0, dwSize);
+    lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, (LPBYTE)result, &dwSize);
+  }
+
+  if (lRet != ERROR_SUCCESS) {
+    hr = E_FAIL;
+  }
+
+  return result;
+}
+
+HRESULT CRegistry::WriteBinary(LPCTSTR pszKey, const BYTE *pbValue, int iLen)
+{
+  LONG lRet;
+  HRESULT hr;
+
+  hr = S_OK;
+
+  if (m_key == NULL) { return E_UNEXPECTED; }
+
+  lRet = RegSetValueEx(*m_key, pszKey, 0, REG_BINARY, (const BYTE *)pbValue, iLen);
+  if (lRet != ERROR_SUCCESS) {
+    return E_FAIL;
+  }
+  return S_OK;
+}

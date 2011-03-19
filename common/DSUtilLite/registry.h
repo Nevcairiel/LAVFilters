@@ -42,6 +42,9 @@ public:
   BOOL ReadBOOL(LPCTSTR pszKey, HRESULT &hr);
   HRESULT WriteBOOL(LPCTSTR pszKey, BOOL bValue);
 
+  BYTE *ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr);
+  HRESULT WriteBinary(LPCTSTR pszKey, const BYTE *pbValue, int iLen);
+
 private:
   HKEY *m_key;
 };
