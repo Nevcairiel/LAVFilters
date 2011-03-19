@@ -1,5 +1,25 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.19 - 2011/03/19
+General
+- Version Information has been added to the filter .ax files, as well as shown on the property pages.
+
+LAV Splitter
+- Redesigned stream name generations
+  - Codec profiles are now shown (if known - supported are H264, VC1, MPEG2 and DTS)
+  - Audio bit-depth is no longer shown for lossy codecs, as it doesn't apply there
+  - Improved logic that parses the stream flags
+  - Names for the subtitle codecs have been added
+  - If the language is "Undetermined", it'll no longer be shown
+- Size of the packet queue has been increased (solves subtitle issues, as well as improves playback stability)
+- Redesigned the way the splitter registers for formats in the registry for better compatibility
+- Changed the stream change handling for better compatibility with certain players (Media Portal, and others)
+- Improved handling of unknown streams (no codec information present)
+- Added a new option that controls if substreams should be exposed in the stream selector (Only AC3 in TrueHD supported)
+
+LAV Audio
+- Added a new configuration panel which allows to configure which formats the decoder should handle
+
 0.18 - 2011/03/09
 LAV Splitter
 - Improved compatibility when decoding VC-1 with the ArcSoft and Cyberlink Decoders
