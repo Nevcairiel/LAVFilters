@@ -120,6 +120,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BaseDSPropPage.h" />
     <ClInclude Include="DShowUtil.h" />
     <ClInclude Include="FloatingAverage.h" />
     <ClInclude Include="growarray.h" />
@@ -128,6 +129,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BaseDSPropPage.cpp" />
     <ClCompile Include="DShowUtil.cpp" />
     <ClCompile Include="filterreg.cpp" />
     <ClCompile Include="H264Nalu.cpp" />

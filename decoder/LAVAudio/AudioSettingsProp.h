@@ -21,6 +21,7 @@
 #pragma once
 
 #include "LAVAudioSettings.h"
+#include "BaseDSPropPage.h"
 
 // {2D8F1801-A70D-48F4-B76B-7F5AE022AB54}
 DEFINE_GUID(CLSID_LAVAudioSettingsProp, 
@@ -31,8 +32,7 @@ DEFINE_GUID(CLSID_LAVAudioStatusProp,
 0x20ed4a03, 0x6afd, 0x4fd9, 0x98, 0xb, 0x2f, 0x61, 0x43, 0xaa, 0x8, 0x92);
 
 
-
-class CLAVAudioSettingsProp : public CBasePropertyPage
+class CLAVAudioSettingsProp : public CBaseDSPropPage
 {
 public:
   static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
@@ -66,7 +66,7 @@ private:
   int m_iDRCLevel;
 };
 
-class CLAVAudioStatusProp : public CBasePropertyPage
+class CLAVAudioStatusProp : public CBaseDSPropPage
 {
 public:
   static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);

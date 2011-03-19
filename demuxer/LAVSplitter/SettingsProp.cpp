@@ -41,8 +41,8 @@ CUnknown* WINAPI CLAVSplitterSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESUL
 }
 
 CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(IUnknown *pUnk)
-  : CBasePropertyPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
-  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL), m_hHint(0)
+  : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
+  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL)
 {
 }
 
@@ -51,33 +51,6 @@ CLAVSplitterSettingsProp::~CLAVSplitterSettingsProp(void)
 {
   SAFE_CO_FREE(m_pszPrefLang);
   SAFE_CO_FREE(m_pszPrefSubLang);
-}
-
-HWND CLAVSplitterSettingsProp::createHintWindow(HWND parent,int timePop,int timeInit,int timeReshow)
-{
-  HWND hhint = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL,
-    WS_POPUP|TTS_NOPREFIX|TTS_ALWAYSTIP,
-    CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
-    parent, NULL, NULL, NULL);
-  SetWindowPos(hhint,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
-  SendMessage(hhint,TTM_SETDELAYTIME,TTDT_AUTOPOP,MAKELONG(timePop,0));
-  SendMessage(hhint,TTM_SETDELAYTIME,TTDT_INITIAL,MAKELONG(timeInit,0));
-  SendMessage(hhint,TTM_SETDELAYTIME,TTDT_RESHOW,MAKELONG(timeReshow,0));
-  SendMessage(hhint,TTM_SETMAXTIPWIDTH,0,470);
-  return hhint;
-}
-
-TOOLINFO CLAVSplitterSettingsProp::addHint(int id, const LPWSTR text)
-{
-  if (!m_hHint) m_hHint = createHintWindow(m_Dlg,15000);
-  TOOLINFO ti;
-  ti.cbSize = sizeof(TOOLINFO);
-  ti.uFlags = TTF_SUBCLASS|TTF_IDISHWND;
-  ti.hwnd = m_Dlg;
-  ti.uId = (LPARAM)GetDlgItem(m_Dlg, id);
-  ti.lpszText = text;
-  SendMessage(m_hHint, TTM_ADDTOOL, 0, (LPARAM)&ti);
-  return ti;
 }
 
 HRESULT CLAVSplitterSettingsProp::OnConnect(IUnknown *pUnk)
@@ -250,5 +223,5 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
     break;
   }
   // Let the parent class handle the message.
-  return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+  return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }

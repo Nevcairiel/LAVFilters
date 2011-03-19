@@ -27,6 +27,7 @@
 
 // include headers
 #include <Windows.h>
+#include <Commctrl.h>
 
 extern "C" {
 #define __STDC_CONSTANT_MACROS

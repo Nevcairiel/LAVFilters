@@ -37,7 +37,7 @@ CUnknown* WINAPI CLAVAudioSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* 
 }
 
 CLAVAudioSettingsProp::CLAVAudioSettingsProp(IUnknown *pUnk)
-  : CBasePropertyPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS), m_pAudioSettings(NULL), m_bDRCEnabled(FALSE), m_iDRCLevel(100)
+  : CBaseDSPropPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS), m_pAudioSettings(NULL), m_bDRCEnabled(FALSE), m_iDRCLevel(100)
 {
 }
 
@@ -138,7 +138,7 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     break;
   }
   // Let the parent class handle the message.
-  return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+  return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }
 
 #define MAX_CHANNELS 8
@@ -157,7 +157,7 @@ CUnknown* WINAPI CLAVAudioStatusProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* ph
 }
 
 CLAVAudioStatusProp::CLAVAudioStatusProp(IUnknown *pUnk)
-  : CBasePropertyPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL), m_nChannels(0)
+  : CBaseDSPropPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL), m_nChannels(0)
 {
 }
 
@@ -280,5 +280,5 @@ INT_PTR CLAVAudioStatusProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
     break;
   }
   // Let the parent class handle the message.
-  return CBasePropertyPage::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+  return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }

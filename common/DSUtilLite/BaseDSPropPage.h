@@ -20,16 +20,20 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
+class CBaseDSPropPage : public CBasePropertyPage
+{
+public:
+  CBaseDSPropPage(LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, int DialogId, int TitleId);
 
-#include <Windows.h>
-#include <Objbase.h>
-#include <tchar.h>
-#include <uuids.h>
+protected:
+  // Convenience function to add a new column to a list view control
+  static void ListView_AddCol(HWND hlv, int &ncol, int w, const wchar_t *txt, bool right);
 
-#include <Commctrl.h>
+  TOOLINFO addHint(int id, const LPWSTR text);
 
-#include "streams.h"
+private:
+  HWND createHintWindow(HWND parent, int timePop = 1700, int timeInit = 70, int timeReshow = 7);
 
-// TODO: reference additional headers your program requires here
+private:
+  HWND m_hHint;
+};
