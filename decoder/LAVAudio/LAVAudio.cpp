@@ -677,11 +677,6 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_rtStart = rtStart;
   }
 
-  if(SUCCEEDED(hr) && _abs64((m_rtStart - rtStart)) > 1000000i64) { // +-100ms jitter is allowed for now
-    m_buff.SetSize(0);
-    m_rtStart = rtStart;
-  }
-
   int bufflen = m_buff.GetCount();
 
   // Hack to re-create the BD LPCM header because in the MPC-HC format its stripped off.
