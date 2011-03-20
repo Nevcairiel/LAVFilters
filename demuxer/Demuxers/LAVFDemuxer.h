@@ -51,8 +51,6 @@ public:
   HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const;
   void SettingsChanged(ILAVFSettings *pSettings);
 
-  HRESULT SetActiveStream(StreamType type, int pid);
-
   // Select the best video stream
   const stream* SelectVideoStream();
   // Select the best audio stream

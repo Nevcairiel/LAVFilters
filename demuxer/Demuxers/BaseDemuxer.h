@@ -98,7 +98,7 @@ public:
   // The demuxers can use this to filter packets before returning back to the caller on GetNextPacket
   // This functionality is optional however, so the caller should not rely on only receiving packets
   // for active streams.
-  virtual HRESULT SetActiveStream(StreamType type, int pid) { m_dActiveStreams[type] = pid; return S_OK; }
+  HRESULT SetActiveStream(StreamType type, int pid) { m_dActiveStreams[type] = pid; return S_OK; }
 
   // Called when the settings of the splitter change
   virtual void SettingsChanged(ILAVFSettings *pSettings) {};
