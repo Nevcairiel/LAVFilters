@@ -93,6 +93,13 @@ public:
   virtual const char *GetContainerFormat() const = 0;
   // Create Stream Description
   virtual HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const = 0;
+
+  // Select the active title
+  virtual STDMETHODIMP SetTitle(int idx) { return E_NOTIMPL; }
+  // Get Title Info
+  virtual STDMETHODIMP GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName) { return E_NOTIMPL; }
+  // Title count
+  virtual STDMETHODIMP GetNumTitles() { return E_NOTIMPL; }
   
   // Set the currently active stream of one type
   // The demuxers can use this to filter packets before returning back to the caller on GetNextPacket

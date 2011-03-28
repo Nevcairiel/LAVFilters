@@ -51,9 +51,13 @@ public:
   const stream* SelectAudioStream(std::list<std::string> prefLanguages) { return m_lavfDemuxer->SelectAudioStream(prefLanguages); }
   const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) { return m_lavfDemuxer->SelectSubtitleStream(prefLanguages, subtitleMode, bOnlyMatching); }
 
+  STDMETHODIMP SetTitle(int idx);
+
 private:
   REFERENCE_TIME Convert90KhzToDSTime(uint64_t timestamp);
   uint64_t ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp);
+
+  void ProcessStreams(int count, BLURAY_STREAM_INFO *streams);
 
 private:
   BLURAY *m_pBD;

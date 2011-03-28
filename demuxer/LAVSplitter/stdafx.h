@@ -36,6 +36,7 @@ extern "C" {
 #define __STDC_CONSTANT_MACROS
 #define FF_API_MAX_STREAMS 0
 #include "libavformat/avformat.h"
+#include "libbluray/bluray.h"
 }
 #include "streams.h"
 
@@ -45,5 +46,3 @@ extern "C" {
 #include "resource.h"
 
 
-struct BLURAY;
-struct BLURAY_TITLE_INFO;
