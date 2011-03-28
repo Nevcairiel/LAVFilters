@@ -159,23 +159,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
         duration = st_duration;
     }
 
-    // Find and flag the AC-3 substream
-    if (m_bMPEGTS && st->codec->codec_id == CODEC_ID_TRUEHD) {
-      int id = st->id;
-      AVStream *sub_st = NULL;
-
-      for (unsigned int i = 0; i < m_avFormat->nb_streams; ++i) {
-        AVStream *sst = m_avFormat->streams[i];
-        if (idx != i && sst->id == id) {
-          sub_st = sst;
-          break;
-        }
-      }
-      if (sub_st) {
-       sub_st->disposition = st->disposition | LAVF_DISPOSITION_SUB_STREAM;
-       av_metadata_copy(&sub_st->metadata, st->metadata, 0);
-      }
-    }
+    UpdateSubStreams();
   }
   if (duration != INT64_MIN) {
     m_avFormat->duration = duration;
@@ -199,6 +183,42 @@ void CLAVFDemuxer::CleanupAVFormat()
     else
       av_close_input_file(m_avFormat);
     m_avFormat = NULL;
+  }
+}
+
+AVStream* CLAVFDemuxer::GetAVStreamByPID(int pid)
+{
+  if (!m_avFormat) return NULL;
+
+  for (unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
+    if (m_avFormat->streams[idx]->id == pid && !(m_avFormat->streams[idx]->disposition & LAVF_DISPOSITION_SUB_STREAM))
+      return m_avFormat->streams[idx];
+  }
+
+  return NULL;
+}
+
+void CLAVFDemuxer::UpdateSubStreams()
+{
+  for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
+    AVStream *st = m_avFormat->streams[idx];
+    // Find and flag the AC-3 substream
+    if (m_bMPEGTS && st->codec->codec_id == CODEC_ID_TRUEHD) {
+      int id = st->id;
+      AVStream *sub_st = NULL;
+
+      for (unsigned int i = 0; i < m_avFormat->nb_streams; ++i) {
+        AVStream *sst = m_avFormat->streams[i];
+        if (idx != i && sst->id == id) {
+          sub_st = sst;
+          break;
+        }
+      }
+      if (sub_st) {
+        sub_st->disposition = st->disposition | LAVF_DISPOSITION_SUB_STREAM;
+        av_metadata_copy(&sub_st->metadata, st->metadata, 0);
+      }
+    }
   }
 }
 

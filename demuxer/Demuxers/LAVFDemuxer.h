@@ -75,6 +75,9 @@ public:
   STDMETHODIMP OpenInputStream(AVIOContext *byteContext);
   STDMETHODIMP SeekByte(int64_t pos, int flags);
 
+  AVStream* GetAVStreamByPID(int pid);
+  void UpdateSubStreams();
+
 private:
   STDMETHODIMP AddStream(int streamId);
   STDMETHODIMP CreateStreams();
