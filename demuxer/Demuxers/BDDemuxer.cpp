@@ -49,8 +49,8 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
   return bd_seek(bd, pos);
 }
 
-CBDDemuxer::CBDDemuxer(CCritSec *pLock)
-  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL)
+CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings)
+  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings)
 {
 }
 
@@ -136,7 +136,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
     uint8_t *buffer = (uint8_t *)av_mallocz(BD_READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, bd, BDByteStreamRead, NULL, BDByteStreamSeek);
 
-    m_lavfDemuxer = new CLAVFDemuxer(m_pLock);
+    m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
     m_lavfDemuxer->OpenInputStream(m_pb);
     m_lavfDemuxer->AddRef();
   }

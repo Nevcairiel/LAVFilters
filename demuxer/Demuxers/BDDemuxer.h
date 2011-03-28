@@ -29,7 +29,7 @@
 class CBDDemuxer : public CBaseDemuxer
 {
 public:
-  CBDDemuxer(CCritSec *pLock);
+  CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings);
   ~CBDDemuxer(void);
 
   // IUnknown
@@ -59,6 +59,7 @@ private:
   BLURAY *m_pBD;
   AVIOContext *m_pb;
 
+  ILAVFSettings *m_pSettings;
   CLAVFDemuxer *m_lavfDemuxer;
 
   BLURAY_TITLE_INFO *m_pTitle;
