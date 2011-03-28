@@ -155,11 +155,10 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
     BD_EVENT event;
     while(bd_get_event(m_pBD, &event) == 1) {
       if (event.event == BD_EVENT_PLAYITEM) {
-        NAV_TITLE *nav = bd_get_nav_title(m_pBD);
-        NAV_CLIP *clip = &nav->clip_list.clip[event.param];
-        int64_t offset = clip->start_time * 2;
+        uint32_t offset, bytepos;
+        bd_get_clip_infos(m_pBD, event.param, &offset, &bytepos);
         m_rtNewOffset = Convert90KhzToDSTime(offset);
-        m_bNewOffsetPos = clip->pos * 192;
+        m_bNewOffsetPos = bytepos;
       }
     }
 
