@@ -38,9 +38,10 @@ public:
   DWORD StreamId;
   BOOL bDiscontinuity, bSyncPoint, bAppendable;
   REFERENCE_TIME rtStart, rtStop;
+  LONGLONG bPosition;
   AM_MEDIA_TYPE* pmt;
 
-  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; }
+  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; bPosition = -1; }
   ~Packet() { DeleteMediaType(pmt); free(m_pbData); }
 
   // Getter

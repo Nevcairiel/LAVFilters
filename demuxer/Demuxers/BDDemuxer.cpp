@@ -50,7 +50,7 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
 }
 
 CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings)
-  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings)
+  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings), m_rtOffset(0), m_rtNewOffset(Packet::INVALID_TIME), m_bNewOffsetPos(-2)
 {
 }
 
@@ -148,7 +148,29 @@ REFERENCE_TIME CBDDemuxer::GetDuration() const
 
 STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
 {
-  return m_lavfDemuxer->GetNextPacket(ppPacket);
+  HRESULT hr = m_lavfDemuxer->GetNextPacket(ppPacket);
+
+  if (hr == S_OK && *ppPacket && (*ppPacket)->rtStart != Packet::INVALID_TIME) {
+    // Check for clip change
+    BD_EVENT event;
+    while(bd_get_event(m_pBD, &event) == 1) {
+      if (event.event == BD_EVENT_PLAYITEM) {
+        NAV_TITLE *nav = bd_get_nav_title(m_pBD);
+        NAV_CLIP *clip = &nav->clip_list.clip[event.param];
+        int64_t offset = clip->start_time * 2;
+        m_rtNewOffset = Convert90KhzToDSTime(offset);
+        m_bNewOffsetPos = clip->pos * 192;
+      }
+    }
+
+    if (m_rtNewOffset != Packet::INVALID_TIME && (*ppPacket)->bPosition >= m_bNewOffsetPos) {
+      m_rtOffset = m_rtNewOffset;
+      m_rtNewOffset = Packet::INVALID_TIME;
+    }
+    (*ppPacket)->rtStart += m_rtOffset;
+    (*ppPacket)->rtStop += m_rtOffset;
+  }
+  return hr;
 }
 
 STDMETHODIMP CBDDemuxer::SetTitle(int idx)
@@ -176,14 +198,17 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
   m_lavfDemuxer->OpenInputStream(m_pb);
   m_lavfDemuxer->AddRef();
+  m_lavfDemuxer->SeekByte(0, 0);
 
   DbgLog((LOG_TRACE, 20, L"Opened BD title with %d clips and %d chapters", m_pTitle->clip_count, m_pTitle->chapter_count));
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
-  BLURAY_CLIP_INFO *clip = m_pTitle->clips;
-  ProcessStreams(clip->video_stream_count, clip->video_streams);
-  ProcessStreams(clip->audio_stream_count, clip->audio_streams);
-  ProcessStreams(clip->pg_stream_count, clip->pg_streams);
-  ProcessStreams(clip->ig_stream_count, clip->ig_streams);
+  for (int i = 0; i < m_pTitle->clip_count; ++i) {
+    BLURAY_CLIP_INFO *clip = &m_pTitle->clips[i];
+    ProcessStreams(clip->video_stream_count, clip->video_streams);
+    ProcessStreams(clip->audio_stream_count, clip->audio_streams);
+    ProcessStreams(clip->pg_stream_count, clip->pg_streams);
+    ProcessStreams(clip->ig_stream_count, clip->ig_streams);
+  }
 
   return S_OK;
 }
@@ -194,7 +219,6 @@ void CBDDemuxer::ProcessStreams(int count, BLURAY_STREAM_INFO *streams)
   for (int i = 0; i < count; ++i) {
     BLURAY_STREAM_INFO *stream = &streams[i];
     AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(stream->pid);
-    DbgLog((LOG_TRACE, 10, L"Trying to fill metadata of stream pid %d - avstream %d", stream->pid, avstream ? avstream->index : -1));
     if (avstream) {
       if (stream->lang[0] != 0)
         av_metadata_set2(&avstream->metadata, "language", (const char *)stream->lang, 0);

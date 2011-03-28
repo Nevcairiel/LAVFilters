@@ -307,6 +307,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     AVStream *stream = m_avFormat->streams[pkt.stream_index];
     pPacket = new Packet();
+    pPacket->bPosition = pkt.pos;
 
     // we need to get duration slightly different for matroska embedded text subtitels
     if(m_bMatroska && stream->codec->codec_id == CODEC_ID_TEXT && pkt.convergence_duration != 0) {

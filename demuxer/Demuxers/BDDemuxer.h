@@ -82,4 +82,8 @@ private:
   CLAVFDemuxer *m_lavfDemuxer;
 
   BLURAY_TITLE_INFO *m_pTitle;
+
+  REFERENCE_TIME m_rtOffset;
+  REFERENCE_TIME m_rtNewOffset;
+  LONGLONG       m_bNewOffsetPos;
 };
