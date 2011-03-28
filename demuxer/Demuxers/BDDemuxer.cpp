@@ -82,6 +82,7 @@ STDMETHODIMP CBDDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   *ppv = NULL;
 
   return
+    QI2(IAMExtendedSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -229,4 +230,57 @@ REFERENCE_TIME CBDDemuxer::Convert90KhzToDSTime(uint64_t timestamp)
 uint64_t CBDDemuxer::ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp)
 {
   return av_rescale(timestamp, 9, 1000);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// IAMExtendedSeeking
+STDMETHODIMP CBDDemuxer::get_ExSeekCapabilities(long* pExCapabilities)
+{
+  CheckPointer(pExCapabilities, E_POINTER);
+  *pExCapabilities = AM_EXSEEK_CANSEEK;
+  if(m_pTitle->chapter_count > 1) *pExCapabilities |= AM_EXSEEK_MARKERSEEK;
+  return S_OK;
+}
+
+STDMETHODIMP CBDDemuxer::get_MarkerCount(long* pMarkerCount)
+{
+  CheckPointer(pMarkerCount, E_POINTER);
+  *pMarkerCount = (long)m_pTitle->chapter_count;
+  return S_OK;
+}
+
+STDMETHODIMP CBDDemuxer::get_CurrentMarker(long* pCurrentMarker)
+{
+  CheckPointer(pCurrentMarker, E_POINTER);
+  // Can the time_base change in between chapters?
+  // Anyhow, we do the calculation in the loop, just to be safe
+  *pCurrentMarker = bd_get_current_chapter(m_pBD) + 1;
+  return E_FAIL;
+}
+
+
+STDMETHODIMP CBDDemuxer::GetMarkerTime(long MarkerNum, double* pMarkerTime)
+{
+  CheckPointer(pMarkerTime, E_POINTER);
+  // Chapters go by a 1-based index, doh
+  unsigned int index = MarkerNum - 1;
+  if(index >= m_pTitle->chapter_count) { return E_FAIL; }
+
+  REFERENCE_TIME rt = Convert90KhzToDSTime(m_pTitle->chapters[index].start);
+  *pMarkerTime = (double)rt / DSHOW_TIME_BASE;
+
+  return S_OK;
+}
+
+STDMETHODIMP CBDDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
+{
+  CheckPointer(pbstrMarkerName, E_POINTER);
+  // Chapters go by a 1-based index, doh
+  unsigned int index = MarkerNum - 1;
+  if(index >= m_pTitle->chapter_count) { return E_FAIL; }
+  // Get the title, or generate one
+  OLECHAR wTitle[128];
+  swprintf_s(wTitle, L"Chapter %d", MarkerNum);
+  *pbstrMarkerName = SysAllocString(wTitle);
+  return S_OK;
 }

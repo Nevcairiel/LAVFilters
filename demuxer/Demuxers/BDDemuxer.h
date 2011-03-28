@@ -26,7 +26,7 @@
 
 #pragma comment(lib, "libbluray.lib")
 
-class CBDDemuxer : public CBaseDemuxer
+class CBDDemuxer : public CBaseDemuxer, public IAMExtendedSeeking
 {
 public:
   CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings);
@@ -35,6 +35,12 @@ public:
   // IUnknown
   DECLARE_IUNKNOWN
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
+  // IDispatch
+  STDMETHODIMP GetTypeInfoCount(UINT* pctinfo) {return E_NOTIMPL;}
+  STDMETHODIMP GetTypeInfo(UINT itinfo, LCID lcid, ITypeInfo** pptinfo) {return E_NOTIMPL;}
+  STDMETHODIMP GetIDsOfNames(REFIID riid, OLECHAR** rgszNames, UINT cNames, LCID lcid, DISPID* rgdispid) {return E_NOTIMPL;}
+  STDMETHODIMP Invoke(DISPID dispidMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pdispparams, VARIANT* pvarResult, EXCEPINFO* pexcepinfo, UINT* puArgErr) {return E_NOTIMPL;}
 
   // CBaseDemuxer
   STDMETHODIMP Open(LPCOLESTR pszFileName);
@@ -52,6 +58,15 @@ public:
   const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) { return m_lavfDemuxer->SelectSubtitleStream(prefLanguages, subtitleMode, bOnlyMatching); }
 
   STDMETHODIMP SetTitle(int idx);
+
+  // IAMExtendedSeeking
+  STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
+  STDMETHODIMP get_MarkerCount(long* pMarkerCount);
+  STDMETHODIMP get_CurrentMarker(long* pCurrentMarker);
+  STDMETHODIMP GetMarkerTime(long MarkerNum, double* pMarkerTime);
+  STDMETHODIMP GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName);
+  STDMETHODIMP put_PlaybackSpeed(double Speed) {return E_NOTIMPL;}
+  STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
 
 private:
   REFERENCE_TIME Convert90KhzToDSTime(uint64_t timestamp);
