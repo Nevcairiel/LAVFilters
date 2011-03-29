@@ -50,7 +50,7 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
 }
 
 CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings)
-  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings), m_rtOffset(0), m_rtNewOffset(Packet::INVALID_TIME), m_bNewOffsetPos(-2)
+  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings), m_rtOffset(0), m_rtNewOffset(Packet::INVALID_TIME), m_bNewOffsetPos(-2), m_nTitleCount(0)
 {
 }
 
@@ -113,15 +113,15 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
     BLURAY *bd = bd_open(bd_path, NULL);
     m_pBD = bd;
     // Fetch titles
-    uint32_t num_titles = bd_get_titles(bd, TITLES_RELEVANT);
+    m_nTitleCount = bd_get_titles(bd, TITLES_RELEVANT);
 
-    if (num_titles <= 0) {
+    if (m_nTitleCount <= 0) {
       return E_FAIL;
     }
 
     uint64_t longest_duration = 0;
     uint32_t longest_id = 0;
-    for(uint32_t i = 0; i < num_titles; i++) {
+    for(uint32_t i = 0; i < m_nTitleCount; i++) {
       BLURAY_TITLE_INFO *info = bd_get_title_info(bd, i);
       if (info && info->duration > longest_duration) {
         longest_id = i;
@@ -203,12 +203,44 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 
   DbgLog((LOG_TRACE, 20, L"Opened BD title with %d clips and %d chapters", m_pTitle->clip_count, m_pTitle->chapter_count));
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
-  for (int i = 0; i < m_pTitle->clip_count; ++i) {
+  for (uint32_t i = 0; i < m_pTitle->clip_count; ++i) {
     BLURAY_CLIP_INFO *clip = &m_pTitle->clips[i];
     ProcessStreams(clip->raw_stream_count, clip->raw_streams);
   }
 
   return S_OK;
+}
+
+STDMETHODIMP CBDDemuxer::GetNumTitles(uint32_t *count)
+{
+  CheckPointer(count, E_POINTER);
+
+  *count = m_nTitleCount;
+
+  return S_OK;
+}
+
+STDMETHODIMP CBDDemuxer::GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName)
+{
+  if (idx >= m_nTitleCount) { return E_FAIL; }
+
+  BLURAY_TITLE_INFO *info = bd_get_title_info(m_pBD, idx);
+  if (info) {
+    if (rtDuration) {
+      *rtDuration = Convert90KhzToDSTime(info->duration);
+    }
+    if (ppszName) {
+      WCHAR buffer[80];
+      swprintf_s(buffer, L"Title %d", idx + 1);
+      size_t size = (wcslen(buffer) + 1) * sizeof(WCHAR);
+      *ppszName = (WCHAR *)CoTaskMemAlloc(size);
+      memcpy(*ppszName, buffer, size);
+    }
+
+    return S_OK;
+  }
+
+  return E_FAIL;
 }
 
 void CBDDemuxer::ProcessStreams(int count, BLURAY_STREAM_INFO *streams)

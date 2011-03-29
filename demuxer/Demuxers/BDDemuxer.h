@@ -58,6 +58,8 @@ public:
   const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) { return m_lavfDemuxer->SelectSubtitleStream(prefLanguages, subtitleMode, bOnlyMatching); }
 
   STDMETHODIMP SetTitle(int idx);
+  STDMETHODIMP GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName);
+  STDMETHODIMP GetNumTitles(uint32_t *count);
 
   // IAMExtendedSeeking
   STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
@@ -82,6 +84,7 @@ private:
   CLAVFDemuxer *m_lavfDemuxer;
 
   BLURAY_TITLE_INFO *m_pTitle;
+  uint32_t          m_nTitleCount;
 
   REFERENCE_TIME m_rtOffset;
   REFERENCE_TIME m_rtNewOffset;
