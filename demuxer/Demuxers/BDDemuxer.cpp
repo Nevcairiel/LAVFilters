@@ -155,10 +155,12 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
     BD_EVENT event;
     while(bd_get_event(m_pBD, &event) == 1) {
       if (event.event == BD_EVENT_PLAYITEM) {
-        uint32_t offset, bytepos;
-        bd_get_clip_infos(m_pBD, event.param, &offset, &bytepos);
-        m_rtNewOffset = Convert90KhzToDSTime(offset);
-        m_bNewOffsetPos = bytepos;
+        uint64_t offset, bytepos;
+        int ret = bd_get_clip_infos(m_pBD, event.param, &offset, &bytepos);
+        if (ret == 1) {
+          m_rtNewOffset = Convert90KhzToDSTime(offset);
+          m_bNewOffsetPos = bytepos;
+        }
       }
     }
 
@@ -203,10 +205,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
   for (int i = 0; i < m_pTitle->clip_count; ++i) {
     BLURAY_CLIP_INFO *clip = &m_pTitle->clips[i];
-    ProcessStreams(clip->video_stream_count, clip->video_streams);
-    ProcessStreams(clip->audio_stream_count, clip->audio_streams);
-    ProcessStreams(clip->pg_stream_count, clip->pg_streams);
-    ProcessStreams(clip->ig_stream_count, clip->ig_streams);
+    ProcessStreams(clip->raw_stream_count, clip->raw_streams);
   }
 
   return S_OK;
