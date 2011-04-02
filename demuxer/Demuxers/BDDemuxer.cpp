@@ -315,8 +315,6 @@ STDMETHODIMP CBDDemuxer::get_MarkerCount(long* pMarkerCount)
 STDMETHODIMP CBDDemuxer::get_CurrentMarker(long* pCurrentMarker)
 {
   CheckPointer(pCurrentMarker, E_POINTER);
-  // Can the time_base change in between chapters?
-  // Anyhow, we do the calculation in the loop, just to be safe
   *pCurrentMarker = bd_get_current_chapter(m_pBD) + 1;
   return E_FAIL;
 }
