@@ -146,28 +146,37 @@ REFERENCE_TIME CBDDemuxer::GetDuration() const
   return m_lavfDemuxer->GetDuration();
 }
 
+void CBDDemuxer::ProcessBDEvents()
+{
+  // Check for clip change
+  BD_EVENT event;
+  while(bd_get_event(m_pBD, &event)) {
+    if (event.event == BD_EVENT_PLAYITEM) {
+      uint64_t offset, bytepos;
+      int ret = bd_get_clip_infos(m_pBD, event.param, &offset, &bytepos);
+      if (ret) {
+        m_rtNewOffset = Convert90KhzToDSTime(offset);
+        m_bNewOffsetPos = bytepos;
+        DbgLog((LOG_TRACE, 10, L"New clip! offset: %I64u bytepos: %I64u", m_rtNewOffset, bytepos));
+      }
+    }
+  }
+}
+
 STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
 {
   HRESULT hr = m_lavfDemuxer->GetNextPacket(ppPacket);
 
-  if (hr == S_OK && *ppPacket && (*ppPacket)->rtStart != Packet::INVALID_TIME) {
-    // Check for clip change
-    BD_EVENT event;
-    while(bd_get_event(m_pBD, &event) == 1) {
-      if (event.event == BD_EVENT_PLAYITEM) {
-        uint64_t offset, bytepos;
-        int ret = bd_get_clip_infos(m_pBD, event.param, &offset, &bytepos);
-        if (ret == 1) {
-          m_rtNewOffset = Convert90KhzToDSTime(offset);
-          m_bNewOffsetPos = bytepos;
-        }
-      }
-    }
+  ProcessBDEvents();
 
+  if (hr == S_OK && *ppPacket && (*ppPacket)->rtStart != Packet::INVALID_TIME) {
     if (m_rtNewOffset != Packet::INVALID_TIME && (*ppPacket)->bPosition >= m_bNewOffsetPos) {
+      DbgLog((LOG_TRACE, 10, L"Actual clip change detected; time: %I64u, old offset: %I64u, new offset: %I64u", (*ppPacket)->rtStart, m_rtOffset, m_rtNewOffset));
       m_rtOffset = m_rtNewOffset;
       m_rtNewOffset = Packet::INVALID_TIME;
     }
+    /*if ((*ppPacket)->StreamId == 0)
+      DbgLog((LOG_TRACE, 10, L"Frame: start: %I64u, corrected: %I64u, bytepos: %I64u", (*ppPacket)->rtStart, (*ppPacket)->rtStart + m_rtOffset, (*ppPacket)->bPosition)); */
     (*ppPacket)->rtStart += m_rtOffset;
     (*ppPacket)->rtStop += m_rtOffset;
   }

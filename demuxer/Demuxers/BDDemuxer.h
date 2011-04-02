@@ -75,6 +75,7 @@ private:
   uint64_t ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp);
 
   void ProcessStreams(int count, BLURAY_STREAM_INFO *streams);
+  void ProcessBDEvents();
 
 private:
   BLURAY *m_pBD;
