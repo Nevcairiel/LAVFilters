@@ -274,7 +274,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
   int result = 0;
   try {
-    DBG_TIMING("av_read_frame", 5, result = av_read_frame(m_avFormat, &pkt))
+    DBG_TIMING("av_read_frame", 30, result = av_read_frame(m_avFormat, &pkt))
   } catch(...) {
     // ignore..
   }
