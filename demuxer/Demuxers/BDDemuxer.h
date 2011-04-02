@@ -71,8 +71,8 @@ public:
   STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
 
 private:
-  REFERENCE_TIME Convert90KhzToDSTime(uint64_t timestamp);
-  uint64_t ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp);
+  REFERENCE_TIME Convert90KhzToDSTime(int64_t timestamp);
+  int64_t ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp);
 
   void ProcessStreams(int count, BLURAY_STREAM_INFO *streams);
   void ProcessBDEvents();
@@ -89,5 +89,5 @@ private:
 
   REFERENCE_TIME m_rtOffset;
   REFERENCE_TIME m_rtNewOffset;
-  LONGLONG       m_bNewOffsetPos;
+  uint64_t       m_bNewOffsetPos;
 };

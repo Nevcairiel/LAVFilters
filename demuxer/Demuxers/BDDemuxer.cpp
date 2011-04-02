@@ -171,12 +171,12 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
 
   if (hr == S_OK && *ppPacket && (*ppPacket)->rtStart != Packet::INVALID_TIME) {
     if (m_rtNewOffset != Packet::INVALID_TIME && (*ppPacket)->bPosition >= m_bNewOffsetPos) {
-      DbgLog((LOG_TRACE, 10, L"Actual clip change detected; time: %I64u, old offset: %I64u, new offset: %I64u", (*ppPacket)->rtStart, m_rtOffset, m_rtNewOffset));
+      DbgLog((LOG_TRACE, 10, L"Actual clip change detected; time: %I64d, old offset: %I64d, new offset: %I64d", (*ppPacket)->rtStart, m_rtOffset, m_rtNewOffset));
       m_rtOffset = m_rtNewOffset;
       m_rtNewOffset = Packet::INVALID_TIME;
     }
     /*if ((*ppPacket)->StreamId == 0)
-      DbgLog((LOG_TRACE, 10, L"Frame: start: %I64u, corrected: %I64u, bytepos: %I64u", (*ppPacket)->rtStart, (*ppPacket)->rtStart + m_rtOffset, (*ppPacket)->bPosition)); */
+      DbgLog((LOG_TRACE, 10, L"Frame: start: %I64d, corrected: %I64d, bytepos: %I64d", (*ppPacket)->rtStart, (*ppPacket)->rtStart + m_rtOffset, (*ppPacket)->bPosition)); */
     (*ppPacket)->rtStart += m_rtOffset;
     (*ppPacket)->rtStop += m_rtOffset;
   }
@@ -285,12 +285,12 @@ HRESULT CBDDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) co
   return m_lavfDemuxer->StreamInfo(streamId, plcid, ppszName);
 }
 
-REFERENCE_TIME CBDDemuxer::Convert90KhzToDSTime(uint64_t timestamp)
+REFERENCE_TIME CBDDemuxer::Convert90KhzToDSTime(int64_t timestamp)
 {
   return av_rescale(timestamp, 1000, 9);
 }
 
-uint64_t CBDDemuxer::ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp)
+int64_t CBDDemuxer::ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp)
 {
   return av_rescale(timestamp, 9, 1000);
 }
