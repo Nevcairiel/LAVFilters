@@ -170,7 +170,7 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
   ProcessBDEvents();
 
   if (hr == S_OK && *ppPacket && (*ppPacket)->rtStart != Packet::INVALID_TIME) {
-    if (m_rtNewOffset != Packet::INVALID_TIME && (*ppPacket)->bPosition >= m_bNewOffsetPos) {
+    if (m_rtNewOffset != Packet::INVALID_TIME && (*ppPacket)->bPosition != -1 && (*ppPacket)->bPosition >= m_bNewOffsetPos) {
       DbgLog((LOG_TRACE, 10, L"Actual clip change detected; time: %I64d, old offset: %I64d, new offset: %I64d", (*ppPacket)->rtStart, m_rtOffset, m_rtNewOffset));
       m_rtOffset = m_rtNewOffset;
       m_rtNewOffset = Packet::INVALID_TIME;
