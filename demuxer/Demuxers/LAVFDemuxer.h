@@ -78,6 +78,8 @@ public:
   AVStream* GetAVStreamByPID(int pid);
   void UpdateSubStreams();
 
+  REFERENCE_TIME GetStartTime() const;
+
 private:
   STDMETHODIMP AddStream(int streamId);
   STDMETHODIMP CreateStreams();

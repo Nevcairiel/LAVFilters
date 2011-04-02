@@ -617,6 +617,11 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   return S_OK;
 }
 
+REFERENCE_TIME CLAVFDemuxer::GetStartTime() const
+{
+  return av_rescale(m_avFormat->start_time, DSHOW_TIME_BASE, AV_TIME_BASE);
+}
+
 // Converts the lavf pts timestamp to a DShow REFERENCE_TIME
 // Based on DVDDemuxFFMPEG
 REFERENCE_TIME CLAVFDemuxer::ConvertTimestampToRT(int64_t pts, int num, int den, int64_t starttime) const
