@@ -21,7 +21,7 @@ Using it
 By default the splitter will register for all media formats that have been
 tested and found working at least partially.
 This currently includes (but is not limited to)
-	MKV/WebM, AVI, MP4/MOV, TS/M2TS/MPG, FLV, OGG
+	MKV/WebM, AVI, MP4/MOV, TS/M2TS/MPG, FLV, OGG, BluRay (.bdmv and .mpls)
 
 However, some other splitters register in a "bad" way and force all players
 to use them. The Haali Media Splitter is one of those, and to give priority
@@ -35,7 +35,7 @@ decoder however.
 Compiling
 =============================
 Compiling is pretty straight forward using VC++2010 (included project files).
-It does, however, require that you build your own ffmpeg.
+It does, however, require that you build your own ffmpeg and libbluray.
 You need to place the full ffmpeg package in a directory called "ffmpeg" in the 
 main source directory (the directory this file was in). There are scripts to 
 build a proper ffmpeg included.
@@ -43,6 +43,13 @@ build a proper ffmpeg included.
 I recommend using my fork of ffmpeg, as it includes additional patches for 
 media compatibility:
 http://git.1f0.de/gitweb?p=ffmpeg.git;a=summary
+
+libbluray is compiled with the MSVC project files, however a specially modified
+version of libbluray is requires. Similar to ffmpeg, just place the full tree
+inside the "libbluray" directory in the main directory.
+
+You can get the modified version here:
+http://git.1f0.de/gitweb?p=libbluray.git;a=summary
 
 Feedback
 =============================
