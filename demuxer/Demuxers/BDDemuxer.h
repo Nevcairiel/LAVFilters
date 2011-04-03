@@ -53,6 +53,8 @@ public:
   CStreamList *GetStreams(StreamType type) { if (m_lavfDemuxer) return m_lavfDemuxer->GetStreams(type); else return __super::GetStreams(type);  }
   HRESULT SetActiveStream(StreamType type, int pid) { if (m_lavfDemuxer) { m_lavfDemuxer->SetActiveStream(type, pid); return S_OK; } else return E_FAIL; }
 
+  void SettingsChanged(ILAVFSettings *pSettings) { if (m_lavfDemuxer) m_lavfDemuxer->SettingsChanged(pSettings); }
+
   const stream* SelectVideoStream() { return m_lavfDemuxer->SelectVideoStream(); }
   const stream* SelectAudioStream(std::list<std::string> prefLanguages) { return m_lavfDemuxer->SelectAudioStream(prefLanguages); }
   const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) { return m_lavfDemuxer->SelectSubtitleStream(prefLanguages, subtitleMode, bOnlyMatching); }
