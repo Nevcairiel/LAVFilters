@@ -190,10 +190,12 @@ STDAPI DllRegisterServer()
     L".ogg", L".ogm");
 
   // BluRay
+  chkbytes.clear();
+  chkbytes.push_back(L"0,4,,494E4458"); // INDX (index.bdmv)
+  chkbytes.push_back(L"0,4,,4D4F424A"); // MOBJ (MovieObject.bdmv)
   RegisterSourceFilter(__uuidof(CLAVSplitter),
     MEDIASUBTYPE_LAVBluRay,
-    L"0,4,,494E4458", // INDX (index.bdmv)
-    L"0,4,,4D4F424A", // MOBJ (MovieObject.bdmv)
+    chkbytes,
     L".bdmv");
 
   // base classes will handle registration using the factory template table
