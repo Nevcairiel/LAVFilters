@@ -130,6 +130,9 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
     }
     // Open BluRay
     BLURAY *bd = bd_open(bd_path, NULL);
+    if(!bd) {
+      return E_FAIL;
+    }
     m_pBD = bd;
     // Fetch titles
     m_nTitleCount = bd_get_titles(bd, TITLES_RELEVANT);
@@ -157,7 +160,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
         break;
     }
 
-    SetTitle(longest_id);
+    hr = SetTitle(title_id);
   }
 
   return hr;
@@ -211,6 +214,7 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
 
 STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 {
+  HRESULT hr = S_OK;
   int ret; // return values
   if (m_pTitle) {
     bd_free_title_info(m_pTitle);
@@ -233,8 +237,12 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   SAFE_CO_FREE(m_rtOffset);
 
   m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
-  m_lavfDemuxer->OpenInputStream(m_pb);
   m_lavfDemuxer->AddRef();
+  if (FAILED(hr = m_lavfDemuxer->OpenInputStream(m_pb))) {
+    SafeRelease(&m_lavfDemuxer);
+    return hr;
+  }
+
   m_lavfDemuxer->SeekByte(0, 0);
 
   // space for storing stream offsets
