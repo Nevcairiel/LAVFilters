@@ -87,7 +87,7 @@ private:
   BLURAY_TITLE_INFO *m_pTitle;
   uint32_t          m_nTitleCount;
 
-  REFERENCE_TIME m_rtOffset;
+  REFERENCE_TIME *m_rtOffset;
   REFERENCE_TIME m_rtNewOffset;
   uint64_t       m_bNewOffsetPos;
 };

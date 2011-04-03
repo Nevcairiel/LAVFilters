@@ -77,6 +77,7 @@ public:
 
   AVStream* GetAVStreamByPID(int pid);
   void UpdateSubStreams();
+  unsigned int GetNumStreams() const { return m_avFormat->nb_streams; }
 
   REFERENCE_TIME GetStartTime() const;
 

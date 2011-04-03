@@ -50,7 +50,7 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
 }
 
 CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings)
-  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings), m_rtOffset(0), m_rtNewOffset(Packet::INVALID_TIME), m_bNewOffsetPos(-2), m_nTitleCount(0)
+  : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings), m_rtOffset(NULL), m_rtNewOffset(0), m_bNewOffsetPos(0), m_nTitleCount(0)
 {
 }
 
@@ -73,6 +73,7 @@ CBDDemuxer::~CBDDemuxer(void)
   }
 
   SafeRelease(&m_lavfDemuxer);
+  SAFE_CO_FREE(m_rtOffset);
 }
 
 STDMETHODIMP CBDDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -169,16 +170,17 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
 
   ProcessBDEvents();
 
-  if (hr == S_OK && *ppPacket && (*ppPacket)->rtStart != Packet::INVALID_TIME) {
-    if (m_rtNewOffset != Packet::INVALID_TIME && (*ppPacket)->bPosition != -1 && (*ppPacket)->bPosition >= m_bNewOffsetPos) {
-      DbgLog((LOG_TRACE, 10, L"Actual clip change detected; time: %I64d, old offset: %I64d, new offset: %I64d", (*ppPacket)->rtStart, m_rtOffset, m_rtNewOffset));
-      m_rtOffset = m_rtNewOffset;
-      m_rtNewOffset = Packet::INVALID_TIME;
+  Packet * const pPacket = *ppPacket;
+
+  if (hr == S_OK && pPacket && pPacket->rtStart != Packet::INVALID_TIME) {
+    REFERENCE_TIME rtOffset = m_rtOffset[pPacket->StreamId];
+    if (rtOffset != m_rtNewOffset && pPacket->bPosition != -1 && pPacket->bPosition >= m_bNewOffsetPos) {
+      DbgLog((LOG_TRACE, 10, L"Actual clip change detected in stream %d; time: %I64d, old offset: %I64d, new offset: %I64d", pPacket->StreamId, pPacket->rtStart, rtOffset, m_rtNewOffset));
+      rtOffset = m_rtOffset[pPacket->StreamId] = m_rtNewOffset;
     }
-    /*if ((*ppPacket)->StreamId == 0)
-      DbgLog((LOG_TRACE, 10, L"Frame: start: %I64d, corrected: %I64d, bytepos: %I64d", (*ppPacket)->rtStart, (*ppPacket)->rtStart + m_rtOffset, (*ppPacket)->bPosition)); */
-    (*ppPacket)->rtStart += m_rtOffset;
-    (*ppPacket)->rtStop += m_rtOffset;
+    //DbgLog((LOG_TRACE, 10, L"Frame: stream: %d, start: %I64d, corrected: %I64d, bytepos: %I64d", pPacket->StreamId, pPacket->rtStart, pPacket->rtStart + rtOffset, pPacket->bPosition));
+    pPacket->rtStart += rtOffset;
+    pPacket->rtStop += rtOffset;
   }
   return hr;
 }
@@ -204,11 +206,16 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, m_pBD, BDByteStreamRead, NULL, BDByteStreamSeek);
 
   SafeRelease(&m_lavfDemuxer);
+  SAFE_CO_FREE(m_rtOffset);
 
   m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
   m_lavfDemuxer->OpenInputStream(m_pb);
   m_lavfDemuxer->AddRef();
   m_lavfDemuxer->SeekByte(0, 0);
+
+  // space for storing stream offsets
+  m_rtOffset = (REFERENCE_TIME *)CoTaskMemAlloc(sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
+  memset(m_rtOffset, 0, sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
 
   DbgLog((LOG_TRACE, 20, L"Opened BD title with %d clips and %d chapters", m_pTitle->clip_count, m_pTitle->chapter_count));
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
