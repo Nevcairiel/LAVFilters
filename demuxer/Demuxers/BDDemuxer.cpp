@@ -110,6 +110,8 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
   char fileName[4096];
   ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
 
+  int iPlaylist = -1;
+
   size_t len = strlen(fileName);
   if (len > 16) {
     char *bd_path = fileName;
@@ -117,6 +119,12 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
       bd_path[strlen(bd_path) - 15] = 0;
     } else if (len > 22 && _strcmpi(bd_path+strlen(bd_path) - 22, "\\BDMV\\MovieObject.bdmv") == 0) {
       bd_path[strlen(bd_path) - 21] = 0;
+    } else if (len > 25 && _strnicmp(bd_path+strlen(bd_path) - 25, "\\BDMV\\PLAYLIST\\", 15) == 0) {
+      char *playlist = &bd_path[strlen(bd_path) - 10];
+      bd_path[strlen(bd_path) - 24] = 0;
+
+      playlist[5] = 0;
+      iPlaylist = atoi(playlist);
     } else {
       return E_FAIL;
     }
@@ -131,16 +139,22 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
     }
 
     uint64_t longest_duration = 0;
-    uint32_t longest_id = 0;
+    uint32_t title_id = 0;
+    boolean found = false;
     for(uint32_t i = 0; i < m_nTitleCount; i++) {
       BLURAY_TITLE_INFO *info = bd_get_title_info(bd, i);
-      if (info && info->duration > longest_duration) {
-        longest_id = i;
-        longest_duration = info->duration;
-      }
       if (info) {
+        if (iPlaylist != -1 && info->playlist == iPlaylist) {
+          title_id = i;
+          found = true;
+        } else if (iPlaylist == -1 && info->duration > longest_duration) {
+          title_id = i;
+          longest_duration = info->duration;
+        }
         bd_free_title_info(info);
       }
+      if (found)
+        break;
     }
 
     SetTitle(longest_id);

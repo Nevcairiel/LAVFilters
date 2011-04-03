@@ -193,10 +193,11 @@ STDAPI DllRegisterServer()
   chkbytes.clear();
   chkbytes.push_back(L"0,4,,494E4458"); // INDX (index.bdmv)
   chkbytes.push_back(L"0,4,,4D4F424A"); // MOBJ (MovieObject.bdmv)
+  chkbytes.push_back(L"0,4,,4D504C53"); // MPLS
   RegisterSourceFilter(__uuidof(CLAVSplitter),
     MEDIASUBTYPE_LAVBluRay,
     chkbytes,
-    L".bdmv");
+    L".bdmv", L".mpls");
 
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);

@@ -196,7 +196,7 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
   SAFE_DELETE(m_pDemuxer);
   LPWSTR extension = PathFindExtensionW(pszFileName);
   // BDMV uses the BD demuxer, everything else LAVF
-  if (_wcsicmp(extension, L".bdmv") == 0) {
+  if (_wcsicmp(extension, L".bdmv") == 0 || _wcsicmp(extension, L".mpls") == 0) {
     m_pDemuxer = new CBDDemuxer(this, this);
   } else {
     m_pDemuxer = new CLAVFDemuxer(this, this);
