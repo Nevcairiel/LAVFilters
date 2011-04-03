@@ -71,9 +71,6 @@ public:
   STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
 
 private:
-  REFERENCE_TIME Convert90KhzToDSTime(int64_t timestamp);
-  int64_t ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp);
-
   void ProcessStreams(int count, BLURAY_STREAM_INFO *streams);
   void ProcessBDEvents();
 

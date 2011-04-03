@@ -49,6 +49,16 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
   return bd_seek(bd, pos);
 }
 
+static inline REFERENCE_TIME Convert90KhzToDSTime(int64_t timestamp)
+{
+  return av_rescale(timestamp, 1000, 9);
+}
+
+static inline int64_t ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp)
+{
+  return av_rescale(timestamp, 9, 1000);
+}
+
 CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings)
   : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings), m_rtOffset(NULL), m_rtNewOffset(0), m_bNewOffsetPos(0), m_nTitleCount(0)
 {
@@ -290,16 +300,6 @@ const char *CBDDemuxer::GetContainerFormat() const
 HRESULT CBDDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const
 {
   return m_lavfDemuxer->StreamInfo(streamId, plcid, ppszName);
-}
-
-REFERENCE_TIME CBDDemuxer::Convert90KhzToDSTime(int64_t timestamp)
-{
-  return av_rescale(timestamp, 1000, 9);
-}
-
-int64_t CBDDemuxer::ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp)
-{
-  return av_rescale(timestamp, 9, 1000);
 }
 
 /////////////////////////////////////////////////////////////////////////////
