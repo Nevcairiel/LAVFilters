@@ -783,6 +783,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       if (used_bytes < 0) {
         return E_FAIL;
       } else if(used_bytes == 0 && pOut_size == 0) {
+        DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
         break;
       }
 
@@ -810,6 +811,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       if(used_bytes < 0) {
         return E_FAIL;
       } else if(used_bytes == 0 && nPCMLength <= 0 ) {
+        DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
         break;
       }
       buffsize -= used_bytes;
