@@ -513,9 +513,10 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   if (codec != CODEC_ID_AAC && codec != CODEC_ID_AAC_LATM)
     m_pParser = av_parser_init(codec);
 
-  m_pAVCtx->codec_type            = AVMEDIA_TYPE_AUDIO;
-  m_pAVCtx->codec_id              = (CodecID)codec;
-  m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
+  if (m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
+    m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
+
+  // Set Dynamic Range Compression
   m_pAVCtx->drc_scale             = m_settings.DRCEnabled ? (float)m_settings.DRCLevel / 100.0f : 0.0f;
 
   if (format_type == FORMAT_WaveFormatEx) {
