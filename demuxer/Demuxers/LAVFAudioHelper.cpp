@@ -69,8 +69,10 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     mediaType.subtype = MEDIASUBTYPE_Vorbis;
     break;
   case CODEC_ID_MP1:
-  case CODEC_ID_MP2:
     mediaType.subtype = MEDIASUBTYPE_MPEG1AudioPayload;
+    break;
+  case CODEC_ID_MP2:
+    mediaType.subtype = MEDIASUBTYPE_MPEG2_AUDIO;
     break;
   case CODEC_ID_MP3:
     mediaType.subtype = MEDIASUBTYPE_MP3;
