@@ -585,8 +585,8 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     m_streams[i].Clear();
   }
 
+  m_program = UINT_MAX;
   if (m_avFormat->nb_programs) {
-    m_program = UINT_MAX;
     // look for first non empty stream and discard nonselected programs
     for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i) {
       if(m_program == UINT_MAX && m_avFormat->programs[i]->nb_stream_indexes > 0) {
@@ -597,9 +597,9 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
         m_avFormat->programs[i]->discard = AVDISCARD_ALL;
       }
     }
-    if(m_program == UINT_MAX) {
-      m_program = 0;
-    }
+  }
+
+  if(m_program != UINT_MAX) {
     // add streams from selected program
     for (unsigned int i = 0; i < m_avFormat->programs[m_program]->nb_stream_indexes; ++i) {
       AddStream(m_avFormat->programs[m_program]->stream_index[i]);
