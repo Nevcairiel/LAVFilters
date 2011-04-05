@@ -41,10 +41,11 @@ OPTIONS="
 --disable-bsfs \
 --disable-network \
 --disable-protocols \
+--enable-audio-float \
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32"
 
-./configure --extra-cflags="-U__STRICT_ANSI__ -DFF_API_MAX_STREAMS=0" ${OPTIONS} &&
+./configure --extra-cflags="-DFF_API_MAX_STREAMS=0" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_x64 &&
