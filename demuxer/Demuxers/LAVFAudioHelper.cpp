@@ -199,6 +199,9 @@ MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULON
   mpwvfmt->fwHeadMode = avstream->codec->channels == 1 ? ACM_MPEG_SINGLECHANNEL : ACM_MPEG_DUALCHANNEL;
   mpwvfmt->fwHeadLayer = (avstream->codec->codec_id == CODEC_ID_MP1) ? ACM_MPEG_LAYER1 : ACM_MPEG_LAYER2;
 
+  if (avstream->codec->sample_rate == 0) {
+    avstream->codec->sample_rate = 48000;
+  }
   mpwvfmt->wfx.wFormatTag = WAVE_FORMAT_MPEG;
   mpwvfmt->wfx.nBlockAlign = (avstream->codec->codec_id == CODEC_ID_MP1)
         ? (12 * avstream->codec->bit_rate / avstream->codec->sample_rate) * 4
