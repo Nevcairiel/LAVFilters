@@ -32,6 +32,16 @@ The Audio Decoder will register with a relatively high merit, which should make
 it the preferred decoder by default. Most players offer a way to choose the preferred
 decoder however.
 
+BluRay Support
+=============================
+To play a BluRay, simply open the index.bdmv file in the BDMV folder on the BluRay disc.
+LAV Splitter will then automatically detect the longest track on the disc (usually the main movie),
+and start playing.
+Alternatively you can also open a playlist file (*.mpls, located in BDMV/PLAYLIST), and LAV Splitter
+will then play that specific title.
+
+In future versions you'll be able to choose the title from within the player, as well.
+
 Compiling
 =============================
 Compiling is pretty straight forward using VC++2010 (included project files).

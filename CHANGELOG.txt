@@ -1,5 +1,13 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.20 - 2011/04/05
+LAV Splitter
+- Added first BluRay support (see Release Notes or README for more details)
+
+LAV Audio
+- Removed static jitter check which caused corruptions in some audio streams
+- Improved error resilience - broken streams should now play in many more cases
+
 0.19 - 2011/03/19
 General
 - Version Information has been added to the filter .ax files, as well as shown on the property pages.
