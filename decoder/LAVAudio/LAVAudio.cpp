@@ -728,6 +728,8 @@ HRESULT CLAVAudio::ProcessBuffer()
     DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
     m_buff.SetSize(0);
     return S_OK;
+  } else {
+    DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
   }
 
   if (consumed <= 0) {
@@ -781,7 +783,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       if (used_bytes < 0) {
         return E_FAIL;
       } else if(used_bytes == 0 && pOut_size == 0) {
-        return S_FALSE;
+        break;
       }
 
       buffsize -= used_bytes;
@@ -808,7 +810,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       if(used_bytes < 0) {
         return E_FAIL;
       } else if(used_bytes == 0 && nPCMLength <= 0 ) {
-        return S_FALSE;
+        break;
       }
       buffsize -= used_bytes;
       pDataInBuff += used_bytes;
@@ -919,9 +921,10 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
     }
   }
 
-  if(out->bBuffer->GetCount() <= 0) {
-    return E_FAIL;
+  if (out->bBuffer->GetCount() <= 0) {
+    return S_FALSE;
   }
+
   out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
   m_DecodeFormat = out->sfFormat;
 
