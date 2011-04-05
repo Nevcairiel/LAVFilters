@@ -599,7 +599,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     }
   }
 
-  if(m_program != UINT_MAX) {
+  if(m_program < m_avFormat->nb_programs) {
     // add streams from selected program
     for (unsigned int i = 0; i < m_avFormat->programs[m_program]->nb_stream_indexes; ++i) {
       AddStream(m_avFormat->programs[m_program]->stream_index[i]);
