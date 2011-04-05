@@ -274,7 +274,7 @@ HRESULT CLAVAudio::GetChannelVolumeAverage(WORD nChannel, float *pfDb)
   if (!m_pOutput || m_pOutput->IsConnected() == FALSE || !m_bVolumeStats) {
     return E_UNEXPECTED;
   }
-  if (nChannel >= m_pAVCtx->channels) {
+  if (nChannel >= m_pAVCtx->channels || nChannel >= 8) {
     return E_INVALIDARG;
   }
   *pfDb = m_faVolume[nChannel].Average();
@@ -546,6 +546,11 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   // This could probably be a bit smarter..
   if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
     m_pAVCtx->bits_per_raw_sample = m_pAVCtx->bits_per_coded_sample;
+  }
+
+  // Some sanity checks
+  if (m_pAVCtx->channels > 8) {
+    return VFW_E_UNSUPPORTED_AUDIO;
   }
 
   return S_OK;
