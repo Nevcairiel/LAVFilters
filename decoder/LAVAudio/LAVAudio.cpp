@@ -705,7 +705,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
 
 HRESULT CLAVAudio::ProcessBuffer()
 {
-  HRESULT hr = S_OK;
+  HRESULT hr = S_OK, hr2 = S_OK;
 
   int buffer_size = m_buff.GetCount();
 
@@ -717,10 +717,17 @@ HRESULT CLAVAudio::ProcessBuffer()
 
   // Consume the buffer data
   BufferDetails output_buffer;
-  if (SUCCEEDED(Decode(p, buffer_size, consumed, &output_buffer))) {
+  hr2 = Decode(p, buffer_size, consumed, &output_buffer);
+  // S_OK means we actually have data to process
+  if (hr2 == S_OK) {
     if (SUCCEEDED(PostProcess(&output_buffer))) {
       hr = Deliver(output_buffer);
     }
+  // FAILED - throw away the data
+  } else if (FAILED(hr2)) {
+    DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
+    m_buff.SetSize(0);
+    return S_OK;
   }
 
   if (consumed <= 0) {
@@ -771,8 +778,10 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       BYTE *pOut = NULL;
       int pOut_size = 0;
       int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, AV_NOPTS_VALUE);
-      if (used_bytes < 0 || (used_bytes == 0 && pOut_size == 0)) {
+      if (used_bytes < 0) {
         return E_FAIL;
+      } else if(used_bytes == 0 && pOut_size == 0) {
+        return S_FALSE;
       }
 
       buffsize -= used_bytes;
@@ -796,8 +805,10 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
       int used_bytes = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
 
-      if(used_bytes < 0 || used_bytes == 0 && nPCMLength <= 0 ) {
+      if(used_bytes < 0) {
         return E_FAIL;
+      } else if(used_bytes == 0 && nPCMLength <= 0 ) {
+        return S_FALSE;
       }
       buffsize -= used_bytes;
       pDataInBuff += used_bytes;
