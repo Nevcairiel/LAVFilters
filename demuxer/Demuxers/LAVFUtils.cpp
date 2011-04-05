@@ -446,7 +446,7 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   }
 
   DbgLog((LOG_CUSTOM1, level, L"%S", line));
-  strcpy_s(prev, LOG_BUF_LEN, line);
+  strncpy_s(prev, LOG_BUF_LEN, line, _TRUNCATE);
 }
 #endif
 }
