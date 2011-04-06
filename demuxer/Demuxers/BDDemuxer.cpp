@@ -135,6 +135,8 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
 
   int iPlaylist = -1;
 
+  DbgLog((LOG_TRACE, 10, L"Initializing BluRay Demuxer; Entry Point: %s", pszFileName));
+
   size_t len = strlen(fileName);
   if (len > 16) {
     char *bd_path = fileName;
@@ -164,12 +166,16 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
       return E_FAIL;
     }
 
+    DbgLog((LOG_TRACE, 20, L"Found %d titles", m_nTitleCount));
+    DbgLog((LOG_TRACE, 20, L" ------ Begin Title Listing ------"));
+
     uint64_t longest_duration = 0;
     uint32_t title_id = 0;
     boolean found = false;
     for(uint32_t i = 0; i < m_nTitleCount; i++) {
       BLURAY_TITLE_INFO *info = bd_get_title_info(bd, i);
       if (info) {
+        DbgLog((LOG_TRACE, 20, L"Title %u, Playlist %u (%u clips, %u chapters), Duration %I64u (%I64u seconds)", i, info->playlist, info->clip_count, info->chapter_count, info->duration, Convert90KhzToDSTime(info->duration) / DSHOW_TIME_BASE));
         if (iPlaylist != -1 && info->playlist == iPlaylist) {
           title_id = i;
           found = true;
@@ -182,6 +188,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
       if (found)
         break;
     }
+    DbgLog((LOG_TRACE, 20, L" ------ End Title Listing ------"));
 
     hr = SetTitle(title_id);
   }
