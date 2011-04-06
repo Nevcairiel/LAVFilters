@@ -59,9 +59,32 @@ static inline int64_t ConvertDSTimeTo90Khz(REFERENCE_TIME timestamp)
   return av_rescale(timestamp, 9, 1000);
 }
 
+static void bd_log(const char *log) {
+  const char *path = __FILE__;
+  const char *subpath = "libbluray\\src\\";
+  // skip the path these two have in common
+  while (*log == *path) {
+    log++;
+    path++;
+  }
+  while (*log == *subpath) {
+    log++;
+    subpath++;
+  }
+  wchar_t line[4096] = {0};
+  size_t len = strlen(log);
+  if (log[len-1] == '\n') {
+    len--;
+  }
+  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, log, len, line, 4096);
+  DbgLog((LOG_TRACE, 40, L"[BD] %s", line));
+}
+
 CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings)
   : CBaseDemuxer(L"bluray demuxer", pLock), m_lavfDemuxer(NULL), m_pb(NULL), m_pBD(NULL), m_pTitle(NULL), m_pSettings(pSettings), m_rtOffset(NULL), m_rtNewOffset(0), m_bNewOffsetPos(0), m_nTitleCount(0)
 {
+  bd_set_debug_mask(DBG_FILE|DBG_BLURAY|DBG_DIR|DBG_NAV|DBG_CRIT);
+  bd_set_debug_handler(&bd_log);
 }
 
 

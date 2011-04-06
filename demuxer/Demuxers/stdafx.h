@@ -19,6 +19,8 @@ extern "C" {
 #include "libbluray/bluray.h"
 }
 
+#include "util/log_control.h"
+
 #include "DShowUtil.h"
 #include <MMReg.h>
 
