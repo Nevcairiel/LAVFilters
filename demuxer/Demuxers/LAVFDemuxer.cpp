@@ -148,7 +148,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
 
   for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
-    if (st->codec->codec_id == CODEC_ID_PROBE) {
+    // Filter mis-detected audio streams
+    if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO && st->codec->channels == 0) {
+      DbgLog((LOG_TRACE, 15, L"Stream %d (pid %d) seems invalid, ignoring", idx, st->id));
       st->codec->codec_id = CODEC_ID_NONE;
       st->discard = AVDISCARD_ALL;
       continue;
