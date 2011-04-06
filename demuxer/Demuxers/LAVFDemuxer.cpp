@@ -714,13 +714,18 @@ static int audio_codec_priority(AVCodecContext *codec)
     priority = 10;
     break;
   case CODEC_ID_DTS:
-    priority = 8;
+    priority = 7;
+    if (codec->profile >= FF_PROFILE_DTS_HD_HRA) {
+      priority += 2;
+    } else if (codec->profile >= FF_PROFILE_DTS_ES) {
+      priority += 1;
+    }
     break;
   case CODEC_ID_AC3:
   case CODEC_ID_EAC3:
   case CODEC_ID_AAC:
   case CODEC_ID_AAC_LATM:
-    priority = 7;
+    priority = 5;
     break;
   }
 
