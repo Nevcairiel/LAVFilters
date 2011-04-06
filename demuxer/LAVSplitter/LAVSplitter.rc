@@ -54,7 +54,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 236, 184
+IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 236, 212
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
@@ -67,11 +67,13 @@ BEGIN
     LTEXT           "Subtitle Selection Mode:",IDC_LBL_SUBMODE,7,92,88,8
     CONTROL         "Only with matching language",IDC_SUBMODE_ONLY_MATCHING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,122,104,107,10
-    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,119,222,44
+    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,119,222,75
+    CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,115,10
     CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
                     "Button",BS_AUTO3STATE | WS_TABSTOP,15,147,126,10
-    CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,115,10
-    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,169,222,8,0,WS_EX_RIGHT
+    CONTROL         "Enable Video Stream Parsing",IDC_VIDEOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,162,151,10
+    CONTROL         "Enable Audio Stream Parsing",IDC_AUDIOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,177,151,10
+    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,197,222,8,0,WS_EX_RIGHT
 END
 
 
@@ -88,7 +90,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 229
         TOPMARGIN, 7
-        BOTTOMMARGIN, 177
+        BOTTOMMARGIN, 205
     END
 END
 #endif    // APSTUDIO_INVOKED

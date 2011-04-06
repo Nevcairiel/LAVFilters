@@ -104,4 +104,6 @@ private:
   unsigned int m_program;
 
   REFERENCE_TIME m_rtCurrent;
+
+  enum AVStreamParseType *m_stOrigParser;
 };

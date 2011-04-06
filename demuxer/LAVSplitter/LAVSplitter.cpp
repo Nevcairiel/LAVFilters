@@ -101,6 +101,12 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"substreams", hr);
   m_settings.substreams = SUCCEEDED(hr) ? bFlag : TRUE;
 
+  bFlag = reg.ReadDWORD(L"videoParsing", hr);
+  m_settings.videoParsing = SUCCEEDED(hr) ? bFlag : TRUE;
+
+  bFlag = reg.ReadDWORD(L"audioParsing", hr);
+  m_settings.audioParsing = SUCCEEDED(hr) ? bFlag : TRUE;
+
   return S_OK;
 }
 
@@ -115,6 +121,8 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
     reg.WriteBOOL(L"substreams", m_settings.substreams);
+    reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
+    reg.WriteBOOL(L"audioParsing", m_settings.audioParsing);
   }
   if (m_pDemuxer) {
     m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
@@ -929,4 +937,26 @@ STDMETHODIMP CLAVSplitter::SetSubstreamsEnabled(BOOL bSubStreams)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetSubstreamsEnabled()
 {
   return m_settings.substreams;
+}
+
+STDMETHODIMP CLAVSplitter::SetVideoParsingEnabled(BOOL bEnabled)
+{
+  m_settings.videoParsing = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetVideoParsingEnabled()
+{
+  return m_settings.videoParsing;
+}
+
+STDMETHODIMP CLAVSplitter::SetAudioParsingEnabled(BOOL bEnabled)
+{
+  m_settings.audioParsing = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetAudioParsingEnabled()
+{
+  return m_settings.audioParsing;
 }

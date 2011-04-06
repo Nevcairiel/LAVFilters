@@ -114,6 +114,10 @@ public:
   STDMETHODIMP_(BOOL) IsVC1CompatModeRequired();
   STDMETHODIMP SetSubstreamsEnabled(BOOL bSubStreams);
   STDMETHODIMP_(BOOL) GetSubstreamsEnabled();
+  STDMETHODIMP SetVideoParsingEnabled(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetVideoParsingEnabled();
+  STDMETHODIMP SetAudioParsingEnabled(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetAudioParsingEnabled();
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -173,5 +177,7 @@ private:
     BOOL subtitleMatching;
     int vc1Mode;
     BOOL substreams;
+    BOOL videoParsing;
+    BOOL audioParsing;
   } m_settings;
 };

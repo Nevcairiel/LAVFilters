@@ -80,4 +80,10 @@ interface ILAVFSettings : public IUnknown
 
   // Check whether substreams (AC3 in TrueHD, for example) should be shown as a seperate stream
   STDMETHOD_(BOOL,GetSubstreamsEnabled)() = 0;
+
+  STDMETHOD(SetVideoParsingEnabled)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetVideoParsingEnabled)() = 0;
+
+  STDMETHOD(SetAudioParsingEnabled)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetAudioParsingEnabled)() = 0;
 };

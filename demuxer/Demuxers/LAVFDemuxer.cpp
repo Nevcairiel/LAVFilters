@@ -34,7 +34,7 @@ extern "C" {
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true)
+  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL)
 {
   av_register_all();
   register_protocol(&ufile_protocol);
@@ -146,8 +146,12 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
   int64_t duration = INT64_MIN;
   int64_t st_duration = 0;
 
+  SAFE_CO_FREE(m_stOrigParser);
+  m_stOrigParser = (enum AVStreamParseType *)CoTaskMemAlloc(m_avFormat->nb_streams * sizeof(enum AVStreamParseType));
+
   for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
+    m_stOrigParser[idx] = st->need_parsing;
     // Filter mis-detected audio streams
     if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO && st->codec->channels == 0) {
       DbgLog((LOG_TRACE, 15, L"Stream %d (pid %d) seems invalid, ignoring", idx, st->id));
@@ -186,6 +190,7 @@ void CLAVFDemuxer::CleanupAVFormat()
       av_close_input_file(m_avFormat);
     m_avFormat = NULL;
   }
+  SAFE_CO_FREE(m_stOrigParser);
 }
 
 AVStream* CLAVFDemuxer::GetAVStreamByPID(int pid)
@@ -236,7 +241,13 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
     if (st->codec->codec_id == CODEC_ID_VC1) {
-      st->need_parsing = m_bVC1Correction ? AVSTREAM_PARSE_TIMESTAMPS : AVSTREAM_PARSE_NONE;
+      st->need_parsing = m_bVC1Correction ? m_stOrigParser[idx] : AVSTREAM_PARSE_HEADERS;
+    } else if (m_stOrigParser[idx] == AVSTREAM_PARSE_FULL) {
+      if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+        st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_HEADERS;
+      } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+        st->need_parsing = pSettings->GetAudioParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_HEADERS;
+      }
     }
   }
 }

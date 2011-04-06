@@ -43,7 +43,7 @@ CUnknown* WINAPI CLAVSplitterSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESUL
 
 CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(IUnknown *pUnk)
   : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
-  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL)
+  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL), m_videoParsing(TRUE), m_audioParsing(TRUE)
 {
 }
 
@@ -102,6 +102,12 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetSubstreamsEnabled(bFlag));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetVideoParsingEnabled(bFlag));
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetAudioParsingEnabled(bFlag));
+
   LoadData();
 
 done:    
@@ -150,6 +156,12 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_SETCHECK, m_substreams, 0);
   addHint(IDC_SUBSTREAMS, L"Controls if sub-streams should be exposed as a separate stream.\nSub-streams are typically streams for backwards compatibility, for example the AC3 part of TrueHD streams on BluRays");
 
+  SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_SETCHECK, m_videoParsing, 0);
+  addHint(IDC_VIDEOPARSING, L"Enables parsing and repacking of video streams.\n\nSome decoders might not work with this disabled, however in conjunction with some renderers, you might get more fluid playback if this is off.");
+
+  SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_SETCHECK, m_audioParsing, 0);
+  addHint(IDC_AUDIOPARSING, L"Enables parsing and repacking of audio streams.\n\nIts not recommended to turn this off.");
+
   return hr;
 }
 HRESULT CLAVSplitterSettingsProp::LoadData()
@@ -167,6 +179,9 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_subtitleMatching = m_pLAVF->GetSubtitleMatchingLanguage();
   m_VC1Mode = m_pLAVF->GetVC1TimestampMode();
   m_substreams = m_pLAVF->GetSubstreamsEnabled();
+
+  m_videoParsing = m_pLAVF->GetVideoParsingEnabled();
+  m_audioParsing = m_pLAVF->GetAudioParsingEnabled();
 
 done:
   return hr;
@@ -220,6 +235,16 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBSTREAMS) {
         BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_GETCHECK, 0, 0);
         if (bFlag != m_substreams) {
+          SetDirty();
+        }
+      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VIDEOPARSING) {
+        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
+        if (bFlag != m_videoParsing) {
+          SetDirty();
+        }
+      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUDIOPARSING) {
+        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_GETCHECK, 0, 0);
+        if (bFlag != m_audioParsing) {
           SetDirty();
         }
       }
