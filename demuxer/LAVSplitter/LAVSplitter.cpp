@@ -260,7 +260,8 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
   }
 
   if(SUCCEEDED(hr)) {
-    return !m_pPins.empty();
+    // If there are no pins, what good are we?
+    return !m_pPins.empty() ? S_OK : E_FAIL;
   } else {
     return hr;
   }
