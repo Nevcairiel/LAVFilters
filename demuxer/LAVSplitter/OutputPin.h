@@ -84,6 +84,8 @@ private:
   enum {CMD_EXIT};
   DWORD ThreadProc();
 
+  HRESULT QueueVC1(Packet *pPacket);
+
 private:
   CCritSec m_csMT;
   std::vector<CMediaType> m_mts;
@@ -105,4 +107,6 @@ private:
   CMediaType *m_newMT;
 
   CBaseDemuxer::StreamType m_pinType;
+
+  Packet m_bufferPacket;
 };

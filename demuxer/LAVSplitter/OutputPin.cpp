@@ -161,9 +161,13 @@ HRESULT CLAVOutputPin::DeliverEndFlush()
 {
   if(!ThreadExists()) return S_FALSE;
   HRESULT hr = IsConnected() ? GetConnected()->EndFlush() : S_OK;
+
+  m_bufferPacket.SetDataSize(0);
+
   m_hrDeliver = S_OK;
   m_fFlushing = false;
   m_fFlushed = true;
+
   m_eEndFlush.Set();
   return hr;
 }
@@ -187,13 +191,122 @@ HRESULT CLAVOutputPin::QueueEndOfStream()
   return QueuePacket(NULL); // NULL means EndOfStream
 }
 
+HRESULT CLAVOutputPin::QueueVC1(Packet *pPacket)
+{
+  if (m_bufferPacket.GetDataSize() == 0) {
+    m_bufferPacket.StreamId = pPacket->StreamId;
+    m_bufferPacket.bDiscontinuity = pPacket->bDiscontinuity;
+    pPacket->bDiscontinuity = FALSE;
+
+    m_bufferPacket.bSyncPoint = pPacket->bSyncPoint;
+    pPacket->bSyncPoint = FALSE;
+
+    m_bufferPacket.rtStart = pPacket->rtStart;
+    pPacket->rtStart = Packet::INVALID_TIME;
+
+    m_bufferPacket.rtStop = pPacket->rtStop;
+    pPacket->rtStop = Packet::INVALID_TIME;
+  }
+
+  m_bufferPacket.Append(pPacket);
+
+  BYTE *start = m_bufferPacket.GetData();
+  BYTE *end = start + m_bufferPacket.GetDataSize();
+
+  bool bSeqFound = false;
+  while(start <= end-4) {
+    if (*(DWORD *)start == 0x0D010000) {
+      bSeqFound = true;
+      break;
+    } else if (*(DWORD *)start == 0x0F010000) {
+      break;
+    }
+    start++;
+  }
+
+  while(start <= end-4) {
+    BYTE *next = start+1;
+
+    while(next <= end-4) {
+      if (*(DWORD *)next == 0x0D010000) {
+        if (bSeqFound) {
+          break;
+        }
+        bSeqFound = true;
+      } else if (*(DWORD*)next == 0x0F010000) {
+        break;
+      }
+      next++;
+    }
+
+    if(next >= end-4) {
+      break;
+    }
+
+    int size = next - start - 4;
+
+    Packet *p2 = new Packet();
+    p2->StreamId = m_bufferPacket.StreamId;
+    p2->bDiscontinuity = m_bufferPacket.bDiscontinuity;
+    m_bufferPacket.bDiscontinuity = FALSE;
+
+    p2->bSyncPoint = m_bufferPacket.bSyncPoint;
+    m_bufferPacket.bSyncPoint = FALSE;
+
+    p2->rtStart = m_bufferPacket.rtStart;
+    m_bufferPacket.rtStart = Packet::INVALID_TIME;
+
+    p2->rtStop = p2->rtStart + 1;
+    m_bufferPacket.rtStop = Packet::INVALID_TIME;
+
+    p2->pmt = m_bufferPacket.pmt;
+    m_bufferPacket.pmt = NULL;
+
+    p2->SetData(start, next - start);
+
+    m_queue.Queue(p2);
+
+    if (pPacket->rtStart != Packet::INVALID_TIME) {
+      m_bufferPacket.rtStart = pPacket->rtStart;
+      m_bufferPacket.rtStop = pPacket->rtStop;
+      pPacket->rtStart = Packet::INVALID_TIME;
+    }
+
+    if (pPacket->bDiscontinuity) {
+      m_bufferPacket.bDiscontinuity = pPacket->bDiscontinuity;
+      pPacket->bDiscontinuity = FALSE;
+    }
+
+    if (pPacket->bSyncPoint) {
+      m_bufferPacket.bSyncPoint = pPacket->bSyncPoint;
+      pPacket->bSyncPoint = FALSE;
+    }
+
+    m_bufferPacket.pmt = pPacket->pmt;
+    pPacket->pmt = NULL;
+
+    start = next;
+    bSeqFound = (*(DWORD*)start == 0x0D010000);
+  }
+
+  if(start > m_bufferPacket.GetData()) {
+    m_bufferPacket.RemoveHead(start - m_bufferPacket.GetData());
+  }
+
+  delete pPacket;
+
+  return S_OK;
+}
+
 HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
 {
   if(!ThreadExists()) return S_FALSE;
 
+  CLAVSplitter *pSplitter = static_cast<CLAVSplitter*>(m_pFilter);
+
   // While everything is good AND no pin is drying AND the queue is full .. sleep
   while(S_OK == m_hrDeliver 
-    && !(static_cast<CLAVSplitter*>(m_pFilter))->IsAnyPinDrying()
+    && !pSplitter->IsAnyPinDrying()
     && m_queue.Size() > MAX_PACKETS_IN_QUEUE)
     Sleep(1);
 
@@ -210,7 +323,12 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
     }
   }
 
-  m_queue.Queue(pPacket);
+  if (pPacket && (m_mt.subtype == MEDIASUBTYPE_WVC1 || m_mt.subtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_mt.subtype == MEDIASUBTYPE_WVC1_CYBERLINK)
+    && pSplitter->GetVideoParsingEnabled() && (pSplitter->GetVC1TimestampMode() == 0 || (pSplitter->GetVC1TimestampMode() == 2 && pSplitter->IsVC1CompatModeRequired()))) {
+    QueueVC1(pPacket);
+  } else {
+    m_queue.Queue(pPacket);
+  }
 
   return m_hrDeliver;
 }
