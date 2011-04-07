@@ -133,7 +133,7 @@ STDAPI DllRegisterServer()
   chkbytes.push_back(L"0,4,,52494646,8,4,,414D5620"); // 'RIFF' ... 'AMV '
 
   RegisterSourceFilter(__uuidof(CLAVSplitter),
-    MEDIASUBTYPE_LAVAvi,
+    MEDIASUBTYPE_Avi,
     chkbytes,
     L".avi", L".divx", L".vp6", L".amv");
 
@@ -205,14 +205,19 @@ STDAPI DllRegisterServer()
 
 STDAPI DllUnregisterServer()
 {
+  // Deprecated and unused types
   UnRegisterSourceFilter(MEDIATYPE_LAVSplitter);
-  UnRegisterSourceFilter(MEDIASUBTYPE_LAVMatroska);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVAvi);
+
+  // Current types
+  UnRegisterSourceFilter(MEDIASUBTYPE_LAVMatroska);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVMP4);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVMPEG);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVFLV);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVOgg);
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVBluRay);
+
+  // Do not unregister default MS types, like MEDIASUBTYPE_Avi
 
   // base classes will handle de-registration using the factory template table
   return AMovieDllRegisterServer2(false);
