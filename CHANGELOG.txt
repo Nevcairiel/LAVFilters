@@ -1,5 +1,14 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.21 - 2011/04/07
+LAV Splitter
+- Improve MPEG-TS program handling in some special circumstances
+- Filter out misdetected audio streams (unsupported DTS Express on BluRays)
+- Increase the priority of DTS-HD over normal DTS
+- Use the official AVI MEDIASUBTYPE instead of a custom one
+- Added options to completly disable stream parsing
+- Added a new VC-1 parser which will take over when VC-1 timestamp adjustments are turned off
+
 0.20 - 2011/04/05
 LAV Splitter
 - Added first BluRay support (see Release Notes or README for more details)
