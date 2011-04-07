@@ -241,12 +241,12 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
     if (st->codec->codec_id == CODEC_ID_VC1) {
-      st->need_parsing = m_bVC1Correction ? m_stOrigParser[idx] : AVSTREAM_PARSE_HEADERS;
+      st->need_parsing = m_bVC1Correction ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
     } else if (m_stOrigParser[idx] == AVSTREAM_PARSE_FULL) {
       if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-        st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_HEADERS;
+        st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
       } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-        st->need_parsing = pSettings->GetAudioParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_HEADERS;
+        st->need_parsing = pSettings->GetAudioParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
       }
     }
   }
