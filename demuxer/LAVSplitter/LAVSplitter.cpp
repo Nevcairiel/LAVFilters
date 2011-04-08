@@ -924,9 +924,9 @@ STDMETHODIMP CLAVSplitter::SetVC1TimestampMode(int iMode)
   return SaveSettings();
 }
 
-STDMETHODIMP_(BOOL) CLAVSplitter::IsVC1CompatModeRequired()
+STDMETHODIMP_(BOOL) CLAVSplitter::IsVC1CorrectionRequired()
 {
-  return FilterInGraph(CLSID_LAVCUVID, m_pGraph) || FilterInGraph(CLSID_CyberlinkVidDec, m_pGraph) || FilterInGraph(CLSID_ArcSoftVidDec, m_pGraph);
+  return FilterInGraph(CLSID_MPCVideoDec, m_pGraph) || FilterInGraph(CLSID_DMOWrapperFilter, m_pGraph);
 }
 
 STDMETHODIMP CLAVSplitter::SetSubstreamsEnabled(BOOL bSubStreams)

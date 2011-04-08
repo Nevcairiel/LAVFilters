@@ -232,7 +232,7 @@ void CLAVFDemuxer::UpdateSubStreams()
 void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
 {
   int vc1Mode = pSettings->GetVC1TimestampMode();
-  if (vc1Mode == 1 || (vc1Mode == 2 && !pSettings->IsVC1CompatModeRequired())) {
+  if (vc1Mode == 1 || (vc1Mode == 2 && pSettings->IsVC1CorrectionRequired())) {
     m_bVC1Correction = true;
   } else {
     m_bVC1Correction = false;
@@ -350,9 +350,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       rt = dts;
     }
 
-    // stupid VC1
-    if (m_bVC1Correction && stream->codec->codec_id == CODEC_ID_VC1 && dts != Packet::INVALID_TIME) {
+    if (m_bVC1Correction && stream->codec->codec_id == CODEC_ID_VC1) {
       rt = dts;
+      pPacket->dwFlags |= LAV_PACKET_PARSED;
     }
 
     pPacket->rtStart = pPacket->rtStop = rt;

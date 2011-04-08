@@ -41,7 +41,10 @@ public:
   LONGLONG bPosition;
   AM_MEDIA_TYPE* pmt;
 
-  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; bPosition = -1; }
+#define LAV_PACKET_PARSED 0x0001
+  DWORD dwFlags;
+
+  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; bPosition = -1; dwFlags = 0; }
   ~Packet() { DeleteMediaType(pmt); free(m_pbData); }
 
   // Getter

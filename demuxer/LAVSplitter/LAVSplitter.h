@@ -111,7 +111,7 @@ public:
   STDMETHODIMP SetSubtitleMatchingLanguage(BOOL dwMode);
   STDMETHODIMP_(int) GetVC1TimestampMode();
   STDMETHODIMP SetVC1TimestampMode(int iMode);
-  STDMETHODIMP_(BOOL) IsVC1CompatModeRequired();
+  STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
   STDMETHODIMP SetSubstreamsEnabled(BOOL bSubStreams);
   STDMETHODIMP_(BOOL) GetSubstreamsEnabled();
   STDMETHODIMP SetVideoParsingEnabled(BOOL bEnabled);

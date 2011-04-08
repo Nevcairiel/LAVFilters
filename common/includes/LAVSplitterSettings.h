@@ -73,7 +73,7 @@ interface ILAVFSettings : public IUnknown
   // 0 - No Timestamp Correction, 1 - Always Timestamp Correction, 2 - Auto (Correction for Decoders that need it)
   STDMETHOD(SetVC1TimestampMode)(int iMode) = 0;
 
-  STDMETHOD_(BOOL,IsVC1CompatModeRequired)() = 0;
+  STDMETHOD_(BOOL,IsVC1CorrectionRequired)() = 0;
 
   // Set whether substreams (AC3 in TrueHD, for example) should be shown as a seperate stream
   STDMETHOD(SetSubstreamsEnabled)(BOOL bSubStreams) = 0;

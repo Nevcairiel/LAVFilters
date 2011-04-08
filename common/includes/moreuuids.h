@@ -25,6 +25,7 @@
 #pragma once
 
 #include <dvdmedia.h>
+#include <dmodshow.h>
 
 #include "format_guids.h"
 
@@ -1097,7 +1098,11 @@ DEFINE_GUID(DXVA_Intel_H264_ClearVideo, 0x604F8E68, 0x4951,0x4C54,0x88,0xFE,0xAB
 
 DEFINE_GUID(CLSID_AC3Filter, 0xA753A1EC, 0x973E, 0x4718, 0xAF, 0x8E, 0xA3, 0xF5, 0x54, 0xD4, 0x5C, 0x44);
 
-// Commercial GUIDs
+// Filter/Commercial GUIDs
+
+// MPC Video Dec
+// 008BAC12-FBAF-497b-9670-BC6F6FBAE2C4
+DEFINE_GUID(CLSID_MPCVideoDec, 0x008BAC12, 0xFBAF, 0x497B, 0x96, 0x70, 0xBC, 0x6F, 0x6F, 0xBA, 0xE2, 0xC4);
 
 // LAV CUVID Decoder
 // 62D767FE-4F1B-478B-B350-8ACE9E4DB00E

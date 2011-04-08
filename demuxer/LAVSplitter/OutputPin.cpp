@@ -256,7 +256,7 @@ HRESULT CLAVOutputPin::QueueVC1(Packet *pPacket)
     p2->rtStart = m_bufferPacket.rtStart;
     m_bufferPacket.rtStart = Packet::INVALID_TIME;
 
-    p2->rtStop = p2->rtStart + 1;
+    p2->rtStop = m_bufferPacket.rtStop;
     m_bufferPacket.rtStop = Packet::INVALID_TIME;
 
     p2->pmt = m_bufferPacket.pmt;
@@ -267,7 +267,7 @@ HRESULT CLAVOutputPin::QueueVC1(Packet *pPacket)
     m_queue.Queue(p2);
 
     if (pPacket->rtStart != Packet::INVALID_TIME) {
-      m_bufferPacket.rtStart = pPacket->rtStart;
+      m_bufferPacket.rtStart = pPacket->rtStop;
       m_bufferPacket.rtStop = pPacket->rtStop;
       pPacket->rtStart = Packet::INVALID_TIME;
     }
@@ -324,7 +324,7 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
   }
 
   if (pPacket && (m_mt.subtype == MEDIASUBTYPE_WVC1 || m_mt.subtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_mt.subtype == MEDIASUBTYPE_WVC1_CYBERLINK)
-    && pSplitter->GetVideoParsingEnabled() && (pSplitter->GetVC1TimestampMode() == 0 || (pSplitter->GetVC1TimestampMode() == 2 && pSplitter->IsVC1CompatModeRequired()))) {
+    && !(pPacket->dwFlags & LAV_PACKET_PARSED)) {
     QueueVC1(pPacket);
   } else {
     m_queue.Queue(pPacket);
