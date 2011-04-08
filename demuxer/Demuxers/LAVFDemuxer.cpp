@@ -34,7 +34,7 @@ extern "C" {
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL)
+  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL), m_pFontInstaller(NULL)
 {
   av_register_all();
   register_protocol(&ufile_protocol);
@@ -50,6 +50,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
 CLAVFDemuxer::~CLAVFDemuxer()
 {
   CleanupAVFormat();
+  SAFE_DELETE(m_pFontInstaller);
 }
 
 STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -166,6 +167,13 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
     }
 
     UpdateSubStreams();
+
+    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT && st->codec->codec_id == CODEC_ID_TTF) {
+      if (!m_pFontInstaller) {
+        m_pFontInstaller = new CFontInstaller();
+      }
+      m_pFontInstaller->InstallFont(st->codec->extradata, st->codec->extradata_size);
+    }
   }
   if (duration != INT64_MIN) {
     m_avFormat->duration = duration;

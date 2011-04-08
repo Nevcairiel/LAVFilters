@@ -119,6 +119,7 @@
     <ClInclude Include="BaseDSPropPage.h" />
     <ClInclude Include="DShowUtil.h" />
     <ClInclude Include="FloatingAverage.h" />
+    <ClInclude Include="FontInstaller.h" />
     <ClInclude Include="growarray.h" />
     <ClInclude Include="H264Nalu.h" />
     <ClInclude Include="registry.h" />
@@ -128,6 +129,7 @@
     <ClCompile Include="BaseDSPropPage.cpp" />
     <ClCompile Include="DShowUtil.cpp" />
     <ClCompile Include="filterreg.cpp" />
+    <ClCompile Include="FontInstaller.cpp" />
     <ClCompile Include="H264Nalu.cpp" />
     <ClCompile Include="locale.cpp" />
     <ClCompile Include="registry.cpp" />
