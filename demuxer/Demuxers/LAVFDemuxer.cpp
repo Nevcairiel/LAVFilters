@@ -514,6 +514,11 @@ STDMETHODIMP CLAVFDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
 STDMETHODIMP CLAVFDemuxer::GetKeyFrameCount(UINT& nKFs)
 {
   if(m_dActiveStreams[video] < 0) { return E_NOTIMPL; }
+
+  if (!m_bMatroska && !m_bAVI) {
+    return E_FAIL;
+  }
+
   AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
   nKFs = stream->nb_index_entries;
   return (stream->nb_index_entries == stream->nb_frames) ? S_FALSE : S_OK;
@@ -525,6 +530,10 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
   CheckPointer(pKFs, E_POINTER);
 
   if(m_dActiveStreams[video] < 0) { return E_NOTIMPL; }
+
+  if (!m_bMatroska && !m_bAVI) {
+    return E_FAIL;
+  }
 
   if(*pFormat != TIME_FORMAT_MEDIA_TIME) return E_INVALIDARG;
 
