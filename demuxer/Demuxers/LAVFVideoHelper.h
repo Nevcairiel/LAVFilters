@@ -288,7 +288,7 @@ class CLAVFVideoHelper
 {
 public:
   CLAVFVideoHelper() {};
-  CMediaType initVideoType(CodecID codecId, unsigned int &codecTag);
+  CMediaType initVideoType(CodecID codecId, unsigned int &codecTag, std::string container);
 
   VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size);
   VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container = "");

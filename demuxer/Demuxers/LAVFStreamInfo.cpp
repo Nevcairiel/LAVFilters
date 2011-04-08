@@ -37,6 +37,10 @@ CLAVFStreamInfo::CLAVFStreamInfo(AVStream *avstream, const char* containerFormat
     m_containerFormat = "matroska";
   }
 
+  if(m_containerFormat.find("mov,mp4") != std::string::npos) {
+    m_containerFormat = "mp4";
+  }
+
   switch(avstream->codec->codec_type) {
   case AVMEDIA_TYPE_AUDIO:
     hr = CreateAudioMediaType(avstream);
@@ -136,7 +140,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   if (avstream->codec->codec_tag == 0) {
     avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
   }
-  CMediaType mtype = g_VideoHelper.initVideoType(avstream->codec->codec_id, avstream->codec->codec_tag);
+  CMediaType mtype = g_VideoHelper.initVideoType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
 
   mtype.bTemporalCompression = 1;
   mtype.bFixedSizeSamples = 0; // TODO

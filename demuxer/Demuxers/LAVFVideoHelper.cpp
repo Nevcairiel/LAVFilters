@@ -29,7 +29,7 @@
 
 CLAVFVideoHelper g_VideoHelper;
 
-CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecTag)
+CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecTag, std::string container)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -65,7 +65,11 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecT
     mediaType.subtype = MEDIASUBTYPE_MPEG2_VIDEO;
     break;
   case CODEC_ID_MPEG4:
-    mediaType.formattype = FORMAT_MPEG2Video;
+    if (container == "mp4") {
+      mediaType.formattype = FORMAT_MPEG2Video;
+    } else {
+      mediaType.formattype = FORMAT_VideoInfo2;
+    }
     break;
   case CODEC_ID_RV10:
   case CODEC_ID_RV20:
