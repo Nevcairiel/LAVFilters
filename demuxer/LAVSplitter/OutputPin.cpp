@@ -35,6 +35,7 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_containerFormat(container)
   , m_newMT(NULL)
   , m_pinType(pinType)
+  , m_Parser(this, container)
 {
   m_mts = mts;
   m_nBuffers = max(nBuffers, 1);
@@ -48,6 +49,7 @@ CLAVOutputPin::CLAVOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLoc
   , m_containerFormat(container)
   , m_newMT(NULL)
   , m_pinType(pinType)
+  , m_Parser(this, container)
 {
   m_nBuffers = max(nBuffers, 1);
 }
@@ -162,7 +164,7 @@ HRESULT CLAVOutputPin::DeliverEndFlush()
   if(!ThreadExists()) return S_FALSE;
   HRESULT hr = IsConnected() ? GetConnected()->EndFlush() : S_OK;
 
-  m_bufferPacket.SetDataSize(0);
+  m_Parser.Flush();
 
   m_hrDeliver = S_OK;
   m_fFlushing = false;
@@ -191,113 +193,6 @@ HRESULT CLAVOutputPin::QueueEndOfStream()
   return QueuePacket(NULL); // NULL means EndOfStream
 }
 
-HRESULT CLAVOutputPin::QueueVC1(Packet *pPacket)
-{
-  if (m_bufferPacket.GetDataSize() == 0) {
-    m_bufferPacket.StreamId = pPacket->StreamId;
-    m_bufferPacket.bDiscontinuity = pPacket->bDiscontinuity;
-    pPacket->bDiscontinuity = FALSE;
-
-    m_bufferPacket.bSyncPoint = pPacket->bSyncPoint;
-    pPacket->bSyncPoint = FALSE;
-
-    m_bufferPacket.rtStart = pPacket->rtStart;
-    pPacket->rtStart = Packet::INVALID_TIME;
-
-    m_bufferPacket.rtStop = pPacket->rtStop;
-    pPacket->rtStop = Packet::INVALID_TIME;
-  }
-
-  m_bufferPacket.Append(pPacket);
-
-  BYTE *start = m_bufferPacket.GetData();
-  BYTE *end = start + m_bufferPacket.GetDataSize();
-
-  bool bSeqFound = false;
-  while(start <= end-4) {
-    if (*(DWORD *)start == 0x0D010000) {
-      bSeqFound = true;
-      break;
-    } else if (*(DWORD *)start == 0x0F010000) {
-      break;
-    }
-    start++;
-  }
-
-  while(start <= end-4) {
-    BYTE *next = start+1;
-
-    while(next <= end-4) {
-      if (*(DWORD *)next == 0x0D010000) {
-        if (bSeqFound) {
-          break;
-        }
-        bSeqFound = true;
-      } else if (*(DWORD*)next == 0x0F010000) {
-        break;
-      }
-      next++;
-    }
-
-    if(next >= end-4) {
-      break;
-    }
-
-    int size = next - start - 4;
-
-    Packet *p2 = new Packet();
-    p2->StreamId = m_bufferPacket.StreamId;
-    p2->bDiscontinuity = m_bufferPacket.bDiscontinuity;
-    m_bufferPacket.bDiscontinuity = FALSE;
-
-    p2->bSyncPoint = m_bufferPacket.bSyncPoint;
-    m_bufferPacket.bSyncPoint = FALSE;
-
-    p2->rtStart = m_bufferPacket.rtStart;
-    m_bufferPacket.rtStart = Packet::INVALID_TIME;
-
-    p2->rtStop = m_bufferPacket.rtStop;
-    m_bufferPacket.rtStop = Packet::INVALID_TIME;
-
-    p2->pmt = m_bufferPacket.pmt;
-    m_bufferPacket.pmt = NULL;
-
-    p2->SetData(start, next - start);
-
-    m_queue.Queue(p2);
-
-    if (pPacket->rtStart != Packet::INVALID_TIME) {
-      m_bufferPacket.rtStart = pPacket->rtStop;
-      m_bufferPacket.rtStop = pPacket->rtStop;
-      pPacket->rtStart = Packet::INVALID_TIME;
-    }
-
-    if (pPacket->bDiscontinuity) {
-      m_bufferPacket.bDiscontinuity = pPacket->bDiscontinuity;
-      pPacket->bDiscontinuity = FALSE;
-    }
-
-    if (pPacket->bSyncPoint) {
-      m_bufferPacket.bSyncPoint = pPacket->bSyncPoint;
-      pPacket->bSyncPoint = FALSE;
-    }
-
-    m_bufferPacket.pmt = pPacket->pmt;
-    pPacket->pmt = NULL;
-
-    start = next;
-    bSeqFound = (*(DWORD*)start == 0x0D010000);
-  }
-
-  if(start > m_bufferPacket.GetData()) {
-    m_bufferPacket.RemoveHead(start - m_bufferPacket.GetData());
-  }
-
-  delete pPacket;
-
-  return S_OK;
-}
-
 HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
 {
   if(!ThreadExists()) return S_FALSE;
@@ -323,12 +218,7 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
     }
   }
 
-  if (pPacket && (m_mt.subtype == MEDIASUBTYPE_WVC1 || m_mt.subtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_mt.subtype == MEDIASUBTYPE_WVC1_CYBERLINK)
-    && !(pPacket->dwFlags & LAV_PACKET_PARSED)) {
-    QueueVC1(pPacket);
-  } else {
-    m_queue.Queue(pPacket);
-  }
+  m_Parser.Parse(m_mt.subtype, pPacket);
 
   return m_hrDeliver;
 }

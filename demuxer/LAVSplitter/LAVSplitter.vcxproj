@@ -154,6 +154,7 @@
     <ClCompile Include="PacketQueue.cpp" />
     <ClCompile Include="OutputPin.cpp" />
     <ClCompile Include="LAVSplitter.cpp" />
+    <ClCompile Include="StreamParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\includes\format_guids.h" />
@@ -169,6 +170,7 @@
     <ClInclude Include="PacketQueue.h" />
     <ClInclude Include="OutputPin.h" />
     <ClInclude Include="LAVSplitter.h" />
+    <ClInclude Include="StreamParser.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVSplitter.rc" />

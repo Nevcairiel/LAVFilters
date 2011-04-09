@@ -26,6 +26,7 @@
 #include <vector>
 #include <string>
 #include "PacketQueue.h"
+#include "StreamParser.h"
 
 #include "moreuuids.h"
 
@@ -70,6 +71,8 @@ public:
   BOOL IsSubtitlePin(){ return m_pinType == CBaseDemuxer::subpic; }
   CBaseDemuxer::StreamType GetPinType() { return m_pinType; }
 
+  HRESULT QueueFromParser(Packet *pPacket) { m_queue.Queue(pPacket); return S_OK; }
+
 public:
   // Packet handling functions
   virtual HRESULT DeliverBeginFlush();
@@ -83,8 +86,6 @@ protected:
 private:
   enum {CMD_EXIT};
   DWORD ThreadProc();
-
-  HRESULT QueueVC1(Packet *pPacket);
 
 private:
   CCritSec m_csMT;
@@ -108,5 +109,5 @@ private:
 
   CBaseDemuxer::StreamType m_pinType;
 
-  Packet m_bufferPacket;
+  CStreamParser m_Parser;
 };
