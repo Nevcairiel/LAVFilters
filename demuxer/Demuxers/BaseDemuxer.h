@@ -45,7 +45,7 @@ public:
   DWORD dwFlags;
 
   Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dwSize = 0; m_dwBlockSize = 0; bPosition = -1; dwFlags = 0; }
-  ~Packet() { DeleteMediaType(pmt); free(m_pbData); }
+  ~Packet() { DeleteMediaType(pmt); SAFE_CO_FREE(m_pbData); }
 
   // Getter
   DWORD GetDataSize() const { return m_dwSize; }
@@ -54,8 +54,9 @@ public:
   bool IsEmpty() const { return m_dwSize == 0; }
 
   // Setter
-  void SetDataSize(DWORD len) { m_dwSize = len; if (m_dwSize > m_dwBlockSize) { m_pbData = (BYTE *)realloc(m_pbData, m_dwSize); m_dwBlockSize = m_dwSize; }}
+  void SetDataSize(DWORD len) { m_dwSize = len; if (m_dwSize > m_dwBlockSize) { m_pbData = (BYTE *)CoTaskMemRealloc(m_pbData, m_dwSize); m_dwBlockSize = m_dwSize; }}
   void SetData(const void* ptr, DWORD len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
+  void Clear() { m_dwSize = m_dwBlockSize = 0; SAFE_CO_FREE(m_pbData); }
 
   // Append the data of the package to our data buffer
   void Append(Packet *ptr) {
