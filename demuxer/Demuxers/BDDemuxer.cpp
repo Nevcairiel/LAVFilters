@@ -346,7 +346,7 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
 
 const char *CBDDemuxer::GetContainerFormat() const
 {
-  return "bluray";
+  return "mpegts";
 }
 
 HRESULT CBDDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const
