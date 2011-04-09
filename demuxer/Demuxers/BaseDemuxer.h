@@ -44,35 +44,36 @@ public:
 #define LAV_PACKET_PARSED 0x0001
   DWORD dwFlags;
 
-  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dSize = 0; bPosition = -1; dwFlags = 0; }
+  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dwSize = 0; m_dwBlockSize = 0; bPosition = -1; dwFlags = 0; }
   ~Packet() { DeleteMediaType(pmt); free(m_pbData); }
 
   // Getter
-  DWORD GetDataSize() const { return m_dSize; }
+  DWORD GetDataSize() const { return m_dwSize; }
   BYTE *GetData() { return m_pbData; }
   BYTE GetAt(DWORD pos) const { return m_pbData[pos]; }
-  bool IsEmpty() const { return m_dSize == 0; }
+  bool IsEmpty() const { return m_dwSize == 0; }
 
   // Setter
-  void SetDataSize(DWORD len) { m_dSize = len; m_pbData = (BYTE *)realloc(m_pbData, len); }
+  void SetDataSize(DWORD len) { m_dwSize = len; if (m_dwSize > m_dwBlockSize) { m_pbData = (BYTE *)realloc(m_pbData, m_dwSize); m_dwBlockSize = m_dwSize; }}
   void SetData(const void* ptr, DWORD len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
 
   // Append the data of the package to our data buffer
   void Append(Packet *ptr) {
-    DWORD prevSize = m_dSize;
+    DWORD prevSize = m_dwSize;
     SetDataSize(prevSize + ptr->GetDataSize());
     memcpy(m_pbData+prevSize, ptr->GetData(), ptr->GetDataSize());
   }
 
   // Remove count bytes from position index
   void RemoveHead(DWORD count) {
-    count = min(count, m_dSize);
-    memmove(m_pbData, m_pbData+count, m_dSize-count);
-    SetDataSize(m_dSize - count);
+    count = min(count, m_dwSize);
+    memmove(m_pbData, m_pbData+count, m_dwSize-count);
+    SetDataSize(m_dwSize - count);
   }
 
 private:
-  DWORD m_dSize;
+  DWORD m_dwSize;
+  DWORD m_dwBlockSize;
   BYTE *m_pbData;
 };
 
