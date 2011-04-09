@@ -345,12 +345,10 @@ DWORD CLAVSplitter::ThreadProc()
     // Wait for the end of any flush
     m_eEndFlush.Wait();
 
-    if(!m_fFlushing) {
-      std::vector<CLAVOutputPin *>::iterator it;
-      for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
-        if ((*it)->IsConnected()) {
-          (*it)->DeliverNewSegment(m_rtStart, m_rtStop, m_dRate);
-        }
+    std::vector<CLAVOutputPin *>::iterator it;
+    for(it = m_pPins.begin(); it != m_pPins.end() && !m_fFlushing; ++it) {
+      if ((*it)->IsConnected()) {
+        (*it)->DeliverNewSegment(m_rtStart, m_rtStop, m_dRate);
       }
     }
 

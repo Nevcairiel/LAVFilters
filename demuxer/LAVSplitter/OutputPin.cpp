@@ -311,7 +311,7 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   // Resize buffer if it is too small
   // This can cause a playback hick-up, we should avoid this if possible by setting a big enough buffer size
   if(nBytes > pSample->GetSize()) {
-    pSample->Release(); 
+    SafeRelease(&pSample);
     ALLOCATOR_PROPERTIES props, actual;
     CHECK_HR(hr = m_pAllocator->GetProperties(&props));
     // Give us 2 times the requested size, so we don't resize every time
@@ -354,9 +354,7 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   CHECK_HR(hr = Deliver(pSample));
 
 done:
-  delete pPacket;
-  if (pSample) {
-    pSample->Release();
-  }
+  SAFE_DELETE(pPacket);
+  SafeRelease(&pSample);
   return hr;
 }
