@@ -127,7 +127,7 @@ DWORD avc_parse_annexb(BYTE *extra, int extrasize, BYTE *dst)
   Nalu.SetBuffer(extra, extrasize, 0);
   while (Nalu.ReadNext()) {
     BYTE *data = Nalu.GetDataBuffer();
-    if (((*data & 0x9f) == 0x07 || (*data & 0x9f) == 0x08) && (*data & 0x60) != 0) {
+    if (((*data & 0x9f) == NALU_TYPE_SPS || (*data & 0x9f) == NALU_TYPE_PPS) && (*data & 0x60) != 0) {
       int16_t len = Nalu.GetDataLength();
       AV_WB16(dst+dstSize, len);
       dstSize += 2;
