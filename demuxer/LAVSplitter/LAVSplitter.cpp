@@ -44,7 +44,7 @@ CUnknown* WINAPI CLAVSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
   , m_rtStart(0), m_rtStop(0), m_rtCurrent(0), m_bPlaybackStarted(FALSE)
-  , m_dRate(1.0)
+  , m_dRate(1.0), m_rtLastStart(_I64_MIN), m_rtLastStop(_I64_MIN)
   , m_pDemuxer(NULL)
 {
   LoadSettings();
@@ -564,6 +564,10 @@ STDMETHODIMP CLAVSplitter::GetCurrentPosition(LONGLONG* pCurrent) {return E_NOTI
 STDMETHODIMP CLAVSplitter::ConvertTimeFormat(LONGLONG* pTarget, const GUID* pTargetFormat, LONGLONG Source, const GUID* pSourceFormat) {return E_NOTIMPL;}
 STDMETHODIMP CLAVSplitter::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags)
 {
+  return SetPositionsInternal(this, pCurrent, dwCurrentFlags, pStop, dwStopFlags);
+}
+STDMETHODIMP CLAVSplitter::SetPositionsInternal(void *caller, LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags)
+{
   CAutoLock cAutoLock(this);
 
   if(!pCurrent && !pStop
@@ -599,6 +603,16 @@ STDMETHODIMP CLAVSplitter::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags
   if(m_rtCurrent == rtCurrent && m_rtStop == rtStop) {
     return S_OK;
   }
+
+  if(m_rtLastStart == rtCurrent && m_rtLastStop == rtStop && m_LastSeekers.find(caller) == m_LastSeekers.end()) {
+    m_LastSeekers.insert(caller);
+    return S_OK;
+  }
+
+  m_rtLastStart = rtCurrent;
+  m_rtLastStop = rtStop;
+  m_LastSeekers.clear();
+  m_LastSeekers.insert(caller);
 
   m_rtNewStart = m_rtCurrent = rtCurrent;
   m_rtNewStop = rtStop;

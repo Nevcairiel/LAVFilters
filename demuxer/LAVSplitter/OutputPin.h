@@ -34,6 +34,7 @@
 
 class CLAVOutputPin
   : public CBaseOutputPin
+  , IMediaSeeking
   , protected CAMThread
 {
 public:
@@ -54,6 +55,25 @@ public:
   HRESULT GetMediaType(int iPosition, CMediaType* pmt);
   HRESULT Active();
   HRESULT Inactive();
+
+  // IMediaSeeking
+  STDMETHODIMP GetCapabilities(DWORD* pCapabilities);
+  STDMETHODIMP CheckCapabilities(DWORD* pCapabilities);
+  STDMETHODIMP IsFormatSupported(const GUID* pFormat);
+  STDMETHODIMP QueryPreferredFormat(GUID* pFormat);
+  STDMETHODIMP GetTimeFormat(GUID* pFormat);
+  STDMETHODIMP IsUsingTimeFormat(const GUID* pFormat);
+  STDMETHODIMP SetTimeFormat(const GUID* pFormat);
+  STDMETHODIMP GetDuration(LONGLONG* pDuration);
+  STDMETHODIMP GetStopPosition(LONGLONG* pStop);
+  STDMETHODIMP GetCurrentPosition(LONGLONG* pCurrent);
+  STDMETHODIMP ConvertTimeFormat(LONGLONG* pTarget, const GUID* pTargetFormat, LONGLONG Source, const GUID* pSourceFormat);
+  STDMETHODIMP SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags);
+  STDMETHODIMP GetPositions(LONGLONG* pCurrent, LONGLONG* pStop);
+  STDMETHODIMP GetAvailable(LONGLONG* pEarliest, LONGLONG* pLatest);
+  STDMETHODIMP SetRate(double dRate);
+  STDMETHODIMP GetRate(double* pdRate);
+  STDMETHODIMP GetPreroll(LONGLONG* pllPreroll);
 
   size_t QueueCount();
   HRESULT QueuePacket(Packet *pPacket);

@@ -138,6 +138,9 @@ protected:
 
   STDMETHODIMP DeleteOutputs();
 
+  friend class CLAVOutputPin;
+  STDMETHODIMP SetPositionsInternal(void *caller, LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags);
+
 public:
   CLAVOutputPin *GetOutputPin(DWORD streamId);
   STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts);
@@ -164,6 +167,10 @@ private:
   // Times
   REFERENCE_TIME m_rtStart, m_rtStop, m_rtCurrent, m_rtNewStart, m_rtNewStop;
   double m_dRate;
+
+  // Seeking
+  REFERENCE_TIME m_rtLastStart, m_rtLastStop;
+  std::set<void *> m_LastSeekers;
 
   // flushing
   bool m_fFlushing;
