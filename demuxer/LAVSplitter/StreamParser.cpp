@@ -48,6 +48,9 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     Queue(pPacket);
   } else if (m_strContainer == "mpegts" && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
     ParseVC1(pPacket);
+  } else if (m_gSubtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
+    pPacket->RemoveHead(4);
+    Queue(pPacket);
   } else {
     Queue(pPacket);
   }

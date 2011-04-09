@@ -341,13 +341,8 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   // Fill the sample
   BYTE* pData = NULL;
   if(FAILED(hr = pSample->GetPointer(&pData)) || !pData) goto done;
-  // Hack in support for the stupid LPCM format MPC-HC invented, which strips of the header
-  if (m_mt.subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
-    nBytes -= 4;
-    memcpy(pData, pPacket->GetData() + 4, nBytes);
-  } else {
-    memcpy(pData, pPacket->GetData(), nBytes);
-  }
+
+  memcpy(pData, pPacket->GetData(), nBytes);
 
   CHECK_HR(hr = pSample->SetActualDataLength(nBytes));
   CHECK_HR(hr = pSample->SetTime(fTimeValid ? &pPacket->rtStart : NULL, fTimeValid ? &pPacket->rtStop : NULL));
