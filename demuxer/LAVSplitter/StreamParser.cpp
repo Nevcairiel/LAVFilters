@@ -47,9 +47,9 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
   
   if (!pPacket || (pPacket->dwFlags & LAV_PACKET_PARSED)) {
     Queue(pPacket);
-  } else if (m_strContainer == "mpegts" && m_gSubtype == MEDIASUBTYPE_AVC1) {
+  } else if ((m_strContainer == "mpegts" ||m_strContainer == "mpeg") && m_gSubtype == MEDIASUBTYPE_AVC1) {
     ParseH264AnnexB(pPacket);
-  } else if (m_strContainer == "mpegts" && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
+  } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg") && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
     ParseVC1(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
     pPacket->RemoveHead(4);
