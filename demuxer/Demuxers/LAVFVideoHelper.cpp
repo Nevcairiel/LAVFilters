@@ -26,6 +26,7 @@
 #include "BaseDemuxer.h"
 
 #include "ExtradataParser.h"
+#include "H264Nalu.h"
 
 CLAVFVideoHelper g_VideoHelper;
 
@@ -52,6 +53,8 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecT
     break;
   case CODEC_ID_H264:
     mediaType.formattype = FORMAT_MPEG2Video;
+    mediaType.subtype = MEDIASUBTYPE_AVC1;
+    codecTag = MKTAG('A', 'V', 'C', '1');
     break;
   case CODEC_ID_HUFFYUV:
     mediaType.formattype = FORMAT_VideoInfo2;
@@ -114,6 +117,25 @@ DWORD avc_quant(BYTE *src, BYTE *dst, int extralen)
     }
   }
   return cb;
+}
+
+DWORD avc_parse_annexb(BYTE *extra, int extrasize, BYTE *dst)
+{
+  DWORD dstSize = 0;
+
+  CH264Nalu Nalu;
+  Nalu.SetBuffer(extra, extrasize, 0);
+  while (Nalu.ReadNext()) {
+    BYTE *data = Nalu.GetDataBuffer();
+    if (((*data & 0x9f) == 0x07 || (*data & 0x9f) == 0x08) && (*data & 0x60) != 0) {
+      int16_t len = Nalu.GetDataLength();
+      AV_WB16(dst+dstSize, len);
+      dstSize += 2;
+      memcpy(dst+dstSize, Nalu.GetDataBuffer(), Nalu.GetDataLength());
+      dstSize += Nalu.GetDataLength();
+    }
+  }
+  return dstSize;
 }
 
 VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size)
@@ -297,7 +319,9 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
         mp2vi->cbSequenceHeader = avc_quant(extradata,
           (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
       } else {
-        bCopyUntouched = TRUE;
+        // MPEG-TS AnnexB
+        mp2vi->dwFlags = sizeof(DWORD);
+        mp2vi->cbSequenceHeader = avc_parse_annexb(extradata, extra, (BYTE *)(&mp2vi->dwSequenceHeader[0]));
       }
     } else if (avstream->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);

@@ -60,9 +60,13 @@ public:
 
   // Append the data of the package to our data buffer
   void Append(Packet *ptr) {
+    AppendData(ptr->GetData(), ptr->GetDataSize());
+  }
+
+  void AppendData(const void* ptr, DWORD len) {
     DWORD prevSize = m_dwSize;
-    SetDataSize(prevSize + ptr->GetDataSize());
-    memcpy(m_pbData+prevSize, ptr->GetData(), ptr->GetDataSize());
+    SetDataSize(m_dwSize + len);
+    memcpy(m_pbData+prevSize, ptr, len);
   }
 
   // Remove count bytes from position index

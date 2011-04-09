@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "PacketQueue.h"
+
 class CLAVOutputPin;
 
 class CStreamParser
@@ -34,6 +36,7 @@ public:
   HRESULT Flush();
 
 private:
+  HRESULT ParseH264AnnexB(Packet *pPacket);
   HRESULT ParseVC1(Packet *pPacket);
 
   HRESULT Queue(Packet *pPacket) const;
@@ -45,5 +48,10 @@ private:
   GUID m_gSubtype;
 
   Packet *m_pPacketBuffer;
+
+  CPacketQueue m_queue;
+
+  // H264 specific
+  bool m_fHasAccessUnitDelimiters;
 };
 
