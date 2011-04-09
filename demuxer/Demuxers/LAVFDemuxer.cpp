@@ -152,6 +152,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
 
   for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
+#ifdef DEBUG
+    DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
+#endif
     m_stOrigParser[idx] = st->need_parsing;
     // Filter mis-detected audio streams
     if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO && st->codec->channels == 0) {

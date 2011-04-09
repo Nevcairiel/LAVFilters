@@ -46,6 +46,7 @@ inline int get_bits_per_sample(AVCodecContext *ctx)
 extern "C" {
 extern URLProtocol ufile_protocol;
 #ifdef DEBUG
+const char *lavf_get_parsing_string(enum AVStreamParseType parsing);
 void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl);
 #endif
 }

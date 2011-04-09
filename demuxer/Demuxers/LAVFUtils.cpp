@@ -409,6 +409,20 @@ URLProtocol ufile_protocol = {
 };
 
 #ifdef DEBUG
+
+#define LAVF_PARSE_TYPE(x) case x: return #x;
+const char *lavf_get_parsing_string(enum AVStreamParseType parsing)
+{
+  switch (parsing) {
+    LAVF_PARSE_TYPE(AVSTREAM_PARSE_NONE);
+    LAVF_PARSE_TYPE(AVSTREAM_PARSE_FULL);
+    LAVF_PARSE_TYPE(AVSTREAM_PARSE_HEADERS);
+    LAVF_PARSE_TYPE(AVSTREAM_PARSE_TIMESTAMPS);
+    LAVF_PARSE_TYPE(AVSTREAM_PARSE_FULL_ONCE);
+  };
+  return "unknown";
+};
+
 #define LOG_BUF_LEN 2048
 void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
 {
