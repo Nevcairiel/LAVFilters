@@ -639,15 +639,17 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     AddStream(streamIdx);
 
     AVStream *st = m_avFormat->streams[streamIdx];
-    if (st->duration != AV_NOPTS_VALUE && (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO)) {
-      st_duration = av_rescale_q(st->duration, st->time_base, AV_RATIONAL_TIMEBASE);
-      if (st_duration > duration)
-        duration = st_duration;
-    }
+    if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+      if (st->duration != AV_NOPTS_VALUE) {
+        st_duration = av_rescale_q(st->duration, st->time_base, AV_RATIONAL_TIMEBASE);
+        if (st_duration > duration)
+          duration = st_duration;
+      }
 
-    st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
-    if (st_start_time < start_time)
-      start_time = st_start_time;
+      st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
+      if (st_start_time < start_time)
+        start_time = st_start_time;
+    }
   }
 
   if (duration != INT64_MIN) {
