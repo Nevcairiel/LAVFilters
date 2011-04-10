@@ -143,10 +143,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
     goto done;
   }
 
-  // Re-compute the overall file duration based on video and audio durations
-  int64_t duration = INT64_MIN;
-  int64_t st_duration = 0;
-
   SAFE_CO_FREE(m_stOrigParser);
   m_stOrigParser = (enum AVStreamParseType *)CoTaskMemAlloc(m_avFormat->nb_streams * sizeof(enum AVStreamParseType));
 
@@ -164,11 +160,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
       st->discard = AVDISCARD_ALL;
       continue;
     }
-    if (st->duration != AV_NOPTS_VALUE && (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO)) {
-      st_duration = av_rescale_q(st->duration, st->time_base, AV_RATIONAL_TIMEBASE);
-      if (st_duration > duration)
-        duration = st_duration;
-    }
 
     UpdateSubStreams();
 
@@ -178,9 +169,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
       }
       m_pFontInstaller->InstallFont(st->codec->extradata, st->codec->extradata_size);
     }
-  }
-  if (duration != INT64_MIN) {
-    m_avFormat->duration = duration;
   }
 
   CHECK_HR(hr = CreateStreams());
@@ -631,15 +619,37 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     }
   }
 
-  if(m_program < m_avFormat->nb_programs) {
-    // add streams from selected program
-    for (unsigned int i = 0; i < m_avFormat->programs[m_program]->nb_stream_indexes; ++i) {
-      AddStream(m_avFormat->programs[m_program]->stream_index[i]);
+
+  // Re-compute the overall file duration based on video and audio durations
+  int64_t duration = INT64_MIN;
+  int64_t st_duration = 0;
+  int64_t start_time = INT64_MAX;
+  int64_t st_start_time = 0;
+
+  bool bProgram = (m_program < m_avFormat->nb_programs);
+  int nbIndex = bProgram ? m_avFormat->programs[m_program]->nb_stream_indexes : m_avFormat->nb_streams;
+  // add streams from selected program, or all streams if no program was selected
+  for (unsigned int i = 0; i < nbIndex; ++i) {
+    int streamIdx = bProgram ? m_avFormat->programs[m_program]->stream_index[i] : i;
+    AddStream(streamIdx);
+
+    AVStream *st = m_avFormat->streams[streamIdx];
+    if (st->duration != AV_NOPTS_VALUE && (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO)) {
+      st_duration = av_rescale_q(st->duration, st->time_base, AV_RATIONAL_TIMEBASE);
+      if (st_duration > duration)
+        duration = st_duration;
     }
-  } else {
-    for(unsigned int streamId = 0; streamId < m_avFormat->nb_streams; ++streamId) {
-      AddStream(streamId);
-    }
+
+    st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
+    if (st_start_time < start_time)
+      start_time = st_start_time;
+  }
+
+  if (duration != INT64_MIN) {
+    m_avFormat->duration = duration;
+  }
+  if (start_time != INT64_MAX) {
+    m_avFormat->start_time = start_time;
   }
 
   // Create fake subtitle pin
