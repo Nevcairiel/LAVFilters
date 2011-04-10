@@ -34,6 +34,10 @@ extern "C" {
 CStreamParser::CStreamParser(CLAVOutputPin *pPin, const char *szContainer)
   : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_fHasAccessUnitDelimiters(false)
 {
+
+  if (m_strContainer == "matroska,webm") {
+    m_strContainer = std::string("matroska");
+  }
 }
 
 
@@ -53,7 +57,7 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     Queue(pPacket);
   } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg") && m_gSubtype == MEDIASUBTYPE_AVC1) {
     ParseH264AnnexB(pPacket);
-  } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg") && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
+  } else if ((m_strContainer == "matroska" || m_strContainer == "mpegts" || m_strContainer == "mpeg") && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
     ParseVC1(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
     pPacket->RemoveHead(4);

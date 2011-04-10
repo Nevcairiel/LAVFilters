@@ -43,7 +43,7 @@ private:
 
 private:
   CLAVOutputPin * const m_pPin;
-  const std::string m_strContainer;
+  std::string m_strContainer;
 
   GUID m_gSubtype;
 

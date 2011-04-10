@@ -232,8 +232,11 @@ void CLAVFDemuxer::UpdateSubStreams()
 void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
 {
   int vc1Mode = pSettings->GetVC1TimestampMode();
-  if (vc1Mode == 1 || (vc1Mode == 2 && pSettings->IsVC1CorrectionRequired())) {
+  if (vc1Mode == 1) {
     m_bVC1Correction = true;
+  } else if (vc1Mode == 2) {
+    BOOL bReq = pSettings->IsVC1CorrectionRequired();
+    m_bVC1Correction = m_bMatroska ? !bReq : bReq;
   } else {
     m_bVC1Correction = false;
   }
@@ -355,9 +358,15 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       rt = dts;
     }
 
-    if (m_bVC1Correction && stream->codec->codec_id == CODEC_ID_VC1) {
-      rt = dts;
-      pPacket->dwFlags |= LAV_PACKET_PARSED;
+    if (stream->codec->codec_id == CODEC_ID_VC1) {
+      if (m_bMatroska && m_bVC1Correction) {
+        rt = pts;
+      } else if (m_bMatroska) {
+        pPacket->dwFlags |= LAV_PACKET_PARSED;
+      } else if (m_bVC1Correction) {
+        rt = dts;
+        pPacket->dwFlags |= LAV_PACKET_PARSED;
+      }
     }
 
     pPacket->rtStart = pPacket->rtStop = rt;
