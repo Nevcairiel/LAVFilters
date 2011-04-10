@@ -26,6 +26,10 @@
 #include "OutputPin.h"
 #include "H264Nalu.h"
 
+extern "C" {
+#include "libavutil/intreadwrite.h"
+}
+
 
 CStreamParser::CStreamParser(CLAVOutputPin *pPin, const char *szContainer)
   : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_fHasAccessUnitDelimiters(false)
@@ -132,16 +136,12 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
     Packet *p2 = NULL;
 
     while (Nalu.ReadNext()) {
-      DWORD	dwNalLength =
-        ((Nalu.GetDataLength() >> 24) & 0x000000ff) |
-        ((Nalu.GetDataLength() >>  8) & 0x0000ff00) |
-        ((Nalu.GetDataLength() <<  8) & 0x00ff0000) |
-        ((Nalu.GetDataLength() << 24) & 0xff000000);
-
       Packet *p3 = new Packet();
-      p3->SetDataSize(Nalu.GetDataLength() + sizeof(dwNalLength));
-      memcpy(p3->GetData(), &dwNalLength, sizeof(dwNalLength));
-      memcpy(p3->GetData() + sizeof(dwNalLength), Nalu.GetDataBuffer(), Nalu.GetDataLength());
+      p3->SetDataSize(Nalu.GetDataLength() + 4);
+
+      // Write size of the NALU (Big Endian)
+      AV_WB32(p3->GetData(), Nalu.GetDataLength());
+      memcpy(p3->GetData() + 4, Nalu.GetDataBuffer(), Nalu.GetDataLength());
 
       if (!p2) {
         p2 = p3;
@@ -277,8 +277,6 @@ HRESULT CStreamParser::ParseVC1(Packet *pPacket)
       break;
     }
 
-    int size = next - start - 4;
-
     Packet *p2 = new Packet();
     p2->StreamId = m_pPacketBuffer->StreamId;
     p2->bDiscontinuity = m_pPacketBuffer->bDiscontinuity;
@@ -327,7 +325,7 @@ HRESULT CStreamParser::ParseVC1(Packet *pPacket)
     m_pPacketBuffer->RemoveHead(start - m_pPacketBuffer->GetData());
   }
 
-  delete pPacket;
+  SAFE_DELETE(pPacket);
 
   return S_OK;
 }
