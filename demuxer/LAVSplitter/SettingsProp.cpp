@@ -151,16 +151,16 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   addHint(IDC_SUBMODE_ONLY_MATCHING, L"If set, subtitles will only be enabled if they match one of the languages configured above, otherwise any subtitle will be enabled if no match was found.");
 
   SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_SETCHECK, m_VC1Mode, 0);
-  addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected.\nUnchecked - Frame timings will be sent untouched.\nIndeterminate (Auto) - Enabled, except for decoders that do their own correction.");
+  addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected.\nUnchecked - Frame timings will be sent untouched.\nIndeterminate (Auto) - Only enabled for decoders that rely on the splitter doing the corrections.\n\nNOTE: Only for debugging, if unsure, set to \"Auto\".");
 
   SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_SETCHECK, m_substreams, 0);
   addHint(IDC_SUBSTREAMS, L"Controls if sub-streams should be exposed as a separate stream.\nSub-streams are typically streams for backwards compatibility, for example the AC3 part of TrueHD streams on BluRays");
 
   SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_SETCHECK, m_videoParsing, 0);
-  addHint(IDC_VIDEOPARSING, L"Enables parsing and repacking of video streams.\n\nSome decoders might not work with this disabled, however in conjunction with some renderers, you might get more fluid playback if this is off.");
+  addHint(IDC_VIDEOPARSING, L"Enables parsing and repacking of video streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
 
   SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_SETCHECK, m_audioParsing, 0);
-  addHint(IDC_AUDIOPARSING, L"Enables parsing and repacking of audio streams.\n\nIts not recommended to turn this off.");
+  addHint(IDC_AUDIOPARSING, L"Enables parsing and repacking of audio streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
 
   return hr;
 }
