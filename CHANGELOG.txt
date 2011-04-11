@@ -1,5 +1,16 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.22 - 2011/04/11
+LAV Splitter
+- Added support for MKV embedded fonts
+- Improved VC-1 and H264 parsing
+- Fixed choppy XVID playback in MKV
+- Fixed a seeking issues that caused incompatibilitys with certain decoders (eg. a crash in ffdshow libmpeg2)
+- No longer report incomplete lists of keyframes via IKeyFrameInfo, as it would break seeking in certain players.
+- Allow opening all .mpls files if the user directly specifys to open one, even if it contains loops or duplicate titles.
+- Improved playback of MPEG-TS with multiple programs
+- Added new debugging option (Generate missing timestamps)
+
 0.21 - 2011/04/07
 LAV Splitter
 - Improve MPEG-TS program handling in some special circumstances
