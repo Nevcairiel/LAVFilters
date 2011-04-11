@@ -149,6 +149,11 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
   for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
 
+    // Always enable GENPTS under special circumstances
+    if (m_bMatroska && st->codec->codec_id == CODEC_ID_VC1) {
+      m_avFormat->flags |= AVFMT_FLAG_GENPTS;
+    }
+
 #ifdef DEBUG
     DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
 #endif
