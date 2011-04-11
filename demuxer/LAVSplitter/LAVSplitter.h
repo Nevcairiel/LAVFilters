@@ -118,6 +118,8 @@ public:
   STDMETHODIMP_(BOOL) GetVideoParsingEnabled();
   STDMETHODIMP SetAudioParsingEnabled(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetAudioParsingEnabled();
+  STDMETHODIMP SetGeneratePTS(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetGeneratePTS();
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -186,5 +188,6 @@ private:
     BOOL substreams;
     BOOL videoParsing;
     BOOL audioParsing;
+    BOOL generatePTS;
   } m_settings;
 };

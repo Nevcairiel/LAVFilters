@@ -43,7 +43,7 @@ CUnknown* WINAPI CLAVSplitterSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESUL
 
 CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(IUnknown *pUnk)
   : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
-  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL), m_videoParsing(TRUE), m_audioParsing(TRUE)
+  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL), m_videoParsing(TRUE), m_audioParsing(TRUE), m_generatePTS(FALSE)
 {
 }
 
@@ -108,6 +108,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetAudioParsingEnabled(bFlag));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_GENPTS, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetGeneratePTS(bFlag));
+
   LoadData();
 
 done:    
@@ -162,6 +165,9 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_SETCHECK, m_audioParsing, 0);
   addHint(IDC_AUDIOPARSING, L"Enables parsing and repacking of audio streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
 
+  SendDlgItemMessage(m_Dlg, IDC_GENPTS, BM_SETCHECK, m_generatePTS, 0);
+  addHint(IDC_AUDIOPARSING, L"Generate missing frame timestamps.\n\nEXPERIMENTAL & DEBUGGING ONLY - KEEP UNCHECKED\nRequires restart to take affect.");
+
   return hr;
 }
 HRESULT CLAVSplitterSettingsProp::LoadData()
@@ -182,6 +188,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
 
   m_videoParsing = m_pLAVF->GetVideoParsingEnabled();
   m_audioParsing = m_pLAVF->GetAudioParsingEnabled();
+  m_generatePTS = m_pLAVF->GetGeneratePTS();
 
 done:
   return hr;
@@ -245,6 +252,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUDIOPARSING) {
         BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_GETCHECK, 0, 0);
         if (bFlag != m_audioParsing) {
+          SetDirty();
+        }
+      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_GENPTS) {
+        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_GENPTS, BM_GETCHECK, 0, 0);
+        if (bFlag != m_generatePTS) {
           SetDirty();
         }
       }

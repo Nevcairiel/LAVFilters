@@ -86,4 +86,7 @@ interface ILAVFSettings : public IUnknown
 
   STDMETHOD(SetAudioParsingEnabled)(BOOL bEnabled) = 0;
   STDMETHOD_(BOOL,GetAudioParsingEnabled)() = 0;
+
+  STDMETHOD(SetGeneratePTS)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetGeneratePTS)() = 0;
 };

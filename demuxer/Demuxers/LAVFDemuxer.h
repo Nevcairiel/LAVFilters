@@ -102,6 +102,7 @@ private:
   bool m_bVC1Correction;
 
   BOOL m_bSubStreams;
+  BOOL m_bGenPTS;
 
   unsigned int m_program;
 

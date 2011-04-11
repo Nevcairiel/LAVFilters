@@ -69,6 +69,7 @@ private:
 
   BOOL m_videoParsing;
   BOOL m_audioParsing;
+  BOOL m_generatePTS;
 
   WCHAR stringBuffer[256];
 };

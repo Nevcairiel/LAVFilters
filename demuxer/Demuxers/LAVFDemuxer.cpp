@@ -40,6 +40,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
   register_protocol(&ufile_protocol);
 
   m_bSubStreams = settings->GetSubstreamsEnabled();
+  m_bGenPTS = settings->GetGeneratePTS();
 
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -137,6 +138,10 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
   m_bAVI = (_strnicmp(m_avFormat->iformat->name, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_avFormat->iformat->name, "mpegts", 6) == 0);
 
+  if (m_bGenPTS) {
+    m_avFormat->flags |= AVFMT_FLAG_GENPTS;
+  }
+
   int ret = av_find_stream_info(m_avFormat);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::InitAVFormat(): av_find_stream_info failed (%d)"), ret));
@@ -149,7 +154,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
   for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
 
-    // Always enable GENPTS under special circumstances
+    // Enable GENPTS under special circumstances, or when requested
     if (m_bMatroska && st->codec->codec_id == CODEC_ID_VC1) {
       m_avFormat->flags |= AVFMT_FLAG_GENPTS;
     }

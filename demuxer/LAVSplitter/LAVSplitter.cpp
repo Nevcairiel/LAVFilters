@@ -107,6 +107,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"audioParsing", hr);
   m_settings.audioParsing = SUCCEEDED(hr) ? bFlag : TRUE;
 
+  bFlag = reg.ReadDWORD(L"generatePTS", hr);
+  m_settings.generatePTS = SUCCEEDED(hr) ? bFlag : FALSE;
+
   return S_OK;
 }
 
@@ -123,6 +126,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"substreams", m_settings.substreams);
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
     reg.WriteBOOL(L"audioParsing", m_settings.audioParsing);
+    reg.WriteBOOL(L"generatePTS", m_settings.generatePTS);
   }
   if (m_pDemuxer) {
     m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
@@ -972,4 +976,15 @@ STDMETHODIMP CLAVSplitter::SetAudioParsingEnabled(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetAudioParsingEnabled()
 {
   return m_settings.audioParsing;
+}
+
+STDMETHODIMP CLAVSplitter::SetGeneratePTS(BOOL bEnabled)
+{
+  m_settings.generatePTS = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetGeneratePTS()
+{
+  return m_settings.generatePTS;
 }
