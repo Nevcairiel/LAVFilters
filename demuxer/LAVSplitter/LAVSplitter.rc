@@ -107,7 +107,7 @@ BEGIN
     IDS_PAGE_TITLE          "LAV Splitter"
     IDS_SUBMODE_NO_SUBS     "No Subtitles"
     IDS_SUBMODE_FORCED_SUBS "Only Forced Subs"
-    IDS_SUBMODE_ALL_SUBS    "Full Subtiles"
+    IDS_SUBMODE_ALL_SUBS    "Full Subtitles"
 END
 
 #endif    // English (United States) resources
