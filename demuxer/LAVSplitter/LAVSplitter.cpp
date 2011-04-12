@@ -58,6 +58,18 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVSplitter::~CLAVSplitter()
 {
+  Close();
+
+  // delete old pins
+  std::vector<CLAVOutputPin *>::iterator it;
+  for(it = m_pRetiredPins.begin(); it != m_pRetiredPins.end(); ++it) {
+    delete (*it);
+  }
+  m_pRetiredPins.clear();
+}
+
+STDMETHODIMP CLAVSplitter::Close()
+{
   CAutoLock cAutoLock(this);
 
   CAMThread::CallWorker(CMD_EXIT);
@@ -66,10 +78,9 @@ CLAVSplitter::~CLAVSplitter()
   m_State = State_Stopped;
   DeleteOutputs();
 
-  if(m_pDemuxer) {
-    m_pDemuxer->Release();
-  }
-  //SAFE_DELETE(m_pDemuxer);
+  SafeRelease(&m_pDemuxer);
+
+  return S_OK;
 }
 
 STDMETHODIMP CLAVSplitter::LoadSettings()
@@ -219,6 +230,28 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
   }
   m_pDemuxer->AddRef();
 
+  return InitDemuxer();
+}
+
+// Get the currently loaded file
+STDMETHODIMP CLAVSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt)
+{
+  CheckPointer(ppszFileName, E_POINTER);
+
+  size_t strlen = m_fileName.length() + 1;
+  *ppszFileName = (LPOLESTR)CoTaskMemAlloc(sizeof(wchar_t) * strlen);
+
+  if(!(*ppszFileName))
+    return E_OUTOFMEMORY;
+
+  wcsncpy_s(*ppszFileName, strlen, m_fileName.c_str(), _TRUNCATE);
+  return S_OK;
+}
+
+STDMETHODIMP CLAVSplitter::InitDemuxer()
+{
+  HRESULT hr = S_OK;
+
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
 
@@ -271,21 +304,6 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
   }
 }
 
-// Get the currently loaded file
-STDMETHODIMP CLAVSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt)
-{
-  CheckPointer(ppszFileName, E_POINTER);
-
-  size_t strlen = m_fileName.length() + 1;
-  *ppszFileName = (LPOLESTR)CoTaskMemAlloc(sizeof(wchar_t) * strlen);
-
-  if(!(*ppszFileName))
-    return E_OUTOFMEMORY;
-
-  wcsncpy_s(*ppszFileName, strlen, m_fileName.c_str(), _TRUNCATE);
-  return S_OK;
-}
-
 STDMETHODIMP CLAVSplitter::DeleteOutputs()
 {
   CAutoLock lock(this);
@@ -297,7 +315,7 @@ STDMETHODIMP CLAVSplitter::DeleteOutputs()
   for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
     if(IPin* pPinTo = (*it)->GetConnected()) pPinTo->Disconnect();
     (*it)->Disconnect();
-    delete (*it);
+    m_pRetiredPins.push_back(*it);
   }
   m_pPins.clear();
 

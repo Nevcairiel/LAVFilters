@@ -138,7 +138,10 @@ protected:
   void DeliverBeginFlush();
   void DeliverEndFlush();
 
+  STDMETHODIMP Close();
   STDMETHODIMP DeleteOutputs();
+
+  STDMETHODIMP InitDemuxer();
 
   friend class CLAVOutputPin;
   STDMETHODIMP SetPositionsInternal(void *caller, LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags);
@@ -150,7 +153,7 @@ public:
 private:
   // construct only via class factory
   CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
-  ~CLAVSplitter();
+  virtual ~CLAVSplitter();
 
   STDMETHODIMP LoadSettings();
   STDMETHODIMP SaveSettings();
@@ -158,6 +161,7 @@ private:
 private:
   CCritSec m_csPins;
   std::vector<CLAVOutputPin *> m_pPins;
+  std::vector<CLAVOutputPin *> m_pRetiredPins;
   std::set<DWORD> m_bDiscontinuitySent;
 
   std::wstring m_fileName;
