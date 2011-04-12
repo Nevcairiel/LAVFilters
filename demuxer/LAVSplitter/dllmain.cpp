@@ -44,42 +44,34 @@ DEFINE_GUID(MEDIATYPE_LAVSplitter,
 // --- COM factory table and registration code --------------
 
 const AMOVIESETUP_MEDIATYPE 
-  sudMediaTypes[] = 
-{
-  {
-    &MEDIATYPE_Video,
-      &MEDIASUBTYPE_NULL
-  },
-  {
-    &MEDIATYPE_Audio,
-      &MEDIASUBTYPE_NULL
-    }
+  sudMediaTypes[] = {
+    { &MEDIATYPE_Stream, &MEDIASUBTYPE_NULL },
 };
 
 const AMOVIESETUP_PIN sudOutputPins[] = 
 {
   {
-    L"Video Output",      // pin name
+    L"Output",            // pin name
       FALSE,              // is rendered?    
       TRUE,               // is output?
       FALSE,              // zero instances allowed?
-      FALSE,              // many instances allowed?
+      TRUE,               // many instances allowed?
       &CLSID_NULL,        // connects to filter (for bridge pins)
       NULL,               // connects to pin (for bridge pins)
-      1,                  // count of registered media types
-      &sudMediaTypes[0]       // list of registered media types    
+      0,                  // count of registered media types
+      NULL                // list of registered media types
   },
   {
-    L"Audio Output",      // pin name
+    L"Input",             // pin name
       FALSE,              // is rendered?    
-      TRUE,               // is output?
+      FALSE,              // is output?
       FALSE,              // zero instances allowed?
       FALSE,              // many instances allowed?
       &CLSID_NULL,        // connects to filter (for bridge pins)
       NULL,               // connects to pin (for bridge pins)
       1,                  // count of registered media types
-      &sudMediaTypes[1]   // list of registered media types    
-  },
+      &sudMediaTypes[0]   // list of registered media types
+  }
 };
 
 const AMOVIESETUP_FILTER sudFilterReg =
@@ -88,6 +80,16 @@ const AMOVIESETUP_FILTER sudFilterReg =
   L"LAV Splitter",                // filter name
   MERIT_PREFERRED + 4,            // merit
   2,                              // count of registered pins
+  sudOutputPins,                  // list of pins to register
+  CLSID_LegacyAmFilterCategory
+};
+
+const AMOVIESETUP_FILTER sudFilterRegSource =
+{
+  &__uuidof(CLAVSplitterSource),  // filter clsid
+  L"LAV Splitter Source",         // filter name
+  MERIT_PREFERRED + 4,            // merit
+  1,                              // count of registered pins
   sudOutputPins,                  // list of pins to register
   CLSID_LegacyAmFilterCategory
 };
@@ -104,6 +106,13 @@ CFactoryTemplate g_Templates[] = {
       CLAVSplitter::CreateInstance,
       NULL,
       &sudFilterReg
+  },
+  {
+    sudFilterRegSource.strName,
+      sudFilterRegSource.clsID,
+      CLAVSplitterSource::CreateInstance,
+      NULL,
+      &sudFilterRegSource
   },
   // This entry is for the property page.
   { 

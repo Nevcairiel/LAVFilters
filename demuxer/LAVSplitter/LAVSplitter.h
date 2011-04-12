@@ -37,12 +37,13 @@
 #define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
 
 class CLAVOutputPin;
+class CLAVInputPin;
 
 #ifdef	_MSC_VER
 #pragma warning(disable: 4355)
 #endif
 
-[uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]
+[uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")]
 class CLAVSplitter 
   : public CBaseFilter
   , public CCritSec
@@ -150,13 +151,19 @@ public:
   CLAVOutputPin *GetOutputPin(DWORD streamId);
   STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts);
 
-private:
+  STDMETHODIMP CompleteInputConnection();
+  STDMETHODIMP BreakInputConnection();
+
+protected:
   // construct only via class factory
   CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
   virtual ~CLAVSplitter();
 
   STDMETHODIMP LoadSettings();
   STDMETHODIMP SaveSettings();
+
+protected:
+  CLAVInputPin *m_pInput;
 
 private:
   CCritSec m_csPins;
@@ -194,4 +201,21 @@ private:
     BOOL audioParsing;
     BOOL generatePTS;
   } m_settings;
+};
+
+[uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]
+class CLAVSplitterSource : public CLAVSplitter
+{
+public:
+  // constructor method used by class factory
+  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+
+  // IUnknown
+  DECLARE_IUNKNOWN;
+  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
+private:
+  // construct only via class factory
+  CLAVSplitterSource(LPUNKNOWN pUnk, HRESULT* phr);
+  virtual ~CLAVSplitterSource();
 };

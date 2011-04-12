@@ -39,6 +39,9 @@
     <ClCompile Include="StreamParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="InputPin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -81,6 +84,9 @@
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="StreamParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InputPin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

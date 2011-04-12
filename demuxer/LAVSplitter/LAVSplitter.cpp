@@ -24,6 +24,7 @@
 #include "stdafx.h"
 #include "LAVSplitter.h"
 #include "OutputPin.h"
+#include "InputPin.h"
 
 #include "BaseDemuxer.h"
 #include "LAVFDemuxer.h"
@@ -50,6 +51,8 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   LoadSettings();
   if(phr) { *phr = S_OK; }
 
+  m_pInput = new CLAVInputPin(NAME("LAV Input Pin"), this, this, phr);
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -58,6 +61,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVSplitter::~CLAVSplitter()
 {
+  SAFE_DELETE(m_pInput);
   Close();
 
   // delete old pins
@@ -155,8 +159,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     return m_pDemuxer->QueryInterface(riid, ppv);
   }
 
-  return 
-    QI(IFileSourceFilter)
+  return
     QI(IMediaSeeking)
     QI(IAMStreamSelect)
     QI2(ISpecifyPropertyPages)
@@ -182,7 +185,11 @@ int CLAVSplitter::GetPinCount()
 {
   CAutoLock lock(&m_csPins);
 
-  return (int)m_pPins.size();
+  int count = (int)m_pPins.size();
+  if (m_pInput)
+    count++;
+
+  return count;
 }
 
 CBasePin *CLAVSplitter::GetPin(int n)
@@ -190,6 +197,14 @@ CBasePin *CLAVSplitter::GetPin(int n)
   CAutoLock lock(&m_csPins);
 
   if (n < 0 ||n >= GetPinCount()) return NULL;
+
+  if (m_pInput) {
+    if(n == 0)
+      return m_pInput;
+    else
+      n--;
+  }
+
   return m_pPins[n];
 }
 
@@ -204,6 +219,34 @@ CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId)
     }
   }
   return NULL;
+}
+
+STDMETHODIMP CLAVSplitter::CompleteInputConnection()
+{
+  HRESULT hr = S_OK;
+
+  SAFE_DELETE(m_pDemuxer);
+  CLAVFDemuxer *pDemux = new CLAVFDemuxer(this, this);
+
+  AVIOContext *pContext = NULL;
+
+  if (FAILED(hr = m_pInput->GetAVIOContext(&pContext))) {
+    return hr;
+  }
+
+  if(FAILED(hr = pDemux->OpenInputStream(pContext))) {
+    SAFE_DELETE(pDemux);
+    return hr;
+  }
+  m_pDemuxer = pDemux;
+  m_pDemuxer->AddRef();
+
+  return InitDemuxer();
+}
+
+STDMETHODIMP CLAVSplitter::BreakInputConnection()
+{
+  return Close();
 }
 
 // IFileSourceFilter
@@ -1005,4 +1048,32 @@ STDMETHODIMP CLAVSplitter::SetGeneratePTS(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetGeneratePTS()
 {
   return m_settings.generatePTS;
+}
+
+// static constructor
+CUnknown* WINAPI CLAVSplitterSource::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
+{
+  return new CLAVSplitterSource(pUnk, phr);
+}
+
+CLAVSplitterSource::CLAVSplitterSource(LPUNKNOWN pUnk, HRESULT* phr)
+  : CLAVSplitter(pUnk, phr)
+{
+  m_clsid = __uuidof(CLAVSplitterSource);
+  SAFE_DELETE(m_pInput);
+}
+
+CLAVSplitterSource::~CLAVSplitterSource()
+{
+}
+
+STDMETHODIMP CLAVSplitterSource::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+{
+  CheckPointer(ppv, E_POINTER);
+
+  *ppv = NULL;
+
+  return
+    QI(IFileSourceFilter)
+    __super::NonDelegatingQueryInterface(riid, ppv);
 }
