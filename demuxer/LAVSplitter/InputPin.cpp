@@ -146,18 +146,21 @@ int64_t CLAVInputPin::Seek(void *opaque,  int64_t offset, int whence)
 
   LONGLONG total = 0;
   LONGLONG available = 0;
+  pin->m_pAsyncReader->Length(&total, &available);
 
   if (whence == SEEK_SET) {
     pin->m_llPos = offset;
   } else if (whence == SEEK_CUR) {
     pin->m_llPos += offset;
   } else if (whence == SEEK_END) {
-    pin->m_pAsyncReader->Length(&total, &available);
     pin->m_llPos = total - offset;
   } else if (whence == AVSEEK_SIZE) {
     return total;
   } else
     return -1;
+
+  if (pin->m_llPos > available)
+    pin->m_llPos = available;
 
   return pin->m_llPos;
 }
