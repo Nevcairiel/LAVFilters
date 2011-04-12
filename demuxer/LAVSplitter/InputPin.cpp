@@ -106,6 +106,8 @@ HRESULT CLAVInputPin::CompleteConnect(IPin* pPin)
     return E_FAIL;
   }
 
+  m_llPos = 0;
+
   if(FAILED(hr = (static_cast<CLAVSplitter *>(m_pFilter))->CompleteInputConnection())) {
     return hr;
   }
