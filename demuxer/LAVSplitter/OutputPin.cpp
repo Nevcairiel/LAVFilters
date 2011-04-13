@@ -144,6 +144,9 @@ HRESULT CLAVOutputPin::Inactive()
   if(ThreadExists())
     CallWorker(CMD_EXIT);
 
+  // Clear queue when we're going inactive
+  m_queue.Clear();
+
   return __super::Inactive();
 }
 
