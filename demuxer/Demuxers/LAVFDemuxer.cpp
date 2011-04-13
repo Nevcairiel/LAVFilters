@@ -651,7 +651,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   int64_t st_start_time = 0;
 
   bool bProgram = (m_program < m_avFormat->nb_programs);
-  int nbIndex = bProgram ? m_avFormat->programs[m_program]->nb_stream_indexes : m_avFormat->nb_streams;
+  unsigned int nbIndex = bProgram ? m_avFormat->programs[m_program]->nb_stream_indexes : m_avFormat->nb_streams;
   // add streams from selected program, or all streams if no program was selected
   for (unsigned int i = 0; i < nbIndex; ++i) {
     int streamIdx = bProgram ? m_avFormat->programs[m_program]->stream_index[i] : i;

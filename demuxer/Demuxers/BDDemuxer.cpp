@@ -336,7 +336,7 @@ void CBDDemuxer::ProcessStreams(int count, BLURAY_STREAM_INFO *streams)
 
 STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
 {
-  uint64_t prev = bd_tell(m_pBD);
+  int64_t prev = bd_tell(m_pBD);
 
   int64_t target = bd_find_seek_point(m_pBD, ConvertDSTimeTo90Khz(rTime));
 
