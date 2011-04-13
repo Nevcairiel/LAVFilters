@@ -95,11 +95,11 @@ private:
 private:
   AVFormatContext *m_avFormat;
 
-  bool m_bIsStream;
-  bool m_bMatroska;
-  bool m_bAVI;
-  bool m_bMPEGTS;
-  bool m_bVC1Correction;
+  BOOL m_bIsStream;
+  BOOL m_bMatroska;
+  BOOL m_bAVI;
+  BOOL m_bMPEGTS;
+  BOOL m_bVC1Correction;
 
   BOOL m_bSubStreams;
   BOOL m_bGenPTS;
