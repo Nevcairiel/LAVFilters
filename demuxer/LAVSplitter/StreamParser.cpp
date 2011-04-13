@@ -32,7 +32,7 @@ extern "C" {
 
 
 CStreamParser::CStreamParser(CLAVOutputPin *pPin, const char *szContainer)
-  : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_fHasAccessUnitDelimiters(false)
+  : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL)
 {
 
 }
@@ -211,11 +211,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
       Packet *p = *it;
       BYTE* pData = p->GetData();
 
-      if((pData[4] & 0x1f) == 0x09) {
-        m_fHasAccessUnitDelimiters = true;
-      }
-
-      if ((pData[4] & 0x1f) == 0x09 || (!m_fHasAccessUnitDelimiters && p->rtStart != Packet::INVALID_TIME)) {
+      if (p->rtStart != Packet::INVALID_TIME) {
         pPacket = p;
         break;
       }

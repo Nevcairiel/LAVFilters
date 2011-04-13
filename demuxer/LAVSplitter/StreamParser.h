@@ -50,8 +50,5 @@ private:
   Packet *m_pPacketBuffer;
 
   CPacketQueue m_queue;
-
-  // H264 specific
-  bool m_fHasAccessUnitDelimiters;
 };
 
