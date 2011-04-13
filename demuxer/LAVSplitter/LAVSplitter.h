@@ -27,6 +27,7 @@
 #include <list>
 #include <set>
 #include <vector>
+#include <map>
 #include "PacketQueue.h"
 
 #include "BaseDemuxer.h"
@@ -35,6 +36,7 @@
 #include "SettingsProp.h"
 
 #define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
+#define LAVF_REGISTRY_KEY_FORMATS LAVF_REGISTRY_KEY L"\\Formats"
 
 class CLAVOutputPin;
 class CLAVInputPin;
@@ -121,6 +123,7 @@ public:
   STDMETHODIMP_(BOOL) GetAudioParsingEnabled();
   STDMETHODIMP SetGeneratePTS(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetGeneratePTS();
+  STDMETHODIMP_(BOOL) IsFormatEnabled(const char *strFormat);
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -189,6 +192,8 @@ private:
   bool m_fFlushing;
   CAMEvent m_eEndFlush;
 
+  std::set<FormatInfo> m_InputFormats;
+
   // Settings
   struct Settings {
     std::wstring prefAudioLangs;
@@ -200,6 +205,8 @@ private:
     BOOL videoParsing;
     BOOL audioParsing;
     BOOL generatePTS;
+
+    std::map<std::string, BOOL> formats;
   } m_settings;
 };
 

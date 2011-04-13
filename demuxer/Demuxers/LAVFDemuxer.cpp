@@ -31,16 +31,36 @@ extern "C" {
 }
 #endif
 
+extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
+
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
-CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL), m_pFontInstaller(NULL)
+void CLAVFDemuxer::ffmpeg_init()
 {
   av_register_all();
   register_protocol(&ufile_protocol);
+}
 
+std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
+{
+  std::set<FormatInfo> formats;
+  AVInputFormat *f = NULL;
+  while (f = av_iformat_next(f)) {
+    FormatInfo format;
+    lavf_get_iformat_infos(f, &format.strName, &format.strDescription);
+    if (format.strName)
+      formats.insert(format);
+  }
+  return formats;
+}
+
+CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
+  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL), m_pFontInstaller(NULL), m_pSettings(NULL), m_pszInputFormat(NULL)
+{
   m_bSubStreams = settings->GetSubstreamsEnabled();
   m_bGenPTS = settings->GetGeneratePTS();
+
+  m_pSettings = settings;
 
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -132,11 +152,20 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
 {
   HRESULT hr = S_OK;
 
+  const char *format = NULL;
+  lavf_get_iformat_infos(m_avFormat->iformat, &format, NULL);
+  if (!format || !m_pSettings->IsFormatEnabled(format)) {
+    DbgLog((LOG_TRACE, 20, L"::InitAVFormat() - format of type '%S' disabled, failing", format ? format : m_avFormat->iformat->name));
+    return E_FAIL;
+  }
+
+  m_pszInputFormat = format ? format : m_avFormat->iformat->name;
+
   unsigned int idx = 0;
 
-  m_bMatroska = (_strnicmp(m_avFormat->iformat->name, "matroska", 8) == 0);
-  m_bAVI = (_strnicmp(m_avFormat->iformat->name, "avi", 3) == 0);
-  m_bMPEGTS = (_strnicmp(m_avFormat->iformat->name, "mpegts", 6) == 0);
+  m_bMatroska = (_strnicmp(m_pszInputFormat, "matroska", 8) == 0);
+  m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
+  m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
 
   if (m_bGenPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
@@ -446,7 +475,7 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
 
 const char *CLAVFDemuxer::GetContainerFormat() const
 {
-  return m_avFormat->iformat->name;
+  return m_pszInputFormat;
 }
 
 HRESULT CLAVFDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const
@@ -581,7 +610,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 
   stream s;
   s.pid = streamId;
-  s.streamInfo = new CLAVFStreamInfo(pStream, m_avFormat->iformat->name, hr);
+  s.streamInfo = new CLAVFStreamInfo(pStream, m_pszInputFormat, hr);
 
   if(FAILED(hr)) {
     delete s.streamInfo;

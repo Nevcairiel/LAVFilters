@@ -139,6 +139,7 @@
     <ClCompile Include="ExtradataParser.cpp" />
     <ClCompile Include="LAVFAudioHelper.cpp" />
     <ClCompile Include="LAVFDemuxer.cpp" />
+    <ClCompile Include="LAVFInputFormats.cpp" />
     <ClCompile Include="LAVFVideoHelper.cpp" />
     <ClCompile Include="LAVFStreamInfo.cpp" />
     <ClCompile Include="LAVFUtils.cpp" />

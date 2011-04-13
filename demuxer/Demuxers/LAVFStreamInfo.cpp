@@ -31,16 +31,6 @@
 CLAVFStreamInfo::CLAVFStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
   : CStreamInfo(), m_containerFormat(containerFormat)
 {
-  m_containerFormat = std::string(containerFormat);
-  // FFMpeg renamed the format at some point in time
-  if(m_containerFormat == "matroska,webm") {
-    m_containerFormat = "matroska";
-  }
-
-  if(m_containerFormat.find("mov,mp4") != std::string::npos) {
-    m_containerFormat = "mp4";
-  }
-
   switch(avstream->codec->codec_type) {
   case AVMEDIA_TYPE_AUDIO:
     hr = CreateAudioMediaType(avstream);

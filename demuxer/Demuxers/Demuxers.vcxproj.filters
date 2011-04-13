@@ -83,5 +83,8 @@
     <ClCompile Include="BDDemuxer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LAVFInputFormats.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

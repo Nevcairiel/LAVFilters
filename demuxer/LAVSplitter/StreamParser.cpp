@@ -35,9 +35,6 @@ CStreamParser::CStreamParser(CLAVOutputPin *pPin, const char *szContainer)
   : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_fHasAccessUnitDelimiters(false)
 {
 
-  if (m_strContainer == "matroska,webm") {
-    m_strContainer = std::string("matroska");
-  }
 }
 
 

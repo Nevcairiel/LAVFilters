@@ -48,6 +48,13 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_dRate(1.0), m_rtLastStart(_I64_MIN), m_rtLastStop(_I64_MIN)
   , m_pDemuxer(NULL)
 {
+  CLAVFDemuxer::ffmpeg_init();
+
+  m_InputFormats.clear();
+
+  std::set<FormatInfo> lavf_formats = CLAVFDemuxer::GetFormatList();
+  m_InputFormats.insert(lavf_formats.begin(), lavf_formats.end());
+
   LoadSettings();
   if(phr) { *phr = S_OK; }
 
@@ -85,6 +92,17 @@ STDMETHODIMP CLAVSplitter::Close()
   SafeRelease(&m_pDemuxer);
 
   return S_OK;
+}
+
+// Default overrides for input formats
+static BOOL get_iformat_default(std::string name)
+{
+  // Raw video formats lack timestamps..
+  if (name == "rawvideo") {
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
 STDMETHODIMP CLAVSplitter::LoadSettings()
@@ -125,6 +143,17 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"generatePTS", hr);
   m_settings.generatePTS = SUCCEEDED(hr) ? bFlag : FALSE;
 
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
+
+  WCHAR wBuffer[80];
+  std::set<FormatInfo>::iterator it;
+  for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
+    MultiByteToWideChar(CP_UTF8, 0, it->strName, -1, wBuffer, 80);
+    bFlag = regF.ReadBOOL(wBuffer, hr);
+    m_settings.formats[std::string(it->strName)] = SUCCEEDED(hr) ? bFlag : get_iformat_default(it->strName);
+  }
+
   return S_OK;
 }
 
@@ -143,6 +172,17 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"audioParsing", m_settings.audioParsing);
     reg.WriteBOOL(L"generatePTS", m_settings.generatePTS);
   }
+
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
+  if (SUCCEEDED(hr)) {
+    WCHAR wBuffer[80];
+    std::set<FormatInfo>::iterator it;
+    for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
+      MultiByteToWideChar(CP_UTF8, 0, it->strName, -1, wBuffer, 80);
+      regF.WriteBOOL(wBuffer, m_settings.formats[std::string(it->strName)]);
+    }
+  }
+
   if (m_pDemuxer) {
     m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
   }
@@ -1049,6 +1089,15 @@ STDMETHODIMP CLAVSplitter::SetGeneratePTS(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetGeneratePTS()
 {
   return m_settings.generatePTS;
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(const char *strFormat)
+{
+  std::string format(strFormat);
+  if (m_settings.formats.find(format) != m_settings.formats.end()) {
+    return m_settings.formats[format];
+  }
+  return FALSE;
 }
 
 // static constructor

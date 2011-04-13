@@ -89,4 +89,7 @@ interface ILAVFSettings : public IUnknown
 
   STDMETHOD(SetGeneratePTS)(BOOL bEnabled) = 0;
   STDMETHOD_(BOOL,GetGeneratePTS)() = 0;
+
+  // Check if the given format is enabled
+  STDMETHOD_(BOOL,IsFormatEnabled)(const char *strFormat) = 0;
 };

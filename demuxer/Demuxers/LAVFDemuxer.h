@@ -21,6 +21,7 @@
 #pragma once
 
 #include <Qnetwork.h>
+#include <set>
 
 #include "BaseDemuxer.h"
 #include "IKeyFrameInfo.h"
@@ -33,6 +34,9 @@ class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKey
 public:
   CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings);
   ~CLAVFDemuxer();
+
+  static void ffmpeg_init();
+  static std::set<FormatInfo> GetFormatList();
 
   // IUnknown
   DECLARE_IUNKNOWN
@@ -94,6 +98,7 @@ private:
 
 private:
   AVFormatContext *m_avFormat;
+  const char *m_pszInputFormat;
 
   BOOL m_bIsStream;
   BOOL m_bMatroska;
@@ -111,4 +116,5 @@ private:
   enum AVStreamParseType *m_stOrigParser;
 
   CFontInstaller *m_pFontInstaller;
+  ILAVFSettings *m_pSettings;
 };

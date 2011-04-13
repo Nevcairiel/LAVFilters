@@ -29,6 +29,19 @@
 
 struct ILAVFSettings;
 
+class FormatInfo {
+public:
+  FormatInfo() : strName(NULL), strDescription(NULL) {}
+  FormatInfo(const char *name, const char *desc) : strName(name), strDescription(desc) {}
+  const char *strName;
+  const char *strDescription;
+
+  // Comparison operators for sorting (NULL safe)
+  bool FormatInfo::operator < (const FormatInfo& rhs) const { return strName ? (rhs.strName ? strcmp(strName, rhs.strName) < 0 : false) : true; }
+  bool FormatInfo::operator > (const FormatInfo& rhs) const { return !(*this < rhs); }
+  bool FormatInfo::operator == (const FormatInfo& rhs) const { return (strName == rhs.strName) || (strName && rhs.strName && (strcmp(strName, rhs.strName) == 0)); }
+};
+
 // Data Packet for queue storage
 class Packet
 {
