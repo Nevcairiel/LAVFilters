@@ -127,6 +127,7 @@ HRESULT CLAVOutputPin::GetMediaType(int iPosition, CMediaType* pmt)
 
 HRESULT CLAVOutputPin::Active()
 {
+  DbgLog((LOG_TRACE, 30, L"CLAVOutputPin::Active() - activated %s pin", CBaseDemuxer::CStreamList::ToStringW(m_pinType)));
   CAutoLock cAutoLock(m_pLock);
 
   if(m_Connected)
@@ -137,6 +138,7 @@ HRESULT CLAVOutputPin::Active()
 
 HRESULT CLAVOutputPin::Inactive()
 {
+  DbgLog((LOG_TRACE, 30, L"CLAVOutputPin::Inactive() - de-activated %s pin", CBaseDemuxer::CStreamList::ToStringW(m_pinType)));
   CAutoLock cAutoLock(m_pLock);
 
   if(ThreadExists())
