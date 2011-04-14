@@ -31,6 +31,10 @@
 
 #include "registry.h"
 
+// Buffer Size for decoded PCM: 1s of 192kHz 32-bit with 8 channels
+// 192000 (Samples) * 4 (Bytes per Sample) * 8 (channels)
+#define LAV_AUDIO_BUFFER_SIZE 6144000
+
 // static constructor
 CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
@@ -438,7 +442,7 @@ HRESULT CLAVAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
 
   pProperties->cBuffers = 4;
   // TODO: we should base this on the output media type
-  pProperties->cbBuffer = 48000*6*(32/8)/10; // 48KHz 6ch 32bps 100ms
+  pProperties->cbBuffer = LAV_AUDIO_BUFFER_SIZE; // 48KHz 6ch 32bps 100ms
   pProperties->cbAlign = 1;
   pProperties->cbPrefix = 0;
 
@@ -538,7 +542,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
 
   int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
   if (ret >= 0) {
-    m_pPCMData = (BYTE*)av_mallocz(AVCODEC_MAX_AUDIO_FRAME_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_pPCMData = (BYTE*)av_mallocz(LAV_AUDIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
   } else {
     return VFW_E_UNSUPPORTED_AUDIO;
   }
@@ -761,7 +765,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
   consumed = 0;
   while (buffsize > 0) {
-    nPCMLength = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+    nPCMLength = LAV_AUDIO_BUFFER_SIZE;
     if (buffsize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
       m_nFFBufferSize = buffsize + FF_INPUT_BUFFER_PADDING_SIZE;
       m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
