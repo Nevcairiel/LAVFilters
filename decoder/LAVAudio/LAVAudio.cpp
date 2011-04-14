@@ -43,7 +43,7 @@ CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
-  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_DecodeFormat(SampleFormat_16)
+  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_dStartOffset(0.0), m_DecodeFormat(SampleFormat_16)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_bVolumeStats(FALSE), m_pParser(NULL), m_bQueueResync(FALSE)
 {
   avcodec_init();
@@ -690,14 +690,15 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   if(m_bQueueResync && SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
     m_rtStart = rtStart;
+    m_dStartOffset = 0.0;
     m_bQueueResync = FALSE;
   }
 
-#ifdef DEBUG
+  /*
   if (SUCCEEDED(hr) && _abs64(m_rtStart - rtStart) > 100000i64) {
     DbgLog((LOG_TRACE, 10, L"Sync: theirs: %I64d; ours: %I64d; diff: %I64d; buffer: %d", rtStart, m_rtStart, _abs64(m_rtStart - rtStart), m_buff.GetCount()));
   }
-#endif
+  */
 
   int bufflen = m_buff.GetCount();
 
@@ -997,9 +998,20 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
     return E_FAIL;
   }
 
-  REFERENCE_TIME rtDur = av_rescale(10000000i64, buffer.nSamples, wfe->nSamplesPerSec);
-  REFERENCE_TIME rtStart = m_rtStart, rtStop = m_rtStart + rtDur;
-  m_rtStart += rtDur;
+  // Length of the current sample
+  double dDuration = (double)buffer.nSamples / buffer.dwSamplesPerSec * 10000000.0;
+  m_dStartOffset += fmod(dDuration, 1.0);
+
+  // Delivery Timestamps
+  REFERENCE_TIME rtStart = m_rtStart, rtStop = m_rtStart + (REFERENCE_TIME)(dDuration + 0.5);
+
+  // Compute next start time
+  m_rtStart += (REFERENCE_TIME)dDuration;
+  // If the offset reaches one (100ns), add it to the next frame
+  if (m_dStartOffset > 0.5) {
+    m_rtStart++;
+    m_dStartOffset -= 1.0;
+  }
 
   if(rtStart < 0) {
     goto done;
