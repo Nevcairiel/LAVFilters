@@ -44,7 +44,7 @@ CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_DecodeFormat(SampleFormat_16)
-  , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_bVolumeStats(FALSE), m_pParser(NULL)
+  , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_bVolumeStats(FALSE), m_pParser(NULL), m_bQueueResync(FALSE)
 {
   avcodec_init();
   avcodec_register_all();
@@ -681,11 +681,23 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   if(pIn->IsDiscontinuity() == S_OK) {
     m_fDiscontinuity = true;
     m_buff.SetSize(0);
+    m_bQueueResync = TRUE;
     if(FAILED(hr)) {
       return S_OK;
     }
-    m_rtStart = rtStart;
   }
+
+  if(m_bQueueResync && SUCCEEDED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
+    m_rtStart = rtStart;
+    m_bQueueResync = FALSE;
+  }
+
+#ifdef DEBUG
+  if (SUCCEEDED(hr) && _abs64(m_rtStart - rtStart) > 100000i64) {
+    DbgLog((LOG_TRACE, 10, L"Sync: theirs: %I64d; ours: %I64d; diff: %I64d; buffer: %d", rtStart, m_rtStart, _abs64(m_rtStart - rtStart), m_buff.GetCount()));
+  }
+#endif
 
   int bufflen = m_buff.GetCount();
 
@@ -702,7 +714,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   memcpy(m_buff.Ptr() + bufflen, pDataIn, len);
   len += bufflen;
 
-  hr = ProcessBuffer();
+  if((hr = ProcessBuffer()) != S_OK)
+    m_bQueueResync = TRUE;
 
   return S_OK;
 }
@@ -731,13 +744,14 @@ HRESULT CLAVAudio::ProcessBuffer()
   } else if (FAILED(hr2)) {
     DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
     m_buff.SetSize(0);
-    return S_OK;
+    return S_FALSE;
   } else {
     DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
+    hr = S_FALSE;
   }
 
   if (consumed <= 0) {
-    return S_OK;
+    return hr;
   }
 
   // This really shouldn't be needed, but apparently it is.

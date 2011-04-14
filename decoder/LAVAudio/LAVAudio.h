@@ -155,4 +155,6 @@ private:
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled
   FloatingAverage     m_faVolume[8];     // Floating Average for volume (8 channels)
+
+  BOOL                m_bQueueResync;
 };
