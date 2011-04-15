@@ -89,6 +89,8 @@ HRESULT CLAVAudio::LoadSettings()
   for(int i = 0; i < CC_NB; ++i)
     m_settings.bFormats[i] = true;
 
+  m_settings.bFormats[CC_FLAC] = false;
+
   BYTE *buf = reg.ReadBinary(L"Formats", dwVal, hr);
   if (SUCCEEDED(hr)) {
     memcpy(&m_settings.bFormats, buf, min(dwVal, sizeof(m_settings.bFormats)));
