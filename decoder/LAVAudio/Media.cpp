@@ -63,6 +63,10 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   // Ogg Vorbis
   { &MEDIASUBTYPE_Vorbis2,      CODEC_ID_VORBIS   },
 
+  // Other Lossless formats
+  { &MEDIASUBTYPE_TTA1,         CODEC_ID_TTA      },
+  { &MEDIASUBTYPE_WAVPACK4,     CODEC_ID_WAVPACK  },
+
   // BluRay LPCM
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
   { &MEDIASUBTYPE_BD_LPCM_AUDIO,   CODEC_ID_PCM_BLURAY },
@@ -118,6 +122,10 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
 
   // Ogg Vorbis
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_Vorbis2      },
+
+  // Other Lossless formats
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_TTA1         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_WAVPACK4     },
 
   // BluRay LPCM
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO  },
@@ -415,6 +423,8 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_VORBIS }},                       // CC_VORBIS
   { 2, { CODEC_ID_PCM_BLURAY, CODEC_ID_PCM_DVD }, L"lpcm", L"Linear PCM (BluRay & DVD)"}, // CC_LPCM
   { 1, { CODEC_ID_NONE }, L"pcm", L"Raw PCM Types (including QT PCM)" }, // CC_LPCM
+  { 1, { CODEC_ID_WAVPACK }},                      // CC_WAVPACK
+  { 1, { CODEC_ID_TTA }},                          // CC_TTA
 };
 
 const codec_config_t *get_codec_config(ConfigCodecs codec)

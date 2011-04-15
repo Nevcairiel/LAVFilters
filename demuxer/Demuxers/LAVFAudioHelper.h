@@ -76,6 +76,8 @@ const AVCodecTag ff2_codec_wav_tags[] = {
   { CODEC_ID_FLAC,            0xF1AC },
   { CODEC_ID_ADPCM_SWF,       ('S'<<8)+'F' },
   { CODEC_ID_VORBIS,          0x6771 }, //HACK/FIXME, does vorbis in WAV/AVI have an (in)official id?
+  { CODEC_ID_WAVPACK,         0x5756 }, // WAVE_FORMAT_WAVPACK4
+  { CODEC_ID_TTA,             0x77A1 }, // WAVE_FORMAT_TTA1
 
   /* FIXME: All of the IDs below are not 16 bit and thus illegal. */
   // for NuppelVideo (nuv.c)
@@ -113,9 +115,7 @@ const AVCodecTag mp_wav_tags[] = {
   { CODEC_ID_ROQ_DPCM,          MKTAG('R', 'o', 'Q', 'A')},
   { CODEC_ID_SHORTEN,           MKTAG('s', 'h', 'r', 'n')},
   { CODEC_ID_SPEEX,             MKTAG('s', 'p', 'x', ' ')},
-  { CODEC_ID_TTA,               MKTAG('T', 'T', 'A', '1')},
   { CODEC_ID_TWINVQ,            MKTAG('T', 'W', 'I', '2')},
-  { CODEC_ID_WAVPACK,           MKTAG('W', 'V', 'P', 'K')},
   { CODEC_ID_WESTWOOD_SND1,     MKTAG('S', 'N', 'D', '1')},
   { CODEC_ID_XAN_DPCM,          MKTAG('A', 'x', 'a', 'n')},
 

@@ -47,6 +47,8 @@ typedef enum ConfigCodecs {
   CC_VORBIS,
   CC_LPCM,
   CC_PCM,
+  CC_WAVPACK,
+  CC_TTA,
 
   CC_NB        // Number of entrys
 };
