@@ -35,6 +35,8 @@
 // 192000 (Samples) * 4 (Bytes per Sample) * 8 (channels)
 #define LAV_AUDIO_BUFFER_SIZE 6144000
 
+#define AUTO_RESYNC 0
+
 // static constructor
 CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
@@ -717,7 +719,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   memcpy(m_buff.Ptr() + bufflen, pDataIn, len);
   len += bufflen;
 
-  if((hr = ProcessBuffer()) != S_OK)
+  if((hr = ProcessBuffer()) != S_OK && AUTO_RESYNC)
     m_bQueueResync = TRUE;
 
   return S_OK;
