@@ -161,7 +161,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
 
   m_pszInputFormat = format ? format : m_avFormat->iformat->name;
 
-  unsigned int idx = 0;
   m_bVC1SeenTimestamp = FALSE;
 
   m_bMatroska = (_strnicmp(m_pszInputFormat, "matroska", 8) == 0);
@@ -181,7 +180,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
   SAFE_CO_FREE(m_stOrigParser);
   m_stOrigParser = (enum AVStreamParseType *)CoTaskMemAlloc(m_avFormat->nb_streams * sizeof(enum AVStreamParseType));
 
-  for(idx = 0; idx < m_avFormat->nb_streams; ++idx) {
+  for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
 
 #ifdef DEBUG
