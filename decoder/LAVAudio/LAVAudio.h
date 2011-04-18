@@ -139,7 +139,7 @@ private:
   BYTE                 *m_pFFBuffer;     // FFMPEG processing buffer (padded)
 	int                  m_nFFBufferSize;  // Size of the FFMPEG processing buffer
 
-  BOOL                 m_fDiscontinuity; // Discontinuity
+  BOOL                 m_bDiscontinuity; // Discontinuity
   REFERENCE_TIME       m_rtStart;        // Start time
   double               m_dStartOffset;   // Start time offset (extra precision)
   GrowableArray<BYTE>  m_buff;           // Input Buffer

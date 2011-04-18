@@ -50,7 +50,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pAVCodec(NULL)
   , m_pAVCtx(NULL)
   , m_pPCMData(NULL)
-  , m_fDiscontinuity(FALSE)
+  , m_bDiscontinuity(FALSE)
   , m_rtStart(0)
   , m_dStartOffset(0.0)
   , m_DecodeFormat(SampleFormat_16)
@@ -695,7 +695,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   hr = pIn->GetTime(&rtStart, &rtStop);
 
   if(pIn->IsDiscontinuity() == S_OK) {
-    m_fDiscontinuity = true;
+    m_bDiscontinuity = true;
     m_buff.SetSize(0);
     m_bQueueResync = TRUE;
     if(FAILED(hr)) {
@@ -1043,8 +1043,8 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   pOut->SetMediaTime(NULL, NULL);
 
   pOut->SetPreroll(FALSE);
-  pOut->SetDiscontinuity(m_fDiscontinuity);
-  m_fDiscontinuity = false;
+  pOut->SetDiscontinuity(m_bDiscontinuity);
+  m_bDiscontinuity = false;
   pOut->SetSyncPoint(TRUE);
 
   pOut->SetActualDataLength(buffer.bBuffer->GetCount());
@@ -1064,7 +1064,7 @@ HRESULT CLAVAudio::StartStreaming()
     return hr;
   }
 
-  m_fDiscontinuity = false;
+  m_bDiscontinuity = false;
 
   return S_OK;
 }
