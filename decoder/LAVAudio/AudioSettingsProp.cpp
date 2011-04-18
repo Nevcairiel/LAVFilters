@@ -248,7 +248,6 @@ HRESULT CLAVAudioFormatsProp::LoadData()
 
 INT_PTR CLAVAudioFormatsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  LRESULT lValue;
   switch (uMsg)
   {
   case WM_NOTIFY:
