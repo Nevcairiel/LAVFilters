@@ -45,8 +45,20 @@ CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
-  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio)), m_nCodecId(CODEC_ID_NONE), m_pAVCodec(NULL), m_pAVCtx(NULL), m_pPCMData(NULL), m_fDiscontinuity(FALSE), m_rtStart(0), m_dStartOffset(0.0), m_DecodeFormat(SampleFormat_16)
-  , m_pFFBuffer(NULL), m_nFFBufferSize(0), m_bVolumeStats(FALSE), m_pParser(NULL), m_bQueueResync(FALSE)
+  : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
+  , m_nCodecId(CODEC_ID_NONE)
+  , m_pAVCodec(NULL)
+  , m_pAVCtx(NULL)
+  , m_pPCMData(NULL)
+  , m_fDiscontinuity(FALSE)
+  , m_rtStart(0)
+  , m_dStartOffset(0.0)
+  , m_DecodeFormat(SampleFormat_16)
+  , m_pFFBuffer(NULL)
+  , m_nFFBufferSize(0)
+  , m_bVolumeStats(FALSE)
+  , m_pParser(NULL)
+  , m_bQueueResync(FALSE)
 {
   avcodec_init();
   avcodec_register_all();
