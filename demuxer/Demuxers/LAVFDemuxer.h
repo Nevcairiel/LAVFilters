@@ -109,6 +109,8 @@ private:
   BOOL m_bSubStreams;
   BOOL m_bGenPTS;
 
+  BOOL m_bVC1SeenTimestamp;
+
   unsigned int m_program;
 
   REFERENCE_TIME m_rtCurrent;

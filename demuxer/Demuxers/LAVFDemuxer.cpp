@@ -55,7 +55,7 @@ std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
 }
 
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL), m_pFontInstaller(NULL), m_pSettings(NULL), m_pszInputFormat(NULL)
+  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL), m_pFontInstaller(NULL), m_pSettings(NULL), m_pszInputFormat(NULL), m_bVC1SeenTimestamp(FALSE)
 {
   m_bSubStreams = settings->GetSubstreamsEnabled();
   m_bGenPTS = settings->GetGeneratePTS();
@@ -162,6 +162,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
   m_pszInputFormat = format ? format : m_avFormat->iformat->name;
 
   unsigned int idx = 0;
+  m_bVC1SeenTimestamp = FALSE;
 
   m_bMatroska = (_strnicmp(m_pszInputFormat, "matroska", 8) == 0);
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
@@ -395,6 +396,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     if (stream->codec->codec_id == CODEC_ID_VC1) {
       if (m_bMatroska && m_bVC1Correction) {
         rt = pts;
+        if (!m_bVC1SeenTimestamp && rt == Packet::INVALID_TIME && dts != Packet::INVALID_TIME) {
+          rt = dts;
+          m_bVC1SeenTimestamp = TRUE;
+        }
       } else if (m_bMatroska) {
         pPacket->dwFlags |= LAV_PACKET_PARSED;
       } else if (m_bVC1Correction) {
@@ -455,6 +460,8 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
       DbgLog((LOG_ERROR, 1, L"::Seek() -- Inaccurate Seek failed as well"));
     }
   }
+
+  m_bVC1SeenTimestamp = FALSE;
 
   return S_OK;
 }
