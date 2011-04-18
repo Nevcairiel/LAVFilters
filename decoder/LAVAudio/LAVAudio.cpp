@@ -695,7 +695,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   hr = pIn->GetTime(&rtStart, &rtStop);
 
   if(pIn->IsDiscontinuity() == S_OK) {
-    m_bDiscontinuity = true;
+    m_bDiscontinuity = TRUE;
     m_buff.SetSize(0);
     m_bQueueResync = TRUE;
     if(FAILED(hr)) {
@@ -1044,7 +1044,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
 
   pOut->SetPreroll(FALSE);
   pOut->SetDiscontinuity(m_bDiscontinuity);
-  m_bDiscontinuity = false;
+  m_bDiscontinuity = FALSE;
   pOut->SetSyncPoint(TRUE);
 
   pOut->SetActualDataLength(buffer.bBuffer->GetCount());
@@ -1064,7 +1064,7 @@ HRESULT CLAVAudio::StartStreaming()
     return hr;
   }
 
-  m_bDiscontinuity = false;
+  m_bDiscontinuity = FALSE;
 
   return S_OK;
 }
