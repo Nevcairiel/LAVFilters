@@ -43,7 +43,9 @@ CUnknown* WINAPI CLAVSplitterSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESUL
 
 CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(IUnknown *pUnk)
   : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
-  , m_pLAVF(NULL), m_pszPrefLang(NULL), m_pszPrefSubLang(NULL), m_videoParsing(TRUE), m_audioParsing(TRUE), m_generatePTS(FALSE)
+  , m_pLAVF(NULL)
+  , m_pszPrefLang(NULL)
+  , m_pszPrefSubLang(NULL)
 {
 }
 
@@ -52,12 +54,12 @@ CLAVSplitterSettingsProp::~CLAVSplitterSettingsProp(void)
 {
   SAFE_CO_FREE(m_pszPrefLang);
   SAFE_CO_FREE(m_pszPrefSubLang);
+  SafeRelease(&m_pLAVF);
 }
 
 HRESULT CLAVSplitterSettingsProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL)
-  {
+  if (pUnk == NULL) {
     return E_POINTER;
   }
   ASSERT(m_pLAVF == NULL);
@@ -66,10 +68,7 @@ HRESULT CLAVSplitterSettingsProp::OnConnect(IUnknown *pUnk)
 
 HRESULT CLAVSplitterSettingsProp::OnDisconnect()
 {
-  if (m_pLAVF) {
-    m_pLAVF->Release();
-    m_pLAVF = NULL;
-  }
+  SafeRelease(&m_pLAVF);
   return S_OK;
 }
 

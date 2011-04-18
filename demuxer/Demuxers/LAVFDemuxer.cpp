@@ -55,7 +55,20 @@ std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
 }
 
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
-  : CBaseDemuxer(L"lavf demuxer", pLock), m_avFormat(NULL), m_rtCurrent(0), m_bIsStream(false), m_bMatroska(false), m_bAVI(false), m_bMPEGTS(false), m_program(0), m_bVC1Correction(true), m_stOrigParser(NULL), m_pFontInstaller(NULL), m_pSettings(NULL), m_pszInputFormat(NULL), m_bVC1SeenTimestamp(FALSE)
+  : CBaseDemuxer(L"lavf demuxer", pLock)
+  , m_avFormat(NULL)
+  , m_program(0)
+  , m_rtCurrent(0)
+  , m_bIsStream(FALSE)
+  , m_bMatroska(FALSE)
+  , m_bAVI(FALSE)
+  , m_bMPEGTS(FALSE)
+  , m_bVC1Correction(FALSE)
+  , m_bVC1SeenTimestamp(FALSE)
+  , m_pSettings(NULL)
+  , m_stOrigParser(NULL)
+  , m_pFontInstaller(NULL)
+  , m_pszInputFormat(NULL)
 {
   m_bSubStreams = settings->GetSubstreamsEnabled();
   m_bGenPTS = settings->GetGeneratePTS();

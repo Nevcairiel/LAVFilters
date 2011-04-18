@@ -44,8 +44,13 @@ CUnknown* WINAPI CLAVSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
-  , m_rtStart(0), m_rtStop(0), m_rtCurrent(0), m_bPlaybackStarted(FALSE)
-  , m_dRate(1.0), m_rtLastStart(_I64_MIN), m_rtLastStop(_I64_MIN)
+  , m_rtStart(0)
+  , m_rtStop(0)
+  , m_dRate(1.0)
+  , m_rtLastStart(_I64_MIN)
+  , m_rtLastStop(_I64_MIN)
+  , m_rtCurrent(0)
+  , m_bPlaybackStarted(FALSE)
   , m_pDemuxer(NULL)
 {
   CLAVFDemuxer::ffmpeg_init();
