@@ -395,9 +395,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     if (stream->codec->codec_id == CODEC_ID_VC1) {
       if (m_bMatroska && m_bVC1Correction) {
         rt = pts;
-        if (!m_bVC1SeenTimestamp && rt == Packet::INVALID_TIME && dts != Packet::INVALID_TIME) {
-          rt = dts;
-          m_bVC1SeenTimestamp = TRUE;
+        if (!m_bVC1SeenTimestamp) {
+          if (rt == Packet::INVALID_TIME && dts != Packet::INVALID_TIME)
+            rt = dts;
+          m_bVC1SeenTimestamp = (rt != Packet::INVALID_TIME);
         }
       } else if (m_bMatroska) {
         pPacket->dwFlags |= LAV_PACKET_PARSED;
