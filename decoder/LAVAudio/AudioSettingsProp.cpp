@@ -27,17 +27,7 @@
 #include "resource.h"
 #include "version.h"
 
-// static constructor
-CUnknown* WINAPI CLAVAudioSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  CLAVAudioSettingsProp *propPage = new CLAVAudioSettingsProp(pUnk);
-  if (!propPage) {
-    *phr = E_OUTOFMEMORY;
-  }
-  return propPage;
-}
-
-CLAVAudioSettingsProp::CLAVAudioSettingsProp(IUnknown *pUnk)
+CLAVAudioSettingsProp::CLAVAudioSettingsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS), m_pAudioSettings(NULL), m_bDRCEnabled(FALSE), m_iDRCLevel(100)
 {
 }
@@ -148,17 +138,7 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Format Configurations
 
-// static constructor
-CUnknown* WINAPI CLAVAudioFormatsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  CLAVAudioFormatsProp *propPage = new CLAVAudioFormatsProp(pUnk);
-  if (!propPage) {
-    *phr = E_OUTOFMEMORY;
-  }
-  return propPage;
-}
-
-CLAVAudioFormatsProp::CLAVAudioFormatsProp(IUnknown *pUnk)
+CLAVAudioFormatsProp::CLAVAudioFormatsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVCAudioFormats"), pUnk, IDD_PROPPAGE_FORMATS, IDS_FORMATS), m_pAudioSettings(NULL)
 {
 }
@@ -298,17 +278,7 @@ static int iddVolumeControls[MAX_CHANNELS] = {IDC_VOLUME1, IDC_VOLUME2, IDC_VOLU
 static int iddVolumeDescs[MAX_CHANNELS] = {IDC_VOLUME1_DESC, IDC_VOLUME2_DESC, IDC_VOLUME3_DESC, IDC_VOLUME4_DESC, IDC_VOLUME5_DESC, IDC_VOLUME6_DESC, IDC_VOLUME7_DESC, IDC_VOLUME8_DESC};
 
 
-// static constructor
-CUnknown* WINAPI CLAVAudioStatusProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  CLAVAudioStatusProp *propPage = new CLAVAudioStatusProp(pUnk);
-  if (!propPage) {
-    *phr = E_OUTOFMEMORY;
-  }
-  return propPage;
-}
-
-CLAVAudioStatusProp::CLAVAudioStatusProp(IUnknown *pUnk)
+CLAVAudioStatusProp::CLAVAudioStatusProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL), m_nChannels(0)
 {
 }

@@ -35,13 +35,6 @@
 
 #include "registry.h"
 
-
-// static constructor
-CUnknown* WINAPI CLAVSplitter::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  return new CLAVSplitter(pUnk, phr);
-}
-
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
   , m_rtStart(0)
@@ -61,7 +54,6 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   m_InputFormats.insert(lavf_formats.begin(), lavf_formats.end());
 
   LoadSettings();
-  if(phr) { *phr = S_OK; }
 
   m_pInput = new CLAVInputPin(NAME("LAV Input Pin"), this, this, phr);
 
@@ -1103,12 +1095,6 @@ STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(const char *strFormat)
     return m_settings.formats[format];
   }
   return FALSE;
-}
-
-// static constructor
-CUnknown* WINAPI CLAVSplitterSource::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  return new CLAVSplitterSource(pUnk, phr);
 }
 
 CLAVSplitterSource::CLAVSplitterSource(LPUNKNOWN pUnk, HRESULT* phr)

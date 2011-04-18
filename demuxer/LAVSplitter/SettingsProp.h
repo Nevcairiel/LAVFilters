@@ -31,8 +31,7 @@ DEFINE_GUID(CLSID_LAVSplitterSettingsProp, 0xa19de2f2, 0x2f74,
 class CLAVSplitterSettingsProp : public CBaseDSPropPage
 {
 public:
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
-
+  CLAVSplitterSettingsProp(LPUNKNOWN pUnk, HRESULT* phr);
   virtual ~CLAVSplitterSettingsProp(void);
 
   HRESULT OnActivate();
@@ -42,8 +41,6 @@ public:
   INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-  CLAVSplitterSettingsProp(IUnknown *pUnk);
-
   HRESULT LoadData();
 
   void SetDirty()

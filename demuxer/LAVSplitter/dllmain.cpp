@@ -103,14 +103,14 @@ CFactoryTemplate g_Templates[] = {
   {
     sudFilterReg.strName,
       sudFilterReg.clsID,
-      CLAVSplitter::CreateInstance,
+      CreateInstance<CLAVSplitter>,
       NULL,
       &sudFilterReg
   },
   {
     sudFilterRegSource.strName,
       sudFilterRegSource.clsID,
-      CLAVSplitterSource::CreateInstance,
+      CreateInstance<CLAVSplitterSource>,
       NULL,
       &sudFilterRegSource
   },
@@ -118,7 +118,7 @@ CFactoryTemplate g_Templates[] = {
   { 
       L"LAV Splitter Properties",
       &CLSID_LAVSplitterSettingsProp,
-      CLAVSplitterSettingsProp::CreateInstance, 
+      CreateInstance<CLAVSplitterSettingsProp>,
       NULL, NULL
   }
 

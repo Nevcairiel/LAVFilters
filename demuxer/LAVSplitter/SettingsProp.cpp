@@ -31,24 +31,13 @@
 
 #define LANG_BUFFER_SIZE 256
 
-// static constructor
-CUnknown* WINAPI CLAVSplitterSettingsProp::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  CLAVSplitterSettingsProp *propPage = new CLAVSplitterSettingsProp(pUnk);
-  if (!propPage) {
-    *phr = E_OUTOFMEMORY;
-  }
-  return propPage;
-}
-
-CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(IUnknown *pUnk)
+CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
   , m_pLAVF(NULL)
   , m_pszPrefLang(NULL)
   , m_pszPrefSubLang(NULL)
 {
 }
-
 
 CLAVSplitterSettingsProp::~CLAVSplitterSettingsProp(void)
 {

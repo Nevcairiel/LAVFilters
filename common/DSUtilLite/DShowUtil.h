@@ -59,6 +59,18 @@ template <class T> void SafeRelease(T **ppT)
 #define QI2(i) (riid == IID_##i) ? GetInterface((i*)this, ppv) :
 #define countof( array ) ( sizeof( array )/sizeof( array[0] ) )
 
+// Gennenric IUnknown creation function
+template <class T>
+static CUnknown* WINAPI CreateInstance(LPUNKNOWN lpunk, HRESULT* phr)
+{
+  *phr = S_OK;
+  CUnknown *punk = new T(lpunk, phr);
+  if(punk == NULL) {
+    *phr = E_OUTOFMEMORY;
+  }
+  return punk;
+}
+
 extern void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName);
 
 void split(std::string& text, std::string& separators, std::list<std::string>& words);

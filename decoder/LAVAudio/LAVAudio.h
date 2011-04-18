@@ -55,8 +55,8 @@ typedef struct BufferDetails_s BufferDetails;
 class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVAudioSettings, public ILAVAudioStatus
 {
 public:
-  // constructor method used by class factory
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+  CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr);
+  ~CLAVAudio();
 
   // IUnknown
   DECLARE_IUNKNOWN;
@@ -108,9 +108,6 @@ public:
   const static int                      sudPinTypesOutCount;
 
 private:
-  CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr);
-  ~CLAVAudio();
-
   HRESULT LoadSettings();
   HRESULT SaveSettings();
 

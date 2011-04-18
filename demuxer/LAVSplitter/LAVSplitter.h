@@ -57,8 +57,8 @@ class CLAVSplitter
   , public ISpecifyPropertyPages
 {
 public:
-  // constructor method used by class factory
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+  CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
+  virtual ~CLAVSplitter();
 
   // IUnknown
   DECLARE_IUNKNOWN;
@@ -158,10 +158,6 @@ public:
   STDMETHODIMP BreakInputConnection();
 
 protected:
-  // construct only via class factory
-  CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
-  virtual ~CLAVSplitter();
-
   STDMETHODIMP LoadSettings();
   STDMETHODIMP SaveSettings();
 
@@ -214,15 +210,11 @@ private:
 class CLAVSplitterSource : public CLAVSplitter
 {
 public:
-  // constructor method used by class factory
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+  // construct only via class factory
+  CLAVSplitterSource(LPUNKNOWN pUnk, HRESULT* phr);
+  virtual ~CLAVSplitterSource();
 
   // IUnknown
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
-
-private:
-  // construct only via class factory
-  CLAVSplitterSource(LPUNKNOWN pUnk, HRESULT* phr);
-  virtual ~CLAVSplitterSource();
 };

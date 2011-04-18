@@ -65,7 +65,7 @@ CFactoryTemplate g_Templates[] = {
   {
     sudFilterReg.strName,
       sudFilterReg.clsID,
-      CLAVAudio::CreateInstance,
+      CreateInstance<CLAVAudio>,
       NULL,
       &sudFilterReg
   },
@@ -73,19 +73,19 @@ CFactoryTemplate g_Templates[] = {
   { 
       L"LAV Audio Properties",
       &CLSID_LAVAudioSettingsProp,
-      CLAVAudioSettingsProp::CreateInstance, 
+      CreateInstance<CLAVAudioSettingsProp>,
       NULL, NULL
   },
   { 
     L"LAV Audio Format Settings",
       &CLSID_LAVAudioFormatsProp,
-      CLAVAudioFormatsProp::CreateInstance,
+      CreateInstance<CLAVAudioFormatsProp>,
       NULL, NULL
   },
   {
       L"LAV Audio Status",
       &CLSID_LAVAudioStatusProp,
-      CLAVAudioStatusProp::CreateInstance, 
+      CreateInstance<CLAVAudioStatusProp>,
       NULL, NULL
   }
 };

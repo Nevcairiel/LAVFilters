@@ -37,12 +37,6 @@
 
 #define AUTO_RESYNC 0
 
-// static constructor
-CUnknown* WINAPI CLAVAudio::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  return new CLAVAudio(pUnk, phr);
-}
-
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))

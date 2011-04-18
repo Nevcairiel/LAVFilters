@@ -39,8 +39,7 @@ DEFINE_GUID(CLSID_LAVAudioFormatsProp,
 class CLAVAudioSettingsProp : public CBaseDSPropPage
 {
 public:
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
-
+  CLAVAudioSettingsProp(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVAudioSettingsProp();
 
   HRESULT OnActivate();
@@ -50,8 +49,6 @@ public:
   INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-  CLAVAudioSettingsProp(IUnknown *pUnk);
-
   HRESULT LoadData();
 
   void SetDirty()
@@ -73,8 +70,7 @@ private:
 class CLAVAudioFormatsProp : public CBaseDSPropPage
 {
 public:
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
-
+  CLAVAudioFormatsProp(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVAudioFormatsProp();
 
   HRESULT OnActivate();
@@ -83,6 +79,7 @@ public:
   HRESULT OnApplyChanges();
   INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+private:
   HRESULT LoadData();
 
   void SetDirty()
@@ -95,9 +92,6 @@ public:
   }
 
 private:
-  CLAVAudioFormatsProp(IUnknown *pUnk);
-
-private:
   ILAVAudioSettings *m_pAudioSettings;
 
   bool m_bFormats[CC_NB];
@@ -107,8 +101,7 @@ private:
 class CLAVAudioStatusProp : public CBaseDSPropPage
 {
 public:
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
-
+  CLAVAudioStatusProp(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVAudioStatusProp();
 
   HRESULT OnActivate();
@@ -118,7 +111,6 @@ public:
   INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-  CLAVAudioStatusProp(IUnknown *pUnk);
   void UpdateVolumeDisplay();
 
 private:
