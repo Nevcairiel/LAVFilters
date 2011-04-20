@@ -28,7 +28,6 @@ public:
   CLAVInputPin(TCHAR* pName, CLAVSplitter *pFilter, CCritSec* pLock, HRESULT* phr);
   ~CLAVInputPin(void);
 
-  HRESULT GetAsyncReader(IAsyncReader** ppAsyncReader);
   HRESULT GetAVIOContext(AVIOContext** ppContext);
 
   DECLARE_IUNKNOWN;

@@ -115,11 +115,6 @@ HRESULT CLAVInputPin::CompleteConnect(IPin* pPin)
   return S_OK;
 }
 
-HRESULT CLAVInputPin::GetAsyncReader(IAsyncReader** ppAsyncReader)
-{
-  return E_FAIL;
-}
-
 int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
 {
   CLAVInputPin *pin = static_cast<CLAVInputPin *>(opaque);
