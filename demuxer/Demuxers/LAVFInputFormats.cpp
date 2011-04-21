@@ -85,6 +85,7 @@ struct lavf_iformat_map
   { "microdvd", NULL, NULL },
   { "mpegtsraw", NULL, NULL },
   { "spdif", NULL, NULL },
+  { "srt", NULL, NULL },
   { "tty", NULL, NULL },
   { "vc1test", NULL, NULL },
   { "yuv4mpegpipe", NULL, NULL },
