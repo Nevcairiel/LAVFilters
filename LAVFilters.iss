@@ -49,6 +49,7 @@ Name: lavs32_flv;    Description: FLV;      GroupDescription: "Use LAV Splitter 
 Name: lavs32_ts;     Description: MPEG-TS;  GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
 Name: lavs32_ps;     Description: MPEG-PS;  GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32;               
 Name: lavs32_wtv;    Description: WTV;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
+Name: lavs32_wmv;    Description: WMV;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
 Name: lavs32_rm;     Description: RealMedia;GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32 AND lavaudio32; Flags: unchecked;
 Name: lavs32_flac;   Description: FLAC;     GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32 AND lavaudio32; Flags: unchecked;
 Name: lavs32_aac;    Description: AAC;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32 AND lavaudio32; Flags: unchecked;
@@ -66,6 +67,7 @@ Name: lavs64_flv;    Description: FLV;      GroupDescription: "Use LAV Splitter 
 Name: lavs64_ts;     Description: MPEG-TS;  GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
 Name: lavs64_ps;     Description: MPEG-PS;  GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
 Name: lavs64_wtv;    Description: WTV;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
+Name: lavs64_wmv;    Description: WMV;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
 Name: lavs64_rm;     Description: RealMedia;GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64 AND lavaudio64; Flags: unchecked; 
 Name: lavs64_flac;   Description: FLAC;     GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64 AND lavaudio64; Flags: unchecked;
 Name: lavs64_aac;    Description: AAC;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64 AND lavaudio64; Flags: unchecked;
@@ -190,6 +192,26 @@ begin
   RegWriteStringValue(HKCR64, 'Media Type\Extensions\' + extension, 'Source Filter', '{B98D13E7-55DB-4385-A33D-09FD1BA26338}');
 end;
 
+procedure DoExtension32(extension, option: String);
+begin
+  if IsTaskSelected(option) then begin
+    SetMediaTypeExt32(extension);
+  end
+  else begin
+    CleanMediaTypeExt32(extension);
+  end;
+end;
+
+procedure DoExtension64(extension, option: String);
+begin
+  if IsTaskSelected(option) then begin
+    SetMediaTypeExt64(extension);
+  end
+  else begin
+    CleanMediaTypeExt64(extension);
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if (CurStep = ssPostInstall) then begin
@@ -204,72 +226,16 @@ begin
       ConfigureFormat(HKCU32, 'mp4', IsTaskSelected('lavs32_mp4'));
       ConfigureFormat(HKCU32, 'mpeg', IsTaskSelected('lavs32_ps'));
       ConfigureFormat(HKCU32, 'mpegts', IsTaskSelected('lavs32_ts'));
-      ConfigureFormat(HKCU32, 'wtv', IsTaskSelected('lavs32_wtv'));
-      if IsTaskSelected('lavs32_wtv') then begin
-        SetMediaTypeExt32('.wtv');
-      end
-      else begin
-        CleanMediaTypeExt32('.wtv');
-      end;
-      ConfigureFormat(HKCU32, 'rm', IsTaskSelected('lavs32_rm'));
-      if IsTaskSelected('lavs32_rm') then begin
-        SetMediaTypeExt32('.rm');
-        SetMediaTypeExt32('.rmvb');
-      end
-      else begin
-        CleanMediaTypeExt32('.rm');
-        CleanMediaTypeExt32('.rmvb');
-      end;
-      if IsTaskSelected('lavs32_rm') then begin
-        SetMediaTypeExt32('.rm');
-        SetMediaTypeExt32('.rmvb');
-      end
-      else begin
-        CleanMediaTypeExt32('.rm');
-        CleanMediaTypeExt32('.rmvb');
-      end;
-      ConfigureFormat(HKCU32, 'flac', IsTaskSelected('lavs32_flac'));
-      if IsTaskSelected('lavs32_flac') then begin
-        SetMediaTypeExt32('.flac');
-      end
-      else begin
-        CleanMediaTypeExt32('.flac');
-      end;
-      ConfigureFormat(HKCU32, 'aac', IsTaskSelected('lavs32_aac'));
-      if IsTaskSelected('lavs32_aac') then begin
-        SetMediaTypeExt32('.aac');
-      end
-      else begin
-        CleanMediaTypeExt32('.aac');
-      end;
-      ConfigureFormat(HKCU32, 'amr', IsTaskSelected('lavs32_amr'));
-      if IsTaskSelected('lavs32_amr') then begin
-        SetMediaTypeExt32('.amr');
-      end
-      else begin
-        CleanMediaTypeExt32('.amr');
-      end;
-      ConfigureFormat(HKCU32, 'wv', IsTaskSelected('lavs32_wv'));
-      if IsTaskSelected('lavs32_wv') then begin
-        SetMediaTypeExt32('.wv');
-      end
-      else begin
-        CleanMediaTypeExt32('.wv');
-      end;
-      ConfigureFormat(HKCU32, 'mpc', IsTaskSelected('lavs32_mpc'));
-      if IsTaskSelected('lavs32_mpc') then begin
-        SetMediaTypeExt32('.mpc');
-      end
-      else begin
-        CleanMediaTypeExt32('.mpc');
-      end;
-      ConfigureFormat(HKCU32, 'tta', IsTaskSelected('lavs32_tta'));
-      if IsTaskSelected('lavs32_tta') then begin
-        SetMediaTypeExt32('.tta');
-      end
-      else begin
-        CleanMediaTypeExt32('.tta');
-      end;
+      DoExtension32('.wtv', 'lavs32_wtv');
+      DoExtension32('.wmv', 'lavs32_wmv');
+      DoExtension32('.rm', 'lavs32_rm');
+      DoExtension32('.rmvb', 'lavs32_rm');
+      DoExtension32('.flac', 'lavs32_flac');
+      DoExtension32('.aac', 'lavs32_aac');
+      DoExtension32('.amr', 'lavs32_amr');
+      DoExtension32('.wv', 'lavs32_amr');
+      DoExtension32('.mpc', 'lavs32_mpc');
+      DoExtension32('.tta', 'lavs32_tta');
     end;
 
     if IsComponentSelected('lavsplitter64') then begin
@@ -282,64 +248,16 @@ begin
       ConfigureFormat(HKCU64, 'mp4', IsTaskSelected('lavs64_mp4'));
       ConfigureFormat(HKCU64, 'mpeg', IsTaskSelected('lavs64_ps'));
       ConfigureFormat(HKCU64, 'mpegts', IsTaskSelected('lavs64_ts'));
-      ConfigureFormat(HKCU64, 'wtv', IsTaskSelected('lavs64_wtv'));
-      if IsTaskSelected('lavs64_wtv') then begin
-        SetMediaTypeExt64('.wtv');
-      end
-      else begin
-        CleanMediaTypeExt64('.wtv');
-      end;
-      ConfigureFormat(HKCU64, 'rm', IsTaskSelected('lavs64_rm'));
-      if IsTaskSelected('lavs64_rm') then begin
-        SetMediaTypeExt64('.rm');
-        SetMediaTypeExt64('.rmvb');
-      end
-      else begin
-        CleanMediaTypeExt64('.rm');
-        CleanMediaTypeExt64('.rmvb');
-      end;
-      ConfigureFormat(HKCU64, 'flac', IsTaskSelected('lavs64_flac'));
-      if IsTaskSelected('lavs64_flac') then begin
-        SetMediaTypeExt64('.flac');
-      end
-      else begin
-        CleanMediaTypeExt64('.flac');
-      end;
-      ConfigureFormat(HKCU64, 'aac', IsTaskSelected('lavs64_aac'));
-      if IsTaskSelected('lavs64_aac') then begin
-        SetMediaTypeExt64('.aac');
-      end
-      else begin
-        CleanMediaTypeExt64('.aac');
-      end;
-      ConfigureFormat(HKCU64, 'amr', IsTaskSelected('lavs64_amr'));
-      if IsTaskSelected('lavs64_amr') then begin
-        SetMediaTypeExt64('.amr');
-      end
-      else begin
-        CleanMediaTypeExt64('.amr');
-      end;
-      ConfigureFormat(HKCU64, 'wv', IsTaskSelected('lavs64_wv'));
-      if IsTaskSelected('lavs64_wv') then begin
-        SetMediaTypeExt64('.wv');
-      end
-      else begin
-        CleanMediaTypeExt64('.wv');
-      end;
-      ConfigureFormat(HKCU64, 'mpc', IsTaskSelected('lavs64_mpc'));
-      if IsTaskSelected('lavs64_mpc') then begin
-        SetMediaTypeExt64('.mpc');
-      end
-      else begin
-        CleanMediaTypeExt64('.mpc');
-      end;
-      ConfigureFormat(HKCU64, 'tta', IsTaskSelected('lavs64_tta'));
-      if IsTaskSelected('lavs64_tta') then begin
-        SetMediaTypeExt64('.tta');
-      end
-      else begin
-        CleanMediaTypeExt64('.tta');
-      end;
+      DoExtension64('.wtv', 'lavs64_wtv');
+      DoExtension64('.wmv', 'lavs64_wmv');
+      DoExtension64('.rm', 'lavs64_rm');
+      DoExtension64('.rmvb', 'lavs64_rm');
+      DoExtension64('.flac', 'lavs64_flac');
+      DoExtension64('.aac', 'lavs64_aac');
+      DoExtension64('.amr', 'lavs64_amr');
+      DoExtension64('.wv', 'lavs64_amr');
+      DoExtension64('.mpc', 'lavs64_mpc');
+      DoExtension64('.tta', 'lavs64_tta');
     end;
   end;
 end;
@@ -348,6 +266,7 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if (CurUninstallStep = usUninstall) then begin
     CleanMediaTypeExt32('.wtv');
+    CleanMediaTypeExt32('.wmv');
     CleanMediaTypeExt32('.rm');
     CleanMediaTypeExt32('.rmvb');
     CleanMediaTypeExt32('.flac');
@@ -358,7 +277,8 @@ begin
     CleanMediaTypeExt32('.tta');
 
     if IsWin64 then begin
-      CleanMediaTypeExt32('.wtv');
+      CleanMediaTypeExt64('.wtv');
+      CleanMediaTypeExt64('.wmv');
       CleanMediaTypeExt64('.rm');
       CleanMediaTypeExt64('.rmvb');
       CleanMediaTypeExt64('.flac');
