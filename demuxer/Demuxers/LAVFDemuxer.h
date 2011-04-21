@@ -27,6 +27,7 @@
 #include "IKeyFrameInfo.h"
 #include "FontInstaller.h"
 
+class FormatInfo;
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
 class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo

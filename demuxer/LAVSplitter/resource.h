@@ -3,10 +3,12 @@
 // Used by LAVSplitter.rc
 //
 #define IDD_PROPPAGE_LAVFSETTINGS       9
+#define IDD_PROPPAGE_FORMATS            10
 #define IDS_PAGE_TITLE                  101
 #define IDS_SUBMODE_NO_SUBS             102
 #define IDS_SUBMODE_FORCED_SUBS         103
 #define IDS_SUBMODE_ALL_SUBS            104
+#define IDS_INPUT_FORMATS               105
 #define IDC_LBL_PREF_LANG               1001
 #define IDC_PREF_LANG                   1002
 #define IDC_LBL_PREF_LANG_AUDIO         1003
@@ -22,6 +24,10 @@
 #define IDC_VIDEOPARSING                1013
 #define IDC_AUDIOPARSING                1014
 #define IDC_GENPTS                      1015
+#define IDC_FORMATS                     1016
+#define IDC_LBL_INPUT                   1017
+#define IDC_CUR_INPUT                   1018
+#define IDC_LBL_FORMATS                 1019
 
 // Next default values for new objects
 // 
@@ -29,7 +35,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1016
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

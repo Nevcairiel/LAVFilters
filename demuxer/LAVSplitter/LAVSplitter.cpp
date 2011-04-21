@@ -208,12 +208,13 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 STDMETHODIMP CLAVSplitter::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
-  pPages->cElems = 1;
+  pPages->cElems = 2;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
   if (pPages->pElems == NULL) {
     return E_OUTOFMEMORY;
   }
   pPages->pElems[0] = CLSID_LAVSplitterSettingsProp;
+  pPages->pElems[1] = CLSID_LAVSplitterFormatsProp;
   return S_OK;
 }
 
@@ -1095,6 +1096,20 @@ STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(const char *strFormat)
     return m_settings.formats[format];
   }
   return FALSE;
+}
+
+STDMETHODIMP_(HRESULT) CLAVSplitter::SetFormatEnabled(const char *strFormat, BOOL bEnabled)
+{
+  std::string format(strFormat);
+  if (m_settings.formats.find(format) != m_settings.formats.end()) {
+    m_settings.formats[format] = bEnabled;
+  }
+  return S_OK;
+}
+
+STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()
+{
+  return m_InputFormats;
 }
 
 CLAVSplitterSource::CLAVSplitterSource(LPUNKNOWN pUnk, HRESULT* phr)

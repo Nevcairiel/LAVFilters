@@ -124,6 +124,10 @@ public:
   STDMETHODIMP SetGeneratePTS(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetGeneratePTS();
   STDMETHODIMP_(BOOL) IsFormatEnabled(const char *strFormat);
+  STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
+  STDMETHODIMP_(std::set<FormatInfo>&) GetInputFormats();
+  STDMETHODIMP_(HRESULT) SetFormatEnabled(const char *strFormat, BOOL bEnabled);
+  STDMETHODIMP SaveSettings();
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -159,7 +163,6 @@ public:
 
 protected:
   STDMETHODIMP LoadSettings();
-  STDMETHODIMP SaveSettings();
 
 protected:
   CLAVInputPin *m_pInput;

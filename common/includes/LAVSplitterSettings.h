@@ -21,6 +21,21 @@
 #pragma once
 
 #include <Unknwn.h>       // IUnknown and GUID Macros
+#include <set>
+
+
+class FormatInfo {
+public:
+  FormatInfo() : strName(NULL), strDescription(NULL) {}
+  FormatInfo(const char *name, const char *desc) : strName(name), strDescription(desc) {}
+  const char *strName;
+  const char *strDescription;
+
+  // Comparison operators for sorting (NULL safe)
+  bool FormatInfo::operator < (const FormatInfo& rhs) const { return strName ? (rhs.strName ? strcmp(strName, rhs.strName) < 0 : false) : true; }
+  bool FormatInfo::operator > (const FormatInfo& rhs) const { return !(*this < rhs); }
+  bool FormatInfo::operator == (const FormatInfo& rhs) const { return (strName == rhs.strName) || (strName && rhs.strName && (strcmp(strName, rhs.strName) == 0)); }
+};
 
 // GUID: 72b2c5fa-a7a5-4463-9c1b-9f4749c35c79
 DEFINE_GUID(IID_ILAVFSettings, 0x72b2c5fa, 0xa7a5, 
@@ -92,4 +107,11 @@ interface ILAVFSettings : public IUnknown
 
   // Check if the given format is enabled
   STDMETHOD_(BOOL,IsFormatEnabled)(const char *strFormat) = 0;
+
+  // Check if the given format is enabled
+  STDMETHOD_(HRESULT,SetFormatEnabled)(const char *strFormat, BOOL bEnabled) = 0;
+  STDMETHOD(SaveSettings)() = 0;
+
+  STDMETHOD_(const char*, GetInputFormat)() = 0;
+  STDMETHOD_(std::set<FormatInfo>&, GetInputFormats)() = 0;
 };

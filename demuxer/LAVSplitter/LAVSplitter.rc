@@ -77,6 +77,16 @@ BEGIN
     LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,210,222,8,0,WS_EX_RIGHT
 END
 
+IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 236, 253
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    CONTROL         "",IDC_FORMATS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,25,217,225
+    LTEXT           "Current Input Format: ",IDC_LBL_INPUT,7,7,77,8
+    LTEXT           "matroska",IDC_CUR_INPUT,85,7,117,8
+    LTEXT           "Select which formats LAV Splitter will demux:",IDC_LBL_FORMATS,7,16,195,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -93,6 +103,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 218
     END
+
+    IDD_PROPPAGE_FORMATS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 202
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 250
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -108,6 +126,7 @@ BEGIN
     IDS_SUBMODE_NO_SUBS     "No Subtitles"
     IDS_SUBMODE_FORCED_SUBS "Only Forced Subs"
     IDS_SUBMODE_ALL_SUBS    "Full Subtitles"
+    IDS_INPUT_FORMATS       "Input Formats"
 END
 
 #endif    // English (United States) resources

@@ -254,3 +254,131 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
   // Let the parent class handle the message.
   return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
 }
+
+
+CLAVSplitterFormatsProp::CLAVSplitterFormatsProp(LPUNKNOWN pUnk, HRESULT* phr)
+  : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_FORMATS, IDS_INPUT_FORMATS)
+  , m_pLAVF(NULL)
+{
+}
+
+CLAVSplitterFormatsProp::~CLAVSplitterFormatsProp(void)
+{
+  SafeRelease(&m_pLAVF);
+}
+
+HRESULT CLAVSplitterFormatsProp::OnConnect(IUnknown *pUnk)
+{
+  if (pUnk == NULL) {
+    return E_POINTER;
+  }
+  ASSERT(m_pLAVF == NULL);
+  return pUnk->QueryInterface(&m_pLAVF);
+}
+
+HRESULT CLAVSplitterFormatsProp::OnDisconnect()
+{
+  SafeRelease(&m_pLAVF);
+  return S_OK;
+}
+
+HRESULT CLAVSplitterFormatsProp::OnApplyChanges()
+{
+  HRESULT hr = S_OK;
+  ASSERT(m_pLAVF != NULL);
+
+  HWND hlv = GetDlgItem(m_Dlg, IDC_FORMATS);
+
+  int nItem = 0;
+  std::set<FormatInfo>::const_iterator it;
+  for (it = m_Formats.begin(); it != m_Formats.end(); ++it) {
+    m_pLAVF->SetFormatEnabled(it->strName, ListView_GetCheckState(hlv, nItem));
+    nItem++;
+  }
+
+  hr = m_pLAVF->SaveSettings();
+
+done:
+  return hr;
+}
+
+HRESULT CLAVSplitterFormatsProp::OnActivate()
+{
+  HRESULT hr = S_OK;
+  INITCOMMONCONTROLSEX icc;
+  icc.dwSize = sizeof(INITCOMMONCONTROLSEX);
+  icc.dwICC = ICC_BAR_CLASSES | ICC_STANDARD_CLASSES;
+  if (InitCommonControlsEx(&icc) == FALSE)
+  {
+    return E_FAIL;
+  }
+  ASSERT(m_pLAVF != NULL);
+
+  memset(stringBuffer, 0, sizeof(stringBuffer));
+
+  const char *pszInput = m_pLAVF->GetInputFormat();
+  if (pszInput) {
+    _snwprintf_s(stringBuffer, _TRUNCATE, L"%S", pszInput);
+  }
+  SendDlgItemMessage(m_Dlg, IDC_CUR_INPUT, WM_SETTEXT, 0, (LPARAM)stringBuffer);
+
+  m_Formats = m_pLAVF->GetInputFormats();
+
+  // Setup ListView control for format configuration
+  HWND hlv = GetDlgItem(m_Dlg, IDC_FORMATS);
+  ListView_SetExtendedListViewStyle(hlv, LVS_EX_CHECKBOXES|LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+
+  int nCol = 1;
+  LVCOLUMN lvc = {LVCF_WIDTH, 0, 20, 0};
+  ListView_InsertColumn(hlv, 0, &lvc);
+  ListView_AddCol(hlv, nCol,  75, L"Format", false);
+  ListView_AddCol(hlv, nCol, 210, L"Description", false);
+
+  ListView_DeleteAllItems(hlv);
+  ListView_SetItemCount(hlv, m_Formats.size());
+
+  // Create entrys for the formats
+  LVITEM lvi;
+  memset(&lvi, 0, sizeof(lvi));
+  lvi.mask = LVIF_TEXT|LVIF_PARAM;
+
+  int nItem = 0;
+  std::set<FormatInfo>::const_iterator it;
+  for (it = m_Formats.begin(); it != m_Formats.end(); ++it) {
+    // Create main entry
+    lvi.iItem = nItem + 1;
+    ListView_InsertItem(hlv, &lvi);
+
+    // Set sub item texts
+    _snwprintf_s(stringBuffer, _TRUNCATE, L"%S", it->strName);
+    ListView_SetItemText(hlv, nItem, 1, (LPWSTR)stringBuffer);
+
+    _snwprintf_s(stringBuffer, _TRUNCATE, L"%S", it->strDescription);
+    ListView_SetItemText(hlv, nItem, 2, (LPWSTR)stringBuffer);
+
+    ListView_SetCheckState(hlv, nItem, m_pLAVF->IsFormatEnabled(it->strName));
+
+    nItem++;
+  }
+
+  return hr;
+}
+
+INT_PTR CLAVSplitterFormatsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  switch (uMsg)
+  {
+  case WM_NOTIFY:
+    NMHDR *hdr = (LPNMHDR)lParam;
+    if (hdr->idFrom == IDC_FORMATS) {
+      switch (hdr->code) {
+      case LVN_ITEMCHANGED:
+        SetDirty();
+        return TRUE;
+      }
+    }
+    break;
+  }
+  // Let the parent class handle the message.
+  return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+}

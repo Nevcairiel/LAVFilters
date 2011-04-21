@@ -28,6 +28,11 @@
 DEFINE_GUID(CLSID_LAVSplitterSettingsProp, 0xa19de2f2, 0x2f74, 
   0x4927, 0x84, 0x36, 0x61, 0x12, 0x9d, 0x26, 0xc1, 0x41);
 
+// {56904B22-091C-4459-A2E6-B1F4F946B55F}
+DEFINE_GUID(CLSID_LAVSplitterFormatsProp,
+  0x56904b22, 0x91c, 0x4459, 0xa2, 0xe6, 0xb1, 0xf4, 0xf9, 0x46, 0xb5, 0x5f);
+
+
 class CLAVSplitterSettingsProp : public CBaseDSPropPage
 {
 public:
@@ -67,6 +72,36 @@ private:
   BOOL m_videoParsing;
   BOOL m_audioParsing;
   BOOL m_generatePTS;
+
+  WCHAR stringBuffer[256];
+};
+
+class CLAVSplitterFormatsProp : public CBaseDSPropPage
+{
+public:
+  CLAVSplitterFormatsProp(LPUNKNOWN pUnk, HRESULT* phr);
+  virtual ~CLAVSplitterFormatsProp(void);
+
+  HRESULT OnActivate();
+  HRESULT OnConnect(IUnknown *pUnk);
+  HRESULT OnDisconnect();
+  HRESULT OnApplyChanges();
+  INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+private:
+  void SetDirty()
+  {
+    m_bDirty = TRUE;
+    if (m_pPageSite)
+    {
+      m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+    }
+  }
+
+private:
+  ILAVFSettings *m_pLAVF;
+
+  std::set<FormatInfo> m_Formats;
 
   WCHAR stringBuffer[256];
 };

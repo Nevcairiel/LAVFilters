@@ -120,8 +120,13 @@ CFactoryTemplate g_Templates[] = {
       &CLSID_LAVSplitterSettingsProp,
       CreateInstance<CLAVSplitterSettingsProp>,
       NULL, NULL
+  },
+  {
+      L"LAV Splitter Input Formats",
+      &CLSID_LAVSplitterFormatsProp,
+      CreateInstance<CLAVSplitterFormatsProp>,
+      NULL, NULL
   }
-
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 
