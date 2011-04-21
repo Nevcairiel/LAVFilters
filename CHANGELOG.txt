@@ -1,5 +1,21 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.23 - 2011/04/21
+General
+- There is now an installer available in addition to the trusted old .zip files!
+
+LAV Splitter
+- Added support for using the "File Source (Async)" (and others) together with LAV Splitter
+  - This is the new default mode for improved compatibility!
+  - Check release notes for additional informations.
+- Added configuration which input formats will be demuxed
+- Improved VC-1 in MKV playback
+
+LAV Audio
+- Fixed playback of lossless formats with huge sample sizes
+- Improved A/V sync with TrueHD (and possibly others)
+- FLAC decoding is now disabled by default, because the decoder is not 100% working
+
 0.22 - 2011/04/11
 LAV Splitter
 - Added support for MKV embedded fonts
