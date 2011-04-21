@@ -32,9 +32,9 @@ public:
   const char *strDescription;
 
   // Comparison operators for sorting (NULL safe)
-  bool FormatInfo::operator < (const FormatInfo& rhs) const { return strName ? (rhs.strName ? strcmp(strName, rhs.strName) < 0 : false) : true; }
+  bool FormatInfo::operator < (const FormatInfo& rhs) const { return strName ? (rhs.strName ? _stricmp(strName, rhs.strName) < 0 : false) : true; }
   bool FormatInfo::operator > (const FormatInfo& rhs) const { return !(*this < rhs); }
-  bool FormatInfo::operator == (const FormatInfo& rhs) const { return (strName == rhs.strName) || (strName && rhs.strName && (strcmp(strName, rhs.strName) == 0)); }
+  bool FormatInfo::operator == (const FormatInfo& rhs) const { return (strName == rhs.strName) || (strName && rhs.strName && (_stricmp(strName, rhs.strName) == 0)); }
 };
 
 // GUID: 72b2c5fa-a7a5-4463-9c1b-9f4749c35c79
