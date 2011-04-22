@@ -145,7 +145,7 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected.\nUnchecked - Frame timings will be sent untouched.\nIndeterminate (Auto) - Only enabled for decoders that rely on the splitter doing the corrections.\n\nNOTE: Only for debugging, if unsure, set to \"Auto\".");
 
   SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_SETCHECK, m_substreams, 0);
-  addHint(IDC_SUBSTREAMS, L"Controls if sub-streams should be exposed as a separate stream.\nSub-streams are typically streams for backwards compatibility, for example the AC3 part of TrueHD streams on BluRays");
+  addHint(IDC_SUBSTREAMS, L"Controls if sub-streams should be exposed as a separate stream.\nSub-streams are typically streams for backwards compatibility, for example the AC3 part of TrueHD streams on Blu-rays.");
 
   SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_SETCHECK, m_videoParsing, 0);
   addHint(IDC_VIDEOPARSING, L"Enables parsing and repacking of video streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
