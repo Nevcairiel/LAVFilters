@@ -79,6 +79,7 @@ struct s_id_map nice_codec_names[] = {
   // Video
   { CODEC_ID_H264, "h264" }, // XXX: Do not remove, required for custom profile/level formatting
   { CODEC_ID_VC1, "vc-1" },  // XXX: Do not remove, required for custom profile/level formatting
+  { CODEC_ID_MPEG2VIDEO, "mpeg2" },
   // Audio
   { CODEC_ID_DTS, "dts" },
   { CODEC_ID_AAC_LATM, "aac (latm)" },
@@ -139,7 +140,7 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
     codec_name << nice_name;
     if (profile)
       codec_name << " " << tolower(profile);
-  } else if (p) {
+  } else if (p && p->name) {
     codec_name << p->name;
     if (profile)
       codec_name << " " << tolower(profile);
