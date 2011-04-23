@@ -90,8 +90,6 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     break;
   case CODEC_ID_PCM_F32LE:
     mediaType.subtype = MEDIASUBTYPE_IEEE_FLOAT;
-    // Qt PCM
-    if (codecTag == MKTAG('f', 'l', '3', '2')) mediaType.subtype = MEDIASUBTYPE_PCM_FL32_le;
     break;
   case CODEC_ID_PCM_F64LE:
     // Qt PCM
