@@ -339,15 +339,15 @@ static int ufile_open(URLContext *h, const char *filename, int flags)
         );
 
     if(nChars <= 0) {
-        return AVERROR(ENOENT);
+      return AVERROR(ENOENT);
     }
 
-    if (flags & URL_RDWR) {
-        access = _O_CREAT | _O_TRUNC | _O_RDWR;
-    } else if (flags & URL_WRONLY) {
-        access = _O_CREAT | _O_TRUNC | _O_WRONLY;
+    if (flags & AVIO_FLAG_WRITE && flags & AVIO_FLAG_READ) {
+      access = O_CREAT | O_TRUNC | O_RDWR;
+    } else if (flags & AVIO_FLAG_WRITE) {
+      access = O_CREAT | O_TRUNC | O_WRONLY;
     } else {
-        access = _O_RDONLY;
+      access = O_RDONLY;
     }
 #ifdef O_BINARY
     access |= O_BINARY;
