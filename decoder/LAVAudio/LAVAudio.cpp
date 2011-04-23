@@ -387,6 +387,10 @@ CMediaType CLAVAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSample
 {
   CMediaType mt;
 
+  if (outputFormat == AV_SAMPLE_FMT_DBL) {
+    outputFormat = AV_SAMPLE_FMT_FLT;
+  }
+
   mt.majortype = MEDIATYPE_Audio;
   mt.subtype = (outputFormat == AV_SAMPLE_FMT_FLT) ? MEDIASUBTYPE_IEEE_FLOAT : MEDIASUBTYPE_PCM;
   mt.formattype = FORMAT_WaveFormatEx;
@@ -939,6 +943,21 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
               *pDataOut = ((float *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
+              pDataOut++;
+            }
+          }
+        }
+        out->sfFormat = SampleFormat_FP32;
+        break;
+      case AV_SAMPLE_FMT_DBL:
+        {
+          out->bBuffer->SetSize(idx_start + (nPCMLength / 2));
+          float *pDataOut = (float *)(out->bBuffer->Ptr() + idx_start);
+
+          const size_t num_elements = nPCMLength / sizeof(double) / m_pAVCtx->channels;
+          for (size_t i = 0; i < num_elements; ++i) {
+            for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
+              *pDataOut = (float)((double *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
               pDataOut++;
             }
           }
