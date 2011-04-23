@@ -122,6 +122,7 @@
     <CustomBuildStep>
       <Command>copy $(TargetDir)\$(TargetName)$(TargetExt) $(OutDir)..</Command>
       <Outputs>$(OutDir)..\$(TargetFileName)</Outputs>
+      <Inputs>$(TargetDir)\$(TargetName)$(TargetExt)</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,6 +140,7 @@
     <CustomBuildStep>
       <Command>copy $(TargetDir)\$(TargetName)$(TargetExt) $(OutDir)..</Command>
       <Outputs>$(OutDir)..\$(TargetFileName)</Outputs>
+      <Inputs>$(TargetDir)\$(TargetName)$(TargetExt)</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
