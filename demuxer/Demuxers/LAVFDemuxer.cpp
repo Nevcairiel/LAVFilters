@@ -25,11 +25,13 @@
 
 #include "LAVSplitterSettings.h"
 
-#ifdef DEBUG
+
 extern "C" {
+#ifdef DEBUG
 #include "libavutil/log.h"
-}
 #endif
+#include "libavformat/url.h"
+}
 
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
 
@@ -38,7 +40,7 @@ static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 void CLAVFDemuxer::ffmpeg_init()
 {
   av_register_all();
-  register_protocol(&ufile_protocol);
+  ffurl_register_protocol(&ufile_protocol, sizeof(ufile_protocol));
 }
 
 std::set<FormatInfo> CLAVFDemuxer::GetFormatList()

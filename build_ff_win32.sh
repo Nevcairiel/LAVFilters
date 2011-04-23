@@ -44,7 +44,7 @@ OPTIONS="
 --enable-audio-float \
 --arch=x86 --target-os=mingw32"
 
-./configure --extra-cflags="-march=i686 -mmmx -DFF_API_MAX_STREAMS=0" ${OPTIONS} &&
+./configure --extra-cflags="-march=i686 -mmmx" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_Win32 &&

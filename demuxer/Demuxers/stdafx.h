@@ -13,7 +13,6 @@
 
 extern "C" {
 #define __STDC_CONSTANT_MACROS
-#define FF_API_MAX_STREAMS 0
 #include "libavformat/avformat.h"
 #include "libavutil/intreadwrite.h"
 

@@ -61,8 +61,6 @@ const char *get_stream_language(AVStream *pStream)
   char *lang = NULL;
   if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
     lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
-  } else if(pStream->language && strlen(pStream->language) > 0) {
-    lang = pStream->language;
   }
   // Don't bother with undetermined languages (fallback value in some containers)
   if(lang && strncmp(lang, "und", 3))
