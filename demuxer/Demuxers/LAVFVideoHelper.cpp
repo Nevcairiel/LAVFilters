@@ -28,6 +28,9 @@
 #include "ExtradataParser.h"
 #include "H264Nalu.h"
 
+// 125fps is the highest we accept as "sane"
+#define MIN_TIME_PER_FRAME 80000
+
 CLAVFVideoHelper g_VideoHelper;
 
 CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecTag, std::string container)
@@ -143,8 +146,9 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
   // Get the frame rate
-  if (avstream->r_frame_rate.den > 0 &&  avstream->r_frame_rate.num > 0) {
-    pvi->AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num);
+  REFERENCE_TIME r_avg = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num);
+  if (avstream->r_frame_rate.den > 0 &&  avstream->r_frame_rate.num > 0 && (r_avg > MIN_TIME_PER_FRAME)) {
+    pvi->AvgTimePerFrame = r_avg;
   } else if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0) {
     pvi->AvgTimePerFrame = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num);
   }
