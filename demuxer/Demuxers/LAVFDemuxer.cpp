@@ -198,6 +198,13 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
 
+    // Disable full stream parsing for these formats
+    if (st->need_parsing == AVSTREAM_PARSE_FULL) {
+      if (st->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
+        st->need_parsing = AVSTREAM_PARSE_NONE;
+      }
+    }
+
 #ifdef DEBUG
     DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
 #endif
