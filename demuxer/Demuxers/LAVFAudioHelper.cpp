@@ -211,7 +211,11 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
   wfe->wFormatTag = (WORD)subtype.Data1;
   wfe->nChannels = avstream->codec->channels;
   wfe->nSamplesPerSec = avstream->codec->sample_rate;
-  wfe->wBitsPerSample = avstream->codec->bits_per_raw_sample;
+  if (avstream->codec->sample_fmt == AV_SAMPLE_FMT_S32 && avstream->codec->bits_per_raw_sample > 0) {
+    wfe->wBitsPerSample = avstream->codec->bits_per_raw_sample > 24 ? 32 : (avstream->codec->bits_per_raw_sample > 16 ? 24 : 16);
+  } else {
+    wfe->wBitsPerSample = av_get_bits_per_sample_format(avstream->codec->sample_fmt);
+  }
   wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
   wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
@@ -226,7 +230,11 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
     wfex->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
     wfex->Format.cbSize = sizeof(*wfex) - sizeof(wfex->Format);
     wfex->dwChannelMask = dwChannelMask;
-    wfex->Samples.wValidBitsPerSample = avstream->codec->bits_per_raw_sample;
+    if (avstream->codec->sample_fmt == AV_SAMPLE_FMT_S32 && avstream->codec->bits_per_raw_sample > 0) {
+      wfex->Samples.wValidBitsPerSample = avstream->codec->bits_per_raw_sample;
+    } else {
+      wfex->Samples.wValidBitsPerSample = wfex->Format.wBitsPerSample;
+    }
     wfex->SubFormat = subtype;
   }
 
