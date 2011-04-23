@@ -83,6 +83,20 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
   case CODEC_ID_PCM_DVD:
     mediaType.subtype = MEDIASUBTYPE_DVD_LPCM_AUDIO;
     break;
+  case CODEC_ID_PCM_S16LE:
+  case CODEC_ID_PCM_S24LE:
+  case CODEC_ID_PCM_S32LE:
+    mediaType.subtype = MEDIASUBTYPE_PCM;
+    break;
+  case CODEC_ID_PCM_F32LE:
+    mediaType.subtype = MEDIASUBTYPE_IEEE_FLOAT;
+    // Qt PCM
+    if (codecTag == MKTAG('f', 'l', '3', '2')) mediaType.subtype = MEDIASUBTYPE_PCM_FL32_le;
+    break;
+  case CODEC_ID_PCM_F64LE:
+    // Qt PCM
+    if (codecTag == MKTAG('f', 'l', '6', '4')) mediaType.subtype = MEDIASUBTYPE_PCM_FL64_le;
+    break;
   }
   return mediaType;
 }
@@ -186,6 +200,38 @@ WAVEFORMATEX_HDMV_LPCM *CLAVFAudioHelper::CreateWVFMTEX_LPCM(const AVStream *avs
 
   *size = sizeof(WAVEFORMATEX_HDMV_LPCM);
   return lpcm;
+}
+
+WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avstream, ULONG *size, const GUID subtype)
+{
+  WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)CoTaskMemAlloc(sizeof(WAVEFORMATEXTENSIBLE));
+  memset(wfex, 0, sizeof(wfex));
+
+  WAVEFORMATEX *wfe = &wfex->Format;
+  wfe->wFormatTag = (WORD)subtype.Data1;
+  wfe->nChannels = avstream->codec->channels;
+  wfe->nSamplesPerSec = avstream->codec->sample_rate;
+  wfe->wBitsPerSample = avstream->codec->bits_per_raw_sample;
+  wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
+  wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
+
+  DWORD dwChannelMask = 0;
+  if(wfe->wBitsPerSample > 16 && wfe->nChannels <= 2) {
+    dwChannelMask = wfe->nChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
+  } else if (wfe->nChannels > 2) {
+    dwChannelMask = avstream->codec->channel_layout;
+  }
+
+  if(dwChannelMask) {
+    wfex->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+    wfex->Format.cbSize = sizeof(*wfex) - sizeof(wfex->Format);
+    wfex->dwChannelMask = dwChannelMask;
+    wfex->Samples.wValidBitsPerSample = avstream->codec->bits_per_raw_sample;
+    wfex->SubFormat = subtype;
+  }
+
+  *size = sizeof(WAVEFORMATEXTENSIBLE);
+  return wfex;
 }
 
 MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULONG *size) {
