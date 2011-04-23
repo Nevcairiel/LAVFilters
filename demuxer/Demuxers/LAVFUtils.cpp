@@ -325,6 +325,10 @@ static int ufile_open(URLContext *h, const char *filename, int flags)
     int access;
     int fd;
 
+    // we don't want/allow write access
+    if (flags & AVIO_FLAG_WRITE)
+      return -1;
+
     av_strstart(filename, "ufile:", &filename);
 
     /// 4096 should be enough for a path name
