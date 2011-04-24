@@ -41,6 +41,7 @@ OPTIONS="
 --disable-bsfs \
 --disable-network \
 --disable-protocols \
+--enable-protocol=file \
 --enable-audio-float \
 --arch=x86 --target-os=mingw32"
 

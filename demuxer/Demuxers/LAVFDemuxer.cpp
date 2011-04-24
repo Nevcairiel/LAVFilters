@@ -26,12 +26,11 @@
 #include "LAVSplitterSettings.h"
 
 
-extern "C" {
 #ifdef DEBUG
+extern "C" {
 #include "libavutil/log.h"
-#endif
-#include "libavformat/url.h"
 }
+#endif
 
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
 
@@ -40,7 +39,6 @@ static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 void CLAVFDemuxer::ffmpeg_init()
 {
   av_register_all();
-  ffurl_register_protocol(&ufile_protocol, sizeof(ufile_protocol));
 }
 
 std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
@@ -111,10 +109,8 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   int ret; // return code from avformat functions
 
   // Convert the filename from wchar to char for avformat
-  // The "ufile" protocol then converts it back to wchar_t to pass it to windows APIs
-  // Isn't it great?
-  char fileName[4096] = "ufile:";
-  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName+6, 4090, NULL, NULL);
+  char fileName[4096] = {0};
+  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
 
   ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
   if (ret < 0) {

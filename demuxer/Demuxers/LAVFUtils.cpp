@@ -21,14 +21,8 @@
 #include "stdafx.h"
 #include "lavfutils.h"
 
-#include <io.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <stdlib.h>
-
 extern "C" {
 #include "libavcodec/audioconvert.h"
-#include "libavutil/avstring.h"
 }
 
 #include <sstream>
@@ -319,99 +313,8 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   return S_OK;
 }
 
-extern "C" {
-static int ufile_open(URLContext *h, const char *filename, int flags)
-{
-    int access;
-    int fd;
-
-    // we don't want/allow write access
-    if (flags & AVIO_FLAG_WRITE)
-      return -1;
-
-    av_strstart(filename, "ufile:", &filename);
-
-    /// 4096 should be enough for a path name
-    wchar_t wfilename[4096];
-    int nChars = MultiByteToWideChar(
-        CP_UTF8,
-        MB_ERR_INVALID_CHARS,
-        filename,
-        -1,    // string is NULL terminated
-        wfilename,
-        sizeof(wfilename) / sizeof(*wfilename)
-        );
-
-    if(nChars <= 0) {
-      return AVERROR(ENOENT);
-    }
-
-    if (flags & AVIO_FLAG_WRITE && flags & AVIO_FLAG_READ) {
-      access = O_CREAT | O_TRUNC | O_RDWR;
-    } else if (flags & AVIO_FLAG_WRITE) {
-      access = O_CREAT | O_TRUNC | O_WRONLY;
-    } else {
-      access = O_RDONLY;
-    }
-#ifdef O_BINARY
-    access |= O_BINARY;
-#endif
-    _wsopen_s(&fd, wfilename, access, _SH_DENYNO, _S_IREAD | _S_IWRITE);
-    if (fd == -1)
-        return AVERROR(errno);
-    h->priv_data = (void *) (intptr_t) fd;
-    return 0;
-}
-
-static int ufile_read(URLContext *h, unsigned char *buf, int size)
-{
-    int fd = (int) h->priv_data;
-    return _read(fd, buf, size);
-}
-
-static int ufile_write(URLContext *h, const unsigned char *buf, int size)
-{
-    int fd = (int) h->priv_data;
-    return _write(fd, buf, size);
-}
-
-static int ufile_get_handle(URLContext *h)
-{
-    return (int) h->priv_data;
-}
-
-/* XXX: use llseek */
-static int64_t ufile_seek(URLContext *h, int64_t pos, int whence)
-{
-    int fd = (int) h->priv_data;
-    if (whence == AVSEEK_SIZE) {
-        struct _stat64 st;
-        int ret = _fstat64(fd, &st);
-        return ret < 0 ? AVERROR(errno) : st.st_size;
-    }
-    return _lseeki64(fd, pos, whence);
-}
-
-static int ufile_close(URLContext *h)
-{
-    int fd = (int) h->priv_data;
-    return _close(fd);
-}
-
-URLProtocol ufile_protocol = {
-    "ufile",
-    ufile_open,
-    ufile_read,
-    ufile_write,
-    ufile_seek,
-    ufile_close,
-    NULL,
-    NULL,
-    NULL,
-    ufile_get_handle,
-};
-
 #ifdef DEBUG
+extern "C" {
 
 #define LAVF_PARSE_TYPE(x) case x: return #x;
 const char *lavf_get_parsing_string(enum AVStreamParseType parsing)
@@ -465,5 +368,5 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   DbgLog((LOG_CUSTOM1, level, L"%S", line));
   strncpy_s(prev, LOG_BUF_LEN, line, _TRUNCATE);
 }
-#endif
 }
+#endif
