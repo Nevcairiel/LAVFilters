@@ -3216,7 +3216,7 @@ CBaseInputPin::PassNotify(Quality& q)
     // We pass the message on, which means that we find the quality sink
     // for our input pin and send it there
 
-    DbgLog((LOG_TRACE,3,TEXT("Passing Quality notification through transform")));
+    //DbgLog((LOG_TRACE,3,TEXT("Passing Quality notification through transform")));
     if (m_pQSink!=NULL) {
         return m_pQSink->Notify(m_pFilter, q);
     } else {
