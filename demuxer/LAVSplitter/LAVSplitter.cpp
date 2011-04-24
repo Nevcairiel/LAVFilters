@@ -818,6 +818,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
       } else if (SUCCEEDED(hr)) {
         CMediaType *mt = new CMediaType(pmts[index]);
         pPin->SendMediaType(mt);
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - Sending new Media Type"));
       }
     }
     if(pInfo.pFilter) { pInfo.pFilter->Release(); }

@@ -97,6 +97,9 @@ static Packet *InitPacket(Packet *pSource)
   pNew->rtStop = pSource->rtStop;
   pSource->rtStop = Packet::INVALID_TIME;
 
+  pNew->pmt = pSource->pmt;
+  pSource->pmt = NULL;
+
   return pNew;
 }
 

@@ -219,6 +219,7 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
   {
     CAutoLock lock(&m_csMT);
     if(m_newMT && pPacket) {
+      DbgLog((LOG_TRACE, 10, L"::QueuePacket() - Found new Media Type"));
       pPacket->pmt = CreateMediaType(m_newMT);
       SAFE_DELETE(m_newMT);
     }
@@ -333,6 +334,7 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   }
 
   if(pPacket->pmt) {
+    DbgLog((LOG_TRACE, 10, L"::DeliverPacket() - sending new media type to decoder"));
     pSample->SetMediaType(pPacket->pmt);
     pPacket->bDiscontinuity = true;
 
