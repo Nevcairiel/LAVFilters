@@ -95,14 +95,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         mtype.subtype = MEDIASUBTYPE_DOLBY_TRUEHD_ARCSOFT;
       }
     }
-  } else if (mtype.formattype == FORMAT_VorbisFormat) {
+  } else if (mtype.formattype == FORMAT_VorbisFormat2 && mtype.subtype == MEDIASUBTYPE_Vorbis2) {
     // With Matroska and Ogg we know how to split up the extradata
     // and put it into a VorbisFormat2
     if (m_containerFormat == "matroska" || m_containerFormat == "ogg") {
       BYTE *vorbis2 = (BYTE *)g_AudioHelper.CreateVorbis2(avstream, &mtype.cbFormat);
       if (vorbis2) {
-        mtype.subtype = MEDIASUBTYPE_Vorbis2;
-        mtype.formattype = FORMAT_VorbisFormat2;
         mtype.pbFormat = vorbis2;
         mtypes.push_back(mtype);
       }

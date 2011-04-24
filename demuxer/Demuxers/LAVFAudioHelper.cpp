@@ -64,9 +64,8 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     mediaType.subtype = MEDIASUBTYPE_DOLBY_TRUEHD;
     break;
   case CODEC_ID_VORBIS:
-    //TODO
-    mediaType.formattype = FORMAT_VorbisFormat;
-    mediaType.subtype = MEDIASUBTYPE_Vorbis;
+    mediaType.formattype = FORMAT_VorbisFormat2;
+    mediaType.subtype = MEDIASUBTYPE_Vorbis2;
     break;
   case CODEC_ID_MP1:
     mediaType.subtype = MEDIASUBTYPE_MPEG1AudioPayload;
