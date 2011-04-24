@@ -297,8 +297,6 @@ HRESULT CLAVSplitterFormatsProp::OnApplyChanges()
   }
 
   hr = m_pLAVF->SaveSettings();
-
-done:
   return hr;
 }
 
