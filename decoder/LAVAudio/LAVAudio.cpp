@@ -37,6 +37,12 @@
 
 #define AUTO_RESYNC 0
 
+// Maximum Durations (in reference time)
+// 100ms
+#define PCM_BUFFER_MAX_DURATION 1000000
+// 16ms
+#define PCM_BUFFER_MIN_DURATION  160000
+
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
@@ -703,6 +709,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
 
   if(m_bQueueResync && SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
+    FlushOutput();
     m_rtStart = rtStart;
     m_dStartOffset = 0.0;
     m_bQueueResync = FALSE;
@@ -753,7 +760,7 @@ HRESULT CLAVAudio::ProcessBuffer()
   // S_OK means we actually have data to process
   if (hr2 == S_OK) {
     if (SUCCEEDED(PostProcess(&output_buffer))) {
-      hr = Deliver(output_buffer);
+      hr = QueueOutput(output_buffer);
     }
   // FAILED - throw away the data
   } else if (FAILED(hr2)) {
@@ -1006,6 +1013,46 @@ HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
     DeleteMediaType(pmt);
     pmt = NULL;
   }
+
+  return S_OK;
+}
+
+HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
+{
+  if (m_OutputQueue.wChannels != buffer.wChannels || m_OutputQueue.sfFormat != buffer.sfFormat || m_OutputQueue.dwSamplesPerSec != buffer.dwSamplesPerSec || m_OutputQueue.dwChannelMask != buffer.dwChannelMask) {
+    if (m_OutputQueue.nSamples > 0)
+      FlushOutput();
+
+    m_OutputQueue.sfFormat = buffer.sfFormat;
+    m_OutputQueue.wChannels = buffer.wChannels;
+    m_OutputQueue.dwChannelMask = buffer.dwChannelMask;
+    m_OutputQueue.dwSamplesPerSec = buffer.dwSamplesPerSec;
+  }
+
+  m_OutputQueue.nSamples += buffer.nSamples;
+  m_OutputQueue.bBuffer->Append(buffer.bBuffer);
+
+  // Length of the current sample
+  double dDuration = (double)m_OutputQueue.nSamples / m_OutputQueue.dwSamplesPerSec * 10000000.0;
+  double dOffset = fmod(dDuration, 1.0);
+
+  // Maximum of 100ms buffer
+  if (dDuration >= PCM_BUFFER_MAX_DURATION || (dDuration >= PCM_BUFFER_MIN_DURATION && dOffset <= FLT_EPSILON)) {
+    FlushOutput();
+  }
+
+  return S_OK;
+}
+
+HRESULT CLAVAudio::FlushOutput()
+{
+  HRESULT hr = S_OK;
+  if (m_OutputQueue.nSamples > 0)
+    hr = Deliver(m_OutputQueue);
+
+  // Clear Queue
+  m_OutputQueue.nSamples = 0;
+  m_OutputQueue.bBuffer->SetSize(0);
 
   return S_OK;
 }

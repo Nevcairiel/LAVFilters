@@ -52,6 +52,17 @@ public:
     return hr;
   }
 
+  HRESULT Append(GrowableArray<T> *other)
+  {
+    HRESULT hr = S_OK;
+    DWORD old = GetCount();
+    hr = SetSize(old + other->GetCount());
+    if (SUCCEEDED(hr))
+      memcpy(m_pArray + old, other->Ptr(), other->GetCount());
+
+    return S_OK;
+  }
+
   DWORD GetCount() const { return m_count; }
 
   // Accessor.

@@ -120,6 +120,10 @@ private:
   HRESULT Decode(const BYTE *p, int buffsize, int &consumed, BufferDetails *out);
   HRESULT PostProcess(BufferDetails *buffer);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
+
+  HRESULT QueueOutput(const BufferDetails &buffer);
+  HRESULT FlushOutput();
+
   HRESULT Deliver(const BufferDetails &buffer);
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
@@ -155,4 +159,5 @@ private:
   FloatingAverage     m_faVolume[8];     // Floating Average for volume (8 channels)
 
   BOOL                m_bQueueResync;
+  BufferDetails       m_OutputQueue;
 };
