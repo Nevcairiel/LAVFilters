@@ -138,7 +138,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
 
   // Somewhat hackish to force VIH for AVI content.
   // TODO: Figure out why exactly this is required
-  if (m_containerFormat == "avi") {
+  if (m_containerFormat == "avi" && avstream->codec->codec_id != CODEC_ID_H264) {
     mtype.formattype = FORMAT_VideoInfo;
   }
 
