@@ -1,5 +1,22 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.24 - 2011/04/25
+General
+- Big ffmpeg update! Libraries have been renamed (version increase)
+
+LAV Splitter
+- Obviously wrong frame rates will no longer be reported to the decoder
+- Improved mpeg2 playback
+- Improved dynamic media type changes
+- Fix the first few frames of ASS/SSA subtitles in Matroska
+- Fix an issue with the display of some codec names
+- Add proper subtypes for little-endian PCM
+- Fix subtypes for QT PCM
+
+LAV Audio
+- Support processing of 64-bit double output from the decoders
+- PCM data will be buffered before its send to the renderer/post processor
+
 0.23 - 2011/04/21
 General
 - There is now an installer available in addition to the trusted old .zip files!
