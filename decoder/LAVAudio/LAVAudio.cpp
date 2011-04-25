@@ -655,6 +655,7 @@ HRESULT CLAVAudio::EndFlush()
 {
   CAutoLock cAutoLock(&m_csReceive);
   m_buff.SetSize(0);
+  FlushOutput(FALSE);
   return __super::EndFlush();
 }
 
@@ -701,6 +702,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   if(pIn->IsDiscontinuity() == S_OK) {
     m_bDiscontinuity = TRUE;
     m_buff.SetSize(0);
+    FlushOutput(FALSE);
     m_bQueueResync = TRUE;
     if(FAILED(hr)) {
       return S_OK;
@@ -1044,10 +1046,10 @@ HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
   return S_OK;
 }
 
-HRESULT CLAVAudio::FlushOutput()
+HRESULT CLAVAudio::FlushOutput(BOOL bDeliver)
 {
   HRESULT hr = S_OK;
-  if (m_OutputQueue.nSamples > 0)
+  if (bDeliver && m_OutputQueue.nSamples > 0)
     hr = Deliver(m_OutputQueue);
 
   // Clear Queue

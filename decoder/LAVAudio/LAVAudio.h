@@ -122,7 +122,7 @@ private:
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
 
   HRESULT QueueOutput(const BufferDetails &buffer);
-  HRESULT FlushOutput();
+  HRESULT FlushOutput(BOOL bDeliver = TRUE);
 
   HRESULT Deliver(const BufferDetails &buffer);
 
