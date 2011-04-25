@@ -97,7 +97,7 @@ static std::string tolower(const char *str) {
 
 static std::string get_codec_name(AVCodecContext *pCodecCtx)
 {
-  CodecID id = pCodecCtx->codec_type == AVMEDIA_TYPE_SUBTITLE ? *(CodecID *)pCodecCtx->opaque : pCodecCtx->codec_id;
+  CodecID id = pCodecCtx->codec_id;
 
   // Grab the codec
   AVCodec *p = avcodec_find_decoder(id);

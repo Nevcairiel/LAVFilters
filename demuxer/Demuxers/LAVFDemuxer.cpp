@@ -234,8 +234,6 @@ done:
 void CLAVFDemuxer::CleanupAVFormat()
 {
   if (m_avFormat) {
-    for (unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx)
-      free(m_avFormat->streams[idx]->codec->opaque);
     if (m_bIsStream)
       av_close_input_stream(m_avFormat);
     else
@@ -381,7 +379,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     // we need to get duration slightly different for matroska embedded text subtitels
-    if(m_bMatroska && stream->codec->codec_id == CODEC_ID_TEXT && pkt.convergence_duration != 0) {
+    if(m_bMatroska && stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
       pkt.duration = (int)pkt.convergence_duration;
     }
 
@@ -433,10 +431,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     if (stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
       pPacket->bDiscontinuity = TRUE;
-    } else {
-      pPacket->bSyncPoint = (rt != Packet::INVALID_TIME && duration > 0) ? 1 : 0;
-      pPacket->bAppendable = 0; //!pPacket->bSyncPoint;
     }
+
+    pPacket->bSyncPoint = (rt != Packet::INVALID_TIME && duration > 0) ? 1 : 0;
+    pPacket->bAppendable = 0; //!pPacket->bSyncPoint;
 
     // Update current time
     if (rt != Packet::INVALID_TIME) {
@@ -635,14 +633,6 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
   if(FAILED(hr)) {
     delete s.streamInfo;
     return hr;
-  }
-
-  pStream->codec->opaque = NULL;
-  // HACK: Change codec_id to TEXT for SSA to prevent some evil doings
-  if (pStream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-    pStream->codec->opaque = malloc(sizeof(CodecID));
-    *((CodecID *)pStream->codec->opaque) = pStream->codec->codec_id;
-    pStream->codec->codec_id = CODEC_ID_TEXT;
   }
 
   switch(pStream->codec->codec_type)
