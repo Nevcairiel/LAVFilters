@@ -103,6 +103,8 @@ static Packet *InitPacket(Packet *pSource)
   return pNew;
 }
 
+#define MOVE_TO_H264_START_CODE(b, e) while(b <= e-4 && !((*(DWORD *)b == 0x01000000) || ((*(DWORD *)b & 0x00FFFFFF) == 0x00010000))) b++; if((b <= e-4) && *(DWORD *)b == 0x01000000) b++;
+
 HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
 {
   if (!m_pPacketBuffer) {
@@ -114,18 +116,12 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
   BYTE *start = m_pPacketBuffer->GetData();
   BYTE *end = start + m_pPacketBuffer->GetDataSize();
 
-  // Look for MPEG Start Code
-  while(start <= end-4 && *(DWORD *)start != 0x01000000) {
-    start++;
-  }
+  MOVE_TO_H264_START_CODE(start, end);
 
   while(start <= end-4) {
     BYTE *next = start + 1;
 
-    // Look for next start code.
-    while(next <= end-4 && *(DWORD*)next != 0x01000000) {
-      next++;
-    }
+    MOVE_TO_H264_START_CODE(next, end);
 
     // End of buffer reached
     if(next >= end-4) {
