@@ -205,12 +205,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat()
     DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
 #endif
     m_stOrigParser[idx] = st->need_parsing;
-    // Filter mis-detected audio streams
-    if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO && st->codec->channels == 0) {
-      DbgLog((LOG_TRACE, 15, L"Stream %d (pid %d) seems invalid, discarding", idx, st->id));
-      st->discard = AVDISCARD_ALL;
-      continue;
-    }
 
     UpdateSubStreams();
 

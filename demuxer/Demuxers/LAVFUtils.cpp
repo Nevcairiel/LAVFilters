@@ -114,6 +114,10 @@ static std::string get_codec_name(AVCodecContext *pCodecCtx)
     }
   }
 
+  if (id == CODEC_ID_DTS && pCodecCtx->codec_tag == 0xA2) {
+    profile = "DTS Express";
+  }
+
   if (id == CODEC_ID_H264 && profile) {
     codec_name << nice_name << " " << tolower(profile);
     if (pCodecCtx->level && pCodecCtx->level != FF_LEVEL_UNKNOWN && pCodecCtx->level < 1000) {
@@ -259,10 +263,12 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     if (enc->sample_rate) {
       buf << ", " << enc->sample_rate << " Hz";
     }
-    // Get channel layout
-    char channel[32];
-    av_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
-    buf << ", " << channel;
+    if (enc->channels) {
+      // Get channel layout
+      char channel[32];
+      av_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
+      buf << ", " << channel;
+    }
     // Sample Format
     if (show_sample_fmt(enc->codec_id) && get_bits_per_sample(enc)) {
       if (enc->sample_fmt == AV_SAMPLE_FMT_FLT || enc->sample_fmt == AV_SAMPLE_FMT_DBL) {
