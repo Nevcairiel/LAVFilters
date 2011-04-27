@@ -103,8 +103,8 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
 
   wvfmt->wFormatTag = avstream->codec->codec_tag;
 
-  wvfmt->nChannels = avstream->codec->channels;
-  wvfmt->nSamplesPerSec = avstream->codec->sample_rate;
+  wvfmt->nChannels = avstream->codec->channels ? avstream->codec->channels : 2;
+  wvfmt->nSamplesPerSec = avstream->codec->sample_rate ? avstream->codec->sample_rate : 48000;
   wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
 
   if(avstream->codec->codec_id == CODEC_ID_AAC || avstream->codec->codec_id == CODEC_ID_AAC_LATM) {
