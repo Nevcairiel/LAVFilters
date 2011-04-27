@@ -419,7 +419,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     pPacket->rtStart = pPacket->rtStop = rt;
     if (rt != Packet::INVALID_TIME) {
-      pPacket->rtStop += (duration > 0) ? duration : 1;
+      pPacket->rtStop += (duration > 0 || stream->codec->codec_id == CODEC_ID_TRUEHD) ? duration : 1;
     }
 
     if (stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
