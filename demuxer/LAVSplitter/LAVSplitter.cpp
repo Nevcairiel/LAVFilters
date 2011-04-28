@@ -125,6 +125,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"subtitleMatching", hr);
   m_settings.subtitleMatching = SUCCEEDED(hr) ? bFlag : TRUE;
 
+  bFlag = reg.ReadBOOL(L"PGSOnlyForced", hr);
+  m_settings.PGSOnlyForced = SUCCEEDED(hr) ? bFlag : FALSE;
+
   dwVal = reg.ReadDWORD(L"vc1TimestampMode", hr);
   m_settings.vc1Mode = SUCCEEDED(hr) ? dwVal : 2;
 
@@ -163,6 +166,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
     reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
     reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
+    reg.WriteBOOL(L"PGSOnlyForced", m_settings.PGSOnlyForced);
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
     reg.WriteBOOL(L"substreams", m_settings.substreams);
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
@@ -1027,6 +1031,17 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetSubtitleMatchingLanguage()
 STDMETHODIMP CLAVSplitter::SetSubtitleMatchingLanguage(BOOL dwMode)
 {
   m_settings.subtitleMatching = dwMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetPGSOnlyForced()
+{
+  return m_settings.PGSOnlyForced;
+}
+
+STDMETHODIMP CLAVSplitter::SetPGSOnlyForced(BOOL bForced)
+{
+  m_settings.PGSOnlyForced = bForced;
   return SaveSettings();
 }
 

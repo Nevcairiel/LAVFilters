@@ -65,6 +65,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
   , m_bMPEGTS(FALSE)
   , m_bVC1Correction(FALSE)
   , m_bVC1SeenTimestamp(FALSE)
+  , m_bPGSNoParsing(TRUE)
   , m_pSettings(NULL)
   , m_stOrigParser(NULL)
   , m_pFontInstaller(NULL)
@@ -294,6 +295,8 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
       st->need_parsing = pSettings->GetAudioParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
     }
   }
+
+  m_bPGSNoParsing = !pSettings->GetPGSOnlyForced();
 }
 
 REFERENCE_TIME CLAVFDemuxer::GetDuration() const
@@ -415,6 +418,11 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         rt = dts;
         pPacket->dwFlags |= LAV_PACKET_PARSED;
       }
+    }
+
+    // Mark the packet as parsed, so the forced subtitle parser doesn't hit it
+    if (stream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE && m_bPGSNoParsing) {
+      pPacket->dwFlags |= LAV_PACKET_PARSED;
     }
 
     pPacket->rtStart = pPacket->rtStop = rt;

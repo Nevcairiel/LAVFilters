@@ -56,6 +56,8 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     ParseH264AnnexB(pPacket);
   } else if ((m_strContainer == "matroska" || m_strContainer == "mpegts" || m_strContainer == "mpeg") && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
     ParseVC1(pPacket);
+  } else if (m_gSubtype == MEDIASUBTYPE_HDMVSUB) {
+    ParsePGS(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
     pPacket->RemoveHead(4);
     Queue(pPacket);
@@ -324,4 +326,64 @@ HRESULT CStreamParser::ParseVC1(Packet *pPacket)
   SAFE_DELETE(pPacket);
 
   return S_OK;
+}
+
+extern "C" {
+#include "libavcodec/bytestream.h"
+};
+
+HRESULT CStreamParser::ParsePGS(Packet *pPacket)
+{
+  const uint8_t *buf = pPacket->GetData();
+  int buf_size       = pPacket->GetDataSize();
+
+  const uint8_t *buf_end;
+  uint8_t       segment_type;
+  int           segment_length;
+
+  uint8_t flag = 0;
+
+  if (buf_size < 3) {
+    DbgLog((LOG_TRACE, 30, L"::ParsePGS(): Way too short PGS packet"));
+    goto done;
+  }
+
+  buf_end = buf + buf_size;
+
+  while(buf < buf_end) {
+    segment_type   = bytestream_get_byte(&buf);
+    segment_length = bytestream_get_be16(&buf);
+
+    // Presentation segment
+    if (segment_type == 0x16 && segment_length >= 0x13) {
+      const uint8_t *buf2 = buf;
+      // Segment Layout
+      // 2 bytes width
+      // 2 bytes height
+      // 1 unknown byte
+      // 2 bytes id
+      // 3 unknown bytes
+      // 1 byte object number
+      // 2 bytes object ref id
+      // 1 byte window_id
+      buf2 += 14;
+      // object_cropped_flag: 0x80, forced_on_flag = 0x040, 6bit reserved
+      uint8_t forced_flag = bytestream_get_byte(&buf2);
+      flag = (forced_flag & 0x40) ? 1 : 2;
+      // 2 bytes x
+      // 2 bytes y
+      // total length = 19 bytes
+      break;
+    }
+
+    buf += segment_length;
+  }
+
+  if (flag == 2) {
+    delete pPacket;
+    return S_OK;
+  }
+
+done:
+  return Queue(pPacket);
 }

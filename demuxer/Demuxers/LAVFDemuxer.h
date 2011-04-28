@@ -112,6 +112,8 @@ private:
 
   BOOL m_bVC1SeenTimestamp;
 
+  BOOL m_bPGSNoParsing;
+
   unsigned int m_program;
 
   REFERENCE_TIME m_rtCurrent;

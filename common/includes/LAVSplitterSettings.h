@@ -80,6 +80,14 @@ interface ILAVFSettings : public IUnknown
   // TRUE = Only subtitles with a language in the preferred list will be used; FALSE = All subtitles will be used
   STDMETHOD(SetSubtitleMatchingLanguage)(BOOL dwMode) = 0;
 
+  // Get the PGS forced subs config
+  // TRUE = only forced PGS frames will be shown, FALSE = all frames will be shown
+  STDMETHOD_(BOOL,GetPGSOnlyForced)() = 0;
+
+  // Set the PGS forced subs config
+  // TRUE = only forced PGS frames will be shown, FALSE = all frames will be shown
+  STDMETHOD(SetPGSOnlyForced)(BOOL bForced) = 0;
+
   // Get the VC-1 Timestamp Processing mode
   // 0 - No Timestamp Correction, 1 - Always Timestamp Correction, 2 - Auto (Correction for Decoders that need it)
   STDMETHOD_(int,GetVC1TimestampMode)() = 0;

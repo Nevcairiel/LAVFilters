@@ -66,6 +66,7 @@ private:
 
   DWORD m_subtitleMode;
   BOOL m_subtitleMatching;
+  BOOL m_PGSOnlyForced;
   int m_VC1Mode;
   BOOL m_substreams;
 

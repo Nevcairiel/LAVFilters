@@ -112,6 +112,8 @@ public:
   STDMETHODIMP SetSubtitleMode(DWORD dwMode);
   STDMETHODIMP_(BOOL) GetSubtitleMatchingLanguage();
   STDMETHODIMP SetSubtitleMatchingLanguage(BOOL dwMode);
+  STDMETHODIMP_(BOOL) GetPGSOnlyForced();
+  STDMETHODIMP SetPGSOnlyForced(BOOL bForced);
   STDMETHODIMP_(int) GetVC1TimestampMode();
   STDMETHODIMP SetVC1TimestampMode(int iMode);
   STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
@@ -199,6 +201,7 @@ private:
     std::wstring prefSubLangs;
     DWORD subtitleMode;
     BOOL subtitleMatching;
+    BOOL PGSOnlyForced;
     int vc1Mode;
     BOOL substreams;
     BOOL videoParsing;
