@@ -839,7 +839,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
         int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
         if (ret2 < 0) {
-          return E_FAIL;
+          DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
+          break;
         }
       } else {
         continue;
