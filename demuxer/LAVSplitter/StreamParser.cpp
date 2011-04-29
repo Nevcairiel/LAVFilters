@@ -30,6 +30,7 @@ extern "C" {
 #include "libavutil/intreadwrite.h"
 }
 
+//#define DEBUG_PGS_PARSER
 
 CStreamParser::CStreamParser(CLAVOutputPin *pPin, const char *szContainer)
   : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_bPGSDropState(FALSE)
@@ -355,7 +356,9 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 
     buf += 3;
 
+#ifdef DEBUG_PGS_PARSER
     DbgLog((LOG_TRACE, 50, L"::ParsePGS(): segment_type: 0x%x, segment_length: %d", segment_type, segment_length));
+#endif
 
     // Presentation segment
     if (segment_type == 0x16) {
@@ -377,7 +380,9 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
         // 2 bytes y
         // total length = 19 bytes
       }
+#ifdef DEBUG_PGS_PARSER
       DbgLog((LOG_TRACE, 50, L"::ParsePGS(): Presentation Segment! state: 0x%x; dropping: %d", buf[7], m_bPGSDropState));
+#endif
     }
     if (!m_bPGSDropState) {
       memcpy(out, segment_start, segment_length + 3);
