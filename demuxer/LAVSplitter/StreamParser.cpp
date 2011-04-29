@@ -32,7 +32,7 @@ extern "C" {
 
 
 CStreamParser::CStreamParser(CLAVOutputPin *pPin, const char *szContainer)
-  : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL)
+  : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_bPGSDropState(FALSE)
 {
 
 }
@@ -72,6 +72,7 @@ HRESULT CStreamParser::Flush()
 {
   SAFE_DELETE(m_pPacketBuffer);
   m_queue.Clear();
+  m_bPGSDropState = FALSE;
 
   return S_OK;
 }
@@ -341,8 +342,6 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
   uint8_t       segment_type;
   int           segment_length;
 
-  uint8_t flag = 0;
-
   if (buf_size < 3) {
     DbgLog((LOG_TRACE, 30, L"::ParsePGS(): Way too short PGS packet"));
     goto done;
@@ -350,36 +349,52 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 
   buf_end = buf + buf_size;
 
+  uint8_t *outbuf = (uint8_t*)calloc(pPacket->GetDataSize() + FF_INPUT_BUFFER_PADDING_SIZE, 1);
+  uint8_t *out = outbuf;
+
   while(buf < buf_end) {
-    segment_type   = bytestream_get_byte(&buf);
-    segment_length = bytestream_get_be16(&buf);
+    const uint8_t *segment_start = buf;
+    segment_type   = AV_RB8(buf);
+    segment_length = AV_RB16(buf+1);
+
+    buf += 3;
+
+    DbgLog((LOG_TRACE, 50, L"::ParsePGS(): segment_type: 0x%x, segment_length: %d", segment_type, segment_length));
 
     // Presentation segment
-    if (segment_type == 0x16 && segment_length >= 0x13) {
-      const uint8_t *buf2 = buf;
+    if (segment_type == 0x16) {
       // Segment Layout
       // 2 bytes width
       // 2 bytes height
       // 1 unknown byte
       // 2 bytes id
-      // 3 unknown bytes
+      // 1 byte composition state (0x00 = normal, 0x40 = ACQU_POINT (?), 0x80 = epoch start (new frame), 0xC0 = epoch continue)
+      // 2 unknown bytes
       // 1 byte object number
       // 2 bytes object ref id
-      // 1 byte window_id
-      buf2 += 14;
-      // object_cropped_flag: 0x80, forced_on_flag = 0x040, 6bit reserved
-      uint8_t forced_flag = bytestream_get_byte(&buf2);
-      flag = (forced_flag & 0x40) ? 1 : 2;
-      // 2 bytes x
-      // 2 bytes y
-      // total length = 19 bytes
-      break;
+      if (segment_length >= 0x13) {
+        // 1 byte window_id
+        // 1 byte object_cropped_flag: 0x80, forced_on_flag = 0x040, 6bit reserved
+        uint8_t forced_flag = buf[14];
+        m_bPGSDropState = !(forced_flag & 0x40);
+        // 2 bytes x
+        // 2 bytes y
+        // total length = 19 bytes
+      }
+      DbgLog((LOG_TRACE, 50, L"::ParsePGS(): Presentation Segment! state: 0x%x; dropping: %d", buf[7], m_bPGSDropState));
+    }
+    if (!m_bPGSDropState) {
+      memcpy(out, segment_start, segment_length + 3);
+      out += segment_length + 3;
     }
 
     buf += segment_length;
   }
 
-  if (flag == 2) {
+  DWORD outsize = (DWORD)(out - outbuf);
+  if (outsize > 0) {
+    pPacket->SetData(outbuf, out-outbuf);
+  } else {
     delete pPacket;
     return S_OK;
   }

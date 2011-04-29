@@ -50,6 +50,8 @@ private:
 
   Packet *m_pPacketBuffer;
 
+  BOOL m_bPGSDropState;
+
   CPacketQueue m_queue;
 };
 
