@@ -329,10 +329,6 @@ HRESULT CStreamParser::ParseVC1(Packet *pPacket)
   return S_OK;
 }
 
-extern "C" {
-#include "libavcodec/bytestream.h"
-};
-
 HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 {
   const uint8_t *buf = pPacket->GetData();
