@@ -23,6 +23,7 @@
 #pragma once
 
 #include "PacketQueue.h"
+#include "growarray.h"
 
 class CLAVOutputPin;
 
@@ -51,6 +52,7 @@ private:
   Packet *m_pPacketBuffer;
 
   BOOL m_bPGSDropState;
+  GrowableArray<BYTE> m_pgsBuffer;
 
   CPacketQueue m_queue;
 };

@@ -333,9 +333,9 @@ HRESULT CStreamParser::ParseVC1(Packet *pPacket)
 HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 {
   const uint8_t *buf = pPacket->GetData();
-  int buf_size       = pPacket->GetDataSize();
+  const int buf_size       = pPacket->GetDataSize();
 
-  const uint8_t *buf_end;
+  const uint8_t *buf_end = buf + buf_size;
   uint8_t       segment_type;
   int           segment_length;
 
@@ -344,10 +344,7 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
     goto done;
   }
 
-  buf_end = buf + buf_size;
-
-  uint8_t *outbuf = (uint8_t*)calloc(pPacket->GetDataSize() + FF_INPUT_BUFFER_PADDING_SIZE, 1);
-  uint8_t *out = outbuf;
+  m_pgsBuffer.SetSize(0);
 
   while(buf < buf_end) {
     const uint8_t *segment_start = buf;
@@ -385,16 +382,14 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 #endif
     }
     if (!m_bPGSDropState) {
-      memcpy(out, segment_start, segment_length + 3);
-      out += segment_length + 3;
+      m_pgsBuffer.Append(segment_start, segment_length + 3);
     }
 
     buf += segment_length;
   }
 
-  DWORD outsize = (DWORD)(out - outbuf);
-  if (outsize > 0) {
-    pPacket->SetData(outbuf, out-outbuf);
+  if (m_pgsBuffer.GetCount() > 0) {
+    pPacket->SetData(m_pgsBuffer.Ptr(), m_pgsBuffer.GetCount());
   } else {
     delete pPacket;
     return S_OK;

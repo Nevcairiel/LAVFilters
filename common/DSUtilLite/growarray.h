@@ -54,11 +54,16 @@ public:
 
   HRESULT Append(GrowableArray<T> *other)
   {
+    return Append(other->Ptr(), other->GetCount());
+  }
+
+  HRESULT Append(const T *other, DWORD dwSize)
+  {
     HRESULT hr = S_OK;
     DWORD old = GetCount();
-    hr = SetSize(old + other->GetCount());
+    hr = SetSize(old + dwSize);
     if (SUCCEEDED(hr))
-      memcpy(m_pArray + old, other->Ptr(), other->GetCount());
+      memcpy(m_pArray + old, other, dwSize);
 
     return S_OK;
   }
