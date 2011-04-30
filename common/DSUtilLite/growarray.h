@@ -8,6 +8,8 @@
 // It is the caller's responsibility to release the objects in the array. The array's destuctor does not release them.
 // The array does not actually shrink when SetSize is called with a smaller size. Only the reported size changes.
 
+#pragma once
+
 #include <assert.h>
 #include "DShowUtil.h"
 
