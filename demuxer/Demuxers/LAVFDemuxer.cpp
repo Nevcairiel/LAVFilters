@@ -993,7 +993,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   std::deque<stream*>::iterator sit;
   for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); ++sit ) {
     if (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_DEFAULT) {
-      if (subtitleMode != SUBMODE_FORCED_SUBS || (m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {
+      if (!(subtitleMode == SUBMODE_FORCED_SUBS) == !(m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {
         best = *sit;
         break;
       }
@@ -1009,8 +1009,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
       if (subtitleMode == SUBMODE_FORCED_SUBS && pStream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE && m_pSettings->GetPGSOnlyForced() && !best) {
         best = *sit;
       // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
-      } else if (subtitleMode == SUBMODE_FORCED_SUBS && (pStream->disposition & AV_DISPOSITION_FORCED)
-             || (subtitleMode == SUBMODE_ALWAYS_SUBS && !(pStream->disposition & AV_DISPOSITION_FORCED))) {
+      } else if (!(subtitleMode == SUBMODE_FORCED_SUBS) == !(m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {
         best = *sit;
         break;
       } else if (subtitleMode == SUBMODE_ALWAYS_SUBS) {
