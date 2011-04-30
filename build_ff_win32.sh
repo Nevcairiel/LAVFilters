@@ -42,6 +42,7 @@ OPTIONS="
 --disable-network \
 --disable-protocols \
 --enable-protocol=file \
+--enable-muxer=spdif \
 --arch=x86 --target-os=mingw32"
 
 ./configure --extra-cflags="-march=i686 -mmmx" ${OPTIONS} &&
