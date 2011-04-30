@@ -169,6 +169,24 @@ CodecID FindCodecId(const CMediaType *mt)
   return CODEC_ID_NONE;
 }
 
+static struct s_ffmpeg_codec_overrides {
+  CodecID codec;
+  const char *override;
+} ffmpeg_codec_overrides[] = {
+  { CODEC_ID_MP1, "mp1float" },
+  { CODEC_ID_MP2, "mp2float" },
+  { CODEC_ID_MP3, "mp3float" },
+};
+
+const char *find_codec_override(CodecID codec)
+{
+  for (int i=0; i<countof(ffmpeg_codec_overrides); ++i) {
+    if (ffmpeg_codec_overrides[i].codec == codec)
+      return ffmpeg_codec_overrides[i].override;
+  }
+  return NULL;
+}
+
 // Default Channel to Speaker Map
 static const scmap_t m_scmap_default[] = {
   //    FL  FR  FC  LFe BL  BR  FLC FRC

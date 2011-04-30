@@ -526,8 +526,9 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     }
   }
 
-  if (codec == CODEC_ID_MP3) {
-    m_pAVCodec    = avcodec_find_decoder_by_name("mp3float");
+  const char *codec_override = find_codec_override(codec);
+  if (codec_override) {
+    m_pAVCodec    = avcodec_find_decoder_by_name(codec_override);
   } else {
     m_pAVCodec    = avcodec_find_decoder(codec);
   }

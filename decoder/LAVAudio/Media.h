@@ -57,6 +57,8 @@ const codec_config_t *get_codec_config(ConfigCodecs codec);
 
 CodecID FindCodecId(const CMediaType *mt);
 
+const char *find_codec_override(CodecID codec);
+
 const scmap_t* get_channel_map(AVCodecContext *avctx);
 
 const char *get_sample_format_desc(LAVAudioSampleFormat sfFormat);
