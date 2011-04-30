@@ -1005,17 +1005,17 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
     std::deque<stream*>::iterator sit;
     for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); ++sit ) {
       AVStream *pStream = m_avFormat->streams[(*sit)->pid];
-      // Special Check for "want forced subs" and "PGS only forced subs" - we just accept whatever PGS stream we find first.
-      if (subtitleMode == SUBMODE_FORCED_SUBS && pStream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE && m_pSettings->GetPGSOnlyForced() && !best) {
-        best = *sit;
+
       // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
-      } else if (!(subtitleMode == SUBMODE_FORCED_SUBS) == !(m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {
+      if (!(subtitleMode == SUBMODE_FORCED_SUBS) == !(m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {
         best = *sit;
         break;
-      } else if (subtitleMode == SUBMODE_ALWAYS_SUBS) {
+      // Special Check for "want forced subs" and "PGS only forced subs" - we just accept whatever PGS stream we find first.
+      } else if (subtitleMode == SUBMODE_FORCED_SUBS && pStream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE && m_pSettings->GetPGSOnlyForced() && !best) {
+        best = *sit;
+      } else if (subtitleMode == SUBMODE_ALWAYS_SUBS && !best) {
         // we found a forced track, but want full. Cycle through until we run out of tracks, or find a new full
-        if(!best)
-          best = *sit;
+        best = *sit;
       }
     }
   }
