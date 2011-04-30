@@ -37,6 +37,8 @@
 
 #define AUTO_RESYNC 0
 
+#define REQUEST_FLOAT 1
+
 // Maximum Durations (in reference time)
 // 100ms
 #define PCM_BUFFER_MAX_DURATION 1000000
@@ -542,6 +544,10 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
 
   // Set Dynamic Range Compression
   m_pAVCtx->drc_scale             = m_settings.DRCEnabled ? (float)m_settings.DRCLevel / 100.0f : 0.0f;
+
+#if REQUEST_FLOAT
+  m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_FLT;
+#endif
 
   if (format_type == FORMAT_WaveFormatEx) {
     WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;

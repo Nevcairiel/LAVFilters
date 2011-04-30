@@ -42,7 +42,6 @@ OPTIONS="
 --disable-network \
 --disable-protocols \
 --enable-protocol=file \
---enable-audio-float \
 --arch=x86 --target-os=mingw32"
 
 ./configure --extra-cflags="-march=i686 -mmmx" ${OPTIONS} &&

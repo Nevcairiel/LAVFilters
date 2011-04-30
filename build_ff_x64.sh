@@ -42,7 +42,6 @@ OPTIONS="
 --disable-network \
 --disable-protocols \
 --enable-protocol=file \
---enable-audio-float \
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32"
 
