@@ -49,9 +49,6 @@ BOOL CLAVAudio::IsBitstreaming(CodecID codec)
 
 HRESULT CLAVAudio::InitBitstreaming()
 {
-  if (m_avioBitstream)
-    ShutdownBitstreaming();
-
   // Alloc buffer for the AVIO context
   BYTE *buffer = (BYTE *)CoTaskMemAlloc(LAV_BITSTREAM_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
   if(!buffer)
