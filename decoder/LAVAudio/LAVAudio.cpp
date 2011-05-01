@@ -374,7 +374,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   return S_OK;
 }
 
-HRESULT CLAVAudio::ReconnectOutput(int nSamples, CMediaType& mt)
+HRESULT CLAVAudio::ReconnectOutput(long cbBuffer, CMediaType& mt)
 {
   HRESULT hr = S_FALSE;
 
@@ -389,9 +389,6 @@ HRESULT CLAVAudio::ReconnectOutput(int nSamples, CMediaType& mt)
 
   ALLOCATOR_PROPERTIES props, actual;
   CHECK_HR(hr = pAllocator->GetProperties(&props));
-
-  WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
-  long cbBuffer = nSamples * wfe->nBlockAlign;
 
   hr = S_FALSE;
 
@@ -1107,7 +1104,8 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   CMediaType mt = CreateMediaType(m_pAVCtx->sample_fmt, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
-  if(FAILED(hr = ReconnectOutput(buffer.nSamples, mt))) {
+  long cbBuffer = buffer.nSamples * wfe->nBlockAlign;
+  if(FAILED(hr = ReconnectOutput(cbBuffer, mt))) {
     return hr;
   }
 

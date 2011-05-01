@@ -117,7 +117,7 @@ private:
   void ffmpeg_shutdown();
 
   CMediaType CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask = 0, WORD wBitsPerSampleOverride = 0) const;
-  HRESULT ReconnectOutput(int nSamples, CMediaType& mt);
+  HRESULT ReconnectOutput(long cbBuffer, CMediaType& mt);
   HRESULT ProcessBuffer();
   HRESULT Decode(const BYTE *p, int buffsize, int &consumed, BufferDetails *out);
   HRESULT PostProcess(BufferDetails *buffer);
