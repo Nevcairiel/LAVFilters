@@ -657,7 +657,7 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
     CMediaType check_mt;
     const int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
     const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
-    const DWORD dwChannelMask = get_channel_map(m_pAVCtx)->dwChannelMask;
+    const DWORD dwChannelMask = m_pAVCtx ? get_channel_map(m_pAVCtx)->dwChannelMask : 0;
 
     check_mt = CreateMediaType(AV_SAMPLE_FMT_FLT, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_FP32] = pPin->QueryAccept(&check_mt) == S_OK;
