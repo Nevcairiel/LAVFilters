@@ -65,7 +65,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_avBSContext(NULL)
 {
   avcodec_init();
-  avcodec_register_all();
+  av_register_all();
 
   m_bSampleSupport[SampleFormat_U8] = TRUE;
   m_bSampleSupport[SampleFormat_16] = TRUE;
