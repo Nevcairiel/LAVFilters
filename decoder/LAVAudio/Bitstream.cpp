@@ -174,7 +174,7 @@ HRESULT CLAVAudio::FreeBitstreamContext()
   return S_OK;
 }
 
-CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec, WORD wChannels)
+CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
 {
    CMediaType mt;
 
@@ -228,7 +228,7 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec, WORD wChannels)
    if (subtype != GUID_NULL) {
       wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
       wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
-      wfex.dwChannelMask = get_channel_mask(wChannels);
+      wfex.dwChannelMask = get_channel_mask(wfe->nChannels);
       wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
       wfex.SubFormat = subtype;
    }
@@ -283,8 +283,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
 {
   HRESULT hr = S_OK;
 
-  AVCodecContext *ctx = m_avBSContext->streams[0]->codec;
-  CMediaType mt = CreateBitstreamMediaType(codec, ctx->channels);
+  CMediaType mt = CreateBitstreamMediaType(codec);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
   if(FAILED(hr = ReconnectOutput(dwSize, mt))) {
