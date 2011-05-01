@@ -62,6 +62,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pParser(NULL)
   , m_bQueueResync(FALSE)
   , m_avioBitstream(NULL)
+  , m_avBSContext(NULL)
 {
   avcodec_init();
   avcodec_register_all();
@@ -163,6 +164,9 @@ void CLAVAudio::ffmpeg_shutdown()
     av_free(m_pPCMData);
     m_pPCMData = NULL;
   }
+
+  FreeBitstreamContext();
+
   m_nCodecId = CODEC_ID_NONE;
 }
 
@@ -353,7 +357,7 @@ HRESULT CLAVAudio::CheckInputType(const CMediaType *mtIn)
 HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 {
   DbgLog((LOG_TRACE, 5, L"GetMediaType"));
-  if(m_pInput->IsConnected() == FALSE || !m_pAVCtx || !m_pAVCodec) {
+  if(m_pInput->IsConnected() == FALSE || !((m_pAVCtx && m_pAVCodec) || m_avBSContext)) {
     return E_UNEXPECTED;
   }
 
@@ -364,13 +368,17 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     return VFW_S_NO_MORE_ITEMS;
   }
 
-  const int nChannels = m_pAVCtx->channels;
-  const int nSamplesPerSec = m_pAVCtx->sample_rate;
+  if (m_avBSContext) {
+    *pMediaType = CreateBitstreamMediaType(m_nCodecId);
+  } else {
+    const int nChannels = m_pAVCtx->channels;
+    const int nSamplesPerSec = m_pAVCtx->sample_rate;
 
-  const AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16);
-  const DWORD dwChannelMask = get_channel_map(m_pAVCtx)->dwChannelMask;
+    const AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16);
+    const DWORD dwChannelMask = get_channel_map(m_pAVCtx)->dwChannelMask;
 
-  *pMediaType = CreateMediaType(sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
+    *pMediaType = CreateMediaType(sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
+  }
   return S_OK;
 }
 
@@ -553,6 +561,14 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     }
     if (bMatched && !m_settings.bFormats[i]) {
       return VFW_E_UNSUPPORTED_AUDIO;
+    }
+  }
+
+  // If the codec is bitstreaming, and enabled for it, go there now
+  if (IsBitstreaming(codec)) {
+    WAVEFORMATEX *wfe = (format_type == FORMAT_WaveFormatEx) ? (WAVEFORMATEX *)format : NULL;
+    if(SUCCEEDED(CreateBitstreamContext(codec, wfe))) {
+      return S_OK;
     }
   }
 
@@ -796,22 +812,36 @@ HRESULT CLAVAudio::ProcessBuffer()
 
   int consumed = 0;
 
-  // Consume the buffer data
-  BufferDetails output_buffer;
-  hr2 = Decode(p, buffer_size, consumed, &output_buffer);
-  // S_OK means we actually have data to process
-  if (hr2 == S_OK) {
-    if (SUCCEEDED(PostProcess(&output_buffer))) {
-      hr = QueueOutput(output_buffer);
+  // If a bitstreaming context exists, we should bitstream
+  if (m_avBSContext) {
+    hr2 = Bitstream(p, buffer_size, consumed);
+    if (FAILED(hr2)) {
+      DbgLog((LOG_TRACE, 10, L"Invalid sample when bitstreaming!"));
+      m_buff.SetSize(0);
+      return S_FALSE;
+    } else if (hr2 == S_FALSE) {
+      DbgLog((LOG_TRACE, 10, L"::Bitstream returned S_FALSE"));
+      hr = S_FALSE;
     }
-  // FAILED - throw away the data
-  } else if (FAILED(hr2)) {
-    DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
-    m_buff.SetSize(0);
-    return S_FALSE;
   } else {
-    DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
-    hr = S_FALSE;
+    // Decoding
+    // Consume the buffer data
+    BufferDetails output_buffer;
+    hr2 = Decode(p, buffer_size, consumed, &output_buffer);
+    // S_OK means we actually have data to process
+    if (hr2 == S_OK) {
+      if (SUCCEEDED(PostProcess(&output_buffer))) {
+        hr = QueueOutput(output_buffer);
+      }
+    // FAILED - throw away the data
+    } else if (FAILED(hr2)) {
+      DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
+      m_buff.SetSize(0);
+      return S_FALSE;
+    } else {
+      DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
+      hr = S_FALSE;
+    }
   }
 
   if (consumed <= 0) {

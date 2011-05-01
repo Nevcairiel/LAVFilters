@@ -21,7 +21,30 @@
 #include "stdafx.h"
 #include "LAVAudio.h"
 
+#include <MMReg.h>
+
 #define LAV_BITSTREAM_BUFFER_SIZE 4096
+
+static struct {
+  CodecID codec;
+  BitstreamCodecs config;
+} lavf_bitstream_config[] = {
+  { CODEC_ID_AC3,    BS_AC3 },
+  /*{ CODEC_ID_EAC3,   BS_EAC3 },
+  { CODEC_ID_TRUEHD, BS_TRUEHD },
+  { CODEC_ID_DTS,    BS_DTS } // DTS-HD is still DTS, and handled special below */
+};
+
+// Check wether a codec is bitstreaming eligible and enabled
+BOOL CLAVAudio::IsBitstreaming(CodecID codec)
+{
+  for(int i = 0; i < countof(lavf_bitstream_config); ++i) {
+    if (lavf_bitstream_config[i].codec == codec) {
+      return m_settings.bBitstream[lavf_bitstream_config[i].config];
+    }
+  }
+  return FALSE;
+}
 
 HRESULT CLAVAudio::InitBitstreaming()
 {
@@ -58,4 +81,167 @@ int CLAVAudio::BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size)
   CLAVAudio *filter = (CLAVAudio *)opaque;
   filter->m_bsOutput.Append(buf, buf_size);
   return buf_size;
+}
+
+HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
+{
+  int ret = 0;
+
+  if (m_avBSContext)
+    FreeBitstreamContext();
+
+  m_avBSContext = avformat_alloc_output_context("spdif", NULL, NULL);
+  if (!m_avBSContext) {
+    DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of avformat spdif muxer failed"));
+    goto fail;
+  }
+
+  m_avBSContext->pb = m_avioBitstream;
+  m_avBSContext->oformat->flags |= AVFMT_NOFILE;
+
+  AVStream *st = av_new_stream(m_avBSContext, 0);
+  if (!st) {
+    DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of output stream failed"));
+    goto fail;
+  }
+  st->codec->codec_id = codec;
+  st->codec->codec_type = AVMEDIA_TYPE_AUDIO;
+  st->codec->channels = wfe->nChannels;
+  st->codec->sample_rate = wfe->nSamplesPerSec;
+
+  ret = av_write_header(m_avBSContext);
+  if (ret < 0) {
+    DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- av_write_header returned an error code (%d)", -ret));
+    goto fail;
+  }
+
+  m_nCodecId = codec;
+
+  return S_OK;
+fail:
+  FreeBitstreamContext();
+  return E_FAIL;
+}
+
+HRESULT CLAVAudio::FreeBitstreamContext()
+{
+  if (m_avBSContext)
+    avformat_free_context(m_avBSContext);
+  m_avBSContext = NULL;
+
+  return S_OK;
+}
+
+CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
+{
+   CMediaType mt;
+
+   mt.majortype  = MEDIATYPE_Audio;
+   mt.subtype    = MEDIASUBTYPE_PCM;
+   mt.formattype = FORMAT_WaveFormatEx;
+
+   WAVEFORMATEX wfe;
+   memset(&wfe, 0, sizeof(wfe));
+
+   wfe.nChannels = 2;
+   wfe.wBitsPerSample = 16;
+
+   switch(codec) {
+   case CODEC_ID_AC3:
+     wfe.wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF;
+     wfe.nSamplesPerSec = 48000;
+     break;
+   default:
+     ASSERT(0);
+     break;
+   }
+
+   wfe.nBlockAlign = wfe.nChannels * wfe.wBitsPerSample / 8;
+   wfe.nAvgBytesPerSec = wfe.nSamplesPerSec * wfe.nBlockAlign;
+
+   mt.SetSampleSize(wfe.wBitsPerSample * wfe.nChannels / 8);
+   mt.SetFormat((BYTE*)&wfe, sizeof(wfe));
+
+   return mt;
+}
+
+HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
+{
+  int ret = 0;
+
+  if (buffsize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
+    m_nFFBufferSize = buffsize + FF_INPUT_BUFFER_PADDING_SIZE;
+    m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
+  }
+
+  memcpy(m_pFFBuffer, p, buffsize);
+  memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+
+  consumed = buffsize;
+
+  // TODO: use parser
+  AVPacket pkt;
+  memset(&pkt, 0, sizeof(AVPacket));
+  pkt.pts = pkt.dts = AV_NOPTS_VALUE;
+  pkt.duration = 1;
+
+  pkt.data = m_pFFBuffer;
+  pkt.size = buffsize;
+
+  // Write SPDIF muxed frame
+  ret = av_write_frame(m_avBSContext, &pkt);
+  if(ret < 0) {
+    DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));
+    return E_FAIL;
+  }
+
+  HRESULT hr = S_FALSE;
+
+  if (m_bsOutput.GetCount() > 0) {
+    hr = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount());
+    m_bsOutput.SetSize(0);
+  }
+
+  return hr;
+}
+
+HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize)
+{
+  HRESULT hr = S_OK;
+
+  CMediaType mt = CreateBitstreamMediaType(codec);
+  WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
+
+  if(FAILED(hr = ReconnectOutput(dwSize, mt))) {
+    return hr;
+  }
+
+  IMediaSample *pOut;
+  BYTE *pDataOut = NULL;
+  if(FAILED(GetDeliveryBuffer(&pOut, &pDataOut))) {
+    return E_FAIL;
+  }
+
+  if(hr == S_OK) {
+    DbgLog((LOG_CUSTOM1, 1, L"Sending new Media Type"));
+    m_pOutput->SetMediaType(&mt);
+    pOut->SetMediaType(&mt);
+  }
+
+  pOut->SetTime(&m_rtStartInput, &m_rtStopInput);
+  pOut->SetMediaTime(NULL, NULL);
+
+  pOut->SetPreroll(FALSE);
+  pOut->SetDiscontinuity(m_bDiscontinuity);
+  m_bDiscontinuity = FALSE;
+  pOut->SetSyncPoint(TRUE);
+
+  pOut->SetActualDataLength(dwSize);
+
+  memcpy(pDataOut, buffer, dwSize);
+
+  hr = m_pOutput->Deliver(pOut);
+
+  SafeRelease(&pOut);
+  return hr;
 }

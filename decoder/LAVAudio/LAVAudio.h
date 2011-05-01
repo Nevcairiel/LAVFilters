@@ -132,9 +132,18 @@ private:
 
   void UpdateVolumeStats(const BufferDetails &buffer);
 
+  BOOL IsBitstreaming(CodecID codec);
   HRESULT InitBitstreaming();
   HRESULT ShutdownBitstreaming();
   static int BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size);
+
+  HRESULT CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe);
+  HRESULT FreeBitstreamContext();
+
+  HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed);
+  HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize);
+
+  CMediaType CreateBitstreamMediaType(CodecID codec);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
@@ -174,4 +183,6 @@ private:
 
   AVIOContext *m_avioBitstream;
   GrowableArray<BYTE> m_bsOutput;
+
+  AVFormatContext     *m_avBSContext;
 };
