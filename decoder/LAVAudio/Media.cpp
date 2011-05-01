@@ -218,7 +218,8 @@ static const char *sample_format_strings[] = {
   "24bit Integer",
   "32bit Integer",
   "8bit Integer",
-  "32bit Float"
+  "32bit Float",
+  "Bitstreaming"
 };
 
 const char *get_sample_format_desc(LAVAudioSampleFormat sfFormat)

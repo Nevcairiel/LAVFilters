@@ -35,6 +35,7 @@ typedef enum LAVAudioSampleFormat {
   SampleFormat_32,
   SampleFormat_U8,
   SampleFormat_FP32,
+  SampleFormat_Bitstream,
   SampleFormat_NB   // Dummy, do not use
 };
 

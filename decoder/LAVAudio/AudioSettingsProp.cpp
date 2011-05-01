@@ -383,14 +383,15 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   if (SUCCEEDED(hr)) {
     WCHAR buffer[100];
 
-    _snwprintf_s(buffer, _TRUNCATE, L"%S", decodeFormat);
-    SendDlgItemMessage(m_Dlg, IDC_DECODE_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
+    if (hr == S_OK) {
+      _snwprintf_s(buffer, _TRUNCATE, L"%S", decodeFormat);
+      SendDlgItemMessage(m_Dlg, IDC_DECODE_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
 
+      _snwprintf_s(buffer, _TRUNCATE, L"0x%x", dwChannelMask);
+      SendDlgItemMessage(m_Dlg, IDC_CHANNEL_MASK, WM_SETTEXT, 0, (LPARAM)buffer);
+    }
     _snwprintf_s(buffer, _TRUNCATE, L"%S", outputFormat);
     SendDlgItemMessage(m_Dlg, IDC_OUTPUT_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
-
-    _snwprintf_s(buffer, _TRUNCATE, L"0x%x", dwChannelMask);
-    SendDlgItemMessage(m_Dlg, IDC_CHANNEL_MASK, WM_SETTEXT, 0, (LPARAM)buffer);
   }
 
   SetTimer(m_Dlg, 1, 250, NULL);

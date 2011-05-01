@@ -305,9 +305,16 @@ HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pS
 
 HRESULT CLAVAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask)
 {
-  if(!m_pOutput || m_pOutput->IsConnected() == FALSE || m_avBSContext) {
+  if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
   }
+  if (m_avBSContext) {
+    if (pOutputFormat) {
+      *pOutputFormat = get_sample_format_desc(SampleFormat_Bitstream);
+    }
+    return S_FALSE;
+  }
+  // Normal Decode Mode
   if (pDecodeFormat) {
     if (IsActive()) {
       *pDecodeFormat = get_sample_format_desc(m_DecodeFormat);
