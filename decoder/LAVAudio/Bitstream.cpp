@@ -31,8 +31,8 @@ static struct {
 } lavf_bitstream_config[] = {
   { CODEC_ID_AC3,    BS_AC3 },
   /*{ CODEC_ID_EAC3,   BS_EAC3 },
-  { CODEC_ID_TRUEHD, BS_TRUEHD },
-  { CODEC_ID_DTS,    BS_DTS } // DTS-HD is still DTS, and handled special below */
+  { CODEC_ID_TRUEHD, BS_TRUEHD }, */
+  { CODEC_ID_DTS,    BS_DTS } // DTS-HD is still DTS, and handled special below
 };
 
 // Check wether a codec is bitstreaming eligible and enabled
@@ -149,6 +149,10 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
    switch(codec) {
    case CODEC_ID_AC3:
      wfe.wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF;
+     wfe.nSamplesPerSec = 48000;
+     break;
+   case CODEC_ID_DTS:
+     wfe.wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF; // huh? but it works.
      wfe.nSamplesPerSec = 48000;
      break;
    default:
