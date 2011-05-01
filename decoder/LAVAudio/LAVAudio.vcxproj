@@ -144,6 +144,7 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bitstream.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="LAVAudio.cpp" />
     <ClCompile Include="AudioSettingsProp.cpp" />

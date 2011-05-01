@@ -130,6 +130,10 @@ private:
 
   void UpdateVolumeStats(const BufferDetails &buffer);
 
+  HRESULT InitBitstreaming();
+  HRESULT ShutdownBitstreaming();
+  static int BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size);
+
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
@@ -160,4 +164,7 @@ private:
 
   BOOL                m_bQueueResync;
   BufferDetails       m_OutputQueue;
+
+  AVIOContext *m_avioBitstream;
+  GrowableArray<BYTE> m_bsOutput;
 };

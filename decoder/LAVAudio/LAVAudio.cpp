@@ -61,6 +61,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bVolumeStats(FALSE)
   , m_pParser(NULL)
   , m_bQueueResync(FALSE)
+  , m_avioBitstream(NULL)
 {
   avcodec_init();
   avcodec_register_all();
@@ -73,6 +74,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 
   LoadSettings();
 
+  InitBitstreaming();
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
 #endif
@@ -82,6 +85,8 @@ CLAVAudio::~CLAVAudio()
 {
   ffmpeg_shutdown();
   free(m_pFFBuffer);
+
+  ShutdownBitstreaming();
 }
 
 HRESULT CLAVAudio::LoadSettings()
