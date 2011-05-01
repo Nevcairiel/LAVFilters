@@ -129,6 +129,42 @@ fail:
   return E_FAIL;
 }
 
+HRESULT CLAVAudio::UpdateBitstreamContext()
+{
+  if (!m_pInput || !m_pInput->IsConnected())
+    return E_UNEXPECTED;
+
+  BOOL bBitstream = IsBitstreaming(m_nCodecId);
+  if ((bBitstream && !m_avBSContext) || (!bBitstream && m_avBSContext)) {
+    CMediaType mt = m_pInput->CurrentMediaType();
+
+    const void *format = mt.Format();
+    GUID format_type = mt.formattype;
+
+    // Override the format type
+    if (mt.subtype == MEDIASUBTYPE_FFMPEG_AUDIO && format_type == FORMAT_WaveFormatExFFMPEG) {
+      WAVEFORMATEXFFMPEG *wfexff = (WAVEFORMATEXFFMPEG *)mt.Format();
+      format = &wfexff->wfex;
+      format_type = FORMAT_WaveFormatEx;
+    }
+
+    ffmpeg_init(m_nCodecId, format, format_type);
+  }
+
+
+  // Configure DTS-HD setting
+  if(m_avBSContext && m_nCodecId == CODEC_ID_DTS) {
+    av_set_string3(m_avBSContext->priv_data, "dtshd_fallback_time", "-1", 0, NULL);
+    if (m_settings.bBitstream[BS_DTSHD]) {
+      av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+    } else {
+      av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "0", 0, NULL);
+    }
+  }
+
+  return S_OK;
+}
+
 HRESULT CLAVAudio::FreeBitstreamContext()
 {
   if (m_avBSContext)

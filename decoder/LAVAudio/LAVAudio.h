@@ -138,6 +138,7 @@ private:
   static int BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size);
 
   HRESULT CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe);
+  HRESULT UpdateBitstreamContext();
   HRESULT FreeBitstreamContext();
 
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed);
