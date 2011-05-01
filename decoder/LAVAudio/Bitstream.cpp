@@ -100,6 +100,11 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   m_avBSContext->pb = m_avioBitstream;
   m_avBSContext->oformat->flags |= AVFMT_NOFILE;
 
+  if (codec == CODEC_ID_DTS && m_settings.bBitstream[BS_DTSHD]) {
+    av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+    av_set_string3(m_avBSContext->priv_data, "dtshd_fallback_time", "-1", 0, NULL);
+  }
+
   AVStream *st = av_new_stream(m_avBSContext, 0);
   if (!st) {
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of output stream failed"));
@@ -167,8 +172,14 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec, WORD wChannels)
      subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
      break;
    case CODEC_ID_DTS:
-     wfe.wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF; // huh? but it works.
-     wfe.nSamplesPerSec = 48000;
+     if (m_settings.bBitstream[BS_DTSHD]) {
+       wfe->nSamplesPerSec = 192000;
+       wfe->nChannels      = 8;
+       subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
+     } else {
+       wfe->wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF; // huh? but it works.
+       wfe->nSamplesPerSec = 48000;
+     }
      break;
    default:
      ASSERT(0);
