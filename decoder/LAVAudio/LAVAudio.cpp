@@ -78,6 +78,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   InitBitstreaming();
 
 #ifdef DEBUG
+  DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
 #endif
 }
