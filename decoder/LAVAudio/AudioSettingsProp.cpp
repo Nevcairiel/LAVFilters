@@ -63,6 +63,15 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   BOOL bDRC = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
   hr = m_pAudioSettings->SetDRC(bDRC, iDRCLevel);
 
+  bool bBitstreaming[BS_NB];
+  memset(bBitstreaming, 0, sizeof(bBitstreaming));
+  bBitstreaming[BS_AC3]     = SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_GETCHECK, 0, 0) != 0;
+  bBitstreaming[BS_EAC3]    = SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_GETCHECK, 0, 0) != 0;
+  bBitstreaming[BS_TRUEHD]  = SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_GETCHECK, 0, 0) != 0;
+  bBitstreaming[BS_DTS]     = SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_GETCHECK, 0, 0) != 0;
+  bBitstreaming[BS_DTSHD]   = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_GETCHECK, 0, 0) != 0;
+  m_pAudioSettings->SetBitstreamConfig(bBitstreaming);
+
   LoadData();
 
   return hr;
@@ -95,6 +104,13 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     WCHAR buffer[10];
     _snwprintf_s(buffer, _TRUNCATE, L"%d%%", m_iDRCLevel);
     SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
+
+    SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_SETCHECK, m_bBitstreaming[BS_AC3], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_SETCHECK, m_bBitstreaming[BS_EAC3], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_SETCHECK, m_bBitstreaming[BS_TRUEHD], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_SETCHECK, m_bBitstreaming[BS_DTS], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_SETCHECK, m_bBitstreaming[BS_DTSHD], 0);
+    EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD), m_bBitstreaming[BS_DTS]);
   }
 
   return hr;
@@ -104,6 +120,7 @@ HRESULT CLAVAudioSettingsProp::LoadData()
 {
   HRESULT hr = S_OK;
   hr = m_pAudioSettings->GetDRC(&m_bDRCEnabled, &m_iDRCLevel);
+  hr = m_pAudioSettings->GetBitstreamConfig(m_bBitstreaming);
   return hr;
 }
 
@@ -119,6 +136,27 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
         SetDirty();
       }
       EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), lValue);
+    } else if (LOWORD(wParam) == IDC_BS_AC3 && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bBitstreaming[BS_AC3])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_BS_EAC3 && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bBitstreaming[BS_EAC3])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_BS_TRUEHD && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bBitstreaming[BS_TRUEHD])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_BS_DTS && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bBitstreaming[BS_DTS])
+        SetDirty();
+      EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD), bFlag);
+    } else if (LOWORD(wParam) == IDC_BS_DTSHD && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bBitstreaming[BS_DTSHD])
+        SetDirty();
     }
     break;
   case WM_HSCROLL:

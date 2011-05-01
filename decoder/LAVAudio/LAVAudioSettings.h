@@ -45,6 +45,8 @@ interface ILAVAudioSettings : public IUnknown
   STDMETHOD(SetDRC)(BOOL bDRCEnabled, int iDRCLevel) = 0;
   STDMETHOD(GetFormatConfiguration)(bool *bFormat) = 0;
   STDMETHOD(SetFormatConfiguration)(bool *bFormat) = 0;
+  STDMETHOD(GetBitstreamConfig)(bool *bBitstreaming) = 0;
+  STDMETHOD(SetBitstreamConfig)(bool *bBitstreaming) = 0;
 };
 
 [uuid("A668B8F2-BA87-4F63-9D41-768F7DE9C50E")]

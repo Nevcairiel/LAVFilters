@@ -53,6 +53,16 @@ typedef enum ConfigCodecs {
   CC_NB        // Number of entrys
 };
 
+typedef enum BitstreamCodecs {
+  BS_AC3,
+  BS_EAC3,
+  BS_TRUEHD,
+  BS_DTS,
+  BS_DTSHD,
+
+  BS_NB        // Number of entrys
+};
+
 const codec_config_t *get_codec_config(ConfigCodecs codec);
 
 CodecID FindCodecId(const CMediaType *mt);

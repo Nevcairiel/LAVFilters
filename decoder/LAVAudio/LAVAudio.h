@@ -70,6 +70,8 @@ public:
   STDMETHODIMP SetDRC(BOOL bDRCEnabled, int iDRCLevel);
   STDMETHODIMP GetFormatConfiguration(bool *bFormat);
   STDMETHODIMP SetFormatConfiguration(bool *bFormat);
+  STDMETHODIMP GetBitstreamConfig(bool *bBitstreaming);
+  STDMETHODIMP SetBitstreamConfig(bool *bBitstreaming);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -157,6 +159,7 @@ private:
     BOOL DRCEnabled;
     int DRCLevel;
     bool bFormats[CC_NB];
+    bool bBitstream[BS_NB];
   } m_settings;
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled

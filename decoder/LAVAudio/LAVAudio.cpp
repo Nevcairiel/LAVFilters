@@ -94,6 +94,7 @@ HRESULT CLAVAudio::LoadSettings()
   HRESULT hr;
   DWORD dwVal;
   BOOL bFlag;
+  BYTE *pBuf = NULL;
 
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
@@ -112,10 +113,19 @@ HRESULT CLAVAudio::LoadSettings()
 
   m_settings.bFormats[CC_FLAC] = false;
 
-  BYTE *buf = reg.ReadBinary(L"Formats", dwVal, hr);
+  pBuf = reg.ReadBinary(L"Formats", dwVal, hr);
   if (SUCCEEDED(hr)) {
-    memcpy(&m_settings.bFormats, buf, min(dwVal, sizeof(m_settings.bFormats)));
-    SAFE_CO_FREE(buf);
+    memcpy(&m_settings.bFormats, pBuf, min(dwVal, sizeof(m_settings.bFormats)));
+    SAFE_CO_FREE(pBuf);
+  }
+
+  // Default bitstreaming to disabled
+  memset(m_settings.bBitstream, 0, sizeof(m_settings.bBitstream));
+
+  pBuf = reg.ReadBinary(L"Bitstreaming", dwVal, hr);
+  if (SUCCEEDED(hr)) {
+    memcpy(&m_settings.bBitstream, pBuf, min(dwVal, sizeof(m_settings.bBitstream)));
+    SAFE_CO_FREE(pBuf);
   }
 
   return S_OK;
@@ -129,6 +139,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBOOL(L"DRCEnabled", m_settings.DRCEnabled);
     reg.WriteDWORD(L"DRCLevel", m_settings.DRCLevel);
     reg.WriteBinary(L"Formats", (BYTE *)m_settings.bFormats, sizeof(m_settings.bFormats));
+    reg.WriteBinary(L"Bitstreaming", (BYTE *)m_settings.bBitstream, sizeof(m_settings.bBitstream));
   }
   return S_OK;
 }
@@ -224,6 +235,23 @@ HRESULT CLAVAudio::SetFormatConfiguration(bool *bFormat)
   CheckPointer(bFormat, E_POINTER);
 
   memcpy(&m_settings.bFormats, bFormat, sizeof(m_settings.bFormats));
+  SaveSettings();
+  return S_OK;
+}
+
+HRESULT CLAVAudio::GetBitstreamConfig(bool *bBitstreaming)
+{
+  CheckPointer(bBitstreaming, E_POINTER);
+
+  memcpy(bBitstreaming, &m_settings.bBitstream, sizeof(m_settings.bBitstream));
+  return S_OK;
+}
+
+HRESULT CLAVAudio::SetBitstreamConfig(bool *bBitstreaming)
+{
+  CheckPointer(bBitstreaming, E_POINTER);
+
+  memcpy(&m_settings.bBitstream, bBitstreaming, sizeof(m_settings.bBitstream));
   SaveSettings();
   return S_OK;
 }
