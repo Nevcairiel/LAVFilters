@@ -274,21 +274,34 @@ HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pS
   if(!m_pInput || m_pInput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
   }
-  if (pCodec) {
-    *pCodec = m_pAVCodec->name;
-  }
-  if (pnChannels) {
-    *pnChannels = m_pAVCtx->channels;
-  }
-  if (pSampleRate) {
-    *pSampleRate = m_pAVCtx->sample_rate;
+  if (m_avBSContext) {
+    if (pCodec) {
+      AVCodec *codec = avcodec_find_decoder(m_nCodecId);
+      *pCodec = codec->name;
+    }
+    if (pnChannels) {
+      *pnChannels = m_avBSContext->streams[0]->codec->channels;
+    }
+    if (pSampleRate) {
+      *pSampleRate = m_avBSContext->streams[0]->codec->sample_rate;
+    }
+  } else {
+    if (pCodec) {
+      *pCodec = m_pAVCodec->name;
+    }
+    if (pnChannels) {
+      *pnChannels = m_pAVCtx->channels;
+    }
+    if (pSampleRate) {
+      *pSampleRate = m_pAVCtx->sample_rate;
+    }
   }
   return S_OK;
 }
 
 HRESULT CLAVAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask)
 {
-  if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
+  if(!m_pOutput || m_pOutput->IsConnected() == FALSE || m_avBSContext) {
     return E_UNEXPECTED;
   }
   if (pDecodeFormat) {
@@ -330,7 +343,7 @@ HRESULT CLAVAudio::DisableVolumeStats()
 HRESULT CLAVAudio::GetChannelVolumeAverage(WORD nChannel, float *pfDb)
 {
   CheckPointer(pfDb, E_POINTER);
-  if (!m_pOutput || m_pOutput->IsConnected() == FALSE || !m_bVolumeStats) {
+  if (!m_pOutput || m_pOutput->IsConnected() == FALSE || !m_bVolumeStats || m_avBSContext) {
     return E_UNEXPECTED;
   }
   if (nChannel >= m_pAVCtx->channels || nChannel >= 8) {
