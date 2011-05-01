@@ -754,6 +754,9 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_bQueueResync = FALSE;
   }
 
+  m_rtStartInput = rtStart;
+  m_rtStopInput = rtStop;
+
   /*
   if (SUCCEEDED(hr) && _abs64(m_rtStart - rtStart) > 100000i64) {
     DbgLog((LOG_TRACE, 10, L"Sync: theirs: %I64d; ours: %I64d; diff: %I64d; buffer: %d", rtStart, m_rtStart, _abs64(m_rtStart - rtStart), m_buff.GetCount()));

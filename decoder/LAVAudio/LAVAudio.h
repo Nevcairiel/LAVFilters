@@ -149,6 +149,10 @@ private:
   BOOL                 m_bDiscontinuity; // Discontinuity
   REFERENCE_TIME       m_rtStart;        // Start time
   double               m_dStartOffset;   // Start time offset (extra precision)
+
+  REFERENCE_TIME       m_rtStartInput;   // rtStart of the last input package
+  REFERENCE_TIME       m_rtStopInput;    // rtStop of the last input package
+
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples
 
