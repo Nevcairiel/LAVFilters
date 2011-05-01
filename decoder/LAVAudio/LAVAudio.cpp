@@ -382,7 +382,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   }
 
   if (m_avBSContext) {
-    *pMediaType = CreateBitstreamMediaType(m_nCodecId);
+    *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_avBSContext->streams[0]->codec->channels);
   } else {
     const int nChannels = m_pAVCtx->channels;
     const int nSamplesPerSec = m_pAVCtx->sample_rate;

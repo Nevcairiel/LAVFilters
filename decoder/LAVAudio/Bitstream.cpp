@@ -22,6 +22,7 @@
 #include "LAVAudio.h"
 
 #include <MMReg.h>
+#include "moreuuids.h"
 
 #define LAV_BITSTREAM_BUFFER_SIZE 4096
 
@@ -30,8 +31,8 @@ static struct {
   BitstreamCodecs config;
 } lavf_bitstream_config[] = {
   { CODEC_ID_AC3,    BS_AC3 },
-  /*{ CODEC_ID_EAC3,   BS_EAC3 },
-  { CODEC_ID_TRUEHD, BS_TRUEHD }, */
+  { CODEC_ID_EAC3,   BS_EAC3 },
+  { CODEC_ID_TRUEHD, BS_TRUEHD },
   { CODEC_ID_DTS,    BS_DTS } // DTS-HD is still DTS, and handled special below
 };
 
@@ -132,7 +133,7 @@ HRESULT CLAVAudio::FreeBitstreamContext()
   return S_OK;
 }
 
-CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
+CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec, WORD wChannels)
 {
    CMediaType mt;
 
@@ -140,16 +141,30 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
    mt.subtype    = MEDIASUBTYPE_PCM;
    mt.formattype = FORMAT_WaveFormatEx;
 
-   WAVEFORMATEX wfe;
-   memset(&wfe, 0, sizeof(wfe));
+   WAVEFORMATEXTENSIBLE wfex;
+   memset(&wfex, 0, sizeof(wfex));
 
-   wfe.nChannels = 2;
-   wfe.wBitsPerSample = 16;
+   WAVEFORMATEX* wfe = &wfex.Format;
+
+   wfe->nChannels = 2;
+   wfe->wBitsPerSample = 16;
+
+   GUID subtype = GUID_NULL;
 
    switch(codec) {
    case CODEC_ID_AC3:
-     wfe.wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF;
-     wfe.nSamplesPerSec = 48000;
+     wfe->wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF;
+     wfe->nSamplesPerSec = 48000;
+     break;
+   case CODEC_ID_EAC3:
+     wfe->nSamplesPerSec = 192000;
+     wfe->nChannels      = 2;
+     subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL_PLUS;
+     break;
+   case CODEC_ID_TRUEHD:
+     wfe->nSamplesPerSec = 192000;
+     wfe->nChannels      = 8;
+     subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
      break;
    case CODEC_ID_DTS:
      wfe.wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF; // huh? but it works.
@@ -160,11 +175,19 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
      break;
    }
 
-   wfe.nBlockAlign = wfe.nChannels * wfe.wBitsPerSample / 8;
-   wfe.nAvgBytesPerSec = wfe.nSamplesPerSec * wfe.nBlockAlign;
+   wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
+   wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
-   mt.SetSampleSize(wfe.wBitsPerSample * wfe.nChannels / 8);
-   mt.SetFormat((BYTE*)&wfe, sizeof(wfe));
+   if (subtype != GUID_NULL) {
+      wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+      wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
+      wfex.dwChannelMask = get_channel_mask(wChannels);
+      wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
+      wfex.SubFormat = subtype;
+   }
+
+   mt.SetSampleSize(1);
+   mt.SetFormat((BYTE*)&wfex, sizeof(wfex.Format) + wfex.Format.cbSize);
 
    return mt;
 }
@@ -213,7 +236,8 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
 {
   HRESULT hr = S_OK;
 
-  CMediaType mt = CreateBitstreamMediaType(codec);
+  AVCodecContext *ctx = m_avBSContext->streams[0]->codec;
+  CMediaType mt = CreateBitstreamMediaType(codec, ctx->channels);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
   if(FAILED(hr = ReconnectOutput(dwSize, mt))) {

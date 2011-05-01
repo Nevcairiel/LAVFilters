@@ -143,7 +143,7 @@ private:
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed);
   HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize);
 
-  CMediaType CreateBitstreamMediaType(CodecID codec);
+  CMediaType CreateBitstreamMediaType(CodecID codec, WORD wChannels);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id

@@ -205,6 +205,13 @@ const scmap_t* get_channel_map(AVCodecContext *avctx)
   return &m_scmap_default[avctx->channels - 1];
 }
 
+DWORD get_channel_mask(int num_channels)
+{
+  if (num_channels < 1 && num_channels > 8)
+    return 0;
+  return m_scmap_default[num_channels - 1].dwChannelMask;
+}
+
 
 static const char *sample_format_strings[] = {
   "16bit Integer",
