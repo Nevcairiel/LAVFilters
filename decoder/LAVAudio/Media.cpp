@@ -442,6 +442,8 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_NONE }, L"pcm", L"Raw PCM Types (including QT PCM)" }, // CC_LPCM
   { 1, { CODEC_ID_WAVPACK }},                      // CC_WAVPACK
   { 1, { CODEC_ID_TTA }},                          // CC_TTA
+  { 2, { CODEC_ID_WMAV2, CODEC_ID_WMAV1 }, L"wma", L"Windows Media Audio 1/2"}, // CC_WMA2
+  { 1, { CODEC_ID_WMAPRO }},                       // CC_WMAPRO
 };
 
 const codec_config_t *get_codec_config(ConfigCodecs codec)

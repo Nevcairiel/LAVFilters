@@ -49,6 +49,8 @@ typedef enum ConfigCodecs {
   CC_PCM,
   CC_WAVPACK,
   CC_TTA,
+  CC_WMA2,
+  CC_WMAPRO,
 
   CC_NB        // Number of entrys
 };
