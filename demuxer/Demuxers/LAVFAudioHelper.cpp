@@ -93,6 +93,18 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
     // Qt PCM
     if (codecTag == MKTAG('f', 'l', '6', '4')) mediaType.subtype = MEDIASUBTYPE_PCM_FL64_le;
     break;
+  case CODEC_ID_WMAV1:
+    mediaType.subtype = MEDIASUBTYPE_WMAUDIO1;
+    codecTag = WAVE_FORMAT_MSAUDIO1;
+    break;
+  case CODEC_ID_WMAV2:
+    mediaType.subtype = MEDIASUBTYPE_WMAUDIO2;
+    codecTag = WAVE_FORMAT_WMAUDIO2;
+    break;
+  case CODEC_ID_WMAPRO:
+    mediaType.subtype = MEDIASUBTYPE_WMAUDIO3;
+    codecTag = WAVE_FORMAT_WMAUDIO3;
+    break;
   }
   return mediaType;
 }
