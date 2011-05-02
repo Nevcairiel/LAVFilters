@@ -113,8 +113,6 @@ HRESULT CLAVAudio::LoadSettings()
   for(int i = 0; i < CC_NB; ++i)
     m_settings.bFormats[i] = true;
 
-  m_settings.bFormats[CC_FLAC] = false;
-
   pBuf = reg.ReadBinary(L"Formats", dwVal, hr);
   if (SUCCEEDED(hr)) {
     memcpy(&m_settings.bFormats, pBuf, min(dwVal, sizeof(m_settings.bFormats)));
@@ -611,7 +609,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   m_pAVCtx = avcodec_alloc_context();
   CheckPointer(m_pAVCtx, E_POINTER);
 
-  if (codec != CODEC_ID_AAC && codec != CODEC_ID_AAC_LATM)
+  if (codec != CODEC_ID_AAC && codec != CODEC_ID_AAC_LATM && codec != CODEC_ID_FLAC)
     m_pParser = av_parser_init(codec);
 
   if (m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
