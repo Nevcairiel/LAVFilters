@@ -101,3 +101,19 @@ std::wstring WStringFromGUID(const GUID& guid)
   StringFromGUID2(GUID_NULL, null, 127);
   return std::wstring(StringFromGUID2(guid, buff, 127) > 0 ? buff : null);
 }
+
+BSTR ConvertCharToBSTR(const char *sz)
+{
+  if (!sz)
+    return NULL;
+
+  size_t len = MultiByteToWideChar(CP_UTF8, 0, sz, -1, NULL, 0);
+
+  WCHAR *wide = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
+  MultiByteToWideChar(CP_UTF8, 0, sz, -1, wide, len);
+
+  BSTR bstr = SysAllocString(wide);
+  CoTaskMemFree(wide);
+
+  return bstr;
+}

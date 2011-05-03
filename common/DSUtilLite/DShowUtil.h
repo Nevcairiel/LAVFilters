@@ -96,3 +96,4 @@ extern IBaseFilter *FindFilter(const GUID& clsid, IFilterGraph *pFG);
 extern BOOL FilterInGraph(const GUID& clsid, IFilterGraph *pFG);
 
 std::wstring WStringFromGUID(const GUID& guid);
+BSTR ConvertCharToBSTR(const char *sz);
