@@ -95,7 +95,7 @@ static std::string tolower(const char *str) {
   return ret;
 }
 
-static std::string get_codec_name(AVCodecContext *pCodecCtx)
+std::string get_codec_name(AVCodecContext *pCodecCtx)
 {
   CodecID id = pCodecCtx->codec_id;
 
