@@ -534,9 +534,6 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   CAutoLock lock(&m_csReceive);
   ffmpeg_shutdown();
 
-  m_buff.SetSize(0);
-  m_bQueueResync = TRUE;
-
   // Fake codecs that are dependant in input bits per sample, mostly to handle QT PCM tracks
   if (codec == CODEC_ID_PCM_QTRAW || codec == CODEC_ID_PCM_SxxBE || codec == CODEC_ID_PCM_SxxLE || codec == CODEC_ID_PCM_UxxBE || codec == CODEC_ID_PCM_UxxLE) {
     if (format_type == FORMAT_WaveFormatEx) {
@@ -1136,6 +1133,8 @@ HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
 
 HRESULT CLAVAudio::FlushOutput(BOOL bDeliver)
 {
+  CAutoLock cAutoLock(&m_csReceive);
+
   HRESULT hr = S_OK;
   if (bDeliver && m_OutputQueue.nSamples > 0)
     hr = Deliver(m_OutputQueue);

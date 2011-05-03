@@ -146,6 +146,7 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
     }
 
     ffmpeg_init(m_nCodecId, format, format_type);
+    m_bQueueResync = TRUE;
   }
 
 
