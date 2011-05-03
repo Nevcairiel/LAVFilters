@@ -20,7 +20,7 @@
 
 #pragma once
 
-const char *get_stream_language(AVStream *pStream);
+const char *get_stream_language(const AVStream *pStream);
 HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName);
 
 #define LAVF_DISPOSITION_SUB_STREAM 0x8000

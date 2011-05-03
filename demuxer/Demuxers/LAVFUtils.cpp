@@ -50,7 +50,7 @@ static int get_bit_rate(AVCodecContext *ctx)
   return bit_rate;
 }
 
-const char *get_stream_language(AVStream *pStream)
+const char *get_stream_language(const AVStream *pStream)
 {
   char *lang = NULL;
   if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
