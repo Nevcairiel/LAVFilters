@@ -281,6 +281,36 @@ BYTE get_byte_per_sample(LAVAudioSampleFormat sfFormat)
   return 0;
 }
 
+LAVAudioSampleFormat get_lav_sample_fmt(AVSampleFormat sample_fmt, int bits)
+{
+  LAVAudioSampleFormat lav_sample_fmt;
+  switch(sample_fmt) {
+  case AV_SAMPLE_FMT_S16:
+    lav_sample_fmt = SampleFormat_16;
+    break;
+  case AV_SAMPLE_FMT_S32:
+    if(bits > 24 || !bits) {
+      lav_sample_fmt = SampleFormat_32;
+    } else if (bits > 16) {
+      lav_sample_fmt = SampleFormat_24;
+    } else if (bits) {
+      lav_sample_fmt = SampleFormat_16;
+    }
+    break;
+  case AV_SAMPLE_FMT_DBL:
+  case AV_SAMPLE_FMT_FLT:
+    lav_sample_fmt = SampleFormat_FP32;
+    break;
+  case AV_SAMPLE_FMT_U8:
+    lav_sample_fmt = SampleFormat_U8;
+    break;
+  default:
+    lav_sample_fmt = SampleFormat_16;
+    break;
+  }
+  return lav_sample_fmt;
+}
+
 static BYTE get_lpcm_sample_rate_index(int sample_rate)
 {
   switch(sample_rate) {

@@ -37,12 +37,13 @@ struct WAVEFORMATEX_HDMV_LPCM;
 struct BufferDetails_s {
   GrowableArray<BYTE>   *bBuffer;         // PCM Buffer
   LAVAudioSampleFormat  sfFormat;         // Sample Format
+  WORD                  wBitsPerSample;   // Bits per sample
   DWORD                 dwSamplesPerSec;  // Samples per second
   int                   nSamples;         // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
   WORD                  wChannels;        // Number of channels
   DWORD                 dwChannelMask;    // channel mask
 
-  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0) {
+  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0) {
     bBuffer = new GrowableArray<BYTE>();
   };
   ~BufferDetails_s() {
@@ -116,7 +117,7 @@ private:
   HRESULT ffmpeg_init(CodecID codec, const void *format, GUID format_type);
   void ffmpeg_shutdown();
 
-  CMediaType CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask = 0, WORD wBitsPerSampleOverride = 0) const;
+  CMediaType CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSample = 0) const;
   HRESULT ReconnectOutput(long cbBuffer, CMediaType& mt);
   HRESULT ProcessBuffer();
   HRESULT Decode(const BYTE *p, int buffsize, int &consumed, BufferDetails *out);

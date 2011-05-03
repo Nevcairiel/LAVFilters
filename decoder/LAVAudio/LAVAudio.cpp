@@ -399,7 +399,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     const AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16);
     const DWORD dwChannelMask = get_channel_map(m_pAVCtx)->dwChannelMask;
 
-    *pMediaType = CreateMediaType(sample_fmt, nSamplesPerSec, nChannels, dwChannelMask);
+    *pMediaType = CreateMediaType(get_lav_sample_fmt(sample_fmt, m_pAVCtx->bits_per_raw_sample), nSamplesPerSec, nChannels, dwChannelMask, m_pAVCtx->bits_per_raw_sample);
   }
   return S_OK;
 }
@@ -451,16 +451,12 @@ done:
   return hr;
 }
 
-CMediaType CLAVAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSampleOverride) const
+CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSample) const
 {
   CMediaType mt;
 
-  if (outputFormat == AV_SAMPLE_FMT_DBL) {
-    outputFormat = AV_SAMPLE_FMT_FLT;
-  }
-
   mt.majortype = MEDIATYPE_Audio;
-  mt.subtype = (outputFormat == AV_SAMPLE_FMT_FLT) ? MEDIASUBTYPE_IEEE_FLOAT : MEDIASUBTYPE_PCM;
+  mt.subtype = (outputFormat == SampleFormat_FP32) ? MEDIASUBTYPE_IEEE_FLOAT : MEDIASUBTYPE_PCM;
   mt.formattype = FORMAT_WaveFormatEx;
 
   WAVEFORMATEXTENSIBLE wfex;
@@ -470,13 +466,7 @@ CMediaType CLAVAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSample
   wfe->wFormatTag = (WORD)mt.subtype.Data1;
   wfe->nChannels = nChannels;
   wfe->nSamplesPerSec = nSamplesPerSec;
-  if (wBitsPerSampleOverride) {
-    wfe->wBitsPerSample = wBitsPerSampleOverride;
-  } else if (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0) {
-    wfe->wBitsPerSample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : (m_pAVCtx->bits_per_raw_sample > 16 ? 24 : 16);
-  } else {
-    wfe->wBitsPerSample = av_get_bits_per_sample_fmt(outputFormat);
-  }
+  wfe->wBitsPerSample = get_byte_per_sample(outputFormat) << 3;
   wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
   wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
@@ -488,8 +478,8 @@ CMediaType CLAVAudio::CreateMediaType(AVSampleFormat outputFormat, DWORD nSample
     wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
     wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
     wfex.dwChannelMask = dwChannelMask;
-    if (!wBitsPerSampleOverride && (outputFormat == AV_SAMPLE_FMT_S32 && m_pAVCtx->bits_per_raw_sample > 0)) {
-      wfex.Samples.wValidBitsPerSample = m_pAVCtx->bits_per_raw_sample;
+    if (wBitsPerSample > 0) {
+      wfex.Samples.wValidBitsPerSample = wBitsPerSample;
     } else {
       wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
     }
@@ -701,19 +691,19 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
     const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
     const DWORD dwChannelMask = m_pAVCtx ? get_channel_map(m_pAVCtx)->dwChannelMask : 0;
 
-    check_mt = CreateMediaType(AV_SAMPLE_FMT_FLT, nSamplesPerSec, nChannels, dwChannelMask);
+    check_mt = CreateMediaType(SampleFormat_FP32, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_FP32] = pPin->QueryAccept(&check_mt) == S_OK;
 
-    check_mt = CreateMediaType(AV_SAMPLE_FMT_S32, nSamplesPerSec, nChannels, dwChannelMask, 32);
+    check_mt = CreateMediaType(SampleFormat_32, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_32] = pPin->QueryAccept(&check_mt) == S_OK;
 
-    check_mt = CreateMediaType(AV_SAMPLE_FMT_S32, nSamplesPerSec, nChannels, dwChannelMask, 24);
+    check_mt = CreateMediaType(SampleFormat_24, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_24] = pPin->QueryAccept(&check_mt) == S_OK;
 
-    check_mt = CreateMediaType(AV_SAMPLE_FMT_S16, nSamplesPerSec, nChannels, dwChannelMask);
+    check_mt = CreateMediaType(SampleFormat_16, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_16] = pPin->QueryAccept(&check_mt) == S_OK;
 
-    check_mt = CreateMediaType(AV_SAMPLE_FMT_U8, nSamplesPerSec, nChannels, dwChannelMask);
+    check_mt = CreateMediaType(SampleFormat_U8, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_U8] = pPin->QueryAccept(&check_mt) == S_OK;
   }
   return __super::CheckConnect(dir, pPin);
@@ -1038,6 +1028,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           }
 
           out->sfFormat = bits_per_sample == 32 ? SampleFormat_32 : (bits_per_sample == 24 ? SampleFormat_24 : SampleFormat_16);
+          out->wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
         }
         break;
       case AV_SAMPLE_FMT_FLT:
@@ -1160,7 +1151,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
 {
   HRESULT hr = S_OK;
 
-  CMediaType mt = CreateMediaType(m_pAVCtx->sample_fmt, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask);
+  CMediaType mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask, buffer.wBitsPerSample);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
   long cbBuffer = buffer.nSamples * wfe->nBlockAlign;
