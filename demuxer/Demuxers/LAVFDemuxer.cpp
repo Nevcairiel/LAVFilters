@@ -165,7 +165,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
 {
   size_t len = wcslen(pszFileName);
 
-  if (len > 23 && _wcsnicmp(pszFileName+len - 23, L"\\BDMV\\STREAM\\", 13) != 0)
+  if (len <= 23 || _wcsnicmp(pszFileName+len - 23, L"\\BDMV\\STREAM\\", 13) != 0)
     return E_FAIL;
 
   // Get the base file name (should be a number, like 00000)
