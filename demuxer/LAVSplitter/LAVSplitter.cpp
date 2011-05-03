@@ -196,7 +196,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   *ppv = NULL;
 
-  if (m_pDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == IID_IAMExtendedSeeking)) {
+  if (m_pDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo) || riid == IID_IAMExtendedSeeking)) {
     return m_pDemuxer->QueryInterface(riid, ppv);
   }
 

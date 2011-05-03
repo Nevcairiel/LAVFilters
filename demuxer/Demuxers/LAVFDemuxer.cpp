@@ -96,6 +96,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return
     QI(IKeyFrameInfo)
+    QI(ITrackInfo)
     QI2(IAMExtendedSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
@@ -615,6 +616,147 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
     pKFs[i] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
   }
   return S_OK;
+}
+
+const AVStream* CLAVFDemuxer::GetAVStreamByIndex(UINT index)
+{
+  if(!m_avFormat)
+    return NULL;
+
+  UINT type = video;
+  UINT count_v = m_streams[video].size();
+  UINT count_a = m_streams[audio].size();
+  UINT count_s = m_streams[subpic].size();
+  if (index >= count_v) {
+    index -= count_v;
+    type = audio;
+    if (index >= count_a) {
+      index -= count_a;
+      type = subpic;
+      if (index >= count_s)
+        return NULL;
+    }
+  }
+
+  const stream st1 = m_streams[type][index];
+  return  m_avFormat->streams[st1.pid];
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// ITrackInfo
+STDMETHODIMP_(UINT) CLAVFDemuxer::GetTrackCount()
+{
+  if(!m_avFormat)
+    return 0;
+
+  UINT count = m_streams[video].size() + m_streams[audio].size() + m_streams[subpic].size();
+
+  return count;
+}
+
+// \param aTrackIdx the track index (from 0 to GetTrackCount()-1)
+STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackElement* pStructureToFill)
+{
+  if(!m_avFormat || !pStructureToFill)
+    return FALSE;
+
+  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
+  if(!st)
+    return FALSE;
+
+  // Fill structure
+  pStructureToFill->Size = sizeof(TrackElement);
+  pStructureToFill->FlagDefault = (st->disposition & AV_DISPOSITION_DEFAULT);
+  pStructureToFill->FlagForced = (st->disposition & AV_DISPOSITION_FORCED);
+  const char *lang = get_stream_language(st);
+  strncpy_s(pStructureToFill->Language, lang, 3);
+  pStructureToFill->Language[3] = '\0';
+
+  pStructureToFill->Type = (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) ? TypeVideo :
+                           (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) ? TypeAudio :
+                           (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) ? TypeSubtitle : 0;
+
+  // The following flags are not exported via avformat
+  pStructureToFill->FlagLacing = 0;
+  pStructureToFill->MaxCache = 0;
+  pStructureToFill->MinCache = 0;
+
+  return TRUE;
+}
+
+// Get an extended information struct relative to the track type
+STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackExtendedInfo(UINT aTrackIdx, void* pStructureToFill)
+{
+  if(!m_avFormat || !pStructureToFill)
+    return FALSE;
+
+  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
+  if(!st)
+    return FALSE;
+
+  if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+    TrackExtendedInfoVideo* pTEIV = (TrackExtendedInfoVideo*)pStructureToFill;
+
+    pTEIV->DisplayUnit = 0; // always pixels
+    pTEIV->DisplayWidth = st->codec->width;
+    pTEIV->DisplayHeight = st->codec->height;
+
+    pTEIV->PixelWidth = st->codec->coded_width ? st->codec->coded_width : st->codec->width;
+    pTEIV->PixelHeight = st->codec->coded_height ? st->codec->coded_height : st->codec->height;
+
+    pTEIV->AspectRatioType = 0;
+    pTEIV->Interlaced = 0;
+  } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+    TrackExtendedInfoAudio* pTEIA = (TrackExtendedInfoAudio*)pStructureToFill;
+
+    pTEIA->BitDepth = st->codec->bits_per_coded_sample;
+    pTEIA->Channels = st->codec->channels;
+    pTEIA->OutputSamplingFrequency = (FLOAT)st->codec->sample_rate;
+    pTEIA->SamplingFreq = (FLOAT)st->codec->sample_rate;
+  }
+
+  return TRUE;
+}
+
+STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
+{
+  if(!m_avFormat)
+    return NULL;
+
+  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
+  if(!st)
+    return NULL;
+
+  BSTR trackName = NULL;
+
+  const char *title = NULL;
+  if (av_metadata_get(st->metadata, "title", NULL, 0)) {
+    title = av_metadata_get(st->metadata, "title", NULL, 0)->value;
+  }
+  if (title && title[0] != '\0') {
+    trackName = ConvertCharToBSTR(title);
+  }
+
+  return trackName;
+}
+
+STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackCodecName(UINT aTrackIdx)
+{
+  if(!m_avFormat)
+    return NULL;
+
+  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
+  if(!st)
+    return NULL;
+
+  BSTR codecName = NULL;
+
+  std::string codec = get_codec_name(st->codec);
+  if (!codec.empty()) {
+    codecName = ConvertCharToBSTR(codec.c_str());
+  }
+
+  return codecName;
 }
 
 /////////////////////////////////////////////////////////////////////////////

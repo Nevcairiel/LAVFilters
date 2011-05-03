@@ -25,12 +25,13 @@
 
 #include "BaseDemuxer.h"
 #include "IKeyFrameInfo.h"
+#include "ITrackInfo.h"
 #include "FontInstaller.h"
 
 class FormatInfo;
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
-class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo
+class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo
 {
 public:
   CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings);
@@ -79,6 +80,21 @@ public:
   STDMETHODIMP GetKeyFrameCount(UINT& nKFs);
   STDMETHODIMP GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs);
 
+  // ITrackInfo
+  STDMETHODIMP_(UINT) GetTrackCount();
+
+  // \param aTrackIdx the track index (from 0 to GetTrackCount()-1)
+  STDMETHODIMP_(BOOL) GetTrackInfo(UINT aTrackIdx, struct TrackElement* pStructureToFill);
+
+  // Get an extended information struct relative to the track type
+  STDMETHODIMP_(BOOL) GetTrackExtendedInfo(UINT aTrackIdx, void* pStructureToFill);
+
+  STDMETHODIMP_(BSTR) GetTrackCodecID(UINT aTrackIdx) { return NULL; }
+  STDMETHODIMP_(BSTR) GetTrackName(UINT aTrackIdx);
+  STDMETHODIMP_(BSTR) GetTrackCodecName(UINT aTrackIdx);
+  STDMETHODIMP_(BSTR) GetTrackCodecInfoURL(UINT aTrackIdx) { return NULL; }
+  STDMETHODIMP_(BSTR) GetTrackCodecDownloadURL(UINT aTrackIdx) { return NULL; }
+
   STDMETHODIMP OpenInputStream(AVIOContext *byteContext);
   STDMETHODIMP SeekByte(int64_t pos, int flags);
 
@@ -96,6 +112,8 @@ private:
 
   REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
   int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
+
+  const AVStream* GetAVStreamByIndex(UINT index);
 
 private:
   AVFormatContext *m_avFormat;
