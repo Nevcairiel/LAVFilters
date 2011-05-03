@@ -121,7 +121,7 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   }
   DbgLog((LOG_TRACE, 10, TEXT("::Open(): av_open_input_file opened file of type '%S'"), m_avFormat->iformat->name));
 
-  CHECK_HR(hr = InitAVFormat());
+  CHECK_HR(hr = InitAVFormat(pszFileName));
 
   return S_OK;
 done:
@@ -129,7 +129,7 @@ done:
   return E_FAIL;
 }
 
-STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext)
+STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName)
 {
   CAutoLock lock(m_pLock);
   HRESULT hr = S_OK;
@@ -153,7 +153,7 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext)
     goto done;
   }
 
-  CHECK_HR(hr = InitAVFormat());
+  CHECK_HR(hr = InitAVFormat(pszFileName));
 
   return S_OK;
 done:
@@ -161,7 +161,7 @@ done:
   return E_FAIL;
 }
 
-STDMETHODIMP CLAVFDemuxer::InitAVFormat()
+STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 {
   HRESULT hr = S_OK;
 

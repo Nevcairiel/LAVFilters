@@ -276,7 +276,20 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
     return hr;
   }
 
-  if(FAILED(hr = pDemux->OpenInputStream(pContext))) {
+  LPOLESTR pszFileName = NULL;
+
+  PIN_INFO info;
+  hr = m_pInput->GetConnected()->QueryPinInfo(&info);
+  if (SUCCEEDED(hr) && info.pFilter) {
+    IFileSourceFilter *pSource = NULL;
+    if (SUCCEEDED(info.pFilter->QueryInterface(&pSource)) && pSource) {
+      pSource->GetCurFile(&pszFileName, NULL);
+      SafeRelease(&pSource);
+    }
+    SafeRelease(&info.pFilter);
+  }
+
+  if(FAILED(hr = pDemux->OpenInputStream(pContext, pszFileName))) {
     SAFE_DELETE(pDemux);
     return hr;
   }

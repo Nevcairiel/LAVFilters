@@ -95,7 +95,7 @@ public:
   STDMETHODIMP_(BSTR) GetTrackCodecInfoURL(UINT aTrackIdx) { return NULL; }
   STDMETHODIMP_(BSTR) GetTrackCodecDownloadURL(UINT aTrackIdx) { return NULL; }
 
-  STDMETHODIMP OpenInputStream(AVIOContext *byteContext);
+  STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = NULL);
   STDMETHODIMP SeekByte(int64_t pos, int flags);
 
   AVStream* GetAVStreamByPID(int pid);
@@ -107,7 +107,7 @@ public:
 private:
   STDMETHODIMP AddStream(int streamId);
   STDMETHODIMP CreateStreams();
-  STDMETHODIMP InitAVFormat();
+  STDMETHODIMP InitAVFormat(LPCOLESTR pszFileName);
   void CleanupAVFormat();
 
   REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
