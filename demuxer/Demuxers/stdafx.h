@@ -19,10 +19,14 @@ extern "C" {
 #include "libbluray/bluray.h"
 }
 
+#include "libbluray/bdnav/clpi_parse.h"
+
 #include "util/log_control.h"
 
 #include "DShowUtil.h"
 #include <MMReg.h>
+
+#include <Shlwapi.h>
 
 
 // TODO: reference additional headers your program requires here

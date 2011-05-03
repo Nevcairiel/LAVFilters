@@ -161,6 +161,57 @@ done:
   return E_FAIL;
 }
 
+HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
+{
+  size_t len = wcslen(pszFileName);
+
+  if (len > 23 && _wcsnicmp(pszFileName+len - 23, L"\\BDMV\\STREAM\\", 13) != 0)
+    return E_FAIL;
+
+  // Get the base file name (should be a number, like 00000)
+  const WCHAR *file = pszFileName + (len - 10);
+  WCHAR basename[6];
+  wcsncpy_s(basename, file, 5);
+  basename[5] = 0;
+
+  // Convert to UTF-8 path
+  size_t a_len = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, NULL, 0, NULL, NULL);
+  a_len += 2;// one extra char because CLIPINF is 7 chars and STREAM is 6, and one for the terminating-zero
+
+  char *path = (char *)CoTaskMemAlloc(a_len * sizeof(char));
+  WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, path, a_len, NULL, NULL);
+
+  // Remove file name itself
+  PathRemoveFileSpecA(path);
+  // Remove STREAM folder
+  PathRemoveFileSpecA(path);
+
+  // Write new path
+  sprintf_s(path+strlen(path), a_len-strlen(path), "\\CLIPINF\\%S.clpi", basename);
+
+  CLPI_CL *cl = clpi_parse(path, 0);
+  if (!cl)
+    return E_FAIL;
+
+  // Clip Info was found, add the language metadata to the AVStreams
+  for(unsigned i = 0; i < cl->program.num_prog; ++i) {
+    CLPI_PROG *p = &cl->program.progs[i];
+    for (unsigned k = 0; k < p->num_streams; ++k) {
+      CLPI_PROG_STREAM *s = &p->streams[k];
+      AVStream *avstream = GetAVStreamByPID(s->pid);
+      if (avstream) {
+        if (s->lang[0] != 0)
+          av_metadata_set2(&avstream->metadata, "language", (const char *)s->lang, 0);
+      }
+    }
+  }
+  // Free the clip
+  clpi_free(cl);
+  cl = NULL;
+
+  return S_OK;
+}
+
 STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 {
   HRESULT hr = S_OK;
@@ -188,6 +239,11 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::InitAVFormat(): av_find_stream_info failed (%d)"), ret));
     goto done;
+  }
+
+  // Check if this is a m2ts in a BD structure, and if it is, read some extra stream properties out of the CLPI files
+  if (pszFileName && m_bMPEGTS) {
+    CheckBDM2TSCPLI(pszFileName);
   }
 
   SAFE_CO_FREE(m_stOrigParser);
