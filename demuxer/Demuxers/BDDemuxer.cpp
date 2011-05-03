@@ -128,6 +128,10 @@ STDMETHODIMP CBDDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   *ppv = NULL;
 
+  if (m_lavfDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo))) {
+    return m_lavfDemuxer->QueryInterface(riid, ppv);
+  }
+
   return
     QI2(IAMExtendedSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
