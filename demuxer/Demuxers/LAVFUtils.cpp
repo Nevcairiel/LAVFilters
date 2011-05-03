@@ -106,7 +106,7 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
   std::ostringstream codec_name;
 
   const char *nice_name = NULL;
-  for (int i = 0; i < sizeof(nice_codec_names); ++i)
+  for (int i = 0; i < countof(nice_codec_names); ++i)
   {
     if (nice_codec_names[i].id == id) {
       nice_name = nice_codec_names[i].name;
