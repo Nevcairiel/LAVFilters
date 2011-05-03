@@ -50,7 +50,8 @@ STDMETHODIMP CLAVInputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
 HRESULT CLAVInputPin::CheckMediaType(const CMediaType* pmt)
 {
-  return pmt->majortype == MEDIATYPE_Stream ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
+  //return pmt->majortype == MEDIATYPE_Stream ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
+  return S_OK;
 }
 
 HRESULT CLAVInputPin::CheckConnect(IPin* pPin)
