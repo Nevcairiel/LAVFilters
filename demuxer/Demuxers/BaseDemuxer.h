@@ -28,6 +28,8 @@
 #define NO_SUBTITLE_PID DWORD_MAX
 #define FORCED_SUBTITLE_PID (NO_SUBTITLE_PID - 1)
 
+#define FORCED_SUB_STRING L"Forced Subtitles (auto)"
+
 struct ILAVFSettings;
 
 // Data Packet for queue storage
@@ -135,7 +137,7 @@ public:
   public:
     static const WCHAR* ToStringW(int type);
     static const CHAR* ToString(int type);
-    const stream* FindStream(DWORD pid);
+    const stream* FindStream(DWORD pid) const;
     void Clear();
   };
 

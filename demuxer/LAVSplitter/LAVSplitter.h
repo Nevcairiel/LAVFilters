@@ -161,6 +161,7 @@ protected:
 public:
   CLAVOutputPin *GetOutputPin(DWORD streamId);
   STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts);
+  STDMETHODIMP UpdateForcedSubtitleMediaType();
 
   STDMETHODIMP CompleteInputConnection();
   STDMETHODIMP BreakInputConnection();

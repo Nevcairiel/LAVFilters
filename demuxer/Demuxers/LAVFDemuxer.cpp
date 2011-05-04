@@ -25,6 +25,7 @@
 
 #include "LAVSplitterSettings.h"
 
+#include "moreuuids.h"
 
 #ifdef DEBUG
 extern "C" {
@@ -996,8 +997,10 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
   if (!m_avFormat || audio_pid >= m_avFormat->nb_streams)
     return E_UNEXPECTED;
 
-  HRESULT hr = S_OK;
   const AVStream *st = m_avFormat->streams[audio_pid];
+  if (!st)
+    return E_FAIL;
+
   const char *language = get_stream_language(st);
   if(!language)
     return S_FALSE;
@@ -1005,9 +1008,21 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
   std::list<std::string> lang_list;
   lang_list.push_back(std::string(language));
   const stream *subst = SelectSubtitleStream(lang_list, SUBMODE_FORCED_PGS_ONLY, TRUE);
-
   if (subst)
     m_ForcedSubStream = subst->pid;
+
+  CStreamList *streams = GetStreams(subpic);
+  const stream *forced = streams->FindStream(FORCED_SUBTITLE_PID);
+  if (forced) {
+    CMediaType mtype = forced->streamInfo->mtypes.back();
+    forced->streamInfo->mtypes.pop_back();
+
+    SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.Format();
+    strncpy_s(subInfo->IsoLang, language, 3);
+    subInfo->IsoLang[3] = 0;
+
+    forced->streamInfo->mtypes.push_back(mtype);
+  }
 
   return subst ? S_OK : S_FALSE;
 }

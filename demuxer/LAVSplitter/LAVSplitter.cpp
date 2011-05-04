@@ -766,6 +766,21 @@ STDMETHODIMP CLAVSplitter::SetRate(double dRate) {return dRate > 0 ? m_dRate = d
 STDMETHODIMP CLAVSplitter::GetRate(double* pdRate) {return pdRate ? *pdRate = m_dRate, S_OK : E_POINTER;}
 STDMETHODIMP CLAVSplitter::GetPreroll(LONGLONG* pllPreroll) {return pllPreroll ? *pllPreroll = 0, S_OK : E_POINTER;}
 
+STDMETHODIMP CLAVSplitter::UpdateForcedSubtitleMediaType()
+{
+  CheckPointer(m_pDemuxer, E_UNEXPECTED);
+
+  CLAVOutputPin* pPin = GetOutputPin(FORCED_SUBTITLE_PID);
+  if (pPin) {
+    const CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams(CBaseDemuxer::subpic);
+    const CBaseDemuxer::stream *s = streams->FindStream(FORCED_SUBTITLE_PID);
+    CMediaType *mt = new CMediaType(s->streamInfo->mtypes.back());
+    pPin->SendMediaType(mt);
+  }
+
+  return S_OK;
+}
+
 STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
@@ -824,6 +839,9 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
         DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IGraphBuilder::Render (hr %x)", hr));
         pGraphBuilder->Release();
       }
+
+      if (m_settings.PGSForcedStream)
+        UpdateForcedSubtitleMediaType();
     } else {
       unsigned int index = 0;
       for(unsigned int i = 0; i < pmts.size(); i++) {
@@ -950,9 +968,12 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
           wcsncpy_s(*ppszName, len, str, _TRUNCATE);
         }
       } else if (s.pid == FORCED_SUBTITLE_PID) {
-        if (plcid) *plcid = LCID_NOSUBTITLES;
+        if (plcid) {
+          SUBTITLEINFO *subinfo = (SUBTITLEINFO *)s.streamInfo->mtypes[0].Format();
+          *plcid = ProbeLangForLCID(subinfo->IsoLang);
+        }
         if (ppszName) {
-          WCHAR str[] = L"S: Forced Subtitles (auto)";
+          WCHAR str[] = L"S: " FORCED_SUB_STRING;
           size_t len = wcslen(str) + 1;
           *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
           wcsncpy_s(*ppszName, len, str, _TRUNCATE);

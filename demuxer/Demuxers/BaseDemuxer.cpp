@@ -55,7 +55,11 @@ void CBaseDemuxer::CreatePGSForcedSubtitleStream()
   CMediaType mtype;
   mtype.majortype = MEDIATYPE_Subtitle;
   mtype.subtype = MEDIASUBTYPE_HDMVSUB;
-  mtype.formattype = FORMAT_None;
+  mtype.formattype = FORMAT_SubtitleInfo;
+  SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO));
+  memset(subInfo, 0, mtype.FormatLength());
+  wcscpy_s(subInfo->TrackName, FORCED_SUB_STRING);
+  subInfo->dwOffset = sizeof(SUBTITLEINFO);
   s.streamInfo->mtypes.push_back(mtype);
   // Append it to the list
   m_streams[subpic].push_back(s);
@@ -80,9 +84,9 @@ const CHAR* CBaseDemuxer::CStreamList::ToString(int type)
     "Unknown";
 }
 
-const CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid)
+const CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid) const
 {
-  std::deque<stream>::iterator it;
+  std::deque<stream>::const_iterator it;
   for ( it = begin(); it != end(); ++it ) {
     if ((*it).pid == pid) {
       return &(*it);
