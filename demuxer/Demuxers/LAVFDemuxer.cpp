@@ -999,6 +999,8 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
   HRESULT hr = S_OK;
   const AVStream *st = m_avFormat->streams[audio_pid];
   const char *language = get_stream_language(st);
+  if(!language)
+    return S_FALSE;
 
   std::list<std::string> lang_list;
   lang_list.push_back(std::string(language));
