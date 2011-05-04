@@ -21,7 +21,7 @@
 #pragma once
 
 #define LAV_VERSION_MAJOR 0
-#define LAV_VERSION_MINOR 24
+#define LAV_VERSION_MINOR 25
 
 #define LAV_AUDIO "LAV Audio Decoder"
 #define LAV_SPLITTER "LAV Splitter"
