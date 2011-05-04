@@ -146,6 +146,7 @@ private:
   HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize);
 
   CMediaType CreateBitstreamMediaType(CodecID codec);
+  void ActivateDTSHDMuxing();
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
@@ -187,4 +188,6 @@ private:
   GrowableArray<BYTE> m_bsOutput;
 
   AVFormatContext     *m_avBSContext;
+
+  BOOL                m_bDTSHD;
 };

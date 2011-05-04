@@ -37,6 +37,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libavutil/opt.h"
 #include "libavcodec/avcodec.h"
+#include "libavcodec/dca.h" // contains DCA_HD_MARKER
 }
 #include "streams.h"
 

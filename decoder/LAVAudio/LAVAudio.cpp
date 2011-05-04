@@ -63,6 +63,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bQueueResync(FALSE)
   , m_avioBitstream(NULL)
   , m_avBSContext(NULL)
+  , m_bDTSHD(FALSE)
 {
   avcodec_init();
   av_register_all();

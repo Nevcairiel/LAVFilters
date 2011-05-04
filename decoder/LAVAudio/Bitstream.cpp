@@ -97,10 +97,10 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   m_avBSContext->pb = m_avioBitstream;
   m_avBSContext->oformat->flags |= AVFMT_NOFILE;
 
-  if (codec == CODEC_ID_DTS && m_settings.bBitstream[BS_DTSHD]) {
-    av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
-    av_set_string3(m_avBSContext->priv_data, "dtshd_fallback_time", "-1", 0, NULL);
-  }
+  // DTS-HD is by default off
+  av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "0", 0, NULL);
+  av_set_string3(m_avBSContext->priv_data, "dtshd_fallback_time", "-1", 0, NULL);
+  m_bDTSHD = FALSE;
 
   AVStream *st = av_new_stream(m_avBSContext, 0);
   if (!st) {
@@ -206,7 +206,7 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
      subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
      break;
    case CODEC_ID_DTS:
-     if (m_settings.bBitstream[BS_DTSHD]) {
+     if (m_settings.bBitstream[BS_DTSHD] && m_bDTSHD) {
        wfe->nSamplesPerSec = 192000;
        wfe->nChannels      = 8;
        subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
@@ -237,6 +237,12 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
    return mt;
 }
 
+void CLAVAudio::ActivateDTSHDMuxing()
+{
+  m_bDTSHD = TRUE;
+  av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+}
+
 HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 {
   int ret = 0;
@@ -250,6 +256,18 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
   memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
 
   consumed = buffsize;
+
+  if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_settings.bBitstream[BS_DTSHD]) {
+    uint32_t state;
+    for (int i = 0; i < buffsize; ++i) {
+      state = (state << 8) | p[i];
+      if (state == DCA_HD_MARKER) {
+        DbgLog((LOG_TRACE, 20, L"::Bitstream(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
+        ActivateDTSHDMuxing();
+        break;
+      }
+    }
+  }
 
   // TODO: use parser
   AVPacket pkt;
