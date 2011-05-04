@@ -30,6 +30,29 @@
 
 CLAVFAudioHelper g_AudioHelper;
 
+// Map codec ids to media subtypes
+static FormatMapping audio_map[] = {
+  { CODEC_ID_AC3,        &MEDIASUBTYPE_DOLBY_AC3,         WAVE_FORMAT_DOLBY_AC3,  NULL },
+  { CODEC_ID_AAC,        &MEDIASUBTYPE_AAC,               WAVE_FORMAT_AAC,        NULL },
+  { CODEC_ID_AAC_LATM,   &MEDIASUBTYPE_LATM_AAC,          WAVE_FORMAT_LATM_AAC,   NULL },
+  { CODEC_ID_DTS,        &MEDIASUBTYPE_DTS,               WAVE_FORMAT_DTS,        NULL },
+  { CODEC_ID_EAC3,       &MEDIASUBTYPE_DOLBY_DDPLUS,      NULL,                   NULL },
+  { CODEC_ID_TRUEHD,     &MEDIASUBTYPE_DOLBY_TRUEHD,      NULL,                   NULL },
+  { CODEC_ID_VORBIS,     &MEDIASUBTYPE_Vorbis2,           NULL,                   &FORMAT_VorbisFormat2 },
+  { CODEC_ID_MP1,        &MEDIASUBTYPE_MPEG1AudioPayload, WAVE_FORMAT_MPEG,       NULL },
+  { CODEC_ID_MP2,        &MEDIASUBTYPE_MPEG2_AUDIO,       WAVE_FORMAT_MPEG,       NULL },
+  { CODEC_ID_MP3,        &MEDIASUBTYPE_MP3,               WAVE_FORMAT_MPEGLAYER3, NULL },
+  { CODEC_ID_PCM_BLURAY, &MEDIASUBTYPE_BD_LPCM_AUDIO,     NULL,                   NULL },
+  { CODEC_ID_PCM_DVD,    &MEDIASUBTYPE_DVD_LPCM_AUDIO,    NULL,                   NULL },
+  { CODEC_ID_PCM_S16LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
+  { CODEC_ID_PCM_S24LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
+  { CODEC_ID_PCM_S32LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
+  { CODEC_ID_PCM_F32LE,  &MEDIASUBTYPE_IEEE_FLOAT,        WAVE_FORMAT_IEEE_FLOAT, NULL },
+  { CODEC_ID_WMAV1,      &MEDIASUBTYPE_WMAUDIO1,          WAVE_FORMAT_MSAUDIO1,   NULL },
+  { CODEC_ID_WMAV2,      &MEDIASUBTYPE_WMAUDIO2,          WAVE_FORMAT_WMAUDIO2,   NULL },
+  { CODEC_ID_WMAPRO,     &MEDIASUBTYPE_WMAUDIO3,          WAVE_FORMAT_WMAUDIO3,   NULL },
+};
+
 CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecTag)
 {
   CMediaType mediaType;
@@ -39,71 +62,25 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
   mediaType.formattype = FORMAT_WaveFormatEx; //default value
   mediaType.SetSampleSize(256000);
 
+  // Check against values from the map above
+  for(unsigned i = 0; i < countof(audio_map); ++i) {
+    if (audio_map[i].codec == codecId) {
+      if (audio_map[i].subtype)
+        mediaType.subtype = *audio_map[i].subtype;
+      if (audio_map[i].codecTag)
+        codecTag = audio_map[i].codecTag;
+      if (audio_map[i].format)
+         mediaType.formattype = *audio_map[i].format;
+      break;
+    }
+  }
+
   // special cases
   switch(codecId)
   {
-  case CODEC_ID_AC3:
-    mediaType.subtype = MEDIASUBTYPE_DOLBY_AC3;
-    break;
-  case CODEC_ID_AAC:
-    mediaType.subtype = MEDIASUBTYPE_AAC;
-    codecTag = WAVE_FORMAT_AAC;
-    break;
-  case CODEC_ID_AAC_LATM:
-    mediaType.subtype = MEDIASUBTYPE_LATM_AAC;
-    codecTag = WAVE_FORMAT_LATM_AAC;
-    break;
-  case CODEC_ID_DTS:
-    mediaType.subtype = MEDIASUBTYPE_DTS;
-    break;
-  case CODEC_ID_EAC3:
-    mediaType.subtype = MEDIASUBTYPE_DOLBY_DDPLUS;
-    break;
-  case CODEC_ID_TRUEHD:
-    mediaType.subtype = MEDIASUBTYPE_DOLBY_TRUEHD;
-    break;
-  case CODEC_ID_VORBIS:
-    mediaType.formattype = FORMAT_VorbisFormat2;
-    mediaType.subtype = MEDIASUBTYPE_Vorbis2;
-    break;
-  case CODEC_ID_MP1:
-    mediaType.subtype = MEDIASUBTYPE_MPEG1AudioPayload;
-    break;
-  case CODEC_ID_MP2:
-    mediaType.subtype = MEDIASUBTYPE_MPEG2_AUDIO;
-    break;
-  case CODEC_ID_MP3:
-    mediaType.subtype = MEDIASUBTYPE_MP3;
-    break;
-  case CODEC_ID_PCM_BLURAY:
-    mediaType.subtype = MEDIASUBTYPE_BD_LPCM_AUDIO;
-    break;
-  case CODEC_ID_PCM_DVD:
-    mediaType.subtype = MEDIASUBTYPE_DVD_LPCM_AUDIO;
-    break;
-  case CODEC_ID_PCM_S16LE:
-  case CODEC_ID_PCM_S24LE:
-  case CODEC_ID_PCM_S32LE:
-    mediaType.subtype = MEDIASUBTYPE_PCM;
-    break;
-  case CODEC_ID_PCM_F32LE:
-    mediaType.subtype = MEDIASUBTYPE_IEEE_FLOAT;
-    break;
   case CODEC_ID_PCM_F64LE:
     // Qt PCM
     if (codecTag == MKTAG('f', 'l', '6', '4')) mediaType.subtype = MEDIASUBTYPE_PCM_FL64_le;
-    break;
-  case CODEC_ID_WMAV1:
-    mediaType.subtype = MEDIASUBTYPE_WMAUDIO1;
-    codecTag = WAVE_FORMAT_MSAUDIO1;
-    break;
-  case CODEC_ID_WMAV2:
-    mediaType.subtype = MEDIASUBTYPE_WMAUDIO2;
-    codecTag = WAVE_FORMAT_WMAUDIO2;
-    break;
-  case CODEC_ID_WMAPRO:
-    mediaType.subtype = MEDIASUBTYPE_WMAUDIO3;
-    codecTag = WAVE_FORMAT_WMAUDIO3;
     break;
   }
   return mediaType;
