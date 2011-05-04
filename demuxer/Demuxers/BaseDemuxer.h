@@ -26,6 +26,7 @@
 
 #define DSHOW_TIME_BASE 10000000        // DirectShow times are in 100ns units
 #define NO_SUBTITLE_PID DWORD_MAX
+#define FORCED_SUBTITLE_PID (NO_SUBTITLE_PID - 1)
 
 struct ILAVFSettings;
 
@@ -142,6 +143,7 @@ public:
 protected:
   CBaseDemuxer(LPCTSTR pName, CCritSec *pLock);
   void CreateNoSubtitleStream();
+  void CreatePGSForcedSubtitleStream();
 
 public:
   // Get the StreamList of the correponding type

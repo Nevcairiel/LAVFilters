@@ -125,6 +125,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"subtitleMatching", hr);
   m_settings.subtitleMatching = SUCCEEDED(hr) ? bFlag : TRUE;
 
+  bFlag = reg.ReadBOOL(L"PGSForcedStream", hr);
+  m_settings.PGSForcedStream = SUCCEEDED(hr) ? bFlag : TRUE;
+
   bFlag = reg.ReadBOOL(L"PGSOnlyForced", hr);
   m_settings.PGSOnlyForced = SUCCEEDED(hr) ? bFlag : FALSE;
 
@@ -166,6 +169,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
     reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
     reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
+    reg.WriteBOOL(L"PGSForcedStream", m_settings.PGSForcedStream);
     reg.WriteBOOL(L"PGSOnlyForced", m_settings.PGSOnlyForced);
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
     reg.WriteBOOL(L"substreams", m_settings.substreams);
@@ -945,6 +949,14 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
           *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
           wcsncpy_s(*ppszName, len, str, _TRUNCATE);
         }
+      } else if (s.pid == FORCED_SUBTITLE_PID) {
+        if (plcid) *plcid = LCID_NOSUBTITLES;
+        if (ppszName) {
+          WCHAR str[] = L"S: Forced Subtitles (auto)";
+          size_t len = wcslen(str) + 1;
+          *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
+          wcsncpy_s(*ppszName, len, str, _TRUNCATE);
+        }
       } else {
         // Populate stream name and language code
         m_pDemuxer->StreamInfo(s.pid, plcid, ppszName);
@@ -1044,6 +1056,17 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetSubtitleMatchingLanguage()
 STDMETHODIMP CLAVSplitter::SetSubtitleMatchingLanguage(BOOL dwMode)
 {
   m_settings.subtitleMatching = dwMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetPGSForcedStream()
+{
+  return m_settings.PGSForcedStream;
+}
+
+STDMETHODIMP CLAVSplitter::SetPGSForcedStream(BOOL bFlag)
+{
+  m_settings.PGSForcedStream = bFlag;
   return SaveSettings();
 }
 

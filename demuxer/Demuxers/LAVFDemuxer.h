@@ -28,6 +28,8 @@
 #include "ITrackInfo.h"
 #include "FontInstaller.h"
 
+#define SUBMODE_FORCED_PGS_ONLY 0xFF
+
 class FormatInfo;
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
@@ -66,6 +68,7 @@ public:
   // Select the best subtitle stream
   const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching);
 
+  HRESULT SetActiveStream(StreamType type, int pid) { if (type == audio) UpdateForcedSubtitleStream(pid); return __super::SetActiveStream(type, pid); }
 
   // IAMExtendedSeeking
   STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
@@ -116,6 +119,8 @@ private:
   const AVStream* GetAVStreamByIndex(UINT index);
   HRESULT CheckBDM2TSCPLI(LPCOLESTR pszFileName);
 
+  HRESULT UpdateForcedSubtitleStream(unsigned audio_pid);
+
 private:
   AVFormatContext *m_avFormat;
   const char *m_pszInputFormat;
@@ -132,6 +137,7 @@ private:
   BOOL m_bVC1SeenTimestamp;
 
   BOOL m_bPGSNoParsing;
+  int m_ForcedSubStream;
 
   unsigned int m_program;
 

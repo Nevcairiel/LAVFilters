@@ -84,6 +84,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetSubtitleMatchingLanguage(bFlag));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetPGSForcedStream(bFlag));
+
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_ONLY_FORCED_SUBS, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetPGSOnlyForced(bFlag));
 
@@ -144,6 +147,9 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_SETCHECK, m_subtitleMatching, 0);
   addHint(IDC_SUBMODE_ONLY_MATCHING, L"If set, subtitles will only be enabled if they match one of the languages configured above, otherwise any subtitle will be enabled if no match was found.");
 
+  SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_SETCHECK, m_PGSForcedStream, 0);
+  addHint(IDC_BD_SEPARATE_FORCED_SUBS, L"Enabling this causes the creation of a new \"Forced Subtitles\" stream, which will try to always display forced subtitles matching your selected audio language.\n\nNOTE: This option may not work on all Blu-ray discs.\nRequires restart to take effect.");
+
   SendDlgItemMessage(m_Dlg, IDC_BD_ONLY_FORCED_SUBS, BM_SETCHECK, m_PGSOnlyForced, 0);
   addHint(IDC_BD_ONLY_FORCED_SUBS, L"When enabled, all Blu-ray (PGS) subtitles will be filtered, and only forced subtitles will be sent to the renderer.\n\nNOTE: When this option is active, you will not be able to get the \"full\" subtitles.");
 
@@ -177,6 +183,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   CHECK_HR(hr = m_pLAVF->GetPreferredSubtitleLanguages(&m_pszPrefSubLang));
   m_subtitleMode = m_pLAVF->GetSubtitleMode();
   m_subtitleMatching = m_pLAVF->GetSubtitleMatchingLanguage();
+  m_PGSForcedStream = m_pLAVF->GetPGSForcedStream();
   m_PGSOnlyForced = m_pLAVF->GetPGSOnlyForced();
   m_VC1Mode = m_pLAVF->GetVC1TimestampMode();
   m_substreams = m_pLAVF->GetSubstreamsEnabled();
@@ -227,6 +234,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBMODE_ONLY_MATCHING) {
         BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
         if (bFlag != m_subtitleMatching) {
+          SetDirty();
+        }
+      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_BD_SEPARATE_FORCED_SUBS) {
+        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_GETCHECK, 0, 0);
+        if (bFlag != m_PGSForcedStream) {
           SetDirty();
         }
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_BD_ONLY_FORCED_SUBS) {

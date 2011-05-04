@@ -46,6 +46,21 @@ void CBaseDemuxer::CreateNoSubtitleStream()
   m_streams[subpic].push_back(s);
 }
 
+void CBaseDemuxer::CreatePGSForcedSubtitleStream()
+{
+  stream s;
+  s.pid = FORCED_SUBTITLE_PID;
+  s.streamInfo = new CStreamInfo();
+  // Create the media type
+  CMediaType mtype;
+  mtype.majortype = MEDIATYPE_Subtitle;
+  mtype.subtype = MEDIASUBTYPE_HDMVSUB;
+  mtype.formattype = FORMAT_None;
+  s.streamInfo->mtypes.push_back(mtype);
+  // Append it to the list
+  m_streams[subpic].push_back(s);
+}
+
 // CStreamList
 const WCHAR* CBaseDemuxer::CStreamList::ToStringW(int type)
 {

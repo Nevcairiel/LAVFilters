@@ -66,6 +66,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
   , m_bVC1Correction(FALSE)
   , m_bVC1SeenTimestamp(FALSE)
   , m_bPGSNoParsing(TRUE)
+  , m_ForcedSubStream(-1)
   , m_pSettings(NULL)
   , m_stOrigParser(NULL)
   , m_pFontInstaller(NULL)
@@ -411,12 +412,19 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
   } else {
     // Check right here if the stream is active, we can drop the package otherwise.
     BOOL streamActive = FALSE;
+    BOOL forcedSubStream = FALSE;
     for(int i = 0; i < unknown; ++i) {
       if(m_dActiveStreams[i] == pkt.stream_index) {
         streamActive = TRUE;
         break;
       }
     }
+
+    // Accept it if its the forced subpic stream
+    if (m_dActiveStreams[subpic] == FORCED_SUBTITLE_PID && pkt.stream_index == m_ForcedSubStream) {
+      forcedSubStream = streamActive = TRUE;
+    }
+
     if(!streamActive) {
       av_free_packet(&pkt);
       return S_FALSE;
@@ -489,6 +497,11 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     if (stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
       pPacket->bDiscontinuity = TRUE;
+
+      if (forcedSubStream) {
+        pPacket->StreamId = FORCED_SUBTITLE_PID;
+        pPacket->dwFlags &= ~LAV_PACKET_PARSED;
+      }
     }
 
     pPacket->bSyncPoint = (rt != Packet::INVALID_TIME && duration > 0) ? 1 : 0;
@@ -888,6 +901,8 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   int64_t start_time = INT64_MAX;
   int64_t st_start_time = 0;
 
+  bool bHasPGS = false;
+
   bool bProgram = (m_program < m_avFormat->nb_programs);
   unsigned int nbIndex = bProgram ? m_avFormat->programs[m_program]->nb_stream_indexes : m_avFormat->nb_streams;
   // add streams from selected program, or all streams if no program was selected
@@ -907,6 +922,8 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
       if (st_start_time < start_time)
         start_time = st_start_time;
     }
+    if (st->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE)
+      bHasPGS = true;
   }
 
   if (duration != INT64_MIN) {
@@ -914,6 +931,10 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   }
   if (start_time != INT64_MAX) {
     m_avFormat->start_time = start_time;
+  }
+
+  if(bHasPGS && m_pSettings->GetPGSForcedStream()) {
+    CreatePGSForcedSubtitleStream();
   }
 
   // Create fake subtitle pin
@@ -968,6 +989,25 @@ int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, in
   }
 
   return pts;
+}
+
+HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
+{
+  if (!m_avFormat || audio_pid >= m_avFormat->nb_streams)
+    return E_UNEXPECTED;
+
+  HRESULT hr = S_OK;
+  const AVStream *st = m_avFormat->streams[audio_pid];
+  const char *language = get_stream_language(st);
+
+  std::list<std::string> lang_list;
+  lang_list.push_back(std::string(language));
+  const stream *subst = SelectSubtitleStream(lang_list, SUBMODE_FORCED_PGS_ONLY, TRUE);
+
+  if (subst)
+    m_ForcedSubStream = subst->pid;
+
+  return subst ? S_OK : S_FALSE;
 }
 
 // Select the best video stream
@@ -1145,6 +1185,10 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
   if (subtitleMode == SUBMODE_NO_SUBS) {
     // Find the no-subs stream
     return streams->FindStream(NO_SUBTITLE_PID);
+  } else if (subtitleMode == SUBMODE_FORCED_SUBS) {
+    best = streams->FindStream(FORCED_SUBTITLE_PID);
+    if (best)
+      return best;
   }
 
   std::deque<stream*> checkedStreams;
@@ -1161,7 +1205,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
       std::deque<stream>::iterator sit;
       for ( sit = streams->begin(); sit != streams->end(); ++sit ) {
         // Don't even try to check the no-subtitles stream
-        if (sit->pid == NO_SUBTITLE_PID) { continue; }
+        if (sit->pid == NO_SUBTITLE_PID || sit->pid == FORCED_SUBTITLE_PID) { continue; }
         const char *lang = get_stream_language(m_avFormat->streams[sit->pid]);
         if (lang) {
           std::string language = std::string(lang);
@@ -1187,7 +1231,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
     std::deque<stream>::iterator sit;
     for ( sit = streams->begin(); sit != streams->end(); ++sit ) {
       // Don't insert the no-subtitle stream in the list of possible candidates
-      if ((*sit).pid == NO_SUBTITLE_PID) { continue; }
+      if (sit->pid == NO_SUBTITLE_PID || sit->pid == FORCED_SUBTITLE_PID) { continue; }
       checkedStreams.push_back(&*sit);
     }
   }
@@ -1209,6 +1253,14 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<std::st
     std::deque<stream*>::iterator sit;
     for ( sit = checkedStreams.begin(); sit != checkedStreams.end(); ++sit ) {
       AVStream *pStream = m_avFormat->streams[(*sit)->pid];
+
+      // Very special case..
+      if (subtitleMode == SUBMODE_FORCED_PGS_ONLY && pStream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE) {
+        best = *sit;
+        break;
+      } else if (subtitleMode == SUBMODE_FORCED_PGS_ONLY) {
+        continue;
+      }
 
       // Check if the first stream qualifys for us. Forced if we want forced, not forced if we don't want forced.
       if (!(subtitleMode == SUBMODE_FORCED_SUBS) == !(m_avFormat->streams[(*sit)->pid]->disposition & AV_DISPOSITION_FORCED)) {

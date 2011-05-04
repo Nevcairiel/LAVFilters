@@ -80,6 +80,12 @@ interface ILAVFSettings : public IUnknown
   // TRUE = Only subtitles with a language in the preferred list will be used; FALSE = All subtitles will be used
   STDMETHOD(SetSubtitleMatchingLanguage)(BOOL dwMode) = 0;
 
+  // Control wether a special "Forced Subtitles" stream will be created for PGS subs
+  STDMETHOD_(BOOL,GetPGSForcedStream)() = 0;
+
+  // Control wether a special "Forced Subtitles" stream will be created for PGS subs
+  STDMETHOD(SetPGSForcedStream)(BOOL bFlag) = 0;
+
   // Get the PGS forced subs config
   // TRUE = only forced PGS frames will be shown, FALSE = all frames will be shown
   STDMETHOD_(BOOL,GetPGSOnlyForced)() = 0;
