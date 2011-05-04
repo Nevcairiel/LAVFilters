@@ -67,6 +67,7 @@ private:
   int m_iDRCLevel;
 
   bool m_bBitstreaming[BS_NB];
+  BOOL m_bDTSHDFraming;
 };
 
 class CLAVAudioFormatsProp : public CBaseDSPropPage

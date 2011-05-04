@@ -59,6 +59,9 @@
 #define IDC_BS_TRUEHD                   1064
 #define IDC_BS_DTS                      1065
 #define IDC_BS_DTSHD                    1066
+#define IDC_BS_FORMATS                  1067
+#define IDC_BS_DTSHD_FRAMING            1068
+#define IDC_BS_OPTIONS                  1069
 
 // Next default values for new objects
 // 
@@ -66,7 +69,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1067
+#define _APS_NEXT_CONTROL_VALUE         1070
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -88,6 +88,8 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   if (m_avBSContext)
     FreeBitstreamContext();
 
+  DbgLog((LOG_TRACE, 20, "Creating Bistreaming Context..."));
+
   m_avBSContext = avformat_alloc_output_context("spdif", NULL, NULL);
   if (!m_avBSContext) {
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of avformat spdif muxer failed"));
@@ -97,10 +99,15 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   m_avBSContext->pb = m_avioBitstream;
   m_avBSContext->oformat->flags |= AVFMT_NOFILE;
 
-  // DTS-HD is by default off
-  av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "0", 0, NULL);
+  // DTS-HD is by default off, unless explicitly asked for
+  if (m_settings.DTSHDFraming && m_settings.bBitstream[BS_DTSHD]) {
+    m_bDTSHD = TRUE;
+    av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+  } else {
+    m_bDTSHD = FALSE;
+    av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "0", 0, NULL);
+  }
   av_set_string3(m_avBSContext->priv_data, "dtshd_fallback_time", "-1", 0, NULL);
-  m_bDTSHD = FALSE;
 
   AVStream *st = av_new_stream(m_avBSContext, 0);
   if (!st) {
@@ -149,13 +156,13 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
     m_bQueueResync = TRUE;
   }
 
-
   // Configure DTS-HD setting
-  if(m_avBSContext && m_nCodecId == CODEC_ID_DTS) {
-    av_set_string3(m_avBSContext->priv_data, "dtshd_fallback_time", "-1", 0, NULL);
-    if (m_settings.bBitstream[BS_DTSHD]) {
+  if(m_avBSContext) {
+    if (m_settings.bBitstream[BS_DTSHD] && m_settings.DTSHDFraming) {
+      m_bDTSHD = TRUE;
       av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
     } else {
+      m_bDTSHD = FALSE; // Force auto-detection
       av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "0", 0, NULL);
     }
   }

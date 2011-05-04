@@ -129,6 +129,9 @@ HRESULT CLAVAudio::LoadSettings()
     SAFE_CO_FREE(pBuf);
   }
 
+  bFlag = reg.ReadBOOL(L"DTSHDFraming", hr);
+  m_settings.DTSHDFraming = SUCCEEDED(hr) ? bFlag : FALSE;
+
   return S_OK;
 }
 
@@ -141,6 +144,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteDWORD(L"DRCLevel", m_settings.DRCLevel);
     reg.WriteBinary(L"Formats", (BYTE *)m_settings.bFormats, sizeof(m_settings.bFormats));
     reg.WriteBinary(L"Bitstreaming", (BYTE *)m_settings.bBitstream, sizeof(m_settings.bBitstream));
+    reg.WriteBOOL(L"DTSHDFraming", m_settings.DTSHDFraming);
   }
   return S_OK;
 }
@@ -256,6 +260,21 @@ HRESULT CLAVAudio::SetBitstreamConfig(bool *bBitstreaming)
   CheckPointer(bBitstreaming, E_POINTER);
 
   memcpy(&m_settings.bBitstream, bBitstreaming, sizeof(m_settings.bBitstream));
+  SaveSettings();
+
+  UpdateBitstreamContext();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetDTSHDFraming()
+{
+  return m_settings.DTSHDFraming;
+}
+
+STDMETHODIMP CLAVAudio::SetDTSHDFraming(BOOL bHDFraming)
+{
+  m_settings.DTSHDFraming = bHDFraming;
   SaveSettings();
 
   UpdateBitstreamContext();

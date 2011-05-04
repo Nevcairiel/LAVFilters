@@ -48,6 +48,8 @@ interface ILAVAudioSettings : public IUnknown
   STDMETHOD(SetFormatConfiguration)(bool *bFormat) = 0;
   STDMETHOD(GetBitstreamConfig)(bool *bBitstreaming) = 0;
   STDMETHOD(SetBitstreamConfig)(bool *bBitstreaming) = 0;
+  STDMETHOD_(BOOL,GetDTSHDFraming)() = 0;
+  STDMETHOD(SetDTSHDFraming)(BOOL bHDFraming) = 0;
 };
 
 [uuid("A668B8F2-BA87-4F63-9D41-768F7DE9C50E")]

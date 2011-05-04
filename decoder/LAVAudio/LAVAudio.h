@@ -73,6 +73,8 @@ public:
   STDMETHODIMP SetFormatConfiguration(bool *bFormat);
   STDMETHODIMP GetBitstreamConfig(bool *bBitstreaming);
   STDMETHODIMP SetBitstreamConfig(bool *bBitstreaming);
+  STDMETHODIMP_(BOOL) GetDTSHDFraming();
+  STDMETHODIMP SetDTSHDFraming(BOOL bHDFraming);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -176,6 +178,7 @@ private:
     int DRCLevel;
     bool bFormats[CC_NB];
     bool bBitstream[BS_NB];
+    BOOL DTSHDFraming;
   } m_settings;
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled

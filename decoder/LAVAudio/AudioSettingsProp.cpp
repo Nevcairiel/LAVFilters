@@ -71,6 +71,8 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   bBitstreaming[BS_DTS]     = SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_GETCHECK, 0, 0) != 0;
   bBitstreaming[BS_DTSHD]   = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_GETCHECK, 0, 0) != 0;
   m_pAudioSettings->SetBitstreamConfig(bBitstreaming);
+  BOOL bDTSHDFraming        = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetDTSHDFraming(bDTSHDFraming);
 
   LoadData();
 
@@ -111,6 +113,10 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_SETCHECK, m_bBitstreaming[BS_DTS], 0);
     SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_SETCHECK, m_bBitstreaming[BS_DTSHD], 0);
     EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD), m_bBitstreaming[BS_DTS]);
+
+    SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_SETCHECK, m_bDTSHDFraming, 0);
+    EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), m_bBitstreaming[BS_DTSHD]);
+    addHint(IDC_BS_DTSHD_FRAMING, L"With some Receivers, this setting might be needed to achieve the full features of DTS. However, on other Receivers, this option will cause DTS to not work at all.\n\nIf you do not experience any problems, its recommended to leave this setting untouched.");
   }
 
   return hr;
@@ -121,6 +127,7 @@ HRESULT CLAVAudioSettingsProp::LoadData()
   HRESULT hr = S_OK;
   hr = m_pAudioSettings->GetDRC(&m_bDRCEnabled, &m_iDRCLevel);
   hr = m_pAudioSettings->GetBitstreamConfig(m_bBitstreaming);
+  m_bDTSHDFraming = m_pAudioSettings->GetDTSHDFraming();
   return hr;
 }
 
@@ -156,6 +163,11 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_BS_DTSHD && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
       if (bFlag != m_bBitstreaming[BS_DTSHD])
+        SetDirty();
+      EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), bFlag);
+    } else if (LOWORD(wParam) == IDC_BS_DTSHD_FRAMING && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bDTSHDFraming)
         SetDirty();
     }
     break;
