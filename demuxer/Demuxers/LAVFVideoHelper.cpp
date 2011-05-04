@@ -21,6 +21,7 @@
  */
 
 #include "stdafx.h"
+#include "LAVFUtils.h"
 #include "LAVFVideoHelper.h"
 #include "moreuuids.h"
 #include "BaseDemuxer.h"
@@ -33,6 +34,17 @@
 
 CLAVFVideoHelper g_VideoHelper;
 
+// Map codec ids to media subtypes
+static FormatMapping video_map[] = {
+  { CODEC_ID_H263,       &MEDIASUBTYPE_H263,         NULL,                   NULL },
+  { CODEC_ID_H263I,      &MEDIASUBTYPE_H263,         NULL,                   NULL },
+  { CODEC_ID_MJPEG,      &MEDIASUBTYPE_MJPG,         MKTAG('M','J','P','G'), NULL },
+  { CODEC_ID_H264,       &MEDIASUBTYPE_AVC1,         MKTAG('A','V','C','1'), &FORMAT_MPEG2Video },
+  { CODEC_ID_MPEG1VIDEO, &MEDIASUBTYPE_MPEG1Payload, NULL,                   &FORMAT_MPEGVideo  },
+  { CODEC_ID_MPEG2VIDEO, &MEDIASUBTYPE_MPEG2_VIDEO,  NULL,                   &FORMAT_MPEG2Video },
+  { CODEC_ID_VC1,        &MEDIASUBTYPE_WVC1,         MKTAG('W','V','C','1'), &FORMAT_VideoInfo2 },
+};
+
 CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecTag, std::string container)
 {
   CMediaType mediaType;
@@ -41,34 +53,32 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecT
   mediaType.subtype = FOURCCMap(codecTag);
   mediaType.formattype = FORMAT_VideoInfo; //default value
 
+    // Check against values from the map above
+  for(unsigned i = 0; i < countof(video_map); ++i) {
+    if (video_map[i].codec == codecId) {
+      if (video_map[i].subtype)
+        mediaType.subtype = *video_map[i].subtype;
+      if (video_map[i].codecTag)
+        codecTag = video_map[i].codecTag;
+      if (video_map[i].format)
+         mediaType.formattype = *video_map[i].format;
+      break;
+    }
+  }
+
   switch(codecId)
   {
+  // All these codecs should use VideoInfo2
   case CODEC_ID_ASV1:
   case CODEC_ID_ASV2:
-    mediaType.formattype = FORMAT_VideoInfo2;
-    break;
   case CODEC_ID_FLV1:
-    mediaType.formattype = FORMAT_VideoInfo2;
-    break;
-  case CODEC_ID_H263:
-  case CODEC_ID_H263I:
-    mediaType.subtype = MEDIASUBTYPE_H263;
-    break;
-  case CODEC_ID_H264:
-    mediaType.formattype = FORMAT_MPEG2Video;
-    mediaType.subtype = MEDIASUBTYPE_AVC1;
-    codecTag = MKTAG('A', 'V', 'C', '1');
-    break;
   case CODEC_ID_HUFFYUV:
+  case CODEC_ID_RV10:
+  case CODEC_ID_RV20:
+  case CODEC_ID_RV30:
+  case CODEC_ID_RV40:
+  case CODEC_ID_WMV3:
     mediaType.formattype = FORMAT_VideoInfo2;
-    break;
-  case CODEC_ID_MPEG1VIDEO:
-    mediaType.formattype = FORMAT_MPEGVideo;
-    mediaType.subtype = MEDIASUBTYPE_MPEG1Payload;
-    break;
-  case CODEC_ID_MPEG2VIDEO:
-    mediaType.formattype = FORMAT_MPEG2Video;
-    mediaType.subtype = MEDIASUBTYPE_MPEG2_VIDEO;
     break;
   case CODEC_ID_MPEG4:
     if (container == "mp4") {
@@ -76,24 +86,6 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecT
     } else {
       mediaType.formattype = FORMAT_VideoInfo2;
     }
-    break;
-  case CODEC_ID_RV10:
-  case CODEC_ID_RV20:
-  case CODEC_ID_RV30:
-  case CODEC_ID_RV40:
-    mediaType.formattype = FORMAT_VideoInfo2;
-    break;
-  case CODEC_ID_WMV3:
-    mediaType.formattype = FORMAT_VideoInfo2;
-    break;
-  case CODEC_ID_VC1:
-    mediaType.subtype = MEDIASUBTYPE_WVC1;
-    codecTag = MKTAG('W','V','C','1');
-    mediaType.formattype = FORMAT_VideoInfo2;
-    break;
-  case CODEC_ID_MJPEG:
-    mediaType.subtype = MEDIASUBTYPE_MJPG;
-    codecTag = MKTAG('M','J','P','G');
     break;
   }
 
