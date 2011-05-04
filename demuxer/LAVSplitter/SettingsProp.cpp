@@ -160,7 +160,7 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   addHint(IDC_AUDIOPARSING, L"Enables parsing and repacking of audio streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
 
   SendDlgItemMessage(m_Dlg, IDC_GENPTS, BM_SETCHECK, m_generatePTS, 0);
-  addHint(IDC_GENPTS, L"Generate missing frame timestamps.\n\nEXPERIMENTAL & DEBUGGING ONLY - KEEP UNCHECKED\nRequires restart to take affect.");
+  addHint(IDC_GENPTS, L"Generate missing frame timestamps.\n\nEXPERIMENTAL & DEBUGGING ONLY - KEEP UNCHECKED\nRequires restart to take effect.");
 
   return hr;
 }
