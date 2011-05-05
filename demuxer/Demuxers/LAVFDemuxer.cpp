@@ -33,6 +33,8 @@ extern "C" {
 }
 #endif
 
+#define AVFORMAT_GENPTS 0
+
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
 
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
@@ -74,7 +76,6 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
   , m_pszInputFormat(NULL)
 {
   m_bSubStreams = settings->GetSubstreamsEnabled();
-  m_bGenPTS = settings->GetGeneratePTS();
 
   m_pSettings = settings;
 
@@ -233,7 +234,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
 
-  if (m_bGenPTS) {
+  if (AVFORMAT_GENPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
   }
 
@@ -350,8 +351,6 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
       st->need_parsing = m_bVC1Correction ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
     } else if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
-    } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-      st->need_parsing = pSettings->GetAudioParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
     }
   }
 

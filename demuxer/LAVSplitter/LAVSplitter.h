@@ -123,10 +123,6 @@ public:
   STDMETHODIMP_(BOOL) GetSubstreamsEnabled();
   STDMETHODIMP SetVideoParsingEnabled(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetVideoParsingEnabled();
-  STDMETHODIMP SetAudioParsingEnabled(BOOL bEnabled);
-  STDMETHODIMP_(BOOL) GetAudioParsingEnabled();
-  STDMETHODIMP SetGeneratePTS(BOOL bEnabled);
-  STDMETHODIMP_(BOOL) GetGeneratePTS();
   STDMETHODIMP_(BOOL) IsFormatEnabled(const char *strFormat);
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
   STDMETHODIMP_(std::set<FormatInfo>&) GetInputFormats();
@@ -209,8 +205,6 @@ private:
     int vc1Mode;
     BOOL substreams;
     BOOL videoParsing;
-    BOOL audioParsing;
-    BOOL generatePTS;
 
     std::map<std::string, BOOL> formats;
   } m_settings;

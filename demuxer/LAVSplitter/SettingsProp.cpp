@@ -99,12 +99,6 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetVideoParsingEnabled(bFlag));
 
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_GETCHECK, 0, 0);
-  CHECK_HR(hr = m_pLAVF->SetAudioParsingEnabled(bFlag));
-
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_GENPTS, BM_GETCHECK, 0, 0);
-  CHECK_HR(hr = m_pLAVF->SetGeneratePTS(bFlag));
-
   LoadData();
 
 done:    
@@ -162,12 +156,6 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_SETCHECK, m_videoParsing, 0);
   addHint(IDC_VIDEOPARSING, L"Enables parsing and repacking of video streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
 
-  SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_SETCHECK, m_audioParsing, 0);
-  addHint(IDC_AUDIOPARSING, L"Enables parsing and repacking of audio streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
-
-  SendDlgItemMessage(m_Dlg, IDC_GENPTS, BM_SETCHECK, m_generatePTS, 0);
-  addHint(IDC_GENPTS, L"Generate missing frame timestamps.\n\nEXPERIMENTAL & DEBUGGING ONLY - KEEP UNCHECKED\nRequires restart to take effect.");
-
   return hr;
 }
 HRESULT CLAVSplitterSettingsProp::LoadData()
@@ -189,8 +177,6 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_substreams = m_pLAVF->GetSubstreamsEnabled();
 
   m_videoParsing = m_pLAVF->GetVideoParsingEnabled();
-  m_audioParsing = m_pLAVF->GetAudioParsingEnabled();
-  m_generatePTS = m_pLAVF->GetGeneratePTS();
 
 done:
   return hr;
@@ -259,16 +245,6 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VIDEOPARSING) {
         BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
         if (bFlag != m_videoParsing) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_AUDIOPARSING) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUDIOPARSING, BM_GETCHECK, 0, 0);
-        if (bFlag != m_audioParsing) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_GENPTS) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_GENPTS, BM_GETCHECK, 0, 0);
-        if (bFlag != m_generatePTS) {
           SetDirty();
         }
       }

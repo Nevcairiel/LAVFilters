@@ -54,7 +54,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 235, 268
+IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 235, 239
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
@@ -68,18 +68,16 @@ BEGIN
     CONTROL         "Only with matching language",IDC_SUBMODE_ONLY_MATCHING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,121,104,107,10
     GROUPBOX        "Blu-ray Subtitles (PGS)",IDC_BD_SUBS,7,120,221,40
-    CONTROL         "Auto-Select Forced Subtitles (matching Audio language)",IDC_BD_SEPARATE_FORCED_SUBS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,194,10
+    CONTROL         "Enable Automatic Forced Subtitle Stream",IDC_BD_SEPARATE_FORCED_SUBS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,146,10
     CONTROL         "Deliver only Forced Subtitles",IDC_BD_ONLY_FORCED_SUBS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,146,159,10
-    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,163,221,88
+    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,163,221,58
     CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,177,115,10
     CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
                     "Button",BS_AUTO3STATE | WS_TABSTOP,15,191,126,10
     CONTROL         "Enable Video Stream Parsing",IDC_VIDEOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,206,151,10
-    CONTROL         "Enable Audio Stream Parsing",IDC_AUDIOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,222,151,10
-    CONTROL         "Generate missing timestamps",IDC_GENPTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,236,151,10
-    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,253,221,8,0,WS_EX_RIGHT
+    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,224,221,8,0,WS_EX_RIGHT
 END
 
 IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 236, 253
@@ -106,7 +104,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 228
         TOPMARGIN, 7
-        BOTTOMMARGIN, 261
+        BOTTOMMARGIN, 232
     END
 
     IDD_PROPPAGE_FORMATS, DIALOG

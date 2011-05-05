@@ -132,7 +132,6 @@ private:
   BOOL m_bVC1Correction;
 
   BOOL m_bSubStreams;
-  BOOL m_bGenPTS;
 
   BOOL m_bVC1SeenTimestamp;
 
