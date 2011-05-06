@@ -105,56 +105,6 @@ Root: HKCU; Subkey: Software\LAV\Splitter; Flags: uninsdeletekey; Components: la
 Root: HKCU; Subkey: Software\LAV\Splitter\Formats; Flags: uninsdeletekey; Components: lavsplitter32 lavsplitter64
 
 [Code]
-const
-   VC2010_x86     = '{196BB40D-1578-3D01-B289-BEFC77A11A1E}';
-   VC2010_x64     = '{DA5E371C-6333-3D8A-93A4-6FD5B20BCC6E}';
-   VC2010_SP1_x86 = '{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}';
-   VC2010_SP1_x64 = '{1D8E6291-B0D5-35EC-8441-6616F567A0F7}';
-
-function HasMSI(): Boolean;
-begin
-	Result := FileExists(ExpandConstant('{sys}\msi.dll'));
-end;
-
-function MsiQueryProductState(szProduct: AnsiString): Integer; external 'MsiQueryProductStateA@msi.dll stdcall';
-
-function HasVCRuntime(guid: String): Boolean;
-begin
-	Result := FileExists(ExpandConstant('{sys}\msi.dll')) AND (MsiQueryProductState(guid) = 5);
-end;
-
-function HasVCRuntime_2010_x86(): Boolean;
-begin
-	Result := HasMSI AND (HasVCRuntime(VC2010_x86) OR HasVCRuntime(VC2010_SP1_x86));
-end;
-
-function HasVCRuntime_2010_x64(): Boolean;
-begin
-	Result := HasMSI AND (HasVCRuntime(VC2010_x64) OR HasVCRuntime(VC2010_SP1_x64));
-end;
-
-function DetectVC2010Runtime(): Boolean;
-var
-  prompt_shown: Boolean;
-  ResultCode: Integer;
-begin
-  Result := True;
-
-  if NOT HasVCRuntime_2010_x86 then begin
-    if (msgbox('LAV Filter requires the "Microsoft Visual C++ 2010 SP1 Redistributable Package (x86)".'#13#10'That runtime package is currently not yet installed on your computer.'#13#10#13#10'Would you like to visit the Microsoft website to download the runtime package?', mbConfirmation, mb_yesno) = IDYES) then begin
-      ShellExec('open', 'http://www.microsoft.com/downloads/en/details.aspx?FamilyID=C32F406A-F8FC-4164-B6EB-5328B8578F03', '', '', SW_SHOW, ewNoWait, ResultCode);
-    end;
-    prompt_shown := True;
-    Result := False;
-  end;
-  if IsWin64 AND NOT HasVCRuntime_2010_x64 then begin
-    if prompt_shown OR (msgbox('LAV Filter requires the "Microsoft Visual C++ 2010 SP1 Redistributable Package (x64)".'#13#10'That runtime package is currently not yet installed on your computer.'#13#10#13#10'Would you like to visit the Microsoft website to download the runtime package?', mbConfirmation, mb_yesno) = IDYES) then begin
-      ShellExec('open', 'http://www.microsoft.com/downloads/en/details.aspx?FamilyID=C68CCBB6-75EF-4C9D-A326-879EAB4FCDF8', '', '', SW_SHOW, ewNoWait, ResultCode);
-    end;
-    Result := False;
-  end;
-end;
-
 procedure CleanMediaTypeExt(rootkey: Integer; extension, clsid: String);
 var
   temp: String;
@@ -367,7 +317,6 @@ end;
 
 function InitializeSetup(): Boolean;
 begin
-	Result := DetectVC2010Runtime;
 end;
 
 procedure InitializeWizard();
