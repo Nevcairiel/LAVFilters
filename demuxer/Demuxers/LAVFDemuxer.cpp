@@ -487,8 +487,6 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
             rt = dts;
           m_bVC1SeenTimestamp = (pts != Packet::INVALID_TIME);
         }
-      } else if (m_bMatroska) {
-        pPacket->dwFlags |= LAV_PACKET_PARSED;
       } else if (m_bVC1Correction) {
         rt = dts;
         pPacket->dwFlags |= LAV_PACKET_PARSED;
