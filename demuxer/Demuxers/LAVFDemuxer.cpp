@@ -748,8 +748,12 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackEleme
   pStructureToFill->FlagDefault = (st->disposition & AV_DISPOSITION_DEFAULT);
   pStructureToFill->FlagForced = (st->disposition & AV_DISPOSITION_FORCED);
   const char *lang = get_stream_language(st);
-  strncpy_s(pStructureToFill->Language, lang, 3);
-  pStructureToFill->Language[3] = '\0';
+  if (lang) {
+    strncpy_s(pStructureToFill->Language, lang, 3);
+    pStructureToFill->Language[3] = '\0';
+  } else {
+    pStructureToFill->Language[0] = '\0';
+  }
 
   pStructureToFill->Type = (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) ? TypeVideo :
                            (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) ? TypeAudio :
