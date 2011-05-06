@@ -100,7 +100,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return
     QI(IKeyFrameInfo)
-    QI(ITrackInfo)
+    //QI(ITrackInfo)
     QI2(IAMExtendedSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
