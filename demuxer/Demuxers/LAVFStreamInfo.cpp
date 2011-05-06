@@ -85,6 +85,9 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         mtype.subtype = MEDIASUBTYPE_FLAC_FRAMED;
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_FLAC;
+      } else if (avstream->codec->codec_id == CODEC_ID_EAC3) {
+        mtypes.push_back(mtype);
+        mtype.subtype = MEDIASUBTYPE_DOLBY_DDPLUS_ARCSOFT;
       } else if (avstream->codec->codec_id == CODEC_ID_DTS) {
         wvfmt->wFormatTag = WAVE_FORMAT_DTS;
         mtypes.push_back(mtype);
