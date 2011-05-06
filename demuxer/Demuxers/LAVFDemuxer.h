@@ -106,6 +106,7 @@ public:
   unsigned int GetNumStreams() const { return m_avFormat->nb_streams; }
 
   REFERENCE_TIME GetStartTime() const;
+  void SetBluRay() { m_bBluRay = TRUE; }
 
 private:
   STDMETHODIMP AddStream(int streamId);
@@ -129,6 +130,7 @@ private:
   BOOL m_bMatroska;
   BOOL m_bAVI;
   BOOL m_bMPEGTS;
+  BOOL m_bBluRay;
   BOOL m_bVC1Correction;
 
   BOOL m_bSubStreams;

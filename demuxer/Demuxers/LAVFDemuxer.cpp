@@ -66,6 +66,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
   , m_bMatroska(FALSE)
   , m_bAVI(FALSE)
   , m_bMPEGTS(FALSE)
+  , m_bBluRay(FALSE)
   , m_bVC1Correction(FALSE)
   , m_bVC1SeenTimestamp(FALSE)
   , m_bPGSNoParsing(TRUE)
@@ -456,6 +457,15 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     pPacket->StreamId = (DWORD)pkt.stream_index;
+
+    if (m_bMPEGTS && !m_bBluRay) {
+      const int64_t pts_diff = pkt.pts - stream->start_time;
+      const int64_t dts_diff = pkt.dts - stream->first_dts;
+      if (pts_diff < -stream->time_base.den && dts_diff < -stream->time_base.den && stream->pts_wrap_bits < 63) {
+        pkt.pts += 1LL << stream->pts_wrap_bits;
+        pkt.dts += 1LL << stream->pts_wrap_bits;
+      }
+    }
 
     REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
     REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
