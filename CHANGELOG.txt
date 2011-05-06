@@ -1,5 +1,23 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.25 - 2011/05/06
+LAV Splitter
+- Added the ability to filter Blu-ray PGS subtitles, so only frames flagged as "forced" are delivered
+  - Either through a new "Forced Subtitles" stream (default)
+  - Or, filtering for every PGS stream (configurable)
+- Improved support for H264 in AVI
+- Improved timings for TrueHD in MKV
+- m2ts files directly openend inside a Blu-ray structure should now properly display stream languages
+- Alot of fixes and enhancements for format compatibility (especially MPEG-TS)
+- Support using the ArcSoft HD Audio Decoder for E-AC3
+
+LAV Audio
+- Audio bitstreaming (pass-through) for HDMI and S/PDIF
+  - Support for AC3, E-AC3, TrueHD, DTS and DTS-HD
+- Use the float decoders for mp1/mp2
+- Added official support for WMAv1, WMAv2 and WMA Pro
+- Fixed an issue that caused sync issues with FLAC audio, and FLAC is once again enabled by default
+
 0.24 - 2011/04/25
 General
 - Big ffmpeg update! Libraries have been renamed (version increase)
