@@ -736,6 +736,8 @@ STDMETHODIMP_(UINT) CLAVFDemuxer::GetTrackCount()
 // \param aTrackIdx the track index (from 0 to GetTrackCount()-1)
 STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackElement* pStructureToFill)
 {
+  DbgLog((LOG_TRACE, 20, L"ITrackInfo::GetTrackInfo(): index %d, struct: %p", aTrackIdx, pStructureToFill));
+
   if(!m_avFormat || !pStructureToFill)
     return FALSE;
 
@@ -744,7 +746,6 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackEleme
     return FALSE;
 
   // Fill structure
-  pStructureToFill->Size = sizeof(TrackElement);
   pStructureToFill->FlagDefault = (st->disposition & AV_DISPOSITION_DEFAULT);
   pStructureToFill->FlagForced = (st->disposition & AV_DISPOSITION_FORCED);
   const char *lang = get_stream_language(st);
