@@ -898,7 +898,32 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     // look for first non empty stream and discard nonselected programs
     for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i) {
       if(m_program == UINT_MAX && m_avFormat->programs[i]->nb_stream_indexes > 0) {
-        m_program = i;
+        // Do some basic stream validation here
+        bool bBrokenProgram = false;
+        for(unsigned k = 0; !bBrokenProgram && k < m_avFormat->programs[i]->nb_stream_indexes; ++k) {
+          unsigned streamIdx = m_avFormat->programs[i]->stream_index[k];
+          AVStream *st = m_avFormat->streams[streamIdx];
+          if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+            if (st->codec->width == 0 || st->codec->height == 0) {
+              bBrokenProgram = true;
+            }
+          } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+            // MP1/2/3 are common false positives in probing
+            if ((st->codec->codec_id == CODEC_ID_MP1 || st->codec->codec_id == CODEC_ID_MP2 || st->codec->codec_id == CODEC_ID_MP3) && st->codec->channels == 0) {
+              bBrokenProgram = true;
+            }
+          }
+        }
+
+        if (bBrokenProgram) {
+          DbgLog((LOG_TRACE, 20, L"::CreateStreams() - Dropped program %d because it seems invalid", m_avFormat->programs[i]->id));
+          for(unsigned k = 0; k < m_avFormat->programs[i]->nb_stream_indexes; ++k) {
+            unsigned streamIdx = m_avFormat->programs[i]->stream_index[k];
+            AVStream *st = m_avFormat->streams[streamIdx];
+            st->discard = AVDISCARD_ALL;
+          }
+        } else
+          m_program = i;
       }
 
       if(i != m_program) {
@@ -921,7 +946,8 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   // add streams from selected program, or all streams if no program was selected
   for (unsigned int i = 0; i < nbIndex; ++i) {
     int streamIdx = bProgram ? m_avFormat->programs[m_program]->stream_index[i] : i;
-    AddStream(streamIdx);
+    if (S_OK != AddStream(streamIdx))
+      continue;
 
     AVStream *st = m_avFormat->streams[streamIdx];
     if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
