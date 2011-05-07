@@ -258,7 +258,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
     // Disable full stream parsing for these formats
     if (st->need_parsing == AVSTREAM_PARSE_FULL) {
-      if (st->codec->codec_id == CODEC_ID_MPEG2VIDEO || st->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
+      if (st->codec->codec_id == CODEC_ID_H264 || st->codec->codec_id == CODEC_ID_MPEG2VIDEO || st->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
         st->need_parsing = AVSTREAM_PARSE_NONE;
       }
     }
