@@ -739,6 +739,7 @@ HRESULT CLAVAudio::EndOfStream()
   // Flush the last data out of the parser
   if (m_pParser)
     ProcessBuffer(TRUE);
+  FlushOutput(TRUE);
   return __super::EndOfStream();
 }
 
