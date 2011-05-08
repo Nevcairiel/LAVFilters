@@ -88,5 +88,5 @@ private:
 
   REFERENCE_TIME *m_rtOffset;
   REFERENCE_TIME m_rtNewOffset;
-  uint64_t       m_bNewOffsetPos;
+  int64_t       m_bNewOffsetPos;
 };
