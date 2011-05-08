@@ -91,6 +91,9 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   m_pParser = av_parser_init(codec);
   ASSERT(m_pParser);
 
+  m_pAVCtx = avcodec_alloc_context();
+  CheckPointer(m_pAVCtx, E_POINTER);
+
   DbgLog((LOG_TRACE, 20, "Creating Bistreaming Context..."));
 
   m_avBSContext = avformat_alloc_output_context("spdif", NULL, NULL);
@@ -117,10 +120,10 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of output stream failed"));
     goto fail;
   }
-  st->codec->codec_id = codec;
-  st->codec->codec_type = AVMEDIA_TYPE_AUDIO;
-  st->codec->channels = wfe->nChannels;
-  st->codec->sample_rate = wfe->nSamplesPerSec;
+  m_pAVCtx->codec_id    = st->codec->codec_id    = codec;
+  m_pAVCtx->codec_type  = st->codec->codec_type  = AVMEDIA_TYPE_AUDIO;
+  m_pAVCtx->channels    = st->codec->channels    = wfe->nChannels;
+  m_pAVCtx->sample_rate = st->codec->sample_rate = wfe->nSamplesPerSec;
 
   ret = av_write_header(m_avBSContext);
   if (ret < 0) {
@@ -182,6 +185,13 @@ HRESULT CLAVAudio::FreeBitstreamContext()
   if (m_pParser)
     av_parser_close(m_pParser);
   m_pParser = NULL;
+
+  if (m_pAVCtx) {
+    avcodec_close(m_pAVCtx);
+    av_free(m_pAVCtx->extradata);
+    av_free(m_pAVCtx);
+    m_pAVCtx = NULL;
+  }
 
   return S_OK;
 }
@@ -259,6 +269,7 @@ void CLAVAudio::ActivateDTSHDMuxing()
 
 HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 {
+  HRESULT hr = S_FALSE;
   int ret = 0;
   const BYTE *pDataInBuff = p;
   BOOL bEOF = (buffsize == -1);
@@ -333,13 +344,12 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
       if (m_bsOutput.GetCount() > 0) {
         DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache, m_rtStopInputCache);
         m_bsOutput.SetSize(0);
+        hr = S_OK;
       }
-    } else {
-      continue;
     }
   }
 
-  return S_OK;
+  return hr;
 }
 
 HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)

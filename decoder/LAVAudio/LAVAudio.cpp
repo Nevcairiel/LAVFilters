@@ -765,7 +765,7 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 {
   CAutoLock cAutoLock(&m_csReceive);
   m_buff.SetSize(0);
-  if (m_pAVCtx) {
+  if (m_pAVCtx && m_pAVCtx->codec) {
     avcodec_flush_buffers (m_pAVCtx);
   }
   return __super::NewSegment(tStart, tStop, dRate);
