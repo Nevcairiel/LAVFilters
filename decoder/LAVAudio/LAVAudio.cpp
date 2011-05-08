@@ -482,6 +482,11 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
   WAVEFORMATEXTENSIBLE wfex;
   memset(&wfex, 0, sizeof(wfex));
 
+  if (wBitsPerSample >> 3 > get_byte_per_sample(outputFormat)) {
+    DbgLog((LOG_TRACE, 20, L"Invalid combination of sample format and bits per sample"));
+    outputFormat = get_lav_sample_fmt(AV_SAMPLE_FMT_S32, wBitsPerSample);
+  }
+
   WAVEFORMATEX* wfe = &wfex.Format;
   wfe->wFormatTag = (WORD)mt.subtype.Data1;
   wfe->nChannels = nChannels;

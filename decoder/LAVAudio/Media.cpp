@@ -286,16 +286,13 @@ LAVAudioSampleFormat get_lav_sample_fmt(AVSampleFormat sample_fmt, int bits)
   LAVAudioSampleFormat lav_sample_fmt;
   switch(sample_fmt) {
   case AV_SAMPLE_FMT_S16:
-    lav_sample_fmt = SampleFormat_16;
-    break;
   case AV_SAMPLE_FMT_S32:
-    if(bits > 24 || !bits) {
+    if (bits > 24 || (!bits && sample_fmt == AV_SAMPLE_FMT_S32))
       lav_sample_fmt = SampleFormat_32;
-    } else if (bits > 16) {
+    else if (bits > 16)
       lav_sample_fmt = SampleFormat_24;
-    } else if (bits) {
+    else
       lav_sample_fmt = SampleFormat_16;
-    }
     break;
   case AV_SAMPLE_FMT_DBL:
   case AV_SAMPLE_FMT_FLT:
