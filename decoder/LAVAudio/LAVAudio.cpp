@@ -814,8 +814,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_bQueueResync = FALSE;
   }
 
-  m_rtStartInput = rtStart;
-  m_rtStopInput = rtStop;
+  m_rtStartInput = SUCCEEDED(hr) ? rtStart : AV_NOPTS_VALUE;
+  m_rtStopInput = SUCCEEDED(hr) ? rtStop : AV_NOPTS_VALUE;
 
   /*
   if (SUCCEEDED(hr) && _abs64(m_rtStart - rtStart) > 100000i64) {
