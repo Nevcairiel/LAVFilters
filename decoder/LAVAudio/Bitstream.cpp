@@ -88,6 +88,9 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   if (m_avBSContext)
     FreeBitstreamContext();
 
+  m_pParser = av_parser_init(codec);
+  ASSERT(m_pParser);
+
   DbgLog((LOG_TRACE, 20, "Creating Bistreaming Context..."));
 
   m_avBSContext = avformat_alloc_output_context("spdif", NULL, NULL);
@@ -176,6 +179,10 @@ HRESULT CLAVAudio::FreeBitstreamContext()
     avformat_free_context(m_avBSContext);
   m_avBSContext = NULL;
 
+  if (m_pParser)
+    av_parser_close(m_pParser);
+  m_pParser = NULL;
+
   return S_OK;
 }
 
@@ -253,56 +260,89 @@ void CLAVAudio::ActivateDTSHDMuxing()
 HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 {
   int ret = 0;
+  const BYTE *pDataInBuff = p;
+  BOOL bEOF = (buffsize == -1);
+  if (buffsize == -1) buffsize = 1;
 
-  if (buffsize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
-    m_nFFBufferSize = buffsize + FF_INPUT_BUFFER_PADDING_SIZE;
-    m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
-  }
+  AVPacket avpkt;
+  av_init_packet(&avpkt);
+  avpkt.duration = 1;
 
-  memcpy(m_pFFBuffer, p, buffsize);
-  memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+  ASSERT(pDataInBuff || bEOF);
 
-  consumed = buffsize;
-
-  if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_settings.bBitstream[BS_DTSHD]) {
-    uint32_t state;
-    for (int i = 0; i < buffsize; ++i) {
-      state = (state << 8) | p[i];
-      if (state == DCA_HD_MARKER) {
-        DbgLog((LOG_TRACE, 20, L"::Bitstream(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
-        ActivateDTSHDMuxing();
-        break;
+  consumed = 0;
+  while (buffsize > 0) {
+    if (bEOF) buffsize = 0;
+    else {
+      if (buffsize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
+        m_nFFBufferSize = buffsize + FF_INPUT_BUFFER_PADDING_SIZE;
+        m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
       }
+
+      memcpy(m_pFFBuffer, pDataInBuff, buffsize);
+      memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+    }
+
+    BYTE *pOut = NULL;
+    int pOut_size = 0;
+    int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    if (used_bytes < 0) {
+      return E_FAIL;
+    } else if(used_bytes == 0 && pOut_size == 0) {
+      DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
+      break;
+    }
+
+    // Timestamp cache to compensate for one frame delay the parser might introduce, in case the frames were already perfectly sliced apart
+    // If we used more (or equal) bytes then was output again, we encountered a new frame, update timestamps
+    if (used_bytes >= pOut_size) {
+      m_rtStartInputCache = m_rtStartInput;
+      m_rtStopInputCache = m_rtStopInput;
+    }
+
+    if (!bEOF && used_bytes > 0) {
+      buffsize -= used_bytes;
+      pDataInBuff += used_bytes;
+      consumed += used_bytes;
+    }
+
+    if (pOut_size > 0) {
+      if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_settings.bBitstream[BS_DTSHD]) {
+        uint32_t state;
+        for (int i = 0; i < pOut_size; ++i) {
+          state = (state << 8) | pOut[i];
+          if (state == DCA_HD_MARKER) {
+            DbgLog((LOG_TRACE, 20, L"::Bitstream(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
+            ActivateDTSHDMuxing();
+            break;
+          }
+        }
+      }
+
+      avpkt.data = (uint8_t *)pOut;
+      avpkt.size = pOut_size;
+
+      // Write SPDIF muxed frame
+      ret = av_write_frame(m_avBSContext, &avpkt);
+      if(ret < 0) {
+        DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));
+        return E_FAIL;
+      }
+
+      // Deliver frame
+      if (m_bsOutput.GetCount() > 0) {
+        DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache, m_rtStopInputCache);
+        m_bsOutput.SetSize(0);
+      }
+    } else {
+      continue;
     }
   }
 
-  // TODO: use parser
-  AVPacket pkt;
-  memset(&pkt, 0, sizeof(AVPacket));
-  pkt.pts = pkt.dts = AV_NOPTS_VALUE;
-  pkt.duration = 1;
-
-  pkt.data = m_pFFBuffer;
-  pkt.size = buffsize;
-
-  // Write SPDIF muxed frame
-  ret = av_write_frame(m_avBSContext, &pkt);
-  if(ret < 0) {
-    DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));
-    return E_FAIL;
-  }
-
-  HRESULT hr = S_FALSE;
-
-  if (m_bsOutput.GetCount() > 0) {
-    hr = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount());
-    m_bsOutput.SetSize(0);
-  }
-
-  return hr;
+  return S_OK;
 }
 
-HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize)
+HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
 {
   HRESULT hr = S_OK;
 
@@ -325,7 +365,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
     pOut->SetMediaType(&mt);
   }
 
-  pOut->SetTime(&m_rtStartInput, &m_rtStopInput);
+  pOut->SetTime(&rtStartInput, &rtStopInput);
   pOut->SetMediaTime(NULL, NULL);
 
   pOut->SetPreroll(FALSE);

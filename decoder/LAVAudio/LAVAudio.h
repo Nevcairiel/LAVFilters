@@ -145,7 +145,7 @@ private:
   HRESULT FreeBitstreamContext();
 
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed);
-  HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize);
+  HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
   CMediaType CreateBitstreamMediaType(CodecID codec);
   void ActivateDTSHDMuxing();
@@ -166,6 +166,9 @@ private:
 
   REFERENCE_TIME       m_rtStartInput;   // rtStart of the last input package
   REFERENCE_TIME       m_rtStopInput;    // rtStop of the last input package
+
+  REFERENCE_TIME       m_rtStartInputCache;   // rtStart of the last input package
+  REFERENCE_TIME       m_rtStopInputCache;    // rtStop of the last input package
 
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples
