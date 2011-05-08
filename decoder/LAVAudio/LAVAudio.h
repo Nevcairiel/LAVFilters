@@ -121,7 +121,7 @@ private:
 
   CMediaType CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSample = 0) const;
   HRESULT ReconnectOutput(long cbBuffer, CMediaType& mt);
-  HRESULT ProcessBuffer();
+  HRESULT ProcessBuffer(BOOL bEOF = FALSE);
   HRESULT Decode(const BYTE *p, int buffsize, int &consumed, BufferDetails *out);
   HRESULT PostProcess(BufferDetails *buffer);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);

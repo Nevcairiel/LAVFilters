@@ -734,6 +734,9 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 HRESULT CLAVAudio::EndOfStream()
 {
   CAutoLock cAutoLock(&m_csReceive);
+  // Flush the last data out of the parser
+  if (m_pParser)
+    ProcessBuffer(TRUE);
   return __super::EndOfStream();
 }
 
@@ -844,7 +847,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   return S_OK;
 }
 
-HRESULT CLAVAudio::ProcessBuffer()
+HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 {
   HRESULT hr = S_OK, hr2 = S_OK;
 
@@ -855,6 +858,11 @@ HRESULT CLAVAudio::ProcessBuffer()
   BYTE *end = p + buffer_size;
 
   int consumed = 0;
+
+  if (bEOF) {
+    p = NULL;
+    buffer_size = -1;
+  }
 
   // If a bitstreaming context exists, we should bitstream
   if (m_avBSContext) {
@@ -888,7 +896,7 @@ HRESULT CLAVAudio::ProcessBuffer()
     }
   }
 
-  if (consumed <= 0) {
+  if (bEOF || consumed <= 0) {
     return hr;
   }
 
@@ -912,25 +920,30 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
   const BYTE *pDataInBuff = p;
   const scmap_t *scmap = NULL;
 
+  BOOL bEOF = (buffsize == -1);
+  if (buffsize == -1) buffsize = 1;
+
   AVPacket avpkt;
   av_init_packet(&avpkt);
 
   consumed = 0;
   while (buffsize > 0) {
     nPCMLength = LAV_AUDIO_BUFFER_SIZE;
-    if (buffsize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
-      m_nFFBufferSize = buffsize + FF_INPUT_BUFFER_PADDING_SIZE;
-      m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
+    if (bEOF) buffsize = 0;
+    else {
+      if (buffsize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
+        m_nFFBufferSize = buffsize + FF_INPUT_BUFFER_PADDING_SIZE;
+        m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
+      }
+
+      // Required number of additionally allocated bytes at the end of the input bitstream for decoding.
+      // This is mainly needed because some optimized bitstream readers read
+      // 32 or 64 bit at once and could read over the end.<br>
+      // Note: If the first 23 bits of the additional bytes are not 0, then damaged
+      // MPEG bitstreams could cause overread and segfault.
+      memcpy(m_pFFBuffer, pDataInBuff, buffsize);
+      memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
     }
-
-
-    // Required number of additionally allocated bytes at the end of the input bitstream for decoding.
-    // This is mainly needed because some optimized bitstream readers read
-    // 32 or 64 bit at once and could read over the end.<br>
-    // Note: If the first 23 bits of the additional bytes are not 0, then damaged
-    // MPEG bitstreams could cause overread and segfault.
-    memcpy(m_pFFBuffer, pDataInBuff, buffsize);
-    memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
 
     if (m_pParser) {
       BYTE *pOut = NULL;
@@ -943,9 +956,11 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         break;
       }
 
-      buffsize -= used_bytes;
-      pDataInBuff += used_bytes;
-      consumed += used_bytes;
+      if (!bEOF && used_bytes > 0) {
+        buffsize -= used_bytes;
+        pDataInBuff += used_bytes;
+        consumed += used_bytes;
+      }
 
       if (pOut_size > 0) {
         avpkt.data = (uint8_t *)pOut;
@@ -959,6 +974,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       } else {
         continue;
       }
+    } else if(bEOF) {
+      return S_FALSE;
     } else {
       avpkt.data = (uint8_t *)m_pFFBuffer;
       avpkt.size = buffsize;
