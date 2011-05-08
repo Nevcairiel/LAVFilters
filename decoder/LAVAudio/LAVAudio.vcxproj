@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Bitstream.cpp" />
+    <ClCompile Include="BitstreamParser.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="LAVAudio.cpp" />
     <ClCompile Include="AudioSettingsProp.cpp" />
@@ -154,6 +155,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BitstreamParser.h" />
     <ClInclude Include="LAVAudio.h" />
     <ClInclude Include="LAVAudioSettings.h" />
     <ClInclude Include="AudioSettingsProp.h" />

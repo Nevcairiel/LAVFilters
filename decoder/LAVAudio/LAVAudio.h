@@ -23,6 +23,7 @@
 #include "LAVAudioSettings.h"
 #include "FloatingAverage.h"
 #include "Media.h"
+#include "BitstreamParser.h"
 
 #define CODEC_ID_PCM_SxxBE (CodecID)0x19001
 #define CODEC_ID_PCM_SxxLE (CodecID)0x19002
@@ -145,7 +146,7 @@ private:
   HRESULT FreeBitstreamContext();
 
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed);
-  HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
+  HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
   CMediaType CreateBitstreamMediaType(CodecID codec);
   void ActivateDTSHDMuxing();
@@ -196,4 +197,5 @@ private:
   AVFormatContext     *m_avBSContext;
 
   BOOL                m_bDTSHD;
+  CBitstreamParser    m_bsParser;
 };

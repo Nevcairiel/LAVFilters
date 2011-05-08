@@ -33,6 +33,9 @@
     <ClCompile Include="Bitstream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BitstreamParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Media.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BitstreamParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -18,27 +18,30 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
-// pre-compiled header
-
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
+struct GetBitContext;
 
-// Support for Version 6.0 styles
-#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+class CBitstreamParser {
+public:
+  CBitstreamParser();
+  ~CBitstreamParser();
 
-// include headers
-#include <Windows.h>
-#include <Commctrl.h>
+  HRESULT Parse(CodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+  void Reset();
 
-extern "C" {
-#define __STDC_CONSTANT_MACROS
-#include "libavformat/avformat.h"
-#include "libavutil/opt.h"
-#include "libavcodec/avcodec.h"
-}
-#include "streams.h"
+private:
+  HRESULT ParseDTS(BYTE *pBuffer, DWORD dwSize);
+  HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
 
-#include "DShowUtil.h"
-#include "growarray.h"
+public:
+  DWORD m_dwSampleRate;
+  DWORD m_dwBlocks;
+  DWORD m_dwFrameSize;
+  DWORD m_dwBitRate;
+
+  BOOL m_bDTSHD;
+
+private:
+  GetBitContext *m_gb;
+};

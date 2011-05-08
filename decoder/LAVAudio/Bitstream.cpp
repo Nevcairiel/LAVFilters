@@ -87,6 +87,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
 
   if (m_avBSContext)
     FreeBitstreamContext();
+  m_bsParser.Reset();
 
   m_pParser = av_parser_init(codec);
   ASSERT(m_pParser);
@@ -317,16 +318,9 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
     }
 
     if (pOut_size > 0) {
-      if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_settings.bBitstream[BS_DTSHD]) {
-        uint32_t state;
-        for (int i = 0; i < pOut_size; ++i) {
-          state = (state << 8) | pOut[i];
-          if (state == DCA_HD_MARKER) {
-            DbgLog((LOG_TRACE, 20, L"::Bitstream(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
-            ActivateDTSHDMuxing();
-            break;
-          }
-        }
+      m_bsParser.Parse(m_nCodecId, pOut, pOut_size, m_pParser->priv_data);
+      if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_bsParser.m_bDTSHD && m_settings.bBitstream[BS_DTSHD]) {
+        ActivateDTSHDMuxing();
       }
 
       avpkt.data = (uint8_t *)pOut;
@@ -341,7 +335,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 
       // Deliver frame
       if (m_bsOutput.GetCount() > 0) {
-        DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache, m_rtStopInputCache);
+        DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), pOut_size, m_rtStartInputCache, m_rtStopInputCache);
         m_bsOutput.SetSize(0);
       }
     }
@@ -350,7 +344,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
   return S_OK;
 }
 
-HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
+HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
 {
   HRESULT hr = S_OK;
 
@@ -373,7 +367,43 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
     pOut->SetMediaType(&mt);
   }
 
-  pOut->SetTime(&rtStartInput, &rtStopInput);
+  REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE, rtDur = AV_NOPTS_VALUE;
+  double dDuration = 0;
+  if (codec == CODEC_ID_TRUEHD || codec == CODEC_ID_EAC3 || (codec == CODEC_ID_DTS && m_bDTSHD)) {
+    if (rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
+      rtStart = rtStartInput;
+      rtDur = rtStopInput - rtStartInput;
+    } else {
+      dDuration = DBL_SECOND_MULT * dwSize / wfe->nBlockAlign / wfe->nSamplesPerSec;
+    }
+  } else if (m_bsParser.m_dwBitRate <= 1 && rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
+    rtDur = rtStopInput - rtStartInput;
+  } else {
+    if (m_bsParser.m_dwBlocks) { // Used by DTS
+      const DWORD dwBlocks32 = m_bsParser.m_dwBlocks * 32;
+      const DWORD dwBlocks = (dwFrameSize + dwBlocks32 - 1) / dwBlocks32;
+      dDuration = DBL_SECOND_MULT * dwBlocks * dwBlocks32 * 8 / m_bsParser.m_dwBitRate;
+    } else { // AC-3
+      dDuration = DBL_SECOND_MULT * dwFrameSize * 8 / m_bsParser.m_dwBitRate;
+    }
+  }
+  if (rtDur == AV_NOPTS_VALUE) {
+    rtDur = (REFERENCE_TIME)(dDuration + 0.5);
+    m_dStartOffset += fmod(dDuration, 1.0);
+
+    m_rtStart = rtStart + (REFERENCE_TIME)dDuration;
+
+    if (m_dStartOffset > 0.5) {
+      m_rtStart++;
+      m_dStartOffset -= 1.0;
+    }
+  } else {
+    m_rtStart = rtStart + rtDur;
+  }
+
+  rtStop = rtStart + rtDur;
+
+  pOut->SetTime(&rtStart, &rtStop);
   pOut->SetMediaTime(NULL, NULL);
 
   pOut->SetPreroll(FALSE);
