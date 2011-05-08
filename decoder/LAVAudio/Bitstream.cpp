@@ -269,7 +269,6 @@ void CLAVAudio::ActivateDTSHDMuxing()
 
 HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 {
-  HRESULT hr = S_FALSE;
   int ret = 0;
   const BYTE *pDataInBuff = p;
   BOOL bEOF = (buffsize == -1);
@@ -300,7 +299,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
     if (used_bytes < 0) {
       return E_FAIL;
     } else if(used_bytes == 0 && pOut_size == 0) {
-      DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
+      DbgLog((LOG_TRACE, 50, L"::Bitstream() - could not process buffer, starving?"));
       break;
     }
 
@@ -344,12 +343,11 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
       if (m_bsOutput.GetCount() > 0) {
         DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache, m_rtStopInputCache);
         m_bsOutput.SetSize(0);
-        hr = S_OK;
       }
     }
   }
 
-  return hr;
+  return S_OK;
 }
 
 HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
