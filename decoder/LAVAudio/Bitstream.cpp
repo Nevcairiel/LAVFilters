@@ -374,7 +374,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
       rtStart = rtStartInput;
       rtDur = rtStopInput - rtStartInput;
     } else {
-      dDuration = DBL_SECOND_MULT * dwSize / wfe->nBlockAlign / wfe->nSamplesPerSec;
+      dDuration = DBL_SECOND_MULT * dwFrameSize / wfe->nBlockAlign / wfe->nSamplesPerSec;
     }
   } else if (m_bsParser.m_dwBitRate <= 1 && rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
     rtDur = rtStopInput - rtStartInput;
