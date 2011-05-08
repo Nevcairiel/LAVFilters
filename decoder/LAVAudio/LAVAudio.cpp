@@ -747,6 +747,12 @@ HRESULT CLAVAudio::EndFlush()
   CAutoLock cAutoLock(&m_csReceive);
   m_buff.SetSize(0);
   FlushOutput(FALSE);
+
+  if(m_pParser) {
+    av_parser_close(m_pParser);
+    m_pParser = av_parser_init(m_nCodecId);
+  }
+
   return __super::EndFlush();
 }
 
