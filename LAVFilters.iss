@@ -315,10 +315,6 @@ begin
   end;
 end;
 
-function InitializeSetup(): Boolean;
-begin
-end;
-
 procedure InitializeWizard();
 begin
   // Adjust tasks page
