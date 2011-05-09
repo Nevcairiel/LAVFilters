@@ -389,7 +389,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
     m_rtStartCacheLT = AV_NOPTS_VALUE;
   } else {
     // E-AC3 trusts the incoming timestamps until a better solution can be found
-    if (codec == CODEC_ID_EAC3 || (codec == CODEC_ID_DTS && m_bDTSHD)) {
+    if (codec == CODEC_ID_EAC3) {
       if (rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
         rtStart = rtStartInput;
         rtDur = rtStopInput - rtStartInput;
