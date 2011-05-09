@@ -66,6 +66,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bDTSHD(FALSE)
   , m_rtStartInputCache(AV_NOPTS_VALUE)
   , m_rtStopInputCache(AV_NOPTS_VALUE)
+  , m_rtStartCacheLT(AV_NOPTS_VALUE)
 {
   avcodec_init();
   av_register_all();
@@ -815,7 +816,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   if(m_bQueueResync && SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
     FlushOutput();
-    m_rtStart = rtStart;
+    m_rtStartCacheLT = m_rtStart = rtStart;
     m_dStartOffset = 0.0;
     m_bQueueResync = FALSE;
   }

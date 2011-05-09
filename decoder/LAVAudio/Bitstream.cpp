@@ -333,6 +333,11 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
         return E_FAIL;
       }
 
+      // Set long-time cache to the first timestamp encountered, used by TrueHD and E-AC3 because the S/PDIF muxer caches data internally
+      // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
+      if (m_rtStartCacheLT == AV_NOPTS_VALUE)
+        m_rtStartCacheLT = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
+
       // Deliver frame
       if (m_bsOutput.GetCount() > 0) {
         DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), pOut_size, m_rtStartInputCache, m_rtStopInputCache);
@@ -369,39 +374,55 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
 
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE, rtDur = AV_NOPTS_VALUE;
   double dDuration = 0;
-  if (codec == CODEC_ID_TRUEHD || codec == CODEC_ID_EAC3 || (codec == CODEC_ID_DTS && m_bDTSHD)) {
-    if (rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
-      rtStart = rtStartInput;
+  // TrueHD timings
+  // Since the SPDIF muxer takes 24 frames and puts them into one IEC61937 frame, we use the cached timestamp from before.
+  if (codec == CODEC_ID_TRUEHD) {
+    // long-term cache is valid
+    if (m_rtStartCacheLT != AV_NOPTS_VALUE)
+      rtStart = m_rtStartCacheLT;
+    // Duration - stop time of the current frame is valid
+    if (rtStopInput != AV_NOPTS_VALUE)
+      rtStop = rtStopInput;
+    else // no actual time of the current frame, use typical TrueHD frame size, 24 * 0.83333ms
+      rtStop = rtStart + 200000;
+    m_rtStart = rtStop;
+    m_rtStartCacheLT = AV_NOPTS_VALUE;
+  } else {
+    // E-AC3 trusts the incoming timestamps until a better solution can be found
+    if (codec == CODEC_ID_EAC3 || (codec == CODEC_ID_DTS && m_bDTSHD)) {
+      if (rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
+        rtStart = rtStartInput;
+        rtDur = rtStopInput - rtStartInput;
+      } else {
+        dDuration = DBL_SECOND_MULT * dwFrameSize / wfe->nBlockAlign / wfe->nSamplesPerSec;
+      }
+    } else if (m_bsParser.m_dwBitRate <= 1 && rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
       rtDur = rtStopInput - rtStartInput;
     } else {
-      dDuration = DBL_SECOND_MULT * dwFrameSize / wfe->nBlockAlign / wfe->nSamplesPerSec;
+      if (m_bsParser.m_dwBlocks) { // Used by DTS
+        const DWORD dwBlocks32 = m_bsParser.m_dwBlocks * 32;
+        const DWORD dwBlocks = (m_bsParser.m_dwFrameSize + dwBlocks32 - 1) / dwBlocks32;
+        dDuration = DBL_SECOND_MULT * dwBlocks * dwBlocks32 * 8 / m_bsParser.m_dwBitRate;
+      } else { // AC-3
+        dDuration = DBL_SECOND_MULT * dwFrameSize * 8 / m_bsParser.m_dwBitRate;
+      }
     }
-  } else if (m_bsParser.m_dwBitRate <= 1 && rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
-    rtDur = rtStopInput - rtStartInput;
-  } else {
-    if (m_bsParser.m_dwBlocks) { // Used by DTS
-      const DWORD dwBlocks32 = m_bsParser.m_dwBlocks * 32;
-      const DWORD dwBlocks = (m_bsParser.m_dwFrameSize + dwBlocks32 - 1) / dwBlocks32;
-      dDuration = DBL_SECOND_MULT * dwBlocks * dwBlocks32 * 8 / m_bsParser.m_dwBitRate;
-    } else { // AC-3
-      dDuration = DBL_SECOND_MULT * dwFrameSize * 8 / m_bsParser.m_dwBitRate;
+    if (rtDur == AV_NOPTS_VALUE) {
+      rtDur = (REFERENCE_TIME)(dDuration + 0.5);
+      m_dStartOffset += fmod(dDuration, 1.0);
+
+      m_rtStart = rtStart + (REFERENCE_TIME)dDuration;
+
+      if (m_dStartOffset > 0.5) {
+        m_rtStart++;
+        m_dStartOffset -= 1.0;
+      }
+    } else {
+      m_rtStart = rtStart + rtDur;
     }
+
+    rtStop = rtStart + rtDur;
   }
-  if (rtDur == AV_NOPTS_VALUE) {
-    rtDur = (REFERENCE_TIME)(dDuration + 0.5);
-    m_dStartOffset += fmod(dDuration, 1.0);
-
-    m_rtStart = rtStart + (REFERENCE_TIME)dDuration;
-
-    if (m_dStartOffset > 0.5) {
-      m_rtStart++;
-      m_dStartOffset -= 1.0;
-    }
-  } else {
-    m_rtStart = rtStart + rtDur;
-  }
-
-  rtStop = rtStart + rtDur;
 
   pOut->SetTime(&rtStart, &rtStop);
   pOut->SetMediaTime(NULL, NULL);

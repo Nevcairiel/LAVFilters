@@ -21,6 +21,7 @@
 #pragma once
 
 #define DBL_SECOND_MULT 10000000.0
+#define RT_SECOND_MULT  10000000LL
 
 struct scmap_t {
   WORD nChannels;

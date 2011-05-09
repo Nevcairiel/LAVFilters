@@ -170,6 +170,7 @@ private:
 
   REFERENCE_TIME       m_rtStartInputCache;   // rtStart of the last input package
   REFERENCE_TIME       m_rtStopInputCache;    // rtStop of the last input package
+  REFERENCE_TIME       m_rtStartCacheLT;      // long-term timing cache (used by TrueHD)
 
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples
