@@ -31,7 +31,8 @@ const char *get_stream_language(const AVStream *pStream);
 std::string get_codec_name(AVCodecContext *pCodecCtx);
 HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName);
 
-#define LAVF_DISPOSITION_SUB_STREAM 0x8000
+#define LAVF_DISPOSITION_SUB_STREAM      0x10000
+#define LAVF_DISPOSITION_SECONDARY_AUDIO 0x20000
 
 inline int get_bits_per_sample(AVCodecContext *ctx)
 {

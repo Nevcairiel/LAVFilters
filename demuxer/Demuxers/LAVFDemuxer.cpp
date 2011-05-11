@@ -268,6 +268,10 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 #endif
     m_stOrigParser[idx] = st->need_parsing;
 
+    if ((st->codec->codec_id == CODEC_ID_DTS && st->codec->codec_tag == 0xA2)
+     || (st->codec->codec_id == CODEC_ID_EAC3 && st->codec->codec_tag == 0xA1))
+      st->disposition |= LAVF_DISPOSITION_SECONDARY_AUDIO;
+
     UpdateSubStreams();
 
     if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT && st->codec->codec_id == CODEC_ID_TTF) {
