@@ -42,9 +42,7 @@ struct lavf_iformat_map
   { "h263",  RAW_VIDEO, RAW_VIDEO_DESC },
   { "h264",  RAW_VIDEO, RAW_VIDEO_DESC },
   { "ingenient", RAW_VIDEO, RAW_VIDEO_DESC },
-  { "m4v",   RAW_VIDEO, RAW_VIDEO_DESC },
   { "mjpeg", RAW_VIDEO, RAW_VIDEO_DESC },
-  { "mpegvideo", RAW_VIDEO, RAW_VIDEO_DESC },
   { "vc1",   RAW_VIDEO, RAW_VIDEO_DESC },
 
   // Raw Audio Formats (grouped into "rawaudio")
