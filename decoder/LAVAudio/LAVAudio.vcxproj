@@ -120,7 +120,7 @@
       <ModuleDefinitionFile>LAVAudio.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(TargetDir)\$(TargetName)$(TargetExt) $(OutDir)..</Command>
+      <Command>copy "$(TargetDir)\$(TargetName)$(TargetExt)" "$(OutDir).."</Command>
       <Outputs>$(OutDir)..\$(TargetFileName)</Outputs>
       <Inputs>$(TargetDir)\$(TargetName)$(TargetExt)</Inputs>
     </CustomBuildStep>
@@ -138,7 +138,7 @@
       <ModuleDefinitionFile>LAVAudio.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(TargetDir)\$(TargetName)$(TargetExt) $(OutDir)..</Command>
+      <Command>copy "$(TargetDir)\$(TargetName)$(TargetExt)" "$(OutDir).."</Command>
       <Outputs>$(OutDir)..\$(TargetFileName)</Outputs>
       <Inputs>$(TargetDir)\$(TargetName)$(TargetExt)</Inputs>
     </CustomBuildStep>
