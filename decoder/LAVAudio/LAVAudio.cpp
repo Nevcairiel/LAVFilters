@@ -23,6 +23,7 @@
 
 #include <MMReg.h>
 #include <assert.h>
+#include <Shlwapi.h>
 
 #include "moreuuids.h"
 #include "DShowUtil.h"
@@ -47,6 +48,8 @@
 
 // Maximum desync that we attribute to jitter before re-syncing (50ms)
 #define MAX_JITTER_DESYNC 500000i64
+
+extern HINSTANCE g_hInst;
 
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
@@ -130,6 +133,12 @@ struct DTSDecoder {
 
 HRESULT CLAVAudio::InitDTSDecoder()
 {
+  // Add path of LAVAudio.ax into the Dll search path
+  WCHAR wModuleFile[1024];
+  GetModuleFileName(g_hInst, wModuleFile, 1024);
+  PathRemoveFileSpecW(wModuleFile);
+  SetDllDirectory(wModuleFile);
+
   HMODULE hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
   CheckPointer(hDll, E_FAIL);
 
