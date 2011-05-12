@@ -866,6 +866,13 @@ HRESULT CLAVAudio::EndFlush()
     m_bUpdateTimeCache = TRUE;
   }
 
+  if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext) {
+    DTSDecoder *context = (DTSDecoder *)m_pExtraDecoderContext;
+
+    context->pDtsReset();
+    context->pDtsSetParam(context->dtsContext, 8, 24, 0, 0, 0);
+  }
+
   return __super::EndFlush();
 }
 
