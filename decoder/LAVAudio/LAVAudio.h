@@ -33,6 +33,8 @@
 
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
 
+#define LAVF_SAMPLE_FMT_DTS 0xFF
+
 struct WAVEFORMATEX_HDMV_LPCM;
 
 struct BufferDetails_s {
@@ -151,6 +153,8 @@ private:
   CMediaType CreateBitstreamMediaType(CodecID codec);
   void ActivateDTSHDMuxing();
 
+  HRESULT InitDTSDecoder();
+
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
@@ -202,4 +206,7 @@ private:
   CBitstreamParser    m_bsParser;
 
   FloatingAverage<REFERENCE_TIME> m_faJitter;
+
+  HMODULE             m_hDllExtraDecoder;
+  void                *m_pExtraDecoderContext;
 };

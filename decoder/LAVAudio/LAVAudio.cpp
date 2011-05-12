@@ -72,6 +72,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtStopInputCache(AV_NOPTS_VALUE)
   , m_rtStartCacheLT(AV_NOPTS_VALUE)
   , m_faJitter(100)
+  , m_hDllExtraDecoder(NULL)
+  , m_pExtraDecoderContext(NULL)
 {
   avcodec_init();
   av_register_all();
@@ -100,6 +102,70 @@ CLAVAudio::~CLAVAudio()
 
   ShutdownBitstreaming();
 }
+
+#pragma region DTSDecoder Initialization
+
+typedef void* (*DtsOpen)();
+typedef int (*DtsClose)(void *context);
+typedef int (*DtsReset)();
+typedef int (*DtsSetParam)(void *context, int channels, int bitdepth, int unk1, int unk2, int unk3);
+typedef int (*DtsDecode)(void *context, BYTE *pInput, int len, BYTE *pOutput, int unk1, int unk2, int *pBitdepth, int *pChannels, int *pCoreSampleRate, int *pUnk4, int *pHDSampleRate, int *pUnk5, int *pFlags);
+
+struct DTSDecoder {
+  DtsOpen pDtsOpen;
+  DtsClose pDtsClose;
+  DtsReset pDtsReset;
+  DtsSetParam pDtsSetParam;
+  DtsDecode pDtsDecode;
+
+  void *dtsContext;
+
+  DTSDecoder() : pDtsOpen(NULL), pDtsClose(NULL), pDtsReset(NULL), pDtsSetParam(NULL), pDtsDecode(NULL), dtsContext(NULL) {}
+  ~DTSDecoder() {
+    if (pDtsClose && dtsContext) {
+      pDtsClose(dtsContext);
+    }
+  }
+};
+
+HRESULT CLAVAudio::InitDTSDecoder()
+{
+  HMODULE hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
+  CheckPointer(hDll, E_FAIL);
+
+  DTSDecoder *context = new DTSDecoder();
+
+  context->pDtsOpen = (DtsOpen)GetProcAddress(hDll, "DtsApiDecOpen");
+  if(!context->pDtsOpen) goto fail;
+
+  context->pDtsClose = (DtsClose)GetProcAddress(hDll, "DtsApiDecClose");
+  if(!context->pDtsClose) goto fail;
+
+  context->pDtsReset = (DtsReset)GetProcAddress(hDll, "DtsApiDecReset");
+  if(!context->pDtsReset) goto fail;
+
+  context->pDtsSetParam = (DtsSetParam)GetProcAddress(hDll, "DtsApiDecSetParam");
+  if(!context->pDtsSetParam) goto fail;
+
+  context->pDtsDecode = (DtsDecode)GetProcAddress(hDll, "DtsApiDecodeData");
+  if(!context->pDtsDecode) goto fail;
+
+  context->dtsContext = context->pDtsOpen();
+  if(!context->dtsContext) goto fail;
+
+  context->pDtsSetParam(context->dtsContext, 8, 24, 0, 0, 0);
+
+  m_hDllExtraDecoder = hDll;
+  m_pExtraDecoderContext = context;
+
+  return S_OK;
+fail:
+  SAFE_DELETE(context);
+  FreeLibrary(hDll);
+  return E_FAIL;
+}
+
+#pragma endregion
 
 HRESULT CLAVAudio::LoadSettings()
 {
@@ -179,6 +245,17 @@ void CLAVAudio::ffmpeg_shutdown()
   }
 
   FreeBitstreamContext();
+
+  if(m_pExtraDecoderContext) {
+    DTSDecoder *dec = (DTSDecoder *)m_pExtraDecoderContext;
+    delete dec;
+    m_pExtraDecoderContext = NULL;
+  }
+
+  if (m_hDllExtraDecoder) {
+    FreeLibrary(m_hDllExtraDecoder);
+    m_hDllExtraDecoder = NULL;
+  }
 
   m_nCodecId = CODEC_ID_NONE;
 }
@@ -624,6 +701,10 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     }
   }
 
+  if (codec == CODEC_ID_DTS) {
+    InitDTSDecoder();
+  }
+
   const char *codec_override = find_codec_override(codec);
   if (codec_override) {
     m_pAVCodec    = avcodec_find_decoder_by_name(codec_override);
@@ -986,11 +1067,32 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         avpkt.data = (uint8_t *)pOut;
         avpkt.size = pOut_size;
 
-        int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
-        if (ret2 < 0) {
-          DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
-          m_bQueueResync = TRUE;
-          continue;
+        if (m_nCodecId == CODEC_ID_DTS && m_hDllExtraDecoder) {
+          DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
+          int bitdepth, channels, CoreSampleRate, HDSampleRate, flags;
+          int unk4 = 0, unk5 = 0;
+          nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pOut, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &flags);
+
+          if (nPCMLength <= 0) {
+            DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder returned empty buffer"));
+            m_bQueueResync = TRUE;
+            continue;
+          }
+
+          m_pAVCtx->sample_rate = HDSampleRate;
+          m_pAVCtx->bits_per_raw_sample = bitdepth;
+          m_pAVCtx->channels = channels;
+          if (bitdepth > 16)
+            m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_S32;
+          else
+            m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_S16;
+        } else {
+          int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
+          if (ret2 < 0) {
+            DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
+            m_bQueueResync = TRUE;
+            continue;
+          }
         }
 
         m_bUpdateTimeCache = TRUE;
@@ -1044,7 +1146,21 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       out->dwSamplesPerSec = m_pAVCtx->sample_rate;
       out->dwChannelMask = scmap->dwChannelMask;
 
-      switch (m_pAVCtx->sample_fmt) {
+      int decode_fmt = m_pAVCtx->sample_fmt;
+
+      if (m_nCodecId == CODEC_ID_DTS && m_hDllExtraDecoder) {
+        decode_fmt = LAVF_SAMPLE_FMT_DTS;
+      }
+
+      switch (decode_fmt) {
+      case LAVF_SAMPLE_FMT_DTS:
+        {
+          out->bBuffer->SetSize(idx_start + nPCMLength);
+          uint8_t *pDataOut = (uint8_t *)(out->bBuffer->Ptr() + idx_start);
+          memcpy(pDataOut, m_pPCMData, nPCMLength);
+        }
+        out->sfFormat = m_pAVCtx->bits_per_raw_sample == 32 ? SampleFormat_32 : (m_pAVCtx->bits_per_raw_sample == 24 ? SampleFormat_24 : SampleFormat_16);
+        break;
       case AV_SAMPLE_FMT_U8:
         {
           out->bBuffer->SetSize(idx_start + nPCMLength);
