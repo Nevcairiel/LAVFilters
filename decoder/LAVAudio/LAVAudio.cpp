@@ -117,7 +117,7 @@ typedef void* (*DtsOpen)();
 typedef int (*DtsClose)(void *context);
 typedef int (*DtsReset)();
 typedef int (*DtsSetParam)(void *context, int channels, int bitdepth, int unk1, int unk2, int unk3);
-typedef int (*DtsDecode)(void *context, BYTE *pInput, int len, BYTE *pOutput, int unk1, int unk2, int *pBitdepth, int *pChannels, int *pCoreSampleRate, int *pUnk4, int *pHDSampleRate, int *pUnk5, int *pFlags);
+typedef int (*DtsDecode)(void *context, BYTE *pInput, int len, BYTE *pOutput, int unk1, int unk2, int *pBitdepth, int *pChannels, int *pCoreSampleRate, int *pUnk4, int *pHDSampleRate, int *pUnk5, int *pProfile);
 
 struct DTSDecoder {
   DtsOpen pDtsOpen;
@@ -408,7 +408,19 @@ HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pS
     }
   } else {
     if (pCodec) {
-      *pCodec = m_pAVCodec->name;
+      if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext) {
+        static const char *DTSProfiles[] = {
+          "dts", NULL, "dts-es", "dts 96/24", NULL, "dts-hd hra", "dts-hd ma"
+        };
+
+        int index = 0, profile = m_pAVCtx->profile;
+        while(profile >>= 1) index++;
+        if (index > 6) index = 0;
+
+        *pCodec = DTSProfiles[index] ? DTSProfiles[index] : "dts";
+      } else {
+        *pCodec = m_pAVCodec->name;
+      }
     }
     if (pnChannels) {
       *pnChannels = m_pAVCtx->channels;
@@ -1089,9 +1101,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
         if (m_nCodecId == CODEC_ID_DTS && m_hDllExtraDecoder) {
           DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
-          int bitdepth, channels, CoreSampleRate, HDSampleRate, flags;
+          int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
           int unk4 = 0, unk5 = 0;
-          nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pOut, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &flags);
+          nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pOut, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
 
           if (nPCMLength <= 0) {
             DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder returned empty buffer"));
@@ -1102,6 +1114,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           m_pAVCtx->sample_rate = HDSampleRate;
           m_pAVCtx->bits_per_raw_sample = bitdepth;
           m_pAVCtx->channels = channels;
+          m_pAVCtx->profile = profile;
           if (bitdepth > 16)
             m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_S32;
           else
