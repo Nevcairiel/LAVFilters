@@ -104,6 +104,11 @@ CLAVAudio::~CLAVAudio()
   free(m_pFFBuffer);
 
   ShutdownBitstreaming();
+
+  if (m_hDllExtraDecoder) {
+    FreeLibrary(m_hDllExtraDecoder);
+    m_hDllExtraDecoder = NULL;
+  }
 }
 
 #pragma region DTSDecoder Initialization
@@ -133,30 +138,34 @@ struct DTSDecoder {
 
 HRESULT CLAVAudio::InitDTSDecoder()
 {
-  // Add path of LAVAudio.ax into the Dll search path
-  WCHAR wModuleFile[1024];
-  GetModuleFileName(g_hInst, wModuleFile, 1024);
-  PathRemoveFileSpecW(wModuleFile);
-  SetDllDirectory(wModuleFile);
+  if (!m_hDllExtraDecoder) {
+    // Add path of LAVAudio.ax into the Dll search path
+    WCHAR wModuleFile[1024];
+    GetModuleFileName(g_hInst, wModuleFile, 1024);
+    PathRemoveFileSpecW(wModuleFile);
+    SetDllDirectory(wModuleFile);
 
-  HMODULE hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
-  CheckPointer(hDll, E_FAIL);
+    HMODULE hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
+    CheckPointer(hDll, E_FAIL);
+
+    m_hDllExtraDecoder = hDll;
+  }
 
   DTSDecoder *context = new DTSDecoder();
 
-  context->pDtsOpen = (DtsOpen)GetProcAddress(hDll, "DtsApiDecOpen");
+  context->pDtsOpen = (DtsOpen)GetProcAddress(m_hDllExtraDecoder, "DtsApiDecOpen");
   if(!context->pDtsOpen) goto fail;
 
-  context->pDtsClose = (DtsClose)GetProcAddress(hDll, "DtsApiDecClose");
+  context->pDtsClose = (DtsClose)GetProcAddress(m_hDllExtraDecoder, "DtsApiDecClose");
   if(!context->pDtsClose) goto fail;
 
-  context->pDtsReset = (DtsReset)GetProcAddress(hDll, "DtsApiDecReset");
+  context->pDtsReset = (DtsReset)GetProcAddress(m_hDllExtraDecoder, "DtsApiDecReset");
   if(!context->pDtsReset) goto fail;
 
-  context->pDtsSetParam = (DtsSetParam)GetProcAddress(hDll, "DtsApiDecSetParam");
+  context->pDtsSetParam = (DtsSetParam)GetProcAddress(m_hDllExtraDecoder, "DtsApiDecSetParam");
   if(!context->pDtsSetParam) goto fail;
 
-  context->pDtsDecode = (DtsDecode)GetProcAddress(hDll, "DtsApiDecodeData");
+  context->pDtsDecode = (DtsDecode)GetProcAddress(m_hDllExtraDecoder, "DtsApiDecodeData");
   if(!context->pDtsDecode) goto fail;
 
   context->dtsContext = context->pDtsOpen();
@@ -164,13 +173,13 @@ HRESULT CLAVAudio::InitDTSDecoder()
 
   context->pDtsSetParam(context->dtsContext, 8, 24, 0, 0, 0);
 
-  m_hDllExtraDecoder = hDll;
   m_pExtraDecoderContext = context;
 
   return S_OK;
 fail:
   SAFE_DELETE(context);
-  FreeLibrary(hDll);
+  FreeLibrary(m_hDllExtraDecoder);
+  m_hDllExtraDecoder = NULL;
   return E_FAIL;
 }
 
@@ -259,11 +268,6 @@ void CLAVAudio::ffmpeg_shutdown()
     DTSDecoder *dec = (DTSDecoder *)m_pExtraDecoderContext;
     delete dec;
     m_pExtraDecoderContext = NULL;
-  }
-
-  if (m_hDllExtraDecoder) {
-    FreeLibrary(m_hDllExtraDecoder);
-    m_hDllExtraDecoder = NULL;
   }
 
   m_nCodecId = CODEC_ID_NONE;
