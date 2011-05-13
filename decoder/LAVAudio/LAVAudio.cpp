@@ -1255,7 +1255,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   }
 
   // Length of the current sample
-  double dDuration = (double)buffer.nSamples / buffer.dwSamplesPerSec * 10000000.0;
+  double dDuration = (double)buffer.nSamples / buffer.dwSamplesPerSec * DBL_SECOND_MULT;
   m_dStartOffset += fmod(dDuration, 1.0);
 
   // Delivery Timestamps
