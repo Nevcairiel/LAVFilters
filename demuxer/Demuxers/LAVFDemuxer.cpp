@@ -911,22 +911,10 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
             if (st->codec->width == 0 || st->codec->height == 0) {
               bBrokenProgram = true;
             }
-          } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-            // MP1/2/3 are common false positives in probing
-            if ((st->codec->codec_id == CODEC_ID_MP1 || st->codec->codec_id == CODEC_ID_MP2 || st->codec->codec_id == CODEC_ID_MP3) && st->codec->channels == 0) {
-              bBrokenProgram = true;
-            }
           }
         }
 
-        if (bBrokenProgram) {
-          DbgLog((LOG_TRACE, 20, L"::CreateStreams() - Dropped program %d because it seems invalid", m_avFormat->programs[i]->id));
-          for(unsigned k = 0; k < m_avFormat->programs[i]->nb_stream_indexes; ++k) {
-            unsigned streamIdx = m_avFormat->programs[i]->stream_index[k];
-            AVStream *st = m_avFormat->streams[streamIdx];
-            st->discard = AVDISCARD_ALL;
-          }
-        } else
+        if (!bBrokenProgram)
           m_program = i;
       }
 
