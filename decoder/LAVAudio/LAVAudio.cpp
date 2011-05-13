@@ -45,6 +45,9 @@
 // 16ms
 #define PCM_BUFFER_MIN_DURATION  160000
 
+// Maximum desync that we attribute to jitter before re-syncing (50ms)
+#define MAX_JITTER_DESYNC 500000i64
+
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
@@ -64,9 +67,11 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_avioBitstream(NULL)
   , m_avBSContext(NULL)
   , m_bDTSHD(FALSE)
+  , m_bUpdateTimeCache(TRUE)
   , m_rtStartInputCache(AV_NOPTS_VALUE)
   , m_rtStopInputCache(AV_NOPTS_VALUE)
   , m_rtStartCacheLT(AV_NOPTS_VALUE)
+  , m_faJitter(100)
 {
   avcodec_init();
   av_register_all();
@@ -562,6 +567,11 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   CAutoLock lock(&m_csReceive);
   ffmpeg_shutdown();
 
+  if (codec == CODEC_ID_DTS || codec == CODEC_ID_TRUEHD)
+    m_faJitter.SetNumSamples(200);
+  else
+    m_faJitter.SetNumSamples(100);
+
   // Fake codecs that are dependant in input bits per sample, mostly to handle QT PCM tracks
   if (codec == CODEC_ID_PCM_QTRAW || codec == CODEC_ID_PCM_SxxBE || codec == CODEC_ID_PCM_SxxLE || codec == CODEC_ID_PCM_UxxBE || codec == CODEC_ID_PCM_UxxLE) {
     if (format_type == FORMAT_WaveFormatEx) {
@@ -758,6 +768,7 @@ HRESULT CLAVAudio::EndFlush()
   if(m_pParser) {
     av_parser_close(m_pParser);
     m_pParser = av_parser_init(m_nCodecId);
+    m_bUpdateTimeCache = TRUE;
   }
 
   return __super::EndFlush();
@@ -816,7 +827,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   if(m_bQueueResync && SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
     FlushOutput();
-    m_rtStartCacheLT = m_rtStart = rtStart;
+    m_rtStart = rtStart;
+    m_rtStartCacheLT = AV_NOPTS_VALUE;
     m_dStartOffset = 0.0;
     m_bQueueResync = FALSE;
   }
@@ -961,6 +973,14 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         break;
       }
 
+      // Timestamp cache to compensate for one frame delay the parser might introduce, in case the frames were already perfectly sliced apart
+      // If we used more (or equal) bytes then was output again, we encountered a new frame, update timestamps
+      if (used_bytes >= pOut_size && m_bUpdateTimeCache) {
+        m_rtStartInputCache = m_rtStartInput;
+        m_rtStopInputCache = m_rtStopInput;
+        m_bUpdateTimeCache = FALSE;
+      }
+
       if (!bEOF && used_bytes > 0) {
         buffsize -= used_bytes;
         pDataInBuff += used_bytes;
@@ -977,6 +997,15 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           m_bQueueResync = TRUE;
           continue;
         }
+
+        m_bUpdateTimeCache = TRUE;
+
+        // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
+        // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
+        if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
+          m_rtStartCacheLT = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
+        }
+
       } else {
         continue;
       }
@@ -997,6 +1026,12 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       buffsize -= used_bytes;
       pDataInBuff += used_bytes;
       consumed += used_bytes;
+
+      // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
+      // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
+      if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
+        m_rtStartCacheLT = m_rtStartInput != AV_NOPTS_VALUE ? m_rtStartInput : m_rtStart;
+      }
     }
 
     // Channel re-mapping and sample format conversion
@@ -1232,6 +1267,18 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
     m_rtStart++;
     m_dStartOffset -= 1.0;
   }
+
+  REFERENCE_TIME rtJitter = rtStart - m_rtStartCacheLT;
+  m_faJitter.Sample(rtJitter);
+
+  REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
+  if (abs(rtJitterMin) > MAX_JITTER_DESYNC) {
+    DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
+    m_rtStart -= rtJitterMin;
+    m_faJitter.OffsetValues(-rtJitterMin);
+  }
+
+  m_rtStartCacheLT = AV_NOPTS_VALUE;
 
   if(rtStart < 0) {
     goto done;

@@ -168,6 +168,7 @@ private:
   REFERENCE_TIME       m_rtStartInput;   // rtStart of the last input package
   REFERENCE_TIME       m_rtStopInput;    // rtStop of the last input package
 
+  BOOL                 m_bUpdateTimeCache;
   REFERENCE_TIME       m_rtStartInputCache;   // rtStart of the last input package
   REFERENCE_TIME       m_rtStopInputCache;    // rtStop of the last input package
   REFERENCE_TIME       m_rtStartCacheLT;      // long-term timing cache (used by TrueHD)
@@ -199,4 +200,6 @@ private:
 
   BOOL                m_bDTSHD;
   CBitstreamParser    m_bsParser;
+
+  FloatingAverage<REFERENCE_TIME> m_faJitter;
 };
