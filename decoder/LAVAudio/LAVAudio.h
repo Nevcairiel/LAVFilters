@@ -187,7 +187,7 @@ private:
   } m_settings;
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled
-  FloatingAverage     m_faVolume[8];     // Floating Average for volume (8 channels)
+  FloatingAverage<float> m_faVolume[8];     // Floating Average for volume (8 channels)
 
   BOOL                m_bQueueResync;
   BufferDetails       m_OutputQueue;
