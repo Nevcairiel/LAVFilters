@@ -381,7 +381,7 @@ T get_sample_from_buffer(const BYTE * const pBuffer, LAVAudioSampleFormat sfForm
 void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
 {
   const BYTE bSampleSize = get_byte_per_sample(buffer.sfFormat);
-  const DWORD dwSamplesPerChannel = buffer.bBuffer->GetCount() / bSampleSize / buffer.wChannels;
+  const DWORD dwSamplesPerChannel = buffer.nSamples;
   const BYTE *pBuffer = buffer.bBuffer->Ptr();
   float * const fChAvg = (float *)calloc(buffer.wChannels, sizeof(float));
   for (DWORD i = 0; i < dwSamplesPerChannel; ++i) {
@@ -393,9 +393,13 @@ void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
   }
 
   for (int ch = 0; ch < buffer.wChannels; ++ch) {
-    const float fAvgSqrt = sqrt(fChAvg[ch] / dwSamplesPerChannel);
-    const float fDb = 20.0f * log10(fAvgSqrt);
-    m_faVolume[ch].Sample(fDb);
+    if (fChAvg[ch] > FLT_EPSILON) {
+      const float fAvgSqrt =  sqrt(fChAvg[ch] / dwSamplesPerChannel);
+      const float fDb = 20.0f * log10(fAvgSqrt);
+      m_faVolume[ch].Sample(fDb);
+    } else {
+      m_faVolume[ch].Sample(-100.0f);
+    }
   }
   free(fChAvg);
 }
