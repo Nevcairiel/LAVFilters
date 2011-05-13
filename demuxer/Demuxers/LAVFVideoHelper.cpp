@@ -206,6 +206,8 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
     av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, 255);
   } else if (rc.den > 0 && rc.num > 0 && (rc.den > 1 || rc.num > 1)) {
     av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, 255);
+  } else {
+    av_reduce(&num, &den, num, den, num);
   }
   vih2->dwPictAspectRatioX = num;
   vih2->dwPictAspectRatioY = den;
