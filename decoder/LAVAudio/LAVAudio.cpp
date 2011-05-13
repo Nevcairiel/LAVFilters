@@ -845,7 +845,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   memcpy(m_buff.Ptr() + bufflen, pDataIn, len);
   len += bufflen;
 
-  if((hr = ProcessBuffer()) != S_OK && AUTO_RESYNC)
+  hr = ProcessBuffer();
+  if(FAILED(hr) || (AUTO_RESYNC && hr != S_OK))
     m_bQueueResync = TRUE;
 
   return S_OK;
@@ -874,7 +875,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Invalid sample when bitstreaming!"));
       m_buff.SetSize(0);
-      return S_FALSE;
+      return E_FAIL;
     } else if (hr2 == S_FALSE) {
       DbgLog((LOG_TRACE, 10, L"::Bitstream returned S_FALSE"));
       hr = S_FALSE;
@@ -893,7 +894,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     } else if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
       m_buff.SetSize(0);
-      return S_FALSE;
+      return E_FAIL;
     } else {
       DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
       hr = S_FALSE;
@@ -973,7 +974,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
         if (ret2 < 0) {
           DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
-          break;
+          m_bQueueResync = TRUE;
+          continue;
         }
       } else {
         continue;
