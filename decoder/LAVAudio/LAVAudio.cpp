@@ -89,6 +89,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
+  //DbgSetModuleLevel (LOG_CUSTOM5, DWORD_MAX); // Extensive timing options
 #endif
 }
 
@@ -836,12 +837,6 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   m_rtStartInput = SUCCEEDED(hr) ? rtStart : AV_NOPTS_VALUE;
   m_rtStopInput = SUCCEEDED(hr) ? rtStop : AV_NOPTS_VALUE;
 
-  /*
-  if (SUCCEEDED(hr) && _abs64(m_rtStart - rtStart) > 100000i64) {
-    DbgLog((LOG_TRACE, 10, L"Sync: theirs: %I64d; ours: %I64d; diff: %I64d; buffer: %d", rtStart, m_rtStart, _abs64(m_rtStart - rtStart), m_buff.GetCount()));
-  }
-  */
-
   int bufflen = m_buff.GetCount();
 
   // Hack to re-create the BD LPCM header because in the MPC-HC format its stripped off.
@@ -1003,6 +998,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
         // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
         if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
+          if (m_rtStartInputCache == AV_NOPTS_VALUE) {
+            DbgLog((LOG_CUSTOM5, 20, L"WARNING: m_rtStartInputCache is invalid, using calculated rtStart"));
+          }
           m_rtStartCacheLT = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
         }
 
@@ -1030,6 +1028,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
       // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
       if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
+        if (m_rtStartInput == AV_NOPTS_VALUE) {
+          DbgLog((LOG_CUSTOM5, 20, L"WARNING: m_rtStartInput is invalid, using calculated rtStart"));
+        }
         m_rtStartCacheLT = m_rtStartInput != AV_NOPTS_VALUE ? m_rtStartInput : m_rtStart;
       }
     }
@@ -1278,6 +1279,13 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
     m_faJitter.OffsetValues(-rtJitterMin);
   }
 
+#ifdef DEBUG
+  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtJitter));
+
+  if (m_faJitter.CurrentSample() == 0) {
+    DbgLog((LOG_CUSTOM5, 20, L"Jitter statistics! min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
+  }
+#endif
   m_rtStartCacheLT = AV_NOPTS_VALUE;
 
   if(rtStart < 0) {
