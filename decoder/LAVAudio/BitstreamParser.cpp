@@ -33,7 +33,6 @@
 
 
 CBitstreamParser::CBitstreamParser()
-  : m_bDTSHD(FALSE)
 {
   m_gb = new GetBitContext();
   Reset();
@@ -50,6 +49,7 @@ void CBitstreamParser::Reset()
   m_dwFrameSize  = 0;
   m_dwSampleRate = 0;
   m_dwBitRate    = 0;
+  m_bDTSHD       = FALSE;
 }
 
 
