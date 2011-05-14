@@ -73,6 +73,8 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   m_pAudioSettings->SetBitstreamConfig(bBitstreaming);
   BOOL bDTSHDFraming        = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetDTSHDFraming(bDTSHDFraming);
+  BOOL bAutoAVSync          = SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetAutoAVSync(bAutoAVSync);
 
   LoadData();
 
@@ -117,6 +119,9 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_SETCHECK, m_bDTSHDFraming, 0);
     EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), m_bBitstreaming[BS_DTSHD]);
     addHint(IDC_BS_DTSHD_FRAMING, L"With some Receivers, this setting might be needed to achieve the full features of DTS. However, on other Receivers, this option will cause DTS to not work at all.\n\nIf you do not experience any problems, its recommended to leave this setting untouched.");
+
+    SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_SETCHECK, m_bAutoAVSync, 0);
+    addHint(IDC_AUTO_AVSYNC, L"Enables automatic tracking and correction of A/V sync.\n\nIf you encounter any sync issues, disabling this option can help in debugging the source of the problem.");
   }
 
   return hr;
@@ -128,6 +133,7 @@ HRESULT CLAVAudioSettingsProp::LoadData()
   hr = m_pAudioSettings->GetDRC(&m_bDRCEnabled, &m_iDRCLevel);
   hr = m_pAudioSettings->GetBitstreamConfig(m_bBitstreaming);
   m_bDTSHDFraming = m_pAudioSettings->GetDTSHDFraming();
+  m_bAutoAVSync = m_pAudioSettings->GetAutoAVSync();
   return hr;
 }
 
@@ -168,6 +174,10 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_BS_DTSHD_FRAMING && HIWORD(wParam) == BN_CLICKED) {
       BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bDTSHDFraming)
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_AUTO_AVSYNC && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bFlag != m_bAutoAVSync)
         SetDirty();
     }
     break;

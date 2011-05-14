@@ -226,6 +226,9 @@ HRESULT CLAVAudio::LoadSettings()
   bFlag = reg.ReadBOOL(L"DTSHDFraming", hr);
   m_settings.DTSHDFraming = SUCCEEDED(hr) ? bFlag : FALSE;
 
+  bFlag = reg.ReadBOOL(L"AutoAVSync", hr);
+  m_settings.AutoAVSync = SUCCEEDED(hr) ? bFlag : TRUE;
+
   return S_OK;
 }
 
@@ -239,6 +242,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBinary(L"Formats", (BYTE *)m_settings.bFormats, sizeof(m_settings.bFormats));
     reg.WriteBinary(L"Bitstreaming", (BYTE *)m_settings.bBitstream, sizeof(m_settings.bBitstream));
     reg.WriteBOOL(L"DTSHDFraming", m_settings.DTSHDFraming);
+    reg.WriteBOOL(L"AutoAVSync", m_settings.AutoAVSync);
   }
   return S_OK;
 }
@@ -378,6 +382,19 @@ STDMETHODIMP CLAVAudio::SetDTSHDFraming(BOOL bHDFraming)
   SaveSettings();
 
   UpdateBitstreamContext();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetAutoAVSync()
+{
+  return m_settings.AutoAVSync;
+}
+
+STDMETHODIMP CLAVAudio::SetAutoAVSync(BOOL bAutoSync)
+{
+  m_settings.AutoAVSync = bAutoSync;
+  SaveSettings();
 
   return S_OK;
 }
@@ -1435,7 +1452,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   m_faJitter.Sample(rtJitter);
 
   REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
-  if (abs(rtJitterMin) > MAX_JITTER_DESYNC) {
+  if (m_settings.AutoAVSync && abs(rtJitterMin) > MAX_JITTER_DESYNC) {
     DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
     m_rtStart -= rtJitterMin;
     m_faJitter.OffsetValues(-rtJitterMin);

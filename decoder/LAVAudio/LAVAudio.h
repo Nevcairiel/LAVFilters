@@ -78,6 +78,8 @@ public:
   STDMETHODIMP SetBitstreamConfig(bool *bBitstreaming);
   STDMETHODIMP_(BOOL) GetDTSHDFraming();
   STDMETHODIMP SetDTSHDFraming(BOOL bHDFraming);
+  STDMETHODIMP_(BOOL) GetAutoAVSync();
+  STDMETHODIMP SetAutoAVSync(BOOL bAutoSync);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -189,6 +191,7 @@ private:
     bool bFormats[CC_NB];
     bool bBitstream[BS_NB];
     BOOL DTSHDFraming;
+    BOOL AutoAVSync;
   } m_settings;
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled
