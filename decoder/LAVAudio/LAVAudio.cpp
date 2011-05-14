@@ -883,7 +883,7 @@ HRESULT CLAVAudio::EndFlush()
     DTSDecoder *context = (DTSDecoder *)m_pExtraDecoderContext;
 
     context->pDtsReset();
-    context->pDtsSetParam(context->dtsContext, 8, 24, 0, 0, 0);
+    context->pDtsSetParam(context->dtsContext, 8, m_iDTSBitDepth, 0, 0, 0);
   }
 
   return __super::EndFlush();
