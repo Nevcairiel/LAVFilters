@@ -172,6 +172,7 @@ HRESULT CLAVAudio::InitDTSDecoder()
   if(!context->dtsContext) goto fail;
 
   context->pDtsSetParam(context->dtsContext, 8, 24, 0, 0, 0);
+  m_iDTSBitDepth = 24;
 
   m_pExtraDecoderContext = context;
 
@@ -1044,6 +1045,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
   const scmap_t *scmap = NULL;
+  BOOL bDTSDecoder = FALSE;
 
   BOOL bEOF = (buffsize == -1);
   if (buffsize == -1) buffsize = 1;
@@ -1100,10 +1102,24 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         avpkt.size = pOut_size;
 
         if (m_nCodecId == CODEC_ID_DTS && m_hDllExtraDecoder) {
+          bDTSDecoder = TRUE;
+
           DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
           int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
           int unk4 = 0, unk5 = 0;
           nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pOut, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+          if (nPCMLength > 0 && bitdepth != m_iDTSBitDepth) {
+            int decodeBits = bitdepth > 16 ? 24 : 16;
+
+            // If the bit-depth changed, instruct the DTS Decoder to decode to the new bit depth, and decode the previous sample again.
+            if (decodeBits != m_iDTSBitDepth && out->bBuffer->GetCount() == 0) {
+              DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, change config to %d bits to compensate", bitdepth, decodeBits));
+              m_iDTSBitDepth = decodeBits;
+
+              dtsDec->pDtsSetParam(dtsDec->dtsContext, 8, m_iDTSBitDepth, 0, 0, 0);
+              nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pOut, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+            }
+          }
 
           if (nPCMLength <= 0) {
             DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder returned empty buffer"));
@@ -1112,13 +1128,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           }
 
           m_pAVCtx->sample_rate = HDSampleRate;
-          m_pAVCtx->bits_per_raw_sample = bitdepth;
           m_pAVCtx->channels = channels;
           m_pAVCtx->profile = profile;
-          if (bitdepth > 16)
-            m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_S32;
-          else
-            m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_S16;
         } else {
           int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
           if (ret2 < 0) {
@@ -1181,7 +1192,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
       int decode_fmt = m_pAVCtx->sample_fmt;
 
-      if (m_nCodecId == CODEC_ID_DTS && m_hDllExtraDecoder) {
+      if (bDTSDecoder) {
         decode_fmt = LAVF_SAMPLE_FMT_DTS;
       }
 
@@ -1191,8 +1202,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           out->bBuffer->SetSize(idx_start + nPCMLength);
           uint8_t *pDataOut = (uint8_t *)(out->bBuffer->Ptr() + idx_start);
           memcpy(pDataOut, m_pPCMData, nPCMLength);
+
+          out->sfFormat = m_iDTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
         }
-        out->sfFormat = m_pAVCtx->bits_per_raw_sample == 32 ? SampleFormat_32 : (m_pAVCtx->bits_per_raw_sample == 24 ? SampleFormat_24 : SampleFormat_16);
         break;
       case AV_SAMPLE_FMT_U8:
         {
