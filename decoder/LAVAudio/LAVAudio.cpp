@@ -1357,7 +1357,7 @@ HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
 
 HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
 {
-  if (m_OutputQueue.wChannels != buffer.wChannels || m_OutputQueue.sfFormat != buffer.sfFormat || m_OutputQueue.dwSamplesPerSec != buffer.dwSamplesPerSec || m_OutputQueue.dwChannelMask != buffer.dwChannelMask) {
+  if (m_OutputQueue.wChannels != buffer.wChannels || m_OutputQueue.sfFormat != buffer.sfFormat || m_OutputQueue.dwSamplesPerSec != buffer.dwSamplesPerSec || m_OutputQueue.dwChannelMask != buffer.dwChannelMask || m_OutputQueue.wBitsPerSample != buffer.wBitsPerSample) {
     if (m_OutputQueue.nSamples > 0)
       FlushOutput();
 
@@ -1365,6 +1365,7 @@ HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
     m_OutputQueue.wChannels = buffer.wChannels;
     m_OutputQueue.dwChannelMask = buffer.dwChannelMask;
     m_OutputQueue.dwSamplesPerSec = buffer.dwSamplesPerSec;
+    m_OutputQueue.wBitsPerSample = buffer.wBitsPerSample;
   }
 
   m_OutputQueue.nSamples += buffer.nSamples;
