@@ -896,6 +896,10 @@ HRESULT CLAVAudio::EndFlush()
     m_bUpdateTimeCache = TRUE;
   }
 
+  if (m_pAVCtx && m_pAVCtx->codec) {
+    avcodec_flush_buffers (m_pAVCtx);
+  }
+
   if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext) {
     DTSDecoder *context = (DTSDecoder *)m_pExtraDecoderContext;
 
@@ -908,11 +912,6 @@ HRESULT CLAVAudio::EndFlush()
 
 HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
-  CAutoLock cAutoLock(&m_csReceive);
-  m_buff.SetSize(0);
-  if (m_pAVCtx && m_pAVCtx->codec) {
-    avcodec_flush_buffers (m_pAVCtx);
-  }
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
