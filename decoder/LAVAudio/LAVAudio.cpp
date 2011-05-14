@@ -1445,7 +1445,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtJitter));
 
   if (m_faJitter.CurrentSample() == 0) {
-    DbgLog((LOG_CUSTOM5, 20, L"Jitter statistics! min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
+    DbgLog((LOG_TRACE, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
   }
 #endif
   m_rtStartCacheLT = AV_NOPTS_VALUE;
