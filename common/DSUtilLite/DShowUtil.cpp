@@ -117,3 +117,53 @@ BSTR ConvertCharToBSTR(const char *sz)
 
   return bstr;
 }
+
+IBaseFilter* GetFilterFromPin(IPin* pPin)
+{
+  CheckPointer(pPin, NULL);
+
+  PIN_INFO pi;
+  if(pPin && SUCCEEDED(pPin->QueryPinInfo(&pi))) {
+    return pi.pFilter;
+  }
+
+  return NULL;
+}
+
+HRESULT NukeDownstream(IFilterGraph *pGraph, IPin *pPin)
+{
+  PIN_DIRECTION dir;
+  if (pPin) {
+    IPin *pPinTo = NULL;
+    if (FAILED(pPin->QueryDirection(&dir)))
+      return E_FAIL;
+    if (dir == PINDIR_OUTPUT) {
+      if (SUCCEEDED(pPin->ConnectedTo(&pPinTo)) && pPinTo) {
+        if (IBaseFilter *pFilter = GetFilterFromPin(pPinTo)) {
+          NukeDownstream(pGraph, pFilter);
+          pGraph->Disconnect(pPinTo);
+          pGraph->Disconnect(pPin);
+          pGraph->RemoveFilter(pFilter);
+          SafeRelease(&pFilter);
+        }
+        SafeRelease(&pPinTo);
+      }
+    }
+  }
+
+  return S_OK;
+}
+
+HRESULT NukeDownstream(IFilterGraph *pGraph, IBaseFilter *pFilter)
+{
+  IEnumPins *pEnumPins = NULL;
+  if(pFilter && SUCCEEDED(pFilter->EnumPins(&pEnumPins))) {
+    for(IPin *pPin = NULL; S_OK == pEnumPins->Next(1, &pPin, 0); pPin = NULL) {
+      NukeDownstream(pGraph, pPin);
+      SafeRelease(&pPin);
+    }
+    SafeRelease(&pEnumPins);
+  }
+
+  return S_OK;
+}
