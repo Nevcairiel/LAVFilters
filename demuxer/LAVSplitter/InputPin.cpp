@@ -119,6 +119,8 @@ HRESULT CLAVInputPin::CompleteConnect(IPin* pPin)
 int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
 {
   CLAVInputPin *pin = static_cast<CLAVInputPin *>(opaque);
+  CAutoLock lock(pin);
+
   HRESULT hr = pin->m_pAsyncReader->SyncRead(pin->m_llPos, buf_size, buf);
   if (FAILED(hr)) {
     return -1;
@@ -140,6 +142,8 @@ int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
 int64_t CLAVInputPin::Seek(void *opaque,  int64_t offset, int whence)
 {
   CLAVInputPin *pin = static_cast<CLAVInputPin *>(opaque);
+  CAutoLock lock(pin);
+
   int64_t pos = 0;
 
   LONGLONG total = 0;

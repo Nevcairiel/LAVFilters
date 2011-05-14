@@ -22,7 +22,7 @@
 
 class CLAVSplitter;
 
-class CLAVInputPin : public CBasePin
+class CLAVInputPin : public CBasePin, public CCritSec
 {
 public:
   CLAVInputPin(TCHAR* pName, CLAVSplitter *pFilter, CCritSec* pLock, HRESULT* phr);
