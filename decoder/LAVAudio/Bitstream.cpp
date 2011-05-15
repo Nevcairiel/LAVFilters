@@ -300,9 +300,10 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 
     // Timestamp cache to compensate for one frame delay the parser might introduce, in case the frames were already perfectly sliced apart
     // If we used more (or equal) bytes then was output again, we encountered a new frame, update timestamps
-    if (used_bytes >= pOut_size) {
+    if (used_bytes >= pOut_size && m_bUpdateTimeCache) {
       m_rtStartInputCache = m_rtStartInput;
       m_rtStopInputCache = m_rtStopInput;
+      m_bUpdateTimeCache = FALSE;
     }
 
     if (!bEOF && used_bytes > 0) {
@@ -327,6 +328,8 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
         DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));
         return E_FAIL;
       }
+
+      m_bUpdateTimeCache = TRUE;
 
       // Set long-time cache to the first timestamp encountered, used by TrueHD and E-AC3 because the S/PDIF muxer caches data internally
       // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
@@ -381,7 +384,6 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
     else // no actual time of the current frame, use typical TrueHD frame size, 24 * 0.83333ms
       rtStop = rtStart + 200000;
     m_rtStart = rtStop;
-    m_rtStartCacheLT = AV_NOPTS_VALUE;
   } else {
     // E-AC3 trusts the incoming timestamps until a better solution can be found
     if (codec == CODEC_ID_EAC3) {
@@ -418,6 +420,25 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
 
     rtStop = rtStart + rtDur;
   }
+
+  REFERENCE_TIME rtJitter = rtStart - m_rtStartCacheLT;
+  m_faJitter.Sample(rtJitter);
+
+  REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
+  if (m_settings.AutoAVSync && abs(rtJitterMin) > MAX_JITTER_DESYNC) {
+    DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
+    m_rtStart -= rtJitterMin;
+    m_faJitter.OffsetValues(-rtJitterMin);
+  }
+
+#ifdef DEBUG
+  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtJitter));
+
+  if (m_faJitter.CurrentSample() == 0) {
+    DbgLog((LOG_TRACE, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
+  }
+#endif
+  m_rtStartCacheLT = AV_NOPTS_VALUE;
 
   pOut->SetTime(&rtStart, &rtStop);
   pOut->SetMediaTime(NULL, NULL);

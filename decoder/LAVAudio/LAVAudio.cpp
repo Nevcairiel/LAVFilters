@@ -46,9 +46,6 @@
 // 16ms
 #define PCM_BUFFER_MIN_DURATION  160000
 
-// Maximum desync that we attribute to jitter before re-syncing (50ms)
-#define MAX_JITTER_DESYNC 500000i64
-
 extern HINSTANCE g_hInst;
 
 // Constructor

@@ -35,6 +35,9 @@
 
 #define LAVF_SAMPLE_FMT_DTS 0xFF
 
+// Maximum desync that we attribute to jitter before re-syncing (50ms)
+#define MAX_JITTER_DESYNC 500000i64
+
 struct WAVEFORMATEX_HDMV_LPCM;
 
 struct BufferDetails_s {
