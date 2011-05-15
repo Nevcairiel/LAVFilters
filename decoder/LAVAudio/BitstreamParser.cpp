@@ -49,6 +49,7 @@ void CBitstreamParser::Reset()
   m_dwFrameSize  = 0;
   m_dwSampleRate = 0;
   m_dwBitRate    = 0;
+  m_dwSamples    = 0;
   m_bDTSHD       = FALSE;
 }
 
@@ -86,7 +87,7 @@ HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
   /* Frame type */
   get_bits(m_gb, 1);
   /* Samples deficit */
-  get_bits(m_gb, 5);
+  DWORD dwSamplesPerBlock = get_bits(m_gb, 5) + 1;
   /* CRC present */
   get_bits(m_gb, 1);
   m_dwBlocks         = get_bits(m_gb, 7) + 1;
@@ -97,6 +98,8 @@ HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
   
   int bit_rate_index = get_bits(m_gb, 5);
   m_dwBitRate        = dca_bit_rates[bit_rate_index];
+
+  m_dwSamples        = dwSamplesPerBlock * m_dwBlocks;
 
   return S_OK;
 }

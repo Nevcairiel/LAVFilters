@@ -39,6 +39,7 @@ public:
   DWORD m_dwBlocks;
   DWORD m_dwFrameSize;
   DWORD m_dwBitRate;
+  DWORD m_dwSamples;
 
   BOOL m_bDTSHD;
 

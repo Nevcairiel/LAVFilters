@@ -402,10 +402,8 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
     } else if (m_bsParser.m_dwBitRate <= 1 && rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
       rtDur = rtStopInput - rtStartInput;
     } else {
-      if (m_bsParser.m_dwBlocks) { // Used by DTS
-        const DWORD dwBlocks32 = m_bsParser.m_dwBlocks * 32;
-        const DWORD dwBlocks = (m_bsParser.m_dwFrameSize + dwBlocks32 - 1) / dwBlocks32;
-        dDuration = DBL_SECOND_MULT * dwBlocks32 / m_bsParser.m_dwSampleRate;
+      if (m_bsParser.m_dwSamples) { // Used by DTS
+        dDuration = DBL_SECOND_MULT * m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate;
       } else { // AC-3
         dDuration = DBL_SECOND_MULT * dwFrameSize * 8 / m_bsParser.m_dwBitRate;
       }
