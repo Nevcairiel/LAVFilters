@@ -405,7 +405,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
       if (m_bsParser.m_dwBlocks) { // Used by DTS
         const DWORD dwBlocks32 = m_bsParser.m_dwBlocks * 32;
         const DWORD dwBlocks = (m_bsParser.m_dwFrameSize + dwBlocks32 - 1) / dwBlocks32;
-        dDuration = DBL_SECOND_MULT * dwBlocks * dwBlocks32 * 8 / m_bsParser.m_dwBitRate;
+        dDuration = DBL_SECOND_MULT * dwBlocks32 / m_bsParser.m_dwSampleRate;
       } else { // AC-3
         dDuration = DBL_SECOND_MULT * dwFrameSize * 8 / m_bsParser.m_dwBitRate;
       }
