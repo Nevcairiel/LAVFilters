@@ -89,6 +89,12 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
     FreeBitstreamContext();
   m_bsParser.Reset();
 
+  // Increase DTS buffer even further, as we do not have any sample caching
+  if (codec == CODEC_ID_DTS)
+    m_faJitter.SetNumSamples(400);
+  else
+    m_faJitter.SetNumSamples(100);
+
   m_pParser = av_parser_init(codec);
   ASSERT(m_pParser);
 
