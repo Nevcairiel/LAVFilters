@@ -285,13 +285,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
   while (buffsize > 0) {
     if (bEOF) buffsize = 0;
     else {
-      if (buffsize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
-        m_nFFBufferSize = buffsize + FF_INPUT_BUFFER_PADDING_SIZE;
-        m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize);
-      }
-
-      memcpy(m_pFFBuffer, pDataInBuff, buffsize);
-      memset(m_pFFBuffer+buffsize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+      COPY_TO_BUFFER(pDataInBuff, buffsize);
     }
 
     BYTE *pOut = NULL;
@@ -323,7 +317,8 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
         ActivateDTSHDMuxing();
       }
 
-      avpkt.data = (uint8_t *)pOut;
+      COPY_TO_BUFFER(pOut, pOut_size);
+      avpkt.data = m_pFFBuffer;
       avpkt.size = pOut_size;
 
       // Write SPDIF muxed frame

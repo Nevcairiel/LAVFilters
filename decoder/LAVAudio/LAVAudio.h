@@ -55,6 +55,16 @@ struct BufferDetails_s {
 };
 typedef struct BufferDetails_s BufferDetails;
 
+// Copy the given data into our buffer, including padding, so broken decoders do not overread and crash
+#define COPY_TO_BUFFER(data, size) { \
+  if (size+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) { \
+  m_nFFBufferSize = size + FF_INPUT_BUFFER_PADDING_SIZE; \
+  m_pFFBuffer = (BYTE*)realloc(m_pFFBuffer, m_nFFBufferSize); \
+  }\
+  memcpy(m_pFFBuffer, data, size); \
+  memset(m_pFFBuffer+size, 0, FF_INPUT_BUFFER_PADDING_SIZE); \
+}
+
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
 class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVAudioSettings, public ILAVAudioStatus
 {
