@@ -935,6 +935,10 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_buff.SetSize(0);
   }
 
+  if (!m_pAVCtx) {
+    return E_FAIL;
+  }
+
   BYTE *pDataIn = NULL;
   if(FAILED(hr = pIn->GetPointer(&pDataIn))) {
     return hr;
