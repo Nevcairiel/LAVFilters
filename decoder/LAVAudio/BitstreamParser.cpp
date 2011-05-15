@@ -72,7 +72,6 @@ HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
     for (DWORD i = 0; i < dwSize; ++i) {
       state = (state << 8) | pBuffer[i];
       if (state == DCA_HD_MARKER) {
-        DbgLog((LOG_TRACE, 20, L"::ParseDTS() Found DTS-HD marker - switching to DTS-HD muxing mode"));
         m_bDTSHD = TRUE;
         break;
       }

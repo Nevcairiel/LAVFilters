@@ -272,6 +272,7 @@ void CLAVAudio::ActivateDTSHDMuxing()
 {
   m_bDTSHD = TRUE;
   av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+  DbgLog((LOG_TRACE, 20, L"::ActivateDTSHDMuxing(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
 }
 
 HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
