@@ -1,5 +1,22 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.26 - 2011/05/15
+General
+- The VC2010 runtime is no longer required to be installed
+
+LAV Splitter
+- Further VC-1 in MKV improvements
+- Added a separate "mpegvideo" (m2v files) option to the Format section
+- Added a flag for secondary audio streams
+- Changed the default DTS media type (better compatibility)
+
+LAV Audio
+- Added the ability to use the ArcSoft DTS decoder directly through LAV Audio
+- Added an automatic algorithm to keep A/V sync stable
+- Improved Bitstreaming with splitters other then LAV Splitter
+- Improved timestamp generation when bitstreaming
+- Fixed LPCM 24-bit Media Types
+
 0.25 - 2011/05/06
 LAV Splitter
 - Added the ability to filter Blu-ray PGS subtitles, so only frames flagged as "forced" are delivered
