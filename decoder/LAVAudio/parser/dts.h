@@ -32,10 +32,7 @@ struct DTSHeader {
   unsigned ChannelLayout;
   unsigned SampleRate;
   unsigned Bitrate;
-  unsigned ExtDescriptor;
-  unsigned ExtCoding;
   unsigned LFE;
-  unsigned ES;
 
   // Extensions
   unsigned XChChannelLayout;

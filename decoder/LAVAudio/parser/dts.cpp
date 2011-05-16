@@ -70,7 +70,7 @@ int close_dts_parser(DTSParserContext **pContext)
   return 0;
 }
 
-static int parse_dts_xch_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pBuffer, unsigned uSize)
+static int parse_dts_xch_header(DTSParserContext *pContext, DTSHeader *pHeader, const uint8_t *pBuffer, unsigned uSize)
 {
   GetBitContext *gb = pContext->gb;
   init_get_bits(gb, pBuffer, uSize << 3);
@@ -83,7 +83,7 @@ static int parse_dts_xch_header(DTSParserContext *pContext, DTSHeader *pHeader, 
 }
 
 
-static int parse_dts_xch_hd_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pBuffer, unsigned uSize)
+static int parse_dts_xch_hd_header(DTSParserContext *pContext, DTSHeader *pHeader, const uint8_t *pBuffer, unsigned uSize)
 {
   GetBitContext *gb = pContext->gb;
   init_get_bits(gb, pBuffer, uSize << 3);
@@ -94,7 +94,7 @@ static int parse_dts_xch_hd_header(DTSParserContext *pContext, DTSHeader *pHeade
   return 0;
 }
 
-static int parse_dts_xxch_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pBuffer, unsigned uSize)
+static int parse_dts_xxch_header(DTSParserContext *pContext, DTSHeader *pHeader, const uint8_t *pBuffer, unsigned uSize)
 {
   GetBitContext *gb = pContext->gb;
   init_get_bits(gb, pBuffer, uSize << 3);
@@ -107,7 +107,7 @@ static int parse_dts_xxch_header(DTSParserContext *pContext, DTSHeader *pHeader,
   return 0;
 }
 
-static int parse_dts_xxch_hd_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pBuffer, unsigned uSize)
+static int parse_dts_xxch_hd_header(DTSParserContext *pContext, DTSHeader *pHeader, const uint8_t *pBuffer, unsigned uSize)
 {
   GetBitContext *gb = pContext->gb;
   init_get_bits(gb, pBuffer, uSize << 3);
@@ -120,7 +120,7 @@ static int parse_dts_xxch_hd_header(DTSParserContext *pContext, DTSHeader *pHead
   return 0;
 }
 
-static int parse_dts_hd_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pBuffer, unsigned uSize)
+static int parse_dts_hd_header(DTSParserContext *pContext, DTSHeader *pHeader, const uint8_t *pBuffer, unsigned uSize)
 {
   GetBitContext *gb = pContext->gb;
   init_get_bits(gb, pBuffer, uSize << 3);
@@ -242,8 +242,8 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   get_bits(gb, 1);                                    /* Time stamp */
   get_bits(gb, 1);                                    /* Auxiliary data */
   get_bits(gb, 1);                                    /* HDCD */
-  pHeader->ExtDescriptor    = get_bits(gb, 3);        /* External descriptor  */
-  pHeader->ExtCoding        = get_bits(gb, 1);        /* Extended coding */
+  unsigned ExtDescriptor    = get_bits(gb, 3);        /* External descriptor  */
+  unsigned ExtCoding        = get_bits(gb, 1);        /* Extended coding */
   get_bits(gb, 1);                                    /* ASPF */
   pHeader->LFE              = get_bits(gb, 2);        /* LFE */
   get_bits(gb, 1);                                    /* Predictor History */
@@ -252,24 +252,24 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   get_bits(gb, 1);                                    /* Multirate Interpolator */
   get_bits(gb, 4);                                    /* Encoder Software Revision */
   get_bits(gb, 2);                                    /* Copy history */
-  pHeader->ES = get_bits(gb, 1);                      /* ES */
+  get_bits(gb, 1);                                    /* ES */
   get_bits(gb, 4);                                    /* Dialog Normalization Parameter */
   get_bits(gb, 4);                                    /* Unknown or Dialog Normalization Parameter */
 
   // DTS-HD parsing
-  uint8_t *pHD = find_marker32_position(pBuffer, uSize, DCA_HD_MARKER);
+  const uint8_t *pHD = find_marker32_position(pBuffer, uSize, DCA_HD_MARKER);
   if (pHD) {
     pHeader->IsHD = 1;
     unsigned remaining = uSize - (pHD - pBuffer);
     parse_dts_hd_header(pContext, pHeader, pHD, remaining);
 
-    uint8_t *pXChHD = find_marker32_position(pHD, remaining, DCA_XCH_MARKER);
+    const uint8_t *pXChHD = find_marker32_position(pHD, remaining, DCA_XCH_MARKER);
     if (pXChHD) {
       unsigned remaining = uSize - (pXChHD - pBuffer);
       parse_dts_xch_hd_header(pContext, pHeader, pXChHD, remaining);
     }
 
-    uint8_t *pXXChHD = find_marker32_position(pHD, remaining, DCA_XXCH_MARKER);
+    const uint8_t *pXXChHD = find_marker32_position(pHD, remaining, DCA_XXCH_MARKER);
     if (pXXChHD) {
       unsigned remaining = uSize - (pXXChHD - pBuffer);
       parse_dts_xxch_hd_header(pContext, pHeader, pXXChHD, remaining);
@@ -277,17 +277,17 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   }
 
   // Handle DTS extensions
-  if (pHeader->ExtCoding) {
+  if (ExtCoding) {
     unsigned coreSize = pHD ? (pHD - pBuffer) : uSize;
-    if (pHeader->ExtDescriptor == 0 || pHeader->ExtDescriptor == 3) {
-      uint8_t *pXCh = find_marker32_position(pBuffer, coreSize, DCA_XCH_MARKER);
+    if (ExtDescriptor == 0 || ExtDescriptor == 3) {
+      const uint8_t *pXCh = find_marker32_position(pBuffer, coreSize, DCA_XCH_MARKER);
       if (pXCh) {
         unsigned remaining = coreSize - (pXCh - pBuffer);
         parse_dts_xch_header(pContext, pHeader, pXCh, remaining);
       }
     }
-    if (pHeader->ExtDescriptor == 6) {
-      uint8_t *pXXCh = find_marker32_position(pBuffer, coreSize, DCA_XXCH_MARKER);
+    if (ExtDescriptor == 6) {
+      const uint8_t *pXXCh = find_marker32_position(pBuffer, coreSize, DCA_XXCH_MARKER);
       if (pXXCh) {
         unsigned remaining = coreSize - (pXXCh - pBuffer);
         parse_dts_xxch_header(pContext, pHeader, pXXCh, remaining);
