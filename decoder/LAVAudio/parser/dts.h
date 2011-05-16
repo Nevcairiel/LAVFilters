@@ -20,31 +20,32 @@
 
 #pragma once
 
-struct GetBitContext;
+#include "parser.h"
 
-class CBitstreamParser {
-public:
-  CBitstreamParser();
-  ~CBitstreamParser();
+struct DTSParserContext;
 
-  HRESULT Parse(CodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
-  void Reset();
+struct DTSHeader {
+  unsigned CRCPresent;
+  unsigned SamplesPerBlock;
+  unsigned Blocks;
+  unsigned FrameSize;
+  unsigned ChannelLayout;
+  unsigned SampleRate;
+  unsigned Bitrate;
+  unsigned ExtDescriptor;
+  unsigned ExtCoding;
+  unsigned LFE;
+  unsigned ES;
 
-private:
-  HRESULT ParseDTS(BYTE *pBuffer, DWORD dwSize);
-  HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+  // Extensions
+  unsigned XChChannelLayout;
 
-public:
-  DWORD m_dwSampleRate;
-  DWORD m_dwBlocks;
-  DWORD m_dwFrameSize;
-  DWORD m_dwBitRate;
-  DWORD m_dwSamples;
-
-  BOOL m_bDTSHD;
-
-private:
-  GetBitContext *m_gb;
-
-  void *m_pParserContext;
+  unsigned IsHD;
+  unsigned HDTotalChannels;
+  unsigned HDSpeakerMask;
 };
+
+int init_dts_parser(DTSParserContext **pContext);
+int close_dts_parser(DTSParserContext **pContext);
+
+int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pBuffer, unsigned uSize);

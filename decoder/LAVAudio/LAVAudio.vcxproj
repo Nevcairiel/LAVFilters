@@ -150,6 +150,9 @@
     <ClCompile Include="LAVAudio.cpp" />
     <ClCompile Include="AudioSettingsProp.cpp" />
     <ClCompile Include="Media.cpp" />
+    <ClCompile Include="parser\dts.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -160,6 +163,8 @@
     <ClInclude Include="LAVAudioSettings.h" />
     <ClInclude Include="AudioSettingsProp.h" />
     <ClInclude Include="Media.h" />
+    <ClInclude Include="parser\dts.h" />
+    <ClInclude Include="parser\parser.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

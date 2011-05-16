@@ -20,31 +20,17 @@
 
 #pragma once
 
-struct GetBitContext;
+#include "libavcodec/get_bits.h"
 
-class CBitstreamParser {
-public:
-  CBitstreamParser();
-  ~CBitstreamParser();
+static inline uint8_t *find_marker32_position(uint8_t *pBuffer, unsigned uBufSize, uint32_t marker)
+{
+  uint32_t state = 0;
+  for (unsigned i = 0; i < uBufSize; ++i) {
+    state = (state << 8) | pBuffer[i];
+    if (state == marker) {
+      return pBuffer + (i-3);
+    }
+  }
 
-  HRESULT Parse(CodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
-  void Reset();
-
-private:
-  HRESULT ParseDTS(BYTE *pBuffer, DWORD dwSize);
-  HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
-
-public:
-  DWORD m_dwSampleRate;
-  DWORD m_dwBlocks;
-  DWORD m_dwFrameSize;
-  DWORD m_dwBitRate;
-  DWORD m_dwSamples;
-
-  BOOL m_bDTSHD;
-
-private:
-  GetBitContext *m_gb;
-
-  void *m_pParserContext;
-};
+  return NULL;
+}

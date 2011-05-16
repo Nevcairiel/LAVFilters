@@ -21,26 +21,20 @@
 #include "stdafx.h"
 #include "BitstreamParser.h"
 
-#include "libavcodec/get_bits.h"
-#include "libavcodec/dca.h" // contains DCA_HD_MARKER
-
-#pragma warning( push )
-#pragma warning( disable : 4305 )
-#include "libavcodec/dcadata.h"
-#pragma warning( pop )
-
 #include "libavcodec/aac_ac3_parser.h"
+
+#include "parser/dts.h"
 
 
 CBitstreamParser::CBitstreamParser()
 {
-  m_gb = new GetBitContext();
+  init_dts_parser((DTSParserContext **)&m_pParserContext);
   Reset();
 }
 
 CBitstreamParser::~CBitstreamParser()
 {
-  delete m_gb;
+  close_dts_parser((DTSParserContext **)&m_pParserContext);
 }
 
 void CBitstreamParser::Reset()
@@ -67,38 +61,17 @@ HRESULT CBitstreamParser::Parse(CodecID codec, BYTE *pBuffer, DWORD dwSize, void
 
 HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
 {
-  if (!m_bDTSHD) {
-    uint32_t state;
-    for (DWORD i = 0; i < dwSize; ++i) {
-      state = (state << 8) | pBuffer[i];
-      if (state == DCA_HD_MARKER) {
-        m_bDTSHD = TRUE;
-        break;
-      }
-    }
-  }
-  
-  init_get_bits(m_gb, pBuffer, dwSize * 8);
+  DTSHeader header;
+  memset(&header, 0, sizeof(header));
 
-  /* Sync code */
-  get_bits(m_gb, 32);
+  parse_dts_header((DTSParserContext *)m_pParserContext, &header, pBuffer, (unsigned)dwSize);
+  m_bDTSHD = m_bDTSHD || header.IsHD;
 
-  /* Frame type */
-  get_bits(m_gb, 1);
-  /* Samples deficit */
-  DWORD dwSamplesPerBlock = get_bits(m_gb, 5) + 1;
-  /* CRC present */
-  get_bits(m_gb, 1);
-  m_dwBlocks         = get_bits(m_gb, 7) + 1;
-  m_dwFrameSize      = get_bits(m_gb, 14) + 1;
-  /* amode */
-  get_bits(m_gb, 6);
-  m_dwSampleRate     = dca_sample_rates[get_bits(m_gb, 4)];
-  
-  int bit_rate_index = get_bits(m_gb, 5);
-  m_dwBitRate        = dca_bit_rates[bit_rate_index];
-
-  m_dwSamples        = dwSamplesPerBlock * m_dwBlocks;
+  m_dwBlocks      = header.Blocks;
+  m_dwSampleRate  = header.SampleRate;
+  m_dwBitRate     = header.Bitrate;
+  m_dwFrameSize   = header.FrameSize;
+  m_dwSamples     = header.SamplesPerBlock * m_dwBlocks;
 
   return S_OK;
 }
