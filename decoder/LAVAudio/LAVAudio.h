@@ -169,6 +169,7 @@ private:
   void ActivateDTSHDMuxing();
 
   HRESULT InitDTSDecoder();
+  HRESULT DecodeDTS(BYTE *pPCMData, int *nPCMLength, AVPacket *pkt, const BufferDetails *out);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id

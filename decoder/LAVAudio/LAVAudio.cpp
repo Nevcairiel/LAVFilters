@@ -46,6 +46,8 @@
 // 16ms
 #define PCM_BUFFER_MIN_DURATION  160000
 
+#define DTS_REQUEST_CHANNELS 8
+
 extern HINSTANCE g_hInst;
 
 // Constructor
@@ -168,7 +170,7 @@ HRESULT CLAVAudio::InitDTSDecoder()
   context->dtsContext = context->pDtsOpen();
   if(!context->dtsContext) goto fail;
 
-  context->pDtsSetParam(context->dtsContext, 8, 24, 0, 0, 0);
+  context->pDtsSetParam(context->dtsContext, DTS_REQUEST_CHANNELS, 24, 0, 0, 0);
   m_iDTSBitDepth = 24;
 
   m_pExtraDecoderContext = context;
@@ -1056,6 +1058,37 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   return hr;
 }
 
+HRESULT CLAVAudio::DecodeDTS(BYTE *pPCMData, int *nPCMLength, AVPacket *pkt, const BufferDetails *out)
+{
+  m_bsParser.Parse(CODEC_ID_DTS, pkt->data, pkt->size, NULL);
+
+  DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
+  int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
+  int unk4 = 0, unk5 = 0;
+  *nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pkt->data, pkt->size, pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+  if (*nPCMLength > 0 && bitdepth != m_iDTSBitDepth) {
+    int decodeBits = bitdepth > 16 ? 24 : 16;
+
+    // If the bit-depth changed, instruct the DTS Decoder to decode to the new bit depth, and decode the previous sample again.
+    if (decodeBits != m_iDTSBitDepth && out->bBuffer->GetCount() == 0) {
+      DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, change config to %d bits to compensate", bitdepth, decodeBits));
+      m_iDTSBitDepth = decodeBits;
+
+      dtsDec->pDtsSetParam(dtsDec->dtsContext, DTS_REQUEST_CHANNELS, m_iDTSBitDepth, 0, 0, 0);
+      *nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pkt->data, pkt->size, pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+    }
+  }
+
+  if (*nPCMLength == 0)
+    return E_FAIL;
+
+  m_pAVCtx->sample_rate = HDSampleRate;
+  m_pAVCtx->channels = channels;
+  m_pAVCtx->profile = profile;
+
+  return S_OK;
+}
+
 HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out)
 {
   CheckPointer(out, E_POINTER);
@@ -1110,33 +1143,12 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
         if (m_nCodecId == CODEC_ID_DTS && m_hDllExtraDecoder) {
           bDTSDecoder = TRUE;
-
-          DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
-          int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
-          int unk4 = 0, unk5 = 0;
-          nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pOut, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
-          if (nPCMLength > 0 && bitdepth != m_iDTSBitDepth) {
-            int decodeBits = bitdepth > 16 ? 24 : 16;
-
-            // If the bit-depth changed, instruct the DTS Decoder to decode to the new bit depth, and decode the previous sample again.
-            if (decodeBits != m_iDTSBitDepth && out->bBuffer->GetCount() == 0) {
-              DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, change config to %d bits to compensate", bitdepth, decodeBits));
-              m_iDTSBitDepth = decodeBits;
-
-              dtsDec->pDtsSetParam(dtsDec->dtsContext, 8, m_iDTSBitDepth, 0, 0, 0);
-              nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pOut, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
-            }
-          }
-
-          if (nPCMLength <= 0) {
-            DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder returned empty buffer"));
+          HRESULT hr = DecodeDTS(m_pPCMData, &nPCMLength, &avpkt, out);
+          if (FAILED(hr)) {
+            DbgLog((LOG_TRACE, 50, L"::Decode() - DTS decoding failed"));
             m_bQueueResync = TRUE;
             continue;
           }
-
-          m_pAVCtx->sample_rate = HDSampleRate;
-          m_pAVCtx->channels = channels;
-          m_pAVCtx->profile = profile;
         } else {
           int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
           if (ret2 < 0) {
