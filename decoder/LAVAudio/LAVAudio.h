@@ -45,7 +45,7 @@ struct BufferDetails_s {
   LAVAudioSampleFormat  sfFormat;         // Sample Format
   WORD                  wBitsPerSample;   // Bits per sample
   DWORD                 dwSamplesPerSec;  // Samples per second
-  int                   nSamples;         // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
+  unsigned              nSamples;         // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
   WORD                  wChannels;        // Number of channels
   DWORD                 dwChannelMask;    // channel mask
 
