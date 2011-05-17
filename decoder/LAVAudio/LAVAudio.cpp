@@ -31,20 +31,6 @@
 
 #include "registry.h"
 
-// Buffer Size for decoded PCM: 1s of 192kHz 32-bit with 8 channels
-// 192000 (Samples) * 4 (Bytes per Sample) * 8 (channels)
-#define LAV_AUDIO_BUFFER_SIZE 6144000
-
-#define AUTO_RESYNC 0
-
-#define REQUEST_FLOAT 1
-
-// Maximum Durations (in reference time)
-// 100ms
-#define PCM_BUFFER_MAX_DURATION 1000000
-// 16ms
-#define PCM_BUFFER_MIN_DURATION  160000
-
 extern HINSTANCE g_hInst;
 
 // Constructor

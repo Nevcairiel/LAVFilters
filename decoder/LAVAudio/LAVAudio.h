@@ -25,6 +25,27 @@
 #include "Media.h"
 #include "BitstreamParser.h"
 
+//////////////////// Configuration //////////////////////////
+
+// Buffer Size for decoded PCM: 1s of 192kHz 32-bit with 8 channels
+// 192000 (Samples) * 4 (Bytes per Sample) * 8 (channels)
+#define LAV_AUDIO_BUFFER_SIZE 6144000
+
+#define AUTO_RESYNC 0
+
+#define REQUEST_FLOAT 1
+
+// Maximum Durations (in reference time)
+// 100ms
+#define PCM_BUFFER_MAX_DURATION 1000000
+// 16ms
+#define PCM_BUFFER_MIN_DURATION  160000
+
+// Maximum desync that we attribute to jitter before re-syncing (50ms)
+#define MAX_JITTER_DESYNC 500000i64
+
+//////////////////// End Configuration //////////////////////
+
 #define CODEC_ID_PCM_SxxBE (CodecID)0x19001
 #define CODEC_ID_PCM_SxxLE (CodecID)0x19002
 #define CODEC_ID_PCM_UxxBE (CodecID)0x19003
@@ -36,8 +57,7 @@
 
 #define LAVF_SAMPLE_FMT_DTS 0xFF
 
-// Maximum desync that we attribute to jitter before re-syncing (50ms)
-#define MAX_JITTER_DESYNC 500000i64
+
 
 struct WAVEFORMATEX_HDMV_LPCM;
 
