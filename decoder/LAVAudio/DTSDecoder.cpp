@@ -25,6 +25,11 @@
 
 #include <Shlwapi.h>
 
+#pragma warning( push )
+#pragma warning( disable : 4305 )
+#include "libavcodec/dcadata.h"
+#pragma warning( pop )
+
 typedef void* (*DtsOpen)();
 typedef int (*DtsClose)(void *context);
 typedef int (*DtsReset)();
@@ -83,10 +88,12 @@ HRESULT CLAVAudio::InitDTSDecoder()
   context->dtsContext = context->pDtsOpen();
   if(!context->dtsContext) goto fail;
 
-  context->pDtsSetParam(context->dtsContext, 8, 24, 0, 0, 0);
-  m_iDTSBitDepth = 24;
+  m_DTSBitDepth = 24;
+  m_DTSDecodeChannels = 8;
 
   m_pExtraDecoderContext = context;
+
+  FlushDTSDecoder();
 
   return S_OK;
 fail:
@@ -113,10 +120,55 @@ HRESULT CLAVAudio::FlushDTSDecoder()
     DTSDecoder *context = (DTSDecoder *)m_pExtraDecoderContext;
 
     context->pDtsReset();
-    context->pDtsSetParam(context->dtsContext, 8, m_iDTSBitDepth, 0, 0, 0);
+    context->pDtsSetParam(context->dtsContext, m_DTSDecodeChannels, m_DTSBitDepth, 0, 0, 0);
   }
 
   return S_OK;
+}
+
+static unsigned dts_header_get_channels(DTSHeader header)
+{
+  if (header.IsHD && header.HDTotalChannels)
+    return header.HDTotalChannels;
+
+  if (header.ChannelLayout > 15) // user-definied layouts
+    return 8;
+
+  unsigned channels = dca_channels[header.ChannelLayout];
+  channels += header.XChChannelLayout;
+  if (header.LFE)
+    channels++;
+  return channels;
+}
+
+static unsigned dts_determine_decode_channels(DTSHeader header)
+{
+  unsigned coded_channels = dts_header_get_channels(header);
+  unsigned decode_channels;
+  switch(coded_channels) {
+  case 2:
+    decode_channels = 2;
+    break;
+  case 1:
+  case 3:
+  case 4:
+  case 5:
+    decode_channels = 6;
+    break;
+  case 6:
+    if (header.ChannelLayout == 9 && !header.XChChannelLayout)
+      decode_channels = 6;
+    else
+      decode_channels = 7;
+    break;
+  case 7:
+    decode_channels = 7;
+    break;
+  case 8:
+    decode_channels = 8;
+    break;
+  }
+  return decode_channels;
 }
 
 HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out)
@@ -165,22 +217,31 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
     if (pOut_size > 0) {
       COPY_TO_BUFFER(pOut, pOut_size);
 
+      DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
+
       // Parse DTS headers
       m_bsParser.Parse(CODEC_ID_DTS, m_pFFBuffer, pOut_size, NULL);
+      unsigned decode_channels = dts_determine_decode_channels(m_bsParser.m_DTSHeader);
 
-      DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
+      // Init Decoder with new Parameters, if required
+      if (m_DTSDecodeChannels != decode_channels) {
+        DbgLog((LOG_TRACE, 20, L"::Decode(): Switching to %d channel decoding", decode_channels));
+        dtsDec->pDtsSetParam(dtsDec->dtsContext, decode_channels, m_DTSBitDepth, 0, 0, 0);
+        m_DTSDecodeChannels = decode_channels;
+      }
+
       int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
       int unk4 = 0, unk5 = 0;
       nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
-      if (nPCMLength > 0 && bitdepth != m_iDTSBitDepth) {
+      if (nPCMLength > 0 && bitdepth != m_DTSBitDepth) {
         int decodeBits = bitdepth > 16 ? 24 : 16;
 
         // If the bit-depth changed, instruct the DTS Decoder to decode to the new bit depth, and decode the previous sample again.
-        if (decodeBits != m_iDTSBitDepth && out->bBuffer->GetCount() == 0) {
+        if (decodeBits != m_DTSBitDepth && out->bBuffer->GetCount() == 0) {
           DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, changing config to %d bits to compensate", bitdepth, decodeBits));
-          m_iDTSBitDepth = decodeBits;
+          m_DTSBitDepth = decodeBits;
 
-          dtsDec->pDtsSetParam(dtsDec->dtsContext, 8, m_iDTSBitDepth, 0, 0, 0);
+          dtsDec->pDtsSetParam(dtsDec->dtsContext, 8, m_DTSBitDepth, 0, 0, 0);
           nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
         }
       }
@@ -194,7 +255,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
       out->wChannels        = channels;
       out->dwSamplesPerSec  = HDSampleRate;
-      out->sfFormat         = m_iDTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
+      out->sfFormat         = m_DTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
       out->dwChannelMask    = get_channel_mask(channels); // TODO
       out->wBitsPerSample   = bitdepth;
 

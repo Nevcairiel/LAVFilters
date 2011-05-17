@@ -245,5 +245,6 @@ private:
 
   HMODULE             m_hDllExtraDecoder;
   void                *m_pExtraDecoderContext;
-  int                 m_iDTSBitDepth;
+  unsigned            m_DTSBitDepth;
+  unsigned            m_DTSDecodeChannels;
 };
