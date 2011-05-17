@@ -214,9 +214,8 @@ void WINAPI DbgOutString(LPCTSTR psz)
 #else
         WriteFile (m_hOutput, psz, cb, &dw, NULL);
 #endif
-    } else {
-        OutputDebugString (psz);
     }
+    OutputDebugString (psz);
 }
 
 

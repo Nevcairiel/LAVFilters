@@ -32,6 +32,7 @@
 #define CODEC_ID_PCM_QTRAW (CodecID)0x19005
 
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
+#define LAVC_AUDIO_LOG_FILE     L"LAVAudio.txt"
 
 #define LAVF_SAMPLE_FMT_DTS 0xFF
 

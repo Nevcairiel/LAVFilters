@@ -49,6 +49,42 @@ void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName)
    }
 }
 
+#ifdef DEBUG
+
+#include <Shlobj.h>
+#include <Shlwapi.h>
+
+extern HANDLE m_hOutput;
+extern HRESULT  DbgUniqueProcessName(LPCTSTR inName, LPTSTR outName);
+void DbgSetLogFile(LPCTSTR szFile)
+{
+  if (m_hOutput != INVALID_HANDLE_VALUE) {
+    CloseHandle (m_hOutput);
+    m_hOutput = INVALID_HANDLE_VALUE;
+  }
+
+  m_hOutput = CreateFile(szFile, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+  if (INVALID_HANDLE_VALUE == m_hOutput &&
+    GetLastError() == ERROR_SHARING_VIOLATION)
+  {
+    TCHAR uniqueName[MAX_PATH] = {0};
+    if (SUCCEEDED(DbgUniqueProcessName(szFile, uniqueName)))
+    {
+      m_hOutput = CreateFile(uniqueName, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    }
+  }
+}
+
+void DbgSetLogFileDesktop(LPCTSTR szFile)
+{
+  TCHAR szLogPath[512];
+  SHGetFolderPath(NULL, CSIDL_DESKTOPDIRECTORY, NULL, 0, szLogPath);
+  PathAppend(szLogPath, szFile);
+  DbgSetLogFile(szLogPath);
+}
+#endif
+
 void split(std::string& text, std::string& separators, std::list<std::string>& words)
 {
     size_t n = text.length();

@@ -94,6 +94,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   //DbgSetModuleLevel (LOG_CUSTOM5, DWORD_MAX); // Extensive timing options
+
+  DbgSetLogFileDesktop(LAVC_AUDIO_LOG_FILE);
 #endif
 }
 

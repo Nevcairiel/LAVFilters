@@ -60,6 +60,8 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
+
+  DbgSetLogFileDesktop(LAVF_LOG_FILE);
 #endif
 }
 
