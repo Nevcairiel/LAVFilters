@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "parser/dts.h"
+
 struct GetBitContext;
 
 class CBitstreamParser {
@@ -42,6 +44,7 @@ public:
   DWORD m_dwSamples;
 
   BOOL m_bDTSHD;
+  DTSHeader m_DTSHeader;
 
 private:
   GetBitContext *m_gb;

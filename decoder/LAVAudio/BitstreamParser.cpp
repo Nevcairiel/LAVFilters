@@ -45,6 +45,7 @@ void CBitstreamParser::Reset()
   m_dwBitRate    = 0;
   m_dwSamples    = 0;
   m_bDTSHD       = FALSE;
+  memset(&m_DTSHeader, 0, sizeof(m_DTSHeader));
 }
 
 
@@ -61,17 +62,14 @@ HRESULT CBitstreamParser::Parse(CodecID codec, BYTE *pBuffer, DWORD dwSize, void
 
 HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
 {
-  DTSHeader header;
-  memset(&header, 0, sizeof(header));
+  parse_dts_header((DTSParserContext *)m_pParserContext, &m_DTSHeader, pBuffer, (unsigned)dwSize);
+  m_bDTSHD = m_bDTSHD || m_DTSHeader.IsHD;
 
-  parse_dts_header((DTSParserContext *)m_pParserContext, &header, pBuffer, (unsigned)dwSize);
-  m_bDTSHD = m_bDTSHD || header.IsHD;
-
-  m_dwBlocks      = header.Blocks;
-  m_dwSampleRate  = header.SampleRate;
-  m_dwBitRate     = header.Bitrate;
-  m_dwFrameSize   = header.FrameSize;
-  m_dwSamples     = header.SamplesPerBlock * m_dwBlocks;
+  m_dwBlocks      = m_DTSHeader.Blocks;
+  m_dwSampleRate  = m_DTSHeader.SampleRate;
+  m_dwBitRate     = m_DTSHeader.Bitrate;
+  m_dwFrameSize   = m_DTSHeader.FrameSize;
+  m_dwSamples     = m_DTSHeader.SamplesPerBlock * m_dwBlocks;
 
   return S_OK;
 }
