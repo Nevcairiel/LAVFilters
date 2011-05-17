@@ -170,6 +170,8 @@ private:
   void ActivateDTSHDMuxing();
 
   HRESULT InitDTSDecoder();
+  HRESULT FreeDTSDecoder();
+  HRESULT FlushDTSDecoder();
   HRESULT DecodeDTS(BYTE *pPCMData, int *nPCMLength, AVPacket *pkt, const BufferDetails *out);
 
 private:

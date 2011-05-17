@@ -147,6 +147,7 @@
     <ClCompile Include="Bitstream.cpp" />
     <ClCompile Include="BitstreamParser.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="DTSDecoder.cpp" />
     <ClCompile Include="LAVAudio.cpp" />
     <ClCompile Include="AudioSettingsProp.cpp" />
     <ClCompile Include="Media.cpp" />
