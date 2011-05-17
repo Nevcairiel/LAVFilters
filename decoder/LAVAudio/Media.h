@@ -23,6 +23,9 @@
 #define DBL_SECOND_MULT 10000000.0
 #define RT_SECOND_MULT  10000000LL
 
+#define INT24_MAX 8388607i32
+#define INT24_MIN (-8388607i32 - 1)
+
 struct scmap_t {
   WORD nChannels;
   BYTE ch[8];

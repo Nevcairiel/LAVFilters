@@ -153,6 +153,7 @@
     <ClCompile Include="parser\dts.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PostProcessor.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -165,6 +166,7 @@
     <ClInclude Include="Media.h" />
     <ClInclude Include="parser\dts.h" />
     <ClInclude Include="parser\parser.h" />
+    <ClInclude Include="PostProcessor.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
