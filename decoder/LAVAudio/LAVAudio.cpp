@@ -341,7 +341,7 @@ HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pS
         if (index > 6) index = 0;
 
         *pCodec = DTSProfiles[index] ? DTSProfiles[index] : "dts";
-      } else {
+      } else if (m_pAVCodec) {
         *pCodec = m_pAVCodec->name;
       }
     }
@@ -925,7 +925,10 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     // Decoding
     // Consume the buffer data
     BufferDetails output_buffer;
-    hr2 = Decode(p, buffer_size, consumed, &output_buffer);
+    if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext)
+      hr2 = DecodeDTS(p, buffer_size, consumed, &output_buffer);
+    else
+      hr2 = Decode(p, buffer_size, consumed, &output_buffer);
     // S_OK means we actually have data to process
     if (hr2 == S_OK) {
       if (SUCCEEDED(PostProcess(&output_buffer))) {
@@ -965,7 +968,6 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
   const scmap_t *scmap = NULL;
-  BOOL bDTSDecoder = FALSE;
 
   BOOL bEOF = (buffsize == -1);
   if (buffsize == -1) buffsize = 1;
@@ -1011,21 +1013,11 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         avpkt.data = m_pFFBuffer;
         avpkt.size = pOut_size;
 
-        if (m_nCodecId == CODEC_ID_DTS && m_hDllExtraDecoder) {
-          bDTSDecoder = TRUE;
-          HRESULT hr = DecodeDTS(m_pPCMData, &nPCMLength, &avpkt, out);
-          if (FAILED(hr)) {
-            DbgLog((LOG_TRACE, 50, L"::Decode() - DTS decoding failed"));
-            m_bQueueResync = TRUE;
-            continue;
-          }
-        } else {
-          int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
-          if (ret2 < 0) {
-            DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
-            m_bQueueResync = TRUE;
-            continue;
-          }
+        int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
+        if (ret2 < 0) {
+          DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
+          m_bQueueResync = TRUE;
+          continue;
         }
 
         m_bUpdateTimeCache = TRUE;
@@ -1079,22 +1071,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
       out->dwSamplesPerSec = m_pAVCtx->sample_rate;
       out->dwChannelMask = scmap->dwChannelMask;
 
-      int decode_fmt = m_pAVCtx->sample_fmt;
-
-      if (bDTSDecoder) {
-        decode_fmt = LAVF_SAMPLE_FMT_DTS;
-      }
-
-      switch (decode_fmt) {
-      case LAVF_SAMPLE_FMT_DTS:
-        {
-          out->bBuffer->SetSize(idx_start + nPCMLength);
-          uint8_t *pDataOut = (uint8_t *)(out->bBuffer->Ptr() + idx_start);
-          memcpy(pDataOut, m_pPCMData, nPCMLength);
-
-          out->sfFormat = m_iDTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
-        }
-        break;
+      switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
         {
           out->bBuffer->SetSize(idx_start + nPCMLength);

@@ -119,33 +119,112 @@ HRESULT CLAVAudio::FlushDTSDecoder()
   return S_OK;
 }
 
-HRESULT CLAVAudio::DecodeDTS(BYTE *pPCMData, int *nPCMLength, AVPacket *pkt, const BufferDetails *out)
+HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out)
 {
-  m_bsParser.Parse(CODEC_ID_DTS, pkt->data, pkt->size, NULL);
+  CheckPointer(out, E_POINTER);
+  int nPCMLength	= 0;
+  const BYTE *pDataInBuff = p;
 
-  DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
-  int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
-  int unk4 = 0, unk5 = 0;
-  *nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pkt->data, pkt->size, pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
-  if (*nPCMLength > 0 && bitdepth != m_iDTSBitDepth) {
-    int decodeBits = bitdepth > 16 ? 24 : 16;
+  BOOL bEOF = (buffsize == -1);
+  if (buffsize == -1) buffsize = 1;
 
-    // If the bit-depth changed, instruct the DTS Decoder to decode to the new bit depth, and decode the previous sample again.
-    if (decodeBits != m_iDTSBitDepth && out->bBuffer->GetCount() == 0) {
-      DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, change config to %d bits to compensate", bitdepth, decodeBits));
-      m_iDTSBitDepth = decodeBits;
+  consumed = 0;
+  while (buffsize > 0) {
+    nPCMLength = 0;
+    if (bEOF) buffsize = 0;
+    else {
+      COPY_TO_BUFFER(pDataInBuff, buffsize);
+    }
 
-      dtsDec->pDtsSetParam(dtsDec->dtsContext, 8, m_iDTSBitDepth, 0, 0, 0);
-      *nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, pkt->data, pkt->size, pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+    ASSERT(m_pParser);
+
+    BYTE *pOut = NULL;
+    int pOut_size = 0;
+    int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    if (used_bytes < 0) {
+      return E_FAIL;
+    } else if(used_bytes == 0 && pOut_size == 0) {
+      DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
+      break;
+    }
+
+    // Timestamp cache to compensate for one frame delay the parser might introduce, in case the frames were already perfectly sliced apart
+    // If we used more (or equal) bytes then was output again, we encountered a new frame, update timestamps
+    if (used_bytes >= pOut_size && m_bUpdateTimeCache) {
+      m_rtStartInputCache = m_rtStartInput;
+      m_rtStopInputCache = m_rtStopInput;
+      m_bUpdateTimeCache = FALSE;
+    }
+
+    if (!bEOF && used_bytes > 0) {
+      buffsize -= used_bytes;
+      pDataInBuff += used_bytes;
+      consumed += used_bytes;
+    }
+
+    if (pOut_size > 0) {
+      COPY_TO_BUFFER(pOut, pOut_size);
+
+      // Parse DTS headers
+      m_bsParser.Parse(CODEC_ID_DTS, m_pFFBuffer, pOut_size, NULL);
+
+      DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
+      int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
+      int unk4 = 0, unk5 = 0;
+      nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+      if (nPCMLength > 0 && bitdepth != m_iDTSBitDepth) {
+        int decodeBits = bitdepth > 16 ? 24 : 16;
+
+        // If the bit-depth changed, instruct the DTS Decoder to decode to the new bit depth, and decode the previous sample again.
+        if (decodeBits != m_iDTSBitDepth && out->bBuffer->GetCount() == 0) {
+          DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, changing config to %d bits to compensate", bitdepth, decodeBits));
+          m_iDTSBitDepth = decodeBits;
+
+          dtsDec->pDtsSetParam(dtsDec->dtsContext, 8, m_iDTSBitDepth, 0, 0, 0);
+          nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+        }
+      }
+      if (nPCMLength <= 0) {
+        DbgLog((LOG_TRACE, 50, L"::Decode() - DTS decoding failed"));
+        m_bQueueResync = TRUE;
+        continue;
+      }
+
+      m_bUpdateTimeCache = TRUE;
+
+      out->wChannels        = channels;
+      out->dwSamplesPerSec  = HDSampleRate;
+      out->sfFormat         = m_iDTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
+      out->dwChannelMask    = get_channel_mask(channels); // TODO
+      out->wBitsPerSample   = bitdepth;
+
+      // TODO: get rid of these
+      m_pAVCtx->channels    = channels;
+      m_pAVCtx->sample_rate = HDSampleRate;
+      m_pAVCtx->profile     = profile;
+
+      // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
+      // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
+      if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
+        if (m_rtStartInputCache == AV_NOPTS_VALUE) {
+          DbgLog((LOG_CUSTOM5, 20, L"WARNING: m_rtStartInputCache is invalid, using calculated rtStart"));
+        }
+        m_rtStartCacheLT = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
+      }
+    }
+
+    // Append to output buffer
+    if (nPCMLength > 0) {
+      out->bBuffer->Append(m_pPCMData, nPCMLength);
     }
   }
 
-  if (*nPCMLength == 0)
-    return E_FAIL;
+  if (out->bBuffer->GetCount() <= 0) {
+    return S_FALSE;
+  }
 
-  m_pAVCtx->sample_rate = HDSampleRate;
-  m_pAVCtx->channels = channels;
-  m_pAVCtx->profile = profile;
+  out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
+  m_DecodeFormat = out->sfFormat;
 
   return S_OK;
 }

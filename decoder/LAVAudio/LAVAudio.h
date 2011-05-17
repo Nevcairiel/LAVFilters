@@ -55,10 +55,6 @@
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
 #define LAVC_AUDIO_LOG_FILE     L"LAVAudio.txt"
 
-#define LAVF_SAMPLE_FMT_DTS 0xFF
-
-
-
 struct WAVEFORMATEX_HDMV_LPCM;
 
 struct BufferDetails_s {
@@ -192,7 +188,7 @@ private:
   HRESULT InitDTSDecoder();
   HRESULT FreeDTSDecoder();
   HRESULT FlushDTSDecoder();
-  HRESULT DecodeDTS(BYTE *pPCMData, int *nPCMLength, AVPacket *pkt, const BufferDetails *out);
+  HRESULT DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
