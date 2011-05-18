@@ -70,15 +70,12 @@ static inline void SampleCopyAdjust(BYTE *pOut, const BYTE *pIn, int iFactor, LA
     break;
   case SampleFormat_24:
     {
-      int32_t sample = pIn[0] + (pIn[1] << 8) + (pIn[2] << 16);
-      if (iFactor > 0)
-        sample = MulDiv(sample, pcm_volume_adjust_integer[factorIndex], 256);
-      else
-        sample = MulDiv(sample, 256, pcm_volume_adjust_integer[factorIndex]);
-      sample = av_clip(sample, INT24_MIN, INT24_MAX);
-      pOut[0] = sample & 0xff;
-      pOut[1] = (sample >> 8) & 0xff;
-      pOut[2] = (sample >> 16) & 0xff;
+      int64_t sample = (pIn[0] << 8) + (pIn[1] << 16) + (pIn[2] << 24);
+      SCALE_CA(sample, iFactor, pcm_volume_adjust_integer[factorIndex]);
+      sample = av_clipl_int32(sample);
+      pOut[0] = (sample >> 8) & 0xff;
+      pOut[1] = (sample >> 16) & 0xff;
+      pOut[2] = (sample >> 24) & 0xff;
     }
     break;
   case SampleFormat_32:
