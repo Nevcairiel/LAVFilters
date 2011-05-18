@@ -30,6 +30,26 @@
 #include "libavcodec/dcadata.h"
 #pragma warning( pop )
 
+/** Taken from ffmpeg libavcodec/dca.c */
+static const int64_t dca_core_channel_layout[] = {
+  AV_CH_FRONT_CENTER,                                                      ///< 1, A
+  AV_CH_LAYOUT_STEREO,                                                     ///< 2, A + B (dual mono)
+  AV_CH_LAYOUT_STEREO,                                                     ///< 2, L + R (stereo)
+  AV_CH_LAYOUT_STEREO,                                                     ///< 2, (L+R) + (L-R) (sum-difference)
+  AV_CH_LAYOUT_STEREO,                                                     ///< 2, LT +RT (left and right total)
+  AV_CH_LAYOUT_STEREO|AV_CH_FRONT_CENTER,                                  ///< 3, C+L+R
+  AV_CH_LAYOUT_STEREO|AV_CH_BACK_CENTER,                                   ///< 3, L+R+S
+  AV_CH_LAYOUT_STEREO|AV_CH_FRONT_CENTER|AV_CH_BACK_CENTER,                ///< 4, C + L + R+ S
+  AV_CH_LAYOUT_STEREO|AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT,                    ///< 4, L + R +SL+ SR
+  AV_CH_LAYOUT_STEREO|AV_CH_FRONT_CENTER|AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT, ///< 5, C + L + R+ SL+SR
+  AV_CH_LAYOUT_STEREO|AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT|AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER,                    ///< 6, CL + CR + L + R + SL + SR
+  AV_CH_LAYOUT_STEREO|AV_CH_BACK_LEFT|AV_CH_BACK_RIGHT|AV_CH_FRONT_CENTER|AV_CH_BACK_CENTER,                                      ///< 6, C + L + R+ LR + RR + OV
+  AV_CH_FRONT_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER|AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_BACK_CENTER|AV_CH_BACK_LEFT|AV_CH_BACK_RIGHT,   ///< 6, CF+ CR+LF+ RF+LR + RR
+  AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER|AV_CH_LAYOUT_STEREO|AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT, ///< 7, CL + C + CR + L + R + SL + SR
+  AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER|AV_CH_LAYOUT_STEREO|AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT|AV_CH_BACK_LEFT|AV_CH_BACK_RIGHT, ///< 8, CL + CR + L + R + SL1 + SL2+ SR1 + SR2
+  AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER|AV_CH_LAYOUT_STEREO|AV_CH_SIDE_LEFT|AV_CH_BACK_CENTER|AV_CH_SIDE_RIGHT, ///< 8, CL + C+ CR + L + R + SL + S+ SR
+};
+
 typedef void* (*DtsOpen)();
 typedef int (*DtsClose)(void *context);
 typedef int (*DtsReset)(void *context);
@@ -135,7 +155,8 @@ static unsigned dts_header_get_channels(DTSHeader header)
     return 8;
 
   unsigned channels = dca_channels[header.ChannelLayout];
-  channels += header.XChChannelLayout;
+  if (header.XChChannelLayout)
+    channels++;
   if (header.LFE)
     channels++;
   return channels;
@@ -147,7 +168,9 @@ static unsigned dts_determine_decode_channels(DTSHeader header)
   unsigned decode_channels;
   switch(coded_channels) {
   case 2:
-    decode_channels = 2;
+  case 7:
+  case 8:
+    decode_channels = coded_channels;
     break;
   case 1:
   case 3:
@@ -161,14 +184,73 @@ static unsigned dts_determine_decode_channels(DTSHeader header)
     else
       decode_channels = 7;
     break;
-  case 7:
-    decode_channels = 7;
-    break;
-  case 8:
-    decode_channels = 8;
-    break;
   }
   return decode_channels;
+}
+
+static void DTSRemapOutputChannels(BufferDetails *buffer, DTSHeader header)
+{
+  unsigned channels = dts_header_get_channels(header);
+  if (channels == 1 && buffer->wChannels == 5) {                  /* DTS 1.1.0.0 produces 5 channels, with Mono in the center */
+    ChannelMap map = {2};
+    ChannelMapping(buffer, 1, map);
+  } else if (channels == 1 && buffer->wChannels == 2) {           /* DTS 1.1.0.8 produces 2 channels, with Mono in both L/R */
+    // Take the left channel, and increase volume (reduction from 2 channels)
+    ExtendedChannelMap map = {{0, 2}};
+    ExtendedChannelMapping(buffer, 1, map);
+  } else if (channels == 3) {                                     /* --- 3 Channel Formats --- */
+    if (header.ChannelLayout == 6) {                              /* 2/1/0 Layout, L+R and BC mixed into BL/BR */
+      ExtendedChannelMap map = {{0, 0}, {1, 0}, {4, 2}};
+      ExtendedChannelMapping(buffer, 3, map);
+    } else {
+      ChannelMap map = {0, 1, 2};
+      ChannelMapping(buffer, 3, map);
+    }
+  } else if (channels == 4) {                                     /* --- 4 Channel Formats --- */
+    if (header.ChannelLayout == 6) {                              /* 2/1/1 Layout, L+R+LFE and BC mixed into BL/BR */
+      ExtendedChannelMap map = {{0, 0}, {1, 0}, {3, 0}, {4, 2}};
+      ExtendedChannelMapping(buffer, 4, map);
+    } else if (header.ChannelLayout == 8) {                       /* 2/2/0 Layout, L+R+BL+BR */
+      ChannelMap map = {0, 1, 4, 5};
+      ChannelMapping(buffer, 4, map);
+    } else if (header.ChannelLayout == 7) {                       /* 3/1/0 Layout, L+R+C and BC mixed into BL/BR */
+      ExtendedChannelMap map = {{0, 0}, {1, 0}, {2, 0}, {4, 2}};
+      ExtendedChannelMapping(buffer, 4, map);
+    } else {
+      ChannelMap map = {0, 1, 2, 3};
+      ChannelMapping(buffer, 4, map);
+    }
+  } else if (channels == 5) {                                     /* --- 5 Channel Formats --- */
+    if (header.ChannelLayout == 8) {                              /* 2/2/1 Layout, L+R+LFE+BL+BR */
+      ChannelMap map = {0, 1, 3, 4, 5};
+      ChannelMapping(buffer, 5, map);
+    } else if (header.ChannelLayout == 7) {                       /* 3/1/1 Layout, L+R+C+LFE and BC mixed into BL/BR */
+      ExtendedChannelMap map = {{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 2}};
+      ExtendedChannelMapping(buffer, 5, map);
+    } else if (header.ChannelLayout == 9) {                       /* 3/2/0 Layout, L+R+C+BL+BR */
+      ChannelMap map = {0, 1, 2, 4, 5};
+      ChannelMapping(buffer, 5, map);
+    } else {
+      ChannelMap map = {0, 1, 2, 3, 4};
+      ChannelMapping(buffer, 5, map);
+    }
+  } else if (channels == 6 && buffer->wChannels == 7) {           /* 3/3/0 Layout, DTS 1.1.0.0 - packed into 7 channels, empty LFE */
+    ChannelMap map = {0, 1, 2, 4, 5, 6};
+    ChannelMapping(buffer, 6, map);
+  } else if (channels == 7 && buffer->wChannels == 8) {           /* 3/3/1 Layout, DTS 1.1.0.8 - packed into 8 channels, BC in BL */
+    ChannelMap map = {0, 1, 2, 3, 6, 7, 4};
+    ChannelMapping(buffer, 7, map);
+  }
+  if (channels > 6 && header.IsHD && header.HDSpeakerMask) {
+    // TODO!
+    buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
+  } else if (channels > 6) {
+    buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
+  } else {
+    buffer->dwChannelMask = dca_core_channel_layout[header.ChannelLayout];
+    if(header.LFE)
+      buffer->dwChannelMask |= AV_CH_LOW_FREQUENCY;
+  }
 }
 
 HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out)
@@ -261,7 +343,6 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       out->wBitsPerSample   = bitdepth;
 
       // TODO: get rid of these
-      m_pAVCtx->channels    = channels;
       m_pAVCtx->sample_rate = HDSampleRate;
       m_pAVCtx->profile     = profile;
 
@@ -286,6 +367,10 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
   }
 
   out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
+
+  DTSRemapOutputChannels(out, m_bsParser.m_DTSHeader);
+  m_pAVCtx->channels = out->wChannels;
+
   m_DecodeFormat = out->sfFormat;
 
   return S_OK;
