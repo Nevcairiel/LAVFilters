@@ -190,7 +190,7 @@ static unsigned dts_determine_decode_channels(DTSHeader header)
 
 static void DTSRemapOutputChannels(BufferDetails *buffer, DTSHeader header)
 {
-  unsigned channels = dts_header_get_channels(header);
+  const unsigned channels = dts_header_get_channels(header);
   if (channels == 1 && buffer->wChannels == 5) {                  /* DTS 1.1.0.0 produces 5 channels, with Mono in the center */
     ChannelMap map = {2};
     ChannelMapping(buffer, 1, map);
@@ -234,20 +234,31 @@ static void DTSRemapOutputChannels(BufferDetails *buffer, DTSHeader header)
       ChannelMap map = {0, 1, 2, 3, 4};
       ChannelMapping(buffer, 5, map);
     }
-  } else if (channels == 6 && buffer->wChannels == 7) {           /* 3/3/0 Layout, DTS 1.1.0.0 - packed into 7 channels, empty LFE */
-    ChannelMap map = {0, 1, 2, 4, 5, 6};
-    ChannelMapping(buffer, 6, map);
-  } else if (channels == 7 && buffer->wChannels == 8) {           /* 3/3/1 Layout, DTS 1.1.0.8 - packed into 8 channels, BC in BL */
+  } else if (channels == 6) {
+    if (buffer->wChannels == 7) {                                 /* 3/3/0 Layout, DTS 1.1.0.0 - packed into 7 channels, empty LFE */
+      ChannelMap map = {0, 1, 2, 4, 5, 6};
+      ChannelMapping(buffer, 6, map);
+    } else if (header.ChannelLayout == 9 && !header.LFE && header.XChChannelLayout) {
+      ChannelMap map = {0, 1, 2, 4, 5};
+      ChannelMapping(buffer, 5, map);
+    }
+  } else if (channels == 7 && buffer->wChannels == 8 && header.LFE) {       /* 3/3/1 Layout, DTS 1.1.0.8 - packed into 8 channels, BC in BL */
     ChannelMap map = {0, 1, 2, 3, 6, 7, 4};
     ChannelMapping(buffer, 7, map);
   }
-  if (channels > 6 && header.IsHD && header.HDSpeakerMask) {
-    // TODO!
-    buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
-  } else if (channels > 6) {
-    buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
+
+  // Assign appropriate channel mask
+  if (buffer->wChannels > 6) {
+    if (buffer->wChannels == 7 && header.LFE)                               /* 3/3/1 (6.1) Layout */
+      buffer->dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER;
+    else if (buffer->wChannels == 7)                                        /* 3/4/0 (7.0) Layout */
+      buffer->dwChannelMask = AV_CH_LAYOUT_7POINT0;
+    else                                                                    /* 3/4/1 (7.1) Layout */
+      buffer->dwChannelMask = AV_CH_LAYOUT_7POINT1;
+  } else if (buffer->wChannels == 6 && header.ChannelLayout == 9 && header.XChChannelLayout) { /* 3/3/0 (6.0) Layout */
+    buffer->dwChannelMask = AV_CH_LAYOUT_5POINT0_BACK|AV_CH_BACK_CENTER;
   } else {
-    buffer->dwChannelMask = dca_core_channel_layout[header.ChannelLayout];
+    buffer->dwChannelMask = (DWORD)dca_core_channel_layout[header.ChannelLayout];
     if(header.LFE)
       buffer->dwChannelMask |= AV_CH_LOW_FREQUENCY;
   }
