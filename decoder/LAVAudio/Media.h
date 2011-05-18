@@ -28,7 +28,6 @@
 
 struct scmap_t {
   WORD nChannels;
-  BYTE ch[8];
   DWORD dwChannelMask;
 };
 
@@ -77,7 +76,6 @@ CodecID FindCodecId(const CMediaType *mt);
 
 const char *find_codec_override(CodecID codec);
 
-const scmap_t* get_channel_map(AVCodecContext *avctx);
 DWORD get_channel_mask(int num_channels);
 
 const char *get_sample_format_desc(LAVAudioSampleFormat sfFormat);

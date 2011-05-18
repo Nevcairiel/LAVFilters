@@ -451,7 +451,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     const int nSamplesPerSec = m_pAVCtx->sample_rate;
 
     const AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16);
-    const DWORD dwChannelMask = get_channel_map(m_pAVCtx)->dwChannelMask;
+    const DWORD dwChannelMask = get_channel_mask(nChannels);
 
     *pMediaType = CreateMediaType(get_lav_sample_fmt(sample_fmt, m_pAVCtx->bits_per_raw_sample), nSamplesPerSec, nChannels, dwChannelMask, m_pAVCtx->bits_per_raw_sample);
   }
@@ -754,7 +754,7 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
     CMediaType check_mt;
     const int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
     const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
-    const DWORD dwChannelMask = m_pAVCtx ? get_channel_map(m_pAVCtx)->dwChannelMask : 0;
+    const DWORD dwChannelMask = get_channel_mask(nChannels);
 
     check_mt = CreateMediaType(SampleFormat_FP32, nSamplesPerSec, nChannels, dwChannelMask);
     m_bSampleSupport[SampleFormat_FP32] = pPin->QueryAccept(&check_mt) == S_OK;
@@ -967,7 +967,6 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
   CheckPointer(out, E_POINTER);
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
-  const scmap_t *scmap = NULL;
 
   BOOL bEOF = (buffsize == -1);
   if (buffsize == -1) buffsize = 1;
@@ -1065,41 +1064,21 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
     // Channel re-mapping and sample format conversion
     if (nPCMLength > 0) {
       const DWORD idx_start = out->bBuffer->GetCount();
-      scmap = get_channel_map(m_pAVCtx);
 
       out->wChannels = m_pAVCtx->channels;
       out->dwSamplesPerSec = m_pAVCtx->sample_rate;
-      out->dwChannelMask = scmap->dwChannelMask;
+      if (m_pAVCtx->channel_layout)
+        out->dwChannelMask = (DWORD)m_pAVCtx->channel_layout;
+      else
+        out->dwChannelMask = get_channel_mask(out->wChannels);
 
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
-        {
-          out->bBuffer->SetSize(idx_start + nPCMLength);
-          uint8_t *pDataOut = (uint8_t *)(out->bBuffer->Ptr() + idx_start);
-
-          const size_t num_elements = nPCMLength / sizeof(uint8_t) / m_pAVCtx->channels;
-          for (size_t i = 0; i < num_elements; ++i) {
-            for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
-              *pDataOut = ((uint8_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
-              pDataOut++;
-            }
-          }
-        }
+        out->bBuffer->Append(m_pPCMData, nPCMLength);
         out->sfFormat = SampleFormat_U8;
         break;
       case AV_SAMPLE_FMT_S16:
-        {
-          out->bBuffer->SetSize(idx_start + nPCMLength);
-          int16_t *pDataOut = (int16_t *)(out->bBuffer->Ptr() + idx_start);
-
-          const size_t num_elements = nPCMLength / sizeof(int16_t) / m_pAVCtx->channels;
-          for (size_t i = 0; i < num_elements; ++i) {
-            for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
-              *pDataOut = ((int16_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
-              pDataOut++;
-            }
-          }
-        }
+        out->bBuffer->Append(m_pPCMData, nPCMLength);
         out->sfFormat = SampleFormat_16;
         break;
       case AV_SAMPLE_FMT_S32:
@@ -1128,7 +1107,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
               // Get the 32-bit sample
-              int32_t sample = ((int32_t *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
+              int32_t sample = ((int32_t *)m_pPCMData) [ch+i*m_pAVCtx->channels];
               // Create a pointer to the sample for easier access
               BYTE * const b_sample = (BYTE *)&sample;
               // Drop the empty bits
@@ -1146,18 +1125,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
         }
         break;
       case AV_SAMPLE_FMT_FLT:
-        {
-          out->bBuffer->SetSize(idx_start + nPCMLength);
-          float *pDataOut = (float *)(out->bBuffer->Ptr() + idx_start);
-
-          const size_t num_elements = nPCMLength / sizeof(float) / m_pAVCtx->channels;
-          for (size_t i = 0; i < num_elements; ++i) {
-            for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
-              *pDataOut = ((float *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
-              pDataOut++;
-            }
-          }
-        }
+        out->bBuffer->Append(m_pPCMData, nPCMLength);
         out->sfFormat = SampleFormat_FP32;
         break;
       case AV_SAMPLE_FMT_DBL:
@@ -1168,7 +1136,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           const size_t num_elements = nPCMLength / sizeof(double) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
             for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
-              *pDataOut = (float)((double *)m_pPCMData) [scmap->ch[ch]+i*m_pAVCtx->channels];
+              *pDataOut = (float)((double *)m_pPCMData) [ch+i*m_pAVCtx->channels];
               pDataOut++;
             }
           }
