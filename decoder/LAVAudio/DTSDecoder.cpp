@@ -32,7 +32,7 @@
 
 typedef void* (*DtsOpen)();
 typedef int (*DtsClose)(void *context);
-typedef int (*DtsReset)();
+typedef int (*DtsReset)(void *context);
 typedef int (*DtsSetParam)(void *context, int channels, int bitdepth, int unk1, int unk2, int unk3);
 typedef int (*DtsDecode)(void *context, BYTE *pInput, int len, BYTE *pOutput, int unk1, int unk2, int *pBitdepth, int *pChannels, int *pCoreSampleRate, int *pUnk4, int *pHDSampleRate, int *pUnk5, int *pProfile);
 
@@ -119,7 +119,7 @@ HRESULT CLAVAudio::FlushDTSDecoder()
   if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext) {
     DTSDecoder *context = (DTSDecoder *)m_pExtraDecoderContext;
 
-    context->pDtsReset();
+    context->pDtsReset(context->dtsContext);
     context->pDtsSetParam(context->dtsContext, m_DTSDecodeChannels, m_DTSBitDepth, 0, 0, 0);
   }
 
@@ -226,8 +226,9 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       // Init Decoder with new Parameters, if required
       if (m_DTSDecodeChannels != decode_channels) {
         DbgLog((LOG_TRACE, 20, L"::Decode(): Switching to %d channel decoding", decode_channels));
-        dtsDec->pDtsSetParam(dtsDec->dtsContext, decode_channels, m_DTSBitDepth, 0, 0, 0);
         m_DTSDecodeChannels = decode_channels;
+
+        FlushDTSDecoder();
       }
 
       int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
@@ -241,7 +242,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
           DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, changing config to %d bits to compensate", bitdepth, decodeBits));
           m_DTSBitDepth = decodeBits;
 
-          dtsDec->pDtsSetParam(dtsDec->dtsContext, 8, m_DTSBitDepth, 0, 0, 0);
+          FlushDTSDecoder();
           nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
         }
       }
