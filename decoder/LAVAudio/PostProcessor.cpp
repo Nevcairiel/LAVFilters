@@ -24,7 +24,7 @@
 
 // PCM Volume Adjustment Factors, both for integer and float math
 // Entrys start at 2 channel mixing, half volume
-static unsigned pcm_volume_adjust_integer[7] = {
+static int pcm_volume_adjust_integer[7] = {
   362, 443, 512, 572, 627, 677, 724
 };
 
@@ -70,12 +70,13 @@ static inline void SampleCopyAdjust(BYTE *pOut, const BYTE *pIn, int iFactor, LA
     break;
   case SampleFormat_24:
     {
-      int64_t sample = (pIn[0] << 8) + (pIn[1] << 16) + (pIn[2] << 24);
+      int32_t sample = (pIn[0] << 8) + (pIn[1] << 16) + (pIn[2] << 24);
+      sample >>= 8;
       SCALE_CA(sample, iFactor, pcm_volume_adjust_integer[factorIndex]);
-      sample = av_clipl_int32(sample);
-      pOut[0] = (sample >> 8) & 0xff;
-      pOut[1] = (sample >> 16) & 0xff;
-      pOut[2] = (sample >> 24) & 0xff;
+      sample = av_clip(sample, INT24_MIN, INT24_MAX);
+      pOut[0] = sample & 0xff;
+      pOut[1] = (sample >> 8) & 0xff;
+      pOut[2] = (sample >> 16) & 0xff;
     }
     break;
   case SampleFormat_32:
