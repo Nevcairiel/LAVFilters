@@ -191,7 +191,7 @@ static unsigned dts_determine_decode_channels(DTSHeader header)
 static void DTSRemapOutputChannels(BufferDetails *buffer, DTSHeader header)
 {
   const unsigned channels = dts_header_get_channels(header);
-  if (channels == 1 && buffer->wChannels == 5) {                  /* DTS 1.1.0.0 produces 5 channels, with Mono in the center */
+  if (channels == 1 && buffer->wChannels == 6) {                  /* DTS 1.1.0.0 produces 6 channels, with Mono in the center */
     ChannelMap map = {2};
     ChannelMapping(buffer, 1, map);
   } else if (channels == 1 && buffer->wChannels == 2) {           /* DTS 1.1.0.8 produces 2 channels, with Mono in both L/R */
@@ -324,9 +324,14 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
         FlushDTSDecoder();
       }
 
-      int bitdepth, channels, CoreSampleRate, HDSampleRate, profile;
+      int bitdepth = 0, channels = 0, CoreSampleRate = 0, HDSampleRate = 0, profile = 0;
       int unk4 = 0, unk5 = 0;
-      nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+      __try {
+        nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+      } __except(EXCEPTION_EXECUTE_HANDLER) {
+        DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
+        nPCMLength = 0;
+      }
       if (nPCMLength > 0 && bitdepth != m_DTSBitDepth) {
         int decodeBits = bitdepth > 16 ? 24 : 16;
 
@@ -336,7 +341,12 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
           m_DTSBitDepth = decodeBits;
 
           FlushDTSDecoder();
-          nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+          __try {
+            nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 2, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+          } __except(EXCEPTION_EXECUTE_HANDLER) {
+            DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
+            nPCMLength = 0;
+          }
         }
       }
       if (nPCMLength <= 0) {
