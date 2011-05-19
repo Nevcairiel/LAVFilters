@@ -85,6 +85,8 @@ struct BufferDetails {
   memset(m_pFFBuffer+size, 0, FF_INPUT_BUFFER_PADDING_SIZE); \
 }
 
+struct DTSDecoder;
+
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
 class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVAudioSettings, public ILAVAudioStatus
 {
@@ -252,7 +254,8 @@ private:
   FloatingAverage<REFERENCE_TIME> m_faJitter;
 
   HMODULE             m_hDllExtraDecoder;
-  void                *m_pExtraDecoderContext;
+
+  DTSDecoder          *m_pDTSDecoderContext;
   unsigned            m_DTSBitDepth;
   unsigned            m_DTSDecodeChannels;
 

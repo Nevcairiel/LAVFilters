@@ -111,7 +111,7 @@ HRESULT CLAVAudio::InitDTSDecoder()
   m_DTSBitDepth = 24;
   m_DTSDecodeChannels = 8;
 
-  m_pExtraDecoderContext = context;
+  m_pDTSDecoderContext = context;
 
   FlushDTSDecoder();
 
@@ -125,10 +125,9 @@ fail:
 
 HRESULT CLAVAudio::FreeDTSDecoder()
 {
-  if (m_pExtraDecoderContext) {
-    DTSDecoder *context = (DTSDecoder *)m_pExtraDecoderContext;
-    delete context;
-    m_pExtraDecoderContext = NULL;
+  if (m_pDTSDecoderContext) {
+    delete m_pDTSDecoderContext;
+    m_pDTSDecoderContext = NULL;
   }
 
   return S_OK;
@@ -136,11 +135,9 @@ HRESULT CLAVAudio::FreeDTSDecoder()
 
 HRESULT CLAVAudio::FlushDTSDecoder()
 {
-  if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext) {
-    DTSDecoder *context = (DTSDecoder *)m_pExtraDecoderContext;
-
-    context->pDtsReset(context->dtsContext);
-    context->pDtsSetParam(context->dtsContext, m_DTSDecodeChannels, m_DTSBitDepth, 0, 0, 0);
+  if (m_pDTSDecoderContext) {
+    m_pDTSDecoderContext->pDtsReset(m_pDTSDecoderContext->dtsContext);
+    m_pDTSDecoderContext->pDtsSetParam(m_pDTSDecoderContext->dtsContext, m_DTSDecodeChannels, m_DTSBitDepth, 0, 0, 0);
   }
 
   return S_OK;
@@ -310,8 +307,6 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
     if (pOut_size > 0) {
       COPY_TO_BUFFER(pOut, pOut_size);
 
-      DTSDecoder *dtsDec = (DTSDecoder *)m_pExtraDecoderContext;
-
       // Parse DTS headers
       m_bsParser.Parse(CODEC_ID_DTS, m_pFFBuffer, pOut_size, NULL);
       unsigned decode_channels = dts_determine_decode_channels(m_bsParser.m_DTSHeader);
@@ -327,7 +322,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       int bitdepth = 0, channels = 0, CoreSampleRate = 0, HDSampleRate = 0, profile = 0;
       int unk4 = 0, unk5 = 0;
       __try {
-        nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+        nPCMLength = m_pDTSDecoderContext->pDtsDecode(m_pDTSDecoderContext->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
       } __except(EXCEPTION_EXECUTE_HANDLER) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
         nPCMLength = 0;
@@ -342,7 +337,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
           FlushDTSDecoder();
           __try {
-            nPCMLength = dtsDec->pDtsDecode(dtsDec->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 2, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+            nPCMLength = m_pDTSDecoderContext->pDtsDecode(m_pDTSDecoderContext->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 2, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
           } __except(EXCEPTION_EXECUTE_HANDLER) {
             DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
             nPCMLength = 0;

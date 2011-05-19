@@ -59,7 +59,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtStartCacheLT(AV_NOPTS_VALUE)
   , m_faJitter(100)
   , m_hDllExtraDecoder(NULL)
-  , m_pExtraDecoderContext(NULL)
+  , m_pDTSDecoderContext(NULL)
   , m_DecodeLayout(0)
   , m_bChannelMappingRequired(FALSE)
 {
@@ -352,7 +352,7 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
     }
   } else {
     if (pCodec) {
-      if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext) {
+      if (m_pDTSDecoderContext) {
         static const char *DTSProfiles[] = {
           "dts", NULL, "dts-es", "dts 96/24", NULL, "dts-hd hra", "dts-hd ma"
         };
@@ -947,7 +947,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     // Decoding
     // Consume the buffer data
     BufferDetails output_buffer;
-    if (m_nCodecId == CODEC_ID_DTS && m_pExtraDecoderContext)
+    if (m_pDTSDecoderContext)
       hr2 = DecodeDTS(p, buffer_size, consumed, &output_buffer);
     else
       hr2 = Decode(p, buffer_size, consumed, &output_buffer);
