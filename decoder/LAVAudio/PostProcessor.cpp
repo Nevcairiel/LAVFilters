@@ -241,11 +241,9 @@ HRESULT CLAVAudio::CheckChannelLayoutConformity()
   } else if ((channels == 6 && (m_DecodeLayout == AV_CH_LAYOUT_5POINT1 || m_DecodeLayout == AV_CH_LAYOUT_5POINT1_BACK))
           || (channels == 7 && (m_DecodeLayout == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)))) {
     goto noprocessing;
-  } else if (channels == 6) {
+  } else if (channels < 8) {
     if (m_DecodeLayout & AV_CH_BACK_CENTER)
       return Create61Conformity();
-    return Create71Conformity();
-  } else if (channels == 7) {
     return Create71Conformity();
   }
 
@@ -298,7 +296,7 @@ HRESULT CLAVAudio::Create61Conformity()
   // LFE
   if (m_DecodeLayout & AV_CH_LOW_FREQUENCY)
     ExtChMapSet(&m_ChannelMap, 3, ch++, 0);
-  // Back channels
+  // Back channels, if before BC
   if (m_DecodeLayout & (AV_CH_BACK_LEFT|AV_CH_FRONT_LEFT_OF_CENTER)) {
     ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
     ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
@@ -306,8 +304,8 @@ HRESULT CLAVAudio::Create61Conformity()
   // Back Center
   if (m_DecodeLayout & AV_CH_BACK_CENTER)
     ExtChMapSet(&m_ChannelMap, 6, ch++, 0);
-  // Side channels, they appear *after* the back center in the original buffer
-  if (m_DecodeLayout & (AV_CH_SIDE_LEFT)) {
+  // Back channels, if after BC
+  if (m_DecodeLayout & AV_CH_SIDE_LEFT) {
     ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
     ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
   }
@@ -346,7 +344,7 @@ HRESULT CLAVAudio::Create71Conformity()
   } else if (surr_c == 1) {
     // Check if we have a back center we can expand into the back channel
     if (m_DecodeLayout & AV_CH_BACK_CENTER) {
-      // Side channels are *after* the back center
+      // Side channels are *after* the back center (at least on some decoders)
       if (m_DecodeLayout & AV_CH_SIDE_LEFT) {
         ExtChMapSet(&m_ChannelMap, 4, ch, -2);
         ExtChMapSet(&m_ChannelMap, 5, ch++, -2);
@@ -374,8 +372,21 @@ HRESULT CLAVAudio::Create71Conformity()
   return S_OK;
 }
 
+static DWORD sanitize_mask(DWORD mask, CodecID codec)
+{
+  // Alot of codecs set 6.1 wrong..
+  if (codec != CODEC_ID_DTS && mask == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)) {
+    mask = AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER;
+  } else if (codec == CODEC_ID_TRUEHD && mask == (AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER)) {
+    mask = AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER;
+  }
+  return mask;
+}
+
 HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
 {
+  buffer->dwChannelMask = sanitize_mask(buffer->dwChannelMask, m_nCodecId);
+
   // Validate channel mask and remap channels if necessary
   if (!buffer->dwChannelMask) {
     buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
