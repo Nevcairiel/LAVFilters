@@ -232,7 +232,7 @@ HRESULT CLAVAudio::CheckChannelLayoutConformity()
   if (m_DecodeLayout & (AV_CH_TOP_CENTER|AV_CH_TOP_FRONT_LEFT|AV_CH_TOP_FRONT_CENTER|AV_CH_TOP_FRONT_RIGHT|AV_CH_TOP_BACK_LEFT|AV_CH_TOP_BACK_CENTER|AV_CH_TOP_BACK_RIGHT))
     goto noprocessing;
 
-  if (channels > 2 || channels < 6) {
+  if (channels > 2 && channels < 6) {
     // If the layout contains side or back channels and a back center, we need to expand it to 6.1 at least
     if ((CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER) || CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT) || CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_BACK_LEFT|AV_CH_BACK_RIGHT)) && (m_DecodeLayout & AV_CH_BACK_CENTER))
       return Create61Conformity();
