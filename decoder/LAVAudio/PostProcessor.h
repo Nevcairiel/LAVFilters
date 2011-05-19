@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "LAVAudio.h"
+struct BufferDetails;
 
 typedef int ChannelMap[8];
 
@@ -28,6 +28,20 @@ typedef struct ExtendedChannelMap_s {
   int idx;
   int factor;
 } ExtendedChannelMap[8];
+
+inline void ExtChMapSet(ExtendedChannelMap *map, int ch, int idx, int factor)
+{
+  (*map)[ch].idx = idx;
+  (*map)[ch].factor = factor;
+}
+
+inline void ExtChMapClear(ExtendedChannelMap *map)
+{
+  for(unsigned i = 0; i < 8; ++i) {
+    (*map)[i].idx = -1;
+    (*map)[i].factor = 0;
+  }
+}
 
 HRESULT ChannelMapping(BufferDetails *pcm, unsigned uOutChannels, const ChannelMap map);
 HRESULT ExtendedChannelMapping(BufferDetails *pcm, unsigned uOutChannels, const ExtendedChannelMap extMap);

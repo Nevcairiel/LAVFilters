@@ -24,6 +24,7 @@
 #include "FloatingAverage.h"
 #include "Media.h"
 #include "BitstreamParser.h"
+#include "PostProcessor.h"
 
 //////////////////// Configuration //////////////////////////
 
@@ -57,7 +58,7 @@
 
 struct WAVEFORMATEX_HDMV_LPCM;
 
-struct BufferDetails_s {
+struct BufferDetails {
   GrowableArray<BYTE>   *bBuffer;         // PCM Buffer
   LAVAudioSampleFormat  sfFormat;         // Sample Format
   WORD                  wBitsPerSample;   // Bits per sample
@@ -66,14 +67,13 @@ struct BufferDetails_s {
   WORD                  wChannels;        // Number of channels
   DWORD                 dwChannelMask;    // channel mask
 
-  BufferDetails_s() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0) {
+  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0) {
     bBuffer = new GrowableArray<BYTE>();
   };
-  ~BufferDetails_s() {
+  ~BufferDetails() {
     delete bBuffer;
   }
 };
-typedef struct BufferDetails_s BufferDetails;
 
 // Copy the given data into our buffer, including padding, so broken decoders do not overread and crash
 #define COPY_TO_BUFFER(data, size) { \
@@ -190,6 +190,11 @@ private:
   HRESULT FlushDTSDecoder();
   HRESULT DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out);
 
+  HRESULT CheckChannelLayoutConformity();
+  HRESULT Create51Conformity();
+  HRESULT Create61Conformity();
+  HRESULT Create71Conformity();
+
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
@@ -225,6 +230,9 @@ private:
     bool bBitstream[BS_NB];
     BOOL DTSHDFraming;
     BOOL AutoAVSync;
+    BOOL ExpandMono;
+    BOOL Expand61;
+    BOOL OutputStandardLayout;
   } m_settings;
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled
@@ -247,4 +255,11 @@ private:
   void                *m_pExtraDecoderContext;
   unsigned            m_DTSBitDepth;
   unsigned            m_DTSDecodeChannels;
+
+  DWORD               m_DecodeLayout;
+  BOOL                m_bChannelMappingRequired;
+
+  ExtendedChannelMap  m_ChannelMap;
+  int                 m_ChannelMapOutputChannels;
+  DWORD               m_ChannelMapOutputLayout;
 };

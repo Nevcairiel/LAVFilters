@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "PostProcessor.h"
+#include "LAVAudio.h"
 #include "Media.h"
 
 // PCM Volume Adjustment Factors, both for integer and float math
@@ -210,5 +211,206 @@ HRESULT ExtendedChannelMapping(BufferDetails *pcm, const unsigned uOutChannels, 
   pcm->bBuffer       = out;
   pcm->wChannels     = uOutChannels;
 
+  return S_OK;
+}
+
+#define CHL_CONTAINS_ALL(l, m) (((l) & (m)) == (m))
+
+HRESULT CLAVAudio::CheckChannelLayoutConformity()
+{
+  int channels = av_get_channel_layout_nb_channels(m_DecodeLayout);
+
+  // Every multi-channel layout needs to be stereo
+  if (!CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_LAYOUT_STEREO))
+    goto noprocessing;
+
+  // Layouts with one side channel are not supported, how odd would that be
+  if ((!(m_DecodeLayout & AV_CH_SIDE_LEFT) != !(m_DecodeLayout & AV_CH_SIDE_RIGHT)) || (!(m_DecodeLayout & AV_CH_BACK_LEFT) != !(m_DecodeLayout & AV_CH_BACK_RIGHT)) || (!(m_DecodeLayout & AV_CH_FRONT_LEFT_OF_CENTER) != !(m_DecodeLayout & AV_CH_FRONT_RIGHT_OF_CENTER)))
+    goto noprocessing;
+
+  // We do not know what to do with "top" channels
+  if (m_DecodeLayout & (AV_CH_TOP_CENTER|AV_CH_TOP_FRONT_LEFT|AV_CH_TOP_FRONT_CENTER|AV_CH_TOP_FRONT_RIGHT|AV_CH_TOP_BACK_LEFT|AV_CH_TOP_BACK_CENTER|AV_CH_TOP_BACK_RIGHT))
+    goto noprocessing;
+
+  if (channels > 2 || channels < 6) {
+    // If the layout contains side or back channels and a back center, we need to expand it to 6.1 at least
+    if ((CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER) || CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT) || CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_BACK_LEFT|AV_CH_BACK_RIGHT)) && (m_DecodeLayout & AV_CH_BACK_CENTER))
+      return Create61Conformity();
+
+    return Create51Conformity();
+  } else if ((channels == 6 && (m_DecodeLayout == AV_CH_LAYOUT_5POINT1 || m_DecodeLayout == AV_CH_LAYOUT_5POINT1_BACK))
+          || (channels == 7 && (m_DecodeLayout == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)))) {
+    goto noprocessing;
+  } else if (channels == 6) {
+    if (m_DecodeLayout & AV_CH_BACK_CENTER)
+      return Create61Conformity();
+    return Create71Conformity();
+  } else if (channels == 7) {
+    return Create71Conformity();
+  }
+
+noprocessing:
+  m_bChannelMappingRequired = FALSE;
+  return S_FALSE;
+}
+
+HRESULT CLAVAudio::Create51Conformity()
+{
+  int ch = 0;
+  ExtChMapClear(&m_ChannelMap);
+  // All layouts we support have to contain L/R
+  ExtChMapSet(&m_ChannelMap, 0, ch++, 0);
+  ExtChMapSet(&m_ChannelMap, 1, ch++, 0);
+  // Center channel
+  if (m_DecodeLayout & AV_CH_FRONT_CENTER)
+    ExtChMapSet(&m_ChannelMap, 2, ch++, 0);
+  // LFE
+  if (m_DecodeLayout & AV_CH_LOW_FREQUENCY)
+    ExtChMapSet(&m_ChannelMap, 3, ch++, 0);
+  // Back/Side
+  if (m_DecodeLayout & (AV_CH_SIDE_LEFT|AV_CH_BACK_LEFT|AV_CH_FRONT_LEFT_OF_CENTER)) {
+    ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
+    ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
+  // Back Center
+  } else if (m_DecodeLayout & AV_CH_BACK_CENTER) {
+    ExtChMapSet(&m_ChannelMap, 4, ch, -2);
+    ExtChMapSet(&m_ChannelMap, 5, ch++, -2);
+  }
+  m_bChannelMappingRequired = TRUE;
+  m_ChannelMapOutputChannels = 6;
+  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1_BACK;
+  return S_OK;
+}
+
+HRESULT CLAVAudio::Create61Conformity()
+{
+  if (m_settings.Expand61)
+    return Create71Conformity();
+
+  int ch = 0;
+  ExtChMapClear(&m_ChannelMap);
+  // All layouts we support have to contain L/R
+  ExtChMapSet(&m_ChannelMap, 0, ch++, 0);
+  ExtChMapSet(&m_ChannelMap, 1, ch++, 0);
+  // Center channel
+  if (m_DecodeLayout & AV_CH_FRONT_CENTER)
+    ExtChMapSet(&m_ChannelMap, 2, ch++, 0);
+  // LFE
+  if (m_DecodeLayout & AV_CH_LOW_FREQUENCY)
+    ExtChMapSet(&m_ChannelMap, 3, ch++, 0);
+  // Back channels
+  if (m_DecodeLayout & (AV_CH_BACK_LEFT|AV_CH_FRONT_LEFT_OF_CENTER)) {
+    ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
+    ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
+  }
+  // Back Center
+  if (m_DecodeLayout & AV_CH_BACK_CENTER)
+    ExtChMapSet(&m_ChannelMap, 6, ch++, 0);
+  // Side channels, they appear *after* the back center in the original buffer
+  if (m_DecodeLayout & (AV_CH_SIDE_LEFT)) {
+    ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
+    ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
+  }
+
+  m_bChannelMappingRequired = TRUE;
+  m_ChannelMapOutputChannels = 7;
+  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1_BACK | AV_CH_BACK_CENTER;
+  return S_OK;
+}
+
+HRESULT CLAVAudio::Create71Conformity()
+{
+  int ch = 0;
+  ExtChMapClear(&m_ChannelMap);
+  // All layouts we support have to contain L/R
+  ExtChMapSet(&m_ChannelMap, 0, ch++, 0);
+  ExtChMapSet(&m_ChannelMap, 1, ch++, 0);
+  // Center channel
+  if (m_DecodeLayout & AV_CH_FRONT_CENTER)
+    ExtChMapSet(&m_ChannelMap, 2, ch++, 0);
+  // LFE
+  if (m_DecodeLayout & AV_CH_LOW_FREQUENCY)
+    ExtChMapSet(&m_ChannelMap, 3, ch++, 0);
+  // Back channels
+  int surr_c = 0;
+  if (m_DecodeLayout & AV_CH_BACK_LEFT) surr_c++;
+  if (m_DecodeLayout & AV_CH_SIDE_LEFT) surr_c++;
+  if (m_DecodeLayout & AV_CH_FRONT_LEFT_OF_CENTER) surr_c++;
+  // If we have two groups, all is good, just take them
+  if (surr_c == 2) {
+    ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
+    ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
+    ExtChMapSet(&m_ChannelMap, 6, ch++, 0);
+    ExtChMapSet(&m_ChannelMap, 7, ch++, 0);
+  // we have only one surround group
+  } else if (surr_c == 1) {
+    // Check if we have a back center we can expand into the back channel
+    if (m_DecodeLayout & AV_CH_BACK_CENTER) {
+      // Side channels are *after* the back center
+      if (m_DecodeLayout & AV_CH_SIDE_LEFT) {
+        ExtChMapSet(&m_ChannelMap, 4, ch, -2);
+        ExtChMapSet(&m_ChannelMap, 5, ch++, -2);
+        ExtChMapSet(&m_ChannelMap, 6, ch++, 0);
+        ExtChMapSet(&m_ChannelMap, 7, ch++, 0);
+      } else {
+        ExtChMapSet(&m_ChannelMap, 6, ch++, 0);
+        ExtChMapSet(&m_ChannelMap, 7, ch++, 0);
+        ExtChMapSet(&m_ChannelMap, 4, ch, -2);
+        ExtChMapSet(&m_ChannelMap, 5, ch++, -2);
+      }
+    // No other back channels, just write our surround channels into the side, and make it effectively 5.1. In practice, we should never get here.
+    } else {
+      DbgLog((LOG_ERROR, 10, L"::Create71Conformity(): Building 7.1 layout with only 5.1 channels - original mask was: 0x%x", m_DecodeLayout));
+      ExtChMapSet(&m_ChannelMap, 6, ch++, 0);
+      ExtChMapSet(&m_ChannelMap, 7, ch++, 0);
+    }
+  } else {
+    DbgLog((LOG_ERROR, 10, L"::Create71Conformity(): Building 7.1 layout with %d surround groups - original mask was: 0x%x", surr_c, m_DecodeLayout));
+  }
+
+  m_bChannelMappingRequired = TRUE;
+  m_ChannelMapOutputChannels = 8;
+  m_ChannelMapOutputLayout = AV_CH_LAYOUT_7POINT1;
+  return S_OK;
+}
+
+HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
+{
+  // Validate channel mask and remap channels if necessary
+  if (!buffer->dwChannelMask) {
+    buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
+  } else {
+    int layout_channels = av_get_channel_layout_nb_channels(buffer->dwChannelMask);
+    if (layout_channels != buffer->wChannels) {
+      buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
+    } else if (m_settings.OutputStandardLayout) {
+      if (buffer->dwChannelMask != m_DecodeLayout) {
+        m_DecodeLayout = buffer->dwChannelMask;
+        CheckChannelLayoutConformity();
+      }
+      if (m_bChannelMappingRequired) {
+        ExtendedChannelMapping(buffer, m_ChannelMapOutputChannels, m_ChannelMap);
+        buffer->dwChannelMask = m_ChannelMapOutputLayout;
+      }
+    }
+  }
+
+  // Mono -> Stereo expansion
+  if (buffer->wChannels == 1 && m_settings.ExpandMono) {
+    ExtendedChannelMap map = {{0,-2}, {0, -2}};
+    ExtendedChannelMapping(buffer, 2, map);
+    buffer->dwChannelMask = AV_CH_LAYOUT_STEREO;
+  }
+
+  // 6.1 -> 7.1 expansion
+  if (m_settings.Expand61 && buffer->dwChannelMask == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)) {
+    ExtendedChannelMap map = {{0,0}, {1,0}, {2,0}, {3,0}, {6,-2}, {6,-2}, {4,0}, {5,0}};
+    ExtendedChannelMapping(buffer, 8, map);
+    buffer->dwChannelMask = AV_CH_LAYOUT_7POINT1;
+  }
+
+  if (m_bVolumeStats) {
+    UpdateVolumeStats(*buffer);
+  }
   return S_OK;
 }

@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "LAVAudio.h"
+#include "PostProcessor.h"
 
 #include <MMReg.h>
 #include <assert.h>
@@ -59,6 +60,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_faJitter(100)
   , m_hDllExtraDecoder(NULL)
   , m_pExtraDecoderContext(NULL)
+  , m_DecodeLayout(0)
+  , m_bChannelMappingRequired(FALSE)
 {
   avcodec_init();
   av_register_all();
@@ -138,6 +141,15 @@ HRESULT CLAVAudio::LoadSettings()
   bFlag = reg.ReadBOOL(L"AutoAVSync", hr);
   m_settings.AutoAVSync = SUCCEEDED(hr) ? bFlag : TRUE;
 
+  bFlag = reg.ReadBOOL(L"ExpandMono", hr);
+  m_settings.ExpandMono = SUCCEEDED(hr) ? bFlag : FALSE;
+
+  bFlag = reg.ReadBOOL(L"Expand61", hr);
+  m_settings.Expand61 = SUCCEEDED(hr) ? bFlag : FALSE;
+
+  bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
+  m_settings.OutputStandardLayout = SUCCEEDED(hr) ? bFlag : TRUE;
+
   return S_OK;
 }
 
@@ -152,6 +164,9 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBinary(L"Bitstreaming", (BYTE *)m_settings.bBitstream, sizeof(m_settings.bBitstream));
     reg.WriteBOOL(L"DTSHDFraming", m_settings.DTSHDFraming);
     reg.WriteBOOL(L"AutoAVSync", m_settings.AutoAVSync);
+    reg.WriteBOOL(L"ExpandMono", m_settings.ExpandMono);
+    reg.WriteBOOL(L"Expand61", m_settings.Expand61);
+    reg.WriteBOOL(L"OutputStandardLayout", m_settings.OutputStandardLayout);
   }
   return S_OK;
 }
@@ -364,7 +379,7 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
         *pDecodeFormat = "Not Running";
     }
     if (pChannelMask) {
-      *pChannelMask = (DWORD)m_pAVCtx->channel_layout;
+      *pChannelMask = m_DecodeLayout;
     }
   }
   return S_OK;
@@ -1164,14 +1179,6 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
   out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
   m_DecodeFormat = out->sfFormat;
 
-  return S_OK;
-}
-
-HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
-{
-  if (m_bVolumeStats) {
-    UpdateVolumeStats(*buffer);
-  }
   return S_OK;
 }
 
