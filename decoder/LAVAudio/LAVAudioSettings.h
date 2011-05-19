@@ -58,8 +58,8 @@ interface ILAVAudioSettings : public IUnknown
 interface ILAVAudioStatus : public IUnknown
 {
   STDMETHOD_(BOOL,IsSampleFormatSupported)(LAVAudioSampleFormat sfCheck) = 0;
-  STDMETHOD(GetInputDetails)(const char **pCodec, int *pnChannels, int *pSampleRate) = 0;
-  STDMETHOD(GetOutputDetails)(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask) = 0;
+  STDMETHOD(GetDecodeDetails)(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
+  STDMETHOD(GetOutputDetails)(const char **pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
   STDMETHOD(EnableVolumeStats)() = 0;
   STDMETHOD(DisableVolumeStats)() = 0;
   STDMETHOD(GetChannelVolumeAverage)(WORD nChannel, float *pfDb) = 0;

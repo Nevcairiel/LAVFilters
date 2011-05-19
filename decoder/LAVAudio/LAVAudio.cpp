@@ -313,7 +313,7 @@ BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
   return m_bSampleSupport[sfCheck];
 }
 
-HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate)
+HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask)
 {
   if(!m_pInput || m_pInput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
@@ -328,6 +328,12 @@ HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pS
     }
     if (pSampleRate) {
       *pSampleRate = m_avBSContext->streams[0]->codec->sample_rate;
+    }
+    if (pDecodeFormat) {
+      *pDecodeFormat = "";
+    }
+    if (pChannelMask) {
+      *pChannelMask = 0;
     }
   } else {
     if (pCodec) {
@@ -351,11 +357,20 @@ HRESULT CLAVAudio::GetInputDetails(const char **pCodec, int *pnChannels, int *pS
     if (pSampleRate) {
       *pSampleRate = m_pAVCtx->sample_rate;
     }
+    if (pDecodeFormat) {
+      if (IsActive())
+        *pDecodeFormat = get_sample_format_desc(m_DecodeFormat);
+      else
+        *pDecodeFormat = "Not Running";
+    }
+    if (pChannelMask) {
+      *pChannelMask = (DWORD)m_pAVCtx->channel_layout;
+    }
   }
   return S_OK;
 }
 
-HRESULT CLAVAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask)
+HRESULT CLAVAudio::GetOutputDetails(const char **pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask)
 {
   if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
@@ -366,25 +381,17 @@ HRESULT CLAVAudio::GetOutputDetails(const char **pDecodeFormat, const char **pOu
     }
     return S_FALSE;
   }
-  // Normal Decode Mode
-  if (pDecodeFormat) {
-    if (IsActive()) {
-      *pDecodeFormat = get_sample_format_desc(m_DecodeFormat);
-    } else {
-      *pDecodeFormat = "Not Running";
-    }
-  }
   if (pOutputFormat) {
-    *pOutputFormat = get_sample_format_desc(m_pOutput->CurrentMediaType());
+    *pOutputFormat = get_sample_format_desc(m_OutputQueue.sfFormat);
+  }
+  if (pnChannels) {
+    *pnChannels = m_OutputQueue.wChannels;
+  }
+  if (pSampleRate) {
+    *pSampleRate = m_OutputQueue.dwSamplesPerSec;
   }
   if (pChannelMask) {
-    WAVEFORMATEX *wfout = (WAVEFORMATEX *)m_pOutput->CurrentMediaType().Format();
-    if (wfout->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
-      WAVEFORMATEXTENSIBLE *wfext = (WAVEFORMATEXTENSIBLE *)wfout;
-      *pChannelMask = wfext->dwChannelMask;
-    } else {
-      *pChannelMask = 0;
-    }
+    *pChannelMask = m_OutputQueue.dwChannelMask;
   }
   return S_OK;
 }
@@ -409,7 +416,7 @@ HRESULT CLAVAudio::GetChannelVolumeAverage(WORD nChannel, float *pfDb)
   if (!m_pOutput || m_pOutput->IsConnected() == FALSE || !m_bVolumeStats || m_avBSContext) {
     return E_UNEXPECTED;
   }
-  if (nChannel >= m_pAVCtx->channels || nChannel >= 8) {
+  if (nChannel >= m_OutputQueue.wChannels || nChannel >= 8) {
     return E_INVALIDARG;
   }
   *pfDb = m_faVolume[nChannel].Average();

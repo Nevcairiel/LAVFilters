@@ -375,21 +375,27 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   }
   ASSERT(m_pAudioStatus != NULL);
 
+  m_nChannels = 0;
+
   const char *codec = NULL;
-  int nChannels = 0;
-  int nSampleRate = 0;
-  hr = m_pAudioStatus->GetInputDetails(&codec, &nChannels, &nSampleRate);
+  const char *decodeFormat = NULL;
+  int nDecodeChannels = 0;
+  int nDecodeSampleRate = 0;
+  DWORD dwDecodeChannelMask;
+  hr = m_pAudioStatus->GetDecodeDetails(&codec, &decodeFormat, &nDecodeChannels, &nDecodeSampleRate, &dwDecodeChannelMask);
   if (SUCCEEDED(hr)) {
     WCHAR buffer[100];
-    _snwprintf_s(buffer, _TRUNCATE, L"%d", nChannels);
-    SendDlgItemMessage(m_Dlg, IDC_CHANNELS, WM_SETTEXT, 0, (LPARAM)buffer);
-    m_nChannels = nChannels;
+    _snwprintf_s(buffer, _TRUNCATE, L"%d / 0x%x", nDecodeChannels, dwDecodeChannelMask);
+    SendDlgItemMessage(m_Dlg, IDC_INPUT_CHANNEL, WM_SETTEXT, 0, (LPARAM)buffer);
 
-    _snwprintf_s(buffer, _TRUNCATE, L"%d", nSampleRate);
-    SendDlgItemMessage(m_Dlg, IDC_SAMPLE_RATE, WM_SETTEXT, 0, (LPARAM)buffer);
+    _snwprintf_s(buffer, _TRUNCATE, L"%d", nDecodeSampleRate);
+    SendDlgItemMessage(m_Dlg, IDC_INPUT_SAMPLERATE, WM_SETTEXT, 0, (LPARAM)buffer);
 
     _snwprintf_s(buffer, _TRUNCATE, L"%S", codec);
-    SendDlgItemMessage(m_Dlg, IDC_CODEC, WM_SETTEXT, 0, (LPARAM)buffer);
+    SendDlgItemMessage(m_Dlg, IDC_INPUT_CODEC, WM_SETTEXT, 0, (LPARAM)buffer);
+
+    _snwprintf_s(buffer, _TRUNCATE, L"%S", decodeFormat);
+    SendDlgItemMessage(m_Dlg, IDC_INPUT_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
   }
 
   SendDlgItemMessage(m_Dlg, IDC_INT8, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_U8), 0);
@@ -398,35 +404,45 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_INT32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_32), 0);
   SendDlgItemMessage(m_Dlg, IDC_FP32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_FP32), 0);
 
-  const char *decodeFormat = NULL;
   const char *outputFormat = NULL;
-  DWORD dwChannelMask = 0;
-  hr = m_pAudioStatus->GetOutputDetails(&decodeFormat, &outputFormat, &dwChannelMask);
+  int nOutputChannels = 0;
+  int nOutputSampleRate = 0;
+  DWORD dwOutputChannelMask = 0;
+  hr = m_pAudioStatus->GetOutputDetails(&outputFormat, &nOutputChannels, &nOutputSampleRate, &dwOutputChannelMask);
   if (SUCCEEDED(hr)) {
     WCHAR buffer[100];
 
     if (hr == S_OK) {
-      _snwprintf_s(buffer, _TRUNCATE, L"%S", decodeFormat);
-      SendDlgItemMessage(m_Dlg, IDC_DECODE_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
+      _snwprintf_s(buffer, _TRUNCATE, L"%d / 0x%x", nOutputChannels, dwOutputChannelMask);
+      SendDlgItemMessage(m_Dlg, IDC_OUTPUT_CHANNEL, WM_SETTEXT, 0, (LPARAM)buffer);
 
-      _snwprintf_s(buffer, _TRUNCATE, L"0x%x", dwChannelMask);
-      SendDlgItemMessage(m_Dlg, IDC_CHANNEL_MASK, WM_SETTEXT, 0, (LPARAM)buffer);
+      _snwprintf_s(buffer, _TRUNCATE, L"%d", nOutputSampleRate);
+      SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SAMPLERATE, WM_SETTEXT, 0, (LPARAM)buffer);
+
+      _snwprintf_s(buffer, _TRUNCATE, L"PCM");
+      SendDlgItemMessage(m_Dlg, IDC_OUTPUT_CODEC, WM_SETTEXT, 0, (LPARAM)buffer);
+
+      _snwprintf_s(buffer, _TRUNCATE, L"%S", outputFormat);
+      SendDlgItemMessage(m_Dlg, IDC_OUTPUT_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
+
+      m_nChannels = nOutputChannels;
+    } else {
+      _snwprintf_s(buffer, _TRUNCATE, L"Bitstreaming");
+      SendDlgItemMessage(m_Dlg, IDC_OUTPUT_CODEC, WM_SETTEXT, 0, (LPARAM)buffer);
     }
-    _snwprintf_s(buffer, _TRUNCATE, L"%S", outputFormat);
-    SendDlgItemMessage(m_Dlg, IDC_OUTPUT_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
   }
 
   SetTimer(m_Dlg, 1, 250, NULL);
   m_pAudioStatus->EnableVolumeStats();
 
   WCHAR chBuffer[5];
-  if (dwChannelMask == 0 && nChannels != 0) {
+  if (dwOutputChannelMask == 0 && nOutputChannels != 0) {
     // 0x4 is only front center, 0x3 is front left+right
-    dwChannelMask = nChannels == 1 ? 0x4 : 0x3;
+    dwOutputChannelMask = nOutputChannels == 1 ? 0x4 : 0x3;
   }
   for(int i = 0; i < MAX_CHANNELS; ++i) {
     SendDlgItemMessage(m_Dlg, iddVolumeControls[i], PBM_SETRANGE, 0, MAKELPARAM(0, 50));
-    _snwprintf_s(chBuffer, _TRUNCATE, L"%S", get_channel_desc(get_flag_from_channel(dwChannelMask, i)));
+    _snwprintf_s(chBuffer, _TRUNCATE, L"%S", get_channel_desc(get_flag_from_channel(dwOutputChannelMask, i)));
     SendDlgItemMessage(m_Dlg, iddVolumeDescs[i], WM_SETTEXT, 0, (LPARAM)chBuffer);
   }
 

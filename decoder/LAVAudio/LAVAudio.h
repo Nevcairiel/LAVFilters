@@ -113,8 +113,8 @@ public:
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
-  STDMETHODIMP GetInputDetails(const char **pCodec, int *pnChannels, int *pSampleRate);
-  STDMETHODIMP GetOutputDetails(const char **pDecodeFormat, const char **pOutputFormat, DWORD *pChannelMask);
+  STDMETHODIMP GetDecodeDetails(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask);
+  STDMETHODIMP GetOutputDetails(const char **pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask);
   STDMETHODIMP EnableVolumeStats();
   STDMETHODIMP DisableVolumeStats();
   STDMETHODIMP GetChannelVolumeAverage(WORD nChannel, float *pfDb);
