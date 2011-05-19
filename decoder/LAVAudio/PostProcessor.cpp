@@ -278,7 +278,7 @@ HRESULT CLAVAudio::Create51Conformity()
   }
   m_bChannelMappingRequired = TRUE;
   m_ChannelMapOutputChannels = 6;
-  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1_BACK;
+  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1;
   return S_OK;
 }
 
