@@ -75,6 +75,12 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   m_pAudioSettings->SetDTSHDFraming(bDTSHDFraming);
   BOOL bAutoAVSync          = SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetAutoAVSync(bAutoAVSync);
+  BOOL bOutputStdLayout     = SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetOutputStandardLayout(bOutputStdLayout);
+  BOOL bExpandMono          = SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetExpandMono(bExpandMono);
+  BOOL bExpand61            = SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetExpand61(bExpand61);
 
   LoadData();
 
@@ -122,6 +128,14 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
 
     SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_SETCHECK, m_bAutoAVSync, 0);
     addHint(IDC_AUTO_AVSYNC, L"Enables automatic tracking and correction of A/V sync.\n\nIf you encounter any sync issues, disabling this option can help in debugging the source of the problem.");
+
+    SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_SETCHECK, m_bOutputStdLayout, 0);
+    addHint(IDC_STANDARD_CH_LAYOUT, L"Converts all channel layouts to one of the \"standard\" layouts (5.1/6.1/7.1) by adding silent channels. This is required for sending the PCM over HDMI if not using another downstream mixer, for example when using WASAPI.");
+
+    SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_SETCHECK, m_bExpandMono, 0);
+    addHint(IDC_EXPAND_MONO, L"Plays Mono Audio in both Left/Right Front channels, instead of the center.");
+    SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_SETCHECK, m_bExpand61, 0);
+    addHint(IDC_EXPAND61, L"Converts 6.1 Audio to 7.1 by copying the Back Center into both Back Left and Right channels.");
   }
 
   return hr;
@@ -134,6 +148,9 @@ HRESULT CLAVAudioSettingsProp::LoadData()
   hr = m_pAudioSettings->GetBitstreamConfig(m_bBitstreaming);
   m_bDTSHDFraming = m_pAudioSettings->GetDTSHDFraming();
   m_bAutoAVSync = m_pAudioSettings->GetAutoAVSync();
+  m_bOutputStdLayout = m_pAudioSettings->GetOutputStandardLayout();
+  m_bExpandMono = m_pAudioSettings->GetExpandMono();
+  m_bExpand61 = m_pAudioSettings->GetExpand61();
   return hr;
 }
 
@@ -178,6 +195,18 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_AUTO_AVSYNC && HIWORD(wParam) == BN_CLICKED) {
       BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bAutoAVSync)
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_STANDARD_CH_LAYOUT && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bFlag != m_bOutputStdLayout)
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_EXPAND_MONO && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bFlag != m_bExpandMono)
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_EXPAND61 && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bFlag != m_bExpand61)
         SetDirty();
     }
     break;

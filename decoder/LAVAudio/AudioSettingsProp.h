@@ -69,6 +69,9 @@ private:
   bool m_bBitstreaming[BS_NB];
   BOOL m_bDTSHDFraming;
   BOOL m_bAutoAVSync;
+  BOOL m_bOutputStdLayout;
+  BOOL m_bExpandMono;
+  BOOL m_bExpand61;
 };
 
 class CLAVAudioFormatsProp : public CBaseDSPropPage

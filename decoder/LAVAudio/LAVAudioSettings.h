@@ -52,6 +52,12 @@ interface ILAVAudioSettings : public IUnknown
   STDMETHOD(SetDTSHDFraming)(BOOL bHDFraming) = 0;
   STDMETHOD_(BOOL,GetAutoAVSync)() = 0;
   STDMETHOD(SetAutoAVSync)(BOOL bAutoSync) = 0;
+  STDMETHOD_(BOOL,GetOutputStandardLayout)() = 0;
+  STDMETHOD(SetOutputStandardLayout)(BOOL bStdLayout) = 0;
+  STDMETHOD_(BOOL,GetExpandMono)() = 0;
+  STDMETHOD(SetExpandMono)(BOOL bExpandMono) = 0;
+  STDMETHOD_(BOOL,GetExpand61)() = 0;
+  STDMETHOD(SetExpand61)(BOOL bExpand61) = 0;
 };
 
 [uuid("A668B8F2-BA87-4F63-9D41-768F7DE9C50E")]

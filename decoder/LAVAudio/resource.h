@@ -60,14 +60,17 @@
 #define IDC_INPUT_CODEC                 1077
 #define IDC_INPUT_CHANNEL               1078
 #define IDC_INPUT_FORMAT                1079
-#define IDC_LBL_OUTPUT_CODEC             1080
-#define IDC_LBL_OUTPUT_CHANNEL           1081
-#define IDC_LBL_OUTPUT_SAMPLERATE        1082
-#define IDC_LBL_OUTPUT_FORMAT            1083
-#define IDC_OUTPUT_SAMPLERATE            1084
-#define IDC_OUTPUT_CODEC                 1085
-#define IDC_OUTPUT_CHANNEL               1086
-#define IDC_OUTPUT_FORMAT                1087
+#define IDC_LBL_OUTPUT_CODEC            1080
+#define IDC_LBL_OUTPUT_CHANNEL          1081
+#define IDC_LBL_OUTPUT_SAMPLERATE       1082
+#define IDC_LBL_OUTPUT_FORMAT           1083
+#define IDC_OUTPUT_SAMPLERATE           1084
+#define IDC_OUTPUT_CODEC                1085
+#define IDC_OUTPUT_CHANNEL              1086
+#define IDC_OUTPUT_FORMAT               1087
+#define IDC_STANDARD_CH_LAYOUT          1088
+#define IDC_EXPAND_MONO                 1089
+#define IDC_EXPAND61                    1090
 
 // Next default values for new objects
 // 
@@ -75,7 +78,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1088
+#define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

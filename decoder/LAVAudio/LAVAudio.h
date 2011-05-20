@@ -112,6 +112,12 @@ public:
   STDMETHODIMP SetDTSHDFraming(BOOL bHDFraming);
   STDMETHODIMP_(BOOL) GetAutoAVSync();
   STDMETHODIMP SetAutoAVSync(BOOL bAutoSync);
+  STDMETHODIMP_(BOOL) GetOutputStandardLayout();
+  STDMETHODIMP SetOutputStandardLayout(BOOL bStdLayout);
+  STDMETHODIMP_(BOOL) GetExpandMono();
+  STDMETHODIMP SetExpandMono(BOOL bExpandMono);
+  STDMETHODIMP_(BOOL) GetExpand61();
+  STDMETHODIMP SetExpand61(BOOL bExpand61);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);

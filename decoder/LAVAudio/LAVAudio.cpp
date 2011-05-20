@@ -319,6 +319,45 @@ STDMETHODIMP CLAVAudio::SetAutoAVSync(BOOL bAutoSync)
   return S_OK;
 }
 
+STDMETHODIMP_(BOOL) CLAVAudio::GetOutputStandardLayout()
+{
+  return m_settings.OutputStandardLayout;
+}
+
+STDMETHODIMP CLAVAudio::SetOutputStandardLayout(BOOL bStdLayout)
+{
+  m_settings.OutputStandardLayout = bStdLayout;
+  SaveSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetExpandMono()
+{
+  return m_settings.ExpandMono;
+}
+
+STDMETHODIMP CLAVAudio::SetExpandMono(BOOL bExpandMono)
+{
+  m_settings.ExpandMono = bExpandMono;
+  SaveSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetExpand61()
+{
+  return m_settings.Expand61;
+}
+
+STDMETHODIMP CLAVAudio::SetExpand61(BOOL bExpand61)
+{
+  m_settings.Expand61 = bExpand61;
+  SaveSettings();
+
+  return S_OK;
+}
+
 // ILAVAudioStatus
 BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
 {
