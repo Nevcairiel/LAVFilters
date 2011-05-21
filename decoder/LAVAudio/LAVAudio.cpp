@@ -1345,7 +1345,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   }
 
   if(hr == S_OK) {
-    DbgLog((LOG_CUSTOM1, 1, L"Sending new Media Type"));
+    DbgLog((LOG_TRACE, 1, L"Sending new Media Type"));
     m_pOutput->SetMediaType(&mt);
     pOut->SetMediaType(&mt);
   }
