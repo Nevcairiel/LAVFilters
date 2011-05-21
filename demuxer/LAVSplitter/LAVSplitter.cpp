@@ -76,6 +76,10 @@ CLAVSplitter::~CLAVSplitter()
     delete (*it);
   }
   m_pRetiredPins.clear();
+
+#ifdef DEBUG
+  DbgCloseLogFile();
+#endif
 }
 
 STDMETHODIMP CLAVSplitter::Close()

@@ -96,6 +96,10 @@ CLAVAudio::~CLAVAudio()
     FreeLibrary(m_hDllExtraDecoder);
     m_hDllExtraDecoder = NULL;
   }
+
+#ifdef DEBUG
+  DbgCloseLogFile();
+#endif
 }
 
 HRESULT CLAVAudio::LoadSettings()

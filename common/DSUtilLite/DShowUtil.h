@@ -42,10 +42,12 @@ template <class T> void SafeRelease(T **ppT)
 #define DBG_TIMING(x,l,y) DWORD start = timeGetTime(); y; DWORD end = timeGetTime(); if(end-start>l) DbgLog((LOG_TRACE, 10, L"TIMING: %S took %u ms", x, end-start));
 extern void DbgSetLogFile(LPCTSTR szLogFile);
 extern void DbgSetLogFileDesktop(LPCTSTR szLogFile);
+extern void DbgCloseLogFile();
 #else
 #define DBG_TIMING(x,l,y) y;
 #define DbgSetLogFile(sz)
 #define DbgSetLogFileDesktop(sz)
+#define DbgCloseLogFile()
 #endif
 
 

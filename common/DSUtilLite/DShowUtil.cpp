@@ -83,6 +83,14 @@ void DbgSetLogFileDesktop(LPCTSTR szFile)
   PathAppend(szLogPath, szFile);
   DbgSetLogFile(szLogPath);
 }
+
+void DbgCloseLogFile()
+{
+  if (m_hOutput != INVALID_HANDLE_VALUE) {
+    CloseHandle (m_hOutput);
+    m_hOutput = INVALID_HANDLE_VALUE;
+  }
+}
 #endif
 
 void split(std::string& text, std::string& separators, std::list<std::string>& words)
