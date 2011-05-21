@@ -1367,6 +1367,9 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   memcpy(pDataOut, buffer.bBuffer->Ptr(), buffer.bBuffer->GetCount());
 
   hr = m_pOutput->Deliver(pOut);
+  if (FAILED(hr)) {
+    DbgLog((LOG_ERROR, 10, L"::Deliver failed with code: %0#.8x", hr));
+  }
 done:
   SafeRelease(&pOut);
   return hr;
