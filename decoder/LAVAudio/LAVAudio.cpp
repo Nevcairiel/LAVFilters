@@ -1163,7 +1163,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
           const short bytes_per_sample = bits_per_sample >> 3;
           // Number of bits to shift the value to the left
-          const short shift = 32 - bits_per_sample;
+          const short skip = 4 - bytes_per_sample;
 
           const DWORD size = (nPCMLength >> 2) * bytes_per_sample;
           out->bBuffer->SetSize(idx_start + size);
@@ -1178,12 +1178,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
               int32_t sample = ((int32_t *)m_pPCMData) [ch+i*m_pAVCtx->channels];
               // Create a pointer to the sample for easier access
               BYTE * const b_sample = (BYTE *)&sample;
-              // Drop the empty bits
-              sample >>= shift;
-              // Copy Data into the ouput
-              for(short k = 0; k < bytes_per_sample; ++k) {
-                pDataOut[k] = b_sample[k];
-              }
+              // Copy the relevant bytes
+              memcpy(pDataOut, b_sample + skip, bytes_per_sample);
               pDataOut += bytes_per_sample;
             }
           }
