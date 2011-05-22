@@ -296,8 +296,11 @@ DWORD CLAVOutputPin::ThreadProc()
           m_hrDeliver = hr;
           break;
         }
+      } else if (pPacket) {
+        // in case of stream switches or other events, we may end up here
+        SAFE_DELETE(pPacket);
       }
-    } while(cnt > 1);
+    } while(cnt > 1 && m_hrDeliver == S_OK);
   }
   return 0;
 }

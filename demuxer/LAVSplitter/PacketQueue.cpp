@@ -65,6 +65,8 @@ void CPacketQueue::Clear()
 {
   CAutoLock cAutoLock(this);
 
+  DbgLog((LOG_TRACE, 10, L"CPacketQueue::Clear() - clearing queue with %d entrys", m_queue.size()));
+
   std::deque<Packet *>::iterator it;
   for (it = m_queue.begin(); it != m_queue.end(); ++it) {
     delete *it;

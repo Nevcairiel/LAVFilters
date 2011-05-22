@@ -71,6 +71,7 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
 
 HRESULT CStreamParser::Flush()
 {
+  DbgLog((LOG_TRACE, 10, L"CStreamParser::Flush()"));
   SAFE_DELETE(m_pPacketBuffer);
   m_queue.Clear();
   m_bPGSDropState = FALSE;
