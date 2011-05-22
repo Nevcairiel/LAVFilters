@@ -406,6 +406,8 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
   {
     // timeout, probably no real error, return empty packet
     bReturnEmpty = true;
+  } else if (result == AVERROR_EOF) {
+    DbgLog((LOG_TRACE, 10, L"::GetNextPacket(): End of File reached"));
   } else if (result < 0) {
     // meh, fail
   } else if (pkt.size < 0 || pkt.stream_index >= m_avFormat->nb_streams) {
@@ -855,6 +857,9 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
   if (pStream->discard == AVDISCARD_ALL || (pStream->codec->codec_id == CODEC_ID_NONE && pStream->codec->codec_tag == 0) || (!m_bSubStreams && (pStream->disposition & LAVF_DISPOSITION_SUB_STREAM)))
     return S_FALSE;
 
+  if (pStream->codec->codec_type == AVMEDIA_TYPE_VIDEO && (!pStream->codec->width || !pStream->codec->height))
+    return S_FALSE;
+
   stream s;
   s.pid = streamId;
   s.streamInfo = new CLAVFStreamInfo(pStream, m_pszInputFormat, hr);
@@ -903,13 +908,16 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i) {
       if(m_program == UINT_MAX && m_avFormat->programs[i]->nb_stream_indexes > 0) {
         // Do some basic stream validation here
-        bool bBrokenProgram = false;
+        bool bHasValidVideo = false, bBrokenProgram = false;
         for(unsigned k = 0; !bBrokenProgram && k < m_avFormat->programs[i]->nb_stream_indexes; ++k) {
           unsigned streamIdx = m_avFormat->programs[i]->stream_index[k];
           AVStream *st = m_avFormat->streams[streamIdx];
           if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-            if (st->codec->width == 0 || st->codec->height == 0) {
+            if (!bHasValidVideo && (st->codec->width == 0 || st->codec->height == 0)) {
               bBrokenProgram = true;
+            } else {
+              bHasValidVideo = true;
+              bBrokenProgram = false;
             }
           }
         }
