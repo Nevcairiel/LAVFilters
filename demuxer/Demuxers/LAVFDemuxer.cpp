@@ -144,7 +144,7 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
 
   m_bIsStream = true;
 
-  ret = av_probe_input_buffer(byteContext, &fmt, "", NULL, 0, FFMPEG_FILE_BUFFER_SIZE);
+  ret = av_probe_input_buffer(byteContext, &fmt, "", NULL, 0, 0);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): av_probe_input_buffer failed (%d)"), ret));
     goto done;
