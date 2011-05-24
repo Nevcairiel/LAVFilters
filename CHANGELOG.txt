@@ -1,5 +1,23 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.27 - 2011/05/24
+General
+- Added debug versions which generate log files on your desktop
+
+LAV Splitter
+- Fixed a memory leak when switching streams
+- Increased probe buffer size (which results in files to be properly detected in more cases)
+- Fixed playback of MPEG-TS files with a odd program configuration
+
+LAV Audio
+- Improvements to the DTS decoder interface
+  - Support for 1.1.0.0
+  - Try to reverse any channel upmixing done by the decoder, outputting the audio as close to the original source as possible.
+- New Channel Mapping functionality
+  - Output only "standard" channel layouts (Mono, Stereo, 5.1, 6.1, 7.1), filling non-existant channels with silence. Required by some HDMI receivers with "odd" source layouts. (default)
+  - Convert Mono to Stereo (simply double the audio channel)
+  - Convert 6.1 to 7.1 (Back Center gets doubled into both back channels)
+
 0.26 - 2011/05/15
 General
 - The VC2010 runtime is no longer required to be installed
