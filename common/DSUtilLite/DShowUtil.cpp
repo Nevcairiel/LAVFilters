@@ -87,6 +87,7 @@ void DbgSetLogFileDesktop(LPCTSTR szFile)
 void DbgCloseLogFile()
 {
   if (m_hOutput != INVALID_HANDLE_VALUE) {
+    FlushFileBuffers (m_hOutput);
     CloseHandle (m_hOutput);
     m_hOutput = INVALID_HANDLE_VALUE;
   }
