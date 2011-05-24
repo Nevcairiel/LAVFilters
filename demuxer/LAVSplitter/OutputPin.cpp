@@ -96,7 +96,7 @@ HRESULT CLAVOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERT
   ALLOCATOR_PROPERTIES Actual;
   if(FAILED(hr = pAlloc->SetProperties(pProperties, &Actual))) return hr;
   if(Actual.cbBuffer < pProperties->cbBuffer) return E_FAIL;
-  ASSERT(Actual.cBuffers == pProperties->cBuffers);
+  ASSERT(Actual.cBuffers >= pProperties->cBuffers);
 
   return S_OK;
 }
