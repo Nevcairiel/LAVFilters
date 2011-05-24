@@ -50,4 +50,9 @@ public:
 private:
   // The actual storage class
   std::deque<Packet *> m_queue;
+
+#ifdef DEBUG
+  bool m_bWarnedFull;
+  bool m_bWarnedExtreme;
+#endif
 };
