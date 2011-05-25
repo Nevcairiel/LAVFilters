@@ -368,8 +368,11 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
       // 1 byte composition state (0x00 = normal, 0x40 = ACQU_POINT (?), 0x80 = epoch start (new frame), 0xC0 = epoch continue)
       // 2 unknown bytes
       // 1 byte object number
+      uint8_t objectNumber = buf[10];
       // 2 bytes object ref id
-      if (segment_length >= 0x13) {
+      if (objectNumber == 0) {
+        m_bPGSDropState = FALSE;
+      } else if (segment_length >= 0x13) {
         // 1 byte window_id
         // 1 byte object_cropped_flag: 0x80, forced_on_flag = 0x040, 6bit reserved
         uint8_t forced_flag = buf[14];
@@ -379,7 +382,7 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
         // total length = 19 bytes
       }
 #ifdef DEBUG_PGS_PARSER
-      DbgLog((LOG_TRACE, 50, L"::ParsePGS(): Presentation Segment! state: 0x%x; dropping: %d", buf[7], m_bPGSDropState));
+      DbgLog((LOG_TRACE, 50, L"::ParsePGS(): Presentation Segment! obj.num: %d; state: 0x%x; dropping: %d", objectNumber, buf[7], m_bPGSDropState));
 #endif
     }
     if (!m_bPGSDropState) {
