@@ -127,7 +127,7 @@ class CLAVFAudioHelper
 {
 public:
   CLAVFAudioHelper() {};
-  CMediaType initAudioType(CodecID codecId, unsigned int &codecTag);
+  CMediaType initAudioType(CodecID codecId, unsigned int &codecTag, std::string container);
 
   WAVEFORMATEX *CreateWVFMTEX(const AVStream *avstream, ULONG *size);
   WAVEFORMATEXFFMPEG *CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size);

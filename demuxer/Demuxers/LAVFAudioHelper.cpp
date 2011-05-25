@@ -53,7 +53,7 @@ static FormatMapping audio_map[] = {
   { CODEC_ID_WMAPRO,     &MEDIASUBTYPE_WMAUDIO3,          WAVE_FORMAT_WMAUDIO3,   NULL },
 };
 
-CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecTag)
+CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecTag, std::string container)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -81,6 +81,10 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
   case CODEC_ID_PCM_F64LE:
     // Qt PCM
     if (codecTag == MKTAG('f', 'l', '6', '4')) mediaType.subtype = MEDIASUBTYPE_PCM_FL64_le;
+    break;
+  case CODEC_ID_PCM_S16BE:
+    if (container == "mpeg")
+       mediaType.subtype = MEDIASUBTYPE_DVD_LPCM_AUDIO;
     break;
   }
   return mediaType;
