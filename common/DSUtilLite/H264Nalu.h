@@ -60,6 +60,7 @@ private :
   bool      MoveToNextStartcode();
 
 public :
+  CH264Nalu() { SetBuffer(NULL, 0, 0); }
   NALU_TYPE GetType() const { return nal_unit_type; }
   bool      IsRefFrame() const { return (nal_reference_idc != 0); }
 

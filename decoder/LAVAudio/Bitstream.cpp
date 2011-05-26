@@ -378,7 +378,6 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   }
 
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE, rtDur = AV_NOPTS_VALUE;
-  double dDuration = 0;
   // TrueHD timings
   // Since the SPDIF muxer takes 24 frames and puts them into one IEC61937 frame, we use the cached timestamp from before.
   if (codec == CODEC_ID_TRUEHD) {
@@ -392,6 +391,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
       rtStop = rtStart + 200000;
     m_rtStart = rtStop;
   } else {
+    double dDuration = 0;
     // E-AC3 trusts the incoming timestamps until a better solution can be found
     if (codec == CODEC_ID_EAC3) {
       if (rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {

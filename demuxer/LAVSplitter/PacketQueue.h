@@ -31,6 +31,8 @@ class Packet;
 class CPacketQueue : public CCritSec
 {
 public:
+  CPacketQueue() {};
+
   // Queue a new packet at the end of the list
   void Queue(Packet *pPacket, BOOL tryAppend = TRUE);
 
@@ -46,7 +48,7 @@ public:
   // Get access to the internal queue
   std::deque<Packet *> *GetQueue() { return &m_queue; }
 
-  bool IsEmpty() { return Size() == 0; }
+  bool IsEmpty() { return m_queue.empty(); }
 private:
   // The actual storage class
   std::deque<Packet *> m_queue;
