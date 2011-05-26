@@ -889,6 +889,8 @@ HRESULT CLAVAudio::EndFlush()
 
 HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
+  m_rtStart = 0;
+  m_bQueueResync = TRUE;
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
@@ -932,7 +934,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     FlushOutput(FALSE);
     m_bQueueResync = TRUE;
     if(FAILED(hr)) {
-      return S_OK;
+      DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity without timestamp"));
     }
   }
 
