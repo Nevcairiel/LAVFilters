@@ -48,7 +48,7 @@ public:
   // Get access to the internal queue
   std::deque<Packet *> *GetQueue() { return &m_queue; }
 
-  bool IsEmpty() { return m_queue.empty(); }
+  bool IsEmpty() { CAutoLock cAutoLock(this); return m_queue.empty(); }
 private:
   // The actual storage class
   std::deque<Packet *> m_queue;
