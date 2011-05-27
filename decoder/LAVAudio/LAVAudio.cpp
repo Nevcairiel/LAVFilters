@@ -397,12 +397,12 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
     if (pCodec) {
       if (m_pDTSDecoderContext) {
         static const char *DTSProfiles[] = {
-          "dts", NULL, "dts-es", "dts 96/24", NULL, "dts-hd hra", "dts-hd ma"
+          "dts", NULL, "dts-es", "dts 96/24", NULL, "dts-hd hra", "dts-hd ma", "dts express"
         };
 
         int index = 0, profile = m_pAVCtx->profile;
         while(profile >>= 1) index++;
-        if (index > 6) index = 0;
+        if (index > 7) index = 0;
 
         *pCodec = DTSProfiles[index] ? DTSProfiles[index] : "dts";
       } else if (m_pAVCodec) {

@@ -224,37 +224,44 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   GetBitContext *gb = pContext->gb;
   init_get_bits(gb, pBuffer, uSize << 3);
 
-  /* Parse Core Header */
+  unsigned ExtDescriptor = 0, ExtCoding = 0;
 
-  get_bits(gb, 32);                                   /* Sync code */
-  get_bits(gb, 1);                                    /* Frame type */
-  pHeader->SamplesPerBlock  = get_bits(gb, 5) + 1;    /* Samples deficit */
-  pHeader->CRCPresent       = get_bits(gb, 1);        /* CRC present */
-  pHeader->Blocks           = get_bits(gb, 7) + 1;    /* Number of Blocks */
-  pHeader->FrameSize        = get_bits(gb, 14) + 1;   /* Primary (core) Frame Size */
-  pHeader->ChannelLayout    = get_bits(gb, 6);        /* Channel configuration */
-  unsigned sample_index     = get_bits(gb, 4);        /* Sample frequency index */
-  pHeader->SampleRate       = dca_sample_rates[sample_index];
-  unsigned bitrate_index    = get_bits(gb, 5);        /* Bitrate index */
-  pHeader->Bitrate          = dca_bit_rates[bitrate_index];
-  get_bits(gb, 1);                                    /* Down mix */
-  get_bits(gb, 1);                                    /* Dynamic range */
-  get_bits(gb, 1);                                    /* Time stamp */
-  get_bits(gb, 1);                                    /* Auxiliary data */
-  get_bits(gb, 1);                                    /* HDCD */
-  unsigned ExtDescriptor    = get_bits(gb, 3);        /* External descriptor  */
-  unsigned ExtCoding        = get_bits(gb, 1);        /* Extended coding */
-  get_bits(gb, 1);                                    /* ASPF */
-  pHeader->LFE              = get_bits(gb, 2);        /* LFE */
-  get_bits(gb, 1);                                    /* Predictor History */
-  if(pHeader->CRCPresent)
-    get_bits(gb, 16);                                 /* CRC */
-  get_bits(gb, 1);                                    /* Multirate Interpolator */
-  get_bits(gb, 4);                                    /* Encoder Software Revision */
-  get_bits(gb, 2);                                    /* Copy history */
-  get_bits(gb, 1);                                    /* ES */
-  get_bits(gb, 4);                                    /* Dialog Normalization Parameter */
-  get_bits(gb, 4);                                    /* Unknown or Dialog Normalization Parameter */
+  /* Parse Core Header */
+  if (show_bits(gb, 32) != DCA_HD_MARKER) {
+    pHeader->HasCore = 1;
+
+    get_bits(gb, 32);                                   /* Sync code */
+    get_bits(gb, 1);                                    /* Frame type */
+    pHeader->SamplesPerBlock  = get_bits(gb, 5) + 1;    /* Samples deficit */
+    pHeader->CRCPresent       = get_bits(gb, 1);        /* CRC present */
+    pHeader->Blocks           = get_bits(gb, 7) + 1;    /* Number of Blocks */
+    pHeader->FrameSize        = get_bits(gb, 14) + 1;   /* Primary (core) Frame Size */
+    pHeader->ChannelLayout    = get_bits(gb, 6);        /* Channel configuration */
+    unsigned sample_index     = get_bits(gb, 4);        /* Sample frequency index */
+    pHeader->SampleRate       = dca_sample_rates[sample_index];
+    unsigned bitrate_index    = get_bits(gb, 5);        /* Bitrate index */
+    pHeader->Bitrate          = dca_bit_rates[bitrate_index];
+    get_bits(gb, 1);                                    /* Down mix */
+    get_bits(gb, 1);                                    /* Dynamic range */
+    get_bits(gb, 1);                                    /* Time stamp */
+    get_bits(gb, 1);                                    /* Auxiliary data */
+    get_bits(gb, 1);                                    /* HDCD */
+    ExtDescriptor             = get_bits(gb, 3);        /* External descriptor  */
+    ExtCoding                 = get_bits(gb, 1);        /* Extended coding */
+    get_bits(gb, 1);                                    /* ASPF */
+    pHeader->LFE              = get_bits(gb, 2);        /* LFE */
+    get_bits(gb, 1);                                    /* Predictor History */
+    if(pHeader->CRCPresent)
+      get_bits(gb, 16);                                 /* CRC */
+    get_bits(gb, 1);                                    /* Multirate Interpolator */
+    get_bits(gb, 4);                                    /* Encoder Software Revision */
+    get_bits(gb, 2);                                    /* Copy history */
+    get_bits(gb, 1);                                    /* ES */
+    get_bits(gb, 4);                                    /* Dialog Normalization Parameter */
+    get_bits(gb, 4);                                    /* Unknown or Dialog Normalization Parameter */
+  } else {
+    pHeader->HasCore = 0;
+  }
 
   // DTS-HD parsing
   const uint8_t *pHD = find_marker32_position(pBuffer, uSize, DCA_HD_MARKER);

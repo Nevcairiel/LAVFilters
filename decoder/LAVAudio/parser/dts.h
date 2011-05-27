@@ -25,6 +25,7 @@
 struct DTSParserContext;
 
 struct DTSHeader {
+  unsigned HasCore;
   unsigned CRCPresent;
   unsigned SamplesPerBlock;
   unsigned Blocks;
