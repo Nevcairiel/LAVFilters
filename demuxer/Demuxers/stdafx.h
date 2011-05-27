@@ -15,6 +15,7 @@ extern "C" {
 #define __STDC_CONSTANT_MACROS
 #include "libavformat/avformat.h"
 #include "libavutil/intreadwrite.h"
+#include "libavutil/pixdesc.h"
 
 #include "libbluray/bluray.h"
 }

@@ -159,13 +159,17 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   pvi->bmiHeader.biHeight = avstream->codec->height;
   pvi->bmiHeader.biBitCount = avstream->codec->bits_per_coded_sample;
   pvi->bmiHeader.biSizeImage = 0; // Calculating any value doesn't make sense, as we're dealing with compressed data, without constant frame sizes
-  pvi->bmiHeader.biCompression = FOURCCMap(avstream->codec->codec_tag).Data1;
+  pvi->bmiHeader.biCompression = avstream->codec->codec_tag;
   //TOFIX The bitplanes is depending on the subtype
   pvi->bmiHeader.biPlanes = 1;
   pvi->bmiHeader.biClrUsed = 0;
   pvi->bmiHeader.biClrImportant = 0;
   pvi->bmiHeader.biYPelsPerMeter = 0;
   pvi->bmiHeader.biXPelsPerMeter = 0;
+
+  if (avstream->codec->codec_id == CODEC_ID_RAWVIDEO) {
+    pvi->bmiHeader.biBitCount = av_get_bits_per_pixel2(avstream->codec->pix_fmt);
+  }
 
   *size = sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size;
   return pvi;
