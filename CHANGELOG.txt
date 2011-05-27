@@ -1,5 +1,16 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.28 - 2011/05/27
+LAV Splitter
+- Improved PGS filtering, forced subtitles should be cleared off the screen properly more often.
+- Improved playback of H264 in MPEG-TS with certain files (mostly from camcorders, but some Blu-rays as well)
+- Fixed 16-bit LPCM on DVDs
+- Fixed the Media Types for uncompressed video
+
+LAV Audio
+- Added the ability to decode DTS Express when using the ArcSoft DTS Decoder
+- Fixed missing audio after seeks with Ogg Vorbis
+
 0.27 - 2011/05/24
 General
 - Added debug versions which generate log files on your desktop
