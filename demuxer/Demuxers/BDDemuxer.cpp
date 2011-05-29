@@ -228,7 +228,7 @@ void CBDDemuxer::ProcessBDEvents()
   while(bd_get_event(m_pBD, &event)) {
     if (event.event == BD_EVENT_PLAYITEM) {
       uint64_t clip_start, clip_in, bytepos;
-      int ret = bd_get_clip_infos(m_pBD, event.param, &clip_start, &clip_in, &bytepos);
+      int ret = bd_get_clip_infos(m_pBD, event.param, &clip_start, &clip_in, &bytepos, NULL);
       if (ret) {
         m_rtNewOffset = Convert90KhzToDSTime(clip_start - clip_in) + m_lavfDemuxer->GetStartTime();
         m_bNewOffsetPos = bytepos;
