@@ -47,6 +47,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_DecodeFormat(SampleFormat_16)
   , m_pFFBuffer(NULL)
   , m_nFFBufferSize(0)
+  , m_bRuntimeConfig(FALSE)
   , m_bVolumeStats(FALSE)
   , m_pParser(NULL)
   , m_bQueueResync(FALSE)
@@ -102,8 +103,33 @@ CLAVAudio::~CLAVAudio()
 #endif
 }
 
+HRESULT CLAVAudio::LoadDefaults()
+{
+  m_settings.DRCEnabled = FALSE;
+  m_settings.DRCLevel   = 100;
+
+  // Default all Codecs to enabled
+  for(int i = 0; i < Codec_NB; ++i)
+    m_settings.bFormats[i] = true;
+
+  // Default bitstreaming to disabled
+  memset(m_settings.bBitstream, 0, sizeof(m_settings.bBitstream));
+
+  m_settings.DTSHDFraming         = FALSE;
+  m_settings.AutoAVSync           = TRUE;
+  m_settings.ExpandMono           = FALSE;
+  m_settings.Expand61             = FALSE;
+  m_settings.OutputStandardLayout = TRUE;
+
+  return S_OK;
+}
+
 HRESULT CLAVAudio::LoadSettings()
 {
+  LoadDefaults();
+  if (m_bRuntimeConfig)
+    return S_FALSE;
+
   HRESULT hr;
   DWORD dwVal;
   BOOL bFlag;
@@ -115,23 +141,16 @@ HRESULT CLAVAudio::LoadSettings()
   // and we need to fill the settings with defaults.
   // ReadString returns an empty string in case of failure, so thats fine!
   bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
-  m_settings.DRCEnabled = SUCCEEDED(hr) ? bFlag : FALSE;
+  if (SUCCEEDED(hr)) m_settings.DRCEnabled = bFlag;
 
   dwVal = reg.ReadDWORD(L"DRCLevel", hr);
-  m_settings.DRCLevel = SUCCEEDED(hr) ? (int)dwVal : 100;
-
-  // Default all Codecs to enabled
-  for(int i = 0; i < Codec_NB; ++i)
-    m_settings.bFormats[i] = true;
+  if (SUCCEEDED(hr)) m_settings.DRCLevel = (int)dwVal;
 
   pBuf = reg.ReadBinary(L"Formats", dwVal, hr);
   if (SUCCEEDED(hr)) {
     memcpy(&m_settings.bFormats, pBuf, min(dwVal, sizeof(m_settings.bFormats)));
     SAFE_CO_FREE(pBuf);
   }
-
-  // Default bitstreaming to disabled
-  memset(m_settings.bBitstream, 0, sizeof(m_settings.bBitstream));
 
   pBuf = reg.ReadBinary(L"Bitstreaming", dwVal, hr);
   if (SUCCEEDED(hr)) {
@@ -140,25 +159,28 @@ HRESULT CLAVAudio::LoadSettings()
   }
 
   bFlag = reg.ReadBOOL(L"DTSHDFraming", hr);
-  m_settings.DTSHDFraming = SUCCEEDED(hr) ? bFlag : FALSE;
+  if (SUCCEEDED(hr)) m_settings.DTSHDFraming = bFlag;
 
   bFlag = reg.ReadBOOL(L"AutoAVSync", hr);
-  m_settings.AutoAVSync = SUCCEEDED(hr) ? bFlag : TRUE;
+  if (SUCCEEDED(hr)) m_settings.AutoAVSync = bFlag;
 
   bFlag = reg.ReadBOOL(L"ExpandMono", hr);
-  m_settings.ExpandMono = SUCCEEDED(hr) ? bFlag : FALSE;
+  if (SUCCEEDED(hr)) m_settings.ExpandMono = bFlag;
 
   bFlag = reg.ReadBOOL(L"Expand61", hr);
-  m_settings.Expand61 = SUCCEEDED(hr) ? bFlag : FALSE;
+  if (SUCCEEDED(hr)) m_settings.Expand61 = bFlag;
 
   bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
-  m_settings.OutputStandardLayout = SUCCEEDED(hr) ? bFlag : TRUE;
+  if (SUCCEEDED(hr)) m_settings.OutputStandardLayout = bFlag;
 
   return S_OK;
 }
 
 HRESULT CLAVAudio::SaveSettings()
 {
+  if (m_bRuntimeConfig)
+    return S_FALSE;
+
   HRESULT hr;
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
@@ -244,6 +266,14 @@ HRESULT CLAVAudio::GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel)
 }
 
 // ILAVAudioSettings
+HRESULT CLAVAudio::SetRuntimeConfig(BOOL bRuntimeConfig)
+{
+  m_bRuntimeConfig = bRuntimeConfig;
+  LoadSettings();
+
+  return S_OK;
+}
+
 HRESULT CLAVAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
 {
   m_settings.DRCEnabled = bDRCEnabled;

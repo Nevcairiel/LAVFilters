@@ -78,6 +78,14 @@ typedef enum LAVAudioSampleFormat {
 [uuid("5B7DCFA5-589F-407C-8E32-AB2D0EFDBFCC")]
 interface ILAVAudioSettings : public IUnknown
 {
+  // Switch to Runtime Config mode. This will reset all settings to default, and no changes to the settings will be saved
+  // You can use this to programmatically configure LAV Audio without interfering with the users settings in the registry.
+  // Subsequent calls to this function will reset all settings back to defaults, even if the mode does not change.
+  //
+  // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
+  // For smooth operations, it must be called before LAV Audio is connected to other filters.
+  STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
+
   // Dynamic Range Compression
   // pbDRCEnabled: The state of DRC
   // piDRCLevel:   The DRC strength (0-100, 100 is maximum)

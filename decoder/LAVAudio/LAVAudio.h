@@ -102,6 +102,7 @@ public:
   STDMETHODIMP GetPages(CAUUID *pPages);
 
   // ILAVAudioSettings
+  STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
   STDMETHODIMP GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel);
   STDMETHODIMP SetDRC(BOOL bDRCEnabled, int iDRCLevel);
   STDMETHODIMP_(BOOL) GetFormatConfiguration(LAVAudioCodec aCodec);
@@ -156,6 +157,7 @@ public:
   const static int                      sudPinTypesOutCount;
 
 private:
+  HRESULT LoadDefaults();
   HRESULT LoadSettings();
   HRESULT SaveSettings();
 
@@ -242,6 +244,7 @@ private:
     BOOL Expand61;
     BOOL OutputStandardLayout;
   } m_settings;
+  BOOL                m_bRuntimeConfig;
 
   BOOL                m_bVolumeStats;    // Volume Stats gathering enabled
   FloatingAverage<float> m_faVolume[8];     // Floating Average for volume (8 channels)
