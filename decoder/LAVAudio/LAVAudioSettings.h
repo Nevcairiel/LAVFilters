@@ -20,9 +20,9 @@
 
 #pragma once
 
-// {5B7DCFA5-589F-407C-8E32-AB2D0EFDBFCC}
+// {4158A22B-6553-45D0-8069-24716F8FF171}
 DEFINE_GUID(IID_ILAVAudioSettings, 
-0x5b7dcfa5, 0x589f, 0x407c, 0x8e, 0x32, 0xab, 0x2d, 0xe, 0xfd, 0xbf, 0xcc);
+0x4158a22b, 0x6553, 0x45d0, 0x80, 0x69, 0x24, 0x71, 0x6f, 0x8f, 0xf1, 0x71);
 
 // {A668B8F2-BA87-4F63-9D41-768F7DE9C50E}
 DEFINE_GUID(IID_ILAVAudioStatus,
@@ -75,7 +75,7 @@ typedef enum LAVAudioSampleFormat {
 };
 
 // LAV Audio configuration interface
-[uuid("5B7DCFA5-589F-407C-8E32-AB2D0EFDBFCC")]
+[uuid("4158A22B-6553-45D0-8069-24716F8FF171")]
 interface ILAVAudioSettings : public IUnknown
 {
   // Switch to Runtime Config mode. This will reset all settings to default, and no changes to the settings will be saved
