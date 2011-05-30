@@ -28,12 +28,12 @@
 
 static struct {
   CodecID codec;
-  BitstreamCodecs config;
+  LAVBitstreamCodec config;
 } lavf_bitstream_config[] = {
-  { CODEC_ID_AC3,    BS_AC3 },
-  { CODEC_ID_EAC3,   BS_EAC3 },
-  { CODEC_ID_TRUEHD, BS_TRUEHD },
-  { CODEC_ID_DTS,    BS_DTS } // DTS-HD is still DTS, and handled special below
+  { CODEC_ID_AC3,    Bitstream_AC3 },
+  { CODEC_ID_EAC3,   Bitstream_EAC3 },
+  { CODEC_ID_TRUEHD, Bitstream_TRUEHD },
+  { CODEC_ID_DTS,    Bitstream_DTS } // DTS-HD is still DTS, and handled special below
 };
 
 // Check wether a codec is bitstreaming eligible and enabled
@@ -113,7 +113,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   m_avBSContext->oformat->flags |= AVFMT_NOFILE;
 
   // DTS-HD is by default off, unless explicitly asked for
-  if (m_settings.DTSHDFraming && m_settings.bBitstream[BS_DTSHD]) {
+  if (m_settings.DTSHDFraming && m_settings.bBitstream[Bitstream_DTSHD]) {
     m_bDTSHD = TRUE;
     av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
   } else {
@@ -171,7 +171,7 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
 
   // Configure DTS-HD setting
   if(m_avBSContext) {
-    if (m_settings.bBitstream[BS_DTSHD] && m_settings.DTSHDFraming) {
+    if (m_settings.bBitstream[Bitstream_DTSHD] && m_settings.DTSHDFraming) {
       m_bDTSHD = TRUE;
       av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
     } else {
@@ -237,7 +237,7 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
      subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
      break;
    case CODEC_ID_DTS:
-     if (m_settings.bBitstream[BS_DTSHD] && m_bDTSHD) {
+     if (m_settings.bBitstream[Bitstream_DTSHD] && m_bDTSHD) {
        wfe->nSamplesPerSec = 192000;
        wfe->nChannels      = 8;
        subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
@@ -321,7 +321,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 
     if (pOut_size > 0) {
       m_bsParser.Parse(m_nCodecId, pOut, pOut_size, m_pParser->priv_data);
-      if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_bsParser.m_bDTSHD && m_settings.bBitstream[BS_DTSHD]) {
+      if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_bsParser.m_bDTSHD && m_settings.bBitstream[Bitstream_DTSHD]) {
         ActivateDTSHDMuxing();
       }
 

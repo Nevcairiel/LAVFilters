@@ -104,10 +104,10 @@ public:
   // ILAVAudioSettings
   STDMETHODIMP GetDRC(BOOL *pbDRCEnabled, int *piDRCLevel);
   STDMETHODIMP SetDRC(BOOL bDRCEnabled, int iDRCLevel);
-  STDMETHODIMP GetFormatConfiguration(bool *bFormat);
-  STDMETHODIMP SetFormatConfiguration(bool *bFormat);
-  STDMETHODIMP GetBitstreamConfig(bool *bBitstreaming);
-  STDMETHODIMP SetBitstreamConfig(bool *bBitstreaming);
+  STDMETHODIMP_(BOOL) GetFormatConfiguration(LAVAudioCodec aCodec);
+  STDMETHODIMP SetFormatConfiguration(LAVAudioCodec aCodec, BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetBitstreamConfig(LAVBitstreamCodec bsCodec);
+  STDMETHODIMP SetBitstreamConfig(LAVBitstreamCodec bsCodec, BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetDTSHDFraming();
   STDMETHODIMP SetDTSHDFraming(BOOL bHDFraming);
   STDMETHODIMP_(BOOL) GetAutoAVSync();
@@ -234,8 +234,8 @@ private:
   struct AudioSettings {
     BOOL DRCEnabled;
     int DRCLevel;
-    bool bFormats[CC_NB];
-    bool bBitstream[BS_NB];
+    bool bFormats[Codec_NB];
+    bool bBitstream[Bitstream_NB];
     BOOL DTSHDFraming;
     BOOL AutoAVSync;
     BOOL ExpandMono;

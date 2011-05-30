@@ -58,29 +58,45 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
 {
   ASSERT(m_pAudioSettings != NULL);
   HRESULT hr = S_OK;
+  BOOL bFlag;
 
+  // DRC
   int iDRCLevel = (int)SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_GETPOS, 0, 0);
-  BOOL bDRC = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
-  hr = m_pAudioSettings->SetDRC(bDRC, iDRCLevel);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DRC, BM_GETCHECK, 0, 0);
+  hr = m_pAudioSettings->SetDRC(bFlag, iDRCLevel);
 
-  bool bBitstreaming[BS_NB];
-  memset(bBitstreaming, 0, sizeof(bBitstreaming));
-  bBitstreaming[BS_AC3]     = SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_GETCHECK, 0, 0) != 0;
-  bBitstreaming[BS_EAC3]    = SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_GETCHECK, 0, 0) != 0;
-  bBitstreaming[BS_TRUEHD]  = SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_GETCHECK, 0, 0) != 0;
-  bBitstreaming[BS_DTS]     = SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_GETCHECK, 0, 0) != 0;
-  bBitstreaming[BS_DTSHD]   = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_GETCHECK, 0, 0) != 0;
-  m_pAudioSettings->SetBitstreamConfig(bBitstreaming);
-  BOOL bDTSHDFraming        = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_GETCHECK, 0, 0);
-  m_pAudioSettings->SetDTSHDFraming(bDTSHDFraming);
-  BOOL bAutoAVSync          = SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_GETCHECK, 0, 0);
-  m_pAudioSettings->SetAutoAVSync(bAutoAVSync);
-  BOOL bOutputStdLayout     = SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_GETCHECK, 0, 0);
-  m_pAudioSettings->SetOutputStandardLayout(bOutputStdLayout);
-  BOOL bExpandMono          = SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_GETCHECK, 0, 0);
-  m_pAudioSettings->SetExpandMono(bExpandMono);
-  BOOL bExpand61            = SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_GETCHECK, 0, 0);
-  m_pAudioSettings->SetExpand61(bExpand61);
+  // Bitstreaming codec options
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetBitstreamConfig(Bitstream_AC3, bFlag);
+
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetBitstreamConfig(Bitstream_EAC3, bFlag);
+
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetBitstreamConfig(Bitstream_TRUEHD, bFlag);
+
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetBitstreamConfig(Bitstream_DTS, bFlag);
+
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetBitstreamConfig(Bitstream_DTSHD, bFlag);
+
+  // DTS-HD framing
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetDTSHDFraming(bFlag);
+
+  // The other playback options
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetAutoAVSync(bFlag);
+
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetOutputStandardLayout(bFlag);
+
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetExpandMono(bFlag);
+
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetExpand61(bFlag);
 
   LoadData();
 
@@ -115,15 +131,15 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     _snwprintf_s(buffer, _TRUNCATE, L"%d%%", m_iDRCLevel);
     SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
 
-    SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_SETCHECK, m_bBitstreaming[BS_AC3], 0);
-    SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_SETCHECK, m_bBitstreaming[BS_EAC3], 0);
-    SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_SETCHECK, m_bBitstreaming[BS_TRUEHD], 0);
-    SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_SETCHECK, m_bBitstreaming[BS_DTS], 0);
-    SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_SETCHECK, m_bBitstreaming[BS_DTSHD], 0);
-    EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD), m_bBitstreaming[BS_DTS]);
+    SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_SETCHECK, m_bBitstreaming[Bitstream_AC3], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_SETCHECK, m_bBitstreaming[Bitstream_EAC3], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_SETCHECK, m_bBitstreaming[Bitstream_TRUEHD], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_SETCHECK, m_bBitstreaming[Bitstream_DTS], 0);
+    SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_SETCHECK, m_bBitstreaming[Bitstream_DTSHD], 0);
+    EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD), m_bBitstreaming[Bitstream_DTS]);
 
     SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_SETCHECK, m_bDTSHDFraming, 0);
-    EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), m_bBitstreaming[BS_DTSHD]);
+    EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), m_bBitstreaming[Bitstream_DTSHD]);
     addHint(IDC_BS_DTSHD_FRAMING, L"With some Receivers, this setting might be needed to achieve the full features of DTS. However, on other Receivers, this option will cause DTS to not work at all.\n\nIf you do not experience any problems, its recommended to leave this setting untouched.");
 
     SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_SETCHECK, m_bAutoAVSync, 0);
@@ -145,7 +161,8 @@ HRESULT CLAVAudioSettingsProp::LoadData()
 {
   HRESULT hr = S_OK;
   hr = m_pAudioSettings->GetDRC(&m_bDRCEnabled, &m_iDRCLevel);
-  hr = m_pAudioSettings->GetBitstreamConfig(m_bBitstreaming);
+  for (unsigned i = 0; i < Bitstream_NB; ++i)
+    m_bBitstreaming[i] = m_pAudioSettings->GetBitstreamConfig((LAVBitstreamCodec)i) != 0;
   m_bDTSHDFraming = m_pAudioSettings->GetDTSHDFraming();
   m_bAutoAVSync = m_pAudioSettings->GetAutoAVSync();
   m_bOutputStdLayout = m_pAudioSettings->GetOutputStandardLayout();
@@ -168,24 +185,24 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), lValue);
     } else if (LOWORD(wParam) == IDC_BS_AC3 && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
-      if (bFlag != m_bBitstreaming[BS_AC3])
+      if (bFlag != m_bBitstreaming[Bitstream_AC3])
         SetDirty();
     } else if (LOWORD(wParam) == IDC_BS_EAC3 && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
-      if (bFlag != m_bBitstreaming[BS_EAC3])
+      if (bFlag != m_bBitstreaming[Bitstream_EAC3])
         SetDirty();
     } else if (LOWORD(wParam) == IDC_BS_TRUEHD && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
-      if (bFlag != m_bBitstreaming[BS_TRUEHD])
+      if (bFlag != m_bBitstreaming[Bitstream_TRUEHD])
         SetDirty();
     } else if (LOWORD(wParam) == IDC_BS_DTS && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
-      if (bFlag != m_bBitstreaming[BS_DTS])
+      if (bFlag != m_bBitstreaming[Bitstream_DTS])
         SetDirty();
       EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD), bFlag);
     } else if (LOWORD(wParam) == IDC_BS_DTSHD && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
-      if (bFlag != m_bBitstreaming[BS_DTSHD])
+      if (bFlag != m_bBitstreaming[Bitstream_DTSHD])
         SetDirty();
       EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), bFlag);
     } else if (LOWORD(wParam) == IDC_BS_DTSHD_FRAMING && HIWORD(wParam) == BN_CLICKED) {
@@ -261,13 +278,12 @@ HRESULT CLAVAudioFormatsProp::OnApplyChanges()
 
   HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
 
-  bool bFormats[CC_NB];
-
   // Get checked state
+  BOOL bFlag;
   for (int nItem = 0; nItem < ListView_GetItemCount(hlv); nItem++) {
-    bFormats[nItem] = ListView_GetCheckState(hlv, nItem) ? true : false;
+    bFlag = ListView_GetCheckState(hlv, nItem);
+    m_pAudioSettings->SetFormatConfiguration((LAVAudioCodec)nItem, bFlag);
   }
-  m_pAudioSettings->SetFormatConfiguration(bFormats);
 
   LoadData();
 
@@ -297,7 +313,7 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
   ListView_AddCol(hlv, nCol, 177, L"Description", false);
 
   ListView_DeleteAllItems(hlv);
-  ListView_SetItemCount(hlv, CC_NB);
+  ListView_SetItemCount(hlv, Codec_NB);
 
   // Create entrys for the formats
   LVITEM lvi;
@@ -305,8 +321,8 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
   lvi.mask = LVIF_TEXT|LVIF_PARAM;
 
   int nItem = 0;
-  for (nItem = 0; nItem < CC_NB; ++nItem) {
-    const codec_config_t *config = get_codec_config((ConfigCodecs)nItem);
+  for (nItem = 0; nItem < Codec_NB; ++nItem) {
+    const codec_config_t *config = get_codec_config((LAVAudioCodec)nItem);
 
     // Create main entry
     lvi.iItem = nItem + 1;
@@ -331,7 +347,8 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
 HRESULT CLAVAudioFormatsProp::LoadData()
 {
   HRESULT hr = S_OK;
-  hr = m_pAudioSettings->GetFormatConfiguration(m_bFormats);
+  for (unsigned i = 0; i < Codec_NB; ++i)
+    m_bFormats[i] = m_pAudioSettings->GetFormatConfiguration((LAVAudioCodec)i) != 0;
   return hr;
 }
 

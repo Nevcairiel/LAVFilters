@@ -121,7 +121,7 @@ HRESULT CLAVAudio::LoadSettings()
   m_settings.DRCLevel = SUCCEEDED(hr) ? (int)dwVal : 100;
 
   // Default all Codecs to enabled
-  for(int i = 0; i < CC_NB; ++i)
+  for(int i = 0; i < Codec_NB; ++i)
     m_settings.bFormats[i] = true;
 
   pBuf = reg.ReadBinary(L"Formats", dwVal, hr);
@@ -258,36 +258,39 @@ HRESULT CLAVAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
   return S_OK;
 }
 
-HRESULT CLAVAudio::GetFormatConfiguration(bool *bFormat)
+BOOL CLAVAudio::GetFormatConfiguration(LAVAudioCodec aCodec)
 {
-  CheckPointer(bFormat, E_POINTER);
-
-  memcpy(bFormat, &m_settings.bFormats, sizeof(m_settings.bFormats));
-  return S_OK;
+  if (aCodec < 0 || aCodec >= Codec_NB)
+    return FALSE;
+  return m_settings.bFormats[aCodec];
 }
 
-HRESULT CLAVAudio::SetFormatConfiguration(bool *bFormat)
+HRESULT CLAVAudio::SetFormatConfiguration(LAVAudioCodec aCodec, BOOL bEnabled)
 {
-  CheckPointer(bFormat, E_POINTER);
+  if (aCodec < 0 || aCodec >= Codec_NB)
+    return E_FAIL;
 
-  memcpy(&m_settings.bFormats, bFormat, sizeof(m_settings.bFormats));
+  m_settings.bFormats[aCodec] = (bEnabled != 0);
+
   SaveSettings();
   return S_OK;
 }
 
-HRESULT CLAVAudio::GetBitstreamConfig(bool *bBitstreaming)
+BOOL CLAVAudio::GetBitstreamConfig(LAVBitstreamCodec bsCodec)
 {
-  CheckPointer(bBitstreaming, E_POINTER);
-
-  memcpy(bBitstreaming, &m_settings.bBitstream, sizeof(m_settings.bBitstream));
-  return S_OK;
+  if (bsCodec < 0 || bsCodec >= Bitstream_NB)
+    return FALSE;
+  
+  return m_settings.bBitstream[bsCodec];
 }
 
-HRESULT CLAVAudio::SetBitstreamConfig(bool *bBitstreaming)
+HRESULT CLAVAudio::SetBitstreamConfig(LAVBitstreamCodec bsCodec, BOOL bEnabled)
 {
-  CheckPointer(bBitstreaming, E_POINTER);
+  if (bsCodec >= Bitstream_NB)
+    return E_FAIL;
 
-  memcpy(&m_settings.bBitstream, bBitstreaming, sizeof(m_settings.bBitstream));
+  m_settings.bBitstream[bsCodec] = (bEnabled != 0);
+
   SaveSettings();
 
   UpdateBitstreamContext();
@@ -701,11 +704,11 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   }
 
   // Special check for enabled PCM
-  if (codec >= 0x10000 && codec < 0x12000 && codec != CODEC_ID_PCM_BLURAY && codec != CODEC_ID_PCM_DVD && !m_settings.bFormats[CC_PCM])
+  if (codec >= 0x10000 && codec < 0x12000 && codec != CODEC_ID_PCM_BLURAY && codec != CODEC_ID_PCM_DVD && !m_settings.bFormats[Codec_PCM])
     return VFW_E_UNSUPPORTED_AUDIO;
 
-  for(int i = 0; i < CC_NB; ++i) {
-    const codec_config_t *config = get_codec_config((ConfigCodecs)i);
+  for(int i = 0; i < Codec_NB; ++i) {
+    const codec_config_t *config = get_codec_config((LAVAudioCodec)i);
     bool bMatched = false;
     for (int k = 0; k < config->nCodecs; ++k) {
       if (config->codecs[k] == codec) {

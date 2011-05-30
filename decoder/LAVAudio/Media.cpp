@@ -474,7 +474,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_WMAPRO }},                       // CC_WMAPRO
 };
 
-const codec_config_t *get_codec_config(ConfigCodecs codec)
+const codec_config_t *get_codec_config(LAVAudioCodec codec)
 {
   codec_config_t *config = &m_codec_config[codec];
   if (!config->name) {

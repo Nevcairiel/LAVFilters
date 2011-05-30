@@ -66,7 +66,7 @@ private:
   BOOL m_bDRCEnabled;
   int m_iDRCLevel;
 
-  bool m_bBitstreaming[BS_NB];
+  bool m_bBitstreaming[Bitstream_NB];
   BOOL m_bDTSHDFraming;
   BOOL m_bAutoAVSync;
   BOOL m_bOutputStdLayout;
@@ -101,7 +101,7 @@ private:
 private:
   ILAVAudioSettings *m_pAudioSettings;
 
-  bool m_bFormats[CC_NB];
+  bool m_bFormats[Codec_NB];
 };
 
 
