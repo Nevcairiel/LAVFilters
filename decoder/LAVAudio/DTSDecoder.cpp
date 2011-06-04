@@ -311,8 +311,6 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       m_bsParser.Parse(CODEC_ID_DTS, m_pFFBuffer, pOut_size, NULL);
       unsigned decode_channels = dts_determine_decode_channels(m_bsParser.m_DTSHeader);
 
-      ASSERT(m_bsParser.m_DTSHeader.HasCore || decode_channels <= 2);
-
       // Init Decoder with new Parameters, if required
       if (m_DTSDecodeChannels != decode_channels) {
         DbgLog((LOG_TRACE, 20, L"::Decode(): Switching to %d channel decoding", decode_channels));
@@ -360,7 +358,8 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       out->dwChannelMask    = get_channel_mask(channels); // TODO
       out->wBitsPerSample   = bitdepth;
 
-      if (!m_bsParser.m_DTSHeader.HasCore) {
+      // DTS Express
+      if (profile == 0 && !m_bsParser.m_DTSHeader.HasCore) {
         profile = 1 << 7;
       }
 
@@ -390,7 +389,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
   out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
 
-  if (m_bsParser.m_DTSHeader.HasCore) {
+  if (m_pAVCtx->profile != (1 << 7)) {
     DTSRemapOutputChannels(out, m_bsParser.m_DTSHeader);
   }
   m_pAVCtx->channels = out->wChannels;
