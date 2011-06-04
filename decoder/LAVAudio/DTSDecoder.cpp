@@ -176,9 +176,9 @@ static unsigned dts_determine_decode_channels(DTSHeader header)
     decode_channels = 6;
     break;
   case 6:
-    if (header.ChannelLayout == 9 && !header.XChChannelLayout)
+    if (header.ChannelLayout == 9 && header.LFE)  // Layout 9 is 5.0, with LFE makes default 5.1, nothing special
       decode_channels = 6;
-    else
+    else                                          // Other possibility for 6 channels is 6.0
       decode_channels = 7;
     break;
   }
@@ -252,7 +252,7 @@ static void DTSRemapOutputChannels(BufferDetails *buffer, DTSHeader header)
       buffer->dwChannelMask = AV_CH_LAYOUT_7POINT0;
     else                                                                    /* 3/4/1 (7.1) Layout */
       buffer->dwChannelMask = AV_CH_LAYOUT_7POINT1;
-  } else if (buffer->wChannels == 6 && header.ChannelLayout == 9 && header.XChChannelLayout) { /* 3/3/0 (6.0) Layout */
+  } else if (buffer->wChannels == 6 && header.ChannelLayout == 9 && !header.LFE) { /* 3/3/0 (6.0) Layout */
     buffer->dwChannelMask = AV_CH_LAYOUT_5POINT0_BACK|AV_CH_BACK_CENTER;
   } else {
     buffer->dwChannelMask = (DWORD)dca_core_channel_layout[header.ChannelLayout];
