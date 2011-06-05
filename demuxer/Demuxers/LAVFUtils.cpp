@@ -225,9 +225,11 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     // Title/Language
     if (title && lang) {
       buf << title << " [" << lang << "] (";
-    } else if (title || lang) {
+    } else if (title) {
       // Print either title or lang
-      buf << (title ? title : sLanguage) << " (";
+      buf << title << " (";
+    } else if (lang) {
+      buf << sLanguage << " [" << lang << "] (";
     }
     // Codec
     buf << codec_name;
@@ -254,9 +256,11 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     // Title/Language
     if (title && lang) {
       buf << title << " [" << lang << "] (";
-    } else if (title || lang) {
+    } else if (title) {
       // Print either title or lang
-      buf << (title ? title : sLanguage) << " (";
+      buf << title << " (";
+    } else if (lang) {
+      buf << sLanguage << " [" << lang << "] (";
     }
     // Codec
     buf << codec_name;
@@ -295,9 +299,11 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     // Title/Language
     if (title && lang) {
       buf << title << " [" << lang << "] (";
-    } else if (title || lang) {
+    } else if (title) {
       // Print either title or lang
-      buf << (title ? title : sLanguage) << " (";
+      buf << title << " (";
+    } else if (lang) {
+      buf << sLanguage << " [" << lang << "] (";
     }
     // Codec
     buf << codec_name;
