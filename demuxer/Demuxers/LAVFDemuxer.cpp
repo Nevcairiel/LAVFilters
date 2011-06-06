@@ -705,11 +705,8 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
   return S_OK;
 }
 
-const AVStream* CLAVFDemuxer::GetAVStreamByIndex(UINT index)
+int CLAVFDemuxer::GetStreamIdxFromTotalIdx(unsigned index)
 {
-  if(!m_avFormat)
-    return NULL;
-
   UINT type = video;
   UINT count_v = m_streams[video].size();
   UINT count_a = m_streams[audio].size();
@@ -721,12 +718,12 @@ const AVStream* CLAVFDemuxer::GetAVStreamByIndex(UINT index)
       index -= count_a;
       type = subpic;
       if (index >= count_s)
-        return NULL;
+        return -1;
     }
   }
 
   const stream st1 = m_streams[type][index];
-  return  m_avFormat->streams[st1.pid];
+  return st1.pid;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -749,24 +746,33 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackEleme
   if(!m_avFormat || !pStructureToFill)
     return FALSE;
 
-  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
-  if(!st)
+  int id = GetStreamIdxFromTotalIdx(aTrackIdx);
+  if (id < 0 || id == NO_SUBTITLE_PID)
     return FALSE;
 
-  // Fill structure
-  pStructureToFill->FlagDefault = (st->disposition & AV_DISPOSITION_DEFAULT);
-  pStructureToFill->FlagForced = (st->disposition & AV_DISPOSITION_FORCED);
-  const char *lang = get_stream_language(st);
-  if (lang) {
-    strncpy_s(pStructureToFill->Language, lang, 3);
-    pStructureToFill->Language[3] = '\0';
+  if (id == FORCED_SUBTITLE_PID) {
+    pStructureToFill->FlagDefault = 0;
+    pStructureToFill->FlagForced  = 1;
+    pStructureToFill->Type        = TypeSubtitle;
+    strcpy_s(pStructureToFill->Language, "und");
   } else {
-    pStructureToFill->Language[0] = '\0';
-  }
+    const AVStream *st = m_avFormat->streams[id];
 
-  pStructureToFill->Type = (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) ? TypeVideo :
-                           (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) ? TypeAudio :
-                           (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) ? TypeSubtitle : 0;
+    // Fill structure
+    pStructureToFill->FlagDefault = (st->disposition & AV_DISPOSITION_DEFAULT);
+    pStructureToFill->FlagForced = (st->disposition & AV_DISPOSITION_FORCED);
+    const char *lang = get_stream_language(st);
+    if (lang) {
+      strncpy_s(pStructureToFill->Language, lang, 3);
+      pStructureToFill->Language[3] = '\0';
+    } else {
+      pStructureToFill->Language[0] = '\0';
+    }
+
+    pStructureToFill->Type = (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) ? TypeVideo :
+                             (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) ? TypeAudio :
+                             (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) ? TypeSubtitle : 0;
+  }
 
   // The following flags are not exported via avformat
   pStructureToFill->FlagLacing = 0;
@@ -782,9 +788,11 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackExtendedInfo(UINT aTrackIdx, void* pSt
   if(!m_avFormat || !pStructureToFill)
     return FALSE;
 
-  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
-  if(!st)
+  int id = GetStreamIdxFromTotalIdx(aTrackIdx);
+  if (id < 0 || (unsigned)id >= m_avFormat->nb_streams)
     return FALSE;
+
+  const AVStream *st = m_avFormat->streams[id];
 
   if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
     TrackExtendedInfoVideo* pTEIV = (TrackExtendedInfoVideo*)pStructureToFill;
@@ -815,9 +823,11 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
   if(!m_avFormat)
     return NULL;
 
-  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
-  if(!st)
-    return NULL;
+  int id = GetStreamIdxFromTotalIdx(aTrackIdx);
+  if (id < 0 || (unsigned)id >= m_avFormat->nb_streams)
+    return FALSE;
+
+  const AVStream *st = m_avFormat->streams[id];
 
   BSTR trackName = NULL;
 
@@ -837,9 +847,11 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackCodecName(UINT aTrackIdx)
   if(!m_avFormat)
     return NULL;
 
-  const AVStream *st = GetAVStreamByIndex(aTrackIdx);
-  if(!st)
-    return NULL;
+  int id = GetStreamIdxFromTotalIdx(aTrackIdx);
+  if (id < 0 || (unsigned)id >= m_avFormat->nb_streams)
+    return FALSE;
+
+  const AVStream *st = m_avFormat->streams[id];
 
   BSTR codecName = NULL;
 
