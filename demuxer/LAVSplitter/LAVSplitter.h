@@ -222,4 +222,5 @@ public:
   // IUnknown
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+  STDMETHODIMP JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName);
 };
