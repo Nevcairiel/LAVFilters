@@ -80,6 +80,12 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
 
   m_pSettings = settings;
 
+  WCHAR fileName[1024];
+  GetModuleFileName(NULL, fileName, 1024);
+  const WCHAR *file = PathFindFileName (fileName);
+
+  m_bEnableTrackInfo = _wcsicmp(file, L"zplayer.exe") != 0;
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
   av_log_set_callback(lavf_log_callback);
@@ -100,7 +106,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return
     QI(IKeyFrameInfo)
-    //QI(ITrackInfo)
+    m_bEnableTrackInfo && QI(ITrackInfo)
     QI2(IAMExtendedSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }

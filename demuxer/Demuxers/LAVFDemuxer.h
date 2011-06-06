@@ -148,4 +148,6 @@ private:
 
   CFontInstaller *m_pFontInstaller;
   ILAVFSettings *m_pSettings;
+
+  BOOL m_bEnableTrackInfo;
 };
