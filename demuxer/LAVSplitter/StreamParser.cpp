@@ -75,6 +75,7 @@ HRESULT CStreamParser::Flush()
   SAFE_DELETE(m_pPacketBuffer);
   m_queue.Clear();
   m_bPGSDropState = FALSE;
+  m_bHasAccessUnitDelimiters = false;
 
   return S_OK;
 }
@@ -205,6 +206,8 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
   do {
     pPacket = NULL;
 
+    REFERENCE_TIME rtStart = Packet::INVALID_TIME, rtStop = rtStart = Packet::INVALID_TIME;
+
     std::deque<Packet *>::iterator it;
     for (it = m_queue.GetQueue()->begin(); it != m_queue.GetQueue()->end(); ++it) {
       // Skip the first
@@ -215,9 +218,22 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
       Packet *p = *it;
       BYTE* pData = p->GetData();
 
-      if (p->rtStart != Packet::INVALID_TIME) {
+      if((pData[4]&0x1f) == 0x09) {
+        m_bHasAccessUnitDelimiters = true;
+      }
+
+      if ((pData[4]&0x1f) == 0x09 || (!m_bHasAccessUnitDelimiters && p->rtStart != Packet::INVALID_TIME)) {
         pPacket = p;
+        if (p->rtStart == Packet::INVALID_TIME && rtStart != Packet::INVALID_TIME) {
+          p->rtStart = rtStart;
+          p->rtStop = rtStop;
+        }
         break;
+      }
+
+      if (rtStart == Packet::INVALID_TIME) {
+        rtStart = p->rtStart;
+        rtStop = p->rtStop;
       }
     }
 
@@ -230,6 +246,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
       }
       // Return
       m_queue.GetQueue()->push_front(pPacket);
+
       Queue(p);
     }
   } while (pPacket != NULL);

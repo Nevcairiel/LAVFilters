@@ -55,5 +55,7 @@ private:
   GrowableArray<BYTE> m_pgsBuffer;
 
   CPacketQueue m_queue;
+
+  bool m_bHasAccessUnitDelimiters;
 };
 
