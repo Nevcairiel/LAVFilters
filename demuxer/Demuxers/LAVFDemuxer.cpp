@@ -245,6 +245,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
   }
 
+  if (m_pSettings->GetFixBrokenHDPVR() && m_bMPEGTS && !m_bBluRay)
+    m_avFormat->flags |= AVFMT_FLAG_IGNPARSERSYNC;
+
   // Increase default probe sizes
   m_avFormat->probesize            = 5 * 5000000;
   m_avFormat->max_analyze_duration = 5 * (5*AV_TIME_BASE);

@@ -113,6 +113,9 @@ interface ILAVFSettings : public IUnknown
   STDMETHOD(SetVideoParsingEnabled)(BOOL bEnabled) = 0;
   STDMETHOD_(BOOL,GetVideoParsingEnabled)() = 0;
 
+  STDMETHOD(SetFixBrokenHDPVR)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetFixBrokenHDPVR)() = 0;
+
   // Check if the given format is enabled
   STDMETHOD_(BOOL,IsFormatEnabled)(const char *strFormat) = 0;
 

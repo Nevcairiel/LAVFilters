@@ -99,6 +99,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetVideoParsingEnabled(bFlag));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_FIX_BROKEN_HDPVR, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetFixBrokenHDPVR(bFlag));
+
   LoadData();
 
 done:    
@@ -156,6 +159,9 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_SETCHECK, m_videoParsing, 0);
   addHint(IDC_VIDEOPARSING, L"Enables parsing and repacking of video streams.\n\nNOTE: Only for debugging, if unsure, set to ON.");
 
+  SendDlgItemMessage(m_Dlg, IDC_FIX_BROKEN_HDPVR, BM_SETCHECK, m_FixBrokenHDPVR, 0);
+  addHint(IDC_FIX_BROKEN_HDPVR, L"Try to fix errors in recordings of some HD-PVR devices.\n\nIf you notice glitches in MPEG-TS playback, try turning this option off.");
+
   return hr;
 }
 HRESULT CLAVSplitterSettingsProp::LoadData()
@@ -177,6 +183,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_substreams = m_pLAVF->GetSubstreamsEnabled();
 
   m_videoParsing = m_pLAVF->GetVideoParsingEnabled();
+  m_FixBrokenHDPVR = m_pLAVF->GetFixBrokenHDPVR();
 
 done:
   return hr;
@@ -245,6 +252,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VIDEOPARSING) {
         BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
         if (bFlag != m_videoParsing) {
+          SetDirty();
+        }
+       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_FIX_BROKEN_HDPVR) {
+        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_FIX_BROKEN_HDPVR, BM_GETCHECK, 0, 0);
+        if (bFlag != m_FixBrokenHDPVR) {
           SetDirty();
         }
       }

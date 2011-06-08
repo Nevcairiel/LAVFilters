@@ -146,6 +146,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"videoParsing", hr);
   m_settings.videoParsing = SUCCEEDED(hr) ? bFlag : TRUE;
 
+  bFlag = reg.ReadDWORD(L"FixBrokenHDPVR", hr);
+  m_settings.FixBrokenHDPVR = SUCCEEDED(hr) ? bFlag : TRUE;
+
   CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
 
@@ -174,6 +177,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
     reg.WriteBOOL(L"substreams", m_settings.substreams);
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
+    reg.WriteBOOL(L"FixBrokenHDPVR", m_settings.FixBrokenHDPVR);
   }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
@@ -1136,6 +1140,17 @@ STDMETHODIMP CLAVSplitter::SetVideoParsingEnabled(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetVideoParsingEnabled()
 {
   return m_settings.videoParsing;
+}
+
+STDMETHODIMP CLAVSplitter::SetFixBrokenHDPVR(BOOL bEnabled)
+{
+  m_settings.FixBrokenHDPVR = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetFixBrokenHDPVR()
+{
+  return m_settings.FixBrokenHDPVR;
 }
 
 STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(const char *strFormat)

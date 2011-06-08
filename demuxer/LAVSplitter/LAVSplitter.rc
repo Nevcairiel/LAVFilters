@@ -54,7 +54,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 235, 239
+IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 235, 254
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
@@ -72,12 +72,14 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,146,10
     CONTROL         "Deliver only Forced Subtitles",IDC_BD_ONLY_FORCED_SUBS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,146,159,10
-    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,163,221,58
+    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,163,221,73
     CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,177,115,10
     CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
                     "Button",BS_AUTO3STATE | WS_TABSTOP,15,191,126,10
     CONTROL         "Enable Video Stream Parsing",IDC_VIDEOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,206,151,10
-    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,224,221,8,0,WS_EX_RIGHT
+    CONTROL         "Try to fix broken HD-PVR recordings",IDC_FIX_BROKEN_HDPVR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,221,131,10
+    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,239,221,8,0,WS_EX_RIGHT
 END
 
 IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 236, 253
@@ -104,7 +106,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 228
         TOPMARGIN, 7
-        BOTTOMMARGIN, 232
+        BOTTOMMARGIN, 247
     END
 
     IDD_PROPPAGE_FORMATS, DIALOG
