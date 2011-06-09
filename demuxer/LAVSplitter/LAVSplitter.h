@@ -32,7 +32,7 @@
 
 #include "BaseDemuxer.h"
 
-#include "LAVSplitterSettings.h"
+#include "LAVSplitterSettingsInternal.h"
 #include "SettingsProp.h"
 
 #define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
@@ -54,7 +54,7 @@ class CLAVSplitter
   , public IFileSourceFilter
   , public IMediaSeeking
   , public IAMStreamSelect
-  , public ILAVFSettings
+  , public ILAVFSettingsInternal
   , public ISpecifyPropertyPages
 {
 public:
@@ -105,6 +105,7 @@ public:
   STDMETHODIMP GetPages(CAUUID *pPages);
 
   // ILAVFSettings
+  STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
   STDMETHODIMP GetPreferredLanguages(WCHAR **ppLanguages);
   STDMETHODIMP SetPreferredLanguages(WCHAR *pLanguages);
   STDMETHODIMP GetPreferredSubtitleLanguages(WCHAR **ppLanguages);
@@ -166,6 +167,7 @@ public:
   STDMETHODIMP BreakInputConnection();
 
 protected:
+  STDMETHODIMP LoadDefaults();
   STDMETHODIMP LoadSettings();
 
 protected:
@@ -212,6 +214,8 @@ private:
 
     std::map<std::string, BOOL> formats;
   } m_settings;
+
+  BOOL m_bRuntimeConfig;
 };
 
 [uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]

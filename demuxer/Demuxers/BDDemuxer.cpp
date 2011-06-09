@@ -82,7 +82,7 @@ static void bd_log(const char *log) {
 }
 #endif
 
-CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettings *pSettings)
+CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettingsInternal *pSettings)
   : CBaseDemuxer(L"bluray demuxer", pLock)
   , m_lavfDemuxer(NULL)
   , m_pb(NULL)

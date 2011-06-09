@@ -36,7 +36,7 @@ class FormatInfo;
 class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo
 {
 public:
-  CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings);
+  CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings);
   ~CLAVFDemuxer();
 
   static void ffmpeg_init();
@@ -59,7 +59,7 @@ public:
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
   const char *GetContainerFormat() const;
   HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const;
-  void SettingsChanged(ILAVFSettings *pSettings);
+  void SettingsChanged(ILAVFSettingsInternal *pSettings);
 
   // Select the best video stream
   const stream* SelectVideoStream();
@@ -147,7 +147,7 @@ private:
   enum AVStreamParseType *m_stOrigParser;
 
   CFontInstaller *m_pFontInstaller;
-  ILAVFSettings *m_pSettings;
+  ILAVFSettingsInternal *m_pSettings;
 
   BOOL m_bEnableTrackInfo;
 };

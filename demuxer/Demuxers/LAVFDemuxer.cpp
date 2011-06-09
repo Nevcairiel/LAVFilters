@@ -23,7 +23,7 @@
 #include "LAVFUtils.h"
 #include "LAVFStreamInfo.h"
 
-#include "LAVSplitterSettings.h"
+#include "LAVSplitterSettingsInternal.h"
 
 #include "moreuuids.h"
 
@@ -57,7 +57,7 @@ std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
   return formats;
 }
 
-CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettings *settings)
+CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   : CBaseDemuxer(L"lavf demuxer", pLock)
   , m_avFormat(NULL)
   , m_program(0)
@@ -351,7 +351,7 @@ void CLAVFDemuxer::UpdateSubStreams()
   }
 }
 
-void CLAVFDemuxer::SettingsChanged(ILAVFSettings *pSettings)
+void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
 {
   int vc1Mode = pSettings->GetVC1TimestampMode();
   if (vc1Mode == 1) {

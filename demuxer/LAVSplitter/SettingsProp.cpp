@@ -308,7 +308,6 @@ HRESULT CLAVSplitterFormatsProp::OnApplyChanges()
     nItem++;
   }
 
-  hr = m_pLAVF->SaveSettings();
   return hr;
 }
 

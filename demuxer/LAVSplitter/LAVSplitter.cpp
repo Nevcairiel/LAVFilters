@@ -45,6 +45,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtCurrent(0)
   , m_bPlaybackStarted(FALSE)
   , m_pDemuxer(NULL)
+  , m_bRuntimeConfig(FALSE)
 {
   CLAVFDemuxer::ffmpeg_init();
 
@@ -108,8 +109,35 @@ static BOOL get_iformat_default(std::string name)
   return TRUE;
 }
 
+STDMETHODIMP CLAVSplitter::LoadDefaults()
+{
+  m_settings.prefAudioLangs = L"";
+  m_settings.prefSubLangs   = L"";
+
+  m_settings.subtitleMode     = SUBMODE_ALWAYS_SUBS;
+  m_settings.subtitleMatching = TRUE;
+  m_settings.PGSForcedStream  = TRUE;
+  m_settings.PGSOnlyForced    = FALSE;
+
+  m_settings.vc1Mode          = 2;
+  m_settings.substreams       = TRUE;
+  m_settings.videoParsing     = TRUE;
+  m_settings.FixBrokenHDPVR   = TRUE;
+
+  std::set<FormatInfo>::iterator it;
+  for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
+    m_settings.formats[std::string(it->strName)] = get_iformat_default(it->strName);
+  }
+
+  return S_OK;
+}
+
 STDMETHODIMP CLAVSplitter::LoadSettings()
 {
+  LoadDefaults();
+  if (m_bRuntimeConfig)
+    return S_FALSE;
+
   HRESULT hr;
   DWORD dwVal;
   BOOL bFlag;
@@ -126,28 +154,28 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
 
   // Subtitle mode, defaults to all subtitles
   dwVal = reg.ReadDWORD(L"subtitleMode", hr);
-  m_settings.subtitleMode = SUCCEEDED(hr) ? dwVal : SUBMODE_ALWAYS_SUBS;
+  if (SUCCEEDED(hr)) m_settings.subtitleMode = dwVal;
 
   bFlag = reg.ReadDWORD(L"subtitleMatching", hr);
-  m_settings.subtitleMatching = SUCCEEDED(hr) ? bFlag : TRUE;
+  if (SUCCEEDED(hr)) m_settings.subtitleMatching = bFlag;
 
   bFlag = reg.ReadBOOL(L"PGSForcedStream", hr);
-  m_settings.PGSForcedStream = SUCCEEDED(hr) ? bFlag : TRUE;
+  if (SUCCEEDED(hr)) m_settings.PGSForcedStream = bFlag;
 
   bFlag = reg.ReadBOOL(L"PGSOnlyForced", hr);
-  m_settings.PGSOnlyForced = SUCCEEDED(hr) ? bFlag : FALSE;
+  if (SUCCEEDED(hr)) m_settings.PGSOnlyForced = bFlag;
 
   dwVal = reg.ReadDWORD(L"vc1TimestampMode", hr);
-  m_settings.vc1Mode = SUCCEEDED(hr) ? dwVal : 2;
+  if (SUCCEEDED(hr)) m_settings.vc1Mode = dwVal;
 
   bFlag = reg.ReadDWORD(L"substreams", hr);
-  m_settings.substreams = SUCCEEDED(hr) ? bFlag : TRUE;
+  if (SUCCEEDED(hr)) m_settings.substreams = bFlag;
 
   bFlag = reg.ReadDWORD(L"videoParsing", hr);
-  m_settings.videoParsing = SUCCEEDED(hr) ? bFlag : TRUE;
+  if (SUCCEEDED(hr)) m_settings.videoParsing = bFlag;
 
   bFlag = reg.ReadDWORD(L"FixBrokenHDPVR", hr);
-  m_settings.FixBrokenHDPVR = SUCCEEDED(hr) ? bFlag : TRUE;
+  if (SUCCEEDED(hr)) m_settings.FixBrokenHDPVR = bFlag;
 
   CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
@@ -157,7 +185,7 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
     MultiByteToWideChar(CP_UTF8, 0, it->strName, -1, wBuffer, 80);
     bFlag = regF.ReadBOOL(wBuffer, hr);
-    m_settings.formats[std::string(it->strName)] = SUCCEEDED(hr) ? bFlag : get_iformat_default(it->strName);
+    if (SUCCEEDED(hr)) m_settings.formats[std::string(it->strName)] = bFlag;
   }
 
   return S_OK;
@@ -165,6 +193,12 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
 
 STDMETHODIMP CLAVSplitter::SaveSettings()
 {
+  if (m_bRuntimeConfig) {
+    if (m_pDemuxer)
+      m_pDemuxer->SettingsChanged(static_cast<ILAVFSettingsInternal *>(this));
+    return S_FALSE;
+  }
+
   HRESULT hr;
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
@@ -191,7 +225,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
   }
 
   if (m_pDemuxer) {
-    m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
+    m_pDemuxer->SettingsChanged(static_cast<ILAVFSettingsInternal *>(this));
   }
   return S_OK;
 }
@@ -211,6 +245,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(IAMStreamSelect)
     QI2(ISpecifyPropertyPages)
     QI2(ILAVFSettings)
+    QI2(ILAVFSettingsInternal)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -597,7 +632,7 @@ STDMETHODIMP CLAVSplitter::Pause()
   // and even in pause mode fill up the buffers
   if(fs == State_Stopped) {
     // At this point, the graph is hopefully finished, tell the demuxer about all the cool things
-    m_pDemuxer->SettingsChanged(static_cast<ILAVFSettings *>(this));
+    m_pDemuxer->SettingsChanged(static_cast<ILAVFSettingsInternal *>(this));
 
     // Create demuxing thread
     Create();
@@ -1022,6 +1057,16 @@ std::list<std::string> CLAVSplitter::GetPreferredSubtitleLanguageList()
 }
 
 // Settings
+// ILAVAudioSettings
+HRESULT CLAVSplitter::SetRuntimeConfig(BOOL bRuntimeConfig)
+{
+  m_bRuntimeConfig = bRuntimeConfig;
+  LoadSettings();
+
+  return S_OK;
+}
+
+
 STDMETHODIMP CLAVSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
 {
   CheckPointer(ppLanguages, E_POINTER);
@@ -1167,8 +1212,9 @@ STDMETHODIMP_(HRESULT) CLAVSplitter::SetFormatEnabled(const char *strFormat, BOO
   std::string format(strFormat);
   if (m_settings.formats.find(format) != m_settings.formats.end()) {
     m_settings.formats[format] = bEnabled;
+    return SaveSettings();
   }
-  return S_OK;
+  return E_FAIL;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

@@ -21,7 +21,7 @@
 #pragma once
 
 #include "BaseDSPropPage.h"
-#include "LAVSplitterSettings.h"
+#include "LAVSplitterSettingsInternal.h"
 
 
 // GUID: a19de2f2-2f74-4927-8436-61129d26c141
@@ -58,7 +58,7 @@ private:
   }
 
 private:
-  ILAVFSettings *m_pLAVF;
+  ILAVFSettingsInternal *m_pLAVF;
 
   // Settings
   WCHAR *m_pszPrefLang;
@@ -100,7 +100,7 @@ private:
   }
 
 private:
-  ILAVFSettings *m_pLAVF;
+  ILAVFSettingsInternal *m_pLAVF;
 
   std::set<FormatInfo> m_Formats;
 

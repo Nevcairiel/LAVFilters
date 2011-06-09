@@ -30,7 +30,7 @@
 
 #define FORCED_SUB_STRING L"Forced Subtitles (auto)"
 
-struct ILAVFSettings;
+struct ILAVFSettingsInternal;
 
 // Data Packet for queue storage
 class Packet
@@ -121,7 +121,7 @@ public:
   virtual HRESULT SetActiveStream(StreamType type, int pid) { m_dActiveStreams[type] = pid; return S_OK; }
 
   // Called when the settings of the splitter change
-  virtual void SettingsChanged(ILAVFSettings *pSettings) {};
+  virtual void SettingsChanged(ILAVFSettingsInternal *pSettings) {};
 
 public:
   struct stream {

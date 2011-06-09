@@ -92,6 +92,9 @@
     <ClInclude Include="..\..\common\includes\ITrackInfo.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\includes\LAVSplitterSettingsInternal.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVSplitter.rc">

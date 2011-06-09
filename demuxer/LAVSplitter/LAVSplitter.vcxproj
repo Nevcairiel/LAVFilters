@@ -165,6 +165,7 @@
     <ClInclude Include="..\..\common\includes\inttypes.h" />
     <ClInclude Include="..\..\common\includes\ITrackInfo.h" />
     <ClInclude Include="..\..\common\includes\LAVSplitterSettings.h" />
+    <ClInclude Include="..\..\common\includes\LAVSplitterSettingsInternal.h" />
     <ClInclude Include="..\..\common\includes\moreuuids.h" />
     <ClInclude Include="..\..\common\includes\stdint.h" />
     <ClInclude Include="..\..\common\includes\version.h" />
