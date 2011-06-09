@@ -1,5 +1,17 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.29 - 2011/06/09
+LAV Splitter
+- The language code is now always shown in the stream changer (as a hint to easily know what to put into the preferred languages fields)
+- Enabled ITrackInfo
+- Improved H264 in MPEG-TS playback (including an option to try to fix broken HD-PVR recordings)
+- Added a programmatic configuration interface for players to configure LAV Splitter
+
+LAV Audio
+- Added support for decoding encrypted DVD audio
+- Fix decoding of some DTS-HD streams with the ArcSoft decoder
+- Added a programmatic configuration interface for players to configure LAV Audio
+
 0.28 - 2011/05/27
 LAV Splitter
 - Improved PGS filtering, forced subtitles should be cleared off the screen properly more often.
