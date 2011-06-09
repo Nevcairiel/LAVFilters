@@ -117,6 +117,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BaseDSPropPage.h" />
+    <ClInclude Include="DeCSS\CSSauth.h" />
+    <ClInclude Include="DeCSS\CSSscramble.h" />
+    <ClInclude Include="DeCSS\DeCSSInputPin.h" />
     <ClInclude Include="DShowUtil.h" />
     <ClInclude Include="FloatingAverage.h" />
     <ClInclude Include="FontInstaller.h" />
@@ -127,6 +130,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseDSPropPage.cpp" />
+    <ClCompile Include="DeCSS\CSSauth.cpp" />
+    <ClCompile Include="DeCSS\CSSscramble.cpp" />
+    <ClCompile Include="DeCSS\DeCSSInputPin.cpp" />
     <ClCompile Include="DShowUtil.cpp" />
     <ClCompile Include="filterreg.cpp" />
     <ClCompile Include="FontInstaller.cpp" />

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\DeCSS">
+      <UniqueIdentifier>{a130de5c-2e03-4582-92a8-2675b370e46f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DeCSS">
+      <UniqueIdentifier>{b645319e-a7a0-4188-b5cb-516008bf32c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -39,6 +45,15 @@
     <ClInclude Include="FontInstaller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DeCSS\CSSauth.h">
+      <Filter>Header Files\DeCSS</Filter>
+    </ClInclude>
+    <ClInclude Include="DeCSS\CSSscramble.h">
+      <Filter>Header Files\DeCSS</Filter>
+    </ClInclude>
+    <ClInclude Include="DeCSS\DeCSSInputPin.h">
+      <Filter>Header Files\DeCSS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -64,6 +79,15 @@
     </ClCompile>
     <ClCompile Include="FontInstaller.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DeCSS\CSSauth.cpp">
+      <Filter>Source Files\DeCSS</Filter>
+    </ClCompile>
+    <ClCompile Include="DeCSS\CSSscramble.cpp">
+      <Filter>Source Files\DeCSS</Filter>
+    </ClCompile>
+    <ClCompile Include="DeCSS\DeCSSInputPin.cpp">
+      <Filter>Source Files\DeCSS</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

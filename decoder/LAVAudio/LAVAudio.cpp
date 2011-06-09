@@ -32,6 +32,8 @@
 
 #include "registry.h"
 
+#include "DeCSS/DeCSSInputPin.h"
+
 extern HINSTANCE g_hInst;
 
 // Constructor
@@ -66,6 +68,23 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 {
   avcodec_init();
   av_register_all();
+
+  m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
+  if(!m_pInput) {
+    *phr = E_OUTOFMEMORY;
+  }
+  if (FAILED(*phr)) {
+    return;
+  }
+
+  m_pOutput = new CTransformOutputPin(NAME("CTransformOutputPin"), this, phr, L"Output");
+  if(!m_pOutput) {
+    *phr = E_OUTOFMEMORY;
+  }
+  if(FAILED(*phr))  {
+    SAFE_DELETE(m_pInput);
+    return;
+  }
 
   m_bSampleSupport[SampleFormat_U8] = TRUE;
   m_bSampleSupport[SampleFormat_16] = TRUE;
@@ -957,6 +976,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   }
 
   long len = pIn->GetActualDataLength();
+
+  (static_cast<CDeCSSInputPin*>(m_pInput))->StripPacket(pDataIn, len);
 
   REFERENCE_TIME rtStart = _I64_MIN, rtStop = _I64_MIN;
   hr = pIn->GetTime(&rtStart, &rtStop);
