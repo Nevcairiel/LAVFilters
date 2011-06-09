@@ -1243,31 +1243,3 @@ STDMETHODIMP CLAVSplitterSource::NonDelegatingQueryInterface(REFIID riid, void**
     QI(IFileSourceFilter)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
-
-STDMETHODIMP CLAVSplitterSource::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
-{
-  HRESULT hr = S_OK;
-  if (pName) {
-    pName = PathFindFileName(pName);
-    
-    size_t namelen;
-    hr = StringCchLengthW(pName, STRSAFE_MAX_CCH, &namelen);
-    if (FAILED(hr)) {
-        return hr;
-    }
-
-    namelen += 14;
-    WCHAR *pNewName = new WCHAR[namelen];
-    if (pNewName) {
-      pName = PathFindFileName(pName);
-      swprintf_s(pNewName, namelen, L"LAV Source (%s)", pName);
-    } else {
-      return E_OUTOFMEMORY;
-    }
-    hr = __super::JoinFilterGraph(pGraph, pNewName);
-    delete[] pNewName;
-  } else {
-    hr = __super::JoinFilterGraph(pGraph, pName);
-  }
-  return hr;
-}
