@@ -793,7 +793,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   m_pAVCtx = avcodec_alloc_context();
   CheckPointer(m_pAVCtx, E_POINTER);
 
-  if (codec != CODEC_ID_AAC && codec != CODEC_ID_AAC_LATM && codec != CODEC_ID_FLAC)
+  if (codec != CODEC_ID_AAC && codec != CODEC_ID_FLAC)
     m_pParser = av_parser_init(codec);
 
   if (m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
