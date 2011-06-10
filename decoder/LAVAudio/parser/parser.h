@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include "libavcodec/get_bits.h"
-
 static inline const uint8_t *find_marker32_position(const uint8_t *pBuffer, unsigned uBufSize, uint32_t marker)
 {
   uint32_t state = 0;

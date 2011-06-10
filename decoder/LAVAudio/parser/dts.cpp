@@ -19,6 +19,12 @@
  */
 
 #define __STDC_CONSTANT_MACROS
+
+// Exclude inline asm from being included
+#define AVCODEC_X86_MATHOPS_H
+
+#include "libavcodec/get_bits.h"
+
 #include "dts.h"
 #include "parser.h"
 
