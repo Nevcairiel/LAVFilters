@@ -181,6 +181,10 @@ static unsigned dts_determine_decode_channels(DTSHeader header)
     else                                          // Other possibility for 6 channels is 6.0
       decode_channels = 7;
     break;
+  default:
+    DbgLog((LOG_TRACE, 10, L"DTSDecoder(): Unknown number of channels - %d!", coded_channels));
+    decode_channels = 8;
+    break;
   }
   return decode_channels;
 }
