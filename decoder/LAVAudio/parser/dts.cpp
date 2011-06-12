@@ -271,7 +271,7 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
 
   // DTS-HD parsing
   const uint8_t *pHD = NULL;
-  if (pHeader->HasCore) { // If we have a core, only search after the normal buffer
+  if (pHeader->HasCore && (uSize > pHeader->FrameSize)) { // If we have a core, only search after the normal buffer
     pHD = find_marker32_position(pBuffer + pHeader->FrameSize, uSize - pHeader->FrameSize, DCA_HD_MARKER);
   } else {
     pHD = find_marker32_position(pBuffer, uSize, DCA_HD_MARKER);
