@@ -62,7 +62,6 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_avFormat(NULL)
   , m_program(0)
   , m_rtCurrent(0)
-  , m_bIsStream(FALSE)
   , m_bMatroska(FALSE)
   , m_bAVI(FALSE)
   , m_bMPEGTS(FALSE)
@@ -115,28 +114,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 // Demuxer Functions
 STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
 {
-  CAutoLock lock(m_pLock);
-  HRESULT hr = S_OK;
-
-  int ret; // return code from avformat functions
-
-  // Convert the filename from wchar to char for avformat
-  char fileName[4096] = {0};
-  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
-
-  ret = av_open_input_file(&m_avFormat, fileName, NULL, FFMPEG_FILE_BUFFER_SIZE, NULL);
-  if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("::Open(): av_open_input_file failed (%d)"), ret));
-    goto done;
-  }
-  DbgLog((LOG_TRACE, 10, TEXT("::Open(): av_open_input_file opened file of type '%S'"), m_avFormat->iformat->name));
-
-  CHECK_HR(hr = InitAVFormat(pszFileName));
-
-  return S_OK;
-done:
-  CleanupAVFormat();
-  return E_FAIL;
+  return OpenInputStream(NULL, pszFileName);
 }
 
 STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName)
@@ -146,22 +124,22 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
 
   int ret; // return code from avformat functions
 
-  AVInputFormat *fmt = NULL;
+  // Convert the filename from wchar to char for avformat
+  char fileName[4096] = {0};
+  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
 
-  m_bIsStream = true;
+  if (byteContext) {
+    // Create the avformat_context
+    m_avFormat = avformat_alloc_context();
+    m_avFormat->pb = byteContext;
+  }
 
-  ret = av_probe_input_buffer(byteContext, &fmt, "", NULL, 0, 0);
+  ret = avformat_open_input(&m_avFormat, fileName, NULL, NULL);
   if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): av_probe_input_buffer failed (%d)"), ret));
+    DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): avformat_open_input failed (%d)"), ret));
     goto done;
   }
-  DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): av_probe_input_buffer detected format '%S'"), fmt->name));
-
-  ret = av_open_input_stream(&m_avFormat, byteContext, "", fmt, NULL);
-  if (ret < 0) {
-    DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): av_open_input_stream failed (%d)"), ret));
-    goto done;
-  }
+  DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): avformat_open_input opened file of type '%S'"), m_avFormat->iformat->name));
 
   CHECK_HR(hr = InitAVFormat(pszFileName));
 
@@ -306,10 +284,7 @@ done:
 void CLAVFDemuxer::CleanupAVFormat()
 {
   if (m_avFormat) {
-    if (m_bIsStream)
-      av_close_input_stream(m_avFormat);
-    else
-      av_close_input_file(m_avFormat);
+    av_close_input_file(m_avFormat);
     m_avFormat = NULL;
   }
   SAFE_CO_FREE(m_stOrigParser);

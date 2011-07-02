@@ -126,7 +126,6 @@ private:
   AVFormatContext *m_avFormat;
   const char *m_pszInputFormat;
 
-  BOOL m_bIsStream;
   BOOL m_bMatroska;
   BOOL m_bAVI;
   BOOL m_bMPEGTS;
