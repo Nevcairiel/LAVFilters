@@ -45,6 +45,7 @@ public:
   AM_MEDIA_TYPE* pmt;
 
 #define LAV_PACKET_PARSED 0x0001
+#define LAV_PACKET_MOV_TEXT 0x0002
   DWORD dwFlags;
 
   Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dwSize = 0; m_dwBlockSize = 0; bPosition = -1; dwFlags = 0; }

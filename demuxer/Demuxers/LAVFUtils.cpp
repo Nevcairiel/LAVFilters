@@ -77,6 +77,7 @@ struct s_id_map nice_codec_names[] = {
   { CODEC_ID_AAC_LATM, "aac (latm)" },
   // Subs
   { CODEC_ID_TEXT, "txt" },
+  { CODEC_ID_MOV_TEXT, "tx3g" },
   { CODEC_ID_SRT, "srt" },
   { CODEC_ID_HDMV_PGS_SUBTITLE, "pgs" },
   { CODEC_ID_DVD_SUBTITLE, "vobsub" },

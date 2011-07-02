@@ -180,8 +180,14 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
   CMediaType mtype;
   mtype.majortype = MEDIATYPE_Subtitle;
   mtype.formattype = FORMAT_SubtitleInfo;
+
+  int extra = avstream->codec->extradata_size;
+  if (avstream->codec->codec_id == CODEC_ID_MOV_TEXT) {
+    extra = 0;
+  }
+
   // create format info
-  SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO) + avstream->codec->extradata_size);
+  SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO) + extra);
   memset(subInfo, 0, mtype.FormatLength());
 
   if (av_metadata_get(avstream->metadata, "language", NULL, 0))
@@ -199,10 +205,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
   }
 
   // Extradata
-  memcpy(mtype.pbFormat + (subInfo->dwOffset = sizeof(SUBTITLEINFO)), avstream->codec->extradata, avstream->codec->extradata_size);
+  memcpy(mtype.pbFormat + (subInfo->dwOffset = sizeof(SUBTITLEINFO)), avstream->codec->extradata, extra);
 
-  // TODO CODEC_ID_MOV_TEXT
   mtype.subtype = avstream->codec->codec_id == CODEC_ID_TEXT ? MEDIASUBTYPE_UTF8 :
+                  avstream->codec->codec_id == CODEC_ID_MOV_TEXT ? MEDIASUBTYPE_UTF8 :
                   avstream->codec->codec_id == CODEC_ID_SSA ? MEDIASUBTYPE_ASS :
                   avstream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE ? MEDIASUBTYPE_HDMVSUB :
                   avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE ? MEDIASUBTYPE_VOBSUB :

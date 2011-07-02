@@ -62,6 +62,8 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
   } else if (m_gSubtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
     pPacket->RemoveHead(4);
     Queue(pPacket);
+  } else if (pPacket->dwFlags & LAV_PACKET_MOV_TEXT) {
+    ParseMOVText(pPacket);
   } else {
     Queue(pPacket);
   }
@@ -418,4 +420,20 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 
 done:
   return Queue(pPacket);
+}
+
+HRESULT CStreamParser::ParseMOVText(Packet *pPacket)
+{
+  unsigned avail = pPacket->GetDataSize();
+  BYTE *ptr = pPacket->GetData();
+  if (avail > 2) {  
+    unsigned size = (ptr[0] << 8) | ptr[1];
+    if (size <= avail-2) {
+      pPacket->RemoveHead(2);
+      pPacket->SetDataSize(size);
+      return Queue(pPacket);
+    }
+  }
+  SAFE_DELETE(pPacket);
+  return S_FALSE;
 }

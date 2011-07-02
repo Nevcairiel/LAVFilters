@@ -485,6 +485,8 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         rt = dts;
         pPacket->dwFlags |= LAV_PACKET_PARSED;
       }
+    } else if (stream->codec->codec_id == CODEC_ID_MOV_TEXT) {
+      pPacket->dwFlags |= LAV_PACKET_MOV_TEXT;
     }
 
     // Mark the packet as parsed, so the forced subtitle parser doesn't hit it
