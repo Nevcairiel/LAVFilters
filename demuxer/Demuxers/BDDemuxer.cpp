@@ -177,7 +177,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
     }
     m_pBD = bd;
     // Fetch titles
-    m_nTitleCount = bd_get_titles(bd, (iPlaylist != -1) ? TITLES_ALL : TITLES_RELEVANT);
+    m_nTitleCount = bd_get_titles(bd, (iPlaylist != -1) ? TITLES_ALL : TITLES_RELEVANT, 0);
 
     if (m_nTitleCount <= 0) {
       return E_FAIL;
@@ -190,7 +190,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
     uint32_t title_id = 0;
     boolean found = false;
     for(uint32_t i = 0; i < m_nTitleCount; i++) {
-      BLURAY_TITLE_INFO *info = bd_get_title_info(bd, i);
+      BLURAY_TITLE_INFO *info = bd_get_title_info(bd, i, 0);
       if (info) {
         DbgLog((LOG_TRACE, 20, L"Title %u, Playlist %u (%u clips, %u chapters), Duration %I64u (%I64u seconds)", i, info->playlist, info->clip_count, info->chapter_count, info->duration, Convert90KhzToDSTime(info->duration) / DSHOW_TIME_BASE));
         if (iPlaylist != -1 && info->playlist == iPlaylist) {
@@ -266,7 +266,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   if (m_pTitle) {
     bd_free_title_info(m_pTitle);
   }
-  m_pTitle = bd_get_title_info(m_pBD, idx);
+  m_pTitle = bd_get_title_info(m_pBD, idx, 0);
   ret = bd_select_title(m_pBD, idx);
   if (ret == 0) {
     return E_FAIL;
@@ -320,7 +320,7 @@ STDMETHODIMP CBDDemuxer::GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, 
 {
   if (idx >= m_nTitleCount) { return E_FAIL; }
 
-  BLURAY_TITLE_INFO *info = bd_get_title_info(m_pBD, idx);
+  BLURAY_TITLE_INFO *info = bd_get_title_info(m_pBD, idx, 0);
   if (info) {
     if (rtDuration) {
       *rtDuration = Convert90KhzToDSTime(info->duration);
