@@ -66,6 +66,7 @@ FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   // Other Lossless formats
   { &MEDIASUBTYPE_TTA1,         CODEC_ID_TTA      },
   { &MEDIASUBTYPE_WAVPACK4,     CODEC_ID_WAVPACK  },
+  { &MEDIASUBTYPE_MLP,          CODEC_ID_MLP      },
 
   // BluRay LPCM
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
@@ -145,6 +146,7 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   // Other Lossless formats
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_TTA1         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_WAVPACK4     },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_MLP          },
 
   // BluRay LPCM
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO  },
