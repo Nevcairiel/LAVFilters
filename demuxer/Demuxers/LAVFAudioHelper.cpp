@@ -38,6 +38,7 @@ static FormatMapping audio_map[] = {
   { CODEC_ID_DTS,        &MEDIASUBTYPE_WAVE_DTS,          NULL,                   NULL },
   { CODEC_ID_EAC3,       &MEDIASUBTYPE_DOLBY_DDPLUS,      NULL,                   NULL },
   { CODEC_ID_TRUEHD,     &MEDIASUBTYPE_DOLBY_TRUEHD,      NULL,                   NULL },
+  { CODEC_ID_MLP,        &MEDIASUBTYPE_MLP,               WAVE_FORMAT_MLP,        NULL },
   { CODEC_ID_VORBIS,     &MEDIASUBTYPE_Vorbis2,           NULL,                   &FORMAT_VorbisFormat2 },
   { CODEC_ID_MP1,        &MEDIASUBTYPE_MPEG1AudioPayload, WAVE_FORMAT_MPEG,       NULL },
   { CODEC_ID_MP2,        &MEDIASUBTYPE_MPEG2_AUDIO,       WAVE_FORMAT_MPEG,       NULL },
