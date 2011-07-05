@@ -23,7 +23,7 @@
 
 #include "LAVSplitter.h"
 
-#define READ_BUFFER_SIZE 4096
+#define READ_BUFFER_SIZE 32768
 
 
 CLAVInputPin::CLAVInputPin(TCHAR *pName, CLAVSplitter *pFilter, CCritSec *pLock, HRESULT *phr)
