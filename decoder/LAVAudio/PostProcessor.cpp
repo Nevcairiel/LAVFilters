@@ -422,6 +422,8 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
 
   int layout_channels = av_get_channel_layout_nb_channels(buffer->dwChannelMask);
 
+  DWORD dwOriginalChannelMask = buffer->dwChannelMask;
+
   // Validate channel mask
   if (!buffer->dwChannelMask || layout_channels != buffer->wChannels) {
     buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
@@ -437,6 +439,8 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
       ExtendedChannelMapping(buffer, m_ChannelMapOutputChannels, m_ChannelMap);
       buffer->dwChannelMask = m_ChannelMapOutputLayout;
     }
+  } else {
+    m_DecodeLayout = dwOriginalChannelMask;
   }
 
   // Mono -> Stereo expansion
