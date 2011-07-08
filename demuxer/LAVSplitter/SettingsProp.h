@@ -73,6 +73,7 @@ private:
 
   BOOL m_videoParsing;
   BOOL m_FixBrokenHDPVR;
+  BOOL m_StreamSwitchRemoveAudio;
 
   WCHAR stringBuffer[256];
 };

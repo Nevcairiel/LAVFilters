@@ -124,6 +124,8 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.videoParsing     = TRUE;
   m_settings.FixBrokenHDPVR   = TRUE;
 
+  m_settings.StreamSwitchRemoveAudio = FALSE;
+
   std::set<FormatInfo>::iterator it;
   for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
     m_settings.formats[std::string(it->strName)] = get_iformat_default(it->strName);
@@ -177,6 +179,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"FixBrokenHDPVR", hr);
   if (SUCCEEDED(hr)) m_settings.FixBrokenHDPVR = bFlag;
 
+  bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
+  if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
+
   CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
 
@@ -212,6 +217,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"substreams", m_settings.substreams);
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
     reg.WriteBOOL(L"FixBrokenHDPVR", m_settings.FixBrokenHDPVR);
+    reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
   }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
@@ -818,6 +824,17 @@ STDMETHODIMP CLAVSplitter::UpdateForcedSubtitleMediaType()
   return S_OK;
 }
 
+static int QueryAcceptMediaTypes(IPin *pPin, std::vector<CMediaType> pmts)
+{
+  for(unsigned int i = 0; i < pmts.size(); i++) {
+    if (S_OK == pPin->QueryAccept(&pmts[i])) {
+      DbgLog((LOG_TRACE, 20, L"QueryAcceptMediaTypes() - IPin:QueryAccept succeeded on index %d", i));
+      return i;
+    }
+  }
+  return -1;
+}
+
 STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
@@ -860,56 +877,59 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     // Other filters just disconnect and try to reconnect later on
     PIN_INFO pInfo;
     hr = pPin->GetConnected()->QueryPinInfo(&pInfo);
+    if (FAILED(hr)) {
+      DbgLog((LOG_ERROR, 10, L"::RenameOutputPin(): QueryPinInfo failed (hr %x)", hr));
+    }
 
-    if(pPin->IsAudioPin() && SUCCEEDED(hr) && pInfo.pFilter) {
-      hr = m_pGraph->RemoveFilter(pInfo.pFilter);
-#ifdef DEBUG
-      CLSID guidFilter;
-      pInfo.pFilter->GetClassID(&guidFilter);
-      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IFilterGraph::RemoveFilter - %s (hr %x)", WStringFromGUID(guidFilter).c_str(), hr));
-#endif
-      // Use IGraphBuilder to rebuild the graph
-      IGraphBuilder *pGraphBuilder = NULL;
-      if(SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
-        // Instruct the GraphBuilder to connect us again
-        hr = pGraphBuilder->Render(pPin);
-        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IGraphBuilder::Render (hr %x)", hr));
-        pGraphBuilder->Release();
+    int mtIdx = QueryAcceptMediaTypes(pPin->GetConnected(), pmts);
+    BOOL bMediaTypeFound = (mtIdx >= 0);
+
+    if (!bMediaTypeFound) {
+      DbgLog((LOG_TRACE, 10, L"::RenameOutputPin() - Filter does not accept our media types!"));
+      mtIdx = 0; // Fallback type
+    }
+    CMediaType *pmt = &pmts[mtIdx];
+
+    if(!pPin->IsVideoPin() && SUCCEEDED(hr) && pInfo.pFilter) {
+      BOOL bRemoveFilter = m_settings.StreamSwitchRemoveAudio || !bMediaTypeFound;
+      if (bRemoveFilter && pPin->IsAudioPin()) {
+        hr = m_pGraph->RemoveFilter(pInfo.pFilter);
+  #ifdef DEBUG
+        CLSID guidFilter;
+        pInfo.pFilter->GetClassID(&guidFilter);
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IFilterGraph::RemoveFilter - %s (hr %x)", WStringFromGUID(guidFilter).c_str(), hr));
+  #endif
+        // Use IGraphBuilder to rebuild the graph
+        IGraphBuilder *pGraphBuilder = NULL;
+        if(SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
+          // Instruct the GraphBuilder to connect us again
+          hr = pGraphBuilder->Render(pPin);
+          DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IGraphBuilder::Render (hr %x)", hr));
+          pGraphBuilder->Release();
+        }
+      } else {
+        hr = ReconnectPin(pPin, pmt);
+        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - ReconnectPin (hr %x)", hr));
       }
 
-      if (m_settings.PGSForcedStream)
+      if (pPin->IsAudioPin() && m_settings.PGSForcedStream)
         UpdateForcedSubtitleMediaType();
     } else {
-      unsigned int index = 0;
-      for(unsigned int i = 0; i < pmts.size(); i++) {
-        if (SUCCEEDED(hr = pPin->GetConnected()->QueryAccept(&pmts[i]))) {
-          DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IPin:QueryAccept succeeded (hr %x)", hr));
-          index = i;
-          break;
-        }
-      }
-      if (SUCCEEDED(hr) && !pPin->IsVideoPin()) {
-        hr = ReconnectPin(pPin, &pmts[index]);
-        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - ReconnectPin (hr %x)", hr));
-      } else if (SUCCEEDED(hr)) {
-        CMediaType *mt = new CMediaType(pmts[index]);
-        pPin->SendMediaType(mt);
-        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - Sending new Media Type"));
-      }
+      CMediaType *mt = new CMediaType(*pmt);
+      pPin->SendMediaType(mt);
+      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - Sending new Media Type"));
     }
-    if(pInfo.pFilter) { pInfo.pFilter->Release(); }
+    if(SUCCEEDED(hr) && pInfo.pFilter) { pInfo.pFilter->Release(); }
 
     Unlock();
 
-    if (SUCCEEDED(hr)) {
-      // Re-start the graph
-      if(oldState == State_Paused) {
-        hr = pControl->Pause();
-        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Pause (hr %x)", hr));
-      } else if (oldState == State_Running) {
-        hr = pControl->Run();
-        DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Run (hr %x)", hr));
-      }
+    // Re-start the graph
+    if(oldState == State_Paused) {
+      hr = pControl->Pause();
+      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Pause (hr %x)", hr));
+    } else if (oldState == State_Running) {
+      hr = pControl->Run();
+      DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Run (hr %x)", hr));
     }
     pControl->Release();
 
@@ -1215,6 +1235,17 @@ STDMETHODIMP_(HRESULT) CLAVSplitter::SetFormatEnabled(const char *strFormat, BOO
     return SaveSettings();
   }
   return E_FAIL;
+}
+
+STDMETHODIMP CLAVSplitter::SetStreamSwitchRemoveAudio(BOOL bEnabled)
+{
+  m_settings.StreamSwitchRemoveAudio = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetStreamSwitchRemoveAudio()
+{
+  return m_settings.StreamSwitchRemoveAudio;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

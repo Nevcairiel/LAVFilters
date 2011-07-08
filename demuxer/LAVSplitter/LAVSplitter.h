@@ -120,18 +120,21 @@ public:
   STDMETHODIMP SetPGSOnlyForced(BOOL bForced);
   STDMETHODIMP_(int) GetVC1TimestampMode();
   STDMETHODIMP SetVC1TimestampMode(int iMode);
-  STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
   STDMETHODIMP SetSubstreamsEnabled(BOOL bSubStreams);
   STDMETHODIMP_(BOOL) GetSubstreamsEnabled();
   STDMETHODIMP SetVideoParsingEnabled(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetVideoParsingEnabled();
   STDMETHODIMP SetFixBrokenHDPVR(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetFixBrokenHDPVR();
+  STDMETHODIMP_(HRESULT) SetFormatEnabled(const char *strFormat, BOOL bEnabled);
   STDMETHODIMP_(BOOL) IsFormatEnabled(const char *strFormat);
+  STDMETHODIMP SetStreamSwitchRemoveAudio(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetStreamSwitchRemoveAudio();
+
+  // ILAVSplitterSettingsInternal
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
   STDMETHODIMP_(std::set<FormatInfo>&) GetInputFormats();
-  STDMETHODIMP_(HRESULT) SetFormatEnabled(const char *strFormat, BOOL bEnabled);
-  STDMETHODIMP SaveSettings();
+  STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
@@ -169,6 +172,7 @@ public:
 protected:
   STDMETHODIMP LoadDefaults();
   STDMETHODIMP LoadSettings();
+  STDMETHODIMP SaveSettings();
 
 protected:
   CLAVInputPin *m_pInput;
@@ -211,6 +215,8 @@ private:
     BOOL substreams;
     BOOL videoParsing;
     BOOL FixBrokenHDPVR;
+
+    BOOL StreamSwitchRemoveAudio;
 
     std::map<std::string, BOOL> formats;
   } m_settings;

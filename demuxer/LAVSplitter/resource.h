@@ -30,6 +30,7 @@
 #define IDC_BD_SEPARATE_FORCED_SUBS     1021
 #define IDC_BD_ONLY_FORCED_SUBS         1022
 #define IDC_FIX_BROKEN_HDPVR            1023
+#define IDC_STREAM_SWITCH_REMOVE_AUDIO  1024
 
 // Next default values for new objects
 // 
@@ -37,7 +38,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

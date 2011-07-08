@@ -118,4 +118,10 @@ interface ILAVFSettings : public IUnknown
 
   // Check if the given format is enabled
   STDMETHOD_(BOOL,IsFormatEnabled)(const char *strFormat) = 0;
+
+  // Set if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream is changed
+  STDMETHOD(SetStreamSwitchRemoveAudio)(BOOL bEnabled) = 0;
+
+  // Query if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream is changed
+  STDMETHOD_(BOOL,GetStreamSwitchRemoveAudio)() = 0;
 };
