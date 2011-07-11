@@ -790,7 +790,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   }
   CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_AUDIO);
 
-  m_pAVCtx = avcodec_alloc_context();
+  m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
   CheckPointer(m_pAVCtx, E_POINTER);
 
   if (codec != CODEC_ID_AAC && codec != CODEC_ID_FLAC)
