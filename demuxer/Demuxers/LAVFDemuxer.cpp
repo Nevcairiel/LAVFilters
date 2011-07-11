@@ -41,6 +41,11 @@ static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
 void CLAVFDemuxer::ffmpeg_init()
 {
+#ifdef DEBUG
+  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
+  av_log_set_callback(lavf_log_callback);
+#endif
+
   av_register_all();
 }
 
@@ -84,11 +89,6 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   const WCHAR *file = PathFindFileName (fileName);
 
   m_bEnableTrackInfo = _wcsicmp(file, L"zplayer.exe") != 0;
-
-#ifdef DEBUG
-  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
-  av_log_set_callback(lavf_log_callback);
-#endif
 }
 
 CLAVFDemuxer::~CLAVFDemuxer()
