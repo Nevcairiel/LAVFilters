@@ -266,6 +266,11 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   if (m_pTitle) {
     bd_free_title_info(m_pTitle);
   }
+
+  // Init Event Queue
+  bd_get_event(m_pBD, NULL);
+
+  // Select title
   m_pTitle = bd_get_title_info(m_pBD, idx, 0);
   ret = bd_select_title(m_pBD, idx);
   if (ret == 0) {
