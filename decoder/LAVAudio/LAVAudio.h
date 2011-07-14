@@ -200,10 +200,10 @@ private:
   HRESULT FlushDTSDecoder();
   HRESULT DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out);
 
-  HRESULT CheckChannelLayoutConformity();
-  HRESULT Create51Conformity();
-  HRESULT Create61Conformity();
-  HRESULT Create71Conformity();
+  HRESULT CheckChannelLayoutConformity(DWORD dwLayout);
+  HRESULT Create51Conformity(DWORD dwLayout);
+  HRESULT Create61Conformity(DWORD dwLayout);
+  HRESULT Create71Conformity(DWORD dwLayout);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
@@ -269,6 +269,7 @@ private:
   unsigned            m_DTSDecodeChannels;
 
   DWORD               m_DecodeLayout;
+  DWORD               m_DecodeLayoutSanified;
   BOOL                m_bChannelMappingRequired;
 
   ExtendedChannelMap  m_ChannelMap;

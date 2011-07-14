@@ -64,6 +64,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_hDllExtraDecoder(NULL)
   , m_pDTSDecoderContext(NULL)
   , m_DecodeLayout(0)
+  , m_DecodeLayoutSanified(0)
   , m_bChannelMappingRequired(FALSE)
 {
   avcodec_init();
@@ -1286,6 +1287,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
   out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
   m_DecodeFormat = out->sfFormat;
+  m_DecodeLayout = out->dwChannelMask;
 
   return S_OK;
 }

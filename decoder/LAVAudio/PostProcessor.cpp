@@ -217,81 +217,81 @@ HRESULT ExtendedChannelMapping(BufferDetails *pcm, const unsigned uOutChannels, 
 #define CHL_CONTAINS_ALL(l, m) (((l) & (m)) == (m))
 #define CHL_ALL_OR_NONE(l, m) (((l) & (m)) == (m) || ((l) & (m)) == 0)
 
-HRESULT CLAVAudio::CheckChannelLayoutConformity()
+HRESULT CLAVAudio::CheckChannelLayoutConformity(DWORD dwLayout)
 {
-  int channels = av_get_channel_layout_nb_channels(m_DecodeLayout);
+  int channels = av_get_channel_layout_nb_channels(dwLayout);
 
   // We require multi-channel and at least containing stereo
-  if (!CHL_CONTAINS_ALL(m_DecodeLayout, AV_CH_LAYOUT_STEREO) || channels == 2)
+  if (!CHL_CONTAINS_ALL(dwLayout, AV_CH_LAYOUT_STEREO) || channels == 2)
     goto noprocessing;
 
   // We do not know what to do with "top" channels
-  if (m_DecodeLayout & (AV_CH_TOP_CENTER|AV_CH_TOP_FRONT_LEFT|AV_CH_TOP_FRONT_CENTER|AV_CH_TOP_FRONT_RIGHT|AV_CH_TOP_BACK_LEFT|AV_CH_TOP_BACK_CENTER|AV_CH_TOP_BACK_RIGHT)) {
-    DbgLog((LOG_ERROR, 10, L"::CheckChannelLayoutConformity(): Layout with top channels is not supported (mask: 0x%x)", m_DecodeLayout));
+  if (dwLayout & (AV_CH_TOP_CENTER|AV_CH_TOP_FRONT_LEFT|AV_CH_TOP_FRONT_CENTER|AV_CH_TOP_FRONT_RIGHT|AV_CH_TOP_BACK_LEFT|AV_CH_TOP_BACK_CENTER|AV_CH_TOP_BACK_RIGHT)) {
+    DbgLog((LOG_ERROR, 10, L"::CheckChannelLayoutConformity(): Layout with top channels is not supported (mask: 0x%x)", dwLayout));
     goto noprocessing;
   }
 
   // We need either both surround channels, or none. One of a type is not supported
-  if (!CHL_ALL_OR_NONE(m_DecodeLayout, AV_CH_BACK_LEFT|AV_CH_BACK_RIGHT)
-   || !CHL_ALL_OR_NONE(m_DecodeLayout, AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT)
-   || !CHL_ALL_OR_NONE(m_DecodeLayout, AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER)) {
-    DbgLog((LOG_ERROR, 10, L"::CheckChannelLayoutConformity(): Layout with only one surround channel is not supported (mask: 0x%x)", m_DecodeLayout));
+  if (!CHL_ALL_OR_NONE(dwLayout, AV_CH_BACK_LEFT|AV_CH_BACK_RIGHT)
+   || !CHL_ALL_OR_NONE(dwLayout, AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT)
+   || !CHL_ALL_OR_NONE(dwLayout, AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER)) {
+    DbgLog((LOG_ERROR, 10, L"::CheckChannelLayoutConformity(): Layout with only one surround channel is not supported (mask: 0x%x)", dwLayout));
     goto noprocessing;
   }
 
   // No need to process full 5.1/6.1 layouts, or any 8 channel layouts
-  if (m_DecodeLayout == AV_CH_LAYOUT_5POINT1
-   || m_DecodeLayout == AV_CH_LAYOUT_5POINT1_BACK
-   || m_DecodeLayout == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)
+  if (dwLayout == AV_CH_LAYOUT_5POINT1
+   || dwLayout == AV_CH_LAYOUT_5POINT1_BACK
+   || dwLayout == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)
    || channels == 8) {
-    DbgLog((LOG_TRACE, 10, L"::CheckChannelLayoutConformity(): Layout is already a default layout (mask: 0x%x)", m_DecodeLayout));
+    DbgLog((LOG_TRACE, 10, L"::CheckChannelLayoutConformity(): Layout is already a default layout (mask: 0x%x)", dwLayout));
     goto noprocessing;
   }
 
   // Check 5.1 channels
-  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1, m_DecodeLayout)        /* 5.1 with side channels */
-   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1_BACK, m_DecodeLayout)   /* 5.1 with back channels */
-   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_5POINT1_WIDE, m_DecodeLayout)  /* 5.1 with side-front channels */
-   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_5POINT1_BC, m_DecodeLayout))   /* 3/1/x layouts, front channels with a back center */
-   return Create51Conformity();
+  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1, dwLayout)        /* 5.1 with side channels */
+   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1_BACK, dwLayout)   /* 5.1 with back channels */
+   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_5POINT1_WIDE, dwLayout)  /* 5.1 with side-front channels */
+   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_5POINT1_BC, dwLayout))   /* 3/1/x layouts, front channels with a back center */
+   return Create51Conformity(dwLayout);
 
   // Check 6.1 channels (5.1 layouts + Back Center)
-  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER, m_DecodeLayout)        /* 6.1 with side channels */
-   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER, m_DecodeLayout)   /* 6.1 with back channels */
-   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_5POINT1_WIDE|AV_CH_BACK_CENTER, m_DecodeLayout)) /* 6.1 with side-front channels */
-   return Create61Conformity();
+  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER, dwLayout)        /* 6.1 with side channels */
+   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER, dwLayout)   /* 6.1 with back channels */
+   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_5POINT1_WIDE|AV_CH_BACK_CENTER, dwLayout)) /* 6.1 with side-front channels */
+   return Create61Conformity(dwLayout);
 
   // Check 7.1 channels
-  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_7POINT1, m_DecodeLayout)              /* 7.1 with side+back channels */
-   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_7POINT1_WIDE, m_DecodeLayout)         /* 7.1 with front-side+back channels */
-   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_7POINT1_EXTRAWIDE, m_DecodeLayout))  /* 7.1 with front-side+side channels */
-   return Create71Conformity();
+  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_7POINT1, dwLayout)              /* 7.1 with side+back channels */
+   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_7POINT1_WIDE, dwLayout)         /* 7.1 with front-side+back channels */
+   || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_7POINT1_EXTRAWIDE, dwLayout))  /* 7.1 with front-side+side channels */
+   return Create71Conformity(dwLayout);
 
 noprocessing:
   m_bChannelMappingRequired = FALSE;
   return S_FALSE;
 }
 
-HRESULT CLAVAudio::Create51Conformity()
+HRESULT CLAVAudio::Create51Conformity(DWORD dwLayout)
 {
-  DbgLog((LOG_TRACE, 10, L"::Create51Conformity(): Creating 5.1 default layout (mask: 0x%x)", m_DecodeLayout));
+  DbgLog((LOG_TRACE, 10, L"::Create51Conformity(): Creating 5.1 default layout (mask: 0x%x)", dwLayout));
   int ch = 0;
   ExtChMapClear(&m_ChannelMap);
   // All layouts we support have to contain L/R
   ExtChMapSet(&m_ChannelMap, 0, ch++, 0);
   ExtChMapSet(&m_ChannelMap, 1, ch++, 0);
   // Center channel
-  if (m_DecodeLayout & AV_CH_FRONT_CENTER)
+  if (dwLayout & AV_CH_FRONT_CENTER)
     ExtChMapSet(&m_ChannelMap, 2, ch++, 0);
   // LFE
-  if (m_DecodeLayout & AV_CH_LOW_FREQUENCY)
+  if (dwLayout & AV_CH_LOW_FREQUENCY)
     ExtChMapSet(&m_ChannelMap, 3, ch++, 0);
   // Back/Side
-  if (m_DecodeLayout & (AV_CH_SIDE_LEFT|AV_CH_BACK_LEFT|AV_CH_FRONT_LEFT_OF_CENTER)) {
+  if (dwLayout & (AV_CH_SIDE_LEFT|AV_CH_BACK_LEFT|AV_CH_FRONT_LEFT_OF_CENTER)) {
     ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
     ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
   // Back Center
-  } else if (m_DecodeLayout & AV_CH_BACK_CENTER) {
+  } else if (dwLayout & AV_CH_BACK_CENTER) {
     ExtChMapSet(&m_ChannelMap, 4, ch, -2);
     ExtChMapSet(&m_ChannelMap, 5, ch++, -2);
   }
@@ -301,36 +301,36 @@ HRESULT CLAVAudio::Create51Conformity()
   return S_OK;
 }
 
-HRESULT CLAVAudio::Create61Conformity()
+HRESULT CLAVAudio::Create61Conformity(DWORD dwLayout)
 {
   if (m_settings.Expand61) {
     DbgLog((LOG_TRACE, 10, L"::Create61Conformity(): Expanding to 7.1"));
-    return Create71Conformity();
+    return Create71Conformity(dwLayout);
   }
 
-  DbgLog((LOG_TRACE, 10, L"::Create61Conformity(): Creating 6.1 default layout (mask: 0x%x)", m_DecodeLayout));
+  DbgLog((LOG_TRACE, 10, L"::Create61Conformity(): Creating 6.1 default layout (mask: 0x%x)", dwLayout));
   int ch = 0;
   ExtChMapClear(&m_ChannelMap);
   // All layouts we support have to contain L/R
   ExtChMapSet(&m_ChannelMap, 0, ch++, 0);
   ExtChMapSet(&m_ChannelMap, 1, ch++, 0);
   // Center channel
-  if (m_DecodeLayout & AV_CH_FRONT_CENTER)
+  if (dwLayout & AV_CH_FRONT_CENTER)
     ExtChMapSet(&m_ChannelMap, 2, ch++, 0);
   // LFE
-  if (m_DecodeLayout & AV_CH_LOW_FREQUENCY)
+  if (dwLayout & AV_CH_LOW_FREQUENCY)
     ExtChMapSet(&m_ChannelMap, 3, ch++, 0);
   // Back channels, if before BC
-  if (m_DecodeLayout & (AV_CH_BACK_LEFT|AV_CH_FRONT_LEFT_OF_CENTER)) {
+  if (dwLayout & (AV_CH_BACK_LEFT|AV_CH_FRONT_LEFT_OF_CENTER)) {
     DbgLog((LOG_TRACE, 10, L"::Create61Conformity(): Using surround channels *before* BC"));
     ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
     ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
   }
   // Back Center
-  if (m_DecodeLayout & AV_CH_BACK_CENTER)
+  if (dwLayout & AV_CH_BACK_CENTER)
     ExtChMapSet(&m_ChannelMap, 6, ch++, 0);
   // Back channels, if after BC
-  if (m_DecodeLayout & AV_CH_SIDE_LEFT) {
+  if (dwLayout & AV_CH_SIDE_LEFT) {
     DbgLog((LOG_TRACE, 10, L"::Create61Conformity(): Using surround channels *after* BC"));
     ExtChMapSet(&m_ChannelMap, 4, ch++, 0);
     ExtChMapSet(&m_ChannelMap, 5, ch++, 0);
@@ -342,24 +342,24 @@ HRESULT CLAVAudio::Create61Conformity()
   return S_OK;
 }
 
-HRESULT CLAVAudio::Create71Conformity()
+HRESULT CLAVAudio::Create71Conformity(DWORD dwLayout)
 {
-  DbgLog((LOG_TRACE, 10, L"::Create71Conformity(): Creating 7.1 default layout (mask: 0x%x)", m_DecodeLayout));
+  DbgLog((LOG_TRACE, 10, L"::Create71Conformity(): Creating 7.1 default layout (mask: 0x%x)", dwLayout));
   int ch = 0;
   ExtChMapClear(&m_ChannelMap);
   // All layouts we support have to contain L/R
   ExtChMapSet(&m_ChannelMap, 0, ch++, 0);
   ExtChMapSet(&m_ChannelMap, 1, ch++, 0);
   // Center channel
-  if (m_DecodeLayout & AV_CH_FRONT_CENTER)
+  if (dwLayout & AV_CH_FRONT_CENTER)
     ExtChMapSet(&m_ChannelMap, 2, ch++, 0);
   // LFE
-  if (m_DecodeLayout & AV_CH_LOW_FREQUENCY)
+  if (dwLayout & AV_CH_LOW_FREQUENCY)
     ExtChMapSet(&m_ChannelMap, 3, ch++, 0);
   // Back channels
-  if (m_DecodeLayout & AV_CH_BACK_CENTER) {
+  if (dwLayout & AV_CH_BACK_CENTER) {
     DbgLog((LOG_TRACE, 10, L"::Create71Conformity(): Usign BC to fill back channels"));
-    if (m_DecodeLayout & AV_CH_SIDE_LEFT) {
+    if (dwLayout & AV_CH_SIDE_LEFT) {
       DbgLog((LOG_TRACE, 10, L"::Create71Conformity(): Using BC before side-surround channels"));
       ExtChMapSet(&m_ChannelMap, 4, ch,   -2);
       ExtChMapSet(&m_ChannelMap, 5, ch++, -2);
@@ -422,8 +422,6 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
 
   int layout_channels = av_get_channel_layout_nb_channels(buffer->dwChannelMask);
 
-  DWORD dwOriginalChannelMask = buffer->dwChannelMask;
-
   // Validate channel mask
   if (!buffer->dwChannelMask || layout_channels != buffer->wChannels) {
     buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
@@ -431,16 +429,14 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
 
   // Remap to standard configurations, if requested
   if (m_settings.OutputStandardLayout) {
-    if (buffer->dwChannelMask != m_DecodeLayout) {
-      m_DecodeLayout = buffer->dwChannelMask;
-      CheckChannelLayoutConformity();
+    if (buffer->dwChannelMask != m_DecodeLayoutSanified) {
+      m_DecodeLayoutSanified = buffer->dwChannelMask;
+      CheckChannelLayoutConformity(buffer->dwChannelMask);
     }
     if (m_bChannelMappingRequired) {
       ExtendedChannelMapping(buffer, m_ChannelMapOutputChannels, m_ChannelMap);
       buffer->dwChannelMask = m_ChannelMapOutputLayout;
     }
-  } else {
-    m_DecodeLayout = dwOriginalChannelMask;
   }
 
   // Mono -> Stereo expansion
