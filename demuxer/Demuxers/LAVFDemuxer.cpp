@@ -230,7 +230,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_avFormat->probesize            = 5 * 5000000;
   m_avFormat->max_analyze_duration = 5 * (5*AV_TIME_BASE);
 
-  int ret = av_find_stream_info(m_avFormat);
+  int ret = avformat_find_stream_info(m_avFormat, NULL);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::InitAVFormat(): av_find_stream_info failed (%d)"), ret));
     goto done;
