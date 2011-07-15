@@ -46,6 +46,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bPlaybackStarted(FALSE)
   , m_pDemuxer(NULL)
   , m_bRuntimeConfig(FALSE)
+  , m_pSite(NULL)
 {
   CLAVFDemuxer::ffmpeg_init();
 
@@ -77,6 +78,8 @@ CLAVSplitter::~CLAVSplitter()
     delete (*it);
   }
   m_pRetiredPins.clear();
+
+  SafeRelease(&m_pSite);
 
 #ifdef DEBUG
   DbgCloseLogFile();
@@ -267,6 +270,39 @@ STDMETHODIMP CLAVSplitter::GetPages(CAUUID *pPages)
   pPages->pElems[0] = CLSID_LAVSplitterSettingsProp;
   pPages->pElems[1] = CLSID_LAVSplitterFormatsProp;
   return S_OK;
+}
+
+// IObjectWithSite
+STDMETHODIMP CLAVSplitter::SetSite(IUnknown *pUnkSite)
+{
+  // AddRef to store it for later
+  pUnkSite->AddRef();
+
+  // Release the old one
+  SafeRelease(&m_pSite);
+
+  // Store the new one
+  m_pSite = pUnkSite;
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVSplitter::GetSite(REFIID riid, void **ppvSite)
+{
+  CheckPointer(ppvSite, E_POINTER);
+  *ppvSite = NULL;
+  if (!m_pSite) {
+    return E_FAIL;
+  }
+
+  IUnknown *pSite = NULL;
+  HRESULT hr = m_pSite->QueryInterface(riid, (void **)&pSite);
+  if (SUCCEEDED(hr) && pSite) {
+    pSite->AddRef();
+    *ppvSite = pSite;
+    return S_OK;
+  }
+  return E_NOINTERFACE;
 }
 
 // CBaseSplitter

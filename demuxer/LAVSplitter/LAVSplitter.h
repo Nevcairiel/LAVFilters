@@ -56,6 +56,7 @@ class CLAVSplitter
   , public IAMStreamSelect
   , public ILAVFSettingsInternal
   , public ISpecifyPropertyPages
+  , public IObjectWithSite
 {
 public:
   CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
@@ -103,6 +104,10 @@ public:
 
   // ISpecifyPropertyPages
   STDMETHODIMP GetPages(CAUUID *pPages);
+
+  // IObjectWithSite
+  STDMETHODIMP SetSite(IUnknown *pUnkSite);
+  STDMETHODIMP GetSite(REFIID riid, void **ppvSite);
 
   // ILAVFSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
@@ -222,6 +227,8 @@ private:
   } m_settings;
 
   BOOL m_bRuntimeConfig;
+
+  IUnknown *m_pSite;
 };
 
 [uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]
