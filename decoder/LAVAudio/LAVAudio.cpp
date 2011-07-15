@@ -744,15 +744,6 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     }
   }
 
-  if (codec == CODEC_ID_PCM_DVD) {
-    if (format_type == FORMAT_WaveFormatEx) {
-      WAVEFORMATEX *wfein = (WAVEFORMATEX *)format;
-      if (wfein->wBitsPerSample == 16) {
-        codec = CODEC_ID_PCM_S16BE;
-      }
-    }
-  }
-
   // Special check for enabled PCM
   if (codec >= 0x10000 && codec < 0x12000 && codec != CODEC_ID_PCM_BLURAY && codec != CODEC_ID_PCM_DVD && !m_settings.bFormats[Codec_PCM])
     return VFW_E_UNSUPPORTED_AUDIO;
@@ -768,6 +759,15 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     }
     if (bMatched && !m_settings.bFormats[i]) {
       return VFW_E_UNSUPPORTED_AUDIO;
+    }
+  }
+
+  if (codec == CODEC_ID_PCM_DVD) {
+    if (format_type == FORMAT_WaveFormatEx) {
+      WAVEFORMATEX *wfein = (WAVEFORMATEX *)format;
+      if (wfein->wBitsPerSample == 16) {
+        codec = CODEC_ID_PCM_S16BE;
+      }
     }
   }
 
