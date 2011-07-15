@@ -1,5 +1,20 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.30 - 2011/07/15
+LAV Splitter
+- Improved VC-1 playback with ffdshow DXVA
+- Added support for outputting MPEG-4 Timed Text subtitles (only pure text supported)
+- Better support for MLP audio
+- I/O performance enhancements
+- Added an option to toggle how LAV Splitter handles audio stream switching
+- Added a hard-limit on queue sizes to avoid excessive memory usage when transcoding
+- Added an experimental interface for the Player to control graph rebuilding
+
+LAV Audio
+- Further improvements to the DTS-HD parsing
+- Better support for MLP audio
+- Added more E-AC3 subtypes
+
 0.29 - 2011/06/09
 LAV Splitter
 - The language code is now always shown in the stream changer (as a hint to easily know what to put into the preferred languages fields)
