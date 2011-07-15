@@ -36,6 +36,7 @@
 #include "moreuuids.h"
 
 #include "registry.h"
+#include "IGraphRebuildDelegate.h"
 
 // The GUID we use to register the splitter media types
 DEFINE_GUID(MEDIATYPE_LAVSplitter,

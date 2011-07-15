@@ -161,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\includes\format_guids.h" />
+    <ClInclude Include="..\..\common\includes\IGraphRebuildDelegate.h" />
     <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h" />
     <ClInclude Include="..\..\common\includes\inttypes.h" />
     <ClInclude Include="..\..\common\includes\ITrackInfo.h" />

@@ -35,6 +35,8 @@
 
 #include "registry.h"
 
+#include "IGraphRebuildDelegate.h"
+
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
   , m_rtStart(0)
@@ -908,6 +910,21 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
     pPin->SetNewMediaTypes(pmts);
 
+    IGraphRebuildDelegate *pDelegate = NULL;
+    if (SUCCEEDED(GetSite(IID_IGraphRebuildDelegate, (void **)&pDelegate)) && pDelegate) {
+      hr = pDelegate->RebuildPin(m_pGraph, pPin);
+      if (hr == S_FALSE) {
+        int mtIdx = QueryAcceptMediaTypes(pPin->GetConnected(), pmts);
+        CMediaType *mt = new CMediaType(pmts[mtIdx]);
+        pPin->SendMediaType(mt);
+      }
+
+      if (SUCCEEDED(hr)) {
+        goto resumegraph;
+      }
+      DbgLog((LOG_TRACE, 10, L"::RenameOutputPin(): IGraphRebuildDelegate::RebuildPin failed"));
+    }
+
     // Audio Filters get their connected filter removed
     // This way we make sure we reconnect to the proper filter
     // Other filters just disconnect and try to reconnect later on
@@ -957,6 +974,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     }
     if(SUCCEEDED(hr) && pInfo.pFilter) { pInfo.pFilter->Release(); }
 
+resumegraph:
     Unlock();
 
     // Re-start the graph
