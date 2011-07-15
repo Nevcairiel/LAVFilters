@@ -917,10 +917,10 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
         int mtIdx = QueryAcceptMediaTypes(pPin->GetConnected(), pmts);
         if (mtIdx == -1) {
           DbgLog((LOG_ERROR, 10, L"::RenameOutputPin(): No matching media type after rebuild delegation"));
-        } else {
-          CMediaType *mt = new CMediaType(pmts[mtIdx]);
-          pPin->SendMediaType(mt);
+          mtIdx = 0;
         }
+        CMediaType *mt = new CMediaType(pmts[mtIdx]);
+        pPin->SendMediaType(mt);
       }
       SafeRelease(&pDelegate);
 
