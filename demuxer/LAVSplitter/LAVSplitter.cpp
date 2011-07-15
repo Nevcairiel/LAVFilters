@@ -910,6 +910,8 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     m_pDemuxer->SetActiveStream(pPin->GetPinType(), TrackNumDst);
     pPin->SetNewMediaTypes(pmts);
 
+    // IGraphRebuildDelegate support
+    // Query our Site for the appropriate interface, and if its present, delegate graph building there
     IGraphRebuildDelegate *pDelegate = NULL;
     if (SUCCEEDED(GetSite(IID_IGraphRebuildDelegate, (void **)&pDelegate)) && pDelegate) {
       hr = pDelegate->RebuildPin(m_pGraph, pPin);
