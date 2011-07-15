@@ -257,6 +257,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI2(ISpecifyPropertyPages)
     QI2(ILAVFSettings)
     QI2(ILAVFSettingsInternal)
+    QI(IObjectWithSite)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
