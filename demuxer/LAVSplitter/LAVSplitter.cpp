@@ -918,6 +918,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
         CMediaType *mt = new CMediaType(pmts[mtIdx]);
         pPin->SendMediaType(mt);
       }
+      SafeRelease(&pDelegate);
 
       if (SUCCEEDED(hr)) {
         goto resumegraph;
