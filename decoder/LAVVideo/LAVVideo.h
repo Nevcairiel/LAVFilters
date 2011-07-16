@@ -63,7 +63,8 @@ private:
 
   HRESULT swscale_init();
 
-  HRESULT GetDeliveryBuffer(int w, int h, IMediaSample** ppOut);
+  HRESULT GetDeliveryBuffer(IMediaSample** ppOut);
+  HRESULT ReconnectOutput();
   HRESULT Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
 
   HRESULT SetTypeSpecificFlags(IMediaSample* pMS);
