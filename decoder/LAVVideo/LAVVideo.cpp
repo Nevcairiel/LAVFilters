@@ -270,9 +270,6 @@ HRESULT CLAVVideo::swscale_init()
   BITMAPINFOHEADER *pBIH = NULL;
   formatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH);
 
-  m_pOutSize.cx = pBIH->biWidth;
-  m_pOutSize.cy = abs(pBIH->biHeight);
-
   return S_OK;
 }
 
@@ -589,16 +586,19 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
       CHECK_HR(hr = swscale_init());
     }
 
+    CMediaType& mt = m_pOutput->CurrentMediaType();
+    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+
     for (int i = 0; i < 4; ++i) {
       srcStride[i] = m_pFrame->linesize[i];
     }
-    dstStride[0] = dstStride[1] = m_pOutSize.cx;
+    dstStride[0] = dstStride[1] = vih2->bmiHeader.biWidth;
     dstStride[2] = dstStride[3] = 0;
     dst[0] = pDataOut;
-    dst[1] = dst[0] + dstStride[0] * m_pOutSize.cy;
+    dst[1] = dst[0] + dstStride[0] * m_pAVCtx->coded_height;
     dst[2] = NULL;
     dst[3] = NULL;
-    sws_scale (m_pSwsContext, m_pFrame->data, srcStride, 0, m_pAVCtx->height, dst, dstStride);
+    sws_scale (m_pSwsContext, m_pFrame->data, srcStride, 0, m_pAVCtx->coded_height, dst, dstStride);
 
     SetTypeSpecificFlags (pOut);
     hr = m_pOutput->Deliver(pOut);

@@ -88,8 +88,6 @@ private:
 
   SwsContext           *m_pSwsContext;
 
-  SIZE                 m_pOutSize;				// Picture size on output pin
-
   BOOL                 m_bH264OnMPEG2;
   BOOL                 m_bReorderWithoutStop;
   REFERENCE_TIME       m_rtPrevStart;
