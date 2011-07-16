@@ -78,7 +78,7 @@ private:
   BOOL                 m_bProcessExtradata;
 
   BOOL                 m_bReorderBFrame;
-  B_FRAME              m_BFrames[MAX_THREADS + 8];
+  B_FRAME              m_BFrames[MAX_THREADS + 1];
   int                  m_nPosB;
 
   AVFrame              *m_pFrame;
