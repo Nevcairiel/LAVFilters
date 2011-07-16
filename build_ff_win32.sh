@@ -16,7 +16,6 @@ make distclean
 
 OPTIONS="
 --enable-shared \
---enable-memalign-hack \
 --enable-gpl \
 --enable-w32threads \
 --enable-runtime-cpudetect \
