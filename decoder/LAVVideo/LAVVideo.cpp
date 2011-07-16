@@ -160,23 +160,28 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 {
   ffmpeg_shutdown();
 
+  BITMAPINFOHEADER *pBMI = NULL;
+  formatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI, &m_rtAvrTimePerFrame);
+
   m_pAVCodec    = avcodec_find_decoder(codec);
   CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_VIDEO);
 
-  m_pAVCtx = avcodec_alloc_context();
+  m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
   CheckPointer(m_pAVCtx, E_POINTER);
 
   m_pAVCtx->codec_type            = AVMEDIA_TYPE_VIDEO;
   m_pAVCtx->codec_id              = (CodecID)codec;
-  if(m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
-    m_pAVCtx->flags|= CODEC_FLAG_TRUNCATED;
-
-  BITMAPINFOHEADER *pBMI = NULL;
-  formatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI, &m_rtAvrTimePerFrame);
+  m_pAVCtx->codec_tag             = pBMI->biCompression;
+  
+  /*if(m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
+    m_pAVCtx->flags |= CODEC_FLAG_TRUNCATED;   */
 
   m_pAVCtx->width = pBMI->biWidth;
   m_pAVCtx->height = pBMI->biHeight;
   m_pAVCtx->codec_tag = pBMI->biCompression;
+  m_pAVCtx->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
+  m_pAVCtx->error_recognition = FF_ER_CAREFUL;
+  m_pAVCtx->workaround_bugs = FF_BUG_AUTODETECT;
 
   m_pFrame = avcodec_alloc_frame();
   CheckPointer(m_pFrame, E_POINTER);
@@ -240,7 +245,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
   m_bReorderWithoutStop = (pmt->formattype == FORMAT_MPEG2Video);
 
-  int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
+  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
 
   } else {
@@ -439,7 +444,7 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
     avpkt.pts = rtStart;
     //avpkt.dts = rtStop;
     //avpkt.duration = (int)(rtStart != _I64_MIN && rtStop != _I64_MIN ? rtStop - rtStart : 0);
-    //avpkt.flags = AV_PKT_FLAG_KEY;
+    avpkt.flags = AV_PKT_FLAG_KEY;
 
     used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
 
@@ -492,21 +497,17 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
     }
 
     if (rtStop == AV_NOPTS_VALUE) {
-      REFERENCE_TIME rtAvgTimePerFrame = 0;
-        
+      REFERENCE_TIME duration = 0;
+
       CMediaType mt = m_pInput->CurrentMediaType();
-      formatTypeHandler(mt.Format(), mt.FormatType(), NULL, &rtAvgTimePerFrame, NULL, NULL);
-      if (rtAvgTimePerFrame) {
-        rtStop = rtStart + rtAvgTimePerFrame + m_pFrame->repeat_pict * rtAvgTimePerFrame / 2;
-      } else if (m_pAVCtx->time_base.num && m_pAVCtx->time_base.den) {
-        REFERENCE_TIME duration = REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den;
-        rtStop = rtStart + duration;
-        if (m_pFrame->repeat_pict) {
-          rtStop += (duration >> 1) * m_pFrame->repeat_pict;
-        }
-      } else {
-        rtStop = rtStart + 1;
+      formatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
+      if (!duration && m_pAVCtx->time_base.num && m_pAVCtx->time_base.den) {
+        duration = (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
+      } else if(!duration) {
+        duration = 1;
       }
+      
+      rtStop = rtStart + (duration * (m_pFrame->repeat_pict ? 3 : 2)  / 2);
     }
 
     DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d", rtStart, rtStart-m_rtPrevStart));

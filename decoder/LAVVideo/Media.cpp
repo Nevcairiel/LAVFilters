@@ -144,7 +144,7 @@ void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsig
   } else if (*formattype == FORMAT_MPEG2Video) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)format;
     if (extra)
-      memcpy(extra, &mp2vi->dwSequenceHeader[0], mp2vi->cbSequenceHeader);
+      memcpy(extra, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
     if (extralen)
       *extralen = mp2vi->cbSequenceHeader;
   }
