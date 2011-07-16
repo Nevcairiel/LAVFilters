@@ -386,8 +386,12 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   nSize = pIn->GetActualDataLength();
   hr = pIn->GetTime(&rtStart, &rtStop);
 
-  if (rtStop <= rtStart && rtStop != AV_NOPTS_VALUE) {
-    rtStop = rtStart + m_rtAvrTimePerFrame;
+  if (FAILED(hr)) {
+    rtStart = rtStop = AV_NOPTS_VALUE;
+  }
+
+  if (rtStop-1 <= rtStart) {
+    rtStop = AV_NOPTS_VALUE;
   }
 
   m_BFrames[m_nPosB].rtStart = rtStart;
