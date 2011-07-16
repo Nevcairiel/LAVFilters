@@ -93,4 +93,6 @@ private:
   BOOL                 m_bReorderWithoutStop;
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
+
+  BOOL                 m_bDiscontinuity;
 };

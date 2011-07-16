@@ -48,6 +48,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bH264OnMPEG2(NULL)
   , m_rtPrevStart(0)
   , m_rtPrevStop(0)
+  , m_bDiscontinuity(FALSE)
 {
   avcodec_init();
   avcodec_register_all();
@@ -390,6 +391,10 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     m_nPosB = 0;
   }
 
+  if (pIn->IsDiscontinuity() == S_OK) {
+    m_bDiscontinuity = TRUE;
+  }
+
   hr = Decode(pIn, pDataIn, nSize, rtStart, rtStop);
 
   return hr;
@@ -454,8 +459,9 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
     // The next big block computes the proper timestamps
     ///////////////////////////////////////////////////////////////////////////////////////////////
     if (m_nCodecId == CODEC_ID_MPEG1VIDEO || m_nCodecId == CODEC_ID_MPEG2VIDEO) {
-      if (m_pFrame->pict_type == AV_PICTURE_TYPE_I) {
+      if (m_bDiscontinuity && m_pFrame->pict_type == AV_PICTURE_TYPE_I) {
         rtStart = m_pFrame->pkt_pts;
+        m_bDiscontinuity = FALSE;
       } else {
         rtStart = m_rtPrevStop;
       }
