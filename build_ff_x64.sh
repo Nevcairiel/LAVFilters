@@ -23,6 +23,7 @@ OPTIONS="
 --enable-asm \
 --disable-postproc \
 --enable-zlib \
+--enable-swscale \
 --disable-static \
 --disable-altivec \
 --disable-muxers \
@@ -35,7 +36,6 @@ OPTIONS="
 --disable-devices \
 --disable-filters \
 --disable-avfilter \
---disable-swscale \
 --disable-avdevice \
 --disable-hwaccels \
 --disable-bsfs \
