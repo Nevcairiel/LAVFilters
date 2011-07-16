@@ -50,6 +50,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtPrevStop(0)
   , m_bDiscontinuity(FALSE)
   , m_nThreads(1)
+  , m_bForceTypeNegotiation(FALSE)
 {
   avcodec_init();
   avcodec_register_all();
@@ -253,6 +254,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
     return VFW_E_UNSUPPORTED_VIDEO;
   }
 
+  m_bForceTypeNegotiation = TRUE;
+
   return S_OK;
 }
 
@@ -349,11 +352,12 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut)
     return hr;
   }
 
-  AM_MEDIA_TYPE* pmt;
+  AM_MEDIA_TYPE* pmt = NULL;
   if(SUCCEEDED((*ppOut)->GetMediaType(&pmt)) && pmt) {
     CMediaType mt = *pmt;
     m_pOutput->SetMediaType(&mt);
     DeleteMediaType(pmt);
+    pmt = NULL;
   }
 
   (*ppOut)->SetDiscontinuity(FALSE);
@@ -376,7 +380,10 @@ HRESULT CLAVVideo::ReconnectOutput()
   if (vih2->rcSource.right != m_pAVCtx->coded_width
     || vih2->rcSource.bottom != m_pAVCtx->coded_height
     || vih2->dwPictAspectRatioX != num
-    || vih2->dwPictAspectRatioY != den) {
+    || vih2->dwPictAspectRatioY != den
+    || m_bForceTypeNegotiation) {
+
+    m_bForceTypeNegotiation = FALSE;
     
     vih2->bmiHeader.biWidth = m_pAVCtx->coded_width;
     vih2->bmiHeader.biHeight = m_pAVCtx->coded_height;

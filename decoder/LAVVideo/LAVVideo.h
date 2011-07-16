@@ -94,6 +94,7 @@ private:
   REFERENCE_TIME       m_rtPrevStop;
 
   BOOL                 m_bDiscontinuity;
+  BOOL                 m_bForceTypeNegotiation;
 
   int                  m_nThreads;
 };
