@@ -49,6 +49,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtPrevStart(0)
   , m_rtPrevStop(0)
   , m_bDiscontinuity(FALSE)
+  , m_nThreads(1)
 {
   avcodec_init();
   avcodec_register_all();
@@ -392,7 +393,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   m_BFrames[m_nPosB].rtStart = rtStart;
   m_BFrames[m_nPosB].rtStop  = rtStop;
   m_nPosB++;
-  if (m_nPosB >= countof(m_BFrames)) {
+  if (m_nPosB >= (m_nThreads+1)) {
     m_nPosB = 0;
   }
 
@@ -484,7 +485,7 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
       int pos = m_nPosB - 2;
       
       if (pos < 0) {
-        pos += countof(m_BFrames);
+        pos += (m_nThreads+1);
       }
 
       rtStart = m_BFrames[pos].rtStart;
