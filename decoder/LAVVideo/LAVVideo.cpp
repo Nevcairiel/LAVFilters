@@ -338,13 +338,13 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
-HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut)
+HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar)
 {
   CheckPointer(ppOut, E_POINTER);
 
   HRESULT hr;
 
-  if(FAILED(hr = ReconnectOutput())) {
+  if(FAILED(hr = ReconnectOutput(width, height, ar))) {
     return hr;
   }
 
@@ -366,27 +366,30 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut)
   return S_OK;
 }
 
-HRESULT CLAVVideo::ReconnectOutput()
+HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
 {
   CMediaType& mt = m_pOutput->CurrentMediaType();
   VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
 
   HRESULT hr = S_FALSE;
 
-  AVRational r = m_pAVCtx->sample_aspect_ratio;
-  int num = m_pAVCtx->coded_width, den = m_pAVCtx->coded_height;
-  av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, 255);
+  int num = width, den = height;
+  av_reduce(&num, &den, (int64_t)ar.num * num, (int64_t)ar.den * den, 255);
 
-  if (vih2->rcSource.right != m_pAVCtx->coded_width
-    || vih2->rcSource.bottom != m_pAVCtx->coded_height
+  if (height == 1088 && width == 1920) {
+    height = 1080;
+  }
+
+  if (vih2->rcSource.right != width
+    || vih2->rcSource.bottom != height
     || vih2->dwPictAspectRatioX != num
     || vih2->dwPictAspectRatioY != den
     || m_bForceTypeNegotiation) {
 
     m_bForceTypeNegotiation = FALSE;
     
-    vih2->bmiHeader.biWidth = m_pAVCtx->coded_width;
-    vih2->bmiHeader.biHeight = m_pAVCtx->coded_height;
+    vih2->bmiHeader.biWidth = width;
+    vih2->bmiHeader.biHeight = height;
     vih2->dwPictAspectRatioX = num;
     vih2->dwPictAspectRatioY = den;
 
@@ -405,7 +408,7 @@ HRESULT CLAVVideo::ReconnectOutput()
           m_pOutput->SetMediaType(&mt);
 #ifdef DEBUG
           VIDEOINFOHEADER2 *vih2new = (VIDEOINFOHEADER2 *)mt.Format();
-          DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", m_pAVCtx->coded_width, vih2new->bmiHeader.biWidth));
+          DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", width, vih2new->bmiHeader.biWidth));
 #endif
           DeleteMediaType(pmt);
         } else { // fallback for "dumb" renderers
@@ -415,7 +418,7 @@ HRESULT CLAVVideo::ReconnectOutput()
         pOut->Release();
       }
     }
-    NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(m_pAVCtx->coded_width, m_pAVCtx->coded_height), 0);
+    NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
 
     hr = S_OK;
   }
@@ -582,7 +585,15 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
       return S_OK;
     }
 
-    if(FAILED(hr = GetDeliveryBuffer(&pOut)) || FAILED(hr = pOut->GetPointer(&pDataOut))) {
+    // Collect width/height
+    int width  = m_pAVCtx->coded_width;
+    int height = m_pAVCtx->coded_height;
+
+    if (width == 1920 && height == 1088) {
+      height = 1080;
+    }
+
+    if(FAILED(hr = GetDeliveryBuffer(&pOut, width, height, m_pAVCtx->sample_aspect_ratio)) || FAILED(hr = pOut->GetPointer(&pDataOut))) {
       return hr;
     }
 
@@ -602,10 +613,10 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
     dstStride[0] = dstStride[1] = vih2->bmiHeader.biWidth;
     dstStride[2] = dstStride[3] = 0;
     dst[0] = pDataOut;
-    dst[1] = dst[0] + dstStride[0] * m_pAVCtx->coded_height;
+    dst[1] = dst[0] + dstStride[0] * height;
     dst[2] = NULL;
     dst[3] = NULL;
-    sws_scale (m_pSwsContext, m_pFrame->data, srcStride, 0, m_pAVCtx->coded_height, dst, dstStride);
+    sws_scale (m_pSwsContext, m_pFrame->data, srcStride, 0, height, dst, dstStride);
 
     SetTypeSpecificFlags (pOut);
     hr = m_pOutput->Deliver(pOut);
