@@ -264,14 +264,11 @@ HRESULT CLAVVideo::swscale_init()
   if (m_pSwsContext != NULL)
     return S_OK;
 
-  m_pSwsContext = sws_getContext(m_pAVCtx->width, m_pAVCtx->height, m_pAVCtx->pix_fmt,
+  m_pSwsContext = sws_getCachedContext(m_pSwsContext,
+                                 m_pAVCtx->width, m_pAVCtx->height, m_pAVCtx->pix_fmt,
                                  m_pAVCtx->width, m_pAVCtx->height, PIX_FMT_NV12,
                                  SWS_POINT|SWS_PRINT_INFO, NULL, NULL, NULL);
   CheckPointer(m_pSwsContext, E_POINTER);
-
-  CMediaType mtOut = m_pOutput->CurrentMediaType();
-  BITMAPINFOHEADER *pBIH = NULL;
-  formatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH);
 
   return S_OK;
 }
