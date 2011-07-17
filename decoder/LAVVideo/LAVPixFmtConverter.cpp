@@ -219,6 +219,9 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
   case LAVPixFmt_NV12:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_NV12, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
+  case LAVPixFmt_YUY2:
+    hr = swscale_scale(m_InputPixFmt, PIX_FMT_YUYV422, pFrame, pOut, width, height, dstStride * 2, lav_pixfmt_desc[m_OutputPixFmt]);
+    break;
   default:
     ASSERT(0);
     hr = E_FAIL;
