@@ -272,7 +272,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int widt
     m_pSwsContext = sws_getCachedContext(m_pSwsContext,
                                  width, height, m_InputPixFmt,
                                  width, height, PIX_FMT_YUV444P,
-                                 SWS_BICUBIC|SWS_PRINT_INFO, NULL, NULL, NULL);
+                                 SWS_POINT|SWS_PRINT_INFO, NULL, NULL, NULL);
 
     sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
 
