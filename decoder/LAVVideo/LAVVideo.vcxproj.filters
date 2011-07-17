@@ -27,6 +27,9 @@
     <ClCompile Include="Media.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LAVPixFmtConverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Media.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LAVPixFmtConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

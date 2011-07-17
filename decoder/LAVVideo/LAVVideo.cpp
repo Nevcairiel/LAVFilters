@@ -99,8 +99,9 @@ HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 HRESULT CLAVVideo::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut)
 {
   if (SUCCEEDED(CheckInputType(mtIn)) && mtOut->majortype == MEDIATYPE_Video) {
-    for(int i = 0; i < sudPinTypesOutCount; i++) {
-      if(*sudPinTypesOut[i].clsMinorType == mtOut->subtype) {
+    for(int i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); i++) {
+      CMediaType &mt = m_PixFmtConverter.GetMediaType(i, 320, 160, 4, 3, 0);
+      if(mt.subtype == mtOut->subtype) {
         return S_OK;
       }
     }
@@ -142,7 +143,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
     return E_INVALIDARG;
   }
 
-  if(iPosition > 0) {
+  if(iPosition >= m_PixFmtConverter.GetNumMediaTypes()) {
     return VFW_S_NO_MORE_ITEMS;
   }
 
@@ -153,7 +154,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   DWORD dwAspectX = 0, dwAspectY = 0;
   formatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
-  *pMediaType = CreateMediaType(pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime);
+  *pMediaType = m_PixFmtConverter.GetMediaType(iPosition, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime);
 
   return S_OK;
 }
@@ -254,21 +255,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
     return VFW_E_UNSUPPORTED_VIDEO;
   }
 
+  m_PixFmtConverter.SetInputPixFmt(m_pAVCtx->pix_fmt);
   m_bForceTypeNegotiation = TRUE;
-
-  return S_OK;
-}
-
-HRESULT CLAVVideo::swscale_init()
-{
-  if (m_pSwsContext != NULL)
-    return S_OK;
-
-  m_pSwsContext = sws_getCachedContext(m_pSwsContext,
-                                 m_pAVCtx->width, m_pAVCtx->height, m_pAVCtx->pix_fmt,
-                                 m_pAVCtx->width, m_pAVCtx->height, PIX_FMT_NV12,
-                                 SWS_POINT|SWS_PRINT_INFO, NULL, NULL, NULL);
-  CheckPointer(m_pSwsContext, E_POINTER);
 
   return S_OK;
 }
@@ -292,6 +280,8 @@ HRESULT CLAVVideo::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     if (FAILED(hr)) {
       return hr;
     }
+  } else if (dir == PINDIR_OUTPUT) {
+    m_PixFmtConverter.SetOutputPixFmt(m_PixFmtConverter.GetOutputBySubtype(pmt->Subtype()));
   }
   return __super::SetMediaType(dir, pmt);
 }
@@ -422,6 +412,27 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
   return hr;
 }
 
+HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height)
+{
+  HRESULT hr = S_OK;
+  int i = 0;
+
+  VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)outMt.Format();
+
+  for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
+    CMediaType &mt = m_PixFmtConverter.GetMediaType(i, width, height, vih2->dwPictAspectRatioX, vih2->dwPictAspectRatioY, vih2->AvgTimePerFrame);
+    hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+    if (SUCCEEDED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"::NegotiatePixelFormat(): Filter accepted format with index %d", i));
+      m_bForceTypeNegotiation = TRUE;
+      m_pOutput->SetMediaType(&mt);
+      return S_OK;
+    }
+  }
+
+  return E_FAIL;
+}
+
 HRESULT CLAVVideo::Receive(IMediaSample *pIn)
 {
   CAutoLock cAutoLock(&m_csReceive);
@@ -475,10 +486,6 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
 
   IMediaSample *pOut = NULL;
   BYTE         *pDataOut = NULL;
-
-  uint8_t *dst[4];
-  int     srcStride[4];
-  int     dstStride[4];
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -589,6 +596,17 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
       height = 1080;
     }
 
+    if (m_pAVCtx->pix_fmt != m_PixFmtConverter.GetInputPixFmt()) {
+      DbgLog((LOG_TRACE, 10, L"::Decode(): Changing pixel format from %d to %d",  m_PixFmtConverter.GetInputPixFmt(), m_pAVCtx->pix_fmt));
+      m_PixFmtConverter.SetInputPixFmt(m_pAVCtx->pix_fmt);
+
+      CMediaType& mt = m_pOutput->CurrentMediaType();
+
+      if (m_PixFmtConverter.GetOutputBySubtype(mt.Subtype()) != m_PixFmtConverter.GetPreferredOutput()) {
+        NegotiatePixelFormat(mt, width, height);
+      }
+    }
+
     if(FAILED(hr = GetDeliveryBuffer(&pOut, width, height, m_pAVCtx->sample_aspect_ratio)) || FAILED(hr = pOut->GetPointer(&pDataOut))) {
       return hr;
     }
@@ -596,30 +614,15 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
     pOut->SetTime(&rtStart, &rtStop);
     pOut->SetMediaTime(NULL, NULL);
 
-    if (m_pSwsContext == NULL) {
-      CHECK_HR(hr = swscale_init());
-    }
-
     CMediaType& mt = m_pOutput->CurrentMediaType();
     VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
 
-    for (int i = 0; i < 4; ++i) {
-      srcStride[i] = m_pFrame->linesize[i];
-    }
-    dstStride[0] = dstStride[1] = vih2->bmiHeader.biWidth;
-    dstStride[2] = dstStride[3] = 0;
-    dst[0] = pDataOut;
-    dst[1] = dst[0] + dstStride[0] * height;
-    dst[2] = NULL;
-    dst[3] = NULL;
-    sws_scale (m_pSwsContext, m_pFrame->data, srcStride, 0, height, dst, dstStride);
+    m_PixFmtConverter.Convert(m_pFrame, pDataOut, width, height, vih2->bmiHeader.biWidth);
 
     SetTypeSpecificFlags (pOut);
     hr = m_pOutput->Deliver(pOut);
     SafeRelease(&pOut);
   }
-done:
-  SafeRelease(&pOut);
   return hr;
 }
 
