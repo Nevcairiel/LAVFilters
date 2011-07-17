@@ -222,10 +222,71 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
   case LAVPixFmt_YUY2:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_YUYV422, pFrame, pOut, width, height, dstStride * 2, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
+  case LAVPixFmt_AYUV:
+    hr = ConvertToAYUV(pFrame, pOut, width, height, dstStride);
+    break;
   default:
     ASSERT(0);
     hr = E_FAIL;
     break;
   }
   return hr;
+}
+
+HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride)
+{
+  const BYTE *y = NULL;
+  const BYTE *u = NULL;
+  const BYTE *v = NULL;
+  int line, i = 0;
+  int srcStride = 0;
+  BYTE *pTmpBuffer = NULL;
+
+  if (m_InputPixFmt != PIX_FMT_YUV444P) {
+    uint8_t *dst[4] = {NULL};
+    int     dstStride[4] = {0};
+
+    pTmpBuffer = (BYTE *)av_malloc(height * stride * 3);
+
+    dst[0] = pTmpBuffer;
+    dst[1] = dst[0] + (height * stride);
+    dst[2] = dst[1] + (height * stride);
+    dst[3] = NULL;
+    dstStride[0] = stride;
+    dstStride[1] = stride;
+    dstStride[2] = stride;
+    dstStride[3] = 0;
+
+    m_pSwsContext = sws_getCachedContext(m_pSwsContext,
+                                 width, height, m_InputPixFmt,
+                                 width, height, PIX_FMT_YUV444P,
+                                 SWS_BICUBIC|SWS_PRINT_INFO, NULL, NULL, NULL);
+
+    sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
+
+    y = dst[0];
+    u = dst[1];
+    v = dst[2];
+    srcStride = stride;
+  } else {
+    y = pFrame->data[0];
+    u = pFrame->data[1];
+    v = pFrame->data[2];
+    srcStride = pFrame->linesize[0];
+  }
+
+  for (line = 0; line < height; ++line) {
+    BYTE *pLine = pOut + line * stride * 4;
+    int32_t *idst = (int32_t *)pLine;
+    for (i = 0; i < width; ++i) {
+      *idst++ = v[i] + (u[i] << 8) + (y[i] << 16) + (0xff << 24);
+    }
+    y += srcStride;
+    u += srcStride;
+    v += srcStride;
+  }
+
+  av_freep(&pTmpBuffer);
+
+  return S_OK;
 }
