@@ -68,6 +68,7 @@ public:
 private:
   HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
   HRESULT ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
+  HRESULT ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride, int chromaVertical);
 
 private:
   enum PixelFormat     m_InputPixFmt;

@@ -225,6 +225,18 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
   case LAVPixFmt_AYUV:
     hr = ConvertToAYUV(pFrame, pOut, width, height, dstStride);
     break;
+  case LAVPixFmt_P010:
+    hr = ConvertToPX1X(pFrame, pOut, width, height, dstStride, 2);
+    break;
+  case LAVPixFmt_P016:
+    hr = ConvertToPX1X(pFrame, pOut, width, height, dstStride, 2);
+    break;
+  case LAVPixFmt_P210:
+    hr = ConvertToPX1X(pFrame, pOut, width, height, dstStride, 1);
+    break;
+  case LAVPixFmt_P216:
+    hr = ConvertToPX1X(pFrame, pOut, width, height, dstStride, 1);
+    break;
   default:
     ASSERT(0);
     hr = E_FAIL;
@@ -284,6 +296,81 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int widt
     y += srcStride;
     u += srcStride;
     v += srcStride;
+  }
+
+  av_freep(&pTmpBuffer);
+
+  return S_OK;
+}
+
+HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride, int chromaVertical)
+{
+  const BYTE *y = NULL;
+  const BYTE *u = NULL;
+  const BYTE *v = NULL;
+  int line, i = 0;
+  int srcStride = 0;
+
+  // Stride needs to be doubled for 16-bit per pixel
+  stride *= 2;
+
+  BYTE *pTmpBuffer = NULL;
+
+  PixelFormat pixFmtRequired = (chromaVertical == 2) ? PIX_FMT_YUV420P16LE : PIX_FMT_YUV422P16LE;
+
+  if (m_InputPixFmt != pixFmtRequired) {
+    uint8_t *dst[4] = {NULL};
+    int     dstStride[4] = {0};
+
+    pTmpBuffer = (BYTE *)av_malloc(height * stride * 2);
+
+    dst[0] = pTmpBuffer;
+    dst[1] = dst[0] + (height * stride);
+    dst[2] = dst[1] + ((height / chromaVertical) * (stride / 2));
+    dst[3] = NULL;
+    dstStride[0] = stride;
+    dstStride[1] = stride / 2;
+    dstStride[2] = stride / 2;
+    dstStride[3] = 0;
+
+    m_pSwsContext = sws_getCachedContext(m_pSwsContext,
+                                 width, height, m_InputPixFmt,
+                                 width, height, pixFmtRequired,
+                                 SWS_POINT|SWS_PRINT_INFO, NULL, NULL, NULL);
+
+    sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
+
+    y = dst[0];
+    u = dst[1];
+    v = dst[2];
+    srcStride = stride;
+  } else {
+    y = pFrame->data[0];
+    u = pFrame->data[1];
+    v = pFrame->data[2];
+    srcStride = pFrame->linesize[0];
+  }
+
+  // copy Y
+  BYTE *pLineOut = pOut;
+  const BYTE *pLineIn = y;
+  for (line = 0; line < height; ++line) {
+    memcpy(pLineOut, pLineIn, width * 2);
+    pLineOut += stride;
+    pLineIn += srcStride;
+  }
+
+  // Merge U/V
+  BYTE *dstUV = pLineOut;
+  int16_t *uc = (int16_t *)u;
+  int16_t *vc = (int16_t *)v;
+  for (line = 0; line < height/chromaVertical; ++line) {
+    int32_t *idst = (int32_t *)(dstUV + line * stride);
+    for (i = 0; i < width/2; ++i) {
+      *idst++ = uc[i] + (vc[i] << 16);
+    }
+    uc += srcStride/4;
+    vc += srcStride/4;
   }
 
   av_freep(&pTmpBuffer);
