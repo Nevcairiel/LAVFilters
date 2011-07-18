@@ -290,6 +290,11 @@ HRESULT CLAVVideo::EndOfStream()
 {
   DbgLog((LOG_TRACE, 1, L"EndOfStream"));
   CAutoLock cAutoLock(&m_csReceive);
+
+  // Run decode without data until all frames are out
+  REFERENCE_TIME rtStart = AV_NOPTS_VALUE, rtStop = AV_NOPTS_VALUE;
+  Decode(NULL, 0, rtStart, rtStop);
+
   return __super::EndOfStream();
 }
 
@@ -487,6 +492,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
 
   IMediaSample *pOut = NULL;
   BYTE         *pDataOut = NULL;
+  BOOL         bFlush = FALSE;
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -500,21 +506,31 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     m_pAVCtx->extradata_size = 0;
   }
 
-  while (nSize > 0) {
-    if (nSize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
-      m_nFFBufferSize	= nSize + FF_INPUT_BUFFER_PADDING_SIZE;
-      m_pFFBuffer = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize);
+  if (pDataIn == NULL) {
+    bFlush = TRUE;
+  }
+
+  while (nSize > 0 || bFlush) {
+
+    if (!bFlush) {
+      if (nSize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
+        m_nFFBufferSize	= nSize + FF_INPUT_BUFFER_PADDING_SIZE;
+        m_pFFBuffer = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize);
+      }
+
+      memcpy(m_pFFBuffer, pDataIn, nSize);
+      memset(m_pFFBuffer+nSize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+
+      avpkt.data = m_pFFBuffer;
+      avpkt.size = nSize;
+      avpkt.pts = rtStart;
+      //avpkt.dts = rtStop;
+      //avpkt.duration = (int)(rtStart != _I64_MIN && rtStop != _I64_MIN ? rtStop - rtStart : 0);
+      avpkt.flags = AV_PKT_FLAG_KEY;
+    } else {
+      avpkt.data = NULL;
+      avpkt.size = 0;
     }
-
-    memcpy(m_pFFBuffer, pDataIn, nSize);
-    memset(m_pFFBuffer+nSize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
-
-    avpkt.data = m_pFFBuffer;
-    avpkt.size = nSize;
-    avpkt.pts = rtStart;
-    //avpkt.dts = rtStop;
-    //avpkt.duration = (int)(rtStart != _I64_MIN && rtStop != _I64_MIN ? rtStop - rtStart : 0);
-    avpkt.flags = AV_PKT_FLAG_KEY;
 
     used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
 
@@ -522,10 +538,13 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       return S_OK;
     }
 
-    nSize	-= used_bytes;
-    pDataIn	+= used_bytes;
+    if (!bFlush) {
+      nSize	-= used_bytes;
+      pDataIn	+= used_bytes;
+    }
 
     if (!got_picture || !m_pFrame->data[0]) {
+      bFlush = FALSE;
       //DbgLog((LOG_TRACE, 10, L"No picture"));
       continue;
     }
