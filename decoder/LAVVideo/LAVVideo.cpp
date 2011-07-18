@@ -539,7 +539,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
 
     if (used_bytes < 0) {
-      return E_FAIL;
+      return S_OK;
     }
 
     // When Frame Threading, we won't know how much data has been consumed, so it by default eats everything.
