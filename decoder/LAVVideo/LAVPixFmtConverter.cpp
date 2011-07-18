@@ -162,7 +162,7 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   vih2->bmiHeader.biHeight = biHeight;
   vih2->bmiHeader.biBitCount = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].bpp;
   vih2->bmiHeader.biPlanes = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].planes;
-  vih2->bmiHeader.biSizeImage = biWidth * biHeight * vih2->bmiHeader.biBitCount >> 3;
+  vih2->bmiHeader.biSizeImage = (biWidth * biHeight * vih2->bmiHeader.biBitCount) >> 3;
   vih2->bmiHeader.biCompression = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].fourcc;
 
   if (!vih2->bmiHeader.biPlanes) {
