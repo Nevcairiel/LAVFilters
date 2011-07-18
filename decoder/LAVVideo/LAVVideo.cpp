@@ -474,12 +474,12 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     m_bDiscontinuity = TRUE;
   }
 
-  hr = Decode(pIn, pDataIn, nSize, rtStart, rtStop);
+  hr = Decode(pDataIn, nSize, rtStart, rtStop);
 
   return hr;
 }
 
-HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop)
+HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop)
 {
   HRESULT hr = S_OK;
   int     got_picture;

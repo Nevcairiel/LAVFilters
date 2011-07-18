@@ -65,7 +65,7 @@ private:
 
   HRESULT GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar);
   HRESULT ReconnectOutput(int width, int height, AVRational ar);
-  HRESULT Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
+  HRESULT Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
 
   HRESULT SetTypeSpecificFlags(IMediaSample* pMS);
 
