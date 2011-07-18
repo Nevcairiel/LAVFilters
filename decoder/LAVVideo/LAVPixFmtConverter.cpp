@@ -226,7 +226,12 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
   HRESULT hr = S_OK;
   switch (m_OutputPixFmt) {
   case LAVPixFmt_YV12:
-    hr = swscale_scale(m_InputPixFmt, PIX_FMT_YUV420P, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    {
+      PixelFormat dst = PIX_FMT_YUV420P;
+      if (m_InputPixFmt == PIX_FMT_YUVJ420P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUVJ444P)
+        dst = PIX_FMT_YUVJ420P;
+      hr = swscale_scale(m_InputPixFmt, dst, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    }
     break;
   case LAVPixFmt_NV12:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_NV12, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
