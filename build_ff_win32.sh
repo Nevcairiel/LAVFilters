@@ -43,9 +43,9 @@ OPTIONS="
 --disable-protocols \
 --enable-protocol=file \
 --enable-muxer=spdif \
---arch=x86 --target-os=mingw32"
+--arch=x86 --cpu=i686 --target-os=mingw32"
 
-./configure --extra-cflags="-march=i686 -mmmx" ${OPTIONS} &&
+./configure --extra-cflags="-mmmx -msse" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_Win32 &&
