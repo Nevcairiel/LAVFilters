@@ -527,20 +527,26 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       //avpkt.dts = rtStop;
       //avpkt.duration = (int)(rtStart != _I64_MIN && rtStop != _I64_MIN ? rtStop - rtStart : 0);
       avpkt.flags = AV_PKT_FLAG_KEY;
+
+      //DbgLog((LOG_TRACE, 10, L"Decoding Frame with time %I64d and size %d", rtStart, nSize));
     } else {
       avpkt.data = NULL;
       avpkt.size = 0;
+      DbgLog((LOG_TRACE, 10, L"Flushing Frame", rtStart));
     }
 
     used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
 
     if (used_bytes < 0) {
-      return S_OK;
+      return E_FAIL;
     }
 
-    if (!bFlush) {
-      nSize	-= used_bytes;
-      pDataIn	+= used_bytes;
+    // When Frame Threading, we won't know how much data has been consumed, so it by default eats everything.
+    if (m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
+      nSize = 0;
+    } else {
+      nSize -= used_bytes;
+      pDataIn += used_bytes;
     }
 
     if (!got_picture || !m_pFrame->data[0]) {
