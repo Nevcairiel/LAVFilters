@@ -17,7 +17,7 @@ make distclean
 OPTIONS="
 --enable-shared \
 --enable-gpl \
---enable-w32threads \
+--enable-pthreads \
 --enable-runtime-cpudetect \
 --enable-asm \
 --disable-postproc \
@@ -44,7 +44,7 @@ OPTIONS="
 --enable-muxer=spdif \
 --arch=x86 --target-os=mingw32"
 
-./configure --extra-cflags="-march=i686 -mmmx" ${OPTIONS} &&
+./configure --extra-libs="-lwsock32" --extra-cflags="-march=i686 -mmmx -DPTW32_STATIC_LIB" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_Win32 &&

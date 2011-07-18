@@ -17,7 +17,7 @@ make distclean
 OPTIONS="
 --enable-shared \
 --enable-gpl \
---enable-w32threads \
+--enable-pthreads \
 --enable-runtime-cpudetect \
 --enable-asm \
 --disable-postproc \
@@ -45,7 +45,7 @@ OPTIONS="
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32"
 
-./configure ${OPTIONS} &&
+./configure --extra-libs="-lwsock32" --extra-cflags="-DPTW32_STATIC_LIB" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_x64 &&
