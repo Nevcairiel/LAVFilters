@@ -24,6 +24,10 @@
 #include <MMReg.h>
 #include "moreuuids.h"
 
+extern "C" {
+#include "libavutil/intreadwrite.h"
+};
+
 typedef struct {
   enum PixelFormat ff_pix_fmt; // ffmpeg pixel format
   int num_pix_fmt;
@@ -397,8 +401,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int widt
   const BYTE *v = NULL;
   int line, i = 0;
   int srcStride = 0;
-  bool bBigEndian = false;
-  bool b9Bit = false;
+  bool bBigEndian = false, b9Bit = false;
 
   BYTE *pTmpBuffer = NULL;
 
@@ -431,7 +434,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int widt
     srcStride = pFrame->linesize[0];
 
     bBigEndian = (m_InputPixFmt == PIX_FMT_YUV444P10BE || m_InputPixFmt == PIX_FMT_YUV444P9BE);
-    b9Bit = (m_InputPixFmt == PIX_FMT_YUV444P9BE || PIX_FMT_YUV444P9LE);
+    b9Bit = (m_InputPixFmt == PIX_FMT_YUV444P9BE || m_InputPixFmt == PIX_FMT_YUV444P9LE);
   }
 
   // 32-bit per pixel
@@ -443,12 +446,19 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int widt
     int16_t *vc = (int16_t *)(v + line * srcStride);
     int32_t *idst = (int32_t *)(pOut + (line * stride));
     for (i = 0; i < width; ++i) {
-      int16_t yv = yc[i];
-      int16_t uv = uc[i];
-      int16_t vv = vc[i];
+      int16_t yv = bBigEndian ? AV_RB16(yc+i) : AV_RL16(yc+i);
+      int16_t uv = bBigEndian ? AV_RB16(uc+i) : AV_RL16(uc+i);
+      int16_t vv = bBigEndian ? AV_RB16(vc+i) : AV_RL16(vc+i);
+      if (b9Bit) {
+        yv <<= 1;
+        uv <<= 1;
+        vv <<= 1;
+      }
       *idst++ = (uv & 0x3FF) + ((yv & 0x3FF) << 10) + ((vv & 0x3FF) << 20) + (3 << 30);
     }
   }
+
+  av_freep(&pTmpBuffer);
 
   return S_OK;
 }
