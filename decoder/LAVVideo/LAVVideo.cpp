@@ -186,6 +186,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
   m_pAVCtx->error_recognition = FF_ER_CAREFUL;
   m_pAVCtx->workaround_bugs = FF_BUG_AUTODETECT;
+  m_pAVCtx->thread_count = 1;
+  m_pAVCtx->thread_type = FF_THREAD_SLICE|FF_THREAD_FRAME;
 
   m_pFrame = avcodec_alloc_frame();
   CheckPointer(m_pFrame, E_POINTER);
