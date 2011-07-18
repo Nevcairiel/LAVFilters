@@ -378,8 +378,8 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
 
   // Merge U/V
   BYTE *dstUV = pLineOut;
-  int16_t *uc = (int16_t *)u;
-  int16_t *vc = (int16_t *)v;
+  const int16_t *uc = (int16_t *)u;
+  const int16_t *vc = (int16_t *)v;
   for (line = 0; line < height/chromaVertical; ++line) {
     int32_t *idst = (int32_t *)(dstUV + line * stride);
     for (i = 0; i < width/2; ++i) {
@@ -441,9 +441,9 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int widt
   stride *= 4;
 
   for (line = 0; line < height; ++line) {
-    int16_t *yc = (int16_t *)(y + line * srcStride);
-    int16_t *uc = (int16_t *)(u + line * srcStride);
-    int16_t *vc = (int16_t *)(v + line * srcStride);
+    const int16_t *yc = (int16_t *)(y + line * srcStride);
+    const int16_t *uc = (int16_t *)(u + line * srcStride);
+    const int16_t *vc = (int16_t *)(v + line * srcStride);
     int32_t *idst = (int32_t *)(pOut + (line * stride));
     for (i = 0; i < width; ++i) {
       int16_t yv = bBigEndian ? AV_RB16(yc+i) : AV_RL16(yc+i);
