@@ -176,8 +176,9 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->codec_id              = (CodecID)codec;
   m_pAVCtx->codec_tag             = pBMI->biCompression;
   
-  if(codec == CODEC_ID_MPEG2VIDEO && m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
+  if(codec == CODEC_ID_MPEG2VIDEO && m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED) {
     m_pAVCtx->flags |= CODEC_FLAG_TRUNCATED;
+  }
 
   m_pAVCtx->width = pBMI->biWidth;
   m_pAVCtx->height = pBMI->biHeight;
