@@ -590,8 +590,8 @@ HRESULT CLAVVideo::Decode(IMediaSample *pIn, const BYTE *pDataIn, int nSize, REF
     }
 
     // Collect width/height
-    int width  = m_pAVCtx->coded_width;
-    int height = m_pAVCtx->coded_height;
+    int width  = m_pAVCtx->width;
+    int height = m_pAVCtx->height;
 
     if (width == 1920 && height == 1088) {
       height = 1080;
