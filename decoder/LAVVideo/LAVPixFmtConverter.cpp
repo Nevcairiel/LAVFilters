@@ -87,12 +87,14 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
   : m_InputPixFmt(PIX_FMT_NONE)
   , m_OutputPixFmt(LAVPixFmt_YV12)
   , m_pSwsContext(NULL)
+  , swsWidth(0), swsHeight(0)
 {
 }
 
 
 CLAVPixFmtConverter::~CLAVPixFmtConverter()
 {
+  DestroySWScale();
 }
 
 LAVVideoPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
@@ -177,16 +179,26 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   return mt;
 }
 
+inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags)
+{
+  if (!m_pSwsContext || swsWidth != width || swsHeight != height) {
+    m_pSwsContext = sws_getCachedContext(m_pSwsContext,
+                                 width, height, srcPix,
+                                 width, height, dstPix,
+                                 flags|SWS_PRINT_INFO, NULL, NULL, NULL);
+    swsWidth = width;
+    swsHeight = height;
+  }
+  return m_pSwsContext;
+}
+
 HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, AVFrame *pFrame, BYTE *pOut, int width, int height, int stride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12)
 {
   uint8_t *dst[4];
   int     dstStride[4];
   int     i, ret;
 
-  m_pSwsContext = sws_getCachedContext(m_pSwsContext,
-                                 width, height, srcPix,
-                                 width, height, dstPix,
-                                 SWS_BICUBIC|SWS_PRINT_INFO, NULL, NULL, NULL);
+  SwsContext *ctx = GetSWSContext(width, height, srcPix, dstPix, SWS_BICUBIC);
   CheckPointer(m_pSwsContext, E_POINTER);
 
   memset(dst, 0, sizeof(dst));
@@ -204,7 +216,7 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFo
     dst[1] = dst[2];
     dst[2] = tmp;
   }
-  ret = sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
+  ret = sws_scale(ctx, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
 
   return S_OK;
 }
@@ -269,12 +281,8 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int widt
     dstStride[2] = stride;
     dstStride[3] = 0;
 
-    m_pSwsContext = sws_getCachedContext(m_pSwsContext,
-                                 width, height, m_InputPixFmt,
-                                 width, height, PIX_FMT_YUV444P,
-                                 SWS_POINT|SWS_PRINT_INFO, NULL, NULL, NULL);
-
-    sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
+    SwsContext *ctx = GetSWSContext(width, height, m_InputPixFmt, PIX_FMT_YUV444P, SWS_POINT);
+    sws_scale(ctx, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
 
     y = dst[0];
     u = dst[1];
@@ -333,12 +341,8 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
     dstStride[2] = stride / 2;
     dstStride[3] = 0;
 
-    m_pSwsContext = sws_getCachedContext(m_pSwsContext,
-                                 width, height, m_InputPixFmt,
-                                 width, height, pixFmtRequired,
-                                 SWS_POINT|SWS_PRINT_INFO, NULL, NULL, NULL);
-
-    sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
+    SwsContext *ctx = GetSWSContext(width, height, m_InputPixFmt, pixFmtRequired, SWS_POINT);
+    sws_scale(ctx, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
 
     y = dst[0];
     u = dst[1];

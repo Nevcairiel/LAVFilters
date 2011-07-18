@@ -52,8 +52,8 @@ public:
   CLAVPixFmtConverter();
   ~CLAVPixFmtConverter();
 
-  HRESULT SetInputPixFmt(enum PixelFormat pix_fmt) { m_InputPixFmt = pix_fmt; return S_OK; }
-  HRESULT SetOutputPixFmt(enum LAVVideoPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; return S_OK; }
+  HRESULT SetInputPixFmt(enum PixelFormat pix_fmt) { m_InputPixFmt = pix_fmt; DestroySWScale(); return S_OK; }
+  HRESULT SetOutputPixFmt(enum LAVVideoPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; DestroySWScale(); return S_OK; }
   
   LAVVideoPixFmts GetOutputBySubtype(const GUID *guid);
   LAVVideoPixFmts GetPreferredOutput();
@@ -70,9 +70,14 @@ private:
   HRESULT ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
   HRESULT ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride, int chromaVertical);
 
+  void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; };
+  SwsContext *GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags);
+
 private:
   enum PixelFormat     m_InputPixFmt;
   enum LAVVideoPixFmts m_OutputPixFmt;
+
+  int swsWidth, swsHeight;
 
   SwsContext *m_pSwsContext;
 };
