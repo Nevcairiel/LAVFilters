@@ -254,6 +254,9 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
   case LAVPixFmt_P216:
     hr = ConvertToPX1X(pFrame, pOut, width, height, dstStride, 1);
     break;
+  case LAVPixFmt_Y410:
+    hr = ConvertToY410(pFrame, pOut, width, height, dstStride);
+    break;
   default:
     ASSERT(0);
     hr = E_FAIL;
@@ -383,6 +386,69 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
   }
 
   av_freep(&pTmpBuffer);
+
+  return S_OK;
+}
+
+HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride)
+{
+  const BYTE *y = NULL;
+  const BYTE *u = NULL;
+  const BYTE *v = NULL;
+  int line, i = 0;
+  int srcStride = 0;
+  bool bBigEndian = false;
+  bool b9Bit = false;
+
+  BYTE *pTmpBuffer = NULL;
+
+  if (m_InputPixFmt != PIX_FMT_YUV444P10BE && m_InputPixFmt != PIX_FMT_YUV444P10LE && m_InputPixFmt != PIX_FMT_YUV444P9BE && m_InputPixFmt != PIX_FMT_YUV444P9LE) {
+    uint8_t *dst[4] = {NULL};
+    int     dstStride[4] = {0};
+
+    pTmpBuffer = (BYTE *)av_malloc(height * stride * 6);
+
+    dst[0] = pTmpBuffer;
+    dst[1] = dst[0] + (height * stride * 2);
+    dst[2] = dst[1] + (height * stride * 2);
+    dst[3] = NULL;
+    dstStride[0] = stride * 2;
+    dstStride[1] = stride * 2;
+    dstStride[2] = stride * 2;
+    dstStride[3] = 0;
+
+    SwsContext *ctx = GetSWSContext(width, height, m_InputPixFmt, PIX_FMT_YUV444P10LE, SWS_POINT);
+    sws_scale(ctx, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
+
+    y = dst[0];
+    u = dst[1];
+    v = dst[2];
+    srcStride = stride * 2;
+  } else {
+    y = pFrame->data[0];
+    u = pFrame->data[1];
+    v = pFrame->data[2];
+    srcStride = pFrame->linesize[0];
+
+    bBigEndian = (m_InputPixFmt == PIX_FMT_YUV444P10BE || m_InputPixFmt == PIX_FMT_YUV444P9BE);
+    b9Bit = (m_InputPixFmt == PIX_FMT_YUV444P9BE || PIX_FMT_YUV444P9LE);
+  }
+
+  // 32-bit per pixel
+  stride *= 4;
+
+  for (line = 0; line < height; ++line) {
+    int16_t *yc = (int16_t *)(y + line * srcStride);
+    int16_t *uc = (int16_t *)(u + line * srcStride);
+    int16_t *vc = (int16_t *)(v + line * srcStride);
+    int32_t *idst = (int32_t *)(pOut + (line * stride));
+    for (i = 0; i < width; ++i) {
+      int16_t yv = yc[i];
+      int16_t uv = uc[i];
+      int16_t vv = vc[i];
+      *idst++ = (uv & 0x3FF) + ((yv & 0x3FF) << 10) + ((vv & 0x3FF) << 20) + (3 << 30);
+    }
+  }
 
   return S_OK;
 }

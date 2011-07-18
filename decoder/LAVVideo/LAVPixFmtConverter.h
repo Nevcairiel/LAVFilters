@@ -69,6 +69,7 @@ private:
   HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
   HRESULT ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
   HRESULT ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride, int chromaVertical);
+  HRESULT ConvertToY410(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
 
   void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; };
   SwsContext *GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags);
