@@ -170,16 +170,21 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   vih2->bmiHeader.biBitCount = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].bpp;
   vih2->bmiHeader.biPlanes = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].planes;
   vih2->bmiHeader.biSizeImage = (biWidth * biHeight * vih2->bmiHeader.biBitCount) >> 3;
-  vih2->bmiHeader.biCompression = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].subtype.Data1;
+  vih2->bmiHeader.biCompression = guid.Data1;
 
   if (!vih2->bmiHeader.biPlanes) {
     vih2->bmiHeader.biPlanes = 1;
+  }
+
+  if (guid == MEDIASUBTYPE_RGB32) {
+    vih2->bmiHeader.biCompression = 0;
   }
 
   // Always set interlace flags, the samples will be flagged appropriately then.
   vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
 
   mt.SetSampleSize(vih2->bmiHeader.biSizeImage);
+  mt.SetTemporalCompression(0);
 
   return mt;
 }
