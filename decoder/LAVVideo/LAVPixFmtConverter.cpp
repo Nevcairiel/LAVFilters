@@ -36,7 +36,7 @@ typedef struct {
 
 static FF_LAV_PIXFMT_MAP lav_pixfmt_map[] = {
   // Default
-  { PIX_FMT_NONE, 1, { LAVPixFmt_YV12, LAVPixFmt_NV12 } },
+  { PIX_FMT_NONE, 2, { LAVPixFmt_YV12, LAVPixFmt_NV12 } },
 
   // 4:2:0
   { PIX_FMT_YUV420P,  2, { LAVPixFmt_YV12, LAVPixFmt_NV12 } },
