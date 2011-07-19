@@ -41,7 +41,7 @@ typedef enum LAVVideoPixFmts {
   LAVPixFmt_P016,            // 4:2:0, 16bit, Y planar, U/V packed
   LAVPixFmt_P216,            // 4:2:2, 16bit, Y planar, U/V packed
   LAVPixFmt_Y416,            // 4:4:4, 16bit, packed
-  
+  LAVPixFmt_RGB32,           // 32-bit RGB
   
   LAVPixFmt_NB               // Number of formats
 };

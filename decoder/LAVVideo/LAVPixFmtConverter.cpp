@@ -85,6 +85,7 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_P016,  24, 2, { 1, 2 }, { 1, 1 } },              // P016
   { MEDIASUBTYPE_P216,  32, 2, { 1, 1 }, { 1, 1 } },              // P216
   { FOURCCMap('614Y'),  64, 0 },                                  // Y416 (packed)
+  { MEDIASUBTYPE_RGB32, 32, 0 },                                  // RGB32
 };
 
 CLAVPixFmtConverter::CLAVPixFmtConverter()
@@ -188,14 +189,16 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
   if (!m_pSwsContext || swsWidth != width || swsHeight != height) {
     // Map full-range formats to their limited-range variants
     // All target formats we have are limited range and we don't want compression
-    if (srcPix == PIX_FMT_YUVJ420P)
-      srcPix = PIX_FMT_YUV420P;
-    else if (srcPix == PIX_FMT_YUVJ422P)
-      srcPix = PIX_FMT_YUV422P;
-    else if (srcPix == PIX_FMT_YUVJ440P)
-      srcPix = PIX_FMT_YUV440P;
-    else if (srcPix == PIX_FMT_YUVJ444P)
-      srcPix = PIX_FMT_YUV444P;
+    if (dstPix != PIX_FMT_BGRA) {
+      if (srcPix == PIX_FMT_YUVJ420P)
+        srcPix = PIX_FMT_YUV420P;
+      else if (srcPix == PIX_FMT_YUVJ422P)
+        srcPix = PIX_FMT_YUV422P;
+      else if (srcPix == PIX_FMT_YUVJ440P)
+        srcPix = PIX_FMT_YUV440P;
+      else if (srcPix == PIX_FMT_YUVJ444P)
+        srcPix = PIX_FMT_YUV444P;
+    }
 
     // Get context
     m_pSwsContext = sws_getCachedContext(m_pSwsContext,
@@ -267,6 +270,9 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
     break;
   case LAVPixFmt_Y410:
     hr = ConvertToY410(pFrame, pOut, width, height, dstStride);
+    break;
+  case LAVPixFmt_RGB32:
+    hr = swscale_scale(m_InputPixFmt, PIX_FMT_BGRA, pFrame, pOut, width, height, dstStride * 4, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   default:
     ASSERT(0);
