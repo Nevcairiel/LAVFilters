@@ -75,16 +75,16 @@ static FF_LAV_PIXFMT_MAP lav_pixfmt_map[] = {
 };
 
 static LAVPixFmtDesc lav_pixfmt_desc[] = {
-  { '21VY', 12, 3, { 1, 2, 2 }, { 1, 2, 2 } },        // YV12
-  { '21VN', 12, 2, { 1, 2 }, { 1, 1 } },              // NV12
-  { '2YUY', 16, 0 },                                  // YUY2 (packed)
-  { 'VUYA', 32, 0 },                                  // AYUV (packed)
-  { '010P', 15, 2, { 1, 2 }, { 1, 1 } },              // P010
-  { '012P', 20, 2, { 1, 1 }, { 1, 1 } },              // P210
-  { '014Y', 32, 0 },                                  // Y410 (packed)
-  { '610P', 24, 2, { 1, 2 }, { 1, 1 } },              // P016
-  { '612P', 32, 2, { 1, 1 }, { 1, 1 } },              // P216
-  { '614Y', 64, 0 },                                  // Y416 (packed)
+  { MEDIASUBTYPE_YV12,  12, 3, { 1, 2, 2 }, { 1, 2, 2 } },        // YV12
+  { MEDIASUBTYPE_NV12,  12, 2, { 1, 2 }, { 1, 1 } },              // NV12
+  { MEDIASUBTYPE_YUY2,  16, 0 },                                  // YUY2 (packed)
+  { MEDIASUBTYPE_AYUV,  32, 0 },                                  // AYUV (packed)
+  { MEDIASUBTYPE_P010,  15, 2, { 1, 2 }, { 1, 1 } },              // P010
+  { MEDIASUBTYPE_P210,  20, 2, { 1, 1 }, { 1, 1 } },              // P210
+  { FOURCCMap('014Y'),  32, 0 },                                  // Y410 (packed)
+  { MEDIASUBTYPE_P016,  24, 2, { 1, 2 }, { 1, 1 } },              // P016
+  { MEDIASUBTYPE_P216,  32, 2, { 1, 1 }, { 1, 1 } },              // P216
+  { FOURCCMap('614Y'),  64, 0 },                                  // Y416 (packed)
 };
 
 CLAVPixFmtConverter::CLAVPixFmtConverter()
@@ -105,7 +105,7 @@ LAVVideoPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
 {
   DWORD FourCC = guid->Data1;
   for (int i = 0; i < countof(lav_pixfmt_desc); ++i) {
-    if (lav_pixfmt_desc[i].fourcc == FourCC) {
+    if (lav_pixfmt_desc[i].subtype == *guid) {
       return (LAVVideoPixFmts)i;
     }
   }
@@ -149,7 +149,7 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
     index = 0;
 
   CMediaType mt;
-  GUID guid = FOURCCMap(lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].fourcc);
+  GUID guid = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].subtype;
 
   mt.SetType(&MEDIATYPE_Video);
   mt.SetSubtype(&guid);
@@ -169,7 +169,7 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   vih2->bmiHeader.biBitCount = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].bpp;
   vih2->bmiHeader.biPlanes = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].planes;
   vih2->bmiHeader.biSizeImage = (biWidth * biHeight * vih2->bmiHeader.biBitCount) >> 3;
-  vih2->bmiHeader.biCompression = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].fourcc;
+  vih2->bmiHeader.biCompression = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].subtype.Data1;
 
   if (!vih2->bmiHeader.biPlanes) {
     vih2->bmiHeader.biPlanes = 1;

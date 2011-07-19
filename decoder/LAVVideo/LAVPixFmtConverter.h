@@ -21,7 +21,7 @@
 #pragma once
 
 typedef struct {
-  DWORD fourcc;
+  GUID subtype;
   int bpp;
   int planes;
   int planeHeight[4];
