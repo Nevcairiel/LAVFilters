@@ -438,6 +438,7 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
     }
   }
 
+  DbgLog((LOG_ERROR, 10, L"::NegotiatePixelFormat(): Unable to agree on a pixel format", i));
   return E_FAIL;
 }
 
