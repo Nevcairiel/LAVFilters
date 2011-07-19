@@ -456,6 +456,13 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     return m_pOutput->Deliver(pIn);
   }
 
+  AM_MEDIA_TYPE *pmt = NULL;
+  if (SUCCEEDED(pIn->GetMediaType(&pmt)) && pmt) {
+    CMediaType mt = *pmt;
+    m_pInput->SetMediaType(&mt);
+    DeleteMediaType(pmt);
+  }
+
   if (FAILED(hr = pIn->GetPointer(&pDataIn))) {
     return hr;
   }
