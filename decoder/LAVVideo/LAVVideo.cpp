@@ -430,7 +430,8 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
 
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
     CMediaType &mt = m_PixFmtConverter.GetMediaType(i, width, height, vih2->dwPictAspectRatioX, vih2->dwPictAspectRatioY, vih2->AvgTimePerFrame);
-    hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+    //hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+    hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
     if (hr == S_OK) {
       DbgLog((LOG_TRACE, 10, L"::NegotiatePixelFormat(): Filter accepted format with index %d", i));
       m_bForceTypeNegotiation = TRUE;
