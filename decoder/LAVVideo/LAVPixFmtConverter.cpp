@@ -186,6 +186,18 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
 inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags)
 {
   if (!m_pSwsContext || swsWidth != width || swsHeight != height) {
+    // Map full-range formats to their limited-range variants
+    // All target formats we have are limited range and we don't want compression
+    if (srcPix == PIX_FMT_YUVJ420P)
+      srcPix = PIX_FMT_YUV420P;
+    else if (srcPix == PIX_FMT_YUVJ422P)
+      srcPix = PIX_FMT_YUV422P;
+    else if (srcPix == PIX_FMT_YUVJ440P)
+      srcPix = PIX_FMT_YUV440P;
+    else if (srcPix == PIX_FMT_YUVJ444P)
+      srcPix = PIX_FMT_YUV444P;
+
+    // Get context
     m_pSwsContext = sws_getCachedContext(m_pSwsContext,
                                  width, height, srcPix,
                                  width, height, dstPix,
@@ -230,12 +242,7 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
   HRESULT hr = S_OK;
   switch (m_OutputPixFmt) {
   case LAVPixFmt_YV12:
-    {
-      PixelFormat dst = PIX_FMT_YUV420P;
-      if (m_InputPixFmt == PIX_FMT_YUVJ420P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUVJ444P)
-        dst = PIX_FMT_YUVJ420P;
-      hr = swscale_scale(m_InputPixFmt, dst, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
-    }
+    hr = swscale_scale(m_InputPixFmt, PIX_FMT_YUV420P, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
     break;
   case LAVPixFmt_NV12:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_NV12, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
