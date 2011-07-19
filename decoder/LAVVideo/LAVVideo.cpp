@@ -99,11 +99,8 @@ HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 HRESULT CLAVVideo::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut)
 {
   if (SUCCEEDED(CheckInputType(mtIn)) && mtOut->majortype == MEDIATYPE_Video) {
-    for(int i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); i++) {
-      CMediaType &mt = m_PixFmtConverter.GetMediaType(i, 320, 160, 4, 3, 0);
-      if(mt.subtype == mtOut->subtype) {
-        return S_OK;
-      }
+    if (m_PixFmtConverter.IsAllowedSubtype(&mtOut->subtype)) {
+      return S_OK;
     }
   }
   return VFW_E_TYPE_NOT_ACCEPTED;

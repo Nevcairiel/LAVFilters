@@ -62,6 +62,7 @@ public:
 
   int GetNumMediaTypes();
   CMediaType GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime);
+  BOOL IsAllowedSubtype(const GUID *guid);
 
   HRESULT Convert(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);
 

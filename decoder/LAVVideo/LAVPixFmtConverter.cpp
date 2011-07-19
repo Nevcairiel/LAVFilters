@@ -184,6 +184,27 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   return mt;
 }
 
+
+BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
+{
+  FF_LAV_PIXFMT_MAP *pixFmtMap = NULL;
+  for (int i = 0; i < countof(lav_pixfmt_map); ++i) {
+    if (lav_pixfmt_map[i].ff_pix_fmt == m_InputPixFmt) {
+      pixFmtMap = &lav_pixfmt_map[i];
+      break;
+    }
+  }
+  if (!pixFmtMap)
+    pixFmtMap = &lav_pixfmt_map[0];
+
+  for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
+    if (lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[i]].subtype == *guid)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
 inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags)
 {
   if (!m_pSwsContext || swsWidth != width || swsHeight != height) {
