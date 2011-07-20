@@ -23,4 +23,3 @@
 CodecID FindCodecId(const CMediaType *mt);
 void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
 void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsigned int *extralen);
-CMediaType CreateMediaType(LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime);

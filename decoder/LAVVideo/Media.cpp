@@ -275,34 +275,3 @@ void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsig
       *extralen = mp2vi->cbSequenceHeader;
   }
 }
-
-CMediaType CreateMediaType(LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime)
-{
-  CMediaType mt;
-  mt.SetType(&MEDIATYPE_Video);
-  mt.SetSubtype(&MEDIASUBTYPE_NV12);    // TODO: don't hardcode
-  mt.SetFormatType(&FORMAT_VideoInfo2);
-
-  VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.AllocFormatBuffer(sizeof(VIDEOINFOHEADER2));
-  memset(vih2, 0, sizeof(VIDEOINFOHEADER2));
-
-  vih2->rcSource.right = vih2->rcTarget.right = biWidth;
-  vih2->rcSource.bottom = vih2->rcTarget.bottom = biHeight;
-  vih2->AvgTimePerFrame = rtAvgTime;
-  vih2->dwPictAspectRatioX = dwAspectX;
-  vih2->dwPictAspectRatioY = dwAspectY;
-  vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  vih2->bmiHeader.biWidth = biWidth;
-  vih2->bmiHeader.biHeight = biHeight;
-  vih2->bmiHeader.biBitCount = 12; // TODO: don't hardcode
-  vih2->bmiHeader.biPlanes = 3;    // TODO: don't hardcode
-  vih2->bmiHeader.biSizeImage = biWidth * biHeight * vih2->bmiHeader.biBitCount >> 3;
-  vih2->bmiHeader.biCompression = '21VN';  // TODO: don't hardcode
-
-  // Always set interlace flags, the samples will be flagged appropriately then.
-  vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
-
-  mt.SetSampleSize(vih2->bmiHeader.biSizeImage);
-
-  return mt;
-}
