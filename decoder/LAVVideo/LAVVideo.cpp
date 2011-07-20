@@ -89,7 +89,7 @@ HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 {
   for(int i = 0; i < sudPinTypesInCount; i++) {
     if(*sudPinTypesIn[i].clsMajorType == mtIn->majortype
-      && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && (mtIn->formattype == FORMAT_VideoInfo || mtIn->formattype == FORMAT_VideoInfo2 || mtIn->formattype == FORMAT_MPEG2Video)) {
+      && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && (mtIn->formattype == FORMAT_VideoInfo || mtIn->formattype == FORMAT_VideoInfo2 || mtIn->formattype == FORMAT_MPEGVideo || mtIn->formattype == FORMAT_MPEG2Video)) {
         return S_OK;
     }
   }
@@ -157,6 +157,8 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   return S_OK;
 }
 
+#define MPEG12_CODEC(codec) ((codec == CODEC_ID_MPEG1VIDEO) || (codec == CODEC_ID_MPEG2VIDEO))
+
 HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 {
   ffmpeg_shutdown();
@@ -174,7 +176,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->codec_id              = (CodecID)codec;
   m_pAVCtx->codec_tag             = pBMI->biCompression;
   
-  if(codec == CODEC_ID_MPEG2VIDEO && m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED) {
+  if(MPEG12_CODEC(codec) && m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED) {
     m_pAVCtx->flags |= CODEC_FLAG_TRUNCATED;
   }
 
@@ -568,7 +570,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // The next big block computes the proper timestamps
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    if (m_nCodecId == CODEC_ID_MPEG1VIDEO || m_nCodecId == CODEC_ID_MPEG2VIDEO) {
+    if (MPEG12_CODEC(m_nCodecId)) {
       if (m_bDiscontinuity && m_pFrame->pict_type == AV_PICTURE_TYPE_I) {
         rtStart = m_pFrame->pkt_pts;
         m_bDiscontinuity = FALSE;

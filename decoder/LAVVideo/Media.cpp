@@ -42,8 +42,10 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_avc1, CODEC_ID_H264 },
   { &MEDIASUBTYPE_CCV1, CODEC_ID_H264 }, // Used by Haali Splitter
 
-  // MPEG2
-  { &MEDIASUBTYPE_MPEG2_VIDEO, CODEC_ID_MPEG2VIDEO },
+  // MPEG1/2
+  { &MEDIASUBTYPE_MPEG1Payload, CODEC_ID_MPEG1VIDEO },
+  { &MEDIASUBTYPE_MPEG1Video,   CODEC_ID_MPEG1VIDEO },
+  { &MEDIASUBTYPE_MPEG2_VIDEO,  CODEC_ID_MPEG2VIDEO },
 
   // MJPEG
   { &MEDIASUBTYPE_MJPG, CODEC_ID_MJPEG },
@@ -120,8 +122,10 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_avc1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_CCV1 },
 
-  // MPEG2
-  { &MEDIATYPE_Video, &MEDIASUBTYPE_MPEG2_VIDEO },
+  // MPEG1/2
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_MPEG1Payload  },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_MPEG1Video    },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_MPEG2_VIDEO   },
 
   // MJPEG
   { &MEDIATYPE_Video, &MEDIASUBTYPE_MJPG },
@@ -222,6 +226,10 @@ void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEA
     bmi = &vih2->bmiHeader;
     dwAspectX = vih2->dwPictAspectRatioX;
     dwAspectY = vih2->dwPictAspectRatioY;
+  } else if (*formattype == FORMAT_MPEGVideo) {
+    MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)format;
+    rtAvg = mp1vi->hdr.AvgTimePerFrame;
+    bmi = &mp1vi->hdr.bmiHeader;
   } else if (*formattype == FORMAT_MPEG2Video) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)format;
     rtAvg = mp2vi->hdr.AvgTimePerFrame;
@@ -253,6 +261,12 @@ void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsig
       memcpy(extra, (BYTE *)pBMI + sizeof(BITMAPINFOHEADER), pBMI->biSize - sizeof(BITMAPINFOHEADER));
     if (extralen)
       *extralen = pBMI->biSize - sizeof(BITMAPINFOHEADER);
+  } else if (*formattype == FORMAT_MPEGVideo) {
+    MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)format;
+    if (extra)
+      memcpy(extra, (BYTE *)mp1vi->bSequenceHeader, mp1vi->cbSequenceHeader);
+    if (extralen)
+      *extralen = mp1vi->cbSequenceHeader;
   } else if (*formattype == FORMAT_MPEG2Video) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)format;
     if (extra)
