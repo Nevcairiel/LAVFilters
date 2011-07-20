@@ -140,6 +140,9 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_dvx3, CODEC_ID_MSMPEG4V3 },
 
   // Real
+  { &MEDIASUBTYPE_RV10, CODEC_ID_RV10 },
+  { &MEDIASUBTYPE_RV20, CODEC_ID_RV20 },
+  { &MEDIASUBTYPE_RV30, CODEC_ID_RV30 },
   { &MEDIASUBTYPE_RV40, CODEC_ID_RV40 },
 };
 
@@ -252,6 +255,9 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_dvx3 },
 
   // Real
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_RV10 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_RV20 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_RV30 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RV40 },
 };
 const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
