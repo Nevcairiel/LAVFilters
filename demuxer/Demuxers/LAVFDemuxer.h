@@ -129,6 +129,7 @@ private:
   BOOL m_bMatroska;
   BOOL m_bAVI;
   BOOL m_bMPEGTS;
+  BOOL m_bEVO;
   BOOL m_bBluRay;
   BOOL m_bVC1Correction;
 
