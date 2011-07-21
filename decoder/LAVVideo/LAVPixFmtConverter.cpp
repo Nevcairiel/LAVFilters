@@ -198,7 +198,7 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   }
 
   if (guid == MEDIASUBTYPE_RGB32 || guid == MEDIASUBTYPE_RGB24) {
-    vih2->bmiHeader.biCompression = 0;
+    vih2->bmiHeader.biCompression = BI_RGB;
     vih2->bmiHeader.biHeight = -vih2->bmiHeader.biHeight;
   }
 
