@@ -411,9 +411,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
           DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", width, vih2new->bmiHeader.biWidth));
 #endif
           DeleteMediaType(pmt);
-        } else { // fallback for "dumb" renderers
-          long size = pOut->GetSize();
-          vih2->bmiHeader.biWidth = size / height * 8 / vih2->bmiHeader.biBitCount;
+        } else { // No Stride Request? We're ok with that, too!
+          DbgLog((LOG_TRACE, 10, L"We did not get a stride request, sending width no stride; width: %d", width));
         }
         pOut->Release();
       }
