@@ -376,8 +376,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
     den = vih2->dwPictAspectRatioY;
   }
 
-  if (vih2->rcSource.right != width
-    || vih2->rcSource.bottom != height
+  if (vih2->rcTarget.right != width
+    || vih2->rcTarget.bottom != height
     || vih2->dwPictAspectRatioX != num
     || vih2->dwPictAspectRatioY != den
     || m_bForceTypeNegotiation) {
@@ -390,7 +390,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
     vih2->dwPictAspectRatioY = den;
 
     SetRect(&vih2->rcSource, 0, 0, width, height);
-    SetRect(&vih2->rcSource, 0, 0, width, height);
+    SetRect(&vih2->rcTarget, 0, 0, width, height);
 
     vih2->bmiHeader.biSizeImage = width * height * vih2->bmiHeader.biBitCount >> 3;
 
