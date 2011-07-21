@@ -389,10 +389,14 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
     vih2->dwPictAspectRatioX = num;
     vih2->dwPictAspectRatioY = den;
 
-    SetRect(&vih2->rcSource, 0, 0, vih2->bmiHeader.biWidth, vih2->bmiHeader.biHeight);
-    SetRect(&vih2->rcSource, 0, 0, vih2->bmiHeader.biWidth, vih2->bmiHeader.biHeight);
+    SetRect(&vih2->rcSource, 0, 0, width, height);
+    SetRect(&vih2->rcSource, 0, 0, width, height);
 
-    vih2->bmiHeader.biSizeImage = vih2->bmiHeader.biWidth * vih2->bmiHeader.biHeight * vih2->bmiHeader.biBitCount >> 3;
+    vih2->bmiHeader.biSizeImage = width * height * vih2->bmiHeader.biBitCount >> 3;
+
+    if (mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) {
+      vih2->bmiHeader.biHeight = -vih2->bmiHeader.biHeight;
+    }
 
     hr = m_pOutput->GetConnected()->QueryAccept(&mt);
     if(SUCCEEDED(hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt))) {
@@ -409,7 +413,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
           DeleteMediaType(pmt);
         } else { // fallback for "dumb" renderers
           long size = pOut->GetSize();
-          vih2->bmiHeader.biWidth = size / vih2->bmiHeader.biHeight * 8 / vih2->bmiHeader.biBitCount;
+          vih2->bmiHeader.biWidth = size / height * 8 / vih2->bmiHeader.biBitCount;
         }
         pOut->Release();
       }

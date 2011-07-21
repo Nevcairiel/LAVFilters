@@ -197,8 +197,9 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
     vih2->bmiHeader.biPlanes = 1;
   }
 
-  if (guid == MEDIASUBTYPE_RGB32) {
+  if (guid == MEDIASUBTYPE_RGB32 || guid == MEDIASUBTYPE_RGB24) {
     vih2->bmiHeader.biCompression = 0;
+    vih2->bmiHeader.biHeight = -vih2->bmiHeader.biHeight;
   }
 
   // Always set interlace flags, the samples will be flagged appropriately then.
