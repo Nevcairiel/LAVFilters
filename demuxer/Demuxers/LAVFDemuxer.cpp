@@ -70,6 +70,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_bMatroska(FALSE)
   , m_bAVI(FALSE)
   , m_bMPEGTS(FALSE)
+  , m_bEVO(FALSE)
   , m_bBluRay(FALSE)
   , m_bVC1Correction(FALSE)
   , m_bVC1SeenTimestamp(FALSE)
@@ -215,9 +216,12 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
   m_bVC1SeenTimestamp = FALSE;
 
+  LPWSTR extension = PathFindExtensionW(pszFileName);
+
   m_bMatroska = (_strnicmp(m_pszInputFormat, "matroska", 8) == 0);
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
+  m_bEVO = (_wcsicmp(extension, L".evo") == 0 && _stricmp(m_pszInputFormat, "mpeg") == 0);
 
   if (AVFORMAT_GENPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
@@ -333,7 +337,7 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
     m_bVC1Correction = true;
   } else if (vc1Mode == 2) {
     BOOL bReq = pSettings->IsVC1CorrectionRequired();
-    m_bVC1Correction = m_bMatroska ? !bReq : bReq;
+    m_bVC1Correction = m_bEVO ? false : (m_bMatroska ? !bReq : bReq);
   } else {
     m_bVC1Correction = false;
   }
