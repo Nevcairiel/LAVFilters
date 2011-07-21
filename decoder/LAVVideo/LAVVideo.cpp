@@ -250,7 +250,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
     m_bH264OnMPEG2 = true;
   }
 
-  m_bReorderWithoutStop = (pmt->formattype == FORMAT_MPEG2Video || codec == CODEC_ID_VC1 );
+  m_bReorderWithoutStop = (pmt->formattype == FORMAT_MPEG2Video
+                      || (codec == CODEC_ID_VC1 && (FilterInGraph(CLSID_MPCHCMPEGSplitter, m_pGraph) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource, m_pGraph))));
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
