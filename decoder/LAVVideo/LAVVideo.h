@@ -80,10 +80,6 @@ private:
   REFERENCE_TIME       m_rtAvrTimePerFrame;
   BOOL                 m_bProcessExtradata;
 
-  BOOL                 m_bReorderBFrame;
-  B_FRAME              m_BFrames[MAX_THREADS + 1];
-  int                  m_nPosB;
-
   AVFrame              *m_pFrame;
   BYTE                 *m_pFFBuffer;
   int                  m_nFFBufferSize;

@@ -43,8 +43,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_nFFBufferSize(0)
   , m_pSwsContext(NULL)
   , m_bProcessExtradata(FALSE)
-  , m_bReorderBFrame(TRUE)
-  , m_nPosB(1)
   , m_bH264OnMPEG2(NULL)
   , m_rtPrevStart(0)
   , m_rtPrevStop(0)
@@ -193,8 +191,6 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_pFrame = avcodec_alloc_frame();
   CheckPointer(m_pFrame, E_POINTER);
 
-  m_bReorderBFrame = TRUE;
-
   BYTE *extra = NULL;
   unsigned int extralen = 0;
 
@@ -313,7 +309,6 @@ HRESULT CLAVVideo::EndFlush()
 {
   DbgLog((LOG_TRACE, 1, L"EndFlush"));
   m_rtPrevStop = 0;
-  m_nPosB = 1;
   return __super::EndFlush();
 }
 
@@ -321,12 +316,6 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 {
   DbgLog((LOG_TRACE, 1, L"NewSegment - %d / %d", tStart, tStop));
   CAutoLock cAutoLock(&m_csReceive);
-
-  m_nPosB = 1;
-  for (int pos = 0 ; pos < countof(m_BFrames) ; pos++) {
-    m_BFrames[pos].rtStart = AV_NOPTS_VALUE;
-    m_BFrames[pos].rtStop = AV_NOPTS_VALUE;
-  }
 
   if (m_pAVCtx) {
     avcodec_flush_buffers (m_pAVCtx);
@@ -485,13 +474,6 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     rtStop = AV_NOPTS_VALUE;
   }
 
-  m_BFrames[m_nPosB].rtStart = rtStart;
-  m_BFrames[m_nPosB].rtStop  = rtStop;
-  m_nPosB++;
-  if (m_nPosB >= (m_nThreads+1)) {
-    m_nPosB = 0;
-  }
-
   if (pIn->IsDiscontinuity() == S_OK) {
     m_bDiscontinuity = TRUE;
   }
@@ -592,15 +574,6 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       if (m_bReorderWithoutStop) {
         rtStop = AV_NOPTS_VALUE;
       }
-    } else if (m_pAVCtx->has_b_frames && m_bReorderBFrame) {
-      int pos = m_nPosB - 2;
-      
-      if (pos < 0) {
-        pos += (m_nThreads+1);
-      }
-
-      rtStart = m_BFrames[pos].rtStart;
-      rtStop = m_BFrames[pos].rtStop;
     }
 
     if (rtStart == AV_NOPTS_VALUE) {
