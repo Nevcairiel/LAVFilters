@@ -574,6 +574,9 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       if (m_bReorderWithoutStop) {
         rtStop = AV_NOPTS_VALUE;
       }
+    } else if (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
+      if (m_pFrame->pict_type == AV_PICTURE_TYPE_B)
+        rtStart = AV_NOPTS_VALUE;
     }
 
     if (rtStart == AV_NOPTS_VALUE) {
