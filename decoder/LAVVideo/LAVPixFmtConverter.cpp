@@ -106,6 +106,7 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_P216,  32, 2, { 1, 1 }, { 1, 1 } },              // P216
   { FOURCCMap('614Y'),  64, 0 },                                  // Y416 (packed)
   { MEDIASUBTYPE_RGB32, 32, 0 },                                  // RGB32
+  { MEDIASUBTYPE_RGB24, 24, 0 },                                  // RGB24
 };
 
 CLAVPixFmtConverter::CLAVPixFmtConverter()
@@ -322,6 +323,9 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
     break;
   case LAVPixFmt_RGB32:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_BGRA, pFrame, pOut, width, height, dstStride * 4, lav_pixfmt_desc[m_OutputPixFmt]);
+    break;
+  case LAVPixFmt_RGB24:
+    hr = swscale_scale(m_InputPixFmt, PIX_FMT_BGR24, pFrame, pOut, width, height, dstStride * 3, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   default:
     ASSERT(0);
