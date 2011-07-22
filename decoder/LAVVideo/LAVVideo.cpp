@@ -440,7 +440,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
 
   int num = width, den = height;
   av_reduce(&num, &den, (int64_t)ar.num * num, (int64_t)ar.den * den, 255);
-  if (num == 0 || den == 0) {
+  if (!m_settings.StreamAR || num == 0 || den == 0) {
     num = vih2->dwPictAspectRatioX;
     den = vih2->dwPictAspectRatioY;
   }
