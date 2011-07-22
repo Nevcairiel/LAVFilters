@@ -153,6 +153,10 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_RV20, CODEC_ID_RV20 },
   { &MEDIASUBTYPE_RV30, CODEC_ID_RV30 },
   { &MEDIASUBTYPE_RV40, CODEC_ID_RV40 },
+
+  // Game Formats
+  { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO },
+  { &MEDIASUBTYPE_BIKB, CODEC_ID_BINKVIDEO },
 };
 
 // Define Input Media Types
@@ -277,6 +281,10 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RV20 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RV30 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RV40 },
+
+  // Game Formats
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKB },
 };
 const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
 
