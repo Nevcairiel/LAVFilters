@@ -24,6 +24,7 @@
 #define LAV_VERSION_MINOR 30
 
 #define LAV_AUDIO "LAV Audio Decoder"
+#define LAV_VIDEO "LAV Video Decoder"
 #define LAV_SPLITTER "LAV Splitter"
 
 /////////////////////////////////////////////////////////

@@ -156,7 +156,14 @@
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
     <ClInclude Include="Media.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LAVVideo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LAVVideo.rc2" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
