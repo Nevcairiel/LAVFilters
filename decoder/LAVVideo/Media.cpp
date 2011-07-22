@@ -310,7 +310,8 @@ static struct {
   CodecID codecId;
   int     threadFlags;
 } ff_thread_codecs[] = {
-  { CODEC_ID_H264, FF_THREAD_FRAME|FF_THREAD_SLICE },
+  { CODEC_ID_H264,       FF_THREAD_FRAME|FF_THREAD_SLICE },
+  { CODEC_ID_MPEG2VIDEO,                 FF_THREAD_SLICE },
 };
 
 int getThreadFlags(CodecID codecId)
