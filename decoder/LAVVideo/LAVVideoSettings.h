@@ -34,5 +34,30 @@ interface ILAVVideoSettings : public IUnknown
   //
   // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
   // For smooth operations, it must be called before LAV Audio is connected to other filters.
-  //STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
+  STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
+
+  // Set the number of threads to use for Multi-Threaded decoding (where available)
+  //  0 = Auto Detect (based on number of CPU cores)
+  //  1 = 1 Thread -- No Multi-Threading
+  // >1 = Multi-Threading with the specified number of threads
+  STDMETHOD(SetNumThreads)(DWORD dwNum) = 0;
+
+  // Get the number of threads to use for Multi-Threaded decoding (where available)
+  //  0 = Auto Detect (based on number of CPU cores)
+  //  1 = 1 Thread -- No Multi-Threading
+  // >1 = Multi-Threading with the specified number of threads
+  STDMETHOD_(DWORD,GetNumThreads)() = 0;
+
+  // Set wether the aspect ratio encoded in the stream should be forwarded to the renderer,
+  // or the aspect ratio specified by the source filter should be kept.
+  // TRUE  = AR from the Stream
+  // FALSE = AR from the source filter
+  STDMETHOD(SetStreamAR)(BOOL bStreamAR) = 0;
+
+  // Get wether the aspect ratio encoded in the stream should be forwarded to the renderer,
+  // or the aspect ratio specified by the source filter should be kept.
+  // TRUE  = AR from the Stream
+  // FALSE = AR from the source filter
+  STDMETHOD_(BOOL,GetStreamAR)() = 0;
+
 };

@@ -25,6 +25,8 @@
 
 #define MAX_THREADS 8
 
+#define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
+
 typedef struct {
   REFERENCE_TIME rtStart;
   REFERENCE_TIME rtStop;
@@ -43,6 +45,13 @@ public:
 
   // ISpecifyPropertyPages
   STDMETHODIMP GetPages(CAUUID *pPages);
+
+  // ILAVVideoSettings
+  STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
+  STDMETHODIMP SetNumThreads(DWORD dwNum);
+  STDMETHODIMP_(DWORD) GetNumThreads();
+  STDMETHODIMP SetStreamAR(BOOL bStreamAR);
+  STDMETHODIMP_(BOOL) GetStreamAR();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -67,6 +76,10 @@ public:
 private:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
   ~CLAVVideo();
+
+  HRESULT LoadDefaults();
+  HRESULT LoadSettings();
+  HRESULT SaveSettings();
 
   HRESULT ffmpeg_init(CodecID codec, const CMediaType *pmt);
   void ffmpeg_shutdown();
@@ -105,4 +118,10 @@ private:
   int                  m_nThreads;
 
   CLAVPixFmtConverter  m_PixFmtConverter;
+
+  BOOL                 m_bRuntimeConfig;
+  struct VideoSettings {
+    BOOL StreamAR;
+    DWORD NumThreads;
+  } m_settings;
 };

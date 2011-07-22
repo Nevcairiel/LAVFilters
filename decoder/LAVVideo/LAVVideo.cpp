@@ -25,6 +25,7 @@
 #include <dvdmedia.h>
 
 #include "moreuuids.h"
+#include "registry.h"
 
 // static constructor
 CUnknown* WINAPI CLAVVideo::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
@@ -50,9 +51,12 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bDiscontinuity(FALSE)
   , m_nThreads(1)
   , m_bForceTypeNegotiation(FALSE)
+  , m_bRuntimeConfig(FALSE)
 {
   avcodec_init();
   avcodec_register_all();
+
+  LoadSettings();
 
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
@@ -81,6 +85,53 @@ void CLAVVideo::ffmpeg_shutdown()
   }
 
   m_nCodecId = CODEC_ID_NONE;
+}
+
+HRESULT CLAVVideo::LoadDefaults()
+{
+  m_settings.StreamAR = TRUE;
+  m_settings.NumThreads = 0;
+
+  return S_OK;
+}
+
+HRESULT CLAVVideo::LoadSettings()
+{
+  LoadDefaults();
+  if (m_bRuntimeConfig)
+    return S_FALSE;
+
+  HRESULT hr;
+  BOOL bFlag;
+  DWORD dwVal;
+
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY);
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
+  // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
+  // and we need to fill the settings with defaults.
+  // ReadString returns an empty string in case of failure, so thats fine!
+
+  bFlag = reg.ReadDWORD(L"StreamAR", hr);
+  if (SUCCEEDED(hr)) m_settings.StreamAR = bFlag;
+
+  dwVal = reg.ReadDWORD(L"NumThreads", hr);
+  if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
+
+  return S_OK;
+}
+
+HRESULT CLAVVideo::SaveSettings()
+{
+  if (m_bRuntimeConfig)
+    return S_FALSE;
+
+  HRESULT hr;
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
+  if (SUCCEEDED(hr)) {
+    reg.WriteBOOL(L"StreamAR", m_settings.StreamAR);
+    reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
+  }
+  return S_OK;
 }
 
 // IUnknown
@@ -709,4 +760,35 @@ HRESULT CLAVVideo::SetTypeSpecificFlags(IMediaSample* pMS)
   }
   SafeRelease(&pMS2);
   return hr;
+}
+
+// ILAVVideoSettings
+STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)
+{
+  m_bRuntimeConfig = bRuntimeConfig;
+  LoadSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVVideo::SetNumThreads(DWORD dwNum)
+{
+  m_settings.NumThreads = dwNum;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVVideo::GetNumThreads()
+{
+  return m_settings.NumThreads;
+}
+
+STDMETHODIMP CLAVVideo::SetStreamAR(BOOL bStreamAR)
+{
+  m_settings.StreamAR = bStreamAR;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetStreamAR()
+{
+  return m_settings.StreamAR;
 }
