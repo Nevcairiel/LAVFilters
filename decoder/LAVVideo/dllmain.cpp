@@ -33,7 +33,7 @@
 
 #include <qnetwork.h>
 #include "LAVVideo.h"
-//#include "VideoSettingsProp.h"
+#include "VideoSettingsProp.h"
 #include "moreuuids.h"
 
 #include "registry.h"
@@ -68,6 +68,19 @@ CFactoryTemplate g_Templates[] = {
       CLAVVideo::CreateInstance,
       NULL,
       &sudFilterReg
+  },
+  // This entry is for the property page.
+  {
+    L"LAV Video Properties",
+    &CLSID_LAVVideoSettingsProp,
+    CreateInstance<CLAVVideoSettingsProp>,
+    NULL, NULL
+  },
+  {
+    L"LAV Video Format Settings",
+    &CLSID_LAVVideoFormatsProp,
+    CreateInstance<CLAVVideoFormatsProp>,
+    NULL, NULL
   }
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);

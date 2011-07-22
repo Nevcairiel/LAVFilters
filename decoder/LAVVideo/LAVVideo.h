@@ -21,6 +21,7 @@
 #pragma once
 
 #include "LAVPixFmtConverter.h"
+#include "LAVVideoSettings.h"
 
 #define MAX_THREADS 8
 
@@ -30,11 +31,18 @@ typedef struct {
 } B_FRAME;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter
+class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages, public ILAVVideoSettings
 {
 public:
   // constructor method used by class factory
   static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+
+  // IUnknown
+  DECLARE_IUNKNOWN;
+  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
+  // ISpecifyPropertyPages
+  STDMETHODIMP GetPages(CAUUID *pPages);
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);

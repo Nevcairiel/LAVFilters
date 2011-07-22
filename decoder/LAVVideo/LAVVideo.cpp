@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "LAVVideo.h"
+#include "VideoSettingsProp.h"
 #include "Media.h"
 #include <dvdmedia.h>
 
@@ -80,6 +81,33 @@ void CLAVVideo::ffmpeg_shutdown()
   }
 
   m_nCodecId = CODEC_ID_NONE;
+}
+
+// IUnknown
+STDMETHODIMP CLAVVideo::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+{
+  CheckPointer(ppv, E_POINTER);
+
+  *ppv = NULL;
+
+  return
+    QI2(ISpecifyPropertyPages)
+    QI2(ILAVVideoSettings)
+    __super::NonDelegatingQueryInterface(riid, ppv);
+}
+
+// ISpecifyPropertyPages
+STDMETHODIMP CLAVVideo::GetPages(CAUUID *pPages)
+{
+  CheckPointer(pPages, E_POINTER);
+  pPages->cElems = 2;
+  pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
+  if (pPages->pElems == NULL) {
+    return E_OUTOFMEMORY;
+  }
+  pPages->pElems[0] = CLSID_LAVVideoSettingsProp;
+  pPages->pElems[1] = CLSID_LAVVideoFormatsProp;
+  return S_OK;
 }
 
 // CTransformFilter

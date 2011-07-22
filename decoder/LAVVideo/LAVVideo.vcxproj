@@ -151,13 +151,16 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="VideoSettingsProp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
+    <ClInclude Include="LAVVideoSettings.h" />
     <ClInclude Include="Media.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="VideoSettingsProp.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVVideo.rc" />
