@@ -1103,6 +1103,9 @@ static int audio_codec_priority(AVCodecContext *codec)
   switch(codec->codec_id) {
   case CODEC_ID_FLAC:
   case CODEC_ID_TRUEHD:
+  case CODEC_ID_MLP:
+  case CODEC_ID_TTA:
+  case CODEC_ID_MP4ALS:
   // All the PCM codecs
   case CODEC_ID_PCM_S16LE:
   case CODEC_ID_PCM_S16BE:
@@ -1124,6 +1127,10 @@ static int audio_codec_priority(AVCodecContext *codec)
   case CODEC_ID_PCM_BLURAY:
     priority = 10;
     break;
+  case CODEC_ID_WAVPACK:
+  case CODEC_ID_EAC3:
+    priority = 8;
+    break;
   case CODEC_ID_DTS:
     priority = 7;
     if (codec->profile >= FF_PROFILE_DTS_HD_HRA) {
@@ -1133,7 +1140,6 @@ static int audio_codec_priority(AVCodecContext *codec)
     }
     break;
   case CODEC_ID_AC3:
-  case CODEC_ID_EAC3:
   case CODEC_ID_AAC:
   case CODEC_ID_AAC_LATM:
     priority = 5;
