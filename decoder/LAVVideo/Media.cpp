@@ -306,6 +306,23 @@ CodecID FindCodecId(const CMediaType *mt)
   return CODEC_ID_NONE;
 }
 
+static struct {
+  CodecID codecId;
+  int     threadFlags;
+} ff_thread_codecs[] = {
+  { CODEC_ID_H264, FF_THREAD_FRAME|FF_THREAD_SLICE },
+};
+
+int getThreadFlags(CodecID codecId)
+{
+  for(int i = 0; i < countof(ff_thread_codecs); ++i) {
+    if (ff_thread_codecs[i].codecId == codecId) {
+      return ff_thread_codecs[i].threadFlags;
+    }
+  }
+  return 0;
+}
+
 void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI, REFERENCE_TIME *prtAvgTime, DWORD *pDwAspectX, DWORD *pDwAspectY)
 {
   REFERENCE_TIME rtAvg = 0;

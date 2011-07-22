@@ -263,9 +263,23 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->error_concealment = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
   m_pAVCtx->error_recognition = FF_ER_CAREFUL;
   m_pAVCtx->workaround_bugs = FF_BUG_AUTODETECT;
-  m_pAVCtx->thread_count = 1;
-  m_pAVCtx->thread_type = FF_THREAD_SLICE|FF_THREAD_FRAME;
   m_pAVCtx->bits_per_coded_sample = pBMI->biBitCount;
+
+  int thread_type = getThreadFlags(codec);
+  if (thread_type) {
+    // Thread Count. 0 = auto detect
+    int thread_count = m_settings.NumThreads;
+    if (thread_count == 0) {
+      SYSTEM_INFO systemInfo;
+      GetNativeSystemInfo(&systemInfo);
+      thread_count = systemInfo.dwNumberOfProcessors * 3 / 2;
+    }
+
+    m_pAVCtx->thread_count = thread_count;
+    m_pAVCtx->thread_type = thread_type;
+  } else {
+    m_pAVCtx->thread_count = 1;
+  }
 
   m_pFrame = avcodec_alloc_frame();
   CheckPointer(m_pFrame, E_POINTER);
