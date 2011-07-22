@@ -337,7 +337,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
   BOOL bVC1OnMPC = (codec == CODEC_ID_VC1 && (FilterInGraph(CLSID_MPCHCMPEGSplitter, m_pGraph) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource, m_pGraph)));
 
-  m_bFFReordering      = (codec == CODEC_ID_H264 || codec == CODEC_ID_VP8 || bVC1OnMPC);
+  m_bFFReordering      = (codec == CODEC_ID_H264 || codec == CODEC_ID_VP8 || codec == CODEC_ID_VP3 || codec == CODEC_ID_THEORA || bVC1OnMPC);
   m_bCalculateStopTime = (codec == CODEC_ID_H264 || bVC1OnMPC);
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);

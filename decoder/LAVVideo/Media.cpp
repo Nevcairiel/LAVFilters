@@ -314,6 +314,8 @@ static struct {
   { CODEC_ID_MPEG2VIDEO,                 FF_THREAD_SLICE },
   { CODEC_ID_DVVIDEO,                    FF_THREAD_SLICE },
   { CODEC_ID_VP8,        FF_THREAD_FRAME                 },
+  { CODEC_ID_VP3,        FF_THREAD_FRAME                 },
+  { CODEC_ID_THEORA,     FF_THREAD_FRAME                 },
 };
 
 int getThreadFlags(CodecID codecId)
