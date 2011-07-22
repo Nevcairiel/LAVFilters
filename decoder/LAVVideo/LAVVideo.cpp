@@ -45,7 +45,8 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_nFFBufferSize(0)
   , m_pSwsContext(NULL)
   , m_bProcessExtradata(FALSE)
-  , m_bH264OnMPEG2(NULL)
+  , m_bFFReordering(FALSE)
+  , m_bCalculateStopTime(FALSE)
   , m_rtPrevStart(0)
   , m_rtPrevStop(0)
   , m_bDiscontinuity(FALSE)
@@ -334,13 +335,10 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
   m_nCodecId                      = codec;
 
-  m_bH264OnMPEG2 = false;
-  if (codec == CODEC_ID_H264 && !(pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1)) {
-    m_bH264OnMPEG2 = true;
-  }
+  BOOL bVC1OnMPC = (codec == CODEC_ID_VC1 && (FilterInGraph(CLSID_MPCHCMPEGSplitter, m_pGraph) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource, m_pGraph)));
 
-  m_bReorderWithoutStop = (pmt->formattype == FORMAT_MPEG2Video
-                      || (codec == CODEC_ID_VC1 && (FilterInGraph(CLSID_MPCHCMPEGSplitter, m_pGraph) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource, m_pGraph))));
+  m_bFFReordering      = (codec == CODEC_ID_H264 || bVC1OnMPC);
+  m_bCalculateStopTime = (codec == CODEC_ID_H264 || bVC1OnMPC);
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
@@ -616,7 +614,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       avpkt.data = m_pFFBuffer;
       avpkt.size = nSize;
       avpkt.pts = rtStart;
-      //avpkt.dts = rtStop;
+      avpkt.dts = rtStop;
       //avpkt.duration = (int)(rtStart != _I64_MIN && rtStop != _I64_MIN ? rtStop - rtStart : 0);
       avpkt.flags = AV_PKT_FLAG_KEY;
 
@@ -660,13 +658,9 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
 
       REFERENCE_TIME duration = (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
       rtStop = rtStart + (duration * (m_pFrame->repeat_pict ? 3 : 2)  / 2);
-    } else if (m_bH264OnMPEG2 || m_bReorderWithoutStop) {
+    } else if (m_bFFReordering) {
       rtStart = m_pFrame->pkt_pts;
       rtStop = m_pFrame->pkt_dts;
-
-      if (m_bReorderWithoutStop) {
-        rtStop = AV_NOPTS_VALUE;
-      }
     } else if (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
       if (m_pFrame->pict_type == AV_PICTURE_TYPE_B)
         rtStart = AV_NOPTS_VALUE;
@@ -677,7 +671,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       rtStop = AV_NOPTS_VALUE;
     }
 
-    if (rtStop == AV_NOPTS_VALUE) {
+    if (m_bCalculateStopTime || rtStop == AV_NOPTS_VALUE) {
       REFERENCE_TIME duration = 0;
 
       CMediaType mt = m_pInput->CurrentMediaType();

@@ -107,8 +107,8 @@ private:
 
   SwsContext           *m_pSwsContext;
 
-  BOOL                 m_bH264OnMPEG2;
-  BOOL                 m_bReorderWithoutStop;
+  BOOL                 m_bFFReordering;
+  BOOL                 m_bCalculateStopTime;
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
 
