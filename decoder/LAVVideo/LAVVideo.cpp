@@ -598,7 +598,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       rtStop = rtStart + (duration * (m_pFrame->repeat_pict ? 3 : 2)  / 2);
     }
 
-    //DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d", rtStart, rtStart-m_rtPrevStart));
+    DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d, key: %d, type: %c, repeat: %d", rtStart, rtStart-m_rtPrevStart, m_pFrame->key_frame, av_get_picture_type_char(m_pFrame->pict_type), m_pFrame->repeat_pict));
 
     m_rtPrevStart = rtStart;
     m_rtPrevStop = rtStop;
