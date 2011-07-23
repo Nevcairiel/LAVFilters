@@ -691,7 +691,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     m_rtPrevStop = rtStop;
 
     if (rtStart < 0) {
-      return S_OK;
+      continue;
     }
 
     // Collect width/height
