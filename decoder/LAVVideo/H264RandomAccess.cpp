@@ -78,13 +78,13 @@ BOOL CH264RandomAccess::searchRecoveryPoint(uint8_t *buf, int buf_size)
       return TRUE;
     case 2: // SEI recovery
       m_RecoveryMode = 2;
-      return 1;
+      return TRUE;
     case 1: // I Frame
       m_RecoveryMode = 2;
       m_RecoveryFrameCount = 0;
-      return 1;
+      return TRUE;
     default:
-      return 0;
+      return FALSE;
     }
   } else {
     return TRUE;
@@ -107,7 +107,7 @@ int CH264RandomAccess::decode_sei_recovery_point(CByteParser *pParser)
     } while (pParser->BitRead(8) == 255);
 
     if (type == SEI_TYPE_RECOVERY_POINT) {
-      int recovery_count = pParser->UExpGolombRead();
+      int recovery_count = (int)pParser->UExpGolombRead();
       return recovery_count;
     }
   }
@@ -146,7 +146,6 @@ void CH264RandomAccess::judgeFrameUsability(AVFrame *pFrame, int *got_picture_pt
 int CH264RandomAccess::parseForRecoveryPoint(uint8_t *buf, int buf_size, int *recoveryFrameCount)
 {
   int found = 0;
-  BOOL detectedIslice = FALSE;
 
   CH264Nalu nal;
   nal.SetBuffer(buf, buf_size, m_AVCNALSize);
@@ -157,14 +156,14 @@ int CH264RandomAccess::parseForRecoveryPoint(uint8_t *buf, int buf_size, int *re
 
     switch (nal.GetType()) {
     case NAL_IDR_SLICE:
-      DbgLog((LOG_TRACE, 10, L"h264RanomAccess::parseForRecoveryPoint(): Found IDR slice"));
+      DbgLog((LOG_TRACE, 10, L"h264RandomAccess::parseForRecoveryPoint(): Found IDR slice"));
       found = 3;
       goto end;
     case NAL_SEI:
       if (pData[0] == SEI_TYPE_RECOVERY_POINT) {
         int ret = decode_sei_recovery_point(&parser);
         if (ret >= 0) {
-          DbgLog((LOG_TRACE, 10, L"h264RanomAccess::parseForRecoveryPoint(): Found SEI recovery point (count: %d)", ret));
+          DbgLog((LOG_TRACE, 10, L"h264RandomAccess::parseForRecoveryPoint(): Found SEI recovery point (count: %d)", ret));
           *recoveryFrameCount = ret;
           if (found < 2)
             found = 2;
@@ -174,30 +173,28 @@ int CH264RandomAccess::parseForRecoveryPoint(uint8_t *buf, int buf_size, int *re
     case NAL_AUD:
       {
         int primary_pic_type = parser.BitRead(3);
-        if (found == 0 && (primary_pic_type == 0 || primary_pic_type == 3)) { // I Frame 
-          DbgLog((LOG_TRACE, 10, L"h264RanomAccess::parseForRecoveryPoint(): Found I frame"));
+        if (!found && (primary_pic_type == 0 || primary_pic_type == 3)) { // I Frame
+          DbgLog((LOG_TRACE, 10, L"h264RandomAccess::parseForRecoveryPoint(): Found I frame"));
           found = 1;
         }
       }
       break;
     case NAL_SLICE:
     case NAL_DPA:
-      if (found == 0) {
+      if (!found) {
         parser.UExpGolombRead();
         int slice_type = (int)parser.UExpGolombRead();
         if (slice_type == 2 || slice_type == 4 || slice_type == 7 || slice_type == 9) { // I/SI slice
-          DbgLog((LOG_TRACE, 10, L"h264RanomAccess::parseForRecoveryPoint(): Detected I/SI slice"));  
-          detectedIslice = TRUE;
+          DbgLog((LOG_TRACE, 10, L"h264RandomAccess::parseForRecoveryPoint(): Detected I/SI slice"));
+          found = 1;
         } else {
-            found = 0;
-            goto end;
+          found = 0;
+          goto end;
         }
       }
       break;
     }
   }
-  if (found == 0 && detectedIslice)
-    found = 1;
 end:
   return found;
 }
