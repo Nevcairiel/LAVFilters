@@ -122,7 +122,6 @@
   <ItemGroup>
     <ClInclude Include="BaseDemuxer.h" />
     <ClInclude Include="BDDemuxer.h" />
-    <ClInclude Include="ByteParser.h" />
     <ClInclude Include="ExtradataParser.h" />
     <ClInclude Include="LAVFAudioHelper.h" />
     <ClInclude Include="LAVFDemuxer.h" />
@@ -135,7 +134,6 @@
   <ItemGroup>
     <ClCompile Include="BaseDemuxer.cpp" />
     <ClCompile Include="BDDemuxer.cpp" />
-    <ClCompile Include="ByteParser.cpp" />
     <ClCompile Include="ExtradataParser.cpp" />
     <ClCompile Include="LAVFAudioHelper.cpp" />
     <ClCompile Include="LAVFDemuxer.cpp" />
