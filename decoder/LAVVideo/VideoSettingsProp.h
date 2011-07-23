@@ -58,6 +58,9 @@ private:
 
 private:
   ILAVVideoSettings *m_pVideoSettings;
+
+  DWORD m_dwNumThreads;
+  BOOL  m_bStreamAR;
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage

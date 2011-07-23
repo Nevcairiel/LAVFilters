@@ -56,8 +56,14 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
 {
   ASSERT(m_pVideoSettings != NULL);
   HRESULT hr = S_OK;
+  BOOL bFlag;
+  DWORD dwVal;
   
-  // TODO: Read fields, submit via API
+  bFlag = SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetStreamAR(bFlag);
+
+  dwVal = SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);
+  m_pVideoSettings->SetNumThreads(dwVal);
 
   LoadData();
 
@@ -79,9 +85,26 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   const WCHAR *version = TEXT(LAV_VIDEO) L" " TEXT(LAV_VERSION_STR);
   SendDlgItemMessage(m_Dlg, IDC_LAVVIDEO_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
 
+  WCHAR stringBuffer[10] = L"Auto";
+
+  // Init the Combo Box
+  SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_RESETCONTENT, 0, 0);
+  SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+
+  SYSTEM_INFO systemInfo;
+  GetNativeSystemInfo(&systemInfo);
+
+  for (int i = 1; i <= (systemInfo.dwNumberOfProcessors * 3 / 2); ++i) {
+    swprintf_s(stringBuffer, L"%d", i);
+    SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  }
+
+  addHint(IDC_THREADS, L"Enable Multi-Threading for codecs that support it.\nAuto will automatically use the maximum number of threads suitable for your CPU. Using 1 thread disables multi-threading.\n\nMT decoding is supported for H264, MPEG2, MPEG4, VP8, VP3/Theora, DV and HuffYUV");
+
   hr = LoadData();
   if (SUCCEEDED(hr)) {
-    // TODO: Fill Fields
+    SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_bStreamAR, 0);
+    SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_SETCURSEL, m_dwNumThreads, 0);
   }
 
   return hr;
@@ -91,7 +114,8 @@ HRESULT CLAVVideoSettingsProp::LoadData()
 {
   HRESULT hr = S_OK;
   
-  // TODO: Read data from API, write into local vars
+  m_dwNumThreads = m_pVideoSettings->GetNumThreads();
+  m_bStreamAR    = m_pVideoSettings->GetStreamAR();
 
   return hr;
 }
@@ -102,6 +126,17 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
   switch (uMsg)
   {
   case WM_COMMAND:
+    if (LOWORD(wParam) == IDC_STREAMAR && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != m_bStreamAR) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_THREADS) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_dwNumThreads) {
+        SetDirty();
+      }
+    }
     break;
   }
   // Let the parent class handle the message.
