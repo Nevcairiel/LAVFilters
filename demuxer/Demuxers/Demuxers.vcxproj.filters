@@ -33,9 +33,6 @@
     <ClInclude Include="StreamInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ByteParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ExtradataParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -66,9 +63,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StreamInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ByteParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ExtradataParser.cpp">
