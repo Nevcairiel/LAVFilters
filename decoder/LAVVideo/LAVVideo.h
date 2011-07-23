@@ -123,6 +123,7 @@ private:
   int                  m_nThreads;
 
   CLAVPixFmtConverter  m_PixFmtConverter;
+  std::wstring         m_strExtension;
 
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {
