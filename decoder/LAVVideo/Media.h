@@ -24,3 +24,13 @@ CodecID FindCodecId(const CMediaType *mt);
 int getThreadFlags(CodecID codecId);
 void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
 void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsigned int *extralen);
+
+#define MAX_NUM_CC_CODECS 3
+
+struct codec_config_t {
+  int nCodecs;
+  CodecID codecs[MAX_NUM_CC_CODECS];
+  const wchar_t *name;
+  const wchar_t *description;
+};
+const codec_config_t *get_codec_config(LAVVideoCodec codec);

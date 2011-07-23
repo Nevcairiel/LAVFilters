@@ -395,3 +395,58 @@ void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsig
       *extralen = mp2vi->cbSequenceHeader;
   }
 }
+
+// Strings will be filled in eventually.
+// CODEC_ID_NONE means there is some special handling going on.
+// Order is Important, has to be the same as the CC Enum
+// Also, the order is used for storage in the Registry
+static codec_config_t m_codec_config[] = {
+  { 1, { CODEC_ID_H264 }},                                                // Codec_H264
+  { 1, { CODEC_ID_VC1 }},                                                 // Codec_VC1
+  { 1, { CODEC_ID_MPEG1VIDEO }},                                          // Codec_MPEG1
+  { 1, { CODEC_ID_MPEG2VIDEO }},                                          // Codec_MPEG2
+  { 1, { CODEC_ID_MPEG4 }},                                               // Codec_MPEG4
+  { 3, { CODEC_ID_MSMPEG4V1, CODEC_ID_MSMPEG4V2, CODEC_ID_MSMPEG4V3 }, L"msmpeg4", L"MS-MPEG-4 (DIVX3)" },   // Codec_MSMPEG4
+  { 1, { CODEC_ID_VP8 }},                                                 // Codec_VP8
+  { 3, { CODEC_ID_WMV1, CODEC_ID_WMV2, CODEC_ID_WMV3 }, L"wmv1/2/3", L"Windows Media Video 1/2/3" },  // Codec_WMV123
+  { 2, { CODEC_ID_MJPEG, CODEC_ID_MJPEGB }},                              // Codec_MJPEG
+  { 2, { CODEC_ID_THEORA, CODEC_ID_VP3 }},                                // Codec_Theora
+  { 1, { CODEC_ID_FLV1 }},                                                // Codec_FLV1
+  { 3, { CODEC_ID_VP6, CODEC_ID_VP6A, CODEC_ID_VP6F }},                   // Codec_VP6
+  { 2, { CODEC_ID_SVQ1, CODEC_ID_SVQ3 }, L"svq", L"SVQ 1 / SVQ 3"},       // Codec_SVQ
+  { 1, { CODEC_ID_H261 }},                                                // Codec_H261
+  { 1, { CODEC_ID_H263 }},                                                // Codec_H263
+  { 2, { CODEC_ID_INDEO3, CODEC_ID_INDEO5 }},                             // Codec_Indeo
+  { 1, { CODEC_ID_TSCC }},                                                // Codec_TSCC
+  { 1, { CODEC_ID_FRAPS }},                                               // Codec_Fraps
+  { 1, { CODEC_ID_HUFFYUV }},                                             // Codec_HuffYUV
+  { 1, { CODEC_ID_QTRLE }},                                               // Codec_QTRle
+  { 1, { CODEC_ID_DVVIDEO }},                                             // Codec_DV
+  { 1, { CODEC_ID_BINKVIDEO }},                                           // Codec_Bink
+  { 3, { CODEC_ID_RV10, CODEC_ID_RV20, CODEC_ID_RV30 }, L"rv10-30", L"Real Video 1-3" }, // Codev_RV123
+  { 1, { CODEC_ID_RV40 }},                                                // Codec_RV4
+  { 1, { CODEC_ID_LAGARITH }},                                            // Codec_Lagarith
+  { 1, { CODEC_ID_CINEPAK }},                                             // Codec_Cinepak
+};
+
+const codec_config_t *get_codec_config(LAVVideoCodec codec)
+{
+  codec_config_t *config = &m_codec_config[codec];
+  if (!config->name) {
+    AVCodec *codec = avcodec_find_decoder(config->codecs[0]);
+    if (codec) {
+      size_t name_len = strlen(codec->name) + 1;
+      wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
+      MultiByteToWideChar(CP_UTF8, 0, codec->name, -1, name, name_len);
+
+      size_t desc_len = strlen(codec->long_name) + 1;
+      wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
+      MultiByteToWideChar(CP_UTF8, 0, codec->long_name, -1, desc, desc_len);
+
+      config->name = name;
+      config->description = desc;
+    }
+  }
+
+  return &m_codec_config[codec];
+}

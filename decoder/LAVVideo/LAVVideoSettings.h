@@ -24,6 +24,39 @@
 DEFINE_GUID(IID_ILAVVideoSettings, 
 0xfa40d6e9, 0x4d38, 0x4761, 0xad, 0xd2, 0x71, 0xa9, 0xec, 0x5f, 0xd3, 0x2f);
 
+// Codecs supported in the LAV Video configuration
+// Codecs not listed here cannot be turned off. You can request codecs to be added to this list, if you wish.
+typedef enum LAVVideoCodec {
+  Codec_H264,
+  Codec_VC1,
+  Codec_MPEG1,
+  Codec_MPEG2,
+  Codec_MPEG4,
+  Codec_MSMPEG4,
+  Codec_VP8,
+  Codec_WMV123,
+  Codec_MJPEG,
+  Codec_Theora,
+  Codec_FLV1,
+  Codec_VP6,
+  Codec_SVQ,
+  Codec_H261,
+  Codec_H263,
+  Codec_Indeo,
+  Codec_TSCC,
+  Codec_Fraps,
+  Codec_HuffYUV,
+  Codec_QTRle,
+  Codec_DV,
+  Codec_Bink,
+  Codec_RV123,
+  Codec_RV4,
+  Codec_Lagarith,
+  Codec_Cinepak,
+
+  Codec_NB            // Number of entrys (do not use when dynamically linking)
+};
+
 // LAV Audio configuration interface
 [uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")]
 interface ILAVVideoSettings : public IUnknown
@@ -35,6 +68,11 @@ interface ILAVVideoSettings : public IUnknown
   // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
   // For smooth operations, it must be called before LAV Audio is connected to other filters.
   STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
+
+  // Configure which codecs are enabled
+  // If vCodec is invalid (possibly a version difference), Get will return FALSE, and Set E_FAIL.
+  STDMETHOD_(BOOL,GetFormatConfiguration)(LAVVideoCodec vCodec) = 0;
+  STDMETHOD(SetFormatConfiguration)(LAVVideoCodec vCodec, BOOL bEnabled) = 0;
 
   // Set the number of threads to use for Multi-Threaded decoding (where available)
   //  0 = Auto Detect (based on number of CPU cores)

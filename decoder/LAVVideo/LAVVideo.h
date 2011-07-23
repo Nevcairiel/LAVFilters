@@ -26,6 +26,7 @@
 #define MAX_THREADS 32
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
+#define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 
 typedef struct {
   REFERENCE_TIME rtStart;
@@ -48,6 +49,8 @@ public:
 
   // ILAVVideoSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
+  STDMETHODIMP_(BOOL) GetFormatConfiguration(LAVVideoCodec vCodec);
+  STDMETHODIMP SetFormatConfiguration(LAVVideoCodec vCodec, BOOL bEnabled);
   STDMETHODIMP SetNumThreads(DWORD dwNum);
   STDMETHODIMP_(DWORD) GetNumThreads();
   STDMETHODIMP SetStreamAR(BOOL bStreamAR);
@@ -130,5 +133,6 @@ private:
     BOOL StreamAR;
     BOOL InterlacedFlags;
     DWORD NumThreads;
+    BOOL bFormats[Codec_NB];
   } m_settings;
 };

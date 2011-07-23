@@ -99,6 +99,14 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.InterlacedFlags = TRUE;
   m_settings.NumThreads = 0;
 
+  for (int i = 0; i < Codec_NB; ++i)
+    m_settings.bFormats[i] = TRUE;
+
+  m_settings.bFormats[Codec_RV123]    = FALSE;
+  m_settings.bFormats[Codec_RV4]      = FALSE;
+  m_settings.bFormats[Codec_Lagarith] = FALSE;
+  m_settings.bFormats[Codec_Cinepak]  = FALSE;
+
   return S_OK;
 }
 
@@ -127,6 +135,15 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"NumThreads", hr);
   if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
 
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS);
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
+
+  for (int i = 0; i < Codec_NB; ++i) {
+    const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
+    bFlag = regF.ReadBOOL(info->name, hr);
+    if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
+  }
+
   return S_OK;
 }
 
@@ -141,6 +158,12 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteBOOL(L"StreamAR", m_settings.StreamAR);
     reg.WriteBOOL(L"InterlacedFlags", m_settings.InterlacedFlags);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
+
+    CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
+    for (int i = 0; i < Codec_NB; ++i) {
+      const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
+      regF.WriteBOOL(info->name, m_settings.bFormats[i]);
+    }
   }
   return S_OK;
 }
@@ -250,6 +273,20 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
 HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 {
   ffmpeg_shutdown();
+
+  for(int i = 0; i < Codec_NB; ++i) {
+    const codec_config_t *config = get_codec_config((LAVVideoCodec)i);
+    bool bMatched = false;
+    for (int k = 0; k < config->nCodecs; ++k) {
+      if (config->codecs[k] == codec) {
+        bMatched = true;
+        break;
+      }
+    }
+    if (bMatched && !m_settings.bFormats[i]) {
+      return VFW_E_UNSUPPORTED_VIDEO;
+    }
+  }
 
   BITMAPINFOHEADER *pBMI = NULL;
   formatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI, &m_rtAvrTimePerFrame);
@@ -822,6 +859,24 @@ STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)
   LoadSettings();
 
   return S_OK;
+}
+
+STDMETHODIMP CLAVVideo::SetFormatConfiguration(LAVVideoCodec vCodec, BOOL bEnabled)
+{
+  if (vCodec < 0 || vCodec >= Codec_NB)
+    return E_FAIL;
+
+  m_settings.bFormats[vCodec] = bEnabled;
+
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetFormatConfiguration(LAVVideoCodec vCodec)
+{
+  if (vCodec < 0 || vCodec >= Codec_NB)
+    return E_FAIL;
+
+  return m_settings.bFormats[vCodec];
 }
 
 STDMETHODIMP CLAVVideo::SetNumThreads(DWORD dwNum)

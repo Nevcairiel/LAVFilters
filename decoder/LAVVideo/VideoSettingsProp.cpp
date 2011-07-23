@@ -189,7 +189,12 @@ HRESULT CLAVVideoFormatsProp::OnApplyChanges()
 
   HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
 
-  // TODO: Read fields, submit via API
+  // Get checked state
+  BOOL bFlag;
+  for (int nItem = 0; nItem < ListView_GetItemCount(hlv); nItem++) {
+    bFlag = ListView_GetCheckState(hlv, nItem);
+    m_pVideoSettings->SetFormatConfiguration((LAVVideoCodec)nItem, bFlag);
+  }
 
   LoadData();
 
@@ -219,7 +224,7 @@ HRESULT CLAVVideoFormatsProp::OnActivate()
   ListView_AddCol(hlv, nCol, 177, L"Description", false);
 
   ListView_DeleteAllItems(hlv);
-  // TODO: ListView_SetItemCount(hlv, Codec_NB);
+  ListView_SetItemCount(hlv, Codec_NB);
 
   // Create entrys for the formats
   LVITEM lvi;
@@ -227,9 +232,8 @@ HRESULT CLAVVideoFormatsProp::OnActivate()
   lvi.mask = LVIF_TEXT|LVIF_PARAM;
 
   int nItem = 0;
-  // TODO:
-  /*for (nItem = 0; nItem < Codec_NB; ++nItem) {
-    const codec_config_t *config = get_codec_config((LAVAudioCodec)nItem);
+  for (nItem = 0; nItem < Codec_NB; ++nItem) {
+    const codec_config_t *config = get_codec_config((LAVVideoCodec)nItem);
 
     // Create main entry
     lvi.iItem = nItem + 1;
@@ -238,13 +242,13 @@ HRESULT CLAVVideoFormatsProp::OnActivate()
     // Set sub item texts
     ListView_SetItemText(hlv, nItem, 1, (LPWSTR)config->name);
     ListView_SetItemText(hlv, nItem, 2, (LPWSTR)config->description);
-  } */
+  }
 
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     // Set checked state
     for (nItem = 0; nItem < ListView_GetItemCount(hlv); nItem++) {
-      // TODO: ListView_SetCheckState(hlv, nItem, m_bFormats[nItem]);
+      ListView_SetCheckState(hlv, nItem, m_bFormats[nItem]);
     }
   }
 
@@ -255,7 +259,8 @@ HRESULT CLAVVideoFormatsProp::LoadData()
 {
   HRESULT hr = S_OK;
   
-  // TODO: Read Config
+ for (unsigned i = 0; i < Codec_NB; ++i)
+    m_bFormats[i] = m_pVideoSettings->GetFormatConfiguration((LAVVideoCodec)i) != 0;
 
   return hr;
 }
@@ -270,11 +275,10 @@ INT_PTR CLAVVideoFormatsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPar
       switch (hdr->code) {
       case LVN_ITEMCHANGED:
         LPNMLISTVIEW nmlv = (LPNMLISTVIEW)lParam;
-        bool check = ListView_GetCheckState(hdr->hwndFrom, nmlv->iItem) ? true : false;
-        // TODO:
-        /*if (check != m_bFormats[nmlv->iItem]) {
+        BOOL check = ListView_GetCheckState(hdr->hwndFrom, nmlv->iItem);
+        if (check != m_bFormats[nmlv->iItem]) {
           SetDirty();
-        } */
+        }
         return TRUE;
       }
     }
