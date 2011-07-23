@@ -23,7 +23,7 @@
 #include "LAVPixFmtConverter.h"
 #include "LAVVideoSettings.h"
 
-#define MAX_THREADS 8
+#define MAX_THREADS 32
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 
