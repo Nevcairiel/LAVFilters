@@ -60,6 +60,8 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   LoadSettings();
 
+  m_PixFmtConverter.SetSettings(this);
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -92,6 +94,7 @@ void CLAVVideo::ffmpeg_shutdown()
 HRESULT CLAVVideo::LoadDefaults()
 {
   m_settings.StreamAR = TRUE;
+  m_settings.InterlacedFlags = TRUE;
   m_settings.NumThreads = 0;
 
   return S_OK;
@@ -116,6 +119,9 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = reg.ReadDWORD(L"StreamAR", hr);
   if (SUCCEEDED(hr)) m_settings.StreamAR = bFlag;
 
+  bFlag = reg.ReadDWORD(L"InterlacedFlags", hr);
+  if (SUCCEEDED(hr)) m_settings.InterlacedFlags = bFlag;
+
   dwVal = reg.ReadDWORD(L"NumThreads", hr);
   if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
 
@@ -131,6 +137,7 @@ HRESULT CLAVVideo::SaveSettings()
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
     reg.WriteBOOL(L"StreamAR", m_settings.StreamAR);
+    reg.WriteBOOL(L"InterlacedFlags", m_settings.InterlacedFlags);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
   }
   return S_OK;
@@ -822,4 +829,15 @@ STDMETHODIMP CLAVVideo::SetStreamAR(BOOL bStreamAR)
 STDMETHODIMP_(BOOL) CLAVVideo::GetStreamAR()
 {
   return m_settings.StreamAR;
+}
+
+STDMETHODIMP CLAVVideo::SetReportInterlacedFlags(BOOL bEnabled)
+{
+  m_settings.InterlacedFlags = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetReportInterlacedFlags()
+{
+  return m_settings.InterlacedFlags;
 }

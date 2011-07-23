@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "LAVVideoSettings.h"
+
 typedef struct {
   GUID subtype;
   int bpp;
@@ -53,6 +55,8 @@ public:
   CLAVPixFmtConverter();
   ~CLAVPixFmtConverter();
 
+  void SetSettings(ILAVVideoSettings *pSettings) { m_pSettings = pSettings; }
+
   HRESULT SetInputPixFmt(enum PixelFormat pix_fmt) { m_InputPixFmt = pix_fmt; DestroySWScale(); return S_OK; }
   HRESULT SetOutputPixFmt(enum LAVVideoPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; DestroySWScale(); return S_OK; }
   
@@ -84,4 +88,6 @@ private:
   int swsWidth, swsHeight;
 
   SwsContext *m_pSwsContext;
+
+  ILAVVideoSettings *m_pSettings;
 };

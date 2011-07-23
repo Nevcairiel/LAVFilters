@@ -52,6 +52,8 @@ public:
   STDMETHODIMP_(DWORD) GetNumThreads();
   STDMETHODIMP SetStreamAR(BOOL bStreamAR);
   STDMETHODIMP_(BOOL) GetStreamAR();
+  STDMETHODIMP SetReportInterlacedFlags(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetReportInterlacedFlags();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -125,6 +127,7 @@ private:
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {
     BOOL StreamAR;
+    BOOL InterlacedFlags;
     DWORD NumThreads;
   } m_settings;
 };

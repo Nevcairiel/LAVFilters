@@ -110,13 +110,13 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
 };
 
 CLAVPixFmtConverter::CLAVPixFmtConverter()
-  : m_InputPixFmt(PIX_FMT_NONE)
+  : m_pSettings(NULL)
+  , m_InputPixFmt(PIX_FMT_NONE)
   , m_OutputPixFmt(LAVPixFmt_YV12)
   , m_pSwsContext(NULL)
   , swsWidth(0), swsHeight(0)
 {
 }
-
 
 CLAVPixFmtConverter::~CLAVPixFmtConverter()
 {
@@ -203,7 +203,8 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   }
 
   // Always set interlace flags, the samples will be flagged appropriately then.
-  vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
+  if (m_pSettings->GetReportInterlacedFlags())
+    vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
 
   mt.SetSampleSize(vih2->bmiHeader.biSizeImage);
   mt.SetTemporalCompression(0);
