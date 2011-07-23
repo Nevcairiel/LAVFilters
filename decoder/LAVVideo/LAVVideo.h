@@ -22,6 +22,7 @@
 
 #include "LAVPixFmtConverter.h"
 #include "LAVVideoSettings.h"
+#include "H264RandomAccess.h"
 
 #define MAX_THREADS 32
 
@@ -91,7 +92,7 @@ private:
 
   HRESULT GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar);
   HRESULT ReconnectOutput(int width, int height, AVRational ar);
-  HRESULT Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
+  HRESULT Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
 
   HRESULT SetTypeSpecificFlags(IMediaSample* pMS);
 
@@ -127,6 +128,8 @@ private:
 
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
+
+  CH264RandomAccess    m_h264RandomAccess;
 
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {

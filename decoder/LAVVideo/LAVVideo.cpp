@@ -350,6 +350,9 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
   getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), NULL, &extralen);
 
+  m_h264RandomAccess.SetAVCNALSize(0);
+  m_h264RandomAccess.flush(m_pAVCtx->thread_count);
+
   if (extralen > 0) {
     // Reconstruct AVC1 extradata format
     if (pmt->formattype == FORMAT_MPEG2Video && (m_pAVCtx->codec_tag == MAKEFOURCC('a','v','c','1') || m_pAVCtx->codec_tag == MAKEFOURCC('A','V','C','1') || m_pAVCtx->codec_tag == MAKEFOURCC('C','C','V','1'))) {
@@ -382,6 +385,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
       extra[5] = count;
       extra[extralen-1] = 0;
 
+      m_h264RandomAccess.SetAVCNALSize(mp2vi->dwFlags);
     } else {
       // Just copy extradata for other formats
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
@@ -470,6 +474,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 
   if (m_pAVCtx) {
     avcodec_flush_buffers (m_pAVCtx);
+    m_h264RandomAccess.flush(m_pAVCtx->thread_count);
   }
 
   m_CurrentThread = 0;
@@ -636,7 +641,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   return hr;
 }
 
-HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop)
+HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop)
 {
   HRESULT hr = S_OK;
   int     got_picture;
@@ -669,6 +674,13 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     m_CurrentThread++;
     if (m_CurrentThread >= m_pAVCtx->thread_count) {
       m_CurrentThread = 0;
+    }
+  }
+
+  if (m_nCodecId == CODEC_ID_H264 && !bFlush) {
+    BOOL bRecovered = m_h264RandomAccess.searchRecoveryPoint(pDataIn, nSize);
+    if (!bRecovered) {
+      return S_OK;
     }
   }
 
@@ -709,6 +721,10 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     } else {
       nSize -= used_bytes;
       pDataIn += used_bytes;
+    }
+
+    if (m_nCodecId == CODEC_ID_H264) {
+      m_h264RandomAccess.judgeFrameUsability(m_pFrame, &got_picture);
     }
 
     if (!got_picture || !m_pFrame->data[0]) {
@@ -851,6 +867,8 @@ HRESULT CLAVVideo::SetTypeSpecificFlags(IMediaSample* pMS)
   SafeRelease(&pMS2);
   return hr;
 }
+
+// H264 Random Access Helpers
 
 // ILAVVideoSettings
 STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)

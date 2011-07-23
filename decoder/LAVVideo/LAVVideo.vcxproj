@@ -145,6 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="H264RandomAccess.cpp" />
     <ClCompile Include="LAVPixFmtConverter.cpp" />
     <ClCompile Include="LAVVideo.cpp" />
     <ClCompile Include="Media.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="VideoSettingsProp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="H264RandomAccess.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
     <ClInclude Include="LAVVideoSettings.h" />
