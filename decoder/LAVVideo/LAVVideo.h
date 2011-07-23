@@ -30,7 +30,7 @@
 typedef struct {
   REFERENCE_TIME rtStart;
   REFERENCE_TIME rtStop;
-} B_FRAME;
+} TimingCache;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
 class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages, public ILAVVideoSettings
@@ -111,6 +111,9 @@ private:
   BOOL                 m_bCalculateStopTime;
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
+
+  TimingCache          m_tcThreadBuffer[MAX_THREADS];
+  int                  m_CurrentThread;
 
   BOOL                 m_bDiscontinuity;
   BOOL                 m_bForceTypeNegotiation;

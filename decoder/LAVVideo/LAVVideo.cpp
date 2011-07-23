@@ -53,6 +53,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_nThreads(1)
   , m_bForceTypeNegotiation(FALSE)
   , m_bRuntimeConfig(FALSE)
+  , m_CurrentThread(0)
 {
   avcodec_init();
   avcodec_register_all();
@@ -412,6 +413,8 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
     avcodec_flush_buffers (m_pAVCtx);
   }
 
+  m_CurrentThread = 0;
+
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
@@ -600,6 +603,16 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     bFlush = TRUE;
   }
 
+  if (!m_bFFReordering && m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
+    m_tcThreadBuffer[m_CurrentThread].rtStart = rtStart;
+    m_tcThreadBuffer[m_CurrentThread].rtStop  = rtStop;
+
+    m_CurrentThread++;
+    if (m_CurrentThread >= m_pAVCtx->thread_count) {
+      m_CurrentThread = 0;
+    }
+  }
+
   while (nSize > 0 || bFlush) {
 
     if (!bFlush) {
@@ -664,6 +677,10 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     } else if (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
       if (m_pFrame->pict_type == AV_PICTURE_TYPE_B)
         rtStart = AV_NOPTS_VALUE;
+    } else if (m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
+      unsigned index = m_CurrentThread;
+      rtStart = m_tcThreadBuffer[index].rtStart;
+      rtStop  = m_tcThreadBuffer[index].rtStop;
     }
 
     if (rtStart == AV_NOPTS_VALUE) {
@@ -685,7 +702,7 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
       rtStop = rtStart + (duration * (m_pFrame->repeat_pict ? 3 : 2)  / 2);
     }
 
-    DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d, key: %d, type: %c, repeat: %d", rtStart, rtStart-m_rtPrevStart, m_pFrame->key_frame, av_get_picture_type_char(m_pFrame->pict_type), m_pFrame->repeat_pict));
+    DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d, key: %d, type: %c, repeat: %d, tidx: %d", rtStart, rtStart-m_rtPrevStart, m_pFrame->key_frame, av_get_picture_type_char(m_pFrame->pict_type), m_pFrame->repeat_pict, m_CurrentThread));
 
     m_rtPrevStart = rtStart;
     m_rtPrevStop = rtStop;
@@ -728,6 +745,12 @@ HRESULT CLAVVideo::Decode(const BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStar
     SetTypeSpecificFlags (pOut);
     hr = m_pOutput->Deliver(pOut);
     SafeRelease(&pOut);
+
+    if (bFlush) {
+      m_CurrentThread++;
+      if (m_CurrentThread >= m_pAVCtx->thread_count)
+        m_CurrentThread = 0;
+    }
   }
   return hr;
 }
