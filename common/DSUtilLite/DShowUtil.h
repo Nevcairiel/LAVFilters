@@ -104,6 +104,7 @@ extern BOOL FilterInGraph(const GUID& clsid, IFilterGraph *pFG);
 extern IBaseFilter* GetFilterFromPin(IPin* pPin);
 extern HRESULT NukeDownstream(IFilterGraph *pGraph, IPin *pPin);
 extern HRESULT NukeDownstream(IFilterGraph *pGraph, IBaseFilter *pFilter);
+extern HRESULT FindIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown);
 
 std::wstring WStringFromGUID(const GUID& guid);
 BSTR ConvertCharToBSTR(const char *sz);
