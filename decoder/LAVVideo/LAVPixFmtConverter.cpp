@@ -249,7 +249,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
   if (!m_pSwsContext || swsWidth != width || swsHeight != height) {
     // Map full-range formats to their limited-range variants
     // All target formats we have are limited range and we don't want compression
-    if (dstPix != PIX_FMT_BGRA) {
+    if (dstPix != PIX_FMT_BGRA && dstPix != PIX_FMT_BGR24) {
       if (srcPix == PIX_FMT_YUVJ420P)
         srcPix = PIX_FMT_YUV420P;
       else if (srcPix == PIX_FMT_YUVJ422P)
