@@ -127,7 +127,9 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
 
   // Convert the filename from wchar to char for avformat
   char fileName[4096] = {0};
-  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
+  if (pszFileName) {
+    ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
+  }
 
   if (byteContext) {
     // Create the avformat_context
