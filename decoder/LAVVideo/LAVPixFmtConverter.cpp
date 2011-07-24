@@ -180,6 +180,17 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.AllocFormatBuffer(sizeof(VIDEOINFOHEADER2));
   memset(vih2, 0, sizeof(VIDEOINFOHEADER2));
 
+
+  // Validate the Aspect Ratio - an AR of 0 crashes VMR-9
+  if (dwAspectX == 0 || dwAspectY == 0) {
+    int dwX = 0;
+    int dwY = 0;
+    av_reduce(&dwX, &dwY, biWidth, biHeight, max(biWidth, biHeight));
+
+    dwAspectX = dwX;
+    dwAspectY = dwY;
+  }
+
   vih2->rcSource.right = vih2->rcTarget.right = biWidth;
   vih2->rcSource.bottom = vih2->rcTarget.bottom = biHeight;
   vih2->AvgTimePerFrame = rtAvgTime;
