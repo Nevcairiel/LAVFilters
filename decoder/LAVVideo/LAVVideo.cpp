@@ -74,12 +74,14 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVVideo::~CLAVVideo()
 {
   av_free(m_pFFBuffer);
+  ffmpeg_shutdown();
 }
 
 void CLAVVideo::ffmpeg_shutdown()
 {
   m_pAVCodec	= NULL;
   if (m_pAVCtx) {
+    avcodec_flush_buffers(m_pAVCtx);
     avcodec_close(m_pAVCtx);
     av_free(m_pAVCtx->extradata);
     av_free(m_pAVCtx);
