@@ -140,6 +140,42 @@ BOOL FilterInGraph(const GUID& clsid, IFilterGraph *pFG)
   return bFound;
 }
 
+BOOL FilterInGraphWithInputSubtype(const GUID& clsid, IFilterGraph *pFG, const GUID& clsidSubtype)
+{
+  BOOL bFound = FALSE;
+  IBaseFilter *pFilter = NULL;
+
+  pFilter = FindFilter(clsid, pFG);
+
+  if (pFilter) {
+    IEnumPins *pPinEnum = NULL;
+    pFilter->EnumPins(&pPinEnum);
+    IPin *pPin = NULL;
+    while((S_OK == pPinEnum->Next(1, &pPin, NULL)) && pPin) {
+      PIN_DIRECTION dir;
+      pPin->QueryDirection(&dir);
+      if (dir == PINDIR_INPUT) {
+        AM_MEDIA_TYPE mt;
+        pPin->ConnectionMediaType(&mt);
+
+        if(mt.subtype == clsidSubtype) {
+          bFound = TRUE;
+        }
+        FreeMediaType(mt);
+      }
+      SafeRelease(&pPin);
+
+      if (bFound)
+        break;
+    }
+
+    SafeRelease(&pPinEnum);
+    SafeRelease(&pFilter);
+  }
+
+  return bFound;
+}
+
 std::wstring WStringFromGUID(const GUID& guid)
 {
   WCHAR null[128] = {0}, buff[128];

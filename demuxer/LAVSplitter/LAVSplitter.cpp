@@ -1244,7 +1244,12 @@ STDMETHODIMP CLAVSplitter::SetVC1TimestampMode(int iMode)
 
 STDMETHODIMP_(BOOL) CLAVSplitter::IsVC1CorrectionRequired()
 {
-  return FilterInGraph(CLSID_LAVVideo, m_pGraph) || FilterInGraph(CLSID_MPCVideoDec, m_pGraph) || FilterInGraph(CLSID_ffdshowDXVA, m_pGraph) || FilterInGraph(CLSID_DMOWrapperFilter, m_pGraph);
+  return
+      FilterInGraph(CLSID_LAVVideo, m_pGraph)
+   || FilterInGraph(CLSID_MPCVideoDec, m_pGraph)
+   || FilterInGraph(CLSID_ffdshowDXVA, m_pGraph)
+   || FilterInGraphWithInputSubtype(CLSID_madVR, m_pGraph, MEDIASUBTYPE_WVC1)
+   || FilterInGraphWithInputSubtype(CLSID_DMOWrapperFilter, m_pGraph, MEDIASUBTYPE_WVC1);
 }
 
 STDMETHODIMP CLAVSplitter::SetSubstreamsEnabled(BOOL bSubStreams)
