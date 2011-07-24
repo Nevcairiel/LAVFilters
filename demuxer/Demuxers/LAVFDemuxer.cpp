@@ -216,12 +216,12 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
   m_bVC1SeenTimestamp = FALSE;
 
-  LPWSTR extension = PathFindExtensionW(pszFileName);
+  LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
 
   m_bMatroska = (_strnicmp(m_pszInputFormat, "matroska", 8) == 0);
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
-  m_bEVO = (_wcsicmp(extension, L".evo") == 0 && _stricmp(m_pszInputFormat, "mpeg") == 0);
+  m_bEVO = ((extension ? _wcsicmp(extension, L".evo") == 0 : TRUE) && _stricmp(m_pszInputFormat, "mpeg") == 0);
 
   if (AVFORMAT_GENPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
