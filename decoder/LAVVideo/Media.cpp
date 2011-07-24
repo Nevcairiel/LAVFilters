@@ -403,8 +403,8 @@ void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsig
 static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_H264 }},                                                // Codec_H264
   { 1, { CODEC_ID_VC1 }},                                                 // Codec_VC1
-  { 1, { CODEC_ID_MPEG1VIDEO }},                                          // Codec_MPEG1
-  { 1, { CODEC_ID_MPEG2VIDEO }},                                          // Codec_MPEG2
+  { 1, { CODEC_ID_MPEG1VIDEO }, L"mpeg1"},                                // Codec_MPEG1
+  { 1, { CODEC_ID_MPEG2VIDEO }, L"mpeg2"},                                // Codec_MPEG2
   { 1, { CODEC_ID_MPEG4 }},                                               // Codec_MPEG4
   { 3, { CODEC_ID_MSMPEG4V1, CODEC_ID_MSMPEG4V2, CODEC_ID_MSMPEG4V3 }, L"msmpeg4", L"MS-MPEG-4 (DIVX3)" },   // Codec_MSMPEG4
   { 1, { CODEC_ID_VP8 }},                                                 // Codec_VP8
@@ -422,8 +422,8 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_HUFFYUV }},                                             // Codec_HuffYUV
   { 1, { CODEC_ID_QTRLE }},                                               // Codec_QTRle
   { 1, { CODEC_ID_DVVIDEO }},                                             // Codec_DV
-  { 1, { CODEC_ID_BINKVIDEO }},                                           // Codec_Bink
-  { 3, { CODEC_ID_RV10, CODEC_ID_RV20, CODEC_ID_RV30 }, L"rv10-30", L"Real Video 1-3" }, // Codev_RV123
+  { 1, { CODEC_ID_BINKVIDEO }, L"bink"},                                  // Codec_Bink
+  { 3, { CODEC_ID_RV10, CODEC_ID_RV20, CODEC_ID_RV30 }, L"rv10-30", L"RealVideo 1-3" }, // Codev_RV123
   { 1, { CODEC_ID_RV40 }},                                                // Codec_RV4
   { 1, { CODEC_ID_LAGARITH }},                                            // Codec_Lagarith
   { 1, { CODEC_ID_CINEPAK }},                                             // Codec_Cinepak
@@ -432,18 +432,22 @@ static codec_config_t m_codec_config[] = {
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
 {
   codec_config_t *config = &m_codec_config[codec];
-  if (!config->name) {
-    AVCodec *codec = avcodec_find_decoder(config->codecs[0]);
-    if (codec) {
-      size_t name_len = strlen(codec->name) + 1;
-      wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, codec->name, -1, name, name_len);
 
-      size_t desc_len = strlen(codec->long_name) + 1;
-      wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, codec->long_name, -1, desc, desc_len);
+  AVCodec *avcodec = avcodec_find_decoder(config->codecs[0]);
+  if (avcodec) {
+    if (!config->name) {
+      size_t name_len = strlen(avcodec->name) + 1;
+      wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
+      MultiByteToWideChar(CP_UTF8, 0, avcodec->name, -1, name, name_len);
 
       config->name = name;
+    }
+
+    if (!config->description) {
+      size_t desc_len = strlen(avcodec->long_name) + 1;
+      wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
+      MultiByteToWideChar(CP_UTF8, 0, avcodec->long_name, -1, desc, desc_len);
+
       config->description = desc;
     }
   }
