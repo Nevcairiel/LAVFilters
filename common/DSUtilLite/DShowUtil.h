@@ -101,6 +101,7 @@ extern std::string ISO6392To6391(LPCSTR code);
 extern HRESULT FilterGraphCleanup(IFilterGraph *pGraph);
 extern IBaseFilter *FindFilter(const GUID& clsid, IFilterGraph *pFG);
 extern BOOL FilterInGraph(const GUID& clsid, IFilterGraph *pFG);
+extern BOOL FilterInGraphWithInputSubtype(const GUID& clsid, IFilterGraph *pFG, const GUID& clsidSubtype);
 extern IBaseFilter* GetFilterFromPin(IPin* pPin);
 extern HRESULT NukeDownstream(IFilterGraph *pGraph, IPin *pPin);
 extern HRESULT NukeDownstream(IFilterGraph *pGraph, IBaseFilter *pFilter);
