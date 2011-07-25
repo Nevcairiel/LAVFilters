@@ -459,8 +459,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     pPacket->StreamId = (DWORD)pkt.stream_index;
 
     if (m_bMPEGTS && !m_bBluRay) {
-      const int64_t pts_diff = pkt.pts - stream->start_time;
-      const int64_t dts_diff = pkt.dts - stream->first_dts;
+      int64_t start_time = av_rescale_q(m_avFormat->start_time, AV_RATIONAL_TIMEBASE, stream->time_base);
+      const int64_t pts_diff = pkt.pts - start_time;
+      const int64_t dts_diff = pkt.dts - start_time;
       if ((pkt.pts == AV_NOPTS_VALUE || pts_diff < -stream->time_base.den) && (pkt.dts == AV_NOPTS_VALUE || dts_diff < -stream->time_base.den) && stream->pts_wrap_bits < 63) {
         if (pkt.pts != AV_NOPTS_VALUE)
           pkt.pts += 1LL << stream->pts_wrap_bits;
@@ -968,6 +969,14 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
       }
 
       st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
+      if (start_time != INT64_MAX && m_bMPEGTS && st->pts_wrap_bits < 60) {
+        int64_t start = av_rescale_q(start_time, AV_RATIONAL_TIMEBASE, st->time_base);
+        if (start < (3LL << (st->pts_wrap_bits - 3)) && st->start_time > (3LL << (st->pts_wrap_bits - 2))) {
+          start_time = av_rescale_q(start + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
+        } else if (st->start_time < (3LL << (st->pts_wrap_bits - 3)) && start > (3LL << (st->pts_wrap_bits - 2))) {
+          st_start_time = av_rescale_q(st->start_time + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
+        }
+      }
       if (st_start_time < start_time)
         start_time = st_start_time;
     }
