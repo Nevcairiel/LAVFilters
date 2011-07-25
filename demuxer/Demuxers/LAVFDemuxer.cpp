@@ -461,8 +461,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     if (m_bMPEGTS && !m_bBluRay) {
       const int64_t pts_diff = pkt.pts - stream->start_time;
       const int64_t dts_diff = pkt.dts - stream->first_dts;
-      if (pts_diff < -stream->time_base.den && dts_diff < -stream->time_base.den && stream->pts_wrap_bits < 63) {
-        pkt.pts += 1LL << stream->pts_wrap_bits;
+      if ((pkt.pts == AV_NOPTS_VALUE || pts_diff < -stream->time_base.den) && (pkt.dts == AV_NOPTS_VALUE || dts_diff < -stream->time_base.den) && stream->pts_wrap_bits < 63) {
+        if (pkt.pts != AV_NOPTS_VALUE)
+          pkt.pts += 1LL << stream->pts_wrap_bits;
+        if (pkt.dts != AV_NOPTS_VALUE)
         pkt.dts += 1LL << stream->pts_wrap_bits;
       }
     }
