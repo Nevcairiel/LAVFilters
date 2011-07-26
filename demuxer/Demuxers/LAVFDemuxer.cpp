@@ -1104,6 +1104,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
       int check_rate = m_avFormat->streams[check->pid]->codec->bit_rate;
       if (best_rate && check_rate && check_rate > best_rate)
         best = check;
+      else if (best_rate == check_rate && m_avFormat->streams[check->pid]->codec_info_nb_frames > m_avFormat->streams[best->pid]->codec_info_nb_frames)
+        best = check;
     }
   }
 
@@ -1246,6 +1248,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
           int old_priority = audio_codec_priority(old_stream->codec);
           int new_priority = audio_codec_priority(new_stream->codec);
           if (new_priority > old_priority) {
+            best = *sit;
+          } else if (new_priority == old_priority && new_stream->codec_info_nb_frames > old_stream->codec_info_nb_frames) {
             best = *sit;
           }
         }
