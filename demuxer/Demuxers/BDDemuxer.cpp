@@ -177,7 +177,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
     }
     m_pBD = bd;
     // Fetch titles
-    m_nTitleCount = bd_get_titles(bd, (iPlaylist != -1) ? TITLES_ALL : TITLES_RELEVANT, 0);
+    m_nTitleCount = bd_get_titles(bd, (iPlaylist != -1) ? TITLES_ALL : TITLES_RELEVANT, (iPlaylist != -1) ? 0 : 180);
 
     if (m_nTitleCount <= 0) {
       return E_FAIL;
