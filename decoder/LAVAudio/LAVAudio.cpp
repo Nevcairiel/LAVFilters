@@ -34,6 +34,8 @@
 
 #include "DeCSS/DeCSSInputPin.h"
 
+#include "libavcodec/dca.h"
+
 extern HINSTANCE g_hInst;
 
 // Constructor
@@ -66,6 +68,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_DecodeLayout(0)
   , m_DecodeLayoutSanified(0)
   , m_bChannelMappingRequired(FALSE)
+  , m_bFindDTSInPCM(FALSE)
 {
   avcodec_init();
   av_register_all();
@@ -841,6 +844,8 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     return VFW_E_UNSUPPORTED_AUDIO;
   }
 
+  m_bFindDTSInPCM = (codec == CODEC_ID_PCM_S16LE);
+
   return S_OK;
 }
 
@@ -1043,6 +1048,33 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   if (bEOF) {
     p = NULL;
     buffer_size = -1;
+  }
+
+  if (m_bFindDTSInPCM) {
+    int i = 0, count = 0;
+    uint32_t state = -1;
+    for (i = 0; i < buffer_size; ++i) {
+      state = (state << 8) | p[i];
+      if ((state == DCA_MARKER_14B_LE && (i < buffer_size-2) && (p[i+1] & 0xF0) == 0xF0 && p[i+2] == 0x07)
+        || (state == DCA_MARKER_14B_BE && (i < buffer_size-2) && p[i+1] == 0x07 && (p[i+2] & 0xF0) == 0xF0)
+        || state == DCA_MARKER_RAW_LE || state == DCA_MARKER_RAW_BE) {
+          count++;
+      }
+    }
+    if (count >= 4) {
+      DbgLog((LOG_TRACE, 10, L"::ProcessBuffer(): Detected %d DTS sync words in %d bytes of data, switching to DTS-in-WAV decoding", count, buffer_size));
+      CMediaType mt = m_pInput->CurrentMediaType();
+      ffmpeg_init(CODEC_ID_DTS, mt.Format(), *mt.FormatType());
+      m_bFindDTSInPCM = FALSE;
+    }
+
+    if (buffer_size > (16384 * 4)) {
+      m_bFindDTSInPCM = FALSE;
+    }
+
+    if (m_bFindDTSInPCM) {
+      return S_FALSE;
+    }
   }
 
   // If a bitstreaming context exists, we should bitstream

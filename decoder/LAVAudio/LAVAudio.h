@@ -259,6 +259,7 @@ private:
 
   BOOL                m_bDTSHD;
   CBitstreamParser    m_bsParser;
+  BOOL                m_bFindDTSInPCM;
 
   FloatingAverage<REFERENCE_TIME> m_faJitter;
 
