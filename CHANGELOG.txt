@@ -1,5 +1,17 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.31 - 2011/07/28
+LAV Splitter
+- Improved audio codec selection priorities
+- Improved VC-1 playback when using the madVR internal decoder
+- Improved playback of MPEG-TS files with a timestamp wrap right at the beginning of a file
+- Reduced amount of data required for file probing, resulting in faster startup time
+- Fixed demuxing/timestamping of RealMedia files
+
+LAV Audio
+- Fixed a bug in the DTS parser which caused occasional hiccups on DTS-HD content
+- Added the ability to detect DTS-in-WAV
+
 0.30 - 2011/07/15
 LAV Splitter
 - Improved VC-1 playback with ffdshow DXVA
