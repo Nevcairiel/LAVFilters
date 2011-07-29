@@ -399,6 +399,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
   m_pAVCtx->channels = out->wChannels;
 
   m_DecodeFormat = out->sfFormat;
+  m_DecodeLayout = out->dwChannelMask;
 
   return S_OK;
 }
