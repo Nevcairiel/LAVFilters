@@ -457,7 +457,8 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
         };
 
         int index = 0, profile = m_pAVCtx->profile;
-        while(profile >>= 1) index++;
+        if (profile != FF_PROFILE_UNKNOWN)
+          while(profile >>= 1) index++;
         if (index > 7) index = 0;
 
         *pCodec = DTSProfiles[index] ? DTSProfiles[index] : "dts";
