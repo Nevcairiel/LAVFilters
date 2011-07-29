@@ -836,7 +836,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
 
   m_nCodecId                      = codec;
 
-  int ret = avcodec_open(m_pAVCtx, m_pAVCodec);
+  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
     m_pPCMData = (BYTE*)av_mallocz(LAV_AUDIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
   } else {
