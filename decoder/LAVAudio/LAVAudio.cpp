@@ -811,6 +811,14 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
   m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_FLT;
 #endif
 
+  // We can only trust LAV Splitters LATM AAC header...
+  BOOL bTrustExtraData = TRUE;
+  if (codec == CODEC_ID_AAC_LATM) {
+    if (!(FilterInGraph(CLSID_LAVSplitter, m_pGraph) || FilterInGraph(CLSID_LAVSplitterSource, m_pGraph))) {
+      bTrustExtraData = FALSE;
+    }
+  }
+
   if (format_type == FORMAT_WaveFormatEx) {
     WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;
     m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
@@ -819,7 +827,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
     m_pAVCtx->block_align           = wfein->nBlockAlign;
 
-    if (wfein->cbSize) {
+    if (bTrustExtraData && wfein->cbSize) {
       m_pAVCtx->extradata_size      = wfein->cbSize;
       m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
       memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
