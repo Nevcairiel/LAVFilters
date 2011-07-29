@@ -20,18 +20,29 @@
 
 #pragma once
 
-#define LAV_VERSION_MAJOR 0
-#define LAV_VERSION_MINOR 31
+class CByteParser;
 
-#define LAV_AUDIO "LAV Audio Decoder"
-#define LAV_VIDEO "LAV Video Decoder"
-#define LAV_SPLITTER "LAV Splitter"
+class CH264RandomAccess
+{
+public:
+  CH264RandomAccess();
+  ~CH264RandomAccess();
 
-/////////////////////////////////////////////////////////
-#define DO_MAKE_STR(x) #x
-#define MAKE_STR(x) DO_MAKE_STR(x)
+  void flush(int threadCount);
+  BOOL searchRecoveryPoint(uint8_t *buf, int buf_size);
+  void judgeFrameUsability(AVFrame *pFrame, int *got_picture_ptr);
 
-#define LAV_VERSION LAV_VERSION_MAJOR.LAV_VERSION_MINOR
-#define LAV_VERSION_TAG LAV_VERSION_MAJOR, LAV_VERSION_MINOR
+  void SetAVCNALSize(int avcNALSize) { m_AVCNALSize = avcNALSize; }
 
-#define LAV_VERSION_STR MAKE_STR(LAV_VERSION)
+private:
+  int decode_sei_recovery_point(CByteParser *pParser);
+  int parseForRecoveryPoint(uint8_t *buf, int buf_size, int *recoveryFrameCount);
+
+private:
+  int m_RecoveryMode; // 0: OK; 1: Searching; 2: Found; 3: 
+  int m_RecoveryFrameCount;
+  int m_RecoveryPOC;
+  int m_ThreadDelay;
+
+  int m_AVCNALSize;
+};

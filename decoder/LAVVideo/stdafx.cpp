@@ -17,21 +17,5 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *  http://www.gnu.org/copyleft/gpl.html
  */
-
-#pragma once
-
-#define LAV_VERSION_MAJOR 0
-#define LAV_VERSION_MINOR 31
-
-#define LAV_AUDIO "LAV Audio Decoder"
-#define LAV_VIDEO "LAV Video Decoder"
-#define LAV_SPLITTER "LAV Splitter"
-
-/////////////////////////////////////////////////////////
-#define DO_MAKE_STR(x) #x
-#define MAKE_STR(x) DO_MAKE_STR(x)
-
-#define LAV_VERSION LAV_VERSION_MAJOR.LAV_VERSION_MINOR
-#define LAV_VERSION_TAG LAV_VERSION_MAJOR, LAV_VERSION_MINOR
-
-#define LAV_VERSION_STR MAKE_STR(LAV_VERSION)
+// Pre-compiled header
+#include "stdafx.h"

@@ -16,13 +16,13 @@ make distclean
 
 OPTIONS="
 --enable-shared \
---enable-memalign-hack \
 --enable-gpl \
---enable-w32threads \
+--enable-pthreads \
 --enable-runtime-cpudetect \
 --enable-asm \
 --disable-postproc \
 --enable-zlib \
+--enable-swscale \
 --disable-static \
 --disable-altivec \
 --disable-muxers \
@@ -35,7 +35,6 @@ OPTIONS="
 --disable-devices \
 --disable-filters \
 --disable-avfilter \
---disable-swscale \
 --disable-avdevice \
 --disable-hwaccels \
 --disable-bsfs \
@@ -45,7 +44,7 @@ OPTIONS="
 --enable-muxer=spdif \
 --arch=x86 --cpu=i686 --target-os=mingw32"
 
-./configure --extra-cflags="-mmmx -msse" ${OPTIONS} &&
+./configure --extra-libs="-lwsock32" --extra-cflags="-mmmx -msse -DPTW32_STATIC_LIB" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_Win32 &&

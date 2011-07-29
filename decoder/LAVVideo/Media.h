@@ -20,18 +20,17 @@
 
 #pragma once
 
-#define LAV_VERSION_MAJOR 0
-#define LAV_VERSION_MINOR 31
+CodecID FindCodecId(const CMediaType *mt);
+int getThreadFlags(CodecID codecId);
+void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
+void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsigned int *extralen);
 
-#define LAV_AUDIO "LAV Audio Decoder"
-#define LAV_VIDEO "LAV Video Decoder"
-#define LAV_SPLITTER "LAV Splitter"
+#define MAX_NUM_CC_CODECS 3
 
-/////////////////////////////////////////////////////////
-#define DO_MAKE_STR(x) #x
-#define MAKE_STR(x) DO_MAKE_STR(x)
-
-#define LAV_VERSION LAV_VERSION_MAJOR.LAV_VERSION_MINOR
-#define LAV_VERSION_TAG LAV_VERSION_MAJOR, LAV_VERSION_MINOR
-
-#define LAV_VERSION_STR MAKE_STR(LAV_VERSION)
+struct codec_config_t {
+  int nCodecs;
+  CodecID codecs[MAX_NUM_CC_CODECS];
+  const wchar_t *name;
+  const wchar_t *description;
+};
+const codec_config_t *get_codec_config(LAVVideoCodec codec);

@@ -18,20 +18,29 @@
  *  http://www.gnu.org/copyleft/gpl.html
  */
 
+// pre-compiled header
+
 #pragma once
 
-#define LAV_VERSION_MAJOR 0
-#define LAV_VERSION_MINOR 31
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
 
-#define LAV_AUDIO "LAV Audio Decoder"
-#define LAV_VIDEO "LAV Video Decoder"
-#define LAV_SPLITTER "LAV Splitter"
+// Support for Version 6.0 styles
+#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-/////////////////////////////////////////////////////////
-#define DO_MAKE_STR(x) #x
-#define MAKE_STR(x) DO_MAKE_STR(x)
+// include headers
+#include <Windows.h>
+#include <Commctrl.h>
 
-#define LAV_VERSION LAV_VERSION_MAJOR.LAV_VERSION_MINOR
-#define LAV_VERSION_TAG LAV_VERSION_MAJOR, LAV_VERSION_MINOR
+extern "C" {
+#define __STDC_CONSTANT_MACROS
+#define FF_API_MAX_STREAMS 0
+#include "libavcodec/avcodec.h"
+#include "libswscale/swscale.h"
+}
+#include "streams.h"
 
-#define LAV_VERSION_STR MAKE_STR(LAV_VERSION)
+#include "DShowUtil.h"
+#include "growarray.h"
+
+#define REF_SECOND_MULT 10000000LL

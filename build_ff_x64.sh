@@ -16,13 +16,13 @@ make distclean
 
 OPTIONS="
 --enable-shared \
---enable-memalign-hack \
 --enable-gpl \
---enable-w32threads \
+--enable-pthreads \
 --enable-runtime-cpudetect \
 --enable-asm \
 --disable-postproc \
 --enable-zlib \
+--enable-swscale \
 --disable-static \
 --disable-altivec \
 --disable-muxers \
@@ -35,7 +35,6 @@ OPTIONS="
 --disable-devices \
 --disable-filters \
 --disable-avfilter \
---disable-swscale \
 --disable-avdevice \
 --disable-hwaccels \
 --disable-bsfs \
@@ -46,7 +45,7 @@ OPTIONS="
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32"
 
-./configure ${OPTIONS} &&
+./configure --extra-libs="-lwsock32" --extra-cflags="-DPTW32_STATIC_LIB" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-*.dll ../bin_x64 &&

@@ -1,0 +1,9 @@
+; LAVVideo.def ; declares the exports
+
+LIBRARY         "LAVVideo.ax"
+
+EXPORTS
+                DllGetClassObject PRIVATE
+                DllCanUnloadNow PRIVATE
+                DllRegisterServer PRIVATE
+                DllUnregisterServer PRIVATE

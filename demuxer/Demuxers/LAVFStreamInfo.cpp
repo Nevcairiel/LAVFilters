@@ -134,8 +134,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   }
   CMediaType mtype = g_VideoHelper.initVideoType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
 
-  mtype.bTemporalCompression = 1;
-  mtype.bFixedSizeSamples = 0; // TODO
+  mtype.SetTemporalCompression(TRUE);
+  mtype.SetVariableSize();
 
   // Somewhat hackish to force VIH for AVI content.
   // TODO: Figure out why exactly this is required

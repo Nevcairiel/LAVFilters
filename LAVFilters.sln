@@ -30,6 +30,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVAudio", "decoder\LAVAudi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbluray", "libbluray\libbluray.vcxproj", "{E1DA1B95-71F1-4C21-A271-121176925062}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVVideo", "decoder\LAVVideo\LAVVideo.vcxproj", "{D29ADED3-086B-46A8-9455-97EFF6B14775}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0A058024-41F4-4509-97D2-803A1806CE86} = {0A058024-41F4-4509-97D2-803A1806CE86}
+		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA} = {E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -86,6 +92,14 @@ Global
 		{E1DA1B95-71F1-4C21-A271-121176925062}.Release|Win32.Build.0 = Release|Win32
 		{E1DA1B95-71F1-4C21-A271-121176925062}.Release|x64.ActiveCfg = Release|x64
 		{E1DA1B95-71F1-4C21-A271-121176925062}.Release|x64.Build.0 = Release|x64
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Debug|Win32.Build.0 = Debug|Win32
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Debug|x64.ActiveCfg = Debug|x64
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Debug|x64.Build.0 = Debug|x64
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Release|Win32.ActiveCfg = Release|Win32
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Release|Win32.Build.0 = Release|Win32
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Release|x64.ActiveCfg = Release|x64
+		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
