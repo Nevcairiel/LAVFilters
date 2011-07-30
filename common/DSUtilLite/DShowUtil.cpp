@@ -268,7 +268,7 @@ HRESULT FindIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown)
       pFilter->EnumPins(&pPinEnum);
 
       HRESULT hrPin = E_FAIL;
-      for (IPin *pOtherPin2 = NULL; SUCCEEDED(pPinEnum->Next(1, &pOtherPin2, 0)); pOtherPin2 = NULL) {
+      for (IPin *pOtherPin2 = NULL; pPinEnum->Next(1, &pOtherPin2, 0) == S_OK; pOtherPin2 = NULL) {
         PIN_DIRECTION pinDir;
         pOtherPin2->QueryDirection(&pinDir);
         if (dir == pinDir) {
