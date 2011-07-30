@@ -161,8 +161,13 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
 
   pvi->bmiHeader.biWidth = avstream->codec->width;
   pvi->bmiHeader.biHeight = avstream->codec->height;
-  pvi->bmiHeader.biBitCount = avstream->codec->pix_fmt != PIX_FMT_NONE ? av_get_bits_per_pixel2(avstream->codec->pix_fmt) : 32;
+  pvi->bmiHeader.biBitCount = avstream->codec->bits_per_coded_sample;
+  // Validate biBitCount is set to something useful
+  if (pvi->bmiHeader.biBitCount == 0 || avstream->codec->codec_id == CODEC_ID_RAWVIDEO) {
+    pvi->bmiHeader.biBitCount = av_get_bits_per_pixel2(avstream->codec->pix_fmt);
+  }
   pvi->bmiHeader.biSizeImage = DIBSIZE(pvi->bmiHeader); // Calculating this value doesn't really make alot of sense, but apparently some decoders freak out if its 0
+
   pvi->bmiHeader.biCompression = avstream->codec->codec_tag;
   //TOFIX The bitplanes is depending on the subtype
   pvi->bmiHeader.biPlanes = 1;
