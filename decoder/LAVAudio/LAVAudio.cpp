@@ -654,7 +654,7 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
   wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
   wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
-  if(dwChannelMask == 0 && wfe->wBitsPerSample > 16) {
+  if(dwChannelMask == 0 && (wfe->wBitsPerSample > 16 || wfe->nSamplesPerSec > 44100)) {
     dwChannelMask = nChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
   }
 
