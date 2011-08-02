@@ -691,9 +691,11 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REF
     bFlush = TRUE;
   }
 
-  if (!m_bFFReordering && m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
-    m_tcThreadBuffer[m_CurrentThread].rtStart = rtStart;
-    m_tcThreadBuffer[m_CurrentThread].rtStop  = rtStop;
+  if (m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
+    if (!m_bFFReordering) {
+      m_tcThreadBuffer[m_CurrentThread].rtStart = rtStart;
+      m_tcThreadBuffer[m_CurrentThread].rtStop  = rtStop;
+    }
 
     m_CurrentThread++;
     if (m_CurrentThread >= m_pAVCtx->thread_count) {
