@@ -3,6 +3,7 @@ LAV DirectShow Filters Changelog
 0.32 - xxxx/xx/xx
 LAV Splitter
 - Improved detection of AAC LATM tracks (previously mis-detected as mp1/mp2)
+- Fixed playback of badly interleaved AVI files
 
 0.31 - 2011/07/28
 LAV Splitter
