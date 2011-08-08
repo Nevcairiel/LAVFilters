@@ -71,6 +71,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_bAVI(FALSE)
   , m_bMPEGTS(FALSE)
   , m_bEVO(FALSE)
+  , m_bRM(FALSE)
   , m_bBluRay(FALSE)
   , m_bVC1Correction(FALSE)
   , m_bVC1SeenTimestamp(FALSE)
@@ -224,6 +225,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
   m_bEVO = ((extension ? _wcsicmp(extension, L".evo") == 0 : TRUE) && _stricmp(m_pszInputFormat, "mpeg") == 0);
+  m_bRM = (_stricmp(m_pszInputFormat, "rm") == 0);
 
   if (AVFORMAT_GENPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
@@ -1097,15 +1099,21 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
     uint64_t bestPixels = m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
     uint64_t checkPixels = m_avFormat->streams[check->pid]->codec->width * m_avFormat->streams[check->pid]->codec->height;
 
-    if (checkPixels > bestPixels) {
+    int check_nb_f = m_avFormat->streams[check->pid]->codec_info_nb_frames;
+    int best_nb_f  = m_avFormat->streams[best->pid]->codec_info_nb_frames;
+    if (m_bRM && (check_nb_f > best_nb_f)) {
       best = check;
-    } else if (checkPixels == bestPixels) {
-      int best_rate = m_avFormat->streams[best->pid]->codec->bit_rate;
-      int check_rate = m_avFormat->streams[check->pid]->codec->bit_rate;
-      if (best_rate && check_rate && check_rate > best_rate)
+    } else if (!m_bRM || (check_nb_f == best_nb_f)) {
+      if (checkPixels > bestPixels) {
         best = check;
-      else if (best_rate == check_rate && m_avFormat->streams[check->pid]->codec_info_nb_frames > m_avFormat->streams[best->pid]->codec_info_nb_frames)
-        best = check;
+      } else if (checkPixels == bestPixels) {
+        int best_rate = m_avFormat->streams[best->pid]->codec->bit_rate;
+        int check_rate = m_avFormat->streams[check->pid]->codec->bit_rate;
+        if (best_rate && check_rate && check_rate > best_rate)
+          best = check;
+        else if (best_rate == check_rate && m_avFormat->streams[check->pid]->codec_info_nb_frames > m_avFormat->streams[best->pid]->codec_info_nb_frames)
+          best = check;
+      }
     }
   }
 
