@@ -115,6 +115,7 @@ private:
 
   BOOL                 m_bFFReordering;
   BOOL                 m_bCalculateStopTime;
+  BOOL                 m_bRVDropBFrameTimings;
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
 

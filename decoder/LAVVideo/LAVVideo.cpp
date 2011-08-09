@@ -49,6 +49,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bProcessExtradata(FALSE)
   , m_bFFReordering(FALSE)
   , m_bCalculateStopTime(FALSE)
+  , m_bRVDropBFrameTimings(FALSE)
   , m_rtPrevStart(0)
   , m_rtPrevStop(0)
   , m_bDiscontinuity(FALSE)
@@ -402,6 +403,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
   m_bFFReordering      = ((codec == CODEC_ID_H264 && m_strExtension != L".avi") || codec == CODEC_ID_VP8 || codec == CODEC_ID_VP3 || codec == CODEC_ID_THEORA || codec == CODEC_ID_HUFFYUV || bVC1OnMPC);
   m_bCalculateStopTime = (codec == CODEC_ID_H264 || bVC1OnMPC);
+
+  m_bRVDropBFrameTimings = (m_strExtension == L".mkv" || !(FilterInGraph(CLSID_LAVSplitter, m_pGraph) || FilterInGraph(CLSID_LAVSplitterSource, m_pGraph)));
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
@@ -776,7 +779,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REF
       rtStart = m_pFrame->pkt_pts;
       rtStop = m_pFrame->pkt_dts;
     } else if (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
-      if (m_pFrame->pict_type == AV_PICTURE_TYPE_B)
+      if (m_bRVDropBFrameTimings && m_pFrame->pict_type == AV_PICTURE_TYPE_B)
         rtStart = AV_NOPTS_VALUE;
     } else if (m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
       unsigned index = m_CurrentThread;
