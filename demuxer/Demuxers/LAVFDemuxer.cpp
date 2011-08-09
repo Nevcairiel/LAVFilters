@@ -521,6 +521,11 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     pPacket->bSyncPoint = (rt != Packet::INVALID_TIME && duration > 0) ? 1 : 0;
     pPacket->bAppendable = 0; //!pPacket->bSyncPoint;
+    pPacket->bDiscontinuity = (pkt.flags & AV_PKT_FLAG_CORRUPT);
+#ifdef DEBUG
+    if (pkt.flags & AV_PKT_FLAG_CORRUPT)
+      DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Signaling Discontinuinty because of corrupt package"));
+#endif
 
     // Update current time
     if (rt != Packet::INVALID_TIME) {
