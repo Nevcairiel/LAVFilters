@@ -753,7 +753,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
 
       used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, avpkt.data, avpkt.size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
 
-      if (used_bytes == 0 && pOut_size == 0) {
+      if (used_bytes == 0 && pOut_size == 0 && !bFlush) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
         break;
       }
