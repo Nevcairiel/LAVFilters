@@ -668,7 +668,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   return hr;
 }
 
-HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop)
+HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
 {
   HRESULT hr = S_OK;
   int     got_picture;
@@ -696,8 +696,8 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REF
 
   if (m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
     if (!m_bFFReordering) {
-      m_tcThreadBuffer[m_CurrentThread].rtStart = rtStart;
-      m_tcThreadBuffer[m_CurrentThread].rtStop  = rtStop;
+      m_tcThreadBuffer[m_CurrentThread].rtStart = rtStartIn;
+      m_tcThreadBuffer[m_CurrentThread].rtStop  = rtStopIn;
     }
 
     m_CurrentThread++;
@@ -726,8 +726,8 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REF
 
       avpkt.data = m_pFFBuffer;
       avpkt.size = nSize;
-      avpkt.pts = rtStart;
-      avpkt.dts = rtStop;
+      avpkt.pts = rtStartIn;
+      avpkt.dts = rtStopIn;
       //avpkt.duration = (int)(rtStart != _I64_MIN && rtStop != _I64_MIN ? rtStop - rtStart : 0);
       avpkt.flags = AV_PKT_FLAG_KEY;
 
@@ -761,6 +761,8 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME& rtStart, REF
       //DbgLog((LOG_TRACE, 10, L"No picture"));
       continue;
     }
+
+    REFERENCE_TIME rtStart = rtStartIn, rtStop = rtStopIn;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // The next big block computes the proper timestamps
