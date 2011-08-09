@@ -105,7 +105,9 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   //DbgSetModuleLevel (LOG_CUSTOM5, DWORD_MAX); // Extensive timing options
 
+#if ENABLE_DEBUG_LOGFILE
   DbgSetLogFileDesktop(LAVC_AUDIO_LOG_FILE);
+#endif
 #endif
 }
 
@@ -121,7 +123,7 @@ CLAVAudio::~CLAVAudio()
     m_hDllExtraDecoder = NULL;
   }
 
-#ifdef DEBUG
+#if defined(DEBUG) && ENABLE_DEBUG_LOGFILE
   DbgCloseLogFile();
 #endif
 }

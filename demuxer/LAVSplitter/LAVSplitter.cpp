@@ -65,7 +65,9 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
 
+#if ENABLE_DEBUG_LOGFILE
   DbgSetLogFileDesktop(LAVF_LOG_FILE);
+#endif
 #endif
 }
 
@@ -83,7 +85,7 @@ CLAVSplitter::~CLAVSplitter()
 
   SafeRelease(&m_pSite);
 
-#ifdef DEBUG
+#if defined(DEBUG) && ENABLE_DEBUG_LOGFILE
   DbgCloseLogFile();
 #endif
 }
