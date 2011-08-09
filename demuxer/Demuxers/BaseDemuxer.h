@@ -48,41 +48,41 @@ public:
 #define LAV_PACKET_MOV_TEXT 0x0002
   DWORD dwFlags;
 
-  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_dwSize = 0; m_dwBlockSize = 0; bPosition = -1; dwFlags = 0; }
+  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_sSize = 0; m_sBlockSize = 0; bPosition = -1; dwFlags = 0; }
   ~Packet() { DeleteMediaType(pmt); SAFE_CO_FREE(m_pbData); }
 
   // Getter
-  DWORD GetDataSize() const { return m_dwSize; }
+  size_t GetDataSize() const { return m_sSize; }
   BYTE *GetData() { return m_pbData; }
   BYTE GetAt(DWORD pos) const { return m_pbData[pos]; }
-  bool IsEmpty() const { return m_dwSize == 0; }
+  bool IsEmpty() const { return m_sSize == 0; }
 
   // Setter
-  void SetDataSize(DWORD len) { m_dwSize = len; if (m_dwSize > m_dwBlockSize) { m_pbData = (BYTE *)CoTaskMemRealloc(m_pbData, m_dwSize); m_dwBlockSize = m_dwSize; }}
-  void SetData(const void* ptr, DWORD len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
-  void Clear() { m_dwSize = m_dwBlockSize = 0; SAFE_CO_FREE(m_pbData); }
+  void SetDataSize(size_t len) { m_sSize = len; if (m_sSize > m_sBlockSize) { m_pbData = (BYTE *)CoTaskMemRealloc(m_pbData, m_sSize); m_sBlockSize = m_sSize; }}
+  void SetData(const void* ptr, size_t len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
+  void Clear() { m_sSize = m_sBlockSize = 0; SAFE_CO_FREE(m_pbData); }
 
   // Append the data of the package to our data buffer
   void Append(Packet *ptr) {
     AppendData(ptr->GetData(), ptr->GetDataSize());
   }
 
-  void AppendData(const void* ptr, DWORD len) {
-    DWORD prevSize = m_dwSize;
-    SetDataSize(m_dwSize + len);
+  void AppendData(const void* ptr, size_t len) {
+    size_t prevSize = m_sSize;
+    SetDataSize(m_sSize + len);
     memcpy(m_pbData+prevSize, ptr, len);
   }
 
   // Remove count bytes from position index
-  void RemoveHead(DWORD count) {
-    count = min(count, m_dwSize);
-    memmove(m_pbData, m_pbData+count, m_dwSize-count);
-    SetDataSize(m_dwSize - count);
+  void RemoveHead(size_t count) {
+    count = min(count, m_sSize);
+    memmove(m_pbData, m_pbData+count, m_sSize-count);
+    SetDataSize(m_sSize - count);
   }
 
 private:
-  DWORD m_dwSize;
-  DWORD m_dwBlockSize;
+  size_t m_sSize;
+  size_t m_sBlockSize;
   BYTE *m_pbData;
 };
 

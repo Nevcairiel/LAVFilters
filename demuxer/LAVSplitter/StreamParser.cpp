@@ -139,7 +139,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
     size_t size = next - start;
 
     CH264Nalu Nalu;
-    Nalu.SetBuffer(start, size, 0);
+    Nalu.SetBuffer(start, (int)size, 0);
 
     Packet *p2 = NULL;
 
@@ -353,7 +353,7 @@ HRESULT CStreamParser::ParseVC1(Packet *pPacket)
 HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 {
   const uint8_t *buf = pPacket->GetData();
-  const int buf_size       = pPacket->GetDataSize();
+  const size_t buf_size = pPacket->GetDataSize();
 
   const uint8_t *buf_end = buf + buf_size;
   uint8_t       segment_type;
@@ -424,7 +424,7 @@ done:
 
 HRESULT CStreamParser::ParseMOVText(Packet *pPacket)
 {
-  unsigned avail = pPacket->GetDataSize();
+  size_t avail = pPacket->GetDataSize();
   BYTE *ptr = pPacket->GetData();
   if (avail > 2) {  
     unsigned size = (ptr[0] << 8) | ptr[1];

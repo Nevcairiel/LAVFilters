@@ -77,7 +77,7 @@ static void bd_log(const char *log) {
   if (log[len-1] == '\n') {
     len--;
   }
-  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, log, len, line, 4096);
+  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, log, (int)len, line, 4096);
   DbgLog((LOG_TRACE, 40, L"[BD] %s", line));
 }
 #endif

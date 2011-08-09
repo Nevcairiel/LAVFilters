@@ -171,7 +171,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   a_len += 2;// one extra char because CLIPINF is 7 chars and STREAM is 6, and one for the terminating-zero
 
   char *path = (char *)CoTaskMemAlloc(a_len * sizeof(char));
-  WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, path, a_len, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, path, (int)a_len, NULL, NULL);
 
   // Remove file name itself
   PathRemoveFileSpecA(path);
@@ -707,12 +707,12 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
   return S_OK;
 }
 
-int CLAVFDemuxer::GetStreamIdxFromTotalIdx(unsigned index)
+int CLAVFDemuxer::GetStreamIdxFromTotalIdx(size_t index)
 {
-  UINT type = video;
-  UINT count_v = m_streams[video].size();
-  UINT count_a = m_streams[audio].size();
-  UINT count_s = m_streams[subpic].size();
+  int type = video;
+  size_t count_v = m_streams[video].size();
+  size_t count_a = m_streams[audio].size();
+  size_t count_s = m_streams[subpic].size();
   if (index >= count_v) {
     index -= count_v;
     type = audio;
@@ -735,9 +735,9 @@ STDMETHODIMP_(UINT) CLAVFDemuxer::GetTrackCount()
   if(!m_avFormat)
     return 0;
 
-  UINT count = m_streams[video].size() + m_streams[audio].size() + m_streams[subpic].size();
+  size_t count = m_streams[video].size() + m_streams[audio].size() + m_streams[subpic].size();
 
-  return count;
+  return (UINT)count;
 }
 
 // \param aTrackIdx the track index (from 0 to GetTrackCount()-1)

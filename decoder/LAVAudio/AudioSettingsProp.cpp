@@ -65,36 +65,36 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   hr = m_pAudioSettings->SetDRC(bFlag, iDRCLevel);
 
   // Bitstreaming codec options
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_AC3, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetBitstreamConfig(Bitstream_AC3, bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_EAC3, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetBitstreamConfig(Bitstream_EAC3, bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_TRUEHD, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetBitstreamConfig(Bitstream_TRUEHD, bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_DTS, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetBitstreamConfig(Bitstream_DTS, bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetBitstreamConfig(Bitstream_DTSHD, bFlag);
 
   // DTS-HD framing
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetDTSHDFraming(bFlag);
 
   // The other playback options
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetAutoAVSync(bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetOutputStandardLayout(bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetExpandMono(bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetExpand61(bFlag);
 
   LoadData();
@@ -181,7 +181,7 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       if (lValue != m_bDRCEnabled) {
         SetDirty();
       }
-      EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), lValue);
+      EnableWindow(GetDlgItem(m_Dlg, IDC_DRC_LEVEL), (BOOL)lValue);
     } else if (LOWORD(wParam) == IDC_BS_AC3 && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
       if (bFlag != m_bBitstreaming[Bitstream_AC3])
@@ -205,23 +205,23 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
         SetDirty();
       EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), bFlag);
     } else if (LOWORD(wParam) == IDC_BS_DTSHD_FRAMING && HIWORD(wParam) == BN_CLICKED) {
-      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bDTSHDFraming)
         SetDirty();
     } else if (LOWORD(wParam) == IDC_AUTO_AVSYNC && HIWORD(wParam) == BN_CLICKED) {
-      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bAutoAVSync)
         SetDirty();
     } else if (LOWORD(wParam) == IDC_STANDARD_CH_LAYOUT && HIWORD(wParam) == BN_CLICKED) {
-      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bOutputStdLayout)
         SetDirty();
     } else if (LOWORD(wParam) == IDC_EXPAND_MONO && HIWORD(wParam) == BN_CLICKED) {
-      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bExpandMono)
         SetDirty();
     } else if (LOWORD(wParam) == IDC_EXPAND61 && HIWORD(wParam) == BN_CLICKED) {
-      BOOL bFlag = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bExpand61)
         SetDirty();
     }

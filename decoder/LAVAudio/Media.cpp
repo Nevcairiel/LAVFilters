@@ -500,11 +500,11 @@ const codec_config_t *get_codec_config(LAVAudioCodec codec)
     if (codec) {
       size_t name_len = strlen(codec->name) + 1;
       wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, codec->name, -1, name, name_len);
+      MultiByteToWideChar(CP_UTF8, 0, codec->name, -1, name, (int)name_len);
 
       size_t desc_len = strlen(codec->long_name) + 1;
       wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, codec->long_name, -1, desc, desc_len);
+      MultiByteToWideChar(CP_UTF8, 0, codec->long_name, -1, desc, (int)desc_len);
 
       config->name = name;
       config->description = desc;

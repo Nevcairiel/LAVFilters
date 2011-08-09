@@ -438,7 +438,7 @@ const codec_config_t *get_codec_config(LAVVideoCodec codec)
     if (!config->name) {
       size_t name_len = strlen(avcodec->name) + 1;
       wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, avcodec->name, -1, name, name_len);
+      MultiByteToWideChar(CP_UTF8, 0, avcodec->name, -1, name, (int)name_len);
 
       config->name = name;
     }
@@ -446,7 +446,7 @@ const codec_config_t *get_codec_config(LAVVideoCodec codec)
     if (!config->description) {
       size_t desc_len = strlen(avcodec->long_name) + 1;
       wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, avcodec->long_name, -1, desc, desc_len);
+      MultiByteToWideChar(CP_UTF8, 0, avcodec->long_name, -1, desc, (int)desc_len);
 
       config->description = desc;
     }

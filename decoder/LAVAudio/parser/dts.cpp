@@ -280,37 +280,37 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   }
   if (pHD) {
     pHeader->IsHD = 1;
-    unsigned remaining = uSize - (pHD - pBuffer);
-    parse_dts_hd_header(pContext, pHeader, pHD, remaining);
+    size_t remaining = uSize - (pHD - pBuffer);
+    parse_dts_hd_header(pContext, pHeader, pHD, (unsigned)remaining);
 
     const uint8_t *pXChHD = find_marker32_position(pHD, remaining, DCA_XCH_MARKER);
     if (pXChHD) {
-      unsigned remaining = uSize - (pXChHD - pBuffer);
-      parse_dts_xch_hd_header(pContext, pHeader, pXChHD, remaining);
+      size_t remaining = uSize - (pXChHD - pBuffer);
+      parse_dts_xch_hd_header(pContext, pHeader, pXChHD, (unsigned)remaining);
     }
 
     const uint8_t *pXXChHD = find_marker32_position(pHD, remaining, DCA_XXCH_MARKER);
     if (pXXChHD) {
-      unsigned remaining = uSize - (pXXChHD - pBuffer);
-      parse_dts_xxch_hd_header(pContext, pHeader, pXXChHD, remaining);
+      size_t remaining = uSize - (pXXChHD - pBuffer);
+      parse_dts_xxch_hd_header(pContext, pHeader, pXXChHD, (unsigned)remaining);
     }
   }
 
   // Handle DTS extensions
   if (ExtCoding) {
-    unsigned coreSize = pHD ? (pHD - pBuffer) : uSize;
+    size_t coreSize = pHD ? (pHD - pBuffer) : uSize;
     if (ExtDescriptor == 0 || ExtDescriptor == 3) {
       const uint8_t *pXCh = find_marker32_position(pBuffer, coreSize, DCA_XCH_MARKER);
       if (pXCh) {
-        unsigned remaining = coreSize - (pXCh - pBuffer);
-        parse_dts_xch_header(pContext, pHeader, pXCh, remaining);
+        size_t remaining = coreSize - (pXCh - pBuffer);
+        parse_dts_xch_header(pContext, pHeader, pXCh, (unsigned)remaining);
       }
     }
     if (ExtDescriptor == 6) {
       const uint8_t *pXXCh = find_marker32_position(pBuffer, coreSize, DCA_XXCH_MARKER);
       if (pXXCh) {
-        unsigned remaining = coreSize - (pXXCh - pBuffer);
-        parse_dts_xxch_header(pContext, pHeader, pXXCh, remaining);
+        size_t remaining = coreSize - (pXXCh - pBuffer);
+        parse_dts_xxch_header(pContext, pHeader, pXXCh, (unsigned)remaining);
       }
     }
   }

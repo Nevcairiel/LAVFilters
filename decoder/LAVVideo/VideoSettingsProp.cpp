@@ -58,13 +58,13 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   BOOL bFlag;
   DWORD dwVal;
   
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetStreamAR(bFlag);
 
-  bFlag = SendDlgItemMessage(m_Dlg, IDC_INTERLACE_FLAGS, BM_GETCHECK, 0, 0);
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_INTERLACE_FLAGS, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetReportInterlacedFlags(bFlag);
 
-  dwVal = SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);
   m_pVideoSettings->SetNumThreads(dwVal);
 
   LoadData();

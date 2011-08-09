@@ -312,7 +312,7 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   HRESULT hr = S_OK;
   IMediaSample *pSample = NULL;
 
-  long nBytes = pPacket->GetDataSize();
+  long nBytes = (long)pPacket->GetDataSize();
 
   if(nBytes == 0) {
     goto done;
