@@ -42,14 +42,15 @@ OPTIONS="
 --disable-protocols \
 --enable-protocol=file \
 --enable-muxer=spdif \
---arch=x86 --cpu=i686 --target-os=mingw32"
+--arch=x86 --cpu=i686 --target-os=mingw32 \
+--build-suffix=-lav"
 
 ./configure --extra-libs="-lwsock32" --extra-cflags="-mmmx -msse -DPTW32_STATIC_LIB" ${OPTIONS} &&
  
 make -j8 &&
-cp lib*/*-*.dll ../bin_Win32 &&
+cp lib*/*-lav-*.dll ../bin_Win32 &&
 cp lib*/*.lib ../bin_Win32/lib &&
-cp lib*/*-*.dll ../bin_Win32d &&
+cp lib*/*-lav-*.dll ../bin_Win32d &&
 cp lib*/*.lib ../bin_Win32d/lib &&
 
 cd ..
