@@ -102,6 +102,7 @@ private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
   AVCodecContext       *m_pAVCtx;        // AVCodecContext reference
+  AVCodecParserContext *m_pParser;       // AVCodecParserContext reference
 
   BOOL                 m_bDXVA;          // DXVA active?
   REFERENCE_TIME       m_rtAvrTimePerFrame;
@@ -118,6 +119,7 @@ private:
   BOOL                 m_bRVDropBFrameTimings;
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
+  REFERENCE_TIME       m_rtStartCache;
 
   TimingCache          m_tcThreadBuffer[MAX_THREADS];
   int                  m_CurrentThread;

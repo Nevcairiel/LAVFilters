@@ -41,6 +41,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_nCodecId(CODEC_ID_NONE)
   , m_pAVCodec(NULL)
   , m_pAVCtx(NULL)
+  , m_pParser(NULL)
   , m_rtAvrTimePerFrame(0)
   , m_pFrame(NULL)
   , m_pFFBuffer(NULL)
@@ -52,6 +53,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bRVDropBFrameTimings(FALSE)
   , m_rtPrevStart(0)
   , m_rtPrevStop(0)
+  , m_rtStartCache(AV_NOPTS_VALUE)
   , m_bDiscontinuity(FALSE)
   , m_nThreads(1)
   , m_bForceTypeNegotiation(FALSE)
@@ -81,6 +83,12 @@ CLAVVideo::~CLAVVideo()
 void CLAVVideo::ffmpeg_shutdown()
 {
   m_pAVCodec	= NULL;
+
+  if (m_pParser) {
+    av_parser_close(m_pParser);
+    m_pParser = NULL;
+  }
+
   if (m_pAVCtx) {
     avcodec_close(m_pAVCtx);
     av_free(m_pAVCtx->extradata);
@@ -316,8 +324,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->codec_id              = (CodecID)codec;
   m_pAVCtx->codec_tag             = pBMI->biCompression;
   
-  if(MPEG12_CODEC(codec) && m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED) {
-    m_pAVCtx->flags |= CODEC_FLAG_TRUNCATED;
+  if(MPEG12_CODEC(codec)) {
+    m_pParser = av_parser_init(codec);
   }
 
   m_pAVCtx->width = pBMI->biWidth;
@@ -505,6 +513,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   }
 
   m_CurrentThread = 0;
+  m_rtStartCache = AV_NOPTS_VALUE;
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
@@ -671,8 +680,8 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
 HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
 {
   HRESULT hr = S_OK;
-  int     got_picture;
-  int     used_bytes;
+  int     got_picture = 0;
+  int     used_bytes  = 0;
 
   IMediaSample *pOut = NULL;
   BYTE         *pDataOut = NULL;
@@ -715,6 +724,8 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
 
   while (nSize > 0 || bFlush) {
 
+    REFERENCE_TIME rtStart = rtStartIn, rtStop = rtStopIn;
+
     if (!bFlush) {
       if (nSize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
         m_nFFBufferSize	= nSize + FF_INPUT_BUFFER_PADDING_SIZE;
@@ -730,22 +741,68 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       avpkt.dts = rtStopIn;
       //avpkt.duration = (int)(rtStart != _I64_MIN && rtStop != _I64_MIN ? rtStop - rtStart : 0);
       avpkt.flags = AV_PKT_FLAG_KEY;
-
-      //DbgLog((LOG_TRACE, 10, L"Decoding Frame with time %I64d and size %d", rtStart, nSize));
     } else {
       avpkt.data = NULL;
       avpkt.size = 0;
       //DbgLog((LOG_TRACE, 10, L"Flushing Frame", rtStart));
     }
 
-    used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
+    if (m_pParser) {
+      BYTE *pOut = NULL;
+      int pOut_size = 0;
+
+      used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, avpkt.data, avpkt.size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+
+      if (used_bytes == 0 && pOut_size == 0) {
+        DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
+        break;
+      }
+
+      if (used_bytes >= pOut_size) {
+        if (rtStartIn != AV_NOPTS_VALUE)
+          m_rtStartCache = rtStartIn;
+      } else if (pOut_size > used_bytes) {
+        if (used_bytes != avpkt.size || rtStart == AV_NOPTS_VALUE)
+          rtStart = m_rtStartCache;
+        m_rtStartCache = rtStartIn;
+      }
+
+      if (pOut_size > 0 || bFlush) {
+
+        if (pOut_size > 0) {
+          // Copy output data into the work buffer
+          if (pOut_size+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
+            m_nFFBufferSize	= pOut_size + FF_INPUT_BUFFER_PADDING_SIZE;
+            m_pFFBuffer = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize);
+          }
+
+          memcpy(m_pFFBuffer, pOut, pOut_size);
+          memset(m_pFFBuffer+pOut_size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+
+          avpkt.data = m_pFFBuffer;
+          avpkt.size = pOut_size;
+          avpkt.pts = rtStart;
+          avpkt.dts = AV_NOPTS_VALUE;
+        }
+
+        int ret2 = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
+        if (ret2 < 0) {
+          DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
+          continue;
+        }
+      } else {
+        got_picture = 0;
+      }
+    } else {
+      used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
+    }
 
     if (used_bytes < 0) {
       return S_OK;
     }
 
     // When Frame Threading, we won't know how much data has been consumed, so it by default eats everything.
-    if (bFlush || m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
+    if (bFlush || (m_pAVCtx->active_thread_type & FF_THREAD_FRAME && !m_pParser)) {
       nSize = 0;
     } else {
       nSize -= used_bytes;
@@ -762,15 +819,14 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       continue;
     }
 
-    REFERENCE_TIME rtStart = rtStartIn, rtStop = rtStopIn;
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // The next big block computes the proper timestamps
     ///////////////////////////////////////////////////////////////////////////////////////////////
     if (MPEG12_CODEC(m_nCodecId)) {
-      if (m_bDiscontinuity && m_pFrame->pict_type == AV_PICTURE_TYPE_I) {
+      if (m_bDiscontinuity && m_pFrame->pict_type == AV_PICTURE_TYPE_I && m_pFrame->pkt_pts != AV_NOPTS_VALUE) {
         rtStart = m_pFrame->pkt_pts;
         m_bDiscontinuity = FALSE;
+        DbgLog((LOG_TRACE, 20, L"::Decode() - Synced MPEG-2 timestamps to %I64d", rtStart));
       } else {
         rtStart = m_rtPrevStop;
       }
