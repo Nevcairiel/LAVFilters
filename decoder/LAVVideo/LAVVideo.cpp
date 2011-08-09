@@ -802,7 +802,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     }
 
     // When Frame Threading, we won't know how much data has been consumed, so it by default eats everything.
-    if (bFlush || (m_pAVCtx->active_thread_type & FF_THREAD_FRAME && !m_pParser)) {
+    if (bFlush || (m_pAVCtx->active_thread_type & FF_THREAD_FRAME && !m_pParser) || m_nCodecId == CODEC_ID_MJPEGB) {
       nSize = 0;
     } else {
       nSize -= used_bytes;
