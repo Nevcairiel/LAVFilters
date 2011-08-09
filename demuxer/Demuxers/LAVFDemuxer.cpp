@@ -1246,19 +1246,26 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
         if(!best) { best = *sit; continue; }
         AVStream *old_stream = m_avFormat->streams[best->pid];
         AVStream *new_stream = m_avFormat->streams[(*sit)->pid];
-        // First, check number of channels
-        int old_num_chans = old_stream->codec->channels;
-        int new_num_chans = new_stream->codec->channels;
-        if (new_num_chans > old_num_chans) {
+
+        int check_nb_f = new_stream->codec_info_nb_frames;
+        int best_nb_f  = old_stream->codec_info_nb_frames;
+        if (m_bRM && (check_nb_f > best_nb_f)) {
           best = *sit;
-        } else if (new_num_chans == old_num_chans) {
-          // Same number of channels, check codec
-          int old_priority = audio_codec_priority(old_stream->codec);
-          int new_priority = audio_codec_priority(new_stream->codec);
-          if (new_priority > old_priority) {
+        } else if (!m_bRM || (check_nb_f == best_nb_f)) {
+          // First, check number of channels
+          int old_num_chans = old_stream->codec->channels;
+          int new_num_chans = new_stream->codec->channels;
+          if (new_num_chans > old_num_chans) {
             best = *sit;
-          } else if (new_priority == old_priority && new_stream->codec_info_nb_frames > old_stream->codec_info_nb_frames) {
-            best = *sit;
+          } else if (new_num_chans == old_num_chans) {
+            // Same number of channels, check codec
+            int old_priority = audio_codec_priority(old_stream->codec);
+            int new_priority = audio_codec_priority(new_stream->codec);
+            if (new_priority > old_priority) {
+              best = *sit;
+            } else if (new_priority == old_priority && new_stream->codec_info_nb_frames > old_stream->codec_info_nb_frames) {
+              best = *sit;
+            }
           }
         }
       }
