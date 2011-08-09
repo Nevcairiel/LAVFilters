@@ -877,15 +877,16 @@ HRESULT CLAVVideo::SetTypeSpecificFlags(IMediaSample* pMS)
       }
 
       switch (m_pFrame->pict_type) {
-      case FF_I_TYPE :
-      case FF_SI_TYPE :
+      case AV_PICTURE_TYPE_I:
+      case AV_PICTURE_TYPE_SI:
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_I_SAMPLE;
         break;
-      case FF_P_TYPE :
-      case FF_SP_TYPE :
+      case AV_PICTURE_TYPE_P:
+      case AV_PICTURE_TYPE_SP:
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_P_SAMPLE;
         break;
-      default :
+      case AV_PICTURE_TYPE_B:
+      case AV_PICTURE_TYPE_BI:
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_B_SAMPLE;
         break;
       }
