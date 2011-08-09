@@ -1101,9 +1101,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 
     int check_nb_f = m_avFormat->streams[check->pid]->codec_info_nb_frames;
     int best_nb_f  = m_avFormat->streams[best->pid]->codec_info_nb_frames;
-    if (m_bRM && (check_nb_f > best_nb_f)) {
+    if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0)) {
       best = check;
-    } else if (!m_bRM || (check_nb_f == best_nb_f)) {
+    } else if (!m_bRM || check_nb_f > 0) {
       if (checkPixels > bestPixels) {
         best = check;
       } else if (checkPixels == bestPixels) {
@@ -1249,9 +1249,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
 
         int check_nb_f = new_stream->codec_info_nb_frames;
         int best_nb_f  = old_stream->codec_info_nb_frames;
-        if (m_bRM && (check_nb_f > best_nb_f)) {
+        if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0)) {
           best = *sit;
-        } else if (!m_bRM || (check_nb_f == best_nb_f)) {
+        } else if (!m_bRM || check_nb_f > 0) {
           // First, check number of channels
           int old_num_chans = old_stream->codec->channels;
           int new_num_chans = new_stream->codec->channels;
