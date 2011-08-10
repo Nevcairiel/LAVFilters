@@ -22,8 +22,6 @@
 
 CodecID FindCodecId(const CMediaType *mt);
 int getThreadFlags(CodecID codecId);
-void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
-void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsigned int *extralen);
 
 #define MAX_NUM_CC_CODECS 3
 

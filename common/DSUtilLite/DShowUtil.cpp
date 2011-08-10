@@ -21,6 +21,8 @@
 #include "stdafx.h"
 #include "DShowUtil.h"
 
+#include <dvdmedia.h>
+
 //
 // Usage: SetThreadName (-1, "MainThread");
 //
@@ -288,4 +290,70 @@ HRESULT FindIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown)
     }
   }
   return E_NOINTERFACE;
+}
+
+void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI, REFERENCE_TIME *prtAvgTime, DWORD *pDwAspectX, DWORD *pDwAspectY)
+{
+  REFERENCE_TIME rtAvg = 0;
+  BITMAPINFOHEADER *bmi = NULL;
+  DWORD dwAspectX = 0, dwAspectY = 0;
+
+  if (*formattype == FORMAT_VideoInfo) {
+    VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)format;
+    rtAvg = vih->AvgTimePerFrame;
+    bmi = &vih->bmiHeader;
+  } else if (*formattype == FORMAT_VideoInfo2) {
+    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)format;
+    rtAvg = vih2->AvgTimePerFrame;
+    bmi = &vih2->bmiHeader;
+    dwAspectX = vih2->dwPictAspectRatioX;
+    dwAspectY = vih2->dwPictAspectRatioY;
+  } else if (*formattype == FORMAT_MPEGVideo) {
+    MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)format;
+    rtAvg = mp1vi->hdr.AvgTimePerFrame;
+    bmi = &mp1vi->hdr.bmiHeader;
+  } else if (*formattype == FORMAT_MPEG2Video) {
+    MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)format;
+    rtAvg = mp2vi->hdr.AvgTimePerFrame;
+    bmi = &mp2vi->hdr.bmiHeader;
+    dwAspectX = mp2vi->hdr.dwPictAspectRatioX;
+    dwAspectY = mp2vi->hdr.dwPictAspectRatioY;
+  } else {
+    ASSERT(FALSE);
+  }
+
+  if (pBMI) {
+    *pBMI = bmi;
+  }
+  if (prtAvgTime) {
+    *prtAvgTime = rtAvg;
+  }
+  if (pDwAspectX && pDwAspectY) {
+    *pDwAspectX = dwAspectX;
+    *pDwAspectY = dwAspectY;
+  }
+}
+
+void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsigned int *extralen)
+{
+  if (*formattype == FORMAT_VideoInfo || *formattype == FORMAT_VideoInfo2) {
+    BITMAPINFOHEADER *pBMI = NULL;
+    formatTypeHandler(format, formattype, &pBMI, NULL);
+    if (extra)
+      memcpy(extra, (BYTE *)pBMI + sizeof(BITMAPINFOHEADER), pBMI->biSize - sizeof(BITMAPINFOHEADER));
+    if (extralen)
+      *extralen = pBMI->biSize - sizeof(BITMAPINFOHEADER);
+  } else if (*formattype == FORMAT_MPEGVideo) {
+    MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)format;
+    if (extra)
+      memcpy(extra, (BYTE *)mp1vi->bSequenceHeader, mp1vi->cbSequenceHeader);
+    if (extralen)
+      *extralen = mp1vi->cbSequenceHeader;
+  } else if (*formattype == FORMAT_MPEG2Video) {
+    MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)format;
+    if (extra)
+      memcpy(extra, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    if (extralen)
+      *extralen = mp2vi->cbSequenceHeader;
+  }
 }
