@@ -167,6 +167,21 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat);
   }
 
+  if (avstream->codec->codec_id == CODEC_ID_MJPEG) {
+    BITMAPINFOHEADER *pBMI = NULL;
+    formatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
+
+    DWORD fourCC = MKTAG('M','J','P','G');
+
+    // If the original fourcc is different to MJPG, add this one
+    if (fourCC != pBMI->biCompression) {
+      mtypes.push_back(mtype);
+
+      mtype.subtype = FOURCCMap(fourCC);
+      pBMI->biCompression = fourCC;
+    }
+  }
+
   mtypes.push_back(mtype);
   return S_OK;
 }
