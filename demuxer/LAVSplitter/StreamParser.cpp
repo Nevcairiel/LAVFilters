@@ -159,6 +159,9 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
       }
     }
 
+    if (!p2)
+      break;
+
     p2->StreamId = m_pPacketBuffer->StreamId;
     p2->bDiscontinuity = m_pPacketBuffer->bDiscontinuity;
     m_pPacketBuffer->bDiscontinuity = FALSE;

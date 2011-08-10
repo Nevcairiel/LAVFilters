@@ -32,7 +32,12 @@ public:
     HRESULT hr = S_OK;
     if (alloc > m_allocated)
     {
-      m_pArray = (T *)realloc(m_pArray, sizeof(T) * alloc);
+      T *pNew = (T *)realloc(m_pArray, sizeof(T) * alloc);
+      if (!pNew) {
+        free(m_pArray);
+        return E_FAIL;
+      }
+      m_pArray = pNew;
       ZeroMemory(m_pArray+m_allocated, (alloc - m_allocated) * sizeof(T));
       m_allocated = alloc;
     }
