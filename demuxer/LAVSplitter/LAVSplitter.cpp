@@ -524,6 +524,8 @@ bool CLAVSplitter::IsAnyPinDrying()
 // Worker Thread
 DWORD CLAVSplitter::ThreadProc()
 {
+  std::vector<CLAVOutputPin *>::iterator pinIter;
+
   CheckPointer(m_pDemuxer, 0);
 
   SetThreadName(-1, "CLAVSplitter Demux");
@@ -553,10 +555,9 @@ DWORD CLAVSplitter::ThreadProc()
     // Wait for the end of any flush
     m_eEndFlush.Wait();
 
-    std::vector<CLAVOutputPin *>::iterator it;
-    for(it = m_pPins.begin(); it != m_pPins.end() && !m_fFlushing; ++it) {
-      if ((*it)->IsConnected()) {
-        (*it)->DeliverNewSegment(m_rtStart, m_rtStop, m_dRate);
+    for(pinIter = m_pPins.begin(); pinIter != m_pPins.end() && !m_fFlushing; ++pinIter) {
+      if ((*pinIter)->IsConnected()) {
+        (*pinIter)->DeliverNewSegment(m_rtStart, m_rtStop, m_dRate);
       }
     }
 
@@ -571,9 +572,8 @@ DWORD CLAVSplitter::ThreadProc()
 
     // If we didnt exit by request, deliver end-of-stream
     if(!CheckRequest(&cmd)) {
-      std::vector<CLAVOutputPin *>::iterator it;
-      for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
-        (*it)->QueueEndOfStream();
+      for(pinIter = m_pPins.begin(); pinIter != m_pPins.end(); ++pinIter) {
+        (*pinIter)->QueueEndOfStream();
       }
     }
 
