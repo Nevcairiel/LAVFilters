@@ -62,6 +62,8 @@ private:
   DWORD m_dwNumThreads;
   BOOL  m_bStreamAR;
   BOOL  m_bInterlaceFlags;
+
+  BOOL  m_bPixFmts[LAVPixFmt_NB];
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage
