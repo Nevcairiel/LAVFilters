@@ -980,7 +980,7 @@ STDMETHODIMP CLAVVideo::SetFormatConfiguration(LAVVideoCodec vCodec, BOOL bEnabl
 STDMETHODIMP_(BOOL) CLAVVideo::GetFormatConfiguration(LAVVideoCodec vCodec)
 {
   if (vCodec < 0 || vCodec >= Codec_NB)
-    return E_FAIL;
+    return FALSE;
 
   return m_settings.bFormats[vCodec];
 }
