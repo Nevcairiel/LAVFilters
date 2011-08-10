@@ -608,10 +608,10 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
       if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0))) {
         AM_MEDIA_TYPE *pmt = NULL;
         if(SUCCEEDED(pOut->GetMediaType(&pmt)) && pmt) {
-          CMediaType mt = *pmt;
-          m_pOutput->SetMediaType(&mt);
+          CMediaType newmt = *pmt;
+          m_pOutput->SetMediaType(&newmt);
 #ifdef DEBUG
-          VIDEOINFOHEADER2 *vih2new = (VIDEOINFOHEADER2 *)mt.Format();
+          VIDEOINFOHEADER2 *vih2new = (VIDEOINFOHEADER2 *)newmt.Format();
           DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", width, vih2new->bmiHeader.biWidth));
 #endif
           DeleteMediaType(pmt);
@@ -703,7 +703,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
   int     got_picture = 0;
   int     used_bytes  = 0;
 
-  IMediaSample *pOut = NULL;
+  IMediaSample *pSampleOut = NULL;
   BYTE         *pDataOut = NULL;
   BOOL         bFlush = FALSE;
 
@@ -912,21 +912,21 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       }
     }
 
-    if(FAILED(hr = GetDeliveryBuffer(&pOut, width, height, m_pAVCtx->sample_aspect_ratio)) || FAILED(hr = pOut->GetPointer(&pDataOut))) {
+    if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, m_pAVCtx->sample_aspect_ratio)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
       return hr;
     }
 
-    pOut->SetTime(&rtStart, &rtStop);
-    pOut->SetMediaTime(NULL, NULL);
+    pSampleOut->SetTime(&rtStart, &rtStop);
+    pSampleOut->SetMediaTime(NULL, NULL);
 
     CMediaType& mt = m_pOutput->CurrentMediaType();
     VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
 
     m_PixFmtConverter.Convert(m_pFrame, pDataOut, width, height, vih2->bmiHeader.biWidth);
 
-    SetTypeSpecificFlags (pOut);
-    hr = m_pOutput->Deliver(pOut);
-    SafeRelease(&pOut);
+    SetTypeSpecificFlags (pSampleOut);
+    hr = m_pOutput->Deliver(pSampleOut);
+    SafeRelease(&pSampleOut);
 
     if (bFlush) {
       m_CurrentThread++;
