@@ -345,7 +345,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->codec_id              = (CodecID)codec;
   m_pAVCtx->codec_tag             = pBMI->biCompression;
   
-  if(MPEG12_CODEC(codec)) {
+  if(MPEG12_CODEC(codec) || pmt->subtype == MEDIASUBTYPE_H264 || pmt->subtype == MEDIASUBTYPE_h264) {
     m_pParser = av_parser_init(codec);
   }
 
@@ -716,6 +716,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
   IMediaSample *pSampleOut = NULL;
   BYTE         *pDataOut = NULL;
   BOOL         bFlush = FALSE;
+  BOOL         bParserFrame = FALSE;
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -799,6 +800,8 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
         m_rtStartCache = rtStartIn;
       }
 
+      bParserFrame = (pOut_size > 0);
+
       if (pOut_size > 0 || bFlush) {
 
         if (pOut_size > 0) {
@@ -843,7 +846,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       pDataIn += used_bytes;
     }
 
-    if (m_nCodecId == CODEC_ID_H264) {
+    if (m_nCodecId == CODEC_ID_H264 && (bParserFrame || !m_pParser || got_picture)) {
       m_h264RandomAccess.judgeFrameUsability(m_pFrame, &got_picture);
     }
 
