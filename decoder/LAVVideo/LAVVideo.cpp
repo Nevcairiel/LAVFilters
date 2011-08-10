@@ -116,6 +116,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.bFormats[Codec_RV4]      = FALSE;
   m_settings.bFormats[Codec_Lagarith] = FALSE;
   m_settings.bFormats[Codec_Cinepak]  = FALSE;
+  m_settings.bFormats[Codec_QPEG]     = FALSE;
 
   for (int i = 0; i < LAVPixFmt_NB; ++i)
     m_settings.bPixFmts[i] = TRUE;

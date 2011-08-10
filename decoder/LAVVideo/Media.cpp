@@ -112,6 +112,9 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_VP30, CODEC_ID_VP3 },
   { &MEDIASUBTYPE_VP31, CODEC_ID_VP3 },
   { &MEDIASUBTYPE_CSCD, CODEC_ID_CSCD },
+  { &MEDIASUBTYPE_QPEG, CODEC_ID_QPEG },
+  { &MEDIASUBTYPE_QP10, CODEC_ID_QPEG },
+  { &MEDIASUBTYPE_QP11, CODEC_ID_QPEG },
 
   // DV Video
   { &MEDIASUBTYPE_dvsd, CODEC_ID_DVVIDEO },
@@ -246,6 +249,9 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP30 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP31 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_CSCD },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_QPEG },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_QP10 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_QP11 },
 
   // DV Video
   { &MEDIATYPE_Video, &MEDIASUBTYPE_dvsd },
@@ -375,6 +381,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_LAGARITH }},                                            // Codec_Lagarith
   { 1, { CODEC_ID_CINEPAK }},                                             // Codec_Cinepak
   { 1, { CODEC_ID_CSCD }},                                                // Codec_Camstudio
+  { 1, { CODEC_ID_QPEG }},                                                // Codec_QPEG
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
