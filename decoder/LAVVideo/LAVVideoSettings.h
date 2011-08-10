@@ -54,6 +54,7 @@ typedef enum LAVVideoCodec {
   Codec_RV4,
   Codec_Lagarith,
   Codec_Cinepak,
+  Codec_Camstudio,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
