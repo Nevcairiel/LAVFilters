@@ -114,7 +114,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVAudio::~CLAVAudio()
 {
   ffmpeg_shutdown();
-  free(m_pFFBuffer);
+  av_freep(&m_pFFBuffer);
 
   ShutdownBitstreaming();
 
