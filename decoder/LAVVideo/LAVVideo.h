@@ -28,6 +28,7 @@
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
+#define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
 
 typedef struct {
   REFERENCE_TIME rtStart;
@@ -58,6 +59,8 @@ public:
   STDMETHODIMP_(BOOL) GetStreamAR();
   STDMETHODIMP SetReportInterlacedFlags(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetReportInterlacedFlags();
+  STDMETHODIMP_(BOOL) GetPixelFormat(LAVVideoPixFmts pixFmt);
+  STDMETHODIMP SetPixelFormat(LAVVideoPixFmts pixFmt, BOOL bEnabled);
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -140,5 +143,6 @@ private:
     BOOL InterlacedFlags;
     DWORD NumThreads;
     BOOL bFormats[Codec_NB];
+    BOOL bPixFmts[LAVPixFmt_NB];
   } m_settings;
 };

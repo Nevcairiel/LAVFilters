@@ -117,8 +117,15 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.bFormats[Codec_Lagarith] = FALSE;
   m_settings.bFormats[Codec_Cinepak]  = FALSE;
 
+  for (int i = 0; i < LAVPixFmt_NB; ++i)
+    m_settings.bPixFmts[i] = TRUE;
+
   return S_OK;
 }
+
+static const WCHAR* pixFmtSettingsMap[LAVPixFmt_NB] = {
+  L"yv12", L"nv12", L"yuy2", L"ayuv", L"p010", L"p210", L"y410", L"p016", L"p216", L"y416", L"rgb32", L"rgb24"
+};
 
 HRESULT CLAVVideo::LoadSettings()
 {
@@ -154,6 +161,14 @@ HRESULT CLAVVideo::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
   }
 
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT);
+  CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
+
+  for (int i = 0; i < LAVPixFmt_NB; ++i) {
+    bFlag = regP.ReadBOOL(pixFmtSettingsMap[i], hr);
+    if (SUCCEEDED(hr)) m_settings.bPixFmts[i] = bFlag;
+  }
+
   return S_OK;
 }
 
@@ -173,6 +188,11 @@ HRESULT CLAVVideo::SaveSettings()
     for (int i = 0; i < Codec_NB; ++i) {
       const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
       regF.WriteBOOL(info->name, m_settings.bFormats[i]);
+    }
+
+    CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
+    for (int i = 0; i < LAVPixFmt_NB; ++i) {
+      regP.WriteBOOL(pixFmtSettingsMap[i], m_settings.bPixFmts[i]);
     }
   }
   return S_OK;
@@ -1016,4 +1036,22 @@ STDMETHODIMP CLAVVideo::SetReportInterlacedFlags(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVVideo::GetReportInterlacedFlags()
 {
   return m_settings.InterlacedFlags;
+}
+
+STDMETHODIMP CLAVVideo::SetPixelFormat(LAVVideoPixFmts pixFmt, BOOL bEnabled)
+{
+  if (pixFmt < 0 || pixFmt >= LAVPixFmt_NB)
+    return E_FAIL;
+
+  m_settings.bPixFmts[pixFmt] = bEnabled;
+
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetPixelFormat(LAVVideoPixFmts pixFmt)
+{
+  if (pixFmt < 0 || pixFmt >= LAVPixFmt_NB)
+    return FALSE;
+
+  return m_settings.bPixFmts[pixFmt];
 }

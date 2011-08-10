@@ -145,29 +145,49 @@ LAVVideoPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
   return LAVPixFmt_None;
 }
 
-LAVVideoPixFmts CLAVPixFmtConverter::GetPreferredOutput()
+int CLAVPixFmtConverter::GetFilteredFormatCount()
 {
   FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
+  int count = 0;
+  for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
+    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
+      count++;
+  }
+  return count;
+}
 
-  return pixFmtMap->lav_pix_fmts[0];
+LAVVideoPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
+{
+  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
+  int actualIndex = -1;
+  for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
+    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
+      actualIndex++;
+    if (index == actualIndex)
+      return pixFmtMap->lav_pix_fmts[i];
+  }
+  return LAVPixFmt_None;
+}
+
+LAVVideoPixFmts CLAVPixFmtConverter::GetPreferredOutput()
+{
+  return GetFilteredFormat(0);
 }
 
 int CLAVPixFmtConverter::GetNumMediaTypes()
 {
-  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
-  
-  return pixFmtMap->num_pix_fmt;
+  return GetFilteredFormatCount();
 }
 
 CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime)
 {
-  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
-
-  if (index >= pixFmtMap->num_pix_fmt)
+  if (index < 0 || index >= GetFilteredFormatCount())
     index = 0;
 
+  LAVVideoPixFmts pixFmt = GetFilteredFormat(index);
+
   CMediaType mt;
-  GUID guid = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].subtype;
+  GUID guid = lav_pixfmt_desc[pixFmt].subtype;
 
   mt.SetType(&MEDIATYPE_Video);
   mt.SetSubtype(&guid);
@@ -195,8 +215,8 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
   vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
   vih2->bmiHeader.biWidth = biWidth;
   vih2->bmiHeader.biHeight = biHeight;
-  vih2->bmiHeader.biBitCount = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].bpp;
-  vih2->bmiHeader.biPlanes = lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[index]].planes;
+  vih2->bmiHeader.biBitCount = lav_pixfmt_desc[pixFmt].bpp;
+  vih2->bmiHeader.biPlanes = lav_pixfmt_desc[pixFmt].planes;
   vih2->bmiHeader.biSizeImage = (biWidth * biHeight * vih2->bmiHeader.biBitCount) >> 3;
   vih2->bmiHeader.biCompression = guid.Data1;
 
@@ -222,10 +242,8 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
 
 BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
 {
-  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
-
-  for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
-    if (lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[i]].subtype == *guid)
+  for (int i = 0; i < GetFilteredFormatCount(); ++i) {
+    if (lav_pixfmt_desc[GetFilteredFormat(i)].subtype == *guid)
       return TRUE;
   }
 

@@ -22,6 +22,7 @@
 
 #include "LAVVideoSettings.h"
 
+// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors
 typedef struct {
   GUID subtype;
   int bpp;
@@ -29,25 +30,6 @@ typedef struct {
   int planeHeight[4];
   int planeWidth[4];
 } LAVPixFmtDesc;
-
-// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors
-typedef enum LAVVideoPixFmts {
-  LAVPixFmt_None = -1,
-  LAVPixFmt_YV12,            // 4:2:0, 8bit, planar
-  LAVPixFmt_NV12,            // 4:2:0, 8bit, Y planar, U/V packed
-  LAVPixFmt_YUY2,            // 4:2:2, 8bit, packed
-  LAVPixFmt_AYUV,            // 4:4:4, 8bit, packed
-  LAVPixFmt_P010,            // 4:2:0, 10bit, Y planar, U/V packed
-  LAVPixFmt_P210,            // 4:2:2, 10bit, Y planar, U/V packed 
-  LAVPixFmt_Y410,            // 4:4:4, 10bit, packed
-  LAVPixFmt_P016,            // 4:2:0, 16bit, Y planar, U/V packed
-  LAVPixFmt_P216,            // 4:2:2, 16bit, Y planar, U/V packed
-  LAVPixFmt_Y416,            // 4:4:4, 16bit, packed
-  LAVPixFmt_RGB32,           // 32-bit RGB (BGRA)
-  LAVPixFmt_RGB24,           // 24-bit RGB (BGR)
-  
-  LAVPixFmt_NB               // Number of formats
-};
 
 class CLAVPixFmtConverter
 {
@@ -72,6 +54,9 @@ public:
   HRESULT Convert(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);
 
 private:
+  int GetFilteredFormatCount();
+  LAVVideoPixFmts GetFilteredFormat(int index);
+
   HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
   HRESULT ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
   HRESULT ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride, int chromaVertical);

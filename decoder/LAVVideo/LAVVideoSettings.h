@@ -57,6 +57,25 @@ typedef enum LAVVideoCodec {
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
 
+// Supported output pixel formats
+typedef enum LAVVideoPixFmts {
+  LAVPixFmt_None = -1,
+  LAVPixFmt_YV12,            // 4:2:0, 8bit, planar
+  LAVPixFmt_NV12,            // 4:2:0, 8bit, Y planar, U/V packed
+  LAVPixFmt_YUY2,            // 4:2:2, 8bit, packed
+  LAVPixFmt_AYUV,            // 4:4:4, 8bit, packed
+  LAVPixFmt_P010,            // 4:2:0, 10bit, Y planar, U/V packed
+  LAVPixFmt_P210,            // 4:2:2, 10bit, Y planar, U/V packed
+  LAVPixFmt_Y410,            // 4:4:4, 10bit, packed
+  LAVPixFmt_P016,            // 4:2:0, 16bit, Y planar, U/V packed
+  LAVPixFmt_P216,            // 4:2:2, 16bit, Y planar, U/V packed
+  LAVPixFmt_Y416,            // 4:4:4, 16bit, packed
+  LAVPixFmt_RGB32,           // 32-bit RGB (BGRA)
+  LAVPixFmt_RGB24,           // 24-bit RGB (BGR)
+
+  LAVPixFmt_NB               // Number of formats
+};
+
 // LAV Audio configuration interface
 [uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")]
 interface ILAVVideoSettings : public IUnknown
@@ -103,5 +122,10 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get wether interlaced flags are reported in the media type to the renderer.
   STDMETHOD_(BOOL,GetReportInterlacedFlags)() = 0;
+
+  // Configure which pixel formats are enabled for output
+  // If pixFmt is invalid, Get will return FALSE and Set E_FAIL
+  STDMETHOD_(BOOL,GetPixelFormat)(LAVVideoPixFmts pixFmt) = 0;
+  STDMETHOD(SetPixelFormat)(LAVVideoPixFmts pixFmt, BOOL bEnabled) = 0;
 
 };
