@@ -59,6 +59,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bForceTypeNegotiation(FALSE)
   , m_bRuntimeConfig(FALSE)
   , m_CurrentThread(0)
+  , m_bForceInputAR(FALSE)
 {
   avcodec_init();
   avcodec_register_all();
@@ -491,6 +492,7 @@ HRESULT CLAVVideo::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     if (FAILED(hr)) {
       return hr;
     }
+    m_bForceInputAR = TRUE;
   } else if (dir == PINDIR_OUTPUT) {
     m_PixFmtConverter.SetOutputPixFmt(m_PixFmtConverter.GetOutputBySubtype(pmt->Subtype()));
   }
@@ -576,8 +578,16 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
   int num = width, den = height;
   av_reduce(&num, &den, (int64_t)ar.num * num, (int64_t)ar.den * den, 255);
   if (!m_settings.StreamAR || num == 0 || den == 0) {
-    num = vih2->dwPictAspectRatioX;
-    den = vih2->dwPictAspectRatioY;
+    if (m_bForceInputAR) {
+      DWORD dwARX, dwARY;
+      formatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
+      num = dwARX;
+      den = dwARY;
+      m_bForceInputAR = FALSE;
+    } else {
+      num = vih2->dwPictAspectRatioX;
+      den = vih2->dwPictAspectRatioY;
+    }
   }
 
   if (vih2->rcTarget.right != width

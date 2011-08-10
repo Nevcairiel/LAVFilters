@@ -129,6 +129,7 @@ private:
 
   BOOL                 m_bDiscontinuity;
   BOOL                 m_bForceTypeNegotiation;
+  BOOL                 m_bForceInputAR;
 
   int                  m_nThreads;
 
