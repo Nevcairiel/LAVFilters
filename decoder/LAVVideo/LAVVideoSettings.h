@@ -49,6 +49,7 @@ typedef enum LAVVideoCodec {
   Codec_QTRle,
   Codec_DV,
   Codec_Bink,
+  Codec_Smacker,
   Codec_RV123,
   Codec_RV4,
   Codec_Lagarith,

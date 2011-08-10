@@ -160,6 +160,8 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO },
   { &MEDIASUBTYPE_BIKB, CODEC_ID_BINKVIDEO },
+  { &MEDIASUBTYPE_SMK2, CODEC_ID_SMACKVIDEO },
+  { &MEDIASUBTYPE_SMK4, CODEC_ID_SMACKVIDEO },
 };
 
 // Define Input Media Types
@@ -291,6 +293,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKB },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_SMK2 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_SMK4 },
 };
 const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
 
@@ -363,6 +367,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_QTRLE }},                                               // Codec_QTRle
   { 1, { CODEC_ID_DVVIDEO }},                                             // Codec_DV
   { 1, { CODEC_ID_BINKVIDEO }, L"bink"},                                  // Codec_Bink
+  { 1, { CODEC_ID_SMACKVIDEO }},                                          // Codec_Smacker
   { 3, { CODEC_ID_RV10, CODEC_ID_RV20, CODEC_ID_RV30 }, L"rv10-30", L"RealVideo 1-3" }, // Codev_RV123
   { 1, { CODEC_ID_RV40 }},                                                // Codec_RV4
   { 1, { CODEC_ID_LAGARITH }},                                            // Codec_Lagarith
