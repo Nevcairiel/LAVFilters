@@ -154,6 +154,10 @@ int CLAVPixFmtConverter::GetFilteredFormatCount()
     if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
       count++;
   }
+
+  if (count == 0)
+    count = lav_pixfmt_map[0].num_pix_fmt;
+
   return count;
 }
 
@@ -167,7 +171,11 @@ LAVVideoPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
     if (index == actualIndex)
       return pixFmtMap->lav_pix_fmts[i];
   }
-  return LAVPixFmt_None;
+
+  // If no format is enabled, we use the fallback formats to avoid catastrophic failure
+  if (index >= lav_pixfmt_map[0].num_pix_fmt)
+    index = 0;
+  return lav_pixfmt_map[0].lav_pix_fmts[index];
 }
 
 LAVVideoPixFmts CLAVPixFmtConverter::GetPreferredOutput()
