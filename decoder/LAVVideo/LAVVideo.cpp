@@ -829,8 +829,6 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       }
     } else {
       used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
-      if (used_bytes == 0 && !got_picture)
-        return S_OK;
     }
 
     if (used_bytes < 0) {
@@ -838,7 +836,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     }
 
     // When Frame Threading, we won't know how much data has been consumed, so it by default eats everything.
-    if (bFlush || (m_pAVCtx->active_thread_type & FF_THREAD_FRAME && !m_pParser) || m_nCodecId == CODEC_ID_MJPEGB) {
+    if ((!m_pParser && (m_pAVCtx->active_thread_type & FF_THREAD_FRAME || (!got_picture && used_bytes == 0))) || m_nCodecId == CODEC_ID_MJPEGB || bFlush) {
       nSize = 0;
     } else {
       nSize -= used_bytes;
