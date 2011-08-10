@@ -63,6 +63,7 @@ typedef enum LAVVideoPixFmts {
   LAVPixFmt_YV12,            // 4:2:0, 8bit, planar
   LAVPixFmt_NV12,            // 4:2:0, 8bit, Y planar, U/V packed
   LAVPixFmt_YUY2,            // 4:2:2, 8bit, packed
+  LAVPixFmt_UYVY,            // 4:2:2, 8bit, packed
   LAVPixFmt_AYUV,            // 4:4:4, 8bit, packed
   LAVPixFmt_P010,            // 4:2:0, 10bit, Y planar, U/V packed
   LAVPixFmt_P210,            // 4:2:2, 10bit, Y planar, U/V packed

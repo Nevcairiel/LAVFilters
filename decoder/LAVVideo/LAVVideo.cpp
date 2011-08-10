@@ -124,7 +124,7 @@ HRESULT CLAVVideo::LoadDefaults()
 }
 
 static const WCHAR* pixFmtSettingsMap[LAVPixFmt_NB] = {
-  L"yv12", L"nv12", L"yuy2", L"ayuv", L"p010", L"p210", L"y410", L"p016", L"p216", L"y416", L"rgb32", L"rgb24"
+  L"yv12", L"nv12", L"yuy2", L"uyvy", L"ayuv", L"p010", L"p210", L"y410", L"p016", L"p216", L"y416", L"rgb32", L"rgb24"
 };
 
 HRESULT CLAVVideo::LoadSettings()
