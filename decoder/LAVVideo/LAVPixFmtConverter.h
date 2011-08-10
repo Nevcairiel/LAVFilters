@@ -46,6 +46,7 @@ public:
   LAVVideoPixFmts GetPreferredOutput();
 
   PixelFormat GetInputPixFmt() { return m_InputPixFmt; }
+  void SetColorProps(AVColorSpace colorspace, AVColorRange range) { if (swsColorSpace != colorspace || swsColorRange != range) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; } }
 
   int GetNumMediaTypes();
   CMediaType GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime);
@@ -71,6 +72,8 @@ private:
   enum LAVVideoPixFmts m_OutputPixFmt;
 
   int swsWidth, swsHeight;
+  AVColorSpace swsColorSpace;
+  AVColorRange swsColorRange;
 
   SwsContext *m_pSwsContext;
 

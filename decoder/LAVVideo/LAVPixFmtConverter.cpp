@@ -128,6 +128,8 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
   , m_OutputPixFmt(LAVPixFmt_YV12)
   , m_pSwsContext(NULL)
   , swsWidth(0), swsHeight(0)
+  , swsColorSpace(AVCOL_SPC_UNSPECIFIED)
+  , swsColorRange(AVCOL_RANGE_UNSPECIFIED)
 {
 }
 
@@ -280,6 +282,23 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
                                  width, height, srcPix,
                                  width, height, dstPix,
                                  flags|SWS_PRINT_INFO, NULL, NULL, NULL);
+
+    int *inv_tbl = NULL, *tbl = NULL;
+    int srcRange, dstRange, brightness, contrast, saturation;
+    int ret = sws_getColorspaceDetails(m_pSwsContext, &inv_tbl, &srcRange, &tbl, &dstRange, &brightness, &contrast, &saturation);
+    if (ret >= 0) {
+      const int *rgbTbl = NULL;
+      if (swsColorSpace != AVCOL_SPC_UNSPECIFIED) {
+        rgbTbl = sws_getCoefficients(swsColorSpace);
+      } else {
+        BOOL isHD = (height >= 720 || width >= 1280);
+        rgbTbl = sws_getCoefficients(isHD ? SWS_CS_ITU709 : SWS_CS_ITU601);
+      }
+      if (swsColorRange != AVCOL_RANGE_UNSPECIFIED) {
+        srcRange = dstRange = swsColorRange - 1;
+      }
+      sws_setColorspaceDetails(m_pSwsContext, rgbTbl, srcRange, tbl, dstRange, brightness, contrast, saturation);
+    }
     swsWidth = width;
     swsHeight = height;
   }

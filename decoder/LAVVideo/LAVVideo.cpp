@@ -928,6 +928,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
         NegotiatePixelFormat(mt, width, height);
       }
     }
+    m_PixFmtConverter.SetColorProps(m_pAVCtx->colorspace, m_pAVCtx->color_range);
 
     if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, m_pAVCtx->sample_aspect_ratio)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
       return hr;
