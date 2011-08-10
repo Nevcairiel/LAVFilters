@@ -109,6 +109,18 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_RGB24, 24, 0 },                                  // RGB24
 };
 
+static FF_LAV_PIXFMT_MAP *lookupFormatMap(PixelFormat ffFormat, BOOL bFallbackToDefault = TRUE)
+{
+  for (int i = 0; i < countof(lav_pixfmt_map); ++i) {
+    if (lav_pixfmt_map[i].ff_pix_fmt == ffFormat) {
+      return &lav_pixfmt_map[i];
+    }
+  }
+  if (bFallbackToDefault)
+    return &lav_pixfmt_map[0];
+  return NULL;
+}
+
 CLAVPixFmtConverter::CLAVPixFmtConverter()
   : m_pSettings(NULL)
   , m_InputPixFmt(PIX_FMT_NONE)
@@ -136,36 +148,21 @@ LAVVideoPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
 
 LAVVideoPixFmts CLAVPixFmtConverter::GetPreferredOutput()
 {
-  int i = 0;
-  for (i = 0; i < countof(lav_pixfmt_map); ++i) {
-    if (lav_pixfmt_map[i].ff_pix_fmt == m_InputPixFmt)
-      return lav_pixfmt_map[i].lav_pix_fmts[0];
-  }
-  return lav_pixfmt_map[0].lav_pix_fmts[0];
+  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
+
+  return pixFmtMap->lav_pix_fmts[0];
 }
 
 int CLAVPixFmtConverter::GetNumMediaTypes()
 {
-  int i = 0;
-  for (i = 0; i < countof(lav_pixfmt_map); ++i) {
-    if (lav_pixfmt_map[i].ff_pix_fmt == m_InputPixFmt)
-      return lav_pixfmt_map[i].num_pix_fmt;
-  }
+  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
   
-  return lav_pixfmt_map[0].num_pix_fmt;
+  return pixFmtMap->num_pix_fmt;
 }
 
 CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime)
 {
-  FF_LAV_PIXFMT_MAP *pixFmtMap = NULL;
-  for (int i = 0; i < countof(lav_pixfmt_map); ++i) {
-    if (lav_pixfmt_map[i].ff_pix_fmt == m_InputPixFmt) {
-      pixFmtMap = &lav_pixfmt_map[i];
-      break;
-    }
-  }
-  if (!pixFmtMap)
-    pixFmtMap = &lav_pixfmt_map[0];
+  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
 
   if (index >= pixFmtMap->num_pix_fmt)
     index = 0;
@@ -226,15 +223,7 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
 
 BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
 {
-  FF_LAV_PIXFMT_MAP *pixFmtMap = NULL;
-  for (int i = 0; i < countof(lav_pixfmt_map); ++i) {
-    if (lav_pixfmt_map[i].ff_pix_fmt == m_InputPixFmt) {
-      pixFmtMap = &lav_pixfmt_map[i];
-      break;
-    }
-  }
-  if (!pixFmtMap)
-    pixFmtMap = &lav_pixfmt_map[0];
+  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
 
   for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
     if (lav_pixfmt_desc[pixFmtMap->lav_pix_fmts[i]].subtype == *guid)
