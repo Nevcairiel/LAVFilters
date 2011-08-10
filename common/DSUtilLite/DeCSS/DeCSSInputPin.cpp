@@ -171,7 +171,7 @@ void CDeCSSInputPin::StripPacket(BYTE*& p, long& len)
 
         if(expected > 0) {
           expected -= (p - p0);
-          len = (long)min(expected, len);
+          len = min((long)expected, len);
         }
     }
 
