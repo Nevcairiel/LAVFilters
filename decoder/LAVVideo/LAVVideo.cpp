@@ -829,9 +829,11 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       }
     } else {
       used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
+      if (used_bytes == 0 && !got_picture)
+        return S_OK;
     }
 
-    if (used_bytes < 0 || used_bytes == 0 && !got_picture) {
+    if (used_bytes < 0) {
       return S_OK;
     }
 
