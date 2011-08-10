@@ -61,7 +61,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_CurrentThread(0)
   , m_bForceInputAR(FALSE)
 {
-  avcodec_init();
   avcodec_register_all();
 
   LoadSettings();

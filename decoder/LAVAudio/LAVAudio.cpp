@@ -70,7 +70,6 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bChannelMappingRequired(FALSE)
   , m_bFindDTSInPCM(FALSE)
 {
-  avcodec_init();
   av_register_all();
 
   m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
