@@ -749,7 +749,9 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     if (!bFlush) {
       if (nSize+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
         m_nFFBufferSize	= nSize + FF_INPUT_BUFFER_PADDING_SIZE;
-        m_pFFBuffer = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize);
+        BYTE *pTmp = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize);
+        if (!pTmp) { av_freep(&m_pFFBuffer); m_nFFBufferSize = 0; return E_FAIL; }
+        m_pFFBuffer = pTmp;
       }
 
       memcpy(m_pFFBuffer, pDataIn, nSize);
@@ -793,7 +795,9 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
           // Copy output data into the work buffer
           if (pOut_size+FF_INPUT_BUFFER_PADDING_SIZE > m_nFFBufferSize) {
             m_nFFBufferSize	= pOut_size + FF_INPUT_BUFFER_PADDING_SIZE;
-            m_pFFBuffer = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize);
+            BYTE *pTmp = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize);
+            if (!pTmp) { av_freep(&m_pFFBuffer); m_nFFBufferSize = 0; return E_FAIL; }
+            m_pFFBuffer = pTmp;
           }
 
           memcpy(m_pFFBuffer, pOut, pOut_size);
