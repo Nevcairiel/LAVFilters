@@ -176,10 +176,23 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
       return E_FAIL;
     }
     m_pBD = bd;
+
+    uint32_t timelimit = (iPlaylist != -1) ? 0 : 180;
+    uint8_t flags = (iPlaylist != -1) ? TITLES_ALL : TITLES_RELEVANT;
+
     // Fetch titles
-    m_nTitleCount = bd_get_titles(bd, (iPlaylist != -1) ? TITLES_ALL : TITLES_RELEVANT, (iPlaylist != -1) ? 0 : 180);
+fetchtitles:
+    m_nTitleCount = bd_get_titles(bd, flags, timelimit);
 
     if (m_nTitleCount <= 0) {
+      if (timelimit > 0) {
+        timelimit = 0;
+        goto fetchtitles;
+      }
+      if (flags != TITLES_ALL) {
+        flags = TITLES_ALL;
+        goto fetchtitles;
+      }
       return E_FAIL;
     }
 
