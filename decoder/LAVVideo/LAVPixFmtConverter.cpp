@@ -137,7 +137,6 @@ CLAVPixFmtConverter::~CLAVPixFmtConverter()
 
 LAVVideoPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
 {
-  DWORD FourCC = guid->Data1;
   for (int i = 0; i < countof(lav_pixfmt_desc); ++i) {
     if (lav_pixfmt_desc[i].subtype == *guid) {
       return (LAVVideoPixFmts)i;
