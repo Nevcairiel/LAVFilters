@@ -432,7 +432,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_bFFReordering      = ((codec == CODEC_ID_H264 && m_strExtension != L".avi") || codec == CODEC_ID_VP8 || codec == CODEC_ID_VP3 || codec == CODEC_ID_THEORA || codec == CODEC_ID_HUFFYUV || bVC1OnMPC);
   m_bCalculateStopTime = (codec == CODEC_ID_H264 || bVC1OnMPC);
 
-  m_bRVDropBFrameTimings = (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_strExtension == L".mkv" || !(FilterInGraph(CLSID_LAVSplitter, m_pGraph) || FilterInGraph(CLSID_LAVSplitterSource, m_pGraph)));
+  m_bRVDropBFrameTimings = (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_strExtension == L".mkv" || ((m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) && !(FilterInGraph(CLSID_LAVSplitter, m_pGraph) || FilterInGraph(CLSID_LAVSplitterSource, m_pGraph))));
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
