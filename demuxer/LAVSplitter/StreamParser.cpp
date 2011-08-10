@@ -89,7 +89,7 @@ HRESULT CStreamParser::Queue(Packet *pPacket) const
 
 static Packet *InitPacket(Packet *pSource)
 {
-  Packet *pNew = new Packet();
+  Packet *pNew = NULL;
 
   pNew = new Packet();
   pNew->StreamId = pSource->StreamId;
