@@ -180,7 +180,7 @@ static unsigned dts_determine_decode_channels(DTSHeader header)
     decode_channels = 6;
     break;
   case 6:
-    if (header.ChannelLayout == 9 && header.LFE)  // Layout 9 is 5.0, with LFE makes default 5.1, nothing special
+    if ((header.ChannelLayout == 9 || header.ChannelLayout == 63) && header.LFE)  // Layout 9 is 5.0, with LFE makes default 5.1, nothing special
       decode_channels = 6;
     else                                          // Other possibility for 6 channels is 6.0
       decode_channels = 7;
