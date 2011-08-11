@@ -469,14 +469,17 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
   int line, i = 0;
   int srcStride = 0;
 
+  int shift = 0;
+  BOOL bBigEndian = FALSE;
+
   // Stride needs to be doubled for 16-bit per pixel
   stride *= 2;
 
   BYTE *pTmpBuffer = NULL;
 
-  PixelFormat pixFmtRequired = (chromaVertical == 2) ? PIX_FMT_YUV420P16LE : PIX_FMT_YUV422P16LE;
-
-  if (m_InputPixFmt != pixFmtRequired) {
+  if ((chromaVertical == 1 && m_InputPixFmt != PIX_FMT_YUV422P16LE && m_InputPixFmt != PIX_FMT_YUV422P16BE && m_InputPixFmt != PIX_FMT_YUV422P10LE && m_InputPixFmt != PIX_FMT_YUV422P10BE)
+    || (chromaVertical == 2 && m_InputPixFmt != PIX_FMT_YUV420P16LE && m_InputPixFmt != PIX_FMT_YUV420P16BE && m_InputPixFmt != PIX_FMT_YUV420P10LE && m_InputPixFmt != PIX_FMT_YUV420P10BE
+        && m_InputPixFmt != PIX_FMT_YUV420P9LE && m_InputPixFmt != PIX_FMT_YUV420P9BE)) {
     uint8_t *dst[4] = {NULL};
     int     dstStride[4] = {0};
 
@@ -491,7 +494,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
     dstStride[2] = stride / 2;
     dstStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, m_InputPixFmt, pixFmtRequired, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, m_InputPixFmt, chromaVertical == 1 ? PIX_FMT_YUV422P16LE : PIX_FMT_YUV420P16LE, SWS_POINT);
     sws_scale(ctx, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
 
     y = dst[0];
@@ -503,28 +506,61 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
     u = pFrame->data[1];
     v = pFrame->data[2];
     srcStride = pFrame->linesize[0];
+
+    if (m_InputPixFmt == PIX_FMT_YUV422P10LE || m_InputPixFmt == PIX_FMT_YUV422P10BE || m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P10BE)
+      shift = 6;
+    else if (m_InputPixFmt == PIX_FMT_YUV420P9LE || m_InputPixFmt == PIX_FMT_YUV420P9BE)
+      shift = 7;
+
+    bBigEndian = (m_InputPixFmt == PIX_FMT_YUV422P16BE || m_InputPixFmt == PIX_FMT_YUV422P10BE || m_InputPixFmt == PIX_FMT_YUV420P16BE || m_InputPixFmt == PIX_FMT_YUV420P10BE || m_InputPixFmt == PIX_FMT_YUV420P9BE);
   }
 
   // copy Y
   BYTE *pLineOut = pOut;
   const BYTE *pLineIn = y;
   for (line = 0; line < height; ++line) {
-    memcpy(pLineOut, pLineIn, width * 2);
+    if (shift == 0 && !bBigEndian) {
+      memcpy(pLineOut, pLineIn, width * 2);
+    } else {
+      const int16_t *yc = (int16_t *)pLineIn;
+      int16_t *idst = (int16_t *)pLineOut;
+      for (i = 0; i < width; ++i) {
+        int16_t yv;
+        if (bBigEndian) yv = AV_RB16(yc+i); else yv = AV_RL16(yc+i);
+        if (shift) yv <<= shift;
+        *idst++ = yv;
+      }
+    }
     pLineOut += stride;
     pLineIn += srcStride;
   }
 
+  srcStride >>= 2;
+
   // Merge U/V
-  BYTE *dstUV = pLineOut;
+  BYTE *out = pLineOut;
   const int16_t *uc = (int16_t *)u;
   const int16_t *vc = (int16_t *)v;
   for (line = 0; line < height/chromaVertical; ++line) {
-    int32_t *idst = (int32_t *)(dstUV + line * stride);
+    int32_t *idst = (int32_t *)out;
     for (i = 0; i < width/2; ++i) {
-      *idst++ = uc[i] + (vc[i] << 16);
+      int16_t uv, vv;
+      if (bBigEndian) {
+        uv = AV_RB16(uc+i);
+        vv = AV_RB16(vc+i);
+      } else {
+        uv = AV_RL16(uc+i);
+        vv = AV_RL16(vc+i);
+      }
+      if (shift) {
+        uv <<= shift;
+        vv <<= shift;
+      }
+      *idst++ = uv + (vv << 16);
     }
-    uc += srcStride/4;
-    vc += srcStride/4;
+    uc += srcStride;
+    vc += srcStride;
+    out += stride;
   }
 
   av_freep(&pTmpBuffer);
