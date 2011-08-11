@@ -394,7 +394,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int widt
   int srcStride = 0;
   BYTE *pTmpBuffer = NULL;
 
-  if (m_InputPixFmt != PIX_FMT_YUV444P) {
+  if (m_InputPixFmt != PIX_FMT_YUV444P && m_InputPixFmt != PIX_FMT_YUVJ444P) {
     uint8_t *dst[4] = {NULL};
     int     dstStride[4] = {0};
 
@@ -423,15 +423,16 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int widt
     srcStride = pFrame->linesize[0];
   }
 
+  BYTE *out = pOut;
   for (line = 0; line < height; ++line) {
-    BYTE *pLine = pOut + line * stride * 4;
-    int32_t *idst = (int32_t *)pLine;
+    int32_t *idst = (int32_t *)out;
     for (i = 0; i < width; ++i) {
       *idst++ = v[i] + (u[i] << 8) + (y[i] << 16) + (0xff << 24);
     }
     y += srcStride;
     u += srcStride;
     v += srcStride;
+    out += stride << 2;
   }
 
   av_freep(&pTmpBuffer);
