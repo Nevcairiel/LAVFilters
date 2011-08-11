@@ -133,9 +133,13 @@ HRESULT CLAVAudio::FreeDTSDecoder()
   return S_OK;
 }
 
-HRESULT CLAVAudio::FlushDTSDecoder()
+HRESULT CLAVAudio::FlushDTSDecoder(BOOL bReopen)
 {
   if (m_pDTSDecoderContext) {
+    if(bReopen) {
+      m_pDTSDecoderContext->pDtsClose(m_pDTSDecoderContext->dtsContext);
+      m_pDTSDecoderContext->dtsContext = m_pDTSDecoderContext->pDtsOpen();
+    }
     m_pDTSDecoderContext->pDtsReset(m_pDTSDecoderContext->dtsContext);
     m_pDTSDecoderContext->pDtsSetParam(m_pDTSDecoderContext->dtsContext, m_DTSDecodeChannels, m_DTSBitDepth, 0, 0, 0);
   }
@@ -330,6 +334,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       } __except(EXCEPTION_EXECUTE_HANDLER) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
         nPCMLength = 0;
+        FlushDTSDecoder(TRUE);
       }
       if (nPCMLength > 0 && bitdepth != m_DTSBitDepth) {
         int decodeBits = bitdepth > 16 ? 24 : 16;
@@ -345,6 +350,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
           } __except(EXCEPTION_EXECUTE_HANDLER) {
             DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
             nPCMLength = 0;
+            FlushDTSDecoder(TRUE);
           }
         }
       }

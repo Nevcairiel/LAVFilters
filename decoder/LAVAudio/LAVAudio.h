@@ -199,7 +199,7 @@ private:
 
   HRESULT InitDTSDecoder();
   HRESULT FreeDTSDecoder();
-  HRESULT FlushDTSDecoder();
+  HRESULT FlushDTSDecoder(BOOL bReopen = FALSE);
   HRESULT DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out);
 
   HRESULT CheckChannelLayoutConformity(DWORD dwLayout);
