@@ -612,9 +612,9 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int widt
 
 HRESULT CLAVPixFmtConverter::ConvertToY416(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride)
 {
-  const BYTE *y = NULL;
-  const BYTE *u = NULL;
-  const BYTE *v = NULL;
+  const int16_t *y = NULL;
+  const int16_t *u = NULL;
+  const int16_t *v = NULL;
   int line, i = 0;
   int srcStride = 0;
   bool bBigEndian = false;
@@ -639,15 +639,15 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(AVFrame *pFrame, BYTE *pOut, int widt
     SwsContext *ctx = GetSWSContext(width, height, m_InputPixFmt, PIX_FMT_YUV444P16LE, SWS_POINT);
     sws_scale(ctx, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
 
-    y = dst[0];
-    u = dst[1];
-    v = dst[2];
-    srcStride = stride * 2;
+    y = (int16_t *)dst[0];
+    u = (int16_t *)dst[1];
+    v = (int16_t *)dst[2];
+    srcStride = stride;
   } else {
-    y = pFrame->data[0];
-    u = pFrame->data[1];
-    v = pFrame->data[2];
-    srcStride = pFrame->linesize[0];
+    y = (int16_t *)pFrame->data[0];
+    u = (int16_t *)pFrame->data[1];
+    v = (int16_t *)pFrame->data[2];
+    srcStride = pFrame->linesize[0] / 2;
 
     bBigEndian = (m_InputPixFmt == PIX_FMT_YUV444P16BE);
   }
@@ -655,18 +655,27 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(AVFrame *pFrame, BYTE *pOut, int widt
   // 64-bit per pixel
   stride *= 8;
 
+  BYTE *out = pOut;
   for (line = 0; line < height; ++line) {
-    const int16_t *yc = (int16_t *)(y + line * srcStride);
-    const int16_t *uc = (int16_t *)(u + line * srcStride);
-    const int16_t *vc = (int16_t *)(v + line * srcStride);
-    int32_t *idst = (int32_t *)(pOut + (line * stride));
+    int32_t *idst = (int32_t *)out;
     for (i = 0; i < width; ++i) {
-      int16_t yv = bBigEndian ? AV_RB16(yc+i) : AV_RL16(yc+i);
-      int16_t uv = bBigEndian ? AV_RB16(uc+i) : AV_RL16(uc+i);
-      int16_t vv = bBigEndian ? AV_RB16(vc+i) : AV_RL16(vc+i);
+      int16_t yv, uv, vv;
+      if (bBigEndian) {
+        yv = AV_RB16(y+i);
+        uv = AV_RB16(u+i);
+        vv = AV_RB16(v+i);
+      } else {
+        yv = AV_RL16(y+i);
+        uv = AV_RL16(u+i);
+        vv = AV_RL16(v+i);
+      }
       *idst++ = 0xFFFF + (vv << 16);
       *idst++ = yv + (uv << 16);
     }
+    y += srcStride;
+    u += srcStride;
+    v += srcStride;
+    out += stride;
   }
 
   av_freep(&pTmpBuffer);
