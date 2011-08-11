@@ -525,7 +525,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
       const int16_t *yc = (int16_t *)pLineIn;
       int16_t *idst = (int16_t *)pLineOut;
       for (i = 0; i < width; ++i) {
-        int16_t yv;
+        int32_t yv;
         if (bBigEndian) yv = AV_RB16(yc+i); else yv = AV_RL16(yc+i);
         if (shift) yv <<= shift;
         *idst++ = yv;
@@ -544,7 +544,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
   for (line = 0; line < height/chromaVertical; ++line) {
     int32_t *idst = (int32_t *)out;
     for (i = 0; i < width/2; ++i) {
-      int16_t uv, vv;
+      int32_t uv, vv;
       if (bBigEndian) {
         uv = AV_RB16(uc+i);
         vv = AV_RB16(vc+i);
@@ -556,7 +556,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
         uv <<= shift;
         vv <<= shift;
       }
-      *idst++ = uv + (vv << 16);
+      *idst++ = uv | (vv << 16);
     }
     uc += srcStride;
     vc += srcStride;
@@ -618,7 +618,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int widt
   for (line = 0; line < height; ++line) {
     int32_t *idst = (int32_t *)out;
     for (i = 0; i < width; ++i) {
-      int16_t yv, uv, vv;
+      int32_t yv, uv, vv;
       if (bBigEndian) {
         yv = AV_RB16(y+i);
         uv = AV_RB16(u+i);
@@ -695,7 +695,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(AVFrame *pFrame, BYTE *pOut, int widt
   for (line = 0; line < height; ++line) {
     int32_t *idst = (int32_t *)out;
     for (i = 0; i < width; ++i) {
-      int16_t yv, uv, vv;
+      int32_t yv, uv, vv;
       if (bBigEndian) {
         yv = AV_RB16(y+i);
         uv = AV_RB16(u+i);
@@ -705,8 +705,8 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(AVFrame *pFrame, BYTE *pOut, int widt
         uv = AV_RL16(u+i);
         vv = AV_RL16(v+i);
       }
-      *idst++ = 0xFFFF + (vv << 16);
-      *idst++ = yv + (uv << 16);
+      *idst++ = 0xFFFF | (vv << 16);
+      *idst++ = yv | (uv << 16);
     }
     y += srcStride;
     u += srcStride;
