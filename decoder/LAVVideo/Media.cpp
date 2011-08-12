@@ -312,8 +312,12 @@ const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
 
 // Define Output Media Types
 const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesOut[] = {
-  { &MEDIATYPE_Video, &MEDIASUBTYPE_NV12 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_YV12 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_NV12 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_YUY2 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_UYVY },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 },
 };
 const int CLAVVideo::sudPinTypesOutCount = countof(CLAVVideo::sudPinTypesOut);
 
