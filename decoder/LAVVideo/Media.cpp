@@ -117,6 +117,7 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_QP11, CODEC_ID_QPEG },
   { &MEDIASUBTYPE_MSZH, CODEC_ID_MSZH },
   { &MEDIASUBTYPE_ZLIB, CODEC_ID_ZLIB },
+  { &MEDIASUBTYPE_QTRpza, CODEC_ID_RPZA },
 
   // DV Video
   { &MEDIASUBTYPE_dvsd, CODEC_ID_DVVIDEO },
@@ -256,6 +257,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_QP11 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_MSZH },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ZLIB },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_QTRpza },
 
   // DV Video
   { &MEDIATYPE_Video, &MEDIASUBTYPE_dvsd },
@@ -391,6 +393,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_CSCD }},                                                // Codec_Camstudio
   { 1, { CODEC_ID_QPEG }},                                                // Codec_QPEG
   { 2, { CODEC_ID_ZLIB, CODEC_ID_MSZH }, L"zlib", L"ZLIB/MSZH lossless" },// Codec_ZLIB
+  { 1, { CODEC_ID_RPZA }},                                                // Codec_QTRpza
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
