@@ -259,7 +259,7 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
   CMediaType mtOut = m_pOutput->CurrentMediaType();
   formatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH, NULL);
 
-  pProperties->cBuffers = 1;
+  pProperties->cBuffers = 4;
   pProperties->cbBuffer = pBIH->biSizeImage;
   pProperties->cbAlign  = 1;
   pProperties->cbPrefix = 0;
