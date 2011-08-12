@@ -128,6 +128,7 @@ private:
   int                  m_CurrentThread;
 
   BOOL                 m_bDiscontinuity;
+  BOOL                 m_bWaitingForKeyFrame;
   BOOL                 m_bForceTypeNegotiation;
   BOOL                 m_bForceInputAR;
 

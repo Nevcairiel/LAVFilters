@@ -60,6 +60,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bRuntimeConfig(FALSE)
   , m_CurrentThread(0)
   , m_bForceInputAR(FALSE)
+  , m_bWaitingForKeyFrame(FALSE)
 {
   avcodec_register_all();
 
@@ -537,6 +538,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 
   m_CurrentThread = 0;
   m_rtStartCache = AV_NOPTS_VALUE;
+  m_bWaitingForKeyFrame = TRUE;
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
@@ -879,6 +881,14 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
 
     if (m_nCodecId == CODEC_ID_H264 && (bParserFrame || !m_pParser || got_picture)) {
       m_h264RandomAccess.judgeFrameUsability(m_pFrame, &got_picture);
+    } else if (m_nCodecId == CODEC_ID_MPEG2VIDEO || m_nCodecId == CODEC_ID_VC1) {
+      if (m_bWaitingForKeyFrame && got_picture) {
+        if (m_pFrame->key_frame) {
+          m_bWaitingForKeyFrame = FALSE;
+        } else {
+          got_picture = 0;
+        }
+      }
     }
 
     if (!got_picture || !m_pFrame->data[0]) {
