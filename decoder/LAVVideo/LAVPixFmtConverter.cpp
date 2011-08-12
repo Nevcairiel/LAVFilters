@@ -192,7 +192,7 @@ int CLAVPixFmtConverter::GetNumMediaTypes()
   return GetFilteredFormatCount();
 }
 
-CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime)
+CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1)
 {
   if (index < 0 || index >= GetFilteredFormatCount())
     index = 0;
@@ -204,49 +204,66 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
 
   mt.SetType(&MEDIATYPE_Video);
   mt.SetSubtype(&guid);
-  mt.SetFormatType(&FORMAT_VideoInfo2);
 
-  VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.AllocFormatBuffer(sizeof(VIDEOINFOHEADER2));
-  memset(vih2, 0, sizeof(VIDEOINFOHEADER2));
+  BITMAPINFOHEADER *pBIH = NULL;
+  if (bVIH1) {
+    mt.SetFormatType(&FORMAT_VideoInfo);
 
+    VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.AllocFormatBuffer(sizeof(VIDEOINFOHEADER));
+    memset(vih, 0, sizeof(VIDEOINFOHEADER));
 
-  // Validate the Aspect Ratio - an AR of 0 crashes VMR-9
-  if (dwAspectX == 0 || dwAspectY == 0) {
-    int dwX = 0;
-    int dwY = 0;
-    av_reduce(&dwX, &dwY, biWidth, biHeight, max(biWidth, biHeight));
+    vih->rcSource.right = vih->rcTarget.right = biWidth;
+    vih->rcSource.bottom = vih->rcTarget.bottom = biHeight;
+    vih->AvgTimePerFrame = rtAvgTime;
 
-    dwAspectX = dwX;
-    dwAspectY = dwY;
+    pBIH = &vih->bmiHeader;
+  } else {
+    mt.SetFormatType(&FORMAT_VideoInfo2);
+
+    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.AllocFormatBuffer(sizeof(VIDEOINFOHEADER2));
+    memset(vih2, 0, sizeof(VIDEOINFOHEADER2));
+
+    // Validate the Aspect Ratio - an AR of 0 crashes VMR-9
+    if (dwAspectX == 0 || dwAspectY == 0) {
+      int dwX = 0;
+      int dwY = 0;
+      av_reduce(&dwX, &dwY, biWidth, biHeight, max(biWidth, biHeight));
+
+      dwAspectX = dwX;
+      dwAspectY = dwY;
+    }
+
+    vih2->rcSource.right = vih2->rcTarget.right = biWidth;
+    vih2->rcSource.bottom = vih2->rcTarget.bottom = biHeight;
+    vih2->AvgTimePerFrame = rtAvgTime;
+    vih2->dwPictAspectRatioX = dwAspectX;
+    vih2->dwPictAspectRatioY = dwAspectY;
+
+    // Always set interlace flags, the samples will be flagged appropriately then.
+    if (m_pSettings->GetReportInterlacedFlags())
+      vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
+
+    pBIH = &vih2->bmiHeader;
   }
 
-  vih2->rcSource.right = vih2->rcTarget.right = biWidth;
-  vih2->rcSource.bottom = vih2->rcTarget.bottom = biHeight;
-  vih2->AvgTimePerFrame = rtAvgTime;
-  vih2->dwPictAspectRatioX = dwAspectX;
-  vih2->dwPictAspectRatioY = dwAspectY;
-  vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  vih2->bmiHeader.biWidth = biWidth;
-  vih2->bmiHeader.biHeight = biHeight;
-  vih2->bmiHeader.biBitCount = lav_pixfmt_desc[pixFmt].bpp;
-  vih2->bmiHeader.biPlanes = lav_pixfmt_desc[pixFmt].planes;
-  vih2->bmiHeader.biSizeImage = (biWidth * biHeight * vih2->bmiHeader.biBitCount) >> 3;
-  vih2->bmiHeader.biCompression = guid.Data1;
+  pBIH->biSize = sizeof(BITMAPINFOHEADER);
+  pBIH->biWidth = biWidth;
+  pBIH->biHeight = biHeight;
+  pBIH->biBitCount = lav_pixfmt_desc[pixFmt].bpp;
+  pBIH->biPlanes = lav_pixfmt_desc[pixFmt].planes;
+  pBIH->biSizeImage = (biWidth * biHeight * pBIH->biBitCount) >> 3;
+  pBIH->biCompression = guid.Data1;
 
-  if (!vih2->bmiHeader.biPlanes) {
-    vih2->bmiHeader.biPlanes = 1;
+  if (!pBIH->biPlanes) {
+    pBIH->biPlanes = 1;
   }
 
   if (guid == MEDIASUBTYPE_RGB32 || guid == MEDIASUBTYPE_RGB24) {
-    vih2->bmiHeader.biCompression = BI_RGB;
-    vih2->bmiHeader.biHeight = -vih2->bmiHeader.biHeight;
+    pBIH->biCompression = BI_RGB;
+    pBIH->biHeight = -pBIH->biHeight;
   }
 
-  // Always set interlace flags, the samples will be flagged appropriately then.
-  if (m_pSettings->GetReportInterlacedFlags())
-    vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
-
-  mt.SetSampleSize(vih2->bmiHeader.biSizeImage);
+  mt.SetSampleSize(pBIH->biSizeImage);
   mt.SetTemporalCompression(0);
 
   return mt;

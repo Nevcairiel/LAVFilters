@@ -49,7 +49,7 @@ public:
   void SetColorProps(AVColorSpace colorspace, AVColorRange range) { if (swsColorSpace != colorspace || swsColorRange != range) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; } }
 
   int GetNumMediaTypes();
-  CMediaType GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime);
+  CMediaType GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
   HRESULT Convert(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);

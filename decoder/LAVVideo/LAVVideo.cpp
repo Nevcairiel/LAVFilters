@@ -283,9 +283,12 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
     return E_INVALIDARG;
   }
 
-  if(iPosition >= m_PixFmtConverter.GetNumMediaTypes()) {
+  if(iPosition >= (m_PixFmtConverter.GetNumMediaTypes() * 2)) {
     return VFW_S_NO_MORE_ITEMS;
   }
+
+  int index = iPosition / 2;
+  BOOL bVIH1 = iPosition % 2;
 
   CMediaType mtIn = m_pInput->CurrentMediaType();
 
@@ -294,7 +297,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   DWORD dwAspectX = 0, dwAspectY = 0;
   formatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
-  *pMediaType = m_PixFmtConverter.GetMediaType(iPosition, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime);
+  *pMediaType = m_PixFmtConverter.GetMediaType(index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, bVIH1);
 
   return S_OK;
 }
@@ -571,45 +574,72 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
 HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
 {
   CMediaType& mt = m_pOutput->CurrentMediaType();
-  VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+
 
   HRESULT hr = S_FALSE;
+  BOOL bNeedReconnect = FALSE;
 
-  int num = width, den = height;
-  av_reduce(&num, &den, (int64_t)ar.num * num, (int64_t)ar.den * den, 255);
-  if (!m_settings.StreamAR || num == 0 || den == 0) {
-    if (m_bForceInputAR) {
-      DWORD dwARX, dwARY;
-      formatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
-      num = dwARX;
-      den = dwARY;
-      m_bForceInputAR = FALSE;
-    } else {
-      num = vih2->dwPictAspectRatioX;
-      den = vih2->dwPictAspectRatioY;
+  DWORD dwAspectX, dwAspectY;
+
+  if (mt.formattype  == FORMAT_VideoInfo) {
+    VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
+
+    bNeedReconnect = (vih->rcTarget.right != width || vih->rcTarget.bottom != height);
+  } else if (mt.formattype  == FORMAT_VideoInfo2) {
+    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+
+    int num = width, den = height;
+    av_reduce(&num, &den, (int64_t)ar.num * num, (int64_t)ar.den * den, 255);
+    if (!m_settings.StreamAR || num == 0 || den == 0) {
+      if (m_bForceInputAR) {
+        DWORD dwARX, dwARY;
+        formatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
+        num = dwARX;
+        den = dwARY;
+        m_bForceInputAR = FALSE;
+      } else {
+        num = vih2->dwPictAspectRatioX;
+        den = vih2->dwPictAspectRatioY;
+      }
     }
+    dwAspectX = num;
+    dwAspectY = den;
+
+    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den);
   }
 
-  if (vih2->rcTarget.right != width
-    || vih2->rcTarget.bottom != height
-    || vih2->dwPictAspectRatioX != num
-    || vih2->dwPictAspectRatioY != den
-    || m_bForceTypeNegotiation) {
+
+
+  if (bNeedReconnect || m_bForceTypeNegotiation) {
 
     m_bForceTypeNegotiation = FALSE;
     
-    vih2->bmiHeader.biWidth = width;
-    vih2->bmiHeader.biHeight = height;
-    vih2->dwPictAspectRatioX = num;
-    vih2->dwPictAspectRatioY = den;
+    BITMAPINFOHEADER *pBIH = NULL;
+    if (mt.formattype == FORMAT_VideoInfo) {
+      VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
 
-    SetRect(&vih2->rcSource, 0, 0, width, height);
-    SetRect(&vih2->rcTarget, 0, 0, width, height);
+      SetRect(&vih->rcSource, 0, 0, width, height);
+      SetRect(&vih->rcTarget, 0, 0, width, height);
 
-    vih2->bmiHeader.biSizeImage = width * height * vih2->bmiHeader.biBitCount >> 3;
+      pBIH = &vih->bmiHeader;
+    } else if (mt.formattype == FORMAT_VideoInfo2) {
+      VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+
+      vih2->dwPictAspectRatioX = dwAspectX;
+      vih2->dwPictAspectRatioY = dwAspectY;
+
+      SetRect(&vih2->rcSource, 0, 0, width, height);
+      SetRect(&vih2->rcTarget, 0, 0, width, height);
+
+      pBIH = &vih2->bmiHeader;
+    }
+
+    pBIH->biWidth = width;
+    pBIH->biHeight = height;
+    pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
 
     if (mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) {
-      vih2->bmiHeader.biHeight = -vih2->bmiHeader.biHeight;
+       pBIH->biHeight = -pBIH->biHeight;
     }
 
     hr = m_pOutput->GetConnected()->QueryAccept(&mt);
@@ -621,8 +651,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
           CMediaType newmt = *pmt;
           m_pOutput->SetMediaType(&newmt);
 #ifdef DEBUG
-          VIDEOINFOHEADER2 *vih2new = (VIDEOINFOHEADER2 *)newmt.Format();
-          DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", width, vih2new->bmiHeader.biWidth));
+          formatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
+          DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
 #endif
           DeleteMediaType(pmt);
         } else { // No Stride Request? We're ok with that, too!
@@ -644,10 +674,13 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
   HRESULT hr = S_OK;
   int i = 0;
 
-  VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)outMt.Format();
+  DWORD dwAspectX, dwAspectY;
+  REFERENCE_TIME rtAvg;
+  BOOL bVIH1 = (outMt.formattype == FORMAT_VideoInfo);
+  formatTypeHandler(outMt.Format(), outMt.FormatType(), NULL, &rtAvg, &dwAspectX, &dwAspectY);
 
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
-    CMediaType &mt = m_PixFmtConverter.GetMediaType(i, width, height, vih2->dwPictAspectRatioX, vih2->dwPictAspectRatioY, vih2->AvgTimePerFrame);
+    CMediaType &mt = m_PixFmtConverter.GetMediaType(i, width, height, dwAspectX, dwAspectY, rtAvg, bVIH1);
     //hr = m_pOutput->GetConnected()->QueryAccept(&mt);
     hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
     if (hr == S_OK) {
@@ -938,9 +971,10 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     pSampleOut->SetMediaTime(NULL, NULL);
 
     CMediaType& mt = m_pOutput->CurrentMediaType();
-    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+    BITMAPINFOHEADER *pBIH = NULL;
+    formatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
-    m_PixFmtConverter.Convert(m_pFrame, pDataOut, width, height, vih2->bmiHeader.biWidth);
+    m_PixFmtConverter.Convert(m_pFrame, pDataOut, width, height, pBIH->biWidth);
 
     SetTypeSpecificFlags (pSampleOut);
     hr = m_pOutput->Deliver(pSampleOut);
