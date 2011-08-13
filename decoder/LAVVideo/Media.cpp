@@ -390,8 +390,8 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_DVVIDEO }},                                             // Codec_DV
   { 1, { CODEC_ID_BINKVIDEO }, L"bink"},                                  // Codec_Bink
   { 1, { CODEC_ID_SMACKVIDEO }},                                          // Codec_Smacker
-  { 3, { CODEC_ID_RV10, CODEC_ID_RV20, CODEC_ID_RV30 }, L"rv10-30", L"RealVideo 1-3" }, // Codev_RV123
-  { 1, { CODEC_ID_RV40 }},                                                // Codec_RV4
+  { 2, { CODEC_ID_RV10, CODEC_ID_RV20 }, L"rv12", L"RealVideo 1/2" },     // Codev_RV12
+  { 2, { CODEC_ID_RV30, CODEC_ID_RV40 }, L"rv34", L"RealVideo 3/4" },     // Codec_RV34
   { 1, { CODEC_ID_LAGARITH }},                                            // Codec_Lagarith
   { 1, { CODEC_ID_CINEPAK }},                                             // Codec_Cinepak
   { 1, { CODEC_ID_CSCD }},                                                // Codec_Camstudio
