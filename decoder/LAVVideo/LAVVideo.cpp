@@ -634,6 +634,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
       pBIH = &vih2->bmiHeader;
     }
 
+    DWORD oldSizeImage = pBIH->biSizeImage;
+
     pBIH->biWidth = width;
     pBIH->biHeight = height;
     pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
@@ -662,6 +664,23 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
           DbgLog((LOG_TRACE, 10, L"We did not get a stride request, calculated stride: %d", pBIH->biWidth));
         }
         pOut->Release();
+      }
+    } else if (hr == VFW_E_ALREADY_CONNECTED && (pBIH->biSizeImage > oldSizeImage)) {
+      DbgLog((LOG_TRACE, 10, L"Downstream filter refuses new format, but more space required, updating allocator manually..."));
+      IMemInputPin *pMemPin = NULL;
+      if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
+        IMemAllocator *pMemAllocator = NULL;
+        if (SUCCEEDED(hr = pMemPin->GetAllocator(&pMemAllocator)) && pMemAllocator) {
+          ALLOCATOR_PROPERTIES props, actual;
+          hr = pMemAllocator->GetProperties(&props);
+          hr = pMemAllocator->Decommit();
+          props.cbBuffer = pBIH->biSizeImage;
+          hr = pMemAllocator->SetProperties(&props, &actual);
+          hr = pMemAllocator->Commit();
+          SafeRelease(&pMemAllocator);
+        }
+        SafeRelease(&pMemPin);
+        m_bSendMediaType = TRUE;
       }
     }
     NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
