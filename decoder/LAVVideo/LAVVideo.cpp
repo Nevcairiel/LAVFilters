@@ -61,6 +61,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_CurrentThread(0)
   , m_bForceInputAR(FALSE)
   , m_bWaitingForKeyFrame(FALSE)
+  , m_bSendMediaType(FALSE)
 {
   avcodec_register_all();
 
@@ -656,7 +657,10 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
 #endif
           DeleteMediaType(pmt);
         } else { // No Stride Request? We're ok with that, too!
-          DbgLog((LOG_TRACE, 10, L"We did not get a stride request, sending width no stride; width: %d", width));
+          long size = pOut->GetSize();
+          pBIH->biWidth = size / pBIH->biHeight * 8 / pBIH->biBitCount;
+          m_bSendMediaType = TRUE;
+          DbgLog((LOG_TRACE, 10, L"We did not get a stride request, calculated stride: %d", pBIH->biWidth));
         }
         pOut->Release();
       }
@@ -983,6 +987,20 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     formatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
     m_PixFmtConverter.Convert(m_pFrame, pDataOut, width, height, pBIH->biWidth);
+
+    if (m_bSendMediaType) {
+      AM_MEDIA_TYPE *sendmt = CreateMediaType(&mt);
+      if (sendmt->formattype == FORMAT_VideoInfo) {
+        VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)sendmt->pbFormat;
+        SetRect(&vih->rcSource, 0, 0, 0, 0);
+      } else if (sendmt->formattype == FORMAT_VideoInfo2) {
+        VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)sendmt->pbFormat;
+        SetRect(&vih2->rcSource, 0, 0, 0, 0);
+      }
+      pSampleOut->SetMediaType(sendmt);
+      DeleteMediaType(sendmt);
+      m_bSendMediaType = FALSE;
+    }
 
     SetTypeSpecificFlags (pSampleOut);
     hr = m_pOutput->Deliver(pSampleOut);

@@ -131,6 +131,7 @@ private:
   BOOL                 m_bWaitingForKeyFrame;
   BOOL                 m_bForceTypeNegotiation;
   BOOL                 m_bForceInputAR;
+  BOOL                 m_bSendMediaType;
 
   int                  m_nThreads;
 
