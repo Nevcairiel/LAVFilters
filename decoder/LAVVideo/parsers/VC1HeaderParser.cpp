@@ -87,6 +87,7 @@ static inline int vc1_unescape_buffer(const uint8_t *src, int size, uint8_t *dst
 
 CVC1HeaderParser::CVC1HeaderParser(const BYTE *pData, int length)
 {
+  memset(&hdr, 0, sizeof(hdr));
   ParseVC1Header(pData, length);
 }
 
