@@ -644,7 +644,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
        pBIH->biHeight = -pBIH->biHeight;
     }
 
-    hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+    HRESULT hrQA = m_pOutput->GetConnected()->QueryAccept(&mt);
     if(SUCCEEDED(hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt))) {
       IMediaSample *pOut = NULL;
       if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0))) {
@@ -665,7 +665,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
         }
         pOut->Release();
       }
-    } else if (hr == VFW_E_ALREADY_CONNECTED && (pBIH->biSizeImage > oldSizeImage)) {
+    } else if (hrQA == S_OK && hr == VFW_E_ALREADY_CONNECTED && (pBIH->biSizeImage > oldSizeImage)) {
       DbgLog((LOG_TRACE, 10, L"Downstream filter refuses new format, but more space required, updating allocator manually..."));
       IMemInputPin *pMemPin = NULL;
       if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
@@ -680,6 +680,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
           SafeRelease(&pMemAllocator);
         }
         SafeRelease(&pMemPin);
+        m_pOutput->SetMediaType(&mt);
         m_bSendMediaType = TRUE;
       }
     }
@@ -1003,6 +1004,14 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     CMediaType& mt = m_pOutput->CurrentMediaType();
     BITMAPINFOHEADER *pBIH = NULL;
     formatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
+
+    long required = (pBIH->biWidth * abs(pBIH->biHeight) * pBIH->biBitCount) >> 3;
+
+    if (pSampleOut->GetSize() < required) {
+      DbgLog((LOG_ERROR, 10, L"::Decode(): Buffer is too small! Actual: %d, Required: %d", pSampleOut->GetSize(), required));
+      SafeRelease(&pSampleOut);
+      return E_FAIL;
+    }
 
     m_PixFmtConverter.Convert(m_pFrame, pDataOut, width, height, pBIH->biWidth);
 
