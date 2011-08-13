@@ -29,6 +29,8 @@
 
 #include <Shlwapi.h>
 
+#include "parsers/VC1HeaderParser.h"
+
 // static constructor
 CUnknown* WINAPI CLAVVideo::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
 {
@@ -438,6 +440,14 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_bCalculateStopTime = (codec == CODEC_ID_H264 || bVC1OnMPC);
 
   m_bRVDropBFrameTimings = (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_strExtension == L".mkv" || ((m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) && !(FilterInGraph(CLSID_LAVSplitter, m_pGraph) || FilterInGraph(CLSID_LAVSplitterSource, m_pGraph))));
+
+  if (codec == CODEC_ID_VC1 && extralen > 16) {
+    CVC1HeaderParser vc1Parser(extra, extralen);
+    if (vc1Parser.hdr.interlaced) {
+      DbgLog((LOG_TRACE, 10, L"::ffmpeg_init(): Detected VC-1 interlaced, refusing connection"));
+      return VFW_E_UNSUPPORTED_VIDEO;
+    }
+  }
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
