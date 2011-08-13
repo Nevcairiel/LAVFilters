@@ -445,8 +445,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   if (codec == CODEC_ID_VC1 && extralen > 16) {
     CVC1HeaderParser vc1Parser(extra, extralen);
     if (vc1Parser.hdr.interlaced) {
-      DbgLog((LOG_TRACE, 10, L"::ffmpeg_init(): Detected VC-1 interlaced, refusing connection"));
-      return VFW_E_UNSUPPORTED_VIDEO;
+      DbgLog((LOG_TRACE, 10, L"::ffmpeg_init(): Detected VC-1 interlaced, playback may fail badly"));
+      //return VFW_E_UNSUPPORTED_VIDEO;
     }
   }
 

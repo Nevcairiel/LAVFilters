@@ -36,6 +36,7 @@ public:
     int width;
     int height;
 
+    int broadcast;
     int interlaced;
   } hdr;
 

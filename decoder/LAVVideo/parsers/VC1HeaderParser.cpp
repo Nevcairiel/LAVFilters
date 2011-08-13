@@ -145,7 +145,7 @@ void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
     hdr.width = (get_bits(gb, 12) + 1) << 1;
     hdr.height = (get_bits(gb, 12) + 1) << 1;
 
-    get_bits1(gb);   // broadcast
+    hdr.broadcast = get_bits1(gb);    // broadcast
     hdr.interlaced = get_bits1(gb);   // interlaced
 
     // TODO: add other fields
