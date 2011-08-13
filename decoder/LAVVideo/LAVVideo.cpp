@@ -30,6 +30,7 @@
 #include <Shlwapi.h>
 
 #include "parsers/VC1HeaderParser.h"
+#include "parsers/MPEG2HeaderParser.h"
 
 // static constructor
 CUnknown* WINAPI CLAVVideo::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
@@ -458,26 +459,13 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
   // Detect MPEG-2 chroma format
   if (codec == CODEC_ID_MPEG2VIDEO && m_pAVCtx->extradata && m_pAVCtx->extradata_size) {
-    uint32_t state = -1;
-    uint8_t *data  = m_pAVCtx->extradata;
-    int size       = m_pAVCtx->extradata_size;
-    while(size > 2 && state != 0x000001b5) {
-      state = (state << 8) | *data++;
-      size--;
-    }
-    if (state == 0x000001b5) {
-      int start_code = (*data) >> 4;
-      if (start_code == 1) {
-        data++;
-        int chroma = ((*data) & 0x6) >> 1;
-        if (chroma < 2) {
-          m_pAVCtx->pix_fmt = PIX_FMT_YUV420P;
-        } else if (chroma == 2) {
-          m_pAVCtx->pix_fmt = PIX_FMT_YUV422P;
-        } else {
-          m_pAVCtx->pix_fmt = PIX_FMT_YUV444P;
-        }
-      }
+    CMPEG2HeaderParser mpeg2Parser(extra, extralen);
+    if (mpeg2Parser.hdr.chroma < 2) {
+      m_pAVCtx->pix_fmt = PIX_FMT_YUV420P;
+    } else if (mpeg2Parser.hdr.chroma == 2) {
+      m_pAVCtx->pix_fmt = PIX_FMT_YUV422P;
+    } else {
+      m_pAVCtx->pix_fmt = PIX_FMT_YUV444P;
     }
   }
 

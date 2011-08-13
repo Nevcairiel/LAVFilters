@@ -45,6 +45,9 @@
     <ClCompile Include="parsers\VC1HeaderParser.cpp">
       <Filter>Source Files\parsers</Filter>
     </ClCompile>
+    <ClCompile Include="parsers\MPEG2HeaderParser.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="parsers\VC1HeaderParser.h">
+      <Filter>Header Files\parsers</Filter>
+    </ClInclude>
+    <ClInclude Include="parsers\MPEG2HeaderParser.h">
       <Filter>Header Files\parsers</Filter>
     </ClInclude>
   </ItemGroup>

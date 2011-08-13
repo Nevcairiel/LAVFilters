@@ -149,6 +149,7 @@
     <ClCompile Include="LAVPixFmtConverter.cpp" />
     <ClCompile Include="LAVVideo.cpp" />
     <ClCompile Include="Media.cpp" />
+    <ClCompile Include="parsers\MPEG2HeaderParser.cpp" />
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -161,6 +162,7 @@
     <ClInclude Include="LAVVideo.h" />
     <ClInclude Include="LAVVideoSettings.h" />
     <ClInclude Include="Media.h" />
+    <ClInclude Include="parsers\MPEG2HeaderParser.h" />
     <ClInclude Include="parsers\VC1HeaderParser.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
