@@ -21,7 +21,7 @@
 #pragma once
 
 #define LAV_VERSION_MAJOR 0
-#define LAV_VERSION_MINOR 31
+#define LAV_VERSION_MINOR 32
 
 #define LAV_AUDIO "LAV Audio Decoder"
 #define LAV_VIDEO "LAV Video Decoder"
