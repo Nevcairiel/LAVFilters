@@ -659,6 +659,11 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
     dwChannelMask = nChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
   }
 
+  // Dont use a channel mask for "default" mono/stereo sources
+  if (wfe->wBitsPerSample <= 16 && wfe->nSamplesPerSec <= 44100 && ((nChannels == 1 && dwChannelMask == SPEAKER_FRONT_CENTER) || (nChannels == 2 && dwChannelMask == (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT)))) {
+    dwChannelMask = 0;
+  }
+
   if(dwChannelMask) {
     wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
     wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
