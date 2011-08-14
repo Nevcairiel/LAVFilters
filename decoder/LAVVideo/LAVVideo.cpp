@@ -685,7 +685,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
         m_bSendMediaType = TRUE;
       }
     }
-    NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
+    if (bNeedReconnect)
+      NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
 
     hr = S_OK;
   }
