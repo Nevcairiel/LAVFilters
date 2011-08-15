@@ -122,6 +122,10 @@ interface ILAVAudioSettings : public IUnknown
   // Expand 6.1 to 7.1 by doubling the back center
   STDMETHOD_(BOOL,GetExpand61)() = 0;
   STDMETHOD(SetExpand61)(BOOL bExpand61) = 0;
+
+  // Allow Raw PCM and SPDIF encoded input
+  STDMETHOD_(BOOL,GetAllowRawSPDIFInput)() = 0;
+  STDMETHOD(SetAllowRawSPDIFInput)(BOOL bAllow) = 0;
 };
 
 // LAV Audio Status Interface

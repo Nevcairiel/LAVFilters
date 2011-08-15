@@ -34,7 +34,11 @@
 
 #include "DeCSS/DeCSSInputPin.h"
 
+extern "C" {
 #include "libavcodec/dca.h"
+#include "libavutil/intreadwrite.h"
+#include "libavformat/spdif.h"
+};
 
 extern HINSTANCE g_hInst;
 
@@ -144,6 +148,7 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.ExpandMono           = FALSE;
   m_settings.Expand61             = FALSE;
   m_settings.OutputStandardLayout = TRUE;
+  m_settings.AllowRawSPDIF        = FALSE;
 
   return S_OK;
 }
@@ -419,6 +424,19 @@ STDMETHODIMP CLAVAudio::SetExpand61(BOOL bExpand61)
   return S_OK;
 }
 
+STDMETHODIMP_(BOOL) CLAVAudio::GetAllowRawSPDIFInput()
+{
+  return m_settings.AllowRawSPDIF;
+}
+
+STDMETHODIMP CLAVAudio::SetAllowRawSPDIFInput(BOOL bAllow)
+{
+  m_settings.AllowRawSPDIF = bAllow;
+  SaveSettings();
+
+  return S_OK;
+}
+
 // ILAVAudioStatus
 BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
 {
@@ -545,6 +563,13 @@ HRESULT CLAVAudio::CheckInputType(const CMediaType *mtIn)
   for(int i = 0; i < sudPinTypesInCount; i++) {
     if(*sudPinTypesIn[i].clsMajorType == mtIn->majortype
       && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && (mtIn->formattype == FORMAT_WaveFormatEx || mtIn->formattype == FORMAT_WaveFormatExFFMPEG)) {
+        return S_OK;
+    }
+  }
+
+  if (m_settings.AllowRawSPDIF) {
+    if (mtIn->majortype == MEDIATYPE_Audio && mtIn->formattype == FORMAT_WaveFormatEx &&
+       (mtIn->subtype == MEDIASUBTYPE_PCM || mtIn->subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF)) {
         return S_OK;
     }
   }
@@ -883,7 +908,29 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     }
 
     if (codec == CODEC_ID_NONE) {
-      return VFW_E_TYPE_NOT_ACCEPTED;
+      if (m_settings.AllowRawSPDIF) {
+        if (pmt->subtype == MEDIASUBTYPE_PCM) {
+          WAVEFORMATEX *wfex = (WAVEFORMATEX *)pmt->Format();
+          switch (wfex->wBitsPerSample) {
+          case 8:
+            codec = CODEC_ID_PCM_U8;
+            break;
+          case 16:
+            codec = CODEC_ID_PCM_S16LE;
+            break;
+          case 24:
+            codec = CODEC_ID_PCM_S24LE;
+            break;
+          case 32:
+            codec = CODEC_ID_PCM_S32LE;
+            break;
+          }
+        } else if (pmt->subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF) {
+          codec = CODEC_ID_AC3;
+        }
+      }
+      if (codec == CODEC_ID_NONE)
+        return VFW_E_TYPE_NOT_ACCEPTED;
     }
 
     HRESULT hr = ffmpeg_init(codec, format, format_type);
@@ -1089,6 +1136,22 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
     if (m_bFindDTSInPCM) {
       return S_FALSE;
+    }
+  }
+
+  if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF) {
+    uint16_t word1 = AV_RL16(p);
+    uint16_t word2 = AV_RL16(p+2);
+    if (word1 == SYNCWORD1 && word2 == SYNCWORD2) {
+      uint16_t type = AV_RL16(p+4);
+      buffer_size = AV_RL16(p+6) >> 3;
+
+      p += BURST_HEADER_SIZE;
+
+      // SPDIF is apparently big-endian coded
+      ff_spdif_bswap_buf16((uint16_t *)p, (uint16_t *)p, buffer_size >> 1);
+
+      end = p + buffer_size;
     }
   }
 
