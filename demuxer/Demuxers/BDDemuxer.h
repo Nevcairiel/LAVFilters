@@ -72,6 +72,8 @@ public:
   STDMETHODIMP put_PlaybackSpeed(double Speed) {return E_NOTIMPL;}
   STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
 
+  void ProcessClipLanguages();
+
 private:
   void ProcessStreams(int count, BLURAY_STREAM_INFO *streams);
   void ProcessBDEvents();

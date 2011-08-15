@@ -209,6 +209,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
   {
     char *lang = av_metadata_get(avstream->metadata, "language", NULL, 0)->value;
     strncpy_s(subInfo->IsoLang, 4, lang, _TRUNCATE);
+  } else {
+    strncpy_s(subInfo->IsoLang, 4, "und", _TRUNCATE);
   }
 
   if (av_metadata_get(avstream->metadata, "title", NULL, 0))

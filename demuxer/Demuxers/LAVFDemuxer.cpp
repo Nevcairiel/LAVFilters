@@ -33,6 +33,8 @@ extern "C" {
 }
 #endif
 
+#include "BDDemuxer.h"
+
 #define AVFORMAT_GENPTS 0
 
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
@@ -245,7 +247,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   }
 
   // Check if this is a m2ts in a BD structure, and if it is, read some extra stream properties out of the CLPI files
-  if (pszFileName && m_bMPEGTS) {
+  if (m_bBluRay && m_pBluRay) {
+    m_pBluRay->ProcessClipLanguages();
+  } else if (pszFileName && m_bMPEGTS) {
     CheckBDM2TSCPLI(pszFileName);
   }
 

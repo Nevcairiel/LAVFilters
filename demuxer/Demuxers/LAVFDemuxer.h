@@ -31,6 +31,7 @@
 #define SUBMODE_FORCED_PGS_ONLY 0xFF
 
 class FormatInfo;
+class CBDDemuxer;
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
 class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo
@@ -106,7 +107,7 @@ public:
   unsigned int GetNumStreams() const { return m_avFormat->nb_streams; }
 
   REFERENCE_TIME GetStartTime() const;
-  void SetBluRay() { m_bBluRay = TRUE; }
+  void SetBluRay(CBDDemuxer *pBluRay) { m_bBluRay = TRUE; m_pBluRay = pBluRay; }
 
 private:
   STDMETHODIMP AddStream(int streamId);
@@ -131,7 +132,6 @@ private:
   BOOL m_bMPEGTS;
   BOOL m_bEVO;
   BOOL m_bRM;
-  BOOL m_bBluRay;
   BOOL m_bVC1Correction;
 
   BOOL m_bSubStreams;
@@ -151,4 +151,7 @@ private:
   ILAVFSettingsInternal *m_pSettings;
 
   BOOL m_bEnableTrackInfo;
+
+  BOOL m_bBluRay;
+  CBDDemuxer *m_pBluRay;
 };

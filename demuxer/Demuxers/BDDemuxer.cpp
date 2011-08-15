@@ -303,7 +303,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 
   m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
   m_lavfDemuxer->AddRef();
-  m_lavfDemuxer->SetBluRay();
+  m_lavfDemuxer->SetBluRay(this);
   if (FAILED(hr = m_lavfDemuxer->OpenInputStream(m_pb))) {
     SafeRelease(&m_lavfDemuxer);
     return hr;
@@ -316,13 +316,16 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   memset(m_rtOffset, 0, sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
 
   DbgLog((LOG_TRACE, 20, L"Opened BD title with %d clips and %d chapters", m_pTitle->clip_count, m_pTitle->chapter_count));
+  return S_OK;
+}
+
+void CBDDemuxer::ProcessClipLanguages()
+{
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
   for (uint32_t i = 0; i < m_pTitle->clip_count; ++i) {
     BLURAY_CLIP_INFO *clip = &m_pTitle->clips[i];
     ProcessStreams(clip->raw_stream_count, clip->raw_streams);
   }
-
-  return S_OK;
 }
 
 STDMETHODIMP CBDDemuxer::GetNumTitles(uint32_t *count)
