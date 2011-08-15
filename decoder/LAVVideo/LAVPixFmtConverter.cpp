@@ -300,7 +300,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
     m_pSwsContext = sws_getCachedContext(m_pSwsContext,
                                  width, height, srcPix,
                                  width, height, dstPix,
-                                 flags|SWS_PRINT_INFO, NULL, NULL, NULL);
+                                 flags|SWS_FULL_CHR_H_INT|SWS_ACCURATE_RND|SWS_PRINT_INFO, NULL, NULL, NULL);
 
     int *inv_tbl = NULL, *tbl = NULL;
     int srcRange, dstRange, brightness, contrast, saturation;
