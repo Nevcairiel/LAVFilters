@@ -612,6 +612,9 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
 {
   HRESULT hr = S_FALSE;
 
+  if (pPacket->dwFlags & LAV_PACKET_FORCED_SUBTITLE)
+    pPacket->StreamId = FORCED_SUBTITLE_PID;
+
   CLAVOutputPin* pPin = GetOutputPin(pPacket->StreamId);
   if(!pPin || !pPin->IsConnected()) {
     delete pPacket;

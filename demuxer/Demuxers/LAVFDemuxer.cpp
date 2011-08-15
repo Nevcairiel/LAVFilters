@@ -518,7 +518,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       pPacket->bDiscontinuity = TRUE;
 
       if (forcedSubStream) {
-        pPacket->StreamId = FORCED_SUBTITLE_PID;
+        pPacket->dwFlags |= LAV_PACKET_FORCED_SUBTITLE;
         pPacket->dwFlags &= ~LAV_PACKET_PARSED;
       }
     }
