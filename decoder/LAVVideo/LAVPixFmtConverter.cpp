@@ -481,10 +481,8 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int widt
       *idst++ = v[i+6] | (u[i+6] << 8) | (y[i+6] << 16) | (0xff << 24);
       *idst++ = v[i+7] | (u[i+7] << 8) | (y[i+7] << 16) | (0xff << 24);
     }
-    if (unalignedBytes) {
-      for (i = alignedWidth; i < width; ++i) {
-        *idst++ = v[i] | (u[i] << 8) | (y[i] << 16) | (0xff << 24);
-      }
+    for (i = alignedWidth; i < width; ++i) {
+      *idst++ = v[i] | (u[i] << 8) | (y[i] << 16) | (0xff << 24);
     }
     y += srcStride;
     u += srcStride;
@@ -604,12 +602,33 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int widt
   return S_OK;
 }
 
+#define YUV444_PACKED_LOOP_HEAD(width, height, y, u, v, out) \
+  for (int line = 0; line < height; ++line) { \
+    int32_t *idst = (int32_t *)out; \
+    for(int i = 0; i < width; ++i) { \
+      int32_t yv, uv, vv;
+
+#define YUV444_PACKED_LOOP_HEAD_LE(width, height, y, u, v, out) \
+  YUV444_PACKED_LOOP_HEAD(width, height, y, u, v, out) \
+    yv = AV_RL16(y+i); uv = AV_RL16(u+i); vv = AV_RL16(v+i);
+
+#define YUV444_PACKED_LOOP_HEAD_BE(width, height, y, u, v, out) \
+  YUV444_PACKED_LOOP_HEAD(width, height, y, u, v, out) \
+    yv = AV_RB16(y+i); uv = AV_RB16(u+i); vv = AV_RB16(v+i);
+
+#define YUV444_PACKED_LOOP_END(y, u, v, out, srcStride, dstStride) \
+    } \
+    y += srcStride; \
+    u += srcStride; \
+    v += srcStride; \
+    out += dstStride; \
+  }
+
 HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride)
 {
   const int16_t *y = NULL;
   const int16_t *u = NULL;
   const int16_t *v = NULL;
-  int line, i = 0;
   int srcStride = 0;
   bool bBigEndian = false, b9Bit = false;
 
@@ -650,31 +669,28 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(AVFrame *pFrame, BYTE *pOut, int widt
   // 32-bit per pixel
   stride *= 4;
 
+#define YUV444_Y410_PACK \
+  *idst++ = (uv & 0x3FF) | ((yv & 0x3FF) << 10) | ((vv & 0x3FF) << 20) | (3 << 30);
+
   BYTE *out = pOut;
-  for (line = 0; line < height; ++line) {
-    int32_t *idst = (int32_t *)out;
-    for (i = 0; i < width; ++i) {
-      int32_t yv, uv, vv;
-      if (bBigEndian) {
-        yv = AV_RB16(y+i);
-        uv = AV_RB16(u+i);
-        vv = AV_RB16(v+i);
-      } else {
-        yv = AV_RL16(y+i);
-        uv = AV_RL16(u+i);
-        vv = AV_RL16(v+i);
-      }
+  if (bBigEndian) {
+    YUV444_PACKED_LOOP_HEAD_BE(width, height, y, u, v, out)
       if (b9Bit) {
         yv <<= 1;
         uv <<= 1;
         vv <<= 1;
       }
-      *idst++ = (uv & 0x3FF) | ((yv & 0x3FF) << 10) | ((vv & 0x3FF) << 20) | (3 << 30);
-    }
-    y += srcStride;
-    u += srcStride;
-    v += srcStride;
-    out += stride;
+      YUV444_Y410_PACK
+    YUV444_PACKED_LOOP_END(y, u, v, out, srcStride, stride)
+  } else {
+    YUV444_PACKED_LOOP_HEAD_LE(width, height, y, u, v, out)
+      if (b9Bit) {
+        yv <<= 1;
+        uv <<= 1;
+        vv <<= 1;
+      }
+      YUV444_Y410_PACK
+    YUV444_PACKED_LOOP_END(y, u, v, out, srcStride, stride)
   }
 
   av_freep(&pTmpBuffer);
@@ -687,7 +703,6 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(AVFrame *pFrame, BYTE *pOut, int widt
   const int16_t *y = NULL;
   const int16_t *u = NULL;
   const int16_t *v = NULL;
-  int line, i = 0;
   int srcStride = 0;
   bool bBigEndian = false;
 
@@ -725,29 +740,21 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(AVFrame *pFrame, BYTE *pOut, int widt
   }
 
   // 64-bit per pixel
-  stride *= 8;
+  stride <<= 3;
+
+#define YUV444_Y416_PACK \
+  *idst++ = 0xFFFF | (vv << 16); \
+  *idst++ = yv | (uv << 16);
 
   BYTE *out = pOut;
-  for (line = 0; line < height; ++line) {
-    int32_t *idst = (int32_t *)out;
-    for (i = 0; i < width; ++i) {
-      int32_t yv, uv, vv;
-      if (bBigEndian) {
-        yv = AV_RB16(y+i);
-        uv = AV_RB16(u+i);
-        vv = AV_RB16(v+i);
-      } else {
-        yv = AV_RL16(y+i);
-        uv = AV_RL16(u+i);
-        vv = AV_RL16(v+i);
-      }
-      *idst++ = 0xFFFF | (vv << 16);
-      *idst++ = yv | (uv << 16);
-    }
-    y += srcStride;
-    u += srcStride;
-    v += srcStride;
-    out += stride;
+  if (bBigEndian) {
+    YUV444_PACKED_LOOP_HEAD_BE(width, height, y, u, v, out)
+      YUV444_Y416_PACK
+    YUV444_PACKED_LOOP_END(y, u, v, out, srcStride, stride)
+  } else {
+    YUV444_PACKED_LOOP_HEAD_LE(width, height, y, u, v, out)
+      YUV444_Y416_PACK
+    YUV444_PACKED_LOOP_END(y, u, v, out, srcStride, stride)
   }
 
   av_freep(&pTmpBuffer);
