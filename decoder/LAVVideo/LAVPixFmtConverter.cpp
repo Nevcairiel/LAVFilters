@@ -339,7 +339,7 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFo
   dst[0] = pOut;
   dstStride[0] = stride;
   for (i = 1; i < pixFmtDesc.planes; ++i) {
-    dst[i] = dst[i-1] + (stride / pixFmtDesc.planeWidth[i-1]) * (height / pixFmtDesc.planeWidth[i-1]);
+    dst[i] = dst[i-1] + (stride / pixFmtDesc.planeWidth[i-1]) * (height / pixFmtDesc.planeHeight[i-1]);
     dstStride[i] = stride / pixFmtDesc.planeWidth[i];
   }
   
