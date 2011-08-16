@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "LAVPixFmtConverter.h"
+#include "Media.h"
 
 #include <MMReg.h>
 #include "moreuuids.h"
@@ -357,6 +358,12 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFo
 
 HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride)
 {
+#if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
+  LARGE_INTEGER frequency, start, end;
+  QueryPerformanceFrequency(&frequency);
+  QueryPerformanceCounter(&start);
+#endif
+
   HRESULT hr = S_OK;
   switch (m_OutputPixFmt) {
   case LAVPixFmt_YV12:
@@ -403,6 +410,13 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
     hr = E_FAIL;
     break;
   }
+
+#if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
+  QueryPerformanceCounter(&end);
+  double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
+  DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms", diff));
+#endif
+
   return hr;
 }
 
