@@ -297,7 +297,10 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
         srcPix = PIX_FMT_YUV444P;
     }
 
-    flags |= (SWS_FULL_CHR_H_INT|SWS_ACCURATE_RND);
+    if (m_pSettings->GetHighQualityPixelFormatConversion()) {
+      DbgLog((LOG_TRACE, 10, L"::GetSwsContext(): Activating HQ scaling mode"));
+      flags |= (SWS_FULL_CHR_H_INT|SWS_ACCURATE_RND);
+    }
 
     // Get context
     m_pSwsContext = sws_getCachedContext(m_pSwsContext,

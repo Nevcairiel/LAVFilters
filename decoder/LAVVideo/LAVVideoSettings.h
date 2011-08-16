@@ -135,4 +135,10 @@ interface ILAVVideoSettings : public IUnknown
   STDMETHOD_(BOOL,GetPixelFormat)(LAVVideoPixFmts pixFmt) = 0;
   STDMETHOD(SetPixelFormat)(LAVVideoPixFmts pixFmt, BOOL bEnabled) = 0;
 
+  // Set wether high-quality pixel format conversion is performed
+  STDMETHOD(SetHighQualityPixelFormatConversion)(BOOL bEnabled) = 0;
+
+  // Get wether high-quality pixel format conversion is performed
+  STDMETHOD_(BOOL,GetHighQualityPixelFormatConversion)() = 0;
+
 };

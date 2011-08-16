@@ -113,6 +113,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.StreamAR = TRUE;
   m_settings.InterlacedFlags = TRUE;
   m_settings.NumThreads = 0;
+  m_settings.HighQualityPixConv = FALSE;
 
   for (int i = 0; i < Codec_NB; ++i)
     m_settings.bFormats[i] = TRUE;
@@ -157,6 +158,9 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"NumThreads", hr);
   if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
 
+  bFlag = reg.ReadDWORD(L"HighQualityPixConv", hr);
+  if (SUCCEEDED(hr)) m_settings.HighQualityPixConv = bFlag;
+
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
 
@@ -188,6 +192,7 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteBOOL(L"StreamAR", m_settings.StreamAR);
     reg.WriteBOOL(L"InterlacedFlags", m_settings.InterlacedFlags);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
+    reg.WriteBOOL(L"HighQualityPixConv", m_settings.HighQualityPixConv);
 
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
     for (int i = 0; i < Codec_NB; ++i) {
@@ -1163,4 +1168,15 @@ STDMETHODIMP_(BOOL) CLAVVideo::GetPixelFormat(LAVVideoPixFmts pixFmt)
     return FALSE;
 
   return m_settings.bPixFmts[pixFmt];
+}
+
+STDMETHODIMP CLAVVideo::SetHighQualityPixelFormatConversion(BOOL bEnabled)
+{
+  m_settings.HighQualityPixConv = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetHighQualityPixelFormatConversion()
+{
+  return m_settings.HighQualityPixConv;
 }

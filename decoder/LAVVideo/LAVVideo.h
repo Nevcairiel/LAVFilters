@@ -61,6 +61,8 @@ public:
   STDMETHODIMP_(BOOL) GetReportInterlacedFlags();
   STDMETHODIMP_(BOOL) GetPixelFormat(LAVVideoPixFmts pixFmt);
   STDMETHODIMP SetPixelFormat(LAVVideoPixFmts pixFmt, BOOL bEnabled);
+  STDMETHODIMP SetHighQualityPixelFormatConversion(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetHighQualityPixelFormatConversion();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -147,5 +149,6 @@ private:
     DWORD NumThreads;
     BOOL bFormats[Codec_NB];
     BOOL bPixFmts[LAVPixFmt_NB];
+    BOOL HighQualityPixConv;
   } m_settings;
 };

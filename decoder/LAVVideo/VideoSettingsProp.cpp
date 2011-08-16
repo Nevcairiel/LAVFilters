@@ -67,6 +67,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);
   m_pVideoSettings->SetNumThreads(dwVal);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_HQ, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHighQualityPixelFormatConversion(bFlag);
+
   BOOL bPixFmts[LAVPixFmt_NB] = {0};
   bPixFmts[LAVPixFmt_YV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_GETCHECK,0, 0);
   bPixFmts[LAVPixFmt_NV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_GETCHECK,0, 0);
@@ -121,12 +124,14 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   }
 
   addHint(IDC_THREADS, L"Enable Multi-Threading for codecs that support it.\nAuto will automatically use the maximum number of threads suitable for your CPU. Using 1 thread disables multi-threading.\n\nMT decoding is supported for H264, MPEG2, MPEG4, VP8, VP3/Theora, DV and HuffYUV");
+  addHint(IDC_OUT_HQ, L"Enable High-Quality conversion of all pixel formats.\nNote that this mode can be very slow!");
 
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_bStreamAR, 0);
     SendDlgItemMessage(m_Dlg, IDC_INTERLACE_FLAGS, BM_SETCHECK, m_bInterlaceFlags, 0);
     SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_SETCURSEL, m_dwNumThreads, 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_HQ, BM_SETCHECK, m_bHighQualityPixelConv, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_SETCHECK, m_bPixFmts[LAVPixFmt_YV12], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_SETCHECK, m_bPixFmts[LAVPixFmt_NV12], 0);
@@ -153,6 +158,7 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_dwNumThreads    = m_pVideoSettings->GetNumThreads();
   m_bStreamAR       = m_pVideoSettings->GetStreamAR();
   m_bInterlaceFlags = m_pVideoSettings->GetReportInterlacedFlags();
+  m_bHighQualityPixelConv = m_pVideoSettings->GetHighQualityPixelFormatConversion();
 
   for (int i = 0; i < LAVPixFmt_NB; ++i) {
     m_bPixFmts[i] = m_pVideoSettings->GetPixelFormat((LAVVideoPixFmts)i);
@@ -181,6 +187,11 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_THREADS) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
       if (lValue != m_dwNumThreads) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_OUT_HQ && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != m_bHighQualityPixelConv) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_YV12 && HIWORD(wParam) == BN_CLICKED) {
