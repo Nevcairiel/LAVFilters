@@ -332,7 +332,7 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFo
   int     dstStride[4];
   int     i, ret;
 
-  SwsContext *ctx = GetSWSContext(width, height, srcPix, dstPix, SWS_BICUBIC);
+  SwsContext *ctx = GetSWSContext(width, height, srcPix, dstPix, SWS_BILINEAR);
   CheckPointer(m_pSwsContext, E_POINTER);
 
   memset(dst, 0, sizeof(dst));
