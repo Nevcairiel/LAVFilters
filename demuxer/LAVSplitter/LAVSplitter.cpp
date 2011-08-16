@@ -1251,6 +1251,7 @@ STDMETHODIMP_(BOOL) CLAVSplitter::IsVC1CorrectionRequired()
 {
   return
       FilterInGraph(CLSID_LAVVideo, m_pGraph)
+   || (FilterInGraph(CLSID_LAVCUVID, m_pGraph) && (_strnicmp(m_pDemuxer->GetContainerFormat(), "matroska", 8) == 0))
    || FilterInGraph(CLSID_MPCVideoDec, m_pGraph)
    || FilterInGraph(CLSID_ffdshowDXVA, m_pGraph)
    || FilterInGraphWithInputSubtype(CLSID_madVR, m_pGraph, MEDIASUBTYPE_WVC1)
