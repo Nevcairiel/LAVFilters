@@ -458,6 +458,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       pkt.pts = AV_NOPTS_VALUE;
     }
 
+    if (stream->codec->codec_id == CODEC_ID_RV10 || stream->codec->codec_id == CODEC_ID_RV20 || stream->codec->codec_id == CODEC_ID_RV30 || stream->codec->codec_id == CODEC_ID_RV40) {
+      pkt.pts = AV_NOPTS_VALUE;
+    }
+
     if(pkt.data) {
       pPacket->SetData(pkt.data, pkt.size);
     }
