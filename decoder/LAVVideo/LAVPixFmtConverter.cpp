@@ -560,28 +560,23 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int widt
     srcStride = pFrame->linesize[0];
   }
 
-  int alignedWidth     = ALIGN(width, 8);
-  int unalignedBytes   = 0;
-  if(alignedWidth > srcStride || alignedWidth > stride) {
-    alignedWidth = width & ~7;
-    unalignedBytes = width - alignedWidth;
-  }
+#define YUV444_PACK_AYUV(offset) *idst++ = v[i+offset] | (u[i+offset] << 8) | (y[i+offset] << 16) | (0xff << 24);
 
   BYTE *out = pOut;
   for (line = 0; line < height; ++line) {
     int32_t *idst = (int32_t *)out;
-    for (i = 0; i < alignedWidth; i+=8) {
-      *idst++ = v[i+0] | (u[i+0] << 8) | (y[i+0] << 16) | (0xff << 24);
-      *idst++ = v[i+1] | (u[i+1] << 8) | (y[i+1] << 16) | (0xff << 24);
-      *idst++ = v[i+2] | (u[i+2] << 8) | (y[i+2] << 16) | (0xff << 24);
-      *idst++ = v[i+3] | (u[i+3] << 8) | (y[i+3] << 16) | (0xff << 24);
-      *idst++ = v[i+4] | (u[i+4] << 8) | (y[i+4] << 16) | (0xff << 24);
-      *idst++ = v[i+5] | (u[i+5] << 8) | (y[i+5] << 16) | (0xff << 24);
-      *idst++ = v[i+6] | (u[i+6] << 8) | (y[i+6] << 16) | (0xff << 24);
-      *idst++ = v[i+7] | (u[i+7] << 8) | (y[i+7] << 16) | (0xff << 24);
+    for (i = 0; i < (width-7); i+=8) {
+      YUV444_PACK_AYUV(0)
+      YUV444_PACK_AYUV(1)
+      YUV444_PACK_AYUV(2)
+      YUV444_PACK_AYUV(3)
+      YUV444_PACK_AYUV(4)
+      YUV444_PACK_AYUV(5)
+      YUV444_PACK_AYUV(6)
+      YUV444_PACK_AYUV(7)
     }
-    for (i = alignedWidth; i < width; ++i) {
-      *idst++ = v[i] | (u[i] << 8) | (y[i] << 16) | (0xff << 24);
+    for (; i < width; ++i) {
+      YUV444_PACK_AYUV(0)
     }
     y += srcStride;
     u += srcStride;
