@@ -22,6 +22,10 @@
 
 #include "LAVVideoSettings.h"
 
+#ifdef DEBUG
+#include "FloatingAverage.h"
+#endif
+
 // Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors
 typedef struct {
   GUID subtype;
@@ -59,6 +63,7 @@ private:
   LAVVideoPixFmts GetFilteredFormat(int index);
 
   HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
+  HRESULT ConvertTo422Packed(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
   HRESULT ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
   HRESULT ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride, int chromaVertical);
   HRESULT ConvertToY410(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride);
@@ -78,4 +83,8 @@ private:
   SwsContext *m_pSwsContext;
 
   ILAVVideoSettings *m_pSettings;
+
+#ifdef DEBUG
+  FloatingAverage<double> m_pixFmtTimingAvg;
+#endif
 };

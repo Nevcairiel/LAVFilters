@@ -376,10 +376,10 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_NV12, pFrame, pOut, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   case LAVPixFmt_YUY2:
-    hr = swscale_scale(m_InputPixFmt, PIX_FMT_YUYV422, pFrame, pOut, width, height, dstStride * 2, lav_pixfmt_desc[m_OutputPixFmt]);
+    hr = ConvertTo422Packed(pFrame, pOut, width, height, dstStride);
     break;
   case LAVPixFmt_UYVY:
-    hr = swscale_scale(m_InputPixFmt, PIX_FMT_UYVY422, pFrame, pOut, width, height, dstStride * 2, lav_pixfmt_desc[m_OutputPixFmt]);
+    hr = ConvertTo422Packed(pFrame, pOut, width, height, dstStride);
     break;
   case LAVPixFmt_AYUV:
     hr = ConvertToAYUV(pFrame, pOut, width, height, dstStride);
@@ -417,10 +417,109 @@ HRESULT CLAVPixFmtConverter::Convert(AVFrame *pFrame, BYTE *pOut, int width, int
 #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
   QueryPerformanceCounter(&end);
   double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
-  DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms", diff));
+  m_pixFmtTimingAvg.Sample(diff);
+
+  DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
 #endif
 
   return hr;
+}
+
+HRESULT CLAVPixFmtConverter::ConvertTo422Packed(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride)
+{
+  const BYTE *y = NULL;
+  const BYTE *u = NULL;
+  const BYTE *v = NULL;
+  int line, i;
+  int srcStride = 0;
+  BYTE *pTmpBuffer = NULL;
+
+  if (m_InputPixFmt != PIX_FMT_YUV422P && m_InputPixFmt != PIX_FMT_YUVJ422P) {
+    uint8_t *dst[4] = {NULL};
+    int     dstStride[4] = {0};
+
+    pTmpBuffer = (BYTE *)av_malloc(height * stride * 2);
+
+    dst[0] = pTmpBuffer;
+    dst[1] = dst[0] + (height * stride);
+    dst[2] = dst[1] + (height * stride / 2);
+    dst[3] = NULL;
+
+    dstStride[0] = stride;
+    dstStride[1] = stride / 2;
+    dstStride[2] = stride / 2;
+    dstStride[3] = 0;
+
+    SwsContext *ctx = GetSWSContext(width, height, m_InputPixFmt, PIX_FMT_YUV422P, SWS_FAST_BILINEAR);
+    sws_scale(ctx, pFrame->data, pFrame->linesize, 0, height, dst, dstStride);
+
+    y = dst[0];
+    u = dst[1];
+    v = dst[2];
+    srcStride = stride;
+  }  else {
+    y = pFrame->data[0];
+    u = pFrame->data[1];
+    v = pFrame->data[2];
+    srcStride = pFrame->linesize[0];
+  }
+
+  stride <<= 1;
+
+#define YUV422_PACK_YUY2(offset) *idst++ = y[(i+offset) * 2] | (u[i+offset] << 8) | (y[(i+offset) * 2 + 1] << 16) | (v[i+offset] << 24);
+#define YUV422_PACK_UYVY(offset) *idst++ = u[i+offset] | (y[(i+offset) * 2] << 8) | (v[i+offset] << 16) | (y[(i+offset) * 2 + 1] << 24);
+
+  BYTE *out = pOut;
+  int halfwidth = width >> 1;
+  int halfstride = srcStride >> 1;
+
+  if (m_OutputPixFmt == LAVPixFmt_YUY2) {
+    for (line = 0; line < height; ++line) {
+      uint32_t *idst = (uint32_t *)out;
+      for (i = 0; i < (halfwidth - 7); i+=8) {
+        YUV422_PACK_YUY2(0)
+        YUV422_PACK_YUY2(1)
+        YUV422_PACK_YUY2(2)
+        YUV422_PACK_YUY2(3)
+        YUV422_PACK_YUY2(4)
+        YUV422_PACK_YUY2(5)
+        YUV422_PACK_YUY2(6)
+        YUV422_PACK_YUY2(7)
+      }
+      for(; i < halfwidth; ++i) {
+        YUV422_PACK_YUY2(0)
+      }
+      y += srcStride;
+      u += halfstride;
+      v += halfstride;
+      out += stride;
+    }
+  } else {
+    for (line = 0; line < height; ++line) {
+      uint32_t *idst = (uint32_t *)out;
+      for (i = 0; i < (halfwidth - 7); i+=8) {
+        YUV422_PACK_UYVY(0)
+        YUV422_PACK_UYVY(1)
+        YUV422_PACK_UYVY(2)
+        YUV422_PACK_UYVY(3)
+        YUV422_PACK_UYVY(4)
+        YUV422_PACK_UYVY(5)
+        YUV422_PACK_UYVY(6)
+        YUV422_PACK_UYVY(7)
+      }
+      for(; i < halfwidth; ++i) {
+        YUV422_PACK_UYVY(0)
+      }
+      y += srcStride;
+      u += halfstride;
+      v += halfstride;
+      out += stride;
+    }
+  }
+
+  av_freep(&pTmpBuffer);
+
+  return S_OK;
 }
 
 HRESULT CLAVPixFmtConverter::ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int stride)
