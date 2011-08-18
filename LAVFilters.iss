@@ -78,6 +78,39 @@ Name: lavs64_wv;     Description: WavPack;  GroupDescription: "Use LAV Splitter 
 Name: lavs64_mpc;    Description: Musepack; GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
 Name: lavs64_tta;    Description: TrueAudio;GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
 
+Name: lavv_h264;      Description: H.264/AVC1;         GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_vc1;       Description: VC-1;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_mpeg1;     Description: MPEG1;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_mpeg2;     Description: MPEG2;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_mpeg4;     Description: MPEG4;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_msmpeg4;   Description: MS-MPEG4;           GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_vp8;       Description: VP8;                GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_wmv3;      Description: WMV3;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_wmv12;     Description: WMV1/2;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_mjpeg;     Description: M-JPEG;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_theora;    Description: Theora;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_flv;       Description: Flash Video 1;      GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_vp6;       Description: VP6;                GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_svq;       Description: SVQ 1/3;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_h261;      Description: H.261;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_h263;      Description: H.263;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_indeo;     Description: Intel Indea;        GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_camtasia;  Description: TechSmith/Camtasia; GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_fraps;     Description: Fraps;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_huffyuv;   Description: HuffYUV;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_qtrle;     Description: QTRle;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_dvvideo;   Description: DV;                 GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_bink;      Description: Bink;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_smackvid;  Description: Smacker;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_rv12;      Description: Real Video 1/2;     GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
+Name: lavv_rv34;      Description: Real Video 3/4;     GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_lagarith;  Description: Lagarith;           GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
+Name: lavv_cinepak;   Description: Cinepak;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
+Name: lavv_camstudio; Description: Camstudio;          GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_qpeg;      Description: QPEG;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
+Name: lavv_zlib;      Description: ZLIB;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_rpza;      Description: QTRpza;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+
 [Files]
 Source: bin_Win32\avcodec-lav-53.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
 Source: bin_Win32\avformat-lav-53.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
@@ -137,6 +170,11 @@ end;
 procedure ConfigureFormat(rootkey: Integer; format: String; value: Boolean);
 begin
   RegWriteDWordValue(rootkey, 'Software\LAV\Splitter\Formats', format, ord(value));
+end;
+
+procedure ConfigureVideoFormat(format: String);
+begin
+  RegWriteDWordValue(HKCU, 'Software\LAV\Video\Formats', format, ord(IsTaskSelected('lavv_' + format)));
 end;
 
 procedure CleanMediaTypeExt32(extension: String);
@@ -261,6 +299,41 @@ begin
       DoExtension64('.wv', 'lavs64_amr');
       DoExtension64('.mpc', 'lavs64_mpc');
       DoExtension64('.tta', 'lavs64_tta');
+    end;
+
+    if IsComponentSelected('lavvideo32') or IsComponentSelected('lavvideo64') then begin
+        ConfigureVideoFormat('h264');
+        ConfigureVideoFormat('vc1');
+        ConfigureVideoFormat('mpeg1');
+        ConfigureVideoFormat('mpeg2');
+        ConfigureVideoFormat('mpeg4');
+        ConfigureVideoFormat('msmpeg4');
+        ConfigureVideoFormat('vp8');
+        ConfigureVideoFormat('wmv3');
+        ConfigureVideoFormat('wmv12');
+        ConfigureVideoFormat('mjpeg');
+        ConfigureVideoFormat('theora');
+        ConfigureVideoFormat('flv');
+        ConfigureVideoFormat('vp6');
+        ConfigureVideoFormat('svq');
+        ConfigureVideoFormat('h261');
+        ConfigureVideoFormat('h263');
+        ConfigureVideoFormat('indeo');
+        ConfigureVideoFormat('camtasia');
+        ConfigureVideoFormat('fraps');
+        ConfigureVideoFormat('huffyuv');
+        ConfigureVideoFormat('qtrle');
+        ConfigureVideoFormat('dvvideo');
+        ConfigureVideoFormat('bink');
+        ConfigureVideoFormat('smackvid');
+        ConfigureVideoFormat('rv12');
+        ConfigureVideoFormat('rv34');
+        ConfigureVideoFormat('lagarith');
+        ConfigureVideoFormat('cinepak');
+        ConfigureVideoFormat('camstudio');
+        ConfigureVideoFormat('qpeg');
+        ConfigureVideoFormat('zlib');
+        ConfigureVideoFormat('rpza');
     end;
   end;
 end;
