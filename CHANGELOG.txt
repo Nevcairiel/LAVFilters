@@ -1,9 +1,23 @@
 LAV DirectShow Filters Changelog
 ===================================
-0.32 - xxxx/xx/xx
+0.32 - 2011/08/19
+General
+- The installer will now add shortcuts to the start menu to open the filter configurations
+- The ffmpeg DLLs have been renamed to carry a "lav" suffix to avoid collisions with other components
+
 LAV Splitter
 - Improved detection of AAC LATM tracks (previously mis-detected as mp1/mp2)
 - Fixed playback of badly interleaved AVI files
+- Smarter default stream selection for RealMedia files
+- Improved stream language handling for Blu-rays
+- Fixed a crash issue with the Forced Subtitle pin on Blu-rays
+
+LAV Audio
+- DTS decoding failures are now handled more gracefully
+- Fixed Media Types for Stereo 44.1kHz Audio
+
+LAV Video
+- First official version - refer to release notes for details
 
 0.31 - 2011/07/28
 LAV Splitter
