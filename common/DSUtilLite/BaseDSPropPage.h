@@ -25,6 +25,9 @@ class CBaseDSPropPage : public CBasePropertyPage
 public:
   CBaseDSPropPage(LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, int DialogId, int TitleId);
 
+public:
+  static HRESULT ShowPropPageDialog(IBaseFilter *pFilter);
+
 protected:
   // Convenience function to add a new column to a list view control
   static void ListView_AddCol(HWND hlv, int &ncol, int w, const wchar_t *txt, bool right);

@@ -106,3 +106,18 @@ BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
 {
   return DllEntryPoint(reinterpret_cast<HINSTANCE>(hDllHandle), dwReason, lpReserved);
 }
+
+STDAPI OpenConfiguration()
+{
+  HRESULT hr = S_OK;
+  CUnknown *pInstance = CreateInstance<CLAVVideo>(NULL, &hr);
+  IBaseFilter *pFilter = NULL;
+  pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
+  if (pFilter) {
+    pFilter->AddRef();
+    CBaseDSPropPage::ShowPropPageDialog(pFilter);
+  }
+  delete pInstance;
+
+  return 0;
+}

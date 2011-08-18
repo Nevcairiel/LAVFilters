@@ -65,3 +65,47 @@ void CBaseDSPropPage::ListView_AddCol(HWND hlv, int &ncol, int w, const wchar_t 
   ListView_InsertColumn(hlv, ncol, &lvc);
   ncol++;
 }
+
+HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter)
+{
+  CheckPointer(pFilter, E_INVALIDARG);
+  CoInitialize(NULL);
+
+  // Get PropertyPages interface
+  ISpecifyPropertyPages *pProp = NULL;
+  HRESULT hr = pFilter->QueryInterface<ISpecifyPropertyPages>(&pProp);
+  if (SUCCEEDED(hr) && pProp) {
+    // Get the filter's name and IUnknown pointer.
+    FILTER_INFO FilterInfo;
+    hr = pFilter->QueryFilterInfo(&FilterInfo);
+
+    IUnknown *pFilterUnk = NULL;
+    pFilter->QueryInterface<IUnknown>(&pFilterUnk);
+
+    // Show the page.
+    CAUUID caGUID;
+    pProp->GetPages(&caGUID);
+    pProp->Release();
+    hr = OleCreatePropertyFrame(
+        GetDesktopWindow(),                   // Parent window
+        0, 0,                   // Reserved
+        FilterInfo.achName,     // Caption for the dialog box
+        1,                      // Number of objects (just the filter)
+        &pFilterUnk,            // Array of object pointers.
+        caGUID.cElems,          // Number of property pages
+        caGUID.pElems,          // Array of property page CLSIDs
+        0,                      // Locale identifier
+        0, NULL                 // Reserved
+    );
+
+    // Clean up.
+    pFilterUnk->Release();
+    if (FilterInfo.pGraph)
+      FilterInfo.pGraph->Release();
+    CoTaskMemFree(caGUID.pElems);
+
+    hr = S_OK;
+  }
+  CoUninitialize();
+  return hr;
+}
