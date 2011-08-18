@@ -6,6 +6,7 @@
 #define IDD_PROPPAGE_FORMATS            10
 #define IDS_SETTINGS                    101
 #define IDS_FORMATS                     102
+#define IDI_ICON1                       103
 #define IDC_CODECS                      1001
 #define IDC_LAVVIDEO_FOOTER             1002
 #define IDC_VIDEO_SETTINGS              1003
@@ -40,7 +41,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        103
+#define _APS_NEXT_RESOURCE_VALUE        104
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1030
 #define _APS_NEXT_SYMED_VALUE           101

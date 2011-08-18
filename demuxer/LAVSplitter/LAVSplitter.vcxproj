@@ -183,6 +183,7 @@
     <ResourceCompile Include="LAVSplitter.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\resources\yellow.ico" />
     <None Include="LAVSplitter.rc2" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

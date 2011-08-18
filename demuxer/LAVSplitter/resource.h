@@ -6,9 +6,10 @@
 #define IDD_PROPPAGE_FORMATS            10
 #define IDS_PAGE_TITLE                  101
 #define IDS_SUBMODE_NO_SUBS             102
-#define IDS_SUBMODE_FORCED_SUBS         103
-#define IDS_SUBMODE_ALL_SUBS            104
-#define IDS_INPUT_FORMATS               105
+#define IDI_ICON1                       103
+#define IDS_SUBMODE_FORCED_SUBS         104
+#define IDS_SUBMODE_ALL_SUBS            105
+#define IDS_INPUT_FORMATS               106
 #define IDC_LBL_PREF_LANG               1001
 #define IDC_PREF_LANG                   1002
 #define IDC_LBL_PREF_LANG_AUDIO         1003
@@ -36,7 +37,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        102
+#define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101

@@ -90,5 +90,8 @@
     <None Include="LAVVideo.rc2">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\resources\red.ico">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

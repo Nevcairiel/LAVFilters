@@ -177,6 +177,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\resources\blue.ico" />
     <None Include="LAVAudio.rc2" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

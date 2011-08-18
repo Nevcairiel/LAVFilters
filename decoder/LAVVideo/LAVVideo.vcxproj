@@ -172,6 +172,7 @@
     <ResourceCompile Include="LAVVideo.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\resources\red.ico" />
     <None Include="LAVVideo.rc2" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

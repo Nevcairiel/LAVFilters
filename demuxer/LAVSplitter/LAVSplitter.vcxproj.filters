@@ -108,5 +108,8 @@
     <None Include="LAVSplitter.rc2">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\resources\yellow.ico">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

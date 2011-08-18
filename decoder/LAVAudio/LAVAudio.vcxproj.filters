@@ -93,5 +93,8 @@
     <None Include="LAVAudio.rc2">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="..\..\resources\blue.ico">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
