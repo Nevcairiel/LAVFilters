@@ -375,7 +375,7 @@ static codec_config_t m_codec_config[] = {
   { 3, { CODEC_ID_MSMPEG4V1, CODEC_ID_MSMPEG4V2, CODEC_ID_MSMPEG4V3 }, L"msmpeg4", L"MS-MPEG-4 (DIVX3)" },   // Codec_MSMPEG4
   { 1, { CODEC_ID_VP8 }},                                                 // Codec_VP8
   { 1, { CODEC_ID_WMV3 }},                                                // Codec_WMV3
-  { 2, { CODEC_ID_WMV1, CODEC_ID_WMV2 }, L"wmv1/2", L"Windows Media Video 7/8" },  // Codec_WMV12
+  { 2, { CODEC_ID_WMV1, CODEC_ID_WMV2 }, L"wmv12", L"Windows Media Video 7/8" },  // Codec_WMV12
   { 2, { CODEC_ID_MJPEG, CODEC_ID_MJPEGB }},                              // Codec_MJPEG
   { 2, { CODEC_ID_THEORA, CODEC_ID_VP3 }},                                // Codec_Theora
   { 1, { CODEC_ID_FLV1 }},                                                // Codec_FLV1
