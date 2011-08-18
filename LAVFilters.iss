@@ -36,8 +36,10 @@ Name: Normal; Description: Normal; Flags: iscustom
 [Components]
 Name: lavsplitter32; Description: LAV Splitter (x86); Types: Normal;
 Name: lavsplitter64; Description: LAV Splitter (x64); Types: Normal; Check: IsWin64;
-Name: lavaudio32; Description: LAV Audio (x86); Types: Normal;
-Name: lavaudio64; Description: LAV Audio (x64); Types: Normal; Check: IsWin64;
+Name: lavaudio32;    Description: LAV Audio (x86);    Types: Normal;
+Name: lavaudio64;    Description: LAV Audio (x64);    Types: Normal; Check: IsWin64;
+Name: lavvideo32;    Description: LAV Video (x86);    Types: Normal;
+Name: lavvideo64;    Description: LAV Video (x64);    Types: Normal; Check: IsWin64;
 
 [Tasks]
 Name: lavs32_avi;    Description: AVI;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
@@ -77,38 +79,47 @@ Name: lavs64_mpc;    Description: Musepack; GroupDescription: "Use LAV Splitter 
 Name: lavs64_tta;    Description: TrueAudio;GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64 AND lavaudio64; Flags: unchecked;
 
 [Files]
-Source: bin_Win32\avcodec-lav-53.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
+Source: bin_Win32\avcodec-lav-53.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
 Source: bin_Win32\avformat-lav-53.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
-Source: bin_Win32\avutil-lav-51.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
-Source: bin_Win32\libbluray.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
-Source: bin_Win32\LAVAudio.ax;     DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio32
-Source: bin_Win32\LAVSplitter.ax;  DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
+Source: bin_Win32\avutil-lav-51.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\swscale-lav-2.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: bin_Win32\libbluray.dll;       DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
+Source: bin_Win32\LAVAudio.ax;         DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio32
+Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
+Source: bin_Win32\LAVVideo.ax;         DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 
-Source: bin_x64\avcodec-lav-53.dll;  DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
-Source: bin_x64\avformat-lav-53.dll; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
-Source: bin_x64\avutil-lav-51.dll;   DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
-Source: bin_x64\libbluray.dll;   DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
-Source: bin_x64\LAVAudio.ax;     DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio64
-Source: bin_x64\LAVSplitter.ax;  DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
+Source: bin_x64\avcodec-lav-53.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\avformat-lav-53.dll;   DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
+Source: bin_x64\avutil-lav-51.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\swscale-lav-2.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: bin_x64\libbluray.dll;         DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
+Source: bin_x64\LAVAudio.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio64
+Source: bin_x64\LAVSplitter.ax;        DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
+Source: bin_x64\LAVVideo.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
 
-Source: COPYING;                 DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
-Source: README.txt;              DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
-Source: CHANGELOG.txt;           DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
+Source: COPYING;                       DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
+Source: README.txt;                    DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
+Source: CHANGELOG.txt;                 DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 
 [Icons]
 Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVSplitter.ax; IconIndex: 0; Components: lavsplitter32
 Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVSplitter.ax; IconIndex: 0; Components: lavsplitter64 AND NOT lavsplitter32
 Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVAudio.ax; IconIndex: 0; Components: lavaudio32
 Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVAudio.ax; IconIndex: 0; Components: lavaudio64 AND NOT lavaudio32
+Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVVideo.ax; IconIndex: 0; Components: lavvideo32
+Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVVideo.ax; IconIndex: 0; Components: lavvideo64 AND NOT lavvideo32
 Name: {group}\Visit LAV Filters Home Page;       Filename: "http://1f0.de/"
 Name: {group}\Visit LAV Filters on Doom9;        Filename: "http://forum.doom9.org/showthread.php?t=156191"
 Name: {group}\Uninstall LAV Filters;             Filename: {uninstallexe};
 
 [Registry]
-Root: HKCU; Subkey: Software\LAV; Flags: uninsdeletekeyifempty; Components: lavsplitter32 lavsplitter64 lavaudio32 lavaudio64
-Root: HKCU; Subkey: Software\LAV\Audio; Flags: uninsdeletekey; Components: lavaudio32 lavaudio64
-Root: HKCU; Subkey: Software\LAV\Splitter; Flags: uninsdeletekey; Components: lavsplitter32 lavsplitter64
+Root: HKCU; Subkey: Software\LAV;                  Flags: uninsdeletekeyifempty
+Root: HKCU; Subkey: Software\LAV\Audio;            Flags: uninsdeletekey; Components: lavaudio32 lavaudio64
+Root: HKCU; Subkey: Software\LAV\Splitter;         Flags: uninsdeletekey; Components: lavsplitter32 lavsplitter64
 Root: HKCU; Subkey: Software\LAV\Splitter\Formats; Flags: uninsdeletekey; Components: lavsplitter32 lavsplitter64
+Root: HKCU; Subkey: Software\LAV\Video;            Flags: uninsdeletekey; Components: lavvideo32 lavvideo64
+Root: HKCU; Subkey: Software\LAV\Video\Formats;    Flags: uninsdeletekey; Components: lavvideo32 lavvideo64
+Root: HKCU; Subkey: Software\LAV\Video\Output;     Flags: uninsdeletekey; Components: lavvideo32 lavvideo64
 
 [Code]
 procedure CleanMediaTypeExt(rootkey: Integer; extension, clsid: String);
