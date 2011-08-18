@@ -65,7 +65,7 @@ CFactoryTemplate g_Templates[] = {
   {
     sudFilterReg.strName,
       sudFilterReg.clsID,
-      CLAVVideo::CreateInstance,
+      CreateInstance<CLAVVideo>,
       NULL,
       &sudFilterReg
   },

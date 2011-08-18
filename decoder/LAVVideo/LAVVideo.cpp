@@ -32,12 +32,6 @@
 #include "parsers/VC1HeaderParser.h"
 #include "parsers/MPEG2HeaderParser.h"
 
-// static constructor
-CUnknown* WINAPI CLAVVideo::CreateInstance(LPUNKNOWN pUnk, HRESULT* phr)
-{
-  return new CLAVVideo(pUnk, phr);
-}
-
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("LAV Video Decoder"), 0, __uuidof(CLAVVideo))
   , m_bDXVA(FALSE)

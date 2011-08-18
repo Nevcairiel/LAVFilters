@@ -39,8 +39,8 @@ typedef struct {
 class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages, public ILAVVideoSettings
 {
 public:
-  // constructor method used by class factory
-  static CUnknown* WINAPI CreateInstance(LPUNKNOWN pUnk, HRESULT* phr);
+  CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
+  ~CLAVVideo();
 
   // IUnknown
   DECLARE_IUNKNOWN;
@@ -85,9 +85,6 @@ public:
   const static int                      sudPinTypesOutCount;
 
 private:
-  CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
-  ~CLAVVideo();
-
   HRESULT LoadDefaults();
   HRESULT LoadSettings();
   HRESULT SaveSettings();
