@@ -100,8 +100,8 @@ Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Paramet
 Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVSplitter.ax; IconIndex: 0; Components: lavsplitter64 AND NOT lavsplitter32
 Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVAudio.ax; IconIndex: 0; Components: lavaudio32
 Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVAudio.ax; IconIndex: 0; Components: lavaudio64 AND NOT lavaudio32
-Name: {group}\{cm:ProgramOnTheWeb,LAV Filters};  Filename: "http://1f0.de/"
-Name: {group}\LAV Filters on Doom9;              Filename: "http://forum.doom9.org/showthread.php?t=156191"
+Name: {group}\Visit LAV Filters Home Page;       Filename: "http://1f0.de/"
+Name: {group}\Visit LAV Filters on Doom9;        Filename: "http://forum.doom9.org/showthread.php?t=156191"
 Name: {group}\Uninstall LAV Filters;             Filename: {uninstallexe};
 
 [Registry]
