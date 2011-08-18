@@ -87,7 +87,7 @@ HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter)
     pProp->GetPages(&caGUID);
     pProp->Release();
     hr = OleCreatePropertyFrame(
-        GetDesktopWindow(),                   // Parent window
+        NULL,                   // Parent window
         0, 0,                   // Reserved
         FilterInfo.achName,     // Caption for the dialog box
         1,                      // Number of objects (just the filter)
