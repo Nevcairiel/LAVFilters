@@ -183,6 +183,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 {
   int extra = 0;
   BYTE *extradata = NULL;
+  BOOL bZeroPad = (avstream->codec->codec_id == CODEC_ID_VC1 && (container == "mpegts" || container == "mpeg"));
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
@@ -190,7 +191,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
     //increase extra size by one, because VIH2 requires one 0 byte between header and extra data
-    if (container == "mpegts") {
+    if (bZeroPad) {
       extra++;
     }
 
@@ -230,7 +231,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 
   if(extra) {
     // The first byte after the infoheader has to be 0 in mpeg-ts
-    if (container == "mpegts") {
+    if (bZeroPad) {
       *((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
       // after that, the extradata .. size reduced by one again
       memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1, extradata, extra - 1);
