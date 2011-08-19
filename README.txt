@@ -5,14 +5,10 @@ from the ffmpeg project, which will allow you to play virtually any format in a 
 
 The filters are still under Development, so not every feature is finished, or every format supported.
 
-Prereqs
-=============================
-VC++2010 Runtime (http://www.microsoft.com/downloads/details.aspx?FamilyID=a7b7a05e-6de6-4d3a-a423-37bf0912db84)
-
 Install
 =============================
 - Unpack
-- Register (regsvr32 LAVFSplitter.ax)
+- Register (install_*.bat files)
 	Registering requires administrative rights.
 	On Vista/7 also make sure to start it in an elevated shell.
 
@@ -28,7 +24,7 @@ to use them. The Haali Media Splitter is one of those, and to give priority
 to the LAVFSplitter you have to either uninstall Haali or rename its .ax file
 at least temporarily.
 
-The Audio Decoder will register with a relatively high merit, which should make
+The Audio and Video Decoder will register with a relatively high merit, which should make
 it the preferred decoder by default. Most players offer a way to choose the preferred
 decoder however.
 
@@ -37,7 +33,7 @@ BluRay Support
 To play a BluRay, simply open the index.bdmv file in the BDMV folder on the BluRay disc.
 LAV Splitter will then automatically detect the longest track on the disc (usually the main movie),
 and start playing.
-Alternatively you can also open a playlist file (*.mpls, located in BDMV/PLAYLIST), and LAV Splitter
+Alternatively, you can also open a playlist file (*.mpls, located in BDMV/PLAYLIST), and LAV Splitter
 will then play that specific title.
 
 In future versions you'll be able to choose the title from within the player, as well.
@@ -63,6 +59,6 @@ http://git.1f0.de/gitweb?p=libbluray.git;a=summary
 
 Feedback
 =============================
-GitHub Project: http://github.com/Nevcairiel/LAVFSplitter
+Google Code Project: http://code.google.com/p/lavfilters/
 Doom9: http://forum.doom9.org/showthread.php?t=156191
 You can, additionally, reach me on IRC in the MPC-HC channel on freenode (#mpc-hc)
