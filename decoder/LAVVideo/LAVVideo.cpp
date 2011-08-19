@@ -112,6 +112,7 @@ HRESULT CLAVVideo::LoadDefaults()
   for (int i = 0; i < Codec_NB; ++i)
     m_settings.bFormats[i] = TRUE;
 
+  m_settings.bFormats[Codec_VC1]      = FALSE;
   m_settings.bFormats[Codec_RV12]     = FALSE;
   m_settings.bFormats[Codec_Lagarith] = FALSE;
   m_settings.bFormats[Codec_Cinepak]  = FALSE;

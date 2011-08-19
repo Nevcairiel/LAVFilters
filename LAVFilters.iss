@@ -79,7 +79,7 @@ Name: lavs64_mpc;    Description: Musepack; GroupDescription: "Use LAV Splitter 
 Name: lavs64_tta;    Description: TrueAudio;GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
 
 Name: lavv_h264;      Description: H.264/AVC1;         GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_vc1;       Description: VC-1;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
+Name: lavv_vc1;       Description: VC-1;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
 Name: lavv_mpeg1;     Description: MPEG1;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
 Name: lavv_mpeg2;     Description: MPEG2;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
 Name: lavv_mpeg4;     Description: MPEG4;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
