@@ -306,9 +306,9 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
   int line = 0;
 
   // Copy first plane
-  int widthBytes = width * desc.codedbytes;
-  int srcStrideBytes = srcStride * desc.codedbytes;
-  int dstStrideBytes = dstStride * desc.codedbytes;
+  const int widthBytes = width * desc.codedbytes;
+  const int srcStrideBytes = srcStride * desc.codedbytes;
+  const int dstStrideBytes = dstStride * desc.codedbytes;
   for (line = 0; line < height; ++line) {
     memcpy(dst, src, widthBytes);
     src += srcStrideBytes;
@@ -316,10 +316,10 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
   }
 
   for (int plane = 1; plane < desc.planes; ++plane) {
-    int planeWidth     = widthBytes     / desc.planeWidth[plane];
-    int planeHeight    = height         / desc.planeHeight[plane];
-    int srcPlaneStride = srcStrideBytes / desc.planeWidth[plane];
-    int dstPlaneStride = dstStrideBytes / desc.planeWidth[plane];
+    const int planeWidth     = widthBytes     / desc.planeWidth[plane];
+    const int planeHeight    = height         / desc.planeHeight[plane];
+    const int srcPlaneStride = srcStrideBytes / desc.planeWidth[plane];
+    const int dstPlaneStride = dstStrideBytes / desc.planeWidth[plane];
     for (line = 0; line < planeHeight; ++line) {
       memcpy(dst, src, planeWidth);
       src += srcPlaneStride;
