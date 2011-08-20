@@ -48,3 +48,10 @@
 // src   - memory pointer of the source
 #define PIXCONV_LOAD_PIXEL8_ALIGNED(reg,zero,src) \
   reg = _mm_load_si128((const __m128i *)src);      /* load (aligned) */
+
+// Load 8 16-bit pixels into a register, using aligned memory access
+// reg   - register to store pixels in
+// src   - memory pointer of the source
+#define PIXCONV_LOAD_PIXEL16(reg,src,shift)                             \
+  reg = _mm_load_si128((const __m128i *)src);  /* load (aligned) */     \
+  reg = _mm_slli_epi16(reg, shift);            /* shift to 16-bit */

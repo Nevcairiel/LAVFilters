@@ -290,6 +290,9 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     // The code writes 16 pixels in one go, every pixel being 4 bytes
     // However the alignment that this value is checked against is raw pixels, not bytes
     m_RequiredAlignment = 16;
+  } else if (m_OutputPixFmt == LAVPixFmt_Y410 && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE)) {
+    convert = &CLAVPixFmtConverter::convert_yuv444_y410;
+    m_RequiredAlignment = 16;
   } else {
     convert = &CLAVPixFmtConverter::convert_generic;
     m_RequiredAlignment = 0;

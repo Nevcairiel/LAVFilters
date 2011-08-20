@@ -152,6 +152,7 @@
     <ClCompile Include="parsers\MPEG2HeaderParser.cpp" />
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
     <ClCompile Include="pixconv\convert_generic.cpp" />
+    <ClCompile Include="pixconv\interleave.cpp" />
     <ClCompile Include="pixconv\pixconv.cpp" />
     <ClCompile Include="pixconv\yuv444_ayuv.cpp" />
     <ClCompile Include="stdafx.cpp">
