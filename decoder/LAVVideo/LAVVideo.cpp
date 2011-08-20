@@ -1022,7 +1022,20 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       return E_FAIL;
     }
 
+
+#if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+#endif
     m_PixFmtConverter.Convert(m_pFrame, pDataOut, width, height, pBIH->biWidth);
+#if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
+    QueryPerformanceCounter(&end);
+    double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
+    m_pixFmtTimingAvg.Sample(diff);
+
+    DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
+#endif
 
     if (m_bSendMediaType) {
       AM_MEDIA_TYPE *sendmt = CreateMediaType(&mt);

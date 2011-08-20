@@ -20,9 +20,6 @@
 
 #pragma once
 
-#define DEBUG_FRAME_TIMINGS 0
-#define DEBUG_PIXELCONV_TIMINGS 0
-
 CodecID FindCodecId(const CMediaType *mt);
 int getThreadFlags(CodecID codecId);
 

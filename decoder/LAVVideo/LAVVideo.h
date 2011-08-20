@@ -23,12 +23,16 @@
 #include "LAVPixFmtConverter.h"
 #include "LAVVideoSettings.h"
 #include "H264RandomAccess.h"
+#include "FloatingAverage.h"
 
 #define MAX_THREADS 16
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
+
+#define DEBUG_FRAME_TIMINGS 0
+#define DEBUG_PIXELCONV_TIMINGS 0
 
 typedef struct {
   REFERENCE_TIME rtStart;
@@ -149,4 +153,8 @@ private:
     BOOL bPixFmts[LAVPixFmt_NB];
     BOOL HighQualityPixConv;
   } m_settings;
+
+#ifdef DEBUG
+  FloatingAverage<double> m_pixFmtTimingAvg;
+#endif
 };

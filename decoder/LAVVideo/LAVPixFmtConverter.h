@@ -22,10 +22,6 @@
 
 #include "LAVVideoSettings.h"
 
-#ifdef DEBUG
-#include "FloatingAverage.h"
-#endif
-
 // Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors
 typedef struct {
   GUID subtype;
@@ -83,8 +79,4 @@ private:
   SwsContext *m_pSwsContext;
 
   ILAVVideoSettings *m_pSettings;
-
-#ifdef DEBUG
-  FloatingAverage<double> m_pixFmtTimingAvg;
-#endif
 };
