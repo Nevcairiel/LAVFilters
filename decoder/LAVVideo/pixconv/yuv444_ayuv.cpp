@@ -54,9 +54,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
 
     for (i = 0; i < width; i+=16) {
       // Load pixels into registers
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (y+i));
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, (u+i));
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, (v+i));
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (y+i)); /* YYYYYYYY */
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, (u+i)); /* UUUUUUUU */
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, (v+i)); /* VVVVVVVV */
 
       // Interlave into AYUV
       xmm4 = xmm0;
@@ -103,7 +103,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
   xmm5 = _mm_setzero_si128();
-  xmm6 = _mm_set1_epi32(-1);
+  xmm6 = _mm_set1_epi16(-256); /* 0xFF00 - 0A0A0A0A */
 
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line
@@ -113,13 +113,14 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
 
     for (i = 0; i < width; i+=8) {
       // Load pixels into registers, and apply dithering
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm7, xmm5, (y+i), shift);
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm7, xmm5, (u+i), shift);
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm7, xmm5, (v+i), shift);
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm7, (y+i), shift); /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm7, (u+i), shift); /* U0U0U0U0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm7, (v+i), shift); /* V0V0V0V0 */
 
       // Interlave into AYUV
-      xmm0 = _mm_unpacklo_epi8(xmm0, xmm6);     /* YAYAYAYA */
-      xmm2 = _mm_unpacklo_epi8(xmm2, xmm1);     /* VUVUVUVU */
+      xmm0 = _mm_or_si128(xmm0, xmm6);          /* YAYAYAYA */
+      xmm1 = _mm_slli_epi16(xmm1, 8);           /* 0U0U0U0U */
+      xmm2 = _mm_or_si128(xmm2, xmm1);          /* VUVUVUVU */
       xmm3 = _mm_unpacklo_epi16(xmm2, xmm0);    /* VUYAVUYA */
       xmm4 = _mm_unpackhi_epi16(xmm2, xmm0);    /* VUYAVUYA */
 
