@@ -19,6 +19,12 @@
     <Filter Include="Header Files\parsers">
       <UniqueIdentifier>{a78d7ea2-1b41-4d14-bcbc-7367aee8f548}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\pixconv">
+      <UniqueIdentifier>{785bf298-6050-43e0-81d0-54dd1389be17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\pixconv">
+      <UniqueIdentifier>{4b09de39-e456-4b36-98fa-aba7f24526bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -47,6 +53,12 @@
     </ClCompile>
     <ClCompile Include="parsers\MPEG2HeaderParser.cpp">
       <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="pixconv\pixconv.cpp">
+      <Filter>Source Files\pixconv</Filter>
+    </ClCompile>
+    <ClCompile Include="pixconv\convert_generic.cpp">
+      <Filter>Source Files\pixconv</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +91,9 @@
     </ClInclude>
     <ClInclude Include="parsers\MPEG2HeaderParser.h">
       <Filter>Header Files\parsers</Filter>
+    </ClInclude>
+    <ClInclude Include="pixconv\pixconv_internal.h">
+      <Filter>Header Files\pixconv</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

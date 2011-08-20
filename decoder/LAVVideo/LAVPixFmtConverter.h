@@ -21,6 +21,15 @@
 #pragma once
 
 #include "LAVVideoSettings.h"
+#include "pixconv/pixconv_internal.h"
+
+#define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, PixelFormat inputFormat, LAVVideoPixFmts outputFormat)
+
+#define DECLARE_CONV_FUNC(name) \
+  HRESULT name CONV_FUNC_PARAMS
+
+#define DECLARE_CONV_FUNC_IMPL(name) \
+  DECLARE_CONV_FUNC(CLAVPixFmtConverter::name)
 
 // Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors
 typedef struct {
@@ -30,6 +39,8 @@ typedef struct {
   int planeHeight[4];
   int planeWidth[4];
 } LAVPixFmtDesc;
+
+extern LAVPixFmtDesc lav_pixfmt_desc[];
 
 class CLAVPixFmtConverter
 {
@@ -52,21 +63,32 @@ public:
   CMediaType GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
-  HRESULT Convert(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);
+  inline HRESULT Convert(AVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
+    return (this->*convert)(pFrame->data, pFrame->linesize, dst, dstStride, width, height, m_InputPixFmt, m_OutputPixFmt);
+  }
 
 private:
   int GetFilteredFormatCount();
   LAVVideoPixFmts GetFilteredFormat(int index);
 
-  HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
-  HRESULT ConvertTo422Packed(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);
-  HRESULT ConvertToAYUV(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);
-  HRESULT ConvertToPX1X(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride, int chromaVertical);
-  HRESULT ConvertToY410(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);
-  HRESULT ConvertToY416(AVFrame *pFrame, BYTE *pOut, int width, int height, int dstStride);
+  // Helper functions for convert_generic
+  HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
+  HRESULT ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
+  HRESULT ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
+  HRESULT ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride, int chromaVertical);
+  HRESULT ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
+  HRESULT ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
 
   void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; };
   SwsContext *GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags);
+
+  typedef HRESULT (CLAVPixFmtConverter::*ConverterFn) CONV_FUNC_PARAMS;
+
+  // Conversion function pointer
+  ConverterFn convert;
+
+  // Pixel Implementations
+  DECLARE_CONV_FUNC(convert_generic);
 
 private:
   enum PixelFormat     m_InputPixFmt;
