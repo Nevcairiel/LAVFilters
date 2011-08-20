@@ -598,7 +598,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
         den = dwARY;
         m_bForceInputAR = FALSE;
       }
-      if (num == 0 || den == 0) {
+      if (!m_bForceInputAR || num == 0 || den == 0) {
         num = vih2->dwPictAspectRatioX;
         den = vih2->dwPictAspectRatioY;
       }
