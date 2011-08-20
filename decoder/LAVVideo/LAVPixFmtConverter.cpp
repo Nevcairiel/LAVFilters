@@ -127,6 +127,9 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
   , swsWidth(0), swsHeight(0)
   , swsColorSpace(AVCOL_SPC_UNSPECIFIED)
   , swsColorRange(AVCOL_RANGE_UNSPECIFIED)
+  , m_RequiredAlignment(0)
+  , m_nAlignedBufferSize(0)
+  , m_pAlignedBuffer(NULL)
 {
   convert = &CLAVPixFmtConverter::convert_generic;
 }
@@ -134,6 +137,7 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
 CLAVPixFmtConverter::~CLAVPixFmtConverter()
 {
   DestroySWScale();
+  av_freep(&m_pAlignedBuffer);
 }
 
 LAVVideoPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
@@ -274,6 +278,12 @@ BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
   }
 
   return FALSE;
+}
+
+void CLAVPixFmtConverter::SelectConvertFunction()
+{
+  convert = &CLAVPixFmtConverter::convert_generic;
+  m_RequiredAlignment = 0;
 }
 
 void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVVideoPixFmts format)

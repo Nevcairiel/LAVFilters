@@ -51,8 +51,8 @@ public:
 
   void SetSettings(ILAVVideoSettings *pSettings) { m_pSettings = pSettings; }
 
-  HRESULT SetInputPixFmt(enum PixelFormat pix_fmt) { m_InputPixFmt = pix_fmt; DestroySWScale(); return S_OK; }
-  HRESULT SetOutputPixFmt(enum LAVVideoPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; DestroySWScale(); return S_OK; }
+  HRESULT SetInputPixFmt(enum PixelFormat pix_fmt) { m_InputPixFmt = pix_fmt; DestroySWScale(); SelectConvertFunction(); return S_OK; }
+  HRESULT SetOutputPixFmt(enum LAVVideoPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; DestroySWScale(); SelectConvertFunction(); return S_OK; }
   
   LAVVideoPixFmts GetOutputBySubtype(const GUID *guid);
   LAVVideoPixFmts GetPreferredOutput();
@@ -65,12 +65,30 @@ public:
   BOOL IsAllowedSubtype(const GUID *guid);
 
   inline HRESULT Convert(AVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
-    return (this->*convert)(pFrame->data, pFrame->linesize, dst, dstStride, width, height, m_InputPixFmt, m_OutputPixFmt);
+    uint8_t *out = dst;
+    int outStride = dstStride;
+    if (m_RequiredAlignment && FFALIGN(dstStride, m_RequiredAlignment) != dstStride) {
+      outStride = FFALIGN(dstStride, m_RequiredAlignment);
+      size_t requiredSize = (outStride * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
+      if (requiredSize > m_nAlignedBufferSize) {
+        av_freep(&m_pAlignedBuffer);
+        m_nAlignedBufferSize = requiredSize;
+        m_pAlignedBuffer = (uint8_t *)av_malloc(m_nAlignedBufferSize+FF_INPUT_BUFFER_PADDING_SIZE);
+      }
+      out = m_pAlignedBuffer;
+    }
+    HRESULT hr = (this->*convert)(pFrame->data, pFrame->linesize, out, outStride, width, height, m_InputPixFmt, m_OutputPixFmt);
+    if (outStride != dstStride) {
+      ChangeStride(out, outStride, dst, dstStride, width, height, m_OutputPixFmt);
+    }
+    return hr;
   }
 
 private:
   int GetFilteredFormatCount();
   LAVVideoPixFmts GetFilteredFormat(int index);
+
+  void SelectConvertFunction();
 
   // Helper functions for convert_generic
   HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
@@ -101,7 +119,12 @@ private:
   AVColorSpace swsColorSpace;
   AVColorRange swsColorRange;
 
+  unsigned m_RequiredAlignment;
+
   SwsContext *m_pSwsContext;
+
+  size_t   m_nAlignedBufferSize;
+  uint8_t *m_pAlignedBuffer;
 
   ILAVVideoSettings *m_pSettings;
 };
