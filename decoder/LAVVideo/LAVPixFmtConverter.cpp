@@ -275,3 +275,32 @@ BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
 
   return FALSE;
 }
+
+void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVVideoPixFmts format)
+{
+  LAVPixFmtDesc desc = lav_pixfmt_desc[format];
+
+  int line = 0;
+
+  // Copy first plane
+  int widthBytes = width * desc.codedbytes;
+  int srcStrideBytes = srcStride * desc.codedbytes;
+  int dstStrideBytes = dstStride * desc.codedbytes;
+  for (line = 0; line < height; ++line) {
+    memcpy(dst, src, widthBytes);
+    src += srcStrideBytes;
+    dst += dstStrideBytes;
+  }
+
+  for (int plane = 1; plane < desc.planes; ++plane) {
+    int planeWidth     = widthBytes     / desc.planeWidth[plane];
+    int planeHeight    = height         / desc.planeHeight[plane];
+    int srcPlaneStride = srcStrideBytes / desc.planeWidth[plane];
+    int dstPlaneStride = dstStrideBytes / desc.planeWidth[plane];
+    for (line = 0; line < planeHeight; ++line) {
+      memcpy(dst, src, planeWidth);
+      src += srcPlaneStride;
+      dst += dstPlaneStride;
+    }
+  }
+}
