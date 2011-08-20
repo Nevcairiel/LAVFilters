@@ -1,0 +1,144 @@
+/*
+ *      Copyright (C) 2011 Hendrik Leppkes
+ *      http://www.1f0.de
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *  http://www.gnu.org/copyleft/gpl.html
+ */
+
+#include "stdafx.h"
+
+#include <emmintrin.h>
+
+#include "pixconv_internal.h"
+#include "pixconv_sse2_templates.h"
+
+extern "C" {
+#include "libavutil/intreadwrite.h"
+};
+
+#define ALIGN(x,a) (((x)+(a)-1UL)&~((a)-1UL))
+
+#define PIXCONV_INTERLEAVE_AYUV(regY, regU, regV, regA, regOut1, regOut2) \
+  regY    = _mm_unpacklo_epi8(regY, regA);     /* YAYAYAYA */             \
+  regV    = _mm_unpacklo_epi8(regV, regU);     /* VUVUVUVU */             \
+  regOut1 = _mm_unpacklo_epi16(regV, regY);    /* VUYAVUYA */             \
+  regOut2 = _mm_unpackhi_epi16(regV, regY);    /* VUYAVUYA */
+
+#define YUV444_PACK_AYUV(dst) *idst++ = v[i] | (u[i] << 8) | (y[i] << 16) | (0xff << 24);
+
+DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
+{
+  const uint8_t *y = (const uint8_t *)src[0];
+  const uint8_t *u = (const uint8_t *)src[1];
+  const uint8_t *v = (const uint8_t *)src[2];
+
+  int inStride = srcStride[0];
+  int outStride = dstStride << 2;
+
+  int line, i;
+
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
+
+  xmm7 = _mm_setzero_si128();
+  xmm6 = _mm_set1_epi32(-1);
+
+  for (line = 0; line < height; ++line) {
+    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+    uint32_t *dst32 = (uint32_t *)(dst + line * outStride);
+
+    for (i = 0; i < width; i+=16) {
+      // Load pixels into registers
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, xmm7, (y+i));
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, xmm7, (u+i));
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, xmm7, (v+i));
+
+      // Interlave into AYUV
+      xmm4 = xmm0;
+      xmm0 = _mm_unpacklo_epi8(xmm0, xmm6);     /* YAYAYAYA */
+      xmm4 = _mm_unpackhi_epi8(xmm4, xmm6);     /* YAYAYAYA */
+
+      xmm5 = xmm2;
+      xmm2 = _mm_unpacklo_epi8(xmm2, xmm1);     /* VUVUVUVU */
+      xmm5 = _mm_unpackhi_epi8(xmm5, xmm1);     /* VUVUVUVU */
+
+      xmm1 = _mm_unpacklo_epi16(xmm2, xmm0);    /* VUYAVUYA */
+      xmm2 = _mm_unpackhi_epi16(xmm2, xmm0);    /* VUYAVUYA */
+
+      xmm0 = _mm_unpacklo_epi16(xmm5, xmm4);    /* VUYAVUYA */
+      xmm3 = _mm_unpackhi_epi16(xmm5, xmm4);    /* VUYAVUYA */
+
+      // Write data back
+      _mm_stream_si128(dst128++, xmm1);
+      _mm_stream_si128(dst128++, xmm2);
+      _mm_stream_si128(dst128++, xmm0);
+      _mm_stream_si128(dst128++, xmm3);
+    }
+
+    y += inStride;
+    u += inStride;
+    v += inStride;
+  }
+
+  return S_OK;
+}
+
+DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
+{
+  const uint16_t *y = (const uint16_t *)src[0];
+  const uint16_t *u = (const uint16_t *)src[1];
+  const uint16_t *v = (const uint16_t *)src[2];
+
+  int inStride = srcStride[0] >> 1;
+  int outStride = dstStride << 2;
+  int shift = (inputFormat == PIX_FMT_YUV444P10LE ? 6 : (inputFormat == PIX_FMT_YUV444P9LE) ? 7 : 0);
+
+  int line, i;
+
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
+
+  xmm5 = _mm_setzero_si128();
+  xmm6 = _mm_set1_epi32(-1);
+
+  for (line = 0; line < height; ++line) {
+    // Load dithering coefficients for this line
+    PIXCONV_LOAD_DITHER_COEFFS(xmm7,line,dithers);
+
+    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+
+    for (i = 0; i < width; i+=8) {
+      // Load pixels into registers, and apply dithering
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm7, xmm5, (y+i), shift);
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm7, xmm5, (u+i), shift);
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm7, xmm5, (v+i), shift);
+
+      // Interlave into AYUV
+      xmm0 = _mm_unpacklo_epi8(xmm0, xmm6);     /* YAYAYAYA */
+      xmm2 = _mm_unpacklo_epi8(xmm2, xmm1);     /* VUVUVUVU */
+      xmm3 = _mm_unpacklo_epi16(xmm2, xmm0);    /* VUYAVUYA */
+      xmm4 = _mm_unpackhi_epi16(xmm2, xmm0);    /* VUYAVUYA */
+
+      // Write data back
+      _mm_stream_si128(dst128++, xmm3);
+      _mm_stream_si128(dst128++, xmm4);
+    }
+
+    y += inStride;
+    u += inStride;
+    v += inStride;
+  }
+
+  return S_OK;
+}

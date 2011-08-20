@@ -153,6 +153,7 @@
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
     <ClCompile Include="pixconv\convert_generic.cpp" />
     <ClCompile Include="pixconv\pixconv.cpp" />
+    <ClCompile Include="pixconv\yuv444_ayuv.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -167,6 +168,7 @@
     <ClInclude Include="parsers\MPEG2HeaderParser.h" />
     <ClInclude Include="parsers\VC1HeaderParser.h" />
     <ClInclude Include="pixconv\pixconv_internal.h" />
+    <ClInclude Include="pixconv\pixconv_sse2_templates.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="VideoSettingsProp.h" />

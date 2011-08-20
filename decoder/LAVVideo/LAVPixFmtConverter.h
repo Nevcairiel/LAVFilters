@@ -110,6 +110,8 @@ private:
 
   // Pixel Implementations
   DECLARE_CONV_FUNC(convert_generic);
+  DECLARE_CONV_FUNC(convert_yuv444_ayuv);
+  DECLARE_CONV_FUNC(convert_yuv444_ayuv_dither_le);
 
 private:
   enum PixelFormat     m_InputPixFmt;

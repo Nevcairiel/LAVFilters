@@ -282,8 +282,16 @@ BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
 
 void CLAVPixFmtConverter::SelectConvertFunction()
 {
-  convert = &CLAVPixFmtConverter::convert_generic;
-  m_RequiredAlignment = 0;
+  if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE || m_InputPixFmt == PIX_FMT_YUV444P16LE)) {
+    convert = &CLAVPixFmtConverter::convert_yuv444_ayuv_dither_le;
+    m_RequiredAlignment = 32;
+  } else if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P)) {
+    convert = &CLAVPixFmtConverter::convert_yuv444_ayuv;
+    m_RequiredAlignment = 64;
+  } else {
+    convert = &CLAVPixFmtConverter::convert_generic;
+    m_RequiredAlignment = 0;
+  }
 }
 
 void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVVideoPixFmts format)

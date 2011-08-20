@@ -60,6 +60,9 @@
     <ClCompile Include="pixconv\convert_generic.cpp">
       <Filter>Source Files\pixconv</Filter>
     </ClCompile>
+    <ClCompile Include="pixconv\yuv444_ayuv.cpp">
+      <Filter>Source Files\pixconv</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -93,6 +96,9 @@
       <Filter>Header Files\parsers</Filter>
     </ClInclude>
     <ClInclude Include="pixconv\pixconv_internal.h">
+      <Filter>Header Files\pixconv</Filter>
+    </ClInclude>
+    <ClInclude Include="pixconv\pixconv_sse2_templates.h">
       <Filter>Header Files\pixconv</Filter>
     </ClInclude>
   </ItemGroup>
