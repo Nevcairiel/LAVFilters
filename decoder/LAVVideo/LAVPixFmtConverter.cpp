@@ -92,19 +92,19 @@ static FF_LAV_PIXFMT_MAP lav_pixfmt_map[] = {
 };
 
 LAVPixFmtDesc lav_pixfmt_desc[] = {
-  { MEDIASUBTYPE_YV12,  12, 3, { 1, 2, 2 }, { 1, 2, 2 } },        // YV12
-  { MEDIASUBTYPE_NV12,  12, 2, { 1, 2 }, { 1, 1 } },              // NV12
-  { MEDIASUBTYPE_YUY2,  16, 0 },                                  // YUY2 (packed)
-  { MEDIASUBTYPE_UYVY,  16, 0 },                                  // UYVY (packed)
-  { MEDIASUBTYPE_AYUV,  32, 0 },                                  // AYUV (packed)
-  { MEDIASUBTYPE_P010,  15, 2, { 1, 2 }, { 1, 1 } },              // P010
-  { MEDIASUBTYPE_P210,  20, 2, { 1, 1 }, { 1, 1 } },              // P210
-  { FOURCCMap('014Y'),  32, 0 },                                  // Y410 (packed)
-  { MEDIASUBTYPE_P016,  24, 2, { 1, 2 }, { 1, 1 } },              // P016
-  { MEDIASUBTYPE_P216,  32, 2, { 1, 1 }, { 1, 1 } },              // P216
-  { FOURCCMap('614Y'),  64, 0 },                                  // Y416 (packed)
-  { MEDIASUBTYPE_RGB32, 32, 0 },                                  // RGB32
-  { MEDIASUBTYPE_RGB24, 24, 0 },                                  // RGB24
+  { MEDIASUBTYPE_YV12,  12, 1, 3, { 1, 2, 2 }, { 1, 2, 2 } },        // YV12
+  { MEDIASUBTYPE_NV12,  12, 1, 2, { 1, 2 }, { 1, 1 } },              // NV12
+  { MEDIASUBTYPE_YUY2,  16, 2, 0 },                                  // YUY2 (packed)
+  { MEDIASUBTYPE_UYVY,  16, 2, 0 },                                  // UYVY (packed)
+  { MEDIASUBTYPE_AYUV,  32, 4, 0 },                                  // AYUV (packed)
+  { MEDIASUBTYPE_P010,  15, 2, 2, { 1, 2 }, { 1, 1 } },              // P010
+  { MEDIASUBTYPE_P210,  20, 2, 2, { 1, 1 }, { 1, 1 } },              // P210
+  { FOURCCMap('014Y'),  32, 4, 0 },                                  // Y410 (packed)
+  { MEDIASUBTYPE_P016,  24, 2, 2, { 1, 2 }, { 1, 1 } },              // P016
+  { MEDIASUBTYPE_P216,  32, 2, 2, { 1, 1 }, { 1, 1 } },              // P216
+  { FOURCCMap('614Y'),  64, 8, 0 },                                  // Y416 (packed)
+  { MEDIASUBTYPE_RGB32, 32, 4, 0 },                                  // RGB32
+  { MEDIASUBTYPE_RGB24, 24, 3, 0 },                                  // RGB24
 };
 
 static FF_LAV_PIXFMT_MAP *lookupFormatMap(PixelFormat ffFormat, BOOL bFallbackToDefault = TRUE)

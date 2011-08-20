@@ -35,6 +35,7 @@
 typedef struct {
   GUID subtype;
   int bpp;
+  int codedbytes;
   int planes;
   int planeHeight[4];
   int planeWidth[4];
