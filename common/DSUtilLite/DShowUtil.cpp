@@ -334,15 +334,18 @@ void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEA
   }
 }
 
-void getExtraData(const BYTE *format, const GUID *formattype, BYTE *extra, unsigned int *extralen)
+void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, unsigned int *extralen)
 {
-  if (*formattype == FORMAT_VideoInfo || *formattype == FORMAT_VideoInfo2) {
-    BITMAPINFOHEADER *pBMI = NULL;
-    formatTypeHandler(format, formattype, &pBMI, NULL);
+  if (*formattype == FORMAT_VideoInfo) {
     if (extra)
-      memcpy(extra, (BYTE *)pBMI + sizeof(BITMAPINFOHEADER), pBMI->biSize - sizeof(BITMAPINFOHEADER));
+      memcpy(extra, format + sizeof(VIDEOINFOHEADER), formatlen - sizeof(VIDEOINFOHEADER));
     if (extralen)
-      *extralen = pBMI->biSize - sizeof(BITMAPINFOHEADER);
+      *extralen = formatlen - sizeof(VIDEOINFOHEADER);
+  } else if(*formattype == FORMAT_VideoInfo2) {
+    if (extra)
+      memcpy(extra, format + sizeof(VIDEOINFOHEADER2), formatlen - sizeof(VIDEOINFOHEADER2));
+    if (extralen)
+      *extralen = formatlen - sizeof(VIDEOINFOHEADER2);
   } else if (*formattype == FORMAT_MPEGVideo) {
     MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)format;
     if (extra)

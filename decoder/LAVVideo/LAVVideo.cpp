@@ -386,7 +386,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   BYTE *extra = NULL;
   unsigned int extralen = 0;
 
-  getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), NULL, &extralen);
+  getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), NULL, &extralen);
 
   m_h264RandomAccess.SetAVCNALSize(0);
   m_h264RandomAccess.flush(m_pAVCtx->thread_count);
@@ -405,7 +405,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
       // Actually copy the metadata into our new buffer
       unsigned int actual_len;
-      getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), extra+6, &actual_len);
+      getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra+6, &actual_len);
 
       // Count the number of SPS/PPS in them and set the length
       // We'll put them all into one block and add a second block with 0 elements afterwards
@@ -427,7 +427,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
     } else {
       // Just copy extradata for other formats
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-      getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), extra, NULL);
+      getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, NULL);
     }
     m_pAVCtx->extradata = extra;
     m_pAVCtx->extradata_size = extralen;
