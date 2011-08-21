@@ -336,27 +336,26 @@ void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEA
 
 void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, unsigned int *extralen)
 {
+  const BYTE *extraposition = NULL;
+  unsigned extralength = 0;
   if (*formattype == FORMAT_VideoInfo) {
-    if (extra)
-      memcpy(extra, format + sizeof(VIDEOINFOHEADER), formatlen - sizeof(VIDEOINFOHEADER));
-    if (extralen)
-      *extralen = formatlen - sizeof(VIDEOINFOHEADER);
+    extraposition = format + sizeof(VIDEOINFOHEADER);
+    extralength   = formatlen - sizeof(VIDEOINFOHEADER);
   } else if(*formattype == FORMAT_VideoInfo2) {
-    if (extra)
-      memcpy(extra, format + sizeof(VIDEOINFOHEADER2), formatlen - sizeof(VIDEOINFOHEADER2));
-    if (extralen)
-      *extralen = formatlen - sizeof(VIDEOINFOHEADER2);
+    extraposition = format + sizeof(VIDEOINFOHEADER2);
+    extralength   = formatlen - sizeof(VIDEOINFOHEADER2);
   } else if (*formattype == FORMAT_MPEGVideo) {
     MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)format;
-    if (extra)
-      memcpy(extra, (BYTE *)mp1vi->bSequenceHeader, mp1vi->cbSequenceHeader);
-    if (extralen)
-      *extralen = mp1vi->cbSequenceHeader;
+    extraposition = (BYTE *)mp1vi->bSequenceHeader;
+    extralength   =  mp1vi->cbSequenceHeader;
   } else if (*formattype == FORMAT_MPEG2Video) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)format;
-    if (extra)
-      memcpy(extra, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
-    if (extralen)
-      *extralen = mp2vi->cbSequenceHeader;
+    extraposition = (BYTE *)mp2vi->dwSequenceHeader;
+    extralength   =  mp2vi->cbSequenceHeader;
   }
+
+  if (extra && extralength)
+    memcpy(extra, extraposition, extralength);
+  if (extralen)
+    *extralen = extralength;
 }
