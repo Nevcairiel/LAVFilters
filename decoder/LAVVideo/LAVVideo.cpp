@@ -596,12 +596,12 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
         formatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
         num = dwARX;
         den = dwARY;
-        m_bForceInputAR = FALSE;
       }
       if (!m_bForceInputAR || num == 0 || den == 0) {
         num = vih2->dwPictAspectRatioX;
         den = vih2->dwPictAspectRatioY;
       }
+      m_bForceInputAR = FALSE;
     }
     dwAspectX = num;
     dwAspectY = den;
