@@ -370,7 +370,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
     int thread_count = m_settings.NumThreads;
     if (thread_count == 0) {
       SYSTEM_INFO systemInfo;
-      GetNativeSystemInfo(&systemInfo);
+      GetSystemInfo(&systemInfo);
       thread_count = systemInfo.dwNumberOfProcessors * 3 / 2;
     }
 
