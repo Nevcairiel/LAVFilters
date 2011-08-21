@@ -24,7 +24,7 @@
 #include "LAVVideoSettings.h"
 #include "H264RandomAccess.h"
 
-#define MAX_THREADS 32
+#define MAX_THREADS 16
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"

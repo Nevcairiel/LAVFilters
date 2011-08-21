@@ -374,7 +374,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
       thread_count = systemInfo.dwNumberOfProcessors * 3 / 2;
     }
 
-    m_pAVCtx->thread_count = min(thread_count, MAX_THREADS);
+    m_pAVCtx->thread_count = max(0, min(thread_count, MAX_THREADS));
     m_pAVCtx->thread_type = thread_type;
   } else {
     m_pAVCtx->thread_count = 1;
