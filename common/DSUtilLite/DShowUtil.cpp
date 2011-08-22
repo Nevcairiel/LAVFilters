@@ -338,7 +338,12 @@ void getExtraData(const BYTE *format, const GUID *formattype, const size_t forma
 {
   const BYTE *extraposition = NULL;
   unsigned extralength = 0;
-  if (*formattype == FORMAT_VideoInfo) {
+  if (*formattype == FORMAT_WaveFormatEx) {
+    WAVEFORMATEX *wfex = (WAVEFORMATEX *)format;
+    extraposition = format + sizeof(WAVEFORMATEX);
+    // Protected against over-reads
+    extralength   = wfex->cbSize;
+  } else if (*formattype == FORMAT_VideoInfo) {
     extraposition = format + sizeof(VIDEOINFOHEADER);
     extralength   = formatlen - sizeof(VIDEOINFOHEADER);
   } else if(*formattype == FORMAT_VideoInfo2) {
