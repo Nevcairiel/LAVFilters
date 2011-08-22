@@ -527,7 +527,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       }
     }
 
-    pPacket->bSyncPoint = (rt != Packet::INVALID_TIME && duration > 0) ? 1 : 0;
+    pPacket->bSyncPoint = pkt.flags & AV_PKT_FLAG_KEY;
     pPacket->bAppendable = 0; //!pPacket->bSyncPoint;
     pPacket->bDiscontinuity = (pkt.flags & AV_PKT_FLAG_CORRUPT);
 #ifdef DEBUG
