@@ -543,6 +543,14 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
+HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
+{
+  if (dir == PINDIR_INPUT) {
+    ffmpeg_shutdown();
+  }
+  return __super::BreakConnect(dir);
+}
+
 HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar)
 {
   CheckPointer(ppOut, E_POINTER);

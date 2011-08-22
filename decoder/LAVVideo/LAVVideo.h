@@ -77,6 +77,8 @@ public:
   HRESULT NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
   HRESULT Receive(IMediaSample *pIn);
 
+  HRESULT BreakConnect(PIN_DIRECTION dir);
+
 public:
   // Pin Configuration
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesIn[];
