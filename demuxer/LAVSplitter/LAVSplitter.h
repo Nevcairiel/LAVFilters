@@ -69,6 +69,7 @@ public:
   // CBaseFilter methods
   int GetPinCount();
   CBasePin *GetPin(int n);
+  STDMETHODIMP GetClassID(CLSID* pClsID);
 
   STDMETHODIMP Stop();
   STDMETHODIMP Pause();
@@ -146,6 +147,7 @@ public:
   std::list<std::string> GetPreferredSubtitleLanguageList();
 
   bool IsAnyPinDrying();
+  void SetFakeASFReader(BOOL bFlag) { m_bFakeASFReader = bFlag; }
 protected:
   // CAMThread
   enum {CMD_EXIT, CMD_SEEK};
@@ -193,6 +195,7 @@ private:
   CBaseDemuxer *m_pDemuxer;
 
   BOOL m_bPlaybackStarted;
+  BOOL m_bFakeASFReader;
 
   // Times
   REFERENCE_TIME m_rtStart, m_rtStop, m_rtCurrent, m_rtNewStart, m_rtNewStop;

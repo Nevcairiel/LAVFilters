@@ -56,6 +56,8 @@ public:
   HRESULT Active();
   HRESULT Inactive();
 
+  STDMETHODIMP Connect(IPin * pReceivePin, const AM_MEDIA_TYPE *pmt);
+
   // IMediaSeeking
   STDMETHODIMP GetCapabilities(DWORD* pCapabilities);
   STDMETHODIMP CheckCapabilities(DWORD* pCapabilities);

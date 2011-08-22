@@ -49,6 +49,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pDemuxer(NULL)
   , m_bRuntimeConfig(FALSE)
   , m_pSite(NULL)
+  , m_bFakeASFReader(FALSE)
 {
   CLAVFDemuxer::ffmpeg_init();
 
@@ -336,6 +337,18 @@ CBasePin *CLAVSplitter::GetPin(int n)
   }
 
   return m_pPins[n];
+}
+
+STDMETHODIMP CLAVSplitter::GetClassID(CLSID* pClsID)
+{
+  CheckPointer (pClsID, E_POINTER);
+
+  if (m_bFakeASFReader) {
+    *pClsID = CLSID_WMAsfReader;
+    return S_OK;
+  } else {
+    return __super::GetClassID(pClsID);
+  }
 }
 
 CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId)

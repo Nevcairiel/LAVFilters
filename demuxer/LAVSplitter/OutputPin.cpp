@@ -150,6 +150,26 @@ HRESULT CLAVOutputPin::Inactive()
   return __super::Inactive();
 }
 
+STDMETHODIMP CLAVOutputPin::Connect(IPin* pReceivePin, const AM_MEDIA_TYPE* pmt)
+{
+  HRESULT  hr;
+  PIN_INFO PinInfo;
+  GUID     FilterClsid;
+
+  if (SUCCEEDED (pReceivePin->QueryPinInfo (&PinInfo))) {
+    if (SUCCEEDED (PinInfo.pFilter->GetClassID(&FilterClsid))) {
+      if (FilterClsid == CLSID_DMOWrapperFilter) {
+        (static_cast<CLAVSplitter*>(m_pFilter))->SetFakeASFReader(TRUE);
+      }
+    }
+    PinInfo.pFilter->Release();
+  }
+
+  hr = __super::Connect (pReceivePin, pmt);
+  (static_cast<CLAVSplitter*>(m_pFilter))->SetFakeASFReader(FALSE);
+  return hr;
+}
+
 HRESULT CLAVOutputPin::DeliverBeginFlush()
 {
   DbgLog((LOG_TRACE, 20, L"::DeliverBeginFlush on %s Pin", CBaseDemuxer::CStreamList::ToStringW(m_pinType)));
