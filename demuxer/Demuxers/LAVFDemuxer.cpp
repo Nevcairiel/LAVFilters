@@ -206,6 +206,22 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   return S_OK;
 }
 
+inline static int init_parser(AVFormatContext *s, AVStream *st) {
+  if (!st->parser && st->need_parsing && !(s->flags & AVFMT_FLAG_NOPARSE)) {
+    st->parser = av_parser_init(st->codec->codec_id);
+    if (st->parser) {
+      if(st->need_parsing == AVSTREAM_PARSE_HEADERS){
+        st->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+      }else if(st->need_parsing == AVSTREAM_PARSE_FULL_ONCE){
+        st->parser->flags |= PARSER_FLAG_ONCE;
+      }
+    } else {
+      return -1;
+    }
+  }
+  return 0;
+}
+
 STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 {
   HRESULT hr = S_OK;
@@ -265,6 +281,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
         st->need_parsing = AVSTREAM_PARSE_NONE;
       }
     }
+
+    // Create the parsers with the appropriate flags
+    init_parser(m_avFormat, st);
 
 #ifdef DEBUG
     DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
@@ -353,7 +372,13 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
     if (st->codec->codec_id == CODEC_ID_VC1) {
-      st->need_parsing = m_bVC1Correction ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
+      if (st->parser) {
+        if (m_bVC1Correction) {
+          st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+        } else {
+          st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+        }
+      }
     } else if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
     }
