@@ -169,7 +169,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
 
   if (avstream->codec->codec_id == CODEC_ID_MJPEG) {
     BITMAPINFOHEADER *pBMI = NULL;
-    formatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
+    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
 
     DWORD fourCC = MKTAG('M','J','P','G');
 

@@ -261,7 +261,7 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
 
   BITMAPINFOHEADER *pBIH = NULL;
   CMediaType mtOut = m_pOutput->CurrentMediaType();
-  formatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH, NULL);
+  videoFormatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH, NULL);
 
   pProperties->cBuffers = 4;
   pProperties->cbBuffer = pBIH->biSizeImage;
@@ -299,7 +299,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   BITMAPINFOHEADER *pBIH = NULL;
   REFERENCE_TIME rtAvgTime;
   DWORD dwAspectX = 0, dwAspectY = 0;
-  formatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
+  videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
   *pMediaType = m_PixFmtConverter.GetMediaType(index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, bVIH1);
 
@@ -327,7 +327,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   }
 
   BITMAPINFOHEADER *pBMI = NULL;
-  formatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI, &m_rtAvrTimePerFrame);
+  videoFormatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI, &m_rtAvrTimePerFrame);
 
   m_strExtension = L"";
 
@@ -593,7 +593,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
     if (!m_settings.StreamAR || num == 0 || den == 0) {
       if (m_bForceInputAR) {
         DWORD dwARX, dwARY;
-        formatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
+        videoFormatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
         num = dwARX;
         den = dwARY;
       }
@@ -654,7 +654,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
           CMediaType newmt = *pmt;
           m_pOutput->SetMediaType(&newmt);
 #ifdef DEBUG
-          formatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
+          videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
           DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
 #endif
           DeleteMediaType(pmt);
@@ -702,7 +702,7 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
   DWORD dwAspectX, dwAspectY;
   REFERENCE_TIME rtAvg;
   BOOL bVIH1 = (outMt.formattype == FORMAT_VideoInfo);
-  formatTypeHandler(outMt.Format(), outMt.FormatType(), NULL, &rtAvg, &dwAspectX, &dwAspectY);
+  videoFormatTypeHandler(outMt.Format(), outMt.FormatType(), NULL, &rtAvg, &dwAspectX, &dwAspectY);
 
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
     CMediaType &mt = m_PixFmtConverter.GetMediaType(i, width, height, dwAspectX, dwAspectY, rtAvg, bVIH1);
@@ -957,7 +957,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
       REFERENCE_TIME duration = 0;
 
       CMediaType mt = m_pInput->CurrentMediaType();
-      formatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
+      videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
       if (!duration && m_pAVCtx->time_base.num && m_pAVCtx->time_base.den) {
         duration = (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
       } else if(!duration) {
@@ -1007,7 +1007,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
 
     CMediaType& mt = m_pOutput->CurrentMediaType();
     BITMAPINFOHEADER *pBIH = NULL;
-    formatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
+    videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
     long required = (pBIH->biWidth * abs(pBIH->biHeight) * pBIH->biBitCount) >> 3;
 

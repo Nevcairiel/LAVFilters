@@ -110,6 +110,6 @@ extern HRESULT FindIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown);
 std::wstring WStringFromGUID(const GUID& guid);
 BSTR ConvertCharToBSTR(const char *sz);
 
-void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
+void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
 void getExtraData(const CMediaType &mt, BYTE *extra, unsigned int *extralen);
 void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, unsigned int *extralen);
