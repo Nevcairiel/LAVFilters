@@ -1,5 +1,19 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.33 - 2011/08/22
+LAV Splitter
+- Improved compatibility with the MS WMVideo decoder
+- Fixed the mediatype for raw PCM streams
+
+LAV Audio
+- Added support for Vorbis streams demuxed by Haali and MPC-HC Splitters
+
+LAV Video
+- VC-1 decoding is now disabled by default
+- Fixed behaviour of the Stream AR option
+- The maximum number of decoding threads is now 16
+- Free decoding buffers when the input pin disconnects to avoid big memory leaks
+
 0.32 - 2011/08/19
 General
 - The installer will now add shortcuts to the start menu to open the filter configurations
