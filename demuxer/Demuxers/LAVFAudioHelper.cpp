@@ -195,7 +195,7 @@ WAVEFORMATEX_HDMV_LPCM *CLAVFAudioHelper::CreateWVFMTEX_LPCM(const AVStream *avs
 WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avstream, ULONG *size, const GUID subtype)
 {
   WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)CoTaskMemAlloc(sizeof(WAVEFORMATEXTENSIBLE));
-  memset(wfex, 0, sizeof(wfex));
+  memset(wfex, 0, sizeof(*wfex));
 
   WAVEFORMATEX *wfe = &wfex->Format;
   wfe->wFormatTag = (WORD)subtype.Data1;
@@ -226,9 +226,11 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
       wfex->Samples.wValidBitsPerSample = wfex->Format.wBitsPerSample;
     }
     wfex->SubFormat = subtype;
+    *size = sizeof(WAVEFORMATEXTENSIBLE);
+  } else {
+    *size = sizeof(WAVEFORMATEX);
   }
 
-  *size = sizeof(WAVEFORMATEXTENSIBLE);
   return wfex;
 }
 
