@@ -334,6 +334,35 @@ void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPIN
   }
 }
 
+void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *pnSamples, WORD *pnChannels, WORD *pnBitsPerSample, WORD *pnBlockAlign, DWORD *pnBytesPerSec)
+{
+  DWORD nSamples       = 0;
+  WORD  nChannels      = 0;
+  WORD  nBitsPerSample = 0;
+  WORD  nBlockAlign    = 0;
+  DWORD nBytesPerSec   = 0;
+
+  if (*formattype == FORMAT_WaveFormatEx) {
+    WAVEFORMATEX *wfex = (WAVEFORMATEX *)format;
+    nSamples       = wfex->nSamplesPerSec;
+    nChannels      = wfex->nChannels;
+    nBitsPerSample = wfex->wBitsPerSample;
+    nBlockAlign    = wfex->nBlockAlign;
+    nBytesPerSec   = wfex->nAvgBytesPerSec;
+  }
+
+  if (pnSamples)
+    *pnSamples = nSamples;
+  if (pnChannels)
+    *pnChannels = nChannels;
+  if (pnBitsPerSample)
+    *pnBitsPerSample = nBitsPerSample;
+  if (pnBlockAlign)
+    *pnBlockAlign = nBlockAlign;
+  if (pnBytesPerSec)
+    *pnBytesPerSec = nBytesPerSec;
+}
+
 void getExtraData(const CMediaType &mt, BYTE *extra, unsigned int *extralen)
 {
   return getExtraData(mt.Format(), mt.FormatType(), mt.FormatLength(), extra, extralen);

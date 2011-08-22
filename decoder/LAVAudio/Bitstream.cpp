@@ -157,15 +157,17 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
 
     const void *format = mt.Format();
     GUID format_type = mt.formattype;
+    DWORD formatlen = mt.cbFormat;
 
     // Override the format type
     if (mt.subtype == MEDIASUBTYPE_FFMPEG_AUDIO && format_type == FORMAT_WaveFormatExFFMPEG) {
       WAVEFORMATEXFFMPEG *wfexff = (WAVEFORMATEXFFMPEG *)mt.Format();
       format = &wfexff->wfex;
       format_type = FORMAT_WaveFormatEx;
+      formatlen -= sizeof(WAVEFORMATEXFFMPEG) - sizeof(WAVEFORMATEX);
     }
 
-    ffmpeg_init(m_nCodecId, format, format_type);
+    ffmpeg_init(m_nCodecId, format, format_type, formatlen);
     m_bQueueResync = TRUE;
   }
 

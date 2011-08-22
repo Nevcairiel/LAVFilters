@@ -165,7 +165,7 @@ private:
   HRESULT LoadSettings();
   HRESULT SaveSettings();
 
-  HRESULT ffmpeg_init(CodecID codec, const void *format, GUID format_type);
+  HRESULT ffmpeg_init(CodecID codec, const void *format, GUID format_type, DWORD formatlen);
   void ffmpeg_shutdown();
 
   CMediaType CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSample = 0) const;

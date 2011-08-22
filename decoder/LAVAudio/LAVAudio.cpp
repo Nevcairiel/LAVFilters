@@ -744,7 +744,7 @@ HRESULT CLAVAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
     : NOERROR;
 }
 
-HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_type)
+HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID format_type, DWORD formatlen)
 {
   CAutoLock lock(&m_csReceive);
   ffmpeg_shutdown();
@@ -850,19 +850,23 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, GUID format_ty
     }
   }
 
-  if (format_type == FORMAT_WaveFormatEx) {
-    WAVEFORMATEX *wfein             = (WAVEFORMATEX *)format;
-    m_pAVCtx->sample_rate           = wfein->nSamplesPerSec;
-    m_pAVCtx->channels              = wfein->nChannels;
-    m_pAVCtx->bit_rate              = wfein->nAvgBytesPerSec * 8;
-    m_pAVCtx->bits_per_coded_sample = wfein->wBitsPerSample;
-    m_pAVCtx->block_align           = wfein->nBlockAlign;
+  DWORD nSamples, nBytesPerSec;
+  WORD nChannels, nBitsPerSample, nBlockAlign;
+  audioFormatTypeHandler((BYTE *)format, &format_type, &nSamples, &nChannels, &nBitsPerSample, &nBlockAlign, &nBytesPerSec);
 
-    if (bTrustExtraData && wfein->cbSize) {
-      m_pAVCtx->extradata_size      = wfein->cbSize;
-      m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
-      memcpy(m_pAVCtx->extradata, (BYTE *)wfein + sizeof(WAVEFORMATEX), m_pAVCtx->extradata_size);
-    }
+  unsigned extralen = 0;
+  getExtraData((BYTE *)format, &format_type, formatlen, NULL, &extralen);
+
+  m_pAVCtx->sample_rate           = nSamples;
+  m_pAVCtx->channels              = nChannels;
+  m_pAVCtx->bit_rate              = nBytesPerSec << 3;
+  m_pAVCtx->bits_per_coded_sample = nBitsPerSample;
+  m_pAVCtx->block_align           = nBlockAlign;
+
+  if (bTrustExtraData && extralen) {
+    m_pAVCtx->extradata_size      = extralen;
+    m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+    getExtraData((BYTE *)format, &format_type, formatlen, m_pAVCtx->extradata, NULL);
   }
 
   m_nCodecId                      = codec;
@@ -895,7 +899,8 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
   if (dir == PINDIR_INPUT) {
     CodecID codec = CODEC_ID_NONE;
     const void *format = pmt->Format();
-    GUID format_type = format_type = pmt->formattype;
+    GUID format_type = pmt->formattype;
+    DWORD formatlen = pmt->cbFormat;
 
     // Override the format type
     if (pmt->subtype == MEDIASUBTYPE_FFMPEG_AUDIO && pmt->formattype == FORMAT_WaveFormatExFFMPEG) {
@@ -903,13 +908,14 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
       codec = (CodecID)wfexff->nCodecId;
       format = &wfexff->wfex;
       format_type = FORMAT_WaveFormatEx;
+      formatlen -= sizeof(WAVEFORMATEXFFMPEG) - sizeof(WAVEFORMATEX);
     } else {
       codec = FindCodecId(pmt);
     }
 
     if (codec == CODEC_ID_NONE) {
       if (m_settings.AllowRawSPDIF) {
-        if (pmt->subtype == MEDIASUBTYPE_PCM) {
+        if (pmt->formattype == FORMAT_WaveFormatEx && pmt->subtype == MEDIASUBTYPE_PCM) {
           WAVEFORMATEX *wfex = (WAVEFORMATEX *)pmt->Format();
           switch (wfex->wBitsPerSample) {
           case 8:
@@ -933,7 +939,7 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
         return VFW_E_TYPE_NOT_ACCEPTED;
     }
 
-    HRESULT hr = ffmpeg_init(codec, format, format_type);
+    HRESULT hr = ffmpeg_init(codec, format, format_type, formatlen);
     if (FAILED(hr)) {
       return hr;
     }
@@ -1126,7 +1132,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     if (count >= 4) {
       DbgLog((LOG_TRACE, 10, L"::ProcessBuffer(): Detected %d DTS sync words in %d bytes of data, switching to DTS-in-WAV decoding", count, buffer_size));
       CMediaType mt = m_pInput->CurrentMediaType();
-      ffmpeg_init(CODEC_ID_DTS, mt.Format(), *mt.FormatType());
+      ffmpeg_init(CODEC_ID_DTS, mt.Format(), *mt.FormatType(), mt.FormatLength());
       m_bFindDTSInPCM = FALSE;
     }
 
