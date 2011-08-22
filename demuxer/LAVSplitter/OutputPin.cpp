@@ -369,7 +369,6 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   }
 
   bool fTimeValid = pPacket->rtStart != Packet::INVALID_TIME;
-  ASSERT(!pPacket->bSyncPoint || fTimeValid);
 
   // Fill the sample
   BYTE* pData = NULL;
