@@ -22,6 +22,7 @@
 #include "DShowUtil.h"
 
 #include <dvdmedia.h>
+#include "moreuuids.h"
 
 //
 // Usage: SetThreadName (-1, "MainThread");
@@ -292,6 +293,20 @@ HRESULT FindIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown)
   return E_NOINTERFACE;
 }
 
+unsigned int lav_xiphlacing(unsigned char *s, unsigned int v)
+{
+    unsigned int n = 0;
+
+    while(v >= 0xff) {
+        *s++ = 0xff;
+        v -= 0xff;
+        n++;
+    }
+    *s = v;
+    n++;
+    return n;
+}
+
 void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI, REFERENCE_TIME *prtAvgTime, DWORD *pDwAspectX, DWORD *pDwAspectY)
 {
   REFERENCE_TIME rtAvg = 0;
@@ -349,6 +364,11 @@ void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *p
     nBitsPerSample = wfex->wBitsPerSample;
     nBlockAlign    = wfex->nBlockAlign;
     nBytesPerSec   = wfex->nAvgBytesPerSec;
+  } else if (*formattype == FORMAT_VorbisFormat2) {
+    VORBISFORMAT2 *vf2 = (VORBISFORMAT2 *)format;
+    nSamples       = vf2->SamplesPerSec;
+    nChannels      = (WORD)vf2->Channels;
+    nBitsPerSample = (WORD)vf2->BitsPerSample;
   }
 
   if (pnSamples)
@@ -377,6 +397,29 @@ void getExtraData(const BYTE *format, const GUID *formattype, const size_t forma
     extraposition = format + sizeof(WAVEFORMATEX);
     // Protected against over-reads
     extralength   = min(formatlen - sizeof(WAVEFORMATEX), wfex->cbSize);
+  } else if (*formattype == FORMAT_VorbisFormat2) {
+    VORBISFORMAT2 *vf2 = (VORBISFORMAT2 *)format;
+    BYTE *start = NULL, *end = NULL;
+    unsigned offset = 1;
+    if (extra) {
+      *extra = 2;
+      offset += lav_xiphlacing(extra+offset, vf2->HeaderSize[0]);
+      offset += lav_xiphlacing(extra+offset, vf2->HeaderSize[1]);
+      extra += offset;
+    } else {
+      BYTE dummy[100];
+      offset += lav_xiphlacing(dummy, vf2->HeaderSize[0]);
+      offset += lav_xiphlacing(dummy, vf2->HeaderSize[1]);
+    }
+    extralength = vf2->HeaderSize[0] + vf2->HeaderSize[1] + vf2->HeaderSize[2];
+    extralength = min(extralength, formatlen - sizeof(VORBISFORMAT2));
+
+    if (extra && extralength)
+      memcpy(extra, format + sizeof(VORBISFORMAT2), extralength);
+    if (extralen)
+      *extralen = extralength + offset;
+
+    return;
   } else if (*formattype == FORMAT_VideoInfo) {
     extraposition = format + sizeof(VIDEOINFOHEADER);
     extralength   = formatlen - sizeof(VIDEOINFOHEADER);
