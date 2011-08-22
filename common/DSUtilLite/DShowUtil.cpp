@@ -334,6 +334,11 @@ void formatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEA
   }
 }
 
+void getExtraData(const CMediaType &mt, BYTE *extra, unsigned int *extralen)
+{
+  return getExtraData(mt.Format(), mt.FormatType(), mt.FormatLength(), extra, extralen);
+}
+
 void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, unsigned int *extralen)
 {
   const BYTE *extraposition = NULL;
