@@ -66,6 +66,9 @@
     <ClCompile Include="pixconv\interleave.cpp">
       <Filter>Source Files\pixconv</Filter>
     </ClCompile>
+    <ClCompile Include="pixconv\yuv2yuv_unscaled.cpp">
+      <Filter>Source Files\pixconv</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
