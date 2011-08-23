@@ -277,13 +277,17 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
     // Disable full stream parsing for these formats
     if (st->need_parsing == AVSTREAM_PARSE_FULL) {
-      if (st->codec->codec_id == CODEC_ID_MPEG2VIDEO || st->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
+      if (st->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
         st->need_parsing = AVSTREAM_PARSE_NONE;
       }
     }
 
     // Create the parsers with the appropriate flags
     init_parser(m_avFormat, st);
+
+    if (st->parser && st->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
+      st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+    }
 
 #ifdef DEBUG
     DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
