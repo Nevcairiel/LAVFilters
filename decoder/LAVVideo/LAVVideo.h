@@ -130,7 +130,6 @@ private:
 
   BOOL                 m_bDiscontinuity;
   BOOL                 m_bWaitingForKeyFrame;
-  BOOL                 m_bForceTypeNegotiation;
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;
 

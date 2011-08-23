@@ -53,7 +53,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_bDiscontinuity(FALSE)
   , m_nThreads(1)
-  , m_bForceTypeNegotiation(FALSE)
   , m_bRuntimeConfig(FALSE)
   , m_CurrentThread(0)
   , m_bForceInputAR(FALSE)
@@ -470,7 +469,6 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   }
 
   m_PixFmtConverter.SetInputPixFmt(m_pAVCtx->pix_fmt);
-  m_bForceTypeNegotiation = TRUE;
 
   return S_OK;
 }
@@ -567,6 +565,7 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
 
   AM_MEDIA_TYPE* pmt = NULL;
   if(SUCCEEDED((*ppOut)->GetMediaType(&pmt)) && pmt) {
+    DbgLog((LOG_TRACE, 10, L"::GetDeliveryBuffer(): Sample contains new media type from downstream filter.."));
     CMediaType mt = *pmt;
     m_pOutput->SetMediaType(&mt);
     DeleteMediaType(pmt);
@@ -619,9 +618,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
 
 
 
-  if (bNeedReconnect || m_bForceTypeNegotiation) {
-
-    m_bForceTypeNegotiation = FALSE;
+  if (bNeedReconnect) {
     
     BITMAPINFOHEADER *pBIH = NULL;
     if (mt.formattype == FORMAT_VideoInfo) {
@@ -718,7 +715,6 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
     hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
     if (hr == S_OK) {
       DbgLog((LOG_TRACE, 10, L"::NegotiatePixelFormat(): Filter accepted format with index %d", i));
-      m_bForceTypeNegotiation = TRUE;
       m_pOutput->SetMediaType(&mt);
       return S_OK;
     }
@@ -744,6 +740,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
 
   AM_MEDIA_TYPE *pmt = NULL;
   if (SUCCEEDED(pIn->GetMediaType(&pmt)) && pmt) {
+    DbgLog((LOG_TRACE, 10, L"::Receive(): Input sample contained media type, dynamic format change..."));
     CMediaType mt = *pmt;
     m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
