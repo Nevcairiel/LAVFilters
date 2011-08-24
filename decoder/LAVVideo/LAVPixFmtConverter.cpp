@@ -294,11 +294,13 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     convert = &CLAVPixFmtConverter::convert_yuv444_y410;
     m_RequiredAlignment = 16;
   } else if ((m_OutputPixFmt == LAVPixFmt_YV12 || m_OutputPixFmt == LAVPixFmt_NV12) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || m_InputPixFmt == PIX_FMT_YUV420P16LE)) {
-    if (m_OutputPixFmt == LAVPixFmt_NV12)
+    if (m_OutputPixFmt == LAVPixFmt_NV12) {
       convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<TRUE>;
-    else
+      m_RequiredAlignment = 16;
+    } else {
       convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<FALSE>;
-    m_RequiredAlignment = 16;
+      m_RequiredAlignment = 32; // the U/V planes need to be 16 aligned..
+    }
   } else {
     convert = &CLAVPixFmtConverter::convert_generic;
     m_RequiredAlignment = 0;
