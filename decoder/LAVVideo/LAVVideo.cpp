@@ -808,6 +808,9 @@ DWORD CLAVVideo::GetDXVAExtendedFlags()
   case AVCOL_SPC_SMPTE240M:
     fmt->VideoTransferMatrix = DXVA_VideoTransferMatrix_SMPTE240M;
     break;
+  case AVCOL_SPC_YCGCO:
+    fmt->VideoTransferMatrix = (DXVA_VideoTransferMatrix)7;
+    break;
   }
 
   // Color Primaries
