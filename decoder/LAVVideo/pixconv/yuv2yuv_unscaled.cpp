@@ -108,3 +108,57 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
 // Force creation of these two variants
 template HRESULT CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<0>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<1>CONV_FUNC_PARAMS;
+
+DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
+{
+  const uint16_t *y = (const uint16_t *)src[0];
+  const uint16_t *u = (const uint16_t *)src[1];
+  const uint16_t *v = (const uint16_t *)src[2];
+
+  int inYStride = srcStride[0] >> 1;
+  int inUVStride = srcStride[1] >> 1;
+  int outStride = dstStride << 1;
+  int shift = ((inputFormat == PIX_FMT_YUV420P10LE || inputFormat == PIX_FMT_YUV422P10LE) ? 6 : (inputFormat == PIX_FMT_YUV420P9LE) ? 7 : 0);
+  int uvHeight = (outputFormat == LAVPixFmt_P010 || outputFormat == LAVPixFmt_P016) ? (height >> 1) : height;
+
+  int line, i;
+  __m128i xmm0,xmm1,xmm2,xmm3;
+
+  // Process Y
+  for (line = 0; line < height; ++line) {
+    __m128i *dst128Y = (__m128i *)(dst + line * outStride);
+
+    for (i = 0; i < width; i+=8) {
+      // Load 8 pixels into register
+      PIXCONV_LOAD_PIXEL16(xmm0, (y+i), shift); /* YYYY */
+      // and write them out
+      _mm_stream_si128(dst128Y++, xmm0);
+    }
+
+    y += inYStride;
+  }
+
+  BYTE *dstUV = dst + (height * outStride);
+
+  // Process UV
+  for (line = 0; line < uvHeight; ++line) {
+    __m128i *dst128UV = (__m128i *)(dstUV + line * outStride);
+
+    for (i = 0; i < (width >> 1); i+=8) {
+      // Load 8 pixels into register
+      PIXCONV_LOAD_PIXEL16(xmm0, (v+i), shift); /* VVVV */
+      PIXCONV_LOAD_PIXEL16(xmm1, (u+i), shift); /* UUUU */
+
+      xmm2 = _mm_unpacklo_epi16(xmm1, xmm0);    /* UVUV */
+      xmm3 = _mm_unpackhi_epi16(xmm1, xmm0);    /* UVUV */
+
+      _mm_stream_si128(dst128UV++, xmm2);
+      _mm_stream_si128(dst128UV++, xmm3);
+    }
+
+    u += inUVStride;
+    v += inUVStride;
+  }
+
+  return S_OK;
+}
