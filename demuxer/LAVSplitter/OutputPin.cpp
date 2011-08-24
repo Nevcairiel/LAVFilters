@@ -274,7 +274,7 @@ DWORD CLAVOutputPin::ThreadProc()
   m_hrDeliver = S_OK;
   m_fFlushing = m_fFlushed = false;
   m_eEndFlush.Set();
-  if(IsVideoPin() && IsConnected()) {
+  if(IsVideoPin() && IsConnected() && !FilterInGraph(CLSID_DXR, m_pFilter->GetFilterGraph())) {
     GetConnected()->BeginFlush();
     GetConnected()->EndFlush();
   }
