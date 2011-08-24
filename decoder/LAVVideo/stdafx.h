@@ -34,6 +34,8 @@
 #include <Windows.h>
 #include <Commctrl.h>
 
+#include <dxva.h>
+
 extern "C" {
 #define __STDC_CONSTANT_MACROS
 #define FF_API_MAX_STREAMS 0

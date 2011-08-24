@@ -549,13 +549,13 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
   return __super::BreakConnect(dir);
 }
 
-HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar)
+HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DWORD dxvaExtFlags)
 {
   CheckPointer(ppOut, E_POINTER);
 
   HRESULT hr;
 
-  if(FAILED(hr = ReconnectOutput(width, height, ar))) {
+  if(FAILED(hr = ReconnectOutput(width, height, ar, dxvaExtFlags))) {
     return hr;
   }
 
@@ -578,7 +578,7 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
   return S_OK;
 }
 
-HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
+HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DWORD dxvaExtFlags)
 {
   CMediaType& mt = m_pOutput->CurrentMediaType();
 
@@ -613,7 +613,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
     dwAspectX = num;
     dwAspectY = den;
 
-    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den);
+    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->dwControlFlags != dxvaExtFlags);
   }
 
 
@@ -636,6 +636,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar)
 
       SetRect(&vih2->rcSource, 0, 0, width, height);
       SetRect(&vih2->rcTarget, 0, 0, width, height);
+
+      vih2->dwControlFlags = dxvaExtFlags;
 
       pBIH = &vih2->bmiHeader;
     }
@@ -768,6 +770,79 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   hr = Decode(pDataIn, nSize, rtStart, rtStop);
 
   return hr;
+}
+
+DWORD CLAVVideo::GetDXVAExtendedFlags()
+{
+  DWORD dwControlFlags = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
+  DXVA_ExtendedFormat *fmt = (DXVA_ExtendedFormat *)&dwControlFlags;
+
+  // Chroma location
+  switch(m_pAVCtx->chroma_sample_location) {
+  case AVCHROMA_LOC_LEFT:
+    fmt->VideoChromaSubsampling = DXVA_VideoChromaSubsampling_MPEG2;
+    break;
+  case AVCHROMA_LOC_CENTER:
+    fmt->VideoChromaSubsampling = DXVA_VideoChromaSubsampling_MPEG1;
+    break;
+  case AVCHROMA_LOC_TOPLEFT:
+    fmt->VideoChromaSubsampling = DXVA_VideoChromaSubsampling_DV_PAL;
+    break;
+  }
+
+  // Color Range, 0-255 or 16-235
+  if (m_pAVCtx->color_range == AVCOL_RANGE_JPEG || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB24)
+    fmt->NominalRange = DXVA_NominalRange_0_255;
+  else if  (m_pAVCtx->color_range == AVCOL_RANGE_MPEG)
+    fmt->NominalRange = DXVA_NominalRange_16_235;
+
+  // Color Space / Transfer Matrix
+  switch (m_pAVCtx->colorspace) {
+  case AVCOL_SPC_BT709:
+    fmt->VideoTransferMatrix = DXVA_VideoTransferMatrix_BT709;
+    break;
+  case AVCOL_SPC_BT470BG:
+  case AVCOL_SPC_SMPTE170M:
+    fmt->VideoTransferMatrix = DXVA_VideoTransferMatrix_BT601;
+    break;
+  case AVCOL_SPC_SMPTE240M:
+    fmt->VideoTransferMatrix = DXVA_VideoTransferMatrix_SMPTE240M;
+    break;
+  }
+
+  // Color Primaries
+  switch(m_pAVCtx->color_primaries) {
+  case AVCOL_PRI_BT709:
+    fmt->VideoPrimaries = DXVA_VideoPrimaries_BT709;
+    break;
+  case AVCOL_PRI_BT470M:
+    fmt->VideoPrimaries = DXVA_VideoPrimaries_BT470_2_SysM;
+    break;
+  case AVCOL_PRI_BT470BG:
+    fmt->VideoPrimaries = DXVA_VideoPrimaries_BT470_2_SysBG;
+    break;
+  case AVCOL_PRI_SMPTE170M:
+    fmt->VideoPrimaries = DXVA_VideoPrimaries_SMPTE170M;
+    break;
+  case AVCOL_PRI_SMPTE240M:
+    fmt->VideoPrimaries = DXVA_VideoPrimaries_SMPTE240M;
+    break;
+  }
+
+  // Color Transfer Function
+  switch(m_pAVCtx->color_trc) {
+  case AVCOL_TRC_BT709:
+    fmt->VideoTransferFunction = DXVA_VideoTransFunc_22_709;
+    break;
+  case AVCOL_TRC_GAMMA22:
+    fmt->VideoTransferFunction = DXVA_VideoTransFunc_22;
+    break;
+  case AVCOL_TRC_GAMMA28:
+    fmt->VideoTransferFunction = DXVA_VideoTransFunc_28;
+    break;
+  }
+
+  return dwControlFlags;
 }
 
 HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
@@ -1003,7 +1078,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     }
     m_PixFmtConverter.SetColorProps(m_pAVCtx->colorspace, m_pAVCtx->color_range);
 
-    if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, m_pAVCtx->sample_aspect_ratio)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
+    if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, m_pAVCtx->sample_aspect_ratio, GetDXVAExtendedFlags())) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
       return hr;
     }
 

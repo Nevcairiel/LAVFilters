@@ -58,6 +58,7 @@ public:
   LAVVideoPixFmts GetPreferredOutput();
 
   PixelFormat GetInputPixFmt() { return m_InputPixFmt; }
+  LAVVideoPixFmts GetOutputPixFmt() { return m_OutputPixFmt; }
   void SetColorProps(AVColorSpace colorspace, AVColorRange range) { if (swsColorSpace != colorspace || swsColorRange != range) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; } }
 
   int GetNumMediaTypes();

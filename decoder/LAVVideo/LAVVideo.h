@@ -98,13 +98,14 @@ private:
   HRESULT ffmpeg_init(CodecID codec, const CMediaType *pmt);
   void ffmpeg_shutdown();
 
-  HRESULT GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar);
-  HRESULT ReconnectOutput(int width, int height, AVRational ar);
+  HRESULT GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DWORD dxvaExtFormat);
+  HRESULT ReconnectOutput(int width, int height, AVRational ar, DWORD dxvaExtFlags);
   HRESULT Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
 
   HRESULT SetTypeSpecificFlags(IMediaSample* pMS);
 
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
+  DWORD GetDXVAExtendedFlags();
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
