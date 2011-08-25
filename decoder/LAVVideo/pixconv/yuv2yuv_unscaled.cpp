@@ -162,3 +162,90 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 
   return S_OK;
 }
+
+DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12)
+{
+  const uint8_t *y = src[0];
+  const uint8_t *u = src[1];
+  const uint8_t *v = src[2];
+
+  const int inLumaStride    = srcStride[0];
+  const int inChromaStride  = srcStride[1];
+  const int outLumaStride   = dstStride;
+  const int outChromaStride = dstStride >> 1;
+
+  const int chromaWidth     = width >> 1;
+  const int chromaHeight    = height >> 1;
+
+  int line;
+
+  // Copy planes
+
+  // Y
+  for(line = 0; line < height; ++line) {
+    memcpy(dst, y, width);
+    y += inLumaStride;
+    dst += outLumaStride;
+  }
+
+  uint8_t *dstV = dst;
+  uint8_t *dstU = dst + chromaHeight * outChromaStride;
+
+  // U/V
+  for(line = 0; line < chromaHeight; ++line) {
+    memcpy(dstU, u, chromaWidth);
+    memcpy(dstV, v, chromaWidth);
+    u += inChromaStride;
+    v += inChromaStride;
+    dstU += outChromaStride;
+    dstV += outChromaStride;
+  }
+
+  return S_OK;
+}
+
+DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
+{
+  const uint8_t *y = src[0];
+  const uint8_t *u = src[1];
+  const uint8_t *v = src[2];
+
+  const int inLumaStride    = srcStride[0];
+  const int inChromaStride  = srcStride[1];
+  const int outStride       = dstStride;
+
+  const int chromaWidth     = width >> 1;
+  const int chromaHeight    = height >> 1;
+
+  int line,i;
+  __m128i xmm0,xmm1,xmm2,xmm3;
+
+  // Y
+  for(line = 0; line < height; ++line) {
+    memcpy(dst, y, width);
+    y += inLumaStride;
+    dst += outStride;
+  }
+
+  // U/V
+  for(line = 0; line < chromaHeight; ++line) {
+    uint8_t *out = (dst + line * outStride);
+    __m128i *dst128UV = (__m128i *)out;
+
+    for (i = 0; i < chromaWidth; i+=16) {
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (v+i));  /* VVVV */
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, (u+i));  /* UUUU */
+
+      xmm2 = _mm_unpacklo_epi8(xmm1, xmm0);      /* UVUV */
+      xmm3 = _mm_unpackhi_epi8(xmm1, xmm0);      /* UVUV */
+
+      _mm_stream_si128(dst128UV++, xmm2);
+      _mm_stream_si128(dst128UV++, xmm3);
+    }
+
+    u += inChromaStride;
+    v += inChromaStride;
+  }
+
+  return S_OK;
+}

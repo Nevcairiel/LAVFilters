@@ -116,6 +116,8 @@ private:
   DECLARE_CONV_FUNC(convert_yuv444_ayuv_dither_le);
   DECLARE_CONV_FUNC(convert_yuv444_y410);
   DECLARE_CONV_FUNC(convert_yuv420_px1x_le);
+  DECLARE_CONV_FUNC(convert_yuv420_nv12);
+  DECLARE_CONV_FUNC(convert_yuv420_yv12);
   template <int nv12> DECLARE_CONV_FUNC(convert_yuv420_yv12_nv12_dither_le);
 
 private:
