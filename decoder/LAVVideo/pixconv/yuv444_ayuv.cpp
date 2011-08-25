@@ -96,7 +96,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
 
   int inStride = srcStride[0] >> 1;
   int outStride = dstStride << 2;
-  int shift = (inputFormat == PIX_FMT_YUV444P10LE ? 6 : (inputFormat == PIX_FMT_YUV444P9LE) ? 7 : 0);
+
+  // Number of bits to shift to reach 8
+  int shift = (inputFormat == PIX_FMT_YUV444P10LE ? 2 : (inputFormat == PIX_FMT_YUV444P9LE) ? 1 : 8);
 
   int line, i;
 
@@ -107,7 +109,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
 
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line
-    PIXCONV_LOAD_DITHER_COEFFS(xmm7,line,dithers);
+    PIXCONV_LOAD_DITHER_COEFFS(xmm7,line,shift,dithers);
 
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
 
