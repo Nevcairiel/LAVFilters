@@ -72,6 +72,7 @@ public:
       outStride = FFALIGN(dstStride, m_RequiredAlignment);
       size_t requiredSize = (outStride * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
       if (requiredSize > m_nAlignedBufferSize) {
+        DbgLog((LOG_TRACE, 10, L"::Convert(): Conversion requires a bigger stride (need: %d, have: %d), allocating buffer...", outStride, dstStride));
         av_freep(&m_pAlignedBuffer);
         m_nAlignedBufferSize = requiredSize;
         m_pAlignedBuffer = (uint8_t *)av_malloc(m_nAlignedBufferSize+FF_INPUT_BUFFER_PADDING_SIZE);
