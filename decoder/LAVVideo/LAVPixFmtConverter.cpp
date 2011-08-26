@@ -282,21 +282,16 @@ BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
 
 void CLAVPixFmtConverter::SelectConvertFunction()
 {
+  m_RequiredAlignment = 16;
   if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE || m_InputPixFmt == PIX_FMT_YUV444P16LE)) {
     convert = &CLAVPixFmtConverter::convert_yuv444_ayuv_dither_le;
-    m_RequiredAlignment = 16;
   } else if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P)) {
     convert = &CLAVPixFmtConverter::convert_yuv444_ayuv;
-    // The code writes 16 pixels in one go, every pixel being 4 bytes
-    // However the alignment that this value is checked against is raw pixels, not bytes
-    m_RequiredAlignment = 16;
   } else if (m_OutputPixFmt == LAVPixFmt_Y410 && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE)) {
     convert = &CLAVPixFmtConverter::convert_yuv444_y410;
-    m_RequiredAlignment = 16;
   } else if ((m_OutputPixFmt == LAVPixFmt_YV12 || m_OutputPixFmt == LAVPixFmt_NV12) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || m_InputPixFmt == PIX_FMT_YUV420P16LE)) {
     if (m_OutputPixFmt == LAVPixFmt_NV12) {
       convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<TRUE>;
-      m_RequiredAlignment = 16;
     } else {
       convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<FALSE>;
       m_RequiredAlignment = 32; // the U/V planes need to be 16 aligned..
@@ -304,15 +299,14 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   } else if (((m_OutputPixFmt == LAVPixFmt_P010 || m_OutputPixFmt == LAVPixFmt_P016) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || PIX_FMT_YUV420P16LE))
           || ((m_OutputPixFmt == LAVPixFmt_P210 || m_OutputPixFmt == LAVPixFmt_P216) && (m_InputPixFmt == PIX_FMT_YUV422P10LE || m_InputPixFmt == PIX_FMT_YUV422P16LE))) {
     convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le;
-    m_RequiredAlignment = 16;
   } else if (m_OutputPixFmt == LAVPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
     convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
+    m_RequiredAlignment = 0;
   } else if (m_OutputPixFmt == LAVPixFmt_NV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
     convert = &CLAVPixFmtConverter::convert_yuv420_nv12;
     m_RequiredAlignment = 32;
   } else {
     convert = &CLAVPixFmtConverter::convert_generic;
-    m_RequiredAlignment = 0;
   }
 }
 
