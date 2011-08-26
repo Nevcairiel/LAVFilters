@@ -229,8 +229,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
 
   // U/V
   for(line = 0; line < chromaHeight; ++line) {
-    uint8_t *out = (dst + line * outStride);
-    __m128i *dst128UV = (__m128i *)out;
+    __m128i *dst128UV = (__m128i *)(dst + line * outStride);
 
     for (i = 0; i < chromaWidth; i+=16) {
       PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (v+i));  /* VVVV */
