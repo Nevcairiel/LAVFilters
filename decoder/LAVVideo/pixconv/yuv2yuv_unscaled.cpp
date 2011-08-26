@@ -248,3 +248,74 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
 
   return S_OK;
 }
+
+template <int uyvy>
+DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
+{
+  const uint8_t *y = src[0];
+  const uint8_t *u = src[1];
+  const uint8_t *v = src[2];
+
+  const int inLumaStride    = srcStride[0];
+  const int inChromaStride  = srcStride[1];
+  const int outStride       = dstStride << 1;
+
+  const int chromaWidth     = width >> 1;
+
+  int line,i;
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
+
+  for (line = 0;  line < height; ++line) {
+    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+
+    for (i = 0; i < chromaWidth; i+=16) {
+      // Load pixels
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (y+(i*2)+0));  /* YYYY */
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, (y+(i*2)+16)); /* YYYY */
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, (u+i));        /* UUUU */
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm3, (v+i));        /* VVVV */
+
+      // Interleave Us and Vs
+      xmm4 = xmm2;
+      xmm4 = _mm_unpacklo_epi8(xmm4,xmm3);
+      xmm2 = _mm_unpackhi_epi8(xmm2,xmm3);
+
+      // Interlave those with the Ys
+      if (uyvy) {
+        xmm3 = xmm4;
+        xmm3 = _mm_unpacklo_epi8(xmm3, xmm0);
+        xmm4 = _mm_unpackhi_epi8(xmm4, xmm0);
+      } else {
+        xmm3 = xmm0;
+        xmm3 = _mm_unpacklo_epi8(xmm3, xmm4);
+        xmm4 = _mm_unpackhi_epi8(xmm0, xmm4);
+      }
+
+      _mm_stream_si128(dst128++, xmm3);
+      _mm_stream_si128(dst128++, xmm4);
+
+      // Interlave those with the Ys
+      if (uyvy) {
+        xmm5 = xmm2;
+        xmm5 = _mm_unpacklo_epi8(xmm5, xmm1);
+        xmm2 = _mm_unpackhi_epi8(xmm2, xmm1);
+      } else {
+        xmm5 = xmm1;
+        xmm5 = _mm_unpacklo_epi8(xmm5, xmm2);
+        xmm2 = _mm_unpackhi_epi8(xmm1, xmm2);
+      }
+
+      _mm_stream_si128(dst128++, xmm5);
+      _mm_stream_si128(dst128++, xmm2);
+    }
+    y += inLumaStride;
+    u += inChromaStride;
+    v += inChromaStride;
+  }
+
+  return S_OK;
+}
+
+// Force creation of these two variants
+template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<1>CONV_FUNC_PARAMS;
