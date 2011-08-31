@@ -41,6 +41,7 @@ private:
   HRESULT ParseVC1(Packet *pPacket);
   HRESULT ParsePGS(Packet *pPacket);
   HRESULT ParseMOVText(Packet *pPacket);
+  HRESULT ParseRawSSA(Packet *pPacket);
 
   HRESULT Queue(Packet *pPacket) const;
 

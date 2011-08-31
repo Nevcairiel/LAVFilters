@@ -64,6 +64,8 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     Queue(pPacket);
   } else if (pPacket->dwFlags & LAV_PACKET_MOV_TEXT) {
     ParseMOVText(pPacket);
+  } else if (m_strContainer == "avi" && m_gSubtype == MEDIASUBTYPE_ASS) {
+    ParseRawSSA(pPacket);
   } else {
     Queue(pPacket);
   }
@@ -437,6 +439,62 @@ HRESULT CStreamParser::ParseMOVText(Packet *pPacket)
       return Queue(pPacket);
     }
   }
+  SAFE_DELETE(pPacket);
+  return S_FALSE;
+}
+
+static int ass_get_duration(const char *p)
+{
+    int sh, sm, ss, sc, eh, em, es, ec;
+    uint64_t start, end;
+
+    if (sscanf_s(p, "%*[^,],%d:%d:%d%*c%d,%d:%d:%d%*c%d",
+               &sh, &sm, &ss, &sc, &eh, &em, &es, &ec) != 8)
+        return 0;
+    start = 3600000*sh + 60000*sm + 1000*ss + 10*sc;
+    end   = 3600000*eh + 60000*em + 1000*es + 10*ec;
+    return (int)(end - start);
+}
+
+HRESULT CStreamParser::ParseRawSSA(Packet *pPacket)
+{
+  int i, layer = 0, max_duration = 0, size, line_size, data_size = pPacket->GetDataSize();
+  const char *start, *end, *data = (char *)pPacket->GetData();
+  char buffer[2048];
+
+  while(data_size) {
+    int duration = ass_get_duration(data);
+    max_duration = FFMAX(duration, max_duration);
+    end = (char *)memchr(data, '\n', data_size);
+    size = line_size = end ? end-data+1 : data_size;
+    size -= end ? (end[-1]=='\r')+1 : 0;
+    start = data;
+
+    for (i=0; i<3; i++, start++)
+      if (!(start = (char *)memchr(start, ',', size-(start-data))))
+        break;
+    size -= start - data;
+    // ASS packages with layer
+    sscanf_s(data, "Dialogue: %d,", &layer);
+    i = _snprintf_s(buffer, sizeof(buffer), "%I64d,%d,", 0, layer);
+    size = FFMIN(i+size, sizeof(buffer));
+    memcpy(buffer+i, start, size-i);
+
+    Packet *p = new Packet();
+    p->pmt            = pPacket->pmt; pPacket->pmt = NULL;
+    p->bDiscontinuity = pPacket->bDiscontinuity;
+    p->bSyncPoint     = pPacket->bSyncPoint;
+    p->StreamId       = pPacket->StreamId;
+    p->rtStart        = pPacket->rtStart;
+    p->rtStop         = p->rtStart + (duration * 10000);
+    p->AppendData(buffer, size);
+
+    Queue(p);
+
+    data += line_size;
+    data_size -= line_size;
+  }
+
   SAFE_DELETE(pPacket);
   return S_FALSE;
 }
