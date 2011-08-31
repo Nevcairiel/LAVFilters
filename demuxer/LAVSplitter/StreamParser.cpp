@@ -53,7 +53,7 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
   
   if (!pPacket || (pPacket->dwFlags & LAV_PACKET_PARSED)) {
     Queue(pPacket);
-  } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg" || m_strContainer == "avi") && m_gSubtype == MEDIASUBTYPE_AVC1) {
+  } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg" || m_strContainer == "avi" || (m_strContainer == "matroska" && (pPacket->dwFlags & LAV_PACKET_H264_ANNEXB))) && m_gSubtype == MEDIASUBTYPE_AVC1) {
     ParseH264AnnexB(pPacket);
   } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg") && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
     ParseVC1(pPacket);

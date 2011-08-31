@@ -470,9 +470,12 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     pPacket = new Packet();
     pPacket->bPosition = pkt.pos;
 
-    // Only use PTS in Matroska for these formats
-    if(m_bMatroska && stream->codec->codec_id == CODEC_ID_H264) {
-      pkt.dts = AV_NOPTS_VALUE;
+    if (m_bMatroska && stream->codec->codec_id == CODEC_ID_H264) {
+      if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1) {
+        pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
+      } else {
+        pkt.dts = AV_NOPTS_VALUE;
+      }
     }
 
     // we need to get duration slightly different for matroska embedded text subtitels
