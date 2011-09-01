@@ -145,7 +145,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
 
   // If we need aspect info, we switch to VIH2
   AVRational r = avstream->sample_aspect_ratio;
-  if (mtype.formattype == FORMAT_VideoInfo && (r.den > 0 && r.num > 0 && (r.den > 1 || r.num > 1))) {
+  AVRational rc = avstream->codec->sample_aspect_ratio;
+  if (mtype.formattype == FORMAT_VideoInfo && ((r.den > 0 && r.num > 0 && (r.den > 1 || r.num > 1)) || (rc.den > 0 && rc.num > 0 && (rc.den > 1 || rc.num > 1)))) {
     mtype.formattype = FORMAT_VideoInfo2;
   }
 
