@@ -167,6 +167,18 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat);
   }
 
+  if (avstream->codec->codec_id == CODEC_ID_RAWVIDEO && !avstream->codec->codec_tag) {
+    switch (avstream->codec->pix_fmt) {
+    case PIX_FMT_BGRA:
+      mtype.subtype = MEDIASUBTYPE_ARGB32;
+      mtypes.push_back(mtype);
+      mtype.subtype = MEDIASUBTYPE_RGB32;
+      break;
+    default:
+      DbgLog((LOG_TRACE, 10, L"::CreateVideoMediaType(): Unsupported raw video pixel format"));
+    }
+  }
+
   if (avstream->codec->codec_id == CODEC_ID_MJPEG) {
     BITMAPINFOHEADER *pBMI = NULL;
     videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
