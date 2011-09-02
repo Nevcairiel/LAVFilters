@@ -35,10 +35,10 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // Shift > 0 is for 9/10 bit formats
   if (shift > 0) {
     // Load 4 U/V values from line 0/1 into registers
-    PIXCONV_LOAD_4PIXEL16(xmm1, xmm0, srcU);
-    PIXCONV_LOAD_4PIXEL16(xmm3, xmm2, srcU+srcStrideUV);
-    PIXCONV_LOAD_4PIXEL16(xmm0, xmm4, srcV);
-    PIXCONV_LOAD_4PIXEL16(xmm2, xmm5, srcV+srcStrideUV);
+    PIXCONV_LOAD_4PIXEL16(xmm1, srcU);
+    PIXCONV_LOAD_4PIXEL16(xmm3, srcU+srcStrideUV);
+    PIXCONV_LOAD_4PIXEL16(xmm0, srcV);
+    PIXCONV_LOAD_4PIXEL16(xmm2, srcV+srcStrideUV);
 
     // Interleave U and V
     xmm0 = _mm_unpacklo_epi16(xmm1, xmm0);                       /* 0V0U0V0U */
@@ -153,8 +153,8 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // Load Y
   if (shift > 0) {
     // Load 4 Y values from line 0/1 into registers
-    PIXCONV_LOAD_4PIXEL16(xmm5, xmm6, srcY);
-    PIXCONV_LOAD_4PIXEL16(xmm0, xmm4, srcY+srcStrideY);
+    PIXCONV_LOAD_4PIXEL16(xmm5, srcY);
+    PIXCONV_LOAD_4PIXEL16(xmm0, srcY+srcStrideY);
 
     srcY += 8;
   } else {
