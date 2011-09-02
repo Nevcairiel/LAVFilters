@@ -21,7 +21,6 @@
 #pragma once
 
 #include "LAVVideoSettings.h"
-#include "pixconv/pixconv_internal.h"
 
 #define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, PixelFormat inputFormat, LAVVideoPixFmts outputFormat)
 
@@ -40,6 +39,19 @@ typedef struct {
   int planeHeight[4];
   int planeWidth[4];
 } LAVPixFmtDesc;
+
+typedef struct _RGBCoeffs {
+  BOOL init;
+  __m128i Ysub;
+  __m128i CbCr_center;
+  __m128i rgb_limit_low;
+  __m128i rgb_limit_high;
+  __m128i rgb_add;
+  __m128i cy;
+  __m128i cR_Cr;
+  __m128i cG_Cb_cG_Cr;
+  __m128i cB_Cb;
+} RGBCoeffs;
 
 extern LAVPixFmtDesc lav_pixfmt_desc[];
 
@@ -121,6 +133,9 @@ private:
   template <int uyvy> DECLARE_CONV_FUNC(convert_yuv422_yuy2_uyvy);
   template <int nv12> DECLARE_CONV_FUNC(convert_yuv420_yv12_nv12_dither_le);
 
+  template <int out32> DECLARE_CONV_FUNC(convert_yuv_rgb);
+  RGBCoeffs* getRGBCoeffs(int width, int height);
+
 private:
   enum PixelFormat     m_InputPixFmt;
   enum LAVVideoPixFmts m_OutputPixFmt;
@@ -137,4 +152,6 @@ private:
   uint8_t *m_pAlignedBuffer;
 
   ILAVVideoSettings *m_pSettings;
+
+  RGBCoeffs m_rgbCoeffs;
 };

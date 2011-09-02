@@ -154,6 +154,7 @@
     <ClCompile Include="pixconv\convert_generic.cpp" />
     <ClCompile Include="pixconv\interleave.cpp" />
     <ClCompile Include="pixconv\pixconv.cpp" />
+    <ClCompile Include="pixconv\yuv2rgb.cpp" />
     <ClCompile Include="pixconv\yuv2yuv_unscaled.cpp" />
     <ClCompile Include="pixconv\yuv444_ayuv.cpp" />
     <ClCompile Include="stdafx.cpp">
