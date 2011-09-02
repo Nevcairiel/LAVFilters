@@ -26,7 +26,7 @@
 #include "pixconv_sse2_templates.h"
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
-template <PixelFormat inputFormat, int shift, int out32>
+template <PixelFormat inputFormat, int shift, int out32> __forceinline
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
