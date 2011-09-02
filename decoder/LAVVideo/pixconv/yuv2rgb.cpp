@@ -406,7 +406,26 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     }
 
     BOOL inFullRange = (swsColorRange == AVCOL_RANGE_JPEG) || m_InputPixFmt == PIX_FMT_YUVJ420P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUVJ444P;
-    BOOL outFullRange = inFullRange; // TODO: user settings
+    BOOL outFullRange = TRUE; //inFullRange; // TODO: user settings
+
+    int inputWhite, inputBlack, inputChroma, outputWhite, outputBlack;
+    if (inFullRange) {
+      inputWhite = 255;
+      inputBlack = 0;
+      inputChroma = 1;
+    } else {
+      inputWhite = 235;
+      inputBlack = 16;
+      inputChroma = 16;
+    }
+
+    if (outFullRange) {
+      outputWhite = 255;
+      outputBlack = 0;
+    } else {
+      outputWhite = 235;
+      outputBlack = 16;
+    }
 
     double Kr, Kg, Kb;
     switch (spc) {
@@ -430,10 +449,10 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
       break;
     }
 
-    double in_y_range = inFullRange ? 255-0 : 235-16;
-    double chr_range = 128 - (inFullRange ? 1 : 16);
+    double in_y_range = inputWhite - inputBlack;
+    double chr_range = 128 - inputChroma;
 
-    double cspOptionsRGBrange = outFullRange ? 255-0 : 235-16;
+    double cspOptionsRGBrange = outputWhite - outputBlack;
 
     double y_mul, vr_mul, ug_mul, vg_mul, ub_mul;
     y_mul  = cspOptionsRGBrange / in_y_range;
@@ -441,9 +460,9 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     ug_mul = (cspOptionsRGBrange / chr_range) * (1.0 - Kb) * Kb / Kg;
     vg_mul = (cspOptionsRGBrange / chr_range) * (1.0 - Kr) * Kr / Kg;
     ub_mul = (cspOptionsRGBrange / chr_range) * (1.0 - Kb);
-    short sub = (outFullRange || inFullRange) ? 0 : 16;
-    short Ysub = (inFullRange ? 0 : 16) - sub;
-    short RGB_add1 = (outFullRange ? 0 : 16) - sub;
+    short sub = min(outputBlack, inputBlack);
+    short Ysub = inputBlack - sub;
+    short RGB_add1 = outputBlack - sub;
     short RGB_add3 = (RGB_add1 << 8) + (RGB_add1 << 16) + RGB_add1;
 
     short cy  = short(y_mul * 16384 + 0.5);
@@ -462,11 +481,11 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
 
     m_rgbCoeffs->rgb_add     = _mm_set1_epi16(RGB_add1 << 4);
 
-    uint32_t rgb_white = outFullRange ? 255 : 235;
+    uint32_t rgb_white = outputWhite;
     rgb_white = 0xff000000 + (rgb_white << 16) + (rgb_white << 8) + rgb_white;
     m_rgbCoeffs->rgb_limit_high = _mm_set1_epi32(rgb_white);
 
-    uint32_t rgb_black = outFullRange ? 0 : 16;
+    uint32_t rgb_black = outputBlack;
     rgb_black = 0xff000000 + (rgb_black << 16) + (rgb_black << 8) + rgb_black;
     m_rgbCoeffs->rgb_limit_low = _mm_set1_epi32(rgb_black);
   }
