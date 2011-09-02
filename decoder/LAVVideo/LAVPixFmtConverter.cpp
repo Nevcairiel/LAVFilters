@@ -130,9 +130,9 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
   , m_RequiredAlignment(0)
   , m_nAlignedBufferSize(0)
   , m_pAlignedBuffer(NULL)
+  , m_rgbCoeffs(NULL)
 {
   convert = &CLAVPixFmtConverter::convert_generic;
-  m_rgbCoeffs.init = FALSE;
 }
 
 CLAVPixFmtConverter::~CLAVPixFmtConverter()

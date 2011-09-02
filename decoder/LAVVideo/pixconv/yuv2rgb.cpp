@@ -274,10 +274,12 @@ template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1>CONV_FUNC_PARAMS;
 
 RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
 {
-  if (!m_rgbCoeffs.init || width != swsWidth || height != swsHeight) {
+  if (!m_rgbCoeffs || width != swsWidth || height != swsHeight) {
     swsWidth = width;
     swsHeight = height;
-    m_rgbCoeffs.init = TRUE;
+
+    if (!m_rgbCoeffs)
+      m_rgbCoeffs = (RGBCoeffs *)_aligned_malloc(sizeof(RGBCoeffs), 16);
 
     AVColorSpace spc = swsColorSpace;
     if (spc == AVCOL_SPC_UNSPECIFIED) {
@@ -331,23 +333,23 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     short cgv = short(-vg_mul * 8192 - 0.5);
     short cbu = short(ub_mul * 8192 + 0.5);
 
-    m_rgbCoeffs.Ysub        = _mm_set1_epi16(Ysub << 6);
-    m_rgbCoeffs.cy          = _mm_set1_epi16(cy);
-    m_rgbCoeffs.CbCr_center = _mm_set1_epi16(128 << 4);
+    m_rgbCoeffs->Ysub        = _mm_set1_epi16(Ysub << 6);
+    m_rgbCoeffs->cy          = _mm_set1_epi16(cy);
+    m_rgbCoeffs->CbCr_center = _mm_set1_epi16(128 << 4);
 
-    m_rgbCoeffs.cR_Cr       = _mm_set1_epi32(crv << 16);         // R
-    m_rgbCoeffs.cG_Cb_cG_Cr = _mm_set1_epi32((cgv << 16) + cgu); // G
-    m_rgbCoeffs.cB_Cb       = _mm_set1_epi32(cbu);               // B
+    m_rgbCoeffs->cR_Cr       = _mm_set1_epi32(crv << 16);         // R
+    m_rgbCoeffs->cG_Cb_cG_Cr = _mm_set1_epi32((cgv << 16) + cgu); // G
+    m_rgbCoeffs->cB_Cb       = _mm_set1_epi32(cbu);               // B
 
-    m_rgbCoeffs.rgb_add     = _mm_set1_epi16(RGB_add1 << 4);
+    m_rgbCoeffs->rgb_add     = _mm_set1_epi16(RGB_add1 << 4);
 
     uint32_t rgb_white = outFullRange ? 255 : 235;
     rgb_white = 0xff000000 + (rgb_white << 16) + (rgb_white << 8) + rgb_white;
-    m_rgbCoeffs.rgb_limit_high = _mm_set1_epi32(rgb_white);
+    m_rgbCoeffs->rgb_limit_high = _mm_set1_epi32(rgb_white);
 
     uint32_t rgb_black = outFullRange ? 0 : 16;
     rgb_black = 0xff000000 + (rgb_black << 16) + (rgb_black << 8) + rgb_black;
-    m_rgbCoeffs.rgb_limit_low = _mm_set1_epi32(rgb_black);
+    m_rgbCoeffs->rgb_limit_low = _mm_set1_epi32(rgb_black);
   }
-  return &m_rgbCoeffs;
+  return m_rgbCoeffs;
 }

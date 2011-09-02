@@ -41,7 +41,6 @@ typedef struct {
 } LAVPixFmtDesc;
 
 typedef struct _RGBCoeffs {
-  BOOL init;
   __m128i Ysub;
   __m128i CbCr_center;
   __m128i rgb_limit_low;
@@ -112,7 +111,7 @@ private:
   HRESULT ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
   HRESULT ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
 
-  void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; };
+  void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; };
   SwsContext *GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags);
 
   void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVVideoPixFmts format);
@@ -153,5 +152,5 @@ private:
 
   ILAVVideoSettings *m_pSettings;
 
-  RGBCoeffs m_rgbCoeffs;
+  RGBCoeffs *m_rgbCoeffs;
 };
