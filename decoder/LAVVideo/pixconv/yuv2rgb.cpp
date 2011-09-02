@@ -278,6 +278,9 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
     if (inputFormat == PIX_FMT_YUV420P) {
       u = srcU + (line >> 1) * srcStrideUV;
       v = srcV + (line >> 1) * srcStrideUV;
+    } else {
+      u = srcU + line * srcStrideUV;
+      v = srcV + line * srcStrideUV;
     }
 
     rgb = dst + line * dstStride;
@@ -316,6 +319,11 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
     return yuv2rgb_process_lines<PIX_FMT_YUV420P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
   case PIX_FMT_YUV420P9:
     return yuv2rgb_process_lines<PIX_FMT_YUV420P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+  case PIX_FMT_YUV422P:
+  case PIX_FMT_YUVJ422P:
+    return yuv2rgb_process_lines<PIX_FMT_YUV422P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+  case PIX_FMT_YUV422P10:
+    return yuv2rgb_process_lines<PIX_FMT_YUV422P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
   default:
     ASSERT(0);
   }
