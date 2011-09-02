@@ -317,6 +317,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   } else if ((m_OutputPixFmt == LAVPixFmt_RGB32 || m_OutputPixFmt == LAVPixFmt_RGB24) && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
     if (m_OutputPixFmt == LAVPixFmt_RGB32) {
       convert = &CLAVPixFmtConverter::convert_yuv_rgb<1>;
+      m_RequiredAlignment = 4;
     } else {
       convert = &CLAVPixFmtConverter::convert_yuv_rgb<0>;
     }
