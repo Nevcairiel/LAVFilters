@@ -68,3 +68,13 @@
 #define PIXCONV_LOAD_PIXEL16(reg,src,shift)                             \
   reg = _mm_load_si128((const __m128i *)(src));  /* load (aligned) */     \
   reg = _mm_slli_epi16(reg, shift);            /* shift to 16-bit */
+
+// Load 4 16-bit pixels into the register
+// reg     - register to store pixels in
+// clobber - register for intermediates
+// src     - source memory
+#define PIXCONV_LOAD_4PIXEL16(reg,clobber,src)                         \
+   clobber = _mm_cvtsi32_si128(*(const int*)(src)); /* load 2 pixel */ \
+   reg = _mm_cvtsi32_si128(*(const int*)((src)+4)); /* load 2 pixel */ \
+   reg = _mm_slli_si128(reg, 4);                    /* shift hi-b   */ \
+   reg = _mm_or_si128(reg, clobber);                /* combine      */

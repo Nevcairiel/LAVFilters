@@ -35,25 +35,10 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // Shift > 0 is for 9/10 bit formats
   if (shift > 0) {
     // Load 4 U/V values from line 0/1 into registers
-    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcU));              /* UU000000 */
-    xmm1 = _mm_cvtsi32_si128(*(const int*)(srcU+4));            /* UU000000 */
-    xmm1 = _mm_slli_si128(xmm1, 4);
-    xmm1 = _mm_or_si128(xmm1, xmm0);
-
-    xmm2 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV));  /* UU000000 */
-    xmm3 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV+4));/* UU000000 */
-    xmm3 = _mm_slli_si128(xmm3, 4);
-    xmm3 = _mm_or_si128(xmm3, xmm2);
-
-    xmm4 = _mm_cvtsi32_si128(*(const int*)(srcV));              /* VV000000 */
-    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcV+4));            /* VV000000 */
-    xmm0 = _mm_slli_si128(xmm0, 4);
-    xmm0 = _mm_or_si128(xmm0, xmm4);
-
-    xmm5 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV));  /* VV000000 */
-    xmm2 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV+4));/* VV000000 */
-    xmm2 = _mm_slli_si128(xmm2, 4);
-    xmm2 = _mm_or_si128(xmm2, xmm5);
+    PIXCONV_LOAD_4PIXEL16(xmm1, xmm0, srcU);
+    PIXCONV_LOAD_4PIXEL16(xmm3, xmm2, srcU+srcStrideUV);
+    PIXCONV_LOAD_4PIXEL16(xmm0, xmm4, srcV);
+    PIXCONV_LOAD_4PIXEL16(xmm2, xmm5, srcV+srcStrideUV);
 
     // Interleave U and V
     xmm0 = _mm_unpacklo_epi16(xmm1, xmm0);                       /* 0V0U0V0U */
@@ -164,15 +149,9 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 
   // Load Y
   if (shift > 0) {
-    xmm6 = _mm_cvtsi32_si128(*(const int*)(srcY));              /* YYYY0000 (8-bit fields) */
-    xmm5 = _mm_cvtsi32_si128(*(const int*)(srcY+4));
-    xmm5 = _mm_slli_si128(xmm5, 4);
-    xmm5 = _mm_or_si128(xmm5, xmm6);
-
-    xmm4 = _mm_cvtsi32_si128(*(const int*)(srcY + srcStrideY)); /* YYYY0000 (8-bit fields) */
-    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcY + srcStrideY + 4));
-    xmm0 = _mm_slli_si128(xmm0, 4);
-    xmm0 = _mm_or_si128(xmm0, xmm4);
+    // Load 4 Y values from line 0/1 into registers
+    PIXCONV_LOAD_4PIXEL16(xmm5, xmm6, srcY);
+    PIXCONV_LOAD_4PIXEL16(xmm0, xmm4, srcY+srcStrideY);
 
     srcY += 8;
   } else {
