@@ -83,19 +83,15 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
       xmm3 = _mm_add_epi16(xmm3, xmm2);                         /* 2x line 1 */
       xmm3 = _mm_add_epi16(xmm3, xmm2);                         /* 3x line 1 */
       xmm3 = _mm_add_epi16(xmm3, xmm0);                         /* 3x line 1 + line 0 (10bit) */
-
-      // Shift to 12 bit
-      xmm1 = _mm_slli_epi16(xmm1, 2-shift);
-      xmm3 = _mm_slli_epi16(xmm3, 2-shift);
     } else {
       xmm1 = xmm0;
       xmm3 = xmm2;
 
-      // Shift to 12 bit
-      xmm1 = _mm_slli_epi16(xmm1, 4-shift);
-      xmm3 = _mm_slli_epi16(xmm3, 4-shift);
+      // Shift to 11 bit
+      xmm1 = _mm_slli_epi16(xmm1, 3-shift);
+      xmm3 = _mm_slli_epi16(xmm3, 3-shift);
     }
-    // After this step, xmm1 and xmm3 contain 8 16-bit values, V and U interleaved, filling 12-bit of the 16-bit values
+    // After this step, xmm1 and xmm3 contain 8 16-bit values, V and U interleaved. For 4:2:2, filling 11 bit. For 4:2:0, filling input+2 bits (10, 11, 12).
 
     // Upsample to 4:4:4 using 100:0, 50:50, 0:100 scheme (MPEG2 chroma siting)
     // TODO: MPEG1 chroma siting, use 75:25
@@ -123,9 +119,16 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm2 = _mm_slli_si128(xmm2, 4);                            /*  00  UV  00  UV */
     xmm3 = _mm_add_epi16(xmm3, xmm2);                          /* 2UV 2UV 2UV 2UV */
 
-    // Shift the 13 bit result to 12 bit, or we exceed the allowed processing depth
-    xmm1 = _mm_srli_epi16(xmm1, 1);
-    xmm3 = _mm_srli_epi16(xmm3, 1);
+    // Shift the result to 12 bit
+    // For 10-bit input, we need to shift one bit off, or we exceed the allowed processing depth
+    // For 8-bit, we need to add one bit
+    if (inputFormat == PIX_FMT_YUV420P && shift == 2) {
+      xmm1 = _mm_srli_epi16(xmm1, 1);
+      xmm3 = _mm_srli_epi16(xmm3, 1);
+    } else if (inputFormat == PIX_FMT_YUV420P && shift == 0) {
+      xmm1 = _mm_slli_epi16(xmm1, 1);
+      xmm3 = _mm_slli_epi16(xmm3, 1);
+    }
 
     // 12-bit result, xmm1 & xmm3 with 4 UV combinations each
   } else if (inputFormat == PIX_FMT_YUV444P) {
