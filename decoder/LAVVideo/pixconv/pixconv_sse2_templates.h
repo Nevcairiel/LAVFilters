@@ -69,6 +69,12 @@
   reg = _mm_load_si128((const __m128i *)(src));  /* load (aligned) */     \
   reg = _mm_slli_epi16(reg, shift);            /* shift to 16-bit */
 
+// Load 4 8-bit pixels into the register
+// reg     - register to store pixels in
+// src     - source memory
+#define PIXCONV_LOAD_4PIXEL8(reg,src) \
+   reg = _mm_cvtsi32_si128(*(const int*)(src)); /* load 32-bit (4 pixel) */
+
 // Load 4 16-bit pixels into the register
 // reg     - register to store pixels in
 // src     - source memory

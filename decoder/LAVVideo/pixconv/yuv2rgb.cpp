@@ -44,12 +44,10 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm0 = _mm_unpacklo_epi16(xmm1, xmm0);                       /* 0V0U0V0U */
     xmm2 = _mm_unpacklo_epi16(xmm3, xmm2);                       /* 0V0U0V0U */
   } else {
-    // Load 4 U/V values from line 0/1 into registers
-    xmm1 = _mm_cvtsi32_si128(*(const int*)(srcU));              /* UU000000 */
-    xmm3 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV));  /* UU000000 */
-
-    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcV));              /* VV000000 */
-    xmm2 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV));  /* VV000000 */
+    PIXCONV_LOAD_4PIXEL8(xmm1, srcU);
+    PIXCONV_LOAD_4PIXEL8(xmm3, srcU+srcStrideUV);
+    PIXCONV_LOAD_4PIXEL8(xmm0, srcV);
+    PIXCONV_LOAD_4PIXEL8(xmm2, srcV+srcStrideUV);
 
     // Interleave U and V
     xmm0 = _mm_unpacklo_epi8(xmm1, xmm0);                       /* VUVU0000 */
@@ -158,8 +156,8 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 
     srcY += 8;
   } else {
-    xmm5 = _mm_cvtsi32_si128(*(const int*)(srcY));              /* YYYY0000 (8-bit fields) */
-    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcY + srcStrideY)); /* YYYY0000 (8-bit fields) */
+    PIXCONV_LOAD_4PIXEL8(xmm5, srcY);
+    PIXCONV_LOAD_4PIXEL8(xmm0, srcY+srcStrideY);
     srcY += 4;
 
     xmm5 = _mm_unpacklo_epi8(xmm5, xmm7);                       /* YYYY0000 (16-bit fields) */
