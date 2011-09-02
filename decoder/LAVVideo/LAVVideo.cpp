@@ -107,6 +107,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.InterlacedFlags = TRUE;
   m_settings.NumThreads = 0;
   m_settings.HighQualityPixConv = FALSE;
+  m_settings.RGBRange = 2; // Full range default
 
   for (int i = 0; i < Codec_NB; ++i)
     m_settings.bFormats[i] = TRUE;
@@ -155,6 +156,9 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = reg.ReadDWORD(L"HighQualityPixConv", hr);
   if (SUCCEEDED(hr)) m_settings.HighQualityPixConv = bFlag;
 
+  dwVal = reg.ReadDWORD(L"RGBRange", hr);
+  if (SUCCEEDED(hr)) m_settings.RGBRange = dwVal;
+
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
 
@@ -187,6 +191,7 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteBOOL(L"InterlacedFlags", m_settings.InterlacedFlags);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
     reg.WriteBOOL(L"HighQualityPixConv", m_settings.HighQualityPixConv);
+    reg.WriteDWORD(L"RGBRange", m_settings.RGBRange);
 
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
     for (int i = 0; i < Codec_NB; ++i) {
@@ -791,10 +796,18 @@ DWORD CLAVVideo::GetDXVAExtendedFlags()
   }
 
   // Color Range, 0-255 or 16-235
-  if (m_pAVCtx->color_range == AVCOL_RANGE_JPEG || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB24)
-    fmt->NominalRange = DXVA_NominalRange_0_255;
-  else if  (m_pAVCtx->color_range == AVCOL_RANGE_MPEG)
-    fmt->NominalRange = DXVA_NominalRange_16_235;
+  BOOL ffFullRange = (m_pAVCtx->color_range == AVCOL_RANGE_JPEG) || m_pAVCtx->pix_fmt == PIX_FMT_YUVJ420P || m_pAVCtx->pix_fmt == PIX_FMT_YUVJ422P || m_pAVCtx->pix_fmt == PIX_FMT_YUVJ444P;
+  if (m_PixFmtConverter.IsRGBConverterActive()) {
+    if (m_settings.RGBRange == 0)
+      fmt->NominalRange = ffFullRange ? DXVA_NominalRange_0_255 : DXVA_NominalRange_16_235;
+    else
+      fmt->NominalRange = m_settings.RGBRange == 1 ? DXVA_NominalRange_16_235 : DXVA_NominalRange_0_255;
+  } else {
+    if (ffFullRange || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB24)
+      fmt->NominalRange = DXVA_NominalRange_0_255;
+    else if (m_pAVCtx->color_range == AVCOL_RANGE_MPEG)
+      fmt->NominalRange = DXVA_NominalRange_16_235;
+  }
 
   // Color Space / Transfer Matrix
   switch (m_pAVCtx->colorspace) {
@@ -1079,7 +1092,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
         NegotiatePixelFormat(mt, width, height);
       }
     }
-    m_PixFmtConverter.SetColorProps(m_pAVCtx->colorspace, m_pAVCtx->color_range);
+    m_PixFmtConverter.SetColorProps(m_pAVCtx->colorspace, m_pAVCtx->color_range, m_settings.RGBRange);
 
     if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, m_pAVCtx->sample_aspect_ratio, GetDXVAExtendedFlags())) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
       return hr;
@@ -1270,4 +1283,15 @@ STDMETHODIMP CLAVVideo::SetHighQualityPixelFormatConversion(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVVideo::GetHighQualityPixelFormatConversion()
 {
   return m_settings.HighQualityPixConv;
+}
+
+STDMETHODIMP CLAVVideo::SetRGBOutputRange(DWORD dwRange)
+{
+  m_settings.RGBRange = dwRange;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVVideo::GetRGBOutputRange()
+{
+  return m_settings.RGBRange;
 }

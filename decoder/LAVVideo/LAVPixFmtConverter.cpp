@@ -131,6 +131,7 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
   , m_nAlignedBufferSize(0)
   , m_pAlignedBuffer(NULL)
   , m_rgbCoeffs(NULL)
+  , m_bRGBConverter(FALSE)
 {
   convert = &CLAVPixFmtConverter::convert_generic;
 }
@@ -286,6 +287,7 @@ BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
 void CLAVPixFmtConverter::SelectConvertFunction()
 {
   m_RequiredAlignment = 16;
+  m_bRGBConverter = FALSE;
   if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE || m_InputPixFmt == PIX_FMT_YUV444P16LE)) {
     convert = &CLAVPixFmtConverter::convert_yuv444_ayuv_dither_le;
   } else if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P)) {
@@ -324,6 +326,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     } else {
       convert = &CLAVPixFmtConverter::convert_yuv_rgb<0>;
     }
+    m_bRGBConverter = TRUE;
   } else {
     convert = &CLAVPixFmtConverter::convert_generic;
   }

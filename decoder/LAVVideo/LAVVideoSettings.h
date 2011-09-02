@@ -141,4 +141,12 @@ interface ILAVVideoSettings : public IUnknown
   // Get wether high-quality pixel format conversion is performed
   STDMETHOD_(BOOL,GetHighQualityPixelFormatConversion)() = 0;
 
+  // Set the RGB output range for the YUV->RGB conversion
+  // 0 = Auto (same as input), 1 = Limited (16-235), 2 = Full (0-255)
+  STDMETHOD(SetRGBOutputRange)(DWORD dwRange) = 0;
+
+  // Get the RGB output range for the YUV->RGB conversion
+  // 0 = Auto (same as input), 1 = Limited (16-235), 2 = Full (0-255)
+  STDMETHOD_(DWORD,GetRGBOutputRange)() = 0;
+
 };

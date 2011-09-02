@@ -70,7 +70,7 @@ public:
 
   PixelFormat GetInputPixFmt() { return m_InputPixFmt; }
   LAVVideoPixFmts GetOutputPixFmt() { return m_OutputPixFmt; }
-  void SetColorProps(AVColorSpace colorspace, AVColorRange range) { if (swsColorSpace != colorspace || swsColorRange != range) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; } }
+  void SetColorProps(AVColorSpace colorspace, AVColorRange range, int RGBOutputRange) { if (swsColorSpace != colorspace || swsColorRange != range || swsOutputRange != RGBOutputRange) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; swsOutputRange = RGBOutputRange; } }
 
   int GetNumMediaTypes();
   CMediaType GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
@@ -96,6 +96,8 @@ public:
     }
     return hr;
   }
+
+  BOOL IsRGBConverterActive() { return m_bRGBConverter; }
 
 private:
   int GetFilteredFormatCount();
@@ -142,6 +144,7 @@ private:
   int swsWidth, swsHeight;
   AVColorSpace swsColorSpace;
   AVColorRange swsColorRange;
+  int swsOutputRange;
 
   unsigned m_RequiredAlignment;
 
@@ -153,4 +156,5 @@ private:
   ILAVVideoSettings *m_pSettings;
 
   RGBCoeffs *m_rgbCoeffs;
+  BOOL m_bRGBConverter;
 };

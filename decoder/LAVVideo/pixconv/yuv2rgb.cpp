@@ -351,7 +351,7 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     }
 
     BOOL inFullRange = (swsColorRange == AVCOL_RANGE_JPEG) || m_InputPixFmt == PIX_FMT_YUVJ420P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUVJ444P;
-    BOOL outFullRange = TRUE; //inFullRange; // TODO: user settings
+    BOOL outFullRange = (swsOutputRange == 0) ? inFullRange : (swsOutputRange == 2);
 
     int inputWhite, inputBlack, inputChroma, outputWhite, outputBlack;
     if (inFullRange) {

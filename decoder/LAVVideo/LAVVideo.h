@@ -67,6 +67,8 @@ public:
   STDMETHODIMP SetPixelFormat(LAVVideoPixFmts pixFmt, BOOL bEnabled);
   STDMETHODIMP SetHighQualityPixelFormatConversion(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetHighQualityPixelFormatConversion();
+  STDMETHODIMP SetRGBOutputRange(DWORD dwRange);
+  STDMETHODIMP_(DWORD) GetRGBOutputRange();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -153,6 +155,7 @@ private:
     BOOL bFormats[Codec_NB];
     BOOL bPixFmts[LAVPixFmt_NB];
     BOOL HighQualityPixConv;
+    DWORD RGBRange;
   } m_settings;
 
 #ifdef DEBUG
