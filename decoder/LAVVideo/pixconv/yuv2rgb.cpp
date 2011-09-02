@@ -140,7 +140,57 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 
     // 12-bit result, xmm1 & xmm3 with 4 UV combinations each
   } else if (inputFormat == PIX_FMT_YUV444P) {
-    // TODO
+    if (shift > 0) {
+      // Load 4 U/V values from line 0/1 into registers
+      xmm0 = _mm_cvtsi32_si128(*(const int*)(srcU));              /* UU000000 */
+      xmm1 = _mm_cvtsi32_si128(*(const int*)(srcU+4));            /* UU000000 */
+      xmm1 = _mm_slli_si128(xmm1, 4);
+      xmm1 = _mm_or_si128(xmm1, xmm0);
+
+      xmm2 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV));  /* UU000000 */
+      xmm3 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV+4));/* UU000000 */
+      xmm3 = _mm_slli_si128(xmm3, 4);
+      xmm3 = _mm_or_si128(xmm3, xmm2);
+
+      xmm4 = _mm_cvtsi32_si128(*(const int*)(srcV));              /* VV000000 */
+      xmm0 = _mm_cvtsi32_si128(*(const int*)(srcV+4));            /* VV000000 */
+      xmm0 = _mm_slli_si128(xmm0, 4);
+      xmm0 = _mm_or_si128(xmm0, xmm4);
+
+      xmm5 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV));  /* VV000000 */
+      xmm2 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV+4));/* VV000000 */
+      xmm2 = _mm_slli_si128(xmm2, 4);
+      xmm2 = _mm_or_si128(xmm2, xmm5);
+
+      srcU += 8;
+      srcV += 8;
+
+      // Interleave U and V
+      xmm0 = _mm_unpacklo_epi16(xmm1, xmm0);                       /* 0V0U0V0U */
+      xmm2 = _mm_unpacklo_epi16(xmm3, xmm2);                       /* 0V0U0V0U */
+    } else {
+      // Load 4 U/V values from line 0/1 into registers
+      xmm1 = _mm_cvtsi32_si128(*(const int*)(srcU));              /* UU000000 */
+      xmm3 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV));  /* UU000000 */
+
+      xmm0 = _mm_cvtsi32_si128(*(const int*)(srcV));              /* VV000000 */
+      xmm2 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV));  /* VV000000 */
+
+      srcU += 4;
+      srcV += 4;
+
+      // Interleave U and V
+      xmm0 = _mm_unpacklo_epi8(xmm1, xmm0);                       /* VUVU0000 */
+      xmm2 = _mm_unpacklo_epi8(xmm3, xmm2);                       /* VUVU0000 */
+
+      // Expand to 16-bit
+      xmm0 = _mm_unpacklo_epi8(xmm0, xmm7);                       /* 0V0U0V0U */
+      xmm2 = _mm_unpacklo_epi8(xmm2, xmm7);                       /* 0V0U0V0U */
+    }
+
+    // Shift to 12 bit
+    xmm1 = _mm_slli_epi16(xmm0, 4-shift);
+    xmm3 = _mm_slli_epi16(xmm2, 4-shift);
   }
 
   // After this step, xmm1 & xmm3 contain 4 UV pairs, each in a 16-bit value, filling 12-bit.
@@ -324,6 +374,13 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
     return yuv2rgb_process_lines<PIX_FMT_YUV422P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
   case PIX_FMT_YUV422P10LE:
     return yuv2rgb_process_lines<PIX_FMT_YUV422P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+  case PIX_FMT_YUV444P:
+  case PIX_FMT_YUVJ444P:
+    return yuv2rgb_process_lines<PIX_FMT_YUV444P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+  case PIX_FMT_YUV444P10LE:
+    return yuv2rgb_process_lines<PIX_FMT_YUV444P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+  case PIX_FMT_YUV444P9LE:
+    return yuv2rgb_process_lines<PIX_FMT_YUV444P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
   default:
     ASSERT(0);
   }

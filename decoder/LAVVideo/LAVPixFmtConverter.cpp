@@ -316,7 +316,8 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     m_RequiredAlignment = 32;
   } else if ((m_OutputPixFmt == LAVPixFmt_RGB32 || m_OutputPixFmt == LAVPixFmt_RGB24)
           && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P || m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE
-           || m_InputPixFmt == PIX_FMT_YUV422P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUV422P10LE)) {
+           || m_InputPixFmt == PIX_FMT_YUV422P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUV422P10LE
+           || m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P || m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE)) {
     if (m_OutputPixFmt == LAVPixFmt_RGB32) {
       convert = &CLAVPixFmtConverter::convert_yuv_rgb<1>;
       m_RequiredAlignment = 4;
