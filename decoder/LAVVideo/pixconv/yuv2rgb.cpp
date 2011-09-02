@@ -315,14 +315,14 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   case PIX_FMT_YUV420P:
   case PIX_FMT_YUVJ420P:
     return yuv2rgb_process_lines<PIX_FMT_YUV420P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
-  case PIX_FMT_YUV420P10:
+  case PIX_FMT_YUV420P10LE:
     return yuv2rgb_process_lines<PIX_FMT_YUV420P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
-  case PIX_FMT_YUV420P9:
+  case PIX_FMT_YUV420P9LE:
     return yuv2rgb_process_lines<PIX_FMT_YUV420P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
   case PIX_FMT_YUV422P:
   case PIX_FMT_YUVJ422P:
     return yuv2rgb_process_lines<PIX_FMT_YUV422P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
-  case PIX_FMT_YUV422P10:
+  case PIX_FMT_YUV422P10LE:
     return yuv2rgb_process_lines<PIX_FMT_YUV422P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
   default:
     ASSERT(0);
