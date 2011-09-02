@@ -26,7 +26,7 @@
 #include "pixconv_sse2_templates.h"
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
-template <PixelFormat inputFormat, int out32>
+template <PixelFormat inputFormat, int shift, int out32>
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -34,23 +34,54 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 
   // Chroma upsampling required
   if (inputFormat == PIX_FMT_YUV420P || inputFormat == PIX_FMT_YUV422P) {
-    // Load 4 U/V values from line 0/1 into registers
-    xmm1 = _mm_cvtsi32_si128(*(const int*)(srcU));              /* UU000000 */
-    xmm3 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV));  /* UU000000 */
+    // Shift > 0 is for 9/10 bit formats
+    if (shift > 0) {
+      // Load 4 U/V values from line 0/1 into registers
+      xmm0 = _mm_cvtsi32_si128(*(const int*)(srcU));              /* UU000000 */
+      xmm1 = _mm_cvtsi32_si128(*(const int*)(srcU+4));            /* UU000000 */
+      xmm1 = _mm_slli_si128(xmm1, 4);
+      xmm1 = _mm_or_si128(xmm1, xmm0);
 
-    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcV));              /* VV000000 */
-    xmm2 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV));  /* VV000000 */
+      xmm2 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV));  /* UU000000 */
+      xmm3 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV+4));/* UU000000 */
+      xmm3 = _mm_slli_si128(xmm3, 4);
+      xmm3 = _mm_or_si128(xmm3, xmm2);
 
-    srcU += 2;
-    srcV += 2;
+      xmm4 = _mm_cvtsi32_si128(*(const int*)(srcV));              /* VV000000 */
+      xmm0 = _mm_cvtsi32_si128(*(const int*)(srcV+4));            /* VV000000 */
+      xmm0 = _mm_slli_si128(xmm0, 4);
+      xmm0 = _mm_or_si128(xmm0, xmm4);
 
-    // Interleave U and V
-    xmm0 = _mm_unpacklo_epi8(xmm1, xmm0);                       /* VUVU0000 */
-    xmm2 = _mm_unpacklo_epi8(xmm3, xmm2);                       /* VUVU0000 */
+      xmm5 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV));  /* VV000000 */
+      xmm2 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV+4));/* VV000000 */
+      xmm2 = _mm_slli_si128(xmm2, 4);
+      xmm2 = _mm_or_si128(xmm2, xmm5);
 
-    // Expand to 16-bit
-    xmm0 = _mm_unpacklo_epi8(xmm0, xmm7);                       /* 0V0U0V0U */
-    xmm2 = _mm_unpacklo_epi8(xmm2, xmm7);                       /* 0V0U0V0U */
+      srcU += 4;
+      srcV += 4;
+
+      // Interleave U and V
+      xmm0 = _mm_unpacklo_epi16(xmm1, xmm0);                       /* 0V0U0V0U */
+      xmm2 = _mm_unpacklo_epi16(xmm3, xmm2);                       /* 0V0U0V0U */
+    } else {
+      // Load 4 U/V values from line 0/1 into registers
+      xmm1 = _mm_cvtsi32_si128(*(const int*)(srcU));              /* UU000000 */
+      xmm3 = _mm_cvtsi32_si128(*(const int*)(srcU+srcStrideUV));  /* UU000000 */
+
+      xmm0 = _mm_cvtsi32_si128(*(const int*)(srcV));              /* VV000000 */
+      xmm2 = _mm_cvtsi32_si128(*(const int*)(srcV+srcStrideUV));  /* VV000000 */
+
+      srcU += 2;
+      srcV += 2;
+
+      // Interleave U and V
+      xmm0 = _mm_unpacklo_epi8(xmm1, xmm0);                       /* VUVU0000 */
+      xmm2 = _mm_unpacklo_epi8(xmm3, xmm2);                       /* VUVU0000 */
+
+      // Expand to 16-bit
+      xmm0 = _mm_unpacklo_epi8(xmm0, xmm7);                       /* 0V0U0V0U */
+      xmm2 = _mm_unpacklo_epi8(xmm2, xmm7);                       /* 0V0U0V0U */
+    }
 
     // 4:2:0 - upsample to 4:2:2 using 75:25
     if (inputFormat == PIX_FMT_YUV420P) {
@@ -64,18 +95,18 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
       xmm3 = _mm_add_epi16(xmm3, xmm2);                         /* 3x line 1 */
       xmm3 = _mm_add_epi16(xmm3, xmm0);                         /* 3x line 1 + line 0 (10bit) */
 
-      // Shift to 11 bit
-      xmm1 = _mm_slli_epi16(xmm1, 1);
-      xmm3 = _mm_slli_epi16(xmm3, 1);
+      // Shift to 12 bit
+      xmm1 = _mm_slli_epi16(xmm1, 2-shift);
+      xmm3 = _mm_slli_epi16(xmm3, 2-shift);
     } else {
       xmm1 = xmm0;
       xmm3 = xmm2;
 
-      // Shift to 11 bit
-      xmm1 = _mm_slli_epi16(xmm1, 3);
-      xmm3 = _mm_slli_epi16(xmm3, 3);
+      // Shift to 12 bit
+      xmm1 = _mm_slli_epi16(xmm1, 4-shift);
+      xmm3 = _mm_slli_epi16(xmm3, 4-shift);
     }
-    // After this step, xmm1 and xmm3 contain 8 16-bit values, V and U interleaved, filling 11-bit of the 16-bit values
+    // After this step, xmm1 and xmm3 contain 8 16-bit values, V and U interleaved, filling 12-bit of the 16-bit values
 
     // Upsample to 4:4:4 using 100:0, 50:50, 0:100 scheme (MPEG2 chroma siting)
     // TODO: MPEG1 chroma siting, use 75:25
@@ -103,6 +134,10 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm2 = _mm_slli_si128(xmm2, 4);                            /*  00  UV  00  UV */
     xmm3 = _mm_add_epi16(xmm3, xmm2);                          /* 2UV 2UV 2UV 2UV */
 
+    // Shift the 13 bit result to 12 bit, or we exceed the allowed processing depth
+    xmm1 = _mm_srli_epi16(xmm1, 1);
+    xmm3 = _mm_srli_epi16(xmm3, 1);
+
     // 12-bit result, xmm1 & xmm3 with 4 UV combinations each
   } else if (inputFormat == PIX_FMT_YUV444P) {
     // TODO
@@ -115,16 +150,31 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   xmm3 = _mm_subs_epi16(xmm3, xmm2);
 
   // Load Y
-  xmm5 = _mm_cvtsi32_si128(*(const int*)(srcY));              /* YYYY0000 (8-bit fields) */
-  xmm0 = _mm_cvtsi32_si128(*(const int*)(srcY + srcStrideY)); /* YYYY0000 (8-bit fields) */
-  srcY += 4;
-  xmm5 = _mm_unpacklo_epi8(xmm5, xmm7);                       /* YYYY0000 (16-bit fields) */
-  xmm0 = _mm_unpacklo_epi8(xmm0, xmm7);                       /* YYYY0000 (16-bit fields)*/
+  if (shift > 0) {
+    xmm6 = _mm_cvtsi32_si128(*(const int*)(srcY));              /* YYYY0000 (8-bit fields) */
+    xmm5 = _mm_cvtsi32_si128(*(const int*)(srcY+4));
+    xmm5 = _mm_slli_si128(xmm5, 4);
+    xmm5 = _mm_or_si128(xmm5, xmm6);
+
+    xmm4 = _mm_cvtsi32_si128(*(const int*)(srcY + srcStrideY)); /* YYYY0000 (8-bit fields) */
+    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcY + srcStrideY + 4));
+    xmm0 = _mm_slli_si128(xmm0, 4);
+    xmm0 = _mm_or_si128(xmm0, xmm4);
+
+    srcY += 8;
+  } else {
+    xmm5 = _mm_cvtsi32_si128(*(const int*)(srcY));              /* YYYY0000 (8-bit fields) */
+    xmm0 = _mm_cvtsi32_si128(*(const int*)(srcY + srcStrideY)); /* YYYY0000 (8-bit fields) */
+    srcY += 4;
+
+    xmm5 = _mm_unpacklo_epi8(xmm5, xmm7);                       /* YYYY0000 (16-bit fields) */
+    xmm0 = _mm_unpacklo_epi8(xmm0, xmm7);                       /* YYYY0000 (16-bit fields)*/
+  }
 
   xmm0 = _mm_unpacklo_epi64(xmm0, xmm5);                      /* YYYYYYYY */
 
-  // TODO: 10-bit support, less shifting. We need to reach 14 bits
-  xmm0 = _mm_slli_epi16(xmm0, 6);
+  // Shift to 14 bits
+  xmm0 = _mm_slli_epi16(xmm0, 6-shift);
   xmm0 = _mm_subs_epu16(xmm0, coeffs->Ysub);                  /* Y-16 (in case of range expansion) */
   xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
   xmm0 = _mm_add_epi16(xmm0, coeffs->rgb_add);                /* Y*cy + 16 (in case of range compression) */
@@ -195,7 +245,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   return 0;
 }
 
-template <PixelFormat inputFormat, int out32>
+template <PixelFormat inputFormat, int shift, int out32>
 static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, int sliceYStart, int sliceYEnd, RGBCoeffs *coeffs)
 {
   const uint8_t *y = srcY;
@@ -213,7 +263,7 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
   if (inputFormat == PIX_FMT_YUV420P) {
     if (line == 0) {
       for (int i = 0; i < width; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, out32>(y, u, v, rgb, 0, 0, 0, line, coeffs);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32>(y, u, v, rgb, 0, 0, 0, line, coeffs);
       }
 
       line = 1;
@@ -233,7 +283,7 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
     rgb = dst + line * dstStride;
 
     for (int i = 0; i < width; i += 4) {
-      yuv2rgb_convert_pixels<inputFormat, out32>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs);
     }
   }
 
@@ -245,7 +295,7 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
       rgb = dst + (height - 1) * dstStride;
 
       for (int i = 0; i < width; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, out32>(y, u, v, rgb, 0, 0, 0, line, coeffs);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32>(y, u, v, rgb, 0, 0, 0, line, coeffs);
       }
     }
   }
@@ -261,7 +311,11 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   switch (inputFormat) {
   case PIX_FMT_YUV420P:
   case PIX_FMT_YUVJ420P:
-    return yuv2rgb_process_lines<PIX_FMT_YUV420P, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_process_lines<PIX_FMT_YUV420P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+  case PIX_FMT_YUV420P10:
+    return yuv2rgb_process_lines<PIX_FMT_YUV420P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+  case PIX_FMT_YUV420P9:
+    return yuv2rgb_process_lines<PIX_FMT_YUV420P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
   default:
     ASSERT(0);
   }
