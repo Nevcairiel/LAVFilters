@@ -232,7 +232,37 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     _mm_stream_si128((__m128i *)(dst + dstStride), xmm2);
     dst += 16;
   } else {
-    //TODO
+    // RGB 24 output is terribly inefficient due to the un-aligned size of 3 bytes per pixel
+    uint32_t eax;
+    DECLARE_ALIGNED(16, uint8_t, rgbbuf)[32];
+    *(uint32_t *)rgbbuf = _mm_cvtsi128_si32(xmm1);
+    xmm1 = _mm_srli_si128(xmm1, 4);
+    *(uint32_t *)(rgbbuf+3) = _mm_cvtsi128_si32 (xmm1);
+    xmm1 = _mm_srli_si128(xmm1, 4);
+    *(uint32_t *)(rgbbuf+6) = _mm_cvtsi128_si32 (xmm1);
+    xmm1 = _mm_srli_si128(xmm1, 4);
+    *(uint32_t *)(rgbbuf+9) = _mm_cvtsi128_si32 (xmm1);
+
+    *(uint32_t *)(rgbbuf+16) = _mm_cvtsi128_si32 (xmm2);
+    xmm2 = _mm_srli_si128(xmm2, 4);
+    *(uint32_t *)(rgbbuf+19) = _mm_cvtsi128_si32 (xmm2);
+    xmm2 = _mm_srli_si128(xmm2, 4);
+    *(uint32_t *)(rgbbuf+22) = _mm_cvtsi128_si32 (xmm2);
+    xmm2 = _mm_srli_si128(xmm2, 4);
+    *(uint32_t *)(rgbbuf+25) = _mm_cvtsi128_si32 (xmm2);
+
+    xmm1 = _mm_loadl_epi64((const __m128i *)(rgbbuf));
+    xmm2 = _mm_loadl_epi64((const __m128i *)(rgbbuf+16));
+
+    _mm_storel_epi64((__m128i *)(dst), xmm1);
+    eax = *(uint32_t *)(rgbbuf + 8);
+    *(uint32_t *)(dst + 8) = eax;
+
+    _mm_storel_epi64((__m128i *)(dst + dstStride), xmm2);
+    eax = *(uint32_t *)(rgbbuf + 24);
+    *(uint32_t *)(dst + dstStride + 8) = eax;
+
+    dst += 12;
   }
 
   return 0;
