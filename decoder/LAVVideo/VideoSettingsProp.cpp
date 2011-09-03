@@ -89,6 +89,11 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
     m_pVideoSettings->SetPixelFormat((LAVVideoPixFmts)i, bPixFmts[i]);
   }
 
+  BOOL bRGBAuto = (BOOL)SendDlgItemMessage(m_Dlg, IDC_RGBOUT_AUTO, BM_GETCHECK, 0, 0);
+  BOOL bRGBTV = (BOOL)SendDlgItemMessage(m_Dlg, IDC_RGBOUT_TV, BM_GETCHECK, 0, 0);
+  BOOL bRGBPC = (BOOL)SendDlgItemMessage(m_Dlg, IDC_RGBOUT_PC, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetRGBOutputRange(bRGBAuto ? 0 : bRGBTV ? 1 : 2);
+
   LoadData();
 
   return hr;
@@ -121,7 +126,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   }
 
   addHint(IDC_THREADS, L"Enable Multi-Threading for codecs that support it.\nAuto will automatically use the maximum number of threads suitable for your CPU. Using 1 thread disables multi-threading.\n\nMT decoding is supported for H264, MPEG2, MPEG4, VP8, VP3/Theora, DV and HuffYUV");
-  addHint(IDC_OUT_HQ, L"Enable High-Quality conversion of all pixel formats.\nNote that this mode can be very slow!");
+  addHint(IDC_OUT_HQ, L"Enable High-Quality conversion for swscale.\nOnly swscale processing is affected, all other conversion are always high-quality.\nNote that this mode can be very slow!");
 
   hr = LoadData();
   if (SUCCEEDED(hr)) {
@@ -143,6 +148,10 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_OUT_Y416, BM_SETCHECK, m_bPixFmts[LAVPixFmt_Y416], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_RGB32, BM_SETCHECK, m_bPixFmts[LAVPixFmt_RGB32], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_RGB24, BM_SETCHECK, m_bPixFmts[LAVPixFmt_RGB24], 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_RGBOUT_AUTO, BM_SETCHECK, (m_dwRGBOutput == 0), 0);
+    SendDlgItemMessage(m_Dlg, IDC_RGBOUT_TV, BM_SETCHECK, (m_dwRGBOutput == 1), 0);
+    SendDlgItemMessage(m_Dlg, IDC_RGBOUT_PC, BM_SETCHECK, (m_dwRGBOutput == 2), 0);
   }
 
   return hr;
@@ -156,6 +165,7 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_bStreamAR       = m_pVideoSettings->GetStreamAR();
   m_bInterlaceFlags = m_pVideoSettings->GetReportInterlacedFlags();
   m_bHighQualityPixelConv = m_pVideoSettings->GetHighQualityPixelFormatConversion();
+  m_dwRGBOutput     = m_pVideoSettings->GetRGBOutputRange();
 
   for (int i = 0; i < LAVPixFmt_NB; ++i) {
     m_bPixFmts[i] = m_pVideoSettings->GetPixelFormat((LAVVideoPixFmts)i);
@@ -254,6 +264,21 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_OUT_RGB24 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_bPixFmts[LAVPixFmt_RGB24]) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_RGBOUT_AUTO && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_dwRGBOutput == 0)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_RGBOUT_TV && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_dwRGBOutput == 1)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_RGBOUT_PC && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_dwRGBOutput == 2)) {
         SetDirty();
       }
     }

@@ -63,6 +63,7 @@ private:
   BOOL  m_bStreamAR;
   BOOL  m_bInterlaceFlags;
   BOOL  m_bHighQualityPixelConv;
+  DWORD m_dwRGBOutput;
 
   BOOL  m_bPixFmts[LAVPixFmt_NB];
 };
