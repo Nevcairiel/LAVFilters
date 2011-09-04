@@ -43,8 +43,6 @@ typedef struct {
 typedef struct _RGBCoeffs {
   __m128i Ysub;
   __m128i CbCr_center;
-  __m128i rgb_limit_low;
-  __m128i rgb_limit_high;
   __m128i rgb_add;
   __m128i cy;
   __m128i cR_Cr;

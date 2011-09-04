@@ -453,14 +453,6 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     m_rgbCoeffs->cB_Cb       = _mm_set1_epi32(cbu);               // B
 
     m_rgbCoeffs->rgb_add     = _mm_set1_epi16(RGB_add1 << 4);
-
-    uint32_t rgb_white = outputWhite;
-    rgb_white = 0xff000000 + (rgb_white << 16) + (rgb_white << 8) + rgb_white;
-    m_rgbCoeffs->rgb_limit_high = _mm_set1_epi32(rgb_white);
-
-    uint32_t rgb_black = outputBlack;
-    rgb_black = 0xff000000 + (rgb_black << 16) + (rgb_black << 8) + rgb_black;
-    m_rgbCoeffs->rgb_limit_low = _mm_set1_epi32(rgb_black);
   }
   return m_rgbCoeffs;
 }
