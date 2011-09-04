@@ -165,6 +165,7 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_MSZH, CODEC_ID_MSZH },
   { &MEDIASUBTYPE_ZLIB, CODEC_ID_ZLIB },
   { &MEDIASUBTYPE_QTRpza, CODEC_ID_RPZA },
+  { &MEDIASUBTYPE_PNG, CODEC_ID_PNG },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO },
@@ -307,6 +308,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_MSZH },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ZLIB },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_QTRpza },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_PNG  },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -399,6 +401,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_QPEG }},                                                // Codec_QPEG
   { 2, { CODEC_ID_ZLIB, CODEC_ID_MSZH }, L"zlib", L"ZLIB/MSZH lossless" },// Codec_ZLIB
   { 1, { CODEC_ID_RPZA }},                                                // Codec_QTRpza
+  { 1, { CODEC_ID_PNG }},                                                 // Codec_PNG
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
