@@ -26,7 +26,7 @@
 #include "pixconv_sse2_templates.h"
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
-template <PixelFormat inputFormat, int shift, int out32> __forceinline
+template <PixelFormat inputFormat, int shift, int out32, int right_edge> __forceinline
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -68,6 +68,25 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     } else {
       srcU += 2;
       srcV += 2;
+    }
+
+    // Cut off the over-read into the stride and replace it with the last valid pixel
+    if (right_edge) {
+      xmm6 = _mm_set_epi32(0, 0xffffffff, 0, 0);
+
+      // First line
+      xmm1 = xmm0;
+      xmm1 = _mm_slli_si128(xmm1, 4);
+      xmm1 = _mm_and_si128(xmm1, xmm6);
+      xmm0 = _mm_andnot_si128(xmm6, xmm0);
+      xmm0 = _mm_or_si128(xmm0, xmm1);
+
+      // Second line
+      xmm3 = xmm2;
+      xmm3 = _mm_slli_si128(xmm3, 4);
+      xmm3 = _mm_and_si128(xmm3, xmm6);
+      xmm2 = _mm_andnot_si128(xmm6, xmm2);
+      xmm2 = _mm_or_si128(xmm2, xmm3);
     }
 
     // 4:2:0 - upsample to 4:2:2 using 75:25
@@ -276,18 +295,21 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
   const uint8_t *v = srcV;
   uint8_t *rgb = dst;
 
-  dstStride *= 3 + out32;
+  dstStride *= (3 + out32);
 
   int line = sliceYStart;
   int lastLine = sliceYEnd;
   int sliceYEnd0 = sliceYEnd;
 
+  int endx = width - 4;
+
   // 4:2:0 needs special handling for the first and the last line
   if (inputFormat == PIX_FMT_YUV420P) {
     if (line == 0) {
-      for (int i = 0; i < width; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32>(y, u, v, rgb, 0, 0, 0, line, coeffs);
+      for (int i = 0; i < endx; i += 4) {
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0>(y, u, v, rgb, 0, 0, 0, line, coeffs);
       }
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1>(y, u, v, rgb, 0, 0, 0, line, coeffs);
 
       line = 1;
     }
@@ -308,9 +330,10 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
 
     rgb = dst + line * dstStride;
 
-    for (int i = 0; i < width; i += 4) {
-      yuv2rgb_convert_pixels<inputFormat, shift, out32>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs);
+    for (int i = 0; i < endx; i += 4) {
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs);
     }
+    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs);
   }
 
   if (inputFormat == PIX_FMT_YUV420P) {
@@ -320,9 +343,10 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
       v = srcV + ((height >> 1) - 1)  * srcStrideUV;
       rgb = dst + (height - 1) * dstStride;
 
-      for (int i = 0; i < width; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32>(y, u, v, rgb, 0, 0, 0, line, coeffs);
+      for (int i = 0; i < endx; i += 4) {
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0>(y, u, v, rgb, 0, 0, 0, line, coeffs);
       }
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1>(y, u, v, rgb, 0, 0, 0, line, coeffs);
     }
   }
   return 0;
