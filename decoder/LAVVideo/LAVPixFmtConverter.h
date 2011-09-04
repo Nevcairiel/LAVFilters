@@ -151,6 +151,8 @@ private:
   size_t   m_nAlignedBufferSize;
   uint8_t *m_pAlignedBuffer;
 
+  int m_NumThreads;
+
   ILAVVideoSettings *m_pSettings;
 
   RGBCoeffs *m_rgbCoeffs;

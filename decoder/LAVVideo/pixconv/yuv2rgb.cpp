@@ -21,6 +21,7 @@
 #include "stdafx.h"
 
 #include <emmintrin.h>
+#include <ppl.h>
 
 #include "pixconv_internal.h"
 #include "pixconv_sse2_templates.h"
@@ -288,7 +289,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 }
 
 template <PixelFormat inputFormat, int shift, int out32>
-static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, int sliceYStart, int sliceYEnd, RGBCoeffs *coeffs)
+static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, int sliceYStart, int sliceYEnd, RGBCoeffs *coeffs)
 {
   const uint8_t *y = srcY;
   const uint8_t *u = srcU;
@@ -352,6 +353,30 @@ static int yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const
   return 0;
 }
 
+template <PixelFormat inputFormat, int shift, int out32>
+inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, RGBCoeffs *coeffs, int threads)
+{
+  if (threads <= 1) {
+    yuv2rgb_process_lines<inputFormat, shift, out32>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs);
+  } else {
+    int is_odd;
+    int lines_per_thread = (height / threads)&~1;
+
+    if (inputFormat == PIX_FMT_YUV420P) {
+      is_odd = 1;
+    } else {
+      is_odd = 0;
+    }
+
+    Concurrency::parallel_for(0, threads, [&](int i) {
+      int starty = (i * lines_per_thread);
+      int endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
+      yuv2rgb_process_lines<inputFormat, shift, out32>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs);
+    });
+  }
+  return 0;
+}
+
 template <int out32>
 DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
@@ -361,23 +386,23 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   switch (inputFormat) {
   case PIX_FMT_YUV420P:
   case PIX_FMT_YUVJ420P:
-    return yuv2rgb_process_lines<PIX_FMT_YUV420P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV420P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   case PIX_FMT_YUV420P10LE:
-    return yuv2rgb_process_lines<PIX_FMT_YUV420P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV420P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   case PIX_FMT_YUV420P9LE:
-    return yuv2rgb_process_lines<PIX_FMT_YUV420P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV420P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   case PIX_FMT_YUV422P:
   case PIX_FMT_YUVJ422P:
-    return yuv2rgb_process_lines<PIX_FMT_YUV422P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV422P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   case PIX_FMT_YUV422P10LE:
-    return yuv2rgb_process_lines<PIX_FMT_YUV422P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV422P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   case PIX_FMT_YUV444P:
   case PIX_FMT_YUVJ444P:
-    return yuv2rgb_process_lines<PIX_FMT_YUV444P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV444P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   case PIX_FMT_YUV444P10LE:
-    return yuv2rgb_process_lines<PIX_FMT_YUV444P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV444P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   case PIX_FMT_YUV444P9LE:
-    return yuv2rgb_process_lines<PIX_FMT_YUV444P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, 0, height, coeffs);
+    return yuv2rgb_convert<PIX_FMT_YUV444P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
   default:
     ASSERT(0);
   }
