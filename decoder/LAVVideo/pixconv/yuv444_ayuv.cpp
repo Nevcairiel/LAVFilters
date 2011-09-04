@@ -44,7 +44,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
 
   int line, i;
 
-  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6;
 
   xmm6 = _mm_set1_epi32(-1);
 
