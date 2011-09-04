@@ -274,10 +274,7 @@ DWORD CLAVOutputPin::ThreadProc()
   m_hrDeliver = S_OK;
   m_fFlushing = m_fFlushed = false;
   m_eEndFlush.Set();
-  if(IsVideoPin() && IsConnected() && !FilterInGraph(CLSID_DXR, m_pFilter->GetFilterGraph())) {
-    GetConnected()->BeginFlush();
-    GetConnected()->EndFlush();
-  }
+  bool bFailFlush = false;
 
   while(1) {
     Sleep(1);
@@ -315,7 +312,15 @@ DWORD CLAVOutputPin::ThreadProc()
         m_eEndFlush.Wait();
 
         if(hr != S_OK && !m_fFlushed) {
-          m_hrDeliver = hr;
+          DbgLog((LOG_TRACE, 10, L"OutputPin::ThreadProc(): Delivery failed on %s pin, hr: %0#.8x", CBaseDemuxer::CStreamList::ToStringW(GetPinType()), hr));
+          if (!bFailFlush && hr == S_FALSE) {
+            DbgLog((LOG_TRACE, 10, L"OutputPin::ThreadProc(): Trying to revive it by flushing..."));
+            GetConnected()->BeginFlush();
+            GetConnected()->EndFlush();
+            bFailFlush = true;
+          } else {
+            m_hrDeliver = hr;
+          }
           break;
         }
       } else if (pPacket) {
