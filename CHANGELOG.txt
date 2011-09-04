@@ -1,5 +1,16 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.34 - 2011/09/04
+LAV Splitter
+- Improve playback of VC-1 in EVO
+- Support for SSA subtitles in AVI
+- Support for H264 in VFW mode in MKV
+
+LAV Video
+- New optimized pixel format converters (faster and more accurate)
+- New YUV->RGB converter
+- Support for PNG video
+
 0.33 - 2011/08/22
 LAV Splitter
 - Improved compatibility with the MS WMVideo decoder

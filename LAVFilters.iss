@@ -1,5 +1,5 @@
 #define version_major = 0
-#define version_minor = 33
+#define version_minor = 34
 
 ; ToDo
 ; - Maybe create custom page for the format selection. That for example allows using two columns to use space more effectively.
