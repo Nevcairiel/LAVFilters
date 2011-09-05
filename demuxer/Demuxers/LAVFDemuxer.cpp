@@ -598,11 +598,12 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
     seek_pts = ConvertRTToTimestamp(rTime, 1, AV_TIME_BASE);
   }
 
-  int ret = avformat_seek_file(m_avFormat, videoStreamId, _I64_MIN, seek_pts, _I64_MAX, 0);
-  //int ret = av_seek_frame(m_avFormat, -1, seek_pts, 0);
+  int flags = AVSEEK_FLAG_BACKWARD;
+
+  int ret = av_seek_frame(m_avFormat, videoStreamId, seek_pts, flags);
   if(ret < 0) {
     DbgLog((LOG_CUSTOM1, 1, L"::Seek() -- Key-Frame Seek failed"));
-    ret = avformat_seek_file(m_avFormat, videoStreamId, _I64_MIN, seek_pts, _I64_MAX, AVSEEK_FLAG_ANY);
+    ret = av_seek_frame(m_avFormat, videoStreamId, seek_pts, flags | AVSEEK_FLAG_ANY);
     if (ret < 0) {
       DbgLog((LOG_ERROR, 1, L"::Seek() -- Inaccurate Seek failed as well"));
     }
