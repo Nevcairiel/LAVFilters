@@ -35,28 +35,31 @@ void CH264Nalu::SetBuffer(BYTE* pBuffer, int nSize, int nNALSize)
   m_nNALDataPos  = 0;
 }
 
-bool CH264Nalu::MoveToNextStartcode()
+bool CH264Nalu::MoveToNextAnnexBStartcode()
 {
-  int nBuffEnd = (m_nNextRTP > 0) ? min (m_nNextRTP, m_nSize-4) : m_nSize-4;
+	int nBuffEnd = m_nSize - 4;
 
-  for (int i=m_nCurPos; i<nBuffEnd; i++)
-  {
-    if (*((DWORD*)(m_pBuffer+i)) == 0x01000000 || (*((DWORD*)(m_pBuffer+i)) & 0x00FFFFFF) == 0x00010000)
-    {
-      // Find next AnnexB Nal
-      m_nCurPos = i;
-      return true;
-    }
-  }
+	for (int i=m_nCurPos; i<nBuffEnd; i++) {
+		if ((*((DWORD*)(m_pBuffer+i)) & 0x00FFFFFF) == 0x00010000) {
+			// Find next AnnexB Nal
+			m_nCurPos = i;
+			return true;
+		}
+	}
 
-  if ((m_nNALSize != 0) && (m_nNextRTP < m_nSize))
-  {
-    m_nCurPos = m_nNextRTP;
-    return true;
-  }
+	m_nCurPos = m_nSize;
+	return false;
+}
 
-  m_nCurPos = m_nSize;
-  return false;
+bool CH264Nalu::MoveToNextRTPStartcode()
+{
+	if (m_nNextRTP < m_nSize) {
+		m_nCurPos = m_nNextRTP;
+		return true;
+	}
+
+	m_nCurPos = m_nSize;
+	return false;
 }
 
 bool CH264Nalu::ReadNext()
@@ -69,13 +72,13 @@ bool CH264Nalu::ReadNext()
     // RTP Nalu type : (XX XX) XX XX NAL..., with XX XX XX XX or XX XX equal to NAL size
     m_nNALStartPos = m_nCurPos;
     m_nNALDataPos  = m_nCurPos + m_nNALSize;
-    int nTemp      = 0;
+    unsigned nTemp = 0;
     for (int i=0; i<m_nNALSize; i++)
     {
       nTemp = (nTemp << 8) + m_pBuffer[m_nCurPos++];
     }
     m_nNextRTP += nTemp + m_nNALSize;
-    MoveToNextStartcode();
+    MoveToNextRTPStartcode();
   }
   else
   {
@@ -87,7 +90,7 @@ bool CH264Nalu::ReadNext()
     m_nNALStartPos = m_nCurPos;
     m_nCurPos     += 3;
     m_nNALDataPos  = m_nCurPos;
-    MoveToNextStartcode();
+    MoveToNextAnnexBStartcode();
   }
 
   forbidden_bit     = (m_pBuffer[m_nNALDataPos]>>7) & 1;

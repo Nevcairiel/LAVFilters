@@ -49,7 +49,6 @@ private :
 
   int       m_nNALStartPos;     //! NALU start (including startcode / size)
   int       m_nNALDataPos;      //! Useful part
-  unsigned  m_nDataLen;         //! Length of the NAL unit (Excluding the start code, which does not belong to the NALU)
 
   BYTE      *m_pBuffer;
   int       m_nCurPos;
@@ -57,7 +56,8 @@ private :
   int       m_nSize;
   int       m_nNALSize;
 
-  bool      MoveToNextStartcode();
+  bool      MoveToNextAnnexBStartcode();
+  bool      MoveToNextRTPStartcode();
 
 public :
   CH264Nalu() { SetBuffer(NULL, 0, 0); }
