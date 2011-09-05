@@ -32,7 +32,7 @@
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
 
 #define DEBUG_FRAME_TIMINGS 0
-#define DEBUG_PIXELCONV_TIMINGS 1
+#define DEBUG_PIXELCONV_TIMINGS 0
 
 typedef struct {
   REFERENCE_TIME rtStart;
