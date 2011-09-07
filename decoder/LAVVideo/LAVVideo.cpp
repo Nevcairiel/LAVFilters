@@ -1067,7 +1067,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     if (m_bCalculateStopTime || rtStop == AV_NOPTS_VALUE) {
       REFERENCE_TIME duration = 0;
 
-      CMediaType mt = m_pInput->CurrentMediaType();
+      CMediaType &mt = m_pInput->CurrentMediaType();
       videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
       if (!duration && m_pAVCtx->time_base.num && m_pAVCtx->time_base.den) {
         duration = (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
