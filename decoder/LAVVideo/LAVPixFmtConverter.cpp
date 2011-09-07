@@ -293,7 +293,11 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   m_RequiredAlignment = 16;
   m_bRGBConverter = FALSE;
   convert = NULL;
-  if (av_get_cpu_flags() & AV_CPU_FLAG_SSE2) {
+
+  if (m_OutputPixFmt == LAVPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
+    convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
+    m_RequiredAlignment = 0;
+  } else if (av_get_cpu_flags() & AV_CPU_FLAG_SSE2) {
     if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE || m_InputPixFmt == PIX_FMT_YUV444P16LE)) {
       convert = &CLAVPixFmtConverter::convert_yuv444_ayuv_dither_le;
     } else if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P)) {
@@ -310,9 +314,6 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     } else if (((m_OutputPixFmt == LAVPixFmt_P010 || m_OutputPixFmt == LAVPixFmt_P016) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || PIX_FMT_YUV420P16LE))
             || ((m_OutputPixFmt == LAVPixFmt_P210 || m_OutputPixFmt == LAVPixFmt_P216) && (m_InputPixFmt == PIX_FMT_YUV422P10LE || m_InputPixFmt == PIX_FMT_YUV422P16LE))) {
       convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le;
-    } else if (m_OutputPixFmt == LAVPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
-      convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
-      m_RequiredAlignment = 0;
     } else if (m_OutputPixFmt == LAVPixFmt_NV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
       convert = &CLAVPixFmtConverter::convert_yuv420_nv12;
       m_RequiredAlignment = 32;
