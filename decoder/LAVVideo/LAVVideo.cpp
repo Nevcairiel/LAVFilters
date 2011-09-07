@@ -80,6 +80,7 @@ CLAVVideo::~CLAVVideo()
 
 void CLAVVideo::ffmpeg_shutdown()
 {
+  DbgLog((LOG_TRACE, 10, L"Shutting down ffmpeg..."));
   m_pAVCodec	= NULL;
 
   if (m_pParser) {
@@ -246,6 +247,7 @@ HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 // Check if the types are compatible
 HRESULT CLAVVideo::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut)
 {
+  DbgLog((LOG_TRACE, 10, L"::CheckTransform()"));
   if (SUCCEEDED(CheckInputType(mtIn)) && mtOut->majortype == MEDIATYPE_Video) {
     if (m_PixFmtConverter.IsAllowedSubtype(&mtOut->subtype)) {
       return S_OK;
@@ -256,6 +258,7 @@ HRESULT CLAVVideo::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOu
 
 HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERTIES* pProperties)
 {
+  DbgLog((LOG_TRACE, 10, L"::DecideBufferSize()"));
   if(m_pInput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
   }
@@ -281,6 +284,7 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
 
 HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
 {
+  DbgLog((LOG_TRACE, 10, L"::GetMediaType(): position: %d", iPosition));
   if(m_pInput->IsConnected() == FALSE) {
     return E_UNEXPECTED;
   }
@@ -313,6 +317,8 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 {
   ffmpeg_shutdown();
 
+  DbgLog((LOG_TRACE, 10, L"Initializing ffmpeg for codec %d", codec));
+
   for(int i = 0; i < Codec_NB; ++i) {
     const codec_config_t *config = get_codec_config((LAVVideoCodec)i);
     bool bMatched = false;
@@ -323,6 +329,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
       }
     }
     if (bMatched && !m_settings.bFormats[i]) {
+      DbgLog((LOG_TRACE, 10, L"-> Codec is disabled", codec));
       return VFW_E_UNSUPPORTED_VIDEO;
     }
   }
@@ -339,6 +346,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
       LPWSTR pwszExtension = PathFindExtensionW(pwszFile);
       m_strExtension = std::wstring(pwszExtension);
       CoTaskMemFree(pwszFile);
+      DbgLog((LOG_TRACE, 10, L"-> File extension: %s", m_strExtension.c_str()));
     }
     SafeRelease(&pSource);
   }
@@ -393,6 +401,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   m_h264RandomAccess.flush(m_pAVCtx->thread_count);
 
   if (extralen > 0) {
+    DbgLog((LOG_TRACE, 10, L"-> Processing extradata of %d bytes", extralen));
     // Reconstruct AVC1 extradata format
     if (pmt->formattype == FORMAT_MPEG2Video && (m_pAVCtx->codec_tag == MAKEFOURCC('a','v','c','1') || m_pAVCtx->codec_tag == MAKEFOURCC('A','V','C','1') || m_pAVCtx->codec_tag == MAKEFOURCC('C','C','V','1'))) {
       MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
@@ -446,15 +455,16 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
   if (codec == CODEC_ID_VC1 && extralen > 16) {
     CVC1HeaderParser vc1Parser(extra, extralen);
     if (vc1Parser.hdr.interlaced) {
-      DbgLog((LOG_TRACE, 10, L"::ffmpeg_init(): Detected VC-1 interlaced, playback may fail badly"));
+      DbgLog((LOG_TRACE, 10, L"-> Detected VC-1 interlaced, playback may fail badly"));
       //return VFW_E_UNSUPPORTED_VIDEO;
     }
   }
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
-
+    DbgLog((LOG_TRACE, 10, L"-> ffmpeg codec opened successfully (ret: %d)", ret));
   } else {
+    DbgLog((LOG_TRACE, 10, L"-> ffmpeg codec failed to open (ret: %d)", ret));
     return VFW_E_UNSUPPORTED_VIDEO;
   }
 
@@ -515,20 +525,20 @@ HRESULT CLAVVideo::EndOfStream()
 
 HRESULT CLAVVideo::BeginFlush()
 {
-  DbgLog((LOG_TRACE, 1, L"BeginFlush"));
+  DbgLog((LOG_TRACE, 1, L"::BeginFlush"));
   return __super::BeginFlush();
 }
 
 HRESULT CLAVVideo::EndFlush()
 {
-  DbgLog((LOG_TRACE, 1, L"EndFlush"));
+  DbgLog((LOG_TRACE, 1, L"::EndFlush"));
   m_rtPrevStop = 0;
   return __super::EndFlush();
 }
 
 HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
-  DbgLog((LOG_TRACE, 1, L"NewSegment - %d / %d", tStart, tStop));
+  DbgLog((LOG_TRACE, 1, L"::NewSegment - %d / %d", tStart, tStop));
   CAutoLock cAutoLock(&m_csReceive);
 
   if (m_pAVCtx) {
@@ -545,6 +555,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 
 HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
 {
+  DbgLog((LOG_TRACE, 10, L"::BreakConnect"));
   if (dir == PINDIR_INPUT) {
     ffmpeg_shutdown();
   }
@@ -621,7 +632,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DWORD d
 
 
   if (bNeedReconnect) {
-    
+    DbgLog((LOG_TRACE, 10, L"::ReconnectOutput(): Performing reconnect"));
     BITMAPINFOHEADER *pBIH = NULL;
     if (mt.formattype == FORMAT_VideoInfo) {
       VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
@@ -664,19 +675,19 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DWORD d
           m_pOutput->SetMediaType(&newmt);
 #ifdef DEBUG
           videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
-          DbgLog((LOG_TRACE, 10, L"New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
+          DbgLog((LOG_TRACE, 10, L"-> New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
 #endif
           DeleteMediaType(pmt);
         } else { // No Stride Request? We're ok with that, too!
           long size = pOut->GetSize();
           pBIH->biWidth = size / pBIH->biHeight * 8 / pBIH->biBitCount;
           m_bSendMediaType = TRUE;
-          DbgLog((LOG_TRACE, 10, L"We did not get a stride request, calculated stride: %d", pBIH->biWidth));
+          DbgLog((LOG_TRACE, 10, L"-> We did not get a stride request, calculated stride: %d", pBIH->biWidth));
         }
         pOut->Release();
       }
     } else if (hrQA == S_OK && hr == VFW_E_ALREADY_CONNECTED && (pBIH->biSizeImage > oldSizeImage)) {
-      DbgLog((LOG_TRACE, 10, L"Downstream filter refuses new format, but more space required, updating allocator manually..."));
+      DbgLog((LOG_TRACE, 10, L"-> Downstream filter refuses new format, but more space required, updating allocator manually..."));
       IMemInputPin *pMemPin = NULL;
       if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
         IMemAllocator *pMemAllocator = NULL;
@@ -705,6 +716,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DWORD d
 
 HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height)
 {
+  DbgLog((LOG_TRACE, 10, L"::NegotiatePixelFormat()"));
+
   HRESULT hr = S_OK;
   int i = 0;
 

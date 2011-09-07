@@ -115,6 +115,7 @@ HRESULT CLAVOutputPin::CheckMediaType(const CMediaType* pmt)
 
 HRESULT CLAVOutputPin::GetMediaType(int iPosition, CMediaType* pmt)
 {
+  DbgLog((LOG_TRACE, 10, L"CLAVOutputPin::GetMediaType(): %s, position: %d", CBaseDemuxer::CStreamList::ToStringW(m_pinType), iPosition));
   CAutoLock cAutoLock(m_pLock);
 
   if(iPosition < 0) return E_INVALIDARG;
