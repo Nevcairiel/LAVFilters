@@ -198,24 +198,23 @@ int CLAVPixFmtConverter::GetNumMediaTypes()
   return GetFilteredFormatCount();
 }
 
-CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1)
+void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1)
 {
   if (index < 0 || index >= GetFilteredFormatCount())
     index = 0;
 
   LAVVideoPixFmts pixFmt = GetFilteredFormat(index);
 
-  CMediaType mt;
   GUID guid = lav_pixfmt_desc[pixFmt].subtype;
 
-  mt.SetType(&MEDIATYPE_Video);
-  mt.SetSubtype(&guid);
+  mt->SetType(&MEDIATYPE_Video);
+  mt->SetSubtype(&guid);
 
   BITMAPINFOHEADER *pBIH = NULL;
   if (bVIH1) {
-    mt.SetFormatType(&FORMAT_VideoInfo);
+    mt->SetFormatType(&FORMAT_VideoInfo);
 
-    VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.AllocFormatBuffer(sizeof(VIDEOINFOHEADER));
+    VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER));
     memset(vih, 0, sizeof(VIDEOINFOHEADER));
 
     vih->rcSource.right = vih->rcTarget.right = biWidth;
@@ -224,9 +223,9 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
 
     pBIH = &vih->bmiHeader;
   } else {
-    mt.SetFormatType(&FORMAT_VideoInfo2);
+    mt->SetFormatType(&FORMAT_VideoInfo2);
 
-    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.AllocFormatBuffer(sizeof(VIDEOINFOHEADER2));
+    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2));
     memset(vih2, 0, sizeof(VIDEOINFOHEADER2));
 
     // Validate the Aspect Ratio - an AR of 0 crashes VMR-9
@@ -269,10 +268,8 @@ CMediaType CLAVPixFmtConverter::GetMediaType(int index, LONG biWidth, LONG biHei
     pBIH->biHeight = -pBIH->biHeight;
   }
 
-  mt.SetSampleSize(pBIH->biSizeImage);
-  mt.SetTemporalCompression(0);
-
-  return mt;
+  mt->SetSampleSize(pBIH->biSizeImage);
+  mt->SetTemporalCompression(0);
 }
 
 

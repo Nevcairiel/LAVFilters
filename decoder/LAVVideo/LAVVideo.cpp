@@ -298,14 +298,14 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   int index = iPosition / 2;
   BOOL bVIH1 = iPosition % 2;
 
-  CMediaType mtIn = m_pInput->CurrentMediaType();
+  CMediaType &mtIn = m_pInput->CurrentMediaType();
 
   BITMAPINFOHEADER *pBIH = NULL;
   REFERENCE_TIME rtAvgTime;
   DWORD dwAspectX = 0, dwAspectY = 0;
   videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
-  *pMediaType = m_PixFmtConverter.GetMediaType(index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, bVIH1);
+  m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, bVIH1);
 
   return S_OK;
 }
@@ -716,19 +716,25 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
   BOOL bVIH1 = (outMt.formattype == FORMAT_VideoInfo);
   videoFormatTypeHandler(outMt.Format(), outMt.FormatType(), NULL, &rtAvg, &dwAspectX, &dwAspectY);
 
+  CMediaType mt;
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
-    CMediaType &mt = m_PixFmtConverter.GetMediaType(i, width, height, dwAspectX, dwAspectY, rtAvg, bVIH1);
+    m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, bVIH1);
     //hr = m_pOutput->GetConnected()->QueryAccept(&mt);
     hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
     if (hr == S_OK) {
       DbgLog((LOG_TRACE, 10, L"::NegotiatePixelFormat(): Filter accepted format with index %d", i));
       m_pOutput->SetMediaType(&mt);
-      return S_OK;
+      hr = S_OK;
+      goto done;
     }
   }
 
   DbgLog((LOG_ERROR, 10, L"::NegotiatePixelFormat(): Unable to agree on a pixel format", i));
-  return E_FAIL;
+  hr = E_FAIL;
+
+done:
+  FreeMediaType(mt);
+  return hr;
 }
 
 HRESULT CLAVVideo::Receive(IMediaSample *pIn)

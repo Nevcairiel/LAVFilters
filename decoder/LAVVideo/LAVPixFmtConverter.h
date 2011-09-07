@@ -71,7 +71,7 @@ public:
   void SetColorProps(AVColorSpace colorspace, AVColorRange range, int RGBOutputRange) { if (swsColorSpace != colorspace || swsColorRange != range || swsOutputRange != RGBOutputRange) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; swsOutputRange = RGBOutputRange; } }
 
   int GetNumMediaTypes();
-  CMediaType GetMediaType(int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
+  void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
   inline HRESULT Convert(AVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
