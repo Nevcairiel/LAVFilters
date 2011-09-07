@@ -50,7 +50,6 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
 
   for (line = 0; line < height; ++line) {
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
-    uint32_t *dst32 = (uint32_t *)(dst + line * outStride);
 
     for (i = 0; i < width; i+=16) {
       // Load pixels into registers
