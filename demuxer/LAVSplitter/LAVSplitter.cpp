@@ -1080,6 +1080,7 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
 STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
+  HRESULT hr = S_FALSE;
   for(int i = 0, j = 0; i < CBaseDemuxer::unknown; i++) {
     CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
     int cnt = (int)streams->size();
@@ -1119,12 +1120,13 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
         // Populate stream name and language code
         m_pDemuxer->StreamInfo(s.pid, plcid, ppszName);
       }
+      hr = S_OK;
       break;
     }
     j += cnt;
   }
 
-  return S_OK;
+  return hr;
 }
 
 // setting helpers
