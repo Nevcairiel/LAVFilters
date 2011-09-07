@@ -490,11 +490,7 @@ HRESULT CLAVVideo::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 5, L"SetMediaType -- %S", dir == PINDIR_INPUT ? "in" : "out"));
   if (dir == PINDIR_INPUT) {
-    CodecID codec = CODEC_ID_NONE;
-    const void *format = pmt->Format();
-    GUID format_type = pmt->formattype;
-
-    codec = FindCodecId(pmt);
+    CodecID codec = FindCodecId(pmt);
 
     if (codec == CODEC_ID_NONE) {
       return VFW_E_TYPE_NOT_ACCEPTED;
