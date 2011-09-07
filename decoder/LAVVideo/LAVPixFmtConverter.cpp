@@ -97,8 +97,8 @@ LAVPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_YUY2,  16, 2, 0 },                                  // YUY2 (packed)
   { MEDIASUBTYPE_UYVY,  16, 2, 0 },                                  // UYVY (packed)
   { MEDIASUBTYPE_AYUV,  32, 4, 0 },                                  // AYUV (packed)
-  { MEDIASUBTYPE_P010,  15, 2, 2, { 1, 2 }, { 1, 1 } },              // P010
-  { MEDIASUBTYPE_P210,  20, 2, 2, { 1, 1 }, { 1, 1 } },              // P210
+  { MEDIASUBTYPE_P010,  24, 2, 2, { 1, 2 }, { 1, 1 } },              // P010
+  { MEDIASUBTYPE_P210,  32, 2, 2, { 1, 1 }, { 1, 1 } },              // P210
   { FOURCCMap('014Y'),  32, 4, 0 },                                  // Y410 (packed)
   { MEDIASUBTYPE_P016,  24, 2, 2, { 1, 2 }, { 1, 1 } },              // P016
   { MEDIASUBTYPE_P216,  32, 2, 2, { 1, 1 }, { 1, 1 } },              // P216
