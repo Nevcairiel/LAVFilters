@@ -74,7 +74,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVVideo::~CLAVVideo()
 {
-  av_free(m_pFFBuffer);
+  av_freep(&m_pFFBuffer);
   ffmpeg_shutdown();
 }
 
@@ -89,14 +89,11 @@ void CLAVVideo::ffmpeg_shutdown()
 
   if (m_pAVCtx) {
     avcodec_close(m_pAVCtx);
-    av_free(m_pAVCtx->extradata);
-    av_free(m_pAVCtx);
+    av_freep(&m_pAVCtx->extradata);
+    av_freep(&m_pAVCtx);
     m_pAVCtx = NULL;
   }
-  if (m_pFrame) {
-    av_free(m_pFrame);
-    m_pFrame = NULL;
-  }
+  av_freep(&m_pFrame);
 
   m_nCodecId = CODEC_ID_NONE;
 }
@@ -885,8 +882,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     avpkt.data = m_pAVCtx->extradata;
     avpkt.size = m_pAVCtx->extradata_size;
     used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
-    av_free(m_pAVCtx->extradata);
-    m_pAVCtx->extradata = NULL;
+    av_freep(&m_pAVCtx->extradata);
     m_pAVCtx->extradata_size = 0;
   }
 

@@ -231,9 +231,8 @@ void CLAVAudio::ffmpeg_shutdown()
   m_pAVCodec	= NULL;
   if (m_pAVCtx) {
     avcodec_close(m_pAVCtx);
-    av_free(m_pAVCtx->extradata);
-    av_free(m_pAVCtx);
-    m_pAVCtx = NULL;
+    av_freep(&m_pAVCtx->extradata);
+    av_freep(&m_pAVCtx);
   }
 
   if (m_pParser) {
@@ -241,10 +240,7 @@ void CLAVAudio::ffmpeg_shutdown()
     m_pParser = NULL;
   }
 
-  if (m_pPCMData) {
-    av_free(m_pPCMData);
-    m_pPCMData = NULL;
-  }
+  av_freep(&m_pPCMData);
 
   FreeBitstreamContext();
 

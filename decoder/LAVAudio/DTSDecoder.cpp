@@ -125,11 +125,7 @@ fail:
 
 HRESULT CLAVAudio::FreeDTSDecoder()
 {
-  if (m_pDTSDecoderContext) {
-    delete m_pDTSDecoderContext;
-    m_pDTSDecoderContext = NULL;
-  }
-
+  SAFE_DELETE(m_pDTSDecoderContext);
   return S_OK;
 }
 
