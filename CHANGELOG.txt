@@ -1,5 +1,17 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.35 - 2011/09/07
+LAV Splitter
+- Fixed a crash in IAMStreamSelect::Info handling with certain applications
+- Improve duration calculation for MPEG files
+
+LAV Audio
+- Fix playback of DTS streams which change the channel mid-playback
+
+LAV Video
+- Fixed a crash with 10-bit decoding and benchmarking tools
+- Fixed a H264 NALU parsing issue with certain streams
+
 0.34 - 2011/09/04
 LAV Splitter
 - Improve playback of VC-1 in EVO
