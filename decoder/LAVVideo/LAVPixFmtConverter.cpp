@@ -312,7 +312,12 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       }
     } else if (((m_OutputPixFmt == LAVPixFmt_P010 || m_OutputPixFmt == LAVPixFmt_P016) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || PIX_FMT_YUV420P16LE))
             || ((m_OutputPixFmt == LAVPixFmt_P210 || m_OutputPixFmt == LAVPixFmt_P216) && (m_InputPixFmt == PIX_FMT_YUV422P10LE || m_InputPixFmt == PIX_FMT_YUV422P16LE))) {
-      convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le;
+      if (m_InputPixFmt == PIX_FMT_YUV420P10LE)
+        convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<6>;
+      else if (m_InputPixFmt == PIX_FMT_YUV420P9LE)
+        convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<7>;
+      else if (m_InputPixFmt == PIX_FMT_YUV420P16LE)
+        convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<0>;
       m_RequiredAlignment = 8; // We need 16-byte alignment, with every pixel being 2 byte, 8 pixel alignment is all we need
     } else if (m_OutputPixFmt == LAVPixFmt_NV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
       convert = &CLAVPixFmtConverter::convert_yuv420_nv12;

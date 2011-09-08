@@ -109,6 +109,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
 template HRESULT CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<0>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<1>CONV_FUNC_PARAMS;
 
+template <int shift>
 DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 {
   const uint16_t *y = (const uint16_t *)src[0];
@@ -118,7 +119,6 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   int inYStride = srcStride[0] >> 1;
   int inUVStride = srcStride[1] >> 1;
   int outStride = dstStride << 1;
-  int shift = ((inputFormat == PIX_FMT_YUV420P10LE || inputFormat == PIX_FMT_YUV422P10LE) ? 6 : (inputFormat == PIX_FMT_YUV420P9LE) ? 7 : 0);
   int uvHeight = (outputFormat == LAVPixFmt_P010 || outputFormat == LAVPixFmt_P016) ? (height >> 1) : height;
 
   int line, i;
@@ -162,6 +162,11 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 
   return S_OK;
 }
+
+// Force creation of these two variants
+template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<6>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<7>CONV_FUNC_PARAMS;
 
 DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12)
 {
