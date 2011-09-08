@@ -120,19 +120,22 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   int inUVStride = srcStride[1] >> 1;
   int outStride = dstStride << 1;
   int uvHeight = (outputFormat == LAVPixFmt_P010 || outputFormat == LAVPixFmt_P016) ? (height >> 1) : height;
+  int uvWidth = width >> 1;
 
   int line, i;
-  __m128i xmm0,xmm1,xmm2,xmm3;
+  __m128i xmm0,xmm1,xmm2;
 
   // Process Y
   for (line = 0; line < height; ++line) {
     __m128i *dst128Y = (__m128i *)(dst + line * outStride);
 
-    for (i = 0; i < width; i+=8) {
+    for (i = 0; i < width; i+=16) {
       // Load 8 pixels into register
       PIXCONV_LOAD_PIXEL16(xmm0, (y+i), shift); /* YYYY */
+      PIXCONV_LOAD_PIXEL16(xmm1, (y+i+8), shift); /* YYYY */
       // and write them out
       _mm_stream_si128(dst128Y++, xmm0);
+      _mm_stream_si128(dst128Y++, xmm1);
     }
 
     y += inYStride;
@@ -144,16 +147,17 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   for (line = 0; line < uvHeight; ++line) {
     __m128i *dst128UV = (__m128i *)(dstUV + line * outStride);
 
-    for (i = 0; i < (width >> 1); i+=8) {
+    for (i = 0; i < uvWidth; i+=8) {
       // Load 8 pixels into register
       PIXCONV_LOAD_PIXEL16(xmm0, (v+i), shift); /* VVVV */
       PIXCONV_LOAD_PIXEL16(xmm1, (u+i), shift); /* UUUU */
 
-      xmm2 = _mm_unpacklo_epi16(xmm1, xmm0);    /* UVUV */
-      xmm3 = _mm_unpackhi_epi16(xmm1, xmm0);    /* UVUV */
+      xmm2 = xmm0;
+      xmm0 = _mm_unpacklo_epi16(xmm1, xmm0);    /* UVUV */
+      xmm2 = _mm_unpackhi_epi16(xmm1, xmm2);    /* UVUV */
 
+      _mm_stream_si128(dst128UV++, xmm0);
       _mm_stream_si128(dst128UV++, xmm2);
-      _mm_stream_si128(dst128UV++, xmm3);
     }
 
     u += inUVStride;

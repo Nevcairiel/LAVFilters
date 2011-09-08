@@ -318,7 +318,6 @@ void CLAVPixFmtConverter::SelectConvertFunction()
         convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<7>;
       else if (m_InputPixFmt == PIX_FMT_YUV420P16LE)
         convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<0>;
-      m_RequiredAlignment = 8; // We need 16-byte alignment, with every pixel being 2 byte, 8 pixel alignment is all we need
     } else if (m_OutputPixFmt == LAVPixFmt_NV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
       convert = &CLAVPixFmtConverter::convert_yuv420_nv12;
       m_RequiredAlignment = 32;
