@@ -291,10 +291,12 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   m_bRGBConverter = FALSE;
   convert = NULL;
 
+  int cpu = av_get_cpu_flags();
+
   if (m_OutputPixFmt == LAVPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
     convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
     m_RequiredAlignment = 0;
-  } else if (av_get_cpu_flags() & AV_CPU_FLAG_SSE2) {
+  } else if (cpu & AV_CPU_FLAG_SSE2) {
     if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE || m_InputPixFmt == PIX_FMT_YUV444P16LE)) {
       convert = &CLAVPixFmtConverter::convert_yuv444_ayuv_dither_le;
     } else if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P)) {
