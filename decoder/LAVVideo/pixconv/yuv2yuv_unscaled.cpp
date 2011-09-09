@@ -32,11 +32,11 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  int inYStride = srcStride[0] >> 1;
-  int inUVStride = srcStride[1] >> 1;
-  int outYStride = dstStride;
-  int outUVStride = dstStride >> 1;
-  int shift = (inputFormat == PIX_FMT_YUV420P10LE ? 2 : (inputFormat == PIX_FMT_YUV420P9LE) ? 1 : 8);
+  const int inYStride = srcStride[0] >> 1;
+  const int inUVStride = srcStride[1] >> 1;
+  const int outYStride = dstStride;
+  const int outUVStride = dstStride >> 1;
+  const int shift = (inputFormat == PIX_FMT_YUV420P10LE ? 2 : (inputFormat == PIX_FMT_YUV420P9LE) ? 1 : 8);
 
   int line, i;
 
@@ -116,11 +116,11 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  int inYStride = srcStride[0] >> 1;
-  int inUVStride = srcStride[1] >> 1;
-  int outStride = dstStride << 1;
-  int uvHeight = (outputFormat == LAVPixFmt_P010 || outputFormat == LAVPixFmt_P016) ? (height >> 1) : height;
-  int uvWidth = width >> 1;
+  const int inYStride = srcStride[0] >> 1;
+  const int inUVStride = srcStride[1] >> 1;
+  const int outStride = dstStride << 1;
+  const int uvHeight = (outputFormat == LAVPixFmt_P010 || outputFormat == LAVPixFmt_P016) ? (height >> 1) : height;
+  const int uvWidth = width >> 1;
 
   int line, i;
   __m128i xmm0,xmm1,xmm2;

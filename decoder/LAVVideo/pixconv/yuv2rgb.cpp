@@ -300,9 +300,8 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
 
   int line = sliceYStart;
   int lastLine = sliceYEnd;
-  int sliceYEnd0 = sliceYEnd;
 
-  int endx = width - 4;
+  const int endx = width - 4;
 
   // 4:2:0 needs special handling for the first and the last line
   if (inputFormat == PIX_FMT_YUV420P) {
@@ -338,7 +337,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   }
 
   if (inputFormat == PIX_FMT_YUV420P) {
-    if (sliceYEnd0 == height) {
+    if (sliceYEnd == height) {
       y = srcY + (height - 1) * srcStrideY;
       u = srcU + ((height >> 1) - 1)  * srcStrideUV;
       v = srcV + ((height >> 1) - 1)  * srcStrideUV;
@@ -359,18 +358,12 @@ inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8
   if (threads <= 1) {
     yuv2rgb_process_lines<inputFormat, shift, out32>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs);
   } else {
-    int is_odd;
-    int lines_per_thread = (height / threads)&~1;
-
-    if (inputFormat == PIX_FMT_YUV420P) {
-      is_odd = 1;
-    } else {
-      is_odd = 0;
-    }
+    const int is_odd = (inputFormat == PIX_FMT_YUV420P);
+    const int lines_per_thread = (height / threads)&~1;
 
     Concurrency::parallel_for(0, threads, [&](int i) {
-      int starty = (i * lines_per_thread);
-      int endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
+      const int starty = (i * lines_per_thread);
+      const int endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
       yuv2rgb_process_lines<inputFormat, shift, out32>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs);
     });
   }

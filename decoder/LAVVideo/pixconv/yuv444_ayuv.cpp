@@ -39,8 +39,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
   const uint8_t *u = (const uint8_t *)src[1];
   const uint8_t *v = (const uint8_t *)src[2];
 
-  int inStride = srcStride[0];
-  int outStride = dstStride << 2;
+  const int inStride = srcStride[0];
+  const int outStride = dstStride << 2;
 
   int line, i;
 
@@ -93,8 +93,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  int inStride = srcStride[0] >> 1;
-  int outStride = dstStride << 2;
+  const int inStride = srcStride[0] >> 1;
+  const int outStride = dstStride << 2;
 
   // Number of bits to shift to reach 8
   int shift = (inputFormat == PIX_FMT_YUV444P10LE ? 2 : (inputFormat == PIX_FMT_YUV444P9LE) ? 1 : 8);
