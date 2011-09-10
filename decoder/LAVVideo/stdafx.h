@@ -34,7 +34,8 @@
 #include <Windows.h>
 #include <Commctrl.h>
 
-#include <dxva.h>
+#include <d3d9.h>
+#include <dxva2api.h>
 
 extern "C" {
 #define __STDC_CONSTANT_MACROS

@@ -792,18 +792,18 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
 DWORD CLAVVideo::GetDXVAExtendedFlags()
 {
   DWORD dwControlFlags = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
-  DXVA_ExtendedFormat *fmt = (DXVA_ExtendedFormat *)&dwControlFlags;
+  DXVA2_ExtendedFormat *fmt = (DXVA2_ExtendedFormat *)&dwControlFlags;
 
   // Chroma location
   switch(m_pAVCtx->chroma_sample_location) {
   case AVCHROMA_LOC_LEFT:
-    fmt->VideoChromaSubsampling = DXVA_VideoChromaSubsampling_MPEG2;
+    fmt->VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_MPEG2;
     break;
   case AVCHROMA_LOC_CENTER:
-    fmt->VideoChromaSubsampling = DXVA_VideoChromaSubsampling_MPEG1;
+    fmt->VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_MPEG1;
     break;
   case AVCHROMA_LOC_TOPLEFT:
-    fmt->VideoChromaSubsampling = DXVA_VideoChromaSubsampling_DV_PAL;
+    fmt->VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_DV_PAL;
     break;
   }
 
@@ -811,62 +811,62 @@ DWORD CLAVVideo::GetDXVAExtendedFlags()
   BOOL ffFullRange = (m_pAVCtx->color_range == AVCOL_RANGE_JPEG) || m_pAVCtx->pix_fmt == PIX_FMT_YUVJ420P || m_pAVCtx->pix_fmt == PIX_FMT_YUVJ422P || m_pAVCtx->pix_fmt == PIX_FMT_YUVJ444P;
   if (m_PixFmtConverter.IsRGBConverterActive()) {
     if (m_settings.RGBRange == 0)
-      fmt->NominalRange = ffFullRange ? DXVA_NominalRange_0_255 : DXVA_NominalRange_16_235;
+      fmt->NominalRange = ffFullRange ? DXVA2_NominalRange_0_255 : DXVA2_NominalRange_16_235;
     else
-      fmt->NominalRange = m_settings.RGBRange == 1 ? DXVA_NominalRange_16_235 : DXVA_NominalRange_0_255;
+      fmt->NominalRange = m_settings.RGBRange == 1 ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_0_255;
   } else {
     if (ffFullRange || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB24)
-      fmt->NominalRange = DXVA_NominalRange_0_255;
+      fmt->NominalRange = DXVA2_NominalRange_0_255;
     else if (m_pAVCtx->color_range == AVCOL_RANGE_MPEG)
-      fmt->NominalRange = DXVA_NominalRange_16_235;
+      fmt->NominalRange = DXVA2_NominalRange_16_235;
   }
 
   // Color Space / Transfer Matrix
   switch (m_pAVCtx->colorspace) {
   case AVCOL_SPC_BT709:
-    fmt->VideoTransferMatrix = DXVA_VideoTransferMatrix_BT709;
+    fmt->VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT709;
     break;
   case AVCOL_SPC_BT470BG:
   case AVCOL_SPC_SMPTE170M:
-    fmt->VideoTransferMatrix = DXVA_VideoTransferMatrix_BT601;
+    fmt->VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
     break;
   case AVCOL_SPC_SMPTE240M:
-    fmt->VideoTransferMatrix = DXVA_VideoTransferMatrix_SMPTE240M;
+    fmt->VideoTransferMatrix = DXVA2_VideoTransferMatrix_SMPTE240M;
     break;
   case AVCOL_SPC_YCGCO:
-    fmt->VideoTransferMatrix = (DXVA_VideoTransferMatrix)7;
+    fmt->VideoTransferMatrix = (DXVA2_VideoTransferMatrix)7;
     break;
   }
 
   // Color Primaries
   switch(m_pAVCtx->color_primaries) {
   case AVCOL_PRI_BT709:
-    fmt->VideoPrimaries = DXVA_VideoPrimaries_BT709;
+    fmt->VideoPrimaries = DXVA2_VideoPrimaries_BT709;
     break;
   case AVCOL_PRI_BT470M:
-    fmt->VideoPrimaries = DXVA_VideoPrimaries_BT470_2_SysM;
+    fmt->VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysM;
     break;
   case AVCOL_PRI_BT470BG:
-    fmt->VideoPrimaries = DXVA_VideoPrimaries_BT470_2_SysBG;
+    fmt->VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysBG;
     break;
   case AVCOL_PRI_SMPTE170M:
-    fmt->VideoPrimaries = DXVA_VideoPrimaries_SMPTE170M;
+    fmt->VideoPrimaries = DXVA2_VideoPrimaries_SMPTE170M;
     break;
   case AVCOL_PRI_SMPTE240M:
-    fmt->VideoPrimaries = DXVA_VideoPrimaries_SMPTE240M;
+    fmt->VideoPrimaries = DXVA2_VideoPrimaries_SMPTE240M;
     break;
   }
 
   // Color Transfer Function
   switch(m_pAVCtx->color_trc) {
   case AVCOL_TRC_BT709:
-    fmt->VideoTransferFunction = DXVA_VideoTransFunc_22_709;
+    fmt->VideoTransferFunction = DXVA2_VideoTransFunc_22_709;
     break;
   case AVCOL_TRC_GAMMA22:
-    fmt->VideoTransferFunction = DXVA_VideoTransFunc_22;
+    fmt->VideoTransferFunction = DXVA2_VideoTransFunc_22;
     break;
   case AVCOL_TRC_GAMMA28:
-    fmt->VideoTransferFunction = DXVA_VideoTransFunc_28;
+    fmt->VideoTransferFunction = DXVA2_VideoTransFunc_28;
     break;
   }
 
