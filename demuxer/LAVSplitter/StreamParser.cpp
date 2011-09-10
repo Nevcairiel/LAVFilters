@@ -27,8 +27,12 @@
 #include "H264Nalu.h"
 
 extern "C" {
+#define AVCODEC_X86_MATHOPS_H
 #include "libavutil/intreadwrite.h"
+#include "libavcodec/get_bits.h"
 }
+
+#define AAC_ADTS_HEADER_SIZE 7
 
 //#define DEBUG_PGS_PARSER
 
@@ -66,6 +70,8 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     ParseMOVText(pPacket);
   } else if (m_strContainer == "avi" && m_gSubtype == MEDIASUBTYPE_ASS) {
     ParseRawSSA(pPacket);
+  } else if (m_gSubtype == MEDIASUBTYPE_AAC && (m_strContainer != "matroska" && m_strContainer != "mp4")) {
+    ParseAAC(pPacket);
   } else {
     Queue(pPacket);
   }
@@ -497,4 +503,21 @@ HRESULT CStreamParser::ParseRawSSA(Packet *pPacket)
 
   SAFE_DELETE(pPacket);
   return S_FALSE;
+}
+
+HRESULT CStreamParser::ParseAAC(Packet *pPacket)
+{
+  BYTE *pData = pPacket->GetData();
+
+  GetBitContext gb;
+  init_get_bits(&gb, pData, AAC_ADTS_HEADER_SIZE*8);
+  // Check if its really ADTS
+  if (get_bits(&gb, 12) == 0xfff)  {
+    skip_bits1(&gb);              /* id */
+    skip_bits(&gb, 2);            /* layer */
+    int crc_abs = get_bits1(&gb); /* protection_absent */
+
+    pPacket->RemoveHead(AAC_ADTS_HEADER_SIZE + 2*!crc_abs);
+  }
+  return Queue(pPacket);
 }
