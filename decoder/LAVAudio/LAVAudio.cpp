@@ -681,7 +681,7 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
   }
 
   // Dont use a channel mask for "default" mono/stereo sources
-  if (wfe->wBitsPerSample <= 16 && wfe->nSamplesPerSec <= 44100 && ((nChannels == 1 && dwChannelMask == SPEAKER_FRONT_CENTER) || (nChannels == 2 && dwChannelMask == (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT)))) {
+  if ((outputFormat == SampleFormat_FP32 || wfe->wBitsPerSample <= 16) && wfe->nSamplesPerSec <= 44100 && ((nChannels == 1 && dwChannelMask == SPEAKER_FRONT_CENTER) || (nChannels == 2 && dwChannelMask == (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT)))) {
     dwChannelMask = 0;
   }
 
