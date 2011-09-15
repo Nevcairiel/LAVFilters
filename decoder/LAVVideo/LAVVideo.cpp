@@ -447,7 +447,7 @@ HRESULT CLAVVideo::ffmpeg_init(CodecID codec, const CMediaType *pmt)
 
   BOOL bVC1OnMPC = (codec == CODEC_ID_VC1 && (FilterInGraph(CLSID_MPCHCMPEGSplitter, m_pGraph) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource, m_pGraph)));
 
-  m_bFFReordering      = ((codec == CODEC_ID_H264 && m_strExtension != L".avi") || codec == CODEC_ID_VP8 || codec == CODEC_ID_VP3 || codec == CODEC_ID_THEORA || codec == CODEC_ID_HUFFYUV || bVC1OnMPC);
+  m_bFFReordering      = ((codec == CODEC_ID_H264 && m_strExtension != L".avi") || codec == CODEC_ID_VP8 || codec == CODEC_ID_VP3 || codec == CODEC_ID_THEORA || codec == CODEC_ID_HUFFYUV || codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO || bVC1OnMPC);
   m_bCalculateStopTime = (codec == CODEC_ID_H264 || bVC1OnMPC);
 
   m_bRVDropBFrameTimings = (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_strExtension == L".mkv" || ((m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) && !(FilterInGraph(CLSID_LAVSplitter, m_pGraph) || FilterInGraph(CLSID_LAVSplitterSource, m_pGraph))));
@@ -1032,18 +1032,7 @@ HRESULT CLAVVideo::Decode(BYTE *pDataIn, int nSize, const REFERENCE_TIME rtStart
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // The next big block computes the proper timestamps
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    if (MPEG12_CODEC(m_nCodecId)) {
-      if (m_bDiscontinuity && m_pFrame->pict_type == AV_PICTURE_TYPE_I && m_pFrame->pkt_pts != AV_NOPTS_VALUE) {
-        rtStart = m_pFrame->pkt_pts;
-        m_bDiscontinuity = FALSE;
-        DbgLog((LOG_TRACE, 20, L"::Decode() - Synced MPEG-2 timestamps to %I64d", rtStart));
-      } else {
-        rtStart = m_rtPrevStop;
-      }
-
-      REFERENCE_TIME duration = (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
-      rtStop = rtStart + (duration * (m_pFrame->repeat_pict ? 3 : 2)  / 2);
-    } else if (m_bFFReordering) {
+    if (m_bFFReordering) {
       rtStart = m_pFrame->pkt_pts;
       rtStop = m_pFrame->pkt_dts;
     } else if (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
