@@ -119,7 +119,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   const int inYStride = srcStride[0] >> 1;
   const int inUVStride = srcStride[1] >> 1;
   const int outStride = dstStride << 1;
-  const int uvHeight = (outputFormat == LAVPixFmt_P010 || outputFormat == LAVPixFmt_P016) ? (height >> 1) : height;
+  const int uvHeight = (outputFormat == LAVOutPixFmt_P010 || outputFormat == LAVOutPixFmt_P016) ? (height >> 1) : height;
   const int uvWidth = width >> 1;
 
   int line, i;

@@ -65,7 +65,7 @@ private:
   BOOL  m_bHighQualityPixelConv;
   DWORD m_dwRGBOutput;
 
-  BOOL  m_bPixFmts[LAVPixFmt_NB];
+  BOOL  m_bPixFmts[LAVOutPixFmt_NB];
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage

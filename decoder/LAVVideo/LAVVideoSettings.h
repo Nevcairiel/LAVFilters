@@ -65,23 +65,23 @@ typedef enum LAVVideoCodec {
 };
 
 // Supported output pixel formats
-typedef enum LAVVideoPixFmts {
-  LAVPixFmt_None = -1,
-  LAVPixFmt_YV12,            // 4:2:0, 8bit, planar
-  LAVPixFmt_NV12,            // 4:2:0, 8bit, Y planar, U/V packed
-  LAVPixFmt_YUY2,            // 4:2:2, 8bit, packed
-  LAVPixFmt_UYVY,            // 4:2:2, 8bit, packed
-  LAVPixFmt_AYUV,            // 4:4:4, 8bit, packed
-  LAVPixFmt_P010,            // 4:2:0, 10bit, Y planar, U/V packed
-  LAVPixFmt_P210,            // 4:2:2, 10bit, Y planar, U/V packed
-  LAVPixFmt_Y410,            // 4:4:4, 10bit, packed
-  LAVPixFmt_P016,            // 4:2:0, 16bit, Y planar, U/V packed
-  LAVPixFmt_P216,            // 4:2:2, 16bit, Y planar, U/V packed
-  LAVPixFmt_Y416,            // 4:4:4, 16bit, packed
-  LAVPixFmt_RGB32,           // 32-bit RGB (BGRA)
-  LAVPixFmt_RGB24,           // 24-bit RGB (BGR)
+typedef enum LAVOutPixFmts {
+  LAVOutPixFmt_None = -1,
+  LAVOutPixFmt_YV12,            // 4:2:0, 8bit, planar
+  LAVOutPixFmt_NV12,            // 4:2:0, 8bit, Y planar, U/V packed
+  LAVOutPixFmt_YUY2,            // 4:2:2, 8bit, packed
+  LAVOutPixFmt_UYVY,            // 4:2:2, 8bit, packed
+  LAVOutPixFmt_AYUV,            // 4:4:4, 8bit, packed
+  LAVOutPixFmt_P010,            // 4:2:0, 10bit, Y planar, U/V packed
+  LAVOutPixFmt_P210,            // 4:2:2, 10bit, Y planar, U/V packed
+  LAVOutPixFmt_Y410,            // 4:4:4, 10bit, packed
+  LAVOutPixFmt_P016,            // 4:2:0, 16bit, Y planar, U/V packed
+  LAVOutPixFmt_P216,            // 4:2:2, 16bit, Y planar, U/V packed
+  LAVOutPixFmt_Y416,            // 4:4:4, 16bit, packed
+  LAVOutPixFmt_RGB32,           // 32-bit RGB (BGRA)
+  LAVOutPixFmt_RGB24,           // 24-bit RGB (BGR)
 
-  LAVPixFmt_NB               // Number of formats
+  LAVOutPixFmt_NB               // Number of formats
 };
 
 // LAV Audio configuration interface
@@ -133,8 +133,8 @@ interface ILAVVideoSettings : public IUnknown
 
   // Configure which pixel formats are enabled for output
   // If pixFmt is invalid, Get will return FALSE and Set E_FAIL
-  STDMETHOD_(BOOL,GetPixelFormat)(LAVVideoPixFmts pixFmt) = 0;
-  STDMETHOD(SetPixelFormat)(LAVVideoPixFmts pixFmt, BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetPixelFormat)(LAVOutPixFmts pixFmt) = 0;
+  STDMETHOD(SetPixelFormat)(LAVOutPixFmts pixFmt, BOOL bEnabled) = 0;
 
   // Set wether high-quality pixel format conversion is performed
   STDMETHOD(SetHighQualityPixelFormatConversion)(BOOL bEnabled) = 0;

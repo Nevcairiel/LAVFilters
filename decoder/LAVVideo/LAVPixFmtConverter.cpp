@@ -28,67 +28,67 @@
 typedef struct {
   enum PixelFormat ff_pix_fmt; // ffmpeg pixel format
   int num_pix_fmt;
-  enum LAVVideoPixFmts lav_pix_fmts[LAVPixFmt_NB];
+  enum LAVOutPixFmts lav_pix_fmts[LAVOutPixFmt_NB];
 } FF_LAV_PIXFMT_MAP;
 
 static FF_LAV_PIXFMT_MAP lav_pixfmt_map[] = {
   // Default
-  { PIX_FMT_NONE, 5, { LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
+  { PIX_FMT_NONE, 5, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
   // 4:2:0
-  { PIX_FMT_YUV420P,  6, { LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUVJ420P, 6, { LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_NV12,     6, { LAVPixFmt_NV12, LAVPixFmt_YV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_NV21,     6, { LAVPixFmt_NV12, LAVPixFmt_YV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
+  { PIX_FMT_YUV420P,  6, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUVJ420P, 6, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_NV12,     6, { LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_NV21,     6, { LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
-  { PIX_FMT_YUV420P9BE,  7, { LAVPixFmt_P010, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P9LE,  7, { LAVPixFmt_P010, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P10BE, 7, { LAVPixFmt_P010, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P10LE, 7, { LAVPixFmt_P010, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P16BE, 8, { LAVPixFmt_P016, LAVPixFmt_P010, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P16LE, 8, { LAVPixFmt_P016, LAVPixFmt_P010, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
+  { PIX_FMT_YUV420P9BE,  7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV420P9LE,  7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV420P10BE, 7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV420P10LE, 7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV420P16BE, 8, { LAVOutPixFmt_P016, LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV420P16LE, 8, { LAVOutPixFmt_P016, LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
   // 4:2:2
-  { PIX_FMT_YUV422P,  6, { LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUVJ422P, 6, { LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUYV422,  6, { LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_UYVY422,  6, { LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
+  { PIX_FMT_YUV422P,  6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUVJ422P, 6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUYV422,  6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_UYVY422,  6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
-  { PIX_FMT_YUV422P10BE, 7, { LAVPixFmt_P210, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV422P10LE, 7, { LAVPixFmt_P210, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV422P16BE, 8, { LAVPixFmt_P216, LAVPixFmt_P210, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
-  { PIX_FMT_YUV422P16LE, 8, { LAVPixFmt_P216, LAVPixFmt_P210, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12, LAVPixFmt_RGB32, LAVPixFmt_RGB24 } },
+  { PIX_FMT_YUV422P10BE, 7, { LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV422P10LE, 7, { LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV422P16BE, 8, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { PIX_FMT_YUV422P16LE, 8, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
   
   // 4:4:4
-  { PIX_FMT_YUV444P,  7, { LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_YUVJ444P, 7, { LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
+  { PIX_FMT_YUV444P,  7, { LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_YUVJ444P, 7, { LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
 
-  { PIX_FMT_YUV444P9BE,  8, { LAVPixFmt_Y410, LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_YUV444P9LE,  8, { LAVPixFmt_Y410, LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_YUV444P10BE, 8, { LAVPixFmt_Y410, LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_YUV444P10LE, 8, { LAVPixFmt_Y410, LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_YUV444P16BE, 9, { LAVPixFmt_Y416, LAVPixFmt_Y410, LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_YUV444P16LE, 9, { LAVPixFmt_Y416, LAVPixFmt_Y410, LAVPixFmt_AYUV, LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
+  { PIX_FMT_YUV444P9BE,  8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_YUV444P9LE,  8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_YUV444P10BE, 8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_YUV444P10LE, 8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_YUV444P16BE, 9, { LAVOutPixFmt_Y416, LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_YUV444P16LE, 9, { LAVOutPixFmt_Y416, LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
 
   // RGB
-  { PIX_FMT_RGB24,    6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGR24,    6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_RGBA,     6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_ARGB,     6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGRA,     6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_ABGR,     6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_RGB565BE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_RGB565LE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_RGB555BE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_RGB555LE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGR565BE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGR565LE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGR555BE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGR555LE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_RGB444LE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_RGB444BE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGR444LE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
-  { PIX_FMT_BGR444BE, 6, { LAVPixFmt_RGB32, LAVPixFmt_RGB24, LAVPixFmt_YUY2, LAVPixFmt_UYVY, LAVPixFmt_YV12, LAVPixFmt_NV12 } },
+  { PIX_FMT_RGB24,    6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGR24,    6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_RGBA,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_ARGB,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGRA,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_ABGR,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_RGB565BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_RGB565LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_RGB555BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_RGB555LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGR565BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGR565LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGR555BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGR555LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_RGB444LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_RGB444BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGR444LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { PIX_FMT_BGR444BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
 };
 
 LAVPixFmtDesc lav_pixfmt_desc[] = {
@@ -122,7 +122,7 @@ static FF_LAV_PIXFMT_MAP *lookupFormatMap(PixelFormat ffFormat, BOOL bFallbackTo
 CLAVPixFmtConverter::CLAVPixFmtConverter()
   : m_pSettings(NULL)
   , m_InputPixFmt(PIX_FMT_NONE)
-  , m_OutputPixFmt(LAVPixFmt_YV12)
+  , m_OutputPixFmt(LAVOutPixFmt_YV12)
   , m_pSwsContext(NULL)
   , swsWidth(0), swsHeight(0)
   , swsColorSpace(AVCOL_SPC_UNSPECIFIED)
@@ -146,14 +146,14 @@ CLAVPixFmtConverter::~CLAVPixFmtConverter()
   av_freep(&m_pAlignedBuffer);
 }
 
-LAVVideoPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
+LAVOutPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
 {
   for (int i = 0; i < countof(lav_pixfmt_desc); ++i) {
     if (lav_pixfmt_desc[i].subtype == *guid) {
-      return (LAVVideoPixFmts)i;
+      return (LAVOutPixFmts)i;
     }
   }
-  return LAVPixFmt_None;
+  return LAVOutPixFmt_None;
 }
 
 int CLAVPixFmtConverter::GetFilteredFormatCount()
@@ -171,7 +171,7 @@ int CLAVPixFmtConverter::GetFilteredFormatCount()
   return count;
 }
 
-LAVVideoPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
+LAVOutPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
 {
   FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
   int actualIndex = -1;
@@ -188,7 +188,7 @@ LAVVideoPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
   return lav_pixfmt_map[0].lav_pix_fmts[index];
 }
 
-LAVVideoPixFmts CLAVPixFmtConverter::GetPreferredOutput()
+LAVOutPixFmts CLAVPixFmtConverter::GetPreferredOutput()
 {
   return GetFilteredFormat(0);
 }
@@ -203,7 +203,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   if (index < 0 || index >= GetFilteredFormatCount())
     index = 0;
 
-  LAVVideoPixFmts pixFmt = GetFilteredFormat(index);
+  LAVOutPixFmts pixFmt = GetFilteredFormat(index);
 
   GUID guid = lav_pixfmt_desc[pixFmt].subtype;
 
@@ -283,7 +283,7 @@ BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
   return FALSE;
 }
 
-#define OUTPUT_RGB (m_OutputPixFmt == LAVPixFmt_RGB32 || m_OutputPixFmt == LAVPixFmt_RGB24)
+#define OUTPUT_RGB (m_OutputPixFmt == LAVOutPixFmt_RGB32 || m_OutputPixFmt == LAVOutPixFmt_RGB24)
 
 void CLAVPixFmtConverter::SelectConvertFunction()
 {
@@ -293,45 +293,45 @@ void CLAVPixFmtConverter::SelectConvertFunction()
 
   int cpu = av_get_cpu_flags();
 
-  if (m_OutputPixFmt == LAVPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
+  if (m_OutputPixFmt == LAVOutPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
     convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
     m_RequiredAlignment = 0;
   } else if (cpu & AV_CPU_FLAG_SSE2) {
-    if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE || m_InputPixFmt == PIX_FMT_YUV444P16LE)) {
+    if (m_OutputPixFmt == LAVOutPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE || m_InputPixFmt == PIX_FMT_YUV444P16LE)) {
       convert = &CLAVPixFmtConverter::convert_yuv444_ayuv_dither_le;
-    } else if (m_OutputPixFmt == LAVPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P)) {
+    } else if (m_OutputPixFmt == LAVOutPixFmt_AYUV && (m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P)) {
       convert = &CLAVPixFmtConverter::convert_yuv444_ayuv;
-    } else if (m_OutputPixFmt == LAVPixFmt_Y410 && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE)) {
+    } else if (m_OutputPixFmt == LAVOutPixFmt_Y410 && (m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE)) {
       convert = &CLAVPixFmtConverter::convert_yuv444_y410;
-    } else if ((m_OutputPixFmt == LAVPixFmt_YV12 || m_OutputPixFmt == LAVPixFmt_NV12) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || m_InputPixFmt == PIX_FMT_YUV420P16LE)) {
-      if (m_OutputPixFmt == LAVPixFmt_NV12) {
+    } else if ((m_OutputPixFmt == LAVOutPixFmt_YV12 || m_OutputPixFmt == LAVOutPixFmt_NV12) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || m_InputPixFmt == PIX_FMT_YUV420P16LE)) {
+      if (m_OutputPixFmt == LAVOutPixFmt_NV12) {
         convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<TRUE>;
       } else {
         convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<FALSE>;
         m_RequiredAlignment = 32; // the U/V planes need to be 16 aligned..
       }
-    } else if (((m_OutputPixFmt == LAVPixFmt_P010 || m_OutputPixFmt == LAVPixFmt_P016) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || PIX_FMT_YUV420P16LE))
-            || ((m_OutputPixFmt == LAVPixFmt_P210 || m_OutputPixFmt == LAVPixFmt_P216) && (m_InputPixFmt == PIX_FMT_YUV422P10LE || m_InputPixFmt == PIX_FMT_YUV422P16LE))) {
+    } else if (((m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016) && (m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE || PIX_FMT_YUV420P16LE))
+            || ((m_OutputPixFmt == LAVOutPixFmt_P210 || m_OutputPixFmt == LAVOutPixFmt_P216) && (m_InputPixFmt == PIX_FMT_YUV422P10LE || m_InputPixFmt == PIX_FMT_YUV422P16LE))) {
       if (m_InputPixFmt == PIX_FMT_YUV420P10LE)
         convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<6>;
       else if (m_InputPixFmt == PIX_FMT_YUV420P9LE)
         convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<7>;
       else if (m_InputPixFmt == PIX_FMT_YUV420P16LE)
         convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<0>;
-    } else if (m_OutputPixFmt == LAVPixFmt_NV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
+    } else if (m_OutputPixFmt == LAVOutPixFmt_NV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
       convert = &CLAVPixFmtConverter::convert_yuv420_nv12;
       m_RequiredAlignment = 32;
-    } else if (m_OutputPixFmt == LAVPixFmt_YUY2 && (m_InputPixFmt == PIX_FMT_YUV422P || m_InputPixFmt == PIX_FMT_YUVJ422P)) {
+    } else if (m_OutputPixFmt == LAVOutPixFmt_YUY2 && (m_InputPixFmt == PIX_FMT_YUV422P || m_InputPixFmt == PIX_FMT_YUVJ422P)) {
       convert = &CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<0>;
       m_RequiredAlignment = 32;
-    } else if (m_OutputPixFmt == LAVPixFmt_UYVY && (m_InputPixFmt == PIX_FMT_YUV422P || m_InputPixFmt == PIX_FMT_YUVJ422P)) {
+    } else if (m_OutputPixFmt == LAVOutPixFmt_UYVY && (m_InputPixFmt == PIX_FMT_YUV422P || m_InputPixFmt == PIX_FMT_YUVJ422P)) {
       convert = &CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<1>;
       m_RequiredAlignment = 32;
-    } else if ((m_OutputPixFmt == LAVPixFmt_RGB32 || m_OutputPixFmt == LAVPixFmt_RGB24)
+    } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 || m_OutputPixFmt == LAVOutPixFmt_RGB24)
             && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P || m_InputPixFmt == PIX_FMT_YUV420P10LE || m_InputPixFmt == PIX_FMT_YUV420P9LE
              || m_InputPixFmt == PIX_FMT_YUV422P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUV422P10LE
              || m_InputPixFmt == PIX_FMT_YUV444P || m_InputPixFmt == PIX_FMT_YUVJ444P || m_InputPixFmt == PIX_FMT_YUV444P10LE || m_InputPixFmt == PIX_FMT_YUV444P9LE)) {
-      if (m_OutputPixFmt == LAVPixFmt_RGB32) {
+      if (m_OutputPixFmt == LAVOutPixFmt_RGB32) {
         convert = &CLAVPixFmtConverter::convert_yuv_rgb<1>;
         m_RequiredAlignment = 4;
       } else {
@@ -346,7 +346,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   }
 }
 
-void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVVideoPixFmts format)
+void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format)
 {
   LAVPixFmtDesc desc = lav_pixfmt_desc[format];
 

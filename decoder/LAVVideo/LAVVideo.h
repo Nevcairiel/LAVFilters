@@ -63,8 +63,8 @@ public:
   STDMETHODIMP_(BOOL) GetStreamAR();
   STDMETHODIMP SetReportInterlacedFlags(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetReportInterlacedFlags();
-  STDMETHODIMP_(BOOL) GetPixelFormat(LAVVideoPixFmts pixFmt);
-  STDMETHODIMP SetPixelFormat(LAVVideoPixFmts pixFmt, BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetPixelFormat(LAVOutPixFmts pixFmt);
+  STDMETHODIMP SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled);
   STDMETHODIMP SetHighQualityPixelFormatConversion(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetHighQualityPixelFormatConversion();
   STDMETHODIMP SetRGBOutputRange(DWORD dwRange);
@@ -153,7 +153,7 @@ private:
     BOOL InterlacedFlags;
     DWORD NumThreads;
     BOOL bFormats[Codec_NB];
-    BOOL bPixFmts[LAVPixFmt_NB];
+    BOOL bPixFmts[LAVOutPixFmt_NB];
     BOOL HighQualityPixConv;
     DWORD RGBRange;
   } m_settings;

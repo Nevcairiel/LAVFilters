@@ -116,13 +116,13 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.bFormats[Codec_Cinepak]  = FALSE;
   m_settings.bFormats[Codec_QPEG]     = FALSE;
 
-  for (int i = 0; i < LAVPixFmt_NB; ++i)
+  for (int i = 0; i < LAVOutPixFmt_NB; ++i)
     m_settings.bPixFmts[i] = TRUE;
 
   return S_OK;
 }
 
-static const WCHAR* pixFmtSettingsMap[LAVPixFmt_NB] = {
+static const WCHAR* pixFmtSettingsMap[LAVOutPixFmt_NB] = {
   L"yv12", L"nv12", L"yuy2", L"uyvy", L"ayuv", L"p010", L"p210", L"y410", L"p016", L"p216", L"y416", L"rgb32", L"rgb24"
 };
 
@@ -169,7 +169,7 @@ HRESULT CLAVVideo::LoadSettings()
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT);
   CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
 
-  for (int i = 0; i < LAVPixFmt_NB; ++i) {
+  for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
     bFlag = regP.ReadBOOL(pixFmtSettingsMap[i], hr);
     if (SUCCEEDED(hr)) m_settings.bPixFmts[i] = bFlag;
   }
@@ -198,7 +198,7 @@ HRESULT CLAVVideo::SaveSettings()
     }
 
     CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
-    for (int i = 0; i < LAVPixFmt_NB; ++i) {
+    for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
       regP.WriteBOOL(pixFmtSettingsMap[i], m_settings.bPixFmts[i]);
     }
   }
@@ -815,7 +815,7 @@ DWORD CLAVVideo::GetDXVAExtendedFlags()
     else
       fmt->NominalRange = m_settings.RGBRange == 1 ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_0_255;
   } else {
-    if (ffFullRange || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVPixFmt_RGB24)
+    if (ffFullRange || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24)
       fmt->NominalRange = DXVA2_NominalRange_0_255;
     else if (m_pAVCtx->color_range == AVCOL_RANGE_MPEG)
       fmt->NominalRange = DXVA2_NominalRange_16_235;
@@ -1267,9 +1267,9 @@ STDMETHODIMP_(BOOL) CLAVVideo::GetReportInterlacedFlags()
   return m_settings.InterlacedFlags;
 }
 
-STDMETHODIMP CLAVVideo::SetPixelFormat(LAVVideoPixFmts pixFmt, BOOL bEnabled)
+STDMETHODIMP CLAVVideo::SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled)
 {
-  if (pixFmt < 0 || pixFmt >= LAVPixFmt_NB)
+  if (pixFmt < 0 || pixFmt >= LAVOutPixFmt_NB)
     return E_FAIL;
 
   m_settings.bPixFmts[pixFmt] = bEnabled;
@@ -1277,9 +1277,9 @@ STDMETHODIMP CLAVVideo::SetPixelFormat(LAVVideoPixFmts pixFmt, BOOL bEnabled)
   return SaveSettings();
 }
 
-STDMETHODIMP_(BOOL) CLAVVideo::GetPixelFormat(LAVVideoPixFmts pixFmt)
+STDMETHODIMP_(BOOL) CLAVVideo::GetPixelFormat(LAVOutPixFmts pixFmt)
 {
-  if (pixFmt < 0 || pixFmt >= LAVPixFmt_NB)
+  if (pixFmt < 0 || pixFmt >= LAVOutPixFmt_NB)
     return FALSE;
 
   return m_settings.bPixFmts[pixFmt];

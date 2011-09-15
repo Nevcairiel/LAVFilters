@@ -31,43 +31,43 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
 {
   HRESULT hr = S_OK;
   switch (m_OutputPixFmt) {
-  case LAVPixFmt_YV12:
+  case LAVOutPixFmt_YV12:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_YUV420P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
     break;
-  case LAVPixFmt_NV12:
+  case LAVOutPixFmt_NV12:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_NV12, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
-  case LAVPixFmt_YUY2:
+  case LAVOutPixFmt_YUY2:
     hr = ConvertTo422Packed(src, srcStride, dst, width, height, dstStride);
     break;
-  case LAVPixFmt_UYVY:
+  case LAVOutPixFmt_UYVY:
     hr = ConvertTo422Packed(src, srcStride, dst, width, height, dstStride);
     break;
-  case LAVPixFmt_AYUV:
+  case LAVOutPixFmt_AYUV:
     hr = ConvertToAYUV(src, srcStride, dst, width, height, dstStride);
     break;
-  case LAVPixFmt_P010:
+  case LAVOutPixFmt_P010:
     hr = ConvertToPX1X(src, srcStride, dst, width, height, dstStride, 2);
     break;
-  case LAVPixFmt_P016:
+  case LAVOutPixFmt_P016:
     hr = ConvertToPX1X(src, srcStride, dst, width, height, dstStride, 2);
     break;
-  case LAVPixFmt_P210:
+  case LAVOutPixFmt_P210:
     hr = ConvertToPX1X(src, srcStride, dst, width, height, dstStride, 1);
     break;
-  case LAVPixFmt_P216:
+  case LAVOutPixFmt_P216:
     hr = ConvertToPX1X(src, srcStride, dst, width, height, dstStride, 1);
     break;
-  case LAVPixFmt_Y410:
+  case LAVOutPixFmt_Y410:
     hr = ConvertToY410(src, srcStride, dst, width, height, dstStride);
     break;
-  case LAVPixFmt_Y416:
+  case LAVOutPixFmt_Y416:
     hr = ConvertToY416(src, srcStride, dst, width, height, dstStride);
     break;
-  case LAVPixFmt_RGB32:
+  case LAVOutPixFmt_RGB32:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_BGRA, src, srcStride, dst, width, height, dstStride * 4, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
-  case LAVPixFmt_RGB24:
+  case LAVOutPixFmt_RGB24:
     hr = swscale_scale(m_InputPixFmt, PIX_FMT_BGR24, src, srcStride, dst, width, height, dstStride * 3, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   default:
@@ -206,7 +206,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
   int halfwidth = width >> 1;
   int halfstride = sourceStride >> 1;
 
-  if (m_OutputPixFmt == LAVPixFmt_YUY2) {
+  if (m_OutputPixFmt == LAVOutPixFmt_YUY2) {
     for (line = 0; line < height; ++line) {
       uint32_t *idst = (uint32_t *)out;
       for (i = 0; i < (halfwidth - 7); i+=8) {

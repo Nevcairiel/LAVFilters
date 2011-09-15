@@ -70,23 +70,23 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_HQ, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHighQualityPixelFormatConversion(bFlag);
 
-  BOOL bPixFmts[LAVPixFmt_NB] = {0};
-  bPixFmts[LAVPixFmt_YV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_NV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_P010] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P010, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_P016] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P016, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_YUY2] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YUY2, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_UYVY] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_UYVY, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_P210] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P210, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_P216] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P216, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_AYUV] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_AYUV, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_Y410] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_Y410, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_Y416] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_Y416, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_RGB32] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_RGB32, BM_GETCHECK,0, 0);
-  bPixFmts[LAVPixFmt_RGB24] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_RGB24, BM_GETCHECK,0, 0);
+  BOOL bPixFmts[LAVOutPixFmt_NB] = {0};
+  bPixFmts[LAVOutPixFmt_YV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_NV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_P010] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P010, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_P016] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P016, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_YUY2] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YUY2, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_UYVY] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_UYVY, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_P210] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P210, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_P216] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P216, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_AYUV] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_AYUV, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_Y410] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_Y410, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_Y416] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_Y416, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_RGB32] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_RGB32, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_RGB24] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_RGB24, BM_GETCHECK,0, 0);
 
-  for (int i = 0; i < LAVPixFmt_NB; ++i) {
-    m_pVideoSettings->SetPixelFormat((LAVVideoPixFmts)i, bPixFmts[i]);
+  for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
+    m_pVideoSettings->SetPixelFormat((LAVOutPixFmts)i, bPixFmts[i]);
   }
 
   BOOL bRGBAuto = (BOOL)SendDlgItemMessage(m_Dlg, IDC_RGBOUT_AUTO, BM_GETCHECK, 0, 0);
@@ -135,19 +135,19 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_SETCURSEL, m_dwNumThreads, 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_HQ, BM_SETCHECK, m_bHighQualityPixelConv, 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_SETCHECK, m_bPixFmts[LAVPixFmt_YV12], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_SETCHECK, m_bPixFmts[LAVPixFmt_NV12], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_P010, BM_SETCHECK, m_bPixFmts[LAVPixFmt_P010], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_P016, BM_SETCHECK, m_bPixFmts[LAVPixFmt_P016], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_YUY2, BM_SETCHECK, m_bPixFmts[LAVPixFmt_YUY2], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_UYVY, BM_SETCHECK, m_bPixFmts[LAVPixFmt_UYVY], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_P210, BM_SETCHECK, m_bPixFmts[LAVPixFmt_P210], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_P216, BM_SETCHECK, m_bPixFmts[LAVPixFmt_P216], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_AYUV, BM_SETCHECK, m_bPixFmts[LAVPixFmt_AYUV], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_Y410, BM_SETCHECK, m_bPixFmts[LAVPixFmt_Y410], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_Y416, BM_SETCHECK, m_bPixFmts[LAVPixFmt_Y416], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_RGB32, BM_SETCHECK, m_bPixFmts[LAVPixFmt_RGB32], 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_RGB24, BM_SETCHECK, m_bPixFmts[LAVPixFmt_RGB24], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_YV12], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_NV12], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_P010, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_P010], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_P016, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_P016], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_YUY2, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_YUY2], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_UYVY, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_UYVY], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_P210, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_P210], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_P216, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_P216], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_AYUV, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_AYUV], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_Y410, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_Y410], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_Y416, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_Y416], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_RGB32, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_RGB32], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_RGB24, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_RGB24], 0);
 
     SendDlgItemMessage(m_Dlg, IDC_RGBOUT_AUTO, BM_SETCHECK, (m_dwRGBOutput == 0), 0);
     SendDlgItemMessage(m_Dlg, IDC_RGBOUT_TV, BM_SETCHECK, (m_dwRGBOutput == 1), 0);
@@ -167,8 +167,8 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_bHighQualityPixelConv = m_pVideoSettings->GetHighQualityPixelFormatConversion();
   m_dwRGBOutput     = m_pVideoSettings->GetRGBOutputRange();
 
-  for (int i = 0; i < LAVPixFmt_NB; ++i) {
-    m_bPixFmts[i] = m_pVideoSettings->GetPixelFormat((LAVVideoPixFmts)i);
+  for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
+    m_bPixFmts[i] = m_pVideoSettings->GetPixelFormat((LAVOutPixFmts)i);
   }
 
   return hr;
@@ -203,67 +203,67 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       }
     } else if (LOWORD(wParam) == IDC_OUT_YV12 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_YV12]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_YV12]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_NV12 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_NV12]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_NV12]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_P010 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_P010]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_P010]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_P016 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_P016]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_P016]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_YUY2 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_YUY2]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_YUY2]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_UYVY && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_UYVY]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_UYVY]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_P210 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_P210]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_P210]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_P216 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_P216]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_P216]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_AYUV && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_AYUV]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_AYUV]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_Y410 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_Y410]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_Y410]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_Y416 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_Y416]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_Y416]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_RGB32 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_RGB32]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_RGB32]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_RGB24 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_bPixFmts[LAVPixFmt_RGB24]) {
+      if (bValue != m_bPixFmts[LAVOutPixFmt_RGB24]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_RGBOUT_AUTO && HIWORD(wParam) == BN_CLICKED) {

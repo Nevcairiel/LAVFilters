@@ -22,7 +22,7 @@
 
 #include "LAVVideoSettings.h"
 
-#define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, PixelFormat inputFormat, LAVVideoPixFmts outputFormat)
+#define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, PixelFormat inputFormat, LAVOutPixFmts outputFormat)
 
 #define DECLARE_CONV_FUNC(name) \
   HRESULT name CONV_FUNC_PARAMS
@@ -61,13 +61,13 @@ public:
   void SetSettings(ILAVVideoSettings *pSettings) { m_pSettings = pSettings; }
 
   HRESULT SetInputPixFmt(enum PixelFormat pix_fmt) { m_InputPixFmt = pix_fmt; DestroySWScale(); SelectConvertFunction(); return S_OK; }
-  HRESULT SetOutputPixFmt(enum LAVVideoPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; DestroySWScale(); SelectConvertFunction(); return S_OK; }
+  HRESULT SetOutputPixFmt(enum LAVOutPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; DestroySWScale(); SelectConvertFunction(); return S_OK; }
   
-  LAVVideoPixFmts GetOutputBySubtype(const GUID *guid);
-  LAVVideoPixFmts GetPreferredOutput();
+  LAVOutPixFmts GetOutputBySubtype(const GUID *guid);
+  LAVOutPixFmts GetPreferredOutput();
 
   PixelFormat GetInputPixFmt() { return m_InputPixFmt; }
-  LAVVideoPixFmts GetOutputPixFmt() { return m_OutputPixFmt; }
+  LAVOutPixFmts GetOutputPixFmt() { return m_OutputPixFmt; }
   void SetColorProps(AVColorSpace colorspace, AVColorRange range, int RGBOutputRange) { if (swsColorSpace != colorspace || swsColorRange != range || swsOutputRange != RGBOutputRange) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; swsOutputRange = RGBOutputRange; } }
 
   int GetNumMediaTypes();
@@ -99,7 +99,7 @@ public:
 
 private:
   int GetFilteredFormatCount();
-  LAVVideoPixFmts GetFilteredFormat(int index);
+  LAVOutPixFmts GetFilteredFormat(int index);
 
   void SelectConvertFunction();
 
@@ -114,7 +114,7 @@ private:
   void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; };
   SwsContext *GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags);
 
-  void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVVideoPixFmts format);
+  void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format);
 
   typedef HRESULT (CLAVPixFmtConverter::*ConverterFn) CONV_FUNC_PARAMS;
 
@@ -137,7 +137,7 @@ private:
 
 private:
   enum PixelFormat     m_InputPixFmt;
-  enum LAVVideoPixFmts m_OutputPixFmt;
+  enum LAVOutPixFmts   m_OutputPixFmt;
 
   int swsWidth, swsHeight;
   AVColorSpace swsColorSpace;
