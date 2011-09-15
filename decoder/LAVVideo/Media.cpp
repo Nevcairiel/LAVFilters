@@ -167,6 +167,7 @@ FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_QTRpza, CODEC_ID_RPZA },
   { &MEDIASUBTYPE_PNG, CODEC_ID_PNG },
   { &MEDIASUBTYPE_FSV1, CODEC_ID_FLASHSV },
+  { &MEDIASUBTYPE_PCM, CODEC_ID_MSRLE }, // Yeah, PCM. Its the same FourCC as used the MS-RLE
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO },
@@ -311,6 +312,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_QTRpza },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_PNG  },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_FSV1  },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_PCM }, // Yeah, PCM. Its the same FourCC as used the MS-RLE
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -404,6 +406,7 @@ static codec_config_t m_codec_config[] = {
   { 2, { CODEC_ID_ZLIB, CODEC_ID_MSZH }, L"zlib", L"ZLIB/MSZH lossless" },// Codec_ZLIB
   { 1, { CODEC_ID_RPZA }},                                                // Codec_QTRpza
   { 1, { CODEC_ID_PNG }},                                                 // Codec_PNG
+  { 1, { CODEC_ID_MSRLE }},                                               // Codec_MSRLE
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
