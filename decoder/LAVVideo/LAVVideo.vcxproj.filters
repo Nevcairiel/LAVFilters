@@ -25,6 +25,12 @@
     <Filter Include="Header Files\pixconv">
       <UniqueIdentifier>{4b09de39-e456-4b36-98fa-aba7f24526bd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\decoders">
+      <UniqueIdentifier>{e2f0f0cd-c474-4ba2-aa2e-dd8e689907e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\decoders">
+      <UniqueIdentifier>{c5cd3602-30d6-48ff-8100-230758b36fb4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -109,6 +115,9 @@
     </ClInclude>
     <ClInclude Include="pixconv\pixconv_sse2_templates.h">
       <Filter>Header Files\pixconv</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\ILAVDecoder.h">
+      <Filter>Header Files\decoders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

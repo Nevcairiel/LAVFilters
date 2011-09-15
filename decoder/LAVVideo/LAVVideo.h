@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "decoders/ILAVDecoder.h"
+
 #include "LAVPixFmtConverter.h"
 #include "LAVVideoSettings.h"
 #include "H264RandomAccess.h"

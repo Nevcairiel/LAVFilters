@@ -163,6 +163,7 @@
     <ClCompile Include="VideoSettingsProp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="decoders\ILAVDecoder.h" />
     <ClInclude Include="H264RandomAccess.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
