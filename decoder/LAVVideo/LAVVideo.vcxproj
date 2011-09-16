@@ -144,6 +144,7 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="decoders\avcodec.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="H264RandomAccess.cpp" />
     <ClCompile Include="LAVPixFmtConverter.cpp" />
@@ -163,6 +164,7 @@
     <ClCompile Include="VideoSettingsProp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="decoders\avcodec.h" />
     <ClInclude Include="decoders\DecBase.h" />
     <ClInclude Include="decoders\ILAVDecoder.h" />
     <ClInclude Include="H264RandomAccess.h" />
