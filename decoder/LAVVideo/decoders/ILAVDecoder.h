@@ -119,6 +119,20 @@ interface ILAVVideoCallback
    * @return HRESULT
    */
   STDMETHOD(Deliver)(LAVFrame *pFrame) PURE;
+
+  /**
+   * Get the extension of the currently loaded file
+   *
+   * @result WCHAR string to the extension. Callers needs to free the memory with CoTaskMemFree
+   */
+  STDMETHOD_(LPWSTR, GetFileExtension)() PURE;
+
+  /**
+   * Check wether a filter matching the clsid is in the graph
+   *
+   * @result TRUE if the filter was found, false otherwise
+   */
+  STDMETHOD_(BOOL, FilterInGraph)(const GUID &clsid) PURE;
 };
 
 /**
@@ -145,7 +159,7 @@ interface ILAVDecoder
    * @param pmt DirectShow Media Type
    * @return S_OK on success, an error code otherwise
    */
-  STDMETHOD(InitDecoder)(CodecID codec, CMediaType *pmt) PURE;
+  STDMETHOD(InitDecoder)(CodecID codec, const CMediaType *pmt) PURE;
 
   /**
    * Decode a frame.
@@ -178,4 +192,12 @@ interface ILAVDecoder
    * @return unused
    */
   STDMETHOD(EndOfStream)() PURE;
+
+  /**
+   * Query the decoder for the current pixel format
+   * Mostly used by the media type creation logic before playback starts
+   *
+   * @return the pixel format used in the decoding process
+   */
+  STDMETHOD_(LAVPixelFormat, GetPixelFormat)() PURE;
 };

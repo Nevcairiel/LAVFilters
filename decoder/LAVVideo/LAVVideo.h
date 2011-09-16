@@ -91,6 +91,8 @@ public:
   STDMETHODIMP AllocateFrame(LAVFrame **ppFrame);
   STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);
   STDMETHODIMP Deliver(LAVFrame *pFrame);
+  STDMETHODIMP_(LPWSTR) GetFileExtension();
+  STDMETHODIMP_(BOOL) FilterInGraph(const GUID &clsid) { return ::FilterInGraph(clsid, m_pGraph); }
 
 public:
   // Pin Configuration

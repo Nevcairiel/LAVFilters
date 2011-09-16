@@ -271,6 +271,32 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   return E_FAIL;
 }
 
+STDMETHODIMP_(LPWSTR) CLAVVideo::GetFileExtension()
+{
+  if (m_strExtension.empty()) {
+    m_strExtension = L"";
+
+    IFileSourceFilter *pSource = NULL;
+    if (SUCCEEDED(FindIntefaceInGraph(m_pInput, IID_IFileSourceFilter, (void **)&pSource))) {
+      LPOLESTR pwszFile = NULL;
+      if (SUCCEEDED(pSource->GetCurFile(&pwszFile, NULL)) && pwszFile) {
+        LPWSTR pwszExtension = PathFindExtensionW(pwszFile);
+        m_strExtension = std::wstring(pwszExtension);
+        CoTaskMemFree(pwszFile);
+      }
+      SafeRelease(&pSource);
+    }
+  }
+
+  size_t len = m_strExtension.size() + 1;
+  LPWSTR pszExtension = (LPWSTR)CoTaskMemAlloc(sizeof(WCHAR) * len);
+  if (!pszExtension)
+    return NULL;
+
+  wcscpy_s(pszExtension, len, m_strExtension.c_str());
+  return pszExtension;
+}
+
 // CTransformFilter
 HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 {
