@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "LAVVideoSettings.h"
+
 /**
  * List of internally used pixel formats
  *
@@ -56,8 +58,8 @@ enum LAVPixelFormat {
  *
  * Allocated by the decoder and passed through the processing chain.
  *
- * The Decoder should allocate frames by using ILAVDecoderCallback::AllocateFrame()
- * Frames need to be free'd with ILAVDecoderCallback::ReleaseFrame()
+ * The Decoder should allocate frames by using ILAVVideoCallback::AllocateFrame()
+ * Frames need to be free'd with ILAVVideoCallback::ReleaseFrame()
  *
  * FIXME: Right now the avcodec decoder always reuses the buffers the next time its called!
  * NYI: Some Post-Processing filters will require to hang on to frames longer then the normal delivery process.
@@ -87,12 +89,55 @@ typedef struct LAVFrame {
 } LAVFrame;
 
 /**
+ * Interface into the LAV Video core for the decoder implementations
+ * This interface offers all required functions to properly communicate with the core
+ */
+interface ILAVVideoCallback
+{
+  /**
+   * Allocate and initialize a new frame
+   *
+   * @param ppFrame variable to receive the frame
+   * @return HRESULT
+   */
+  STDMETHOD(AllocateFrame)(LAVFrame **ppFrame) PURE;
+
+  /**
+   * Destruct and release frame
+   * This function calls the "destruct" function on the frame, and releases it afterwards
+   *
+   * @param ppFrame variable of the frame, will be nulled
+   * @return HRESULT
+   */
+  STDMETHOD(ReleaseFrame)(LAVFrame **ppFrame) PURE;
+
+  /**
+   * Deliver the frame
+   * The decoder gives up control of the frame at this point, and hands it over to the processing chain
+   *
+   * @param pFrame frame to deliver
+   * @return HRESULT
+   */
+  STDMETHOD(Deliver)(LAVFrame *pFrame) PURE;
+};
+
+/**
  * Decoder interface
  *
  * Every decoder needs to implement this to interface with the LAV Video core
  */
-class ILAVDecoder
+interface ILAVDecoder
 {
+  /**
+   * Initialize interfaces with the LAV Video core
+   * This function should also be used to create all interfaces with external DLLs
+   *
+   * @param pSettings reference to the settings interface
+   * @param pCallback reference to the callback interface
+   * @return S_OK on success, error code if this decoder is lacking an external support dll
+   */
+  STDMETHOD(InitInterfaces)(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) PURE;
+
   /**
    * Initialize the codec to decode a stream specified by codec and pmt.
    *

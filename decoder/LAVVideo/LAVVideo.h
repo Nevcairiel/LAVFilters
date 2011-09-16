@@ -42,7 +42,7 @@ typedef struct {
 } TimingCache;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages, public ILAVVideoSettings
+class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages, public ILAVVideoSettings, public ILAVVideoCallback
 {
 public:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
@@ -86,6 +86,11 @@ public:
   HRESULT Receive(IMediaSample *pIn);
 
   HRESULT BreakConnect(PIN_DIRECTION dir);
+
+  // ILAVVideoCallback
+  STDMETHODIMP AllocateFrame(LAVFrame **ppFrame);
+  STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);
+  STDMETHODIMP Deliver(LAVFrame *pFrame);
 
 public:
   // Pin Configuration

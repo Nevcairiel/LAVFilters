@@ -233,6 +233,44 @@ STDMETHODIMP CLAVVideo::GetPages(CAUUID *pPages)
   return S_OK;
 }
 
+// ILAVVideoCallback
+STDMETHODIMP CLAVVideo::AllocateFrame(LAVFrame **ppFrame)
+{
+  CheckPointer(ppFrame, E_POINTER);
+
+  *ppFrame = (LAVFrame *)CoTaskMemAlloc(sizeof(LAVFrame));
+  if (!*ppFrame) {
+    return E_OUTOFMEMORY;
+  }
+
+  // Initialize with zero
+  ZeroMemory(*ppFrame, sizeof(LAVFrame));
+
+  // Set some defaults
+  (*ppFrame)->bpp = 8;
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
+{
+  CheckPointer(ppFrame, E_POINTER);
+
+  // Allow *ppFrame to be NULL already
+  if (*ppFrame) {
+    if ((*ppFrame)->destruct) {
+      (*ppFrame)->destruct(*ppFrame);
+    }
+    SAFE_CO_FREE(*ppFrame);
+  }
+  return S_OK;
+}
+
+STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
+{
+  return E_FAIL;
+}
+
 // CTransformFilter
 HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 {
