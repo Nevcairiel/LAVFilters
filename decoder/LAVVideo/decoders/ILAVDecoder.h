@@ -77,6 +77,7 @@ typedef struct LAVFrame {
 
   REFERENCE_TIME rtStart;           ///< start time of the frame. unset if AV_NOPTS_VALUE
   REFERENCE_TIME rtStop;            ///< stop time of the frame. unset if AV_NOPTS_VALUE
+  int repeat;                       ///< repeat frame flag, signals how much the frame should be delayed
 
   AVRational aspect_ratio;          ///< aspect ratio (unset/invalid if either num or den is 0)
 
