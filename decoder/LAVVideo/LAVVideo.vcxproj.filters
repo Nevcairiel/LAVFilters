@@ -119,6 +119,9 @@
     <ClInclude Include="decoders\ILAVDecoder.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
+    <ClInclude Include="decoders\DecBase.h">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVVideo.rc">
