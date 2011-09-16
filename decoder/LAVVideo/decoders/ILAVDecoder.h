@@ -200,5 +200,5 @@ interface ILAVDecoder
    *
    * @return the pixel format used in the decoding process
    */
-  STDMETHOD_(LAVPixelFormat, GetPixelFormat)() PURE;
+  STDMETHOD(GetPixelFormat)(LAVPixelFormat *pPix, int *pBpp) PURE;
 };
