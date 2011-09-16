@@ -29,14 +29,14 @@ public:
   ~CH264RandomAccess();
 
   void flush(int threadCount);
-  BOOL searchRecoveryPoint(uint8_t *buf, int buf_size);
+  BOOL searchRecoveryPoint(const uint8_t *buf, int buf_size);
   void judgeFrameUsability(AVFrame *pFrame, int *got_picture_ptr);
 
   void SetAVCNALSize(int avcNALSize) { m_AVCNALSize = avcNALSize; }
 
 private:
   int decode_sei_recovery_point(CByteParser *pParser);
-  int parseForRecoveryPoint(uint8_t *buf, int buf_size, int *recoveryFrameCount);
+  int parseForRecoveryPoint(const uint8_t *buf, int buf_size, int *recoveryFrameCount);
 
 private:
   int m_RecoveryMode; // 0: OK; 1: Searching; 2: Found; 3: 

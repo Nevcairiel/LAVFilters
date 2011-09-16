@@ -23,7 +23,7 @@
 #include "stdafx.h"
 #include "H264Nalu.h"
 
-void CH264Nalu::SetBuffer(BYTE* pBuffer, int nSize, int nNALSize)
+void CH264Nalu::SetBuffer(const BYTE* pBuffer, int nSize, int nNALSize)
 {
   m_pBuffer      = pBuffer;
   m_nSize        = nSize;
