@@ -38,7 +38,7 @@ typedef struct {
   int planes;
   int planeHeight[4];
   int planeWidth[4];
-} LAVPixFmtDesc;
+} LAVOutPixFmtDesc;
 
 typedef struct _RGBCoeffs {
   __m128i Ysub;
@@ -50,7 +50,7 @@ typedef struct _RGBCoeffs {
   __m128i cB_Cb;
 } RGBCoeffs;
 
-extern LAVPixFmtDesc lav_pixfmt_desc[];
+extern LAVOutPixFmtDesc lav_pixfmt_desc[];
 
 class CLAVPixFmtConverter
 {
@@ -104,7 +104,7 @@ private:
   void SelectConvertFunction();
 
   // Helper functions for convert_generic
-  HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
+  HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
   HRESULT ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
   HRESULT ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
   HRESULT ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride, int chromaVertical);

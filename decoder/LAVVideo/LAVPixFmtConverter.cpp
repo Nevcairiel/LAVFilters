@@ -91,7 +91,7 @@ static FF_LAV_PIXFMT_MAP lav_pixfmt_map[] = {
   { PIX_FMT_BGR444BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
 };
 
-LAVPixFmtDesc lav_pixfmt_desc[] = {
+LAVOutPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_YV12,  12, 1, 3, { 1, 2, 2 }, { 1, 2, 2 } },        // YV12
   { MEDIASUBTYPE_NV12,  12, 1, 2, { 1, 2 }, { 1, 1 } },              // NV12
   { MEDIASUBTYPE_YUY2,  16, 2, 0 },                                  // YUY2 (packed)
@@ -348,7 +348,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
 
 void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format)
 {
-  LAVPixFmtDesc desc = lav_pixfmt_desc[format];
+  LAVOutPixFmtDesc desc = lav_pixfmt_desc[format];
 
   int line = 0;
 

@@ -128,7 +128,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
   return m_pSwsContext;
 }
 
-HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVPixFmtDesc pixFmtDesc, bool swapPlanes12)
+HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
 {
   uint8_t *dst[4];
   int     dstStride[4];
