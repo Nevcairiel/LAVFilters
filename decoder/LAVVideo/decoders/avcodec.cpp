@@ -697,18 +697,8 @@ STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
   return S_OK;
 }
 
-static void free_buffers(struct LAVFrame *pFrame)
-{
-  av_freep(&pFrame->data[0]);
-  av_freep(&pFrame->data[1]);
-  av_freep(&pFrame->data[2]);
-  av_freep(&pFrame->data[3]);
-}
-
 STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
 {
-  pOutFrame->destruct = &free_buffers;
-
   // Allocate the buffers to write into
   AllocLAVFrameBuffers(pOutFrame);
 

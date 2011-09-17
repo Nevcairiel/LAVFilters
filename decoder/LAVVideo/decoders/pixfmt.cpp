@@ -81,22 +81,33 @@ PixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
   return fmt;
 }
 
+static void free_buffers(struct LAVFrame *pFrame)
+{
+  av_freep(&pFrame->data[0]);
+  av_freep(&pFrame->data[1]);
+  av_freep(&pFrame->data[2]);
+  av_freep(&pFrame->data[3]);
+}
+
 HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
 {
   LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
 
   if (stride < pFrame->width) {
+    // Ensure alignment of at least 32 on all planes
     stride = FFALIGN(pFrame->width, 64);
   }
 
   stride *= desc.codedbytes;
 
-  size_t basesize = stride * pFrame->height;
   for (int plane = 0; plane < desc.planes; plane++) {
-    size_t size = (basesize  / desc.planeHeight[plane]) / desc.planeWidth[plane];
-    pFrame->data[plane]   = (BYTE *)av_malloc(size);
-    pFrame->stride[plane] =  stride / desc.planeWidth[plane];
+    int planeStride = stride / desc.planeWidth[plane];
+    size_t size = planeStride * (pFrame->height / desc.planeHeight[plane]);
+    pFrame->data[plane]   = (BYTE *)av_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE);
+    pFrame->stride[plane] = planeStride;
   }
+
+  pFrame->destruct = &free_buffers;
 
   return S_OK;
 }
