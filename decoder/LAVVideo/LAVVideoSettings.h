@@ -83,7 +83,7 @@ typedef enum LAVOutPixFmts {
   LAVOutPixFmt_RGB24,           // 24-bit RGB (BGR)
 
   LAVOutPixFmt_NB               // Number of formats
-};
+} LAVOutPixFmts;
 
 // LAV Audio configuration interface
 [uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")]

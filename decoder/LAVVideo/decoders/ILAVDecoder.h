@@ -30,7 +30,7 @@
  * That means that there are leading zero-bits, and not trailing like in DirectShow
  * The actual number of valid bits is stored in the LAVFrame
  */
-enum LAVPixelFormat {
+typedef enum LAVPixelFormat {
   LAVPixFmt_None = -1,
   /* planar YUV */
   LAVPixFmt_YUV420,      ///< YUV 4:2:0, 8 bit
@@ -52,7 +52,7 @@ enum LAVPixelFormat {
   LAVPixFmt_ARGB32,      ///< ARGB32, in BGRA order
 
   LAVPixFmt_NB,          ///< number of formats
-};
+} LAVPixelFormat;
 
 /**
  * Structure describing a pixel format

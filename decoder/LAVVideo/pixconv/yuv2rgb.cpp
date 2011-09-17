@@ -27,7 +27,7 @@
 #include "pixconv_sse2_templates.h"
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
-template <PixelFormat inputFormat, int shift, int out32, int right_edge> __forceinline
+template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge> __forceinline
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -62,7 +62,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // xmm0/xmm2 contain 4 interleaved U/V samples from two lines each in the 16bit parts, still in their native bitdepth
 
   // Chroma upsampling required
-  if (inputFormat == PIX_FMT_YUV420P || inputFormat == PIX_FMT_YUV422P) {
+  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_YUV422) {
     if (shift > 0) {
       srcU += 4;
       srcV += 4;
@@ -91,7 +91,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     }
 
     // 4:2:0 - upsample to 4:2:2 using 75:25
-    if (inputFormat == PIX_FMT_YUV420P) {
+    if (inputFormat == LAVPixFmt_YUV420) {
       xmm1 = xmm0;
       xmm1 = _mm_add_epi16(xmm1, xmm0);                         /* 2x line 0 */
       xmm1 = _mm_add_epi16(xmm1, xmm0);                         /* 3x line 0 */
@@ -140,16 +140,16 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     // Shift the result to 12 bit
     // For 10-bit input, we need to shift one bit off, or we exceed the allowed processing depth
     // For 8-bit, we need to add one bit
-    if (inputFormat == PIX_FMT_YUV420P && shift == 2) {
+    if (inputFormat == LAVPixFmt_YUV420 && shift == 2) {
       xmm1 = _mm_srli_epi16(xmm1, 1);
       xmm3 = _mm_srli_epi16(xmm3, 1);
-    } else if (inputFormat == PIX_FMT_YUV420P && shift == 0) {
+    } else if (inputFormat == LAVPixFmt_YUV420 && shift == 0) {
       xmm1 = _mm_slli_epi16(xmm1, 1);
       xmm3 = _mm_slli_epi16(xmm3, 1);
     }
 
     // 12-bit result, xmm1 & xmm3 with 4 UV combinations each
-  } else if (inputFormat == PIX_FMT_YUV444P) {
+  } else if (inputFormat == LAVPixFmt_YUV444) {
     if (shift > 0) {
       srcU += 8;
       srcV += 8;
@@ -288,7 +288,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   return 0;
 }
 
-template <PixelFormat inputFormat, int shift, int out32>
+template <LAVPixelFormat inputFormat, int shift, int out32>
 static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, int sliceYStart, int sliceYEnd, RGBCoeffs *coeffs)
 {
   const uint8_t *y = srcY;
@@ -304,7 +304,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   const int endx = width - 4;
 
   // 4:2:0 needs special handling for the first and the last line
-  if (inputFormat == PIX_FMT_YUV420P) {
+  if (inputFormat == LAVPixFmt_YUV420) {
     if (line == 0) {
       for (int i = 0; i < endx; i += 4) {
         yuv2rgb_convert_pixels<inputFormat, shift, out32, 0>(y, u, v, rgb, 0, 0, 0, line, coeffs);
@@ -320,7 +320,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   for (; line < lastLine; line += 2) {
     y = srcY + line * srcStrideY;
 
-    if (inputFormat == PIX_FMT_YUV420P) {
+    if (inputFormat == LAVPixFmt_YUV420) {
       u = srcU + (line >> 1) * srcStrideUV;
       v = srcV + (line >> 1) * srcStrideUV;
     } else {
@@ -336,7 +336,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
     yuv2rgb_convert_pixels<inputFormat, shift, out32, 1>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs);
   }
 
-  if (inputFormat == PIX_FMT_YUV420P) {
+  if (inputFormat == LAVPixFmt_YUV420) {
     if (sliceYEnd == height) {
       y = srcY + (height - 1) * srcStrideY;
       u = srcU + ((height >> 1) - 1)  * srcStrideUV;
@@ -352,13 +352,13 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   return 0;
 }
 
-template <PixelFormat inputFormat, int shift, int out32>
+template <LAVPixelFormat inputFormat, int shift, int out32>
 inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, RGBCoeffs *coeffs, int threads)
 {
   if (threads <= 1) {
     yuv2rgb_process_lines<inputFormat, shift, out32>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs);
   } else {
-    const int is_odd = (inputFormat == PIX_FMT_YUV420P);
+    const int is_odd = (inputFormat == LAVPixFmt_YUV420);
     const int lines_per_thread = (height / threads)&~1;
 
     Concurrency::parallel_for(0, threads, [&](int i) {
@@ -377,25 +377,36 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 
   // Wrap the input format into template args
   switch (inputFormat) {
-  case PIX_FMT_YUV420P:
-  case PIX_FMT_YUVJ420P:
-    return yuv2rgb_convert<PIX_FMT_YUV420P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
-  case PIX_FMT_YUV420P10LE:
-    return yuv2rgb_convert<PIX_FMT_YUV420P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
-  case PIX_FMT_YUV420P9LE:
-    return yuv2rgb_convert<PIX_FMT_YUV420P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
-  case PIX_FMT_YUV422P:
-  case PIX_FMT_YUVJ422P:
-    return yuv2rgb_convert<PIX_FMT_YUV422P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
-  case PIX_FMT_YUV422P10LE:
-    return yuv2rgb_convert<PIX_FMT_YUV422P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
-  case PIX_FMT_YUV444P:
-  case PIX_FMT_YUVJ444P:
-    return yuv2rgb_convert<PIX_FMT_YUV444P, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
-  case PIX_FMT_YUV444P10LE:
-    return yuv2rgb_convert<PIX_FMT_YUV444P, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
-  case PIX_FMT_YUV444P9LE:
-    return yuv2rgb_convert<PIX_FMT_YUV444P, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+  case LAVPixFmt_YUV420:
+    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+  case LAVPixFmt_YUV420bX:
+    if (bpp == 10)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+    else if (bpp == 9)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+    else
+      ASSERT(0);
+    break;
+  case LAVPixFmt_YUV422:
+    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+  case LAVPixFmt_YUV422bX:
+    if (bpp == 10)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+    else if (bpp == 9)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+    else
+      ASSERT(0);
+    break;
+  case LAVPixFmt_YUV444:
+    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+  case LAVPixFmt_YUV444bX:
+    if (bpp == 10)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+    else if (bpp == 9)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, m_NumThreads);
+    else
+      ASSERT(0);
+    break;
   default:
     ASSERT(0);
   }
@@ -415,12 +426,12 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     if (!m_rgbCoeffs)
       m_rgbCoeffs = (RGBCoeffs *)_aligned_malloc(sizeof(RGBCoeffs), 16);
 
-    AVColorSpace spc = swsColorSpace;
-    if (spc == AVCOL_SPC_UNSPECIFIED) {
-      spc = (swsHeight >= 720 || swsWidth >= 1280) ? AVCOL_SPC_BT709 : AVCOL_SPC_SMPTE170M;
+    DXVA2_VideoTransferMatrix matrix = (DXVA2_VideoTransferMatrix)m_ColorProps.VideoTransferMatrix;
+    if (matrix == DXVA2_VideoTransferMatrix_Unknown) {
+      matrix = (swsHeight >= 720 || swsWidth >= 1280) ? DXVA2_VideoTransferMatrix_BT709 : DXVA2_VideoTransferMatrix_BT601;
     }
 
-    BOOL inFullRange = (swsColorRange == AVCOL_RANGE_JPEG) || m_InputPixFmt == PIX_FMT_YUVJ420P || m_InputPixFmt == PIX_FMT_YUVJ422P || m_InputPixFmt == PIX_FMT_YUVJ444P;
+    BOOL inFullRange = (m_ColorProps.NominalRange == DXVA2_NominalRange_0_255);
     BOOL outFullRange = (swsOutputRange == 0) ? inFullRange : (swsOutputRange == 2);
 
     int inputWhite, inputBlack, inputChroma, outputWhite, outputBlack;
@@ -443,21 +454,20 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     }
 
     double Kr, Kg, Kb;
-    switch (spc) {
-    case AVCOL_SPC_SMPTE170M:
-    case AVCOL_SPC_BT470BG:
+    switch (matrix) {
+    case DXVA2_VideoTransferMatrix_BT601:
       Kr = 0.299;
       Kg = 0.587;
       Kb = 0.114;
       break;
-    case AVCOL_SPC_SMPTE240M:
+    case DXVA2_VideoTransferMatrix_SMPTE240M:
       Kr = 0.2120;
       Kg = 0.7010;
       Kb = 0.0870;
       break;
     default:
-      DbgLog((LOG_TRACE, 10, L"::getRGBCoeffs(): Unknown color space: %d - defaulting to BT709", spc));
-    case AVCOL_SPC_BT709:
+      DbgLog((LOG_TRACE, 10, L"::getRGBCoeffs(): Unknown color space: %d - defaulting to BT709", matrix));
+    case DXVA2_VideoTransferMatrix_BT709:
       Kr = 0.2126;
       Kg = 0.7152;
       Kb = 0.0722;

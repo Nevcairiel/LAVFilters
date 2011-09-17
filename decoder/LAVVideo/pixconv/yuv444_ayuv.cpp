@@ -97,7 +97,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   const int outStride = dstStride << 2;
 
   // Number of bits to shift to reach 8
-  int shift = (inputFormat == PIX_FMT_YUV444P10LE ? 2 : (inputFormat == PIX_FMT_YUV444P9LE) ? 1 : 8);
+  int shift = bpp - 8;
 
   int line, i;
 

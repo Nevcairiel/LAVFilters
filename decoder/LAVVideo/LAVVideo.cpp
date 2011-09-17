@@ -723,6 +723,14 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
       NegotiatePixelFormat(mt, width, height);
     }
   }
+  m_PixFmtConverter.SetColorProps(pFrame->ext_format, m_settings.RGBRange);
+
+  // Update flags for cases where the converter can change the nominal range
+  if (m_PixFmtConverter.IsRGBConverterActive() && m_settings.RGBRange != 0) {
+    pFrame->ext_format.NominalRange = m_settings.RGBRange == 1 ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_0_255;
+  } else if (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24) {
+    pFrame->ext_format.NominalRange = DXVA2_NominalRange_0_255;
+  }
 
   IMediaSample *pSampleOut = NULL;
   BYTE         *pDataOut   = NULL;

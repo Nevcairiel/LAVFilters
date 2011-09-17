@@ -85,19 +85,6 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
 inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags)
 {
   if (!m_pSwsContext || swsWidth != width || swsHeight != height) {
-    // Map full-range formats to their limited-range variants
-    // All target formats we have are limited range and we don't want compression
-    if (dstPix != PIX_FMT_BGRA && dstPix != PIX_FMT_BGR24) {
-      if (srcPix == PIX_FMT_YUVJ420P)
-        srcPix = PIX_FMT_YUV420P;
-      else if (srcPix == PIX_FMT_YUVJ422P)
-        srcPix = PIX_FMT_YUV422P;
-      else if (srcPix == PIX_FMT_YUVJ440P)
-        srcPix = PIX_FMT_YUV440P;
-      else if (srcPix == PIX_FMT_YUVJ444P)
-        srcPix = PIX_FMT_YUV444P;
-    }
-
     if (m_pSettings->GetHighQualityPixelFormatConversion()) {
       DbgLog((LOG_TRACE, 10, L"::GetSwsContext(): Activating HQ scaling mode"));
       flags |= (SWS_FULL_CHR_H_INT|SWS_ACCURATE_RND);
@@ -114,15 +101,25 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
     int ret = sws_getColorspaceDetails(m_pSwsContext, &inv_tbl, &srcRange, &tbl, &dstRange, &brightness, &contrast, &saturation);
     if (ret >= 0) {
       const int *rgbTbl = NULL;
-      if (swsColorSpace != AVCOL_SPC_UNSPECIFIED) {
-        rgbTbl = sws_getCoefficients(swsColorSpace);
+      if (m_ColorProps.VideoTransferMatrix != DXVA2_VideoTransferMatrix_Unknown) {
+        int colorspace = SWS_CS_ITU709;
+        switch (m_ColorProps.VideoTransferMatrix) {
+        case DXVA2_VideoTransferMatrix_BT709:
+          colorspace = SWS_CS_ITU709;
+          break;
+        case DXVA2_VideoTransferMatrix_BT601:
+          colorspace = SWS_CS_ITU601;
+          break;
+        case DXVA2_VideoTransferMatrix_SMPTE240M:
+          colorspace = SWS_CS_SMPTE240M;
+          break;
+        }
+        rgbTbl = sws_getCoefficients(colorspace);
       } else {
         BOOL isHD = (height >= 720 || width >= 1280);
         rgbTbl = sws_getCoefficients(isHD ? SWS_CS_ITU709 : SWS_CS_ITU601);
       }
-      if (swsColorRange != AVCOL_RANGE_UNSPECIFIED) {
-        srcRange = dstRange = swsColorRange - 1;
-      }
+      srcRange = dstRange = (m_ColorProps.NominalRange == DXVA2_NominalRange_0_255);
       sws_setColorspaceDetails(m_pSwsContext, rgbTbl, srcRange, tbl, dstRange, brightness, contrast, saturation);
     }
     swsWidth = width;

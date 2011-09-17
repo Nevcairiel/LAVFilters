@@ -36,7 +36,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
   const int inUVStride = srcStride[1] >> 1;
   const int outYStride = dstStride;
   const int outUVStride = dstStride >> 1;
-  const int shift = (inputFormat == PIX_FMT_YUV420P10LE ? 2 : (inputFormat == PIX_FMT_YUV420P9LE) ? 1 : 8);
+  const int shift = bpp - 8;
 
   int line, i;
 

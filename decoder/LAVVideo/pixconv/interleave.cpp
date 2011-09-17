@@ -33,7 +33,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_y410)
 
   int inStride = srcStride[0] >> 1;
   int outStride = dstStride << 2;
-  int shift = (inputFormat == PIX_FMT_YUV444P9LE ? 1 : 0);
+  int shift = 10 - bpp;
 
   int line, i;
 

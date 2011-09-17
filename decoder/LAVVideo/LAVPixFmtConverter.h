@@ -68,7 +68,7 @@ public:
   LAVOutPixFmts GetPreferredOutput();
 
   LAVOutPixFmts GetOutputPixFmt() { return m_OutputPixFmt; }
-  void SetColorProps(AVColorSpace colorspace, AVColorRange range, int RGBOutputRange) { if (swsColorSpace != colorspace || swsColorRange != range || swsOutputRange != RGBOutputRange) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; swsOutputRange = RGBOutputRange; } }
+  void SetColorProps(DXVA2_ExtendedFormat props, int RGBOutputRange) { if (props.value != m_ColorProps.value || swsOutputRange != RGBOutputRange) { DestroySWScale(); m_ColorProps = props; swsOutputRange = RGBOutputRange; } }
 
   int GetNumMediaTypes();
   void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
@@ -140,14 +140,14 @@ private:
   RGBCoeffs* getRGBCoeffs(int width, int height);
 
 private:
-  enum LAVPixelFormat  m_InputPixFmt;
-  enum LAVOutPixFmts   m_OutputPixFmt;
+  LAVPixelFormat  m_InputPixFmt;
+  LAVOutPixFmts   m_OutputPixFmt;
   int                  m_InBpp;
 
   int swsWidth, swsHeight;
-  AVColorSpace swsColorSpace;
-  AVColorRange swsColorRange;
   int swsOutputRange;
+
+  DXVA2_ExtendedFormat m_ColorProps;
 
   unsigned m_RequiredAlignment;
 
