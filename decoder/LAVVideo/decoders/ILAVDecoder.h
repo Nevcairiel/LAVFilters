@@ -234,3 +234,10 @@ interface ILAVDecoder
    */
   STDMETHOD(GetPixelFormat)(LAVPixelFormat *pPix, int *pBpp) PURE;
 };
+
+/**
+ * Decoder creation functions
+ *
+ * They are listed here so that including their header files is not required
+ */
+ILAVDecoder *CreateDecoderAVCodec();
