@@ -63,11 +63,6 @@ static int getThreadFlags(CodecID codecId)
 // Create DXVA2 Extended Flags from a AVFrame and AVCodecContext
 ////////////////////////////////////////////////////////////////////////////////
 
-// This causes a conflict in the following function
-#ifdef SampleFormat
-#undef SampleFormat
-#endif
-
 static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *frame)
 {
   DXVA2_ExtendedFormat fmt;

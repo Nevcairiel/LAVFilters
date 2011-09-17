@@ -21,8 +21,9 @@
 #pragma once
 
 #include "LAVVideoSettings.h"
+#include "decoders/ILAVDecoder.h"
 
-#define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, PixelFormat inputFormat, LAVOutPixFmts outputFormat)
+#define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, LAVPixelFormat inputFormat, int bpp, LAVOutPixFmts outputFormat)
 
 #define DECLARE_CONV_FUNC(name) \
   HRESULT name CONV_FUNC_PARAMS
@@ -60,13 +61,12 @@ public:
 
   void SetSettings(ILAVVideoSettings *pSettings) { m_pSettings = pSettings; }
 
-  HRESULT SetInputPixFmt(enum PixelFormat pix_fmt) { m_InputPixFmt = pix_fmt; DestroySWScale(); SelectConvertFunction(); return S_OK; }
+  BOOL SetInputFmt(enum LAVPixelFormat pixfmt, int bpp) { if (m_InputPixFmt != pixfmt || m_InBpp != bpp) { m_InputPixFmt = pixfmt; m_InBpp = bpp; DestroySWScale(); SelectConvertFunction(); return TRUE; } return FALSE; }
   HRESULT SetOutputPixFmt(enum LAVOutPixFmts pix_fmt) { m_OutputPixFmt = pix_fmt; DestroySWScale(); SelectConvertFunction(); return S_OK; }
   
   LAVOutPixFmts GetOutputBySubtype(const GUID *guid);
   LAVOutPixFmts GetPreferredOutput();
 
-  PixelFormat GetInputPixFmt() { return m_InputPixFmt; }
   LAVOutPixFmts GetOutputPixFmt() { return m_OutputPixFmt; }
   void SetColorProps(AVColorSpace colorspace, AVColorRange range, int RGBOutputRange) { if (swsColorSpace != colorspace || swsColorRange != range || swsOutputRange != RGBOutputRange) { DestroySWScale(); swsColorSpace = colorspace; swsColorRange = range; swsOutputRange = RGBOutputRange; } }
 
@@ -74,7 +74,7 @@ public:
   void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
-  inline HRESULT Convert(AVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
+  inline HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
     uint8_t *out = dst;
     int outStride = dstStride;
     if (m_RequiredAlignment && FFALIGN(dstStride, m_RequiredAlignment) != dstStride) {
@@ -88,7 +88,7 @@ public:
       }
       out = m_pAlignedBuffer;
     }
-    HRESULT hr = (this->*convert)(pFrame->data, pFrame->linesize, out, outStride, width, height, m_InputPixFmt, m_OutputPixFmt);
+    HRESULT hr = (this->*convert)(pFrame->data, pFrame->stride, out, outStride, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
     if (outStride != dstStride) {
       ChangeStride(out, outStride, dst, dstStride, width, height, m_OutputPixFmt);
     }
@@ -98,6 +98,10 @@ public:
   BOOL IsRGBConverterActive() { return m_bRGBConverter; }
 
 private:
+  PixelFormat GetFFInput() {
+    return getFFPixelFormatFromLAV(m_InputPixFmt, m_InBpp);
+  }
+
   int GetFilteredFormatCount();
   LAVOutPixFmts GetFilteredFormat(int index);
 
@@ -136,8 +140,9 @@ private:
   RGBCoeffs* getRGBCoeffs(int width, int height);
 
 private:
-  enum PixelFormat     m_InputPixFmt;
+  enum LAVPixelFormat  m_InputPixFmt;
   enum LAVOutPixFmts   m_OutputPixFmt;
+  int                  m_InBpp;
 
   int swsWidth, swsHeight;
   AVColorSpace swsColorSpace;

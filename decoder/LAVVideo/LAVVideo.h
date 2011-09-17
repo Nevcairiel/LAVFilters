@@ -27,8 +27,6 @@
 #include "H264RandomAccess.h"
 #include "FloatingAverage.h"
 
-#define MAX_THREADS 16
-
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
@@ -106,46 +104,24 @@ private:
   HRESULT LoadSettings();
   HRESULT SaveSettings();
 
-  HRESULT ffmpeg_init(CodecID codec, const CMediaType *pmt);
-  void ffmpeg_shutdown();
+  HRESULT CreateDecoder(const CMediaType *pmt);
 
-  HRESULT GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DWORD dxvaExtFormat);
-  HRESULT ReconnectOutput(int width, int height, AVRational ar, DWORD dxvaExtFlags);
-  HRESULT Decode(BYTE *pDataIn, int nSize, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
+  HRESULT GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFormat);
+  HRESULT ReconnectOutput(int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags);
 
-  HRESULT SetTypeSpecificFlags(IMediaSample* pMS);
+  HRESULT SetTypeSpecificFlags(IMediaSample* pMS, LAVFrame *pFrame);
 
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
-  DWORD GetDXVAExtendedFlags();
 
 private:
-  CodecID              m_nCodecId;       // FFMPEG Codec Id
-  AVCodec              *m_pAVCodec;      // AVCodec reference
-  AVCodecContext       *m_pAVCtx;        // AVCodecContext reference
-  AVCodecParserContext *m_pParser;       // AVCodecParserContext reference
+  ILAVDecoder          *m_pDecoder;
 
-  BOOL                 m_bDXVA;          // DXVA active?
   REFERENCE_TIME       m_rtAvrTimePerFrame;
   BOOL                 m_bProcessExtradata;
 
-  AVFrame              *m_pFrame;
-  BYTE                 *m_pFFBuffer;
-  int                  m_nFFBufferSize;
-
-  SwsContext           *m_pSwsContext;
-
-  BOOL                 m_bFFReordering;
-  BOOL                 m_bCalculateStopTime;
-  BOOL                 m_bRVDropBFrameTimings;
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
-  REFERENCE_TIME       m_rtStartCache;
 
-  TimingCache          m_tcThreadBuffer[MAX_THREADS];
-  int                  m_CurrentThread;
-
-  BOOL                 m_bDiscontinuity;
-  BOOL                 m_bWaitingForKeyFrame;
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;
 

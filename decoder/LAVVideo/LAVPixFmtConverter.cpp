@@ -22,73 +22,45 @@
 #include "LAVPixFmtConverter.h"
 #include "Media.h"
 
+#include "decoders/ILAVDecoder.h"
+
 #include <MMReg.h>
 #include "moreuuids.h"
 
 typedef struct {
-  enum PixelFormat ff_pix_fmt; // ffmpeg pixel format
+  LAVPixelFormat in_pix_fmt;
+  int maxbpp;
   int num_pix_fmt;
-  enum LAVOutPixFmts lav_pix_fmts[LAVOutPixFmt_NB];
-} FF_LAV_PIXFMT_MAP;
+  LAVOutPixFmts lav_pix_fmts[LAVOutPixFmt_NB];
+} LAV_INOUT_PIXFMT_MAP;
 
-static FF_LAV_PIXFMT_MAP lav_pixfmt_map[] = {
+static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   // Default
-  { PIX_FMT_NONE, 5, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_None, 8, 6, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
   // 4:2:0
-  { PIX_FMT_YUV420P,  6, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUVJ420P, 6, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_NV12,     6, { LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_NV21,     6, { LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV420, 8, 6, { LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_NV12,   8, 6, { LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
-  { PIX_FMT_YUV420P9BE,  7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P9LE,  7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P10BE, 7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P10LE, 7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P16BE, 8, { LAVOutPixFmt_P016, LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV420P16LE, 8, { LAVOutPixFmt_P016, LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV420bX, 10, 7, { LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV420bX, 16, 8, { LAVOutPixFmt_P016, LAVOutPixFmt_P010, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
   // 4:2:2
-  { PIX_FMT_YUV422P,  6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUVJ422P, 6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUYV422,  6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_UYVY422,  6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV422, 8, 6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUY2,   8, 6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
-  { PIX_FMT_YUV422P10BE, 7, { LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV422P10LE, 7, { LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV422P16BE, 8, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { PIX_FMT_YUV422P16LE, 8, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV422bX, 10, 7, { LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV422bX, 16, 8, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
   
   // 4:4:4
-  { PIX_FMT_YUV444P,  7, { LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_YUVJ444P, 7, { LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-
-  { PIX_FMT_YUV444P9BE,  8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_YUV444P9LE,  8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_YUV444P10BE, 8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_YUV444P10LE, 8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_YUV444P16BE, 9, { LAVOutPixFmt_Y416, LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_YUV444P16LE, 9, { LAVOutPixFmt_Y416, LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_YUV444,    8, 7, { LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_YUV444bX, 10, 8, { LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_YUV444bX, 16, 9, { LAVOutPixFmt_Y416, LAVOutPixFmt_Y410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
 
   // RGB
-  { PIX_FMT_RGB24,    6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGR24,    6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_RGBA,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_ARGB,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGRA,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_ABGR,     6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_RGB565BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_RGB565LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_RGB555BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_RGB555LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGR565BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGR565LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGR555BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGR555LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_RGB444LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_RGB444BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGR444LE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
-  { PIX_FMT_BGR444BE, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_RGB24,  8, 6, { LAVOutPixFmt_RGB24, LAVOutPixFmt_RGB32, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_RGB32,  8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_ARGB32, 8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV12, LAVOutPixFmt_NV12 } },
 };
 
 LAVOutPixFmtDesc lav_pixfmt_desc[] = {
@@ -107,10 +79,10 @@ LAVOutPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_RGB24, 24, 3, 0 },                                  // RGB24
 };
 
-static FF_LAV_PIXFMT_MAP *lookupFormatMap(PixelFormat ffFormat, BOOL bFallbackToDefault = TRUE)
+static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, BOOL bFallbackToDefault = TRUE)
 {
   for (int i = 0; i < countof(lav_pixfmt_map); ++i) {
-    if (lav_pixfmt_map[i].ff_pix_fmt == ffFormat) {
+    if (lav_pixfmt_map[i].in_pix_fmt == informat && bpp <= lav_pixfmt_map[i].maxbpp) {
       return &lav_pixfmt_map[i];
     }
   }
@@ -121,7 +93,7 @@ static FF_LAV_PIXFMT_MAP *lookupFormatMap(PixelFormat ffFormat, BOOL bFallbackTo
 
 CLAVPixFmtConverter::CLAVPixFmtConverter()
   : m_pSettings(NULL)
-  , m_InputPixFmt(PIX_FMT_NONE)
+  , m_InputPixFmt(LAVPixFmt_None)
   , m_OutputPixFmt(LAVOutPixFmt_YV12)
   , m_pSwsContext(NULL)
   , swsWidth(0), swsHeight(0)
@@ -158,7 +130,7 @@ LAVOutPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
 
 int CLAVPixFmtConverter::GetFilteredFormatCount()
 {
-  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
+  LAV_INOUT_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt, m_InBpp);
   int count = 0;
   for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
     if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
@@ -173,7 +145,7 @@ int CLAVPixFmtConverter::GetFilteredFormatCount()
 
 LAVOutPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
 {
-  FF_LAV_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt);
+  LAV_INOUT_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt, m_InBpp);
   int actualIndex = -1;
   for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
     if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
@@ -293,7 +265,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
 
   int cpu = av_get_cpu_flags();
 
-  if (m_OutputPixFmt == LAVOutPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
+  /*if (m_OutputPixFmt == LAVOutPixFmt_YV12 && (m_InputPixFmt == PIX_FMT_YUV420P || m_InputPixFmt == PIX_FMT_YUVJ420P)) {
     convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
     m_RequiredAlignment = 0;
   } else if (cpu & AV_CPU_FLAG_SSE2) {
@@ -339,7 +311,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       }
       m_bRGBConverter = TRUE;
     }
-  }
+  } */
 
   if (convert == NULL) {
     convert = &CLAVPixFmtConverter::convert_generic;

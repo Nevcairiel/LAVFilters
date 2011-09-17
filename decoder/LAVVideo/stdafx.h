@@ -42,6 +42,10 @@ extern "C" {
 #define FF_API_MAX_STREAMS 0
 #include "libavcodec/avcodec.h"
 #include "libswscale/swscale.h"
+  // This causes a conflict in some structures
+#ifdef SampleFormat
+#undef SampleFormat
+#endif
 }
 #include "streams.h"
 
