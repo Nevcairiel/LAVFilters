@@ -54,6 +54,21 @@ enum LAVPixelFormat {
 };
 
 /**
+ * Structure describing a pixel format
+ */
+typedef struct LAVPixFmtDesc {
+  int codedbytes;        ///< coded byte per pixel in one plane (for packed and multibyte formats)
+  int planes;            ///< number of planes
+  int planeWidth[4];     ///< log2 width factor
+  int planeHeight[4];    ///< log2 height factor
+} LAVPixFmtDesc;
+
+/**
+ * Get the Pixel Format Descriptor for the given format
+ */
+LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt);
+
+/**
  * A Video Frame
  *
  * Allocated by the decoder and passed through the processing chain.

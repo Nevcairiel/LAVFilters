@@ -81,6 +81,9 @@
     <ClCompile Include="decoders\avcodec.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\pixfmtdesc.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
