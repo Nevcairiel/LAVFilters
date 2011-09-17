@@ -709,7 +709,7 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   PixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
-  SwsContext *pContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (PixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, 0, NULL, NULL, NULL);
+  SwsContext *pContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (PixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR, NULL, NULL, NULL);
 
   // Perform conversion
   int ret = sws_scale(pContext, pFrame->data, pFrame->linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
