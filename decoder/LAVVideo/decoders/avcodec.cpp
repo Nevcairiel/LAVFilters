@@ -141,6 +141,110 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// avcodec -> LAV codec mappings
+////////////////////////////////////////////////////////////////////////////////
+
+// This mapping table should contain all pixel formats, except hardware formats (VDPAU, XVMC, DXVA, etc)
+// A format that is not listed will be converted to YUV420
+static struct PixelFormatMapping {
+  PixelFormat    ffpixfmt;
+  LAVPixelFormat lavpixfmt;
+  BOOL           conversion;
+  int            bpp;
+} ff_pix_map[] = {
+  { PIX_FMT_YUV420P,   LAVPixFmt_YUV420, FALSE },
+  { PIX_FMT_YUYV422,   LAVPixFmt_YUY2,   FALSE },
+  { PIX_FMT_RGB24,     LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR24,     LAVPixFmt_RGB24,  FALSE },
+  { PIX_FMT_YUV422P,   LAVPixFmt_YUV422, FALSE },
+  { PIX_FMT_YUV444P,   LAVPixFmt_YUV444, FALSE },
+  { PIX_FMT_YUV410P,   LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_YUV411P,   LAVPixFmt_YUV422, TRUE  },
+  { PIX_FMT_GRAY8,     LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_MONOWHITE, LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_MONOBLACK, LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_PAL8,      LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_YUVJ420P,  LAVPixFmt_YUV420, FALSE },
+  { PIX_FMT_YUVJ422P,  LAVPixFmt_YUV422, FALSE },
+  { PIX_FMT_YUVJ444P,  LAVPixFmt_YUV444, FALSE },
+  { PIX_FMT_UYVY422,   LAVPixFmt_YUV422, TRUE  },
+  { PIX_FMT_UYYVYY411, LAVPixFmt_YUV422, TRUE  },
+  { PIX_FMT_BGR8,      LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR4,      LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR4_BYTE, LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB8,      LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB4,      LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB4_BYTE, LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_NV12,      LAVPixFmt_NV12,   FALSE },
+  { PIX_FMT_NV21,      LAVPixFmt_NV12,   TRUE  },
+
+  { PIX_FMT_ARGB,      LAVPixFmt_ARGB32, TRUE  },
+  { PIX_FMT_RGBA,      LAVPixFmt_ARGB32, TRUE  },
+  { PIX_FMT_ABGR,      LAVPixFmt_ARGB32, TRUE  },
+  { PIX_FMT_BGRA,      LAVPixFmt_ARGB32, FALSE },
+
+  { PIX_FMT_GRAY16BE,  LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_GRAY16LE,  LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_YUV440P,   LAVPixFmt_YUV444, TRUE  },
+  { PIX_FMT_YUVJ440P,  LAVPixFmt_YUV444, TRUE  },
+  { PIX_FMT_YUVA420P,  LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_RGB48BE,   LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB48LE,   LAVPixFmt_RGB32,  TRUE  },
+
+  { PIX_FMT_RGB565BE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB565LE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB555BE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB555LE,  LAVPixFmt_RGB32,  TRUE  },
+
+  { PIX_FMT_BGR565BE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR565LE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR555BE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR555LE,  LAVPixFmt_RGB32,  TRUE  },
+
+  { PIX_FMT_YUV420P16LE, LAVPixFmt_YUV420bX, FALSE, 16 },
+  { PIX_FMT_YUV420P16BE, LAVPixFmt_YUV420bX, TRUE,  16 },
+  { PIX_FMT_YUV422P16LE, LAVPixFmt_YUV422bX, FALSE, 16 },
+  { PIX_FMT_YUV422P16BE, LAVPixFmt_YUV422bX, TRUE,  16 },
+  { PIX_FMT_YUV444P16LE, LAVPixFmt_YUV444bX, FALSE, 16 },
+  { PIX_FMT_YUV444P16BE, LAVPixFmt_YUV444bX, TRUE,  16 },
+
+  { PIX_FMT_RGB444LE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_RGB444BE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR444LE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR444BE,  LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_GRAY8A,    LAVPixFmt_YUV420, TRUE  },
+  { PIX_FMT_BGR48BE,   LAVPixFmt_RGB32,  TRUE  },
+  { PIX_FMT_BGR48LE,   LAVPixFmt_RGB32,  TRUE  },
+
+  { PIX_FMT_YUV420P9BE,  LAVPixFmt_YUV420bX, TRUE,  9 },
+  { PIX_FMT_YUV420P9LE,  LAVPixFmt_YUV420bX, FALSE, 9 },
+  { PIX_FMT_YUV420P10BE, LAVPixFmt_YUV420bX, TRUE,  10 },
+  { PIX_FMT_YUV420P10LE, LAVPixFmt_YUV420bX, FALSE, 10 },
+
+  { PIX_FMT_YUV422P10BE, LAVPixFmt_YUV422bX, TRUE,  10 },
+  { PIX_FMT_YUV422P10LE, LAVPixFmt_YUV422bX, FALSE, 10 },
+
+  { PIX_FMT_YUV444P9BE,  LAVPixFmt_YUV444bX, TRUE,  9 },
+  { PIX_FMT_YUV444P9LE,  LAVPixFmt_YUV444bX, FALSE, 9 },
+  { PIX_FMT_YUV444P10BE, LAVPixFmt_YUV444bX, TRUE,  10 },
+  { PIX_FMT_YUV444P10LE, LAVPixFmt_YUV444bX, FALSE, 10 },
+};
+
+static struct PixelFormatMapping getPixFmtMapping(PixelFormat pixfmt) {
+  const PixelFormatMapping def = { pixfmt, LAVPixFmt_YUV420, TRUE, 8 };
+  PixelFormatMapping result = def;
+  for (int i = 0; i < countof(ff_pix_map); i++) {
+    if (ff_pix_map[i].ffpixfmt == pixfmt) {
+      result = ff_pix_map[i];
+    }
+  }
+  if (result.lavpixfmt != LAVPixFmt_YUV420bX && result.lavpixfmt != LAVPixFmt_YUV422bX && result.lavpixfmt != LAVPixFmt_YUV444bX)
+    result.bpp = 8;
+
+  return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // AVCodec decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -531,10 +635,18 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->rtStart      = rtStart;
     pOutFrame->rtStop       = rtStop;
 
-    // TODO:
-    // Map pixel formats
-    // Convert to compatible format if it is not already (mostly for the various RGB formats)
-    // Assign planes and stride to pOutFrame
+    PixelFormatMapping map  = getPixFmtMapping(m_pAVCtx->pix_fmt);
+    pOutFrame->format       = map.lavpixfmt;
+    pOutFrame->bpp          = map.bpp;
+
+    if (map.conversion) {
+      // TODO
+    } else {
+      for (int i = 0; i < 4; i++) {
+        pOutFrame->data[i]   = m_pFrame->data[i];
+        pOutFrame->stride[i] = m_pFrame->linesize[i];
+      }
+    }
 
     Deliver(pOutFrame);
 
@@ -570,7 +682,11 @@ STDMETHODIMP CDecAvcodec::EndOfStream()
 
 STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 {
-  // TODO:
-  // Map pixel formats
-  return E_FAIL;
+  PixelFormat pixfmt = m_pAVCtx ? m_pAVCtx->pix_fmt : PIX_FMT_NONE;
+  PixelFormatMapping mapping = getPixFmtMapping(pixfmt);
+  if (pPix)
+    *pPix = mapping.lavpixfmt;
+  if (pBpp)
+    *pBpp = mapping.bpp;
+  return S_OK;
 }
