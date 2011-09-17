@@ -46,6 +46,7 @@ public:
 
 private:
   STDMETHODIMP DestroyDecoder();
+  STDMETHODIMP ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame);
 
 private:
   AVCodec              *m_pAVCodec;
@@ -55,6 +56,8 @@ private:
   AVFrame              *m_pFrame;
   BYTE                 *m_pFFBuffer;
   int                  m_nFFBufferSize;
+
+  SwsContext           *m_pSwsContext;
 
   CodecID              m_nCodecId;
 

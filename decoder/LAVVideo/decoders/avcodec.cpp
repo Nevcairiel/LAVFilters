@@ -255,6 +255,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_pParser(NULL)
   , m_pFrame(NULL)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0)
+  , m_pSwsContext(NULL)
   , m_nCodecId(CODEC_ID_NONE)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_bWaitingForKeyFrame(FALSE)
@@ -436,6 +437,11 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
 
   av_freep(&m_pFFBuffer);
   m_nFFBufferSize = 0;
+
+  if (m_pSwsContext) {
+    sws_freeContext(m_pSwsContext);
+    m_pSwsContext = NULL;
+  }
 
   m_nCodecId = CODEC_ID_NONE;
 
@@ -640,7 +646,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->bpp          = map.bpp;
 
     if (map.conversion) {
-      // TODO
+      ConvertPixFmt(m_pFrame, pOutFrame);
     } else {
       for (int i = 0; i < 4; i++) {
         pOutFrame->data[i]   = m_pFrame->data[i];
@@ -688,5 +694,32 @@ STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
     *pPix = mapping.lavpixfmt;
   if (pBpp)
     *pBpp = mapping.bpp;
+  return S_OK;
+}
+
+static void free_buffers(struct LAVFrame *pFrame)
+{
+  av_freep(&pFrame->data[0]);
+  av_freep(&pFrame->data[1]);
+  av_freep(&pFrame->data[2]);
+  av_freep(&pFrame->data[3]);
+}
+
+STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
+{
+  pOutFrame->destruct = &free_buffers;
+
+  // Allocate the buffers to write into
+  AllocLAVFrameBuffers(pOutFrame);
+
+  // Map to swscale compatible format
+  PixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
+
+  // Get a context
+  SwsContext *pContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (PixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, 0, NULL, NULL, NULL);
+
+  // Perform conversion
+  int ret = sws_scale(pContext, pFrame->data, pFrame->linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
+
   return S_OK;
 }
