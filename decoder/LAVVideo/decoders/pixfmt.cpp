@@ -80,3 +80,23 @@ PixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
   }
   return fmt;
 }
+
+HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
+{
+  LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
+
+  if (stride < pFrame->width) {
+    stride = FFALIGN(pFrame->width, 64);
+  }
+
+  stride *= desc.codedbytes;
+
+  size_t basesize = stride * pFrame->height;
+  for (int plane = 0; plane < desc.planes; plane++) {
+    size_t size = (basesize  / desc.planeHeight[plane]) / desc.planeWidth[plane];
+    pFrame->data[plane]   = (BYTE *)av_malloc(size);
+    pFrame->stride[plane] =  stride / desc.planeWidth[plane];
+  }
+
+  return S_OK;
+}

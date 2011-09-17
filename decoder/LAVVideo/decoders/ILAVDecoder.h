@@ -110,6 +110,18 @@ typedef struct LAVFrame {
 } LAVFrame;
 
 /**
+ * Allocate buffers for the LAVFrame "data" element to fit the pixfmt with the given stride
+ *
+ * This method also fills the stride argument in the LAVFrame properly.
+ * Its required that width/height and format are already set on the frame.
+ *
+ * @param pFrame Frame to fill
+ * @param stride stride to use (in pixel). If 0, a stride will be computed to fill usual alignment rules
+ * @return HRESULT
+ */
+HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride = 0);
+
+/**
  * Interface into the LAV Video core for the decoder implementations
  * This interface offers all required functions to properly communicate with the core
  */
