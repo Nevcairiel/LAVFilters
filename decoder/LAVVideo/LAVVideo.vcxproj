@@ -145,7 +145,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="decoders\avcodec.cpp" />
-    <ClCompile Include="decoders\pixfmtdesc.cpp" />
+    <ClCompile Include="decoders\pixfmt.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="H264RandomAccess.cpp" />
     <ClCompile Include="LAVPixFmtConverter.cpp" />

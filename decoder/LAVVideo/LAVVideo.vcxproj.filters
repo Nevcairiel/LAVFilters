@@ -81,7 +81,7 @@
     <ClCompile Include="decoders\avcodec.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
-    <ClCompile Include="decoders\pixfmtdesc.cpp">
+    <ClCompile Include="decoders\pixfmt.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
   </ItemGroup>
