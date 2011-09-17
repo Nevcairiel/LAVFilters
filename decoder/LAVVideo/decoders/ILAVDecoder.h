@@ -69,6 +69,11 @@ typedef struct LAVPixFmtDesc {
 LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt);
 
 /**
+ * Map the LAV Pixel Format to a FFMpeg pixel format (for swscale, etc)
+ */
+PixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp);
+
+/**
  * A Video Frame
  *
  * Allocated by the decoder and passed through the processing chain.
