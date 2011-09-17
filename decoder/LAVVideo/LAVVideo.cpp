@@ -528,7 +528,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
           DeleteMediaType(pmt);
         } else { // No Stride Request? We're ok with that, too!
           long size = pOut->GetSize();
-          pBIH->biWidth = size / pBIH->biHeight * 8 / pBIH->biBitCount;
+          pBIH->biWidth = size / abs(pBIH->biHeight) * 8 / pBIH->biBitCount;
           m_bSendMediaType = TRUE;
           DbgLog((LOG_TRACE, 10, L"-> We did not get a stride request, calculated stride: %d", pBIH->biWidth));
         }
