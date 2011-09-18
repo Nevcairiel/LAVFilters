@@ -30,11 +30,6 @@ public:
 
   // ILAVDecoder
   STDMETHOD(InitInterfaces)(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return S_OK; };
-  STDMETHOD(InitDecoder)(CodecID codec, const CMediaType *pmt) PURE;
-  STDMETHOD(Decode)(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity) PURE;
-  STDMETHOD(Flush)() PURE;
-  STDMETHOD(EndOfStream)() PURE;
-
   STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() { return 0; }
 
 protected:
