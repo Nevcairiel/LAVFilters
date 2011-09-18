@@ -330,7 +330,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   }
 
   m_pDecoder = CreateDecoderAVCodec();
-  hr = m_pDecoder->InitInterfaces(this, this);
+  hr = m_pDecoder->InitInterfaces(static_cast<ILAVVideoSettings *>(this), static_cast<ILAVVideoCallback *>(this));
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Init Interfaces failed (hr: 0x%x)", hr));
     return VFW_E_TYPE_NOT_ACCEPTED;
