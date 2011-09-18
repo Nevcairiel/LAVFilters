@@ -41,8 +41,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bForceInputAR(FALSE)
   , m_bSendMediaType(FALSE)
 {
-  avcodec_register_all();
-
   LoadSettings();
 
   m_PixFmtConverter.SetSettings(this);
