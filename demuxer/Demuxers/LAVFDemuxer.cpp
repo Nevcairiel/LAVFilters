@@ -91,8 +91,6 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
   const WCHAR *file = PathFindFileName (fileName);
-
-  m_bEnableTrackInfo = _wcsicmp(file, L"zplayer.exe") != 0;
 }
 
 CLAVFDemuxer::~CLAVFDemuxer()
@@ -109,7 +107,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return
     QI(IKeyFrameInfo)
-    m_bEnableTrackInfo && QI(ITrackInfo)
+    QI(ITrackInfo)
     QI2(IAMExtendedSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
@@ -789,6 +787,9 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackEleme
   if(!m_avFormat || !pStructureToFill)
     return FALSE;
 
+  ZeroMemory(pStructureToFill, sizeof(*pStructureToFill));
+  pStructureToFill->Size = sizeof(*pStructureToFill);
+
   int id = GetStreamIdxFromTotalIdx(aTrackIdx);
   if (id < 0 || id == NO_SUBTITLE_PID)
     return FALSE;
@@ -840,6 +841,9 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackExtendedInfo(UINT aTrackIdx, void* pSt
   if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
     TrackExtendedInfoVideo* pTEIV = (TrackExtendedInfoVideo*)pStructureToFill;
 
+    ZeroMemory(pTEIV, sizeof(*pTEIV));
+
+    pTEIV->Size = sizeof(*pTEIV);
     pTEIV->DisplayUnit = 0; // always pixels
     pTEIV->DisplayWidth = st->codec->width;
     pTEIV->DisplayHeight = st->codec->height;
@@ -852,6 +856,9 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackExtendedInfo(UINT aTrackIdx, void* pSt
   } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
     TrackExtendedInfoAudio* pTEIA = (TrackExtendedInfoAudio*)pStructureToFill;
 
+    ZeroMemory(pTEIA, sizeof(*pTEIA));
+
+    pTEIA->Size = sizeof(*pTEIA);
     pTEIA->BitDepth = st->codec->bits_per_coded_sample;
     pTEIA->Channels = st->codec->channels;
     pTEIA->OutputSamplingFrequency = (FLOAT)st->codec->sample_rate;
