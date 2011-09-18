@@ -268,6 +268,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_YUV420) {
     convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
     m_RequiredAlignment = 0;
+  } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12) || (m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
+    || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24)) {
+    convert = &CLAVPixFmtConverter::plane_copy;
+    m_RequiredAlignment = 0;
   } else if (cpu & AV_CPU_FLAG_SSE2) {
     if (m_OutputPixFmt == LAVOutPixFmt_AYUV && m_InputPixFmt == LAVPixFmt_YUV444bX) {
       convert = &CLAVPixFmtConverter::convert_yuv444_ayuv_dither_le;
@@ -317,6 +321,31 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   if (convert == NULL) {
     convert = &CLAVPixFmtConverter::convert_generic;
   }
+}
+
+DECLARE_CONV_FUNC_IMPL(plane_copy)
+{
+  LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
+
+  int plane, line;
+
+  const int widthBytes = width * desc.codedbytes;
+  const int dstStrideBytes = dstStride * desc.codedbytes;
+  const int planes = max(desc.planes, 1);
+
+  for (plane = 0; plane < planes; plane++) {
+    const int planeWidth     = widthBytes     / desc.planeWidth[plane];
+    const int planeHeight    = height         / desc.planeHeight[plane];
+    const int dstPlaneStride = dstStrideBytes / desc.planeWidth[plane];
+    const uint8_t *srcBuf = src[plane];
+    for (line = 0; line < planeHeight; ++line) {
+      memcpy(dst, srcBuf, planeWidth);
+      srcBuf += srcStride[plane];
+      dst += dstPlaneStride;
+    }
+  }
+
+  return S_OK;
 }
 
 void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format)
