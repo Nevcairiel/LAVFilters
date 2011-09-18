@@ -249,3 +249,4 @@ interface ILAVDecoder
  * They are listed here so that including their header files is not required
  */
 ILAVDecoder *CreateDecoderAVCodec();
+ILAVDecoder *CreateDecoderCUVID();

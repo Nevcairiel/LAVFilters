@@ -84,6 +84,9 @@
     <ClCompile Include="decoders\pixfmt.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\cuvid.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -129,6 +132,9 @@
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
     <ClInclude Include="decoders\avcodec.h">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\cuvid.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
   </ItemGroup>
