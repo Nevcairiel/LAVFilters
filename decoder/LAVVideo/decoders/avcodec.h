@@ -43,6 +43,7 @@ public:
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
+  STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
 
 private:
   STDMETHODIMP DestroyDecoder();

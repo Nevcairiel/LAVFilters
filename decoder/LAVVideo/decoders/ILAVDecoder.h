@@ -234,6 +234,13 @@ interface ILAVDecoder
    * @return the pixel format used in the decoding process
    */
   STDMETHOD(GetPixelFormat)(LAVPixelFormat *pPix, int *pBpp) PURE;
+
+  /**
+   * Get the frame duration.
+   *
+   * This function is not mandatory, and if you cannot provide any specific duration, return 0.
+   */
+  STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() PURE;
 };
 
 /**

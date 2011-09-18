@@ -685,8 +685,9 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     CMediaType &mt = m_pInput->CurrentMediaType();
     videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
 
-    if (!duration && FALSE /* todo: timing from decoder */) {
-      //duration = (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
+    REFERENCE_TIME decoderDuration = m_pDecoder->GetFrameDuration();
+    if (!duration && decoderDuration) {
+      duration = decoderDuration;
     } else if(!duration) {
       duration = 1;
     }

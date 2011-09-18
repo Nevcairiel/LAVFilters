@@ -716,3 +716,10 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
 
   return S_OK;
 }
+
+STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
+{
+  if (m_pAVCtx->time_base.den && m_pAVCtx->time_base.num)
+    return (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
+  return 0;
+}

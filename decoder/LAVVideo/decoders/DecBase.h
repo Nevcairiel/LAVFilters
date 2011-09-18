@@ -35,6 +35,8 @@ public:
   STDMETHOD(Flush)() PURE;
   STDMETHOD(EndOfStream)() PURE;
 
+  STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() { return 0; }
+
 protected:
   // Convenience wrapper around m_pCallback
   inline HRESULT Deliver(LAVFrame *pFrame) {
