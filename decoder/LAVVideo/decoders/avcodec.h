@@ -37,13 +37,15 @@ public:
   virtual ~CDecAvcodec(void);
 
   // ILAVDecoder
-  STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback);
   STDMETHODIMP InitDecoder(CodecID codec, const CMediaType *pmt);
   STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity);
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
+
+  // CDecBase
+  STDMETHODIMP Init();
 
 private:
   STDMETHODIMP DestroyDecoder();

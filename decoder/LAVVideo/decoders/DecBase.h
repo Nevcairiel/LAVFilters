@@ -28,8 +28,10 @@ public:
   CDecBase(void) : m_pSettings(NULL), m_pCallback(NULL) {}
   virtual ~CDecBase(void) {}
 
+  STDMETHOD(Init)() PURE;
+
   // ILAVDecoder
-  STDMETHOD(InitInterfaces)(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return S_OK; };
+  STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return Init(); };
   STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() { return 0; }
 
 protected:

@@ -271,10 +271,10 @@ CDecAvcodec::~CDecAvcodec(void)
 }
 
 // ILAVDecoder
-STDMETHODIMP CDecAvcodec::InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback)
+STDMETHODIMP CDecAvcodec::Init()
 {
   avcodec_register_all();
-  return __super::InitInterfaces(pSettings, pCallback);
+  return S_OK;
 }
 
 STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
