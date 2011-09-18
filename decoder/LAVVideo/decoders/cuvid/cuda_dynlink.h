@@ -30,6 +30,9 @@ typedef CUresult CUDAAPI tcuCtxCreate(CUcontext *pctx, unsigned int flags, CUdev
 typedef CUresult CUDAAPI tcuCtxDestroy( CUcontext ctx );
 typedef CUresult CUDAAPI tcuCtxPushCurrent( CUcontext ctx );
 typedef CUresult CUDAAPI tcuCtxPopCurrent( CUcontext *pctx );
+typedef CUresult CUDAAPI tcuMemAllocHost(void **pp, unsigned int bytesize);
+typedef CUresult CUDAAPI tcuMemFreeHost(void *p);
+typedef CUresult CUDAAPI tcuMemcpyDtoH (void *dstHost, CUdeviceptr srcDevice, unsigned int ByteCount );
 
 ////////////////////////////////////////////////////
 /// D3D Interop
@@ -52,3 +55,8 @@ typedef CUresult CUDAAPI tcuvidDestroyDecoder(CUvideodecoder hDecoder);
 
 // Decode a single picture (field or frame)
 typedef CUresult CUDAAPI tcuvidDecodePicture(CUvideodecoder hDecoder, CUVIDPICPARAMS *pPicParams);
+
+// Post-process and map a video frame for use in cuda
+typedef CUresult CUDAAPI tcuvidMapVideoFrame(CUvideodecoder hDecoder, int nPicIdx, unsigned int *pDevPtr, unsigned int *pPitch, CUVIDPROCPARAMS *pVPP);
+// Unmap a previously mapped video frame
+typedef CUresult CUDAAPI tcuvidUnmapVideoFrame(CUvideodecoder hDecoder, unsigned int DevPtr);

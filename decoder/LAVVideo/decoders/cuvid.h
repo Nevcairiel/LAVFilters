@@ -75,6 +75,9 @@ private:
     CUMETHOD(cuCtxPushCurrent);
     CUMETHOD(cuCtxPopCurrent);
     CUMETHOD(cuD3D9CtxCreate);
+    CUMETHOD(cuMemAllocHost);
+    CUMETHOD(cuMemFreeHost);
+    CUMETHOD(cuMemcpyDtoH);
 
     HMODULE cuvidLib;
     CUMETHOD(cuvidCtxLockCreate);
@@ -85,6 +88,8 @@ private:
     CUMETHOD(cuvidCreateDecoder);
     CUMETHOD(cuvidDecodePicture);
     CUMETHOD(cuvidDestroyDecoder);
+    CUMETHOD(cuvidMapVideoFrame);
+    CUMETHOD(cuvidUnmapVideoFrame);
   } cuda;
 
   IDirect3D9             *m_pD3D;
@@ -108,4 +113,7 @@ private:
 
   int                    m_aspectX;
   int                    m_aspectY;
+
+  BYTE                   *m_pbRawNV12;
+  int                    m_cRawNV12;
 };

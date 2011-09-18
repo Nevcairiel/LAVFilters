@@ -57,6 +57,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bInterlaced(FALSE)
   , m_aspectX(0), m_aspectY(0)
   , m_bFlushing(FALSE)
+  , m_pbRawNV12(NULL), m_cRawNV12(0)
 {
   ZeroMemory(&cuda, sizeof(cuda));
 }
@@ -76,6 +77,12 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
   if (m_hParser) {
     cuda.cuvidDestroyVideoParser(m_hParser);
     m_hParser = 0;
+  }
+
+  if (m_pbRawNV12) {
+    cuda.cuMemFreeHost(m_pbRawNV12);
+    m_pbRawNV12 = NULL;
+    m_cRawNV12 = 0;
   }
 
   if(bFull) {
@@ -125,6 +132,9 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   GET_PROC_CUDA(cuCtxPushCurrent);
   GET_PROC_CUDA(cuCtxPopCurrent);
   GET_PROC_CUDA(cuD3D9CtxCreate);
+  GET_PROC_CUDA(cuMemAllocHost);
+  GET_PROC_CUDA(cuMemFreeHost);
+  GET_PROC_CUDA(cuMemcpyDtoH);
 
   // Load CUVID function
   cuda.cuvidLib = LoadLibrary(L"nvcuvid.dll");
@@ -141,6 +151,8 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   GET_PROC_CUVID(cuvidCreateDecoder);
   GET_PROC_CUVID(cuvidDecodePicture);
   GET_PROC_CUVID(cuvidDestroyDecoder);
+  GET_PROC_CUVID(cuvidMapVideoFrame);
+  GET_PROC_CUVID(cuvidUnmapVideoFrame);
 
   return S_OK;
 }
@@ -501,6 +513,94 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
   filter->m_DisplayPos = (filter->m_DisplayPos + 1) % DISPLAY_DELAY;
 
   return TRUE;
+}
+
+STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
+{
+  if (FALSE && m_bInterlaced /*&& m_settings.bFrameDoubling && m_settings.dwDeinterlace != cudaVideoDeinterlaceMode_Weave*/) {
+    if (cuviddisp->progressive_frame) {
+      Deliver(cuviddisp, 2);
+    } else {
+      Deliver(cuviddisp, 0);
+      Deliver(cuviddisp, 1);
+    }
+  } else {
+    Deliver(cuviddisp);
+  }
+  return S_OK;
+}
+
+STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
+{
+  HRESULT hr = S_OK;
+
+  CUdeviceptr devPtr = 0;
+  unsigned int pitch = 0, width = 0, height = 0;
+  CUVIDPROCPARAMS vpp;
+  CUresult cuStatus = CUDA_SUCCESS;
+
+  memset(&vpp, 0, sizeof(vpp));
+  vpp.progressive_frame = cuviddisp->progressive_frame;
+
+  if (TRUE /*m_settings.dwFieldOrder == 0*/)
+    vpp.top_field_first = cuviddisp->top_field_first;
+  /*else
+    vpp.top_field_first = (m_settings.dwFieldOrder == 1);*/
+
+  vpp.second_field = (field == 1);
+
+  cuda.cuCtxPushCurrent(m_cudaContext);
+
+  cuStatus = cuda.cuvidMapVideoFrame(m_hDecoder, cuviddisp->picture_index, &devPtr, &pitch, &vpp);
+  if (cuStatus != CUDA_SUCCESS) {
+    DbgLog((LOG_CUSTOM1, 1, L"CDecCuvid::Deliver(): cuvidMapVideoFrame failed on index %d", cuviddisp->picture_index));
+    return E_FAIL;
+  }
+
+  width = m_VideoDecoderInfo.display_area.right;
+  height = m_VideoDecoderInfo.display_area.bottom;
+  int size = pitch * height * 3 / 2;
+
+  if(!m_pbRawNV12 || size > m_cRawNV12) {
+    if (m_pbRawNV12) {
+      cuda.cuMemFreeHost(m_pbRawNV12);
+      m_pbRawNV12 = NULL;
+      m_cRawNV12 = 0;
+    }
+    cuStatus = cuda.cuMemAllocHost((void **)&m_pbRawNV12, size);
+    if (cuStatus != CUDA_SUCCESS) {
+      DbgLog((LOG_CUSTOM1, 1, L"CDecCuvid::Deliver(): cuMemAllocHost failed to allocate %d bytes (%d)", size, cuStatus));
+    }
+    m_cRawNV12 = size;
+  }
+  // Copy memory from the device into the staging area
+  if (m_pbRawNV12) {
+    cuStatus = cuda.cuMemcpyDtoH(m_pbRawNV12, devPtr, size);
+  }
+  cuda.cuvidUnmapVideoFrame(m_hDecoder, devPtr);
+  cuda.cuCtxPopCurrent(NULL);
+
+  // Setup the LAVFrame
+  LAVFrame *pFrame = NULL;
+  AllocateFrame(&pFrame);
+
+  pFrame->format = LAVPixFmt_NV12;
+  pFrame->width  = width;
+  pFrame->height = height;
+  pFrame->rtStart = cuviddisp->timestamp;
+  pFrame->rtStop = AV_NOPTS_VALUE;
+
+  // Allocate the buffers for the image
+  AllocLAVFrameBuffers(pFrame, pitch);
+
+  // Copy the image from the staging area to the buffer
+  int Ysize = height * pitch;
+  memcpy(pFrame->data[0], m_pbRawNV12, Ysize);
+  memcpy(pFrame->data[1], m_pbRawNV12+Ysize, Ysize >> 1);
+
+  m_pCallback->Deliver(pFrame);
+
+  return S_OK;
 }
 
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
