@@ -61,6 +61,11 @@ private:
   static int CUDAAPI HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic);
   static int CUDAAPI HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuviddisp);
 
+  STDMETHODIMP Display(CUVIDPARSERDISPINFO *cuviddisp);
+  STDMETHODIMP Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field = 0);
+
+  STDMETHODIMP FlushParser();
+
 private:
   struct {
     HMODULE cudaLib;
@@ -89,9 +94,18 @@ private:
   CUvideoctxlock         m_cudaCtxLock;
 
   CUvideoparser          m_hParser;
+  CUVIDEOFORMATEX        m_VideoParserExInfo;
+
   CUvideodecoder         m_hDecoder;
   CUVIDDECODECREATEINFO  m_VideoDecoderInfo;
 
   CUVIDPARSERDISPINFO    m_DisplayQueue[DISPLAY_DELAY];
   int                    m_DisplayPos;
+
+  BOOL                   m_bForceSequenceUpdate;
+  BOOL                   m_bInterlaced;
+  BOOL                   m_bFlushing;
+
+  int                    m_aspectX;
+  int                    m_aspectY;
 };

@@ -53,6 +53,10 @@ CDecCuvid::CDecCuvid(void)
   , m_pD3D(NULL), m_pD3DDevice(NULL)
   , m_cudaContext(0), m_cudaCtxLock(0)
   , m_hParser(0), m_hDecoder(0)
+  , m_bForceSequenceUpdate(FALSE)
+  , m_bInterlaced(FALSE)
+  , m_aspectX(0), m_aspectY(0)
+  , m_bFlushing(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
 }
@@ -139,6 +143,23 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   GET_PROC_CUVID(cuvidDestroyDecoder);
 
   return S_OK;
+}
+
+STDMETHODIMP CDecCuvid::FlushParser()
+{
+  CUVIDSOURCEDATAPACKET pCuvidPacket;
+  memset(&pCuvidPacket, 0, sizeof(pCuvidPacket));
+
+  pCuvidPacket.flags |= CUVID_PKT_ENDOFSTREAM;
+  CUresult result = CUDA_SUCCESS;
+
+  __try {
+    result = cuda.cuvidParseVideoData(m_hParser, &pCuvidPacket);
+  } __except (1) {
+    DbgLog((LOG_ERROR, 10, L"cuvidFlushParser(): cuvidParseVideoData threw an exception"));
+    result = CUDA_ERROR_UNKNOWN;
+  }
+  return result;
 }
 
 // ILAVDecoder
@@ -303,17 +324,15 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   oVideoParserParameters.pfnDisplayPicture      = CDecCuvid::HandlePictureDisplay;   // Called whenever a picture is ready to be displayed (display order)
   oVideoParserParameters.ulErrorThreshold       = 0;
 
-  CUVIDEOFORMATEX oVideoFormatEx;
-  memset(&oVideoFormatEx, 0, sizeof(CUVIDEOFORMATEX));
-
+  memset(&m_VideoParserExInfo, 0, sizeof(CUVIDEOFORMATEX));
 
   if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1)) {
     // TODO: AVC1
   } else {
-    getExtraData(pmt->Format(), pmt->FormatType(), pmt->FormatLength(), oVideoFormatEx.raw_seqhdr_data, &oVideoFormatEx.format.seqhdr_data_length);
+    getExtraData(pmt->Format(), pmt->FormatType(), pmt->FormatLength(), m_VideoParserExInfo.raw_seqhdr_data, &m_VideoParserExInfo.format.seqhdr_data_length);
   }
 
-  oVideoParserParameters.pExtVideoInfo = &oVideoFormatEx;
+  oVideoParserParameters.pExtVideoInfo = &m_VideoParserExInfo;
   CUresult oResult = cuda.cuvidCreateVideoParser(&m_hParser, &oVideoParserParameters);
   if (oResult != CUDA_SUCCESS) {
     DbgLog((LOG_ERROR, 10, L"-> Creating parser for type %d failed with code %d", cudaCodec, oResult));
@@ -331,6 +350,8 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
       return hr;
     }
   }
+
+  m_bForceSequenceUpdate = TRUE;
 
   DecodeSequenceData();
 
@@ -381,16 +402,12 @@ STDMETHODIMP CDecCuvid::DecodeSequenceData()
 {
   CUresult oResult;
 
-  //CMediaType mtIn = m_pInput->CurrentMediaType();
-
-  // Init Decoder
   CUVIDSOURCEDATAPACKET pCuvidPacket;
   ZeroMemory(&pCuvidPacket, sizeof(pCuvidPacket));
-  /*if (m_avc1Parser) {
-    m_avc1Parser->GetExtra((BYTE **)&pCuvidPacket.payload, (unsigned int *)&pCuvidPacket.payload_size);
-  } else {
-    getExtraDataPtr(mtIn.Format(), mtIn.FormatType(), (BYTE **)&pCuvidPacket.payload, (unsigned int *)&pCuvidPacket.payload_size);
-  } */
+
+  pCuvidPacket.payload      = m_VideoParserExInfo.raw_seqhdr_data;
+  pCuvidPacket.payload_size = m_VideoParserExInfo.format.seqhdr_data_length;
+
   if (pCuvidPacket.payload && pCuvidPacket.payload_size)
     oResult = cuda.cuvidParseVideoData(m_hParser, &pCuvidPacket);
 
@@ -399,6 +416,7 @@ STDMETHODIMP CDecCuvid::DecodeSequenceData()
 
 int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
 {
+  DbgLog((LOG_TRACE, 10, L"CDecCuvid::HandleVideoSequence(): New Video Sequence"));
   CDecCuvid *filter = static_cast<CDecCuvid *>(obj);
 
   CUVIDDECODECREATEINFO *dci = &filter->m_VideoDecoderInfo;
@@ -409,44 +427,138 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     || (cuvidfmt->display_area.right != dci->ulTargetWidth)
     || (cuvidfmt->display_area.bottom != dci->ulTargetHeight)
     || (cuvidfmt->chroma_format != dci->ChromaFormat)
-   // || (cuvidfmt->display_aspect_ratio.x != filter->m_aspectX && filter->m_settings.bStreamAR)
-   //|| (cuvidfmt->display_aspect_ratio.y != filter->m_aspectY && filter->m_settings.bStreamAR)
     || filter->m_bForceSequenceUpdate)
   {
-    //filter->m_bForceSequenceUpdate = FALSE;
+    filter->m_bForceSequenceUpdate = FALSE;
     RECT rcDisplayArea = {cuvidfmt->display_area.left, cuvidfmt->display_area.top, cuvidfmt->display_area.right, cuvidfmt->display_area.bottom};
     filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->display_area.right, cuvidfmt->display_area.bottom, rcDisplayArea);
 
     filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
-    //filter->QueueFormatChange(cuvidfmt);
   }
+
+  filter->m_aspectX = cuvidfmt->display_aspect_ratio.x;
+  filter->m_aspectY = cuvidfmt->display_aspect_ratio.y;
 
   return TRUE;
 }
 
 int CUDAAPI CDecCuvid::HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic)
 {
+  CDecCuvid *filter = reinterpret_cast<CDecCuvid *>(obj);
+
+  if (filter->m_bFlushing)
+    return FALSE;
+
+  int flush_pos = filter->m_DisplayPos;
+  for (;;) {
+    bool frame_in_use = false;
+    for (int i=0; i<DISPLAY_DELAY; i++) {
+      if (filter->m_DisplayQueue[i].picture_index == cuvidpic->CurrPicIdx) {
+        frame_in_use = true;
+        break;
+      }
+    }
+    if (!frame_in_use) {
+      // No problem: we're safe to use this frame
+      break;
+    }
+    // The target frame is still pending in the display queue:
+    // Flush the oldest entry from the display queue and repeat
+    if (filter->m_DisplayQueue[flush_pos].picture_index >= 0) {
+      filter->Display(&filter->m_DisplayQueue[flush_pos]);
+      filter->m_DisplayQueue[flush_pos].picture_index = -1;
+    }
+    flush_pos = (flush_pos + 1) % DISPLAY_DELAY;
+  }
+
+  __try {
+    CUresult cuStatus = filter->cuda.cuvidDecodePicture(filter->m_hDecoder, cuvidpic);
+  #ifdef DEBUG
+    if (cuStatus != CUDA_SUCCESS) {
+      DbgLog((LOG_ERROR, 10, L"CDecCuvid::HandlePictureDecode(): cuvidDecodePicture returned error code %d", cuStatus));
+    }
+  #endif
+  } __except(1) {
+    DbgLog((LOG_ERROR, 10, L"CDecCuvid::HandlePictureDecode(): cuvidDecodePicture threw an exception"));
+  }
+
   return TRUE;
 }
 
 int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuviddisp)
 {
+  CDecCuvid *filter = reinterpret_cast<CDecCuvid *>(obj);
+
+  // Drop samples with negative timestamps (preroll)
+  if (cuviddisp->timestamp < 0)
+    return TRUE;
+
+  if (filter->m_DisplayQueue[filter->m_DisplayPos].picture_index >= 0) {
+    filter->Display(&filter->m_DisplayQueue[filter->m_DisplayPos]);
+    filter->m_DisplayQueue[filter->m_DisplayPos].picture_index = -1;
+  }
+  filter->m_DisplayQueue[filter->m_DisplayPos] = *cuviddisp;
+  filter->m_DisplayPos = (filter->m_DisplayPos + 1) % DISPLAY_DELAY;
+
   return TRUE;
 }
 
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
-  return E_NOTIMPL;
+  CUresult result;
+
+  CUVIDSOURCEDATAPACKET pCuvidPacket;
+  ZeroMemory(&pCuvidPacket, sizeof(pCuvidPacket));
+
+  // TODO: process AVC1 into H264/AnnexB
+  pCuvidPacket.payload      = buffer;
+  pCuvidPacket.payload_size = buflen;
+
+  if (rtStart != AV_NOPTS_VALUE) {
+    pCuvidPacket.flags     |= CUVID_PKT_TIMESTAMP;
+    pCuvidPacket.timestamp  = rtStart;
+  }
+
+  if (bDiscontinuity)
+    pCuvidPacket.flags     |= CUVID_PKT_DISCONTINUITY;
+
+  __try {
+    result = cuda.cuvidParseVideoData(m_hParser, &pCuvidPacket);
+  } __except(1) {
+    DbgLog((LOG_ERROR, 10, L"CDecCuvid::Decode(): cuvidParseVideoData threw an exception"));
+  }
+
+  return S_OK;
 }
 
 STDMETHODIMP CDecCuvid::Flush()
 {
-  return E_NOTIMPL;
+  DbgLog((LOG_TRACE, 10, L"CDecCuvid::Flush(): Flushing CUVID decoder"));
+  m_bFlushing = TRUE;
+
+  FlushParser();
+
+  // Flush display queue
+  for (int i=0; i<DISPLAY_DELAY; ++i) {
+    if (m_DisplayQueue[m_DisplayPos].picture_index >= 0) {
+      m_DisplayQueue[m_DisplayPos].picture_index = -1;
+    }
+    m_DisplayPos = (m_DisplayPos + 1) % DISPLAY_DELAY;
+  }
+
+  m_bFlushing = FALSE;
+
+  // Re-init decoder after flush
+  DecodeSequenceData();
+
+  return S_OK;
 }
 
 STDMETHODIMP CDecCuvid::EndOfStream()
 {
-  return E_NOTIMPL;
+  FlushParser();
+
+  return S_OK;
 }
 
 STDMETHODIMP CDecCuvid::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
