@@ -34,7 +34,7 @@ class CDecAvcodec : public CDecBase
 {
 public:
   CDecAvcodec(void);
-  ~CDecAvcodec(void);
+  virtual ~CDecAvcodec(void);
 
   // ILAVDecoder
   STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback);
