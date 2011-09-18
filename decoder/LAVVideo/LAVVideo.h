@@ -116,16 +116,11 @@ private:
 private:
   ILAVDecoder          *m_pDecoder;
 
-  REFERENCE_TIME       m_rtAvrTimePerFrame;
-  BOOL                 m_bProcessExtradata;
-
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
 
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;
-
-  int                  m_nThreads;
 
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
