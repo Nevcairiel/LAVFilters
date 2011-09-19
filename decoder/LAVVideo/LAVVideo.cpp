@@ -649,6 +649,8 @@ STDMETHODIMP CLAVVideo::AllocateFrame(LAVFrame **ppFrame)
 
   // Set some defaults
   (*ppFrame)->bpp = 8;
+  (*ppFrame)->rtStart = AV_NOPTS_VALUE;
+  (*ppFrame)->rtStop  = AV_NOPTS_VALUE;
 
   return S_OK;
 }
