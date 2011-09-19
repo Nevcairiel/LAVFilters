@@ -590,13 +590,11 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->rtStart = cuviddisp->timestamp;
   pFrame->rtStop = AV_NOPTS_VALUE;
 
-  // Allocate the buffers for the image
-  AllocLAVFrameBuffers(pFrame, pitch);
-
-  // Copy the image from the staging area to the buffer
+  // Assign the buffer to the LAV Frame bufers
   int Ysize = height * pitch;
-  memcpy(pFrame->data[0], m_pbRawNV12, Ysize);
-  memcpy(pFrame->data[1], m_pbRawNV12+Ysize, Ysize >> 1);
+  pFrame->data[0] = m_pbRawNV12;
+  pFrame->data[1] = m_pbRawNV12+Ysize;
+  pFrame->stride[0] = pFrame->stride[1] = pitch;
 
   m_pCallback->Deliver(pFrame);
 
