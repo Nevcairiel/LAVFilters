@@ -104,15 +104,15 @@ private:
   CUvideodecoder         m_hDecoder;
   CUVIDDECODECREATEINFO  m_VideoDecoderInfo;
 
+  CUVIDEOFORMAT          m_VideoFormat;
+
   CUVIDPARSERDISPINFO    m_DisplayQueue[DISPLAY_DELAY];
   int                    m_DisplayPos;
 
   BOOL                   m_bForceSequenceUpdate;
   BOOL                   m_bInterlaced;
   BOOL                   m_bFlushing;
-
-  int                    m_aspectX;
-  int                    m_aspectY;
+  REFERENCE_TIME         m_rtAvgTimePerFrame;
 
   BYTE                   *m_pbRawNV12;
   int                    m_cRawNV12;

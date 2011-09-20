@@ -55,11 +55,12 @@ CDecCuvid::CDecCuvid(void)
   , m_hParser(0), m_hDecoder(0)
   , m_bForceSequenceUpdate(FALSE)
   , m_bInterlaced(FALSE)
-  , m_aspectX(0), m_aspectY(0)
   , m_bFlushing(FALSE)
   , m_pbRawNV12(NULL), m_cRawNV12(0)
+  , m_rtAvgTimePerFrame(AV_NOPTS_VALUE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
+  ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
 }
 
 CDecCuvid::~CDecCuvid(void)
@@ -444,12 +445,18 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     filter->m_bForceSequenceUpdate = FALSE;
     RECT rcDisplayArea = {cuvidfmt->display_area.left, cuvidfmt->display_area.top, cuvidfmt->display_area.right, cuvidfmt->display_area.bottom};
     filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->display_area.right, cuvidfmt->display_area.bottom, rcDisplayArea);
-
-    filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
   }
 
-  filter->m_aspectX = cuvidfmt->display_aspect_ratio.x;
-  filter->m_aspectY = cuvidfmt->display_aspect_ratio.y;
+  filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
+  if (filter->m_bInterlaced && cuvidfmt->frame_rate.numerator && cuvidfmt->frame_rate.denominator) {
+    double dFrameTime = 10000000.0 / ((double)cuvidfmt->frame_rate.numerator / cuvidfmt->frame_rate.denominator);
+    if (TRUE) //TODO
+      dFrameTime /= 2.0;
+    filter->m_rtAvgTimePerFrame = REFERENCE_TIME(dFrameTime + 0.5);
+  } else {
+    filter->m_rtAvgTimePerFrame = AV_NOPTS_VALUE;
+  }
+  filter->m_VideoFormat = *cuvidfmt;
 
   return TRUE;
 }
@@ -517,7 +524,7 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 
 STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 {
-  if (FALSE && m_bInterlaced /*&& m_settings.bFrameDoubling && m_settings.dwDeinterlace != cudaVideoDeinterlaceMode_Weave*/) {
+  if (m_bInterlaced /*&& m_settings.bFrameDoubling && m_settings.dwDeinterlace != cudaVideoDeinterlaceMode_Weave*/) {
     if (cuviddisp->progressive_frame) {
       Deliver(cuviddisp, 2);
     } else {
@@ -584,11 +591,27 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   LAVFrame *pFrame = NULL;
   AllocateFrame(&pFrame);
 
+  if (m_rtAvgTimePerFrame != AV_NOPTS_VALUE) {
+    pFrame->avgFrameDuration = m_rtAvgTimePerFrame;
+  }
+
+  REFERENCE_TIME rtStart = cuviddisp->timestamp, rtStop;
+  if (field == 1)
+    rtStart += pFrame->avgFrameDuration;
+
+  rtStop = rtStart + pFrame->avgFrameDuration;
+  if (field == 2)
+    rtStop += pFrame->avgFrameDuration;
+
+  // Sanity check in case the duration is null
+  if (rtStop == rtStart)
+    rtStop = AV_NOPTS_VALUE;
+
   pFrame->format = LAVPixFmt_NV12;
   pFrame->width  = width;
   pFrame->height = height;
-  pFrame->rtStart = cuviddisp->timestamp;
-  pFrame->rtStop = AV_NOPTS_VALUE;
+  pFrame->rtStart = rtStart;
+  pFrame->rtStop = rtStop;
 
   // Assign the buffer to the LAV Frame bufers
   int Ysize = height * pitch;
