@@ -405,13 +405,13 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
   return __super::BreakConnect(dir);
 }
 
-HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags)
+HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration)
 {
   CheckPointer(ppOut, E_POINTER);
 
   HRESULT hr;
 
-  if(FAILED(hr = ReconnectOutput(width, height, ar, dxvaExtFlags))) {
+  if(FAILED(hr = ReconnectOutput(width, height, ar, dxvaExtFlags, avgFrameDuration))) {
     return hr;
   }
 
@@ -434,7 +434,7 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
   return S_OK;
 }
 
-HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags)
+HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration)
 {
   CMediaType& mt = m_pOutput->CurrentMediaType();
 
@@ -448,10 +448,14 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
+    if (avgFrameDuration == AV_NOPTS_VALUE)
+      avgFrameDuration = vih->AvgTimePerFrame;
 
-    bNeedReconnect = (vih->rcTarget.right != width || vih->rcTarget.bottom != height);
+    bNeedReconnect = (vih->rcTarget.right != width || vih->rcTarget.bottom != height || vih->AvgTimePerFrame != avgFrameDuration);
   } else if (mt.formattype  == FORMAT_VideoInfo2) {
     VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+    if (avgFrameDuration == AV_NOPTS_VALUE)
+      avgFrameDuration = vih2->AvgTimePerFrame;
 
     int num = width, den = height;
     av_reduce(&num, &den, (int64_t)ar.num * num, (int64_t)ar.den * den, 255);
@@ -471,7 +475,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dwAspectX = num;
     dwAspectY = den;
 
-    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->dwControlFlags != dxvaExtFlags.value);
+    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->AvgTimePerFrame != avgFrameDuration || vih2->dwControlFlags != dxvaExtFlags.value);
   }
 
 
@@ -485,6 +489,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       SetRect(&vih->rcSource, 0, 0, width, height);
       SetRect(&vih->rcTarget, 0, 0, width, height);
 
+      vih->AvgTimePerFrame = avgFrameDuration;
+
       pBIH = &vih->bmiHeader;
     } else if (mt.formattype == FORMAT_VideoInfo2) {
       VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
@@ -495,6 +501,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       SetRect(&vih2->rcSource, 0, 0, width, height);
       SetRect(&vih2->rcTarget, 0, 0, width, height);
 
+      vih2->AvgTimePerFrame = avgFrameDuration;
       vih2->dwControlFlags = dxvaExtFlags.value;
 
       pBIH = &vih2->bmiHeader;
@@ -735,7 +742,11 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   IMediaSample *pSampleOut = NULL;
   BYTE         *pDataOut   = NULL;
 
-  if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, pFrame->aspect_ratio, pFrame->ext_format)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
+  REFERENCE_TIME avgDuration = pFrame->avgFrameDuration;
+  if (avgDuration == 0)
+    avgDuration = AV_NOPTS_VALUE;
+
+  if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
     ReleaseFrame(&pFrame);
     return hr;
   }
