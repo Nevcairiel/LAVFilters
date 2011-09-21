@@ -30,6 +30,8 @@
 #include "cuvid/nvcuvid.h"
 #include "cuvid/cuda_dynlink.h"
 
+#include "parsers/AVC1AnnexBConverter.h"
+
 #define CUMETHOD(name) t##name *##name
 
 class CDecCuvid : public CDecBase
@@ -116,4 +118,6 @@ private:
 
   BYTE                   *m_pbRawNV12;
   int                    m_cRawNV12;
+
+  CAVC1AnnexBConverter   *m_AVC1Converter;
 };

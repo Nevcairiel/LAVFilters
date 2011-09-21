@@ -58,6 +58,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bFlushing(FALSE)
   , m_pbRawNV12(NULL), m_cRawNV12(0)
   , m_rtAvgTimePerFrame(AV_NOPTS_VALUE)
+  , m_AVC1Converter(NULL)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -70,6 +71,10 @@ CDecCuvid::~CDecCuvid(void)
 
 STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 {
+  if (m_AVC1Converter) {
+    SAFE_DELETE(m_AVC1Converter);
+  }
+
   if (m_hDecoder) {
     cuda.cuvidDestroyDecoder(m_hDecoder);
     m_hDecoder = 0;
@@ -340,9 +345,22 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   memset(&m_VideoParserExInfo, 0, sizeof(CUVIDEOFORMATEX));
 
   if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1)) {
-    // TODO: AVC1
+    MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
+    m_AVC1Converter = new CAVC1AnnexBConverter();
+    m_AVC1Converter->SetNALUSize(2);
+
+    BYTE *annexBextra = NULL;
+    int size = 0;
+    m_AVC1Converter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    if (annexBextra && size) {
+      memcpy(m_VideoParserExInfo.raw_seqhdr_data, annexBextra, size);
+      m_VideoParserExInfo.format.seqhdr_data_length = size;
+      av_freep(&annexBextra);
+    }
+
+    m_AVC1Converter->SetNALUSize(mp2vi->dwFlags);
   } else {
-    getExtraData(pmt->Format(), pmt->FormatType(), pmt->FormatLength(), m_VideoParserExInfo.raw_seqhdr_data, &m_VideoParserExInfo.format.seqhdr_data_length);
+    getExtraData(*pmt, m_VideoParserExInfo.raw_seqhdr_data, &m_VideoParserExInfo.format.seqhdr_data_length);
   }
 
   oVideoParserParameters.pExtVideoInfo = &m_VideoParserExInfo;
@@ -627,13 +645,23 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   CUresult result;
+  HRESULT hr;
 
   CUVIDSOURCEDATAPACKET pCuvidPacket;
   ZeroMemory(&pCuvidPacket, sizeof(pCuvidPacket));
 
-  // TODO: process AVC1 into H264/AnnexB
-  pCuvidPacket.payload      = buffer;
-  pCuvidPacket.payload_size = buflen;
+  BYTE *pBuffer = NULL;
+  if (m_AVC1Converter) {
+    int size = 0;
+    hr = m_AVC1Converter->Convert(&pBuffer, &size, buffer, buflen);
+    if (SUCCEEDED(hr)) {
+      pCuvidPacket.payload      = pBuffer;
+      pCuvidPacket.payload_size = size;
+    }
+  } else {
+    pCuvidPacket.payload      = buffer;
+    pCuvidPacket.payload_size = buflen;
+  }
 
   if (rtStart != AV_NOPTS_VALUE) {
     pCuvidPacket.flags     |= CUVID_PKT_TIMESTAMP;
@@ -648,6 +676,8 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   } __except(1) {
     DbgLog((LOG_ERROR, 10, L"CDecCuvid::Decode(): cuvidParseVideoData threw an exception"));
   }
+
+  av_freep(&pBuffer);
 
   return S_OK;
 }

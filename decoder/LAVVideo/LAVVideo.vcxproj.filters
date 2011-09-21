@@ -87,6 +87,9 @@
     <ClCompile Include="decoders\cuvid.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
+    <ClCompile Include="parsers\AVC1AnnexBConverter.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -136,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="decoders\cuvid.h">
       <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="parsers\AVC1AnnexBConverter.h">
+      <Filter>Header Files\parsers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
