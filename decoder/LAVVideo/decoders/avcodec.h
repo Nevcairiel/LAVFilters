@@ -71,6 +71,10 @@ private:
   BOOL                 m_bCalculateStopTime;
   BOOL                 m_bRVDropBFrameTimings;
 
+  BOOL                 m_bBFrameDelay;
+  TimingCache          m_tcBFrameDelay[2];
+  int                  m_nBFramePos;
+
   TimingCache          m_tcThreadBuffer[AVCODEC_MAX_THREADS];
   int                  m_CurrentThread;
 

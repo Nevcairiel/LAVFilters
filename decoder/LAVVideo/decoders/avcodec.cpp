@@ -262,6 +262,8 @@ CDecAvcodec::CDecAvcodec(void)
   , m_nCodecId(CODEC_ID_NONE)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_bWaitingForKeyFrame(FALSE)
+  , m_bBFrameDelay(TRUE)
+  , m_nBFramePos(0)
 {
 }
 
@@ -393,6 +395,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
   m_bRVDropBFrameTimings = (codec == CODEC_ID_RV10 || codec == CODEC_ID_RV20 || (_wcsicmp(pszExtension, L".mkv") == 0) || ((codec == CODEC_ID_RV30 || codec == CODEC_ID_RV40) && !(FilterInGraph(CLSID_LAVSplitter) || FilterInGraph(CLSID_LAVSplitterSource))));
 
+  // Enable B-Frame delay handling
+  m_bBFrameDelay = !m_bFFReordering;
+
   SAFE_CO_FREE(pszExtension);
 
   // Open the decoder
@@ -472,6 +477,10 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_CurrentThread >= m_pAVCtx->thread_count) {
       m_CurrentThread = 0;
     }
+  } else if (m_bBFrameDelay) {
+    m_tcBFrameDelay[m_nBFramePos].rtStart = rtStartIn;
+    m_tcBFrameDelay[m_nBFramePos].rtStop = rtStopIn;
+    m_nBFramePos = !m_nBFramePos;
   }
 
   if (m_nCodecId == CODEC_ID_H264 && !bFlush) {
@@ -605,6 +614,12 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       }
     }
 
+    // Handle B-frame delay for frame threading codecs
+    if ((m_pAVCtx->active_thread_type & FF_THREAD_FRAME) && m_bBFrameDelay) {
+      m_tcBFrameDelay[m_nBFramePos] = m_tcThreadBuffer[m_CurrentThread];
+      m_nBFramePos = !m_nBFramePos;
+    }
+
     if (!got_picture || !m_pFrame->data[0]) {
       bFlush = FALSE; // End flushing, no more frames
       continue;
@@ -619,6 +634,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     } else if (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
       if (m_bRVDropBFrameTimings && m_pFrame->pict_type == AV_PICTURE_TYPE_B)
         rtStart = AV_NOPTS_VALUE;
+    } else if (m_bBFrameDelay && m_pAVCtx->has_b_frames) {
+      rtStart = m_tcBFrameDelay[m_nBFramePos].rtStart;
+      rtStop  = m_tcBFrameDelay[m_nBFramePos].rtStop;
     } else if (m_pAVCtx->active_thread_type & FF_THREAD_FRAME) {
       unsigned index = m_CurrentThread;
       rtStart = m_tcThreadBuffer[index].rtStart;
@@ -679,6 +697,11 @@ STDMETHODIMP CDecAvcodec::Flush()
   m_CurrentThread = 0;
   m_rtStartCache = AV_NOPTS_VALUE;
   m_bWaitingForKeyFrame = TRUE;
+
+  m_nBFramePos = 0;
+  m_tcBFrameDelay[0].rtStart = m_tcBFrameDelay[0].rtStop = AV_NOPTS_VALUE;
+  m_tcBFrameDelay[1].rtStart = m_tcBFrameDelay[1].rtStop = AV_NOPTS_VALUE;
+
 
   return S_OK;
 }
