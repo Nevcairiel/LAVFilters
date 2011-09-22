@@ -80,6 +80,29 @@ typedef enum LAVHWAccel {
   HWAccel_CUDA
 };
 
+// Deinterlace algorithms offered by the hardware decoders
+typedef enum LAVHWDeintModes {
+  HWDeintMode_Weave,
+  HWDeintMode_BOB,
+  HWDeintMode_Hardware
+};
+
+// Type of deinterlacing to perform in the hardware
+// - FramePerField re-constructs one frame from every field, resulting in 50/60 fps.
+// - FramePer2Field re-constructs one frame from every 2 fields, resulting in 25/30 fps.
+// Note: Weave will always use FramePer2Field
+typedef enum LAVHWDeintOutput {
+  HWDeintOutput_FramePerField,
+  HWDeintOutput_FramePer2Field
+};
+
+// Control the field order of the deinterlacer
+typedef enum LAVHWDeintFieldOrder {
+  HWDeintFieldOrder_Auto,
+  HWDeintFieldOrder_TopFieldFirst,
+  HWDeintFieldOrder_BottomFieldFirst,
+};
+
 // Supported output pixel formats
 typedef enum LAVOutPixFmts {
   LAVOutPixFmt_None = -1,
@@ -178,4 +201,30 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get which codecs should use HW Acceleration
   STDMETHOD_(BOOL, GetHWAccelCodec)(LAVVideoHWCodec hwAccelCodec) = 0;
+
+  // Set the deinterlacing mode used by the hardware decoder
+  STDMETHOD(SetHWAccelDeintMode)(LAVHWDeintModes deintMode) = 0;
+
+  // Get the deinterlacing mode used by the hardware decoder
+  STDMETHOD_(LAVHWDeintModes, GetHWAccelDeintMode)() = 0;
+
+  // Set the deinterlacing output for the hardware decoder
+  STDMETHOD(SetHWAccelDeintOutput)(LAVHWDeintOutput deintOutput) = 0;
+
+  // Get the deinterlacing output for the hardware decoder
+  STDMETHOD_(LAVHWDeintOutput, GetHWAccelDeintOutput)() = 0;
+
+  // Set wether the hardware decoder should force high-quality deinterlacing
+  // Note: this option is not supported on all decoder implementations and/or all operating systems
+  STDMETHOD(SetHWAccelDeintHQ)(BOOL bHQ) = 0;
+
+  // Get wether the hardware decoder should force high-quality deinterlacing
+  // Note: this option is not supported on all decoder implementations and/or all operating systems
+  STDMETHOD_(BOOL, GetHWAccelDeintHQ)() = 0;
+
+  // Set the deinterlacing field order of the hardware decoder
+  STDMETHOD(SetHWAccelDeintFieldOrder)(LAVHWDeintFieldOrder fieldOrder) = 0;
+
+  // get the deinterlacing field order of the hardware decoder
+  STDMETHOD_(LAVHWDeintFieldOrder, GetHWAccelDeintFieldOrder)() = 0;
 };

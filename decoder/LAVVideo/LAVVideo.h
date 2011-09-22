@@ -70,10 +70,19 @@ public:
   STDMETHODIMP_(BOOL) GetHighQualityPixelFormatConversion();
   STDMETHODIMP SetRGBOutputRange(DWORD dwRange);
   STDMETHODIMP_(DWORD) GetRGBOutputRange();
+
   STDMETHODIMP SetHWAccel(LAVHWAccel hwAccel);
   STDMETHODIMP_(LAVHWAccel) GetHWAccel();
   STDMETHODIMP SetHWAccelCodec(LAVVideoHWCodec hwAccelCodec, BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetHWAccelCodec(LAVVideoHWCodec hwAccelCodec);
+  STDMETHODIMP SetHWAccelDeintMode(LAVHWDeintModes deintMode);
+  STDMETHODIMP_(LAVHWDeintModes) GetHWAccelDeintMode();
+  STDMETHODIMP SetHWAccelDeintOutput(LAVHWDeintOutput deintOutput);
+  STDMETHODIMP_(LAVHWDeintOutput) GetHWAccelDeintOutput();
+  STDMETHODIMP SetHWAccelDeintHQ(BOOL bHQ);
+  STDMETHODIMP_(BOOL) GetHWAccelDeintHQ();
+  STDMETHODIMP SetHWAccelDeintFieldOrder(LAVHWDeintFieldOrder fieldOrder);
+  STDMETHODIMP_(LAVHWDeintFieldOrder) GetHWAccelDeintFieldOrder();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -146,6 +155,10 @@ private:
     DWORD RGBRange;
     DWORD HWAccel;
     BOOL bHWFormats[HWCodec_NB];
+    DWORD HWDeintMode;
+    DWORD HWDeintOutput;
+    BOOL HWDeintHQ;
+    DWORD HWDeintFieldOrder;
   } m_settings;
 
 #ifdef DEBUG

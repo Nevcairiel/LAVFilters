@@ -59,6 +59,7 @@ CDecCuvid::CDecCuvid(void)
   , m_pbRawNV12(NULL), m_cRawNV12(0)
   , m_rtAvgTimePerFrame(AV_NOPTS_VALUE)
   , m_AVC1Converter(NULL)
+  , m_bDoubleRateDeint(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -405,7 +406,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
   dci->CodecType           = codec;
   dci->ChromaFormat        = cudaVideoChromaFormat_420;
   dci->OutputFormat        = cudaVideoSurfaceFormat_NV12;
-  dci->DeinterlaceMode     = cudaVideoDeinterlaceMode_Adaptive; // TODO: settings
+  dci->DeinterlaceMode     = (cudaVideoDeinterlaceMode)m_pSettings->GetHWAccelDeintMode();
   dci->ulNumOutputSurfaces = 1;
 
   dci->ulTargetWidth       = dwDisplayWidth;
@@ -416,7 +417,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
   dci->display_area.top    = (short)rcDisplayArea.top;
   dci->display_area.bottom = (short)rcDisplayArea.bottom;
 
-  dci->ulCreationFlags     = (m_pD3DDevice/* && m_settings.bDXVA*/) ? cudaVideoCreate_PreferDXVA : cudaVideoCreate_PreferCUVID;
+  dci->ulCreationFlags     = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ()) ? cudaVideoCreate_PreferDXVA : cudaVideoCreate_PreferCUVID;
   dci->vidLock             = m_cudaCtxLock;
 
   // create the decoder
@@ -466,10 +467,13 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
   }
 
   filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
+  filter->m_bDoubleRateDeint = FALSE;
   if (filter->m_bInterlaced && cuvidfmt->frame_rate.numerator && cuvidfmt->frame_rate.denominator) {
     double dFrameTime = 10000000.0 / ((double)cuvidfmt->frame_rate.numerator / cuvidfmt->frame_rate.denominator);
-    if (TRUE) //TODO
+    if (filter->m_pSettings->GetHWAccelDeintOutput() == HWDeintOutput_FramePerField && filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave) {
+      filter->m_bDoubleRateDeint = TRUE;
       dFrameTime /= 2.0;
+    }
     filter->m_rtAvgTimePerFrame = REFERENCE_TIME(dFrameTime + 0.5);
   } else {
     filter->m_rtAvgTimePerFrame = AV_NOPTS_VALUE;
@@ -542,7 +546,7 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 
 STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 {
-  if (m_bInterlaced /*&& m_settings.bFrameDoubling && m_settings.dwDeinterlace != cudaVideoDeinterlaceMode_Weave*/) {
+  if (m_bDoubleRateDeint) {
     if (cuviddisp->progressive_frame) {
       Deliver(cuviddisp, 2);
     } else {
@@ -567,10 +571,11 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   memset(&vpp, 0, sizeof(vpp));
   vpp.progressive_frame = cuviddisp->progressive_frame;
 
-  if (TRUE /*m_settings.dwFieldOrder == 0*/)
+  LAVHWDeintFieldOrder dwFieldOrder = m_pSettings->GetHWAccelDeintFieldOrder();
+  if (dwFieldOrder == HWDeintFieldOrder_Auto)
     vpp.top_field_first = cuviddisp->top_field_first;
-  /*else
-    vpp.top_field_first = (m_settings.dwFieldOrder == 1);*/
+  else
+    vpp.top_field_first = (dwFieldOrder == HWDeintFieldOrder_TopFieldFirst);
 
   vpp.second_field = (field == 1);
 

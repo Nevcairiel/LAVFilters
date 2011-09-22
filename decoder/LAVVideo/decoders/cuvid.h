@@ -113,6 +113,7 @@ private:
 
   BOOL                   m_bForceSequenceUpdate;
   BOOL                   m_bInterlaced;
+  BOOL                   m_bDoubleRateDeint;
   BOOL                   m_bFlushing;
   REFERENCE_TIME         m_rtAvgTimePerFrame;
 

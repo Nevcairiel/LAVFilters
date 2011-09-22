@@ -62,6 +62,13 @@ CLAVVideo::~CLAVVideo()
 
 HRESULT CLAVVideo::LoadDefaults()
 {
+  // Query OS version info
+  OSVERSIONINFO os;
+  ZeroMemory(&os, sizeof(os));
+  os.dwOSVersionInfoSize = sizeof(os);
+  GetVersionEx(&os);
+
+  // Set Defaults
   m_settings.StreamAR = TRUE;
   m_settings.InterlacedFlags = TRUE;
   m_settings.NumThreads = 0;
@@ -84,6 +91,11 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.HWAccel = HWAccel_None;
   for (int i = 0; i < HWCodec_NB; ++i)
     m_settings.bHWFormats[i] = TRUE;
+
+  m_settings.HWDeintMode = HWDeintMode_Hardware;
+  m_settings.HWDeintOutput = HWDeintOutput_FramePerField;
+  m_settings.HWDeintHQ = (os.dwMajorVersion >= 6); // Activate by default on Vista and above, on XP it causes issues
+  m_settings.HWDeintFieldOrder = HWDeintFieldOrder_Auto;
 
   return S_OK;
 }
@@ -155,6 +167,18 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = regHW.ReadBOOL(L"mpeg2", hr);
   if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2] = bFlag;
 
+  dwVal = regHW.ReadDWORD(L"HWDeintMode", hr);
+  if (SUCCEEDED(hr)) m_settings.HWDeintMode = dwVal;
+
+  dwVal = regHW.ReadDWORD(L"HWDeintOutput", hr);
+  if (SUCCEEDED(hr)) m_settings.HWDeintOutput = dwVal;
+
+  bFlag = regHW.ReadBOOL(L"HWDeintHQ", hr);
+  if (SUCCEEDED(hr)) m_settings.HWDeintHQ = bFlag;
+
+  dwVal = regHW.ReadDWORD(L"HWDeintFieldOrder", hr);
+  if (SUCCEEDED(hr)) m_settings.HWDeintFieldOrder = dwVal;
+
   return S_OK;
 }
 
@@ -188,6 +212,11 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteBOOL(L"h264", m_settings.bHWFormats[HWCodec_H264]);
     regHW.WriteBOOL(L"vc1", m_settings.bHWFormats[HWCodec_VC1]);
     regHW.WriteBOOL(L"mpeg2",m_settings.bHWFormats[HWCodec_MPEG2]);
+
+    regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
+    regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
+    regHW.WriteBOOL(L"HWDeintHQ", m_settings.HWDeintHQ);
+    regHW.WriteDWORD(L"HWDeintFieldOrder", m_settings.HWDeintFieldOrder);
   }
   return S_OK;
 }
@@ -1020,4 +1049,48 @@ STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelCodec(LAVVideoHWCodec hwAccelCodec)
     return FALSE;
 
   return m_settings.bHWFormats[hwAccelCodec];
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelDeintMode(LAVHWDeintModes deintMode)
+{
+  m_settings.HWDeintMode = deintMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(LAVHWDeintModes) CLAVVideo::GetHWAccelDeintMode()
+{
+  return (LAVHWDeintModes)m_settings.HWDeintMode;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelDeintOutput(LAVHWDeintOutput deintOutput)
+{
+  m_settings.HWDeintOutput = deintOutput;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(LAVHWDeintOutput) CLAVVideo::GetHWAccelDeintOutput()
+{
+  return (LAVHWDeintOutput)m_settings.HWDeintOutput;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelDeintHQ(BOOL bHQ)
+{
+  m_settings.HWDeintHQ = bHQ;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelDeintHQ()
+{
+  return m_settings.HWDeintHQ;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelDeintFieldOrder(LAVHWDeintFieldOrder fieldOrder)
+{
+  m_settings.HWDeintFieldOrder = fieldOrder;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(LAVHWDeintFieldOrder) CLAVVideo::GetHWAccelDeintFieldOrder()
+{
+  return (LAVHWDeintFieldOrder)m_settings.HWDeintFieldOrder;
 }
