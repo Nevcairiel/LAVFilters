@@ -227,4 +227,10 @@ interface ILAVVideoSettings : public IUnknown
 
   // get the deinterlacing field order of the hardware decoder
   STDMETHOD_(LAVHWDeintFieldOrder, GetHWAccelDeintFieldOrder)() = 0;
+
+  // Set wether all frames should be deinterlaced, even ones marked as progressive
+  STDMETHOD(SetHWAccelDeintForce)(BOOL bForce) = 0;
+
+  // Get wether all frames should be deinterlaced, even ones marked as progressive
+  STDMETHOD_(BOOL, GetHWAccelDeintForce)() = 0;
 };

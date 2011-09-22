@@ -96,6 +96,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.HWDeintOutput = HWDeintOutput_FramePerField;
   m_settings.HWDeintHQ = (os.dwMajorVersion >= 6); // Activate by default on Vista and above, on XP it causes issues
   m_settings.HWDeintFieldOrder = HWDeintFieldOrder_Auto;
+  m_settings.HWDeintForce = FALSE;
 
   return S_OK;
 }
@@ -179,6 +180,9 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = regHW.ReadDWORD(L"HWDeintFieldOrder", hr);
   if (SUCCEEDED(hr)) m_settings.HWDeintFieldOrder = dwVal;
 
+  bFlag = regHW.ReadBOOL(L"HWDeintForce", hr);
+  if (SUCCEEDED(hr)) m_settings.HWDeintForce = bFlag;
+
   return S_OK;
 }
 
@@ -217,6 +221,7 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
     regHW.WriteBOOL(L"HWDeintHQ", m_settings.HWDeintHQ);
     regHW.WriteDWORD(L"HWDeintFieldOrder", m_settings.HWDeintFieldOrder);
+    regHW.WriteBOOL(L"HWDeintForce", m_settings.HWDeintForce);
   }
   return S_OK;
 }
@@ -1093,4 +1098,15 @@ STDMETHODIMP CLAVVideo::SetHWAccelDeintFieldOrder(LAVHWDeintFieldOrder fieldOrde
 STDMETHODIMP_(LAVHWDeintFieldOrder) CLAVVideo::GetHWAccelDeintFieldOrder()
 {
   return (LAVHWDeintFieldOrder)m_settings.HWDeintFieldOrder;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelDeintForce(BOOL bForce)
+{
+  m_settings.HWDeintForce = bForce;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelDeintForce()
+{
+  return m_settings.HWDeintForce;
 }

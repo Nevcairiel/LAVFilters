@@ -569,7 +569,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   CUresult cuStatus = CUDA_SUCCESS;
 
   memset(&vpp, 0, sizeof(vpp));
-  vpp.progressive_frame = cuviddisp->progressive_frame;
+  vpp.progressive_frame = !m_pSettings->GetHWAccelDeintForce() && cuviddisp->progressive_frame;
 
   LAVHWDeintFieldOrder dwFieldOrder = m_pSettings->GetHWAccelDeintFieldOrder();
   if (dwFieldOrder == HWDeintFieldOrder_Auto)

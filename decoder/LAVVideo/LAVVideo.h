@@ -83,6 +83,8 @@ public:
   STDMETHODIMP_(BOOL) GetHWAccelDeintHQ();
   STDMETHODIMP SetHWAccelDeintFieldOrder(LAVHWDeintFieldOrder fieldOrder);
   STDMETHODIMP_(LAVHWDeintFieldOrder) GetHWAccelDeintFieldOrder();
+  STDMETHODIMP SetHWAccelDeintForce(BOOL bForce);
+  STDMETHODIMP_(BOOL) GetHWAccelDeintForce();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -159,6 +161,7 @@ private:
     DWORD HWDeintOutput;
     BOOL HWDeintHQ;
     DWORD HWDeintFieldOrder;
+    BOOL HWDeintForce;
   } m_settings;
 
 #ifdef DEBUG
