@@ -688,7 +688,23 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     rtStop = AV_NOPTS_VALUE;
   }
 
-  m_pDecoder->Decode(pDataIn, nSize, rtStart, rtStop, pIn->IsSyncPoint(), pIn->IsDiscontinuity());
+  hr = m_pDecoder->Decode(pDataIn, nSize, rtStart, rtStop, pIn->IsSyncPoint(), pIn->IsDiscontinuity());
+  // If a hardware decoder indicates a hard failure, we switch back to software
+  // This is used to indicate incompatible media
+  if (FAILED(hr) && m_bHWDecoder) {
+    DbgLog((LOG_TRACE, 10, L"::Receive(): Hardware decoder indicates failure, switching back to software"));
+    m_bHWDecoderFailed = TRUE;
+
+    CMediaType &mt = m_pInput->CurrentMediaType();
+    hr = CreateDecoder(&mt);
+    if (FAILED(hr)) {
+      DbgLog((LOG_ERROR, 10, L"-> Creating software decoder failed, this is bad."));
+      return E_FAIL;
+    }
+
+    DbgLog((LOG_TRACE, 10, L"-> Software decoder created, decoding frame again..."));
+    hr = m_pDecoder->Decode(pDataIn, nSize, rtStart, rtStop, pIn->IsSyncPoint(), pIn->IsDiscontinuity());
+  }
 
   return S_OK;
 }
