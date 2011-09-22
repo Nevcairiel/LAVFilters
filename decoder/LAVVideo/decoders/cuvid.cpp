@@ -709,6 +709,15 @@ STDMETHODIMP CDecCuvid::EndOfStream()
 {
   FlushParser();
 
+  // Display all frames left in the queue
+  for (int i=0; i<DISPLAY_DELAY; ++i) {
+    if (m_DisplayQueue[m_DisplayPos].picture_index >= 0) {
+      Display(&m_DisplayQueue[m_DisplayPos]);
+      m_DisplayQueue[m_DisplayPos].picture_index = -1;
+    }
+    m_DisplayPos = (m_DisplayPos + 1) % DISPLAY_DELAY;
+  }
+
   return S_OK;
 }
 
