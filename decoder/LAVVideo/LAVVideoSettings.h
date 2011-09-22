@@ -65,6 +65,21 @@ typedef enum LAVVideoCodec {
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
 
+// Codecs with hardware acceleration
+typedef enum LAVVideoHWCodec {
+  HWCodec_H264  = Codec_H264,
+  HWCodec_VC1   = Codec_VC1,
+  HWCodec_MPEG2 = Codec_MPEG2,
+
+  HWCodec_NB    = HWCodec_MPEG2 + 1
+};
+
+// Type of hardware accelerations
+typedef enum LAVHWAccel {
+  HWAccel_None,
+  HWAccel_CUDA
+};
+
 // Supported output pixel formats
 typedef enum LAVOutPixFmts {
   LAVOutPixFmt_None = -1,
@@ -151,4 +166,16 @@ interface ILAVVideoSettings : public IUnknown
   // 0 = Auto (same as input), 1 = Limited (16-235), 2 = Full (0-255)
   STDMETHOD_(DWORD,GetRGBOutputRange)() = 0;
 
+  // Set which HW Accel method is used
+  // See LAVHWAccel for options.
+  STDMETHOD(SetHWAccel)(LAVHWAccel hwAccel) = 0;
+
+  // Get which HW Accel method is active
+  STDMETHOD_(LAVHWAccel, GetHWAccel)() = 0;
+
+  // Set which codecs should use HW Acceleration
+  STDMETHOD(SetHWAccelCodec)(LAVVideoHWCodec hwAccelCodec, BOOL bEnabled) = 0;
+
+  // Get which codecs should use HW Acceleration
+  STDMETHOD_(BOOL, GetHWAccelCodec)(LAVVideoHWCodec hwAccelCodec) = 0;
 };

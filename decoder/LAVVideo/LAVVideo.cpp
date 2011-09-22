@@ -80,6 +80,10 @@ HRESULT CLAVVideo::LoadDefaults()
   for (int i = 0; i < LAVOutPixFmt_NB; ++i)
     m_settings.bPixFmts[i] = TRUE;
 
+  m_settings.HWAccel = HWAccel_None;
+  for (int i = 0; i < HWCodec_NB; ++i)
+    m_settings.bHWFormats[i] = TRUE;
+
   return S_OK;
 }
 
@@ -135,6 +139,21 @@ HRESULT CLAVVideo::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.bPixFmts[i] = bFlag;
   }
 
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL);
+  CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr);
+
+  dwVal = regHW.ReadDWORD(L"HWAccel", hr);
+  if (SUCCEEDED(hr)) m_settings.HWAccel = dwVal;
+
+  bFlag = regHW.ReadBOOL(L"h264", hr);
+  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_H264] = bFlag;
+
+  bFlag = regHW.ReadBOOL(L"vc1", hr);
+  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_VC1] = bFlag;
+
+  bFlag = regHW.ReadBOOL(L"mpeg2", hr);
+  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2] = bFlag;
+
   return S_OK;
 }
 
@@ -162,6 +181,12 @@ HRESULT CLAVVideo::SaveSettings()
     for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
       regP.WriteBOOL(pixFmtSettingsMap[i], m_settings.bPixFmts[i]);
     }
+
+    CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr);
+    regHW.WriteDWORD(L"HWAccel", m_settings.HWAccel);
+    regHW.WriteBOOL(L"h264", m_settings.bHWFormats[HWCodec_H264]);
+    regHW.WriteBOOL(L"vc1", m_settings.bHWFormats[HWCodec_VC1]);
+    regHW.WriteBOOL(L"mpeg2",m_settings.bHWFormats[HWCodec_MPEG2]);
   }
   return S_OK;
 }
@@ -928,4 +953,32 @@ STDMETHODIMP CLAVVideo::SetRGBOutputRange(DWORD dwRange)
 STDMETHODIMP_(DWORD) CLAVVideo::GetRGBOutputRange()
 {
   return m_settings.RGBRange;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccel(LAVHWAccel hwAccel)
+{
+  m_settings.HWAccel = hwAccel;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(LAVHWAccel) CLAVVideo::GetHWAccel()
+{
+  return (LAVHWAccel)m_settings.HWAccel;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelCodec(LAVVideoHWCodec hwAccelCodec, BOOL bEnabled)
+{
+  if (hwAccelCodec < 0 || hwAccelCodec >= HWCodec_NB)
+    return E_FAIL;
+
+  m_settings.bHWFormats[hwAccelCodec] = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelCodec(LAVVideoHWCodec hwAccelCodec)
+{
+  if (hwAccelCodec < 0 || hwAccelCodec >= HWCodec_NB)
+    return FALSE;
+
+  return m_settings.bHWFormats[hwAccelCodec];
 }

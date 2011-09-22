@@ -30,6 +30,7 @@
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
+#define LAVC_VIDEO_REGISTRY_KEY_HWACCEL L"Software\\LAV\\Video\\HWAccel"
 
 #define DEBUG_FRAME_TIMINGS 0
 #define DEBUG_PIXELCONV_TIMINGS 0
@@ -69,6 +70,10 @@ public:
   STDMETHODIMP_(BOOL) GetHighQualityPixelFormatConversion();
   STDMETHODIMP SetRGBOutputRange(DWORD dwRange);
   STDMETHODIMP_(DWORD) GetRGBOutputRange();
+  STDMETHODIMP SetHWAccel(LAVHWAccel hwAccel);
+  STDMETHODIMP_(LAVHWAccel) GetHWAccel();
+  STDMETHODIMP SetHWAccelCodec(LAVVideoHWCodec hwAccelCodec, BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetHWAccelCodec(LAVVideoHWCodec hwAccelCodec);
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -136,6 +141,8 @@ private:
     BOOL bPixFmts[LAVOutPixFmt_NB];
     BOOL HighQualityPixConv;
     DWORD RGBRange;
+    DWORD HWAccel;
+    BOOL bHWFormats[HWCodec_NB];
   } m_settings;
 
 #ifdef DEBUG
