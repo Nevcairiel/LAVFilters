@@ -371,23 +371,13 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   hr = m_pDecoder->InitInterfaces(static_cast<ILAVVideoSettings *>(this), static_cast<ILAVVideoCallback *>(this));
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Init Interfaces failed (hr: 0x%x)", hr));
-    // If this was a hardware decoder, try again with software
-    if (m_bHWDecoder) {
-      m_bHWDecoderFailed = TRUE;
-      return CreateDecoder(pmt);
-    }
-    return VFW_E_TYPE_NOT_ACCEPTED;
+    goto done;
   }
 
   hr = m_pDecoder->InitDecoder(codec, pmt);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Init Decoder failed (hr: 0x%x)", hr));
-    // If this was a hardware decoder, try again with software
-    if (m_bHWDecoder) {
-      m_bHWDecoderFailed = TRUE;
-      return CreateDecoder(pmt);
-    }
-    return VFW_E_TYPE_NOT_ACCEPTED;
+    goto done;
   }
 
   LAVPixelFormat pix;
@@ -395,7 +385,13 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   m_pDecoder->GetPixelFormat(&pix, &bpp);
   m_PixFmtConverter.SetInputFmt(pix, bpp);
 
-  return S_OK;
+done:
+  if (FAILED(hr) && m_bHWDecoder) {
+    DbgLog((LOG_TRACE, 10, L"-> Hardware decoder failed to initialize, re-trying with software..."));
+    m_bHWDecoderFailed = TRUE;
+    return CreateDecoder(pmt);
+  }
+  return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
 
 HRESULT CLAVVideo::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
