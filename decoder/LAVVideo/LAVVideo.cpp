@@ -40,6 +40,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bRuntimeConfig(FALSE)
   , m_bForceInputAR(FALSE)
   , m_bSendMediaType(FALSE)
+  , m_bHWDecoder(FALSE), m_bHWDecoderFailed(FALSE)
 {
   avcodec_register_all();
 
@@ -351,16 +352,41 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     }
   }
 
-  m_pDecoder = CreateDecoderAVCodec();
+  if (m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed &&
+    (  (codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])
+    || (codec == CODEC_ID_VC1 && m_settings.bHWFormats[HWCodec_VC1])
+    || (codec == CODEC_ID_MPEG2VIDEO && m_settings.bHWFormats[HWCodec_MPEG2])))
+  {
+    if (m_settings.HWAccel == HWAccel_CUDA)
+      m_pDecoder = CreateDecoderCUVID();
+    m_bHWDecoder = TRUE;
+  }
+
+  // Fallback for software
+  if (!m_pDecoder) {
+    m_bHWDecoder = FALSE;
+    m_pDecoder = CreateDecoderAVCodec();
+  }
+
   hr = m_pDecoder->InitInterfaces(static_cast<ILAVVideoSettings *>(this), static_cast<ILAVVideoCallback *>(this));
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Init Interfaces failed (hr: 0x%x)", hr));
+    // If this was a hardware decoder, try again with software
+    if (m_bHWDecoder) {
+      m_bHWDecoderFailed = TRUE;
+      return CreateDecoder(pmt);
+    }
     return VFW_E_TYPE_NOT_ACCEPTED;
   }
 
   hr = m_pDecoder->InitDecoder(codec, pmt);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Init Decoder failed (hr: 0x%x)", hr));
+    // If this was a hardware decoder, try again with software
+    if (m_bHWDecoder) {
+      m_bHWDecoderFailed = TRUE;
+      return CreateDecoder(pmt);
+    }
     return VFW_E_TYPE_NOT_ACCEPTED;
   }
 
@@ -425,6 +451,7 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
 {
   DbgLog((LOG_TRACE, 10, L"::BreakConnect"));
   if (dir == PINDIR_INPUT) {
+    m_bHWDecoderFailed = FALSE;
     SAFE_DELETE(m_pDecoder);
   }
   return __super::BreakConnect(dir);

@@ -127,6 +127,9 @@ private:
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;
 
+  BOOL                 m_bHWDecoder;
+  BOOL                 m_bHWDecoderFailed;
+
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
 
