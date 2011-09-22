@@ -94,6 +94,18 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   BOOL bRGBPC = (BOOL)SendDlgItemMessage(m_Dlg, IDC_RGBOUT_PC, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetRGBOutputRange(bRGBAuto ? 0 : bRGBTV ? 1 : 2);
 
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+  m_pVideoSettings->SetHWAccel((LAVHWAccel)dwVal);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelCodec(HWCodec_H264, bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VC1, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelCodec(HWCodec_VC1, bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelCodec(HWCodec_MPEG2, bFlag);
+
   LoadData();
 
   return hr;
@@ -128,6 +140,11 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   addHint(IDC_THREADS, L"Enable Multi-Threading for codecs that support it.\nAuto will automatically use the maximum number of threads suitable for your CPU. Using 1 thread disables multi-threading.\n\nMT decoding is supported for H264, MPEG2, MPEG4, VP8, VP3/Theora, DV and HuffYUV");
   addHint(IDC_OUT_HQ, L"Enable High-Quality conversion for swscale.\nOnly swscale processing is affected, all other conversion are always high-quality.\nNote that this mode can be very slow!");
 
+  WCHAR hwAccelNone[] = L"None";
+  WCHAR hwAccelCUDA[] = L"CUDA";
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelNone);
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelCUDA);
+
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_bStreamAR, 0);
@@ -152,9 +169,27 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_RGBOUT_AUTO, BM_SETCHECK, (m_dwRGBOutput == 0), 0);
     SendDlgItemMessage(m_Dlg, IDC_RGBOUT_TV, BM_SETCHECK, (m_dwRGBOutput == 1), 0);
     SendDlgItemMessage(m_Dlg, IDC_RGBOUT_PC, BM_SETCHECK, (m_dwRGBOutput == 2), 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_SETCURSEL, m_HWAccel, 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264, BM_SETCHECK, m_HWAccelCodecs[HWCodec_H264], 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VC1, BM_SETCHECK, m_HWAccelCodecs[HWCodec_VC1], 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2], 0);
+
+    UpdateHWOptions();
   }
 
   return hr;
+}
+
+HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
+{
+  BOOL bEnabled = SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG2), bEnabled);
+
+  return S_OK;
 }
 
 HRESULT CLAVVideoSettingsProp::LoadData()
@@ -169,6 +204,11 @@ HRESULT CLAVVideoSettingsProp::LoadData()
 
   for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
     m_bPixFmts[i] = m_pVideoSettings->GetPixelFormat((LAVOutPixFmts)i);
+  }
+
+  m_HWAccel = m_pVideoSettings->GetHWAccel();
+  for (int i = 0; i < HWCodec_NB; ++i) {
+    m_HWAccelCodecs[i] = m_pVideoSettings->GetHWAccelCodec((LAVVideoHWCodec)i);
   }
 
   return hr;
@@ -279,6 +319,27 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_RGBOUT_PC && HIWORD(wParam) == BN_CLICKED) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (lValue != (m_dwRGBOutput == 2)) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_HWACCEL) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_HWAccel) {
+        SetDirty();
+      }
+      UpdateHWOptions();
+    } else if (LOWORD(wParam) == IDC_HWACCEL_H264 && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWAccelCodecs[HWCodec_H264]) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWACCEL_VC1 && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWAccelCodecs[HWCodec_VC1]) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWACCEL_MPEG2 && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWAccelCodecs[HWCodec_MPEG2]) {
         SetDirty();
       }
     }

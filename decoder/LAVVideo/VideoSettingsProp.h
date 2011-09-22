@@ -46,6 +46,7 @@ public:
 
 private:
   HRESULT LoadData();
+  HRESULT UpdateHWOptions();
 
   void SetDirty()
   {
@@ -66,6 +67,8 @@ private:
   DWORD m_dwRGBOutput;
 
   BOOL  m_bPixFmts[LAVOutPixFmt_NB];
+  DWORD m_HWAccel;
+  BOOL  m_HWAccelCodecs[HWCodec_NB];
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage
