@@ -106,6 +106,24 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelCodec(HWCodec_MPEG2, bFlag);
 
+  BOOL bWeave = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_WEAVE, BM_GETCHECK, 0, 0);
+  BOOL bBOB = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_BOB, BM_GETCHECK, 0, 0);
+  BOOL bAdaptive = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ADAPTIVE, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelDeintMode(bWeave ? HWDeintMode_Weave : bBOB ? HWDeintMode_BOB : HWDeintMode_Hardware);
+
+  BOOL bFilm = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_GETCHECK, 0, 0);
+  //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelDeintOutput(bFilm ? HWDeintOutput_FramePer2Field : HWDeintOutput_FramePerField);
+
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_GETCURSEL, 0, 0);
+  m_pVideoSettings->SetHWAccelDeintFieldOrder((LAVHWDeintFieldOrder)dwVal);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FORCE, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelDeintForce(bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelDeintHQ(bFlag);
+
   LoadData();
 
   return hr;
@@ -126,7 +144,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   const WCHAR *version = TEXT(LAV_VIDEO) L" " TEXT(LAV_VERSION_STR);
   SendDlgItemMessage(m_Dlg, IDC_LAVVIDEO_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
 
-  WCHAR stringBuffer[10] = L"Auto";
+  WCHAR stringBuffer[100] = L"Auto";
 
   // Init the Combo Box
   SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_RESETCONTENT, 0, 0);
@@ -144,6 +162,21 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   WCHAR hwAccelCUDA[] = L"CUDA";
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelNone);
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelCUDA);
+
+  // Init the fieldorder Combo Box
+  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_RESETCONTENT, 0, 0);
+  WideStringFromResource(stringBuffer, IDS_FIELDORDER_AUTO);
+  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  WideStringFromResource(stringBuffer, IDS_FIELDORDER_TOP);
+  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  WideStringFromResource(stringBuffer, IDS_FIELDORDER_BOTTOM);
+  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+
+  addHint(IDC_HWDEINT_OUT_FILM, L"Deinterlace in \"Film\" Mode.\nFor every pair of interlaced fields, one frame will be created, resulting in 25/30 fps.");
+  addHint(IDC_HWDEINT_OUT_VIDEO, L"Deinterlace in \"Video\" Mode. (Recommended)\nFor every interlaced field, one frame will be created, resulting in 50/60 fps.");
+
+  addHint(IDC_HWDEINT_FORCE, L"Force deinterlacing of frames flagged as progressive.");
+  addHint(IDC_HWDEINT_HQ, L"Instruct the decoder to use the maximum quality possible.\nThis will cost performance, it is however required for the best deinterlacing quality.\n\nNOTE: This option is known to fail on Windows XP.");
 
   hr = LoadData();
   if (SUCCEEDED(hr)) {
@@ -175,6 +208,18 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VC1, BM_SETCHECK, m_HWAccelCodecs[HWCodec_VC1], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2], 0);
 
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_WEAVE, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_Weave), 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_BOB, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_BOB), 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ADAPTIVE, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_Hardware), 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_SETCHECK, (m_HWDeintOutMode == HWDeintOutput_FramePer2Field), 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_SETCHECK, (m_HWDeintOutMode == HWDeintOutput_FramePerField), 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_SETCURSEL, m_HWDeintFieldOrder, 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FORCE, BM_SETCHECK, m_HWDeintForce, 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_SETCHECK, m_HWDeintHQ, 0);
+
     UpdateHWOptions();
   }
 
@@ -188,6 +233,15 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG2), bEnabled);
+
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_WEAVE), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_BOB), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_ADAPTIVE), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_FILM), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_VIDEO), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_FIELDORDER), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_FORCE), bEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bEnabled);
 
   return S_OK;
 }
@@ -210,6 +264,12 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   for (int i = 0; i < HWCodec_NB; ++i) {
     m_HWAccelCodecs[i] = m_pVideoSettings->GetHWAccelCodec((LAVVideoHWCodec)i);
   }
+
+  m_HWDeintAlgo = m_pVideoSettings->GetHWAccelDeintMode();
+  m_HWDeintOutMode = m_pVideoSettings->GetHWAccelDeintOutput();
+  m_HWDeintFieldOrder = m_pVideoSettings->GetHWAccelDeintFieldOrder();
+  m_HWDeintForce = m_pVideoSettings->GetHWAccelDeintForce();
+  m_HWDeintHQ = m_pVideoSettings->GetHWAccelDeintHQ();
 
   return hr;
 }
@@ -340,6 +400,46 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_HWACCEL_MPEG2 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_HWAccelCodecs[HWCodec_MPEG2]) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_WEAVE && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != (m_HWDeintAlgo == HWDeintMode_Weave)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_BOB && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != (m_HWDeintAlgo == HWDeintMode_BOB)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_ADAPTIVE && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != (m_HWDeintAlgo == HWDeintMode_Hardware)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_OUT_FILM && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != (m_HWDeintOutMode == HWDeintOutput_FramePer2Field)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_OUT_VIDEO && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != (m_HWDeintOutMode == HWDeintOutput_FramePerField)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_FIELDORDER && HIWORD(wParam) == CBN_SELCHANGE) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_HWDeintFieldOrder) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_FORCE && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWDeintForce) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWDEINT_HQ && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWDeintHQ) {
         SetDirty();
       }
     }

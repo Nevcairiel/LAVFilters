@@ -7,6 +7,9 @@
 #define IDS_SETTINGS                    101
 #define IDS_FORMATS                     102
 #define IDI_ICON1                       103
+#define IDS_FIELDORDER_AUTO             104
+#define IDS_FIELDORDER_TOP              105
+#define IDS_FIELDORDER_BOTTOM           106
 #define IDC_CODECS                      1001
 #define IDC_LAVVIDEO_FOOTER             1002
 #define IDC_VIDEO_SETTINGS              1003
@@ -47,14 +50,26 @@
 #define IDC_HWACCEL_H264                1038
 #define IDC_HWACCEL_VC1                 1039
 #define IDC_HWACCEL_MPEG2               1040
+#define IDC_HW_DEINT                    1041
+#define IDC_LBL_HWDEINT_ALGO            1042
+#define IDC_HWDEINT_WEAVE               1043
+#define IDC_HWDEINT_BOB                 1044
+#define IDC_HWDEINT_ADAPTIVE            1045
+#define IDC_LBL_HWDEINT_MODE            1046
+#define IDC_HWDEINT_OUT_VIDEO           1047
+#define IDC_HWDEINT_OUT_FILM            1048
+#define IDC_LBL_HWDEINT_FIELDORDER      1049
+#define IDC_HWDEINT_FIELDORDER          1050
+#define IDC_HWDEINT_FORCE               1051
+#define IDC_HWDEINT_HQ                  1052
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
+#define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

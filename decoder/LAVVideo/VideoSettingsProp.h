@@ -69,6 +69,12 @@ private:
   BOOL  m_bPixFmts[LAVOutPixFmt_NB];
   DWORD m_HWAccel;
   BOOL  m_HWAccelCodecs[HWCodec_NB];
+
+  DWORD m_HWDeintAlgo;
+  DWORD m_HWDeintOutMode;
+  DWORD m_HWDeintFieldOrder;
+  BOOL  m_HWDeintForce;
+  BOOL  m_HWDeintHQ;
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage
