@@ -159,7 +159,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   addHint(IDC_OUT_HQ, L"Enable High-Quality conversion for swscale.\nOnly swscale processing is affected, all other conversion are always high-quality.\nNote that this mode can be very slow!");
 
   WCHAR hwAccelNone[] = L"None";
-  WCHAR hwAccelCUDA[] = L"CUDA";
+  WCHAR hwAccelCUDA[] = L"CUVID";
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelNone);
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelCUDA);
 
