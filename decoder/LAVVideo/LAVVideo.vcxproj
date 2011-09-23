@@ -153,6 +153,7 @@
     <ClCompile Include="LAVVideo.cpp" />
     <ClCompile Include="Media.cpp" />
     <ClCompile Include="parsers\AVC1AnnexBConverter.cpp" />
+    <ClCompile Include="parsers\H264SequenceParser.cpp" />
     <ClCompile Include="parsers\MPEG2HeaderParser.cpp" />
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
     <ClCompile Include="pixconv\convert_generic.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="LAVVideoSettings.h" />
     <ClInclude Include="Media.h" />
     <ClInclude Include="parsers\AVC1AnnexBConverter.h" />
+    <ClInclude Include="parsers\H264SequenceParser.h" />
     <ClInclude Include="parsers\MPEG2HeaderParser.h" />
     <ClInclude Include="parsers\VC1HeaderParser.h" />
     <ClInclude Include="pixconv\pixconv_internal.h" />

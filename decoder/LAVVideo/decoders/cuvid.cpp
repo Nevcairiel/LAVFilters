@@ -23,6 +23,9 @@
 
 #include "moreuuids.h"
 
+#include "parsers/H264SequenceParser.h"
+#include "parsers/MPEG2HeaderParser.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
@@ -362,6 +365,30 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
     m_AVC1Converter->SetNALUSize(mp2vi->dwFlags);
   } else {
     getExtraData(*pmt, m_VideoParserExInfo.raw_seqhdr_data, &m_VideoParserExInfo.format.seqhdr_data_length);
+  }
+
+  if (m_VideoParserExInfo.format.seqhdr_data_length) {
+    if (cudaCodec == cudaVideoCodec_H264) {
+      DbgLog((LOG_TRACE, 10, L"-> Scanning extradata for H264 SPS/PPS"));
+      CH264SequenceParser h264parser;
+      h264parser.ParseNALs(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length, 0);
+      if (h264parser.sps.valid) {
+        DbgLog((LOG_TRACE, 10, L"  -> SPS found"));
+        if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
+          DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
+          return VFW_E_UNSUPPORTED_VIDEO;
+        }
+      } else {
+        DbgLog((LOG_TRACE, 10, L"  -> SPS not found"));
+      }
+    } else if (cudaCodec == cudaVideoCodec_MPEG2) {
+      DbgLog((LOG_TRACE, 10, L"-> Scanning extradata for MPEG2 sequence header"));
+      CMPEG2HeaderParser mpeg2parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
+      if (mpeg2parser.hdr.chroma >= 2) {
+        DbgLog((LOG_TRACE, 10, L"  -> Sequence header indicates incompatible chroma sampling (chroma: %d)", mpeg2parser.hdr.chroma));
+        return VFW_E_UNSUPPORTED_VIDEO;
+      }
+    }
   }
 
   oVideoParserParameters.pExtVideoInfo = &m_VideoParserExInfo;
