@@ -306,7 +306,8 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 || m_OutputPixFmt == LAVOutPixFmt_RGB24)
             && (m_InputPixFmt == LAVPixFmt_YUV420 || m_InputPixFmt == LAVPixFmt_YUV420bX
              || m_InputPixFmt == LAVPixFmt_YUV422 || m_InputPixFmt == LAVPixFmt_YUV422bX
-             || m_InputPixFmt == LAVPixFmt_YUV444 || m_InputPixFmt == LAVPixFmt_YUV444bX)
+             || m_InputPixFmt == LAVPixFmt_YUV444 || m_InputPixFmt == LAVPixFmt_YUV444bX
+             || m_InputPixFmt == LAVPixFmt_NV12)
             && m_InBpp <= 10) {
       if (m_OutputPixFmt == LAVOutPixFmt_RGB32) {
         convert = &CLAVPixFmtConverter::convert_yuv_rgb<1>;
