@@ -63,6 +63,7 @@ CDecCuvid::CDecCuvid(void)
   , m_rtAvgTimePerFrame(AV_NOPTS_VALUE)
   , m_AVC1Converter(NULL)
   , m_bDoubleRateDeint(FALSE)
+  , m_bFormatIncompatible(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -367,19 +368,14 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
     getExtraData(*pmt, m_VideoParserExInfo.raw_seqhdr_data, &m_VideoParserExInfo.format.seqhdr_data_length);
   }
 
+  m_bNeedSequenceCheck = FALSE;
   if (m_VideoParserExInfo.format.seqhdr_data_length) {
     if (cudaCodec == cudaVideoCodec_H264) {
-      DbgLog((LOG_TRACE, 10, L"-> Scanning extradata for H264 SPS/PPS"));
-      CH264SequenceParser h264parser;
-      h264parser.ParseNALs(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length, 0);
-      if (h264parser.sps.valid) {
-        DbgLog((LOG_TRACE, 10, L"  -> SPS found"));
-        if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
-          DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
-          return VFW_E_UNSUPPORTED_VIDEO;
-        }
-      } else {
-        DbgLog((LOG_TRACE, 10, L"  -> SPS not found"));
+      hr = CheckH264Sequence(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
+      if (FAILED(hr)) {
+        return VFW_E_UNSUPPORTED_VIDEO;
+      } else if (hr == S_FALSE) {
+        m_bNeedSequenceCheck = TRUE;
       }
     } else if (cudaCodec == cudaVideoCodec_MPEG2) {
       DbgLog((LOG_TRACE, 10, L"-> Scanning extradata for MPEG2 sequence header"));
@@ -389,6 +385,8 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
         return VFW_E_UNSUPPORTED_VIDEO;
       }
     }
+  } else {
+    m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264);
   }
 
   oVideoParserParameters.pExtVideoInfo = &m_VideoParserExInfo;
@@ -506,6 +504,11 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     filter->m_rtAvgTimePerFrame = AV_NOPTS_VALUE;
   }
   filter->m_VideoFormat = *cuvidfmt;
+
+  if (cuvidfmt->chroma_format != cudaVideoChromaFormat_420) {
+    DbgLog((LOG_TRACE, 10, L"CDecCuvid::HandleVideoSequence(): Incompatible Chroma Format detected"));
+    filter->m_bFormatIncompatible = TRUE;
+  }
 
   return TRUE;
 }
@@ -674,6 +677,23 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   return S_OK;
 }
 
+STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
+{
+  DbgLog((LOG_TRACE, 10, L"CDecCuvid::CheckH264Sequence(): Checking H264 frame for SPS"));
+  CH264SequenceParser h264parser;
+  h264parser.ParseNALs(buffer, buflen, 0);
+  if (h264parser.sps.valid) {
+    DbgLog((LOG_TRACE, 10, L"-> SPS found"));
+    if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
+      DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
+      return E_FAIL;
+    }
+    DbgLog((LOG_TRACE, 10, L"-> Video seems compatible with CUVID"));
+    return S_OK;
+  }
+  return S_FALSE;
+}
+
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   CUresult result;
@@ -695,6 +715,15 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
     pCuvidPacket.payload_size = buflen;
   }
 
+  if (m_bNeedSequenceCheck && m_VideoDecoderInfo.CodecType == cudaVideoCodec_H264) {
+    hr = CheckH264Sequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+    if (FAILED(hr)) {
+      m_bFormatIncompatible = TRUE;
+    } else if (hr == S_OK) {
+      m_bNeedSequenceCheck = FALSE;
+    }
+  }
+
   if (rtStart != AV_NOPTS_VALUE) {
     pCuvidPacket.flags     |= CUVID_PKT_TIMESTAMP;
     pCuvidPacket.timestamp  = rtStart;
@@ -710,6 +739,11 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   }
 
   av_freep(&pBuffer);
+
+  if (m_bFormatIncompatible) {
+    DbgLog((LOG_ERROR, 10, L"CDecCuvid::Decode(): Incompatible format detected, indicating failure..."));
+    return E_FAIL;
+  }
 
   return S_OK;
 }

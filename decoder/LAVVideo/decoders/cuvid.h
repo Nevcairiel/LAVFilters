@@ -68,6 +68,8 @@ private:
 
   STDMETHODIMP FlushParser();
 
+  STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen);
+
 private:
   struct {
     HMODULE cudaLib;
@@ -121,4 +123,7 @@ private:
   int                    m_cRawNV12;
 
   CAVC1AnnexBConverter   *m_AVC1Converter;
+
+  BOOL                   m_bFormatIncompatible;
+  BOOL                   m_bNeedSequenceCheck;
 };
