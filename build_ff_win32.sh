@@ -17,6 +17,7 @@ make distclean
 OPTIONS="
 --enable-shared \
 --enable-gpl \
+--enable-version2 \
 --enable-pthreads \
 --enable-runtime-cpudetect \
 --enable-asm \
