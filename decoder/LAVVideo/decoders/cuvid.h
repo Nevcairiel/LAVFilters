@@ -32,6 +32,8 @@
 
 #include "parsers/AVC1AnnexBConverter.h"
 
+#include <queue>
+
 #define CUMETHOD(name) t##name *##name
 
 class CDecCuvid : public CDecBase
@@ -126,4 +128,7 @@ private:
 
   BOOL                   m_bFormatIncompatible;
   BOOL                   m_bNeedSequenceCheck;
+
+  BOOL                   m_bUseTimestampQueue;
+  std::queue<REFERENCE_TIME> m_timestampQueue;
 };

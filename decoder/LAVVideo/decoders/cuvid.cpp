@@ -64,6 +64,7 @@ CDecCuvid::CDecCuvid(void)
   , m_AVC1Converter(NULL)
   , m_bDoubleRateDeint(FALSE)
   , m_bFormatIncompatible(FALSE)
+  , m_bUseTimestampQueue(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -335,6 +336,8 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
+  m_bUseTimestampQueue = (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->VC1IsDTS());
+
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
   ZeroMemory(&oVideoParserParameters, sizeof(CUVIDPARSERPARAMS));
@@ -345,7 +348,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   oVideoParserParameters.pfnSequenceCallback    = CDecCuvid::HandleVideoSequence;    // Called before decoding frames and/or whenever there is a format change
   oVideoParserParameters.pfnDecodePicture       = CDecCuvid::HandlePictureDecode;    // Called when a picture is ready to be decoded (decode order)
   oVideoParserParameters.pfnDisplayPicture      = CDecCuvid::HandlePictureDisplay;   // Called whenever a picture is ready to be displayed (display order)
-  oVideoParserParameters.ulErrorThreshold       = 0;
+  oVideoParserParameters.ulErrorThreshold       = m_bUseTimestampQueue ? 100 : 0;
 
   memset(&m_VideoParserExInfo, 0, sizeof(CUVIDEOFORMATEX));
 
@@ -560,8 +563,13 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 {
   CDecCuvid *filter = reinterpret_cast<CDecCuvid *>(obj);
 
+  if (filter->m_bUseTimestampQueue) {
+    cuviddisp->timestamp = filter->m_timestampQueue.front();
+    filter->m_timestampQueue.pop();
+  }
+
   // Drop samples with negative timestamps (preroll)
-  if (cuviddisp->timestamp < 0)
+  if (cuviddisp->timestamp != AV_NOPTS_VALUE && cuviddisp->timestamp < 0)
     return TRUE;
 
   if (filter->m_DisplayQueue[filter->m_DisplayPos].picture_index >= 0) {
@@ -648,17 +656,19 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
     pFrame->avgFrameDuration = m_rtAvgTimePerFrame;
   }
 
-  REFERENCE_TIME rtStart = cuviddisp->timestamp, rtStop;
-  if (field == 1)
-    rtStart += pFrame->avgFrameDuration;
+  REFERENCE_TIME rtStart = cuviddisp->timestamp, rtStop = AV_NOPTS_VALUE;
+  if (rtStart != AV_NOPTS_VALUE) {
+    if (field == 1)
+      rtStart += pFrame->avgFrameDuration;
 
-  rtStop = rtStart + pFrame->avgFrameDuration;
-  if (field == 2)
-    rtStop += pFrame->avgFrameDuration;
+    rtStop = rtStart + pFrame->avgFrameDuration;
+    if (field == 2)
+      rtStop += pFrame->avgFrameDuration;
 
-  // Sanity check in case the duration is null
-  if (rtStop == rtStart)
-    rtStop = AV_NOPTS_VALUE;
+    // Sanity check in case the duration is null
+    if (rtStop == rtStart)
+      rtStop = AV_NOPTS_VALUE;
+  }
 
   pFrame->format = LAVPixFmt_NV12;
   pFrame->width  = width;
@@ -732,6 +742,9 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   if (bDiscontinuity)
     pCuvidPacket.flags     |= CUVID_PKT_DISCONTINUITY;
 
+  if (m_bUseTimestampQueue)
+    m_timestampQueue.push(rtStart);
+
   __try {
     result = cuda.cuvidParseVideoData(m_hParser, &pCuvidPacket);
   } __except(1) {
@@ -767,6 +780,9 @@ STDMETHODIMP CDecCuvid::Flush()
 
   // Re-init decoder after flush
   DecodeSequenceData();
+
+  // Clear timestamp queue
+  std::queue<REFERENCE_TIME>().swap(m_timestampQueue);
 
   return S_OK;
 }
