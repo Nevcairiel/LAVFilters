@@ -148,6 +148,8 @@ private:
 
   CH264RandomAccess    m_h264RandomAccess;
 
+  DWORD                m_bDXVAExtFormatSupport;
+
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {
     BOOL StreamAR;

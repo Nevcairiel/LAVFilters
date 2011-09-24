@@ -41,6 +41,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bForceInputAR(FALSE)
   , m_bSendMediaType(FALSE)
   , m_bHWDecoder(FALSE), m_bHWDecoderFailed(FALSE)
+  , m_bDXVAExtFormatSupport(-1)
 {
   avcodec_register_all();
 
@@ -526,7 +527,12 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
   DWORD dwAspectX, dwAspectY;
 
-  dxvaExtFlags.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
+  if (dxvaExtFlags.value != 0)
+    dxvaExtFlags.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
+
+  // Haali is incompatible with DXVA_ExtendedFormat
+  if (m_bDXVAExtFormatSupport == -1)
+    m_bDXVAExtFormatSupport = !FilterInGraph(CLSID_DXR);
 
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
@@ -557,7 +563,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dwAspectX = num;
     dwAspectY = den;
 
-    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->AvgTimePerFrame != avgFrameDuration || vih2->dwControlFlags != dxvaExtFlags.value);
+    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->AvgTimePerFrame != avgFrameDuration || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value));
   }
 
 
@@ -584,7 +590,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       SetRect(&vih2->rcTarget, 0, 0, width, height);
 
       vih2->AvgTimePerFrame = avgFrameDuration;
-      vih2->dwControlFlags = dxvaExtFlags.value;
+      if (m_bDXVAExtFormatSupport)
+        vih2->dwControlFlags = dxvaExtFlags.value;
 
       pBIH = &vih2->bmiHeader;
     }
