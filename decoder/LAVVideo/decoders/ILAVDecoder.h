@@ -178,6 +178,11 @@ interface ILAVVideoCallback
 interface ILAVDecoder
 {
   /**
+   * Virtual destructor
+   */
+  virtual ~ILAVDecoder(void) {};
+
+  /**
    * Initialize interfaces with the LAV Video core
    * This function should also be used to create all interfaces with external DLLs
    *
