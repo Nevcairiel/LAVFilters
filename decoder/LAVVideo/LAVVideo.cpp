@@ -1033,6 +1033,25 @@ STDMETHODIMP_(DWORD) CLAVVideo::GetRGBOutputRange()
   return m_settings.RGBRange;
 }
 
+STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
+{
+  if (hwAccel == m_settings.HWAccel && m_bHWDecoder)
+    return 2;
+
+  HRESULT hr = E_FAIL;
+  switch(hwAccel) {
+  case HWAccel_CUDA:
+    {
+      ILAVDecoder *pDecoder = CreateDecoderCUVID();
+      hr = pDecoder->InitInterfaces(this, this);
+      SAFE_DELETE(pDecoder);
+    }
+    break;
+  }
+
+  return SUCCEEDED(hr) ? 1 : 0;
+}
+
 STDMETHODIMP CLAVVideo::SetHWAccel(LAVHWAccel hwAccel)
 {
   m_settings.HWAccel = hwAccel;

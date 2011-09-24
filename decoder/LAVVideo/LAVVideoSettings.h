@@ -190,6 +190,12 @@ interface ILAVVideoSettings : public IUnknown
   // 0 = Auto (same as input), 1 = Limited (16-235), 2 = Full (0-255)
   STDMETHOD_(DWORD,GetRGBOutputRange)() = 0;
 
+  // Check if the specified HWAccel is supported
+  // Note: This will usually only check the availability of the required libraries (ie. for NVIDIA if a recent enough NVIDIA driver is installed)
+  // and not check actual hardware support
+  // Returns: 0 = Unsupported, 1 = Supported, 2 = Currently running
+  STDMETHOD_(DWORD,CheckHWAccelSupport)(LAVHWAccel hwAccel) = 0;
+
   // Set which HW Accel method is used
   // See LAVHWAccel for options.
   STDMETHOD(SetHWAccel)(LAVHWAccel hwAccel) = 0;

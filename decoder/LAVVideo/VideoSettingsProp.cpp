@@ -228,7 +228,10 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
 HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 {
-  BOOL bEnabled = SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+  LAVHWAccel hwAccel = (LAVHWAccel)SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+
+  DWORD dwSupport = m_pVideoSettings->CheckHWAccelSupport(hwAccel);
+  BOOL bEnabled = (hwAccel != HWAccel_None) && dwSupport;
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
@@ -242,6 +245,13 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_FIELDORDER), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_FORCE), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bEnabled);
+
+  WCHAR hwAccelEmpty[] = L"";
+  WCHAR hwAccelUnavailable[] = L"Not available";
+  WCHAR hwAccelAvailable[]   = L"Available";
+  WCHAR hwAccelActive[]      = L"Active";
+
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AVAIL, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_None ? hwAccelEmpty : dwSupport == 0 ? hwAccelUnavailable : dwSupport == 1 ? hwAccelAvailable : hwAccelActive));
 
   return S_OK;
 }

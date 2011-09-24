@@ -71,6 +71,7 @@ public:
   STDMETHODIMP SetRGBOutputRange(DWORD dwRange);
   STDMETHODIMP_(DWORD) GetRGBOutputRange();
 
+  STDMETHODIMP_(DWORD) CheckHWAccelSupport(LAVHWAccel hwAccel);
   STDMETHODIMP SetHWAccel(LAVHWAccel hwAccel);
   STDMETHODIMP_(LAVHWAccel) GetHWAccel();
   STDMETHODIMP SetHWAccelCodec(LAVVideoHWCodec hwAccelCodec, BOOL bEnabled);

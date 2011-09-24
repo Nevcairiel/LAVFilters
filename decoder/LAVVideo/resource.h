@@ -62,6 +62,7 @@
 #define IDC_HWDEINT_FIELDORDER          1050
 #define IDC_HWDEINT_FORCE               1051
 #define IDC_HWDEINT_HQ                  1052
+#define IDC_HWACCEL_AVAIL               1053
 
 // Next default values for new objects
 // 
@@ -69,7 +70,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1053
+#define _APS_NEXT_CONTROL_VALUE         1054
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
