@@ -93,11 +93,13 @@ void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkb
 
   DeleteRegKey(_T("Media Type\\") + null, subtype);
 
-  va_list marker;
-  va_start(marker, chkbytes);
-  LPCWSTR ext = va_arg(marker, LPCWSTR);
-  if (ext) { DeleteRegKey(_T("Media Type\\Extensions"), ext); }
-  va_end(marker);
+  va_list extensions;
+  va_start(extensions, chkbytes);
+  LPCWSTR ext = NULL;
+  while (ext = va_arg(extensions, LPCWSTR)) {
+    DeleteRegKey(_T("Media Type\\Extensions"), ext);
+  }
+  va_end(extensions);
 }
 
 void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LPCWSTR> chkbytes, ...)
@@ -120,11 +122,13 @@ void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LP
 
   DeleteRegKey(_T("Media Type\\") + null, subtype);
 
-  va_list marker;
-  va_start(marker, chkbytes);
-  LPCWSTR ext = va_arg(marker, LPCWSTR);
-  if (ext) { DeleteRegKey(_T("Media Type\\Extensions"), ext); }
-  va_end(marker);
+  va_list extensions;
+  va_start(extensions, chkbytes);
+  LPCWSTR ext = NULL;
+  while (ext = va_arg(extensions, LPCWSTR)) {
+    DeleteRegKey(_T("Media Type\\Extensions"), ext);
+  }
+  va_end(extensions);
 }
 
 void UnRegisterSourceFilter(const GUID& subtype)
