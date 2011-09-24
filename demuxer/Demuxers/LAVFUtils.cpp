@@ -350,6 +350,9 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   static int count;
   static char line[LOG_BUF_LEN], prev[LOG_BUF_LEN];
 
+  if(level>AV_LOG_VERBOSE)
+    return;
+
   AVClass* avc= ptr ? *(AVClass**)ptr : NULL;
   line[0]=0;
 
