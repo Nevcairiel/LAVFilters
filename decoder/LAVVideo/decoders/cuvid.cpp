@@ -716,6 +716,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->height = height;
   pFrame->rtStart = rtStart;
   pFrame->rtStop = rtStop;
+  pFrame->repeat = cuviddisp->repeat_first_field;
 
   // Assign the buffer to the LAV Frame bufers
   int Ysize = height * pitch;
