@@ -33,6 +33,10 @@ typedef CUresult CUDAAPI tcuCtxPopCurrent( CUcontext *pctx );
 typedef CUresult CUDAAPI tcuMemAllocHost(void **pp, unsigned int bytesize);
 typedef CUresult CUDAAPI tcuMemFreeHost(void *p);
 typedef CUresult CUDAAPI tcuMemcpyDtoH (void *dstHost, CUdeviceptr srcDevice, unsigned int ByteCount );
+typedef CUresult CUDAAPI tcuMemcpyDtoHAsync(void *dstHost, CUdeviceptr srcDevice, unsigned int ByteCount, CUstream hStream);
+typedef CUresult CUDAAPI tcuStreamCreate(CUstream *phStream, unsigned int Flags);
+typedef CUresult CUDAAPI tcuStreamDestroy(CUstream hStream);
+typedef CUresult CUDAAPI tcuStreamQuery(CUstream hStream);
 
 ////////////////////////////////////////////////////
 /// D3D Interop
@@ -44,6 +48,8 @@ typedef CUresult CUDAAPI tcuD3D9CtxCreate( CUcontext *pCtx, CUdevice *pCudaDevic
 ////////////////////////////////////////////////////
 typedef CUresult CUDAAPI tcuvidCtxLockCreate(CUvideoctxlock *pLock, CUcontext ctx);
 typedef CUresult CUDAAPI tcuvidCtxLockDestroy(CUvideoctxlock lck);
+typedef CUresult CUDAAPI tcuvidCtxLock(CUvideoctxlock lck, unsigned int reserved_flags);
+typedef CUresult CUDAAPI tcuvidCtxUnlock(CUvideoctxlock lck, unsigned int reserved_flags);
 
 typedef CUresult CUDAAPI tcuvidCreateVideoParser(CUvideoparser *pObj, CUVIDPARSERPARAMS *pParams);
 typedef CUresult CUDAAPI tcuvidParseVideoData(CUvideoparser obj, CUVIDSOURCEDATAPACKET *pPacket);

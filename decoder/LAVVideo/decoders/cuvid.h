@@ -84,10 +84,16 @@ private:
     CUMETHOD(cuMemAllocHost);
     CUMETHOD(cuMemFreeHost);
     CUMETHOD(cuMemcpyDtoH);
+    CUMETHOD(cuMemcpyDtoHAsync);
+    CUMETHOD(cuStreamCreate);
+    CUMETHOD(cuStreamDestroy);
+    CUMETHOD(cuStreamQuery);
 
     HMODULE cuvidLib;
     CUMETHOD(cuvidCtxLockCreate);
     CUMETHOD(cuvidCtxLockDestroy);
+    CUMETHOD(cuvidCtxLock);
+    CUMETHOD(cuvidCtxUnlock);
     CUMETHOD(cuvidCreateVideoParser);
     CUMETHOD(cuvidParseVideoData);
     CUMETHOD(cuvidDestroyVideoParser);
@@ -114,6 +120,8 @@ private:
 
   CUVIDPARSERDISPINFO    m_DisplayQueue[DISPLAY_DELAY];
   int                    m_DisplayPos;
+
+  CUstream               m_hStream;
 
   BOOL                   m_bForceSequenceUpdate;
   BOOL                   m_bInterlaced;

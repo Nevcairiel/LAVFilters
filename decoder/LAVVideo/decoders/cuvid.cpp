@@ -55,7 +55,7 @@ CDecCuvid::CDecCuvid(void)
   : CDecBase()
   , m_pD3D(NULL), m_pD3DDevice(NULL)
   , m_cudaContext(0), m_cudaCtxLock(0)
-  , m_hParser(0), m_hDecoder(0)
+  , m_hParser(0), m_hDecoder(0), m_hStream(0)
   , m_bForceSequenceUpdate(FALSE)
   , m_bInterlaced(FALSE)
   , m_bFlushing(FALSE)
@@ -89,6 +89,11 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
   if (m_hParser) {
     cuda.cuvidDestroyVideoParser(m_hParser);
     m_hParser = 0;
+  }
+
+  if (m_hStream) {
+    cuda.cuStreamDestroy(m_hStream);
+    m_hStream = 0;
   }
 
   if (m_pbRawNV12) {
@@ -147,6 +152,10 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   GET_PROC_CUDA(cuMemAllocHost);
   GET_PROC_CUDA(cuMemFreeHost);
   GET_PROC_CUDA(cuMemcpyDtoH);
+  GET_PROC_CUDA(cuMemcpyDtoHAsync);
+  GET_PROC_CUDA(cuStreamCreate);
+  GET_PROC_CUDA(cuStreamDestroy);
+  GET_PROC_CUDA(cuStreamQuery);
 
   // Load CUVID function
   cuda.cuvidLib = LoadLibrary(L"nvcuvid.dll");
@@ -157,6 +166,8 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
 
   GET_PROC_CUVID(cuvidCtxLockCreate);
   GET_PROC_CUVID(cuvidCtxLockDestroy);
+  GET_PROC_CUVID(cuvidCtxLock);
+  GET_PROC_CUVID(cuvidCtxUnlock);
   GET_PROC_CUVID(cuvidCreateVideoParser);
   GET_PROC_CUVID(cuvidParseVideoData);
   GET_PROC_CUVID(cuvidDestroyVideoParser);
@@ -399,6 +410,16 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
+  {
+    cuda.cuvidCtxLock(m_cudaCtxLock, 0);
+    oResult = cuda.cuStreamCreate(&m_hStream, 0);
+    cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
+    if (oResult != CUDA_SUCCESS) {
+      DbgLog((LOG_ERROR, 10, L"::InitCodec(): Creating stream failed"));
+      return E_FAIL;
+    }
+  }
+
   BITMAPINFOHEADER *bmi = NULL;
   videoFormatTypeHandler(pmt->Format(), pmt->FormatType(), &bmi);
 
@@ -624,12 +645,13 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 
   vpp.second_field = (field == 1);
 
+  cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   cuda.cuCtxPushCurrent(m_cudaContext);
 
   cuStatus = cuda.cuvidMapVideoFrame(m_hDecoder, cuviddisp->picture_index, &devPtr, &pitch, &vpp);
   if (cuStatus != CUDA_SUCCESS) {
     DbgLog((LOG_CUSTOM1, 1, L"CDecCuvid::Deliver(): cuvidMapVideoFrame failed on index %d", cuviddisp->picture_index));
-    return E_FAIL;
+    goto cuda_fail;
   }
 
   width = m_VideoDecoderInfo.display_area.right;
@@ -650,10 +672,22 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   }
   // Copy memory from the device into the staging area
   if (m_pbRawNV12) {
+#if USE_ASYNC_COPY
+    cuStatus = cuda.cuMemcpyDtoHAsync(m_pbRawNV12, devPtr, size, m_hStream);
+    if (cuStatus != CUDA_SUCCESS) {
+      DbgLog((LOG_ERROR, 10, L"Async Memory Transfer failed"));
+      goto cuda_fail;
+    }
+    while (CUDA_ERROR_NOT_READY == cuda.cuStreamQuery(m_hStream)) {
+      Sleep(1);
+    }
+#else
     cuStatus = cuda.cuMemcpyDtoH(m_pbRawNV12, devPtr, size);
+#endif
   }
   cuda.cuvidUnmapVideoFrame(m_hDecoder, devPtr);
   cuda.cuCtxPopCurrent(NULL);
+  cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
 
   // Setup the LAVFrame
   LAVFrame *pFrame = NULL;
@@ -692,6 +726,10 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   m_pCallback->Deliver(pFrame);
 
   return S_OK;
+
+cuda_fail:
+  cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
+  return E_FAIL;
 }
 
 STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
