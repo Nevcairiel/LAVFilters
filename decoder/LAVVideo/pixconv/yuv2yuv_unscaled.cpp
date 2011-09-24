@@ -328,3 +328,59 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
 // Force creation of these two variants
 template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<0>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<1>CONV_FUNC_PARAMS;
+
+DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
+{
+  const uint8_t *y  = src[0];
+  const uint8_t *uv = src[1];
+
+  const int inStride = srcStride[0];
+  const int outLumaStride = dstStride;
+  const int outChromaStride = dstStride >> 1;
+
+  const int chromaHeight = height >> 1;
+
+  uint8_t *dstY = dst;
+  uint8_t *dstV = dstY + height * outLumaStride;
+  uint8_t *dstU = dstV + chromaHeight * outChromaStride;
+
+  int line, i;
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm7;
+
+  xmm7 = _mm_set1_epi16(0x00FF);
+
+  // Copy the y
+  for (line = 0; line < height; line++) {
+    memcpy(dstY, y, width);
+    y += inStride;
+    dstY += outLumaStride;
+  }
+
+  for (line = 0; line < chromaHeight; line++) {
+    __m128i *dstV128 = (__m128i *)(dstV + outChromaStride * line);
+    __m128i *dstU128 = (__m128i *)(dstU + outChromaStride * line);
+
+    for (i = 0; i < width; i+=32) {
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, uv+i+0);
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, uv+i+16);
+      xmm2 = xmm0;
+      xmm3 = xmm1;
+
+      // null out the high-order bytes to get the U values
+      xmm0 = _mm_and_si128(xmm0, xmm7);
+      xmm1 = _mm_and_si128(xmm1, xmm7);
+      // right shift the V values
+      xmm2 = _mm_srli_epi16(xmm2, 8);
+      xmm3 = _mm_srli_epi16(xmm3, 8);
+      // unpack the values
+      xmm0 = _mm_packus_epi16(xmm0, xmm1);
+      xmm2 = _mm_packus_epi16(xmm2, xmm3);
+
+      _mm_stream_si128(dstU128++, xmm0);
+      _mm_stream_si128(dstV128++, xmm2);
+    }
+    uv += inStride;
+  }
+
+  return S_OK;
+}

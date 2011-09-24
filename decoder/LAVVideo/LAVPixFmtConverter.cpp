@@ -316,6 +316,9 @@ void CLAVPixFmtConverter::SelectConvertFunction()
         convert = &CLAVPixFmtConverter::convert_yuv_rgb<0>;
       }
       m_bRGBConverter = TRUE;
+    } else if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_NV12) {
+      convert = &CLAVPixFmtConverter::convert_nv12_yv12;
+      m_RequiredAlignment = 32;
     }
   }
 
