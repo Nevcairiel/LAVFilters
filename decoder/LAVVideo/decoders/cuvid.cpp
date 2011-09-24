@@ -568,8 +568,8 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
     filter->m_timestampQueue.pop();
   }
 
-  // Drop samples with negative timestamps (preroll)
-  if (cuviddisp->timestamp != AV_NOPTS_VALUE && cuviddisp->timestamp < 0)
+  // Drop samples with negative timestamps (preroll) or during flushing
+  if (filter->m_bFlushing || (cuviddisp->timestamp != AV_NOPTS_VALUE && cuviddisp->timestamp < 0))
     return TRUE;
 
   if (filter->m_DisplayQueue[filter->m_DisplayPos].picture_index >= 0) {
