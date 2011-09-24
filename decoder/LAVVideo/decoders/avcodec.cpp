@@ -381,7 +381,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   LPWSTR pszExtension = m_pCallback->GetFileExtension();
   DbgLog((LOG_TRACE, 10, L"-> File extension: %s", pszExtension));
 
-  BOOL bVC1IsPTS = (codec == CODEC_ID_VC1 && (FilterInGraph(CLSID_MPCHCMPEGSplitter) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource)));
+  BOOL bVC1IsPTS = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading

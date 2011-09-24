@@ -774,6 +774,11 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
   return S_OK;
 }
 
+STDMETHODIMP_(BOOL) CLAVVideo::VC1IsDTS()
+{
+  return !(FilterInGraph(CLSID_MPCHCMPEGSplitter) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource));
+}
+
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
