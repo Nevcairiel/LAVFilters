@@ -536,13 +536,14 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       // Update start time cache
       // If more data was read then output, update the cache (incomplete frame)
       // If output is bigger, a frame was completed, update the actual rtStart with the cached value, and then overwrite the cache
-      if (used_bytes >= pOut_size) {
+      if (used_bytes > pOut_size) {
         if (rtStartIn != AV_NOPTS_VALUE)
           m_rtStartCache = rtStartIn;
-      } else if (pOut_size > used_bytes) {
-        if (used_bytes != avpkt.size || rtStart == AV_NOPTS_VALUE)
-          rtStart = m_rtStartCache;
+      } else if (pOut_size >= used_bytes) {
+        rtStart = m_rtStartCache;
         m_rtStartCache = rtStartIn;
+        // The value was used once, don't use it for multiple frames, that ends up in weird timings
+        rtStartIn = AV_NOPTS_VALUE;
       }
 
        bParserFrame = (pOut_size > 0);
