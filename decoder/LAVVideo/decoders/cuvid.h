@@ -127,6 +127,7 @@ private:
   BOOL                   m_bDoubleRateDeint;
   BOOL                   m_bFlushing;
   REFERENCE_TIME         m_rtAvgTimePerFrame;
+  BOOL                   m_bWaitForKeyframe;
 
   BYTE                   *m_pbRawNV12;
   int                    m_cRawNV12;

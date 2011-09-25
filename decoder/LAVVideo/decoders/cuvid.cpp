@@ -64,6 +64,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bDoubleRateDeint(FALSE)
   , m_bFormatIncompatible(FALSE)
   , m_bUseTimestampQueue(FALSE)
+  , m_bWaitForKeyframe(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -347,6 +348,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   }
 
   m_bUseTimestampQueue = (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->VC1IsDTS());
+  m_bWaitForKeyframe = m_bUseTimestampQueue;
 
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
@@ -542,6 +544,18 @@ int CUDAAPI CDecCuvid::HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic)
 
   if (filter->m_bFlushing)
     return FALSE;
+
+  if (filter->m_bWaitForKeyframe) {
+    if (cuvidpic->intra_pic_flag)
+      filter->m_bWaitForKeyframe = FALSE;
+    else {
+      // Pop timestamp from the queue, drop frame
+      if (!filter->m_timestampQueue.empty()) {
+        filter->m_timestampQueue.pop();
+      }
+      return FALSE;
+    }
+  }
 
   int flush_pos = filter->m_DisplayPos;
   for (;;) {
@@ -822,6 +836,7 @@ STDMETHODIMP CDecCuvid::Flush()
   }
 
   m_bFlushing = FALSE;
+  m_bWaitForKeyframe = m_bUseTimestampQueue;
 
   // Re-init decoder after flush
   DecodeSequenceData();
