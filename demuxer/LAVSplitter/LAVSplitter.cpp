@@ -791,7 +791,7 @@ STDMETHODIMP CLAVSplitter::SetPositions(LONGLONG* pCurrent, DWORD dwCurrentFlags
 }
 STDMETHODIMP CLAVSplitter::SetPositionsInternal(void *caller, LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags)
 {
-  DbgLog((LOG_TRACE, 20, "::SetPositions() - seek request; caller: %p, current: %I64d; start: %I64d; stop: %I64d; flags: %u", caller, m_rtCurrent, pCurrent ? *pCurrent : -1, pStop ? *pStop : -1, dwStopFlags));
+  DbgLog((LOG_TRACE, 20, "::SetPositions() - seek request; caller: %p, current: %I64d; start: %I64d; flags: 0x%x, stop: %I64d; flags: 0x%x", caller, m_rtCurrent, pCurrent ? *pCurrent : -1, dwCurrentFlags, pStop ? *pStop : -1, dwStopFlags));
   CAutoLock cAutoLock(this);
 
   if(!pCurrent && !pStop
@@ -841,12 +841,14 @@ STDMETHODIMP CLAVSplitter::SetPositionsInternal(void *caller, LONGLONG* pCurrent
   m_rtNewStart = m_rtCurrent = rtCurrent;
   m_rtNewStop = rtStop;
 
+  DbgLog((LOG_TRACE, 20, " -> Performing seek to %I64d", m_rtNewStart));
   if(ThreadExists())
   {
     DeliverBeginFlush();
     CallWorker(CMD_SEEK);
     DeliverEndFlush();
   }
+  DbgLog((LOG_TRACE, 20, " -> Seek finished", m_rtNewStart));
 
   return S_OK;
 }
