@@ -1165,6 +1165,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Invalid sample when bitstreaming!"));
       m_buff.SetSize(0);
+      m_bQueueResync = TRUE;
       return S_FALSE;
     } else if (hr2 == S_FALSE) {
       DbgLog((LOG_TRACE, 10, L"::Bitstream returned S_FALSE"));
@@ -1187,6 +1188,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     } else if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
       m_buff.SetSize(0);
+      m_bQueueResync = TRUE;
       return S_FALSE;
     } else {
       DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
