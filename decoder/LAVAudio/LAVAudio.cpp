@@ -1090,8 +1090,11 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   len += bufflen;
 
   hr = ProcessBuffer();
-  if(FAILED(hr) || (AUTO_RESYNC && hr != S_OK))
+  if(AUTO_RESYNC && hr != S_OK)
     m_bQueueResync = TRUE;
+
+  if (FAILED(hr))
+    return hr;
 
   return S_OK;
 }
@@ -1162,7 +1165,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Invalid sample when bitstreaming!"));
       m_buff.SetSize(0);
-      return E_FAIL;
+      return S_FALSE;
     } else if (hr2 == S_FALSE) {
       DbgLog((LOG_TRACE, 10, L"::Bitstream returned S_FALSE"));
       hr = S_FALSE;
@@ -1184,7 +1187,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     } else if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
       m_buff.SetSize(0);
-      return E_FAIL;
+      return S_FALSE;
     } else {
       DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
       hr = S_FALSE;
@@ -1426,6 +1429,7 @@ HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
 
 HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
 {
+  HRESULT hr = S_OK;
   if (m_OutputQueue.wChannels != buffer.wChannels || m_OutputQueue.sfFormat != buffer.sfFormat || m_OutputQueue.dwSamplesPerSec != buffer.dwSamplesPerSec || m_OutputQueue.dwChannelMask != buffer.dwChannelMask || m_OutputQueue.wBitsPerSample != buffer.wBitsPerSample) {
     if (m_OutputQueue.nSamples > 0)
       FlushOutput();
@@ -1446,10 +1450,10 @@ HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
 
   // Maximum of 100ms buffer
   if (dDuration >= PCM_BUFFER_MAX_DURATION || (dDuration >= PCM_BUFFER_MIN_DURATION && dOffset <= FLT_EPSILON)) {
-    FlushOutput();
+    hr = FlushOutput();
   }
 
-  return S_OK;
+  return hr;
 }
 
 HRESULT CLAVAudio::FlushOutput(BOOL bDeliver)
@@ -1464,7 +1468,7 @@ HRESULT CLAVAudio::FlushOutput(BOOL bDeliver)
   m_OutputQueue.nSamples = 0;
   m_OutputQueue.bBuffer->SetSize(0);
 
-  return S_OK;
+  return hr;
 }
 
 HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
