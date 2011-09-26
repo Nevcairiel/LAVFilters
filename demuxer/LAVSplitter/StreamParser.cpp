@@ -463,7 +463,8 @@ static int ass_get_duration(const char *p)
 
 HRESULT CStreamParser::ParseRawSSA(Packet *pPacket)
 {
-  int i, layer = 0, max_duration = 0, size, line_size, data_size = pPacket->GetDataSize();
+  int i, layer = 0, max_duration = 0;
+  size_t size, line_size, data_size = pPacket->GetDataSize();
   const char *start, *end, *data = (char *)pPacket->GetData();
   char buffer[2048];
 
