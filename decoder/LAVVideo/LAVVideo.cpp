@@ -800,7 +800,9 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
 
     REFERENCE_TIME decoderDuration = m_pDecoder->GetFrameDuration();
-    if (!duration && decoderDuration) {
+    if (pFrame->avgFrameDuration && pFrame->avgFrameDuration != AV_NOPTS_VALUE) {
+      duration = pFrame->avgFrameDuration;
+    } else if (!duration && decoderDuration) {
       duration = decoderDuration;
     } else if(!duration) {
       duration = 1;
