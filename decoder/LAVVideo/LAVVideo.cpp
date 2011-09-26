@@ -797,7 +797,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   if (pFrame->rtStop == AV_NOPTS_VALUE) {
     REFERENCE_TIME duration = 0;
 
-    CMediaType &mt = m_pInput->CurrentMediaType();
+    CMediaType &mt = m_pOutput->CurrentMediaType();
     videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
 
     REFERENCE_TIME decoderDuration = m_pDecoder->GetFrameDuration();

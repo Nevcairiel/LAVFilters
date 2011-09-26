@@ -667,6 +667,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->format       = map.lavpixfmt;
     pOutFrame->bpp          = map.bpp;
 
+    if (m_nCodecId == CODEC_ID_MPEG2VIDEO)
+      pOutFrame->avgFrameDuration = GetFrameDuration();
+
     if (map.conversion) {
       ConvertPixFmt(m_pFrame, pOutFrame);
     } else {
