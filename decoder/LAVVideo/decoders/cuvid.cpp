@@ -730,6 +730,8 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->rtStart = rtStart;
   pFrame->rtStop = rtStop;
   pFrame->repeat = cuviddisp->repeat_first_field;
+  pFrame->aspect_ratio.num = m_VideoFormat.display_aspect_ratio.x;
+  pFrame->aspect_ratio.den = m_VideoFormat.display_aspect_ratio.y;
 
   // Assign the buffer to the LAV Frame bufers
   int Ysize = height * pitch;
