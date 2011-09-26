@@ -653,9 +653,14 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     LAVFrame *pOutFrame = NULL;
     AllocateFrame(&pOutFrame);
 
+    AVRational display_aspect_ratio;
+    int64_t num = (int64_t)m_pAVCtx->sample_aspect_ratio.num * m_pAVCtx->width;
+    int64_t den = (int64_t)m_pAVCtx->sample_aspect_ratio.den * m_pAVCtx->height;
+    av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 255);
+
     pOutFrame->width        = m_pAVCtx->width;
     pOutFrame->height       = m_pAVCtx->height;
-    pOutFrame->aspect_ratio = m_pAVCtx->sample_aspect_ratio;
+    pOutFrame->aspect_ratio = display_aspect_ratio;
     pOutFrame->repeat       = m_pFrame->repeat_pict;
     pOutFrame->key_frame    = m_pFrame->key_frame;
     pOutFrame->ext_format   = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);

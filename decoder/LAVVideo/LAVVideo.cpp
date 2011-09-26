@@ -544,8 +544,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     if (avgFrameDuration == AV_NOPTS_VALUE)
       avgFrameDuration = vih2->AvgTimePerFrame;
 
-    int num = width, den = height;
-    av_reduce(&num, &den, (int64_t)ar.num * num, (int64_t)ar.den * den, 255);
+    int num = ar.num, den = ar.den;
     if (!m_settings.StreamAR || num == 0 || den == 0) {
       if (m_bForceInputAR) {
         DWORD dwARX, dwARY;

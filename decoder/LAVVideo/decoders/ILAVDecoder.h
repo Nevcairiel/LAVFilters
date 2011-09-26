@@ -99,7 +99,7 @@ typedef struct LAVFrame {
   REFERENCE_TIME rtStop;            ///< stop time of the frame. unset if AV_NOPTS_VALUE
   int repeat;                       ///< repeat frame flag, signals how much the frame should be delayed
 
-  AVRational aspect_ratio;          ///< aspect ratio (unset/invalid if either num or den is 0)
+  AVRational aspect_ratio;          ///< display aspect ratio (unset/invalid if either num or den is 0)
   REFERENCE_TIME avgFrameDuration;  ///< frame duration used for the media type to indicate fps (AV_NOPTS_VALUE or 0 = use from input pin)
 
   DXVA2_ExtendedFormat ext_format;  ///< extended format flags (critical uses: indicate progressive/interlaced, indicate limited/full range)
