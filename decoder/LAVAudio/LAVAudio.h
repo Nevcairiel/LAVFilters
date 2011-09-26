@@ -31,8 +31,6 @@
 // 192000 (Samples) * 4 (Bytes per Sample) * 8 (channels)
 #define LAV_AUDIO_BUFFER_SIZE 6144000
 
-#define AUTO_RESYNC 0
-
 #define REQUEST_FLOAT 1
 
 // Maximum Durations (in reference time)

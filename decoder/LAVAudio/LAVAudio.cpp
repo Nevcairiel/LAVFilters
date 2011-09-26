@@ -1090,8 +1090,6 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   len += bufflen;
 
   hr = ProcessBuffer();
-  if(AUTO_RESYNC && hr != S_OK)
-    m_bQueueResync = TRUE;
 
   if (FAILED(hr))
     return hr;
