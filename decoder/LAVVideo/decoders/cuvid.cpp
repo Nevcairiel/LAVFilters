@@ -65,6 +65,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bFormatIncompatible(FALSE)
   , m_bUseTimestampQueue(FALSE)
   , m_bWaitForKeyframe(FALSE)
+  , m_bFullRange(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -754,6 +755,7 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   CH264SequenceParser h264parser;
   h264parser.ParseNALs(buffer, buflen, 0);
   if (h264parser.sps.valid) {
+    m_bFullRange = h264parser.sps.full_range;
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));

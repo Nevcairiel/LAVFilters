@@ -36,6 +36,11 @@ public:
     int chroma;
     int luma_bitdepth;
     int chroma_bitdepth;
+
+    int full_range;
+    int primaries;
+    int trc;
+    int colorspace;
   } sps;
 
   struct {

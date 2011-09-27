@@ -128,6 +128,7 @@ private:
   BOOL                   m_bFlushing;
   REFERENCE_TIME         m_rtAvgTimePerFrame;
   BOOL                   m_bWaitForKeyframe;
+  BOOL                   m_bFullRange;
 
   BYTE                   *m_pbRawNV12;
   int                    m_cRawNV12;

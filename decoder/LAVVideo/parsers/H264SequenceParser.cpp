@@ -44,7 +44,6 @@ HRESULT CH264SequenceParser::ParseNALs(const BYTE *buffer, int buflen, int nal_s
     const BYTE *data = nalu.GetDataBuffer() + 1;
     const int len = nalu.GetDataLength() - 1;
     if (nalu.GetType() == NALU_TYPE_SPS) {
-      sps.valid = 1;
       ParseSPS(data, len);
     }
   }
@@ -55,7 +54,16 @@ HRESULT CH264SequenceParser::ParseNALs(const BYTE *buffer, int buflen, int nal_s
 HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
 {
   CByteParser parser(buffer, buflen);
-  
+  int i;
+
+  ZeroMemory(&sps, sizeof(sps));
+  // Defaults
+  sps.valid = 1;
+  sps.primaries = AVCOL_PRI_UNSPECIFIED;
+  sps.trc = AVCOL_TRC_UNSPECIFIED;
+  sps.colorspace = AVCOL_SPC_UNSPECIFIED;
+
+  // Parse
   sps.profile = parser.BitRead(8);
   parser.BitRead(4); // constraint flags
   parser.BitRead(4); // reserved
@@ -72,6 +80,65 @@ HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
     sps.chroma = 1;
     sps.luma_bitdepth = 8;
     sps.chroma_bitdepth = 8;
+  }
+
+  parser.UExpGolombRead();                // log2_max_frame_num
+  int poc_type = (int)parser.UExpGolombRead(); // poc_type
+  if (poc_type == 0)
+    parser.UExpGolombRead();              // log2_max_poc_lsb
+  else if (poc_type == 1) {
+    parser.BitRead(1);                    // delta_pic_order_always_zero_flag
+    parser.SExpGolombRead();              // offset_for_non_ref_pic
+    parser.SExpGolombRead();              // offset_for_top_to_bottom_field
+    int cyclen = (int)parser.UExpGolombRead(); // poc_cycle_length
+    for (i = 0; i < cyclen; i++)
+      parser.SExpGolombRead();            // offset_for_ref_frame[i]
+  }
+
+  parser.UExpGolombRead();                // ref_frame_count
+  parser.BitRead(1);                      // gaps_in_frame_num_allowed_flag
+  parser.UExpGolombRead();                // mb_width
+  parser.UExpGolombRead();                // mb_height
+  int mbs_only = parser.BitRead(1);       // frame_mbs_only_flag
+  if (!mbs_only)
+    parser.BitRead(1);                    // mb_aff
+
+  parser.BitRead(1);                      // direct_8x8_inference_flag
+  int crop = parser.BitRead(1);           // crop
+  if (crop) {
+    parser.UExpGolombRead();              // crop_left
+    parser.UExpGolombRead();              // crop_right
+    parser.UExpGolombRead();              // crop_top
+    parser.UExpGolombRead();              // crop_bottom
+  }
+
+  int vui_present = parser.BitRead(1);    // vui_parameters_present_flag
+  if (vui_present) {
+    int ar_present = parser.BitRead(1);   // aspect_ratio_info_present_flag
+    if (ar_present) {
+      int ar_idc = parser.BitRead(8);     // aspect_ratio_idc
+      if (ar_idc == 255) {
+        parser.BitRead(16);               // sar.num
+        parser.BitRead(16);               // sar.den
+      }
+    }
+
+    int overscan = parser.BitRead(1);     // overscan_info_present_flag
+    if (overscan)
+      parser.BitRead(1);                  // overscan_appropriate_flag
+
+    int vid_sig_type = parser.BitRead(1); // video_signal_type_present_flag
+    if (vid_sig_type) {
+      parser.BitRead(3);                  // video_format
+      sps.full_range = parser.BitRead(1); // video_full_range_flag
+
+      int colorinfo = parser.BitRead(1);  // colour_description_present_flag
+      if (colorinfo) {
+        sps.primaries = parser.BitRead(8);
+        sps.trc = parser.BitRead(8);
+        sps.colorspace = parser.BitRead(8);
+      }
+    }
   }
 
   return S_OK;
