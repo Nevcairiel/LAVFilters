@@ -1014,6 +1014,7 @@ HRESULT CLAVAudio::EndFlush()
 HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::NewSegment() tStart: %I64d, tStop: %I64d, dRate: %.2f", tStart, tStop, dRate));
+  CAutoLock cAutoLock(&m_csReceive);
   m_rtStart = 0;
   m_bQueueResync = TRUE;
   return __super::NewSegment(tStart, tStop, dRate);
