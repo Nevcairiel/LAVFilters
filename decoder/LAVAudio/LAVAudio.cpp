@@ -985,11 +985,13 @@ HRESULT CLAVAudio::EndOfStream()
 
 HRESULT CLAVAudio::BeginFlush()
 {
+  DbgLog((LOG_TRACE, 10, L"CLAVAudio::BeginFlush()"));
   return __super::BeginFlush();
 }
 
 HRESULT CLAVAudio::EndFlush()
 {
+  DbgLog((LOG_TRACE, 10, L"CLAVAudio::EndFlush()"));
   CAutoLock cAutoLock(&m_csReceive);
   m_buff.SetSize(0);
   FlushOutput(FALSE);
@@ -1011,6 +1013,7 @@ HRESULT CLAVAudio::EndFlush()
 
 HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
+  DbgLog((LOG_TRACE, 10, L"CLAVAudio::NewSegment() tStart: %I64d, tStop: %I64d, dRate: %.2f", tStart, tStop, dRate));
   m_rtStart = 0;
   m_bQueueResync = TRUE;
   return __super::NewSegment(tStart, tStop, dRate);
