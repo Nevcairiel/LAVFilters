@@ -214,7 +214,15 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
   char *title = NULL;
   if (av_metadata_get(pStream->metadata, "title", NULL, 0)) {
     title = av_metadata_get(pStream->metadata, "title", NULL, 0)->value;
+  } else if (av_metadata_get(pStream->metadata, "handler_name", NULL, 0)) {
+    title = av_metadata_get(pStream->metadata, "handler_name", NULL, 0)->value;
+    if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
+      title = NULL;
   }
+
+  // Empty titles are rather useless
+  if (title && strlen(title) == 0)
+    title = NULL;
 
   int bitrate = get_bit_rate(enc);
 
