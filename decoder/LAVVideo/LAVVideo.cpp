@@ -472,7 +472,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   CAutoLock cAutoLock(&m_csReceive);
 
   m_pDecoder->Flush();
-  m_rtPrevStop = 0;
+  m_rtPrevStart = m_rtPrevStop = 0;
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
