@@ -526,8 +526,10 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
   DWORD dwAspectX, dwAspectY;
 
-  if (dxvaExtFlags.value != 0)
+  if ((dxvaExtFlags.value & ~0xff) != 0)
     dxvaExtFlags.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
+  else
+    dxvaExtFlags.value = 0;
 
   // Haali is incompatible with DXVA_ExtendedFormat
   if (m_bDXVAExtFormatSupport == -1)
