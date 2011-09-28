@@ -65,10 +65,11 @@ CDecCuvid::CDecCuvid(void)
   , m_bFormatIncompatible(FALSE)
   , m_bUseTimestampQueue(FALSE)
   , m_bWaitForKeyframe(FALSE)
-  , m_bFullRange(FALSE)
+  , m_iFullRange(-1)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
+  ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
 }
 
 CDecCuvid::~CDecCuvid(void)
@@ -536,6 +537,64 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     filter->m_bFormatIncompatible = TRUE;
   }
 
+  DXVA2_ExtendedFormat fmt;
+  fmt.value = 0;
+
+  if (filter->m_iFullRange != -1)
+    fmt.NominalRange = filter->m_iFullRange ? DXVA2_NominalRange_0_255 : DXVA2_NominalRange_16_235;
+
+  // Color Primaries
+  switch(cuvidfmt->video_signal_description.color_primaries) {
+  case AVCOL_PRI_BT709:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT709;
+    break;
+  case AVCOL_PRI_BT470M:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysM;
+    break;
+  case AVCOL_PRI_BT470BG:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysBG;
+    break;
+  case AVCOL_PRI_SMPTE170M:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE170M;
+    break;
+  case AVCOL_PRI_SMPTE240M:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE240M;
+    break;
+  }
+
+  // Color Space / Transfer Matrix
+  switch (cuvidfmt->video_signal_description.matrix_coefficients) {
+  case AVCOL_SPC_BT709:
+    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT709;
+    break;
+  case AVCOL_SPC_BT470BG:
+  case AVCOL_SPC_SMPTE170M:
+    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
+    break;
+  case AVCOL_SPC_SMPTE240M:
+    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_SMPTE240M;
+    break;
+  case AVCOL_SPC_YCGCO:
+    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)7;
+    break;
+  }
+
+  // Color Transfer Function
+  switch(cuvidfmt->video_signal_description.transfer_characteristics) {
+  case AVCOL_TRC_BT709:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
+    break;
+  case AVCOL_TRC_GAMMA22:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_22;
+    break;
+  case AVCOL_TRC_GAMMA28:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_28;
+    break;
+  case AVCOL_TRC_SMPTE240M:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
+    break;
+  }
+
   return TRUE;
 }
 
@@ -733,6 +792,13 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->repeat = cuviddisp->repeat_first_field;
   pFrame->aspect_ratio.num = m_VideoFormat.display_aspect_ratio.x;
   pFrame->aspect_ratio.den = m_VideoFormat.display_aspect_ratio.y;
+  pFrame->ext_format = m_DXVAExtendedFormat;
+
+  // Flag interlaced samples (if not deinterlaced)
+  if (cuviddisp->progressive_frame || m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave)
+    pFrame->ext_format.SampleFormat = DXVA2_SampleProgressiveFrame;
+  else
+    pFrame->ext_format.SampleFormat = cuviddisp->top_field_first ? DXVA2_SampleFieldInterleavedEvenFirst : DXVA2_SampleFieldInterleavedOddFirst;
 
   // Assign the buffer to the LAV Frame bufers
   int Ysize = height * pitch;
@@ -755,7 +821,7 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   CH264SequenceParser h264parser;
   h264parser.ParseNALs(buffer, buflen, 0);
   if (h264parser.sps.valid) {
-    m_bFullRange = h264parser.sps.full_range;
+    m_iFullRange = h264parser.sps.full_range;
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
