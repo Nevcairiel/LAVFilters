@@ -470,7 +470,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     if (m_bMatroska && stream->codec->codec_id == CODEC_ID_H264) {
       if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1) {
         pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
-      } else {
+      } else { // No DTS for H264 in native format
         pkt.dts = AV_NOPTS_VALUE;
       }
     }
@@ -490,6 +490,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     if (stream->codec->codec_id == CODEC_ID_RV10 || stream->codec->codec_id == CODEC_ID_RV20 || stream->codec->codec_id == CODEC_ID_RV30 || stream->codec->codec_id == CODEC_ID_RV40) {
       pkt.pts = AV_NOPTS_VALUE;
     }
+
+    // Never use DTS for these formats
+    if (!m_bAVI && (stream->codec->codec_id == CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == CODEC_ID_MPEG1VIDEO || (stream->codec->codec_id == CODEC_ID_H264 && !m_bMatroska)))
+      pkt.dts = AV_NOPTS_VALUE;
 
     if(pkt.data) {
       pPacket->SetData(pkt.data, pkt.size);
