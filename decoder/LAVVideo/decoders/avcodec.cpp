@@ -138,6 +138,9 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
   case AVCOL_TRC_GAMMA28:
     fmt.VideoTransferFunction = DXVA2_VideoTransFunc_28;
     break;
+  case AVCOL_TRC_SMPTE240M:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
+    break;
   }
 
   return fmt;
