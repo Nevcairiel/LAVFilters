@@ -70,7 +70,7 @@ public:
   void SetColorProps(DXVA2_ExtendedFormat props, int RGBOutputRange) { if (props.value != m_ColorProps.value || swsOutputRange != RGBOutputRange) { DestroySWScale(); m_ColorProps = props; swsOutputRange = RGBOutputRange; } }
 
   int GetNumMediaTypes();
-  void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE);
+  void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1 = FALSE, BOOL bHWDeint = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
   inline HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {

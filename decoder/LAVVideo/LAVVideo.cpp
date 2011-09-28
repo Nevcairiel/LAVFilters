@@ -353,7 +353,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   DWORD dwAspectX = 0, dwAspectY = 0;
   videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
-  m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, bVIH1);
+  m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, bVIH1, IsHWDeintActive());
 
   return S_OK;
 }
@@ -667,7 +667,7 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
 
   CMediaType mt;
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
-    m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, bVIH1);
+    m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, bVIH1, IsHWDeintActive());
     //hr = m_pOutput->GetConnected()->QueryAccept(&mt);
     hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
     if (hr == S_OK) {
@@ -906,7 +906,9 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     m_bSendMediaType = FALSE;
   }
 
-  SetTypeSpecificFlags (pSampleOut, pFrame);
+  if (m_settings.InterlacedFlags && !IsHWDeintActive())
+    SetInterlaceFlags (pSampleOut, pFrame);
+
   hr = m_pOutput->Deliver(pSampleOut);
   SafeRelease(&pSampleOut);
   ReleaseFrame(&pFrame);
@@ -914,7 +916,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   return hr;
 }
 
-HRESULT CLAVVideo::SetTypeSpecificFlags(IMediaSample* pMS, LAVFrame *pFrame)
+HRESULT CLAVVideo::SetInterlaceFlags(IMediaSample* pMS, LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
   IMediaSample2 *pMS2 = NULL;
