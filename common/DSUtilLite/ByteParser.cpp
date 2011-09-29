@@ -22,7 +22,7 @@
 #include "stdafx.h"
 #include "ByteParser.h"
 
-CByteParser::CByteParser(const BYTE *pData, uint32_t length)
+CByteParser::CByteParser(const BYTE *pData, unsigned int length)
   : m_pData(pData), m_pCurrent(pData), m_pEnd(pData+length), m_dwLen(length), m_bitBuffer(0), m_bitLen(0)
 {
 }
@@ -31,12 +31,12 @@ CByteParser::~CByteParser()
 {
 }
 
-uint32_t CByteParser::BitRead(uint8_t numBits, bool peek)
+unsigned int CByteParser::BitRead(unsigned int numBits, bool peek)
 {
   ASSERT(numBits <= 32);
   ASSERT(numBits <= (m_bitLen + (8 * (m_pEnd - m_pCurrent))));
 
-  if (numBits == 0) { return 0; }
+  if (numBits == 0 || RemainingBits() < numBits) { return 0; }
 
   bool atEnd = false;
   // Read more data in the buffer
@@ -53,7 +53,7 @@ uint32_t CByteParser::BitRead(uint8_t numBits, bool peek)
 
   // Compose the return value
   // Shift the value so the superfluous bits fall off, and then crop the result with an AND
-  uint32_t ret = (m_bitBuffer >> bitlen) & ((1ui64 << numBits) - 1);
+  unsigned int ret = (m_bitBuffer >> bitlen) & ((1ui64 << numBits) - 1);
 
   // If we're not peeking, then update the buffer and remove the data we just read
   if(!peek) {
@@ -68,21 +68,27 @@ uint32_t CByteParser::BitRead(uint8_t numBits, bool peek)
 // As used in H.264/MPEG-4 AVC
 // http://en.wikipedia.org/wiki/Exponential-Golomb_coding
 
-uint64_t CByteParser::UExpGolombRead() {
+unsigned CByteParser::UExpGolombRead() {
   int n = -1;
-  for(BYTE b = 0; !b; n++) {
+  for(BYTE b = 0; !b && RemainingBits(); n++) {
     b = BitRead(1);
   }
-  return (1ui64 << n) - 1 + BitRead(n);
+  if (!RemainingBits())
+    return 0;
+  return ((1 << n) | BitRead(n)) - 1;
 }
 
-int64_t CByteParser::SExpGolombRead() {
-  uint64_t k = UExpGolombRead();
+int CByteParser::SExpGolombRead() {
+  int k = UExpGolombRead() + 1;
   // Negative numbers are interleaved in the series
-  // k:      0, 1,  2, 3,  4, 5,  6, ...
-  // Actual: 0, 1, -1, 2, -2, 3, -3, ....
+  // unsigned: 0, 1,  2, 3,  4, 5,  6, ...
+  //   signed: 0, 1, -1, 2, -2, 3, -3, ....
   // So all even numbers are negative (last bit = 0)
-  return ((k&1) ? 1 : -1) * ((k + 1) >> 1);
+  // Note that we added 1 to the unsigned value already, so the check is inverted
+ if (k&1)
+   return -(k>>1);
+ else
+   return (k>>1);
 }
 
 void CByteParser::Seek(DWORD pos)

@@ -30,16 +30,16 @@ class CByteParser
 {
 public:
   /** Construct a Byte Parser to parse the given BYTE array with the given length */
-  CByteParser(const BYTE *pData, uint32_t length);
+  CByteParser(const BYTE *pData, unsigned int length);
   virtual ~CByteParser();
 
   /** Read 1 to 32 Bits from the Byte Array. If peek is set, the data will just be returned, and the buffer not advanced. */
-  uint32_t BitRead(uint8_t numBits, bool peek = false);
+  unsigned int BitRead(unsigned int numBits, bool peek = false);
 
   /** Read a unsigned number in Exponential Golomb encoding (with k = 0) */
-  uint64_t UExpGolombRead();
+  unsigned int UExpGolombRead();
   /** Read a signed number in Exponential Golomb encoding (with k = 0) */
-  int64_t SExpGolombRead();
+  int SExpGolombRead();
 
   /** Seek to the position (in bytes) in the byte array */
   void Seek(DWORD pos);
@@ -50,11 +50,14 @@ public:
   const BYTE *End() const { return m_pEnd; }
 
   /** Overall length (in bytes) of the byte array */
-  uint32_t Length() const { return m_dwLen; }
+  unsigned int Length() const { return m_dwLen; }
   /** Current byte position in the array. Any incomplete bytes ( buffer < 8 bits ) will not be counted */
-  uint32_t Pos() const { return uint32_t(m_pCurrent - m_pData) - (m_bitLen>>3); }
+  unsigned int Pos() const { return unsigned int(m_pCurrent - m_pData) - (m_bitLen>>3); }
   /** Number of bytes remaining in the array */
-  uint32_t Remaining() const { return Length() - Pos(); }
+  unsigned int Remaining() const { return Length() - Pos(); }
+
+  /** Number of bits remaining */
+  unsigned int RemainingBits() const { return m_bitLen + (8 * (m_pEnd - m_pCurrent)); }
 
   /** Flush any bits currently in the buffer */
   void BitFlush() { m_bitLen = 0; m_bitBuffer = 0; }
@@ -70,8 +73,8 @@ private:
   // Pointer to the end in the data buffer
   const BYTE * const m_pEnd;
 
-  const uint32_t m_dwLen;
+  const unsigned int m_dwLen;
 
-  uint64_t m_bitBuffer;
-  uint8_t m_bitLen;
+  unsigned __int64 m_bitBuffer;
+  unsigned int m_bitLen;
 };
