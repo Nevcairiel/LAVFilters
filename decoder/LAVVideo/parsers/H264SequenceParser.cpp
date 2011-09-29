@@ -45,10 +45,26 @@ HRESULT CH264SequenceParser::ParseNALs(const BYTE *buffer, int buflen, int nal_s
     const int len = nalu.GetDataLength() - 1;
     if (nalu.GetType() == NALU_TYPE_SPS) {
       ParseSPS(data, len);
+      break;
     }
   }
 
   return S_OK;
+}
+
+static void SPSDecodeScalingList(CByteParser &parser, int size) {
+  int i, last = 8, next = 8;
+  int matrix = parser.BitRead(1);
+  if (matrix) {
+    for (i = 0; i < size; i++) {
+      if(next)
+        next = (last + parser.SExpGolombRead()) & 0xff;
+      if(!i && !next){ /* matrix not written */
+          break;
+      }
+      last = next ? next : last;
+    }
+  }
 }
 
 HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
@@ -76,6 +92,30 @@ HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
       parser.BitRead(1);
     sps.luma_bitdepth = (int)parser.UExpGolombRead() + 8;
     sps.chroma_bitdepth = (int)parser.UExpGolombRead() + 8;
+    parser.BitRead(1); // transform_bypass
+
+    // decode scaling matrices
+    int scaling = parser.BitRead(1);
+    if (scaling) {
+      // Decode scaling lists
+      SPSDecodeScalingList(parser, 16); // Intra, Y
+      SPSDecodeScalingList(parser, 16); // Intra, Cr
+      SPSDecodeScalingList(parser, 16); // Intra, Cb
+      SPSDecodeScalingList(parser, 16); // Inter, Y
+      SPSDecodeScalingList(parser, 16); // Inter, Cr
+      SPSDecodeScalingList(parser, 16); // Inter, Cb
+
+      SPSDecodeScalingList(parser, 64); // Intra, Y
+      if (sps.chroma == 3) {
+        SPSDecodeScalingList(parser, 64); // Intra, Cr
+        SPSDecodeScalingList(parser, 64); // Intra, Cb
+      }
+      SPSDecodeScalingList(parser, 64); // Inter, Y
+      if (sps.chroma == 3) {
+        SPSDecodeScalingList(parser, 64); // Inter, Cr
+        SPSDecodeScalingList(parser, 64); // Inter, Cb
+      }
+    }
   } else {
     sps.chroma = 1;
     sps.luma_bitdepth = 8;
