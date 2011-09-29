@@ -1,5 +1,19 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.36 - 2011/09/29
+LAV Splitter
+- Improved support for ADTS AAC
+- Fixed MPEG-2 timestamps in VOB
+- Fixed MPEG-2 frame rate reporting for telecined/interlaced
+
+LAV Video
+- Integrated NVIDIA CUVID Hardware decoder
+- Performance enhancements in 10bit decoding
+- Support for Flash Screen Video (FSV1)
+- Support for Apple ProRes
+- Improved MPEG-2 playback
+- Improved A/V sync with VC-1 and MPEG4-ASP
+
 0.35 - 2011/09/07
 LAV Splitter
 - Fixed a crash in IAMStreamSelect::Info handling with certain applications
