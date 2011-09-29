@@ -30,7 +30,7 @@ typedef struct {
 } FFMPEG_SUBTYPE_MAP;
 
 // Map Media Subtype <> FFMPEG Codec Id
-FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
+static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   // AAC
   { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC      },
   { &MEDIASUBTYPE_LATM_AAC,     CODEC_ID_AAC_LATM },

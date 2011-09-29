@@ -31,7 +31,7 @@ typedef struct {
 } FFMPEG_SUBTYPE_MAP;
 
 // Map Media Subtype <> FFMPEG Codec Id
-FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
+static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   // H264
   { &MEDIASUBTYPE_H264, CODEC_ID_H264 },
   { &MEDIASUBTYPE_h264, CODEC_ID_H264 },
