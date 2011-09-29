@@ -196,7 +196,7 @@ CodecID FindCodecId(const CMediaType *mt)
   return CODEC_ID_NONE;
 }
 
-static struct s_ffmpeg_codec_overrides {
+static const struct s_ffmpeg_codec_overrides {
   CodecID codec;
   const char *override;
 } ffmpeg_codec_overrides[] = {
