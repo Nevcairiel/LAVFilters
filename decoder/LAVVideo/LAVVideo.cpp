@@ -721,7 +721,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     rtStart = rtStop = AV_NOPTS_VALUE;
   }
 
-  if (rtStop-1 <= rtStart) {
+  if (hr == VFW_S_NO_STOP_TIME || rtStop-1 <= rtStart) {
     rtStop = AV_NOPTS_VALUE;
   }
 
