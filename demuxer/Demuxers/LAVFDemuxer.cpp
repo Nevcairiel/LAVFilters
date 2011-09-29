@@ -82,6 +82,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_stOrigParser(NULL)
   , m_pFontInstaller(NULL)
   , m_pszInputFormat(NULL)
+  , m_bEnableTrackInfo(TRUE)
 {
   m_bSubStreams = settings->GetSubstreamsEnabled();
 
@@ -90,6 +91,29 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
   const WCHAR *file = PathFindFileName (fileName);
+
+  if (_wcsicmp(file, L"zplayer.exe") == 0) {
+    m_bEnableTrackInfo = FALSE;
+
+    // TrackInfo is only properly handled in ZoomPlayer 8.0.0.74 and above
+    DWORD dwVersionSize = GetFileVersionInfoSize(fileName, NULL);
+    if (dwVersionSize > 0) {
+      void *versionInfo = CoTaskMemAlloc(dwVersionSize);
+      GetFileVersionInfo(fileName, 0, dwVersionSize, versionInfo);
+      VS_FIXEDFILEINFO *info;
+      unsigned cbInfo;
+      BOOL bInfoPresent = VerQueryValue(versionInfo, TEXT("\\"), (LPVOID*)&info, &cbInfo);
+      if (bInfoPresent) {
+        bInfoPresent = bInfoPresent;
+        uint64_t version = info->dwFileVersionMS;
+        version <<= 32;
+        version += info->dwFileVersionLS;
+        if (version >= 0x000800000000004A)
+          m_bEnableTrackInfo = TRUE;
+      }
+      CoTaskMemFree(versionInfo);
+    }
+  }
 }
 
 CLAVFDemuxer::~CLAVFDemuxer()
@@ -106,7 +130,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return
     QI(IKeyFrameInfo)
-    QI(ITrackInfo)
+    m_bEnableTrackInfo && QI(ITrackInfo)
     QI2(IAMExtendedSeeking)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
