@@ -476,10 +476,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       m_tcThreadBuffer[m_CurrentThread].rtStop  = rtStopIn;
     }
 
-    m_CurrentThread++;
-    if (m_CurrentThread >= m_pAVCtx->thread_count) {
-      m_CurrentThread = 0;
-    }
+    m_CurrentThread = (m_CurrentThread + 1) % m_pAVCtx->thread_count;
   } else if (m_bBFrameDelay) {
     m_tcBFrameDelay[m_nBFramePos].rtStart = rtStartIn;
     m_tcBFrameDelay[m_nBFramePos].rtStop = rtStopIn;
@@ -690,9 +687,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     Deliver(pOutFrame);
 
     if (bFlush) {
-      m_CurrentThread++;
-      if (m_CurrentThread >= m_pAVCtx->thread_count)
-        m_CurrentThread = 0;
+      m_CurrentThread = (m_CurrentThread + 1) % m_pAVCtx->thread_count;
     }
   }
 
