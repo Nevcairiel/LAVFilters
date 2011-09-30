@@ -324,6 +324,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->error_recognition     = FF_ER_CAREFUL;
   m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT;
 
+  if (codec == CODEC_ID_H264)
+    m_pAVCtx->flags2             |= CODEC_FLAG2_SHOW_ALL;
+
   // Setup threading
   int thread_type = getThreadFlags(codec);
   if (thread_type) {
