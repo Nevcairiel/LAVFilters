@@ -93,6 +93,9 @@
     <ClCompile Include="parsers\H264SequenceParser.cpp">
       <Filter>Source Files\parsers</Filter>
     </ClCompile>
+    <ClCompile Include="pixconv\yuv420_yuy2.cpp">
+      <Filter>Source Files\pixconv</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

@@ -318,6 +318,13 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     } else if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_NV12) {
       convert = &CLAVPixFmtConverter::convert_nv12_yv12;
       m_RequiredAlignment = 32;
+    } else if ((m_OutputPixFmt == LAVOutPixFmt_YUY2 || m_OutputPixFmt == LAVOutPixFmt_UYVY) && (m_InputPixFmt == LAVPixFmt_YUV420 || m_InputPixFmt == LAVPixFmt_NV12 || m_InputPixFmt == LAVPixFmt_YUV420bX) && m_InBpp <= 10) {
+      if (m_OutputPixFmt == LAVOutPixFmt_YUY2) {
+        convert = &CLAVPixFmtConverter::convert_yuv420_yuy2<0>;
+      } else {
+        convert = &CLAVPixFmtConverter::convert_yuv420_yuy2<1>;
+      }
+      m_RequiredAlignment = 8; // Pixel alignment of 8 guarantees a byte alignment of 16
     }
   }
 
