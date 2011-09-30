@@ -93,6 +93,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
         //wvfmt->wFormatTag = (WORD)WAVE_FORMAT_TRUEHD;
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_DOLBY_TRUEHD_ARCSOFT;
+      } else if (avstream->codec->codec_id == CODEC_ID_AAC) {
+        mtype.subtype = MEDIASUBTYPE_AAC_ADTS;
+        mtypes.push_back(mtype);
+        mtype.subtype = MEDIASUBTYPE_AAC;
       }
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat2 && mtype.subtype == MEDIASUBTYPE_Vorbis2) {

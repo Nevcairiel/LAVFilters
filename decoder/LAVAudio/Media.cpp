@@ -36,6 +36,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_LATM_AAC,     CODEC_ID_AAC_LATM },
   { &MEDIASUBTYPE_MP4A,         CODEC_ID_AAC      },
   { &MEDIASUBTYPE_mp4a,         CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_AAC_ADTS,     CODEC_ID_AAC      },
 
   // Dolby
   { &MEDIASUBTYPE_DOLBY_AC3,    CODEC_ID_AC3      },
@@ -117,6 +118,7 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_LATM_AAC     },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_MP4A         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_mp4a         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_AAC_ADTS     },
 
   // Dolby
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DOLBY_AC3    },
