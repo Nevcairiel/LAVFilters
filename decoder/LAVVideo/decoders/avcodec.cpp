@@ -526,13 +526,11 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       // Verify buffer size
       if (buflen > m_nFFBufferSize) {
         m_nFFBufferSize	= buflen;
-        BYTE *tmp = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE);
-        if (!tmp) {
-          av_freep(&m_pFFBuffer);
+        m_pFFBuffer = (BYTE *)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1);
+        if (!m_pFFBuffer) {
           m_nFFBufferSize = 0;
           return E_FAIL;
         }
-        m_pFFBuffer = tmp;
       }
 
       memcpy(m_pFFBuffer, buffer, buflen);
