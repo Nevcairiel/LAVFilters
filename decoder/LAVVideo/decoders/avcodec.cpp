@@ -300,10 +300,25 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     m_pParser = av_parser_init(codec);
   }
 
+  LONG biRealWidth = pBMI->biWidth, biRealHeight = pBMI->biHeight;
+  if (pmt->formattype == FORMAT_VideoInfo || pmt->formattype == FORMAT_MPEGVideo) {
+    VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)pmt->Format();
+    if (vih->rcTarget.right != 0 && vih->rcTarget.bottom != 0) {
+      biRealWidth  = vih->rcTarget.right;
+      biRealHeight = vih->rcTarget.bottom;
+    }
+  } else if (pmt->formattype == FORMAT_VideoInfo2 || pmt->formattype == FORMAT_MPEG2Video) {
+    VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)pmt->Format();
+    if (vih2->rcTarget.right != 0 && vih2->rcTarget.bottom != 0) {
+      biRealWidth  = vih2->rcTarget.right;
+      biRealHeight = vih2->rcTarget.bottom;
+    }
+  }
+
   m_pAVCtx->codec_id              = codec;
   m_pAVCtx->codec_tag             = pBMI->biCompression;
-  m_pAVCtx->width                 = pBMI->biWidth;
-  m_pAVCtx->height                = pBMI->biHeight;
+  m_pAVCtx->coded_width           = pBMI->biWidth;
+  m_pAVCtx->coded_height          = abs(pBMI->biHeight);
   m_pAVCtx->bits_per_coded_sample = pBMI->biBitCount;
   m_pAVCtx->error_concealment     = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
   m_pAVCtx->error_recognition     = FF_ER_CAREFUL;
@@ -378,6 +393,16 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     }
     m_pAVCtx->extradata = extra;
     m_pAVCtx->extradata_size = extralen;
+  } else {
+    if (codec == CODEC_ID_VP6 || codec == CODEC_ID_VP6A || codec == CODEC_ID_VP6F) {
+      int cropH = pBMI->biWidth - biRealWidth;
+      int cropV = pBMI->biHeight - biRealHeight;
+      if (cropH > 0 && cropH < 0x0f && cropV > 0 && cropV < 0x0f) {
+        m_pAVCtx->extradata = (uint8_t *)av_mallocz(1 + FF_INPUT_BUFFER_PADDING_SIZE);
+        m_pAVCtx->extradata_size = 1;
+        m_pAVCtx->extradata[0] = (cropH << 4) | cropV;
+      }
+    }
   }
 
   // Setup codec-specific timing logic
