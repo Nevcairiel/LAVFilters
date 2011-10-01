@@ -24,6 +24,7 @@ OPTIONS="
 --disable-postproc \
 --enable-zlib \
 --enable-swscale \
+--disable-swresample \
 --disable-static \
 --disable-altivec \
 --disable-muxers \
