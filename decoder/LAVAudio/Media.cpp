@@ -514,3 +514,17 @@ const codec_config_t *get_codec_config(LAVAudioCodec codec)
 
   return &m_codec_config[codec];
 }
+
+static LAVAudioSampleFormat sampleFormatMapping[SampleFormat_NB][SampleFormat_NB] = {
+  { SampleFormat_16, SampleFormat_24, SampleFormat_FP32, SampleFormat_32, SampleFormat_U8 },  // SampleFormat_16
+  { SampleFormat_24, SampleFormat_FP32, SampleFormat_32, SampleFormat_16, SampleFormat_U8 },  // SampleFormat_24
+  { SampleFormat_32, SampleFormat_FP32, SampleFormat_24, SampleFormat_16, SampleFormat_U8 },  // SampleFormat_32
+  { SampleFormat_U8, SampleFormat_16, SampleFormat_24, SampleFormat_FP32, SampleFormat_32 },  // SampleFormat_U8
+  { SampleFormat_FP32, SampleFormat_24, SampleFormat_32, SampleFormat_16, SampleFormat_U8 },  // SampleFormat_FP32
+};
+
+LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat)
+{
+  ASSERT(inFormat < SampleFormat_Bitstream);
+  return sampleFormatMapping[inFormat][0];
+}

@@ -22,6 +22,10 @@
 #include "LAVAudio.h"
 #include "Media.h"
 
+extern "C" {
+#include "libavutil/intreadwrite.h"
+};
+
 // PCM Volume Adjustment Factors, both for integer and float math
 // Entrys start at 2 channel mixing, half volume
 static int pcm_volume_adjust_integer[7] = {
@@ -415,8 +419,111 @@ static DWORD sanitize_mask(DWORD mask, CodecID codec)
   return newmask;
 }
 
+template <LAVAudioSampleFormat in, LAVAudioSampleFormat out>
+static void SampleConvert(const BYTE *pPCMIn, BYTE *pPCMOut, unsigned samples, unsigned channels)
+{
+  unsigned i, ch;
+
+  const int bppIn  = get_byte_per_sample(in);
+  const int bppOut = get_byte_per_sample(out);
+
+  for (i = 0; i < samples; i++) {
+    for (ch = 0; ch < channels; ch++) {
+      if (in == SampleFormat_16) {
+        int32_t value = *(int16_t *)pPCMIn;
+        switch (out) {
+        case SampleFormat_24: AV_WL24(pPCMOut, ((int32_t)value << 8));        break;
+        case SampleFormat_32: *(int32_t *)pPCMOut = ((int32_t)value << 16);   break;
+        case SampleFormat_U8: *pPCMOut = (value >> 8) + 0x80;                 break;
+        case SampleFormat_FP32: *(float *)pPCMOut = value * (1.0f / (1U<<15)); break;
+        }
+      } else if (in == SampleFormat_24 || in == SampleFormat_32) {
+        int32_t value = 0;
+        if (in == SampleFormat_24)
+          value = (pPCMIn[0] << 8) + (pPCMIn[1] << 16) + (pPCMIn[2] << 24);
+        else
+          value = *(int32_t *)pPCMIn;
+        switch (out) {
+        case SampleFormat_16: *(int16_t *)pPCMOut = value >> 16;               break;
+        case SampleFormat_24: AV_WL24(pPCMOut, value >> 8);                    break;
+        case SampleFormat_32: *(int32_t *)pPCMOut = value;                     break;
+        case SampleFormat_U8: *pPCMOut = (value >> 24) + 0x80;                 break;
+        case SampleFormat_FP32: *(float *)pPCMOut = value * (1.0f / (1U<<31)); break;
+        }
+      } else if (in == SampleFormat_U8) {
+        int32_t value = *pPCMIn - 0x80;
+        switch (out) {
+        case SampleFormat_16: *(int16_t *)pPCMOut = value << 8;                break;
+        case SampleFormat_24: AV_WL24(pPCMOut, value << 16);                   break;
+        case SampleFormat_32: *(int32_t *)pPCMOut = value << 24;               break;
+        case SampleFormat_FP32: *(float *)pPCMOut = value * (1.0f / (1U<<7));   break;
+        }
+      } else if (in == SampleFormat_FP32) {
+        float value = *(float *)pPCMIn;
+        switch (out) {
+        case SampleFormat_16: *(int16_t *)pPCMOut = av_clip_int16(int(value * (1U<<15)));             break;
+        case SampleFormat_24: AV_WL24(pPCMOut, av_clip(int(value * (1U<<23)), INT24_MIN, INT24_MAX)); break;
+        case SampleFormat_32: *(int32_t *)pPCMOut = av_clipl_int32(int64_t(value * (1U<<31)));        break;
+        case SampleFormat_U8: *pPCMOut = av_clip_uint8(int(value * (1U<<7)) + 0x80);                  break;
+        }
+      }
+      pPCMIn += bppIn;
+      pPCMOut += bppOut;
+    }
+  }
+}
+
+#define CONV_MAP(in, out)  \
+  if (pcm->sfFormat == in  && outputFormat == out) { \
+    SampleConvert<in, out>(pcm->bBuffer->Ptr(), pcmOut->Ptr(), pcm->nSamples, pcm->wChannels); \
+  }
+
+HRESULT CLAVAudio::ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat outputFormat)
+{
+  const unsigned uSampleSize = get_byte_per_sample(outputFormat);
+
+  // New Output Buffer
+  GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
+  pcmOut->SetSize(pcm->wChannels * pcm->nSamples * uSampleSize);
+
+       CONV_MAP(SampleFormat_16, SampleFormat_24)
+  else CONV_MAP(SampleFormat_16, SampleFormat_32)
+  else CONV_MAP(SampleFormat_16, SampleFormat_U8)
+  else CONV_MAP(SampleFormat_16, SampleFormat_FP32)
+  else CONV_MAP(SampleFormat_24, SampleFormat_16)
+  else CONV_MAP(SampleFormat_24, SampleFormat_32)
+  else CONV_MAP(SampleFormat_24, SampleFormat_U8)
+  else CONV_MAP(SampleFormat_24, SampleFormat_FP32)
+  else CONV_MAP(SampleFormat_32, SampleFormat_16)
+  else CONV_MAP(SampleFormat_32, SampleFormat_24)
+  else CONV_MAP(SampleFormat_32, SampleFormat_U8)
+  else CONV_MAP(SampleFormat_32, SampleFormat_FP32)
+  else CONV_MAP(SampleFormat_FP32, SampleFormat_16)
+  else CONV_MAP(SampleFormat_FP32, SampleFormat_24)
+  else CONV_MAP(SampleFormat_FP32, SampleFormat_32)
+  else CONV_MAP(SampleFormat_FP32, SampleFormat_U8)
+  else CONV_MAP(SampleFormat_U8, SampleFormat_16)
+  else CONV_MAP(SampleFormat_U8, SampleFormat_24)
+  else CONV_MAP(SampleFormat_U8, SampleFormat_32)
+  else CONV_MAP(SampleFormat_U8, SampleFormat_FP32)
+  else ASSERT(0);
+
+  // Apply changes to buffer
+  delete pcm->bBuffer;
+  pcm->bBuffer        = pcmOut;
+  pcm->sfFormat       = outputFormat;
+  pcm->wBitsPerSample = get_byte_per_sample(outputFormat) << 3;
+
+  return S_OK;
+}
+
 HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
 {
+  LAVAudioSampleFormat outputFormat = GetBestAvailableSampleFormat(buffer->sfFormat);
+  if (outputFormat != buffer->sfFormat) {
+    ConvertSampleFormat(buffer, outputFormat);
+  }
+
   buffer->dwChannelMask = sanitize_mask(buffer->dwChannelMask, m_nCodecId);
 
   int layout_channels = av_get_channel_layout_nb_channels(buffer->dwChannelMask);

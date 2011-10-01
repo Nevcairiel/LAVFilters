@@ -599,7 +599,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     const LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, m_pAVCtx->bits_per_raw_sample);
     const int bits = m_pDTSDecoderContext ? 0 : m_pAVCtx->bits_per_raw_sample;
 
-    *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, bits);
+    *pMediaType = CreateMediaType(GetBestAvailableSampleFormat(lav_sample_fmt), nSamplesPerSec, nChannels, dwChannelMask, bits);
   }
   return S_OK;
 }

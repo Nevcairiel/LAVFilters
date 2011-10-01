@@ -208,6 +208,9 @@ private:
   HRESULT Create61Conformity(DWORD dwLayout);
   HRESULT Create71Conformity(DWORD dwLayout);
 
+  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat);
+  HRESULT ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat outputFormat);
+
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
