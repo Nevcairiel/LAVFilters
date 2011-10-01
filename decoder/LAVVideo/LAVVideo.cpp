@@ -463,6 +463,7 @@ HRESULT CLAVVideo::BeginFlush()
 HRESULT CLAVVideo::EndFlush()
 {
   DbgLog((LOG_TRACE, 1, L"::EndFlush"));
+  CAutoLock cAutoLock(&m_csReceive);
   return __super::EndFlush();
 }
 
