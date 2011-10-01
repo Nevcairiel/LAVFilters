@@ -783,7 +783,7 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
 
 STDMETHODIMP_(BOOL) CLAVVideo::VC1IsDTS()
 {
-  return !(FilterInGraph(CLSID_MPCHCMPEGSplitter) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource));
+  return !(FilterInGraph(CLSID_MPCHCMPEGSplitter) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(CLSID_MPBDReader));
 }
 
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
