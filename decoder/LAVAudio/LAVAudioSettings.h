@@ -125,6 +125,11 @@ interface ILAVAudioSettings : public IUnknown
   // Allow Raw PCM and SPDIF encoded input
   STDMETHOD_(BOOL,GetAllowRawSPDIFInput)() = 0;
   STDMETHOD(SetAllowRawSPDIFInput)(BOOL bAllow) = 0;
+
+  // Configure which sample formats are enabled
+  // Note: SampleFormat_Bitstream cannot be controlled by this
+  STDMETHOD_(BOOL,GetSampleFormat)(LAVAudioSampleFormat format) = 0;
+  STDMETHOD(SetSampleFormat)(LAVAudioSampleFormat format, BOOL bEnabled) = 0;
 };
 
 // LAV Audio Status Interface

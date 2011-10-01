@@ -96,6 +96,22 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetExpand61(bFlag);
 
+  // Sample Formats
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_S16, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetSampleFormat(SampleFormat_16, bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_S24, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetSampleFormat(SampleFormat_24, bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_S32, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetSampleFormat(SampleFormat_32, bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_FP32, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetSampleFormat(SampleFormat_FP32, bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_U8, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetSampleFormat(SampleFormat_U8, bFlag);
+
   LoadData();
 
   return hr;
@@ -150,6 +166,12 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     addHint(IDC_EXPAND_MONO, L"Plays Mono Audio in both Left/Right Front channels, instead of the center.");
     SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_SETCHECK, m_bExpand61, 0);
     addHint(IDC_EXPAND61, L"Converts 6.1 Audio to 7.1 by copying the Back Center into both Back Left and Right channels.");
+
+    SendDlgItemMessage(m_Dlg, IDC_OUT_S16, BM_SETCHECK, m_bSampleFormats[SampleFormat_16], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_S24, BM_SETCHECK, m_bSampleFormats[SampleFormat_24], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_S32, BM_SETCHECK, m_bSampleFormats[SampleFormat_32], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_FP32, BM_SETCHECK, m_bSampleFormats[SampleFormat_FP32], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_U8, BM_SETCHECK, m_bSampleFormats[SampleFormat_U8], 0);
   }
 
   return hr;
@@ -166,6 +188,9 @@ HRESULT CLAVAudioSettingsProp::LoadData()
   m_bOutputStdLayout = m_pAudioSettings->GetOutputStandardLayout();
   m_bExpandMono = m_pAudioSettings->GetExpandMono();
   m_bExpand61 = m_pAudioSettings->GetExpand61();
+
+  for (unsigned i = 0; i < SampleFormat_NB; ++i)
+    m_bSampleFormats[i] = m_pAudioSettings->GetSampleFormat((LAVAudioSampleFormat)i) != 0;
   return hr;
 }
 
@@ -223,7 +248,28 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bExpand61)
         SetDirty();
+    } else if (LOWORD(wParam) == IDC_OUT_S16 && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bSampleFormats[SampleFormat_16])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_OUT_S24 && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bSampleFormats[SampleFormat_24])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_OUT_S32 && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bSampleFormats[SampleFormat_32])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_OUT_FP32 && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bSampleFormats[SampleFormat_FP32])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_OUT_U8 && HIWORD(wParam) == BN_CLICKED) {
+      bool bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_bSampleFormats[SampleFormat_U8])
+        SetDirty();
     }
+
     break;
   case WM_HSCROLL:
     lValue = SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL, TBM_GETPOS, 0, 0);

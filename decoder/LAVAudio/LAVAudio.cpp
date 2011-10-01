@@ -149,6 +149,10 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.OutputStandardLayout = TRUE;
   m_settings.AllowRawSPDIF        = FALSE;
 
+  // Default all Sample Formats to enabled
+  for(int i = 0; i < SampleFormat_NB; ++i)
+    m_settings.bSampleFormats[i] = true;
+
   return S_OK;
 }
 
@@ -201,6 +205,12 @@ HRESULT CLAVAudio::LoadSettings()
   bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
   if (SUCCEEDED(hr)) m_settings.OutputStandardLayout = bFlag;
 
+  pBuf = reg.ReadBinary(L"SampleFormats", dwVal, hr);
+  if (SUCCEEDED(hr)) {
+    memcpy(&m_settings.bSampleFormats, pBuf, min(dwVal, sizeof(m_settings.bSampleFormats)));
+    SAFE_CO_FREE(pBuf);
+  }
+
   return S_OK;
 }
 
@@ -221,6 +231,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBOOL(L"ExpandMono", m_settings.ExpandMono);
     reg.WriteBOOL(L"Expand61", m_settings.Expand61);
     reg.WriteBOOL(L"OutputStandardLayout", m_settings.OutputStandardLayout);
+    reg.WriteBinary(L"SampleFormats", (BYTE *)m_settings.bSampleFormats, sizeof(m_settings.bSampleFormats));
   }
   return S_OK;
 }
@@ -427,6 +438,25 @@ STDMETHODIMP_(BOOL) CLAVAudio::GetAllowRawSPDIFInput()
 STDMETHODIMP CLAVAudio::SetAllowRawSPDIFInput(BOOL bAllow)
 {
   m_settings.AllowRawSPDIF = bAllow;
+  SaveSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetSampleFormat(LAVAudioSampleFormat format)
+{
+  if (format < 0 || format >= SampleFormat_NB)
+    return FALSE;
+
+  return m_settings.bSampleFormats[format];
+}
+
+STDMETHODIMP CLAVAudio::SetSampleFormat(LAVAudioSampleFormat format, BOOL bEnabled)
+{
+  if (format < 0 || format >= SampleFormat_NB)
+    return E_FAIL;
+
+  m_settings.bSampleFormats[format] = (bEnabled != 0);
   SaveSettings();
 
   return S_OK;

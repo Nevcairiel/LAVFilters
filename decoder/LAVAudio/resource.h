@@ -72,6 +72,14 @@
 #define IDC_STANDARD_CH_LAYOUT          1088
 #define IDC_EXPAND_MONO                 1089
 #define IDC_EXPAND61                    1090
+#define IDC_OUTPUT_FORMATS              1091
+#define IDC_LBL_OUTPUTFORMATS           1092
+#define IDC_OUT_S16                     1093
+#define IDC_OUT_S24                     1094
+#define IDC_OUT_S32                     1095
+#define IDC_OUT_FP32                    1096
+#define IDC_OUT_U8                      1097
+#define IDC_LBL_OUTNOTE                 1098
 
 // Next default values for new objects
 // 
@@ -79,7 +87,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1091
+#define _APS_NEXT_CONTROL_VALUE         1099
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

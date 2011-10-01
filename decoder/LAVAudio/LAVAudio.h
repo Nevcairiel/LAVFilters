@@ -122,6 +122,8 @@ public:
   STDMETHODIMP SetExpand61(BOOL bExpand61);
   STDMETHODIMP_(BOOL) GetAllowRawSPDIFInput();
   STDMETHODIMP SetAllowRawSPDIFInput(BOOL bAllow);
+  STDMETHODIMP_(BOOL) GetSampleFormat(LAVAudioSampleFormat format);
+  STDMETHODIMP SetSampleFormat(LAVAudioSampleFormat format, BOOL bEnabled);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -250,6 +252,7 @@ private:
     BOOL Expand61;
     BOOL OutputStandardLayout;
     BOOL AllowRawSPDIF;
+    bool bSampleFormats[SampleFormat_NB];
   } m_settings;
   BOOL                m_bRuntimeConfig;
 

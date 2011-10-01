@@ -71,6 +71,7 @@ private:
   BOOL m_bOutputStdLayout;
   BOOL m_bExpandMono;
   BOOL m_bExpand61;
+  bool m_bSampleFormats[SampleFormat_NB];
 };
 
 class CLAVAudioFormatsProp : public CBaseDSPropPage
