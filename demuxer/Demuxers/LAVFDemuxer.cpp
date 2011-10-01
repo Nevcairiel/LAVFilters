@@ -389,7 +389,7 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
     m_bVC1Correction = true;
   } else if (vc1Mode == 2) {
     BOOL bReq = pSettings->IsVC1CorrectionRequired();
-    m_bVC1Correction = m_bEVO ? false : (m_bMatroska ? !bReq : bReq);
+    m_bVC1Correction = m_bMatroska ? !bReq : bReq;
   } else {
     m_bVC1Correction = false;
   }
