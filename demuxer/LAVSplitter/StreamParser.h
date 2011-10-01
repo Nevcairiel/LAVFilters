@@ -37,7 +37,6 @@ public:
 
 private:
   HRESULT ParseH264AnnexB(Packet *pPacket);
-  HRESULT ParseVC1(Packet *pPacket);
   HRESULT ParsePGS(Packet *pPacket);
   HRESULT ParseMOVText(Packet *pPacket);
   HRESULT ParseRawSSA(Packet *pPacket);

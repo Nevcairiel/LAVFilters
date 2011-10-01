@@ -58,8 +58,6 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     Queue(pPacket);
   } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg" || m_strContainer == "avi" || (m_strContainer == "matroska" && (pPacket->dwFlags & LAV_PACKET_H264_ANNEXB))) && m_gSubtype == MEDIASUBTYPE_AVC1) {
     ParseH264AnnexB(pPacket);
-  } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg") && (m_gSubtype == MEDIASUBTYPE_WVC1 || m_gSubtype == MEDIASUBTYPE_WVC1_ARCSOFT || m_gSubtype == MEDIASUBTYPE_WVC1_CYBERLINK)) {
-    ParseVC1(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_HDMVSUB) {
     ParsePGS(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
@@ -262,100 +260,6 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
       Queue(p);
     }
   } while (pPacket != NULL);
-
-  return S_OK;
-}
-
-HRESULT CStreamParser::ParseVC1(Packet *pPacket)
-{
-  if (!m_pPacketBuffer) {
-    m_pPacketBuffer = InitPacket(pPacket);
-  }
-
-  m_pPacketBuffer->Append(pPacket);
-
-  BYTE *start = m_pPacketBuffer->GetData();
-  BYTE *end = start + m_pPacketBuffer->GetDataSize();
-
-  bool bSeqFound = false;
-  while(start <= end-4) {
-    if (*(DWORD *)start == 0x0D010000) {
-      bSeqFound = true;
-      break;
-    } else if (*(DWORD *)start == 0x0F010000) {
-      break;
-    }
-    start++;
-  }
-
-  while(start <= end-4) {
-    BYTE *next = start+1;
-
-    while(next <= end-4) {
-      if (*(DWORD *)next == 0x0D010000) {
-        if (bSeqFound) {
-          break;
-        }
-        bSeqFound = true;
-      } else if (*(DWORD*)next == 0x0F010000) {
-        break;
-      }
-      next++;
-    }
-
-    if(next >= end-4) {
-      break;
-    }
-
-    Packet *p2 = new Packet();
-    p2->StreamId = m_pPacketBuffer->StreamId;
-    p2->bDiscontinuity = m_pPacketBuffer->bDiscontinuity;
-    m_pPacketBuffer->bDiscontinuity = FALSE;
-
-    p2->bSyncPoint = m_pPacketBuffer->bSyncPoint;
-    m_pPacketBuffer->bSyncPoint = FALSE;
-
-    p2->rtStart = m_pPacketBuffer->rtStart;
-    m_pPacketBuffer->rtStart = Packet::INVALID_TIME;
-
-    p2->rtStop = m_pPacketBuffer->rtStop;
-    m_pPacketBuffer->rtStop = Packet::INVALID_TIME;
-
-    p2->pmt = m_pPacketBuffer->pmt;
-    m_pPacketBuffer->pmt = NULL;
-
-    p2->SetData(start, next - start);
-
-    Queue(p2);
-
-    if (pPacket->rtStart != Packet::INVALID_TIME) {
-      m_pPacketBuffer->rtStart = pPacket->rtStart;
-      m_pPacketBuffer->rtStop = pPacket->rtStart;
-      pPacket->rtStart = Packet::INVALID_TIME;
-    }
-
-    if (pPacket->bDiscontinuity) {
-      m_pPacketBuffer->bDiscontinuity = pPacket->bDiscontinuity;
-      pPacket->bDiscontinuity = FALSE;
-    }
-
-    if (pPacket->bSyncPoint) {
-      m_pPacketBuffer->bSyncPoint = pPacket->bSyncPoint;
-      pPacket->bSyncPoint = FALSE;
-    }
-
-    m_pPacketBuffer->pmt = pPacket->pmt;
-    pPacket->pmt = NULL;
-
-    start = next;
-    bSeqFound = (*(DWORD*)start == 0x0D010000);
-  }
-
-  if(start > m_pPacketBuffer->GetData()) {
-    m_pPacketBuffer->RemoveHead(start - m_pPacketBuffer->GetData());
-  }
-
-  SAFE_DELETE(pPacket);
 
   return S_OK;
 }
