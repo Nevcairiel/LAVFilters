@@ -196,7 +196,7 @@ private:
   HRESULT UpdateBitstreamContext();
   HRESULT FreeBitstreamContext();
 
-  HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed);
+  HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
   HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
   CMediaType CreateBitstreamMediaType(CodecID codec);

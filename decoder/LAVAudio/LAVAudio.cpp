@@ -1264,7 +1264,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
   // If a bitstreaming context exists, we should bitstream
   if (m_avBSContext) {
-    hr2 = Bitstream(p, buffer_size, consumed);
+    hr2 = Bitstream(p, buffer_size, consumed, &hr);
     if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Invalid sample when bitstreaming!"));
       m_buff.SetSize(0);

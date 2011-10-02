@@ -275,7 +275,7 @@ void CLAVAudio::ActivateDTSHDMuxing()
   DbgLog((LOG_TRACE, 20, L"::ActivateDTSHDMuxing(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
 }
 
-HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
+HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   int ret = 0;
   const BYTE *pDataInBuff = p;
@@ -345,7 +345,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed)
 
       // Deliver frame
       if (m_bsOutput.GetCount() > 0) {
-        DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), pOut_size, m_rtStartInputCache, m_rtStopInputCache);
+        *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), pOut_size, m_rtStartInputCache, m_rtStopInputCache);
         m_bsOutput.SetSize(0);
       }
     }
