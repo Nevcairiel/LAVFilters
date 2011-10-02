@@ -97,7 +97,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFindDTSInPCM(FALSE)
 {
   av_register_all();
-  av_lockmgr_register(ff_lockmgr);
+  if (av_lockmgr_addref() == 1)
+    av_lockmgr_register(ff_lockmgr);
 
   m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -148,6 +149,10 @@ CLAVAudio::~CLAVAudio()
     FreeLibrary(m_hDllExtraDecoder);
     m_hDllExtraDecoder = NULL;
   }
+
+  // If its 0, that means we're the last one using/owning the object, and can free it
+  if(av_lockmgr_release() == 0)
+    av_lockmgr_register(NULL);
 
 #if defined(DEBUG) && ENABLE_DEBUG_LOGFILE
   DbgCloseLogFile();

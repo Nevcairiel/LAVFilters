@@ -66,7 +66,8 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bDXVAExtFormatSupport(-1)
 {
   avcodec_register_all();
-  av_lockmgr_register(ff_lockmgr);
+  if (av_lockmgr_addref() == 1)
+    av_lockmgr_register(ff_lockmgr);
 
   LoadSettings();
 
@@ -82,6 +83,10 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVVideo::~CLAVVideo()
 {
   SAFE_DELETE(m_pDecoder);
+
+  // If its 0, that means we're the last one using/owning the object, and can free it
+  if(av_lockmgr_release() == 0)
+    av_lockmgr_register(NULL);
 }
 
 HRESULT CLAVVideo::LoadDefaults()
