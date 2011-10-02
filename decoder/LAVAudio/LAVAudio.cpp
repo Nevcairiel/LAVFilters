@@ -1036,6 +1036,7 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 
 HRESULT CLAVAudio::EndOfStream()
 {
+  DbgLog((LOG_TRACE, 10, L"CLAVAudio::EndOfStream()"));
   CAutoLock cAutoLock(&m_csReceive);
   // Flush the last data out of the parser
   ProcessBuffer();
@@ -1581,7 +1582,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   }
 
 #ifdef DEBUG
-  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtJitter));
+  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, sample duration: %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtStop-rtStart, rtJitter));
 
   if (m_faJitter.CurrentSample() == 0) {
     DbgLog((LOG_TRACE, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
