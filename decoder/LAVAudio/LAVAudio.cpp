@@ -41,6 +41,29 @@ extern "C" {
 
 extern HINSTANCE g_hInst;
 
+static int ff_lockmgr(void **mutex, enum AVLockOp op)
+{
+  DbgLog((LOG_TRACE, 10, L"ff_lockmgr: mutex: %p, op: %d", *mutex, op));
+  CRITICAL_SECTION **critSec = (CRITICAL_SECTION **)mutex;
+  switch (op) {
+  case AV_LOCK_CREATE:
+    *critSec = new CRITICAL_SECTION();
+    InitializeCriticalSection(*critSec);
+    break;
+  case AV_LOCK_OBTAIN:
+    EnterCriticalSection(*critSec);
+    break;
+  case AV_LOCK_RELEASE:
+    LeaveCriticalSection(*critSec);
+    break;
+  case AV_LOCK_DESTROY:
+    DeleteCriticalSection(*critSec);
+    SAFE_DELETE(*critSec);
+    break;
+  }
+  return 0;
+}
+
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
@@ -74,6 +97,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFindDTSInPCM(FALSE)
 {
   av_register_all();
+  av_lockmgr_register(ff_lockmgr);
 
   m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
   if(!m_pInput) {
