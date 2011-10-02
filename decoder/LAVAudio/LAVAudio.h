@@ -124,6 +124,8 @@ public:
   STDMETHODIMP SetAllowRawSPDIFInput(BOOL bAllow);
   STDMETHODIMP_(BOOL) GetSampleFormat(LAVAudioSampleFormat format);
   STDMETHODIMP SetSampleFormat(LAVAudioSampleFormat format, BOOL bEnabled);
+  STDMETHODIMP GetAudioDelay(BOOL *pbEnabled, int *pDelay);
+  STDMETHODIMP SetAudioDelay(BOOL bEnabled, int delay);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -253,6 +255,8 @@ private:
     BOOL OutputStandardLayout;
     BOOL AllowRawSPDIF;
     bool bSampleFormats[SampleFormat_NB];
+    BOOL AudioDelayEnabled;
+    int  AudioDelay;
   } m_settings;
   BOOL                m_bRuntimeConfig;
 

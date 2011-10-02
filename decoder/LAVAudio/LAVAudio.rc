@@ -63,7 +63,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_AUDIO_SETTINGS DIALOGEX 0, 0, 324, 212
+IDD_PROPPAGE_AUDIO_SETTINGS DIALOGEX 0, 0, 369, 215
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
@@ -89,15 +89,20 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,164,162,10
     CONTROL         "Expand Mono to Stereo",IDC_EXPAND_MONO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,178,91,10
     CONTROL         "Expand 6.1 to 7.1",IDC_EXPAND61,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,118,178,74,10
-    LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,7,199,306,8,0,WS_EX_RIGHT
-    GROUPBOX        "Output Formats",IDC_OUTPUT_FORMATS,207,7,106,184
-    LTEXT           "Select which output formats are available.\nThe format most suitable for the audio will be used.",IDC_LBL_OUTPUTFORMATS,212,18,98,34
-    CONTROL         "16-bit Integer",IDC_OUT_S16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,56,61,10
-    CONTROL         "24-bit Integer",IDC_OUT_S24,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,70,61,10
-    CONTROL         "32-bit Integer",IDC_OUT_S32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,84,61,10
-    CONTROL         "32-bit Floating-point",IDC_OUT_FP32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,98,81,10
-    CONTROL         "8-bit Integer",IDC_OUT_U8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,215,112,61,10
-    LTEXT           "Enabling all formats will allow untouched/bitexact output. Only if a format is not compatible with your hard- or software it should be disabled.",IDC_LBL_OUTNOTE,212,128,98,56
+    LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,7,202,351,8,0,WS_EX_RIGHT
+    GROUPBOX        "Output Formats",IDC_OUTPUT_FORMATS,207,59,151,132
+    LTEXT           "Select which output formats are available.\nThe format most suitable for the audio will be used.",IDC_LBL_OUTPUTFORMATS,212,70,139,28
+    CONTROL         "16-bit Integer",IDC_OUT_S16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,100,61,10
+    CONTROL         "24-bit Integer",IDC_OUT_S24,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,286,100,61,10
+    CONTROL         "32-bit Integer",IDC_OUT_S32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,116,61,10
+    CONTROL         "32-bit Floating-point",IDC_OUT_FP32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,132,81,10
+    CONTROL         "8-bit Integer",IDC_OUT_U8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,286,116,54,10
+    LTEXT           "Enabling all formats will allow untouched / bitexact output. Only if a format is not compatible with your hard- or software it should be disabled.",IDC_LBL_OUTNOTE,211,150,140,37
+    GROUPBOX        "Audio Delay",IDC_GROUP_DELAY,207,7,151,50
+    CONTROL         "Enable Audio Delay",IDC_DELAY_ENABLED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,214,20,113,10
+    LTEXT           "Delay (in ms):",IDC_STATIC,213,37,47,8
+    EDITTEXT        IDC_DELAY,261,35,46,13,ES_AUTOHSCROLL,WS_EX_RIGHT
+    CONTROL         "",IDC_DELAYSPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS | UDS_HOTTRACK,305,35,11,13
 END
 
 IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 214, 152
@@ -166,9 +171,9 @@ BEGIN
     IDD_PROPPAGE_AUDIO_SETTINGS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 313
+        RIGHTMARGIN, 358
         TOPMARGIN, 7
-        BOTTOMMARGIN, 207
+        BOTTOMMARGIN, 210
     END
 
     IDD_PROPPAGE_FORMATS, DIALOG

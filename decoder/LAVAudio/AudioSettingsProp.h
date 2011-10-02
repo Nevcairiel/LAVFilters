@@ -72,6 +72,8 @@ private:
   BOOL m_bExpandMono;
   BOOL m_bExpand61;
   bool m_bSampleFormats[SampleFormat_NB];
+  BOOL m_bAudioDelay;
+  int  m_iAudioDelay;
 };
 
 class CLAVAudioFormatsProp : public CBaseDSPropPage

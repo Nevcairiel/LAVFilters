@@ -130,6 +130,10 @@ interface ILAVAudioSettings : public IUnknown
   // Note: SampleFormat_Bitstream cannot be controlled by this
   STDMETHOD_(BOOL,GetSampleFormat)(LAVAudioSampleFormat format) = 0;
   STDMETHOD(SetSampleFormat)(LAVAudioSampleFormat format, BOOL bEnabled) = 0;
+
+  // Configure a delay for the audio
+  STDMETHOD(GetAudioDelay)(BOOL *pbEnabled, int *pDelay) = 0;
+  STDMETHOD(SetAudioDelay)(BOOL bEnabled, int delay) = 0;
 };
 
 // LAV Audio Status Interface

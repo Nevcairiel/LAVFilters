@@ -80,6 +80,10 @@
 #define IDC_OUT_FP32                    1096
 #define IDC_OUT_U8                      1097
 #define IDC_LBL_OUTNOTE                 1098
+#define IDC_GROUP_DELAY                 1099
+#define IDC_DELAY_ENABLED               1100
+#define IDC_DELAY                       1101
+#define IDC_DELAYSPIN                   1102
 
 // Next default values for new objects
 // 
@@ -87,7 +91,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1099
+#define _APS_NEXT_CONTROL_VALUE         1103
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

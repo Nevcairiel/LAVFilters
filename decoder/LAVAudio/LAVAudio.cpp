@@ -177,6 +177,9 @@ HRESULT CLAVAudio::LoadDefaults()
   for(int i = 0; i < SampleFormat_NB; ++i)
     m_settings.bSampleFormats[i] = true;
 
+  m_settings.AudioDelayEnabled = FALSE;
+  m_settings.AudioDelay = 0;
+
   return S_OK;
 }
 
@@ -235,6 +238,12 @@ HRESULT CLAVAudio::LoadSettings()
     SAFE_CO_FREE(pBuf);
   }
 
+  bFlag = reg.ReadBOOL(L"AudioDelayEnabled", hr);
+  if (SUCCEEDED(hr)) m_settings.AudioDelayEnabled = bFlag;
+
+  dwVal = reg.ReadDWORD(L"AudioDelay", hr);
+  if (SUCCEEDED(hr)) m_settings.AudioDelay = (int)dwVal;
+
   return S_OK;
 }
 
@@ -256,6 +265,8 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBOOL(L"Expand61", m_settings.Expand61);
     reg.WriteBOOL(L"OutputStandardLayout", m_settings.OutputStandardLayout);
     reg.WriteBinary(L"SampleFormats", (BYTE *)m_settings.bSampleFormats, sizeof(m_settings.bSampleFormats));
+    reg.WriteBOOL(L"AudioDelayEnabled", m_settings.AudioDelayEnabled);
+    reg.WriteDWORD(L"AudioDelay", m_settings.AudioDelay);
   }
   return S_OK;
 }
@@ -481,6 +492,24 @@ STDMETHODIMP CLAVAudio::SetSampleFormat(LAVAudioSampleFormat format, BOOL bEnabl
     return E_FAIL;
 
   m_settings.bSampleFormats[format] = (bEnabled != 0);
+  SaveSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVAudio::GetAudioDelay(BOOL *pbEnabled, int *pDelay)
+{
+  if (pbEnabled)
+    *pbEnabled = m_settings.AudioDelayEnabled;
+  if (pDelay)
+    *pDelay = m_settings.AudioDelay;
+  return S_OK;
+}
+
+STDMETHODIMP CLAVAudio::SetAudioDelay(BOOL bEnabled, int delay)
+{
+  m_settings.AudioDelayEnabled = bEnabled;
+  m_settings.AudioDelay = delay;
   SaveSettings();
 
   return S_OK;
@@ -1599,6 +1628,12 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
     DbgLog((LOG_TRACE, 1, L"Sending new Media Type (QueryAccept: %0#.8x)", hr));
     m_pOutput->SetMediaType(&mt);
     pOut->SetMediaType(&mt);
+  }
+
+  if(m_settings.AudioDelayEnabled) {
+    REFERENCE_TIME rtDelay = m_settings.AudioDelay * 10000i64;
+    rtStart += rtDelay;
+    rtStop += rtDelay;
   }
 
   pOut->SetTime(&rtStart, &rtStop);

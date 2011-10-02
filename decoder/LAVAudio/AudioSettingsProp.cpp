@@ -112,6 +112,12 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_U8, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetSampleFormat(SampleFormat_U8, bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DELAY_ENABLED, BM_GETCHECK, 0, 0);
+  WCHAR buffer[100];
+  SendDlgItemMessage(m_Dlg, IDC_DELAY, WM_GETTEXT, 100, (LPARAM)&buffer);
+  int delay = _wtoi(buffer);
+  m_pAudioSettings->SetAudioDelay(bFlag, delay);
+
   LoadData();
 
   return hr;
@@ -172,6 +178,16 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_OUT_S32, BM_SETCHECK, m_bSampleFormats[SampleFormat_32], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_FP32, BM_SETCHECK, m_bSampleFormats[SampleFormat_FP32], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_U8, BM_SETCHECK, m_bSampleFormats[SampleFormat_U8], 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_DELAY_ENABLED, BM_SETCHECK, m_bAudioDelay, 0);
+    EnableWindow(GetDlgItem(m_Dlg, IDC_DELAYSPIN), m_bAudioDelay);
+    EnableWindow(GetDlgItem(m_Dlg, IDC_DELAY), m_bAudioDelay);
+
+    SendDlgItemMessage(m_Dlg, IDC_DELAYSPIN, UDM_SETRANGE32, -1000*60*60*24, 1000*60*60*24);
+
+    WCHAR stringBuffer[100];
+    swprintf_s(stringBuffer, L"%d", m_iAudioDelay);
+    SendDlgItemMessage(m_Dlg, IDC_DELAY, WM_SETTEXT, 0, (LPARAM)stringBuffer);
   }
 
   return hr;
@@ -191,6 +207,9 @@ HRESULT CLAVAudioSettingsProp::LoadData()
 
   for (unsigned i = 0; i < SampleFormat_NB; ++i)
     m_bSampleFormats[i] = m_pAudioSettings->GetSampleFormat((LAVAudioSampleFormat)i) != 0;
+
+  m_pAudioSettings->GetAudioDelay(&m_bAudioDelay, &m_iAudioDelay);
+
   return hr;
 }
 
@@ -268,6 +287,26 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       bool bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
       if (bFlag != m_bSampleFormats[SampleFormat_U8])
         SetDirty();
+    } else if (LOWORD(wParam) == IDC_DELAY_ENABLED && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bFlag != m_bAudioDelay)
+        SetDirty();
+      EnableWindow(GetDlgItem(m_Dlg, IDC_DELAYSPIN), bFlag);
+      EnableWindow(GetDlgItem(m_Dlg, IDC_DELAY), bFlag);
+    } else if (LOWORD(wParam) == IDC_DELAY && HIWORD(wParam) == EN_CHANGE) {
+      WCHAR buffer[100];
+      SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, 100, (LPARAM)&buffer);
+      int delay = _wtoi(buffer);
+      int len = wcslen(buffer);
+      if (delay == 0 && (buffer[0] != L'0' || len > 1)) {
+        SendDlgItemMessage(m_Dlg, LOWORD(wParam), EM_UNDO, 0, 0);
+      } else {
+        swprintf_s(buffer, L"%d", delay);
+        if (wcslen(buffer) != len)
+          SendDlgItemMessage(m_Dlg, IDC_DELAY, WM_SETTEXT, 0, (LPARAM)buffer);
+        if (delay != m_iAudioDelay)
+          SetDirty();
+      }
     }
 
     break;
