@@ -683,7 +683,9 @@ HRESULT CLAVAudio::ReconnectOutput(long cbBuffer, CMediaType& mt)
   hr = S_FALSE;
 
   if(mt != m_pOutput->CurrentMediaType() || cbBuffer > props.cbBuffer) {
+    DbgLog((LOG_TRACE, 10, L"::ReconnectOutput(): Reconnecting output because media type or buffer size changed..."));
     if(cbBuffer > props.cbBuffer) {
+      DbgLog((LOG_TRACE, 10, L"::ReconnectOutput(): -> Increasing buffer size"));
       props.cBuffers = 4;
       props.cbBuffer = cbBuffer*3/2;
 
