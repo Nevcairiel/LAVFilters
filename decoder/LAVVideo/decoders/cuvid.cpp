@@ -540,8 +540,11 @@ STDMETHODIMP CDecCuvid::DecodeSequenceData()
   pCuvidPacket.payload      = m_VideoParserExInfo.raw_seqhdr_data;
   pCuvidPacket.payload_size = m_VideoParserExInfo.format.seqhdr_data_length;
 
-  if (pCuvidPacket.payload && pCuvidPacket.payload_size)
+  if (pCuvidPacket.payload && pCuvidPacket.payload_size) {
+    cuda.cuvidCtxLock(m_cudaCtxLock, 0);
     oResult = cuda.cuvidParseVideoData(m_hParser, &pCuvidPacket);
+    cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
+  }
 
   return S_OK;
 }
