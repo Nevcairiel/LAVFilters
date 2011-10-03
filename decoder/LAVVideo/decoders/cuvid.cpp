@@ -274,21 +274,21 @@ STDMETHODIMP CDecCuvid::Init()
 
   D3DADAPTER_IDENTIFIER9 d3dId;
   D3DPRESENT_PARAMETERS d3dpp;
+  D3DDISPLAYMODE d3ddm;
   unsigned uAdapterCount = m_pD3D->GetAdapterCount();
   for (unsigned lAdapter=0; lAdapter<uAdapterCount; lAdapter++) {
     DbgLog((LOG_TRACE, 10, L"-> Trying D3D Adapter %d..", lAdapter));
 
     ZeroMemory(&d3dpp, sizeof(d3dpp));
+    m_pD3D->GetAdapterDisplayMode(lAdapter, &d3ddm);
 
     d3dpp.Windowed               = TRUE;
-    d3dpp.MultiSampleType        = D3DMULTISAMPLE_NONE;
     d3dpp.BackBufferWidth        = 1;
     d3dpp.BackBufferHeight       = 1;
     d3dpp.BackBufferCount        = 1;
-    d3dpp.BackBufferFormat       = D3DFMT_X8R8G8B8;
-    d3dpp.SwapEffect             = D3DSWAPEFFECT_COPY;
-    d3dpp.PresentationInterval   = D3DPRESENT_INTERVAL_IMMEDIATE;
-    d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
+    d3dpp.BackBufferFormat       = d3ddm.Format;
+    d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
+    //d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
 
     IDirect3DDevice9 *pDev = NULL;
     CUcontext cudaCtx = 0;
