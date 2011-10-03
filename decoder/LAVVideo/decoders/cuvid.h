@@ -71,6 +71,8 @@ private:
 
   STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen);
 
+  HWND GetDummyHWND();
+
 private:
   struct {
     HMODULE cudaLib;
@@ -142,4 +144,6 @@ private:
 
   BOOL                   m_bUseTimestampQueue;
   std::queue<REFERENCE_TIME> m_timestampQueue;
+
+  HWND                   m_hwnd;
 };

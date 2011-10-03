@@ -66,6 +66,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bUseTimestampQueue(FALSE)
   , m_bWaitForKeyframe(FALSE)
   , m_iFullRange(-1)
+  , m_hwnd(NULL)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -75,6 +76,9 @@ CDecCuvid::CDecCuvid(void)
 CDecCuvid::~CDecCuvid(void)
 {
   DestroyDecoder(true);
+  DestroyWindow(m_hwnd);
+  m_hwnd = 0;
+  UnregisterClass(L"cuvidDummyHWNDClass", NULL);
 }
 
 STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
@@ -202,6 +206,43 @@ STDMETHODIMP CDecCuvid::FlushParser()
   return result;
 }
 
+HWND CDecCuvid::GetDummyHWND()
+{
+  if (!m_hwnd)
+  {
+    WNDCLASS wndclass;
+
+    wndclass.style = CS_HREDRAW | CS_VREDRAW;
+    wndclass.lpfnWndProc = DefWindowProc;
+    wndclass.cbClsExtra = 0;
+    wndclass.cbWndExtra = 0;
+    wndclass.hInstance = NULL;
+    wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wndclass.hbrBackground = (HBRUSH) GetStockObject (WHITE_BRUSH);
+    wndclass.lpszMenuName = NULL;
+    wndclass.lpszClassName = L"cuvidDummyHWNDClass";
+
+    if (!RegisterClass(&wndclass)) {
+      DbgLog((LOG_ERROR, 10, L"Creating dummy HWND failed"));
+      return 0;
+    }
+
+    m_hwnd = CreateWindow(L"cuvidDummyHWNDClass",
+      TEXT("CUVIDDummyWindow"),
+      WS_OVERLAPPEDWINDOW,
+      0,                   // Initial X
+      0,                   // Initial Y
+      0,                   // Width
+      0,                   // Height
+      NULL,
+      NULL,
+      NULL,
+      NULL);
+  }
+  return m_hwnd;
+}
+
 // ILAVDecoder
 STDMETHODIMP CDecCuvid::Init()
 {
@@ -251,7 +292,7 @@ STDMETHODIMP CDecCuvid::Init()
 
     IDirect3DDevice9 *pDev = NULL;
     CUcontext cudaCtx = 0;
-    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetDesktopWindow(), D3DCREATE_FPU_PRESERVE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, &d3dpp, &pDev);
+    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetDummyHWND(), D3DCREATE_FPU_PRESERVE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, &d3dpp, &pDev);
     if (SUCCEEDED(hr)) {
       m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dId);
       cuStatus = cuda.cuD3D9CtxCreate(&cudaCtx, &device, CU_CTX_SCHED_BLOCKING_SYNC | CU_CTX_MAP_HOST, pDev);
