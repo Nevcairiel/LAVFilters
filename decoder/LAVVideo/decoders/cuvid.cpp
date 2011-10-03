@@ -190,12 +190,15 @@ STDMETHODIMP CDecCuvid::FlushParser()
   pCuvidPacket.flags |= CUVID_PKT_ENDOFSTREAM;
   CUresult result = CUDA_SUCCESS;
 
+  cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   __try {
     result = cuda.cuvidParseVideoData(m_hParser, &pCuvidPacket);
   } __except (1) {
     DbgLog((LOG_ERROR, 10, L"cuvidFlushParser(): cuvidParseVideoData threw an exception"));
     result = CUDA_ERROR_UNKNOWN;
   }
+  cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
+
   return result;
 }
 
@@ -445,6 +448,9 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
 STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, DWORD dwDisplayWidth, DWORD dwDisplayHeight, RECT rcDisplayArea)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
+  HRESULT hr = S_OK;
+
+  cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   CUVIDDECODECREATEINFO *dci = &m_VideoDecoderInfo;
 
   if (m_hDecoder) {
@@ -476,10 +482,11 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
   CUresult oResult = cuda.cuvidCreateDecoder(&m_hDecoder, dci);
   if (oResult != CUDA_SUCCESS) {
     DbgLog((LOG_ERROR, 10, L"-> Creation of decoder for type %d failed with code %d", dci->CodecType, oResult));
-    return E_FAIL;
+    hr = E_FAIL;
   }
+  cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
 
-  return S_OK;
+  return hr;
 }
 
 STDMETHODIMP CDecCuvid::DecodeSequenceData()
@@ -639,6 +646,7 @@ int CUDAAPI CDecCuvid::HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic)
     flush_pos = (flush_pos + 1) % DISPLAY_DELAY;
   }
 
+  filter->cuda.cuvidCtxLock(filter->m_cudaCtxLock, 0);
   __try {
     CUresult cuStatus = filter->cuda.cuvidDecodePicture(filter->m_hDecoder, cuvidpic);
   #ifdef DEBUG
@@ -649,6 +657,7 @@ int CUDAAPI CDecCuvid::HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic)
   } __except(1) {
     DbgLog((LOG_ERROR, 10, L"CDecCuvid::HandlePictureDecode(): cuvidDecodePicture threw an exception"));
   }
+  filter->cuda.cuvidCtxUnlock(filter->m_cudaCtxLock, 0);
 
   return TRUE;
 }
@@ -719,8 +728,6 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   vpp.second_field = (field == 1);
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
-  cuda.cuCtxPushCurrent(m_cudaContext);
-
   cuStatus = cuda.cuvidMapVideoFrame(m_hDecoder, cuviddisp->picture_index, &devPtr, &pitch, &vpp);
   if (cuStatus != CUDA_SUCCESS) {
     DbgLog((LOG_CUSTOM1, 1, L"CDecCuvid::Deliver(): cuvidMapVideoFrame failed on index %d", cuviddisp->picture_index));
@@ -759,7 +766,6 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 #endif
   }
   cuda.cuvidUnmapVideoFrame(m_hDecoder, devPtr);
-  cuda.cuCtxPopCurrent(NULL);
   cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
 
   // Setup the LAVFrame
@@ -874,11 +880,13 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   if (m_bUseTimestampQueue)
     m_timestampQueue.push(rtStart);
 
+  cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   __try {
     result = cuda.cuvidParseVideoData(m_hParser, &pCuvidPacket);
   } __except(1) {
     DbgLog((LOG_ERROR, 10, L"CDecCuvid::Decode(): cuvidParseVideoData threw an exception"));
   }
+  cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
 
   av_freep(&pBuffer);
 
