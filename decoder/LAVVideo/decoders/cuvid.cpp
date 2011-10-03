@@ -283,19 +283,19 @@ STDMETHODIMP CDecCuvid::Init()
     m_pD3D->GetAdapterDisplayMode(lAdapter, &d3ddm);
 
     d3dpp.Windowed               = TRUE;
-    d3dpp.BackBufferWidth        = 1;
-    d3dpp.BackBufferHeight       = 1;
+    d3dpp.BackBufferWidth        = 640;
+    d3dpp.BackBufferHeight       = 480;
     d3dpp.BackBufferCount        = 1;
     d3dpp.BackBufferFormat       = d3ddm.Format;
     d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
-    //d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
+    d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
 
     IDirect3DDevice9 *pDev = NULL;
     CUcontext cudaCtx = 0;
-    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetDummyHWND(), D3DCREATE_FPU_PRESERVE | D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, &d3dpp, &pDev);
+    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetDummyHWND(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, &d3dpp, &pDev);
     if (SUCCEEDED(hr)) {
       m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dId);
-      cuStatus = cuda.cuD3D9CtxCreate(&cudaCtx, &device, CU_CTX_SCHED_BLOCKING_SYNC | CU_CTX_MAP_HOST, pDev);
+      cuStatus = cuda.cuD3D9CtxCreate(&cudaCtx, &device, CU_CTX_SCHED_BLOCKING_SYNC, pDev);
       if (cuStatus == CUDA_SUCCESS) {
         DbgLog((LOG_TRACE, 10, L"-> Created D3D Device on adapter %S (%d), using CUDA device %d", d3dId.Description, lAdapter, device));
 
@@ -331,7 +331,7 @@ STDMETHODIMP CDecCuvid::Init()
   if (!m_pD3DDevice) {
     DbgLog((LOG_TRACE, 10, L"-> No D3D device available, building non-D3D context on device %d", best_device));
     SafeRelease(&m_pD3D);
-    cuStatus = cuda.cuCtxCreate(&m_cudaContext, CU_CTX_SCHED_BLOCKING_SYNC | CU_CTX_MAP_HOST, best_device);
+    cuStatus = cuda.cuCtxCreate(&m_cudaContext, CU_CTX_SCHED_BLOCKING_SYNC, best_device);
 
     /*int major, minor;
     cuDeviceComputeCapability(&major, &minor, best_device);
