@@ -186,8 +186,10 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
 
 HRESULT CLAVAudio::FreeBitstreamContext()
 {
-  if (m_avBSContext)
+  if (m_avBSContext) {
+    av_write_trailer(m_avBSContext); // For the SPDIF muxer that frees the buffers
     avformat_free_context(m_avBSContext);
+  }
   m_avBSContext = NULL;
 
   if (m_pParser)
