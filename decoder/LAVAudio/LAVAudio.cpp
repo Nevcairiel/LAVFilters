@@ -843,6 +843,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
 {
   CAutoLock lock(&m_csReceive);
   ffmpeg_shutdown();
+  DbgLog((LOG_TRACE, 10, "::ffmpeg_init(): Initializing decoder for codec %d", codec));
 
   if (codec == CODEC_ID_DTS || codec == CODEC_ID_TRUEHD)
     m_faJitter.SetNumSamples(200);
@@ -1135,6 +1136,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
 
   AM_MEDIA_TYPE *pmt;
   if(SUCCEEDED(pIn->GetMediaType(&pmt)) && pmt) {
+    DbgLog((LOG_TRACE, 10, L"::Receive(): Input sample contained media type, dynamic format change..."));
     CMediaType mt(*pmt);
     m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
