@@ -200,6 +200,9 @@ HRESULT CLAVAudio::FreeBitstreamContext()
     av_freep(&m_pAVCtx);
   }
 
+  // Dump any remaining data
+  m_bsOutput.SetSize(0);
+
   return S_OK;
 }
 

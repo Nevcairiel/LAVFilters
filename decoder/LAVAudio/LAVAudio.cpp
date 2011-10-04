@@ -1108,6 +1108,7 @@ HRESULT CLAVAudio::EndFlush()
   }
 
   FlushDTSDecoder();
+  m_bsOutput.SetSize(0);
 
   return __super::EndFlush();
 }
