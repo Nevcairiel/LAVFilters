@@ -304,6 +304,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT
     int pOut_size = 0;
     int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
     if (used_bytes < 0) {
+      DbgLog((LOG_TRACE, 50, L"::Bitstream() - audio parsing failed (ret: %d)", -used_bytes));
       return E_FAIL;
     } else if(used_bytes == 0 && pOut_size == 0) {
       DbgLog((LOG_TRACE, 50, L"::Bitstream() - could not process buffer, starving?"));
