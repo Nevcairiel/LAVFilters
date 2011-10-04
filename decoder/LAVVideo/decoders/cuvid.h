@@ -21,7 +21,7 @@
 #include "DecBase.h"
 
 #define MAX_DECODE_FRAMES 20
-#define DISPLAY_DELAY	2
+#define DISPLAY_DELAY	4
 #define USE_ASYNC_COPY 1
 
 #define CUDA_FORCE_API_VERSION 3010
