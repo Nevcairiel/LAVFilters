@@ -102,9 +102,9 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
 
   DbgLog((LOG_TRACE, 20, "Creating Bistreaming Context..."));
 
-  m_avBSContext = avformat_alloc_output_context("spdif", NULL, NULL);
-  if (!m_avBSContext) {
-    DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of avformat spdif muxer failed"));
+  ret = avformat_alloc_output_context2(&m_avBSContext, NULL, "spdif", NULL);
+  if (ret < 0 || !m_avBSContext) {
+    DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of avformat spdif muxer failed (ret: %d)", ret));
     goto fail;
   }
 
