@@ -338,6 +338,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT
       ret = av_write_frame(m_avBSContext, &avpkt);
       if(ret < 0) {
         DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));
+        m_bsOutput.SetSize(0);
         return E_FAIL;
       }
 
