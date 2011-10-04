@@ -65,17 +65,17 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
 LAVOutPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_YV12,  12, 1, 3, { 1, 2, 2 }, { 1, 2, 2 } },        // YV12
   { MEDIASUBTYPE_NV12,  12, 1, 2, { 1, 2 }, { 1, 1 } },              // NV12
-  { MEDIASUBTYPE_YUY2,  16, 2, 0 },                                  // YUY2 (packed)
-  { MEDIASUBTYPE_UYVY,  16, 2, 0 },                                  // UYVY (packed)
-  { MEDIASUBTYPE_AYUV,  32, 4, 0 },                                  // AYUV (packed)
+  { MEDIASUBTYPE_YUY2,  16, 2, 0, { 1 }, { 1 } },                    // YUY2 (packed)
+  { MEDIASUBTYPE_UYVY,  16, 2, 0, { 1 }, { 1 } },                    // UYVY (packed)
+  { MEDIASUBTYPE_AYUV,  32, 4, 0, { 1 }, { 1 } },                    // AYUV (packed)
   { MEDIASUBTYPE_P010,  24, 2, 2, { 1, 2 }, { 1, 1 } },              // P010
   { MEDIASUBTYPE_P210,  32, 2, 2, { 1, 1 }, { 1, 1 } },              // P210
-  { FOURCCMap('014Y'),  32, 4, 0 },                                  // Y410 (packed)
+  { FOURCCMap('014Y'),  32, 4, 0, { 1 }, { 1 }  },                   // Y410 (packed)
   { MEDIASUBTYPE_P016,  24, 2, 2, { 1, 2 }, { 1, 1 } },              // P016
   { MEDIASUBTYPE_P216,  32, 2, 2, { 1, 1 }, { 1, 1 } },              // P216
-  { FOURCCMap('614Y'),  64, 8, 0 },                                  // Y416 (packed)
-  { MEDIASUBTYPE_RGB32, 32, 4, 0 },                                  // RGB32
-  { MEDIASUBTYPE_RGB24, 24, 3, 0 },                                  // RGB24
+  { FOURCCMap('614Y'),  64, 8, 0, { 1 }, { 1 } },                    // Y416 (packed)
+  { MEDIASUBTYPE_RGB32, 32, 4, 0, { 1 }, { 1 } },                    // RGB32
+  { MEDIASUBTYPE_RGB24, 24, 3, 0, { 1 }, { 1 } },                    // RGB24
 };
 
 static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, BOOL bFallbackToDefault = TRUE)
