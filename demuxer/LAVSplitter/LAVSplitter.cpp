@@ -584,7 +584,7 @@ DWORD CLAVSplitter::ThreadProc()
     m_bPlaybackStarted = TRUE;
 
     HRESULT hr = S_OK;
-    while(hr == S_OK && !CheckRequest(&cmd)) {
+    while(SUCCEEDED(hr) && !CheckRequest(&cmd)) {
       hr = DemuxNextPacket();
     }
 
@@ -663,11 +663,8 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
     // Remove it from the vector
     m_pActivePins.erase(it);
 
-    // Only fail if no active pins remain
-    if (!m_pActivePins.empty())
-      hr = S_OK;
-
-    return hr;
+    // Fail if no active pins remain, otherwise resume demuxing
+    return m_pActivePins.empty() ? E_FAIL : S_OK;
   }
 
   if(bDiscontinuity) {
