@@ -536,7 +536,15 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
 
   AM_MEDIA_TYPE* pmt = NULL;
   if(SUCCEEDED((*ppOut)->GetMediaType(&pmt)) && pmt) {
+#ifdef DEBUG
+    BITMAPINFOHEADER *pBMINew = NULL, *pBMIOld = NULL;
+    videoFormatTypeHandler(pmt->pbFormat, &pmt->formattype, &pBMINew);
+    CMediaType &outMt = m_pOutput->CurrentMediaType();
+    videoFormatTypeHandler(outMt.pbFormat, &outMt.formattype, &pBMIOld);
     DbgLog((LOG_TRACE, 10, L"::GetDeliveryBuffer(): Sample contains new media type from downstream filter.."));
+    DbgLog((LOG_TRACE, 10, L"-> Width changed from %d to %d", pBMIOld->biWidth, pBMINew->biWidth));
+#endif
+
     CMediaType mt = *pmt;
     m_pOutput->SetMediaType(&mt);
     DeleteMediaType(pmt);
@@ -607,6 +615,11 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     if (mt.formattype == FORMAT_VideoInfo) {
       VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
 
+      DbgLog((LOG_TRACE, 10, L"Using VIH, Format dump:"));
+      DbgLog((LOG_TRACE, 10, L"-> width: %d -> %d", vih->rcTarget.right, width));
+      DbgLog((LOG_TRACE, 10, L"-> height: %d -> %d", vih->rcTarget.bottom, height));
+      DbgLog((LOG_TRACE, 10, L"-> FPS: %I64d -> %I64d", vih->AvgTimePerFrame, avgFrameDuration));
+
       SetRect(&vih->rcSource, 0, 0, width, height);
       SetRect(&vih->rcTarget, 0, 0, width, height);
 
@@ -615,6 +628,13 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       pBIH = &vih->bmiHeader;
     } else if (mt.formattype == FORMAT_VideoInfo2) {
       VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+
+      DbgLog((LOG_TRACE, 10, L"Using VIH2, Format dump:"));
+      DbgLog((LOG_TRACE, 10, L"-> width: %d -> %d", vih2->rcTarget.right, width));
+      DbgLog((LOG_TRACE, 10, L"-> height: %d -> %d", vih2->rcTarget.bottom, height));
+      DbgLog((LOG_TRACE, 10, L"-> AR: %d:%d -> %d:%d", vih2->dwPictAspectRatioX, vih2->dwPictAspectRatioY, dwAspectX, dwAspectY));
+      DbgLog((LOG_TRACE, 10, L"-> FPS: %I64d -> %I64d", vih2->AvgTimePerFrame, avgFrameDuration));
+      DbgLog((LOG_TRACE, 10, L"-> flags: %d -> %d", vih2->dwControlFlags, dxvaExtFlags.value));
 
       vih2->dwPictAspectRatioX = dwAspectX;
       vih2->dwPictAspectRatioY = dwAspectY;
@@ -678,6 +698,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
         m_pOutput->SetMediaType(&mt);
         m_bSendMediaType = TRUE;
       }
+    } else {
+      DbgLog((LOG_TRACE, 10, L"-> Receive Connection failed (hr: %x)", hr));
     }
     if (bNeedReconnect)
       NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
