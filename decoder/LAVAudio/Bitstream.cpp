@@ -465,6 +465,9 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   memcpy(pDataOut, buffer, dwSize);
 
   hr = m_pOutput->Deliver(pOut);
+  if (FAILED(hr)) {
+    DbgLog((LOG_ERROR, 10, L"::DeliverBitstream failed with code: %0#.8x", hr));
+  }
 
   SafeRelease(&pOut);
   return hr;
