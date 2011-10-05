@@ -168,7 +168,7 @@ protected:
   STDMETHODIMP SetPositionsInternal(void *caller, LONGLONG* pCurrent, DWORD dwCurrentFlags, LONGLONG* pStop, DWORD dwStopFlags);
 
 public:
-  CLAVOutputPin *GetOutputPin(DWORD streamId);
+  CLAVOutputPin *GetOutputPin(DWORD streamId, BOOL bActiveOnly = FALSE);
   STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts);
   STDMETHODIMP UpdateForcedSubtitleMediaType();
 
@@ -186,6 +186,7 @@ protected:
 private:
   CCritSec m_csPins;
   std::vector<CLAVOutputPin *> m_pPins;
+  std::vector<CLAVOutputPin *> m_pActivePins;
   std::vector<CLAVOutputPin *> m_pRetiredPins;
   std::set<DWORD> m_bDiscontinuitySent;
 

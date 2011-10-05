@@ -31,6 +31,7 @@
 
 #include <Shlwapi.h>
 #include <string>
+#include <algorithm>
 
 #include "registry.h"
 
@@ -350,12 +351,14 @@ STDMETHODIMP CLAVSplitter::GetClassID(CLSID* pClsID)
   }
 }
 
-CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId)
+CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId, BOOL bActiveOnly)
 {
   CAutoLock lock(&m_csPins);
 
+  std::vector<CLAVOutputPin *> &vec = bActiveOnly ? m_pActivePins : m_pPins;
+
   std::vector<CLAVOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
+  for(it = vec.begin(); it != vec.end(); ++it) {
     if ((*it)->GetStreamId() == streamId) {
       return *it;
     }
@@ -567,9 +570,12 @@ DWORD CLAVSplitter::ThreadProc()
     // Wait for the end of any flush
     m_eEndFlush.Wait();
 
+    m_pActivePins.clear();
+
     for(pinIter = m_pPins.begin(); pinIter != m_pPins.end() && !m_fFlushing; ++pinIter) {
       if ((*pinIter)->IsConnected()) {
         (*pinIter)->DeliverNewSegment(m_rtStart, m_rtStop, m_dRate);
+        m_pActivePins.push_back(*pinIter);
       }
     }
 
@@ -578,13 +584,13 @@ DWORD CLAVSplitter::ThreadProc()
     m_bPlaybackStarted = TRUE;
 
     HRESULT hr = S_OK;
-    while(SUCCEEDED(hr) && !CheckRequest(&cmd)) {
+    while(hr == S_OK && !CheckRequest(&cmd)) {
       hr = DemuxNextPacket();
     }
 
     // If we didnt exit by request, deliver end-of-stream
     if(!CheckRequest(&cmd)) {
-      for(pinIter = m_pPins.begin(); pinIter != m_pPins.end(); ++pinIter) {
+      for(pinIter = m_pActivePins.begin(); pinIter != m_pActivePins.end(); ++pinIter) {
         (*pinIter)->QueueEndOfStream();
       }
     }
@@ -627,7 +633,7 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
   if (pPacket->dwFlags & LAV_PACKET_FORCED_SUBTITLE)
     pPacket->StreamId = FORCED_SUBTITLE_PID;
 
-  CLAVOutputPin* pPin = GetOutputPin(pPacket->StreamId);
+  CLAVOutputPin* pPin = GetOutputPin(pPacket->StreamId, TRUE);
   if(!pPin || !pPin->IsConnected()) {
     delete pPacket;
     return S_FALSE;
@@ -651,7 +657,18 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
 
   hr = pPin->QueuePacket(pPacket);
 
-  // TODO track active pins
+  if (hr != S_OK) {
+    // Find a iterator pointing to the pin
+    std::vector<CLAVOutputPin *>::iterator it = std::find(m_pActivePins.begin(), m_pActivePins.end(), pPin);
+    // Remove it from the vector
+    m_pActivePins.erase(it);
+
+    // Only fail if no active pins remain
+    if (!m_pActivePins.empty())
+      hr = S_OK;
+
+    return hr;
+  }
 
   if(bDiscontinuity) {
     m_bDiscontinuitySent.insert(streamId);
