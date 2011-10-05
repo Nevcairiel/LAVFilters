@@ -566,7 +566,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
   // Haali is incompatible with DXVA_ExtendedFormat
   if (m_bDXVAExtFormatSupport == -1)
-    m_bDXVAExtFormatSupport = !FilterInGraph(CLSID_DXR);
+    m_bDXVAExtFormatSupport = !(FilterInGraph(CLSID_DXR) || FilterInGraph(CLSID_OverlayMixer));
 
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
