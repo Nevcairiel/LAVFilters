@@ -528,7 +528,7 @@ bool CLAVSplitter::IsAnyPinDrying()
   // MPC changes thread priority here
   // TODO: Investigate if that is needed
   std::vector<CLAVOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
+  for(it = m_pActivePins.begin(); it != m_pActivePins.end(); ++it) {
     if((*it)->IsConnected() && !(*it)->IsDiscontinuous() && (*it)->QueueCount() < MIN_PACKETS_IN_QUEUE) {
       return true;
     }
