@@ -31,6 +31,8 @@
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
 #define LAVC_VIDEO_REGISTRY_KEY_HWACCEL L"Software\\LAV\\Video\\HWAccel"
 
+#define LAVC_VIDEO_LOG_FILE     L"LAVVideo.txt"
+
 #define DEBUG_FRAME_TIMINGS 0
 #define DEBUG_PIXELCONV_TIMINGS 0
 
