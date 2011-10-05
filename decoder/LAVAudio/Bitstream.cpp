@@ -379,7 +379,8 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   }
 
   if(hr == S_OK) {
-    DbgLog((LOG_CUSTOM1, 1, L"Sending new Media Type"));
+    hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+    DbgLog((LOG_TRACE, 1, L"Sending new Media Type (QueryAccept: %0#.8x)", hr));
     m_pOutput->SetMediaType(&mt);
     pOut->SetMediaType(&mt);
   }
