@@ -1,5 +1,24 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.37 - 2011/10/06
+LAV Splitter
+- Improved handling of failures on the output pins
+- Improved VC-1 in EVO timestamps
+
+LAV Audio
+- Added support for dynamic channel count changes in AAC
+- Implemented support for sample format conversions
+- Implemented Audio Delay options
+- Disabled the WMA codecs by default
+- Improved Bitstreaming data flow
+
+LAV Video
+- Fixed cropping of VP6 video
+- New SSE2 YUV420 -> YUV422 converter
+- Performance enhancements in the CUVID decoder on some systems
+- Fixed playback with the XP Overlay Mixer
+- Fixed a crash when decoding RGB video (Fraps, etc)
+
 0.36 - 2011/09/29
 LAV Splitter
 - Improved support for ADTS AAC
