@@ -453,6 +453,12 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
 #endif
   m_rtStartCacheLT = AV_NOPTS_VALUE;
 
+  if(m_settings.AudioDelayEnabled) {
+    REFERENCE_TIME rtDelay = m_settings.AudioDelay * 10000i64;
+    rtStart += rtDelay;
+    rtStop += rtDelay;
+  }
+
   pOut->SetTime(&rtStart, &rtStop);
   pOut->SetMediaTime(NULL, NULL);
 
