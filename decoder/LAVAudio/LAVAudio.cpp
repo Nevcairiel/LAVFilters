@@ -1217,52 +1217,62 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
   int consumed = 0;
 
-  if (bEOF) {
-    p = NULL;
-    buffer_size = -1;
-  }
+  if (!bEOF) {
+    if (m_bFindDTSInPCM) {
+      int i = 0, count = 0;
+      uint32_t state = -1;
+      for (i = 0; i < buffer_size; ++i) {
+        state = (state << 8) | p[i];
+        if ((state == DCA_MARKER_14B_LE && (i < buffer_size-2) && (p[i+1] & 0xF0) == 0xF0 && p[i+2] == 0x07)
+          || (state == DCA_MARKER_14B_BE && (i < buffer_size-2) && p[i+1] == 0x07 && (p[i+2] & 0xF0) == 0xF0)
+          || state == DCA_MARKER_RAW_LE || state == DCA_MARKER_RAW_BE) {
+            count++;
+        }
+      }
+      if (count >= 4) {
+        DbgLog((LOG_TRACE, 10, L"::ProcessBuffer(): Detected %d DTS sync words in %d bytes of data, switching to DTS-in-WAV decoding", count, buffer_size));
+        CMediaType mt = m_pInput->CurrentMediaType();
+        ffmpeg_init(CODEC_ID_DTS, mt.Format(), *mt.FormatType(), mt.FormatLength());
+        m_bFindDTSInPCM = FALSE;
+      }
 
-  if (m_bFindDTSInPCM) {
-    int i = 0, count = 0;
-    uint32_t state = -1;
-    for (i = 0; i < buffer_size; ++i) {
-      state = (state << 8) | p[i];
-      if ((state == DCA_MARKER_14B_LE && (i < buffer_size-2) && (p[i+1] & 0xF0) == 0xF0 && p[i+2] == 0x07)
-        || (state == DCA_MARKER_14B_BE && (i < buffer_size-2) && p[i+1] == 0x07 && (p[i+2] & 0xF0) == 0xF0)
-        || state == DCA_MARKER_RAW_LE || state == DCA_MARKER_RAW_BE) {
-          count++;
+      if (buffer_size > (16384 * 4)) {
+        m_bFindDTSInPCM = FALSE;
+      }
+
+      if (m_bFindDTSInPCM) {
+        return S_FALSE;
       }
     }
-    if (count >= 4) {
-      DbgLog((LOG_TRACE, 10, L"::ProcessBuffer(): Detected %d DTS sync words in %d bytes of data, switching to DTS-in-WAV decoding", count, buffer_size));
-      CMediaType mt = m_pInput->CurrentMediaType();
-      ffmpeg_init(CODEC_ID_DTS, mt.Format(), *mt.FormatType(), mt.FormatLength());
-      m_bFindDTSInPCM = FALSE;
+
+    if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF) {
+      if (buffer_size < BURST_HEADER_SIZE)
+        return S_FALSE;
+      uint16_t word1 = AV_RL16(p);
+      uint16_t word2 = AV_RL16(p+2);
+      if (word1 == SYNCWORD1 && word2 == SYNCWORD2) {
+        uint16_t type = AV_RL16(p+4);
+        int spdif_buffer_size = AV_RL16(p+6) >> 3;
+
+        p += BURST_HEADER_SIZE;
+
+        if (spdif_buffer_size+BURST_HEADER_SIZE > buffer_size) {
+          DbgLog((LOG_ERROR, 10, L"::ProcessBuffer(): SPDIF sample is too small (%d required, %d present)", spdif_buffer_size+BURST_HEADER_SIZE, buffer_size));
+          m_buff.SetSize(0);
+          m_bQueueResync = TRUE;
+          return S_FALSE;
+        }
+        buffer_size = spdif_buffer_size;
+
+        // SPDIF is apparently big-endian coded
+        ff_spdif_bswap_buf16((uint16_t *)p, (uint16_t *)p, buffer_size >> 1);
+
+        end = p + buffer_size;
+      }
     }
-
-    if (buffer_size > (16384 * 4)) {
-      m_bFindDTSInPCM = FALSE;
-    }
-
-    if (m_bFindDTSInPCM) {
-      return S_FALSE;
-    }
-  }
-
-  if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF) {
-    uint16_t word1 = AV_RL16(p);
-    uint16_t word2 = AV_RL16(p+2);
-    if (word1 == SYNCWORD1 && word2 == SYNCWORD2) {
-      uint16_t type = AV_RL16(p+4);
-      buffer_size = AV_RL16(p+6) >> 3;
-
-      p += BURST_HEADER_SIZE;
-
-      // SPDIF is apparently big-endian coded
-      ff_spdif_bswap_buf16((uint16_t *)p, (uint16_t *)p, buffer_size >> 1);
-
-      end = p + buffer_size;
-    }
+  } else {
+    p = NULL;
+    buffer_size = -1;
   }
 
   // If a bitstreaming context exists, we should bitstream
