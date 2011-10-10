@@ -93,6 +93,16 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_WMAUDIO2,     CODEC_ID_WMAV2    },
   { &MEDIASUBTYPE_WMAUDIO3,     CODEC_ID_WMAPRO   },
 
+  // RealMedia Audio
+  { &MEDIASUBTYPE_COOK,         CODEC_ID_COOK     },
+  { &MEDIASUBTYPE_ATRC,         CODEC_ID_ATRAC3   },
+  { &MEDIASUBTYPE_RAAC,         CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_RACP,         CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_SIPR,         CODEC_ID_SIPR     },
+  { &MEDIASUBTYPE_DNET,         CODEC_ID_AC3      },
+  { &MEDIASUBTYPE_28_8,         CODEC_ID_RA_288   },
+  { &MEDIASUBTYPE_14_4,         CODEC_ID_RA_144   },
+
   // Special LAVFSplitter interface
   { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
 };
@@ -174,6 +184,16 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_WMAUDIO1     },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_WMAUDIO2     },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_WMAUDIO3     },
+
+  // RealMedia Audio
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_COOK         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_ATRC         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_RAAC         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_RACP         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_SIPR         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_DNET         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_28_8         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_14_4         },
 
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },

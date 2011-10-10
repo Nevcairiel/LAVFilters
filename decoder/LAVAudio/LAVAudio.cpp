@@ -960,9 +960,59 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   m_pAVCtx->block_align           = nBlockAlign;
 
   if (bTrustExtraData && extralen) {
-    m_pAVCtx->extradata_size      = extralen;
-    m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
-    getExtraData((BYTE *)format, &format_type, formatlen, m_pAVCtx->extradata, NULL);
+    if (codec == CODEC_ID_COOK) {
+      uint8_t *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+      getExtraData((BYTE *)format, &format_type, formatlen, extra, NULL);
+
+      if (extra[0] == '.' && extra[1] == 'r' && extra[2] == 'a' && extra[3] == 0xfd) {
+        uint8_t *fmt = extra+4;
+        uint16_t version = AV_RB16(fmt);
+        fmt += 2;
+        if (version == 3) {
+          DbgLog((LOG_TRACE, 10, L"RealAudio Header version 3 unsupported"));
+          av_freep(&extra);
+          return VFW_E_UNSUPPORTED_AUDIO;
+        } else if (version == 4 || version == 5) {
+          // Skip main format block
+          fmt += 42;
+          // 6 Unknown bytes in ver 5
+          if (version == 5)
+            fmt += 6;
+          // Audio format block
+          fmt += 8;
+          // Tag info in v4
+          if (version == 4) {
+            int len = *fmt++;
+            fmt += len;
+            len = *fmt++;
+            fmt += len;
+          } else if (version == 5) {
+            fmt += 8;
+          }
+          fmt += 3;
+          if (version == 5)
+            fmt++;
+
+          int ra_extralen = min((extra + extralen) - (fmt+4), *(DWORD*)fmt);
+          m_pAVCtx->extradata_size = ra_extralen;
+          m_pAVCtx->extradata      = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+          memcpy(m_pAVCtx->extradata, fmt+4, ra_extralen);
+        } else {
+          DbgLog((LOG_TRACE, 10, L"Unknown RealAudio Header version: %d", version));
+          av_freep(&extra);
+          return VFW_E_UNSUPPORTED_AUDIO;
+        }
+        av_freep(&extra);
+      } else {
+        // Try without any processing?
+        m_pAVCtx->extradata_size = extralen;
+        m_pAVCtx->extradata      = extra;
+      }
+    } else {
+      m_pAVCtx->extradata_size      = extralen;
+      m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+      getExtraData((BYTE *)format, &format_type, formatlen, m_pAVCtx->extradata, NULL);
+    }
   }
 
   m_nCodecId                      = codec;

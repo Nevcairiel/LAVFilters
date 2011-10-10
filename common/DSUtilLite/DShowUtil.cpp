@@ -395,7 +395,7 @@ void getExtraData(const BYTE *format, const GUID *formattype, const size_t forma
     WAVEFORMATEX *wfex = (WAVEFORMATEX *)format;
     extraposition = format + sizeof(WAVEFORMATEX);
     // Protected against over-reads
-    extralength   = min(formatlen - sizeof(WAVEFORMATEX), wfex->cbSize);
+    extralength   = formatlen - sizeof(WAVEFORMATEX);
   } else if (*formattype == FORMAT_VorbisFormat2) {
     VORBISFORMAT2 *vf2 = (VORBISFORMAT2 *)format;
     BYTE *start = NULL, *end = NULL;
