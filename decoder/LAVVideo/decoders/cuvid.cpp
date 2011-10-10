@@ -41,6 +41,7 @@ static struct {
   CodecID ffcodec;
   cudaVideoCodec cudaCodec;
 } cuda_codecs[] = {
+  { CODEC_ID_MPEG1VIDEO, cudaVideoCodec_MPEG1 },
   { CODEC_ID_MPEG2VIDEO, cudaVideoCodec_MPEG2 },
   { CODEC_ID_VC1,        cudaVideoCodec_VC1   },
   { CODEC_ID_H264,       cudaVideoCodec_H264  },

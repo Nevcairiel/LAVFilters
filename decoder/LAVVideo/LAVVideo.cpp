@@ -421,7 +421,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   if (m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed &&
     (  (codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])
     || (codec == CODEC_ID_VC1 && m_settings.bHWFormats[HWCodec_VC1])
-    || (codec == CODEC_ID_MPEG2VIDEO && m_settings.bHWFormats[HWCodec_MPEG2])))
+    || ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])))
   {
     if (m_settings.HWAccel == HWAccel_CUDA)
       m_pDecoder = CreateDecoderCUVID();
