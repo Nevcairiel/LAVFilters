@@ -616,11 +616,13 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
   int videoStreamId = m_dActiveStreams[video];
   int64_t seek_pts = 0;
   // If we have a video stream, seek on that one. If we don't, well, then don't!
-  if (videoStreamId != -1) {
-    AVStream *stream = m_avFormat->streams[videoStreamId];
-    seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
-  } else {
-    seek_pts = ConvertRTToTimestamp(rTime, 1, AV_TIME_BASE);
+  if (rTime > 0) {
+    if (videoStreamId != -1) {
+      AVStream *stream = m_avFormat->streams[videoStreamId];
+      seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
+    } else {
+      seek_pts = ConvertRTToTimestamp(rTime, 1, AV_TIME_BASE);
+    }
   }
 
   int flags = AVSEEK_FLAG_BACKWARD;
