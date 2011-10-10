@@ -724,8 +724,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 STDMETHODIMP CDecAvcodec::Flush()
 {
   if (m_pAVCtx) {
-    avcodec_flush_buffers (m_pAVCtx);
-    m_h264RandomAccess.flush(m_pAVCtx->thread_count);
+    CMediaType &mt = m_pCallback->GetInputMediaType();
+    InitDecoder(m_nCodecId, &mt);
   }
 
   m_CurrentThread = 0;

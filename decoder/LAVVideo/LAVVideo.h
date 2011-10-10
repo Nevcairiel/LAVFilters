@@ -110,6 +110,7 @@ public:
   STDMETHODIMP_(LPWSTR) GetFileExtension();
   STDMETHODIMP_(BOOL) FilterInGraph(const GUID &clsid) { return ::FilterInGraph(clsid, m_pGraph); }
   STDMETHODIMP_(BOOL) VC1IsDTS();
+  STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }
 
 public:
   // Pin Configuration

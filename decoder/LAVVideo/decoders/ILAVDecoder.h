@@ -174,6 +174,13 @@ interface ILAVVideoCallback
    * @result TRUE if DTS, FALSE if PTS
    */
   STDMETHOD_(BOOL, VC1IsDTS)() PURE;
+
+  /**
+   * Get the input media type
+   *
+   * @result media type
+   */
+  STDMETHOD_(CMediaType&, GetInputMediaType)() PURE;
 };
 
 /**
