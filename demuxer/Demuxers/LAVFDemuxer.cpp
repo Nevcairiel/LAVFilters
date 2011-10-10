@@ -998,35 +998,57 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   }
 
   m_program = UINT_MAX;
+
   if (m_avFormat->nb_programs) {
-    // look for first non empty stream and discard nonselected programs
+    // Use a scoring system to select the best available program
+    // A "good" program at least has a valid video and audio stream
+    // We'll try here to detect these streams and decide on the best program
+    // Every present stream gets one point, if it appears to be valid, it gets 4
+    // Valid video streams have a width and height, valid audio streams have a channel count.
+    // If one program was found with both streams valid, we'll stop looking.
+    DWORD dwScore = 0; // Stream found: 1, stream valid: 4
     for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i) {
-      if(m_program == UINT_MAX && m_avFormat->programs[i]->nb_stream_indexes > 0) {
-        // Do some basic stream validation here
-        bool bHasValidVideo = false, bBrokenProgram = false;
-        for(unsigned k = 0; !bBrokenProgram && k < m_avFormat->programs[i]->nb_stream_indexes; ++k) {
+      if(m_avFormat->programs[i]->nb_stream_indexes > 0) {
+        DWORD dwVideoScore = 0;
+        DWORD dwAudioScore = 0;
+        for(unsigned k = 0; k < m_avFormat->programs[i]->nb_stream_indexes; ++k) {
           unsigned streamIdx = m_avFormat->programs[i]->stream_index[k];
           AVStream *st = m_avFormat->streams[streamIdx];
-          if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-            if (!bHasValidVideo && (st->codec->width == 0 || st->codec->height == 0)) {
-              bBrokenProgram = true;
-            } else {
-              bHasValidVideo = true;
-              bBrokenProgram = false;
-            }
+          if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO && dwVideoScore < 4) {
+            if (st->codec->width != 0 && st->codec->height != 0)
+              dwVideoScore = 4;
+            else
+              dwVideoScore = 1;
+          } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO && dwAudioScore < 4) {
+            if (st->codec->channels != 0)
+              dwAudioScore = 4;
+            else
+              dwAudioScore = 1;
           }
         }
 
-        if (!bBrokenProgram)
+        // Check the score of the previously found stream
+        // In addition, we always require a valid video stream (or none), a invalid one is not allowed.
+        if (dwVideoScore != 1 && (dwVideoScore+dwAudioScore) > dwScore) {
+          dwScore = dwVideoScore+dwAudioScore;
           m_program = i;
-      }
-
-      if(i != m_program) {
-        m_avFormat->programs[i]->discard = AVDISCARD_ALL;
+          if (dwScore == 8)
+            break;
+        }
       }
     }
   }
 
+  // File has programs
+  bool bProgram = (m_program < m_avFormat->nb_programs);
+
+  // Discard unwanted programs
+  if (bProgram) {
+    for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i) {
+      if (i != m_program)
+        m_avFormat->programs[i]->discard = AVDISCARD_ALL;
+    }
+  }
 
   // Re-compute the overall file duration based on video and audio durations
   int64_t duration = INT64_MIN;
@@ -1034,10 +1056,12 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   int64_t start_time = INT64_MAX;
   int64_t st_start_time = 0;
 
+  // Number of streams (either in file or in program)
+  unsigned int nbIndex = bProgram ? m_avFormat->programs[m_program]->nb_stream_indexes : m_avFormat->nb_streams;
+
+  // File has PGS streams
   bool bHasPGS = false;
 
-  bool bProgram = (m_program < m_avFormat->nb_programs);
-  unsigned int nbIndex = bProgram ? m_avFormat->programs[m_program]->nb_stream_indexes : m_avFormat->nb_streams;
   // add streams from selected program, or all streams if no program was selected
   for (unsigned int i = 0; i < nbIndex; ++i) {
     int streamIdx = bProgram ? m_avFormat->programs[m_program]->stream_index[i] : i;
