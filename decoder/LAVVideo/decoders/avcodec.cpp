@@ -425,7 +425,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   // Real Video content has some odd timestamps
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
-  m_bRVDropBFrameTimings = (codec == CODEC_ID_RV10 || codec == CODEC_ID_RV20 || (_wcsicmp(pszExtension, L".mkv") == 0) || ((codec == CODEC_ID_RV30 || codec == CODEC_ID_RV40) && !(FilterInGraph(CLSID_LAVSplitter) || FilterInGraph(CLSID_LAVSplitterSource))));
+  m_bRVDropBFrameTimings = (codec == CODEC_ID_RV10 || codec == CODEC_ID_RV20 || (_wcsicmp(pszExtension, L".mkv") == 0) || ((codec == CODEC_ID_RV30 || codec == CODEC_ID_RV40) && !m_pCallback->IsLAVSplitter()));
 
   // Enable B-Frame delay handling
   m_bBFrameDelay = !m_bFFReordering;

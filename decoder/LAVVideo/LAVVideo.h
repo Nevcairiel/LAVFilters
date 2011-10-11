@@ -109,7 +109,8 @@ public:
   STDMETHODIMP Deliver(LAVFrame *pFrame);
   STDMETHODIMP_(LPWSTR) GetFileExtension();
   STDMETHODIMP_(BOOL) FilterInGraph(const GUID &clsid) { return ::FilterInGraph(clsid, m_pGraph); }
-  STDMETHODIMP_(BOOL) VC1IsDTS();
+  STDMETHODIMP_(BOOL) VC1IsDTS() { return m_bVC1IsDTS; }
+  STDMETHODIMP_(BOOL) IsLAVSplitter() { return m_bLAVSplitter; }
   STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }
 
 public:
@@ -153,6 +154,8 @@ private:
   CH264RandomAccess    m_h264RandomAccess;
 
   DWORD                m_bDXVAExtFormatSupport;
+  BOOL                 m_bVC1IsDTS;
+  BOOL                 m_bLAVSplitter;
 
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {

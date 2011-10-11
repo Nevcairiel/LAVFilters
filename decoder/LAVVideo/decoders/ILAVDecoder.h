@@ -176,6 +176,13 @@ interface ILAVVideoCallback
   STDMETHOD_(BOOL, VC1IsDTS)() PURE;
 
   /**
+   * Check wether LAV Splitter is the source filter
+   *
+   * @return TRUE/FALSE
+   */
+  STDMETHOD_(BOOL, IsLAVSplitter)() PURE;
+
+  /**
    * Get the input media type
    *
    * @result media type

@@ -64,6 +64,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bSendMediaType(FALSE)
   , m_bHWDecoder(FALSE), m_bHWDecoderFailed(FALSE)
   , m_bDXVAExtFormatSupport(-1)
+  , m_bVC1IsDTS(FALSE), m_bLAVSplitter(FALSE)
 {
   avcodec_register_all();
   if (av_lockmgr_addref() == 1)
@@ -401,6 +402,9 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   if (codec == CODEC_ID_NONE) {
     return VFW_E_TYPE_NOT_ACCEPTED;
   }
+
+  m_bVC1IsDTS    = (codec == CODEC_ID_VC1) && !(FilterInGraph(CLSID_MPCHCMPEGSplitter) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(CLSID_MPBDReader));
+  m_bLAVSplitter = FilterInGraph(CLSID_LAVSplitterSource) || FilterInGraph(CLSID_LAVSplitter);
 
   // Check if codec is activated
   for(int i = 0; i < Codec_NB; ++i) {
@@ -834,11 +838,6 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
     SAFE_CO_FREE(*ppFrame);
   }
   return S_OK;
-}
-
-STDMETHODIMP_(BOOL) CLAVVideo::VC1IsDTS()
-{
-  return !(FilterInGraph(CLSID_MPCHCMPEGSplitter) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(CLSID_MPBDReader));
 }
 
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
