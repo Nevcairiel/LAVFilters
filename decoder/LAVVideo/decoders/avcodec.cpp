@@ -430,6 +430,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   // Enable B-Frame delay handling
   m_bBFrameDelay = !m_bFFReordering;
 
+  m_bWaitingForKeyFrame = TRUE;
+
   SAFE_CO_FREE(pszExtension);
 
   // Open the decoder
@@ -512,10 +514,19 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     m_nBFramePos = !m_nBFramePos;
   }
 
-  if (m_nCodecId == CODEC_ID_H264 && !bFlush) {
-    BOOL bRecovered = m_h264RandomAccess.searchRecoveryPoint(buffer, buflen);
-    if (!bRecovered) {
-      return S_OK;
+  if (!bFlush) {
+    if (m_nCodecId == CODEC_ID_H264) {
+      BOOL bRecovered = m_h264RandomAccess.searchRecoveryPoint(buffer, buflen);
+      if (!bRecovered) {
+        return S_OK;
+      }
+    } else if (m_nCodecId == CODEC_ID_VP8 && m_bWaitingForKeyFrame) {
+      if (!(buffer[0] & 1)) {
+        DbgLog((LOG_TRACE, 10, L"::Decode(): Found VP8 key-frame, resuming decoding"));
+        m_bWaitingForKeyFrame = FALSE;
+      } else {
+        return S_OK;
+      }
     }
   }
 
