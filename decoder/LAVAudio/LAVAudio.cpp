@@ -1286,7 +1286,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
         m_bFindDTSInPCM = FALSE;
       }
 
-      if (buffer_size > (16384 * 4)) {
+      if (buffer_size > (16384 * (4 + count))) {
         m_bFindDTSInPCM = FALSE;
       }
 
