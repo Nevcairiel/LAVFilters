@@ -95,6 +95,7 @@ extern LCID ISO6392ToLcid(LPCSTR code);
 extern LCID ProbeLangForLCID(LPCSTR code);
 extern std::string ISO6391To6392(LPCSTR code);
 extern std::string ISO6392To6391(LPCSTR code);
+extern std::string ProbeForISO6392(LPCSTR lang);
 
 // FilterGraphUtils
 extern HRESULT FilterGraphCleanup(IFilterGraph *pGraph);
