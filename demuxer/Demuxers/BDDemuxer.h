@@ -55,7 +55,7 @@ public:
 
   const stream* SelectVideoStream() { return m_lavfDemuxer->SelectVideoStream(); }
   const stream* SelectAudioStream(std::list<std::string> prefLanguages) { return m_lavfDemuxer->SelectAudioStream(prefLanguages); }
-  const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) { return m_lavfDemuxer->SelectSubtitleStream(prefLanguages, subtitleMode, bOnlyMatching); }
+  const stream* SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors, std::string audioLanguage) { return m_lavfDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage); }
 
   STDMETHODIMP SetTitle(int idx);
   STDMETHODIMP GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName);

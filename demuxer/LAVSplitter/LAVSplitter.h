@@ -115,8 +115,8 @@ public:
   STDMETHODIMP SetPreferredLanguages(WCHAR *pLanguages);
   STDMETHODIMP GetPreferredSubtitleLanguages(WCHAR **ppLanguages);
   STDMETHODIMP SetPreferredSubtitleLanguages(WCHAR *pLanguages);
-  STDMETHODIMP_(DWORD) GetSubtitleMode();
-  STDMETHODIMP SetSubtitleMode(DWORD dwMode);
+  STDMETHODIMP_(LAVSubtitleMode) GetSubtitleMode();
+  STDMETHODIMP SetSubtitleMode(LAVSubtitleMode mode);
   STDMETHODIMP_(BOOL) GetSubtitleMatchingLanguage();
   STDMETHODIMP SetSubtitleMatchingLanguage(BOOL dwMode);
   STDMETHODIMP_(BOOL) GetPGSForcedStream();
@@ -143,7 +143,7 @@ public:
 
   // Settings helper
   std::list<std::string> GetPreferredAudioLanguageList();
-  std::list<std::string> GetPreferredSubtitleLanguageList();
+  std::list<CSubtitleSelector> GetSubtitleSelectors();
 
   bool IsAnyPinDrying();
   void SetFakeASFReader(BOOL bFlag) { m_bFakeASFReader = bFlag; }
@@ -215,8 +215,8 @@ private:
   struct Settings {
     std::wstring prefAudioLangs;
     std::wstring prefSubLangs;
-    DWORD subtitleMode;
-    BOOL subtitleMatching;
+    std::wstring subtitleAdvanced;
+    LAVSubtitleMode subtitleMode;
     BOOL PGSForcedStream;
     BOOL PGSOnlyForced;
     int vc1Mode;

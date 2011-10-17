@@ -63,8 +63,7 @@ private:
   WCHAR *m_pszPrefLang;
   WCHAR *m_pszPrefSubLang;
 
-  DWORD m_subtitleMode;
-  BOOL m_subtitleMatching;
+  LAVSubtitleMode m_subtitleMode;
   BOOL m_PGSForcedStream;
   BOOL m_PGSOnlyForced;
   int m_VC1Mode;

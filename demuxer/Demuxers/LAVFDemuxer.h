@@ -66,7 +66,7 @@ public:
   // Select the best audio stream
   const stream* SelectAudioStream(std::list<std::string> prefLanguages);
   // Select the best subtitle stream
-  const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching);
+  const stream* SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors, std::string audioLanguage);
 
   HRESULT SetActiveStream(StreamType type, int pid) { if (type == audio) UpdateForcedSubtitleStream(pid); return __super::SetActiveStream(type, pid); }
 

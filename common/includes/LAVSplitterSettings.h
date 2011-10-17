@@ -25,6 +25,13 @@
 DEFINE_GUID(IID_ILAVFSettings, 
 0x774a919d, 0xea95, 0x4a87, 0x8a, 0x1e, 0xf4, 0x8a, 0xbe, 0x84, 0x99, 0xc7);
 
+typedef enum LAVSubtitleMode {
+  LAVSubtitleMode_NoSubs,
+  LAVSubtitleMode_ForcedOnly,
+  LAVSubtitleMode_Default,
+  LAVSubtitleMode_Advanced
+} LAVSubtitleMode;
+
 [uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")]
 interface ILAVFSettings : public IUnknown
 {
@@ -57,19 +64,21 @@ interface ILAVFSettings : public IUnknown
   STDMETHOD(SetPreferredSubtitleLanguages)(WCHAR *pLanguages) = 0;
 
   // Get the current subtitle mode
-  // 0 = No Subs; 1 = Forced Subs; 2 = All subs
-  STDMETHOD_(DWORD,GetSubtitleMode)() = 0;
+  // See enum for possible values
+  STDMETHOD_(LAVSubtitleMode,GetSubtitleMode)() = 0;
 
   // Set the current subtitle mode
-  // 0 = No Subs; 1 = Forced Subs; 2 = All subs
-  STDMETHOD(SetSubtitleMode)(DWORD dwMode) = 0;
+  // See enum for possible values
+  STDMETHOD(SetSubtitleMode)(LAVSubtitleMode mode) = 0;
 
   // Get the subtitle matching language flag
   // TRUE = Only subtitles with a language in the preferred list will be used; FALSE = All subtitles will be used
+  // @deprecated - do not use anymore, deprecated and non-functional, replaced by advanced subtitle mode
   STDMETHOD_(BOOL,GetSubtitleMatchingLanguage)() = 0;
 
   // Set the subtitle matching language flag
   // TRUE = Only subtitles with a language in the preferred list will be used; FALSE = All subtitles will be used
+  // @deprecated - do not use anymore, deprecated and non-functional, replaced by advanced subtitle mode
   STDMETHOD(SetSubtitleMatchingLanguage)(BOOL dwMode) = 0;
 
   // Control wether a special "Forced Subtitles" stream will be created for PGS subs

@@ -31,6 +31,7 @@
 
 #include <Shlwapi.h>
 #include <string>
+#include <regex>
 #include <algorithm>
 
 #include "registry.h"
@@ -122,8 +123,7 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.prefAudioLangs = L"";
   m_settings.prefSubLangs   = L"";
 
-  m_settings.subtitleMode     = SUBMODE_ALWAYS_SUBS;
-  m_settings.subtitleMatching = TRUE;
+  m_settings.subtitleMode     = LAVSubtitleMode_Default;
   m_settings.PGSForcedStream  = TRUE;
   m_settings.PGSOnlyForced    = FALSE;
 
@@ -164,10 +164,7 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
 
   // Subtitle mode, defaults to all subtitles
   dwVal = reg.ReadDWORD(L"subtitleMode", hr);
-  if (SUCCEEDED(hr)) m_settings.subtitleMode = dwVal;
-
-  bFlag = reg.ReadDWORD(L"subtitleMatching", hr);
-  if (SUCCEEDED(hr)) m_settings.subtitleMatching = bFlag;
+  if (SUCCEEDED(hr)) m_settings.subtitleMode = (LAVSubtitleMode)dwVal;
 
   bFlag = reg.ReadBOOL(L"PGSForcedStream", hr);
   if (SUCCEEDED(hr)) m_settings.PGSForcedStream = bFlag;
@@ -218,7 +215,6 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteString(L"prefAudioLangs", m_settings.prefAudioLangs.c_str());
     reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
     reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
-    reg.WriteBOOL(L"subtitleMatching", m_settings.subtitleMatching);
     reg.WriteBOOL(L"PGSForcedStream", m_settings.PGSForcedStream);
     reg.WriteBOOL(L"PGSOnlyForced", m_settings.PGSOnlyForced);
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
@@ -481,11 +477,8 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
     }
   }
 
-  std::list<std::string> subtitleLangs = GetPreferredSubtitleLanguageList();
-  if (subtitleLangs.empty() && !audioLangs.empty()) {
-    subtitleLangs = audioLangs;
-  }
-  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleLangs, m_settings.subtitleMode, m_settings.subtitleMatching);
+  std::list<CSubtitleSelector> subtitleSelectors = GetSubtitleSelectors();
+  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, std::string());
   if (subtitleStream) {
     CLAVOutputPin* pPin = new CLAVOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
@@ -1159,18 +1152,85 @@ std::list<std::string> CLAVSplitter::GetPreferredAudioLanguageList()
   return list;
 }
 
-std::list<std::string> CLAVSplitter::GetPreferredSubtitleLanguageList()
+std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
 {
-  // Convert to multi-byte ascii
-  int bufSize = (int)(sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1));
-  char *buffer = (char *)CoTaskMemAlloc(bufSize);
-  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
+  std::list<CSubtitleSelector> selectorList;
 
-  std::list<std::string> list;
+  std::string separators = ",; ";
+  std::list<std::string> tokenList;
 
-  split(std::string(buffer), std::string(",; "), list);
+  if (m_settings.subtitleMode == LAVSubtitleMode_NoSubs) {
+    // Do nothing
+  } else if (m_settings.subtitleMode == LAVSubtitleMode_Default || m_settings.subtitleMode == LAVSubtitleMode_ForcedOnly) {
+    // Convert to multi-byte ascii
+    size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
+    char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
 
-  return list;
+    std::list<std::string> langList;
+    split(std::string(buffer), separators, langList);
+    SAFE_CO_FREE(buffer);
+
+    // If no languages have been set, prefer the forced/default streams as specified by the audio languages
+    bool bNoLanguage = false;
+    if (langList.empty()) {
+      langList = GetPreferredAudioLanguageList();
+      bNoLanguage = true;
+    }
+
+    std::list<std::string>::iterator it;
+    for (it = langList.begin(); it != langList.end(); it++) {
+      std::string token = "*:" + *it;
+      if (m_settings.subtitleMode == LAVSubtitleMode_ForcedOnly || bNoLanguage) {
+        tokenList.push_back(token + "|f");
+        if (m_settings.subtitleMode == LAVSubtitleMode_Default)
+          tokenList.push_back(token + "|d");
+      } else
+        tokenList.push_back(token);
+    }
+
+    // Add fallbacks (forced/default)
+    tokenList.push_back("*:*|f");
+    if (m_settings.subtitleMode == LAVSubtitleMode_Default)
+      tokenList.push_back("*:*|d");
+  } else if (m_settings.subtitleMode == LAVSubtitleMode_Advanced) {
+    // Convert to multi-byte ascii
+    size_t bufSize = sizeof(WCHAR) * (m_settings.subtitleAdvanced.length() + 1);
+    char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    WideCharToMultiByte(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
+
+    split(std::string(buffer), separators, tokenList);
+    SAFE_CO_FREE(buffer);
+  }
+
+  // Add the "off" termination element
+  tokenList.push_back("*:off");
+
+  std::tr1::regex advRegex("(\\*|[[:alpha:]]+):(\\*|[[:alpha:]]+)(?:\\|([fd]+))?");
+  std::list<std::string>::iterator it;
+  for (it = tokenList.begin(); it != tokenList.end(); it++) {
+    std::tr1::cmatch res;
+    bool found = std::tr1::regex_search(it->c_str(), res, advRegex);
+    if (found) {
+      CSubtitleSelector selector;
+      selector.audioLanguage = res[1];
+      selector.subtitleLanguage = res[2];
+      selector.dwFlags = 0;
+      // Parse flags
+      std::string flags = res[3];
+      if (flags.length() > 0) {
+        if (flags.find('d') != flags.npos)
+          selector.dwFlags |= SUBTITLE_FLAG_DEFAULT;
+        if (flags.find('f') != flags.npos)
+          selector.dwFlags |= SUBTITLE_FLAG_FORCED;
+      }
+      selectorList.push_back(selector);
+    } else {
+      DbgLog((LOG_ERROR, 10, L"::GetSubtitleSelectors(): Selector string \"%S\" could not be parsed", it->c_str()));
+    }
+  }
+
+  return selectorList;
 }
 
 // Settings
@@ -1222,26 +1282,25 @@ STDMETHODIMP CLAVSplitter::SetPreferredSubtitleLanguages(WCHAR *pLanguages)
   return SaveSettings();
 }
 
-STDMETHODIMP_(DWORD) CLAVSplitter::GetSubtitleMode()
+STDMETHODIMP_(LAVSubtitleMode) CLAVSplitter::GetSubtitleMode()
 {
   return m_settings.subtitleMode;
 }
 
-STDMETHODIMP CLAVSplitter::SetSubtitleMode(DWORD dwMode)
+STDMETHODIMP CLAVSplitter::SetSubtitleMode(LAVSubtitleMode mode)
 {
-  m_settings.subtitleMode = dwMode;
+  m_settings.subtitleMode = mode;
   return SaveSettings();
 }
 
 STDMETHODIMP_(BOOL) CLAVSplitter::GetSubtitleMatchingLanguage()
 {
-  return m_settings.subtitleMatching;
+  return FALSE;
 }
 
 STDMETHODIMP CLAVSplitter::SetSubtitleMatchingLanguage(BOOL dwMode)
 {
-  m_settings.subtitleMatching = dwMode;
-  return SaveSettings();
+  return E_FAIL;
 }
 
 STDMETHODIMP_(BOOL) CLAVSplitter::GetPGSForcedStream()

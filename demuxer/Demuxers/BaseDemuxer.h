@@ -87,6 +87,16 @@ private:
   BYTE *m_pbData;
 };
 
+typedef struct CSubtitleSelector {
+  std::string audioLanguage;
+  std::string subtitleLanguage;
+
+#define SUBTITLE_FLAG_DEFAULT 0x1
+#define SUBTITLE_FLAG_FORCED  0x2
+#define SUBTITLE_FLAG_PGS     0x4
+  DWORD dwFlags;
+} CSubtitleSelector;
+
 class CBaseDemuxer : public CUnknown
 {
 public:
@@ -159,13 +169,9 @@ public:
   
   // Select the best audio stream
   virtual const stream* SelectAudioStream(std::list<std::string> prefLanguages) = 0;
-  
-  // Subtitle modes
-#define SUBMODE_NO_SUBS 0
-#define SUBMODE_FORCED_SUBS 1
-#define SUBMODE_ALWAYS_SUBS 2
+
   // Select the best subtitle stream
-  virtual const stream* SelectSubtitleStream(std::list<std::string> prefLanguages, int subtitleMode, BOOL bOnlyMatching) = 0;
+  virtual const stream* SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors, std::string audioLanguage) = 0;
 
 protected:
   CCritSec *m_pLock;

@@ -77,10 +77,7 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
 
   // Save subtitle mode
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
-  CHECK_HR(hr = m_pLAVF->SetSubtitleMode(dwVal));
-
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
-  CHECK_HR(hr = m_pLAVF->SetSubtitleMatchingLanguage(bFlag));
+  CHECK_HR(hr = m_pLAVF->SetSubtitleMode((LAVSubtitleMode)dwVal));
 
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetPGSForcedStream(bFlag));
@@ -142,9 +139,6 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_SETCURSEL, m_subtitleMode, 0);
   addHint(IDC_SUBTITLE_MODE, L"Configure which kinds of subtitles should be enabled by default.");
 
-  SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_SETCHECK, m_subtitleMatching, 0);
-  addHint(IDC_SUBMODE_ONLY_MATCHING, L"If set, subtitles will only be enabled if they match one of the languages configured above, otherwise any subtitle will be enabled if no match was found.");
-
   SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_SETCHECK, m_PGSForcedStream, 0);
   addHint(IDC_BD_SEPARATE_FORCED_SUBS, L"Enabling this causes the creation of a new \"Forced Subtitles\" stream, which will try to always display forced subtitles matching your selected audio language.\n\nNOTE: This option may not work on all Blu-ray discs.\nRequires restart to take effect.");
 
@@ -180,7 +174,6 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   CHECK_HR(hr = m_pLAVF->GetPreferredLanguages(&m_pszPrefLang));
   CHECK_HR(hr = m_pLAVF->GetPreferredSubtitleLanguages(&m_pszPrefSubLang));
   m_subtitleMode = m_pLAVF->GetSubtitleMode();
-  m_subtitleMatching = m_pLAVF->GetSubtitleMatchingLanguage();
   m_PGSForcedStream = m_pLAVF->GetPGSForcedStream();
   m_PGSOnlyForced = m_pLAVF->GetPGSOnlyForced();
   m_VC1Mode = m_pLAVF->GetVC1TimestampMode();
@@ -227,11 +220,6 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_SUBTITLE_MODE) {
         DWORD dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
         if (dwVal != m_subtitleMode) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBMODE_ONLY_MATCHING) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBMODE_ONLY_MATCHING, BM_GETCHECK, 0, 0);
-        if (bFlag != m_subtitleMatching) {
           SetDirty();
         }
       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_BD_SEPARATE_FORCED_SUBS) {
