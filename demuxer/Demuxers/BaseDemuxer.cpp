@@ -35,6 +35,7 @@ void CBaseDemuxer::CreateNoSubtitleStream()
   stream s;
   s.pid = NO_SUBTITLE_PID;
   s.streamInfo = new CStreamInfo();
+  s.language = "und";
   // Create the media type
   CMediaType mtype;
   mtype.majortype = MEDIATYPE_Text;
@@ -50,6 +51,7 @@ void CBaseDemuxer::CreatePGSForcedSubtitleStream()
   stream s;
   s.pid = FORCED_SUBTITLE_PID;
   s.streamInfo = new CStreamInfo();
+  s.language = "und";
   // Create the media type
   CMediaType mtype;
   mtype.majortype = MEDIATYPE_Subtitle;
@@ -83,9 +85,9 @@ const CHAR* CBaseDemuxer::CStreamList::ToString(int type)
     "Unknown";
 }
 
-const CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid) const
+CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid)
 {
-  std::deque<stream>::const_iterator it;
+  std::deque<stream>::iterator it;
   for ( it = begin(); it != end(); ++it ) {
     if ((*it).pid == pid) {
       return &(*it);

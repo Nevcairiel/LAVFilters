@@ -477,8 +477,10 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
     }
   }
 
+  std::string audioLanguage = audioStream ? audioStream->language : std::string();
+
   std::list<CSubtitleSelector> subtitleSelectors = GetSubtitleSelectors();
-  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, std::string());
+  const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage);
   if (subtitleStream) {
     CLAVOutputPin* pPin = new CLAVOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
@@ -880,7 +882,7 @@ STDMETHODIMP CLAVSplitter::UpdateForcedSubtitleMediaType()
 
   CLAVOutputPin* pPin = GetOutputPin(FORCED_SUBTITLE_PID);
   if (pPin) {
-    const CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams(CBaseDemuxer::subpic);
+    CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams(CBaseDemuxer::subpic);
     const CBaseDemuxer::stream *s = streams->FindStream(FORCED_SUBTITLE_PID);
     CMediaType *mt = new CMediaType(s->streamInfo->mtypes.back());
     pPin->SendMediaType(mt);
@@ -1213,8 +1215,8 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     bool found = std::tr1::regex_search(it->c_str(), res, advRegex);
     if (found) {
       CSubtitleSelector selector;
-      selector.audioLanguage = res[1];
-      selector.subtitleLanguage = res[2];
+      selector.audioLanguage = ProbeForISO6392(res[1].str().c_str());
+      selector.subtitleLanguage = ProbeForISO6392(res[2].str().c_str());
       selector.dwFlags = 0;
       // Parse flags
       std::string flags = res[3];

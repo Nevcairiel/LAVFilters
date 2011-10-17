@@ -957,6 +957,13 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 
   stream s;
   s.pid = streamId;
+
+  // Extract language
+  const char *lang = NULL;
+  if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
+    lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
+  }
+  s.language = lang ? ProbeForISO6392(lang) : "und";
   s.streamInfo = new CLAVFStreamInfo(pStream, m_pszInputFormat, hr);
 
   if(FAILED(hr)) {
@@ -1162,38 +1169,36 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
   if (!m_avFormat || audio_pid >= m_avFormat->nb_streams)
     return E_UNEXPECTED;
 
-  const AVStream *st = m_avFormat->streams[audio_pid];
-  if (!st)
+  stream *audiost = GetStreams(audio)->FindStream(audio_pid);
+  if (!audiost)
     return E_FAIL;
-
-  const char *language = get_stream_language(st);
-  if(!language)
-    return S_FALSE;
 
   // Build CSubtitleSelector for this special case
   std::list<CSubtitleSelector> selectors;
   CSubtitleSelector selector;
   selector.audioLanguage = "*";
-  selector.subtitleLanguage = std::string(language);
+  selector.subtitleLanguage = audiost->language;
   selector.dwFlags = SUBTITLE_FLAG_PGS;
 
   selectors.push_back(selector);
 
-  const stream *subst = SelectSubtitleStream(selectors, std::string(language));
-  if (subst)
+  const stream *subst = SelectSubtitleStream(selectors, audiost->language);
+  if (subst) {
     m_ForcedSubStream = subst->pid;
 
-  CStreamList *streams = GetStreams(subpic);
-  const stream *forced = streams->FindStream(FORCED_SUBTITLE_PID);
-  if (forced) {
-    CMediaType mtype = forced->streamInfo->mtypes.back();
-    forced->streamInfo->mtypes.pop_back();
+    CStreamList *streams = GetStreams(subpic);
+    stream *forced = streams->FindStream(FORCED_SUBTITLE_PID);
+    if (forced) {
+      CMediaType mtype = forced->streamInfo->mtypes.back();
+      forced->streamInfo->mtypes.pop_back();
+      forced->language = audiost->language;
 
-    SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.Format();
-    strncpy_s(subInfo->IsoLang, language, 3);
-    subInfo->IsoLang[3] = 0;
+      SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.Format();
+      strncpy_s(subInfo->IsoLang, audiost->language.c_str(), 3);
+      subInfo->IsoLang[3] = 0;
 
-    forced->streamInfo->mtypes.push_back(mtype);
+      forced->streamInfo->mtypes.push_back(mtype);
+    }
   }
 
   return subst ? S_OK : S_FALSE;
@@ -1300,24 +1305,13 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
   if(!prefLanguages.empty()) {
     std::list<std::string>::iterator it;
     for ( it = prefLanguages.begin(); it != prefLanguages.end(); ++it ) {
-      std::string checkLanguage = *it;
-      // Convert 2-character code to 3-character
-      if (checkLanguage.length() == 2) {
-        checkLanguage = ISO6391To6392(checkLanguage.c_str());
-      }
+      std::string checkLanguage = ProbeForISO6392(it->c_str());
       std::deque<stream>::iterator sit;
       for ( sit = streams->begin(); sit != streams->end(); ++sit ) {
-        const char *lang = get_stream_language(m_avFormat->streams[sit->pid]);
-        if (lang) {
-          std::string language = std::string(lang);
-          // Convert 2-character code to 3-character
-          if (language.length() == 2) {
-            language = ISO6391To6392(lang);
-          }
-          // check if the language matches
-          if (language == checkLanguage) {
-            checkedStreams.push_back(&*sit);
-          }
+        std::string language = sit->language;
+        // check if the language matches
+        if (language == checkLanguage) {
+          checkedStreams.push_back(&*sit);
         }
       }
       // First language that has any streams is a match
@@ -1405,6 +1399,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
   std::list<CSubtitleSelector>::iterator it = subtitleSelectors.begin();
   while (it != subtitleSelectors.end() && checkedStreams.empty()) {
 
+    if (!does_language_match(it->audioLanguage, audioLanguage))
+      continue;
+
     if (it->subtitleLanguage == "off")
       break;
 
@@ -1422,8 +1419,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
         || ((it->dwFlags & SUBTITLE_FLAG_DEFAULT) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT))
         || ((it->dwFlags & SUBTITLE_FLAG_FORCED) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_FORCED))
         || ((it->dwFlags & SUBTITLE_FLAG_PGS) && (m_avFormat->streams[sit->pid]->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE))) {
-        const char *lang = get_stream_language(m_avFormat->streams[sit->pid]);
-        std::string streamLanguage = lang ? std::string(lang) : "und";
+        std::string streamLanguage = sit->language;
         if (does_language_match(it->subtitleLanguage, streamLanguage))
           checkedStreams.push_back(&*sit);
       }

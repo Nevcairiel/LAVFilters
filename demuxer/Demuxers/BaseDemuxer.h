@@ -136,20 +136,21 @@ public:
   virtual void SettingsChanged(ILAVFSettingsInternal *pSettings) {};
 
 public:
-  struct stream {
+  typedef struct stream {
     CStreamInfo *streamInfo;
     DWORD pid;
+    std::string language;
     struct stream() { streamInfo = NULL; pid = 0; }
     operator DWORD() const { return pid; }
     bool operator == (const struct stream& s) const { return (DWORD)*this == (DWORD)s; }
-  };
+  } stream;
 
   class CStreamList : public std::deque<stream>
   {
   public:
     static const WCHAR* ToStringW(int type);
     static const CHAR* ToString(int type);
-    const stream* FindStream(DWORD pid) const;
+    stream* FindStream(DWORD pid);
     void Clear();
   };
 
