@@ -120,8 +120,9 @@ static BOOL get_iformat_default(std::string name)
 
 STDMETHODIMP CLAVSplitter::LoadDefaults()
 {
-  m_settings.prefAudioLangs = L"";
-  m_settings.prefSubLangs   = L"";
+  m_settings.prefAudioLangs   = L"";
+  m_settings.prefSubLangs     = L"";
+  m_settings.subtitleAdvanced = L"";
 
   m_settings.subtitleMode     = LAVSubtitleMode_Default;
   m_settings.PGSForcedStream  = TRUE;
@@ -161,6 +162,7 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   // Language preferences
   m_settings.prefAudioLangs = reg.ReadString(L"prefAudioLangs", hr);
   m_settings.prefSubLangs = reg.ReadString(L"prefSubLangs", hr);
+  m_settings.subtitleAdvanced = reg.ReadString(L"subtitleAdvanced", hr);
 
   // Subtitle mode, defaults to all subtitles
   dwVal = reg.ReadDWORD(L"subtitleMode", hr);
@@ -214,6 +216,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
   if (SUCCEEDED(hr)) {
     reg.WriteString(L"prefAudioLangs", m_settings.prefAudioLangs.c_str());
     reg.WriteString(L"prefSubLangs", m_settings.prefSubLangs.c_str());
+    reg.WriteString(L"subtitleAdvanced", m_settings.subtitleAdvanced.c_str());
     reg.WriteDWORD(L"subtitleMode", m_settings.subtitleMode);
     reg.WriteBOOL(L"PGSForcedStream", m_settings.PGSForcedStream);
     reg.WriteBOOL(L"PGSOnlyForced", m_settings.PGSOnlyForced);
@@ -1410,6 +1413,25 @@ STDMETHODIMP CLAVSplitter::SetStreamSwitchRemoveAudio(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetStreamSwitchRemoveAudio()
 {
   return m_settings.StreamSwitchRemoveAudio;
+}
+
+STDMETHODIMP CLAVSplitter::GetAdvancedSubtitleConfig(WCHAR **ppAdvancedConfig)
+{
+  CheckPointer(ppAdvancedConfig, E_POINTER);
+  size_t len = m_settings.subtitleAdvanced.length() + 1;
+  if (len > 1) {
+    *ppAdvancedConfig = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
+    wcsncpy_s(*ppAdvancedConfig, len,  m_settings.subtitleAdvanced.c_str(), _TRUNCATE);
+  } else {
+    *ppAdvancedConfig = NULL;
+  }
+  return S_OK;
+}
+
+STDMETHODIMP CLAVSplitter::SetAdvancedSubtitleConfig(WCHAR *pAdvancedConfig)
+{
+  m_settings.subtitleAdvanced = std::wstring(pAdvancedConfig);
+  return SaveSettings();
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

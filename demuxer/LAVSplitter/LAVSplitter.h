@@ -135,6 +135,8 @@ public:
   STDMETHODIMP_(BOOL) IsFormatEnabled(const char *strFormat);
   STDMETHODIMP SetStreamSwitchRemoveAudio(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetStreamSwitchRemoveAudio();
+  STDMETHODIMP GetAdvancedSubtitleConfig(WCHAR **ppAdvancedConfig);
+  STDMETHODIMP SetAdvancedSubtitleConfig(WCHAR *pAdvancedConfig);
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }

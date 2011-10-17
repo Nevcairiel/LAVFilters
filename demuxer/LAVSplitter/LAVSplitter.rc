@@ -63,7 +63,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 235, 267
+IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 235, 283
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
@@ -72,23 +72,24 @@ BEGIN
     LTEXT           "Audio:",IDC_LBL_PREF_LANG_AUDIO,7,36,31,8
     EDITTEXT        IDC_PREF_LANG_SUBS,7,76,221,14,ES_AUTOHSCROLL
     LTEXT           "Subtitles:",IDC_LBL_PREF_LANG_SUBS,7,66,47,8
-    COMBOBOX        IDC_SUBTITLE_MODE,99,103,121,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Subtitle Selection Mode:",IDC_LBL_SUBMODE,7,105,83,8
-    GROUPBOX        "Blu-ray Subtitles (PGS)",IDC_BD_SUBS,7,120,221,40
+    COMBOBOX        IDC_SUBTITLE_MODE,99,115,121,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Subtitle Selection Mode:",IDC_LBL_SUBMODE,7,118,83,8
+    GROUPBOX        "Blu-ray Subtitles (PGS)",IDC_BD_SUBS,7,132,221,40
     CONTROL         "Enable Automatic Forced Subtitle Stream",IDC_BD_SEPARATE_FORCED_SUBS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,146,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,145,146,10
     CONTROL         "Deliver only Forced Subtitles",IDC_BD_ONLY_FORCED_SUBS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,146,159,10
-    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,163,221,87
-    CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,177,115,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,158,159,10
+    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,175,221,87
+    CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,190,115,10
     CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
-                    "Button",BS_AUTO3STATE | WS_TABSTOP,15,191,126,10
-    CONTROL         "Enable Video Stream Parsing",IDC_VIDEOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,206,151,10
+                    "Button",BS_AUTO3STATE | WS_TABSTOP,15,203,126,10
+    CONTROL         "Enable Video Stream Parsing",IDC_VIDEOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,218,151,10
     CONTROL         "Try to fix broken HD-PVR recordings",IDC_FIX_BROKEN_HDPVR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,221,131,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,233,131,10
     CONTROL         "Remove Audio Decoder on Audio Stream Switch",IDC_STREAM_SWITCH_REMOVE_AUDIO,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,236,168,10
-    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,252,221,8,0,WS_EX_RIGHT
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,249,168,10
+    LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,268,221,8,0,WS_EX_RIGHT
+    LTEXT           "",IDC_SUBTITLE_NOTE,7,94,221,19
 END
 
 IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 236, 253
@@ -115,7 +116,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 228
         TOPMARGIN, 7
-        BOTTOMMARGIN, 260
+        BOTTOMMARGIN, 276
     END
 
     IDD_PROPPAGE_FORMATS, DIALOG

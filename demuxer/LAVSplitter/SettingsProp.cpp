@@ -34,6 +34,7 @@ CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pLAVF(NULL)
   , m_pszPrefLang(NULL)
   , m_pszPrefSubLang(NULL)
+  , m_pszAdvSubConfig(NULL)
 {
 }
 
@@ -41,6 +42,7 @@ CLAVSplitterSettingsProp::~CLAVSplitterSettingsProp(void)
 {
   SAFE_CO_FREE(m_pszPrefLang);
   SAFE_CO_FREE(m_pszPrefSubLang);
+  SAFE_CO_FREE(m_pszAdvSubConfig);
   SafeRelease(&m_pLAVF);
 }
 
@@ -73,7 +75,14 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
 
   // Save subtitle language
   SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
-  CHECK_HR(hr = m_pLAVF->SetPreferredSubtitleLanguages(buffer));
+
+  if (m_selectedSubMode == LAVSubtitleMode_Advanced) {
+    CHECK_HR(hr = m_pLAVF->SetPreferredSubtitleLanguages(m_subLangBuffer));
+    CHECK_HR(hr = m_pLAVF->SetAdvancedSubtitleConfig(buffer));
+  } else {
+    CHECK_HR(hr = m_pLAVF->SetPreferredSubtitleLanguages(buffer));
+    CHECK_HR(hr = m_pLAVF->SetAdvancedSubtitleConfig(m_advSubBuffer));
+  }
 
   // Save subtitle mode
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
@@ -104,7 +113,39 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
 
 done:    
   return hr;
-} 
+}
+
+void CLAVSplitterSettingsProp::UpdateSubtitleMode(LAVSubtitleMode mode)
+{
+  if (mode == LAVSubtitleMode_NoSubs) {
+    WCHAR *note = L"No subtitles: Subtitles are disabled and will not be loaded by default.";
+    SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_NOTE, WM_SETTEXT, 0, (LPARAM)note);
+  } else if (mode == LAVSubtitleMode_ForcedOnly) {
+    WCHAR *note = L"Only Forced Subtitles: Only subtitles marked as \"forced\" will be loaded.";
+    SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_NOTE, WM_SETTEXT, 0, (LPARAM)note);
+  } else if (mode == LAVSubtitleMode_Default) {
+    WCHAR *note = L"Default Mode: Subtitles matching the preferred languages, as well as \"default\" and \"forced\" subtitles will be loaded.";
+    SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_NOTE, WM_SETTEXT, 0, (LPARAM)note);
+  } else if (mode == LAVSubtitleMode_Advanced) {
+    WCHAR *note = L"Advanced Mode: Refer to the README or the documention on http://1f0.de for details.";
+    SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_NOTE, WM_SETTEXT, 0, (LPARAM)note);
+  } else {
+    WCHAR *empty = L"";
+    SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_NOTE, WM_SETTEXT, 0, (LPARAM)empty);
+  }
+
+  LAVSubtitleMode oldMode = m_selectedSubMode;
+  m_selectedSubMode = mode;
+  // Switch away from advanced
+  if (oldMode != mode && oldMode == LAVSubtitleMode_Advanced) {
+    SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&m_advSubBuffer);
+    SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_SETTEXT, 0, (LPARAM)&m_subLangBuffer);
+  // Switch to advanced
+  } else if (oldMode != mode && mode == LAVSubtitleMode_Advanced) {
+    SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&m_subLangBuffer);
+    SendDlgItemMessage(m_Dlg, IDC_PREF_LANG_SUBS, WM_SETTEXT, 0, (LPARAM)&m_advSubBuffer);
+  }
+}
 
 HRESULT CLAVSplitterSettingsProp::OnActivate()
 {
@@ -122,6 +163,12 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_SPLITTER_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
 
   hr = LoadData();
+  memset(m_subLangBuffer, 0, sizeof(m_advSubBuffer));
+  memset(m_advSubBuffer, 0, sizeof(m_advSubBuffer));
+
+  m_selectedSubMode = LAVSubtitleMode_Default;
+  if (m_pszAdvSubConfig)
+    wcsncpy_s(m_advSubBuffer, m_pszAdvSubConfig, _TRUNCATE);
 
   // Notify the UI about those settings
   SendDlgItemMessage(m_Dlg, IDC_PREF_LANG, WM_SETTEXT, 0, (LPARAM)m_pszPrefLang);
@@ -162,6 +209,8 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_SETCHECK, m_StreamSwitchRemoveAudio, 0);
   addHint(IDC_STREAM_SWITCH_REMOVE_AUDIO, L"Remove the old Audio Decoder from the Playback Chain before switchign the audio stream, forcing DirectShow to select a new one.\n\nThis option ensures that the preferred decoder is always used, however it does not work properly with all players.");
 
+  UpdateSubtitleMode(m_subtitleMode);
+
   return hr;
 }
 HRESULT CLAVSplitterSettingsProp::LoadData()
@@ -171,10 +220,12 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   // Free old strings
   SAFE_CO_FREE(m_pszPrefLang);
   SAFE_CO_FREE(m_pszPrefSubLang);
+  SAFE_CO_FREE(m_pszAdvSubConfig);
 
   // Query current settings
   CHECK_HR(hr = m_pLAVF->GetPreferredLanguages(&m_pszPrefLang));
   CHECK_HR(hr = m_pLAVF->GetPreferredSubtitleLanguages(&m_pszPrefSubLang));
+  CHECK_HR(hr = m_pLAVF->GetAdvancedSubtitleConfig(&m_pszAdvSubConfig));
   m_subtitleMode = m_pLAVF->GetSubtitleMode();
   m_PGSForcedStream = m_pLAVF->GetPGSForcedStream();
   m_PGSOnlyForced = m_pLAVF->GetPGSOnlyForced();
@@ -195,70 +246,69 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
   {
   case WM_COMMAND:
     // Mark the page dirty if the text changed
-    if (IsPageDirty() != S_OK) {
-      if(HIWORD(wParam) == EN_CHANGE
-        && (LOWORD(wParam) == IDC_PREF_LANG || LOWORD(wParam) == IDC_PREF_LANG_SUBS)) {
+    if(HIWORD(wParam) == EN_CHANGE
+      && (LOWORD(wParam) == IDC_PREF_LANG || LOWORD(wParam) == IDC_PREF_LANG_SUBS)) {
 
-          WCHAR buffer[LANG_BUFFER_SIZE];
-          SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+        WCHAR buffer[LANG_BUFFER_SIZE];
+        SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
 
-          int dirty = 0;
-          WCHAR *source = NULL;
-          if(LOWORD(wParam) == IDC_PREF_LANG) {
-            source = m_pszPrefLang;
-          } else {
-            source = m_pszPrefSubLang;
-          }
+        int dirty = 0;
+        WCHAR *source = NULL;
+        if(LOWORD(wParam) == IDC_PREF_LANG) {
+          source = m_pszPrefLang;
+        } else {
+          source = (m_selectedSubMode == LAVSubtitleMode_Advanced) ? m_pszAdvSubConfig : m_pszPrefSubLang;
+        }
 
-          if (source) {
-            dirty = _wcsicmp(buffer, source);
-          } else {
-            dirty = (int)wcslen(buffer);
-          }
+        if (source) {
+          dirty = _wcsicmp(buffer, source);
+        } else {
+          dirty = (int)wcslen(buffer);
+        }
 
-          if(dirty != 0) {
-            SetDirty();
-          }
-      } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_SUBTITLE_MODE) {
-        DWORD dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
-        if (dwVal != m_subtitleMode) {
+        if(dirty != 0) {
           SetDirty();
         }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_BD_SEPARATE_FORCED_SUBS) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_GETCHECK, 0, 0);
-        if (bFlag != m_PGSForcedStream) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_BD_ONLY_FORCED_SUBS) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_ONLY_FORCED_SUBS, BM_GETCHECK, 0, 0);
-        if (bFlag != m_PGSOnlyForced) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VC1TIMESTAMP) {
-        int iFlag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
-        if (iFlag != m_VC1Mode) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBSTREAMS) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_GETCHECK, 0, 0);
-        if (bFlag != m_substreams) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VIDEOPARSING) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
-        if (bFlag != m_videoParsing) {
-          SetDirty();
-        }
-       } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_FIX_BROKEN_HDPVR) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_FIX_BROKEN_HDPVR, BM_GETCHECK, 0, 0);
-        if (bFlag != m_FixBrokenHDPVR) {
-          SetDirty();
-        }
-      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_STREAM_SWITCH_REMOVE_AUDIO) {
-        BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
-        if (bFlag != m_StreamSwitchRemoveAudio) {
-          SetDirty();
-        }
+    } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_SUBTITLE_MODE) {
+      DWORD dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_GETCURSEL, 0, 0);
+      UpdateSubtitleMode((LAVSubtitleMode)dwVal);
+      if (dwVal != m_subtitleMode) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_BD_SEPARATE_FORCED_SUBS) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_GETCHECK, 0, 0);
+      if (bFlag != m_PGSForcedStream) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_BD_ONLY_FORCED_SUBS) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BD_ONLY_FORCED_SUBS, BM_GETCHECK, 0, 0);
+      if (bFlag != m_PGSOnlyForced) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VC1TIMESTAMP) {
+      int iFlag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
+      if (iFlag != m_VC1Mode) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBSTREAMS) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_GETCHECK, 0, 0);
+      if (bFlag != m_substreams) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VIDEOPARSING) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_VIDEOPARSING, BM_GETCHECK, 0, 0);
+      if (bFlag != m_videoParsing) {
+        SetDirty();
+      }
+      } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_FIX_BROKEN_HDPVR) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_FIX_BROKEN_HDPVR, BM_GETCHECK, 0, 0);
+      if (bFlag != m_FixBrokenHDPVR) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_STREAM_SWITCH_REMOVE_AUDIO) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
+      if (bFlag != m_StreamSwitchRemoveAudio) {
+        SetDirty();
       }
     }
     break;

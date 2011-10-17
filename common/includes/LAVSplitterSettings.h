@@ -132,4 +132,14 @@ interface ILAVFSettings : public IUnknown
 
   // Query if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream is changed
   STDMETHOD_(BOOL,GetStreamSwitchRemoveAudio)() = 0;
+
+  // Advanced Subtitle configuration. Refer to the documention for details.
+  // If no advanced config exists, will be NULL.
+  // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
+  STDMETHOD(GetAdvancedSubtitleConfig)(WCHAR **ppAdvancedConfig) = 0;
+
+  // Advanced Subtitle configuration. Refer to the documention for details.
+  // To reset the config, pass NULL or the empty string.
+  // If no subtitle language is set, the main language preference is used.
+  STDMETHOD(SetAdvancedSubtitleConfig)(WCHAR *pAdvancedConfig) = 0;
 };

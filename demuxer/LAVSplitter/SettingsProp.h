@@ -46,6 +46,7 @@ public:
 
 private:
   HRESULT LoadData();
+  void UpdateSubtitleMode(LAVSubtitleMode mode);
 
   void SetDirty()
   {
@@ -62,6 +63,7 @@ private:
   // Settings
   WCHAR *m_pszPrefLang;
   WCHAR *m_pszPrefSubLang;
+  WCHAR *m_pszAdvSubConfig;
 
   LAVSubtitleMode m_subtitleMode;
   BOOL m_PGSForcedStream;
@@ -72,6 +74,10 @@ private:
   BOOL m_videoParsing;
   BOOL m_FixBrokenHDPVR;
   BOOL m_StreamSwitchRemoveAudio;
+
+  LAVSubtitleMode m_selectedSubMode;
+  WCHAR m_subLangBuffer[256];
+  WCHAR m_advSubBuffer[256];
 
   WCHAR stringBuffer[256];
 };
