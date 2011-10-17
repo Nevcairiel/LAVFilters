@@ -8,8 +8,9 @@
 #define IDS_SUBMODE_NO_SUBS             102
 #define IDI_ICON1                       103
 #define IDS_SUBMODE_FORCED_SUBS         104
-#define IDS_SUBMODE_ALL_SUBS            105
-#define IDS_INPUT_FORMATS               106
+#define IDS_SUBMODE_DEFAULT             105
+#define IDS_SUBMODE_ADVANCED            106
+#define IDS_INPUT_FORMATS               107
 #define IDC_LBL_PREF_LANG               1001
 #define IDC_PREF_LANG                   1002
 #define IDC_LBL_PREF_LANG_AUDIO         1003
@@ -17,7 +18,6 @@
 #define IDC_LBL_PREF_LANG_SUBS          1005
 #define IDC_SUBTITLE_MODE               1006
 #define IDC_LBL_SUBMODE                 1007
-#define IDC_SUBMODE_ONLY_MATCHING       1008
 #define IDC_VC1TIMESTAMP                1009
 #define IDC_SUBSTREAMS                  1010
 #define IDC_DEMUXER_SETTINGS            1011

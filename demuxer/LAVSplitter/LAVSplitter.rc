@@ -72,10 +72,8 @@ BEGIN
     LTEXT           "Audio:",IDC_LBL_PREF_LANG_AUDIO,7,36,31,8
     EDITTEXT        IDC_PREF_LANG_SUBS,7,76,221,14,ES_AUTOHSCROLL
     LTEXT           "Subtitles:",IDC_LBL_PREF_LANG_SUBS,7,66,47,8
-    COMBOBOX        IDC_SUBTITLE_MODE,7,103,112,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Subtitle Selection Mode:",IDC_LBL_SUBMODE,7,92,88,8
-    CONTROL         "Only with matching language",IDC_SUBMODE_ONLY_MATCHING,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,121,104,107,10
+    COMBOBOX        IDC_SUBTITLE_MODE,99,103,121,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Subtitle Selection Mode:",IDC_LBL_SUBMODE,7,105,83,8
     GROUPBOX        "Blu-ray Subtitles (PGS)",IDC_BD_SUBS,7,120,221,40
     CONTROL         "Enable Automatic Forced Subtitle Stream",IDC_BD_SEPARATE_FORCED_SUBS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,132,146,10
@@ -140,8 +138,9 @@ STRINGTABLE
 BEGIN
     IDS_PAGE_TITLE          "LAV Splitter"
     IDS_SUBMODE_NO_SUBS     "No Subtitles"
-    IDS_SUBMODE_FORCED_SUBS "Only Forced Subs"
-    IDS_SUBMODE_ALL_SUBS    "Full Subtitles"
+    IDS_SUBMODE_FORCED_SUBS "Only Forced Subtitles"
+    IDS_SUBMODE_DEFAULT     "Default"
+    IDS_SUBMODE_ADVANCED    "Advanced"
     IDS_INPUT_FORMATS       "Input Formats"
 END
 

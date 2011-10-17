@@ -133,11 +133,13 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
   WideStringFromResource(stringBuffer, IDS_SUBMODE_FORCED_SUBS);
   SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
-  WideStringFromResource(stringBuffer, IDS_SUBMODE_ALL_SUBS);
+  WideStringFromResource(stringBuffer, IDS_SUBMODE_DEFAULT);
+  SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  WideStringFromResource(stringBuffer, IDS_SUBMODE_ADVANCED);
   SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
 
   SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_MODE, CB_SETCURSEL, m_subtitleMode, 0);
-  addHint(IDC_SUBTITLE_MODE, L"Configure which kinds of subtitles should be enabled by default.");
+  addHint(IDC_SUBTITLE_MODE, L"Configure how subtitles are selected.");
 
   SendDlgItemMessage(m_Dlg, IDC_BD_SEPARATE_FORCED_SUBS, BM_SETCHECK, m_PGSForcedStream, 0);
   addHint(IDC_BD_SEPARATE_FORCED_SUBS, L"Enabling this causes the creation of a new \"Forced Subtitles\" stream, which will try to always display forced subtitles matching your selected audio language.\n\nNOTE: This option may not work on all Blu-ray discs.\nRequires restart to take effect.");
