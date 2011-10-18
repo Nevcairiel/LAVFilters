@@ -777,6 +777,14 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
 
 int CLAVFDemuxer::GetStreamIdxFromTotalIdx(size_t index)
 {
+  const stream* st = GetStreamFromTotalIdx(index);
+  if (st)
+    return st->pid;
+  return -1;
+}
+
+CBaseDemuxer::stream* CLAVFDemuxer::GetStreamFromTotalIdx(size_t index)
+{
   int type = video;
   size_t count_v = m_streams[video].size();
   size_t count_a = m_streams[audio].size();
@@ -788,13 +796,13 @@ int CLAVFDemuxer::GetStreamIdxFromTotalIdx(size_t index)
       index -= count_a;
       type = subpic;
       if (index >= count_s)
-        return -1;
+        return NULL;
     }
   }
 
-  const stream st1 = m_streams[type][index];
-  return st1.pid;
+  return &m_streams[type][index];
 }
+
 
 /////////////////////////////////////////////////////////////////////////////
 // ITrackInfo
@@ -819,32 +827,27 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackEleme
   ZeroMemory(pStructureToFill, sizeof(*pStructureToFill));
   pStructureToFill->Size = sizeof(*pStructureToFill);
 
-  int id = GetStreamIdxFromTotalIdx(aTrackIdx);
-  if (id < 0 || id == NO_SUBTITLE_PID)
+  const stream *st = GetStreamFromTotalIdx(aTrackIdx);
+  if (!st || st->pid < 0 || st->pid == NO_SUBTITLE_PID)
     return FALSE;
 
-  if (id == FORCED_SUBTITLE_PID) {
+  if (st->pid == FORCED_SUBTITLE_PID) {
     pStructureToFill->FlagDefault = 0;
     pStructureToFill->FlagForced  = 1;
     pStructureToFill->Type        = TypeSubtitle;
     strcpy_s(pStructureToFill->Language, "und");
   } else {
-    const AVStream *st = m_avFormat->streams[id];
+    const AVStream *avst = m_avFormat->streams[st->pid];
 
     // Fill structure
-    pStructureToFill->FlagDefault = (st->disposition & AV_DISPOSITION_DEFAULT);
-    pStructureToFill->FlagForced = (st->disposition & AV_DISPOSITION_FORCED);
-    const char *lang = get_stream_language(st);
-    if (lang) {
-      strncpy_s(pStructureToFill->Language, lang, 3);
-      pStructureToFill->Language[3] = '\0';
-    } else {
-      pStructureToFill->Language[0] = '\0';
-    }
+    pStructureToFill->FlagDefault = (avst->disposition & AV_DISPOSITION_DEFAULT);
+    pStructureToFill->FlagForced = (avst->disposition & AV_DISPOSITION_FORCED);
+    strncpy_s(pStructureToFill->Language, st->language.c_str(), _TRUNCATE);
+    pStructureToFill->Language[3] = '\0';
 
-    pStructureToFill->Type = (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) ? TypeVideo :
-                             (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) ? TypeAudio :
-                             (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) ? TypeSubtitle : 0;
+    pStructureToFill->Type = (avst->codec->codec_type == AVMEDIA_TYPE_VIDEO) ? TypeVideo :
+                             (avst->codec->codec_type == AVMEDIA_TYPE_AUDIO) ? TypeAudio :
+                             (avst->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) ? TypeSubtitle : 0;
   }
 
   // The following flags are not exported via avformat

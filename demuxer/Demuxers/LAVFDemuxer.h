@@ -118,6 +118,7 @@ private:
   int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
 
   int GetStreamIdxFromTotalIdx(size_t index);
+  CBaseDemuxer::stream* GetStreamFromTotalIdx(size_t index);
   HRESULT CheckBDM2TSCPLI(LPCOLESTR pszFileName);
 
   HRESULT UpdateForcedSubtitleStream(unsigned audio_pid);
