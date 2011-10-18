@@ -24,6 +24,8 @@ PrivilegesRequired=admin
 SolidCompression=yes
 Uninstallable=yes
 VersionInfoVersion={#=version_major}.{#=version_minor}.0.0
+DisableDirPage=auto
+DisableProgramGroupPage=auto
 
 [Messages]
 WelcomeLabel1=[name/ver]
