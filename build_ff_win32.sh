@@ -17,8 +17,7 @@ make distclean
 OPTIONS="
 --enable-shared \
 --enable-gpl \
---enable-version2 \
---enable-pthreads \
+--enable-w32threads \
 --enable-runtime-cpudetect \
 --enable-asm \
 --disable-postproc \
@@ -48,7 +47,7 @@ OPTIONS="
 --arch=x86 --cpu=i686 --target-os=mingw32 \
 --build-suffix=-lav"
 
-./configure --extra-libs="-lwsock32" --extra-cflags="-mmmx -msse -DPTW32_STATIC_LIB" ${OPTIONS} &&
+./configure --extra-cflags="-mmmx -msse" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-lav-*.dll ../bin_Win32 &&
