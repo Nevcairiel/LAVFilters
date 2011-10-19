@@ -28,6 +28,64 @@ The Audio and Video Decoder will register with a relatively high merit, which sh
 it the preferred decoder by default. Most players offer a way to choose the preferred
 decoder however.
 
+Automatic Stream Selection
+=============================
+LAV Splitter offers different ways to pre-select streams when opening a file.
+The selection of video streams is not configurable, and LAV Splitter will quite simply
+pick the one with the best quality.
+
+Audio Stream selection offers some flexibility, specifically you can configure your preferred languages.
+The language configuration is straight forward. Just enter a list of 3-letter language codes (ISO 639-2),
+separated by comma or space.
+For example: "eng ger fre". This would try to select a stream matching one of these languages,
+in the order you specified them. First check if an english track is present, and only if not,
+go to german, and after that, go to french.
+
+If multiple audio tracks match one language, the choice is based on the quality. The primary attribute here
+is the number of channels, and after that the codec used. PCM and lossless codecs have a higher priority
+then lossy codecs.
+
+Subtitle selection offers the most flexibility.
+There is 4 distinct modes of subtitle selection.
+
+"No Subtitles"
+This mode is simple, by default subtitles will be off.
+
+"Only Forced Subtitles"
+This mode will only pre-select subtitles flagged with the "forced" flag. It'll also obey the language preferences, of course.
+
+"Default"
+The default mode will select subtitles matching your language preference. If there is no match, or you didn't configure
+languages, no subtitles will be activated. In addion, subtitles flagged "default" or "forced" will always be used.
+
+"Advanced"
+The advanced mode lets you write your own combinations of rules with a special syntax. It also allows selecting subtitles
+based on the audio language of the file.
+
+The base syntax is simple, it always requires a pair of audio and subtitle language, separated by a colon, for example: "eng:ger"
+In this example, LAV Splitter would select German subtitles if English audio was found.
+
+Instead of language codes, the advanced mode supports two special cases: "*" and "off".
+When you specify "*" for a language code, it'll match everything. For example "*:eng"  will activate English subtitles, independent
+of the audio language. The reverse is also possible: "eng:*" will activate any subtitles when the audio is english.
+
+The "off" flag is only valid for the subtitle language, and it instructs LAV Splitter to turn the subtitles off.
+So "eng:off" means that when the audio is english, the subtitles will be deactivated.
+
+Additionally to the syntax above, two flags are supported to enhance the subtitle selection.
+Specifically, LAV Splitter understands the flag "d" for default subtitles, and the flag "f" for forced subtitles.
+Flags are appended to the subtitle language, separated by a pipe symbol ("|"). Example: "*:*|f"
+This token specifys that on any audio language, you want any subtitle that is flagged forced.
+
+The advanced rukes can be combined into a complete logic for subtitle selection by just appending them, separated with a comma or a space.
+The rules will always be parsed from left to right, the first match taking precedence.
+
+Consider the following rule set:
+"eng:eng|f eng:ger|f eng:off *:eng *:ger"
+This rule means the following:
+If audio is english, load an english or a german forced subtitle track, otherwise turn subtitles off.
+If audio is not english, load english or german subtitles.
+
 BluRay Support
 =============================
 To play a BluRay, simply open the index.bdmv file in the BDMV folder on the BluRay disc.
