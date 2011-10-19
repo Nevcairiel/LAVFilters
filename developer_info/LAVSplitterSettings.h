@@ -2,20 +2,19 @@
  *      Copyright (C) 2011 Hendrik Leppkes
  *      http://www.1f0.de
  *
- *  This Program is free software; you can redistribute it and/or modify
+ *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
  *
- *  This Program is distributed in the hope that it will be useful,
+ *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *  http://www.gnu.org/copyleft/gpl.html
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #pragma once
@@ -25,6 +24,13 @@
 // {774A919D-EA95-4A87-8A1E-F48ABE8499C7}
 DEFINE_GUID(IID_ILAVFSettings, 
 0x774a919d, 0xea95, 0x4a87, 0x8a, 0x1e, 0xf4, 0x8a, 0xbe, 0x84, 0x99, 0xc7);
+
+typedef enum LAVSubtitleMode {
+  LAVSubtitleMode_NoSubs,
+  LAVSubtitleMode_ForcedOnly,
+  LAVSubtitleMode_Default,
+  LAVSubtitleMode_Advanced
+} LAVSubtitleMode;
 
 [uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")]
 interface ILAVFSettings : public IUnknown
@@ -58,19 +64,21 @@ interface ILAVFSettings : public IUnknown
   STDMETHOD(SetPreferredSubtitleLanguages)(WCHAR *pLanguages) = 0;
 
   // Get the current subtitle mode
-  // 0 = No Subs; 1 = Forced Subs; 2 = All subs
-  STDMETHOD_(DWORD,GetSubtitleMode)() = 0;
+  // See enum for possible values
+  STDMETHOD_(LAVSubtitleMode,GetSubtitleMode)() = 0;
 
   // Set the current subtitle mode
-  // 0 = No Subs; 1 = Forced Subs; 2 = All subs
-  STDMETHOD(SetSubtitleMode)(DWORD dwMode) = 0;
+  // See enum for possible values
+  STDMETHOD(SetSubtitleMode)(LAVSubtitleMode mode) = 0;
 
   // Get the subtitle matching language flag
   // TRUE = Only subtitles with a language in the preferred list will be used; FALSE = All subtitles will be used
+  // @deprecated - do not use anymore, deprecated and non-functional, replaced by advanced subtitle mode
   STDMETHOD_(BOOL,GetSubtitleMatchingLanguage)() = 0;
 
   // Set the subtitle matching language flag
   // TRUE = Only subtitles with a language in the preferred list will be used; FALSE = All subtitles will be used
+  // @deprecated - do not use anymore, deprecated and non-functional, replaced by advanced subtitle mode
   STDMETHOD(SetSubtitleMatchingLanguage)(BOOL dwMode) = 0;
 
   // Control wether a special "Forced Subtitles" stream will be created for PGS subs
@@ -124,4 +132,14 @@ interface ILAVFSettings : public IUnknown
 
   // Query if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream is changed
   STDMETHOD_(BOOL,GetStreamSwitchRemoveAudio)() = 0;
+
+  // Advanced Subtitle configuration. Refer to the documention for details.
+  // If no advanced config exists, will be NULL.
+  // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
+  STDMETHOD(GetAdvancedSubtitleConfig)(WCHAR **ppAdvancedConfig) = 0;
+
+  // Advanced Subtitle configuration. Refer to the documention for details.
+  // To reset the config, pass NULL or the empty string.
+  // If no subtitle language is set, the main language preference is used.
+  STDMETHOD(SetAdvancedSubtitleConfig)(WCHAR *pAdvancedConfig) = 0;
 };
