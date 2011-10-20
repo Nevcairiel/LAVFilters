@@ -1170,6 +1170,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     // Convert to multi-byte ascii
     size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
     char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    ZeroMemory(buffer, bufSize);
     WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
 
     std::list<std::string> langList;
@@ -1202,6 +1203,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     // Convert to multi-byte ascii
     size_t bufSize = sizeof(WCHAR) * (m_settings.subtitleAdvanced.length() + 1);
     char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    ZeroMemory(buffer, bufSize);
     WideCharToMultiByte(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
 
     split(std::string(buffer), separators, tokenList);
