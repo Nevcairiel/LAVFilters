@@ -239,7 +239,7 @@ std::string GetDefaultVOBSubHeader(int w, int h)
 {
   std::ostringstream header;
   header << "# VobSub index file, v7 (do not modify this line!)\n";
-  header << "size: " << 720 << "x" << 576 << "\n";
+  header << "size: " << w << "x" << h << "\n";
   header << "palette: ";
   header << "000000,f0f0f0,cccccc,999999,";
   header << "3333fa,1111bb,fa3333,bb1111,";
@@ -293,6 +293,22 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
     mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
   } else if (m_containerFormat == "mpeg" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
+    // And a VobSub type
+    // Find first video stream
+    AVStream *vidStream = NULL;
+    for (int i = 0; i < avctx->nb_streams; i++) {
+      if (avctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+        vidStream = avctx->streams[i];
+        break;
+      }
+    }
+    std::string strVobSubHeader = GetDefaultVOBSubHeader(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576);
+    size_t len = strVobSubHeader.length();
+    mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
+    memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
+    mtype.subtype = MEDIASUBTYPE_VOBSUB;
+    mtypes.push_back(mtype);
+
     // Offer the DVD subtype
     CMediaType dvdmtype;
     dvdmtype.majortype = MEDIATYPE_Video;
@@ -300,11 +316,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
     dvdmtype.formattype = FORMAT_None;
     mtypes.push_back(dvdmtype);
 
-    // And a VobSub type
-    std::string strVobSubHeader = GetDefaultVOBSubHeader(avstream->codec->coded_width, avstream->codec->coded_height);
-    size_t len = strVobSubHeader.length();
-    mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
-    memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
+    return S_OK;
   } else {
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), avstream->codec->extradata, extra);
   }
