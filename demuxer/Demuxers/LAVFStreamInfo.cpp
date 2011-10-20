@@ -235,6 +235,20 @@ std::string CreateVOBSubHeaderFromMP4(MOVStreamContext *context, const BYTE *buf
   return header.str();
 }
 
+std::string GetDefaultVOBSubHeader(int w, int h)
+{
+  std::ostringstream header;
+  header << "# VobSub index file, v7 (do not modify this line!)\n";
+  header << "size: " << 720 << "x" << 576 << "\n";
+  header << "palette: ";
+  header << "000000,f0f0f0,cccccc,999999,";
+  header << "3333fa,1111bb,fa3333,bb1111,";
+  header << "33fa33,11bb11,fafa33,bbbb11,";
+  header << "fa33fa,bb11bb,33fafa,11bbbb\n";
+  return header.str();
+}
+
+
 STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
 {
   // Skip teletext
@@ -275,6 +289,19 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
   // Extradata
   if (m_containerFormat == "mp4" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
     std::string strVobSubHeader = CreateVOBSubHeaderFromMP4((MOVStreamContext *)avstream->priv_data, avstream->codec->extradata, extra);
+    size_t len = strVobSubHeader.length();
+    mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
+    memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
+  } else if (m_containerFormat == "mpeg" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
+    // Offer the DVD subtype
+    CMediaType dvdmtype;
+    dvdmtype.majortype = MEDIATYPE_Video;
+    dvdmtype.subtype = MEDIASUBTYPE_DVD_SUBPICTURE;
+    dvdmtype.formattype = FORMAT_None;
+    mtypes.push_back(dvdmtype);
+
+    // And a VobSub type
+    std::string strVobSubHeader = GetDefaultVOBSubHeader(avstream->codec->coded_width, avstream->codec->coded_height);
     size_t len = strVobSubHeader.length();
     mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
