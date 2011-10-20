@@ -1232,6 +1232,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
           selector.dwFlags |= SUBTITLE_FLAG_FORCED;
       }
       selectorList.push_back(selector);
+      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: %d)", it->c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags));
     } else {
       DbgLog((LOG_ERROR, 10, L"::GetSubtitleSelectors(): Selector string \"%S\" could not be parsed", it->c_str()));
     }
