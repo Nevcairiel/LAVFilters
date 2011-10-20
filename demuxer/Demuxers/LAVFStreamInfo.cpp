@@ -205,12 +205,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
 #include "libavformat/isom.h"
 
-std::string CreateVOBSubHeaderFromMP4(MOVStreamContext *context, const BYTE *buffer, int buf_size)
+std::string CreateVOBSubHeaderFromMP4(int vidW, int vidH, MOVStreamContext *context, const BYTE *buffer, int buf_size)
 {
   std::ostringstream header;
   if (buf_size >= 16*4) {
-    int w = context && context->width ? context->width : 720;
-    int h = context && context->height ? context->height : 576;
+    int w = context && context->width ? context->width : vidW;
+    int h = context && context->height ? context->height : vidH;
 
     header << "# VobSub index file, v7 (do not modify this line!)\n";
     header << "size: " << w << "x" << h << "\n";
@@ -286,22 +286,23 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
 
   subInfo->dwOffset = sizeof(SUBTITLEINFO);
 
+  // Find first video stream
+  AVStream *vidStream = NULL;
+  for (unsigned i = 0; i < avctx->nb_streams; i++) {
+    if (avctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+      vidStream = avctx->streams[i];
+      break;
+    }
+  }
+
   // Extradata
   if (m_containerFormat == "mp4" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
-    std::string strVobSubHeader = CreateVOBSubHeaderFromMP4((MOVStreamContext *)avstream->priv_data, avstream->codec->extradata, extra);
+    std::string strVobSubHeader = CreateVOBSubHeaderFromMP4(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576, (MOVStreamContext *)avstream->priv_data, avstream->codec->extradata, extra);
     size_t len = strVobSubHeader.length();
     mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
   } else if (m_containerFormat == "mpeg" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
     // And a VobSub type
-    // Find first video stream
-    AVStream *vidStream = NULL;
-    for (int i = 0; i < avctx->nb_streams; i++) {
-      if (avctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-        vidStream = avctx->streams[i];
-        break;
-      }
-    }
     std::string strVobSubHeader = GetDefaultVOBSubHeader(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576);
     size_t len = strVobSubHeader.length();
     mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
