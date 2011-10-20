@@ -26,6 +26,7 @@
 #include "moreuuids.h"
 
 #include <vector>
+#include <sstream>
 
 CLAVFStreamInfo::CLAVFStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
   : CStreamInfo(), m_containerFormat(containerFormat)
@@ -202,6 +203,76 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   return S_OK;
 }
 
+typedef struct MOVStreamContext {
+    void *pb;
+    int ffindex;          ///< AVStream index
+    int next_chunk;
+    unsigned int chunk_count;
+    int64_t *chunk_offsets;
+    unsigned int stts_count;
+    void *stts_data;
+    unsigned int ctts_count;
+    void *ctts_data;
+    unsigned int stsc_count;
+    void *stsc_data;
+    unsigned int stps_count;
+    unsigned *stps_data;  ///< partial sync sample for mpeg-2 open gop
+    int ctts_index;
+    int ctts_sample;
+    unsigned int sample_size;
+    unsigned int sample_count;
+    int *sample_sizes;
+    unsigned int keyframe_count;
+    int *keyframes;
+    int time_scale;
+    int64_t time_offset;  ///< time offset of the first edit list entry
+    int current_sample;
+    unsigned int bytes_per_frame;
+    unsigned int samples_per_frame;
+    int dv_audio_container;
+    int pseudo_stream_id; ///< -1 means demux all ids
+    int16_t audio_cid;    ///< stsd audio compression id
+    unsigned drefs_count;
+    void *drefs;
+    int dref_id;
+    int wrong_dts;        ///< dts are wrong due to huge ctts offset (iMovie files)
+    int width;            ///< tkhd width
+    int height;           ///< tkhd height
+    int dts_shift;        ///< dts shift when ctts is negative
+    uint32_t palette[256];
+    int has_palette;
+} MOVStreamContext;
+
+std::string CreateVOBSubHeaderFromMP4(MOVStreamContext *context, const BYTE *buffer, int buf_size)
+{
+  std::ostringstream header;
+  if (buf_size >= 16*4) {
+    int w = context && context->width ? context->width : 720;
+    int h = context && context->height ? context->height : 576;
+
+    header << "# VobSub index file, v7 (do not modify this line!)\n";
+    header << "size: " << w << "x" << h << "\n";
+    header << "palette: ";
+
+    const BYTE *pal = buffer;
+    char rgb[7];
+    for(int i = 0; i < 16*4; i += 4) {
+      BYTE y = (pal[i+1]-16)*255/219;
+      BYTE u = pal[i+2];
+      BYTE v = pal[i+3];
+      BYTE r = (BYTE)min(max(1.0*y + 1.4022*(v-128), 0), 255);
+      BYTE g = (BYTE)min(max(1.0*y - 0.3456*(u-128) - 0.7145*(v-128), 0), 255);
+      BYTE b = (BYTE)min(max(1.0*y + 1.7710*(u-128), 0) , 255);
+      sprintf_s(rgb, "%02x%02x%02x", r, g, b);
+      if (i)
+        header << ",";
+      header << rgb;
+    }
+    header << "\n";
+  }
+  return header.str();
+}
+
 STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
 {
   // Skip teletext
@@ -237,8 +308,17 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
     MultiByteToWideChar(CP_UTF8, 0, title, -1, subInfo->TrackName, 256);
   }
 
+  subInfo->dwOffset = sizeof(SUBTITLEINFO);
+
   // Extradata
-  memcpy(mtype.pbFormat + (subInfo->dwOffset = sizeof(SUBTITLEINFO)), avstream->codec->extradata, extra);
+  if (m_containerFormat == "mp4" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
+    std::string strVobSubHeader = CreateVOBSubHeaderFromMP4((MOVStreamContext *)avstream->priv_data, avstream->codec->extradata, extra);
+    size_t len = strVobSubHeader.length();
+    mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
+    memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
+  } else {
+    memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), avstream->codec->extradata, extra);
+  }
 
   mtype.subtype = avstream->codec->codec_id == CODEC_ID_TEXT ? MEDIASUBTYPE_UTF8 :
                   avstream->codec->codec_id == CODEC_ID_MOV_TEXT ? MEDIASUBTYPE_UTF8 :
