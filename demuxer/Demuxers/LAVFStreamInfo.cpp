@@ -203,45 +203,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
   return S_OK;
 }
 
-typedef struct MOVStreamContext {
-    void *pb;
-    int ffindex;          ///< AVStream index
-    int next_chunk;
-    unsigned int chunk_count;
-    int64_t *chunk_offsets;
-    unsigned int stts_count;
-    void *stts_data;
-    unsigned int ctts_count;
-    void *ctts_data;
-    unsigned int stsc_count;
-    void *stsc_data;
-    unsigned int stps_count;
-    unsigned *stps_data;  ///< partial sync sample for mpeg-2 open gop
-    int ctts_index;
-    int ctts_sample;
-    unsigned int sample_size;
-    unsigned int sample_count;
-    int *sample_sizes;
-    unsigned int keyframe_count;
-    int *keyframes;
-    int time_scale;
-    int64_t time_offset;  ///< time offset of the first edit list entry
-    int current_sample;
-    unsigned int bytes_per_frame;
-    unsigned int samples_per_frame;
-    int dv_audio_container;
-    int pseudo_stream_id; ///< -1 means demux all ids
-    int16_t audio_cid;    ///< stsd audio compression id
-    unsigned drefs_count;
-    void *drefs;
-    int dref_id;
-    int wrong_dts;        ///< dts are wrong due to huge ctts offset (iMovie files)
-    int width;            ///< tkhd width
-    int height;           ///< tkhd height
-    int dts_shift;        ///< dts shift when ctts is negative
-    uint32_t palette[256];
-    int has_palette;
-} MOVStreamContext;
+#include "libavformat/isom.h"
 
 std::string CreateVOBSubHeaderFromMP4(MOVStreamContext *context, const BYTE *buffer, int buf_size)
 {
