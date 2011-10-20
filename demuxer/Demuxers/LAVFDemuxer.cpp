@@ -967,7 +967,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
   }
   s.language = lang ? ProbeForISO6392(lang) : "und";
-  s.streamInfo = new CLAVFStreamInfo(pStream, m_pszInputFormat, hr);
+  s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr);
 
   if(FAILED(hr)) {
     delete s.streamInfo;

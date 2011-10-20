@@ -28,18 +28,18 @@
 #include <vector>
 #include <sstream>
 
-CLAVFStreamInfo::CLAVFStreamInfo(AVStream *avstream, const char* containerFormat, HRESULT &hr)
+CLAVFStreamInfo::CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char* containerFormat, HRESULT &hr)
   : CStreamInfo(), m_containerFormat(containerFormat)
 {
   switch(avstream->codec->codec_type) {
   case AVMEDIA_TYPE_AUDIO:
-    hr = CreateAudioMediaType(avstream);
+    hr = CreateAudioMediaType(avctx, avstream);
     break;
   case AVMEDIA_TYPE_VIDEO:
-    hr = CreateVideoMediaType(avstream);
+    hr = CreateVideoMediaType(avctx, avstream);
     break;
   case AVMEDIA_TYPE_SUBTITLE:
-    hr = CreateSubtitleMediaType(avstream);
+    hr = CreateSubtitleMediaType(avctx, avstream);
     break;
   default:
     hr = E_FAIL;
@@ -51,7 +51,7 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 {
 }
 
-STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
+STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   if (avstream->codec->codec_tag == 0) {
     avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
@@ -131,7 +131,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVStream *avstream)
   return S_OK;
 }
 
-STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVStream *avstream)
+STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   if (avstream->codec->codec_tag == 0) {
     avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
@@ -249,7 +249,7 @@ std::string GetDefaultVOBSubHeader(int w, int h)
 }
 
 
-STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVStream *avstream)
+STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   // Skip teletext
   if (avstream->codec->codec_id == CODEC_ID_DVB_TELETEXT) {
