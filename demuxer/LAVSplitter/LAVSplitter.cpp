@@ -1213,14 +1213,14 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   // Add the "off" termination element
   tokenList.push_back("*:off");
 
-  std::tr1::regex advRegex("(\\*|[[:alpha:]]+):(\\*|[[:alpha:]]+)(?:\\|([fd]+))?");
+  std::tr1::regex advRegex("(?:(\\*|[[:alpha:]]+):)?(\\*|[[:alpha:]]+)(?:\\|([fd]+))?");
   std::list<std::string>::iterator it;
   for (it = tokenList.begin(); it != tokenList.end(); it++) {
     std::tr1::cmatch res;
     bool found = std::tr1::regex_search(it->c_str(), res, advRegex);
     if (found) {
       CSubtitleSelector selector;
-      selector.audioLanguage = ProbeForISO6392(res[1].str().c_str());
+      selector.audioLanguage = res[1].str().empty() ? "*" : ProbeForISO6392(res[1].str().c_str());
       selector.subtitleLanguage = ProbeForISO6392(res[2].str().c_str());
       selector.dwFlags = 0;
       // Parse flags
