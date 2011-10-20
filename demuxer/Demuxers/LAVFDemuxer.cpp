@@ -1400,7 +1400,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
   std::deque<stream*> checkedStreams;
 
   std::list<CSubtitleSelector>::iterator it = subtitleSelectors.begin();
-  while (it != subtitleSelectors.end() && checkedStreams.empty()) {
+  for (it = subtitleSelectors.begin(); it != subtitleSelectors.end() && checkedStreams.empty(); it++) {
 
     if (!does_language_match(it->audioLanguage, audioLanguage))
       continue;
@@ -1427,8 +1427,6 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
           checkedStreams.push_back(&*sit);
       }
     }
-
-    it++;
   }
 
   if (!checkedStreams.empty())
