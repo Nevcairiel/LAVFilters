@@ -180,6 +180,10 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_apcs, CODEC_ID_PRORES },
   { &MEDIASUBTYPE_apco, CODEC_ID_PRORES },
   { &MEDIASUBTYPE_ap4h, CODEC_ID_PRORES },
+  { &MEDIASUBTYPE_ULRA, CODEC_ID_UTVIDEO },
+  { &MEDIASUBTYPE_ULRG, CODEC_ID_UTVIDEO },
+  { &MEDIASUBTYPE_ULY0, CODEC_ID_UTVIDEO },
+  { &MEDIASUBTYPE_ULY2, CODEC_ID_UTVIDEO },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO  },
@@ -338,6 +342,10 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_apcs },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_apco },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ap4h },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_ULRA },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_ULRG },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_ULY0 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_ULY2 },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -409,6 +417,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_PNG }},                                                 // Codec_PNG
   { 1, { CODEC_ID_MSRLE }},                                               // Codec_MSRLE
   { 1, { CODEC_ID_PRORES }, L"prores", L"ProRes" },                       // Codec_ProRes
+  { 1, { CODEC_ID_UTVIDEO }},                                             // Codec_UtVideo
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)

@@ -61,6 +61,7 @@ typedef enum LAVVideoCodec {
   Codec_PNG,
   Codec_MSRLE,
   Codec_ProRes,
+  Codec_UtVideo,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
