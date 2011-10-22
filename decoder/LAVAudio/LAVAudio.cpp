@@ -965,7 +965,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
       getExtraData((BYTE *)format, &format_type, formatlen, extra, NULL);
 
       if (extra[0] == '.' && extra[1] == 'r' && extra[2] == 'a' && extra[3] == 0xfd) {
-        HRESULT hr = ParseRealAudioHeader(extra, extralen, &m_pAVCtx->extradata, &m_pAVCtx->extradata_size);
+        HRESULT hr = ParseRealAudioHeader(extra, extralen);
         av_freep(&extra);
         if (FAILED(hr))
           return hr;

@@ -381,7 +381,7 @@ void CLAVAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LP
   pBuf[3] = get_lpcm_bit_per_sample_index(wfex_lpcm->wBitsPerSample) << 6;
 }
 
-HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen, BYTE **pExtraOut, int *pExtraOutLen) const
+HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen)
 {
   const uint8_t *fmt = extra+4;
   uint16_t version = AV_RB16(fmt);
@@ -389,9 +389,20 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen, B
   if (version == 3) {
     DbgLog((LOG_TRACE, 10, L"RealAudio Header version 3 unsupported"));
     return VFW_E_UNSUPPORTED_AUDIO;
-  } else if (version == 4 || version == 5) {
-    // Skip main format block
-    fmt += 42;
+  } else if (version == 4 || version == 5 && extralen > 50) {
+    // main format block
+    fmt += 2;  // word - unused (always 0)
+    fmt += 4;  // byte[4] - .ra4/.ra5 signature
+    fmt += 4;  // dword - unknown
+    fmt += 2;  // word - Version2
+    fmt += 4;  // dword - header size
+    fmt += 2;  // word - codec flavor
+    fmt += 4;  // dword - codec frame size
+    fmt += 12; // byte[12] - unknown
+    fmt += 2;  // word - sub packet h
+    fmt += 2;  // word - frame size
+    m_pAVCtx->block_align = AV_RB16(fmt); fmt += 2;  // word - subpacket size
+    fmt += 2;  // word - unknown
     // 6 Unknown bytes in ver 5
     if (version == 5)
       fmt += 6;
@@ -412,9 +423,9 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen, B
 
     int ra_extralen = min((extra + extralen) - (fmt+4), *(DWORD*)fmt);
     if (ra_extralen > 0)  {
-      *pExtraOutLen = ra_extralen;
-      *pExtraOut    = (uint8_t *)av_mallocz(ra_extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-      memcpy(*pExtraOut, fmt+4, ra_extralen);
+      m_pAVCtx->extradata_size = ra_extralen;
+      m_pAVCtx->extradata      = (uint8_t *)av_mallocz(ra_extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+      memcpy(m_pAVCtx->extradata, fmt+4, ra_extralen);
     }
   } else {
     DbgLog((LOG_TRACE, 10, L"Unknown RealAudio Header version: %d", version));
