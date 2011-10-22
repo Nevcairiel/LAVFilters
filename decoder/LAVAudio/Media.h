@@ -34,7 +34,7 @@ struct scmap_t {
   DWORD dwChannelMask;
 };
 
-#define MAX_NUM_CC_CODECS 2
+#define MAX_NUM_CC_CODECS 4
 
 struct codec_config_t {
   int nCodecs;
