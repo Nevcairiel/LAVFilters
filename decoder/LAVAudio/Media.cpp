@@ -24,6 +24,10 @@
 
 #include "moreuuids.h"
 
+extern "C" {
+#include "libavutil/intreadwrite.h"
+};
+
 typedef struct {
   const CLSID*        clsMinorType;
   const enum CodecID  nFFCodec;
@@ -375,6 +379,49 @@ void CLAVAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LP
   pBuf[1] = 0;
   pBuf[2] = ((channel_conf) << 4) | (get_lpcm_sample_rate_index(wfex_lpcm->nSamplesPerSec) & 0x0f);
   pBuf[3] = get_lpcm_bit_per_sample_index(wfex_lpcm->wBitsPerSample) << 6;
+}
+
+HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen, BYTE **pExtraOut, int *pExtraOutLen) const
+{
+  const uint8_t *fmt = extra+4;
+  uint16_t version = AV_RB16(fmt);
+  fmt += 2;
+  if (version == 3) {
+    DbgLog((LOG_TRACE, 10, L"RealAudio Header version 3 unsupported"));
+    return VFW_E_UNSUPPORTED_AUDIO;
+  } else if (version == 4 || version == 5) {
+    // Skip main format block
+    fmt += 42;
+    // 6 Unknown bytes in ver 5
+    if (version == 5)
+      fmt += 6;
+    // Audio format block
+    fmt += 8;
+    // Tag info in v4
+    if (version == 4) {
+      int len = *fmt++;
+      fmt += len;
+      len = *fmt++;
+      fmt += len;
+    } else if (version == 5) {
+      fmt += 8;
+    }
+    fmt += 3;
+    if (version == 5)
+      fmt++;
+
+    int ra_extralen = min((extra + extralen) - (fmt+4), *(DWORD*)fmt);
+    if (ra_extralen > 0)  {
+      *pExtraOutLen = ra_extralen;
+      *pExtraOut    = (uint8_t *)av_mallocz(ra_extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+      memcpy(*pExtraOut, fmt+4, ra_extralen);
+    }
+  } else {
+    DbgLog((LOG_TRACE, 10, L"Unknown RealAudio Header version: %d", version));
+    return VFW_E_UNSUPPORTED_AUDIO;
+  }
+
+  return S_OK;
 }
 
 // Gets a sample from the buffer for processing

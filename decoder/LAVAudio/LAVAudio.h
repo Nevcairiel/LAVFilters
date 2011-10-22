@@ -184,6 +184,7 @@ private:
   HRESULT Deliver(const BufferDetails &buffer);
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
+  HRESULT ParseRealAudioHeader(const BYTE *extra, const int extralen, BYTE **pExtraOut, int *pExtraOutLen) const;
 
   void UpdateVolumeStats(const BufferDetails &buffer);
 
