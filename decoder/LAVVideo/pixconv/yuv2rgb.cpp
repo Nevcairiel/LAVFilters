@@ -437,7 +437,7 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
 
     DXVA2_VideoTransferMatrix matrix = (DXVA2_VideoTransferMatrix)m_ColorProps.VideoTransferMatrix;
     if (matrix == DXVA2_VideoTransferMatrix_Unknown) {
-      matrix = (swsHeight >= 720 || swsWidth >= 1280) ? DXVA2_VideoTransferMatrix_BT709 : DXVA2_VideoTransferMatrix_BT601;
+      matrix = (swsHeight > 576 || swsWidth > 1024) ? DXVA2_VideoTransferMatrix_BT709 : DXVA2_VideoTransferMatrix_BT601;
     }
 
     BOOL inFullRange = (m_ColorProps.NominalRange == DXVA2_NominalRange_0_255);
