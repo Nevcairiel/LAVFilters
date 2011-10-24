@@ -78,6 +78,7 @@ HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
   sps.primaries = AVCOL_PRI_UNSPECIFIED;
   sps.trc = AVCOL_TRC_UNSPECIFIED;
   sps.colorspace = AVCOL_SPC_UNSPECIFIED;
+  sps.full_range = -1;
 
   // Parse
   sps.profile = parser.BitRead(8);

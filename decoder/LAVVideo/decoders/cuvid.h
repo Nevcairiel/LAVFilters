@@ -130,7 +130,7 @@ private:
   BOOL                   m_bFlushing;
   REFERENCE_TIME         m_rtAvgTimePerFrame;
   BOOL                   m_bWaitForKeyframe;
-  BOOL                   m_iFullRange;
+  int                    m_iFullRange;
 
   DXVA2_ExtendedFormat   m_DXVAExtendedFormat;
 
