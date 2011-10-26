@@ -47,8 +47,8 @@ protected:
     return m_pCallback->ReleaseFrame(ppFrame);
   }
 
-  inline HRESULT FilterInGraph(const GUID &clsid) {
-    return m_pCallback->FilterInGraph(clsid);
+  inline HRESULT FilterInGraph(PIN_DIRECTION dir, const GUID &clsid) {
+    return m_pCallback->FilterInGraph(dir, clsid);
   }
 
 protected:

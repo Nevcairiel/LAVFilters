@@ -403,8 +403,8 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     return VFW_E_TYPE_NOT_ACCEPTED;
   }
 
-  m_bVC1IsDTS    = (codec == CODEC_ID_VC1) && !(FilterInGraph(CLSID_MPCHCMPEGSplitter) || FilterInGraph(CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(CLSID_MPBDReader));
-  m_bLAVSplitter = FilterInGraph(CLSID_LAVSplitterSource) || FilterInGraph(CLSID_LAVSplitter);
+  m_bVC1IsDTS    = (codec == CODEC_ID_VC1) && !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader));
+  m_bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
 
   // Check if codec is activated
   for(int i = 0; i < Codec_NB; ++i) {
@@ -578,7 +578,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
   // Haali is incompatible with DXVA_ExtendedFormat
   if (m_bDXVAExtFormatSupport == -1)
-    m_bDXVAExtFormatSupport = !(FilterInGraph(CLSID_DXR) || FilterInGraph(CLSID_OverlayMixer));
+    m_bDXVAExtFormatSupport = !(FilterInGraph(PINDIR_OUTPUT, CLSID_DXR) || FilterInGraph(PINDIR_OUTPUT, CLSID_OverlayMixer));
 
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();

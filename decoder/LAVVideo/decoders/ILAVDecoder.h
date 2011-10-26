@@ -166,7 +166,7 @@ interface ILAVVideoCallback
    *
    * @result TRUE if the filter was found, false otherwise
    */
-  STDMETHOD_(BOOL, FilterInGraph)(const GUID &clsid) PURE;
+  STDMETHOD_(BOOL, FilterInGraph)(PIN_DIRECTION dir, const GUID &clsid) PURE;
 
   /**
    * Check wether VC-1 timestamps are DTS instead of PTS
