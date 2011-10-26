@@ -106,6 +106,8 @@ extern IBaseFilter* GetFilterFromPin(IPin* pPin);
 extern HRESULT NukeDownstream(IFilterGraph *pGraph, IPin *pPin);
 extern HRESULT NukeDownstream(IFilterGraph *pGraph, IBaseFilter *pFilter);
 extern HRESULT FindIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown);
+extern HRESULT FindFilterSafe(IPin *pPin, const GUID &guid, IBaseFilter **ppFilter);
+extern BOOL FilterInGraphSafe(IPin *pPin, const GUID &guid);
 
 std::wstring WStringFromGUID(const GUID& guid);
 BSTR ConvertCharToBSTR(const char *sz);

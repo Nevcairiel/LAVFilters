@@ -108,7 +108,7 @@ public:
   STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);
   STDMETHODIMP Deliver(LAVFrame *pFrame);
   STDMETHODIMP_(LPWSTR) GetFileExtension();
-  STDMETHODIMP_(BOOL) FilterInGraph(const GUID &clsid) { return ::FilterInGraph(clsid, m_pGraph); }
+  STDMETHODIMP_(BOOL) FilterInGraph(const GUID &clsid) { return ::FilterInGraphSafe(m_pInput, clsid); }
   STDMETHODIMP_(BOOL) VC1IsDTS() { return m_bVC1IsDTS; }
   STDMETHODIMP_(BOOL) IsLAVSplitter() { return m_bLAVSplitter; }
   STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }

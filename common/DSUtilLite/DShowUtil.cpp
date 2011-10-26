@@ -292,6 +292,67 @@ HRESULT FindIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown)
   return E_NOINTERFACE;
 }
 
+// pPin - pin of our filter to start searching
+// guid - guid of the filter to find
+// ppFilter - variable that'll receive a AddRef'd reference to the filter
+HRESULT FindFilterSafe(IPin *pPin, const GUID &guid, IBaseFilter **ppFilter)
+{
+  CheckPointer(ppFilter, E_POINTER);
+  CheckPointer(pPin, E_POINTER);
+
+  PIN_DIRECTION dir;
+  pPin->QueryDirection(&dir);
+
+  IPin *pOtherPin = NULL;
+  if (SUCCEEDED(pPin->ConnectedTo(&pOtherPin)) && pOtherPin) {
+    IBaseFilter *pFilter = GetFilterFromPin(pOtherPin);
+    SafeRelease(&pOtherPin);
+
+    HRESULT hrFilter = E_NOINTERFACE;
+    CLSID filterGUID;
+    if (SUCCEEDED(pFilter->GetClassID(&filterGUID))) {
+      if (filterGUID == guid) {
+        *ppFilter = pFilter;
+        hrFilter = S_OK;
+      } else {
+        IEnumPins *pPinEnum = NULL;
+        pFilter->EnumPins(&pPinEnum);
+
+        HRESULT hrPin = E_FAIL;
+        for (IPin *pOtherPin2 = NULL; pPinEnum->Next(1, &pOtherPin2, 0) == S_OK; pOtherPin2 = NULL) {
+          PIN_DIRECTION pinDir;
+          pOtherPin2->QueryDirection(&pinDir);
+          if (dir == pinDir) {
+            hrPin = FindFilterSafe(pOtherPin2, guid, ppFilter);
+          }
+          SafeRelease(&pOtherPin2);
+          if (SUCCEEDED(hrPin))
+            break;
+        }
+        hrFilter = hrPin;
+        SafeRelease(&pPinEnum);
+        SafeRelease(&pFilter);
+      }
+    }
+
+    if (SUCCEEDED(hrFilter)) {
+      return S_OK;
+    }
+  }
+  return E_NOINTERFACE;
+}
+
+BOOL FilterInGraphSafe(IPin *pPin, const GUID &guid)
+{
+  IBaseFilter *pFilter = NULL;
+  HRESULT hr = FindFilterSafe(pPin, guid, &pFilter);
+  if (SUCCEEDED(hr) && pFilter)  {
+    SafeRelease(&pFilter);
+    return TRUE;
+  }
+  return FALSE;
+}
+
 unsigned int lav_xiphlacing(unsigned char *s, unsigned int v)
 {
     unsigned int n = 0;
