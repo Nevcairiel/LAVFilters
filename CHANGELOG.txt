@@ -1,5 +1,29 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.38 - 2011/11/01
+LAV Splitter
+- New subtitle selection options (see release notes or readme)
+- Improved handling of languages with more then one ISO 639-2 code (f.ex. German, French, etc)
+- Improved seeking to the start of the file
+- Added support for VobSubs in MP4
+- Added support for MKV nested chapters
+- Improved playback of RV40 in MKV
+- Improved support of H264 in WTV
+
+LAV Audio
+- Fixed a crash with raw audio and SPDIF processing
+- Improved support for COOK
+- Improved DTS-in-WAV detection
+
+LAV Video
+- Fixed a issue that caused MPC-HCs EVR-CP to produce wrong colors when using CUVID decoding
+- Support Multi-Threading and CUVID decoding for MPEG-1
+- Improve decoder flushing
+- Fixed a potential freeze on load and dynamic type changes
+- Fixed a freeze on seeking with certain VP8 files
+- Added support for UtVideo
+- Added support for H264 4:2:2
+
 0.37 - 2011/10/06
 LAV Splitter
 - Improved handling of failures on the output pins
