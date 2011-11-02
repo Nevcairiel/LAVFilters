@@ -998,8 +998,6 @@ HRESULT CLAVVideo::SetInterlaceFlags(IMediaSample* pMS, LAVFrame *pFrame)
   return hr;
 }
 
-// H264 Random Access Helpers
-
 // ILAVVideoSettings
 STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)
 {
