@@ -140,8 +140,8 @@ HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
   parser.BitRead(1);                      // gaps_in_frame_num_allowed_flag
   parser.UExpGolombRead();                // mb_width
   parser.UExpGolombRead();                // mb_height
-  int mbs_only = parser.BitRead(1);       // frame_mbs_only_flag
-  if (!mbs_only)
+  sps.interlaced = !parser.BitRead(1);    // frame_mbs_only_flag
+  if (sps.interlaced)
     parser.BitRead(1);                    // mb_aff
 
   parser.BitRead(1);                      // direct_8x8_inference_flag
