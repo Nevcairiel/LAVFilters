@@ -266,7 +266,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
 
   if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_YUV420) {
     convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
-    m_RequiredAlignment = 0;
+    m_RequiredAlignment = 2;
   } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12) || (m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
     || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24)) {
     convert = &CLAVPixFmtConverter::plane_copy;

@@ -36,6 +36,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
   const int outYStride = dstStride;
   const int outUVStride = dstStride >> 1;
   const int shift = bpp - 8;
+  const int chromaWidth = (width + 1) >> 1;
 
   int line, i;
 
@@ -75,7 +76,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
     __m128i *dst128U = (__m128i *)(dstU + line * outUVStride);
     __m128i *dst128V = (__m128i *)(dstV + line * outUVStride);
 
-    for (i = 0; i < (width >> 1); i+=16) {
+    for (i = 0; i < chromaWidth; i+=16) {
       PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i), shift);    /* U0U0U0U0 */
       PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm4, (u+i+8), shift);  /* U0U0U0U0 */
       PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm4, (v+i), shift);    /* V0V0V0V0 */
@@ -119,7 +120,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   const int inUVStride = srcStride[1] >> 1;
   const int outStride = dstStride << 1;
   const int uvHeight = (outputFormat == LAVOutPixFmt_P010 || outputFormat == LAVOutPixFmt_P016) ? (height >> 1) : height;
-  const int uvWidth = width >> 1;
+  const int uvWidth = (width + 1) >> 1;
 
   int line, i;
   __m128i xmm0,xmm1,xmm2;
@@ -182,7 +183,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12)
   const int outLumaStride   = dstStride;
   const int outChromaStride = dstStride >> 1;
 
-  const int chromaWidth     = width >> 1;
+  const int chromaWidth     = (width + 1) >> 1;
   const int chromaHeight    = height >> 1;
 
   int line;
@@ -222,7 +223,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
   const int inChromaStride  = srcStride[1];
   const int outStride       = dstStride;
 
-  const int chromaWidth     = width >> 1;
+  const int chromaWidth     = (width + 1) >> 1;
   const int chromaHeight    = height >> 1;
 
   int line,i;
@@ -268,7 +269,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
   const int inChromaStride  = srcStride[1];
   const int outStride       = dstStride << 1;
 
-  const int chromaWidth     = width >> 1;
+  const int chromaWidth     = (width + 1) >> 1;
 
   int line,i;
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
