@@ -69,12 +69,6 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
   DXVA2_ExtendedFormat fmt;
   ZeroMemory(&fmt, sizeof(fmt));
 
-  // Sample format, progressive vs. interlaced
-  if (frame->interlaced_frame) {
-    fmt.SampleFormat = frame->top_field_first ? DXVA2_SampleFieldInterleavedEvenFirst : DXVA2_SampleFieldInterleavedOddFirst;
-  } else
-    fmt.SampleFormat = DXVA2_SampleProgressiveFrame;
-
   // Chroma location
   switch(ctx->chroma_sample_location) {
   case AVCHROMA_LOC_LEFT:
@@ -705,6 +699,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->repeat       = m_pFrame->repeat_pict;
     pOutFrame->key_frame    = m_pFrame->key_frame;
     pOutFrame->ext_format   = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
+    pOutFrame->interlaced   = m_pFrame->interlaced_frame;
+    pOutFrame->tff          = m_pFrame->top_field_first;
 
     pOutFrame->rtStart      = rtStart;
     pOutFrame->rtStop       = rtStop;

@@ -868,7 +868,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   }
 
 #if defined(DEBUG) && DEBUG_FRAME_TIMINGS
-  DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d, key: %d, repeat: %d, frame type: %d", pFrame->rtStart, pFrame->rtStart-m_rtPrevStart, pFrame->key_frame, pFrame->repeat, pFrame->ext_format.SampleFormat));
+  DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d, key: %d, repeat: %d, interlaced: %d, tff: %d", pFrame->rtStart, pFrame->rtStart-m_rtPrevStart, pFrame->key_frame, pFrame->repeat, pFrame->interlaced, pFrame->tff));
 #endif
 
   m_rtPrevStart = pFrame->rtStart;
@@ -982,13 +982,14 @@ HRESULT CLAVVideo::SetInterlaceFlags(IMediaSample* pMS, LAVFrame *pFrame)
     if(SUCCEEDED(pMS2->GetProperties(sizeof(props), (BYTE*)&props))) {
       props.dwTypeSpecificFlags &= ~0x7f;
 
-      if(!pFrame->ext_format.SampleFormat || pFrame->ext_format.SampleFormat == DXVA2_SampleProgressiveFrame) {
+      if(!pFrame->interlaced)
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_WEAVE;
-      } else {
-        if(pFrame->ext_format.SampleFormat == DXVA2_SampleFieldInterleavedEvenFirst) {
-          props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_FIELD1FIRST;
-        }
-      }
+
+      if (pFrame->tff)
+        props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_FIELD1FIRST;
+
+      if (pFrame->repeat)
+        props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_REPEAT_FIELD;
 
       pMS2->SetProperties(sizeof(props), (BYTE*)&props);
     }

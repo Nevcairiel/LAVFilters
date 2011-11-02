@@ -844,12 +844,8 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->aspect_ratio.num = m_VideoFormat.display_aspect_ratio.x;
   pFrame->aspect_ratio.den = m_VideoFormat.display_aspect_ratio.y;
   pFrame->ext_format = m_DXVAExtendedFormat;
-
-  // Flag interlaced samples (if not deinterlaced)
-  if (cuviddisp->progressive_frame || m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave)
-    pFrame->ext_format.SampleFormat = DXVA2_SampleProgressiveFrame;
-  else
-    pFrame->ext_format.SampleFormat = cuviddisp->top_field_first ? DXVA2_SampleFieldInterleavedEvenFirst : DXVA2_SampleFieldInterleavedOddFirst;
+  pFrame->interlaced = !cuviddisp->progressive_frame && m_VideoDecoderInfo.DeinterlaceMode == cudaVideoDeinterlaceMode_Weave;
+  pFrame->tff = cuviddisp->top_field_first;
 
   // Assign the buffer to the LAV Frame bufers
   int Ysize = height * pitch;

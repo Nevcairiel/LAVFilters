@@ -104,6 +104,8 @@ typedef struct LAVFrame {
 
   DXVA2_ExtendedFormat ext_format;  ///< extended format flags (critical uses: indicate progressive/interlaced, indicate limited/full range)
   int key_frame;                    ///< frame is a key frame (field is not mandatory)
+  int interlaced;                   ///< frame is interlaced
+  int tff;                          ///< top field is first
 
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);
