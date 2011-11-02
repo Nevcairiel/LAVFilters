@@ -398,7 +398,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     if (codec == CODEC_ID_VP6 || codec == CODEC_ID_VP6A || codec == CODEC_ID_VP6F) {
       int cropH = pBMI->biWidth - biRealWidth;
       int cropV = pBMI->biHeight - biRealHeight;
-      if (cropH > 0 && cropH < 0x0f && cropV > 0 && cropV < 0x0f) {
+      if (cropH >= 0 && cropH <= 0x0f && cropV >= 0 && cropV <= 0x0f) {
         m_pAVCtx->extradata = (uint8_t *)av_mallocz(1 + FF_INPUT_BUFFER_PADDING_SIZE);
         m_pAVCtx->extradata_size = 1;
         m_pAVCtx->extradata[0] = (cropH << 4) | cropV;
