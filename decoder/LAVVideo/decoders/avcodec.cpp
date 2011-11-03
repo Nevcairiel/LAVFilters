@@ -574,7 +574,13 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       if (used_bytes > pOut_size) {
         if (rtStartIn != AV_NOPTS_VALUE)
           m_rtStartCache = rtStartIn;
-      } else if (pOut_size >= used_bytes) {
+      } else if (used_bytes == pOut_size || ((used_bytes + 9) == pOut_size)) {
+        // Why +9 above?
+        // Well, apparently there are some broken MKV muxers that like to mux the MPEG-2 PICTURE_START_CODE block (which is 9 bytes) in the package with the previous frame
+        // This would cause the frame timestamps to be delayed by one frame exactly, and cause timestamp reordering to go wrong.
+        // So instead of failing on those samples, lets just assume that 9 bytes are that case exactly.
+        m_rtStartCache = rtStartIn = AV_NOPTS_VALUE;
+      } else if (pOut_size > used_bytes) {
         rtStart = m_rtStartCache;
         m_rtStartCache = rtStartIn;
         // The value was used once, don't use it for multiple frames, that ends up in weird timings
