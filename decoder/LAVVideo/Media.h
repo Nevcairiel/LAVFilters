@@ -31,3 +31,5 @@ struct codec_config_t {
   const wchar_t *description;
 };
 const codec_config_t *get_codec_config(LAVVideoCodec codec);
+
+int flip_plane(BYTE *buffer, int stride, int height);

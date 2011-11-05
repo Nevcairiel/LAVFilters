@@ -659,10 +659,6 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     pBIH->biHeight = height;
     pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
 
-    if (mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) {
-       pBIH->biHeight = -pBIH->biHeight;
-    }
-
     HRESULT hrQA = m_pOutput->GetConnected()->QueryAccept(&mt);
     if(SUCCEEDED(hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt))) {
       IMediaSample *pOut = NULL;
@@ -948,6 +944,11 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 
   DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
 #endif
+
+  if ((mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) && pBIH->biHeight > 0) {
+    int bpp = (mt.subtype == MEDIASUBTYPE_RGB32) ? 4 : 3;
+    flip_plane(pDataOut, pBIH->biWidth * bpp, height);
+  }
 
   if (m_bSendMediaType) {
     AM_MEDIA_TYPE *sendmt = CreateMediaType(&mt);
