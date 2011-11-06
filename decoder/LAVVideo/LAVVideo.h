@@ -63,8 +63,6 @@ public:
   STDMETHODIMP_(DWORD) GetNumThreads();
   STDMETHODIMP SetStreamAR(BOOL bStreamAR);
   STDMETHODIMP_(BOOL) GetStreamAR();
-  STDMETHODIMP SetReportInterlacedFlags(BOOL bEnabled);
-  STDMETHODIMP_(BOOL) GetReportInterlacedFlags();
   STDMETHODIMP_(BOOL) GetPixelFormat(LAVOutPixFmts pixFmt);
   STDMETHODIMP SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled);
   STDMETHODIMP SetHighQualityPixelFormatConversion(BOOL bEnabled);
@@ -158,7 +156,6 @@ private:
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {
     BOOL StreamAR;
-    BOOL InterlacedFlags;
     DWORD NumThreads;
     BOOL bFormats[Codec_NB];
     BOOL bPixFmts[LAVOutPixFmt_NB];

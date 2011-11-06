@@ -72,8 +72,6 @@ BEGIN
     CONTROL         "Read Aspect Ratio from Stream",IDC_STREAMAR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,18,182,10
     COMBOBOX        IDC_THREADS,17,54,75,200,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Threads for Multi-Threaded Decoding",IDC_LBL_MULTITHREAD,14,43,149,8
-    CONTROL         "Send Interlace Flags in Output Media Type",IDC_INTERLACE_FLAGS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,31,181,10
     GROUPBOX        "Output Formats",IDC_OUTPUT_FORMATS,7,75,196,114
     LTEXT           "8-bit",IDC_OUT_8BIT,38,85,32,8
     LTEXT           "10-bit",IDC_OUT_10BIT,118,85,32,8

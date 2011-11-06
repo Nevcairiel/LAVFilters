@@ -60,9 +60,6 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetStreamAR(bFlag);
 
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_INTERLACE_FLAGS, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetReportInterlacedFlags(bFlag);
-
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);
   m_pVideoSettings->SetNumThreads(dwVal);
 
@@ -180,7 +177,6 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_bStreamAR, 0);
-    SendDlgItemMessage(m_Dlg, IDC_INTERLACE_FLAGS, BM_SETCHECK, m_bInterlaceFlags, 0);
     SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_SETCURSEL, m_dwNumThreads, 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_HQ, BM_SETCHECK, m_bHighQualityPixelConv, 0);
 
@@ -261,7 +257,6 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   
   m_dwNumThreads    = m_pVideoSettings->GetNumThreads();
   m_bStreamAR       = m_pVideoSettings->GetStreamAR();
-  m_bInterlaceFlags = m_pVideoSettings->GetReportInterlacedFlags();
   m_bHighQualityPixelConv = m_pVideoSettings->GetHighQualityPixelFormatConversion();
   m_dwRGBOutput     = m_pVideoSettings->GetRGBOutputRange();
 
@@ -293,11 +288,6 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     if (LOWORD(wParam) == IDC_STREAMAR && HIWORD(wParam) == BN_CLICKED) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (lValue != m_bStreamAR) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_INTERLACE_FLAGS && HIWORD(wParam) == BN_CLICKED) {
-      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (lValue != m_bInterlaceFlags) {
         SetDirty();
       }
     } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_THREADS) {

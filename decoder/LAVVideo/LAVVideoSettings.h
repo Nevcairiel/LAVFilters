@@ -165,12 +165,6 @@ interface ILAVVideoSettings : public IUnknown
   // FALSE = AR from the source filter
   STDMETHOD_(BOOL,GetStreamAR)() = 0;
 
-  // Set wether interlaced flags are reported in the media type to the renderer.
-  STDMETHOD(SetReportInterlacedFlags)(BOOL bEnabled) = 0;
-
-  // Get wether interlaced flags are reported in the media type to the renderer.
-  STDMETHOD_(BOOL,GetReportInterlacedFlags)() = 0;
-
   // Configure which pixel formats are enabled for output
   // If pixFmt is invalid, Get will return FALSE and Set E_FAIL
   STDMETHOD_(BOOL,GetPixelFormat)(LAVOutPixFmts pixFmt) = 0;

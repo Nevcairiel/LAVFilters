@@ -16,7 +16,6 @@
 #define IDC_STREAMAR                    1004
 #define IDC_THREADS                     1005
 #define IDC_LBL_MULTITHREAD             1006
-#define IDC_INTERLACE_FLAGS             1007
 #define IDC_OUTPUT_FORMATS              1008
 #define IDC_OUT_YV12                    1009
 #define IDC_OUT_NV12                    1010
