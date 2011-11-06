@@ -216,7 +216,7 @@ static struct PixelFormatMapping {
   { PIX_FMT_GRAY8A,    LAVPixFmt_YUV420, TRUE  },
   { PIX_FMT_BGR48BE,   LAVPixFmt_RGB32,  TRUE  },
   { PIX_FMT_BGR48LE,   LAVPixFmt_RGB32,  TRUE  },
-  { PIX_FMT_GBR24P,    LAVPixFmt_YUV444, TRUE  }, // TODO: This should really go to RGB directly, but swscale doesnt offer such a converter yet
+  { PIX_FMT_GBR24P,    LAVPixFmt_RGB32,  TRUE  },
 
   { PIX_FMT_YUV420P9BE,  LAVPixFmt_YUV420bX, TRUE,  9 },
   { PIX_FMT_YUV420P9LE,  LAVPixFmt_YUV420bX, FALSE, 9 },
@@ -450,7 +450,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     } else if (mpeg2Parser.hdr.chroma == 2) {
       m_pAVCtx->pix_fmt = PIX_FMT_YUV422P;
     } else {
-      m_pAVCtx->pix_fmt = PIX_FMT_YUV444P;
+      ASSERT(0);
     }
   }
 
