@@ -243,6 +243,20 @@ inline static int init_parser(AVFormatContext *s, AVStream *st) {
   return 0;
 }
 
+void CLAVFDemuxer::UpdateParserFlags(AVStream *st) {
+  if (st->parser) {
+    if (st->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
+      st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+    } else if (st->codec->codec_id == CODEC_ID_VC1) {
+        if (m_bVC1Correction) {
+          st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+        } else {
+          st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+        }
+      }
+  }
+}
+
 STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 {
   HRESULT hr = S_OK;
@@ -305,10 +319,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
     // Create the parsers with the appropriate flags
     init_parser(m_avFormat, st);
-
-    if (st->parser && st->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
-      st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-    }
+    UpdateParserFlags(st);
 
 #ifdef DEBUG
     DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
@@ -397,13 +408,7 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
     if (st->codec->codec_id == CODEC_ID_VC1) {
-      if (st->parser) {
-        if (m_bVC1Correction) {
-          st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-        } else {
-          st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-        }
-      }
+      UpdateParserFlags(st);
     } else if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
     }
@@ -636,6 +641,11 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
     }
   }
 
+  for (int i = 0; i < m_avFormat->nb_streams; i++) {
+    init_parser(m_avFormat, m_avFormat->streams[i]);
+    UpdateParserFlags(m_avFormat->streams[i]);
+  }
+
   m_bVC1SeenTimestamp = FALSE;
 
   return S_OK;
@@ -647,6 +657,12 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
   if(ret < 0) {
     DbgLog((LOG_ERROR, 1, L"::SeekByte() -- Seek failed"));
   }
+
+  for (int i = 0; i < m_avFormat->nb_streams; i++) {
+    init_parser(m_avFormat, m_avFormat->streams[i]);
+    UpdateParserFlags(m_avFormat->streams[i]);
+  }
+
   return S_OK;
 }
 

@@ -113,6 +113,7 @@ private:
   STDMETHODIMP CreateStreams();
   STDMETHODIMP InitAVFormat(LPCOLESTR pszFileName);
   void CleanupAVFormat();
+  void UpdateParserFlags(AVStream *st);
 
   REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
   int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int den, int num, int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
