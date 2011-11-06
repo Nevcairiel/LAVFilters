@@ -92,6 +92,8 @@ void CMPEG2HeaderParser::MPEG2ParseExtHeader(GetBitContext *gb)
 {
   int startcode = get_bits(gb, 4); // Start Code
   if (startcode == 1) {
+    hdr.valid = 1;
+
     skip_bits(gb, 1); // profile and level esc
     hdr.profile = get_bits(gb, 3);
     hdr.level = get_bits(gb, 4);

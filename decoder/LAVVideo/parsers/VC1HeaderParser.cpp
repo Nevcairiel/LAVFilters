@@ -135,6 +135,8 @@ void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
   hdr.profile = get_bits(gb, 2);
   
   if (hdr.profile == PROFILE_ADVANCED) {
+    hdr.valid = 1;
+
     hdr.level = get_bits(gb, 3);
     get_bits(gb, 2); // Chroma Format, only 1 should be set for 4:2:0
     get_bits(gb, 3); // frmrtq_postproc

@@ -24,6 +24,7 @@
 
 #include "parsers/H264SequenceParser.h"
 #include "parsers/MPEG2HeaderParser.h"
+#include "parsers/VC1HeaderParser.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -396,6 +397,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   m_bUseTimestampQueue = (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->VC1IsDTS());
   m_bWaitForKeyframe = m_bUseTimestampQueue;
+  m_bInterlaced = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Weave;
 
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
@@ -442,10 +444,18 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
     } else if (cudaCodec == cudaVideoCodec_MPEG2) {
       DbgLog((LOG_TRACE, 10, L"-> Scanning extradata for MPEG2 sequence header"));
       CMPEG2HeaderParser mpeg2parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
-      if (mpeg2parser.hdr.chroma >= 2) {
-        DbgLog((LOG_TRACE, 10, L"  -> Sequence header indicates incompatible chroma sampling (chroma: %d)", mpeg2parser.hdr.chroma));
-        return VFW_E_UNSUPPORTED_VIDEO;
+      if (mpeg2parser.hdr.valid) {
+        if (mpeg2parser.hdr.chroma >= 2) {
+          DbgLog((LOG_TRACE, 10, L"  -> Sequence header indicates incompatible chroma sampling (chroma: %d)", mpeg2parser.hdr.chroma));
+          return VFW_E_UNSUPPORTED_VIDEO;
+        }
+        if(m_bInterlaced)
+          m_bInterlaced = mpeg2parser.hdr.interlaced;
       }
+    } else if (m_bInterlaced && cudaCodec == cudaVideoCodec_VC1) {
+      CVC1HeaderParser vc1Parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
+      if (vc1Parser.hdr.valid)
+        m_bInterlaced = vc1Parser.hdr.interlaced;
     }
   } else {
     m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264);
@@ -868,6 +878,8 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   CH264SequenceParser h264parser;
   h264parser.ParseNALs(buffer, buflen, 0);
   if (h264parser.sps.valid) {
+    if (m_bInterlaced)
+      m_bInterlaced = h264parser.sps.interlaced;
     m_iFullRange = h264parser.sps.full_range;
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
@@ -995,4 +1007,9 @@ STDMETHODIMP CDecCuvid::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 STDMETHODIMP_(REFERENCE_TIME) CDecCuvid::GetFrameDuration()
 {
   return 0;
+}
+
+STDMETHODIMP_(BOOL) CDecCuvid::IsInterlaced()
+{
+  return m_bInterlaced;
 }

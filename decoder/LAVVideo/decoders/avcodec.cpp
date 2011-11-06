@@ -22,6 +22,8 @@
 
 #include "moreuuids.h"
 #include "parsers/MPEG2HeaderParser.h"
+#include "parsers/H264SequenceParser.h"
+#include "parsers/VC1HeaderParser.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -234,6 +236,20 @@ static struct PixelFormatMapping {
   { PIX_FMT_YUV444P10LE, LAVPixFmt_YUV444bX, FALSE, 10 },
 };
 
+static CodecID ff_interlace_capable[] = {
+  CODEC_ID_DNXHD,
+  CODEC_ID_DVVIDEO,
+  CODEC_ID_FRWU,
+  CODEC_ID_MJPEG,
+  CODEC_ID_MPEG4,
+  CODEC_ID_MPEG2VIDEO,
+  CODEC_ID_H264,
+  CODEC_ID_VC1,
+  CODEC_ID_PNG,
+  CODEC_ID_PRORES,
+  CODEC_ID_RAWVIDEO
+};
+
 static struct PixelFormatMapping getPixFmtMapping(PixelFormat pixfmt) {
   const PixelFormatMapping def = { pixfmt, LAVPixFmt_YUV420, TRUE, 8 };
   PixelFormatMapping result = def;
@@ -265,6 +281,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_bWaitingForKeyFrame(FALSE)
   , m_bBFrameDelay(TRUE)
   , m_nBFramePos(0)
+  , m_bInterlaced(TRUE)
 {
 }
 
@@ -353,6 +370,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   unsigned int extralen = 0;
   getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), NULL, &extralen);
 
+  BOOL bH264avc = FALSE;
   if (extralen > 0) {
     DbgLog((LOG_TRACE, 10, L"-> Processing extradata of %d bytes", extralen));
     // Reconstruct AVC1 extradata format
@@ -386,6 +404,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       extra[5] = count;
       extra[extralen-1] = 0;
 
+      bH264avc = TRUE;
       m_h264RandomAccess.SetAVCNALSize(mp2vi->dwFlags);
     } else {
       // Just copy extradata for other formats
@@ -442,17 +461,42 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     return VFW_E_UNSUPPORTED_VIDEO;
   }
 
-  // Detect MPEG-2 chroma format
-  if (codec == CODEC_ID_MPEG2VIDEO && m_pAVCtx->extradata && m_pAVCtx->extradata_size) {
-    CMPEG2HeaderParser mpeg2Parser(extra, extralen);
-    if (mpeg2Parser.hdr.chroma < 2) {
-      m_pAVCtx->pix_fmt = PIX_FMT_YUV420P;
-    } else if (mpeg2Parser.hdr.chroma == 2) {
-      m_pAVCtx->pix_fmt = PIX_FMT_YUV422P;
-    } else {
-      ASSERT(0);
+  m_bInterlaced = FALSE;
+  for (int i = 0; i < countof(ff_interlace_capable); i++) {
+    if (codec == ff_interlace_capable[i]) {
+      m_bInterlaced = TRUE;
+      break;
     }
   }
+
+  // Detect chroma and interlaced
+  if (m_pAVCtx->extradata && m_pAVCtx->extradata_size) {
+    if (codec == CODEC_ID_MPEG2VIDEO) {
+      CMPEG2HeaderParser mpeg2Parser(extra, extralen);
+      if (mpeg2Parser.hdr.valid) {
+        if (mpeg2Parser.hdr.chroma < 2) {
+          m_pAVCtx->pix_fmt = PIX_FMT_YUV420P;
+        } else if (mpeg2Parser.hdr.chroma == 2) {
+          m_pAVCtx->pix_fmt = PIX_FMT_YUV422P;
+        }
+        m_bInterlaced = mpeg2Parser.hdr.interlaced;
+      }
+    } else if (codec == CODEC_ID_H264) {
+      CH264SequenceParser h264parser;
+      if (bH264avc)
+        h264parser.ParseNALs(extra+6, extralen-6, 2);
+      else
+        h264parser.ParseNALs(extra, extralen, 0);
+      if (h264parser.sps.valid)
+        m_bInterlaced = h264parser.sps.interlaced;
+    } else if (codec == CODEC_ID_VC1) {
+      CVC1HeaderParser vc1parser(extra, extralen);
+      if (vc1parser.hdr.valid)
+        m_bInterlaced = vc1parser.hdr.interlaced;
+    }
+  }
+
+  DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_bInterlaced));
 
   return S_OK;
 }
@@ -795,4 +839,9 @@ STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
   if (m_pAVCtx->time_base.den && m_pAVCtx->time_base.num)
     return (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
   return 0;
+}
+
+STDMETHODIMP_(BOOL) CDecAvcodec::IsInterlaced()
+{
+  return m_bInterlaced;
 }

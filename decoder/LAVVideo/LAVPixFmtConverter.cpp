@@ -169,7 +169,7 @@ int CLAVPixFmtConverter::GetNumMediaTypes()
   return GetFilteredFormatCount();
 }
 
-void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bVIH1, BOOL bHWDeint)
+void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bInterlaced, BOOL bVIH1)
 {
   if (index < 0 || index >= GetFilteredFormatCount())
     index = 0;
@@ -215,8 +215,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
     vih2->dwPictAspectRatioX = dwAspectX;
     vih2->dwPictAspectRatioY = dwAspectY;
 
-    // Always set interlace flags, the samples will be flagged appropriately then.
-    if (m_pSettings->GetReportInterlacedFlags() && !bHWDeint)
+    if (bInterlaced)
       vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
 
     pBIH = &vih2->bmiHeader;

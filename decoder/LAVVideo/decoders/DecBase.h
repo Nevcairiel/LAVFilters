@@ -32,6 +32,7 @@ public:
   // ILAVDecoder
   STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return Init(); };
   STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() { return 0; }
+  STDMETHOD_(BOOL, IsInterlaced)() { return TRUE; }
 
 protected:
   // Convenience wrapper around m_pCallback

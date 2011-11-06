@@ -269,6 +269,12 @@ interface ILAVDecoder
    * This function is not mandatory, and if you cannot provide any specific duration, return 0.
    */
   STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() PURE;
+
+  /**
+   * Query wether the format can potentially be interlaced.
+   * This function should return false if the format can 100% not be interlaced, and true if it can be interlaced (but also progressive).
+   */
+  STDMETHOD_(BOOL, IsInterlaced)() PURE;
 };
 
 /**

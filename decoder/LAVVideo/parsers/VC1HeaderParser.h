@@ -29,6 +29,8 @@ public:
 
 public:
   struct {
+    int valid;
+
     int profile;
     int level;
 
