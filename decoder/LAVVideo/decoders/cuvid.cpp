@@ -397,7 +397,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   m_bUseTimestampQueue = (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->VC1IsDTS());
   m_bWaitForKeyframe = m_bUseTimestampQueue;
-  m_bInterlaced = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Weave;
+  m_bInterlaced = TRUE;
 
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
@@ -449,13 +449,11 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
           DbgLog((LOG_TRACE, 10, L"  -> Sequence header indicates incompatible chroma sampling (chroma: %d)", mpeg2parser.hdr.chroma));
           return VFW_E_UNSUPPORTED_VIDEO;
         }
-        if(m_bInterlaced)
-          m_bInterlaced = mpeg2parser.hdr.interlaced;
+        m_bInterlaced = mpeg2parser.hdr.interlaced;
       }
-    } else if (m_bInterlaced && cudaCodec == cudaVideoCodec_VC1) {
+    } else if (cudaCodec == cudaVideoCodec_VC1) {
       CVC1HeaderParser vc1Parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
-      if (vc1Parser.hdr.valid)
-        m_bInterlaced = vc1Parser.hdr.interlaced;
+      m_bInterlaced = vc1Parser.hdr.interlaced;
     }
   } else {
     m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264);
@@ -878,8 +876,7 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   CH264SequenceParser h264parser;
   h264parser.ParseNALs(buffer, buflen, 0);
   if (h264parser.sps.valid) {
-    if (m_bInterlaced)
-      m_bInterlaced = h264parser.sps.interlaced;
+    m_bInterlaced = h264parser.sps.interlaced;
     m_iFullRange = h264parser.sps.full_range;
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
@@ -1011,5 +1008,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecCuvid::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecCuvid::IsInterlaced()
 {
-  return m_bInterlaced;
+  return m_bInterlaced && (m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave);
 }
