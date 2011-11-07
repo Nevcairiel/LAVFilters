@@ -1,5 +1,18 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.39 - 2011/11/07
+LAV Splitter
+- Fixed a bug that caused MPEG-2 and VC-1 parsers to produce wrong timestamps after a seek
+- Fixed playback of raw .h264 files
+
+LAV Video
+- NV12 is now the preferred YUV 4:2:0 output format
+- Fixed handling of the "As Input" RGB output setting
+- Improved VP6 cropping
+- Don't report completely progressive movies as interlaced to the renderer
+- Fixed playback of some broken MPEG-2 MKV muxes
+- RGB will now by default be offered as Bottom-Up instead of Top-Down for improved compatibility
+
 0.38 - 2011/11/01
 LAV Splitter
 - New subtitle selection options (see release notes or readme)
