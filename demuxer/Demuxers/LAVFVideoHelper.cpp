@@ -182,7 +182,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 {
   int extra = 0;
   BYTE *extradata = NULL;
-  BOOL bZeroPad = (avstream->codec->codec_id == CODEC_ID_VC1 && (container == "mpegts" || container == "mpeg"));
+  BOOL bZeroPad = (avstream->codec->codec_id == CODEC_ID_VC1 && (container == "mpegts" || container == "mpeg" || container == "mp4"));
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
