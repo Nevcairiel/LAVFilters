@@ -209,10 +209,13 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
   wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
   DWORD dwChannelMask = 0;
-  if(wfe->wBitsPerSample > 16 && wfe->nChannels <= 2) {
+  if((wfe->wBitsPerSample > 16 || wfe->nSamplesPerSec > 48000) && wfe->nChannels <= 2) {
     dwChannelMask = wfe->nChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
   } else if (wfe->nChannels > 2) {
     dwChannelMask = (DWORD)avstream->codec->channel_layout;
+    if (!dwChannelMask) {
+      dwChannelMask = (DWORD)av_get_default_channel_layout(wfe->nChannels);
+    }
   }
 
   if(dwChannelMask) {
