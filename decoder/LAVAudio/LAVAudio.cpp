@@ -1362,6 +1362,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
 {
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
+  HRESULT hr = S_FALSE;
 
   BOOL bEOF = (buffsize == -1);
   if (buffsize == -1) buffsize = 1;
@@ -1541,22 +1542,25 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         assert(FALSE);
         break;
       }
+
+      hr = S_OK;
+      out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
+
+      if (SUCCEEDED(PostProcess(&out))) {
+        *hrDeliver = QueueOutput(out);
+        if (FAILED(*hrDeliver)) {
+          return S_FALSE;
+        }
+      }
     }
   }
 
-  if (out.bBuffer->GetCount() <= 0) {
-    return S_FALSE;
+  if (hr == S_OK) {
+    m_DecodeFormat = out.sfFormat;
+    m_DecodeLayout = out.dwChannelMask;
   }
 
-  out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
-  m_DecodeFormat = out.sfFormat;
-  m_DecodeLayout = out.dwChannelMask;
-
-  if (SUCCEEDED(PostProcess(&out))) {
-    *hrDeliver = QueueOutput(out);
-  }
-
-  return S_OK;
+  return hr;
 }
 
 HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
@@ -1596,6 +1600,8 @@ HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
 
   m_OutputQueue.nSamples += buffer.nSamples;
   m_OutputQueue.bBuffer->Append(buffer.bBuffer);
+
+  buffer.bBuffer->SetSize(0);
 
   // Length of the current sample
   double dDuration = (double)m_OutputQueue.nSamples / m_OutputQueue.dwSamplesPerSec * 10000000.0;

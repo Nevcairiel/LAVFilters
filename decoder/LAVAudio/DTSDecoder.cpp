@@ -279,6 +279,7 @@ int CLAVAudio::SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int
 
 HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
+  HRESULT hr = S_FALSE;
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
 
@@ -384,29 +385,27 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       }
     }
 
-    // Append to output buffer
+    // Send to Output
     if (nPCMLength > 0) {
+      hr = S_OK;
       out.bBuffer->Append(m_pPCMData, nPCMLength);
+      out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
+
+      if (m_pAVCtx->profile != (1 << 7)) {
+        DTSRemapOutputChannels(&out, m_bsParser.m_DTSHeader);
+      }
+
+      if (SUCCEEDED(PostProcess(&out))) {
+        *hrDeliver = QueueOutput(out);
+      }
     }
   }
 
-  if (out.bBuffer->GetCount() <= 0) {
-    return S_FALSE;
+  if (hr == S_OK) {
+    m_pAVCtx->channels = out.wChannels;
+    m_DecodeFormat = out.sfFormat;
+    m_DecodeLayout = out.dwChannelMask;
   }
 
-  out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
-
-  if (m_pAVCtx->profile != (1 << 7)) {
-    DTSRemapOutputChannels(&out, m_bsParser.m_DTSHeader);
-  }
-  m_pAVCtx->channels = out.wChannels;
-
-  m_DecodeFormat = out.sfFormat;
-  m_DecodeLayout = out.dwChannelMask;
-
-  if (SUCCEEDED(PostProcess(&out))) {
-    *hrDeliver = QueueOutput(out);
-  }
-
-  return S_OK;
+  return hr;
 }
