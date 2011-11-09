@@ -268,7 +268,7 @@ int CLAVAudio::SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int
 {
   int nPCMLen = 0;
   __try {
-    m_pDTSDecoderContext->pDtsDecode(m_pDTSDecoderContext->dtsContext, pInput, len, pOutput, unk1, unk2, pBitdepth, pChannels, pCoreSampleRate, pUnk4, pHDSampleRate, pUnk5, pProfile);
+    nPCMLen = m_pDTSDecoderContext->pDtsDecode(m_pDTSDecoderContext->dtsContext, pInput, len, pOutput, unk1, unk2, pBitdepth, pChannels, pCoreSampleRate, pUnk4, pHDSampleRate, pUnk5, pProfile);
   } __except(EXCEPTION_EXECUTE_HANDLER) {
     DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
     nPCMLen = 0;
