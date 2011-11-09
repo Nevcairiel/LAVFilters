@@ -1325,23 +1325,17 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   } else {
     // Decoding
     // Consume the buffer data
-    BufferDetails output_buffer;
     if (m_pDTSDecoderContext)
-      hr2 = DecodeDTS(p, buffer_size, consumed, &output_buffer);
+      hr2 = DecodeDTS(p, buffer_size, consumed, &hr);
     else
-      hr2 = Decode(p, buffer_size, consumed, &output_buffer);
-    // S_OK means we actually have data to process
-    if (hr2 == S_OK) {
-      if (SUCCEEDED(PostProcess(&output_buffer))) {
-        hr = QueueOutput(output_buffer);
-      }
+      hr2 = Decode(p, buffer_size, consumed, &hr);
     // FAILED - throw away the data
-    } else if (FAILED(hr2)) {
+    if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
       m_buff.SetSize(0);
       m_bQueueResync = TRUE;
       return S_FALSE;
-    } else {
+    } else if (hr2 == S_FALSE) {
       DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
       hr = S_FALSE;
     }
@@ -1364,9 +1358,8 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   return hr;
 }
 
-HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out)
+HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
-  CheckPointer(out, E_POINTER);
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
 
@@ -1375,6 +1368,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
+
+  BufferDetails out;
 
   consumed = 0;
   while (buffsize > 0) {
@@ -1466,23 +1461,23 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
 
     // Channel re-mapping and sample format conversion
     if (nPCMLength > 0) {
-      const DWORD idx_start = out->bBuffer->GetCount();
+      const DWORD idx_start = out.bBuffer->GetCount();
 
-      out->wChannels = m_pAVCtx->channels;
-      out->dwSamplesPerSec = m_pAVCtx->sample_rate;
+      out.wChannels = m_pAVCtx->channels;
+      out.dwSamplesPerSec = m_pAVCtx->sample_rate;
       if (m_pAVCtx->channel_layout)
-        out->dwChannelMask = (DWORD)m_pAVCtx->channel_layout;
+        out.dwChannelMask = (DWORD)m_pAVCtx->channel_layout;
       else
-        out->dwChannelMask = get_channel_mask(out->wChannels);
+        out.dwChannelMask = get_channel_mask(out.wChannels);
 
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
-        out->bBuffer->Append(m_pPCMData, nPCMLength);
-        out->sfFormat = SampleFormat_U8;
+        out.bBuffer->Append(m_pPCMData, nPCMLength);
+        out.sfFormat = SampleFormat_U8;
         break;
       case AV_SAMPLE_FMT_S16:
-        out->bBuffer->Append(m_pPCMData, nPCMLength);
-        out->sfFormat = SampleFormat_16;
+        out.bBuffer->Append(m_pPCMData, nPCMLength);
+        out.sfFormat = SampleFormat_16;
         break;
       case AV_SAMPLE_FMT_S32:
         {
@@ -1501,9 +1496,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
           const short skip = 4 - bytes_per_sample;
 
           const DWORD size = (nPCMLength >> 2) * bytes_per_sample;
-          out->bBuffer->SetSize(idx_start + size);
+          out.bBuffer->SetSize(idx_start + size);
           // We use BYTE instead of int32_t because we don't know if its actually a 32-bit value we want to write
-          BYTE *pDataOut = (BYTE *)(out->bBuffer->Ptr() + idx_start);
+          BYTE *pDataOut = (BYTE *)(out.bBuffer->Ptr() + idx_start);
 
           // The source is always in 32-bit values
           const size_t num_elements = nPCMLength / sizeof(int32_t) / m_pAVCtx->channels;
@@ -1519,18 +1514,18 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
             }
           }
 
-          out->sfFormat = bits_per_sample == 32 ? SampleFormat_32 : (bits_per_sample == 24 ? SampleFormat_24 : SampleFormat_16);
-          out->wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
+          out.sfFormat = bits_per_sample == 32 ? SampleFormat_32 : (bits_per_sample == 24 ? SampleFormat_24 : SampleFormat_16);
+          out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
         }
         break;
       case AV_SAMPLE_FMT_FLT:
-        out->bBuffer->Append(m_pPCMData, nPCMLength);
-        out->sfFormat = SampleFormat_FP32;
+        out.bBuffer->Append(m_pPCMData, nPCMLength);
+        out.sfFormat = SampleFormat_FP32;
         break;
       case AV_SAMPLE_FMT_DBL:
         {
-          out->bBuffer->SetSize(idx_start + (nPCMLength / 2));
-          float *pDataOut = (float *)(out->bBuffer->Ptr() + idx_start);
+          out.bBuffer->SetSize(idx_start + (nPCMLength / 2));
+          float *pDataOut = (float *)(out.bBuffer->Ptr() + idx_start);
 
           const size_t num_elements = nPCMLength / sizeof(double) / m_pAVCtx->channels;
           for (size_t i = 0; i < num_elements; ++i) {
@@ -1540,7 +1535,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
             }
           }
         }
-        out->sfFormat = SampleFormat_FP32;
+        out.sfFormat = SampleFormat_FP32;
         break;
       default:
         assert(FALSE);
@@ -1549,13 +1544,17 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, Buf
     }
   }
 
-  if (out->bBuffer->GetCount() <= 0) {
+  if (out.bBuffer->GetCount() <= 0) {
     return S_FALSE;
   }
 
-  out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
-  m_DecodeFormat = out->sfFormat;
-  m_DecodeLayout = out->dwChannelMask;
+  out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
+  m_DecodeFormat = out.sfFormat;
+  m_DecodeLayout = out.dwChannelMask;
+
+  if (SUCCEEDED(PostProcess(&out))) {
+    *hrDeliver = QueueOutput(out);
+  }
 
   return S_OK;
 }

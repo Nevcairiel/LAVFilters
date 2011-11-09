@@ -174,7 +174,7 @@ private:
   CMediaType CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSample = 0) const;
   HRESULT ReconnectOutput(long cbBuffer, CMediaType& mt);
   HRESULT ProcessBuffer(BOOL bEOF = FALSE);
-  HRESULT Decode(const BYTE *p, int buffsize, int &consumed, BufferDetails *out);
+  HRESULT Decode(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
   HRESULT PostProcess(BufferDetails *buffer);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
 
@@ -206,7 +206,8 @@ private:
   HRESULT InitDTSDecoder();
   HRESULT FreeDTSDecoder();
   HRESULT FlushDTSDecoder(BOOL bReopen = FALSE);
-  HRESULT DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out);
+  HRESULT DecodeDTS(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver);
+  int SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int unk2, int *pBitdepth, int *pChannels, int *pCoreSampleRate, int *pUnk4, int *pHDSampleRate, int *pUnk5, int *pProfile);
 
   HRESULT CheckChannelLayoutConformity(DWORD dwLayout);
   HRESULT Create51Conformity(DWORD dwLayout);

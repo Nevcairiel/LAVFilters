@@ -264,14 +264,28 @@ static void DTSRemapOutputChannels(BufferDetails *buffer, DTSHeader header)
   }
 }
 
-HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, BufferDetails *out)
+int CLAVAudio::SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int unk2, int *pBitdepth, int *pChannels, int *pCoreSampleRate, int *pUnk4, int *pHDSampleRate, int *pUnk5, int *pProfile)
 {
-  CheckPointer(out, E_POINTER);
+  int nPCMLen = 0;
+  __try {
+    m_pDTSDecoderContext->pDtsDecode(m_pDTSDecoderContext->dtsContext, pInput, len, pOutput, unk1, unk2, pBitdepth, pChannels, pCoreSampleRate, pUnk4, pHDSampleRate, pUnk5, pProfile);
+  } __except(EXCEPTION_EXECUTE_HANDLER) {
+    DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
+    nPCMLen = 0;
+    FlushDTSDecoder(TRUE);
+  }
+  return nPCMLen;
+};
+
+HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver)
+{
   int nPCMLength	= 0;
   const BYTE *pDataInBuff = p;
 
   BOOL bEOF = (buffsize == -1);
   if (buffsize == -1) buffsize = 1;
+
+  BufferDetails out;
 
   consumed = 0;
   while (buffsize > 0) {
@@ -324,29 +338,17 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
       int bitdepth = 0, channels = 0, CoreSampleRate = 0, HDSampleRate = 0, profile = 0;
       int unk4 = 0, unk5 = 0;
-      __try {
-        nPCMLength = m_pDTSDecoderContext->pDtsDecode(m_pDTSDecoderContext->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
-      } __except(EXCEPTION_EXECUTE_HANDLER) {
-        DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
-        nPCMLength = 0;
-        FlushDTSDecoder(TRUE);
-      }
+      nPCMLength = SafeDTSDecode(m_pFFBuffer, pOut_size, m_pPCMData, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
       if (nPCMLength > 0 && bitdepth != m_DTSBitDepth) {
         int decodeBits = bitdepth > 16 ? 24 : 16;
 
         // If the bit-depth changed, instruct the DTS Decoder to decode to the new bit depth, and decode the previous sample again.
-        if (decodeBits != m_DTSBitDepth && out->bBuffer->GetCount() == 0) {
+        if (decodeBits != m_DTSBitDepth && out.bBuffer->GetCount() == 0) {
           DbgLog((LOG_TRACE, 20, L"::Decode(): The DTS decoder indicated that it outputs %d bits, changing config to %d bits to compensate", bitdepth, decodeBits));
           m_DTSBitDepth = decodeBits;
 
           FlushDTSDecoder();
-          __try {
-            nPCMLength = m_pDTSDecoderContext->pDtsDecode(m_pDTSDecoderContext->dtsContext, m_pFFBuffer, pOut_size, m_pPCMData, 0, 2, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
-          } __except(EXCEPTION_EXECUTE_HANDLER) {
-            DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
-            nPCMLength = 0;
-            FlushDTSDecoder(TRUE);
-          }
+          nPCMLength = SafeDTSDecode(m_pFFBuffer, pOut_size, m_pPCMData, 0, 2, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
         }
       }
       if (nPCMLength <= 0) {
@@ -357,11 +359,11 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
       m_bUpdateTimeCache = TRUE;
 
-      out->wChannels        = channels;
-      out->dwSamplesPerSec  = HDSampleRate;
-      out->sfFormat         = m_DTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
-      out->dwChannelMask    = get_channel_mask(channels); // TODO
-      out->wBitsPerSample   = bitdepth;
+      out.wChannels        = channels;
+      out.dwSamplesPerSec  = HDSampleRate;
+      out.sfFormat         = m_DTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
+      out.dwChannelMask    = get_channel_mask(channels); // TODO
+      out.wBitsPerSample   = bitdepth;
 
       // DTS Express
       if (profile == 0 && !m_bsParser.m_DTSHeader.HasCore) {
@@ -384,23 +386,27 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
     // Append to output buffer
     if (nPCMLength > 0) {
-      out->bBuffer->Append(m_pPCMData, nPCMLength);
+      out.bBuffer->Append(m_pPCMData, nPCMLength);
     }
   }
 
-  if (out->bBuffer->GetCount() <= 0) {
+  if (out.bBuffer->GetCount() <= 0) {
     return S_FALSE;
   }
 
-  out->nSamples = out->bBuffer->GetCount() / get_byte_per_sample(out->sfFormat) / out->wChannels;
+  out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
 
   if (m_pAVCtx->profile != (1 << 7)) {
-    DTSRemapOutputChannels(out, m_bsParser.m_DTSHeader);
+    DTSRemapOutputChannels(&out, m_bsParser.m_DTSHeader);
   }
-  m_pAVCtx->channels = out->wChannels;
+  m_pAVCtx->channels = out.wChannels;
 
-  m_DecodeFormat = out->sfFormat;
-  m_DecodeLayout = out->dwChannelMask;
+  m_DecodeFormat = out.sfFormat;
+  m_DecodeLayout = out.dwChannelMask;
+
+  if (SUCCEEDED(PostProcess(&out))) {
+    *hrDeliver = QueueOutput(out);
+  }
 
   return S_OK;
 }
