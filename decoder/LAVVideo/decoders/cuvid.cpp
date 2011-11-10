@@ -582,7 +582,7 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
   filter->m_bDoubleRateDeint = FALSE;
   if (filter->m_bInterlaced && cuvidfmt->frame_rate.numerator && cuvidfmt->frame_rate.denominator) {
     double dFrameTime = 10000000.0 / ((double)cuvidfmt->frame_rate.numerator / cuvidfmt->frame_rate.denominator);
-    if (filter->m_pSettings->GetHWAccelDeintOutput() == HWDeintOutput_FramePerField && filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave) {
+    if (filter->m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField && filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave) {
       filter->m_bDoubleRateDeint = TRUE;
       dFrameTime /= 2.0;
     }
@@ -770,13 +770,13 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   CUresult cuStatus = CUDA_SUCCESS;
 
   memset(&vpp, 0, sizeof(vpp));
-  vpp.progressive_frame = cuviddisp->progressive_frame && !m_pSettings->GetHWAccelDeintForce();
+  vpp.progressive_frame = cuviddisp->progressive_frame && !m_pSettings->GetDeintForce();
 
-  LAVHWDeintFieldOrder dwFieldOrder = m_pSettings->GetHWAccelDeintFieldOrder();
-  if (dwFieldOrder == HWDeintFieldOrder_Auto)
+  LAVDeintFieldOrder dwFieldOrder = m_pSettings->GetDeintFieldOrder();
+  if (dwFieldOrder == DeintFieldOrder_Auto)
     vpp.top_field_first = cuviddisp->top_field_first;
   else
-    vpp.top_field_first = (dwFieldOrder == HWDeintFieldOrder_TopFieldFirst);
+    vpp.top_field_first = (dwFieldOrder == DeintFieldOrder_TopFieldFirst);
 
   vpp.second_field = (field == 1);
 

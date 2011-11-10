@@ -57,18 +57,23 @@ public:
 
   // ILAVVideoSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
-  STDMETHODIMP_(BOOL) GetFormatConfiguration(LAVVideoCodec vCodec);
   STDMETHODIMP SetFormatConfiguration(LAVVideoCodec vCodec, BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetFormatConfiguration(LAVVideoCodec vCodec);
   STDMETHODIMP SetNumThreads(DWORD dwNum);
   STDMETHODIMP_(DWORD) GetNumThreads();
   STDMETHODIMP SetStreamAR(BOOL bStreamAR);
   STDMETHODIMP_(BOOL) GetStreamAR();
-  STDMETHODIMP_(BOOL) GetPixelFormat(LAVOutPixFmts pixFmt);
   STDMETHODIMP SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled);
-  STDMETHODIMP SetHighQualityPixelFormatConversion(BOOL bEnabled);
-  STDMETHODIMP_(BOOL) GetHighQualityPixelFormatConversion();
+  STDMETHODIMP_(BOOL) GetPixelFormat(LAVOutPixFmts pixFmt);
   STDMETHODIMP SetRGBOutputRange(DWORD dwRange);
   STDMETHODIMP_(DWORD) GetRGBOutputRange();
+
+  STDMETHODIMP SetDeintFieldOrder(LAVDeintFieldOrder fieldOrder);
+  STDMETHODIMP_(LAVDeintFieldOrder) GetDeintFieldOrder();
+  STDMETHODIMP SetDeintForce(BOOL bForce);
+  STDMETHODIMP_(BOOL) GetDeintForce();
+  STDMETHODIMP SetDeintAggressive(BOOL bAggressive);
+  STDMETHODIMP_(BOOL) GetDeintAggressive();
 
   STDMETHODIMP_(DWORD) CheckHWAccelSupport(LAVHWAccel hwAccel);
   STDMETHODIMP SetHWAccel(LAVHWAccel hwAccel);
@@ -77,14 +82,10 @@ public:
   STDMETHODIMP_(BOOL) GetHWAccelCodec(LAVVideoHWCodec hwAccelCodec);
   STDMETHODIMP SetHWAccelDeintMode(LAVHWDeintModes deintMode);
   STDMETHODIMP_(LAVHWDeintModes) GetHWAccelDeintMode();
-  STDMETHODIMP SetHWAccelDeintOutput(LAVHWDeintOutput deintOutput);
-  STDMETHODIMP_(LAVHWDeintOutput) GetHWAccelDeintOutput();
+  STDMETHODIMP SetHWAccelDeintOutput(LAVDeintOutput deintOutput);
+  STDMETHODIMP_(LAVDeintOutput) GetHWAccelDeintOutput();
   STDMETHODIMP SetHWAccelDeintHQ(BOOL bHQ);
   STDMETHODIMP_(BOOL) GetHWAccelDeintHQ();
-  STDMETHODIMP SetHWAccelDeintFieldOrder(LAVHWDeintFieldOrder fieldOrder);
-  STDMETHODIMP_(LAVHWDeintFieldOrder) GetHWAccelDeintFieldOrder();
-  STDMETHODIMP SetHWAccelDeintForce(BOOL bForce);
-  STDMETHODIMP_(BOOL) GetHWAccelDeintForce();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -159,15 +160,15 @@ private:
     DWORD NumThreads;
     BOOL bFormats[Codec_NB];
     BOOL bPixFmts[LAVOutPixFmt_NB];
-    BOOL HighQualityPixConv;
     DWORD RGBRange;
     DWORD HWAccel;
     BOOL bHWFormats[HWCodec_NB];
     DWORD HWDeintMode;
     DWORD HWDeintOutput;
     BOOL HWDeintHQ;
-    DWORD HWDeintFieldOrder;
-    BOOL HWDeintForce;
+    DWORD DeintFieldOrder;
+    BOOL DeintAggressive;
+    BOOL DeintForce;
   } m_settings;
 
 #ifdef DEBUG

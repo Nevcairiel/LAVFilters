@@ -63,8 +63,14 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);
   m_pVideoSettings->SetNumThreads(dwVal);
 
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_HQ, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetHighQualityPixelFormatConversion(bFlag);
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_GETCURSEL, 0, 0);
+  m_pVideoSettings->SetDeintFieldOrder((LAVDeintFieldOrder)dwVal);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DEINT_AGGRESSIVE, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetDeintAggressive(bFlag);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DEINT_FORCE, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetDeintForce(bFlag);
 
   BOOL bPixFmts[LAVOutPixFmt_NB] = {0};
   bPixFmts[LAVOutPixFmt_YV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_GETCHECK,0, 0);
@@ -109,13 +115,7 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
 
   BOOL bFilm = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_GETCHECK, 0, 0);
   //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetHWAccelDeintOutput(bFilm ? HWDeintOutput_FramePer2Field : HWDeintOutput_FramePerField);
-
-  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_GETCURSEL, 0, 0);
-  m_pVideoSettings->SetHWAccelDeintFieldOrder((LAVHWDeintFieldOrder)dwVal);
-
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FORCE, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetHWAccelDeintForce(bFlag);
+  m_pVideoSettings->SetHWAccelDeintOutput(bFilm ? DeintOutput_FramePer2Field : DeintOutput_FramePerField);
 
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelDeintHQ(bFlag);
@@ -152,7 +152,6 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   }
 
   addHint(IDC_THREADS, L"Enable Multi-Threading for codecs that support it.\nAuto will automatically use the maximum number of threads suitable for your CPU. Using 1 thread disables multi-threading.\n\nMT decoding is supported for H264, MPEG2, MPEG4, VP8, VP3/Theora, DV and HuffYUV");
-  addHint(IDC_OUT_HQ, L"Enable High-Quality conversion for swscale.\nOnly swscale processing is affected, all other conversion are always high-quality.\nNote that this mode can be very slow!");
 
   WCHAR hwAccelNone[] = L"None";
   WCHAR hwAccelCUDA[] = L"CUVID";
@@ -160,25 +159,31 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelCUDA);
 
   // Init the fieldorder Combo Box
-  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_RESETCONTENT, 0, 0);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_RESETCONTENT, 0, 0);
   WideStringFromResource(stringBuffer, IDS_FIELDORDER_AUTO);
-  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
   WideStringFromResource(stringBuffer, IDS_FIELDORDER_TOP);
-  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
   WideStringFromResource(stringBuffer, IDS_FIELDORDER_BOTTOM);
-  SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+
+  addHint(IDC_DEINT_AGGRESSIVE, L"Force deinterlacing of all frames if the stream is flagged interlaced.");
+  addHint(IDC_DEINT_FORCE, L"Force deinterlacing of all frames flagged as progressive (always).");
 
   addHint(IDC_HWDEINT_OUT_FILM, L"Deinterlace in \"Film\" Mode.\nFor every pair of interlaced fields, one frame will be created, resulting in 25/30 fps.");
   addHint(IDC_HWDEINT_OUT_VIDEO, L"Deinterlace in \"Video\" Mode. (Recommended)\nFor every interlaced field, one frame will be created, resulting in 50/60 fps.");
 
-  addHint(IDC_HWDEINT_FORCE, L"Force deinterlacing of frames flagged as progressive.");
   addHint(IDC_HWDEINT_HQ, L"Instruct the decoder to use the maximum quality possible.\nThis will cost performance, it is however required for the best deinterlacing quality.\n\nNOTE: This option is known to fail on Windows XP.");
 
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_bStreamAR, 0);
     SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_SETCURSEL, m_dwNumThreads, 0);
-    SendDlgItemMessage(m_Dlg, IDC_OUT_HQ, BM_SETCHECK, m_bHighQualityPixelConv, 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_SETCURSEL, m_DeintFieldOrder, 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_DEINT_AGGRESSIVE, BM_SETCHECK, m_DeintAggressive, 0);
+    SendDlgItemMessage(m_Dlg, IDC_DEINT_FORCE, BM_SETCHECK, m_DeintForce, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_YV12], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_NV12], 0);
@@ -207,12 +212,9 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_BOB, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_BOB), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ADAPTIVE, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_Hardware), 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_SETCHECK, (m_HWDeintOutMode == HWDeintOutput_FramePer2Field), 0);
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_SETCHECK, (m_HWDeintOutMode == HWDeintOutput_FramePerField), 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePer2Field), 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePerField), 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FIELDORDER, CB_SETCURSEL, m_HWDeintFieldOrder, 0);
-
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_FORCE, BM_SETCHECK, m_HWDeintForce, 0);
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_SETCHECK, m_HWDeintHQ, 0);
 
     UpdateHWOptions();
@@ -237,8 +239,6 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_ADAPTIVE), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_FILM), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_VIDEO), bEnabled);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_FIELDORDER), bEnabled);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_FORCE), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bEnabled);
 
   WCHAR hwAccelEmpty[] = L"";
@@ -257,7 +257,9 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   
   m_dwNumThreads    = m_pVideoSettings->GetNumThreads();
   m_bStreamAR       = m_pVideoSettings->GetStreamAR();
-  m_bHighQualityPixelConv = m_pVideoSettings->GetHighQualityPixelFormatConversion();
+  m_DeintFieldOrder = m_pVideoSettings->GetDeintFieldOrder();
+  m_DeintAggressive = m_pVideoSettings->GetDeintAggressive();
+  m_DeintForce      = m_pVideoSettings->GetDeintForce();
   m_dwRGBOutput     = m_pVideoSettings->GetRGBOutputRange();
 
   for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
@@ -271,8 +273,6 @@ HRESULT CLAVVideoSettingsProp::LoadData()
 
   m_HWDeintAlgo = m_pVideoSettings->GetHWAccelDeintMode();
   m_HWDeintOutMode = m_pVideoSettings->GetHWAccelDeintOutput();
-  m_HWDeintFieldOrder = m_pVideoSettings->GetHWAccelDeintFieldOrder();
-  m_HWDeintForce = m_pVideoSettings->GetHWAccelDeintForce();
   m_HWDeintHQ = m_pVideoSettings->GetHWAccelDeintHQ();
 
   return hr;
@@ -295,9 +295,19 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       if (lValue != m_dwNumThreads) {
         SetDirty();
       }
-    } else if (LOWORD(wParam) == IDC_OUT_HQ && HIWORD(wParam) == BN_CLICKED) {
-      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (lValue != m_bHighQualityPixelConv) {
+    } else if (LOWORD(wParam) == IDC_DEINT_FIELDORDER && HIWORD(wParam) == CBN_SELCHANGE) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_DeintFieldOrder) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_DEINT_AGGRESSIVE && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_DeintAggressive) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_DEINT_FORCE && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_DeintForce) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_YV12 && HIWORD(wParam) == BN_CLICKED) {
@@ -418,22 +428,12 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       }
     } else if (LOWORD(wParam) == IDC_HWDEINT_OUT_FILM && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != (m_HWDeintOutMode == HWDeintOutput_FramePer2Field)) {
+      if (bValue != (m_HWDeintOutMode == DeintOutput_FramePer2Field)) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_HWDEINT_OUT_VIDEO && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != (m_HWDeintOutMode == HWDeintOutput_FramePerField)) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_HWDEINT_FIELDORDER && HIWORD(wParam) == CBN_SELCHANGE) {
-      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
-      if (lValue != m_HWDeintFieldOrder) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_HWDEINT_FORCE && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_HWDeintForce) {
+      if (bValue != (m_HWDeintOutMode == DeintOutput_FramePerField)) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_HWDEINT_HQ && HIWORD(wParam) == BN_CLICKED) {

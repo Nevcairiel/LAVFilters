@@ -37,7 +37,6 @@
 #define IDC_OUT_10BIT                   1026
 #define IDC_OUT_16BIT                   1027
 #define IDC_OUT_UYVY                    1028
-#define IDC_OUT_HQ                      1029
 #define IDC_LBL_RGBOUT                  1030
 #define IDC_RGBOUT_AUTO                 1031
 #define IDC_RGBOUT_TV                   1032
@@ -57,11 +56,13 @@
 #define IDC_LBL_HWDEINT_MODE            1046
 #define IDC_HWDEINT_OUT_VIDEO           1047
 #define IDC_HWDEINT_OUT_FILM            1048
-#define IDC_LBL_HWDEINT_FIELDORDER      1049
-#define IDC_HWDEINT_FIELDORDER          1050
-#define IDC_HWDEINT_FORCE               1051
+#define IDC_LBL_DEINT_FIELDORDER        1049
+#define IDC_DEINT_FIELDORDER            1050
+#define IDC_DEINT_FORCE                 1051
 #define IDC_HWDEINT_HQ                  1052
 #define IDC_HWACCEL_AVAIL               1053
+#define IDC_DEINT_SETTINGS              1054
+#define IDC_DEINT_AGGRESSIVE            1055
 
 // Next default values for new objects
 // 
@@ -69,7 +70,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1054
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

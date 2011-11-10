@@ -88,20 +88,20 @@ typedef enum LAVHWDeintModes {
   HWDeintMode_Hardware
 };
 
-// Type of deinterlacing to perform in the hardware
+// Type of deinterlacing to perform
 // - FramePerField re-constructs one frame from every field, resulting in 50/60 fps.
 // - FramePer2Field re-constructs one frame from every 2 fields, resulting in 25/30 fps.
 // Note: Weave will always use FramePer2Field
-typedef enum LAVHWDeintOutput {
-  HWDeintOutput_FramePerField,
-  HWDeintOutput_FramePer2Field
+typedef enum LAVDeintOutput {
+  DeintOutput_FramePerField,
+  DeintOutput_FramePer2Field
 };
 
 // Control the field order of the deinterlacer
-typedef enum LAVHWDeintFieldOrder {
-  HWDeintFieldOrder_Auto,
-  HWDeintFieldOrder_TopFieldFirst,
-  HWDeintFieldOrder_BottomFieldFirst,
+typedef enum LAVDeintFieldOrder {
+  DeintFieldOrder_Auto,
+  DeintFieldOrder_TopFieldFirst,
+  DeintFieldOrder_BottomFieldFirst,
 };
 
 // Supported output pixel formats
@@ -170,12 +170,6 @@ interface ILAVVideoSettings : public IUnknown
   STDMETHOD_(BOOL,GetPixelFormat)(LAVOutPixFmts pixFmt) = 0;
   STDMETHOD(SetPixelFormat)(LAVOutPixFmts pixFmt, BOOL bEnabled) = 0;
 
-  // Set wether high-quality pixel format conversion is performed
-  STDMETHOD(SetHighQualityPixelFormatConversion)(BOOL bEnabled) = 0;
-
-  // Get wether high-quality pixel format conversion is performed
-  STDMETHOD_(BOOL,GetHighQualityPixelFormatConversion)() = 0;
-
   // Set the RGB output range for the YUV->RGB conversion
   // 0 = Auto (same as input), 1 = Limited (16-235), 2 = Full (0-255)
   STDMETHOD(SetRGBOutputRange)(DWORD dwRange) = 0;
@@ -183,6 +177,24 @@ interface ILAVVideoSettings : public IUnknown
   // Get the RGB output range for the YUV->RGB conversion
   // 0 = Auto (same as input), 1 = Limited (16-235), 2 = Full (0-255)
   STDMETHOD_(DWORD,GetRGBOutputRange)() = 0;
+
+  // Set the deinterlacing field order of the hardware decoder
+  STDMETHOD(SetDeintFieldOrder)(LAVDeintFieldOrder fieldOrder) = 0;
+
+  // get the deinterlacing field order of the hardware decoder
+  STDMETHOD_(LAVDeintFieldOrder, GetDeintFieldOrder)() = 0;
+
+  // Set wether all frames should be deinterlaced if the stream is flagged interlaced
+  STDMETHOD(SetDeintAggressive)(BOOL bAggressive) = 0;
+
+  // Get wether all frames should be deinterlaced if the stream is flagged interlaced
+  STDMETHOD_(BOOL, GetDeintAggressive)() = 0;
+
+  // Set wether all frames should be deinterlaced, even ones marked as progressive
+  STDMETHOD(SetDeintForce)(BOOL bForce) = 0;
+
+  // Get wether all frames should be deinterlaced, even ones marked as progressive
+  STDMETHOD_(BOOL, GetDeintForce)() = 0;
 
   // Check if the specified HWAccel is supported
   // Note: This will usually only check the availability of the required libraries (ie. for NVIDIA if a recent enough NVIDIA driver is installed)
@@ -210,10 +222,10 @@ interface ILAVVideoSettings : public IUnknown
   STDMETHOD_(LAVHWDeintModes, GetHWAccelDeintMode)() = 0;
 
   // Set the deinterlacing output for the hardware decoder
-  STDMETHOD(SetHWAccelDeintOutput)(LAVHWDeintOutput deintOutput) = 0;
+  STDMETHOD(SetHWAccelDeintOutput)(LAVDeintOutput deintOutput) = 0;
 
   // Get the deinterlacing output for the hardware decoder
-  STDMETHOD_(LAVHWDeintOutput, GetHWAccelDeintOutput)() = 0;
+  STDMETHOD_(LAVDeintOutput, GetHWAccelDeintOutput)() = 0;
 
   // Set wether the hardware decoder should force high-quality deinterlacing
   // Note: this option is not supported on all decoder implementations and/or all operating systems
@@ -222,16 +234,4 @@ interface ILAVVideoSettings : public IUnknown
   // Get wether the hardware decoder should force high-quality deinterlacing
   // Note: this option is not supported on all decoder implementations and/or all operating systems
   STDMETHOD_(BOOL, GetHWAccelDeintHQ)() = 0;
-
-  // Set the deinterlacing field order of the hardware decoder
-  STDMETHOD(SetHWAccelDeintFieldOrder)(LAVHWDeintFieldOrder fieldOrder) = 0;
-
-  // get the deinterlacing field order of the hardware decoder
-  STDMETHOD_(LAVHWDeintFieldOrder, GetHWAccelDeintFieldOrder)() = 0;
-
-  // Set wether all frames should be deinterlaced, even ones marked as progressive
-  STDMETHOD(SetHWAccelDeintForce)(BOOL bForce) = 0;
-
-  // Get wether all frames should be deinterlaced, even ones marked as progressive
-  STDMETHOD_(BOOL, GetHWAccelDeintForce)() = 0;
 };

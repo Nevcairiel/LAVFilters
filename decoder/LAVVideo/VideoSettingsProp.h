@@ -61,7 +61,9 @@ private:
 
   DWORD m_dwNumThreads;
   BOOL  m_bStreamAR;
-  BOOL  m_bHighQualityPixelConv;
+  DWORD m_DeintFieldOrder;
+  BOOL  m_DeintAggressive;
+  BOOL  m_DeintForce;
   DWORD m_dwRGBOutput;
 
   BOOL  m_bPixFmts[LAVOutPixFmt_NB];
@@ -70,8 +72,6 @@ private:
 
   DWORD m_HWDeintAlgo;
   DWORD m_HWDeintOutMode;
-  DWORD m_HWDeintFieldOrder;
-  BOOL  m_HWDeintForce;
   BOOL  m_HWDeintHQ;
 };
 

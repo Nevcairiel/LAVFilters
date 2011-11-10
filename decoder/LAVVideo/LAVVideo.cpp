@@ -104,7 +104,9 @@ HRESULT CLAVVideo::LoadDefaults()
   // Set Defaults
   m_settings.StreamAR = TRUE;
   m_settings.NumThreads = 0;
-  m_settings.HighQualityPixConv = FALSE;
+  m_settings.DeintFieldOrder = DeintFieldOrder_Auto;
+  m_settings.DeintAggressive = FALSE;
+  m_settings.DeintForce = 0;
   m_settings.RGBRange = 2; // Full range default
 
   for (int i = 0; i < Codec_NB; ++i)
@@ -125,10 +127,8 @@ HRESULT CLAVVideo::LoadDefaults()
     m_settings.bHWFormats[i] = TRUE;
 
   m_settings.HWDeintMode = HWDeintMode_Hardware;
-  m_settings.HWDeintOutput = HWDeintOutput_FramePerField;
+  m_settings.HWDeintOutput = DeintOutput_FramePerField;
   m_settings.HWDeintHQ = (os.dwMajorVersion >= 6); // Activate by default on Vista and above, on XP it causes issues
-  m_settings.HWDeintFieldOrder = HWDeintFieldOrder_Auto;
-  m_settings.HWDeintForce = FALSE;
 
   return S_OK;
 }
@@ -159,8 +159,14 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"NumThreads", hr);
   if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
 
-  bFlag = reg.ReadDWORD(L"HighQualityPixConv", hr);
-  if (SUCCEEDED(hr)) m_settings.HighQualityPixConv = bFlag;
+  dwVal = reg.ReadDWORD(L"DeintFieldOrder", hr);
+  if (SUCCEEDED(hr)) m_settings.DeintFieldOrder = dwVal;
+
+  bFlag = reg.ReadBOOL(L"DeintAggressive", hr);
+  if (SUCCEEDED(hr)) m_settings.DeintAggressive = bFlag;
+
+  bFlag = reg.ReadBOOL(L"DeintForce", hr);
+  if (SUCCEEDED(hr)) m_settings.DeintForce = bFlag;
 
   dwVal = reg.ReadDWORD(L"RGBRange", hr);
   if (SUCCEEDED(hr)) m_settings.RGBRange = dwVal;
@@ -206,12 +212,6 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = regHW.ReadBOOL(L"HWDeintHQ", hr);
   if (SUCCEEDED(hr)) m_settings.HWDeintHQ = bFlag;
 
-  dwVal = regHW.ReadDWORD(L"HWDeintFieldOrder", hr);
-  if (SUCCEEDED(hr)) m_settings.HWDeintFieldOrder = dwVal;
-
-  bFlag = regHW.ReadBOOL(L"HWDeintForce", hr);
-  if (SUCCEEDED(hr)) m_settings.HWDeintForce = bFlag;
-
   return S_OK;
 }
 
@@ -225,7 +225,9 @@ HRESULT CLAVVideo::SaveSettings()
   if (SUCCEEDED(hr)) {
     reg.WriteBOOL(L"StreamAR", m_settings.StreamAR);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
-    reg.WriteBOOL(L"HighQualityPixConv", m_settings.HighQualityPixConv);
+    reg.WriteDWORD(L"DeintFieldOrder", m_settings.DeintFieldOrder);
+    reg.WriteBOOL(L"DeintAggressive", m_settings.DeintAggressive);
+    reg.WriteBOOL(L"DeintForce", m_settings.DeintForce);
     reg.WriteDWORD(L"RGBRange", m_settings.RGBRange);
 
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
@@ -248,8 +250,6 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
     regHW.WriteBOOL(L"HWDeintHQ", m_settings.HWDeintHQ);
-    regHW.WriteDWORD(L"HWDeintFieldOrder", m_settings.HWDeintFieldOrder);
-    regHW.WriteBOOL(L"HWDeintForce", m_settings.HWDeintForce);
   }
   return S_OK;
 }
@@ -1042,6 +1042,39 @@ STDMETHODIMP_(BOOL) CLAVVideo::GetStreamAR()
   return m_settings.StreamAR;
 }
 
+STDMETHODIMP CLAVVideo::SetDeintFieldOrder(LAVDeintFieldOrder order)
+{
+  m_settings.DeintFieldOrder = order;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(LAVDeintFieldOrder) CLAVVideo::GetDeintFieldOrder()
+{
+  return (LAVDeintFieldOrder)m_settings.DeintFieldOrder;
+}
+
+STDMETHODIMP CLAVVideo::SetDeintAggressive(BOOL bAggressive)
+{
+  m_settings.DeintAggressive = bAggressive;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetDeintAggressive()
+{
+  return m_settings.DeintAggressive;
+}
+
+STDMETHODIMP CLAVVideo::SetDeintForce(BOOL bForce)
+{
+  m_settings.DeintForce = bForce;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetDeintForce()
+{
+  return m_settings.DeintForce;
+}
+
 STDMETHODIMP CLAVVideo::SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled)
 {
   if (pixFmt < 0 || pixFmt >= LAVOutPixFmt_NB)
@@ -1058,17 +1091,6 @@ STDMETHODIMP_(BOOL) CLAVVideo::GetPixelFormat(LAVOutPixFmts pixFmt)
     return FALSE;
 
   return m_settings.bPixFmts[pixFmt];
-}
-
-STDMETHODIMP CLAVVideo::SetHighQualityPixelFormatConversion(BOOL bEnabled)
-{
-  m_settings.HighQualityPixConv = bEnabled;
-  return SaveSettings();
-}
-
-STDMETHODIMP_(BOOL) CLAVVideo::GetHighQualityPixelFormatConversion()
-{
-  return m_settings.HighQualityPixConv;
 }
 
 STDMETHODIMP CLAVVideo::SetRGBOutputRange(DWORD dwRange)
@@ -1140,15 +1162,15 @@ STDMETHODIMP_(LAVHWDeintModes) CLAVVideo::GetHWAccelDeintMode()
   return (LAVHWDeintModes)m_settings.HWDeintMode;
 }
 
-STDMETHODIMP CLAVVideo::SetHWAccelDeintOutput(LAVHWDeintOutput deintOutput)
+STDMETHODIMP CLAVVideo::SetHWAccelDeintOutput(LAVDeintOutput deintOutput)
 {
   m_settings.HWDeintOutput = deintOutput;
   return SaveSettings();
 }
 
-STDMETHODIMP_(LAVHWDeintOutput) CLAVVideo::GetHWAccelDeintOutput()
+STDMETHODIMP_(LAVDeintOutput) CLAVVideo::GetHWAccelDeintOutput()
 {
-  return (LAVHWDeintOutput)m_settings.HWDeintOutput;
+  return (LAVDeintOutput)m_settings.HWDeintOutput;
 }
 
 STDMETHODIMP CLAVVideo::SetHWAccelDeintHQ(BOOL bHQ)
@@ -1160,26 +1182,4 @@ STDMETHODIMP CLAVVideo::SetHWAccelDeintHQ(BOOL bHQ)
 STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelDeintHQ()
 {
   return m_settings.HWDeintHQ;
-}
-
-STDMETHODIMP CLAVVideo::SetHWAccelDeintFieldOrder(LAVHWDeintFieldOrder fieldOrder)
-{
-  m_settings.HWDeintFieldOrder = fieldOrder;
-  return SaveSettings();
-}
-
-STDMETHODIMP_(LAVHWDeintFieldOrder) CLAVVideo::GetHWAccelDeintFieldOrder()
-{
-  return (LAVHWDeintFieldOrder)m_settings.HWDeintFieldOrder;
-}
-
-STDMETHODIMP CLAVVideo::SetHWAccelDeintForce(BOOL bForce)
-{
-  m_settings.HWDeintForce = bForce;
-  return SaveSettings();
-}
-
-STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelDeintForce()
-{
-  return m_settings.HWDeintForce;
 }
