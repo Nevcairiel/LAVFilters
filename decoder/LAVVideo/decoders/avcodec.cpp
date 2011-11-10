@@ -846,5 +846,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecAvcodec::IsInterlaced()
 {
-  return m_bInterlaced;
+  return m_bInterlaced || m_pSettings->GetDeintForce();
 }
