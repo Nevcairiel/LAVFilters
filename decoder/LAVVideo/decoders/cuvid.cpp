@@ -747,6 +747,11 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 
 STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 {
+  cuviddisp->progressive_frame = cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeintAggressive()) && !m_pSettings->GetDeintForce();
+
+  LAVDeintFieldOrder fo        = m_pSettings->GetDeintFieldOrder();
+  cuviddisp->top_field_first   = (fo == DeintFieldOrder_Auto) ? cuviddisp->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
+
   if (m_bDoubleRateDeint) {
     if (cuviddisp->progressive_frame) {
       Deliver(cuviddisp, 2);
@@ -770,14 +775,8 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   CUresult cuStatus = CUDA_SUCCESS;
 
   memset(&vpp, 0, sizeof(vpp));
-  vpp.progressive_frame = cuviddisp->progressive_frame && !m_pSettings->GetDeintForce();
-
-  LAVDeintFieldOrder dwFieldOrder = m_pSettings->GetDeintFieldOrder();
-  if (dwFieldOrder == DeintFieldOrder_Auto)
-    vpp.top_field_first = cuviddisp->top_field_first;
-  else
-    vpp.top_field_first = (dwFieldOrder == DeintFieldOrder_TopFieldFirst);
-
+  vpp.progressive_frame = cuviddisp->progressive_frame;
+  vpp.top_field_first = cuviddisp->top_field_first;
   vpp.second_field = (field == 1);
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
