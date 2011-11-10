@@ -492,7 +492,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     } else if (codec == CODEC_ID_VC1) {
       CVC1HeaderParser vc1parser(extra, extralen);
       if (vc1parser.hdr.valid)
-        m_iInterlaced = vc1parser.hdr.interlaced;
+        m_iInterlaced = (vc1parser.hdr.interlaced ? -1 : 0);
     }
   }
 
@@ -753,7 +753,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_pFrame->interlaced_frame && m_iInterlaced != 1)
       m_iInterlaced = 1;
 
-    pOutFrame->interlaced   = m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeintAggressive() && m_nCodecId != CODEC_ID_VC1) || m_pSettings->GetDeintForce();
+    pOutFrame->interlaced   = m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce();
 
     LAVDeintFieldOrder fo   = m_pSettings->GetDeintFieldOrder();
     pOutFrame->tff          = (fo == DeintFieldOrder_Auto) ? m_pFrame->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
