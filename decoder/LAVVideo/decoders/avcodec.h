@@ -80,5 +80,5 @@ private:
 
   REFERENCE_TIME       m_rtStartCache;
   BOOL                 m_bWaitingForKeyFrame;
-  BOOL                 m_bInterlaced;
+  int                  m_iInterlaced;
 };

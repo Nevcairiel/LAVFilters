@@ -281,7 +281,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_bWaitingForKeyFrame(FALSE)
   , m_bBFrameDelay(TRUE)
   , m_nBFramePos(0)
-  , m_bInterlaced(TRUE)
+  , m_iInterlaced(-1)
 {
 }
 
@@ -461,10 +461,10 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     return VFW_E_UNSUPPORTED_VIDEO;
   }
 
-  m_bInterlaced = FALSE;
+  m_iInterlaced = 0;
   for (int i = 0; i < countof(ff_interlace_capable); i++) {
     if (codec == ff_interlace_capable[i]) {
-      m_bInterlaced = TRUE;
+      m_iInterlaced = -1;
       break;
     }
   }
@@ -479,7 +479,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
         } else if (mpeg2Parser.hdr.chroma == 2) {
           m_pAVCtx->pix_fmt = PIX_FMT_YUV422P;
         }
-        m_bInterlaced = mpeg2Parser.hdr.interlaced;
+        m_iInterlaced = mpeg2Parser.hdr.interlaced;
       }
     } else if (codec == CODEC_ID_H264) {
       CH264SequenceParser h264parser;
@@ -488,15 +488,15 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       else
         h264parser.ParseNALs(extra, extralen, 0);
       if (h264parser.sps.valid)
-        m_bInterlaced = h264parser.sps.interlaced;
+        m_iInterlaced = h264parser.sps.interlaced;
     } else if (codec == CODEC_ID_VC1) {
       CVC1HeaderParser vc1parser(extra, extralen);
       if (vc1parser.hdr.valid)
-        m_bInterlaced = vc1parser.hdr.interlaced;
+        m_iInterlaced = vc1parser.hdr.interlaced;
     }
   }
 
-  DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_bInterlaced));
+  DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_iInterlaced));
 
   return S_OK;
 }
@@ -750,7 +750,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->key_frame    = m_pFrame->key_frame;
     pOutFrame->ext_format   = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
 
-    pOutFrame->interlaced   = m_pFrame->interlaced_frame || (m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce();
+    pOutFrame->interlaced   = m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce();
 
     LAVDeintFieldOrder fo   = m_pSettings->GetDeintFieldOrder();
     pOutFrame->tff          = (fo == DeintFieldOrder_Auto) ? m_pFrame->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
@@ -799,7 +799,6 @@ STDMETHODIMP CDecAvcodec::Flush()
   m_tcBFrameDelay[0].rtStart = m_tcBFrameDelay[0].rtStop = AV_NOPTS_VALUE;
   m_tcBFrameDelay[1].rtStart = m_tcBFrameDelay[1].rtStop = AV_NOPTS_VALUE;
 
-
   return S_OK;
 }
 
@@ -846,5 +845,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecAvcodec::IsInterlaced()
 {
-  return m_bInterlaced || m_pSettings->GetDeintForce();
+  return (m_iInterlaced != 0) || m_pSettings->GetDeintForce();
 }
