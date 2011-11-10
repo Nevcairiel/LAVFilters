@@ -747,7 +747,7 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 
 STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 {
-  cuviddisp->progressive_frame = cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeintAggressive()) && !m_pSettings->GetDeintForce();
+  cuviddisp->progressive_frame = cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeintAggressive() && m_VideoFormat.codec != cudaVideoCodec_VC1) && !m_pSettings->GetDeintForce();
 
   LAVDeintFieldOrder fo        = m_pSettings->GetDeintFieldOrder();
   cuviddisp->top_field_first   = (fo == DeintFieldOrder_Auto) ? cuviddisp->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
