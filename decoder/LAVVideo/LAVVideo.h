@@ -144,6 +144,7 @@ private:
 
   BOOL                 m_bHWDecoder;
   BOOL                 m_bHWDecoderFailed;
+  BOOL                 m_bInterlaced;
 
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;

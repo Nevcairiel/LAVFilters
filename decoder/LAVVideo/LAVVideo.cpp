@@ -65,6 +65,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bHWDecoder(FALSE), m_bHWDecoderFailed(FALSE)
   , m_bDXVAExtFormatSupport(-1)
   , m_bVC1IsDTS(FALSE), m_bLAVSplitter(FALSE)
+  , m_bInterlaced(FALSE)
 {
   avcodec_register_all();
   if (av_lockmgr_addref() == 1)
@@ -449,6 +450,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   int bpp;
   m_pDecoder->GetPixelFormat(&pix, &bpp);
   m_PixFmtConverter.SetInputFmt(pix, bpp);
+  m_bInterlaced = m_pDecoder->IsInterlaced();
 
 done:
   if (FAILED(hr) && m_bHWDecoder) {
@@ -575,6 +577,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   if (m_bDXVAExtFormatSupport == -1)
     m_bDXVAExtFormatSupport = !(FilterInGraph(PINDIR_OUTPUT, CLSID_DXR) || FilterInGraph(PINDIR_OUTPUT, CLSID_OverlayMixer));
 
+  BOOL bInterlaced = m_pDecoder->IsInterlaced();
+
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
     if (avgFrameDuration == AV_NOPTS_VALUE)
@@ -603,10 +607,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dwAspectX = num;
     dwAspectY = den;
 
-    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->AvgTimePerFrame != avgFrameDuration || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value));
+    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->AvgTimePerFrame != avgFrameDuration || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value) || m_bInterlaced != bInterlaced);
   }
-
-
+  m_bInterlaced = bInterlaced;
 
   if (bNeedReconnect) {
     DbgLog((LOG_TRACE, 10, L"::ReconnectOutput(): Performing reconnect"));
@@ -628,11 +631,13 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     } else if (mt.formattype == FORMAT_VideoInfo2) {
       VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
 
+      DWORD dwInterlacedFlags = bInterlaced ? AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave : 0;
       DbgLog((LOG_TRACE, 10, L"Using VIH2, Format dump:"));
       DbgLog((LOG_TRACE, 10, L"-> width: %d -> %d", vih2->rcTarget.right, width));
       DbgLog((LOG_TRACE, 10, L"-> height: %d -> %d", vih2->rcTarget.bottom, height));
       DbgLog((LOG_TRACE, 10, L"-> AR: %d:%d -> %d:%d", vih2->dwPictAspectRatioX, vih2->dwPictAspectRatioY, dwAspectX, dwAspectY));
       DbgLog((LOG_TRACE, 10, L"-> FPS: %I64d -> %I64d", vih2->AvgTimePerFrame, avgFrameDuration));
+      DbgLog((LOG_TRACE, 10, L"-> interlaced: %d -> %d", vih2->dwInterlaceFlags, dwInterlacedFlags));
       DbgLog((LOG_TRACE, 10, L"-> flags: %d -> %d", vih2->dwControlFlags, dxvaExtFlags.value));
 
       vih2->dwPictAspectRatioX = dwAspectX;
@@ -642,6 +647,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       SetRect(&vih2->rcTarget, 0, 0, width, height);
 
       vih2->AvgTimePerFrame = avgFrameDuration;
+      vih2->dwInterlaceFlags = dwInterlacedFlags;
       if (m_bDXVAExtFormatSupport)
         vih2->dwControlFlags = dxvaExtFlags.value;
 
