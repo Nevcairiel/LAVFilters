@@ -750,6 +750,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->key_frame    = m_pFrame->key_frame;
     pOutFrame->ext_format   = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
 
+    if (m_pFrame->interlaced_frame && m_iInterlaced != 1)
+      m_iInterlaced = 1;
+
     pOutFrame->interlaced   = m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeintAggressive() && m_nCodecId != CODEC_ID_VC1) || m_pSettings->GetDeintForce();
 
     LAVDeintFieldOrder fo   = m_pSettings->GetDeintFieldOrder();
