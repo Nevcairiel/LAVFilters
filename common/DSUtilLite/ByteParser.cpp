@@ -34,7 +34,7 @@ CByteParser::~CByteParser()
 unsigned int CByteParser::BitRead(unsigned int numBits, bool peek)
 {
   ASSERT(numBits <= 32);
-  ASSERT(numBits <= (m_bitLen + (8 * (m_pEnd - m_pCurrent))));
+  ASSERT(numBits <= RemainingBits());
 
   if (numBits == 0 || RemainingBits() < numBits) { return 0; }
 
