@@ -248,12 +248,12 @@ void CLAVFDemuxer::UpdateParserFlags(AVStream *st) {
     if (st->codec->codec_id == CODEC_ID_MPEG2VIDEO) {
       st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
     } else if (st->codec->codec_id == CODEC_ID_VC1) {
-        if (m_bVC1Correction) {
-          st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-        } else {
-          st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-        }
+      if (m_bVC1Correction) {
+        st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+      } else {
+        st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
       }
+    }
   }
 }
 
