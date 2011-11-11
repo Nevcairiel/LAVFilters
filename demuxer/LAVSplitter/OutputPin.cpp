@@ -40,6 +40,9 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
 {
   m_mts = mts;
   m_nBuffers = max(nBuffers, 1);
+
+  if (IsAudioPin())
+    CheckTrueHDQueueSize();
 }
 
 CLAVOutputPin::CLAVOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
@@ -55,11 +58,26 @@ CLAVOutputPin::CLAVOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLoc
   , m_dwQueueHigh(MAX_PACKETS_IN_QUEUE)
 {
   m_nBuffers = max(nBuffers, 1);
+
+  if (IsAudioPin())
+    CheckTrueHDQueueSize();
 }
 
 CLAVOutputPin::~CLAVOutputPin()
 {
   SAFE_DELETE(m_newMT);
+}
+
+void CLAVOutputPin::CheckTrueHDQueueSize()
+{
+  m_dwQueueLow = MIN_PACKETS_IN_QUEUE;
+  m_dwQueueHigh = MAX_PACKETS_IN_QUEUE;
+
+  if (m_mts.begin()->subtype == MEDIASUBTYPE_DOLBY_TRUEHD) {
+    DbgLog((LOG_TRACE, 10, L"Increasing Audio Queue size for TrueHD"));
+    m_dwQueueLow *= 10;
+    m_dwQueueHigh *= 10;
+  }
 }
 
 STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
