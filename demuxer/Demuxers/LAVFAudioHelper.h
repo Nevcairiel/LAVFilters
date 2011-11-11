@@ -131,7 +131,7 @@ public:
   WAVEFORMATEX *CreateWVFMTEX(const AVStream *avstream, ULONG *size);
   WAVEFORMATEXFFMPEG *CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size);
   WAVEFORMATEX_HDMV_LPCM *CreateWVFMTEX_LPCM(const AVStream *avstream, ULONG *size);
-  WAVEFORMATEXTENSIBLE *CreateWFMTEX_RAW_PCM(const AVStream *avstream, ULONG *size, const GUID subtype);
+  WAVEFORMATEXTENSIBLE *CreateWFMTEX_RAW_PCM(const AVStream *avstream, ULONG *size, const GUID subtype, ULONG *samplesize);
   MPEG1WAVEFORMAT *CreateMP1WVFMT(const AVStream *avstream, ULONG *size);
   VORBISFORMAT *CreateVorbis(const AVStream *avstream, ULONG *size);
   VORBISFORMAT2 *CreateVorbis2(const AVStream *avstream, ULONG *size);
