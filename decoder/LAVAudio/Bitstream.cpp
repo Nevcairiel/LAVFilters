@@ -24,6 +24,7 @@
 #include "moreuuids.h"
 
 #define LAV_BITSTREAM_BUFFER_SIZE 4096
+#define LAV_BITSTREAM_DTS_HD_RATE 768000
 
 static struct {
   CodecID codec;
@@ -114,12 +115,12 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   // DTS-HD is by default off, unless explicitly asked for
   if (m_settings.DTSHDFraming && m_settings.bBitstream[Bitstream_DTSHD]) {
     m_bDTSHD = TRUE;
-    av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+    av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
   } else {
     m_bDTSHD = FALSE;
-    av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "0", 0, NULL);
+    av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", 0, 0);
   }
-  av_set_string3(m_avBSContext->priv_data, "dtshd_fallback_time", "-1", 0, NULL);
+  av_opt_set_int(m_avBSContext->priv_data, "dtshd_fallback_time", -1, 0);
 
   AVStream *st = av_new_stream(m_avBSContext, 0);
   if (!st) {
@@ -174,10 +175,10 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
   if(m_avBSContext) {
     if (m_settings.bBitstream[Bitstream_DTSHD] && m_settings.DTSHDFraming) {
       m_bDTSHD = TRUE;
-      av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+      av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
     } else {
       m_bDTSHD = FALSE; // Force auto-detection
-      av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "0", 0, NULL);
+      av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", 0, 0);
     }
   }
 
@@ -276,7 +277,7 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
 void CLAVAudio::ActivateDTSHDMuxing()
 {
   m_bDTSHD = TRUE;
-  av_set_string3(m_avBSContext->priv_data, "dtshd_rate", "768000", 0, NULL);
+  av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
   DbgLog((LOG_TRACE, 20, L"::ActivateDTSHDMuxing(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
 }
 
