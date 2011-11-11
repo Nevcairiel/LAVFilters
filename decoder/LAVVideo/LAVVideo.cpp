@@ -637,8 +637,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       DbgLog((LOG_TRACE, 10, L"-> height: %d -> %d", vih2->rcTarget.bottom, height));
       DbgLog((LOG_TRACE, 10, L"-> AR: %d:%d -> %d:%d", vih2->dwPictAspectRatioX, vih2->dwPictAspectRatioY, dwAspectX, dwAspectY));
       DbgLog((LOG_TRACE, 10, L"-> FPS: %I64d -> %I64d", vih2->AvgTimePerFrame, avgFrameDuration));
-      DbgLog((LOG_TRACE, 10, L"-> interlaced: %d -> %d", vih2->dwInterlaceFlags, dwInterlacedFlags));
-      DbgLog((LOG_TRACE, 10, L"-> flags: %d -> %d", vih2->dwControlFlags, dxvaExtFlags.value));
+      DbgLog((LOG_TRACE, 10, L"-> interlaced: 0x%0.8x -> 0x%0.8x", vih2->dwInterlaceFlags, dwInterlacedFlags));
+      DbgLog((LOG_TRACE, 10, L"-> flags: 0x%0.8x -> 0x%0.8x", vih2->dwControlFlags, dxvaExtFlags.value));
 
       vih2->dwPictAspectRatioX = dwAspectX;
       vih2->dwPictAspectRatioY = dwAspectY;
