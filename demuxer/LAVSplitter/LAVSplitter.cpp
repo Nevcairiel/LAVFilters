@@ -527,7 +527,7 @@ bool CLAVSplitter::IsAnyPinDrying()
   // TODO: Investigate if that is needed
   std::vector<CLAVOutputPin *>::iterator it;
   for(it = m_pActivePins.begin(); it != m_pActivePins.end(); ++it) {
-    if((*it)->IsConnected() && !(*it)->IsDiscontinuous() && (*it)->QueueCount() < MIN_PACKETS_IN_QUEUE) {
+    if((*it)->IsConnected() && !(*it)->IsDiscontinuous() && (*it)->QueueCount() < (*it)->GetQueueLowLimit()) {
       return true;
     }
   }

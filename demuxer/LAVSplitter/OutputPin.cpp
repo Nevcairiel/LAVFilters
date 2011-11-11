@@ -35,6 +35,8 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_newMT(NULL)
   , m_pinType(pinType)
   , m_Parser(this, container)
+  , m_dwQueueLow(MIN_PACKETS_IN_QUEUE)
+  , m_dwQueueHigh(MAX_PACKETS_IN_QUEUE)
 {
   m_mts = mts;
   m_nBuffers = max(nBuffers, 1);
@@ -49,6 +51,8 @@ CLAVOutputPin::CLAVOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLoc
   , m_newMT(NULL)
   , m_pinType(pinType)
   , m_Parser(this, container)
+  , m_dwQueueLow(MIN_PACKETS_IN_QUEUE)
+  , m_dwQueueHigh(MAX_PACKETS_IN_QUEUE)
 {
   m_nBuffers = max(nBuffers, 1);
 }
@@ -229,7 +233,7 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
   // The queu has a "soft" limit of MAX_PACKETS_IN_QUEUE, and a hard limit of MAX_PACKETS_IN_QUEUE * 2
   // That means, even if one pin is drying, we'll never exceed MAX_PACKETS_IN_QUEUE * 2
   while(S_OK == m_hrDeliver 
-    && (m_queue.Size() > 2*MAX_PACKETS_IN_QUEUE
+    && (m_queue.Size() > 2*m_dwQueueHigh
     || (m_queue.Size() > MAX_PACKETS_IN_QUEUE && !pSplitter->IsAnyPinDrying())))
     Sleep(10);
 

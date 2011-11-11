@@ -80,6 +80,7 @@ public:
   HRESULT QueuePacket(Packet *pPacket);
   HRESULT QueueEndOfStream();
   bool IsDiscontinuous();
+  DWORD GetQueueLowLimit() const { return m_dwQueueLow; }
 
   DWORD GetStreamId() { return m_streamId; };
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
@@ -124,6 +125,8 @@ private:
   HRESULT m_hrDeliver;
 
   int m_nBuffers;
+  DWORD m_dwQueueLow;
+  DWORD m_dwQueueHigh;
 
   DWORD m_streamId;
   CMediaType *m_newMT;
