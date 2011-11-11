@@ -398,6 +398,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bUseTimestampQueue = (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->VC1IsDTS());
   m_bWaitForKeyframe = m_bUseTimestampQueue;
   m_bInterlaced = TRUE;
+  m_bFormatIncompatible = FALSE;
 
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
