@@ -166,11 +166,11 @@ HRESULT CLAVAudio::LoadDefaults()
 
   // Default all Codecs to enabled
   for(int i = 0; i < Codec_NB; ++i)
-    m_settings.bFormats[i] = true;
+    m_settings.bFormats[i] = TRUE;
 
   // Disable WMA codecs by default
-  m_settings.bFormats[Codec_WMA2] = false;
-  m_settings.bFormats[Codec_WMAPRO] = false;
+  m_settings.bFormats[Codec_WMA2]   = FALSE;
+  m_settings.bFormats[Codec_WMAPRO] = FALSE;
 
   // Default bitstreaming to disabled
   memset(m_settings.bBitstream, 0, sizeof(m_settings.bBitstream));
@@ -184,7 +184,7 @@ HRESULT CLAVAudio::LoadDefaults()
 
   // Default all Sample Formats to enabled
   for(int i = 0; i < SampleFormat_NB; ++i)
-    m_settings.bSampleFormats[i] = true;
+    m_settings.bSampleFormats[i] = TRUE;
 
   m_settings.AudioDelayEnabled = FALSE;
   m_settings.AudioDelay = 0;
