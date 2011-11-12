@@ -85,7 +85,7 @@ public:
   DWORD GetStreamId() { return m_streamId; };
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
 
-  void SetNewMediaTypes(std::vector<CMediaType> pmts) { CAutoLock lock(&m_csMT); m_mts = pmts; if (IsAudioPin()) CheckTrueHDQueueSize(); }
+  void SetNewMediaTypes(std::vector<CMediaType> pmts) { CAutoLock lock(&m_csMT); m_mts = pmts; SetQueueSizes(); }
   void SendMediaType(CMediaType *mt) { CAutoLock lock(&m_csMT); m_newMT = mt;}
 
   BOOL IsVideoPin() { return m_pinType == CBaseDemuxer::video; }
@@ -109,7 +109,7 @@ private:
   enum {CMD_EXIT};
   DWORD ThreadProc();
 
-  void CheckTrueHDQueueSize();
+  void SetQueueSizes();
 
 private:
   CCritSec m_csMT;
