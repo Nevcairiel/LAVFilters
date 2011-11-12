@@ -42,21 +42,6 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   SetQueueSizes();
 }
 
-CLAVOutputPin::CLAVOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
-  : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
-  , m_hrDeliver(S_OK)
-  , m_fFlushing(false)
-  , m_eEndFlush(TRUE)
-  , m_containerFormat(container)
-  , m_newMT(NULL)
-  , m_pinType(pinType)
-  , m_Parser(this, container)
-{
-  m_nBuffers = max(nBuffers, 1);
-
-  SetQueueSizes();
-}
-
 CLAVOutputPin::~CLAVOutputPin()
 {
   SAFE_DELETE(m_newMT);

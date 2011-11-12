@@ -38,7 +38,6 @@ class CLAVOutputPin
 {
 public:
   CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "", int nBuffers = 0);
-  CLAVOutputPin(LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown, const char* container = "", int nBuffers = 0);
   virtual ~CLAVOutputPin();
 
   DECLARE_IUNKNOWN;
