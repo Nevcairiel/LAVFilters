@@ -320,7 +320,7 @@ HRESULT CLAVAudio::SaveSettings()
     }
 
     reg.DeleteKey(L"SampleFormats");
-    for (int i = 0; i < Bitstream_NB; ++i) {
+    for (int i = 0; i < SampleFormat_Bitstream; ++i) {
       std::wstring key = std::wstring(L"SampleFormat_") + std::wstring(sampleFormats[i]);
       reg.WriteBOOL(key.c_str(), m_settings.bSampleFormats[i]);
     }
