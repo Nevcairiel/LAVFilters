@@ -642,6 +642,7 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
     m_rtCurrent = pPacket->rtStart;
 
     if (m_bStopValid && m_rtStop && pPacket->rtStart > m_rtStop) {
+      DbgLog((LOG_TRACE, 10, L"::DeliverPacket(): Reached the designated stop time of %I64d at %I64d", m_rtStop, pPacket->rtStart));
       delete pPacket;
       return E_FAIL;
     }
