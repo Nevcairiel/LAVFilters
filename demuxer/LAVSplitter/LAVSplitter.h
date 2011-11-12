@@ -202,6 +202,7 @@ private:
   // Times
   REFERENCE_TIME m_rtStart, m_rtStop, m_rtCurrent, m_rtNewStart, m_rtNewStop;
   double m_dRate;
+  BOOL m_bStopValid;
 
   // Seeking
   REFERENCE_TIME m_rtLastStart, m_rtLastStop;

@@ -51,6 +51,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bRuntimeConfig(FALSE)
   , m_pSite(NULL)
   , m_bFakeASFReader(FALSE)
+  , m_bStopValid(FALSE)
 {
   CLAVFDemuxer::ffmpeg_init();
 
@@ -640,6 +641,11 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
   if(pPacket->rtStart != Packet::INVALID_TIME) {
     m_rtCurrent = pPacket->rtStart;
 
+    if (m_bStopValid && m_rtStop && pPacket->rtStart > m_rtStop) {
+      delete pPacket;
+      return E_FAIL;
+    }
+
     pPacket->rtStart -= m_rtStart;
     pPacket->rtStop -= m_rtStart;
 
@@ -830,9 +836,9 @@ STDMETHODIMP CLAVSplitter::SetPositionsInternal(void *caller, LONGLONG* pCurrent
     switch(dwStopFlags&AM_SEEKING_PositioningBitsMask)
     {
     case AM_SEEKING_NoPositioning: break;
-    case AM_SEEKING_AbsolutePositioning: rtStop = *pStop; break;
-    case AM_SEEKING_RelativePositioning: rtStop += *pStop; break;
-    case AM_SEEKING_IncrementalPositioning: rtStop = rtCurrent + *pStop; break;
+    case AM_SEEKING_AbsolutePositioning: rtStop = *pStop; m_bStopValid = TRUE; break;
+    case AM_SEEKING_RelativePositioning: rtStop += *pStop; m_bStopValid = TRUE; break;
+    case AM_SEEKING_IncrementalPositioning: rtStop = rtCurrent + *pStop; m_bStopValid = TRUE; break;
     }
   }
 
