@@ -192,6 +192,14 @@ HRESULT CLAVAudio::LoadDefaults()
   return S_OK;
 }
 
+static const WCHAR* bitstreamingCodecs[Bitstream_NB] = {
+  L"ac3", L"eac3", L"truehd", L"dts", L"dtshd"
+};
+
+static const WCHAR* sampleFormats[SampleFormat_Bitstream] = {
+  L"s16", L"s24", L"s32", L"u8", L"fp32"
+};
+
 HRESULT CLAVAudio::LoadSettings()
 {
   LoadDefaults();
@@ -214,12 +222,14 @@ HRESULT CLAVAudio::LoadSettings()
   dwVal = reg.ReadDWORD(L"DRCLevel", hr);
   if (SUCCEEDED(hr)) m_settings.DRCLevel = (int)dwVal;
 
+  // Deprecated format storage
   pBuf = reg.ReadBinary(L"Formats", dwVal, hr);
   if (SUCCEEDED(hr)) {
     memcpy(&m_settings.bFormats, pBuf, min(dwVal, sizeof(m_settings.bFormats)));
     SAFE_CO_FREE(pBuf);
   }
 
+  // Deprecated bitstreaming storage
   pBuf = reg.ReadBinary(L"Bitstreaming", dwVal, hr);
   if (SUCCEEDED(hr)) {
     memcpy(&m_settings.bBitstream, pBuf, min(dwVal, sizeof(m_settings.bBitstream)));
@@ -241,6 +251,7 @@ HRESULT CLAVAudio::LoadSettings()
   bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
   if (SUCCEEDED(hr)) m_settings.OutputStandardLayout = bFlag;
 
+  // Deprecated sample format storage
   pBuf = reg.ReadBinary(L"SampleFormats", dwVal, hr);
   if (SUCCEEDED(hr)) {
     memcpy(&m_settings.bSampleFormats, pBuf, min(dwVal, sizeof(m_settings.bSampleFormats)));
@@ -252,6 +263,27 @@ HRESULT CLAVAudio::LoadSettings()
 
   dwVal = reg.ReadDWORD(L"AudioDelay", hr);
   if (SUCCEEDED(hr)) m_settings.AudioDelay = (int)dwVal;
+
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS);
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
+
+  for (int i = 0; i < Codec_NB; ++i) {
+    const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
+    bFlag = regF.ReadBOOL(info->name, hr);
+    if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
+  }
+
+  for (int i = 0; i < Bitstream_NB; ++i) {
+    std::wstring key = std::wstring(L"Bitstreaming_") + std::wstring(bitstreamingCodecs[i]);
+    bFlag = reg.ReadBOOL(key.c_str(), hr);
+    if (SUCCEEDED(hr)) m_settings.bBitstream[i] = bFlag;
+  }
+
+  for (int i = 0; i < SampleFormat_Bitstream; ++i) {
+    std::wstring key = std::wstring(L"SampleFormat_") + std::wstring(sampleFormats[i]);
+    bFlag = reg.ReadBOOL(key.c_str(), hr);
+    if (SUCCEEDED(hr)) m_settings.bSampleFormats[i] = bFlag;
+  }
 
   return S_OK;
 }
@@ -266,16 +298,33 @@ HRESULT CLAVAudio::SaveSettings()
   if (SUCCEEDED(hr)) {
     reg.WriteBOOL(L"DRCEnabled", m_settings.DRCEnabled);
     reg.WriteDWORD(L"DRCLevel", m_settings.DRCLevel);
-    reg.WriteBinary(L"Formats", (BYTE *)m_settings.bFormats, sizeof(m_settings.bFormats));
-    reg.WriteBinary(L"Bitstreaming", (BYTE *)m_settings.bBitstream, sizeof(m_settings.bBitstream));
     reg.WriteBOOL(L"DTSHDFraming", m_settings.DTSHDFraming);
     reg.WriteBOOL(L"AutoAVSync", m_settings.AutoAVSync);
     reg.WriteBOOL(L"ExpandMono", m_settings.ExpandMono);
     reg.WriteBOOL(L"Expand61", m_settings.Expand61);
     reg.WriteBOOL(L"OutputStandardLayout", m_settings.OutputStandardLayout);
-    reg.WriteBinary(L"SampleFormats", (BYTE *)m_settings.bSampleFormats, sizeof(m_settings.bSampleFormats));
     reg.WriteBOOL(L"AudioDelayEnabled", m_settings.AudioDelayEnabled);
     reg.WriteDWORD(L"AudioDelay", m_settings.AudioDelay);
+
+    reg.DeleteKey(L"Formats");
+    CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
+    for (int i = 0; i < Codec_NB; ++i) {
+      const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
+      regF.WriteBOOL(info->name, m_settings.bFormats[i]);
+    }
+
+    reg.DeleteKey(L"Bitstreaming");
+    for (int i = 0; i < Bitstream_NB; ++i) {
+      std::wstring key = std::wstring(L"Bitstreaming_") + std::wstring(bitstreamingCodecs[i]);
+      reg.WriteBOOL(key.c_str(), m_settings.bBitstream[i]);
+    }
+
+    reg.DeleteKey(L"SampleFormats");
+    for (int i = 0; i < Bitstream_NB; ++i) {
+      std::wstring key = std::wstring(L"SampleFormat_") + std::wstring(sampleFormats[i]);
+      reg.WriteBOOL(key.c_str(), m_settings.bSampleFormats[i]);
+    }
+
   }
   return S_OK;
 }

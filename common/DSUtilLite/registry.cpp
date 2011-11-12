@@ -211,3 +211,15 @@ HRESULT CRegistry::WriteBinary(LPCTSTR pszKey, const BYTE *pbValue, int iLen)
   }
   return S_OK;
 }
+
+HRESULT CRegistry::DeleteKey(LPCTSTR pszKey)
+{
+  LONG lRet;
+
+  if (m_key == NULL) { return E_UNEXPECTED; }
+  lRet = RegDeleteValue(*m_key, pszKey);
+  if (lRet != ERROR_SUCCESS) {
+    return E_FAIL;
+  }
+  return S_OK;
+}

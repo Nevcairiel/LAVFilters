@@ -44,6 +44,8 @@ public:
   BYTE *ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr);
   HRESULT WriteBinary(LPCTSTR pszKey, const BYTE *pbValue, int iLen);
 
+  HRESULT DeleteKey(LPCTSTR pszKey);
+
 private:
   HKEY *m_key;
 };

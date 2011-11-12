@@ -51,6 +51,7 @@
 #define CODEC_ID_PCM_QTRAW (CodecID)0x19005
 
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
+#define LAVC_AUDIO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Audio\\Formats"
 #define LAVC_AUDIO_LOG_FILE     L"LAVAudio.txt"
 
 struct WAVEFORMATEX_HDMV_LPCM;
@@ -248,15 +249,15 @@ private:
   struct AudioSettings {
     BOOL DRCEnabled;
     int DRCLevel;
-    bool bFormats[Codec_NB];
-    bool bBitstream[Bitstream_NB];
+    BOOL bFormats[Codec_NB];
+    BOOL bBitstream[Bitstream_NB];
     BOOL DTSHDFraming;
     BOOL AutoAVSync;
     BOOL ExpandMono;
     BOOL Expand61;
     BOOL OutputStandardLayout;
     BOOL AllowRawSPDIF;
-    bool bSampleFormats[SampleFormat_NB];
+    BOOL bSampleFormats[SampleFormat_NB];
     BOOL AudioDelayEnabled;
     int  AudioDelay;
   } m_settings;
