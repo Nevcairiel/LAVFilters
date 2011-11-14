@@ -108,6 +108,7 @@ private:
   ILAVFSettingsInternal *m_pLAVF;
 
   std::set<FormatInfo> m_Formats;
+  BOOL *m_bFormats;
 
   WCHAR stringBuffer[256];
 };

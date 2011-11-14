@@ -320,12 +320,13 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
 
 CLAVSplitterFormatsProp::CLAVSplitterFormatsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_FORMATS, IDS_INPUT_FORMATS)
-  , m_pLAVF(NULL)
+  , m_pLAVF(NULL), m_bFormats(NULL)
 {
 }
 
 CLAVSplitterFormatsProp::~CLAVSplitterFormatsProp(void)
 {
+  SAFE_CO_FREE(m_bFormats);
   SafeRelease(&m_pLAVF);
 }
 
@@ -354,7 +355,9 @@ HRESULT CLAVSplitterFormatsProp::OnApplyChanges()
   int nItem = 0;
   std::set<FormatInfo>::const_iterator it;
   for (it = m_Formats.begin(); it != m_Formats.end(); ++it) {
-    m_pLAVF->SetFormatEnabled(it->strName, ListView_GetCheckState(hlv, nItem));
+    m_bFormats[nItem] = ListView_GetCheckState(hlv, nItem);
+    m_pLAVF->SetFormatEnabled(it->strName, m_bFormats[nItem]);
+
     nItem++;
   }
 
@@ -396,6 +399,10 @@ HRESULT CLAVSplitterFormatsProp::OnActivate()
   ListView_DeleteAllItems(hlv);
   ListView_SetItemCount(hlv, m_Formats.size());
 
+  SAFE_CO_FREE(m_bFormats);
+  m_bFormats = (BOOL *)CoTaskMemAlloc(sizeof(BOOL) * m_Formats.size());
+  memset(m_bFormats, 0, sizeof(BOOL) * m_Formats.size());
+
   // Create entrys for the formats
   LVITEM lvi;
   memset(&lvi, 0, sizeof(lvi));
@@ -415,7 +422,8 @@ HRESULT CLAVSplitterFormatsProp::OnActivate()
     _snwprintf_s(stringBuffer, _TRUNCATE, L"%S", it->strDescription);
     ListView_SetItemText(hlv, nItem, 2, (LPWSTR)stringBuffer);
 
-    ListView_SetCheckState(hlv, nItem, m_pLAVF->IsFormatEnabled(it->strName));
+    m_bFormats[nItem] =  m_pLAVF->IsFormatEnabled(it->strName);
+    ListView_SetCheckState(hlv, nItem, m_bFormats[nItem]);
 
     nItem++;
   }
@@ -432,7 +440,11 @@ INT_PTR CLAVSplitterFormatsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM w
     if (hdr->idFrom == IDC_FORMATS) {
       switch (hdr->code) {
       case LVN_ITEMCHANGED:
-        SetDirty();
+        LPNMLISTVIEW nmlv = (LPNMLISTVIEW)lParam;
+        BOOL check = ListView_GetCheckState(hdr->hwndFrom, nmlv->iItem);
+        if (check != m_bFormats[nmlv->iItem]) {
+          SetDirty();
+        }
         return TRUE;
       }
     }
