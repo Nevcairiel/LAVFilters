@@ -397,6 +397,9 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
       if (SUCCEEDED(PostProcess(&out))) {
         *hrDeliver = QueueOutput(out);
+        if (FAILED(*hrDeliver)) {
+          return S_FALSE;
+        }
       }
     }
   }

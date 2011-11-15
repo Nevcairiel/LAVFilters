@@ -1384,6 +1384,8 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
       m_buff.SetSize(0);
       m_bQueueResync = TRUE;
       return S_FALSE;
+    } else if (FAILED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"::Decode indicates delivery failed"));
     } else if (hr2 == S_FALSE) {
       DbgLog((LOG_TRACE, 10, L"::Decode returned S_FALSE"));
       hr = S_FALSE;
