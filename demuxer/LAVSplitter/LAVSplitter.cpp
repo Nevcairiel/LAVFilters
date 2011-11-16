@@ -419,6 +419,9 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
   HRESULT hr = S_OK;
   SAFE_DELETE(m_pDemuxer);
   LPWSTR extension = PathFindExtensionW(pszFileName);
+
+  DbgLog((LOG_TRACE, 10, L"::Load(): Opening file '%s' (extension: %s)", pszFileName, extension));
+
   // BDMV uses the BD demuxer, everything else LAVF
   if (_wcsicmp(extension, L".bdmv") == 0 || _wcsicmp(extension, L".mpls") == 0) {
     m_pDemuxer = new CBDDemuxer(this, this);
