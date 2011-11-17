@@ -88,6 +88,12 @@ typedef enum LAVHWDeintModes {
   HWDeintMode_Hardware
 };
 
+// Software deinterlacing algorithms
+typedef enum LAVSWDeintModes {
+  SWDeintMode_None,
+  SWDeintMode_YADIF
+};
+
 // Type of deinterlacing to perform
 // - FramePerField re-constructs one frame from every field, resulting in 50/60 fps.
 // - FramePer2Field re-constructs one frame from every 2 fields, resulting in 25/30 fps.
@@ -234,4 +240,16 @@ interface ILAVVideoSettings : public IUnknown
   // Get wether the hardware decoder should force high-quality deinterlacing
   // Note: this option is not supported on all decoder implementations and/or all operating systems
   STDMETHOD_(BOOL, GetHWAccelDeintHQ)() = 0;
+
+  // Set the software deinterlacing mode used
+  STDMETHOD(SetSWDeintMode)(LAVSWDeintModes deintMode) = 0;
+
+  // Get the software deinterlacing mode used
+  STDMETHOD_(LAVSWDeintModes, GetSWDeintMode)() = 0;
+
+  // Set the software deinterlacing output
+  STDMETHOD(SetSWDeintOutput)(LAVDeintOutput deintOutput) = 0;
+
+  // Get the software deinterlacing output
+  STDMETHOD_(LAVDeintOutput, GetSWDeintOutput)() = 0;
 };

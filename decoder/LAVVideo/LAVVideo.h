@@ -86,6 +86,10 @@ public:
   STDMETHODIMP_(LAVDeintOutput) GetHWAccelDeintOutput();
   STDMETHODIMP SetHWAccelDeintHQ(BOOL bHQ);
   STDMETHODIMP_(BOOL) GetHWAccelDeintHQ();
+  STDMETHODIMP SetSWDeintMode(LAVSWDeintModes deintMode);
+  STDMETHODIMP_(LAVSWDeintModes) GetSWDeintMode();
+  STDMETHODIMP SetSWDeintOutput(LAVDeintOutput deintOutput);
+  STDMETHODIMP_(LAVDeintOutput) GetSWDeintOutput();
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -181,6 +185,8 @@ private:
     DWORD DeintFieldOrder;
     BOOL DeintAggressive;
     BOOL DeintForce;
+    DWORD SWDeintMode;
+    DWORD SWDeintOutput;
   } m_settings;
 
 #ifdef DEBUG
