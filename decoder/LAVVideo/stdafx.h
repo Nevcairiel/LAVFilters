@@ -41,6 +41,10 @@ extern "C" {
 #define FF_API_MAX_STREAMS 0
 #include "libavcodec/avcodec.h"
 #include "libswscale/swscale.h"
+#include "libavfilter/avfilter.h"
+#include "libavfilter/avfiltergraph.h"
+#include "libavfilter/vsrc_buffer.h"
+#include "libavfilter/buffersink.h"
   // This causes a conflict in some structures
 #ifdef SampleFormat
 #undef SampleFormat

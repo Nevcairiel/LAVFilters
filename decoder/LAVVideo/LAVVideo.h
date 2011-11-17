@@ -158,6 +158,14 @@ private:
   BOOL                 m_bVC1IsDTS;
   BOOL                 m_bLAVSplitter;
 
+  AVFilterGraph        *m_pFilterGraph;
+  AVFilterContext      *m_pFilterBufferSrc;
+  AVFilterContext      *m_pFilterBufferSink;
+
+  LAVPixelFormat       m_filterPixFmt;
+  int                  m_filterWidth;
+  int                  m_filterHeight;
+
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {
     BOOL StreamAR;

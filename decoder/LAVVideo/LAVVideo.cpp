@@ -66,8 +66,14 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bDXVAExtFormatSupport(-1)
   , m_bVC1IsDTS(FALSE), m_bLAVSplitter(FALSE)
   , m_bInterlaced(FALSE)
+  , m_pFilterGraph(NULL)
+  , m_pFilterBufferSrc(NULL)
+  , m_pFilterBufferSink(NULL)
+  , m_filterPixFmt(LAVPixFmt_None)
+  , m_filterWidth(0), m_filterHeight(0)
 {
   avcodec_register_all();
+  avfilter_register_all();
   if (av_lockmgr_addref() == 1)
     av_lockmgr_register(ff_lockmgr);
 
@@ -88,6 +94,11 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVVideo::~CLAVVideo()
 {
   SAFE_DELETE(m_pDecoder);
+
+  if (m_pFilterGraph)
+    avfilter_graph_free(&m_pFilterGraph);
+  m_pFilterBufferSrc = NULL;
+  m_pFilterBufferSink = NULL;
 
   // If its 0, that means we're the last one using/owning the object, and can free it
   if(av_lockmgr_release() == 0)
