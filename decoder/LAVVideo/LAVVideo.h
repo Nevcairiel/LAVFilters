@@ -133,6 +133,9 @@ private:
 
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
 
+  STDMETHODIMP Filter(LAVFrame *pFrame);
+  STDMETHODIMP DeliverToRenderer(LAVFrame *pFrame);
+
 private:
   ILAVDecoder          *m_pDecoder;
 

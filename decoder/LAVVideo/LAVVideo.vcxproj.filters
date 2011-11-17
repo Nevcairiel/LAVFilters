@@ -96,6 +96,9 @@
     <ClCompile Include="pixconv\yuv420_yuy2.cpp">
       <Filter>Source Files\pixconv</Filter>
     </ClCompile>
+    <ClCompile Include="Filtering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

@@ -876,6 +876,13 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     return S_OK;
   }
 
+  return Filter(pFrame);
+}
+
+STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
+{
+  HRESULT hr = S_OK;
+
   // Collect width/height
   int width  = pFrame->width;
   int height = pFrame->height;
