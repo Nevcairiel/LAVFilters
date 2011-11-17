@@ -23,6 +23,11 @@ OPTIONS="
 --disable-postproc \
 --enable-zlib \
 --enable-swscale \
+--enable-avfilter \
+--disable-filters \
+--enable-filter=yadif \
+--enable-filter=buffer \
+--enable-filter=buffersink \
 --disable-swresample \
 --disable-static \
 --disable-altivec \
@@ -35,8 +40,6 @@ OPTIONS="
 --disable-avconv \
 --disable-ffprobe \
 --disable-devices \
---disable-filters \
---disable-avfilter \
 --disable-avdevice \
 --disable-hwaccels \
 --disable-bsfs \
