@@ -27,7 +27,7 @@ void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
 
 STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
 {
-  if ((m_bInterlaced || m_settings.DeintForce) && m_settings.HWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422)) {
+  if (m_bInterlaced && m_settings.SWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422)) {
     PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : PIX_FMT_YUV422P;
 
     if (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight) {
@@ -55,7 +55,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
 
       m_pFilterGraph = avfilter_graph_alloc();
 
-      _snprintf_s(args, sizeof(args), "%d:%d:%d:%d:%d:%d:%d", pFrame->width, pFrame->height, ff_pixfmt, 1, 10000000, 1, 1);
+      _snprintf_s(args, sizeof(args), "%d:%d:%d:1:10000000:1:1", pFrame->width, pFrame->height, ff_pixfmt);
       ret = avfilter_graph_create_filter(&m_pFilterBufferSrc, buffersrc, "in", args, NULL, m_pFilterGraph);
       if (ret < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Creating the input buffer filter failed with code %d", ret));
@@ -81,8 +81,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
       inputs->pad_idx    = 0;
       inputs->next       = NULL;
 
-      BOOL bForced = (m_settings.DeintAggressive && m_bInterlaced) || m_settings.DeintForce;
-      _snprintf_s(args, sizeof(args), "yadif=%d:%d:%d", (m_settings.SWDeintOutput == DeintOutput_FramePerField), -1, !bForced);
+      _snprintf_s(args, sizeof(args), "yadif=%d:-1:1", (m_settings.SWDeintOutput == DeintOutput_FramePerField));
       if ((ret = avfilter_graph_parse(m_pFilterGraph, args, &inputs, &outputs, NULL)) < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Parsing the graph failed with code %d", ret));
         goto deliver;
