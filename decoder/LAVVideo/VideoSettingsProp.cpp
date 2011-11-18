@@ -120,6 +120,13 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelDeintHQ(bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetSWDeintMode(bFlag ? SWDeintMode_YADIF : SWDeintMode_None);
+
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_FILM, BM_GETCHECK, 0, 0);
+  //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetSWDeintOutput(bFlag ? DeintOutput_FramePer2Field : DeintOutput_FramePerField);
+
   LoadData();
 
   return hr;
@@ -217,6 +224,10 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_SETCHECK, m_HWDeintHQ, 0);
 
+    SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_SETCHECK, m_SWDeint, 0);
+    SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_FILM, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePer2Field), 0);
+    SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_VIDEO, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePerField), 0);
+
     UpdateHWOptions();
   }
 
@@ -274,6 +285,9 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_HWDeintAlgo = m_pVideoSettings->GetHWAccelDeintMode();
   m_HWDeintOutMode = m_pVideoSettings->GetHWAccelDeintOutput();
   m_HWDeintHQ = m_pVideoSettings->GetHWAccelDeintHQ();
+
+  m_SWDeint = m_pVideoSettings->GetSWDeintMode() == SWDeintMode_YADIF;
+  m_SWDeintOutMode = m_pVideoSettings->GetSWDeintOutput();
 
   return hr;
 }
@@ -439,6 +453,21 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_HWDEINT_HQ && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_HWDeintHQ) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_SWDEINT_OUT_FILM && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != (m_SWDeintOutMode == DeintOutput_FramePer2Field)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_SWDEINT_OUT_VIDEO && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != (m_SWDeintOutMode == DeintOutput_FramePerField)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_SWDEINT_ENABLE && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_SWDeint) {
         SetDirty();
       }
     }
