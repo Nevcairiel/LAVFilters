@@ -104,6 +104,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
     in_picref->video->interlaced      = pFrame->interlaced;
     in_picref->video->top_field_first = pFrame->tff;
     in_picref->buf->free              = lav_avfilter_default_free_buffer;
+    in_picref->video->sample_aspect_ratio = pFrame->aspect_ratio;
 
     av_vsrc_buffer_add_video_buffer_ref(m_pFilterBufferSrc, in_picref, 0);
     while (avfilter_poll_frame(m_pFilterBufferSink->inputs[0])) {
@@ -112,13 +113,22 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
         LAVFrame *outFrame = NULL;
         AllocateFrame(&outFrame);
 
+        REFERENCE_TIME rtDuration = pFrame->rtStop - pFrame->rtStart;
+        if (m_settings.SWDeintOutput == DeintOutput_FramePerField)
+          rtDuration >>= 1;
+
         // Copy most settings over
-        *outFrame = *pFrame;
-        outFrame->priv_data = NULL;
-        outFrame->destruct = NULL;
-        outFrame->interlaced = 0;
-        outFrame->rtStart = out_picref->pts;
-        outFrame->rtStop  = outFrame->rtStart + ((pFrame->rtStop - pFrame->rtStart) >> 1);
+        outFrame->format       = pFrame->format;
+        outFrame->bpp          = pFrame->bpp;
+        outFrame->ext_format   = pFrame->ext_format;
+        outFrame->avgFrameDuration = pFrame->avgFrameDuration;
+
+        outFrame->width        = out_picref->video->w;
+        outFrame->height       = out_picref->video->h;
+        outFrame->aspect_ratio = out_picref->video->sample_aspect_ratio;
+        outFrame->tff          = out_picref->video->top_field_first;
+        outFrame->rtStart      = out_picref->pts;
+        outFrame->rtStop       = out_picref->pts + rtDuration;
         memcpy(outFrame->data, out_picref->data, 4 * sizeof(uint8_t*));
         memcpy(outFrame->stride, out_picref->linesize, 4 * sizeof(int));
 
