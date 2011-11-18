@@ -72,7 +72,6 @@ private:
   BOOL m_substreams;
 
   BOOL m_videoParsing;
-  BOOL m_FixBrokenHDPVR;
   BOOL m_StreamSwitchRemoveAudio;
 
   LAVSubtitleMode m_selectedSubMode;

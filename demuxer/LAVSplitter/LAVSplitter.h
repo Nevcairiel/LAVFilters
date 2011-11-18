@@ -225,7 +225,6 @@ private:
     int vc1Mode;
     BOOL substreams;
     BOOL videoParsing;
-    BOOL FixBrokenHDPVR;
 
     BOOL StreamSwitchRemoveAudio;
 

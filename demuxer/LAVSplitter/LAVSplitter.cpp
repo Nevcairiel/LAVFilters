@@ -132,7 +132,6 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.vc1Mode          = 2;
   m_settings.substreams       = TRUE;
   m_settings.videoParsing     = TRUE;
-  m_settings.FixBrokenHDPVR   = TRUE;
 
   m_settings.StreamSwitchRemoveAudio = FALSE;
 
@@ -184,9 +183,6 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"videoParsing", hr);
   if (SUCCEEDED(hr)) m_settings.videoParsing = bFlag;
 
-  bFlag = reg.ReadDWORD(L"FixBrokenHDPVR", hr);
-  if (SUCCEEDED(hr)) m_settings.FixBrokenHDPVR = bFlag;
-
   bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
   if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
 
@@ -224,7 +220,6 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
     reg.WriteBOOL(L"substreams", m_settings.substreams);
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
-    reg.WriteBOOL(L"FixBrokenHDPVR", m_settings.FixBrokenHDPVR);
     reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
   }
 
@@ -1389,13 +1384,12 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetVideoParsingEnabled()
 
 STDMETHODIMP CLAVSplitter::SetFixBrokenHDPVR(BOOL bEnabled)
 {
-  m_settings.FixBrokenHDPVR = bEnabled;
-  return SaveSettings();
+  return E_FAIL;
 }
 
 STDMETHODIMP_(BOOL) CLAVSplitter::GetFixBrokenHDPVR()
 {
-  return m_settings.FixBrokenHDPVR;
+  return TRUE;
 }
 
 STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(const char *strFormat)

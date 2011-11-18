@@ -84,10 +84,8 @@ BEGIN
     CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
                     "Button",BS_AUTO3STATE | WS_TABSTOP,15,203,126,10
     CONTROL         "Enable Video Stream Parsing",IDC_VIDEOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,218,151,10
-    CONTROL         "Try to fix broken HD-PVR recordings",IDC_FIX_BROKEN_HDPVR,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,233,131,10
     CONTROL         "Remove Audio Decoder on Audio Stream Switch",IDC_STREAM_SWITCH_REMOVE_AUDIO,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,249,168,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,233,168,10
     LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,268,221,8,0,WS_EX_RIGHT
     LTEXT           "",IDC_SUBTITLE_NOTE,7,94,221,19
 END

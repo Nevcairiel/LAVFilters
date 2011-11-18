@@ -30,7 +30,6 @@
 #define IDC_BD_SUBS                     1020
 #define IDC_BD_SEPARATE_FORCED_SUBS     1021
 #define IDC_BD_ONLY_FORCED_SUBS         1022
-#define IDC_FIX_BROKEN_HDPVR            1023
 #define IDC_STREAM_SWITCH_REMOVE_AUDIO  1024
 #define IDC_SUBTITLE_NOTE               1025
 

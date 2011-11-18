@@ -116,9 +116,11 @@ interface ILAVFSettings : public IUnknown
   STDMETHOD_(BOOL,GetVideoParsingEnabled)() = 0;
 
   // Set if LAV Splitter should try to fix broken HD-PVR streams
+  // @deprecated - no longer required
   STDMETHOD(SetFixBrokenHDPVR)(BOOL bEnabled) = 0;
 
   // Query if LAV Splitter should try to fix broken HD-PVR streams
+  // @deprecated - no longer required
   STDMETHOD_(BOOL,GetFixBrokenHDPVR)() = 0;
 
   // Control wether the givne format is enabled
