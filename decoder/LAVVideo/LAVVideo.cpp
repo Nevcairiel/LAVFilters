@@ -528,6 +528,9 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   CAutoLock cAutoLock(&m_csReceive);
 
   m_pDecoder->Flush();
+  if (m_pFilterGraph)
+    avfilter_graph_free(&m_pFilterGraph);
+
   m_rtPrevStart = m_rtPrevStop = 0;
 
   return __super::NewSegment(tStart, tStop, dRate);
@@ -539,6 +542,9 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
   if (dir == PINDIR_INPUT) {
     m_bHWDecoderFailed = FALSE;
     SAFE_DELETE(m_pDecoder);
+
+    if (m_pFilterGraph)
+      avfilter_graph_free(&m_pFilterGraph);
   }
   return __super::BreakConnect(dir);
 }
