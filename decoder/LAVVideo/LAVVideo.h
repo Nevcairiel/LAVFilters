@@ -136,6 +136,7 @@ private:
   HRESULT SetFrameFlags(IMediaSample* pMS, LAVFrame *pFrame);
 
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
+  BOOL IsInterlaced();
 
   STDMETHODIMP Filter(LAVFrame *pFrame);
   STDMETHODIMP DeliverToRenderer(LAVFrame *pFrame);
@@ -151,7 +152,6 @@ private:
 
   BOOL                 m_bHWDecoder;
   BOOL                 m_bHWDecoderFailed;
-  BOOL                 m_bInterlaced;
 
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;

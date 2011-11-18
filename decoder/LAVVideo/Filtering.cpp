@@ -27,7 +27,7 @@ void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
 
 STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
 {
-  if (m_bInterlaced && m_settings.SWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422)) {
+  if (m_pDecoder->IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422)) {
     PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : PIX_FMT_YUV422P;
 
     if (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight) {
