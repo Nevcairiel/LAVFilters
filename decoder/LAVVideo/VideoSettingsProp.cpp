@@ -72,6 +72,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DEINT_FORCE, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetDeintForce(bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DEINT_PROGRESSIVE, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetDeintTreatAsProgressive(bFlag);
+
   BOOL bPixFmts[LAVOutPixFmt_NB] = {0};
   bPixFmts[LAVOutPixFmt_YV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_NV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_GETCHECK,0, 0);
@@ -176,6 +179,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
   addHint(IDC_DEINT_AGGRESSIVE, L"Force deinterlacing of all frames if the stream is flagged interlaced.");
   addHint(IDC_DEINT_FORCE, L"Force deinterlacing of all frames flagged as progressive (always).");
+  addHint(IDC_DEINT_PROGRESSIVE, L"Treat all streams/frames as progressive, disabling all forms of deinterlacing completely.\n\nNOTE: This includes deinterlacing by the renderer.\nIf this option is checked, LAV Video will no longer tell the renderer that the material is interlaced.");
 
   addHint(IDC_HWDEINT_OUT_FILM, L"Deinterlace in \"Film\" Mode.\nFor every pair of interlaced fields, one frame will be created, resulting in 25/30 fps.");
   addHint(IDC_HWDEINT_OUT_VIDEO, L"Deinterlace in \"Video\" Mode. (Recommended)\nFor every interlaced field, one frame will be created, resulting in 50/60 fps.");
@@ -191,6 +195,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
     SendDlgItemMessage(m_Dlg, IDC_DEINT_AGGRESSIVE, BM_SETCHECK, m_DeintAggressive, 0);
     SendDlgItemMessage(m_Dlg, IDC_DEINT_FORCE, BM_SETCHECK, m_DeintForce, 0);
+    SendDlgItemMessage(m_Dlg, IDC_DEINT_PROGRESSIVE, BM_SETCHECK, m_DeintProgressive, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_YV12], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_NV12], 0);
@@ -289,6 +294,8 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_SWDeint = m_pVideoSettings->GetSWDeintMode() == SWDeintMode_YADIF;
   m_SWDeintOutMode = m_pVideoSettings->GetSWDeintOutput();
 
+  m_DeintProgressive = m_pVideoSettings->GetDeintTreatAsProgressive();
+
   return hr;
 }
 
@@ -322,6 +329,11 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_DEINT_FORCE && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_DeintForce) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_DEINT_PROGRESSIVE && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_DeintProgressive) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_YV12 && HIWORD(wParam) == BN_CLICKED) {

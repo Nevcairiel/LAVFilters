@@ -753,7 +753,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_pFrame->interlaced_frame && m_iInterlaced != 1)
       m_iInterlaced = 1;
 
-    pOutFrame->interlaced   = m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce();
+    pOutFrame->interlaced   = (m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce()) && !m_pSettings->GetDeintTreatAsProgressive();
 
     LAVDeintFieldOrder fo   = m_pSettings->GetDeintFieldOrder();
     pOutFrame->tff          = (fo == DeintFieldOrder_Auto) ? m_pFrame->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
@@ -848,5 +848,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecAvcodec::IsInterlaced()
 {
-  return (m_iInterlaced != 0) || m_pSettings->GetDeintForce();
+  return !m_pSettings->GetDeintTreatAsProgressive() && ((m_iInterlaced != 0) || m_pSettings->GetDeintForce());
 }

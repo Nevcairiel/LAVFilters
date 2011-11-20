@@ -144,6 +144,8 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.SWDeintMode = SWDeintMode_None;
   m_settings.SWDeintOutput = DeintOutput_FramePerField;
 
+  m_settings.DeintTreatAsProgressive = FALSE;
+
   return S_OK;
 }
 
@@ -232,6 +234,9 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"SWDeintOutput", hr);
   if (SUCCEEDED(hr)) m_settings.SWDeintOutput = dwVal;
 
+  bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
+  if (SUCCEEDED(hr)) m_settings.DeintTreatAsProgressive = bFlag;
+
   return S_OK;
 }
 
@@ -273,6 +278,7 @@ HRESULT CLAVVideo::SaveSettings()
 
     reg.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
+    reg.WriteBOOL(L"DeintTreatAsProgressive", m_settings.DeintTreatAsProgressive);
   }
   return S_OK;
 }
@@ -1249,4 +1255,15 @@ STDMETHODIMP CLAVVideo::SetSWDeintOutput(LAVDeintOutput deintOutput)
 STDMETHODIMP_(LAVDeintOutput) CLAVVideo::GetSWDeintOutput()
 {
   return (LAVDeintOutput)m_settings.SWDeintOutput;
+}
+
+STDMETHODIMP CLAVVideo::SetDeintTreatAsProgressive(BOOL bEnabled)
+{
+  m_settings.DeintTreatAsProgressive = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetDeintTreatAsProgressive()
+{
+  return m_settings.DeintTreatAsProgressive;
 }

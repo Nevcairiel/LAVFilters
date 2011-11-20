@@ -91,6 +91,9 @@ public:
   STDMETHODIMP SetSWDeintOutput(LAVDeintOutput deintOutput);
   STDMETHODIMP_(LAVDeintOutput) GetSWDeintOutput();
 
+  STDMETHODIMP SetDeintTreatAsProgressive(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetDeintTreatAsProgressive();
+
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
   HRESULT CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut);
@@ -187,6 +190,7 @@ private:
     BOOL DeintForce;
     DWORD SWDeintMode;
     DWORD SWDeintOutput;
+    BOOL DeintTreatAsProgressive;
   } m_settings;
 
 #ifdef DEBUG

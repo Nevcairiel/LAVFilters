@@ -252,4 +252,10 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get the software deinterlacing output
   STDMETHOD_(LAVDeintOutput, GetSWDeintOutput)() = 0;
+
+  // Set wether all content is treated as progressive, and any interlaced flags are ignored
+  STDMETHOD(SetDeintTreatAsProgressive)(BOOL bEnabled) = 0;
+
+  // Get wether all content is treated as progressive, and any interlaced flags are ignored
+  STDMETHOD_(BOOL, GetDeintTreatAsProgressive)() = 0;
 };
