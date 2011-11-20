@@ -378,7 +378,7 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
   int64_t target = bd_find_seek_point(m_pBD, ConvertDSTimeTo90Khz(rTime));
 
   DbgLog((LOG_TRACE, 1, "Seek Request: %I64u (time); %I64u (byte), %I64u (prev byte)", rTime, target, prev));
-  return m_lavfDemuxer->SeekByte(target, prev > target ? AVSEEK_FLAG_BACKWARD : 0);
+  return m_lavfDemuxer->SeekByte(target, AVSEEK_FLAG_BACKWARD);
 }
 
 const char *CBDDemuxer::GetContainerFormat() const
