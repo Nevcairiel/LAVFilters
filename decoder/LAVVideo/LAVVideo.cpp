@@ -226,10 +226,10 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = regHW.ReadBOOL(L"HWDeintHQ", hr);
   if (SUCCEEDED(hr)) m_settings.HWDeintHQ = bFlag;
 
-  dwVal = regHW.ReadDWORD(L"SWDeintMode", hr);
+  dwVal = reg.ReadDWORD(L"SWDeintMode", hr);
   if (SUCCEEDED(hr)) m_settings.SWDeintMode = dwVal;
 
-  dwVal = regHW.ReadDWORD(L"SWDeintOutput", hr);
+  dwVal = reg.ReadDWORD(L"SWDeintOutput", hr);
   if (SUCCEEDED(hr)) m_settings.SWDeintOutput = dwVal;
 
   return S_OK;
@@ -270,8 +270,9 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
     regHW.WriteBOOL(L"HWDeintHQ", m_settings.HWDeintHQ);
-    regHW.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
-    regHW.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
+
+    reg.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
+    reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
   }
   return S_OK;
 }
