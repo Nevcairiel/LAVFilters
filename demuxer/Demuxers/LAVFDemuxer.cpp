@@ -640,7 +640,7 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
     }
   }
 
-  for (int i = 0; i < m_avFormat->nb_streams; i++) {
+  for (unsigned i = 0; i < m_avFormat->nb_streams; i++) {
     init_parser(m_avFormat, m_avFormat->streams[i]);
     UpdateParserFlags(m_avFormat->streams[i]);
   }
@@ -657,7 +657,7 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
     DbgLog((LOG_ERROR, 1, L"::SeekByte() -- Seek failed"));
   }
 
-  for (int i = 0; i < m_avFormat->nb_streams; i++) {
+  for (unsigned i = 0; i < m_avFormat->nb_streams; i++) {
     init_parser(m_avFormat, m_avFormat->streams[i]);
     UpdateParserFlags(m_avFormat->streams[i]);
   }
