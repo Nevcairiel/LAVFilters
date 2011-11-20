@@ -179,6 +179,9 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       mtypes.push_back(mtype);
       mtype.subtype = MEDIASUBTYPE_RGB32;
       break;
+    case PIX_FMT_BGR24:
+      mtype.subtype = MEDIASUBTYPE_RGB24;
+      break;
     default:
       DbgLog((LOG_TRACE, 10, L"::CreateVideoMediaType(): Unsupported raw video pixel format"));
     }
