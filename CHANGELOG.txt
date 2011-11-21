@@ -1,5 +1,24 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.40 - 2011/11/21
+LAV Splitter
+- Improved demuxing of raw PCM streams
+- Fixed VC-1 in MP4 with the MS WMVideo Decoder
+- Improved playback of files with TrueHD audio streams
+- Added support for a requested stop time from the player
+- Improved playback of Blu-ray rips created by EasyBD
+- Added support for RGB24 raw video in AVI
+
+LAV Audio
+- Improved decoding of formats with extremely large audio frames
+
+LAV Video
+- Added YADIF software deinterlacing
+- Rewritten Interlaced options
+  - Added new "Aggressive" deinterlacing mode
+  - Moved many interlaced related options to global level
+- Fixed an issue with stream compatibility detection in the CUVID decoder, causing a software fallback when not required
+
 0.39 - 2011/11/07
 LAV Splitter
 - Fixed a bug that caused MPEG-2 and VC-1 parsers to produce wrong timestamps after a seek
