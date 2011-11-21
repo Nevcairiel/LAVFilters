@@ -37,6 +37,7 @@ extern "C" {
 #define AVFORMAT_GENPTS 0
 
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
+extern AVInputFormat lav_mkv_demuxer;
 
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
@@ -48,6 +49,7 @@ void CLAVFDemuxer::ffmpeg_init()
 #endif
 
   av_register_all();
+  av_register_input_format(&lav_mkv_demuxer);
 }
 
 std::set<FormatInfo> CLAVFDemuxer::GetFormatList()

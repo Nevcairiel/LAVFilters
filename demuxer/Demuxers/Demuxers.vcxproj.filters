@@ -89,6 +89,9 @@
     <ClCompile Include="LAVFInputFormats.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MKVDemuxer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="mkv\MatroskaParser.c">
       <Filter>Source Files\mkv</Filter>
     </ClCompile>

@@ -53,7 +53,7 @@
 #endif
 
 #define MATROSKA_COMPRESSION_SUPPORT
-#define	MATROSKA_INTEGER_ONLY
+//#define	MATROSKA_INTEGER_ONLY
 
 #ifdef __cplusplus
 extern "C" {

@@ -142,6 +142,7 @@
     <ClCompile Include="LAVFVideoHelper.cpp" />
     <ClCompile Include="LAVFStreamInfo.cpp" />
     <ClCompile Include="LAVFUtils.cpp" />
+    <ClCompile Include="MKVDemuxer.cpp" />
     <ClCompile Include="mkv\MatroskaParser.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
