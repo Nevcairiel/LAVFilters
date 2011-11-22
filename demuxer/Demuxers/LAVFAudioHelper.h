@@ -25,68 +25,12 @@
 #include "moreuuids.h"
 
 extern "C" {
-#include "libavformat/riff.h"
+__declspec(dllimport) extern const AVCodecTag ff_codec_wav_tags[];
 }
 
-const AVCodecTag ff2_codec_wav_tags[] = {
-  { CODEC_ID_PCM_S16LE,       0x0001 },
-  { CODEC_ID_PCM_U8,          0x0001 }, /* must come after s16le in this list */
-  { CODEC_ID_PCM_S24LE,       0x0001 },
-  { CODEC_ID_PCM_S32LE,       0x0001 },
-  { CODEC_ID_ADPCM_MS,        0x0002 },
-  { CODEC_ID_PCM_F32LE,       0x0003 },
-  { CODEC_ID_PCM_F64LE,       0x0003 }, /* must come after f32le in this list */
-  { CODEC_ID_PCM_ALAW,        0x0006 },
-  { CODEC_ID_PCM_MULAW,       0x0007 },
-  { CODEC_ID_WMAVOICE,        0x000A },
-  { CODEC_ID_ADPCM_IMA_WAV,   0x0011 },
-  { CODEC_ID_PCM_ZORK,        0x0011 }, /* must come after adpcm_ima_wav in this list */
-  { CODEC_ID_ADPCM_YAMAHA,    0x0020 },
-  { CODEC_ID_TRUESPEECH,      0x0022 },
-  { CODEC_ID_GSM_MS,          0x0031 },
-  { CODEC_ID_ADPCM_G726,      0x0045 },
-  { CODEC_ID_MP2,             0x0050 },
-  { CODEC_ID_MP3,             0x0055 },
-  { CODEC_ID_AMR_NB,          0x0057 },
-  { CODEC_ID_AMR_WB,          0x0058 },
-  { CODEC_ID_ADPCM_IMA_DK4,   0x0061 },  /* rogue format number */
-  { CODEC_ID_ADPCM_IMA_DK3,   0x0062 },  /* rogue format number */
-  { CODEC_ID_ADPCM_IMA_WAV,   0x0069 },
-  { CODEC_ID_VOXWARE,         0x0075 },
-  { CODEC_ID_AAC,             0x00ff },
-  { CODEC_ID_SIPR,            0x0130 },
-  { CODEC_ID_WMAV1,           0x0160 },
-  { CODEC_ID_WMAV2,           0x0161 },
-  { CODEC_ID_WMAPRO,          0x0162 },
-  { CODEC_ID_WMALOSSLESS,     0x0163 },
-  { CODEC_ID_ADPCM_CT,        0x0200 },
-  { CODEC_ID_ATRAC3,          0x0270 },
-  { CODEC_ID_IMC,             0x0401 },
-  { CODEC_ID_GSM_MS,          0x1500 },
-  { CODEC_ID_TRUESPEECH,      0x1501 },
-  { CODEC_ID_AC3,             0x2000 },
-  { CODEC_ID_TRUEHD,          0x2000 }, /* HACK: TrueHD is being send as AC3 to make ffdshow happy */
-  { CODEC_ID_DTS,             0x2001 },
-  { CODEC_ID_SONIC,           0x2048 },
-  { CODEC_ID_SONIC_LS,        0x2048 },
-  { CODEC_ID_PCM_MULAW,       0x6c75 },
-  { CODEC_ID_AAC,             0x706d },
-  { CODEC_ID_AAC,             0x4143 },
-  { CODEC_ID_FLAC,            0xF1AC },
-  { CODEC_ID_ADPCM_SWF,       ('S'<<8)+'F' },
-  { CODEC_ID_VORBIS,          0x6771 }, //HACK/FIXME, does vorbis in WAV/AVI have an (in)official id?
-  { CODEC_ID_WAVPACK,         0x5756 }, // WAVE_FORMAT_WAVPACK4
-  { CODEC_ID_TTA,             0x77A1 }, // WAVE_FORMAT_TTA1
-
-  /* FIXME: All of the IDs below are not 16 bit and thus illegal. */
-  // for NuppelVideo (nuv.c)
-  { CODEC_ID_PCM_S16LE, MKTAG('R', 'A', 'W', 'A') },
-  { CODEC_ID_MP3,       MKTAG('L', 'A', 'M', 'E') },
-  { CODEC_ID_MP3,       MKTAG('M', 'P', '3', ' ') },
-  { CODEC_ID_NONE,      0 },
-};
-
 const AVCodecTag mp_wav_tags[] = {
+  { CODEC_ID_WAVPACK,           0x5756 },
+  { CODEC_ID_TTA,               0x77A1 },
   { CODEC_ID_ADPCM_4XM,         MKTAG('4', 'X', 'M', 'A')},
   { CODEC_ID_ADPCM_ADX,         MKTAG('S', 'a', 'd', 'x')},
   { CODEC_ID_ADPCM_EA,          MKTAG('A', 'D', 'E', 'A')},
@@ -117,10 +61,9 @@ const AVCodecTag mp_wav_tags[] = {
   { CODEC_ID_TWINVQ,            MKTAG('T', 'W', 'I', '2')},
   { CODEC_ID_WESTWOOD_SND1,     MKTAG('S', 'N', 'D', '1')},
   { CODEC_ID_XAN_DPCM,          MKTAG('A', 'x', 'a', 'n')},
-
 };
 
-const struct AVCodecTag * const mp_wav_taglists[] = {ff2_codec_wav_tags, mp_wav_tags, 0};
+const struct AVCodecTag * const mp_wav_taglists[] = { ff_codec_wav_tags, mp_wav_tags, 0};
 
 class CLAVFAudioHelper
 {

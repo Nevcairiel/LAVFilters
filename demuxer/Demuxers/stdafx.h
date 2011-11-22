@@ -20,6 +20,12 @@ extern "C" {
 #include "libbluray/bluray.h"
 }
 
+#define AVFORMAT_INTERNAL_H
+typedef struct AVCodecTag {
+    enum CodecID id;
+    unsigned int tag;
+} AVCodecTag;
+
 #include "libbluray/bdnav/clpi_parse.h"
 
 #include "util/log_control.h"
