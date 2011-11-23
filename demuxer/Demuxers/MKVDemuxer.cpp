@@ -463,7 +463,7 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
   MatroskaDemuxContext *ctx = (MatroskaDemuxContext *)s->priv_data;
 
   int ret;
-  unsigned int size, flags, track_num;
+  unsigned int size, offset = 0, flags, track_num;
   ulonglong start_time, end_time, pos;
   ret = mkv_ReadFrame(ctx->matroska, 0, &track_num, &start_time, &end_time, &pos, &size, &flags);
   if (ret < 0)
@@ -471,12 +471,20 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
 
   MatroskaTrack *track = &ctx->tracks[track_num];
 
-  av_new_packet(pkt, size);
-  ret = aviostream_read(ctx->iostream, pos, pkt->data, size);
+  /* header removal compression */
+  if (track->info->CompEnabled && track->info->CompMethod == COMP_PREPEND && track->info->CompMethodPrivateSize > 0) {
+    offset = track->info->CompMethodPrivateSize;
+  }
+
+  av_new_packet(pkt, size+offset);
+  ret = aviostream_read(ctx->iostream, pos, pkt->data+offset, size);
   if (ret < (int)size) {
     av_free_packet(pkt);
     return AVERROR(EIO);
   }
+
+  if (offset > 0)
+    memcpy(pkt->data, track->info->CompMethodPrivate, offset);
 
   if (track->ms_compat)
     pkt->dts = start_time;
@@ -490,7 +498,7 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
 
   pkt->flags = (flags & FRAME_KF) ? AV_PKT_FLAG_KEY : 0;
   pkt->pos = pos;
-  pkt->size = size;
+  pkt->size = size+offset;
   pkt->stream_index = track->stream->index;
 
   return 0;

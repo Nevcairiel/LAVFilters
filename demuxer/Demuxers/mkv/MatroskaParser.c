@@ -1461,50 +1461,60 @@ static void parseTrackEntry(MatroskaFile *mf,ulonglong toplen) {
         return;
   }
 
-#ifdef MATROSKA_COMPRESSION_SUPPORT
   // handle compressed CodecPrivate
-  if (t.CompEnabled && t.CompMethod == COMP_ZLIB && (CompScope & 2) && cplen > 0) {
-    z_stream  zs;
-    Bytef     tmp[64], *ncp;
-    int              code;
-    uLong     ncplen;
+  // header removal compression
+  if (t.CompEnabled && (CompScope & 2)) {
+    if (t.CompMethod == COMP_PREPEND && cslen > 0) {
+      cp = mf->cache->memrealloc(mf->cache, cp, cplen + cslen);
+      memmove(cp+cslen, cp, cplen);
+      memcpy(cp, cs, cslen);
+      cplen += cslen;
+    }
+#ifdef MATROSKA_COMPRESSION_SUPPORT
+    // zlib compression
+    else if (t.CompMethod == COMP_ZLIB && cplen > 0) {
+      z_stream  zs;
+      Bytef     tmp[64], *ncp;
+      int              code;
+      uLong     ncplen;
 
-    memset(&zs,0,sizeof(zs));
-    if (inflateInit(&zs) != Z_OK)
-      errorjmp(mf, "inflateInit failed");
+      memset(&zs,0,sizeof(zs));
+      if (inflateInit(&zs) != Z_OK)
+        errorjmp(mf, "inflateInit failed");
 
-    zs.next_in = (Bytef *)cp;
-    zs.avail_in = (uInt)cplen;
+      zs.next_in = (Bytef *)cp;
+      zs.avail_in = (uInt)cplen;
 
-    do {
-      zs.next_out = tmp;
-      zs.avail_out = sizeof(tmp);
+      do {
+        zs.next_out = tmp;
+        zs.avail_out = sizeof(tmp);
 
-      code = inflate(&zs, Z_NO_FLUSH);
-    } while (code == Z_OK);
+        code = inflate(&zs, Z_NO_FLUSH);
+      } while (code == Z_OK);
 
-    if (code != Z_STREAM_END)
-      errorjmp(mf, "invalid compressed data in CodecPrivate");
+      if (code != Z_STREAM_END)
+        errorjmp(mf, "invalid compressed data in CodecPrivate");
 
-    ncplen = zs.total_out;
-    ncp = alloca(ncplen);
+      ncplen = zs.total_out;
+      ncp = alloca(ncplen);
 
-    inflateReset(&zs);
+      inflateReset(&zs);
 
-    zs.next_in = (Bytef *)cp;
-    zs.avail_in = (uInt)cplen;
-    zs.next_out = ncp;
-    zs.avail_out = ncplen;
+      zs.next_in = (Bytef *)cp;
+      zs.avail_in = (uInt)cplen;
+      zs.next_out = ncp;
+      zs.avail_out = ncplen;
 
-    if (inflate(&zs, Z_FINISH) != Z_STREAM_END)
-      errorjmp(mf, "inflate failed");
+      if (inflate(&zs, Z_FINISH) != Z_STREAM_END)
+        errorjmp(mf, "inflate failed");
 
-    inflateEnd(&zs);
+      inflateEnd(&zs);
 
-    cp = (char *)ncp;
-    cplen = ncplen;
-  }
+      cp = (char *)ncp;
+      cplen = ncplen;
+    }
 #endif
+  }
 
   if (t.CompEnabled && !(CompScope & 1)) {
     t.CompEnabled = 0;
