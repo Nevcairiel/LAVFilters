@@ -394,8 +394,8 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
 
     if (info->Default)
       st->disposition |= AV_DISPOSITION_DEFAULT;
-    /*if (info->Forced)
-    st->disposition |= AV_DISPOSITION_FORCED;*/
+    if (info->Forced)
+      st->disposition |= AV_DISPOSITION_FORCED;
 
     if (info->DefaultDuration)
       av_reduce(&st->codec->time_base.num, &st->codec->time_base.den, info->DefaultDuration, 1000000000, 30000);

@@ -1295,6 +1295,7 @@ static void parseTrackEntry(MatroskaFile *mf,ulonglong toplen) {
   // fill default values
   t.Enabled = 1;
   t.Default = 1;
+  t.Forced = 0;
   t.Lacing = 1;
   t.TimecodeScale = mkfi(1);
   t.DecodeAll = 1;
@@ -1320,6 +1321,9 @@ static void parseTrackEntry(MatroskaFile *mf,ulonglong toplen) {
       break;
     case 0x88: // Default
       t.Default = readUInt(mf,(unsigned)len)!=0;
+      break;
+    case 0x55aa: // Forced
+      t.Forced = readUInt(mf,(unsigned)len)!=0;
       break;
     case 0x9c: // Lacing
       t.Lacing = readUInt(mf,(unsigned)len)!=0;
