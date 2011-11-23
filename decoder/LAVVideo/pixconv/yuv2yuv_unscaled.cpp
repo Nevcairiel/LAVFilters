@@ -49,7 +49,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
   // Process Y
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line
-    PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,shift,dithers);
+    PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
 
     __m128i *dst128Y = (__m128i *)(dst + line * outYStride);
 
@@ -70,7 +70,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
 
   for (line = 0; line < (height >> 1); ++line) {
     // Load dithering coefficients for this line
-    PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,shift,dithers);
+    PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
 
     __m128i *dst128UV = (__m128i *)(dstV + line * outYStride);
     __m128i *dst128U = (__m128i *)(dstU + line * outUVStride);
