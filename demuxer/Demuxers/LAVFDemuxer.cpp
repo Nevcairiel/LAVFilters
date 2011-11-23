@@ -503,11 +503,6 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       }
     }
 
-    // we need to get duration slightly different for matroska embedded text subtitels
-    if(m_bMatroska && stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-      pkt.duration = (int)pkt.convergence_duration;
-    }
-
     if(m_bAVI && stream->codec && stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
     {
       // AVI's always have borked pts, specially if m_pFormatContext->flags includes
@@ -543,7 +538,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
     REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
-    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den, 0);
+    REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT((m_bMatroska && stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) ? pkt.convergence_duration : pkt.duration, stream->time_base.num, stream->time_base.den, 0);
 
     REFERENCE_TIME rt = Packet::INVALID_TIME; // m_rtCurrent;
     // Try the different times set, pts first, dts when pts is not valid
