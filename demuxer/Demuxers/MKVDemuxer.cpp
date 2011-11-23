@@ -52,6 +52,7 @@ typedef struct AVIOStream {
 
 typedef struct MatroskaTrack {
   TrackInfo *info;
+  CompressedStream *cs;
   AVStream *stream;
   int ms_compat;
 } MatroskaTrack;
@@ -61,7 +62,12 @@ typedef struct MatroskaDemuxContext {
   MatroskaFile    *matroska;
   AVFormatContext *ctx;
 
+  int num_tracks;
   MatroskaTrack   *tracks;
+
+  char CSBuffer[4096];
+  char *Buffer;
+  unsigned BufferSize;
 } MatroskaDemuxContext;
 
 static int aviostream_read(struct AVIOStream *cc,ulonglong pos,void *buffer,int count)
@@ -242,7 +248,7 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
   av_dict_set(&s->metadata, "title", segment->Title, 0);
 
   /* Tracks */
-  num_tracks = mkv_GetNumTracks(ctx->matroska);
+  ctx->num_tracks = num_tracks = mkv_GetNumTracks(ctx->matroska);
   ctx->tracks = (MatroskaTrack *)av_mallocz(sizeof(MatroskaTrack) * num_tracks);
   for(i = 0; i < num_tracks; i++) {
     MatroskaTrack *track = &ctx->tracks[i];
@@ -264,6 +270,8 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
     if (info->CodecID == NULL)
       continue;
 
+    DbgLog((LOG_TRACE, 10, L" -> Track %d, type: %d, codec_id: %S", i, info->Type, info->CodecID));
+
     if (info->Type == TT_VIDEO) {
       if (!info->AV.Video.DisplayWidth)
         info->AV.Video.DisplayWidth = info->AV.Video.PixelWidth;
@@ -274,7 +282,14 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
         info->AV.Audio.OutputSamplingFreq = info->AV.Audio.SamplingFreq;
     }
 
-    // TODO: Support compressed streams
+    if (info->CompEnabled && info->CompMethod == COMP_ZLIB) {
+      DbgLog((LOG_TRACE, 10, L" -> Track is ZLIB compressed"));
+      track->cs = cs_Create(ctx->matroska, i, ErrorMessage, sizeof(ErrorMessage));
+      if (!track->cs) {
+        DbgLog((LOG_TRACE, 10, L" -> Creating compressed stream failed: %S", ErrorMessage));
+        continue;
+      }
+    }
 
     for(j=0; ff_mkv_codec_tags[j].id != CODEC_ID_NONE; j++){
       if(!strncmp(ff_mkv_codec_tags[j].str, info->CodecID, strlen(ff_mkv_codec_tags[j].str))){
@@ -282,8 +297,6 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
         break;
       }
     }
-
-    DbgLog((LOG_TRACE, 10, L" -> Track %d, type: %d, codec_id: %S", i, info->Type, info->CodecID));
 
     st = track->stream = avformat_new_stream(s, NULL);
     if (st == NULL)
@@ -471,20 +484,44 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
 
   MatroskaTrack *track = &ctx->tracks[track_num];
 
-  /* header removal compression */
-  if (track->info->CompEnabled && track->info->CompMethod == COMP_PREPEND && track->info->CompMethodPrivateSize > 0) {
-    offset = track->info->CompMethodPrivateSize;
-  }
+  /* zlib compression */
+  if (track->cs) {
+    unsigned int frame_size = 0;
+    cs_NextFrame(track->cs, pos, size);
+    for(;;) {
+      ret = cs_ReadData(track->cs, ctx->CSBuffer, sizeof(ctx->CSBuffer));
+      if (ret < 0) {
+        DbgLog((LOG_ERROR, 10, L"cs_ReadData failed"));
+        return AVERROR(EIO);
+      } else if (ret == 0) {
+        size = frame_size;
+        break;
+      }
+      if (ctx->BufferSize < (frame_size + ret)) {
+        ctx->BufferSize = (frame_size + ret) * 2;
+        ctx->Buffer = (char *)av_realloc(ctx->Buffer, ctx->BufferSize);
+      }
+      memcpy(ctx->Buffer + frame_size, ctx->CSBuffer, ret);
+      frame_size += ret;
+    }
+    av_new_packet(pkt, frame_size);
+    memcpy(pkt->data, ctx->Buffer, frame_size);
+  } else {
+    /* header removal compression */
+    if (track->info->CompEnabled && track->info->CompMethod == COMP_PREPEND && track->info->CompMethodPrivateSize > 0) {
+      offset = track->info->CompMethodPrivateSize;
+    }
 
-  av_new_packet(pkt, size+offset);
-  ret = aviostream_read(ctx->iostream, pos, pkt->data+offset, size);
-  if (ret < (int)size) {
-    av_free_packet(pkt);
-    return AVERROR(EIO);
-  }
+    av_new_packet(pkt, size+offset);
+    ret = aviostream_read(ctx->iostream, pos, pkt->data+offset, size);
+    if (ret < (int)size) {
+      av_free_packet(pkt);
+      return AVERROR(EIO);
+    }
 
-  if (offset > 0)
-    memcpy(pkt->data, track->info->CompMethodPrivate, offset);
+    if (offset > 0)
+      memcpy(pkt->data, track->info->CompMethodPrivate, offset);
+  }
 
   if (track->ms_compat)
     pkt->dts = start_time;
@@ -507,10 +544,16 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
 static int mkv_read_close(AVFormatContext *s)
 {
   MatroskaDemuxContext *ctx = (MatroskaDemuxContext *)s->priv_data;
+  int i;
 
   mkv_Close(ctx->matroska);
   av_freep(&ctx->iostream);
+
+  for (i = 0; i < ctx->num_tracks; i++) {
+    av_freep(&ctx->tracks[i].cs);
+  }
   av_freep(&ctx->tracks);
+
 
   return 0;
 }
