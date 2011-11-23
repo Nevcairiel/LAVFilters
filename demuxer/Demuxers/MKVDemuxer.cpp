@@ -38,10 +38,13 @@ __declspec(dllimport) extern const int avpriv_mpeg4audio_sample_rates[16];
 // Helper functions
 extern enum CodecID ff_codec_get_id(const AVCodecTag *tags, unsigned int tag);
 extern int ff_get_wav_header(AVIOContext *pb, AVCodecContext *codec, int size);
+extern AVChapter *avpriv_new_chapter(AVFormatContext *s, int id, AVRational time_base, int64_t start, int64_t end, const char *title);
 };
 
 #define IO_BUFFER_SIZE 32768
 #define EBML_ID_HEADER 0x1A45DFA3
+
+static const AVRational mkv_timebase = {1, 1000000000};
 
 static const char *matroska_doctypes[] = { "matroska", "webm" };
 
@@ -213,12 +216,35 @@ static int matroska_aac_sri(int samplerate)
   return sri;
 }
 
+static void mkv_process_chapter(AVFormatContext *s, Chapter *chapter, int level)
+{
+  unsigned i;
+  if (chapter->UID && chapter->Enabled) {
+    AVChapter *avchap = avpriv_new_chapter(s, (int)chapter->UID, mkv_timebase, chapter->Start, chapter->End, chapter->Display ? chapter->Display->String : NULL);
+
+    if (level > 0 && chapter->Display && chapter->Display->String) {
+      char *title = (char *)av_mallocz(level + strlen(chapter->Display->String) + 2);
+      memset(title, '+', level);
+      title[level] = ' ';
+      memcpy(&title[level+1], chapter->Display->String, strlen(chapter->Display->String));
+      av_dict_set(&avchap->metadata, "title", title, 0);
+    }
+  }
+  if (chapter->nChildren > 0) {
+    for (i = 0; i < chapter->nChildren; i++) {
+      mkv_process_chapter(s, chapter->Children + i, level + 1);
+    }
+  }
+}
+
 static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
 {
   MatroskaDemuxContext *ctx = (MatroskaDemuxContext *)s->priv_data;
   char ErrorMessage[256];
   int i, j, num_tracks;
   SegmentInfo *segment;
+  Chapter *chapters = NULL;
+  unsigned int chap_count, u;
 
   AVIOStream *iostream = (AVIOStream *)av_mallocz(sizeof(AVIOStream));
   iostream->base.read = (int (*)(InputStream *,ulonglong,void *,int))aviostream_read;
@@ -466,6 +492,12 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
     } else if (info->Type == TT_SUB) {
       st->codec->codec_type = AVMEDIA_TYPE_SUBTITLE;
     }
+  }
+
+  /* chapter start at level -1 because they are always wrapped in a edition entry */
+  mkv_GetChapters(ctx->matroska, &chapters, &chap_count);
+  for (u = 0; u < chap_count; u++) {
+    mkv_process_chapter(s, chapters + u, -1);
   }
 
   return 0;
