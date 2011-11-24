@@ -106,13 +106,6 @@ static void  mystrlcpy(char *dst,const char *src,unsigned size) {
     dst[i] = 0;
 }
 
-struct Cue {
-  ulonglong        Time;
-  ulonglong        Position;
-  ulonglong        Block;
-  unsigned char        Track;
-};
-
 struct QueueEntry {
   struct QueueEntry *next;
   unsigned int            Length;
@@ -2920,6 +2913,11 @@ void              mkv_GetAttachments(MatroskaFile *mf,Attachment **at,unsigned *
 void              mkv_GetChapters(MatroskaFile *mf,Chapter **ch,unsigned *count) {
   *ch = mf->Chapters;
   *count = mf->nChapters;
+}
+
+void              mkv_GetCues(MatroskaFile *mf,Cue **cue,unsigned *count) {
+  *cue = mf->Cues;
+  *count = mf->nCues;
 }
 
 void              mkv_GetTags(MatroskaFile *mf,Tag **tag,unsigned *count) {

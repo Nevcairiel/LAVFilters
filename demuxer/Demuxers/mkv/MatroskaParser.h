@@ -242,6 +242,15 @@ struct Chapter {
 
 typedef struct Chapter	Chapter;
 
+struct Cue {
+  ulonglong        Time;
+  ulonglong        Position;
+  ulonglong        Block;
+  unsigned char        Track;
+};
+
+typedef struct Cue Cue;
+
 #define	TARGET_TRACK	  0
 #define	TARGET_CHAPTER	  1
 #define	TARGET_ATTACHMENT 2
@@ -308,6 +317,8 @@ X void	      mkv_GetChapters(/* in */	MatroskaFile *mf,
 X void	      mkv_GetTags(/* in */  MatroskaFile *mf,
 			  /* out */ Tag **tag,
 			  /* out */ unsigned *count);
+
+X void  mkv_GetCues(MatroskaFile *mf, Cue **cue, unsigned *count);
 
 X ulonglong   mkv_GetSegmentTop(MatroskaFile *mf);
 

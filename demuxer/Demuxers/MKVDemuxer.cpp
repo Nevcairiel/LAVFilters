@@ -251,6 +251,7 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
   SegmentInfo *segment;
   Chapter *chapters = NULL;
   Attachment *attachments = NULL;
+  Cue *cues = NULL;
   unsigned int count, u;
 
   AVIOStream *iostream = (AVIOStream *)av_mallocz(sizeof(AVIOStream));
@@ -534,6 +535,15 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
           break;
         }
       }
+    }
+  }
+
+  /* convert Cue entries into av index entries */
+  mkv_GetCues(ctx->matroska, &cues, &count);
+  for (u = 0; u < count; u++) {
+    ulonglong pos = mkv_GetSegmentTop(ctx->matroska) + cues[u].Position;
+    for(i = 0; i < num_tracks; i++) {
+      av_add_index_entry(ctx->tracks[i].stream, pos, cues[u].Time, 0, 0, AVINDEX_KEYFRAME);
     }
   }
 
