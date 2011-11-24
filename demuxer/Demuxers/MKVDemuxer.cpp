@@ -20,6 +20,11 @@
 #include "stdafx.h"
 #include "mkv/MatroskaParser.h"
 
+typedef struct CodecMime{
+    char str[32];
+    enum CodecID id;
+}CodecMime;
+
 typedef struct CodecTags{
     char str[20];
     enum CodecID id;
@@ -30,6 +35,7 @@ extern "C" {
 
 // Data arrays
 __declspec(dllimport) extern const CodecTags ff_mkv_codec_tags[];
+__declspec(dllimport) extern const CodecMime ff_mkv_mime_tags[];
 __declspec(dllimport) extern const AVCodecTag ff_codec_bmp_tags[];
 __declspec(dllimport) extern const AVCodecTag codec_movvideo_tags[];
 __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
@@ -244,7 +250,8 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
   int i, j, num_tracks;
   SegmentInfo *segment;
   Chapter *chapters = NULL;
-  unsigned int chap_count, u;
+  Attachment *attachments = NULL;
+  unsigned int count, u;
 
   AVIOStream *iostream = (AVIOStream *)av_mallocz(sizeof(AVIOStream));
   iostream->base.read = (int (*)(InputStream *,ulonglong,void *,int))aviostream_read;
@@ -495,9 +502,39 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
   }
 
   /* chapter start at level -1 because they are always wrapped in a edition entry */
-  mkv_GetChapters(ctx->matroska, &chapters, &chap_count);
-  for (u = 0; u < chap_count; u++) {
+  mkv_GetChapters(ctx->matroska, &chapters, &count);
+  for (u = 0; u < count; u++) {
     mkv_process_chapter(s, chapters + u, -1);
+  }
+
+  mkv_GetAttachments(ctx->matroska, &attachments, &count);
+  for (u = 0; u < count; u++) {
+    Attachment *attach = &attachments[u];
+
+    if (!(attach->Name && attach->MimeType && attach->Length > 0)) {
+      DbgLog((LOG_TRACE, 10, L" -> Incomplete attachment, skipping"));
+    } else {
+      AVStream *st = avformat_new_stream(s, NULL);
+      if (st == NULL)
+        break;
+      av_dict_set(&st->metadata, "filename", attach->Name, 0);
+      av_dict_set(&st->metadata, "mimetype", attach->MimeType, 0);
+      st->codec->codec_id = CODEC_ID_NONE;
+      st->codec->codec_type = AVMEDIA_TYPE_ATTACHMENT;
+
+      st->codec->extradata = (uint8_t *)av_malloc((size_t)attach->Length + FF_INPUT_BUFFER_PADDING_SIZE);
+      if(st->codec->extradata == NULL)
+        break;
+      st->codec->extradata_size = (int)attach->Length;
+      aviostream_read(ctx->iostream, attach->Position, st->codec->extradata, st->codec->extradata_size);
+
+      for (i=0; ff_mkv_mime_tags[i].id != CODEC_ID_NONE; i++) {
+        if (!strncmp(ff_mkv_mime_tags[i].str, attach->MimeType, strlen(ff_mkv_mime_tags[i].str))) {
+          st->codec->codec_id = ff_mkv_mime_tags[i].id;
+          break;
+        }
+      }
+    }
   }
 
   return 0;
