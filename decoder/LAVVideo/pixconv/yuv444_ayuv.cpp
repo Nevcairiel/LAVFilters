@@ -114,12 +114,12 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
     for (i = 0; i < width; i+=8) {
       // Load pixels into registers, and apply dithering
       PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm7, (y+i), shift); /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm7, (u+i), shift); /* U0U0U0U0 */
+      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm1, xmm7, (u+i), shift); /* U0U0U0U0 */
       PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm7, (v+i), shift); /* V0V0V0V0 */
 
       // Interlave into AYUV
       xmm0 = _mm_or_si128(xmm0, xmm6);          /* YAYAYAYA */
-      xmm1 = _mm_slli_epi16(xmm1, 8);           /* 0U0U0U0U */
+      xmm1 = _mm_and_si128(xmm1, xmm6);         /* clear out clobbered low-bytes */
       xmm2 = _mm_or_si128(xmm2, xmm1);          /* VUVUVUVU */
       xmm3 = _mm_unpacklo_epi16(xmm2, xmm0);    /* VUYAVUYA */
       xmm4 = _mm_unpackhi_epi16(xmm2, xmm0);    /* VUYAVUYA */
