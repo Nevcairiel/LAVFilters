@@ -285,7 +285,7 @@ VORBISFORMAT2 *CLAVFAudioHelper::CreateVorbis2(const AVStream *avstream, ULONG *
   for(BYTE n = *p++; n > 0; n--) {
     int size = 0;
     // Xiph Lacing
-    do { size = *p; } while (*p++ == 0xFF);
+    do { size += *p; } while (*p++ == 0xFF);
     sizes.push_back(size);
   }
   
