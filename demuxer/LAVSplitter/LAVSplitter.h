@@ -193,6 +193,7 @@ private:
   std::set<DWORD> m_bDiscontinuitySent;
 
   std::wstring m_fileName;
+  std::wstring m_processName;
 
   CBaseDemuxer *m_pDemuxer;
 

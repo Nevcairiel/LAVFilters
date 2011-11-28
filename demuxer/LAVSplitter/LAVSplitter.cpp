@@ -53,6 +53,10 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFakeASFReader(FALSE)
   , m_bStopValid(FALSE)
 {
+  WCHAR fileName[1024];
+  GetModuleFileName(NULL, fileName, 1024);
+  m_processName = PathFindFileName (fileName);
+
   CLAVFDemuxer::ffmpeg_init();
 
   m_InputFormats.clear();
@@ -451,6 +455,9 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
 {
   HRESULT hr = S_OK;
 
+  // Disable subtitles in applications known to fail with them (explorer thumbnail generator, power point, basically all applications using MCI)
+  bool bNoSubtitles = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"powerpnt.exe") == 0 || _wcsicmp(m_processName.c_str(), L"pptview.exe") == 0;
+
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
 
@@ -483,7 +490,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
 
   std::list<CSubtitleSelector> subtitleSelectors = GetSubtitleSelectors();
   const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage);
-  if (subtitleStream) {
+  if (subtitleStream && !bNoSubtitles) {
     CLAVOutputPin* pPin = new CLAVOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(subtitleStream->pid);
