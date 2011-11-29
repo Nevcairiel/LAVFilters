@@ -456,7 +456,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   HRESULT hr = S_OK;
 
   // Disable subtitles in applications known to fail with them (explorer thumbnail generator, power point, basically all applications using MCI)
-  bool bNoSubtitles = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"powerpnt.exe") == 0 || _wcsicmp(m_processName.c_str(), L"pptview.exe") == 0;
+  bool bNoSubtitles = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"powerpnt.exe") == 0 || _wcsicmp(m_processName.c_str(), L"pptview.exe") == 0;
 
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
