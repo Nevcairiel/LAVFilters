@@ -1,5 +1,14 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.41 - 2011/11/29
+LAV Splitter
+- New MKV Demuxer (see release notes for details)
+- Fixed a bug with the Vorbis Media Type
+- Disabled Subtitles when generating Thumbnails in Explorer
+
+LAV Video
+- Fixed a overflow in 10 -> 8 bit dithering and NV12 output
+
 0.40 - 2011/11/21
 LAV Splitter
 - Improved demuxing of raw PCM streams
