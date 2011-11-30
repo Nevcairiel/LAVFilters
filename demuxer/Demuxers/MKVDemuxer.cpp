@@ -602,15 +602,17 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
       memcpy(pkt->data, track->info->CompMethodPrivate, offset);
   }
 
-  if (track->ms_compat)
-    pkt->dts = start_time;
-  else
-    pkt->pts = start_time;
+  if (!(flags & FRAME_UNKNOWN_START)) {
+    if (track->ms_compat)
+      pkt->dts = start_time;
+    else
+      pkt->pts = start_time;
 
-  if (track->info->Type == TT_SUB)
-    pkt->convergence_duration = end_time - start_time;
-  else
-    pkt->duration = (int)(end_time - start_time);
+    if (track->info->Type == TT_SUB)
+      pkt->convergence_duration = end_time - start_time;
+    else
+      pkt->duration = (int)(end_time - start_time);
+  }
 
   pkt->flags = (flags & FRAME_KF) ? AV_PKT_FLAG_KEY : 0;
   pkt->pos = pos;
