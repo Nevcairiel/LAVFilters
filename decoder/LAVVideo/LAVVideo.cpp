@@ -903,7 +903,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   }
 
 #if defined(DEBUG) && DEBUG_FRAME_TIMINGS
-  DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, diff: %I64d, key: %d, repeat: %d, interlaced: %d, tff: %d", pFrame->rtStart, pFrame->rtStart-m_rtPrevStart, pFrame->key_frame, pFrame->repeat, pFrame->interlaced, pFrame->tff));
+  DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, dur: %I64d, diff: %I64d, key: %d, repeat: %d, interlaced: %d, tff: %d", pFrame->rtStart, pFrame->rtStop-pFrame->rtStart, pFrame->rtStart-m_rtPrevStart, pFrame->key_frame, pFrame->repeat, pFrame->interlaced, pFrame->tff));
 #endif
 
   m_rtPrevStart = pFrame->rtStart;
