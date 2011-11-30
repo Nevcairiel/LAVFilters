@@ -1,5 +1,10 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.42 - 2011/11/30
+LAV Splitter
+- Fixed a timestamping bug in the new MKV demuxer
+- Futher enhancements to explorer thumbnail generation
+
 0.41 - 2011/11/29
 LAV Splitter
 - New MKV Demuxer (see release notes for details)
