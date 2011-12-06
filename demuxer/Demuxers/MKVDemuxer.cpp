@@ -543,7 +543,7 @@ static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
   for (u = 0; u < count; u++) {
     ulonglong pos = mkv_GetSegmentTop(ctx->matroska) + cues[u].Position;
     for(i = 0; i < num_tracks; i++) {
-      av_add_index_entry(ctx->tracks[i].stream, pos, cues[u].Time, 0, 0, AVINDEX_KEYFRAME);
+      av_add_index_entry(ctx->tracks[i].stream, -1, cues[u].Time, 0, 0, AVINDEX_KEYFRAME);
     }
   }
 
