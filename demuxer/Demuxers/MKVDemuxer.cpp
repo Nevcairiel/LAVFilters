@@ -643,11 +643,22 @@ static int mkv_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp
 {
   MatroskaDemuxContext *ctx = (MatroskaDemuxContext *)s->priv_data;
   int mkvflags = !(flags & AVSEEK_FLAG_ANY) ? MKVF_SEEK_TO_PREV_KEYFRAME : 0;
+  int i;
+  AVStream *st = ctx->tracks[stream_index].stream;
+
+  /* check if we're seeking to a index entry directly, and if so, disable the keyframe logic */
+  for (i = 0; i < st->nb_index_entries; i++) {
+    if (st->index_entries[i].timestamp == timestamp) {
+      mkvflags &= ~MKVF_SEEK_TO_PREV_KEYFRAME;
+      break;
+    }
+  }
 
   mkv_Seek(ctx->matroska, timestamp, mkvflags);
 
   /* Update current timestamp */
   int64_t cur_dts = mkv_GetLowestQTimecode(ctx->matroska);
+  DbgLog((LOG_TRACE, 10, "mkv_read_seek: requested: %I64d, achieved: %I64d", timestamp, cur_dts));
   if (cur_dts == -1)
     cur_dts = timestamp;
 
