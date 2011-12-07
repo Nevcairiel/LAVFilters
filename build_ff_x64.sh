@@ -20,7 +20,6 @@ OPTIONS="
 --enable-w32threads \
 --enable-runtime-cpudetect \
 --enable-asm \
---disable-postproc \
 --enable-zlib \
 --enable-swscale \
 --enable-avfilter \
@@ -28,10 +27,14 @@ OPTIONS="
 --enable-filter=yadif \
 --enable-filter=buffer \
 --enable-filter=buffersink \
+--disable-protocols \
+--enable-protocol=file \
+--disable-muxers \
+--enable-muxer=spdif \
 --disable-swresample \
+--disable-postproc \
 --disable-static \
 --disable-altivec \
---disable-muxers \
 --disable-encoders \
 --disable-debug \
 --disable-ffplay \
@@ -44,9 +47,6 @@ OPTIONS="
 --disable-hwaccels \
 --disable-bsfs \
 --disable-network \
---disable-protocols \
---enable-protocol=file \
---enable-muxer=spdif \
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 \
 --build-suffix=-lav"
