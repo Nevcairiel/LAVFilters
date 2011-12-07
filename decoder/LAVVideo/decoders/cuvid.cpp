@@ -69,6 +69,8 @@ CDecCuvid::CDecCuvid(void)
   , m_bWaitForKeyframe(FALSE)
   , m_iFullRange(-1)
   , m_hwnd(NULL)
+  , m_nSoftTelecine(0)
+  , m_bTFF(TRUE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -399,6 +401,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bWaitForKeyframe = m_bUseTimestampQueue;
   m_bInterlaced = TRUE;
   m_bFormatIncompatible = FALSE;
+  m_bTFF = TRUE;
 
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
@@ -748,13 +751,23 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 
 STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 {
+  if (m_VideoFormat.codec == cudaVideoCodec_MPEG2 || m_VideoFormat.codec == cudaVideoCodec_H264) {
+    if (cuviddisp->repeat_first_field) {
+      m_nSoftTelecine = 2;
+    } else if (m_nSoftTelecine) {
+      m_nSoftTelecine--;
+    }
+    if (!m_nSoftTelecine)
+      m_bTFF = cuviddisp->top_field_first;
+  }
+
   cuviddisp->progressive_frame = (cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeintAggressive() && m_VideoFormat.codec != cudaVideoCodec_VC1) && !m_pSettings->GetDeintForce()) || m_pSettings->GetDeintTreatAsProgressive();
 
   LAVDeintFieldOrder fo        = m_pSettings->GetDeintFieldOrder();
-  cuviddisp->top_field_first   = (fo == DeintFieldOrder_Auto) ? cuviddisp->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
+  cuviddisp->top_field_first   = (fo == DeintFieldOrder_Auto) ? (m_nSoftTelecine ? m_bTFF : cuviddisp->top_field_first) : (fo == DeintFieldOrder_TopFieldFirst);
 
   if (m_bDoubleRateDeint) {
-    if (cuviddisp->progressive_frame) {
+    if (cuviddisp->progressive_frame || m_nSoftTelecine) {
       Deliver(cuviddisp, 2);
     } else {
       Deliver(cuviddisp, 0);
@@ -776,7 +789,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   CUresult cuStatus = CUDA_SUCCESS;
 
   memset(&vpp, 0, sizeof(vpp));
-  vpp.progressive_frame = cuviddisp->progressive_frame;
+  vpp.progressive_frame = !m_nSoftTelecine && cuviddisp->progressive_frame;
   vpp.top_field_first = cuviddisp->top_field_first;
   vpp.second_field = (field == 1);
 
@@ -971,6 +984,8 @@ STDMETHODIMP CDecCuvid::Flush()
 
   // Clear timestamp queue
   std::queue<REFERENCE_TIME>().swap(m_timestampQueue);
+
+  m_nSoftTelecine = 0;
 
   return S_OK;
 }

@@ -146,5 +146,8 @@ private:
   BOOL                   m_bUseTimestampQueue;
   std::queue<REFERENCE_TIME> m_timestampQueue;
 
+  int                    m_nSoftTelecine;
+  BOOL                   m_bTFF;
+
   HWND                   m_hwnd;
 };
