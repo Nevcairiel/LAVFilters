@@ -44,6 +44,8 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
 
 CLAVOutputPin::~CLAVOutputPin()
 {
+  CAMThread::CallWorker(CMD_EXIT);
+  CAMThread::Close();
   SAFE_DELETE(m_newMT);
 }
 
@@ -143,8 +145,8 @@ HRESULT CLAVOutputPin::Inactive()
   DbgLog((LOG_TRACE, 30, L"CLAVOutputPin::Inactive() - de-activated %s pin", CBaseDemuxer::CStreamList::ToStringW(m_pinType)));
   CAutoLock cAutoLock(m_pLock);
 
-  if(ThreadExists())
-    CallWorker(CMD_EXIT);
+  CAMThread::CallWorker(CMD_EXIT);
+  CAMThread::Close();
 
   // Clear queue when we're going inactive
   m_queue.Clear();
@@ -283,7 +285,6 @@ DWORD CLAVOutputPin::ThreadProc()
 
     DWORD cmd;
     if(CheckRequest(&cmd)) {
-      m_hThread = NULL;
       cmd = GetRequest();
       Reply(S_OK);
       ASSERT(cmd == CMD_EXIT);

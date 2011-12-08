@@ -555,7 +555,6 @@ DWORD CLAVSplitter::ThreadProc()
   {
     if(cmd == CMD_EXIT)
     {
-      m_hThread = NULL;
       Reply(S_OK);
       return 0;
     }
@@ -602,7 +601,6 @@ DWORD CLAVSplitter::ThreadProc()
   }
   ASSERT(0); // we should only exit via CMD_EXIT
 
-  m_hThread = NULL;
   return 0;
 }
 
@@ -690,7 +688,8 @@ STDMETHODIMP CLAVSplitter::Stop()
   CAutoLock cAutoLock(this);
 
   DeliverBeginFlush();
-  CallWorker(CMD_EXIT);
+  CAMThread::CallWorker(CMD_EXIT);
+  CAMThread::Close();
   DeliverEndFlush();
 
   HRESULT hr;
