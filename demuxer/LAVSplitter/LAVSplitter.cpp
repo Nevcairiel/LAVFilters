@@ -559,7 +559,7 @@ DWORD CLAVSplitter::ThreadProc()
       return 0;
     }
 
-    SetThreadPriority(m_hThread, THREAD_PRIORITY_NORMAL);
+    SetThreadPriority(m_hThread, THREAD_PRIORITY_BELOW_NORMAL);
 
     m_rtStart = m_rtNewStart;
     m_rtStop = m_rtNewStop;
