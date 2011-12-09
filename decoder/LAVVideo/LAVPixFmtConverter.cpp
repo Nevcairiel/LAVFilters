@@ -26,6 +26,28 @@
 #include <MMReg.h>
 #include "moreuuids.h"
 
+/*
+ * Availability of custom high-quality converters
+ * x = formatter available, s = swscale converter used, - = format conversion not available (fallback to sws if we get tricked into it)
+ * 1 = up to 10-bit (fallback to sws), 2 = only 16-bit
+ * in/out       YV12    NV12    YUY2    UYVY    AYUV    P010    P210    Y410    P016    P216    Y416   RGB24   RGB32
+ * YUV420         x       x       x       x       -       -       -       -       -       -       -      x       x
+ * YUV420bX       x       x       x       x       -       x       -       -       x2      -       -      x1      x1
+ * YUV422         s       s       x       x       -       -       -       -       -       -       -      x       x
+ * YUV422bX       s       s       s       s       -       -       x       -       -       x2      -      x1      x1
+ * YUV444         s       s       s       s       x       -       -       -       -       -       -      x       x
+ * YUV444bX       s       s       s       s       x       -       -       x       -       -       x2     x1      x1
+ * NV12           x       x       x       x       -       -       -       -       -       -       -      x       x
+ * YUY2           s       s       s       s       -       -       -       -       -       -       -      s       s
+ * RGB24          s       s       s       s       -       -       -       -       -       -       -      x       s
+ * RGB32          s       s       s       s       -       -       -       -       -       -       -      s       x
+ * ARGB32         s       s       s       s       -       -       -       -       -       -       -      s       x
+ *
+ * Every processing path has a swscale fallback (even those with a "-" above).
+ * The "bX" formats usually only support 9/10 or 16-bit, 11-15 are not supported due to lack of samples.
+ */
+
+
 typedef struct {
   LAVPixelFormat in_pix_fmt;
   int maxbpp;
