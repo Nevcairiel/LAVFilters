@@ -360,22 +360,7 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   if(level>AV_LOG_VERBOSE)
     return;
 
-  AVClass* avc= ptr ? *(AVClass**)ptr : NULL;
-  line[0]=0;
-
-  if(print_prefix && avc) {
-    if(avc->version >= (50<<16 | 15<<8 | 3) && avc->parent_log_context_offset){
-      AVClass** parent= *(AVClass***)(((uint8_t*)ptr) + avc->parent_log_context_offset);
-      if(parent && *parent){
-        sprintf_s(line, LOG_BUF_LEN, "[%s @ %p] ", (*parent)->item_name(parent), parent);
-      }
-    }
-    sprintf_s(line + strlen(line), LOG_BUF_LEN - strlen(line), "[%s @ %p] ", avc->item_name(ptr), ptr);
-  }
-
-  vsnprintf(line + strlen(line), LOG_BUF_LEN - strlen(line), fmt, vl);
-
-  print_prefix= line[strlen(line)-1] == '\n';
+  av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
 
   if(print_prefix && !strcmp(line, prev)){
     count++;
@@ -390,7 +375,7 @@ void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   }
 
   DbgLog((LOG_CUSTOM1, level, L"%S", line));
-  strncpy_s(prev, LOG_BUF_LEN, line, _TRUNCATE);
+  strncpy_s(prev, line, _TRUNCATE);
 }
 }
 #endif
