@@ -34,7 +34,7 @@
  * YUV420         x       x       x       x       -       -       -       -       -       -       -      x       x
  * YUV420bX       x       x       x       x       -       x       -       -       x2      -       -      x1      x1
  * YUV422         s       s       x       x       -       -       -       -       -       -       -      x       x
- * YUV422bX       s       s       s       s       -       -       x       -       -       x2      -      x1      x1
+ * YUV422bX       s       s       x       x       -       -       x       -       -       x2      -      x1      x1
  * YUV444         s       s       s       s       x       -       -       -       -       -       -      x       x
  * YUV444bX       s       s       s       s       x       -       -       x       -       -       x2     x1      x1
  * NV12           x       x       x       x       -       -       -       -       -       -       -      x       x
@@ -344,6 +344,14 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       } else {
         convert = &CLAVPixFmtConverter::convert_yuv420_yuy2<1>;
       }
+      m_RequiredAlignment = 8; // Pixel alignment of 8 guarantees a byte alignment of 16
+    } else if ((m_OutputPixFmt == LAVOutPixFmt_YUY2 || m_OutputPixFmt == LAVOutPixFmt_UYVY) && m_InputPixFmt == LAVPixFmt_YUV422bX) {
+      if (m_OutputPixFmt == LAVOutPixFmt_YUY2) {
+        convert = &CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy_dither_le<0>;
+      } else {
+        convert = &CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy_dither_le<1>;
+      }
+
       m_RequiredAlignment = 8; // Pixel alignment of 8 guarantees a byte alignment of 16
     }
   }

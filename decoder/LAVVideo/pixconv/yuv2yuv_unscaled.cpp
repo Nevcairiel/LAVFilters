@@ -333,6 +333,70 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
 template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<0>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy<1>CONV_FUNC_PARAMS;
 
+template <int uyvy>
+DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
+{
+  const uint16_t *y = (const uint16_t *)src[0];
+  const uint16_t *u = (const uint16_t *)src[1];
+  const uint16_t *v = (const uint16_t *)src[2];
+
+  const int inLumaStride    = srcStride[0] >> 1;
+  const int inChromaStride  = srcStride[1] >> 1;
+  const int outStride       = dstStride << 1;
+  const int chromaWidth     = (width + 1) >> 1;
+  const int shift           = bpp - 8;
+
+  int line,i;
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
+
+  xmm4 = _mm_set1_epi32(0xff00ff00);
+
+  for (line = 0;  line < height; ++line) {
+    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+
+    // Load dithering coefficients for this line
+    PIXCONV_LOAD_DITHER_COEFFS(xmm5,line,8,dithers);
+
+    for (i = 0; i < chromaWidth; i+=8) {
+      // Load pixels
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm5, (y+(i*2)+0), shift);  /* YYYY */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+(i*2)+8), shift);  /* YYYY */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm5, (u+i), shift);        /* UUUU */
+      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm3, xmm5, (v+i), shift);   /* VVVV */
+
+      // Pack Ys
+      xmm0 = _mm_packus_epi16(xmm0, xmm1);
+
+      // Interleave Us and Vs
+      xmm3 = _mm_and_si128(xmm3, xmm4);
+      xmm2 = _mm_or_si128(xmm2, xmm3);
+
+      // Interlave those with the Ys
+      if (uyvy) {
+        xmm3 = xmm2;
+        xmm3 = _mm_unpacklo_epi8(xmm3, xmm0);
+        xmm2 = _mm_unpackhi_epi8(xmm2, xmm0);
+      } else {
+        xmm3 = xmm0;
+        xmm3 = _mm_unpacklo_epi8(xmm3, xmm2);
+        xmm2 = _mm_unpackhi_epi8(xmm0, xmm2);
+      }
+
+      _mm_stream_si128(dst128++, xmm3);
+      _mm_stream_si128(dst128++, xmm2);
+    }
+    y += inLumaStride;
+    u += inChromaStride;
+    v += inChromaStride;
+  }
+
+  return S_OK;
+}
+
+// Force creation of these two variants
+template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy_dither_le<0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv422_yuy2_uyvy_dither_le<1>CONV_FUNC_PARAMS;
+
 DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
 {
   const uint8_t *y  = src[0];
