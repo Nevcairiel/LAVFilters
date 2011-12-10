@@ -161,6 +161,12 @@ CLAVAudio::~CLAVAudio()
 
 HRESULT CLAVAudio::LoadDefaults()
 {
+  // Query OS version info
+  OSVERSIONINFO os;
+  ZeroMemory(&os, sizeof(os));
+  os.dwOSVersionInfoSize = sizeof(os);
+  GetVersionEx(&os);
+
   m_settings.DRCEnabled = FALSE;
   m_settings.DRCLevel   = 100;
 
@@ -185,6 +191,9 @@ HRESULT CLAVAudio::LoadDefaults()
   // Default all Sample Formats to enabled
   for(int i = 0; i < SampleFormat_NB; ++i)
     m_settings.bSampleFormats[i] = TRUE;
+
+  if (os.dwMajorVersion < 6)
+    m_settings.bSampleFormats[SampleFormat_FP32] = FALSE;
 
   m_settings.AudioDelayEnabled = FALSE;
   m_settings.AudioDelay = 0;
