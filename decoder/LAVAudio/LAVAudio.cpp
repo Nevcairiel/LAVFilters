@@ -70,7 +70,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_nCodecId(CODEC_ID_NONE)
   , m_pAVCodec(NULL)
   , m_pAVCtx(NULL)
-  , m_pPCMData(NULL)
+  , m_pFrame(NULL)
   , m_bDiscontinuity(FALSE)
   , m_rtStart(0)
   , m_dStartOffset(0.0)
@@ -347,13 +347,12 @@ void CLAVAudio::ffmpeg_shutdown()
     av_freep(&m_pAVCtx->extradata);
     av_freep(&m_pAVCtx);
   }
+  av_freep(&m_pFrame);
 
   if (m_pParser) {
     av_parser_close(m_pParser);
     m_pParser = NULL;
   }
-
-  av_freep(&m_pPCMData);
 
   FreeBitstreamContext();
 
@@ -1040,11 +1039,11 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     }
   }
 
-  m_nCodecId                      = codec;
+  m_nCodecId = codec;
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
-    m_pPCMData = (BYTE*)av_mallocz(LAV_AUDIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    m_pFrame   = avcodec_alloc_frame();
   } else {
     return VFW_E_UNSUPPORTED_AUDIO;
   }
@@ -1421,7 +1420,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
 HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
-  int nPCMLength	= 0;
+  int got_frame	= 0;
   const BYTE *pDataInBuff = p;
   HRESULT hr = S_FALSE;
 
@@ -1435,7 +1434,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
 
   consumed = 0;
   while (buffsize > 0) {
-    nPCMLength = LAV_AUDIO_BUFFER_SIZE;
+    got_frame = 0;
     if (bEOF) buffsize = 0;
     else {
       COPY_TO_BUFFER(pDataInBuff, buffsize);
@@ -1472,7 +1471,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         avpkt.data = m_pFFBuffer;
         avpkt.size = pOut_size;
 
-        int ret2 = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
+        int ret2 = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
         if (ret2 < 0) {
           DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
           m_bQueueResync = TRUE;
@@ -1499,11 +1498,11 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       avpkt.data = (uint8_t *)m_pFFBuffer;
       avpkt.size = buffsize;
 
-      int used_bytes = avcodec_decode_audio3(m_pAVCtx, (int16_t*)m_pPCMData, &nPCMLength, &avpkt);
+      int used_bytes = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
 
       if(used_bytes < 0) {
         return E_FAIL;
-      } else if(used_bytes == 0 && nPCMLength <= 0 ) {
+      } else if(used_bytes == 0 && !got_frame) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
         break;
       }
@@ -1522,7 +1521,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
     }
 
     // Channel re-mapping and sample format conversion
-    if (nPCMLength > 0) {
+    if (got_frame) {
       const DWORD idx_start = out.bBuffer->GetCount();
 
       out.wChannels = m_pAVCtx->channels;
@@ -1532,13 +1531,16 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       else
         out.dwChannelMask = get_channel_mask(out.wChannels);
 
+      out.nSamples = m_pFrame->nb_samples;
+      DWORD dwPCMSize = out.nSamples * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
+
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
-        out.bBuffer->Append(m_pPCMData, nPCMLength);
+        out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_U8;
         break;
       case AV_SAMPLE_FMT_S16:
-        out.bBuffer->Append(m_pPCMData, nPCMLength);
+        out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_16;
         break;
       case AV_SAMPLE_FMT_S32:
@@ -1557,17 +1559,16 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
           // Number of bits to shift the value to the left
           const short skip = 4 - bytes_per_sample;
 
-          const DWORD size = (nPCMLength >> 2) * bytes_per_sample;
+          const DWORD size = (out.nSamples * out.wChannels) * bytes_per_sample;
           out.bBuffer->SetSize(idx_start + size);
           // We use BYTE instead of int32_t because we don't know if its actually a 32-bit value we want to write
           BYTE *pDataOut = (BYTE *)(out.bBuffer->Ptr() + idx_start);
 
           // The source is always in 32-bit values
-          const size_t num_elements = nPCMLength / sizeof(int32_t) / m_pAVCtx->channels;
-          for (size_t i = 0; i < num_elements; ++i) {
-            for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
+          for (size_t i = 0; i < out.nSamples; ++i) {
+            for(int ch = 0; ch < out.wChannels; ++ch) {
               // Get the 32-bit sample
-              int32_t sample = ((int32_t *)m_pPCMData) [ch+i*m_pAVCtx->channels];
+              int32_t sample = ((int32_t *)m_pFrame->data[0]) [ch+i*m_pAVCtx->channels];
               // Create a pointer to the sample for easier access
               BYTE * const b_sample = (BYTE *)&sample;
               // Copy the relevant bytes
@@ -1581,18 +1582,17 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         }
         break;
       case AV_SAMPLE_FMT_FLT:
-        out.bBuffer->Append(m_pPCMData, nPCMLength);
+        out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_FP32;
         break;
       case AV_SAMPLE_FMT_DBL:
         {
-          out.bBuffer->SetSize(idx_start + (nPCMLength / 2));
+          out.bBuffer->SetSize(idx_start + (dwPCMSize / 2));
           float *pDataOut = (float *)(out.bBuffer->Ptr() + idx_start);
 
-          const size_t num_elements = nPCMLength / sizeof(double) / m_pAVCtx->channels;
-          for (size_t i = 0; i < num_elements; ++i) {
-            for(int ch = 0; ch < m_pAVCtx->channels; ++ch) {
-              *pDataOut = (float)((double *)m_pPCMData) [ch+i*m_pAVCtx->channels];
+          for (size_t i = 0; i < out.nSamples; ++i) {
+            for(int ch = 0; ch < out.wChannels; ++ch) {
+              *pDataOut = (float)((double *)m_pFrame->data[0]) [ch+i*m_pAVCtx->channels];
               pDataOut++;
             }
           }

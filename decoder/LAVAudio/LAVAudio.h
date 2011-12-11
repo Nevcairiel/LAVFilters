@@ -224,7 +224,8 @@ private:
   AVCodecContext       *m_pAVCtx;        // AVCodecContext reference
   AVCodecParserContext *m_pParser;       // AVCodecParserContext reference
 
-  BYTE                 *m_pPCMData;      // Output buffer
+  AVFrame              *m_pFrame;        // AVFrame used for decoding
+
   BYTE                 *m_pFFBuffer;     // FFMPEG processing buffer (padded)
 	int                  m_nFFBufferSize;  // Size of the FFMPEG processing buffer
 
