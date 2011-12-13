@@ -89,7 +89,7 @@ public:
       out = m_pAlignedBuffer;
     }
     HRESULT hr = (this->*convert)(pFrame->data, pFrame->stride, out, outStride, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
-    if (outStride != dstStride) {
+    if (out != dst) {
       ChangeStride(out, outStride, dst, dstStride, width, height, m_OutputPixFmt);
     }
     return hr;
