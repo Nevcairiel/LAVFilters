@@ -76,7 +76,8 @@ public:
   inline HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
     uint8_t *out = dst;
     int outStride = dstStride;
-    if (m_RequiredAlignment && FFALIGN(dstStride, m_RequiredAlignment) != dstStride) {
+    // Check if we have proper pixel alignment and the dst memory is actually aligned
+    if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
       outStride = FFALIGN(dstStride, m_RequiredAlignment);
       size_t requiredSize = (outStride * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
       if (requiredSize > m_nAlignedBufferSize) {
