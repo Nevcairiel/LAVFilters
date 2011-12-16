@@ -428,7 +428,8 @@ REFERENCE_TIME CLAVFDemuxer::GetDuration() const
     /*if (m_rtCurrent != Packet::INVALID_TIME && m_avFormat->file_size > 0 && m_avFormat->pb && m_avFormat->pb->pos > 0) {
     iLength = (((m_rtCurrent * m_avFormat->file_size) / m_avFormat->pb->pos) / 1000) & 0xFFFFFFFF;
     }*/
-    DbgLog((LOG_ERROR, 1, TEXT("duration is not available")));
+    //DbgLog((LOG_ERROR, 1, TEXT("duration is not available")));
+    return -1;
   } else {
     iLength = m_avFormat->duration;
   }
