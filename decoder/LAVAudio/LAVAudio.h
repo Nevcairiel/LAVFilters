@@ -179,7 +179,7 @@ private:
   HRESULT PostProcess(BufferDetails *buffer);
   HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
 
-  HRESULT QueueOutput(const BufferDetails &buffer);
+  HRESULT QueueOutput(BufferDetails &buffer);
   HRESULT FlushOutput(BOOL bDeliver = TRUE);
 
   HRESULT Deliver(const BufferDetails &buffer);

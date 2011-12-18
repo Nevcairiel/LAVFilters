@@ -1643,7 +1643,7 @@ HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
   return S_OK;
 }
 
-HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
+HRESULT CLAVAudio::QueueOutput(BufferDetails &buffer)
 {
   HRESULT hr = S_OK;
   if (m_OutputQueue.wChannels != buffer.wChannels || m_OutputQueue.sfFormat != buffer.sfFormat || m_OutputQueue.dwSamplesPerSec != buffer.dwSamplesPerSec || m_OutputQueue.dwChannelMask != buffer.dwChannelMask || m_OutputQueue.wBitsPerSample != buffer.wBitsPerSample) {
@@ -1661,6 +1661,7 @@ HRESULT CLAVAudio::QueueOutput(const BufferDetails &buffer)
   m_OutputQueue.bBuffer->Append(buffer.bBuffer);
 
   buffer.bBuffer->SetSize(0);
+  buffer.nSamples = 0;
 
   // Length of the current sample
   double dDuration = (double)m_OutputQueue.nSamples / m_OutputQueue.dwSamplesPerSec * 10000000.0;
