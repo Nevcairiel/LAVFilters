@@ -289,7 +289,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
       } else {
         buf << ", s";
       }
-      buf << get_bits_per_sample(enc);
+      buf << get_bits_per_sample(enc, true);
     }
     // Bitrate
     if (bitrate > 0) {

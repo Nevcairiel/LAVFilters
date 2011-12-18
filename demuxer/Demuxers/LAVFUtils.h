@@ -36,7 +36,7 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName);
 inline int get_bits_per_sample(AVCodecContext *ctx, bool bRaw = false)
 {
   int bits = av_get_bits_per_sample(ctx->codec_id);
-  if (!bits) {
+  if (!bits || bRaw) {
     bits = ctx->bits_per_coded_sample;
     if(!bits || bRaw) {
       if (ctx->sample_fmt == AV_SAMPLE_FMT_S32 && ctx->bits_per_raw_sample) {
