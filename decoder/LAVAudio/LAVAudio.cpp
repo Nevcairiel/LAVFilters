@@ -1607,6 +1607,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       hr = S_OK;
       out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
 
+      m_DecodeFormat = out.sfFormat;
+      m_DecodeLayout = out.dwChannelMask;
+
       if (SUCCEEDED(PostProcess(&out))) {
         *hrDeliver = QueueOutput(out);
         if (FAILED(*hrDeliver)) {
@@ -1614,11 +1617,6 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         }
       }
     }
-  }
-
-  if (hr == S_OK) {
-    m_DecodeFormat = out.sfFormat;
-    m_DecodeLayout = out.dwChannelMask;
   }
 
   return hr;

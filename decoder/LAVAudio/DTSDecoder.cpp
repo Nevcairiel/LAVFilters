@@ -400,6 +400,10 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
         DTSRemapOutputChannels(&out, m_bsParser.m_DTSHeader);
       }
 
+      m_pAVCtx->channels = out.wChannels;
+      m_DecodeFormat = out.sfFormat;
+      m_DecodeLayout = out.dwChannelMask;
+
       if (SUCCEEDED(PostProcess(&out))) {
         *hrDeliver = QueueOutput(out);
         if (FAILED(*hrDeliver)) {
@@ -407,12 +411,6 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
         }
       }
     }
-  }
-
-  if (hr == S_OK) {
-    m_pAVCtx->channels = out.wChannels;
-    m_DecodeFormat = out.sfFormat;
-    m_DecodeLayout = out.dwChannelMask;
   }
 
   return hr;
