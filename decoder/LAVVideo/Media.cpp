@@ -185,6 +185,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_ULRG, CODEC_ID_UTVIDEO },
   { &MEDIASUBTYPE_ULY0, CODEC_ID_UTVIDEO },
   { &MEDIASUBTYPE_ULY2, CODEC_ID_UTVIDEO },
+  { &MEDIASUBTYPE_AMVV, CODEC_ID_AMV     },
+  { &MEDIASUBTYPE_AMVF, CODEC_ID_AMV     },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO  },
@@ -348,6 +350,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ULRG },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ULY0 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ULY2 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_AMVV },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_AMVF },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -393,7 +397,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_VP8 }},                                                 // Codec_VP8
   { 1, { CODEC_ID_WMV3 }},                                                // Codec_WMV3
   { 2, { CODEC_ID_WMV1, CODEC_ID_WMV2 }, L"wmv12", L"Windows Media Video 7/8" },  // Codec_WMV12
-  { 2, { CODEC_ID_MJPEG, CODEC_ID_MJPEGB }},                              // Codec_MJPEG
+  { 3, { CODEC_ID_MJPEG, CODEC_ID_MJPEGB, CODEC_ID_AMV }},                // Codec_MJPEG
   { 2, { CODEC_ID_THEORA, CODEC_ID_VP3 }},                                // Codec_Theora
   { 2, { CODEC_ID_FLV1, CODEC_ID_FLASHSV }, L"flash", L"Flash Video (FLV1, FSV1)"}, // Codec_FLV1
   { 3, { CODEC_ID_VP6, CODEC_ID_VP6A, CODEC_ID_VP6F }},                   // Codec_VP6
