@@ -39,6 +39,8 @@ extern "C" {
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
 extern AVInputFormat lav_mkv_demuxer;
 
+static volatile int ffmpeg_initialized = 0;
+
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
 void CLAVFDemuxer::ffmpeg_init()
@@ -48,8 +50,12 @@ void CLAVFDemuxer::ffmpeg_init()
   av_log_set_callback(lavf_log_callback);
 #endif
 
-  av_register_all();
-  av_register_input_format(&lav_mkv_demuxer);
+  if (!ffmpeg_initialized) {
+    ffmpeg_initialized = 1;
+
+    av_register_all();
+    av_register_input_format(&lav_mkv_demuxer);
+  }
 }
 
 std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
