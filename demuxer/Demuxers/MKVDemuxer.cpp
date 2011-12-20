@@ -571,7 +571,7 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
   MatroskaTrack *track;
 
 again:
-  ret = mkv_ReadFrame(ctx->matroska, 0, &track_num, &start_time, &end_time, &pos, &size, &flags);
+  ret = mkv_ReadFrame(ctx->matroska, mkv_get_track_mask(ctx), &track_num, &start_time, &end_time, &pos, &size, &flags);
   if (ret < 0)
     return AVERROR_EOF;
 
