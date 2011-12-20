@@ -999,7 +999,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   // We can only trust LAV Splitters LATM AAC header...
   BOOL bTrustExtraData = TRUE;
   if (codec == CODEC_ID_AAC_LATM) {
-    if (!(FilterInGraph(CLSID_LAVSplitter, m_pGraph) || FilterInGraph(CLSID_LAVSplitterSource, m_pGraph))) {
+    if (!(FilterInGraphSafe(m_pInput, CLSID_LAVSplitter) || FilterInGraphSafe(m_pInput, CLSID_LAVSplitterSource))) {
       bTrustExtraData = FALSE;
     }
   }
