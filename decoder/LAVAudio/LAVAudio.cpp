@@ -1605,7 +1605,6 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       }
 
       hr = S_OK;
-      out.nSamples = out.bBuffer->GetCount() / get_byte_per_sample(out.sfFormat) / out.wChannels;
 
       m_DecodeFormat = out.sfFormat;
       m_DecodeLayout = out.dwChannelMask;
