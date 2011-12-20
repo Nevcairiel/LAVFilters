@@ -557,11 +557,16 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
   int ret;
   unsigned int size, offset = 0, flags, track_num;
   ulonglong start_time, end_time, pos;
+  MatroskaTrack *track;
+
+again:
   ret = mkv_ReadFrame(ctx->matroska, 0, &track_num, &start_time, &end_time, &pos, &size, &flags);
   if (ret < 0)
     return AVERROR_EOF;
 
-  MatroskaTrack *track = &ctx->tracks[track_num];
+  track = &ctx->tracks[track_num];
+  if (!track->stream || track->stream->discard == AVDISCARD_ALL)
+    goto again;
 
   /* zlib compression */
   if (track->cs) {
