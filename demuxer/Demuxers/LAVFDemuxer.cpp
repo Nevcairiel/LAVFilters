@@ -391,12 +391,14 @@ HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
       st->discard = (m_dActiveStreams[video] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
     } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
       st->discard = (m_dActiveStreams[audio] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
-      if (m_bMPEGTS && (st->disposition & LAVF_DISPOSITION_SUB_STREAM)) {
+      // If the stream is a sub stream, make sure to activate the main stream as well
+      if (m_bMPEGTS && (st->disposition & LAVF_DISPOSITION_SUB_STREAM) && st->discard == AVDISCARD_DEFAULT) {
         for(unsigned int idx2 = 0; idx2 < m_avFormat->nb_streams; ++idx2) {
-          AVStream *mst = m_avFormat->streams[idx];
-          if (mst->id == st->id)
-            mst->discard = st->discard;
-          break;
+          AVStream *mst = m_avFormat->streams[idx2];
+          if (mst->id == st->id) {
+            mst->discard = AVDISCARD_DEFAULT;
+            break;
+          }
         }
       }
     } else if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
