@@ -74,6 +74,8 @@ typedef struct MatroskaDemuxContext {
   int num_tracks;
   MatroskaTrack   *tracks;
 
+  ulonglong mask;
+
   char CSBuffer[4096];
   char *Buffer;
   unsigned BufferSize;
@@ -570,8 +572,14 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
   ulonglong start_time, end_time, pos;
   MatroskaTrack *track;
 
+  ulonglong mask = mkv_get_track_mask(ctx);
+  if (mask != ctx->mask) {
+    mkv_SetTrackMask(ctx->matroska, mask);
+    ctx->mask = mask;
+  }
+
 again:
-  ret = mkv_ReadFrame(ctx->matroska, mkv_get_track_mask(ctx), &track_num, &start_time, &end_time, &pos, &size, &flags);
+  ret = mkv_ReadFrame(ctx->matroska, mask, &track_num, &start_time, &end_time, &pos, &size, &flags);
   if (ret < 0)
     return AVERROR_EOF;
 
