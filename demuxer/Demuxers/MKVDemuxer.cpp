@@ -659,6 +659,15 @@ static int mkv_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp
     }
   }
 
+  /* update track mask */
+  ulonglong mask = 0;
+  for (i = 0; i < ctx->num_tracks; i++) {
+    if (!ctx->tracks[i].stream || ctx->tracks[i].stream->discard == AVDISCARD_ALL)
+      mask |= (1ui64 << i);
+  }
+  mkv_SetTrackMask(ctx->matroska, mask);
+
+  /* perform seek */
   mkv_Seek(ctx->matroska, timestamp, mkvflags);
 
   /* Update current timestamp */
