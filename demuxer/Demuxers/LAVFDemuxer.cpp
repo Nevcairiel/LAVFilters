@@ -370,6 +370,39 @@ AVStream* CLAVFDemuxer::GetAVStreamByPID(int pid)
   return NULL;
 }
 
+HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
+{
+  HRESULT hr = S_OK;
+
+  if (type == audio)
+    UpdateForcedSubtitleStream(pid);
+
+  hr = __super::SetActiveStream(type, pid);
+
+  for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
+    AVStream *st = m_avFormat->streams[idx];
+    if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+      st->discard = (m_dActiveStreams[video] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
+    } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+      st->discard = (m_dActiveStreams[audio] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
+      if (m_bMPEGTS && (st->disposition & LAVF_DISPOSITION_SUB_STREAM)) {
+        for(unsigned int idx2 = 0; idx2 < m_avFormat->nb_streams; ++idx2) {
+          AVStream *mst = m_avFormat->streams[idx];
+          if (mst->id == st->id)
+            mst->discard = st->discard;
+          break;
+        }
+      }
+    } else if (st->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+      st->discard = (m_dActiveStreams[subpic] == idx || (m_dActiveStreams[subpic] == FORCED_SUBTITLE_PID && m_ForcedSubStream == idx)) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
+    } else {
+      st->discard = AVDISCARD_ALL;
+    }
+  }
+
+  return hr;
+}
+
 void CLAVFDemuxer::UpdateSubStreams()
 {
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {

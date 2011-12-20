@@ -68,7 +68,7 @@ public:
   // Select the best subtitle stream
   const stream* SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors, std::string audioLanguage);
 
-  HRESULT SetActiveStream(StreamType type, int pid) { if (type == audio) UpdateForcedSubtitleStream(pid); return __super::SetActiveStream(type, pid); }
+  HRESULT SetActiveStream(StreamType type, int pid);
 
   // IAMExtendedSeeking
   STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
