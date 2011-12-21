@@ -326,19 +326,6 @@ std::string lavf_get_stream_description(AVStream *pStream)
   return buf.str();
 }
 
-HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
-{
-  CheckPointer(pStream, E_POINTER);
-  CheckPointer(ppszName, E_POINTER);
-
-  std::string info = lavf_get_stream_description(pStream);
-  size_t len = info.size() + 1;
-  *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
-  MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, (int)len);
-
-  return S_OK;
-}
-
 #ifdef DEBUG
 extern "C" {
 
