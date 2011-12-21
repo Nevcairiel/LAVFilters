@@ -148,6 +148,7 @@ public:
   class CStreamList : public std::deque<stream>
   {
   public:
+    ~CStreamList() { Clear(); }
     static const WCHAR* ToStringW(int type);
     static const CHAR* ToString(int type);
     stream* FindStream(DWORD pid);
