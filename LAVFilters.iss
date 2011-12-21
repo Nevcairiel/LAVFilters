@@ -44,41 +44,23 @@ Name: lavvideo32;    Description: LAV Video (x86);    Types: Normal;
 Name: lavvideo64;    Description: LAV Video (x64);    Types: Normal; Check: IsWin64;
 
 [Tasks]
-Name: lavs32_avi;    Description: AVI;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_bluray; Description: Blu-ray;  GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_mkv;    Description: Matroska; GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_mp4;    Description: MP4;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_ogg;    Description: Ogg;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_flv;    Description: FLV;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_ts;     Description: MPEG-TS;  GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_ps;     Description: MPEG-PS;  GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_rm;     Description: RealMedia;GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32
-Name: lavs32_wtv;    Description: WTV;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-Name: lavs32_wmv;    Description: WMV;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-Name: lavs32_flac;   Description: FLAC;     GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-Name: lavs32_aac;    Description: AAC;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-Name: lavs32_amr;    Description: AMR;      GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-Name: lavs32_wv;     Description: WavPack;  GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-Name: lavs32_mpc;    Description: Musepack; GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-Name: lavs32_tta;    Description: TrueAudio;GroupDescription: "Use LAV Splitter (x86) for these file formats:"; Components: lavsplitter32; Flags: unchecked;
-
-Name: lavs64_avi;    Description: AVI;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_bluray; Description: Blu-ray;  GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_mkv;    Description: Matroska; GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_mp4;    Description: MP4;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_ogg;    Description: Ogg;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_flv;    Description: FLV;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_ts;     Description: MPEG-TS;  GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_ps;     Description: MPEG-PS;  GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_rm;     Description: RealMedia;GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64
-Name: lavs64_wtv;    Description: WTV;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
-Name: lavs64_wmv;    Description: WMV;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
-Name: lavs64_flac;   Description: FLAC;     GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
-Name: lavs64_aac;    Description: AAC;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
-Name: lavs64_amr;    Description: AMR;      GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
-Name: lavs64_wv;     Description: WavPack;  GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
-Name: lavs64_mpc;    Description: Musepack; GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
-Name: lavs64_tta;    Description: TrueAudio;GroupDescription: "Use LAV Splitter (x64) for these file formats:"; Components: lavsplitter64; Flags: unchecked;
+Name: lavs_avi;    Description: AVI;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_bluray; Description: Blu-ray;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_mkv;    Description: Matroska; GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_mp4;    Description: MP4;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_ogg;    Description: Ogg;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_flv;    Description: FLV;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_ts;     Description: MPEG-TS;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_ps;     Description: MPEG-PS;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_rm;     Description: RealMedia;GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
+Name: lavs_wtv;    Description: WTV;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
+Name: lavs_wmv;    Description: WMV;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
+Name: lavs_flac;   Description: FLAC;     GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
+Name: lavs_aac;    Description: AAC;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
+Name: lavs_amr;    Description: AMR;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
+Name: lavs_wv;     Description: WavPack;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
+Name: lavs_mpc;    Description: Musepack; GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
+Name: lavs_tta;    Description: TrueAudio;GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
 
 Name: lavv_h264;      Description: H.264/AVC1;         GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
 Name: lavv_vc1;       Description: VC-1;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
@@ -191,6 +173,14 @@ begin
   CleanMediaTypeExt(HKCR64, extension, '{B98D13E7-55DB-4385-A33D-09FD1BA26338}');
 end;
 
+procedure CleanMediaTypeExtWrap(extension: String);
+begin
+  CleanMediaTypeExt32(extension);
+  if IsWin64 then begin
+    CleanMediaTypeExt64(extension);
+  end;
+end;
+
 procedure SetMediaTypeExt32(extension: String);
 begin
   RegWriteStringValue(HKCR32, 'Media Type\Extensions\' + extension, 'Source Filter', '{B98D13E7-55DB-4385-A33D-09FD1BA26338}');
@@ -221,88 +211,58 @@ begin
   end;
 end;
 
+procedure DoExtension(extension, option: String);
+begin
+  if IsComponentSelected('lavsplitter32') then begin
+    DoExtension32(extension, option);
+  end;
+  if IsComponentSelected('lavsplitter64') then begin
+    DoExtension64(extension, option);
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if (CurStep = ssPostInstall) then begin
     // Disable unwanted formats
-    if IsComponentSelected('lavsplitter32') then begin
-      ConfigureFormat(HKCU32, 'matroska', IsTaskSelected('lavs32_mkv'));
-      DoExtension32('.mkv', 'lavs32_mkv');
-      DoExtension32('.mka', 'lavs32_mkv');
-      ConfigureFormat(HKCU32, 'bluray', IsTaskSelected('lavs32_bluray'));
-      DoExtension32('.bdmv', 'lavs32_bluray');
-      DoExtension32('.mpls', 'lavs32_bluray');
-      ConfigureFormat(HKCU32, 'mp4', IsTaskSelected('lavs32_mp4'));
-      DoExtension32('.mp4', 'lavs32_mp4');
-      DoExtension32('.mov', 'lavs32_mp4');
-      DoExtension32('.3gp', 'lavs32_mp4');
-      ConfigureFormat(HKCU32, 'avi', IsTaskSelected('lavs32_avi'));
-      DoExtension32('.avi', 'lavs32_avi');
-      DoExtension32('.divx', 'lavs32_avi');
-      ConfigureFormat(HKCU32, 'flv', IsTaskSelected('lavs32_flv'));
-      DoExtension32('.flv', 'lavs32_flv');
-      ConfigureFormat(HKCU32, 'ogg', IsTaskSelected('lavs32_ogg'));
-      DoExtension32('.ogg', 'lavs32_ogg');
-      DoExtension32('.ogm', 'lavs32_ogg');
-      DoExtension32('.ogv', 'lavs32_ogg');
-      ConfigureFormat(HKCU32, 'mpeg', IsTaskSelected('lavs32_ps'));
-      DoExtension32('.mpg', 'lavs32_ps');
-      DoExtension32('.vob', 'lavs32_ps');
-      DoExtension32('.evo', 'lavs32_ps');
-      ConfigureFormat(HKCU32, 'mpegts', IsTaskSelected('lavs32_ts'));
-      DoExtension32('.ts', 'lavs32_ts');
-      DoExtension32('.mts', 'lavs32_ts');
-      DoExtension32('.m2ts', 'lavs32_ts');
-      DoExtension32('.wtv', 'lavs32_wtv');
-      DoExtension32('.wmv', 'lavs32_wmv');
-      DoExtension32('.rm', 'lavs32_rm');
-      DoExtension32('.rmvb', 'lavs32_rm');
-      DoExtension32('.flac', 'lavs32_flac');
-      DoExtension32('.aac', 'lavs32_aac');
-      DoExtension32('.amr', 'lavs32_amr');
-      DoExtension32('.wv', 'lavs32_amr');
-      DoExtension32('.mpc', 'lavs32_mpc');
-      DoExtension32('.tta', 'lavs32_tta');
-    end;
-
-    if IsComponentSelected('lavsplitter64') then begin
-      ConfigureFormat(HKCU64, 'matroska', IsTaskSelected('lavs64_mkv'));
-      DoExtension64('.mkv', 'lavs64_mkv');
-      DoExtension64('.mka', 'lavs64_mkv');
-      ConfigureFormat(HKCU64, 'bluray', IsTaskSelected('lavs64_bluray'));
-      DoExtension64('.bdmv', 'lavs64_bluray');
-      DoExtension64('.mpls', 'lavs64_bluray');
-      ConfigureFormat(HKCU64, 'mp4', IsTaskSelected('lavs64_mp4'));
-      DoExtension64('.mp4', 'lavs64_mp4');
-      DoExtension64('.mov', 'lavs64_mp4');
-      DoExtension64('.3gp', 'lavs64_mp4');
-      ConfigureFormat(HKCU64, 'avi', IsTaskSelected('lavs64_avi'));
-      DoExtension64('.avi', 'lavs64_avi');
-      DoExtension64('.divx', 'lavs64_avi');
-      ConfigureFormat(HKCU64, 'flv', IsTaskSelected('lavs64_flv'));
-      DoExtension64('.flv', 'lavs64_flv');
-      ConfigureFormat(HKCU64, 'ogg', IsTaskSelected('lavs64_ogg'));
-      DoExtension64('.ogg', 'lavs64_ogg');
-      DoExtension64('.ogm', 'lavs64_ogg');
-      DoExtension64('.ogv', 'lavs64_ogg');
-      ConfigureFormat(HKCU64, 'mpeg', IsTaskSelected('lavs64_ps'));
-      DoExtension64('.mpg', 'lavs64_ps');
-      DoExtension64('.vob', 'lavs64_ps');
-      DoExtension64('.evo', 'lavs64_ps');
-      ConfigureFormat(HKCU64, 'mpegts', IsTaskSelected('lavs64_ts'));
-      DoExtension64('.ts', 'lavs64_ts');
-      DoExtension64('.mts', 'lavs64_ts');
-      DoExtension64('.m2ts', 'lavs64_ts');
-      DoExtension64('.wtv', 'lavs64_wtv');
-      DoExtension64('.wmv', 'lavs64_wmv');
-      DoExtension64('.rm', 'lavs64_rm');
-      DoExtension64('.rmvb', 'lavs64_rm');
-      DoExtension64('.flac', 'lavs64_flac');
-      DoExtension64('.aac', 'lavs64_aac');
-      DoExtension64('.amr', 'lavs64_amr');
-      DoExtension64('.wv', 'lavs64_amr');
-      DoExtension64('.mpc', 'lavs64_mpc');
-      DoExtension64('.tta', 'lavs64_tta');
+    if IsComponentSelected('lavsplitter32') or IsComponentSelected('lavsplitter64') then begin
+      ConfigureFormat(HKCU, 'matroska', IsTaskSelected('lavs_mkv'));
+      DoExtension('.mkv', 'lavs_mkv');
+      DoExtension('.mka', 'lavs_mkv');
+      ConfigureFormat(HKCU, 'bluray', IsTaskSelected('lavs_bluray'));
+      DoExtension('.bdmv', 'lavs_bluray');
+      DoExtension('.mpls', 'lavs_bluray');
+      ConfigureFormat(HKCU, 'mp4', IsTaskSelected('lavs_mp4'));
+      DoExtension('.mp4', 'lavs_mp4');
+      DoExtension('.mov', 'lavs_mp4');
+      DoExtension('.3gp', 'lavs_mp4');
+      ConfigureFormat(HKCU, 'avi', IsTaskSelected('lavs_avi'));
+      DoExtension('.avi', 'lavs_avi');
+      DoExtension('.divx', 'lavs_avi');
+      ConfigureFormat(HKCU, 'flv', IsTaskSelected('lavs_flv'));
+      DoExtension('.flv', 'lavs_flv');
+      ConfigureFormat(HKCU, 'ogg', IsTaskSelected('lavs_ogg'));
+      DoExtension('.ogg', 'lavs_ogg');
+      DoExtension('.ogm', 'lavs_ogg');
+      DoExtension('.ogv', 'lavs_ogg');
+      ConfigureFormat(HKCU, 'mpeg', IsTaskSelected('lavs_ps'));
+      DoExtension('.mpg', 'lavs_ps');
+      DoExtension('.vob', 'lavs_ps');
+      DoExtension('.evo', 'lavs_ps');
+      ConfigureFormat(HKCU, 'mpegts', IsTaskSelected('lavs_ts'));
+      DoExtension('.ts', 'lavs_ts');
+      DoExtension('.mts', 'lavs_ts');
+      DoExtension('.m2ts', 'lavs_ts');
+      DoExtension('.wtv', 'lavs_wtv');
+      DoExtension('.wmv', 'lavs_wmv');
+      DoExtension('.rm', 'lavs_rm');
+      DoExtension('.rmvb', 'lavs_rm');
+      DoExtension('.flac', 'lavs_flac');
+      DoExtension('.aac', 'lavs_aac');
+      DoExtension('.amr', 'lavs_amr');
+      DoExtension('.wv', 'lavs_amr');
+      DoExtension('.mpc', 'lavs_mpc');
+      DoExtension('.tta', 'lavs_tta');
     end;
 
     if IsComponentSelected('lavvideo32') or IsComponentSelected('lavvideo64') then begin
@@ -345,67 +305,35 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if (CurUninstallStep = usUninstall) then begin
-    CleanMediaTypeExt32('.mkv');
-    CleanMediaTypeExt32('.mka');
-    CleanMediaTypeExt32('.bdmv');
-    CleanMediaTypeExt32('.mpls');
-    CleanMediaTypeExt32('.mp4');
-    CleanMediaTypeExt32('.mov');
-    CleanMediaTypeExt32('.3gp');
-    CleanMediaTypeExt32('.avi');
-    CleanMediaTypeExt32('.divx');
-    CleanMediaTypeExt32('.flv');
-    CleanMediaTypeExt32('.ogg');
-    CleanMediaTypeExt32('.ogm');
-    CleanMediaTypeExt32('.ogv');
-    CleanMediaTypeExt32('.mpg');
-    CleanMediaTypeExt32('.vob');
-    CleanMediaTypeExt32('.evo');
-    CleanMediaTypeExt32('.ts');
-    CleanMediaTypeExt32('.mts');
-    CleanMediaTypeExt32('.m2ts');
-    CleanMediaTypeExt32('.wtv');
-    CleanMediaTypeExt32('.wmv');
-    CleanMediaTypeExt32('.rm');
-    CleanMediaTypeExt32('.rmvb');
-    CleanMediaTypeExt32('.flac');
-    CleanMediaTypeExt32('.aac');
-    CleanMediaTypeExt32('.amr');
-    CleanMediaTypeExt32('.wv');
-    CleanMediaTypeExt32('.mpc');
-    CleanMediaTypeExt32('.tta');
-
-    if IsWin64 then begin
-        CleanMediaTypeExt64('.mkv');
-        CleanMediaTypeExt64('.mka');
-        CleanMediaTypeExt64('.bdmv');
-        CleanMediaTypeExt64('.mpls');
-        CleanMediaTypeExt64('.mp4');
-        CleanMediaTypeExt64('.mov');
-        CleanMediaTypeExt64('.3gp');
-        CleanMediaTypeExt64('.avi');
-        CleanMediaTypeExt64('.divx');
-        CleanMediaTypeExt64('.flv');
-        CleanMediaTypeExt64('.ogg');
-        CleanMediaTypeExt64('.ogm');
-        CleanMediaTypeExt64('.ogv');
-        CleanMediaTypeExt64('.mpg');
-        CleanMediaTypeExt64('.vob');
-        CleanMediaTypeExt64('.evo');
-        CleanMediaTypeExt64('.ts');
-        CleanMediaTypeExt64('.mts');
-        CleanMediaTypeExt64('.m2ts');
-        CleanMediaTypeExt64('.wtv');
-        CleanMediaTypeExt64('.wmv');
-        CleanMediaTypeExt64('.rm');
-        CleanMediaTypeExt64('.rmvb');
-        CleanMediaTypeExt64('.flac');
-        CleanMediaTypeExt64('.aac');
-        CleanMediaTypeExt64('.amr');
-        CleanMediaTypeExt64('.wv');
-        CleanMediaTypeExt64('.mpc');
-        CleanMediaTypeExt64('.tta');
-    end;
+    CleanMediaTypeExtWrap('.mkv');
+    CleanMediaTypeExtWrap('.mka');
+    CleanMediaTypeExtWrap('.bdmv');
+    CleanMediaTypeExtWrap('.mpls');
+    CleanMediaTypeExtWrap('.mp4');
+    CleanMediaTypeExtWrap('.mov');
+    CleanMediaTypeExtWrap('.3gp');
+    CleanMediaTypeExtWrap('.avi');
+    CleanMediaTypeExtWrap('.divx');
+    CleanMediaTypeExtWrap('.flv');
+    CleanMediaTypeExtWrap('.ogg');
+    CleanMediaTypeExtWrap('.ogm');
+    CleanMediaTypeExtWrap('.ogv');
+    CleanMediaTypeExtWrap('.mpg');
+    CleanMediaTypeExtWrap('.vob');
+    CleanMediaTypeExtWrap('.evo');
+    CleanMediaTypeExtWrap('.ts');
+    CleanMediaTypeExtWrap('.mts');
+    CleanMediaTypeExtWrap('.m2ts');
+    CleanMediaTypeExtWrap('.wtv');
+    CleanMediaTypeExtWrap('.wmv');
+    CleanMediaTypeExtWrap('.rm');
+    CleanMediaTypeExtWrap('.rmvb');
+    CleanMediaTypeExtWrap('.flac');
+    CleanMediaTypeExtWrap('.aac');
+    CleanMediaTypeExtWrap('.amr');
+    CleanMediaTypeExtWrap('.wv');
+    CleanMediaTypeExtWrap('.mpc');
+    CleanMediaTypeExtWrap('.tta');
   end;
 end;
 
