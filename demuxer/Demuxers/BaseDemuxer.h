@@ -102,6 +102,15 @@ class CBaseDemuxer : public CUnknown
 public:
   enum StreamType {video, audio, subpic, unknown};
 
+  typedef struct stream {
+    CStreamInfo *streamInfo;
+    DWORD pid;
+    std::string language;
+    struct stream() { streamInfo = NULL; pid = 0; }
+    operator DWORD() const { return pid; }
+    bool operator == (const struct stream& s) const { return (DWORD)*this == (DWORD)s; }
+  } stream;
+
   DECLARE_IUNKNOWN
 
   // Demuxing Methods (pure virtual)
@@ -117,7 +126,7 @@ public:
   // Get the container format
   virtual const char *GetContainerFormat() const = 0;
   // Create Stream Description
-  virtual HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const = 0;
+  virtual HRESULT StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const = 0;
 
   // Select the active title
   virtual STDMETHODIMP SetTitle(uint32_t idx) { return E_NOTIMPL; }
@@ -136,15 +145,6 @@ public:
   virtual void SettingsChanged(ILAVFSettingsInternal *pSettings) {};
 
 public:
-  typedef struct stream {
-    CStreamInfo *streamInfo;
-    DWORD pid;
-    std::string language;
-    struct stream() { streamInfo = NULL; pid = 0; }
-    operator DWORD() const { return pid; }
-    bool operator == (const struct stream& s) const { return (DWORD)*this == (DWORD)s; }
-  } stream;
-
   class CStreamList : public std::deque<stream>
   {
   public:

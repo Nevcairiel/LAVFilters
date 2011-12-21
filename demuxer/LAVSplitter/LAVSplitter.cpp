@@ -1142,7 +1142,7 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
         }
       } else {
         // Populate stream name and language code
-        m_pDemuxer->StreamInfo(s.pid, plcid, ppszName);
+        m_pDemuxer->StreamInfo(s, plcid, ppszName);
       }
       hr = S_OK;
       break;

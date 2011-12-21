@@ -58,7 +58,7 @@ public:
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
   const char *GetContainerFormat() const;
-  HRESULT StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const;
+  HRESULT StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const;
   void SettingsChanged(ILAVFSettingsInternal *pSettings);
 
   // Select the best video stream

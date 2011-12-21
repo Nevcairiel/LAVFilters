@@ -709,12 +709,12 @@ const char *CLAVFDemuxer::GetContainerFormat() const
   return m_pszInputFormat;
 }
 
-HRESULT CLAVFDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) const
+HRESULT CLAVFDemuxer::StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const
 {
-  if (streamId >= (DWORD)m_avFormat->nb_streams) { return E_FAIL; }
+  if (s.pid >= (DWORD)m_avFormat->nb_streams) { return E_FAIL; }
 
   if (plcid) {
-    const char *lang = get_stream_language(m_avFormat->streams[streamId]);
+    const char *lang = get_stream_language(m_avFormat->streams[s.pid]);
     if (lang) {
       *plcid = ProbeLangForLCID(lang);
     } else {
@@ -723,7 +723,7 @@ HRESULT CLAVFDemuxer::StreamInfo(DWORD streamId, LCID *plcid, WCHAR **ppszName) 
   }
 
   if(ppszName) {
-    lavf_describe_stream(m_avFormat->streams[streamId], ppszName);
+    lavf_describe_stream(m_avFormat->streams[s.pid], ppszName);
   }
 
   return S_OK;
