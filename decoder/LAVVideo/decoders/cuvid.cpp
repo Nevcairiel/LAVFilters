@@ -751,17 +751,24 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 
 STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 {
-  if (m_VideoFormat.codec == cudaVideoCodec_MPEG2 || m_VideoFormat.codec == cudaVideoCodec_H264) {
-    if (cuviddisp->repeat_first_field) {
-      m_nSoftTelecine = 2;
-    } else if (m_nSoftTelecine) {
-      m_nSoftTelecine--;
-    }
-    if (!m_nSoftTelecine)
-      m_bTFF = cuviddisp->top_field_first;
-  }
+  BOOL bTreatAsProgressive = m_pSettings->GetDeintTreatAsProgressive();
 
-  cuviddisp->progressive_frame = (cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeintAggressive() && m_VideoFormat.codec != cudaVideoCodec_VC1) && !m_pSettings->GetDeintForce()) || m_pSettings->GetDeintTreatAsProgressive();
+  if (bTreatAsProgressive) {
+    cuviddisp->progressive_frame = TRUE;
+    m_nSoftTelecine = FALSE;
+  } else {
+    if (m_VideoFormat.codec == cudaVideoCodec_MPEG2 || m_VideoFormat.codec == cudaVideoCodec_H264) {
+      if (cuviddisp->repeat_first_field) {
+        m_nSoftTelecine = 2;
+      } else if (m_nSoftTelecine) {
+        m_nSoftTelecine--;
+      }
+      if (!m_nSoftTelecine)
+        m_bTFF = cuviddisp->top_field_first;
+    }
+
+    cuviddisp->progressive_frame = (cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeintAggressive() && m_VideoFormat.codec != cudaVideoCodec_VC1) && !m_pSettings->GetDeintForce());
+  }
 
   LAVDeintFieldOrder fo        = m_pSettings->GetDeintFieldOrder();
   cuviddisp->top_field_first   = (fo == DeintFieldOrder_Auto) ? (m_nSoftTelecine ? m_bTFF : cuviddisp->top_field_first) : (fo == DeintFieldOrder_TopFieldFirst);
