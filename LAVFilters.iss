@@ -226,7 +226,7 @@ begin
   if (CurStep = ssPostInstall) then begin
     // Disable unwanted formats
     if IsComponentSelected('lavsplitter32') then begin
-      ConfigureFormat(HKCU32, 'mkv', IsTaskSelected('lavs32_mkv'));
+      ConfigureFormat(HKCU32, 'matroska', IsTaskSelected('lavs32_mkv'));
       DoExtension32('.mkv', 'lavs32_mkv');
       DoExtension32('.mka', 'lavs32_mkv');
       ConfigureFormat(HKCU32, 'bluray', IsTaskSelected('lavs32_bluray'));
@@ -266,7 +266,7 @@ begin
     end;
 
     if IsComponentSelected('lavsplitter64') then begin
-      ConfigureFormat(HKCU64, 'mkv', IsTaskSelected('lavs64_mkv'));
+      ConfigureFormat(HKCU64, 'matroska', IsTaskSelected('lavs64_mkv'));
       DoExtension64('.mkv', 'lavs64_mkv');
       DoExtension64('.mka', 'lavs64_mkv');
       ConfigureFormat(HKCU64, 'bluray', IsTaskSelected('lavs64_bluray'));
