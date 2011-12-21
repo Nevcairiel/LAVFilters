@@ -1,5 +1,22 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.43 - 2011/12/21
+LAV Splitter
+- Improved MKV seeking and demuxing performance
+- Improved buffering for smoother playback (especially at start/after seeks)
+- Fixed a few audio media type issues
+- Fixed a minor resource handle leak
+
+LAV Audio
+- Updated to new ffmpeg audio decoding API
+- Disabled Float Audio output on Windows XP by default
+
+LAV Video
+- Fixed handling of soft-telecined MPEG2/H264 broadcasts in CUVID mode
+- Improved support for 4:2:2 10-bit streams
+- Fixed a crash related to unaligned memory buffers on Windows  XP
+- Added support for decoding AMV streams
+
 0.42 - 2011/11/30
 LAV Splitter
 - Fixed a timestamping bug in the new MKV demuxer
