@@ -3047,7 +3047,12 @@ again:;
       mf->readPosition = mf->Cues[j].Position + mf->pSegment;
       mf->tcCluster = mf->Cues[j].Time;
 
-      for (mask=0;;) {
+      // no timecodes for ignored streams
+      for (n=0;n<mf->nTracks;++n)
+        if (mf->trackMask & (1ui64<<n))
+            m_kftime[n] = MAXU64;
+
+      for (mask=mf->trackMask;;) {
         if ((ret = fillQueues(mf,mask)) < 0 || ret == RBRESYNC)
           return;
 
