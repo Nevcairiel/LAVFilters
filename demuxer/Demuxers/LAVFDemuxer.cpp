@@ -832,7 +832,7 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
   return S_OK;
 }
 
-int CLAVFDemuxer::GetStreamIdxFromTotalIdx(size_t index)
+int CLAVFDemuxer::GetStreamIdxFromTotalIdx(size_t index) const
 {
   const stream* st = GetStreamFromTotalIdx(index);
   if (st)
@@ -840,7 +840,7 @@ int CLAVFDemuxer::GetStreamIdxFromTotalIdx(size_t index)
   return -1;
 }
 
-CBaseDemuxer::stream* CLAVFDemuxer::GetStreamFromTotalIdx(size_t index)
+const CBaseDemuxer::stream* CLAVFDemuxer::GetStreamFromTotalIdx(size_t index) const
 {
   int type = video;
   size_t count_v = m_streams[video].size();
