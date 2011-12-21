@@ -23,6 +23,7 @@
 #include "LAVFStreamInfo.h"
 #include "LAVFVideoHelper.h"
 #include "LAVFAudioHelper.h"
+#include "LAVFUtils.h"
 #include "moreuuids.h"
 
 #include <vector>
@@ -45,6 +46,8 @@ CLAVFStreamInfo::CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, con
     hr = E_FAIL;
     break;
   }
+
+  codecInfo = lavf_get_stream_description(avstream);
 }
 
 CLAVFStreamInfo::~CLAVFStreamInfo()

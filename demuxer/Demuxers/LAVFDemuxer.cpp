@@ -723,7 +723,10 @@ HRESULT CLAVFDemuxer::StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCH
   }
 
   if(ppszName) {
-    lavf_describe_stream(m_avFormat->streams[s.pid], ppszName);
+    std::string info = s.streamInfo->codecInfo;
+    size_t len = info.size() + 1;
+    *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
+    MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, (int)len);
   }
 
   return S_OK;

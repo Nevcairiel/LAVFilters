@@ -192,11 +192,8 @@ static bool show_sample_fmt(CodecID codec_id) {
   return false;
 }
 
-HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
+std::string lavf_get_stream_description(AVStream *pStream)
 {
-  CheckPointer(pStream, E_POINTER);
-  CheckPointer(ppszName, E_POINTER);
-
   AVCodecContext *enc = pStream->codec;
 
   std::string codec_name = get_codec_name(enc);
@@ -326,7 +323,15 @@ HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
     break;
   }
 
-  std::string info = buf.str();
+  return buf.str();
+}
+
+HRESULT lavf_describe_stream(AVStream *pStream, WCHAR **ppszName)
+{
+  CheckPointer(pStream, E_POINTER);
+  CheckPointer(ppszName, E_POINTER);
+
+  std::string info = lavf_get_stream_description(pStream);
   size_t len = info.size() + 1;
   *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
   MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, (int)len);

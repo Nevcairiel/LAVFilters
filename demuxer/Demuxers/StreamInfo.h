@@ -28,4 +28,5 @@ public:
   virtual ~CStreamInfo();
 
   std::vector<CMediaType> mtypes;
+  std::string codecInfo;
 };
