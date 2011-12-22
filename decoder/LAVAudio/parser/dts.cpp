@@ -22,15 +22,16 @@
 // Exclude inline asm from being included
 #define AVCODEC_X86_MATHOPS_H
 
+#pragma warning( push )
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4305 )
 #include "libavcodec/get_bits.h"
+#include "libavcodec/dcadata.h"
+#pragma warning( pop )
 
 #include "dts.h"
 #include "parser.h"
-
-#pragma warning( push )
-#pragma warning( disable : 4305 )
-#include "libavcodec/dcadata.h"
-#pragma warning( pop )
 
 #include <vector>
 

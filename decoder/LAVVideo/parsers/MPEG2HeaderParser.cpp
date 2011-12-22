@@ -20,9 +20,12 @@
 #include "stdafx.h"
 #include "MPEG2HeaderParser.h"
 
-// Exclude inline asm from being included
+#pragma warning( push )
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4244 )
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
+#pragma warning( pop )
 
 #define SEQ_START_CODE          0x000001b3
 #define EXT_START_CODE          0x000001b5

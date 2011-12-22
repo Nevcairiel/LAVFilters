@@ -20,9 +20,12 @@
 #include "stdafx.h"
 #include "VC1HeaderParser.h"
 
-// Exclude inline asm from being included
+#pragma warning( push )
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4244 )
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
+#pragma warning( pop )
 
 /** Markers used in VC-1 AP frame data */
 //@{
