@@ -44,9 +44,16 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
 
       char args[512];
       int ret = 0;
-      enum PixelFormat pix_fmts[2];
-      pix_fmts[0] = ff_pixfmt == PIX_FMT_NV12 ? PIX_FMT_YUV420P : ff_pixfmt;
-      pix_fmts[1] = PIX_FMT_NONE;
+      enum PixelFormat pix_fmts[3];
+
+      if (ff_pixfmt == PIX_FMT_NV12) {
+        pix_fmts[0] = PIX_FMT_NV12;
+        pix_fmts[1] = PIX_FMT_YUV420P;
+      } else {
+        pix_fmts[0] = ff_pixfmt;
+        pix_fmts[1] = PIX_FMT_NONE;
+      }
+      pix_fmts[2] = PIX_FMT_NONE;
 
       AVFilter *buffersrc  = avfilter_get_by_name("buffer");
       AVFilter *buffersink = avfilter_get_by_name("buffersink");
@@ -122,7 +129,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
           rtDuration >>= 1;
 
         // Copy most settings over
-        outFrame->format       = (pFrame->format == LAVPixFmt_NV12) ? LAVPixFmt_YUV420 : pFrame->format;
+        outFrame->format       = (out_picref->format == PIX_FMT_YUV420P) ? LAVPixFmt_YUV420 : (out_picref->format == PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
         outFrame->bpp          = pFrame->bpp;
         outFrame->ext_format   = pFrame->ext_format;
         outFrame->avgFrameDuration = pFrame->avgFrameDuration;
