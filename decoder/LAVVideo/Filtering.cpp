@@ -27,8 +27,8 @@ void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
 
 STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
 {
-  if (m_pDecoder->IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422)) {
-    PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : PIX_FMT_YUV422P;
+  if (m_pDecoder->IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
+    PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? PIX_FMT_YUV422P : PIX_FMT_NV12;
 
     if (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight) {
       DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing YADIF deinterlacing filter..."));
@@ -45,7 +45,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
       char args[512];
       int ret = 0;
       enum PixelFormat pix_fmts[2];
-      pix_fmts[0] = ff_pixfmt;
+      pix_fmts[0] = ff_pixfmt == PIX_FMT_NV12 ? PIX_FMT_YUV420P : ff_pixfmt;
       pix_fmts[1] = PIX_FMT_NONE;
 
       AVFilter *buffersrc  = avfilter_get_by_name("buffer");
@@ -122,7 +122,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
           rtDuration >>= 1;
 
         // Copy most settings over
-        outFrame->format       = pFrame->format;
+        outFrame->format       = (pFrame->format == LAVPixFmt_NV12) ? LAVPixFmt_YUV420 : pFrame->format;
         outFrame->bpp          = pFrame->bpp;
         outFrame->ext_format   = pFrame->ext_format;
         outFrame->avgFrameDuration = pFrame->avgFrameDuration;
