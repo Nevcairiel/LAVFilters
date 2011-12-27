@@ -25,6 +25,10 @@
 #include "parsers/H264SequenceParser.h"
 #include "parsers/VC1HeaderParser.h"
 
+#ifdef DEBUG
+#include "lavf_log.h"
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
@@ -303,6 +307,11 @@ CDecAvcodec::~CDecAvcodec(void)
 // ILAVDecoder
 STDMETHODIMP CDecAvcodec::Init()
 {
+#ifdef DEBUG
+  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
+  av_log_set_callback(lavf_log_callback);
+#endif
+
   avcodec_register_all();
   return S_OK;
 }

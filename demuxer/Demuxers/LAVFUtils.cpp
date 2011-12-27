@@ -327,7 +327,6 @@ std::string lavf_get_stream_description(AVStream *pStream)
 }
 
 #ifdef DEBUG
-extern "C" {
 
 #define LAVF_PARSE_TYPE(x) case x: return #x;
 const char *lavf_get_parsing_string(enum AVStreamParseType parsing)
@@ -340,34 +339,5 @@ const char *lavf_get_parsing_string(enum AVStreamParseType parsing)
     LAVF_PARSE_TYPE(AVSTREAM_PARSE_FULL_ONCE);
   };
   return "unknown";
-};
-
-#define LOG_BUF_LEN 2048
-void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
-{
-  static int print_prefix=1;
-  static int count;
-  static char line[LOG_BUF_LEN], prev[LOG_BUF_LEN];
-
-  if(level>AV_LOG_VERBOSE)
-    return;
-
-  av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
-
-  if(print_prefix && !strcmp(line, prev)){
-    count++;
-    return;
-  }
-  if(count>0){
-    fprintf(stderr, "    Last message repeated %d times\n", count);
-    count=0;
-  }
-  if (line[strlen(line)-1] == '\n') {
-    line[strlen(line)-1] = 0;
-  }
-
-  DbgLog((LOG_CUSTOM1, level, L"%S", line));
-  strncpy_s(prev, line, _TRUNCATE);
-}
 }
 #endif

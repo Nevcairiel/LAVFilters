@@ -27,6 +27,7 @@
 #include "moreuuids.h"
 
 #ifdef DEBUG
+#include "lavf_log.h"
 extern "C" {
 #include "libavutil/log.h"
 }

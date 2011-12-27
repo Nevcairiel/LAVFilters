@@ -126,6 +126,7 @@
     <ClInclude Include="FontInstaller.h" />
     <ClInclude Include="growarray.h" />
     <ClInclude Include="H264Nalu.h" />
+    <ClInclude Include="lavf_log.h" />
     <ClInclude Include="registry.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
