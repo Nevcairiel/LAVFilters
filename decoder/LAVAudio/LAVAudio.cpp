@@ -1016,6 +1016,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   m_pAVCtx->bit_rate              = nBytesPerSec << 3;
   m_pAVCtx->bits_per_coded_sample = nBitsPerSample;
   m_pAVCtx->block_align           = nBlockAlign;
+  m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
 
   if (bTrustExtraData && extralen) {
     if (codec == CODEC_ID_COOK) {
