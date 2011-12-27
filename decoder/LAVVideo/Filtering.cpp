@@ -59,6 +59,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
       ret = avfilter_graph_create_filter(&m_pFilterBufferSrc, buffersrc, "in", args, NULL, m_pFilterGraph);
       if (ret < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Creating the input buffer filter failed with code %d", ret));
+        avfilter_graph_free(&m_pFilterGraph);
         goto deliver;
       }
 
@@ -67,6 +68,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Creating the buffer sink filter failed with code %d", ret));
         avfilter_free(m_pFilterBufferSrc);
         m_pFilterBufferSrc = NULL;
+        avfilter_graph_free(&m_pFilterGraph);
         goto deliver;
       }
 
@@ -84,11 +86,13 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
       _snprintf_s(args, sizeof(args), "yadif=%d:-1:1", (m_settings.SWDeintOutput == DeintOutput_FramePerField));
       if ((ret = avfilter_graph_parse(m_pFilterGraph, args, &inputs, &outputs, NULL)) < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Parsing the graph failed with code %d", ret));
+        avfilter_graph_free(&m_pFilterGraph);
         goto deliver;
       }
 
       if ((ret = avfilter_graph_config(m_pFilterGraph, NULL)) < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Configuring the graph failed with code %d", ret));
+        avfilter_graph_free(&m_pFilterGraph);
         goto deliver;
       }
 
