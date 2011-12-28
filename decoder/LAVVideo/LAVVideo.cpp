@@ -725,24 +725,27 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
         }
         pOut->Release();
       }
-    } else if (hrQA == S_OK && hr == VFW_E_ALREADY_CONNECTED && (pBIH->biSizeImage > oldSizeImage)) {
-      DbgLog((LOG_TRACE, 10, L"-> Downstream filter refuses new format, but more space required, updating allocator manually..."));
-      IMemInputPin *pMemPin = NULL;
-      if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
-        IMemAllocator *pMemAllocator = NULL;
-        if (SUCCEEDED(hr = pMemPin->GetAllocator(&pMemAllocator)) && pMemAllocator) {
-          ALLOCATOR_PROPERTIES props, actual;
-          hr = pMemAllocator->GetProperties(&props);
-          hr = pMemAllocator->Decommit();
-          props.cbBuffer = pBIH->biSizeImage;
-          hr = pMemAllocator->SetProperties(&props, &actual);
-          hr = pMemAllocator->Commit();
-          SafeRelease(&pMemAllocator);
+    } else if (hrQA == S_OK && hr == VFW_E_ALREADY_CONNECTED) {
+      DbgLog((LOG_TRACE, 10, L"-> Downstream accepts new format, but cannot reconnect dynamically..."));
+      if (pBIH->biSizeImage > oldSizeImage) {
+        DbgLog((LOG_TRACE, 10, L"-> But, we need a bigger buffer, try to adapt allocator manually"));
+        IMemInputPin *pMemPin = NULL;
+        if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
+          IMemAllocator *pMemAllocator = NULL;
+          if (SUCCEEDED(hr = pMemPin->GetAllocator(&pMemAllocator)) && pMemAllocator) {
+            ALLOCATOR_PROPERTIES props, actual;
+            hr = pMemAllocator->GetProperties(&props);
+            hr = pMemAllocator->Decommit();
+            props.cbBuffer = pBIH->biSizeImage;
+            hr = pMemAllocator->SetProperties(&props, &actual);
+            hr = pMemAllocator->Commit();
+            SafeRelease(&pMemAllocator);
+          }
         }
         SafeRelease(&pMemPin);
-        m_pOutput->SetMediaType(&mt);
-        m_bSendMediaType = TRUE;
       }
+      m_pOutput->SetMediaType(&mt);
+      m_bSendMediaType = TRUE;
     } else {
       DbgLog((LOG_TRACE, 10, L"-> Receive Connection failed (hr: %x); QueryAccept: %x", hr, hrQA));
     }
