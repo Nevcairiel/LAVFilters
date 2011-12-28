@@ -611,6 +611,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   BOOL bNeedReconnect = FALSE;
 
   DWORD dwAspectX, dwAspectY;
+  RECT rcTargetOld = {0};
+  LONG biWidthOld = 0;
 
   if ((dxvaExtFlags.value & ~0xff) != 0)
     dxvaExtFlags.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
@@ -661,6 +663,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     if (mt.formattype == FORMAT_VideoInfo) {
       VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
 
+      rcTargetOld = vih->rcTarget;
+
       DbgLog((LOG_TRACE, 10, L"Using VIH, Format dump:"));
       DbgLog((LOG_TRACE, 10, L"-> width: %d -> %d", vih->rcTarget.right, width));
       DbgLog((LOG_TRACE, 10, L"-> height: %d -> %d", vih->rcTarget.bottom, height));
@@ -674,6 +678,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       pBIH = &vih->bmiHeader;
     } else if (mt.formattype == FORMAT_VideoInfo2) {
       VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
+
+      rcTargetOld = vih2->rcTarget;
 
       DWORD dwInterlacedFlags = bInterlaced ? AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave : 0;
       DbgLog((LOG_TRACE, 10, L"Using VIH2, Format dump:"));
@@ -700,6 +706,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
     DWORD oldSizeImage = pBIH->biSizeImage;
 
+    biWidthOld = pBIH->biWidth;
     pBIH->biWidth = width;
     pBIH->biHeight = height;
     pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
@@ -743,6 +750,13 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
           }
         }
         SafeRelease(&pMemPin);
+      } else {
+        // Check if there was a stride before..
+        if (rcTargetOld.right && biWidthOld > rcTargetOld.right && biWidthOld > pBIH->biWidth) {
+          // If we had a stride before, the filter is apparently stride aware
+          // Try to make it easier by keeping the old stride around
+          pBIH->biWidth = biWidthOld;
+        }
       }
       m_pOutput->SetMediaType(&mt);
       m_bSendMediaType = TRUE;
