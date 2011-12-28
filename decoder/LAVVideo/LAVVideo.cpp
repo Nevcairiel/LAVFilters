@@ -708,7 +708,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
     biWidthOld = pBIH->biWidth;
     pBIH->biWidth = width;
-    pBIH->biHeight = height;
+    pBIH->biHeight = pBIH->biHeight < 0 ? -height : height;
     pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
 
     HRESULT hrQA = m_pOutput->GetConnected()->QueryAccept(&mt);
