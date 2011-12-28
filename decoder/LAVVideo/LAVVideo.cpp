@@ -598,8 +598,7 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
 
 HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration)
 {
-  CMediaType& mt = m_pOutput->CurrentMediaType();
-
+  CMediaType mt = m_pOutput->CurrentMediaType();
 
   HRESULT hr = S_FALSE;
   BOOL bNeedReconnect = FALSE;
