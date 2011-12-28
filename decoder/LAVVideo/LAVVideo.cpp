@@ -611,9 +611,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   else
     dxvaExtFlags.value = 0;
 
-  // Haali is incompatible with DXVA_ExtendedFormat
+  // Only madVR really knows how to deal with these flags, disable them for everyone else
   if (m_bDXVAExtFormatSupport == -1)
-    m_bDXVAExtFormatSupport = !(FilterInGraph(PINDIR_OUTPUT, CLSID_DXR) || FilterInGraph(PINDIR_OUTPUT, CLSID_OverlayMixer));
+    m_bDXVAExtFormatSupport = FilterInGraph(PINDIR_OUTPUT, CLSID_madVR);
 
   BOOL bInterlaced = IsInterlaced();
 
