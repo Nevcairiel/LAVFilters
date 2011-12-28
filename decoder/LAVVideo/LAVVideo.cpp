@@ -580,8 +580,15 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     videoFormatTypeHandler(pmt->pbFormat, &pmt->formattype, &pBMINew);
     CMediaType &outMt = m_pOutput->CurrentMediaType();
     videoFormatTypeHandler(outMt.pbFormat, &outMt.formattype, &pBMIOld);
+
+    RECT rcTarget = {0};
+    if (pmt->formattype == FORMAT_VideoInfo2) {
+      rcTarget = ((VIDEOINFOHEADER2 *)pmt->pbFormat)->rcTarget;
+    } else if (pmt->formattype == FORMAT_VideoInfo) {
+      rcTarget = ((VIDEOINFOHEADER *)pmt->pbFormat)->rcTarget;
+    }
     DbgLog((LOG_TRACE, 10, L"::GetDeliveryBuffer(): Sample contains new media type from downstream filter.."));
-    DbgLog((LOG_TRACE, 10, L"-> Width changed from %d to %d", pBMIOld->biWidth, pBMINew->biWidth));
+    DbgLog((LOG_TRACE, 10, L"-> Width changed from %d to %d (target: %d)", pBMIOld->biWidth, pBMINew->biWidth, rcTarget.right));
 #endif
 
     CMediaType mt = *pmt;
@@ -675,7 +682,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       DbgLog((LOG_TRACE, 10, L"-> AR: %d:%d -> %d:%d", vih2->dwPictAspectRatioX, vih2->dwPictAspectRatioY, dwAspectX, dwAspectY));
       DbgLog((LOG_TRACE, 10, L"-> FPS: %I64d -> %I64d", vih2->AvgTimePerFrame, avgFrameDuration));
       DbgLog((LOG_TRACE, 10, L"-> interlaced: 0x%0.8x -> 0x%0.8x", vih2->dwInterlaceFlags, dwInterlacedFlags));
-      DbgLog((LOG_TRACE, 10, L"-> flags: 0x%0.8x -> 0x%0.8x", vih2->dwControlFlags, dxvaExtFlags.value));
+      DbgLog((LOG_TRACE, 10, L"-> flags: 0x%0.8x -> 0x%0.8x", vih2->dwControlFlags, m_bDXVAExtFormatSupport ? dxvaExtFlags.value : vih2->dwControlFlags));
 
       vih2->dwPictAspectRatioX = dwAspectX;
       vih2->dwPictAspectRatioY = dwAspectY;
@@ -737,7 +744,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
         m_bSendMediaType = TRUE;
       }
     } else {
-      DbgLog((LOG_TRACE, 10, L"-> Receive Connection failed (hr: %x)", hr));
+      DbgLog((LOG_TRACE, 10, L"-> Receive Connection failed (hr: %x); QueryAccept: %x", hr, hrQA));
     }
     if (bNeedReconnect)
       NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
@@ -1012,6 +1019,10 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   SetFrameFlags(pSampleOut, pFrame);
 
   hr = m_pOutput->Deliver(pSampleOut);
+  if (FAILED(hr)) {
+    DbgLog((LOG_ERROR, 10, L"::Decode(): Deliver failed with hr: %x", hr));
+  }
+
   SafeRelease(&pSampleOut);
   ReleaseFrame(&pFrame);
 
