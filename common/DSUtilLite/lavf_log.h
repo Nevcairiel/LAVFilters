@@ -24,7 +24,7 @@ inline void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
 {
   static int print_prefix=1;
   static int count;
-  static char line[LOG_BUF_LEN], prev[LOG_BUF_LEN];
+  static char line[LOG_BUF_LEN] = {0}, prev[LOG_BUF_LEN] = {0};
 
   if(level>AV_LOG_VERBOSE)
     return;
