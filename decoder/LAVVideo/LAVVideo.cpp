@@ -857,7 +857,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     }
 
     DbgLog((LOG_TRACE, 10, L"-> Software decoder created, decoding frame again..."));
-    hr = m_pDecoder->Decode(pDataIn, nSize, rtStart, rtStop, pIn->IsSyncPoint(), pIn->IsDiscontinuity());
+    hr = m_pDecoder->Decode(pDataIn, nSize, rtStart, rtStop, pIn->IsSyncPoint() == S_OK, pIn->IsDiscontinuity() == S_OK);
   }
 
   return S_OK;
