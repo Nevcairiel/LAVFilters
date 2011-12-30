@@ -610,7 +610,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   HRESULT hr = S_FALSE;
   BOOL bNeedReconnect = FALSE;
 
-  DWORD dwAspectX, dwAspectY;
+  DWORD dwAspectX = 0, dwAspectY = 0;
   RECT rcTargetOld = {0};
   LONG biWidthOld = 0;
 
