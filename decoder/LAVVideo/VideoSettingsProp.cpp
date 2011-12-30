@@ -150,7 +150,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   const WCHAR *version = TEXT(LAV_VIDEO) L" " TEXT(LAV_VERSION_STR);
   SendDlgItemMessage(m_Dlg, IDC_LAVVIDEO_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
 
-  WCHAR stringBuffer[100] = L"Auto";
+  WCHAR stringBuffer[512] = L"Auto";
 
   // Init the Combo Box
   SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_RESETCONTENT, 0, 0);
