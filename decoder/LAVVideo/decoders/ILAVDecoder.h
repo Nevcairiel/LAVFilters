@@ -226,18 +226,13 @@ interface ILAVDecoder
   /**
    * Decode a frame.
    *
-   * @param buffer the input buffer containing the data to be decoded
-   * @param buflen length of the buffer, in bytes
-   * @param rtStart start time as delivered in the DirectShow input sample
-   * @param rtStop stop time as delivered in the DirectShow input sample
-   * @param bSyncPoint TRUE if the input sample indicated a sync point
-   * @param bDiscontinuity TRUE if the input sample indicated a discontinuity
+   * @param pSample Media Sample to decode
    * @return S_OK if decoding was successfull, S_FALSE if no frame could be extracted, an error code if the decoder is not compatible with the bitstream
    *
    * Note: When returning an actual error code, the filter will switch to the fallback software decoder! This should only be used for catastrophic failures,
    * like trying to decode a unsupported format on a hardware decoder.
    */
-  STDMETHOD(Decode)(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity) PURE;
+  STDMETHOD(Decode)(IMediaSample *pSample) PURE;
 
   /**
    * Flush the decoder after a seek.

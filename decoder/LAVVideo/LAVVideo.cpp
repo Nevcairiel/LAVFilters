@@ -809,10 +809,6 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
 {
   CAutoLock cAutoLock(&m_csReceive);
   HRESULT        hr = S_OK;
-  BYTE           *pDataIn = NULL;
-  int            nSize;
-  REFERENCE_TIME rtStart = AV_NOPTS_VALUE;
-  REFERENCE_TIME rtStop = AV_NOPTS_VALUE;
 
   AM_SAMPLE2_PROPERTIES const *pProps = m_pInput->SampleProps();
   if(pProps->dwStreamId != AM_STREAM_MEDIA) {
@@ -827,22 +823,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     DeleteMediaType(pmt);
   }
 
-  if (FAILED(hr = pIn->GetPointer(&pDataIn))) {
-    return hr;
-  }
-
-  nSize = pIn->GetActualDataLength();
-  hr = pIn->GetTime(&rtStart, &rtStop);
-
-  if (FAILED(hr)) {
-    rtStart = rtStop = AV_NOPTS_VALUE;
-  }
-
-  if (hr == VFW_S_NO_STOP_TIME || rtStop-1 <= rtStart) {
-    rtStop = AV_NOPTS_VALUE;
-  }
-
-  hr = m_pDecoder->Decode(pDataIn, nSize, rtStart, rtStop, pIn->IsSyncPoint() == S_OK, pIn->IsDiscontinuity() == S_OK);
+  hr = m_pDecoder->Decode(pIn);
   // If a hardware decoder indicates a hard failure, we switch back to software
   // This is used to indicate incompatible media
   if (FAILED(hr) && m_bHWDecoder) {
@@ -857,7 +838,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     }
 
     DbgLog((LOG_TRACE, 10, L"-> Software decoder created, decoding frame again..."));
-    hr = m_pDecoder->Decode(pDataIn, nSize, rtStart, rtStop, pIn->IsSyncPoint() == S_OK, pIn->IsDiscontinuity() == S_OK);
+    hr = m_pDecoder->Decode(pIn);
   }
 
   return S_OK;

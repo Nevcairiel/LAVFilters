@@ -28,11 +28,33 @@ public:
   virtual ~CDecBase(void) {}
 
   STDMETHOD(Init)() PURE;
+  STDMETHOD(Decode)(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity) { return E_NOTIMPL; }
 
   // ILAVDecoder
-  STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return Init(); };
+  STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return Init(); }
   STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() { return 0; }
   STDMETHOD_(BOOL, IsInterlaced)() { return TRUE; }
+
+  STDMETHODIMP Decode(IMediaSample *pSample) {
+    HRESULT hr;
+
+    // Retrieve buffer
+    BYTE *pData = NULL;
+    if (FAILED(hr = pSample->GetPointer(&pData))) {
+      return hr;
+    }
+
+    // Retrieve timestamps
+    REFERENCE_TIME rtStart, rtStop;
+    pSample->GetTime(&rtStart, &rtStop);
+
+    if (FAILED(hr)) {
+      rtStart = rtStop = AV_NOPTS_VALUE;
+    } else if (hr == VFW_S_NO_STOP_TIME || rtStop-1 <= rtStart) {
+      rtStop = AV_NOPTS_VALUE;
+    }
+    return Decode(pData, pSample->GetActualDataLength(), rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK);
+  }
 
 protected:
   // Convenience wrapper around m_pCallback
