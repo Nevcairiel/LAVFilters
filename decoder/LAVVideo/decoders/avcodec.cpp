@@ -810,12 +810,13 @@ STDMETHODIMP CDecAvcodec::Flush()
 {
   if (m_pAVCtx) {
     CMediaType &mt = m_pCallback->GetInputMediaType();
-    InitDecoder(m_nCodecId, &mt);
+    avcodec_flush_buffers(m_pAVCtx);
   }
 
   m_CurrentThread = 0;
   m_rtStartCache = AV_NOPTS_VALUE;
   m_bWaitingForKeyFrame = TRUE;
+  m_h264RandomAccess.flush(m_pAVCtx->thread_count);
 
   m_nBFramePos = 0;
   m_tcBFrameDelay[0].rtStart = m_tcBFrameDelay[0].rtStop = AV_NOPTS_VALUE;
