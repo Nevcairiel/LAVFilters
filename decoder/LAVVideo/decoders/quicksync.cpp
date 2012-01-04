@@ -40,15 +40,22 @@ ILAVDecoder *CreateDecoderQuickSync() {
 // Codec FourCC map
 ////////////////////////////////////////////////////////////////////////////////
 
+static FOURCC FourCC_MPG1 = mmioFOURCC('M','P','G','1');
+static FOURCC FourCC_MPG2 = mmioFOURCC('M','P','G','2');
+static FOURCC FourCC_VC1  = mmioFOURCC('W','V','C','1');
+static FOURCC FourCC_WMV3 = mmioFOURCC('W','M','V','3');
+static FOURCC FourCC_H264 = mmioFOURCC('H','2','6','4');
+static FOURCC FourCC_AVC1 = mmioFOURCC('A','V','C','1');
+
 static struct {
   CodecID ffcodec;
   FOURCC fourCC;
 } quicksync_codecs[] = {
-  { CODEC_ID_MPEG1VIDEO, mmioFOURCC('M','P','G','1')},
-  { CODEC_ID_MPEG2VIDEO, mmioFOURCC('M','P','G','2')},
-  { CODEC_ID_VC1,        mmioFOURCC('W','V','C','1')},
-  { CODEC_ID_WMV3,       mmioFOURCC('W','M','V','3')},
-  { CODEC_ID_H264,       mmioFOURCC('H','2','6','4')},
+  { CODEC_ID_MPEG1VIDEO, FourCC_MPG1 },
+  { CODEC_ID_MPEG2VIDEO, FourCC_MPG2 },
+  { CODEC_ID_VC1,        FourCC_VC1  },
+  { CODEC_ID_WMV3,       FourCC_WMV3 },
+  { CODEC_ID_H264,       FourCC_H264 },
 };
 
 
@@ -154,7 +161,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   if (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1) {
     if (pmt->formattype == FORMAT_MPEG2Video) {
       MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->pbFormat;
-      fourCC = mmioFOURCC('A','V','C','1');
+      fourCC = FourCC_AVC1;
       m_bAVC1 = TRUE;
       m_nAVCNalSize = mp2vi->dwFlags;
     } else {
@@ -181,6 +188,8 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
     DbgLog((LOG_TRACE, 10, L"-> InitDecoder failed"));
     return E_FAIL;
   }
+
+  m_Codec = fourCC;
 
   return S_OK;
 }

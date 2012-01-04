@@ -64,4 +64,6 @@ private:
   BOOL m_bInterlaced;
   BOOL m_bAVC1;
   int  m_nAVCNalSize;
+
+  FOURCC m_Codec;
 };
