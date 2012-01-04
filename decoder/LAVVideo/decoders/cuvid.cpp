@@ -26,6 +26,8 @@
 #include "parsers/MPEG2HeaderParser.h"
 #include "parsers/VC1HeaderParser.h"
 
+#include "Media.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
@@ -601,65 +603,7 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     filter->m_bFormatIncompatible = TRUE;
   }
 
-  DXVA2_ExtendedFormat fmt;
-  fmt.value = 0;
-
-  if (filter->m_iFullRange != -1)
-    fmt.NominalRange = filter->m_iFullRange ? DXVA2_NominalRange_0_255 : DXVA2_NominalRange_16_235;
-
-  // Color Primaries
-  switch(cuvidfmt->video_signal_description.color_primaries) {
-  case AVCOL_PRI_BT709:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT709;
-    break;
-  case AVCOL_PRI_BT470M:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysM;
-    break;
-  case AVCOL_PRI_BT470BG:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysBG;
-    break;
-  case AVCOL_PRI_SMPTE170M:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE170M;
-    break;
-  case AVCOL_PRI_SMPTE240M:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE240M;
-    break;
-  }
-
-  // Color Space / Transfer Matrix
-  switch (cuvidfmt->video_signal_description.matrix_coefficients) {
-  case AVCOL_SPC_BT709:
-    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT709;
-    break;
-  case AVCOL_SPC_BT470BG:
-  case AVCOL_SPC_SMPTE170M:
-    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
-    break;
-  case AVCOL_SPC_SMPTE240M:
-    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_SMPTE240M;
-    break;
-  case AVCOL_SPC_YCGCO:
-    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)7;
-    break;
-  }
-
-  // Color Transfer Function
-  switch(cuvidfmt->video_signal_description.transfer_characteristics) {
-  case AVCOL_TRC_BT709:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
-    break;
-  case AVCOL_TRC_GAMMA22:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_22;
-    break;
-  case AVCOL_TRC_GAMMA28:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_28;
-    break;
-  case AVCOL_TRC_SMPTE240M:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
-    break;
-  }
-
-  filter->m_DXVAExtendedFormat = fmt;
+  fillDXVAExtFormat(filter->m_DXVAExtendedFormat, filter->m_iFullRange, cuvidfmt->video_signal_description.color_primaries, cuvidfmt->video_signal_description.matrix_coefficients, cuvidfmt->video_signal_description.transfer_characteristics);
 
   return TRUE;
 }

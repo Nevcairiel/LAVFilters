@@ -65,9 +65,10 @@ private:
 
   BOOL m_bNeedSequenceCheck;
   BOOL m_bInterlaced;
-  int  m_iFullRange;
   BOOL m_bAVC1;
   int  m_nAVCNalSize;
+
+  DXVA2_ExtendedFormat m_DXVAExtendedFormat;
 
   FOURCC m_Codec;
 };

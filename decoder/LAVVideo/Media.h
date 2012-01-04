@@ -33,3 +33,4 @@ struct codec_config_t {
 const codec_config_t *get_codec_config(LAVVideoCodec codec);
 
 int flip_plane(BYTE *buffer, int stride, int height);
+void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer);

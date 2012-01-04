@@ -468,3 +468,63 @@ int flip_plane(BYTE *buffer, int stride, int height)
   av_freep(&line_buffer);
   return 0;
 }
+
+void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer)
+{
+  fmt.value = 0;
+
+  if (range != -1)
+      fmt.NominalRange = range ? DXVA2_NominalRange_0_255 : DXVA2_NominalRange_16_235;
+
+  // Color Primaries
+  switch(primaries) {
+  case AVCOL_PRI_BT709:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT709;
+    break;
+  case AVCOL_PRI_BT470M:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysM;
+    break;
+  case AVCOL_PRI_BT470BG:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysBG;
+    break;
+  case AVCOL_PRI_SMPTE170M:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE170M;
+    break;
+  case AVCOL_PRI_SMPTE240M:
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE240M;
+    break;
+  }
+
+  // Color Space / Transfer Matrix
+  switch (matrix) {
+  case AVCOL_SPC_BT709:
+    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT709;
+    break;
+  case AVCOL_SPC_BT470BG:
+  case AVCOL_SPC_SMPTE170M:
+    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
+    break;
+  case AVCOL_SPC_SMPTE240M:
+    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_SMPTE240M;
+    break;
+  case AVCOL_SPC_YCGCO:
+    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)7;
+    break;
+  }
+
+  // Color Transfer Function
+  switch(transfer) {
+  case AVCOL_TRC_BT709:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
+    break;
+  case AVCOL_TRC_GAMMA22:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_22;
+    break;
+  case AVCOL_TRC_GAMMA28:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_28;
+    break;
+  case AVCOL_TRC_SMPTE240M:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
+    break;
+  }
+}

@@ -25,6 +25,8 @@
 #include "parsers/H264SequenceParser.h"
 #include "parsers/VC1HeaderParser.h"
 
+#include "Media.h"
+
 #ifdef DEBUG
 #include "lavf_log.h"
 #endif
@@ -75,6 +77,8 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
   DXVA2_ExtendedFormat fmt;
   ZeroMemory(&fmt, sizeof(fmt));
 
+  fillDXVAExtFormat(fmt, -1, ctx->color_primaries, ctx->colorspace, ctx->color_trc);
+
   // Chroma location
   switch(ctx->chroma_sample_location) {
   case AVCHROMA_LOC_LEFT:
@@ -91,58 +95,6 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
   // Color Range, 0-255 or 16-235
   BOOL ffFullRange = (ctx->color_range == AVCOL_RANGE_JPEG) || ctx->pix_fmt == PIX_FMT_YUVJ420P || ctx->pix_fmt == PIX_FMT_YUVJ422P || ctx->pix_fmt == PIX_FMT_YUVJ444P || ctx->pix_fmt == PIX_FMT_YUVJ440P;
   fmt.NominalRange = ffFullRange ? DXVA2_NominalRange_0_255 : (ctx->color_range == AVCOL_RANGE_MPEG) ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_Unknown;
-
-  // Color Space / Transfer Matrix
-  switch (ctx->colorspace) {
-  case AVCOL_SPC_BT709:
-    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT709;
-    break;
-  case AVCOL_SPC_BT470BG:
-  case AVCOL_SPC_SMPTE170M:
-    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
-    break;
-  case AVCOL_SPC_SMPTE240M:
-    fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_SMPTE240M;
-    break;
-  case AVCOL_SPC_YCGCO:
-    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)7;
-    break;
-  }
-
-  // Color Primaries
-  switch(ctx->color_primaries) {
-  case AVCOL_PRI_BT709:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT709;
-    break;
-  case AVCOL_PRI_BT470M:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysM;
-    break;
-  case AVCOL_PRI_BT470BG:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT470_2_SysBG;
-    break;
-  case AVCOL_PRI_SMPTE170M:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE170M;
-    break;
-  case AVCOL_PRI_SMPTE240M:
-    fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE240M;
-    break;
-  }
-
-  // Color Transfer Function
-  switch(ctx->color_trc) {
-  case AVCOL_TRC_BT709:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
-    break;
-  case AVCOL_TRC_GAMMA22:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_22;
-    break;
-  case AVCOL_TRC_GAMMA28:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_28;
-    break;
-  case AVCOL_TRC_SMPTE240M:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
-    break;
-  }
 
   return fmt;
 }

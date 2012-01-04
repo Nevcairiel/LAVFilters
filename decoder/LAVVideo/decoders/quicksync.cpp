@@ -26,6 +26,8 @@
 #include "parsers/MPEG2HeaderParser.h"
 #include "parsers/VC1HeaderParser.h"
 
+#include "Media.h"
+
 #include <Shlwapi.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,9 +71,9 @@ CDecQuickSync::CDecQuickSync(void)
   , m_pDecoder(NULL)
   , m_bAVC1(FALSE)
   , m_nAVCNalSize(0)
-  , m_iFullRange(-1)
 {
   ZeroMemory(&qs, sizeof(qs));
+  ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
 }
 
 CDecQuickSync::~CDecQuickSync(void)
@@ -148,7 +150,7 @@ STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, int buflen, in
   h264parser.ParseNALs(buffer, buflen, nal_size);
   if (h264parser.sps.valid) {
     m_bInterlaced = h264parser.sps.interlaced;
-    m_iFullRange = h264parser.sps.full_range;
+    fillDXVAExtFormat(m_DXVAExtendedFormat, h264parser.sps.full_range, h264parser.sps.primaries, h264parser.sps.colorspace, h264parser.sps.trc);
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with QuickSync, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
@@ -285,12 +287,6 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   if (data->rtStart != AV_NOPTS_VALUE && data->rtStart < 0)
     return S_OK;
 
-  DXVA2_ExtendedFormat fmt;
-  fmt.value = 0;
-
-  if (m_iFullRange != -1)
-    fmt.NominalRange = m_iFullRange ? DXVA2_NominalRange_0_255 : DXVA2_NominalRange_16_235;
-
   // Setup the LAVFrame
   LAVFrame *pFrame = NULL;
   AllocateFrame(&pFrame);
@@ -303,7 +299,7 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   pFrame->repeat = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_REPEAT_FIELD);
   pFrame->aspect_ratio.num = data->dwPictAspectRatioX;
   pFrame->aspect_ratio.den = data->dwPictAspectRatioY;
-  pFrame->ext_format = fmt;
+  pFrame->ext_format = m_DXVAExtendedFormat;
   pFrame->interlaced = !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
   pFrame->tff = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_FIELD1FIRST);
 
