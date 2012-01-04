@@ -158,6 +158,7 @@ private:
 
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
+  std::wstring         m_processName;
 
   CH264RandomAccess    m_h264RandomAccess;
 

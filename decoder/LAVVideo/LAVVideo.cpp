@@ -71,6 +71,10 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_filterPixFmt(LAVPixFmt_None)
   , m_filterWidth(0), m_filterHeight(0)
 {
+  WCHAR fileName[1024];
+  GetModuleFileName(NULL, fileName, 1024);
+  m_processName = PathFindFileName (fileName);
+
   avcodec_register_all();
   avfilter_register_all();
   if (av_lockmgr_addref() == 1)
@@ -451,7 +455,10 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     }
   }
 
-  if (m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed &&
+  BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
+  DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
+
+  if (!bHWDecBlackList && m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed &&
     (  (codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])
     || ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_settings.bHWFormats[HWCodec_VC1])
     || ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])))
