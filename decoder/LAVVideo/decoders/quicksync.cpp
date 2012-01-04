@@ -70,6 +70,7 @@ CDecQuickSync::CDecQuickSync(void)
   , m_pDecoder(NULL)
   , m_bAVC1(FALSE)
   , m_nAVCNalSize(0)
+  , m_bUseTimestampQueue(FALSE)
 {
   ZeroMemory(&qs, sizeof(qs));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -198,6 +199,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   m_bNeedSequenceCheck = FALSE;
   m_bInterlaced = TRUE;
+  m_bUseTimestampQueue = (codec == CODEC_ID_VC1 && m_pCallback->VC1IsDTS());
 
   if (extralen > 0) {
     if (fourCC == FourCC_AVC1 || fourCC == FourCC_H264) {
@@ -225,12 +227,24 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
     m_bNeedSequenceCheck = (fourCC == FourCC_H264);
   }
 
+  // Configure QuickSync decoder
   CQsConfig qsConfig;
   m_pDecoder->GetConfig(&qsConfig);
-  qsConfig.bTimeStampCorrection = false;
+
+  // Timestamp correction is only used for VC-1 codecs which send PTS
+  // because this is not handled properly by the API (it expects DTS)
+  qsConfig.bTimeStampCorrection = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
+
+  // We want the pure image, no mod-16 padding
   qsConfig.bMod16Width = false;
-  qsConfig.nOutputQueueLength = 0;
-  qsConfig.bEnableMultithreading = false;
+
+  // Output Queue
+  qsConfig.nOutputQueueLength = qsConfig.bTimeStampCorrection ? 8 : 0;
+
+  // Multi-threading
+  qsConfig.bEnableMultithreading = true;
+
+  // Save!
   m_pDecoder->SetConfig(&qsConfig);
 
   CMediaType mt = *pmt;
@@ -300,6 +314,13 @@ STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
     }
   }
 
+  if (m_bUseTimestampQueue) {
+    REFERENCE_TIME rtStart, rtStop;
+    if (pSample->GetTime(&rtStart, &rtStop) != S_OK)
+      rtStart = AV_NOPTS_VALUE;
+    m_timestampQueue.push(rtStart);
+  }
+
   hr = m_pDecoder->Decode(pSample);
 
   return hr;
@@ -308,6 +329,18 @@ STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
 HRESULT CDecQuickSync::QS_DeliverSurfaceCallback(void* obj, QsFrameData* data)
 {
   CDecQuickSync *filter = (CDecQuickSync *)obj;
+
+  if (filter->m_bUseTimestampQueue) {
+    REFERENCE_TIME rtStartOld = data->rtStart;
+    if (filter->m_timestampQueue.empty()) {
+      data->rtStart = AV_NOPTS_VALUE;
+    } else {
+      data->rtStart = filter->m_timestampQueue.front();
+      filter->m_timestampQueue.pop();
+    }
+    data->rtStop = AV_NOPTS_VALUE;
+  }
+
   filter->HandleFrame(data);
 
   return S_OK;
@@ -354,6 +387,9 @@ STDMETHODIMP CDecQuickSync::Flush()
   m_pDecoder->BeginFlush();
   m_pDecoder->OnSeek(0);
   m_pDecoder->EndFlush();
+
+  // Clear timestamp queue
+  std::queue<REFERENCE_TIME>().swap(m_timestampQueue);
 
   return S_OK;
 }

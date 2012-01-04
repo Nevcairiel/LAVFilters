@@ -68,6 +68,9 @@ private:
   BOOL m_bAVC1;
   int  m_nAVCNalSize;
 
+  BOOL                   m_bUseTimestampQueue;
+  std::queue<REFERENCE_TIME> m_timestampQueue;
+
   DXVA2_ExtendedFormat m_DXVAExtendedFormat;
 
   FOURCC m_Codec;
