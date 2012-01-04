@@ -230,6 +230,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   qsConfig.bTimeStampCorrection = false;
   qsConfig.bMod16Width = false;
   qsConfig.nOutputQueueLength = 0;
+  qsConfig.bEnableMultithreading = false;
   m_pDecoder->SetConfig(&qsConfig);
 
   CMediaType mt = *pmt;
