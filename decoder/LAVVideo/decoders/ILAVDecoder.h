@@ -279,3 +279,4 @@ interface ILAVDecoder
  */
 ILAVDecoder *CreateDecoderAVCodec();
 ILAVDecoder *CreateDecoderCUVID();
+ILAVDecoder *CreateDecoderQuickSync();

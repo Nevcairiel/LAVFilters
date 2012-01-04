@@ -165,8 +165,10 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
   WCHAR hwAccelNone[] = L"None";
   WCHAR hwAccelCUDA[] = L"CUVID";
+  WCHAR hwAccelQuickSync[] = L"QuickSync";
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelNone);
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelCUDA);
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelQuickSync);
 
   // Init the fieldorder Combo Box
   SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_RESETCONTENT, 0, 0);

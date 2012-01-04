@@ -453,11 +453,13 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 
   if (m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed &&
     (  (codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])
-    || (codec == CODEC_ID_VC1 && m_settings.bHWFormats[HWCodec_VC1])
+    || ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_settings.bHWFormats[HWCodec_VC1])
     || ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])))
   {
     if (m_settings.HWAccel == HWAccel_CUDA)
       m_pDecoder = CreateDecoderCUVID();
+    else if (m_settings.HWAccel == HWAccel_QuickSync)
+      m_pDecoder = CreateDecoderQuickSync();
     m_bHWDecoder = TRUE;
   }
 
@@ -1173,6 +1175,13 @@ STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
   case HWAccel_CUDA:
     {
       ILAVDecoder *pDecoder = CreateDecoderCUVID();
+      hr = pDecoder->InitInterfaces(this, this);
+      SAFE_DELETE(pDecoder);
+    }
+    break;
+  case HWAccel_QuickSync:
+    {
+      ILAVDecoder *pDecoder = CreateDecoderQuickSync();
       hr = pDecoder->InitInterfaces(this, this);
       SAFE_DELETE(pDecoder);
     }

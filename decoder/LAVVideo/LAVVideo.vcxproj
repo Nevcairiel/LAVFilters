@@ -147,6 +147,7 @@
     <ClCompile Include="decoders\avcodec.cpp" />
     <ClCompile Include="decoders\cuvid.cpp" />
     <ClCompile Include="decoders\pixfmt.cpp" />
+    <ClCompile Include="decoders\quicksync.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Filtering.cpp" />
     <ClCompile Include="H264RandomAccess.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="decoders\cuvid.h" />
     <ClInclude Include="decoders\DecBase.h" />
     <ClInclude Include="decoders\ILAVDecoder.h" />
+    <ClInclude Include="decoders\quicksync.h" />
     <ClInclude Include="H264RandomAccess.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
