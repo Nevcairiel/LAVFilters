@@ -69,6 +69,7 @@ CDecQuickSync::CDecQuickSync(void)
   , m_pDecoder(NULL)
   , m_bAVC1(FALSE)
   , m_nAVCNalSize(0)
+  , m_iFullRange(-1)
 {
   ZeroMemory(&qs, sizeof(qs));
 }
@@ -140,6 +141,25 @@ STDMETHODIMP CDecQuickSync::Init()
   return S_OK;
 }
 
+STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, int buflen, int nal_size)
+{
+  DbgLog((LOG_TRACE, 10, L"CDecQuickSync::CheckH264Sequence(): Checking H264 frame for SPS"));
+  CH264SequenceParser h264parser;
+  h264parser.ParseNALs(buffer, buflen, nal_size);
+  if (h264parser.sps.valid) {
+    m_bInterlaced = h264parser.sps.interlaced;
+    m_iFullRange = h264parser.sps.full_range;
+    DbgLog((LOG_TRACE, 10, L"-> SPS found"));
+    if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
+      DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with QuickSync, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
+      return E_FAIL;
+    }
+    DbgLog((LOG_TRACE, 10, L"-> Video seems compatible with QuickSync"));
+    return S_OK;
+  }
+  return S_FALSE;
+}
+
 STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
@@ -158,6 +178,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
+  m_nAVCNalSize = 0;
   if (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1) {
     if (pmt->formattype == FORMAT_MPEG2Video) {
       MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->pbFormat;
@@ -168,6 +189,39 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
       DbgLog((LOG_TRACE, 10, L"-> AVC1 without MPEG2VIDEOINFO not supported"));
       return E_FAIL;
     }
+  }
+
+  BYTE extradata[1024] = {0};
+  unsigned int extralen;
+  getExtraData(*pmt, extradata, &extralen);
+
+  m_bNeedSequenceCheck = FALSE;
+  m_bInterlaced = TRUE;
+
+  if (extralen > 0) {
+    if (fourCC == FourCC_AVC1 || fourCC == FourCC_H264) {
+      hr = CheckH264Sequence(extradata, extralen, m_bAVC1 ? 2 : 0);
+      if (FAILED(hr)) {
+        return VFW_E_UNSUPPORTED_VIDEO;
+      } else if (hr == S_FALSE) {
+        m_bNeedSequenceCheck = TRUE;
+      }
+    } else if (fourCC == FourCC_MPG2) {
+      DbgLog((LOG_TRACE, 10, L"-> Scanning extradata for MPEG2 sequence header"));
+      CMPEG2HeaderParser mpeg2parser(extradata, extralen);
+      if (mpeg2parser.hdr.valid) {
+        if (mpeg2parser.hdr.chroma >= 2) {
+          DbgLog((LOG_TRACE, 10, L"  -> Sequence header indicates incompatible chroma sampling (chroma: %d)", mpeg2parser.hdr.chroma));
+          return VFW_E_UNSUPPORTED_VIDEO;
+        }
+        m_bInterlaced = mpeg2parser.hdr.interlaced;
+      }
+    } else if (fourCC == FourCC_VC1) {
+      CVC1HeaderParser vc1Parser(extradata, extralen);
+      m_bInterlaced = vc1Parser.hdr.interlaced;
+    }
+  } else {
+    m_bNeedSequenceCheck = (fourCC == FourCC_H264);
   }
 
   CQsConfig qsConfig;
@@ -198,6 +252,21 @@ STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
 {
   HRESULT hr;
 
+  if (m_bNeedSequenceCheck && (m_Codec == FourCC_H264 || m_Codec == FourCC_AVC1)) {
+    BYTE *data = NULL;
+    long dataLen = 0;
+
+    pSample->GetPointer(&data);
+    dataLen = pSample->GetActualDataLength();
+
+    hr = CheckH264Sequence(data, dataLen, m_nAVCNalSize);
+    if (FAILED(hr)) {
+      return E_FAIL;
+    } else if (hr == S_OK) {
+      m_bNeedSequenceCheck = FALSE;
+    }
+  }
+
   hr = m_pDecoder->Decode(pSample);
 
   return hr;
@@ -216,6 +285,12 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   if (data->rtStart != AV_NOPTS_VALUE && data->rtStart < 0)
     return S_OK;
 
+  DXVA2_ExtendedFormat fmt;
+  fmt.value = 0;
+
+  if (m_iFullRange != -1)
+    fmt.NominalRange = m_iFullRange ? DXVA2_NominalRange_0_255 : DXVA2_NominalRange_16_235;
+
   // Setup the LAVFrame
   LAVFrame *pFrame = NULL;
   AllocateFrame(&pFrame);
@@ -228,7 +303,7 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   pFrame->repeat = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_REPEAT_FIELD);
   pFrame->aspect_ratio.num = data->dwPictAspectRatioX;
   pFrame->aspect_ratio.den = data->dwPictAspectRatioY;
-  //pFrame->ext_format = (DXVA2_ExtendedFormat)0;
+  pFrame->ext_format = fmt;
   pFrame->interlaced = !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
   pFrame->tff = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_FIELD1FIRST);
 

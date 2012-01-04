@@ -51,6 +51,8 @@ private:
   static HRESULT QS_DeliverSurfaceCallback(void* obj, QsFrameData* data);
   STDMETHODIMP HandleFrame(QsFrameData *data);
 
+  STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen, int nal_size);
+
 private:
   struct {
     HMODULE quickSyncLib;
@@ -61,7 +63,9 @@ private:
 
   IQuickSyncDecoder *m_pDecoder;
 
+  BOOL m_bNeedSequenceCheck;
   BOOL m_bInterlaced;
+  int  m_iFullRange;
   BOOL m_bAVC1;
   int  m_nAVCNalSize;
 
