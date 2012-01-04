@@ -46,7 +46,7 @@ public:
 
     // Retrieve timestamps
     REFERENCE_TIME rtStart, rtStop;
-    pSample->GetTime(&rtStart, &rtStop);
+    hr = pSample->GetTime(&rtStart, &rtStop);
 
     if (FAILED(hr)) {
       rtStart = rtStop = AV_NOPTS_VALUE;
