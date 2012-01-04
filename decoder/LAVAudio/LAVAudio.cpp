@@ -130,6 +130,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
+  //DbgSetModuleLevel (LOG_CUSTOM2, DWORD_MAX); // Jitter statistics
   //DbgSetModuleLevel (LOG_CUSTOM5, DWORD_MAX); // Extensive timing options
 
 #if ENABLE_DEBUG_LOGFILE
@@ -1737,7 +1738,7 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, sample duration: %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtStop-rtStart, rtJitter));
 
   if (m_faJitter.CurrentSample() == 0) {
-    DbgLog((LOG_TRACE, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
+    DbgLog((LOG_CUSTOM2, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
   }
 #endif
   m_rtStartCacheLT = AV_NOPTS_VALUE;
