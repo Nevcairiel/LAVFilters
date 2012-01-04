@@ -659,6 +659,8 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     break;
   }
 
+  filter->m_DXVAExtendedFormat = fmt;
+
   return TRUE;
 }
 
