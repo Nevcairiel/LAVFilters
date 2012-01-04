@@ -232,13 +232,44 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   qsConfig.nOutputQueueLength = 0;
   m_pDecoder->SetConfig(&qsConfig);
 
-  hr = m_pDecoder->TestMediaType(pmt, fourCC);
+  CMediaType mt = *pmt;
+
+  // Fixup media type - the QuickSync decoder is a bit picky about this.
+  // We usually do not trust the media type information and instead scan the bitstream.
+  // This ensures that we only ever send valid and supported data to the decoder,
+  // so with this we try to circumvent the checks in the QuickSync decoder
+  mt.SetType(&MEDIATYPE_Video);
+  MPEG2VIDEOINFO *mp2vi = (*mt.FormatType() == FORMAT_MPEG2Video) ? (MPEG2VIDEOINFO *)mt.Format() : NULL;
+  BITMAPINFOHEADER *bmi = NULL;
+  videoFormatTypeHandler(mt.Format(), mt.FormatType(), &bmi);
+  switch (fourCC) {
+  case FourCC_MPG2:
+    mt.SetSubtype(&MEDIASUBTYPE_MPEG2_VIDEO);
+    if (mp2vi) mp2vi->dwProfile = 4;
+    break;
+  case FourCC_AVC1:
+  case FourCC_H264:
+    if (mp2vi) mp2vi->dwProfile = 100;
+    if (mp2vi) mp2vi->dwLevel = 41;
+    break;
+  case FourCC_VC1:
+    if (mp2vi) mp2vi->dwProfile = 3;
+    bmi->biCompression = fourCC;
+    break;
+  case FourCC_WMV3:
+    mt.SetSubtype(&MEDIASUBTYPE_WMV3);
+    if (mp2vi) mp2vi->dwProfile = 0;
+    bmi->biCompression = fourCC;
+    break;
+  }
+
+  hr = m_pDecoder->TestMediaType(&mt, fourCC);
   if (hr != S_OK) {
     DbgLog((LOG_TRACE, 10, L"-> TestMediaType failed"));
     return E_FAIL;
   }
 
-  hr = m_pDecoder->InitDecoder(pmt, fourCC);
+  hr = m_pDecoder->InitDecoder(&mt, fourCC);
   if (hr != S_OK) {
     DbgLog((LOG_TRACE, 10, L"-> InitDecoder failed"));
     return E_FAIL;
