@@ -53,7 +53,6 @@ static struct {
   CodecID ffcodec;
   FOURCC fourCC;
 } quicksync_codecs[] = {
-  { CODEC_ID_MPEG1VIDEO, FourCC_MPG1 },
   { CODEC_ID_MPEG2VIDEO, FourCC_MPG2 },
   { CODEC_ID_VC1,        FourCC_VC1  },
   //{ CODEC_ID_WMV3,       FourCC_WMV3 },
