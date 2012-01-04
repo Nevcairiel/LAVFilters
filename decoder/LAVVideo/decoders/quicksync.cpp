@@ -42,12 +42,12 @@ ILAVDecoder *CreateDecoderQuickSync() {
 // Codec FourCC map
 ////////////////////////////////////////////////////////////////////////////////
 
-static FOURCC FourCC_MPG1 = mmioFOURCC('M','P','G','1');
-static FOURCC FourCC_MPG2 = mmioFOURCC('M','P','G','2');
-static FOURCC FourCC_VC1  = mmioFOURCC('W','V','C','1');
-static FOURCC FourCC_WMV3 = mmioFOURCC('W','M','V','3');
-static FOURCC FourCC_H264 = mmioFOURCC('H','2','6','4');
-static FOURCC FourCC_AVC1 = mmioFOURCC('A','V','C','1');
+static const FOURCC FourCC_MPG1 = mmioFOURCC('M','P','G','1');
+static const FOURCC FourCC_MPG2 = mmioFOURCC('M','P','G','2');
+static const FOURCC FourCC_VC1  = mmioFOURCC('W','V','C','1');
+static const FOURCC FourCC_WMV3 = mmioFOURCC('W','M','V','3');
+static const FOURCC FourCC_H264 = mmioFOURCC('H','2','6','4');
+static const FOURCC FourCC_AVC1 = mmioFOURCC('A','V','C','1');
 
 static struct {
   CodecID ffcodec;
