@@ -30,6 +30,10 @@
 
 #include <Shlwapi.h>
 
+// Timestamp padding to avoid an issue with negative timestamps
+// 10 hours should be enough padding to take care of all eventualities
+#define RTPADDING 360000000000i64
+
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
@@ -314,10 +318,22 @@ STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
     }
   }
 
+  REFERENCE_TIME rtStart, rtStop;
+  hr = pSample->GetTime(&rtStart, &rtStop);
+  if (FAILED(hr))
+    rtStart = rtStop = AV_NOPTS_VALUE;
+  else if (hr == VFW_S_NO_STOP_TIME)
+    rtStop = AV_NOPTS_VALUE;
+
+  if (rtStart != AV_NOPTS_VALUE) {
+    rtStart += RTPADDING;
+    if (rtStop != AV_NOPTS_VALUE) {
+      rtStop += RTPADDING;
+    }
+    pSample->SetTime(&rtStart, rtStop != AV_NOPTS_VALUE ? &rtStop : NULL);
+  }
+
   if (m_bUseTimestampQueue) {
-    REFERENCE_TIME rtStart, rtStop;
-    if (pSample->GetTime(&rtStart, &rtStop) != S_OK)
-      rtStart = AV_NOPTS_VALUE;
     m_timestampQueue.push(rtStart);
   }
 
@@ -341,6 +357,13 @@ HRESULT CDecQuickSync::QS_DeliverSurfaceCallback(void* obj, QsFrameData* data)
     data->rtStop = AV_NOPTS_VALUE;
   }
 
+  if (data->rtStart != AV_NOPTS_VALUE) {
+    data->rtStart -= RTPADDING;
+    if (data->rtStop != AV_NOPTS_VALUE)
+      data->rtStop -= RTPADDING;
+  } else {
+    data->rtStop = AV_NOPTS_VALUE;
+  }
   filter->HandleFrame(data);
 
   return S_OK;
@@ -348,9 +371,6 @@ HRESULT CDecQuickSync::QS_DeliverSurfaceCallback(void* obj, QsFrameData* data)
 
 STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
 {
-  if (data->rtStart != AV_NOPTS_VALUE && data->rtStart < 0)
-    return S_OK;
-
   // Setup the LAVFrame
   LAVFrame *pFrame = NULL;
   AllocateFrame(&pFrame);
