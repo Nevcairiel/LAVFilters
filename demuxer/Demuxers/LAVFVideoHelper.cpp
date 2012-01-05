@@ -40,7 +40,6 @@ static FormatMapping video_map[] = {
   { CODEC_ID_H264,       &MEDIASUBTYPE_AVC1,         MKTAG('A','V','C','1'), &FORMAT_MPEG2Video },
   { CODEC_ID_MPEG1VIDEO, &MEDIASUBTYPE_MPEG1Payload, NULL,                   &FORMAT_MPEGVideo  },
   { CODEC_ID_MPEG2VIDEO, &MEDIASUBTYPE_MPEG2_VIDEO,  NULL,                   &FORMAT_MPEG2Video },
-  { CODEC_ID_VC1,        &MEDIASUBTYPE_WVC1,         MKTAG('W','V','C','1'), &FORMAT_VideoInfo2 },
   { CODEC_ID_RV10,       &MEDIASUBTYPE_RV10,         MKTAG('R','V','1','0'), NULL },
   { CODEC_ID_RV20,       &MEDIASUBTYPE_RV20,         MKTAG('R','V','2','0'), NULL },
   { CODEC_ID_RV30,       &MEDIASUBTYPE_RV30,         MKTAG('R','V','3','0'), NULL },
@@ -89,6 +88,12 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecT
     } else {
       mediaType.formattype = FORMAT_VideoInfo2;
     }
+    break;
+  case CODEC_ID_VC1:
+    if (codecTag != MKTAG('W','M','V','A'))
+      codecTag = MKTAG('W','V','C','1');
+    mediaType.formattype = FORMAT_VideoInfo2;
+    mediaType.subtype = FOURCCMap(codecTag);
     break;
   }
 
