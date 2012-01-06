@@ -246,7 +246,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   qsConfig.nOutputQueueLength = qsConfig.bTimeStampCorrection ? 8 : 0;
 
   // Multi-threading
-  qsConfig.bEnableMultithreading = true;
+  qsConfig.bEnableMultithreading = false;
 
   // Save!
   m_pDecoder->SetConfig(&qsConfig);
