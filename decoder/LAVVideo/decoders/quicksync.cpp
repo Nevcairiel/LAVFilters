@@ -89,6 +89,7 @@ STDMETHODIMP CDecQuickSync::DestroyDecoder(bool bFull)
 {
   if (bFull) {
     if (m_pDecoder) {
+      m_pDecoder->Flush(false);
       qs.destroy(m_pDecoder);
       m_pDecoder = NULL;
     }
