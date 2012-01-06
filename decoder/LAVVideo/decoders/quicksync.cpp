@@ -243,7 +243,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   qsConfig.bMod16Width = false;
 
   // Output Queue
-  qsConfig.nOutputQueueLength = qsConfig.bTimeStampCorrection ? 8 : 0;
+  qsConfig.nOutputQueueLength = qsConfig.bTimeStampCorrection ? 8 : 2;
 
   // Multi-threading
   qsConfig.bEnableMultithreading = false;
