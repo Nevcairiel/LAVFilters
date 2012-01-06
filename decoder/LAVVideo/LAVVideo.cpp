@@ -639,7 +639,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     if (avgFrameDuration == AV_NOPTS_VALUE)
       avgFrameDuration = vih->AvgTimePerFrame;
 
-    bNeedReconnect = (vih->rcTarget.right != width || vih->rcTarget.bottom != height || vih->AvgTimePerFrame != avgFrameDuration);
+    bNeedReconnect = (vih->rcTarget.right != width || vih->rcTarget.bottom != height || abs(vih->AvgTimePerFrame - avgFrameDuration) > 10);
   } else if (mt.formattype  == FORMAT_VideoInfo2) {
     VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mt.Format();
     if (avgFrameDuration == AV_NOPTS_VALUE)
@@ -663,7 +663,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dwAspectY = den;
     BOOL bMTInterlaced = (vih2->dwInterlaceFlags != 0);
 
-    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || vih2->AvgTimePerFrame != avgFrameDuration || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value) || bMTInterlaced != bInterlaced);
+    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || abs(vih2->AvgTimePerFrame - avgFrameDuration) > 10 || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value) || bMTInterlaced != bInterlaced);
   }
 
   if (bNeedReconnect) {
