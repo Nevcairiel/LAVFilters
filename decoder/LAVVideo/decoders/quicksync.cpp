@@ -387,7 +387,7 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   pFrame->width  = data->rcClip.right - data->rcClip.left + 1;
   pFrame->height = data->rcClip.bottom - data->rcClip.top + 1;
   pFrame->rtStart = data->rtStart;
-  pFrame->rtStop = data->rtStop;
+  pFrame->rtStop = (data->rtStop-1 > data->rtStart) ? data->rtStop : AV_NOPTS_VALUE;
   pFrame->repeat = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_REPEAT_FIELD);
   pFrame->aspect_ratio.num = data->dwPictAspectRatioX;
   pFrame->aspect_ratio.den = data->dwPictAspectRatioY;
