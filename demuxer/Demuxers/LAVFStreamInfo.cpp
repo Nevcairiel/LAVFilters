@@ -165,10 +165,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH2(avstream, &mtype.cbFormat, m_containerFormat);
     if (mtype.subtype == MEDIASUBTYPE_WVC1) {
       // If we send the cyberlink subtype first, it'll work with it, and with ffdshow, dmo and mpc-hc internal
-      mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
-      mtypes.push_back(mtype);
-      mtype.subtype = MEDIASUBTYPE_WVC1_ARCSOFT;
-      mtypes.push_back(mtype);
+      VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
+      if (*((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) == 0) {
+        mtype.subtype = MEDIASUBTYPE_WVC1_CYBERLINK;
+        mtypes.push_back(mtype);
+        mtype.subtype = MEDIASUBTYPE_WVC1_ARCSOFT;
+        mtypes.push_back(mtype);
+      }
       mtype.subtype = MEDIASUBTYPE_WVC1;
     } else if (mtype.subtype == MEDIASUBTYPE_WMVA) {
       mtypes.push_back(mtype);
