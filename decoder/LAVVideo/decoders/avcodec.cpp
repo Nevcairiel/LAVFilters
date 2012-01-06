@@ -762,7 +762,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 STDMETHODIMP CDecAvcodec::Flush()
 {
   if (m_pAVCtx) {
-    CMediaType &mt = m_pCallback->GetInputMediaType();
     avcodec_flush_buffers(m_pAVCtx);
   }
 
