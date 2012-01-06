@@ -3064,9 +3064,11 @@ again:;
         }
 
         for (n=z=0;n<mf->nTracks;++n)
-          if (m_kftime[n]==MAXU64 || (mf->Queues[n].head && mf->Queues[n].head->Start>=m_kftime[n]) || !(mf->Tracks[n]->Type == TT_VIDEO || mf->Tracks[n]->Type == TT_AUDIO)) {
+          if (m_kftime[n]==MAXU64 || (mf->Queues[n].head && mf->Queues[n].head->Start>=m_kftime[n])) {
             ++z;
             mask |= 1ui64<<n;
+          } else if (!(mf->Tracks[n]->Type == TT_VIDEO || mf->Tracks[n]->Type == TT_AUDIO)) {
+            ++z;
           }
 
         if (z==mf->nTracks)
