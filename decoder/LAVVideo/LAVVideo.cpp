@@ -522,11 +522,12 @@ HRESULT CLAVVideo::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 
 HRESULT CLAVVideo::EndOfStream()
 {
-  DbgLog((LOG_TRACE, 1, L"EndOfStream"));
+  DbgLog((LOG_TRACE, 1, L"EndOfStream, flushing decoder"));
   CAutoLock cAutoLock(&m_csReceive);
 
   m_pDecoder->EndOfStream();
 
+  DbgLog((LOG_TRACE, 1, L"EndOfStream finished, decoder flushed"));
   return __super::EndOfStream();
 }
 
