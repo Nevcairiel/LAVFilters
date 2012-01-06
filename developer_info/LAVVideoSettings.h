@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2011 Hendrik Leppkes
+ *      Copyright (C) 2010-2012 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -62,6 +62,7 @@ typedef enum LAVVideoCodec {
   Codec_MSRLE,
   Codec_ProRes,
   Codec_UtVideo,
+  Codec_Dirac,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
@@ -78,7 +79,8 @@ typedef enum LAVVideoHWCodec {
 // Type of hardware accelerations
 typedef enum LAVHWAccel {
   HWAccel_None,
-  HWAccel_CUDA
+  HWAccel_CUDA,
+  HWAccel_QuickSync
 };
 
 // Deinterlace algorithms offered by the hardware decoders
