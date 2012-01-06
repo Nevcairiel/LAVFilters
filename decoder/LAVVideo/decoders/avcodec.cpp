@@ -765,6 +765,11 @@ STDMETHODIMP CDecAvcodec::Flush()
     avcodec_flush_buffers(m_pAVCtx);
   }
 
+  if (m_pParser) {
+    av_parser_close(m_pParser);
+    m_pParser = av_parser_init(m_nCodecId);
+  }
+
   m_CurrentThread = 0;
   m_rtStartCache = AV_NOPTS_VALUE;
   m_bWaitingForKeyFrame = TRUE;
