@@ -282,6 +282,10 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
     break;
   }
 
+  // Ignore unsupported resolutions
+  if(bmi->biWidth > 2048 || bmi->biHeight > 2048)
+    return E_FAIL;
+
   hr = m_pDecoder->TestMediaType(&mt, fourCC);
   if (hr != S_OK) {
     DbgLog((LOG_TRACE, 10, L"-> TestMediaType failed"));
