@@ -331,8 +331,12 @@ STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
 
   if (rtStart != AV_NOPTS_VALUE) {
     rtStart += RTPADDING;
+    if (rtStart < 0)
+      rtStart = 0;
     if (rtStop != AV_NOPTS_VALUE) {
       rtStop += RTPADDING;
+      if (rtStop < 0)
+        rtStop = AV_NOPTS_VALUE;
     }
     pSample->SetTime(&rtStart, rtStop != AV_NOPTS_VALUE ? &rtStop : NULL);
   }
@@ -363,13 +367,8 @@ HRESULT CDecQuickSync::QS_DeliverSurfaceCallback(void* obj, QsFrameData* data)
 
   if (data->rtStart != AV_NOPTS_VALUE) {
     data->rtStart -= RTPADDING;
-    if (data->rtStart < 0)
-      data->rtStart = 0;
-    if (data->rtStop != AV_NOPTS_VALUE) {
+    if (data->rtStop != AV_NOPTS_VALUE)
       data->rtStop -= RTPADDING;
-      if (data->rtStop < 0)
-        data->rtStop = AV_NOPTS_VALUE;
-    }
   } else {
     data->rtStop = AV_NOPTS_VALUE;
   }
