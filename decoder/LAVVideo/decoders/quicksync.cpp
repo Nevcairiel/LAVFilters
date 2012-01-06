@@ -359,8 +359,13 @@ HRESULT CDecQuickSync::QS_DeliverSurfaceCallback(void* obj, QsFrameData* data)
 
   if (data->rtStart != AV_NOPTS_VALUE) {
     data->rtStart -= RTPADDING;
-    if (data->rtStop != AV_NOPTS_VALUE)
+    if (data->rtStart < 0)
+      data->rtStart = 0;
+    if (data->rtStop != AV_NOPTS_VALUE) {
       data->rtStop -= RTPADDING;
+      if (data->rtStop < 0)
+        data->rtStop = AV_NOPTS_VALUE;
+    }
   } else {
     data->rtStop = AV_NOPTS_VALUE;
   }
