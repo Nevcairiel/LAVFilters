@@ -682,7 +682,7 @@ static int mkv_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp
   mkv_SetTrackMask(ctx->matroska, mkv_get_track_mask(ctx));
 
   /* perform seek */
-  mkv_Seek(ctx->matroska, timestamp, mkvflags);
+  DBG_TIMING("mkv_Seek", 0, mkv_Seek(ctx->matroska, timestamp, mkvflags))
 
   /* Update current timestamp */
   int64_t cur_dts = mkv_GetLowestQTimecode(ctx->matroska);
