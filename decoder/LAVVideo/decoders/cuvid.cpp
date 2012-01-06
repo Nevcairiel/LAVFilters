@@ -278,6 +278,11 @@ STDMETHODIMP CDecCuvid::Init()
     return E_FAIL;
   }
 
+  HWND hwnd = GetDummyHWND();
+  if (!hwnd) {
+    hwnd = GetShellWindow();
+  }
+
   D3DADAPTER_IDENTIFIER9 d3dId;
   D3DPRESENT_PARAMETERS d3dpp;
   D3DDISPLAYMODE d3ddm;
@@ -298,7 +303,7 @@ STDMETHODIMP CDecCuvid::Init()
 
     IDirect3DDevice9 *pDev = NULL;
     CUcontext cudaCtx = 0;
-    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetDummyHWND(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &pDev);
+    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &pDev);
     if (SUCCEEDED(hr)) {
       m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dId);
       cuStatus = cuda.cuD3D9CtxCreate(&cudaCtx, &device, CU_CTX_SCHED_BLOCKING_SYNC, pDev);
