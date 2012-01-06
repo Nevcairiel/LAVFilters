@@ -470,6 +470,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_bHWDecoder = TRUE;
   }
 
+softwaredec:
   // Fallback for software
   if (!m_pDecoder) {
     m_bHWDecoder = FALSE;
@@ -497,7 +498,8 @@ done:
   if (FAILED(hr) && m_bHWDecoder) {
     DbgLog((LOG_TRACE, 10, L"-> Hardware decoder failed to initialize, re-trying with software..."));
     m_bHWDecoderFailed = TRUE;
-    return CreateDecoder(pmt);
+    SAFE_DELETE(m_pDecoder);
+    goto softwaredec;
   }
   return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
