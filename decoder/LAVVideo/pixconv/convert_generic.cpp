@@ -22,7 +22,6 @@
 
 extern "C" {
 #include "libavutil/intreadwrite.h"
-#include "libavcodec/bytestream.h"
 };
 
 #define ALIGN(x,a) (((x)+(a)-1UL)&~((a)-1UL))
@@ -597,51 +596,50 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   // 32-bit per pixel
   dstStride = (FFALIGN(dstStride, 48) / 48) * 128;
 
-
-
   BYTE *pdst = pOut;
-  BYTE *p = pdst;
+  int32_t *p = (int32_t *)pdst;
   int w;
 
-#define CLIP(v) av_clip(v, 4, 1019)
-#define WRITE_PIXELS(a, b, c)           \
-    do {                                \
-        val =   CLIP(*a++);             \
-        val |= (CLIP(*b++) << 10) |     \
-               (CLIP(*c++) << 20);      \
-        bytestream_put_le32(&p, val);   \
-    } while (0)
+//#define CLIP(v) av_clip(v, 4, 1019)
+#define CLIP(v) (v & 0x03FF)
+#define WRITE_PIXELS(a, b, c)       \
+  do {                              \
+    val =   CLIP(*a++);             \
+    val |= (CLIP(*b++) << 10) |     \
+           (CLIP(*c++) << 20);      \
+    *p++ = val;                     \
+  } while (0)
 
   for (int h = 0; h < height; h++) {
-      uint32_t val;
-      for (w = 0; w < width - 5; w += 6) {
-          WRITE_PIXELS(u, y, v);
-          WRITE_PIXELS(y, u, y);
-          WRITE_PIXELS(v, y, u);
-          WRITE_PIXELS(y, v, y);
-      }
-      if (w < width - 1) {
-          WRITE_PIXELS(u, y, v);
-
-          val = CLIP(*y++);
-          if (w == width - 2)
-              bytestream_put_le32(&p, val);
-          if (w < width - 3) {
-              val |= (CLIP(*u++) << 10) | (CLIP(*y++) << 20);
-              bytestream_put_le32(&p, val);
-
-              val = CLIP(*v++) | (CLIP(*y++) << 10);
-              bytestream_put_le32(&p, val);
-          }
-      }
-
-      pdst += dstStride;
-      memset(p, 0, pdst - p);
-      p = pdst;
-      y += sourceStride - width;
-      u += sourceStride / 2 - width / 2;
-      v += sourceStride / 2 - width / 2;
+    uint32_t val;
+    for (w = 0; w < width - 5; w += 6) {
+      WRITE_PIXELS(u, y, v);
+      WRITE_PIXELS(y, u, y);
+      WRITE_PIXELS(v, y, u);
+      WRITE_PIXELS(y, v, y);
     }
+    if (w < width - 1) {
+      WRITE_PIXELS(u, y, v);
+
+      val = CLIP(*y++);
+      if (w == width - 2)
+        *p++ = val;
+      if (w < width - 3) {
+        val |= (CLIP(*u++) << 10) | (CLIP(*y++) << 20);
+        *p++ = val;
+
+        val = CLIP(*v++) | (CLIP(*y++) << 10);
+        *p++ = val;
+      }
+    }
+
+    pdst += dstStride;
+    memset(p, 0, pdst - (BYTE *)p);
+    p = (int32_t *)pdst;
+    y += sourceStride - width;
+    u += (sourceStride - width) >> 1;
+    v += (sourceStride - width) >> 1;
+  }
   av_freep(&pTmpBuffer);
 
   return S_OK;
