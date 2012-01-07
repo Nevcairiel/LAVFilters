@@ -1,5 +1,24 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.44 - 2012/01/07
+LAV Splitter
+- Fixed a seeking regression in the mkv demuxer introduced in 0.43
+- Fixed a bug that caused stream descriptions to vanish after the file finished playing
+- Improved playback of WMVA video with commercial decoders
+- Added support for the new OpenType MIME type produced by mkvtoolnix > 5.2.0
+
+LAV Audio
+- Fixed LATM AAC playback with some source filters
+
+LAV Video
+- Added Intel QuickSync hardware decoder
+- Added support for YADIF with hardware decoding
+- Added support for Dirac decoding
+- Added support for DNxHD decoding
+- Added support for v210/v410 output
+- Improved dynamic reconnection with post-processing filters
+- Fixed a seeking related corruption issue with MPEG4-ASP
+
 0.43 - 2011/12/21
 LAV Splitter
 - Improved MKV seeking and demuxing performance
