@@ -291,7 +291,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   convert = NULL;
 
   int cpu = av_get_cpu_flags();
-  if (m_OutputPixFmt == LAVOutPixFmt_v210) {
+  if (m_OutputPixFmt == LAVOutPixFmt_v210 || m_OutputPixFmt == LAVOutPixFmt_v410) {
     // We assume that every filter that understands v210 will also properly handle it
     m_RequiredAlignment = 0;
   } else if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_YUV420) {
