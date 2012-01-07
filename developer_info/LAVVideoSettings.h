@@ -63,6 +63,7 @@ typedef enum LAVVideoCodec {
   Codec_ProRes,
   Codec_UtVideo,
   Codec_Dirac,
+  Codec_DNxHD,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
@@ -128,6 +129,9 @@ typedef enum LAVOutPixFmts {
   LAVOutPixFmt_Y416,            // 4:4:4, 16bit, packed
   LAVOutPixFmt_RGB32,           // 32-bit RGB (BGRA)
   LAVOutPixFmt_RGB24,           // 24-bit RGB (BGR)
+
+  LAVOutPixFmt_v210,            // 4:2:2, 10bit, packed
+  LAVOutPixFmt_v410,            // 4:4:4, 10bit, packed
 
   LAVOutPixFmt_NB               // Number of formats
 } LAVOutPixFmts;
