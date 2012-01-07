@@ -189,6 +189,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_AMVF, CODEC_ID_AMV     },
   { &MEDIASUBTYPE_DiracVideo, CODEC_ID_DIRAC },
   { &MEDIASUBTYPE_DRAC, CODEC_ID_DIRAC },
+  { &MEDIASUBTYPE_AVdn, CODEC_ID_DNXHD },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO  },
@@ -356,6 +357,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_AMVF },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_DiracVideo },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_DRAC },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_AVdn },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -429,6 +431,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_PRORES }, L"prores", L"ProRes" },                       // Codec_ProRes
   { 1, { CODEC_ID_UTVIDEO }},                                             // Codec_UtVideo
   { 1, { CODEC_ID_DIRAC }},                                               // Codec_Dirac
+  { 1, { CODEC_ID_DNXHD }},                                               // Codec_DNxHD
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
