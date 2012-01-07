@@ -989,10 +989,11 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   BITMAPINFOHEADER *pBIH = NULL;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
-  long required = (pBIH->biWidth * abs(pBIH->biHeight) * pBIH->biBitCount) >> 3;
+  long required = pBIH->biSizeImage;
 
-  if (pSampleOut->GetSize() < required) {
-    DbgLog((LOG_ERROR, 10, L"::Decode(): Buffer is too small! Actual: %d, Required: %d", pSampleOut->GetSize(), required));
+  long lSampleSize = pSampleOut->GetSize();
+  if (lSampleSize < required) {
+    DbgLog((LOG_ERROR, 10, L"::Decode(): Buffer is too small! Actual: %d, Required: %d", lSampleSize, required));
     SafeRelease(&pSampleOut);
     ReleaseFrame(&pFrame);
     return E_FAIL;
