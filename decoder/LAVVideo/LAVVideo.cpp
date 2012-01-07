@@ -154,7 +154,7 @@ HRESULT CLAVVideo::LoadDefaults()
 }
 
 static const WCHAR* pixFmtSettingsMap[LAVOutPixFmt_NB] = {
-  L"yv12", L"nv12", L"yuy2", L"uyvy", L"ayuv", L"p010", L"p210", L"y410", L"p016", L"p216", L"y416", L"rgb32", L"rgb24"
+  L"yv12", L"nv12", L"yuy2", L"uyvy", L"ayuv", L"p010", L"p210", L"y410", L"p016", L"p216", L"y416", L"rgb32", L"rgb24", L"v210", L"v410"
 };
 
 HRESULT CLAVVideo::LoadSettings()
@@ -722,6 +722,11 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     pBIH->biWidth = width;
     pBIH->biHeight = pBIH->biHeight < 0 ? -height : height;
     pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
+
+    if (mt.subtype == FOURCCMap('012v')) {
+      pBIH->biWidth = FFALIGN(width, 48);
+      pBIH->biSizeImage = (pBIH->biWidth / 48) * 128 * height;
+    }
 
     HRESULT hrQA = m_pOutput->GetConnected()->QueryAccept(&mt);
     if(SUCCEEDED(hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt))) {

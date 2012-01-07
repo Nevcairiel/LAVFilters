@@ -129,6 +129,9 @@ typedef enum LAVOutPixFmts {
   LAVOutPixFmt_RGB32,           // 32-bit RGB (BGRA)
   LAVOutPixFmt_RGB24,           // 24-bit RGB (BGR)
 
+  LAVOutPixFmt_v210,            // 4:2:2, 10bit, packed
+  LAVOutPixFmt_v410,            // 4:4:4, 10bit, packed
+
   LAVOutPixFmt_NB               // Number of formats
 } LAVOutPixFmts;
 

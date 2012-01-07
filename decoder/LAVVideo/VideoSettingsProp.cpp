@@ -90,6 +90,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bPixFmts[LAVOutPixFmt_RGB32] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_RGB32, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_RGB24] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_RGB24, BM_GETCHECK,0, 0);
 
+  bPixFmts[LAVOutPixFmt_v210] = bPixFmts[LAVOutPixFmt_P210];
+  bPixFmts[LAVOutPixFmt_v410] = bPixFmts[LAVOutPixFmt_Y410];
+
   for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
     m_pVideoSettings->SetPixelFormat((LAVOutPixFmts)i, bPixFmts[i]);
   }
