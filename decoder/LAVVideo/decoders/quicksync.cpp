@@ -135,8 +135,13 @@ STDMETHODIMP CDecQuickSync::Init()
   }
 
   m_pDecoder = qs.create();
-  if (m_pDecoder == NULL || !m_pDecoder->getOK()) {
+  if (m_pDecoder == NULL) {
     DbgLog((LOG_ERROR, 10, L"-> Creation of decoder failed"));
+    return E_FAIL;
+  }
+
+  if (!m_pDecoder->getOK()) {
+    DbgLog((LOG_ERROR, 10, L"-> Decoder reports abnormal status"));
     return E_FAIL;
   }
 
