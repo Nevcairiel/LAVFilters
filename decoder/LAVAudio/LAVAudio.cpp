@@ -1153,10 +1153,11 @@ HRESULT CLAVAudio::EndOfStream()
 {
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::EndOfStream()"));
   CAutoLock cAutoLock(&m_csReceive);
+
   // Flush the last data out of the parser
   ProcessBuffer();
-  if (m_pParser)
-    ProcessBuffer(TRUE);
+  ProcessBuffer(TRUE);
+
   FlushOutput(TRUE);
   return __super::EndOfStream();
 }
@@ -1366,8 +1367,10 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
       }
     }
   } else {
-    p = NULL;
-    buffer_size = -1;
+    if (!m_bFindDTSInPCM) {
+      p = NULL;
+      buffer_size = -1;
+    }
   }
 
   // If a bitstreaming context exists, we should bitstream
