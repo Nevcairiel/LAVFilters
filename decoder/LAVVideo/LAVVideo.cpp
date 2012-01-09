@@ -626,6 +626,13 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   RECT rcTargetOld = {0};
   LONG biWidthOld = 0;
 
+  // Remove custom matrix settings
+  if (dxvaExtFlags.VideoTransferMatrix == 6) {
+    dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
+  } else if (dxvaExtFlags.VideoTransferMatrix > DXVA2_VideoTransferMatrix_SMPTE240M) {
+    dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
+  }
+
   if ((dxvaExtFlags.value & ~0xff) != 0)
     dxvaExtFlags.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
   else

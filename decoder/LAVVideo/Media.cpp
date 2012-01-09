@@ -508,6 +508,9 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   case AVCOL_SPC_BT709:
     fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT709;
     break;
+  case AVCOL_SPC_FCC:
+    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)6;
+    break;
   case AVCOL_SPC_BT470BG:
   case AVCOL_SPC_SMPTE170M:
     fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
