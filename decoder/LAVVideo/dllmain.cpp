@@ -31,6 +31,7 @@
 #include <InitGuid.h>
 
 #include <qnetwork.h>
+#include <dxva2api.h>
 #include "LAVVideo.h"
 #include "VideoSettingsProp.h"
 #include "moreuuids.h"

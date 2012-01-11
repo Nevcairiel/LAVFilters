@@ -32,6 +32,11 @@ OPTIONS="
 --enable-protocol=file \
 --disable-muxers \
 --enable-muxer=spdif \
+--disable-hwaccels \
+--enable-hwaccel=h264_dxva2 \
+--enable-hwaccel=vc1_dxva2 \
+--enable-hwaccel=wmv3_dxva2 \
+--enable-hwaccel=mpeg2_dxva2 \
 --disable-swresample \
 --disable-postproc \
 --disable-static \
@@ -45,13 +50,12 @@ OPTIONS="
 --disable-ffprobe \
 --disable-devices \
 --disable-avdevice \
---disable-hwaccels \
 --disable-bsfs \
 --disable-network \
 --arch=x86 --cpu=i686 --target-os=mingw32 \
 --build-suffix=-lav"
 
-./configure --extra-cflags="-mmmx -msse" ${OPTIONS} &&
+./configure --extra-cflags="-I../common/includes/dxva2 -mmmx -msse" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-lav-*.dll ../bin_Win32 &&

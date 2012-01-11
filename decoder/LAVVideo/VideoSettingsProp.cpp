@@ -168,9 +168,11 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   WCHAR hwAccelNone[] = L"None";
   WCHAR hwAccelCUDA[] = L"NVIDIA CUVID";
   WCHAR hwAccelQuickSync[] = L"Intel\xae QuickSync";
+  WCHAR hwAccelDXVA2[] = L"DXVA2 (copy-back)";
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelNone);
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelCUDA);
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelQuickSync);
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelDXVA2);
 
   // Init the fieldorder Combo Box
   SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_RESETCONTENT, 0, 0);

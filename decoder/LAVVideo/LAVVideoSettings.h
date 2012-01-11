@@ -81,7 +81,8 @@ typedef enum LAVVideoHWCodec {
 typedef enum LAVHWAccel {
   HWAccel_None,
   HWAccel_CUDA,
-  HWAccel_QuickSync
+  HWAccel_QuickSync,
+  HWAccel_DXVA2
 };
 
 // Deinterlace algorithms offered by the hardware decoders

@@ -47,16 +47,23 @@ public:
   // CDecBase
   STDMETHODIMP Init();
 
-private:
+protected:
+  virtual HRESULT AdditionaDecoderInit() { return S_FALSE; }
+  virtual HRESULT PostDecode() { return S_FALSE; }
+  virtual HRESULT HandleDXVA2Frame(LAVFrame *pFrame) { return S_FALSE; }
   STDMETHODIMP DestroyDecoder();
+
+private:
   STDMETHODIMP ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame);
+
+protected:
+  AVCodecContext       *m_pAVCtx;
+  AVFrame              *m_pFrame;
 
 private:
   AVCodec              *m_pAVCodec;
-  AVCodecContext       *m_pAVCtx;
   AVCodecParserContext *m_pParser;
 
-  AVFrame              *m_pFrame;
   BYTE                 *m_pFFBuffer;
   int                  m_nFFBufferSize;
 

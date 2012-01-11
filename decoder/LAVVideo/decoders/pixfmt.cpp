@@ -99,6 +99,7 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
 
   stride *= desc.codedbytes;
 
+  memset(pFrame->data, 0, sizeof(pFrame->data));
   for (int plane = 0; plane < desc.planes; plane++) {
     int planeStride = stride / desc.planeWidth[plane];
     size_t size = planeStride * (pFrame->height / desc.planeHeight[plane]);

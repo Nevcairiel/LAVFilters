@@ -102,6 +102,9 @@
     <ClCompile Include="decoders\quicksync.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\dxva2dec.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -159,6 +162,9 @@
       <Filter>Header Files\parsers</Filter>
     </ClInclude>
     <ClInclude Include="decoders\quicksync.h">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\dxva2dec.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
   </ItemGroup>

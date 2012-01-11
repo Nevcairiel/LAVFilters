@@ -200,6 +200,8 @@ static struct PixelFormatMapping {
   { PIX_FMT_YUV444P9LE,  LAVPixFmt_YUV444bX, FALSE, 9 },
   { PIX_FMT_YUV444P10BE, LAVPixFmt_YUV444bX, TRUE,  10 },
   { PIX_FMT_YUV444P10LE, LAVPixFmt_YUV444bX, FALSE, 10 },
+
+  { PIX_FMT_DXVA2_VLD,   LAVPixFmt_DXVA2, FALSE },
 };
 
 static CodecID ff_interlace_capable[] = {
@@ -420,6 +422,10 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bWaitingForKeyFrame = TRUE;
 
   SAFE_CO_FREE(pszExtension);
+
+  if (FAILED(AdditionaDecoderInit())) {
+    return E_FAIL;
+  }
 
   // Open the decoder
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
@@ -644,6 +650,10 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
     }
 
+    if (FAILED(PostDecode())) {
+      return E_FAIL;
+    }
+
     // Decoding of this frame failed ... oh well!
     if (used_bytes < 0) {
       return S_OK;
@@ -752,7 +762,11 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       }
     }
 
-    Deliver(pOutFrame);
+    if (pOutFrame->format  == LAVPixFmt_DXVA2) {
+      HandleDXVA2Frame(pOutFrame);
+    } else {
+      Deliver(pOutFrame);
+    }
 
     if (bFlush) {
       m_CurrentThread = (m_CurrentThread + 1) % m_pAVCtx->thread_count;
