@@ -124,6 +124,7 @@
     <ClInclude Include="DShowUtil.h" />
     <ClInclude Include="FloatingAverage.h" />
     <ClInclude Include="FontInstaller.h" />
+    <ClInclude Include="gpu_memcpy_sse4.h" />
     <ClInclude Include="growarray.h" />
     <ClInclude Include="H264Nalu.h" />
     <ClInclude Include="lavf_log.h" />

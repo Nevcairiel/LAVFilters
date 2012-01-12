@@ -29,6 +29,8 @@
 #include <dxva2api.h>
 #include "libavcodec/dxva2.h"
 
+#include "gpu_memcpy_sse4.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
@@ -130,6 +132,13 @@ static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV,
 {
   memcpy(pY, pSourceData, dstLines * pitch);
   memcpy(pUV, pSourceData + srcLines * pitch, (dstLines * pitch) >> 1);
+}
+
+static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int srcLines, int dstLines, int pitch)
+{
+  int size = dstLines * pitch;
+  gpu_memcpy(pY, pSourceData, size);
+  gpu_memcpy(pUV, pSourceData + (srcLines * pitch), size >> 1);
 }
 
 CDecDXVA2::CDecDXVA2(void)
@@ -416,9 +425,9 @@ STDMETHODIMP CDecDXVA2::Init()
 
   if (CopyFrameNV12 == NULL) {
     int cpu_flags = av_get_cpu_flags();
-    if (FALSE && cpu_flags & AV_CPU_FLAG_SSE4) {
+    if (cpu_flags & AV_CPU_FLAG_SSE4) {
       DbgLog((LOG_TRACE, 10, L"-> Using SSE4 frame copy"));
-      //CopyFrameNV12 = CopyFrameNV12_SSE4;
+      CopyFrameNV12 = CopyFrameNV12_SSE4;
     } else if (FALSE && cpu_flags & AV_CPU_FLAG_SSE2) {
       DbgLog((LOG_TRACE, 10, L"-> Using SSE2 frame copy"));
       //CopyFrameNV12 = CopyFrameNV12_SSE2;
