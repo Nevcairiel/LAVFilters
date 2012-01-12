@@ -153,10 +153,12 @@ CDecDXVA2::CDecDXVA2(void)
   , m_bInterlaced(TRUE)
   , m_nCodecId(CODEC_ID_NONE)
   , m_CurrentSurfaceAge(1)
+  , m_FrameQueuePosition(0)
 {
   ZeroMemory(&dx, sizeof(dx));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
   ZeroMemory(&m_pSurfaces, sizeof(m_pSurfaces));
+  ZeroMemory(&m_FrameQueue, sizeof(m_FrameQueue));
 }
 
 CDecDXVA2::~CDecDXVA2(void)
@@ -643,6 +645,14 @@ STDMETHODIMP CDecDXVA2::Flush()
     //s->age = 0;
   }
 
+  // Flush display queue
+  for (int i=0; i < DXVA2_QUEUE_SURFACES; ++i) {
+    if (m_FrameQueue[m_FrameQueuePosition]) {
+      ReleaseFrame(&m_FrameQueue[m_FrameQueuePosition]);
+    }
+    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
+  }
+
   return S_OK;
 }
 
@@ -650,13 +660,43 @@ STDMETHODIMP CDecDXVA2::EndOfStream()
 {
   CDecAvcodec::EndOfStream();
 
+  // Flush display queue
+  for (int i=0; i < DXVA2_QUEUE_SURFACES; ++i) {
+    if (m_FrameQueue[m_FrameQueuePosition]) {
+      DeliverDXVA2Frame(m_FrameQueue[m_FrameQueuePosition]);
+      m_FrameQueue[m_FrameQueuePosition] = NULL;
+    }
+    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
+  }
+
   return S_OK;
 }
 
 HRESULT CDecDXVA2::HandleDXVA2Frame(LAVFrame *pFrame)
 {
-  CopyFrame(pFrame);
-  Deliver(pFrame);
+  LAVFrame *pQueuedFrame = m_FrameQueue[m_FrameQueuePosition];
+  m_FrameQueue[m_FrameQueuePosition] = pFrame;
+
+  d3d_surface_t *s = FindSurface((LPDIRECT3DSURFACE9)pFrame->data[3]);
+  s->ref++;
+
+  m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
+
+  if (pQueuedFrame) {
+    s = FindSurface((LPDIRECT3DSURFACE9)pQueuedFrame->data[3]);
+    s->ref--;
+    DeliverDXVA2Frame(pQueuedFrame);
+  }
+
+  return S_OK;
+}
+
+HRESULT CDecDXVA2::DeliverDXVA2Frame(LAVFrame *pFrame)
+{
+  if (CopyFrame(pFrame))
+    Deliver(pFrame);
+  else
+    ReleaseFrame(&pFrame);
 
   return S_OK;
 }
@@ -671,8 +711,9 @@ STDMETHODIMP CDecDXVA2::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
   return S_OK;
 }
 
-__forceinline void CDecDXVA2::CopyFrame(LAVFrame *pFrame)
+__forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
 {
+  HRESULT hr;
   LPDIRECT3DSURFACE9 pSurface = (LPDIRECT3DSURFACE9)pFrame->data[3];
   pFrame->format = LAVPixFmt_NV12;
 
@@ -680,10 +721,16 @@ __forceinline void CDecDXVA2::CopyFrame(LAVFrame *pFrame)
   pSurface->GetDesc(&surfaceDesc);
 
   D3DLOCKED_RECT LockedRect;
-  pSurface->LockRect(&LockedRect, NULL, D3DLOCK_READONLY);
+  hr = pSurface->LockRect(&LockedRect, NULL, D3DLOCK_READONLY);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"pSurface->LockRect failed (hr: %X)", hr));
+    return false;
+  }
 
   AllocLAVFrameBuffers(pFrame, LockedRect.Pitch);
   CopyFrameNV12((BYTE *)LockedRect.pBits, pFrame->data[0], pFrame->data[1], surfaceDesc.Height, pFrame->height, LockedRect.Pitch);
 
   pSurface->UnlockRect();
+
+  return true;
 }

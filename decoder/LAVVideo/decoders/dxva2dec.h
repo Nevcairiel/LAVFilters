@@ -22,7 +22,7 @@
 #include "avcodec.h"
 
 #define DXVA2_MAX_SURFACES 64
-#define DXVA2_QUEUE_SURFACES 4
+#define DXVA2_QUEUE_SURFACES 2
 
 typedef HRESULT WINAPI pCreateDeviceManager9(UINT *pResetToken, IDirect3DDeviceManager9 **);
 
@@ -51,8 +51,9 @@ protected:
   HRESULT AdditionaDecoderInit();
   HRESULT PostDecode();
   HRESULT HandleDXVA2Frame(LAVFrame *pFrame);
+  HRESULT DeliverDXVA2Frame(LAVFrame *pFrame);
 
-  void CopyFrame(LAVFrame *pFrame);
+  bool CopyFrame(LAVFrame *pFrame);
 
 private:
   STDMETHODIMP DestroyDecoder(bool bFull);
@@ -91,4 +92,7 @@ private:
   CodecID m_nCodecId;
 
   DXVA2_ExtendedFormat m_DXVAExtendedFormat;
+
+  LAVFrame* m_FrameQueue[DXVA2_QUEUE_SURFACES];
+  int       m_FrameQueuePosition;
 };
