@@ -403,7 +403,7 @@ STDMETHODIMP CDecDXVA2::Init()
   d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
   d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
 
-  hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetShellWindow(), D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED, &d3dpp, &m_pD3DDev);
+  hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetShellWindow(), D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &m_pD3DDev);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Creation of device failed with hr: %X", hr));
     return E_FAIL;
