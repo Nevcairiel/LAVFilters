@@ -22,7 +22,7 @@
 #include "avcodec.h"
 
 #define DXVA2_MAX_SURFACES 64
-#define DXVA2_QUEUE_SURFACES 2
+#define DXVA2_QUEUE_SURFACES 4
 
 typedef HRESULT WINAPI pCreateDeviceManager9(UINT *pResetToken, IDirect3DDeviceManager9 **);
 
