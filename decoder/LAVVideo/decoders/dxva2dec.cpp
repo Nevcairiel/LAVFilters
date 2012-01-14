@@ -657,7 +657,7 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
   dxva_context *ctx = (dxva_context *)av_mallocz(sizeof(dxva_context));
 
   if (m_dwVendorId == 0x8086)
-    ctx->workaround == FF_DXVA2_WORKAROUND_INTEL_GMA;
+    ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_GMA;
 
   m_pAVCtx->thread_count    = 1;
   m_pAVCtx->hwaccel_context = ctx;
