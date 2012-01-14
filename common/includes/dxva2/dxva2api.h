@@ -40,7 +40,6 @@
 //#define DXVA2API_USE_BITFIELDS
 
 /****************STRUCTURES******************/
-#pragma pack(push, 1)
 
 typedef struct _DXVA2_ExtendedFormat {
 #ifdef DXVA2API_USE_BITFIELDS
@@ -142,6 +141,9 @@ enum {
     DXVA2_MotionVectorBuffer    = 7,
     DXVA2_FilmGrainBuffer    = 8
 };
+
+/* Structures named DXVA_* are packed to 1 byte, while DXVA2_* structures use default packing */
+#pragma pack(push, 1)
 
 /* DXVA MPEG-I/II and VC-1 */
 typedef struct _DXVA_PictureParameters {
