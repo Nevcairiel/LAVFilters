@@ -130,13 +130,14 @@ static void (*CopyFrameNV12)(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int s
 
 static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int srcLines, int dstLines, int pitch)
 {
-  memcpy(pY, pSourceData, dstLines * pitch);
-  memcpy(pUV, pSourceData + srcLines * pitch, (dstLines * pitch) >> 1);
+  const int size = dstLines * pitch;
+  memcpy(pY, pSourceData, size);
+  memcpy(pUV, pSourceData + (srcLines * pitch), size >> 1);
 }
 
 static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int srcLines, int dstLines, int pitch)
 {
-  int size = dstLines * pitch;
+  const int size = dstLines * pitch;
   gpu_memcpy(pY, pSourceData, size);
   gpu_memcpy(pUV, pSourceData + (srcLines * pitch), size >> 1);
 }
