@@ -158,6 +158,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_theora, CODEC_ID_THEORA },
   { &MEDIASUBTYPE_TSCC, CODEC_ID_TSCC },
   { &MEDIASUBTYPE_IV50, CODEC_ID_INDEO5 },
+  { &MEDIASUBTYPE_IV41, CODEC_ID_INDEO4 },
   { &MEDIASUBTYPE_IV31, CODEC_ID_INDEO3 },
   { &MEDIASUBTYPE_IV32, CODEC_ID_INDEO3 },
   { &MEDIASUBTYPE_FPS1, CODEC_ID_FRAPS },
@@ -326,6 +327,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_theora },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_TSCC },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_IV50 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_IV41 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_IV31 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_IV32 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_FPS1 },
@@ -410,7 +412,7 @@ static codec_config_t m_codec_config[] = {
   { 2, { CODEC_ID_SVQ1, CODEC_ID_SVQ3 }, L"svq", L"SVQ 1 / SVQ 3"},       // Codec_SVQ
   { 1, { CODEC_ID_H261 }},                                                // Codec_H261
   { 1, { CODEC_ID_H263 }},                                                // Codec_H263
-  { 2, { CODEC_ID_INDEO3, CODEC_ID_INDEO5 }, L"indeo", L"Intel Indeo 3/5"}, // Codec_Indeo
+  { 3, { CODEC_ID_INDEO3, CODEC_ID_INDEO4, CODEC_ID_INDEO5 }, L"indeo", L"Intel Indeo 3/4/5"}, // Codec_Indeo
   { 1, { CODEC_ID_TSCC }},                                                // Codec_TSCC
   { 1, { CODEC_ID_FRAPS }},                                               // Codec_Fraps
   { 1, { CODEC_ID_HUFFYUV }},                                             // Codec_HuffYUV
