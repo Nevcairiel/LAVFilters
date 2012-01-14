@@ -175,6 +175,10 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull)
   }
   m_NumSurfaces = 0;
 
+  for (int i = 0; i < DXVA2_QUEUE_SURFACES; i++) {
+    SAFE_CO_FREE(m_FrameQueue[i]);
+  }
+
   if (m_pAVCtx) {
     av_freep(&m_pAVCtx->hwaccel_context);
   }
