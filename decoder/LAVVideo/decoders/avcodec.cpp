@@ -56,6 +56,9 @@ static struct {
   { CODEC_ID_HUFFYUV,    FF_THREAD_FRAME                 },
   { CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
   { CODEC_ID_PRORES,                     FF_THREAD_SLICE },
+  { CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
+  { CODEC_ID_RV30,       FF_THREAD_FRAME                 },
+  { CODEC_ID_RV40,       FF_THREAD_FRAME                 },
 };
 
 static int getThreadFlags(CodecID codecId)
@@ -417,7 +420,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bRVDropBFrameTimings = (codec == CODEC_ID_RV10 || codec == CODEC_ID_RV20 || ((codec == CODEC_ID_RV30 || codec == CODEC_ID_RV40) && !m_pCallback->IsLAVSplitter()));
 
   // Enable B-Frame delay handling
-  m_bBFrameDelay = !m_bFFReordering;
+  m_bBFrameDelay = !m_bFFReordering && !m_bRVDropBFrameTimings;
 
   m_bWaitingForKeyFrame = TRUE;
 
@@ -702,9 +705,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_bFFReordering) {
       rtStart = m_pFrame->pkt_pts;
       rtStop = m_pFrame->pkt_dts;
-    } else if (m_nCodecId == CODEC_ID_RV10 || m_nCodecId == CODEC_ID_RV20 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
-      if (m_bRVDropBFrameTimings && m_pFrame->pict_type == AV_PICTURE_TYPE_B)
-        rtStart = AV_NOPTS_VALUE;
     } else if (m_bBFrameDelay && m_pAVCtx->has_b_frames) {
       rtStart = m_tcBFrameDelay[m_nBFramePos].rtStart;
       rtStop  = m_tcBFrameDelay[m_nBFramePos].rtStop;
@@ -712,6 +712,10 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       unsigned index = m_CurrentThread;
       rtStart = m_tcThreadBuffer[index].rtStart;
       rtStop  = m_tcThreadBuffer[index].rtStop;
+    }
+
+    if (m_bRVDropBFrameTimings && m_pFrame->pict_type == AV_PICTURE_TYPE_B) {
+      rtStart = AV_NOPTS_VALUE;
     }
 
     if (m_bCalculateStopTime)
