@@ -88,8 +88,8 @@ private:
 
   LPDIRECT3DSURFACE9 m_pRawSurface[DXVA2_MAX_SURFACES];
 
-  BOOL m_bInterlaced;
   CodecID m_nCodecId;
+  BOOL m_bFailHWDecode;
 
   DXVA2_ExtendedFormat m_DXVAExtendedFormat;
 

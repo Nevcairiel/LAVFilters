@@ -150,10 +150,10 @@ CDecDXVA2::CDecDXVA2(void)
   , m_pDXVADecoderService(NULL)
   , m_pDecoder(NULL)
   , m_NumSurfaces(0)
-  , m_bInterlaced(TRUE)
   , m_nCodecId(CODEC_ID_NONE)
   , m_CurrentSurfaceAge(1)
   , m_FrameQueuePosition(0)
+  , m_bFailHWDecode(FALSE)
 {
   ZeroMemory(&dx, sizeof(dx));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -530,10 +530,17 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
   }
   m_pDecoder = decoder;
 
+  m_bFailHWDecode = FALSE;
+
   DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 decoder successfull, initializing ffmpeg"));
   hr = CDecAvcodec::InitDecoder(codec, pmt);
   if (FAILED(hr)) {
     return hr;
+  }
+
+  if ((codec == CODEC_ID_H264 || codec == CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != PIX_FMT_NONE) {
+    DbgLog((LOG_TRACE, 10, L"-> Incompatible pixel format detected, falling back to software decoding"));
+    return E_FAIL;
   }
 
   return S_OK;
@@ -550,6 +557,12 @@ static enum PixelFormat get_dxva2_format(struct AVCodecContext *s, const enum Pi
 int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
 {
   CDecDXVA2 *pDec = (CDecDXVA2 *)c->opaque;
+
+  if (c->pix_fmt != PIX_FMT_DXVA2_VLD) {
+    DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt"));
+    pDec->m_bFailHWDecode = TRUE;
+    return -1;
+  }
 
   pic->type = FF_BUFFER_TYPE_USER;
   pic->age  = 256*256*256*64; // What?
@@ -632,6 +645,10 @@ __forceinline d3d_surface_t *CDecDXVA2::FindSurface(LPDIRECT3DSURFACE9 pSurface)
 
 HRESULT CDecDXVA2::PostDecode()
 {
+  if (m_bFailHWDecode) {
+    DbgLog((LOG_TRACE, 10, L"::PostDecode(): HW Decoder failed, falling back to software decoding"));
+    return E_FAIL;
+  }
   return S_OK;
 }
 
