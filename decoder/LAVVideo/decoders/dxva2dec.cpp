@@ -156,6 +156,7 @@ CDecDXVA2::CDecDXVA2(void)
   , m_bFailHWDecode(FALSE)
   , m_dwSurfaceWidth(0)
   , m_dwSurfaceHeight(0)
+  , m_dwVendorId(0)
 {
   ZeroMemory(&dx, sizeof(dx));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -396,6 +397,7 @@ STDMETHODIMP CDecDXVA2::Init()
   }
 
   DbgLog((LOG_TRACE, 10, L"-> Running on adapter %d, %S, vendor 0x%04X(%S), device 0x%04X", lAdapter, d3dai.Description, d3dai.VendorId, vendor, d3dai.DeviceId));
+  m_dwVendorId = d3dai.VendorId;
 
   D3DPRESENT_PARAMETERS d3dpp;
   D3DDISPLAYMODE d3ddm;
