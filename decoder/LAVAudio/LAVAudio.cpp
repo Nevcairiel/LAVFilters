@@ -1019,6 +1019,8 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   m_pAVCtx->block_align           = nBlockAlign;
   m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
 
+  memset(&m_raData, 0, sizeof(m_raData));
+
   if (bTrustExtraData && extralen) {
     if (codec == CODEC_ID_COOK) {
       uint8_t *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
@@ -1029,6 +1031,8 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
         av_freep(&extra);
         if (FAILED(hr))
           return hr;
+
+        m_raData.cook_processing = (codec == CODEC_ID_COOK);
       } else {
         // Try without any processing?
         m_pAVCtx->extradata_size = extralen;
@@ -1427,6 +1431,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
 {
   int got_frame	= 0;
   const BYTE *pDataInBuff = p;
+  BYTE *tmpProcessBuf = NULL;
   HRESULT hr = S_FALSE;
 
   BOOL bEOF = (buffsize == -1);
@@ -1436,6 +1441,35 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
   av_init_packet(&avpkt);
 
   BufferDetails out;
+
+  if (m_raData.cook_processing) {
+    if (m_raData.deint_id != MKBETAG('g', 'e', 'n', 'r')) {
+      DbgLog((LOG_TRACE, 10, L"-> Cook processing but deint_id is not what we expect .. this might sound wrong"));
+    }
+
+    int w = m_raData.coded_frame_size;
+    int h = m_raData.sub_packet_h;
+    int sps = m_raData.sub_packet_size;
+    int len = w * h;
+    if (buffsize >= len) {
+      if (sps > 0) {
+        const BYTE *srcBuf = pDataInBuff;
+        tmpProcessBuf = (BYTE *)av_mallocz(len + FF_INPUT_BUFFER_PADDING_SIZE);
+
+        for(int y = 0; y < h; y++) {
+          for(int x = 0, w2 = w / sps; x < w2; x++) {
+            memcpy(tmpProcessBuf + sps*(h*x+((h+1)/2)*(y&1)+(y>>1)), srcBuf, sps);
+            srcBuf += sps;
+          }
+        }
+
+        pDataInBuff = tmpProcessBuf;
+        buffsize = len;
+      }
+    } else {
+      return S_FALSE;
+    }
+  }
 
   consumed = 0;
   while (buffsize > 0) {
@@ -1451,7 +1485,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
       if (used_bytes < 0) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - audio parsing failed (ret: %d)", -used_bytes));
-        return E_FAIL;
+        goto fail;
       } else if(used_bytes == 0 && pOut_size == 0) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
         break;
@@ -1506,7 +1540,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       int used_bytes = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
 
       if(used_bytes < 0) {
-        return E_FAIL;
+        goto fail;
       } else if(used_bytes == 0 && !got_frame) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
         break;
@@ -1617,13 +1651,18 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       if (SUCCEEDED(PostProcess(&out))) {
         *hrDeliver = QueueOutput(out);
         if (FAILED(*hrDeliver)) {
-          return S_FALSE;
+          hr = S_FALSE;
+          break;
         }
       }
     }
   }
 
+  av_free(tmpProcessBuf);
   return hr;
+fail:
+  av_free(tmpProcessBuf);
+  return E_FAIL;
 }
 
 HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)

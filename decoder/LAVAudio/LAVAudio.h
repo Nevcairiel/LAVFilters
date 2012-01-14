@@ -294,4 +294,13 @@ private:
   ExtendedChannelMap  m_ChannelMap;
   int                 m_ChannelMapOutputChannels;
   DWORD               m_ChannelMapOutputLayout;
+
+  struct {
+    int coded_frame_size;
+    int sub_packet_h;
+    int sub_packet_size;
+    unsigned int deint_id;
+
+    int cook_processing;
+  } m_raData;
 };
