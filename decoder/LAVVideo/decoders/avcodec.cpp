@@ -418,6 +418,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
                            || codec == CODEC_ID_MPEG2VIDEO
                            || codec == CODEC_ID_MPEG1VIDEO
                            || codec == CODEC_ID_DIRAC
+                           || codec == CODEC_ID_UTVIDEO
                            || bVC1IsPTS;
 
   // Stop time is unreliable, drop it and calculate it
