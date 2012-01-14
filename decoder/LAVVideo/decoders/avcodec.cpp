@@ -410,10 +410,10 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
   // VC-1 is also a special case. Its required for splitters that deliver PTS timestamps (see bVC1IsPTS above)
-  m_bFFReordering        = ((codec == CODEC_ID_H264 && (_wcsicmp(pszExtension, L".avi") != 0)) || codec == CODEC_ID_VP8 || codec == CODEC_ID_VP3 || codec == CODEC_ID_THEORA || codec == CODEC_ID_HUFFYUV || codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO || bVC1IsPTS);
+  m_bFFReordering        = ((codec == CODEC_ID_H264 && (_wcsicmp(pszExtension, L".avi") != 0)) || codec == CODEC_ID_VP8 || codec == CODEC_ID_VP3 || codec == CODEC_ID_THEORA || codec == CODEC_ID_HUFFYUV || codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO || codec == CODEC_ID_DIRAC || bVC1IsPTS);
 
   // Stop time is unreliable, drop it and calculate it
-  m_bCalculateStopTime   = (codec == CODEC_ID_H264 || bVC1IsPTS);
+  m_bCalculateStopTime   = (codec == CODEC_ID_H264 || codec == CODEC_ID_DIRAC || bVC1IsPTS);
 
   // Real Video content has some odd timestamps
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
