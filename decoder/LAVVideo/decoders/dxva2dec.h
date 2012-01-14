@@ -56,12 +56,14 @@ protected:
   bool CopyFrame(LAVFrame *pFrame);
 
 private:
-  STDMETHODIMP DestroyDecoder(bool bFull);
+  STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
   STDMETHODIMP LoadDXVA2Functions();
 
   HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
   HRESULT CreateDXVAVideoService(IDirect3DDevice9 *pDevice, IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
   HRESULT FindVideoServiceConversion(CodecID codec, GUID *input, D3DFORMAT *output);
+
+  HRESULT CreateDXVA2Decoder();
 
   static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
   static void release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
@@ -94,4 +96,7 @@ private:
 
   LAVFrame* m_FrameQueue[DXVA2_QUEUE_SURFACES];
   int       m_FrameQueuePosition;
+
+  DWORD     m_dwSurfaceWidth;
+  DWORD     m_dwSurfaceHeight;
 };

@@ -154,6 +154,8 @@ CDecDXVA2::CDecDXVA2(void)
   , m_CurrentSurfaceAge(1)
   , m_FrameQueuePosition(0)
   , m_bFailHWDecode(FALSE)
+  , m_dwSurfaceWidth(0)
+  , m_dwSurfaceHeight(0)
 {
   ZeroMemory(&dx, sizeof(dx));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -166,7 +168,7 @@ CDecDXVA2::~CDecDXVA2(void)
   DestroyDecoder(true);
 }
 
-STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull)
+STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
 {
   SafeRelease(&m_pDecoder);
 
@@ -179,11 +181,13 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull)
     SAFE_CO_FREE(m_FrameQueue[i]);
   }
 
-  if (m_pAVCtx) {
-    av_freep(&m_pAVCtx->hwaccel_context);
-  }
+  if (!bNoAVCodec) {
+    if (m_pAVCtx) {
+      av_freep(&m_pAVCtx->hwaccel_context);
+    }
 
-  CDecAvcodec::DestroyDecoder();
+    CDecAvcodec::DestroyDecoder();
+  }
 
   if (bFull) {
     SafeRelease(&m_pDXVADecoderService);
@@ -461,15 +465,38 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
-  BITMAPINFOHEADER *pBMI = NULL;
-  videoFormatTypeHandler(pmt->Format(), pmt->FormatType(), &pBMI);
+  m_bFailHWDecode = FALSE;
 
-  DWORD dwWidth = FFALIGN(pBMI->biWidth, 16);
-  DWORD dwHeight = FFALIGN(pBMI->biHeight, 16);
+  DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 decoder successfull, initializing ffmpeg"));
+  hr = CDecAvcodec::InitDecoder(codec, pmt);
+  if (FAILED(hr)) {
+    return hr;
+  }
 
-  m_NumSurfaces = (codec == CODEC_ID_H264) ? 16 + DXVA2_QUEUE_SURFACES + 2 : 2 + DXVA2_QUEUE_SURFACES + 2;
+  if ((codec == CODEC_ID_H264 || codec == CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != PIX_FMT_NONE) {
+    DbgLog((LOG_TRACE, 10, L"-> Incompatible pixel format detected, falling back to software decoding"));
+    return E_FAIL;
+  }
+
+  return S_OK;
+}
+
+HRESULT CDecDXVA2::CreateDXVA2Decoder()
+{
+  HRESULT hr = S_OK;
+
+  DestroyDecoder(false, true);
+
+  GUID input = GUID_NULL;
+  D3DFORMAT output;
+  FindVideoServiceConversion(m_pAVCtx->codec_id, &input, &output);
+
+  m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, 16);
+  m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, 16);
+
+  m_NumSurfaces = (m_pAVCtx->codec_id == CODEC_ID_H264) ? 16 + DXVA2_QUEUE_SURFACES + 2 : 2 + DXVA2_QUEUE_SURFACES + 2;
   LPDIRECT3DSURFACE9 pSurfaces[DXVA2_MAX_SURFACES];
-  hr = m_pDXVADecoderService->CreateSurface(dwWidth, dwHeight, m_NumSurfaces - 1, output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, NULL);
+  hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, m_NumSurfaces - 1, output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, NULL);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Creation of surfaces failed with hr: %X", hr));
     m_NumSurfaces = 0;
@@ -482,12 +509,12 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
     m_pSurfaces[i].age = 0;
   }
 
-  DbgLog((LOG_TRACE, 10, L"-> Successfully created %d surfaces (%dx%d)", m_NumSurfaces, dwWidth, dwHeight));
+  DbgLog((LOG_TRACE, 10, L"-> Successfully created %d surfaces (%dx%d)", m_NumSurfaces, m_dwSurfaceWidth, m_dwSurfaceHeight));
 
   DXVA2_VideoDesc desc;
   ZeroMemory(&desc, sizeof(desc));
-  desc.SampleWidth = pBMI->biWidth;
-  desc.SampleHeight = pBMI->biHeight;
+  desc.SampleWidth = m_pAVCtx->width;
+  desc.SampleHeight = m_pAVCtx->height;
   desc.Format = output;
 
   UINT cfg_count = 0;
@@ -507,7 +534,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
     int score;
     if (cfg->ConfigBitstreamRaw == 1)
       score = 1;
-    else if (codec == CODEC_ID_H264 && cfg->ConfigBitstreamRaw == 2)
+    else if (m_pAVCtx->codec_id == CODEC_ID_H264 && cfg->ConfigBitstreamRaw == 2)
       score = 2;
     else
       continue;
@@ -534,17 +561,16 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
   }
   m_pDecoder = decoder;
 
-  m_bFailHWDecode = FALSE;
+  /* fill hwaccel_context */
+  dxva_context *ctx = (dxva_context *)m_pAVCtx->hwaccel_context;
+  ctx->cfg           = &m_DXVAVideoDecoderConfig;
+  ctx->decoder       = m_pDecoder;
+  ctx->surface       = m_pRawSurface;
+  ctx->surface_count = m_NumSurfaces;
 
-  DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 decoder successfull, initializing ffmpeg"));
-  hr = CDecAvcodec::InitDecoder(codec, pmt);
-  if (FAILED(hr)) {
-    return hr;
-  }
-
-  if ((codec == CODEC_ID_H264 || codec == CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != PIX_FMT_NONE) {
-    DbgLog((LOG_TRACE, 10, L"-> Incompatible pixel format detected, falling back to software decoding"));
-    return E_FAIL;
+  memset(m_pRawSurface, 0, sizeof(m_pRawSurface));
+  for (int i = 0; i < m_NumSurfaces; i++) {
+    m_pRawSurface[i] = m_pSurfaces[i].d3d;
   }
 
   return S_OK;
@@ -561,6 +587,16 @@ static enum PixelFormat get_dxva2_format(struct AVCodecContext *s, const enum Pi
 int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
 {
   CDecDXVA2 *pDec = (CDecDXVA2 *)c->opaque;
+
+  HRESULT hr = S_OK;
+
+  if (!pDec->m_pDecoder || FFALIGN(c->coded_width, 16) != pDec->m_dwSurfaceWidth || FFALIGN(c->coded_height, 16) != pDec->m_dwSurfaceHeight) {
+    hr = pDec->CreateDXVA2Decoder();
+    if (FAILED(hr)) {
+      pDec->m_bFailHWDecode = TRUE;
+      return -1;
+    }
+  }
 
   if (c->pix_fmt != PIX_FMT_DXVA2_VLD) {
     DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt"));
@@ -615,17 +651,8 @@ void CDecDXVA2::release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
 
 HRESULT CDecDXVA2::AdditionaDecoderInit()
 {
-  /* Create ffmpeg dxva_context */
+  /* Create ffmpeg dxva_context, but keep it empty. When this is called, we don't have the data yet */
   dxva_context *ctx = (dxva_context *)av_mallocz(sizeof(dxva_context));
-  ctx->cfg           = &m_DXVAVideoDecoderConfig;
-  ctx->decoder       = m_pDecoder;
-  ctx->surface       = m_pRawSurface;
-  ctx->surface_count = m_NumSurfaces;
-
-  memset(m_pRawSurface, 0, sizeof(m_pRawSurface));
-  for (int i = 0; i < m_NumSurfaces; i++) {
-    m_pRawSurface[i] = m_pSurfaces[i].d3d;
-  }
 
   m_pAVCtx->thread_count    = 1;
   m_pAVCtx->hwaccel_context = ctx;
