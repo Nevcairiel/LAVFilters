@@ -48,6 +48,7 @@ static struct {
   { CODEC_ID_MPEG2VIDEO, cudaVideoCodec_MPEG2 },
   { CODEC_ID_VC1,        cudaVideoCodec_VC1   },
   { CODEC_ID_H264,       cudaVideoCodec_H264  },
+  { CODEC_ID_MPEG4,      cudaVideoCodec_MPEG4 },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -404,7 +405,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
-  m_bUseTimestampQueue = (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->VC1IsDTS());
+  m_bUseTimestampQueue = cudaCodec == cudaVideoCodec_MPEG4 || (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->VC1IsDTS());
   m_bWaitForKeyframe = m_bUseTimestampQueue;
   m_bInterlaced = TRUE;
   m_bFormatIncompatible = FALSE;

@@ -223,6 +223,9 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = regHW.ReadBOOL(L"mpeg2", hr);
   if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2] = bFlag;
 
+  bFlag = regHW.ReadBOOL(L"mpeg4", hr);
+  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG4] = bFlag;
+
   dwVal = regHW.ReadDWORD(L"HWDeintMode", hr);
   if (SUCCEEDED(hr)) m_settings.HWDeintMode = dwVal;
 
@@ -275,6 +278,7 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteBOOL(L"h264", m_settings.bHWFormats[HWCodec_H264]);
     regHW.WriteBOOL(L"vc1", m_settings.bHWFormats[HWCodec_VC1]);
     regHW.WriteBOOL(L"mpeg2",m_settings.bHWFormats[HWCodec_MPEG2]);
+    regHW.WriteBOOL(L"mpeg4",m_settings.bHWFormats[HWCodec_MPEG4]);
 
     regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
@@ -461,7 +465,8 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   if (!bHWDecBlackList && m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed &&
     (  (codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])
     || ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_settings.bHWFormats[HWCodec_VC1])
-    || ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])))
+    || ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])
+    || (codec == CODEC_ID_MPEG4 && m_settings.bHWFormats[HWCodec_MPEG4])))
   {
     if (m_settings.HWAccel == HWAccel_CUDA)
       m_pDecoder = CreateDecoderCUVID();

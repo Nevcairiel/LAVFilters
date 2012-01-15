@@ -113,6 +113,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelCodec(HWCodec_MPEG2, bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG4, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelCodec(HWCodec_MPEG4, bFlag);
+
   BOOL bWeave = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_WEAVE, BM_GETCHECK, 0, 0);
   BOOL bBOB = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_BOB, BM_GETCHECK, 0, 0);
   BOOL bAdaptive = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ADAPTIVE, BM_GETCHECK, 0, 0);
@@ -227,6 +230,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264, BM_SETCHECK, m_HWAccelCodecs[HWCodec_H264], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VC1, BM_SETCHECK, m_HWAccelCodecs[HWCodec_VC1], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2], 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG4, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG4], 0);
 
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_WEAVE, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_Weave), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_BOB, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_BOB), 0);
@@ -254,10 +258,13 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   DWORD dwSupport = m_pVideoSettings->CheckHWAccelSupport(hwAccel);
   BOOL bEnabled = (hwAccel != HWAccel_None) && dwSupport;
   BOOL bHWDeint = bEnabled && (hwAccel == HWAccel_CUDA);
+  BOOL bMPEG4 = bEnabled && (hwAccel == HWAccel_CUDA);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG2), bEnabled);
+
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bMPEG4);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_WEAVE), bHWDeint);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_BOB), bHWDeint);
@@ -454,6 +461,11 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_HWACCEL_MPEG2 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_HWAccelCodecs[HWCodec_MPEG2]) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWACCEL_MPEG4 && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWAccelCodecs[HWCodec_MPEG4]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_HWDEINT_WEAVE && HIWORD(wParam) == BN_CLICKED) {
