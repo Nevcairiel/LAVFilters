@@ -108,13 +108,20 @@ CLAVVideo::~CLAVVideo()
     av_lockmgr_register(NULL);
 }
 
-HRESULT CLAVVideo::LoadDefaults()
+STDMETHODIMP_(BOOL) CLAVVideo::IsVistaOrNewer()
 {
   // Query OS version info
   OSVERSIONINFO os;
   ZeroMemory(&os, sizeof(os));
   os.dwOSVersionInfoSize = sizeof(os);
   GetVersionEx(&os);
+
+  return (os.dwMajorVersion >= 6);
+}
+
+HRESULT CLAVVideo::LoadDefaults()
+{
+
 
   // Set Defaults
   m_settings.StreamAR = TRUE;
@@ -143,7 +150,7 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.HWDeintMode = HWDeintMode_Hardware;
   m_settings.HWDeintOutput = DeintOutput_FramePerField;
-  m_settings.HWDeintHQ = (os.dwMajorVersion >= 6); // Activate by default on Vista and above, on XP it causes issues
+  m_settings.HWDeintHQ = IsVistaOrNewer(); // Activate by default on Vista and above, on XP it causes issues
 
   m_settings.SWDeintMode = SWDeintMode_None;
   m_settings.SWDeintOutput = DeintOutput_FramePerField;

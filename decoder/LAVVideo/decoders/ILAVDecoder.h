@@ -187,6 +187,13 @@ interface ILAVVideoCallback
   STDMETHOD_(BOOL, IsLAVSplitter)() PURE;
 
   /**
+   * Check wether we're running on Vista or newer
+   *
+   * @return TRUE/FALSE
+   */
+  STDMETHOD_(BOOL, IsVistaOrNewer)() PURE;
+
+  /**
    * Get the input media type
    *
    * @result media type

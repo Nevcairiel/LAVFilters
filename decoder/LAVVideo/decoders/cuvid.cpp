@@ -711,7 +711,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
   dci->display_area.top    = (short)rcDisplayArea.top;
   dci->display_area.bottom = (short)rcDisplayArea.bottom;
 
-  dci->ulCreationFlags     = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ()) ? cudaVideoCreate_PreferDXVA : cudaVideoCreate_PreferCUVID;
+  dci->ulCreationFlags     = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && m_pCallback->IsVistaOrNewer()) ? cudaVideoCreate_PreferDXVA : cudaVideoCreate_PreferCUVID;
   dci->vidLock             = m_cudaCtxLock;
 
   // create the decoder

@@ -117,6 +117,7 @@ public:
   STDMETHODIMP_(BOOL) FilterInGraph(PIN_DIRECTION dir, const GUID &clsid) { if (dir == PINDIR_INPUT) return FilterInGraphSafe(m_pInput, clsid); else return FilterInGraphSafe(m_pOutput, clsid); }
   STDMETHODIMP_(BOOL) VC1IsDTS() { return m_bVC1IsDTS; }
   STDMETHODIMP_(BOOL) IsLAVSplitter() { return m_bLAVSplitter; }
+  STDMETHODIMP_(BOOL) IsVistaOrNewer();
   STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }
 
 public:
