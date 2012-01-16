@@ -124,6 +124,7 @@ CDecCuvid::CDecCuvid(void)
   , m_hwnd(NULL)
   , m_nSoftTelecine(0)
   , m_bTFF(TRUE)
+  , m_bVDPAULevelC(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -479,13 +480,13 @@ STDMETHODIMP CDecCuvid::Init()
       if (cuStatus == CUDA_SUCCESS) {
         DbgLog((LOG_TRACE, 10, L"-> Created D3D Device on adapter %S (%d), using CUDA device %d", d3dId.Description, lAdapter, device));
 
-        /*BOOL isLevelC = IsLevelC(d3dId.DeviceId);
+        BOOL isLevelC = IsLevelC(d3dId.DeviceId);
         DbgLog((LOG_TRACE, 10, L"InitCUDA(): D3D Device with Id 0x%x is level C: %d", d3dId.DeviceId, isLevelC));
 
         if (m_bVDPAULevelC && !isLevelC) {
           DbgLog((LOG_TRACE, 10, L"InitCUDA(): We already had a Level C+ device, this one is not, skipping"));
           continue;
-        } */
+        }
 
         // Release old resources
         SafeRelease(&m_pD3DDevice);
@@ -495,7 +496,7 @@ STDMETHODIMP CDecCuvid::Init()
         // Store resources
         m_pD3DDevice = pDev;
         m_cudaContext = cudaCtx;
-        //m_bVDPAULevelC = isLevelC;
+        m_bVDPAULevelC = isLevelC;
         // Is this the one we want?
         if (device == best_device)
           break;
@@ -513,10 +514,10 @@ STDMETHODIMP CDecCuvid::Init()
     SafeRelease(&m_pD3D);
     cuStatus = cuda.cuCtxCreate(&m_cudaContext, CU_CTX_SCHED_BLOCKING_SYNC, best_device);
 
-    /*int major, minor;
-    cuDeviceComputeCapability(&major, &minor, best_device);
+    int major, minor;
+    cuda.cuDeviceComputeCapability(&major, &minor, best_device);
     m_bVDPAULevelC = (major >= 2);
-    DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor)); */
+    DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor));
   }
 
   if (cuStatus == CUDA_SUCCESS) {
@@ -570,6 +571,11 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   if (cudaCodec == -1) {
     DbgLog((LOG_TRACE, 10, L"-> Codec id %d does not map to a CUVID codec", codec));
+    return E_FAIL;
+  }
+
+  if (cudaCodec == cudaVideoCodec_MPEG4 && !m_bVDPAULevelC) {
+    DbgLog((LOG_TRACE, 10, L"-> Device is not capable to decode this format (not >= Level C)"));
     return E_FAIL;
   }
 

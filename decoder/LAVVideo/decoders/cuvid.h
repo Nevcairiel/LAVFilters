@@ -132,6 +132,8 @@ private:
 
   CUstream               m_hStream;
 
+  BOOL                   m_bVDPAULevelC;
+
   BOOL                   m_bForceSequenceUpdate;
   BOOL                   m_bInterlaced;
   BOOL                   m_bDoubleRateDeint;
