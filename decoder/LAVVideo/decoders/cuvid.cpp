@@ -52,6 +52,56 @@ static struct {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// Compatibility tables
+////////////////////////////////////////////////////////////////////////////////
+
+#define LEVEL_C_LOW_LIMIT 0x0A20
+
+static DWORD LevelCBlacklist[] = {
+  0x0A22, 0x0A67,     // Geforce 315, no VDPAU at all
+  0x0A68, 0x0A69,     // Geforce G105M, only B
+  0x0CA0, 0x0CA7,     // Geforce GT 330, only A
+  0x0CAC,             // Geforce GT 220, no VDPAU
+  0x10C3              // Geforce 8400GS, only A
+};
+
+static DWORD LevelCWhitelist[] = {
+  0x06C0,             // Geforce GTX 480
+  0x06C4,             // Geforce GTX 465
+  0x06CA,             // Geforce GTX 480M
+  0x06CD,             // Geforce GTX 470
+  0x08A5,             // Geforce 320M
+
+  0x06D8, 0x06DC,     // Quadro 6000
+  0x06D9,             // Quadro 5000
+  0x06DA,             // Quadro 5000M
+  0x06DD,             // Quadro 4000
+
+  0x06D1,             // Tesla C2050 / C2070
+  0x06D2,             // Tesla M2070
+  0x06DE,             // Tesla T20 Processor
+  0x06DF,             // Tesla M2070-Q
+};
+
+static BOOL IsLevelC(DWORD deviceId)
+{
+  int idx = 0;
+  if (deviceId >= LEVEL_C_LOW_LIMIT) {
+    for(idx = 0; idx < countof(LevelCBlacklist); idx++) {
+      if (LevelCBlacklist[idx] == deviceId)
+        return FALSE;
+    }
+    return TRUE;
+  } else {
+    for(idx = 0; idx < countof(LevelCWhitelist); idx++) {
+      if (LevelCWhitelist[idx] == deviceId)
+        return TRUE;
+    }
+    return FALSE;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // CUVID decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -169,6 +219,11 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   GET_PROC_CUDA(cuStreamCreate);
   GET_PROC_CUDA(cuStreamDestroy);
   GET_PROC_CUDA(cuStreamQuery);
+  GET_PROC_CUDA(cuDeviceGetCount);
+  GET_PROC_CUDA(cuDriverGetVersion);
+  GET_PROC_CUDA(cuDeviceGetName);
+  GET_PROC_CUDA(cuDeviceComputeCapability);
+  GET_PROC_CUDA(cuDeviceGetAttribute);
 
   // Load CUVID function
   cuda.cuvidLib = LoadLibrary(L"nvcuvid.dll");
@@ -250,6 +305,119 @@ HWND CDecCuvid::GetDummyHWND()
   return m_hwnd;
 }
 
+// Beginning of GPU Architecture definitions
+static int _ConvertSMVer2CoresDrvApi(int major, int minor)
+{
+  // Defines for GPU Architecture types (using the SM version to determine the # of cores per SM
+  typedef struct {
+    int SM; // 0xMm (hexidecimal notation), M = SM Major version, and m = SM minor version
+    int Cores;
+  } sSMtoCores;
+
+  sSMtoCores nGpuArchCoresPerSM[] =
+  {
+    { 0x10,  8 },
+    { 0x11,  8 },
+    { 0x12,  8 },
+    { 0x13,  8 },
+    { 0x20, 32 },
+    { 0x21, 48 },
+    {   -1, -1 }
+  };
+
+  int index = 0;
+  while (nGpuArchCoresPerSM[index].SM != -1) {
+    if (nGpuArchCoresPerSM[index].SM == ((major << 4) + minor) ) {
+      return nGpuArchCoresPerSM[index].Cores;
+    }
+    index++;
+  }
+  printf("MapSMtoCores undefined SMversion %d.%d!\n", major, minor);
+  return -1;
+}
+
+int CDecCuvid::GetMaxGflopsGraphicsDeviceId()
+{
+  CUdevice current_device = 0, max_perf_device = 0;
+  int device_count     = 0, sm_per_multiproc = 0;
+  int max_compute_perf = 0, best_SM_arch     = 0;
+  int major = 0, minor = 0, multiProcessorCount, clockRate;
+  int bTCC = 0, version;
+  char deviceName[256];
+
+  cuda.cuDeviceGetCount(&device_count);
+  if (device_count <= 0)
+    return -1;
+
+  cuda.cuDriverGetVersion(&version);
+
+  // Find the best major SM Architecture GPU device that are graphics devices
+  while ( current_device < device_count ) {
+    cuda.cuDeviceGetName(deviceName, 256, current_device);
+    cuda.cuDeviceComputeCapability(&major, &minor, current_device);
+
+    if (version >= 3020) {
+      cuda.cuDeviceGetAttribute(&bTCC, CU_DEVICE_ATTRIBUTE_TCC_DRIVER, current_device);
+    } else {
+      // Assume a Tesla GPU is running in TCC if we are running CUDA 3.1
+      if (deviceName[0] == 'T') bTCC = 1;
+    }
+    if (!bTCC) {
+      if (major > 0 && major < 9999) {
+        best_SM_arch = max(best_SM_arch, major);
+      }
+    }
+    current_device++;
+  }
+
+  // Find the best CUDA capable GPU device
+  current_device = 0;
+  while( current_device < device_count ) {
+    cuda.cuDeviceGetAttribute(&multiProcessorCount, CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, current_device);
+    cuda.cuDeviceGetAttribute(&clockRate, CU_DEVICE_ATTRIBUTE_CLOCK_RATE, current_device);
+    cuda.cuDeviceComputeCapability(&major, &minor, current_device);
+
+    if (version >= 3020) {
+      cuda.cuDeviceGetAttribute(&bTCC, CU_DEVICE_ATTRIBUTE_TCC_DRIVER, current_device);
+    } else {
+      // Assume a Tesla GPU is running in TCC if we are running CUDA 3.1
+      if (deviceName[0] == 'T') bTCC = 1;
+    }
+
+    if (major == 9999 && minor == 9999) {
+      sm_per_multiproc = 1;
+    } else {
+      sm_per_multiproc = _ConvertSMVer2CoresDrvApi(major, minor);
+    }
+
+    // If this is a Tesla based GPU and SM 2.0, and TCC is disabled, this is a contendor
+    if (!bTCC) // Is this GPU running the TCC driver?  If so we pass on this
+    {
+      int compute_perf = multiProcessorCount * sm_per_multiproc * clockRate;
+      if(compute_perf > max_compute_perf) {
+        // If we find GPU with SM major > 2, search only these
+        if (best_SM_arch > 2) {
+          // If our device = dest_SM_arch, then we pick this one
+          if (major == best_SM_arch) {
+            max_compute_perf  = compute_perf;
+            max_perf_device   = current_device;
+          }
+        } else {
+          max_compute_perf  = compute_perf;
+          max_perf_device   = current_device;
+        }
+      }
+
+#ifdef DEBUG
+      cuda.cuDeviceGetName(deviceName, 256, current_device);
+      DbgLog((LOG_TRACE, 10, L"CUDA Device: %S, Compute: %d.%d, CUDA Cores: %d, Clock: %d MHz", deviceName, major, minor, multiProcessorCount * sm_per_multiproc, clockRate / 1000));
+#endif
+    }
+    ++current_device;
+  }
+  return max_perf_device;
+}
+
 // ILAVDecoder
 STDMETHODIMP CDecCuvid::Init()
 {
@@ -270,7 +438,7 @@ STDMETHODIMP CDecCuvid::Init()
   }
 
   // TODO: select best device
-  int best_device = 0;
+  int best_device = GetMaxGflopsGraphicsDeviceId();
   int device = best_device;
 
   m_pD3D = Direct3DCreate9(D3D_SDK_VERSION);

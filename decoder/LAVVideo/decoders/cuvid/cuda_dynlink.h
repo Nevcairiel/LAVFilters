@@ -37,6 +37,11 @@ typedef CUresult CUDAAPI tcuMemcpyDtoHAsync(void *dstHost, CUdeviceptr srcDevice
 typedef CUresult CUDAAPI tcuStreamCreate(CUstream *phStream, unsigned int Flags);
 typedef CUresult CUDAAPI tcuStreamDestroy(CUstream hStream);
 typedef CUresult CUDAAPI tcuStreamQuery(CUstream hStream);
+typedef CUresult CUDAAPI tcuDeviceGetCount(int *count);
+typedef CUresult CUDAAPI tcuDriverGetVersion(int *driverVersion);
+typedef CUresult CUDAAPI tcuDeviceGetName(char *name, int len, CUdevice dev);
+typedef CUresult CUDAAPI tcuDeviceComputeCapability(int *major, int *minor, CUdevice dev);
+typedef CUresult CUDAAPI tcuDeviceGetAttribute(int *pi, CUdevice_attribute attrib, CUdevice dev);
 
 ////////////////////////////////////////////////////
 /// D3D Interop

@@ -74,6 +74,8 @@ private:
 
   HWND GetDummyHWND();
 
+  int GetMaxGflopsGraphicsDeviceId();
+
 private:
   struct {
     HMODULE cudaLib;
@@ -90,6 +92,11 @@ private:
     CUMETHOD(cuStreamCreate);
     CUMETHOD(cuStreamDestroy);
     CUMETHOD(cuStreamQuery);
+    CUMETHOD(cuDeviceGetCount);
+    CUMETHOD(cuDriverGetVersion);
+    CUMETHOD(cuDeviceGetName);
+    CUMETHOD(cuDeviceComputeCapability);
+    CUMETHOD(cuDeviceGetAttribute);
 
     HMODULE cuvidLib;
     CUMETHOD(cuvidCtxLockCreate);
