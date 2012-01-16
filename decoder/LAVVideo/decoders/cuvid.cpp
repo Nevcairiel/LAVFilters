@@ -125,6 +125,7 @@ CDecCuvid::CDecCuvid(void)
   , m_nSoftTelecine(0)
   , m_bTFF(TRUE)
   , m_bVDPAULevelC(FALSE)
+  , m_rtPrevDiff(AV_NOPTS_VALUE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -584,6 +585,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bInterlaced = TRUE;
   m_bFormatIncompatible = FALSE;
   m_bTFF = TRUE;
+  m_rtPrevDiff = AV_NOPTS_VALUE;
 
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
@@ -744,6 +746,12 @@ STDMETHODIMP CDecCuvid::DecodeSequenceData()
   return S_OK;
 }
 
+CUVIDPARSERDISPINFO* CDecCuvid::GetNextFrame()
+{
+  int next = (m_DisplayPos + 1) % DISPLAY_DELAY;
+  return &m_DisplayQueue[next];
+}
+
 int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::HandleVideoSequence(): New Video Sequence"));
@@ -772,7 +780,10 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
       filter->m_bDoubleRateDeint = TRUE;
       dFrameTime /= 2.0;
     }
-    filter->m_rtAvgTimePerFrame = REFERENCE_TIME(dFrameTime + 0.5);
+    if (cuvidfmt->codec != cudaVideoCodec_MPEG4)
+      filter->m_rtAvgTimePerFrame = REFERENCE_TIME(dFrameTime + 0.5);
+    else
+      filter->m_rtAvgTimePerFrame = AV_NOPTS_VALUE; //TODO: base on media type
   } else {
     filter->m_rtAvgTimePerFrame = AV_NOPTS_VALUE;
   }
@@ -977,12 +988,21 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 
   REFERENCE_TIME rtStart = cuviddisp->timestamp, rtStop = AV_NOPTS_VALUE;
   if (rtStart != AV_NOPTS_VALUE) {
-    if (field == 1)
-      rtStart += pFrame->avgFrameDuration;
+    CUVIDPARSERDISPINFO *next = GetNextFrame();
+    if (next->picture_index != -1 && next->timestamp != AV_NOPTS_VALUE) {
+      m_rtPrevDiff = next->timestamp - cuviddisp->timestamp;
+    }
 
-    rtStop = rtStart + pFrame->avgFrameDuration;
-    if (field == 2)
-      rtStop += pFrame->avgFrameDuration;
+    if (m_rtPrevDiff != AV_NOPTS_VALUE) {
+      REFERENCE_TIME rtHalfDiff = m_rtPrevDiff >> 1;
+      if (field == 1)
+        rtStart += rtHalfDiff;
+
+      rtStop = rtStart + rtHalfDiff;
+
+      if (field == 2)
+        rtStop += rtHalfDiff;
+    }
 
     // Sanity check in case the duration is null
     if (rtStop == rtStart)

@@ -68,6 +68,8 @@ private:
   STDMETHODIMP Display(CUVIDPARSERDISPINFO *cuviddisp);
   STDMETHODIMP Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field = 0);
 
+  CUVIDPARSERDISPINFO* GetNextFrame();
+
   STDMETHODIMP FlushParser();
 
   STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen);
@@ -139,6 +141,7 @@ private:
   BOOL                   m_bDoubleRateDeint;
   BOOL                   m_bFlushing;
   REFERENCE_TIME         m_rtAvgTimePerFrame;
+  REFERENCE_TIME         m_rtPrevDiff;
   BOOL                   m_bWaitForKeyframe;
   int                    m_iFullRange;
 
