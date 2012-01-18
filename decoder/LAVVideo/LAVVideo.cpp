@@ -859,9 +859,16 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     DbgLog((LOG_TRACE, 10, L"::Receive(): Input sample contained media type, dynamic format change..."));
     m_pDecoder->EndOfStream();
     CMediaType mt = *pmt;
-    m_pInput->SetMediaType(&mt);
+    hr = m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
+    if (FAILED(hr)) {
+      DbgLog((LOG_ERROR, 10, L"::Receive(): Setting new media type failed..."));
+      return hr;
+    }
   }
+
+  if (!m_pDecoder)
+    return E_UNEXPECTED;
 
   hr = m_pDecoder->Decode(pIn);
   // If a hardware decoder indicates a hard failure, we switch back to software
