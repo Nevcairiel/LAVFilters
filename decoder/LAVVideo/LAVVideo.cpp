@@ -857,6 +857,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   AM_MEDIA_TYPE *pmt = NULL;
   if (SUCCEEDED(pIn->GetMediaType(&pmt)) && pmt) {
     DbgLog((LOG_TRACE, 10, L"::Receive(): Input sample contained media type, dynamic format change..."));
+    m_pDecoder->EndOfStream();
     CMediaType mt = *pmt;
     m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
