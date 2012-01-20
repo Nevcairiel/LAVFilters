@@ -136,7 +136,6 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.bFormats[Codec_VC1]      = FALSE;
   m_settings.bFormats[Codec_RV12]     = FALSE;
-  m_settings.bFormats[Codec_Lagarith] = FALSE;
   m_settings.bFormats[Codec_Cinepak]  = FALSE;
   m_settings.bFormats[Codec_QPEG]     = FALSE;
   m_settings.bFormats[Codec_MSRLE]    = FALSE;
