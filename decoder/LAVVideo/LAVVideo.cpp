@@ -148,6 +148,8 @@ HRESULT CLAVVideo::LoadDefaults()
   for (int i = 0; i < HWCodec_NB; ++i)
     m_settings.bHWFormats[i] = TRUE;
 
+  m_settings.bHWFormats[HWCodec_MPEG4] = FALSE;
+
   m_settings.HWDeintMode = HWDeintMode_Hardware;
   m_settings.HWDeintOutput = DeintOutput_FramePerField;
   m_settings.HWDeintHQ = IsVistaOrNewer(); // Activate by default on Vista and above, on XP it causes issues
