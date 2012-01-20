@@ -59,6 +59,7 @@ static struct {
   { CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
   { CODEC_ID_RV30,       FF_THREAD_FRAME                 },
   { CODEC_ID_RV40,       FF_THREAD_FRAME                 },
+  { CODEC_ID_DNXHD,      FF_THREAD_FRAME                 },
 };
 
 static int getThreadFlags(CodecID codecId)
@@ -419,6 +420,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
                            || codec == CODEC_ID_MPEG1VIDEO
                            || codec == CODEC_ID_DIRAC
                            || codec == CODEC_ID_UTVIDEO
+                           || codec == CODEC_ID_DNXHD
                            || bVC1IsPTS;
 
   // Stop time is unreliable, drop it and calculate it
