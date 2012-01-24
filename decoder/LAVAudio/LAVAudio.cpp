@@ -1064,7 +1064,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     return VFW_E_UNSUPPORTED_AUDIO;
   }
 
-  m_bFindDTSInPCM = (codec == CODEC_ID_PCM_S16LE);
+  m_bFindDTSInPCM = (codec == CODEC_ID_PCM_S16LE && m_settings.bFormats[Codec_DTS]);
 
   return S_OK;
 }
