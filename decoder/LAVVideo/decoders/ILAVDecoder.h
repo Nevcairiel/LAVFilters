@@ -108,6 +108,7 @@ typedef struct LAVFrame {
   int key_frame;                    ///< frame is a key frame (field is not mandatory)
   int interlaced;                   ///< frame is interlaced
   int tff;                          ///< top field is first
+  char frame_type;                  ///< frame type char (I/P/B/?)
 
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);

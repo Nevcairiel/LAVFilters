@@ -23,6 +23,7 @@
 #define MAX_DECODE_FRAMES 20
 #define DISPLAY_DELAY	4
 #define USE_ASYNC_COPY 1
+#define MAX_PIC_INDEX 64
 
 #define CUDA_FORCE_API_VERSION 3010
 #include "cuvid/cuda.h"
@@ -131,6 +132,8 @@ private:
 
   CUVIDPARSERDISPINFO    m_DisplayQueue[DISPLAY_DELAY];
   int                    m_DisplayPos;
+
+  CUVIDPICPARAMS         m_PicParams[MAX_PIC_INDEX];
 
   CUstream               m_hStream;
 

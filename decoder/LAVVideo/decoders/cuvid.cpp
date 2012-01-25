@@ -841,6 +841,7 @@ int CUDAAPI CDecCuvid::HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic)
   }
 
   filter->cuda.cuvidCtxLock(filter->m_cudaCtxLock, 0);
+  filter->m_PicParams[cuvidpic->CurrPicIdx] = *cuvidpic;
   __try {
     CUresult cuStatus = filter->cuda.cuvidDecodePicture(filter->m_hDecoder, cuvidpic);
   #ifdef DEBUG
@@ -1020,6 +1021,9 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->ext_format = m_DXVAExtendedFormat;
   pFrame->interlaced = !cuviddisp->progressive_frame && m_VideoDecoderInfo.DeinterlaceMode == cudaVideoDeinterlaceMode_Weave;
   pFrame->tff = cuviddisp->top_field_first;
+
+  // TODO: This may be wrong for H264 where B-Frames can be references
+  pFrame->frame_type = m_PicParams[cuviddisp->picture_index].intra_pic_flag ? 'I' : (m_PicParams[cuviddisp->picture_index].ref_pic_flag ? 'P' : 'B');
 
   // Assign the buffer to the LAV Frame bufers
   int Ysize = height * pitch;

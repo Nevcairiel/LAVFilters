@@ -748,6 +748,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->aspect_ratio = display_aspect_ratio;
     pOutFrame->repeat       = m_pFrame->repeat_pict;
     pOutFrame->key_frame    = m_pFrame->key_frame;
+    pOutFrame->frame_type   = av_get_picture_type_char(m_pFrame->pict_type);
     pOutFrame->ext_format   = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
 
     if (m_pFrame->interlaced_frame && m_iInterlaced != 1)

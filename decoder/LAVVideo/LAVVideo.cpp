@@ -910,6 +910,8 @@ STDMETHODIMP CLAVVideo::AllocateFrame(LAVFrame **ppFrame)
   (*ppFrame)->rtStart = AV_NOPTS_VALUE;
   (*ppFrame)->rtStop  = AV_NOPTS_VALUE;
 
+  (*ppFrame)->frame_type = '?';
+
   return S_OK;
 }
 
@@ -955,7 +957,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   }
 
 #if defined(DEBUG) && DEBUG_FRAME_TIMINGS
-  DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, dur: %I64d, diff: %I64d, key: %d, repeat: %d, interlaced: %d, tff: %d", pFrame->rtStart, pFrame->rtStop-pFrame->rtStart, pFrame->rtStart-m_rtPrevStart, pFrame->key_frame, pFrame->repeat, pFrame->interlaced, pFrame->tff));
+  DbgLog((LOG_TRACE, 10, L"Frame, rtStart: %I64d, dur: %I64d, diff: %I64d, key: %d, type: %C, repeat: %d, interlaced: %d, tff: %d", pFrame->rtStart, pFrame->rtStop-pFrame->rtStart, pFrame->rtStart-m_rtPrevStart, pFrame->key_frame, pFrame->frame_type, pFrame->repeat, pFrame->interlaced, pFrame->tff));
 #endif
 
   m_rtPrevStart = pFrame->rtStart;
