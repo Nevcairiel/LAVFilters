@@ -1001,7 +1001,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 
       rtStop = rtStart + rtHalfDiff;
 
-      if (field == 2)
+      if (field == 2 || !m_bDoubleRateDeint)
         rtStop += rtHalfDiff;
     }
 
