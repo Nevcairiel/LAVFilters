@@ -117,6 +117,8 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
       wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * av_get_bits_per_sample_format(avstream->codec->sample_fmt)) / 8);
     }
   }
+  if (!wvfmt->nAvgBytesPerSec)
+    wvfmt->nAvgBytesPerSec = (wvfmt->nSamplesPerSec * wvfmt->nChannels * wvfmt->wBitsPerSample) >> 3;
 
   if (avstream->codec->extradata_size > 0) {
     wvfmt->cbSize = avstream->codec->extradata_size;
