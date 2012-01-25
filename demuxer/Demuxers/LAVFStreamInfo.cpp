@@ -85,6 +85,9 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
       mtype.pbFormat = (BYTE *)wvfmt;
 
       if (avstream->codec->codec_id == CODEC_ID_FLAC) {
+        // These are required to block accidental connection to ReClock
+        wvfmt->nAvgBytesPerSec = (wvfmt->nSamplesPerSec * wvfmt->nChannels * wvfmt->wBitsPerSample) >> 3;
+        wvfmt->nBlockAlign = 1;
         mtype.subtype = MEDIASUBTYPE_FLAC_FRAMED;
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_FLAC;
