@@ -689,7 +689,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     // MPEG-2 and VC-1 just wait for a keyframe..
     if (m_nCodecId == CODEC_ID_H264 && (bParserFrame || !m_pParser || got_picture)) {
       m_h264RandomAccess.judgeFrameUsability(m_pFrame, &got_picture);
-    } else if (m_nCodecId == CODEC_ID_MPEG2VIDEO || m_nCodecId == CODEC_ID_VC1) {
+    } else if (m_nCodecId == CODEC_ID_MPEG2VIDEO || m_nCodecId == CODEC_ID_VC1 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
       if (m_bWaitingForKeyFrame && got_picture) {
         if (m_pFrame->key_frame) {
           m_bWaitingForKeyFrame = FALSE;
