@@ -1006,7 +1006,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
     }
 
     // Sanity check in case the duration is null
-    if (rtStop == rtStart)
+    if (rtStop <= rtStart)
       rtStop = AV_NOPTS_VALUE;
   }
 
