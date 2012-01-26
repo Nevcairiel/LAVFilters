@@ -186,6 +186,8 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   WideStringFromResource(stringBuffer, IDS_FIELDORDER_BOTTOM);
   SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
 
+  addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
+
   addHint(IDC_DEINT_AGGRESSIVE, L"Force deinterlacing of all frames if the stream is flagged interlaced.");
   addHint(IDC_DEINT_FORCE, L"Force deinterlacing of all frames flagged as progressive (always).");
   addHint(IDC_DEINT_PROGRESSIVE, L"Treat all streams/frames as progressive, disabling all forms of deinterlacing completely.\n\nNOTE: This includes deinterlacing by the renderer.\nIf this option is checked, LAV Video will no longer tell the renderer that the material is interlaced.");
