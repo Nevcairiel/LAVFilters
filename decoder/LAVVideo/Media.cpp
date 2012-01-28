@@ -198,6 +198,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_LOCO, CODEC_ID_LOCO  },
   { &MEDIASUBTYPE_ZMBV, CODEC_ID_ZMBV  },
   { &MEDIASUBTYPE_VCR1, CODEC_ID_VCR1 },
+  { &MEDIASUBTYPE_AASC, CODEC_ID_AASC },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO  },
@@ -374,6 +375,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_LOCO },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ZMBV },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VCR1 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_AASC },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -443,7 +445,7 @@ static codec_config_t m_codec_config[] = {
   { 2, { CODEC_ID_ZLIB, CODEC_ID_MSZH }, L"zlib", L"ZLIB/MSZH lossless" },// Codec_ZLIB
   { 1, { CODEC_ID_RPZA }},                                                // Codec_QTRpza
   { 1, { CODEC_ID_PNG }},                                                 // Codec_PNG
-  { 1, { CODEC_ID_MSRLE }},                                               // Codec_MSRLE
+  { 2, { CODEC_ID_MSRLE, CODEC_ID_AASC }},                                // Codec_MSRLE
   { 1, { CODEC_ID_PRORES }, L"prores", L"ProRes" },                       // Codec_ProRes
   { 1, { CODEC_ID_UTVIDEO }},                                             // Codec_UtVideo
   { 1, { CODEC_ID_DIRAC }},                                               // Codec_Dirac
