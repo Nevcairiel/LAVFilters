@@ -52,6 +52,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pSite(NULL)
   , m_bFakeASFReader(FALSE)
   , m_bStopValid(FALSE)
+  , m_rtOffset(0)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -461,6 +462,8 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
 
+  m_bMPEGTS = strcmp(m_pDemuxer->GetContainerFormat(), "mpegts") == 0;
+
   const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
   if (videoStream) {
     CLAVOutputPin* pPin = new CLAVOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat());
@@ -581,6 +584,7 @@ DWORD CLAVSplitter::ThreadProc()
         m_pActivePins.push_back(*pinIter);
       }
     }
+    m_rtOffset = 0;
 
     m_bDiscontinuitySent.clear();
 
@@ -654,6 +658,21 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
     pPacket->rtStop -= m_rtStart;
 
     ASSERT(pPacket->rtStart <= pPacket->rtStop);
+
+    // Filter PTS values
+    // This will try to compensate for timestamp discontinuities in the stream
+    if (m_bMPEGTS) {
+      if (pPin->m_rtPrev != Packet::INVALID_TIME && !pPin->IsSubtitlePin()) {
+        REFERENCE_TIME rt = pPacket->rtStart + m_rtOffset;
+        if(_abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {
+          m_rtOffset += pPin->m_rtPrev - rt;
+        }
+      }
+      pPacket->rtStart += m_rtOffset;
+      pPacket->rtStop += m_rtOffset;
+
+      pPin->m_rtPrev = pPacket->rtStart;
+    }
   }
 
   if(m_bDiscontinuitySent.find(pPacket->StreamId) == m_bDiscontinuitySent.end()) {

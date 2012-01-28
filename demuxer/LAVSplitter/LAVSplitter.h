@@ -38,6 +38,8 @@
 #define LAVF_REGISTRY_KEY_FORMATS LAVF_REGISTRY_KEY L"\\Formats"
 #define LAVF_LOG_FILE     L"LAVSplitter.txt"
 
+#define MAX_PTS_SHIFT 50000000i64
+
 class CLAVOutputPin;
 class CLAVInputPin;
 
@@ -202,8 +204,11 @@ private:
 
   // Times
   REFERENCE_TIME m_rtStart, m_rtStop, m_rtCurrent, m_rtNewStart, m_rtNewStop;
+  REFERENCE_TIME m_rtOffset;
   double m_dRate;
   BOOL m_bStopValid;
+
+  BOOL m_bMPEGTS;
 
   // Seeking
   REFERENCE_TIME m_rtLastStart, m_rtLastStop;

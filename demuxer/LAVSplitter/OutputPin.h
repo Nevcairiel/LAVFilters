@@ -101,6 +101,8 @@ public:
 
   virtual HRESULT DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
+  REFERENCE_TIME m_rtPrev;
+
 protected:
   virtual HRESULT DeliverPacket(Packet *pPacket);
 
