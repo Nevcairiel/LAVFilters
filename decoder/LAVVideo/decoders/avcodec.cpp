@@ -676,7 +676,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     // When Frame Threading, we won't know how much data has been consumed, so it by default eats everything.
     // In addition, if no data got consumed, and no picture was extracted, the frame probably isn't all that useufl.
     // The MJPEB decoder is somewhat buggy and doesn't let us know how much data was consumed really...
-    if ((!m_pParser && (m_pAVCtx->active_thread_type & FF_THREAD_FRAME || (!got_picture && used_bytes == 0))) || m_nCodecId == CODEC_ID_MJPEGB || bFlush) {
+    if ((!m_pParser && (m_pAVCtx->active_thread_type & FF_THREAD_FRAME || (!got_picture && used_bytes == 0))) || m_nCodecId == CODEC_ID_MJPEGB || m_nCodecId == CODEC_ID_LOCO || bFlush) {
       buflen = 0;
     } else {
       buflen -= used_bytes;
