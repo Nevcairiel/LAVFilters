@@ -74,6 +74,7 @@ private:
   CH264RandomAccess    m_h264RandomAccess;
 
   BOOL                 m_bNoBufferConsumption;
+  BOOL                 m_bHasPalette;
 
   // Timing settings
   BOOL                 m_bFFReordering;

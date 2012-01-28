@@ -27,6 +27,8 @@
 
 #include "Media.h"
 
+#include "libavutil/intreadwrite.h"
+
 #ifdef DEBUG
 #include "lavf_log.h"
 #endif
@@ -438,6 +440,15 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bNoBufferConsumption =    codec == CODEC_ID_MJPEGB
                            || codec == CODEC_ID_LOCO;
 
+  m_bHasPalette = m_pAVCtx->bits_per_coded_sample <= 8 && m_pAVCtx->extradata_size && !m_pCallback->IsLAVSplitter()
+                  &&  (codec == CODEC_ID_MSVIDEO1
+                    || codec == CODEC_ID_MSRLE
+                    || codec == CODEC_ID_CINEPAK
+                    || codec == CODEC_ID_8BPS
+                    || codec == CODEC_ID_QPEG
+                    || codec == CODEC_ID_QTRLE
+                    || codec == CODEC_ID_TSCC);
+
   SAFE_CO_FREE(pszExtension);
 
   if (FAILED(AdditionaDecoderInit())) {
@@ -592,6 +603,16 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       avpkt.pts = rtStartIn;
       avpkt.dts = rtStopIn;
       avpkt.flags = AV_PKT_FLAG_KEY;
+
+      if (m_bHasPalette) {
+        m_bHasPalette = FALSE;
+        uint32_t *pal = (uint32_t *)av_packet_new_side_data(&avpkt, AV_PKT_DATA_PALETTE, AVPALETTE_SIZE);
+        int pal_size = FFMIN((1 << m_pAVCtx->bits_per_coded_sample) << 2, m_pAVCtx->extradata_size);
+        uint8_t *pal_src = m_pAVCtx->extradata + m_pAVCtx->extradata_size - pal_size;
+
+        for (int i = 0; i < pal_size/4; i++)
+          pal[i] = 0xFF<<24 | AV_RL32(pal_src+4*i);
+      }
     } else {
       avpkt.data = NULL;
       avpkt.size = 0;
