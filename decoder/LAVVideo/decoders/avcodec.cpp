@@ -522,6 +522,7 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
   if (m_pAVCtx) {
     if (m_pAVCtx->codec)
       avcodec_close(m_pAVCtx);
+    av_freep(&m_pAVCtx->priv_data);
     av_freep(&m_pAVCtx->extradata);
     av_freep(&m_pAVCtx);
   }
