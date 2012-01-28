@@ -65,6 +65,7 @@ typedef enum LAVVideoCodec {
   Codec_Dirac,
   Codec_DNxHD,
   Codec_MSVideo1,
+  Codec_8BPS,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
