@@ -197,6 +197,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_8BPS, CODEC_ID_8BPS  },
   { &MEDIASUBTYPE_LOCO, CODEC_ID_LOCO  },
   { &MEDIASUBTYPE_ZMBV, CODEC_ID_ZMBV  },
+  { &MEDIASUBTYPE_VCR1, CODEC_ID_VCR1 },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO  },
@@ -372,6 +373,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_8BPS },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_LOCO },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ZMBV },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_VCR1 },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -450,6 +452,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_8BPS }},                                                // Codec_8BPS
   { 1, { CODEC_ID_LOCO }},                                                // Codec_LOCO
   { 1, { CODEC_ID_ZMBV }},                                                // Codec_ZMBV
+  { 1, { CODEC_ID_VCR1 }},                                                // Codec_VCR1
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
