@@ -73,6 +73,8 @@ private:
 
   CH264RandomAccess    m_h264RandomAccess;
 
+  BOOL                 m_bNoBufferConsumption;
+
   // Timing settings
   BOOL                 m_bFFReordering;
   BOOL                 m_bCalculateStopTime;
