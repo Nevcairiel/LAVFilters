@@ -1,5 +1,24 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.45 - 2012/01/28
+LAV Splitter
+- Improved playback of concatenated H.264 MOV/MP4 files
+- Adjusted FLAC MediaType to avoid ReClock stealing the connection
+- Improved playback of MPEG-TS with timestamp discontinuities
+
+LAV Audio
+- Fixed playback of very short PCM samples
+- Improved COOK decoding without LAV Splitter
+
+LAV Video
+- New DXVA2 "copy back" decoder (see release notes)
+- Updated Intel QuickSync decoder (r29)
+- Multi-threaded decoding for RV30/40, UtVideo and DNxHD
+- Support for the "FCC" color matrix
+- Improved Dirac support
+- CUVID support for MPEG-4 ASP (experimental)
+- Support for Intel Indeo 4, MS Video 1, 8BPS, LOCO, ZMBV, VCR1, AASC
+
 0.44 - 2012/01/07
 LAV Splitter
 - Fixed a seeking regression in the mkv demuxer introduced in 0.43
