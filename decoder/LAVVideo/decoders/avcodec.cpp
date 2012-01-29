@@ -503,6 +503,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   if (codec == CODEC_ID_DNXHD)
     m_pAVCtx->pix_fmt = PIX_FMT_YUV422P10;
+  else if (codec == CODEC_ID_FRAPS)
+    m_pAVCtx->pix_fmt = PIX_FMT_BGR24;
 
   DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_iInterlaced));
 
