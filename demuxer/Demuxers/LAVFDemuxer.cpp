@@ -1138,11 +1138,6 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
     AVStream *st = m_avFormat->streams[streamIdx];
     if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO || st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-      // Validate that streams have codec data when we take them into account for starttime/duration
-      if ((st->codec->codec_type == AVMEDIA_TYPE_AUDIO && st->codec->channels == 0)
-          || (st->codec->codec_type == AVMEDIA_TYPE_VIDEO && (st->codec->width * st->codec->height) == 0))
-        continue;
-
       if (st->duration != AV_NOPTS_VALUE) {
         st_duration = av_rescale_q(st->duration, st->time_base, AV_RATIONAL_TIMEBASE);
         if (st_duration > duration)

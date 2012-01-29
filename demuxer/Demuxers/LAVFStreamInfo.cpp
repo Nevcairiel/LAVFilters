@@ -56,9 +56,18 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
+  // Make sure DTS Express has valid settings
+  if (avstream->codec->codec_id == CODEC_ID_DTS && avstream->codec->codec_tag == 0xA2) {
+    avstream->codec->channels = avstream->codec->channels ? avstream->codec->channels : 2;
+    avstream->codec->sample_rate = avstream->codec->sample_rate ? avstream->codec->sample_rate : 48000;
+  }
+
   if (avstream->codec->codec_tag == 0) {
     avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
   }
+
+  if (avstream->codec->channels == 0 || avstream->codec->sample_rate == 0)
+    return E_FAIL;
 
   CMediaType mtype = g_AudioHelper.initAudioType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
 
@@ -144,6 +153,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   if (avstream->codec->codec_tag == 0) {
     avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
   }
+
+  if (avstream->codec->width == 0 || avstream->codec->height == 0)
+    return E_FAIL;
+
   CMediaType mtype = g_VideoHelper.initVideoType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
 
   mtype.SetTemporalCompression(TRUE);
