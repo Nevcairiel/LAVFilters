@@ -67,11 +67,11 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   { LAVPixFmt_YUV420bX, 16, 8, { LAVOutPixFmt_P016, LAVOutPixFmt_P010, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 
   // 4:2:2
-  { LAVPixFmt_YUV422, 8, 6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { LAVPixFmt_YUY2,   8, 6, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV422, 8, 7, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
+  { LAVPixFmt_YUY2,   8, 7, { LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
 
-  { LAVPixFmt_YUV422bX, 10, 8, { LAVOutPixFmt_P210, LAVOutPixFmt_v210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
-  { LAVPixFmt_YUV422bX, 16, 9, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_v210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
+  { LAVPixFmt_YUV422bX, 10, 9, { LAVOutPixFmt_P210, LAVOutPixFmt_v210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
+  { LAVPixFmt_YUV422bX, 16, 10, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_v210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
   
   // 4:4:4
   { LAVPixFmt_YUV444,    8, 7, { LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
