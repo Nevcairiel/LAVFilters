@@ -78,6 +78,12 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
   case LAVOutPixFmt_v410:
     hr = ConvertTov410(src, srcStride, dst, width, height, dstStride);
     break;
+  case LAVOutPixFmt_YV16:
+    hr = swscale_scale(inputFmt, PIX_FMT_YUV422P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    break;
+  case LAVOutPixFmt_YV24:
+    hr = swscale_scale(inputFmt, PIX_FMT_YUV444P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    break;
   default:
     ASSERT(0);
     hr = E_FAIL;

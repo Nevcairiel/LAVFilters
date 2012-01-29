@@ -176,7 +176,7 @@ template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<0>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<6>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<7>CONV_FUNC_PARAMS;
 
-DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12)
+DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
 {
   const uint8_t *y = src[0];
   const uint8_t *u = src[1];
@@ -185,12 +185,18 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12)
   const int inLumaStride    = srcStride[0];
   const int inChromaStride  = srcStride[1];
   const int outLumaStride   = dstStride;
-  const int outChromaStride = dstStride >> 1;
-
-  const int chromaWidth     = (width + 1) >> 1;
-  const int chromaHeight    = height >> 1;
+  int outChromaStride = dstStride;
 
   int line;
+  int chromaWidth  = width;
+  int chromaHeight = height;
+
+  if (inputFormat == LAVPixFmt_YUV420)
+    chromaHeight = chromaHeight << 1;
+  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_YUV422) {
+    chromaWidth = (chromaWidth + 1) << 1;
+    outChromaStride = outChromaStride << 1;
+  }
 
   // Copy planes
 

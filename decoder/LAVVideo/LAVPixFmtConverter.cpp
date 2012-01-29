@@ -100,6 +100,8 @@ LAVOutPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_RGB24, 24, 3, 0, { 1 }, { 1 } },                    // RGB24
   { FOURCCMap('012v'),  24, 4, 0, { 1 }, { 1 } },                    // v210 (packed)
   { FOURCCMap('014v'),  32, 4, 0, { 1 }, { 1 }  },                   // v410 (packed)
+  { MEDIASUBTYPE_YV16,  16, 1, 3, { 1, 1, 1 }, { 1, 2, 2 } },        // YV16
+  { FOURCCMap('42VY'),  24, 1, 3, { 1, 1, 1 }, { 1, 1, 1 } },        // YV24
 };
 
 static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, BOOL bFallbackToDefault = TRUE)
@@ -294,8 +296,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   if (m_OutputPixFmt == LAVOutPixFmt_v210 || m_OutputPixFmt == LAVOutPixFmt_v410) {
     // We assume that every filter that understands v210 will also properly handle it
     m_RequiredAlignment = 0;
-  } else if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_YUV420) {
-    convert = &CLAVPixFmtConverter::convert_yuv420_yv12;
+  } else if ((m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_YUV420)
+          || (m_OutputPixFmt == LAVOutPixFmt_YV16 && m_InputPixFmt == LAVPixFmt_YUV422)
+          || (m_OutputPixFmt == LAVOutPixFmt_YV24 && m_InputPixFmt == LAVPixFmt_YUV444)) {
+    convert = &CLAVPixFmtConverter::convert_yuv_yv;
     m_RequiredAlignment = 2;
   } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12) || (m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
     || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24)) {
