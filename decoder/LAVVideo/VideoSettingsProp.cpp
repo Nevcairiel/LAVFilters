@@ -76,6 +76,10 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   m_pVideoSettings->SetDeintTreatAsProgressive(bFlag);
 
   BOOL bPixFmts[LAVOutPixFmt_NB] = {0};
+  for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
+    bPixFmts[i] = TRUE;
+  }
+
   bPixFmts[LAVOutPixFmt_YV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_NV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_P010] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P010, BM_GETCHECK,0, 0);
