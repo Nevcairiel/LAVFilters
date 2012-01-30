@@ -192,10 +192,10 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   int chromaHeight = height;
 
   if (inputFormat == LAVPixFmt_YUV420)
-    chromaHeight = chromaHeight << 1;
+    chromaHeight = chromaHeight >> 1;
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_YUV422) {
-    chromaWidth = (chromaWidth + 1) << 1;
-    outChromaStride = outChromaStride << 1;
+    chromaWidth = (chromaWidth + 1) >> 1;
+    outChromaStride = outChromaStride >> 1;
   }
 
   // Copy planes
