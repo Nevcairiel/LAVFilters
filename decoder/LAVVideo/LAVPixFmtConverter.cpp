@@ -312,11 +312,13 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       convert = &CLAVPixFmtConverter::convert_yuv444_ayuv;
     } else if (m_OutputPixFmt == LAVOutPixFmt_Y410 && m_InputPixFmt == LAVPixFmt_YUV444bX && m_InBpp <= 10) {
       convert = &CLAVPixFmtConverter::convert_yuv444_y410;
-    } else if ((m_OutputPixFmt == LAVOutPixFmt_YV12 || m_OutputPixFmt == LAVOutPixFmt_NV12) && m_InputPixFmt == LAVPixFmt_YUV420bX) {
+    } else if (((m_OutputPixFmt == LAVOutPixFmt_YV12 || m_OutputPixFmt == LAVOutPixFmt_NV12) && m_InputPixFmt == LAVPixFmt_YUV420bX)
+             || (m_OutputPixFmt == LAVOutPixFmt_YV16 && m_InputPixFmt == LAVPixFmt_YUV422bX)
+             || (m_OutputPixFmt == LAVOutPixFmt_YV24 && m_InputPixFmt == LAVPixFmt_YUV444bX)) {
       if (m_OutputPixFmt == LAVOutPixFmt_NV12) {
-        convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<TRUE>;
+        convert = &CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<TRUE>;
       } else {
-        convert = &CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<FALSE>;
+        convert = &CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<FALSE>;
         m_RequiredAlignment = 32; // the U/V planes need to be 16 aligned..
       }
     } else if (((m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016) && m_InputPixFmt == LAVPixFmt_YUV420bX)

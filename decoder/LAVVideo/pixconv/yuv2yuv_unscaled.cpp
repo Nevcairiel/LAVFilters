@@ -25,7 +25,7 @@
 #include "pixconv_sse2_templates.h"
 
 template <int nv12>
-DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
+DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 {
   const uint16_t *y = (const uint16_t *)src[0];
   const uint16_t *u = (const uint16_t *)src[1];
@@ -33,18 +33,28 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
 
   const int inYStride = srcStride[0] >> 1;
   const int inUVStride = srcStride[1] >> 1;
-  const int outYStride = dstStride;
-  const int outUVStride = dstStride >> 1;
+
   const int shift = bpp - 8;
-  const int chromaWidth = (width + 1) >> 1;
+
+  int outLumaStride    = dstStride;
+  int outChromaStride  = dstStride;
+  int chromaWidth      = width;
+  int chromaHeight     = height;
+
+  if (inputFormat == LAVPixFmt_YUV420bX)
+    chromaHeight = chromaHeight >> 1;
+  if (inputFormat == LAVPixFmt_YUV420bX || inputFormat == LAVPixFmt_YUV422bX) {
+    chromaWidth = (chromaWidth + 1) >> 1;
+    outChromaStride = outChromaStride >> 1;
+  }
 
   int line, i;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
 
   uint8_t *dstY = dst;
-  uint8_t *dstV = dst + outYStride * height;
-  uint8_t *dstU = dstV + outUVStride * (height >> 1);
+  uint8_t *dstV = dst + outLumaStride * height;
+  uint8_t *dstU = dstV + outChromaStride * chromaHeight;
 
   xmm5 = _mm_set1_epi32(0xff00ff00);
 
@@ -53,7 +63,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
     // Load dithering coefficients for this line
     PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
 
-    __m128i *dst128Y = (__m128i *)(dst + line * outYStride);
+    __m128i *dst128Y = (__m128i *)(dst + line * outLumaStride);
 
     for (i = 0; i < width; i+=16) {
       // Load pixels into registers, and apply dithering
@@ -74,9 +84,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
     // Load dithering coefficients for this line
     PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
 
-    __m128i *dst128UV = (__m128i *)(dstV + line * outYStride);
-    __m128i *dst128U = (__m128i *)(dstU + line * outUVStride);
-    __m128i *dst128V = (__m128i *)(dstV + line * outUVStride);
+    __m128i *dst128UV = (__m128i *)(dstV + line * outLumaStride);
+    __m128i *dst128U = (__m128i *)(dstU + line * outChromaStride);
+    __m128i *dst128V = (__m128i *)(dstV + line * outChromaStride);
 
     for (i = 0; i < chromaWidth; i+=16) {
       PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i), shift);    /* U0U0U0U0 */
@@ -110,8 +120,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yv12_nv12_dither_le)
 }
 
 // Force creation of these two variants
-template HRESULT CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<0>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv420_yv12_nv12_dither_le<1>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<1>CONV_FUNC_PARAMS;
 
 template <int shift>
 DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
