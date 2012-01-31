@@ -80,7 +80,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 
   // Process U & V
 
-  for (line = 0; line < (height >> 1); ++line) {
+  for (line = 0; line < chromaHeight; ++line) {
     // Load dithering coefficients for this line
     PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
 
