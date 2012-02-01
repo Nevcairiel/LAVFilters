@@ -338,6 +338,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     m_pAVCtx->thread_count = 1;
   }
 
+  if ((codec == CODEC_ID_THEORA || codec == CODEC_ID_VP3)
+    && (m_pCallback->FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSplitter) || m_pCallback->FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSource))) {
+    m_pAVCtx->thread_count = 1;
+  }
+
   m_pFrame = avcodec_alloc_frame();
   CheckPointer(m_pFrame, E_POINTER);
 
