@@ -423,10 +423,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
                            || codec == CODEC_ID_DIRAC
                            || codec == CODEC_ID_UTVIDEO
                            || codec == CODEC_ID_DNXHD
+                           || (codec == CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video)
                            || bVC1IsPTS;
 
   // Stop time is unreliable, drop it and calculate it
-  m_bCalculateStopTime   = (codec == CODEC_ID_H264 || codec == CODEC_ID_DIRAC || bVC1IsPTS);
+  m_bCalculateStopTime   = (codec == CODEC_ID_H264 || codec == CODEC_ID_DIRAC || (codec == CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video) || bVC1IsPTS);
 
   // Real Video content has some odd timestamps
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
