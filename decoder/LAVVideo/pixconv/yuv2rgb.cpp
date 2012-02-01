@@ -237,10 +237,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   const uint16_t *dithers2 = dither_8x8_256[(line+1) % 8];
   xmm3 = _mm_load_si128((const __m128i *)dithers2);
 
-  xmm3 = _mm_srli_si128 (xmm3, 8);
-  xmm4 = _mm_set_epi32(0xffffffff, 0xffffffff, 0, 0);
-  xmm2 = _mm_and_si128(xmm2, xmm4);
-  xmm2 = _mm_or_si128(xmm2, xmm3);
+  xmm2 = _mm_unpacklo_epi64(xmm2, xmm3);
   xmm2 = _mm_srli_epi16(xmm2, 4);
 
   xmm6 = _mm_adds_epu16(xmm6, xmm2);                          /* Apply coefficients to the RGB values */
