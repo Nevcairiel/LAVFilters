@@ -29,6 +29,7 @@ interface ILAVPinInfo : public IUnknown
   // Get a set of flags that convey a special information for this kind of stream
   STDMETHOD_(DWORD,GetStreamFlags)() PURE;
 #define LAV_STREAM_FLAG_H264_DTS  0x0000001 ///< H264 stream has DTS timestamps (AVI, MKV in MS-Compat mode)
+#define LAV_STREAM_FLAG_RV34_MKV  0x0000002 ///< RV30/40 in MKV or similar container with horrible timstamps
 
   // Get the pixel format detected for this video stream
   STDMETHOD_(int,GetPixelFormat)() PURE;
