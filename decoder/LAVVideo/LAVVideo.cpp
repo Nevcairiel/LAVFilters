@@ -452,6 +452,22 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     return VFW_E_TYPE_NOT_ACCEPTED;
   }
 
+  // Check if codec is activated
+  for(int i = 0; i < Codec_NB; ++i) {
+    const codec_config_t *config = get_codec_config((LAVVideoCodec)i);
+    bool bMatched = false;
+    for (int k = 0; k < config->nCodecs; ++k) {
+      if (config->codecs[k] == codec) {
+        bMatched = true;
+        break;
+      }
+    }
+    if (bMatched && !m_settings.bFormats[i]) {
+      DbgLog((LOG_TRACE, 10, L"-> Codec is disabled", codec));
+      return VFW_E_TYPE_NOT_ACCEPTED;
+    }
+  }
+
   ILAVPinInfo *pPinInfo = NULL;
   hr = FindPinIntefaceInGraph(m_pInput, IID_ILAVPinInfo, (void **)&pPinInfo);
   if (SUCCEEDED(hr)) {
@@ -474,22 +490,6 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   m_bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
 
   SAFE_CO_FREE(pszExtension);
-
-  // Check if codec is activated
-  for(int i = 0; i < Codec_NB; ++i) {
-    const codec_config_t *config = get_codec_config((LAVVideoCodec)i);
-    bool bMatched = false;
-    for (int k = 0; k < config->nCodecs; ++k) {
-      if (config->codecs[k] == codec) {
-        bMatched = true;
-        break;
-      }
-    }
-    if (bMatched && !m_settings.bFormats[i]) {
-      DbgLog((LOG_TRACE, 10, L"-> Codec is disabled", codec));
-      return VFW_E_TYPE_NOT_ACCEPTED;
-    }
-  }
 
   BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
   DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
