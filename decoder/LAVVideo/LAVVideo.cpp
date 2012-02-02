@@ -70,6 +70,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pFilterBufferSink(NULL)
   , m_filterPixFmt(LAVPixFmt_None)
   , m_filterWidth(0), m_filterHeight(0)
+  , m_hrDeliver(S_OK)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -871,6 +872,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   if (!m_pDecoder)
     return E_UNEXPECTED;
 
+  m_hrDeliver = S_OK;
   hr = m_pDecoder->Decode(pIn);
   // If a hardware decoder indicates a hard failure, we switch back to software
   // This is used to indicate incompatible media
@@ -888,6 +890,9 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     DbgLog((LOG_TRACE, 10, L"-> Software decoder created, decoding frame again..."));
     hr = m_pDecoder->Decode(pIn);
   }
+
+  if (FAILED(m_hrDeliver))
+    return m_hrDeliver;
 
   return S_OK;
 }
@@ -1070,6 +1075,7 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   hr = m_pOutput->Deliver(pSampleOut);
   if (FAILED(hr)) {
     DbgLog((LOG_ERROR, 10, L"::Decode(): Deliver failed with hr: %x", hr));
+    m_hrDeliver = hr;
   }
 
   SafeRelease(&pSampleOut);

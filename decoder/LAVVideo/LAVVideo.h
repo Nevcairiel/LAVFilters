@@ -154,6 +154,8 @@ private:
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;
 
+  HRESULT              m_hrDeliver;
+
   BOOL                 m_bHWDecoder;
   BOOL                 m_bHWDecoderFailed;
 
