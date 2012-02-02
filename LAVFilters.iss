@@ -116,7 +116,7 @@ Source: bin_x64\libbluray.dll;         DestDir: {app}\x64; Flags: ignoreversion 
 Source: bin_x64\LAVAudio.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio64
 Source: bin_x64\LAVSplitter.ax;        DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
 Source: bin_x64\LAVVideo.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
-Source: bin_x64\IntelQuickSyncDecoder.dll; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete skipifsourcedoesntexist; Components: lavvideo32
+Source: bin_x64\IntelQuickSyncDecoder.dll; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete skipifsourcedoesntexist; Components: lavvideo64
 
 Source: COPYING;                       DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 Source: README.txt;                    DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
