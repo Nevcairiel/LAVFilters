@@ -205,6 +205,10 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_BIKB, CODEC_ID_BINKVIDEO  },
   { &MEDIASUBTYPE_SMK2, CODEC_ID_SMACKVIDEO },
   { &MEDIASUBTYPE_SMK4, CODEC_ID_SMACKVIDEO },
+
+  // Special raw formats
+  { &MEDIASUBTYPE_v210, CODEC_ID_V210 },
+  { &MEDIASUBTYPE_v410, CODEC_ID_V410 },
 };
 
 // Define Input Media Types
@@ -382,6 +386,10 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKB },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_SMK2 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_SMK4 },
+
+  // Special raw formats
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_v210 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_v410 },
 };
 const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
 
@@ -455,6 +463,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_LOCO }},                                                // Codec_LOCO
   { 1, { CODEC_ID_ZMBV }},                                                // Codec_ZMBV
   { 1, { CODEC_ID_VCR1 }},                                                // Codec_VCR1
+  { 2, { CODEC_ID_V210, CODEC_ID_V410 }, L"v210/v410", L"v210/v410 uncompressed"}, // Codec_v210
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)

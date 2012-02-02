@@ -144,6 +144,9 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.bFormats[Codec_QPEG]     = FALSE;
   m_settings.bFormats[Codec_MSRLE]    = FALSE;
 
+  // Raw formats, off by default
+  m_settings.bFormats[Codec_v210]     = FALSE;
+
   for (int i = 0; i < LAVOutPixFmt_NB; ++i)
     m_settings.bPixFmts[i] = TRUE;
 
