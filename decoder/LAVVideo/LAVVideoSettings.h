@@ -70,6 +70,7 @@ typedef enum LAVVideoCodec {
   Codec_ZMBV,
   Codec_VCR1,
   Codec_Snow,
+  Codec_FFV1,
   Codec_v210,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)

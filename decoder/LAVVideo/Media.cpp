@@ -200,6 +200,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_VCR1, CODEC_ID_VCR1 },
   { &MEDIASUBTYPE_AASC, CODEC_ID_AASC },
   { &MEDIASUBTYPE_SNOW, CODEC_ID_SNOW },
+  { &MEDIASUBTYPE_FFV1, CODEC_ID_FFV1 },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO  },
@@ -382,6 +383,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VCR1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_AASC },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_SNOW },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_FFV1 },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -466,6 +468,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_ZMBV }},                                                // Codec_ZMBV
   { 1, { CODEC_ID_VCR1 }},                                                // Codec_VCR1
   { 1, { CODEC_ID_SNOW }},                                                // Codec_Snow
+  { 1, { CODEC_ID_FFV1 }},                                                // Codec_FFV1
   { 2, { CODEC_ID_V210, CODEC_ID_V410 }, L"v210/v410", L"v210/v410 uncompressed"}, // Codec_v210
 };
 
