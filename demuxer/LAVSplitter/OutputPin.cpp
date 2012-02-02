@@ -69,6 +69,7 @@ STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   return 
     QI(IMediaSeeking)
+    QI(ILAVPinInfo)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -469,4 +470,14 @@ STDMETHODIMP CLAVOutputPin::GetRate(double* pdRate)
 STDMETHODIMP CLAVOutputPin::GetPreroll(LONGLONG* pllPreroll)
 {
   return (static_cast<CLAVSplitter*>(m_pFilter))->GetPreroll(pllPreroll);
+}
+
+STDMETHODIMP_(DWORD) CLAVOutputPin::GetStreamFlags()
+{
+  return (static_cast<CLAVSplitter*>(m_pFilter))->GetStreamFlags(m_streamId);
+}
+
+STDMETHODIMP_(int) CLAVOutputPin::GetPixelFormat()
+{
+  return (static_cast<CLAVSplitter*>(m_pFilter))->GetPixelFormat(m_streamId);
 }

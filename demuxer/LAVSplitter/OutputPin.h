@@ -30,9 +30,11 @@
 #include "moreuuids.h"
 
 #include "LAVSplitter.h"
+#include "ILAVPinInfo.h"
 
 class CLAVOutputPin
   : public CBaseOutputPin
+  , public ILAVPinInfo
   , IMediaSeeking
   , protected CAMThread
 {
@@ -74,6 +76,10 @@ public:
   STDMETHODIMP SetRate(double dRate);
   STDMETHODIMP GetRate(double* pdRate);
   STDMETHODIMP GetPreroll(LONGLONG* pllPreroll);
+
+  // ILAVPinInfo
+  STDMETHODIMP_(DWORD) GetStreamFlags();
+  STDMETHODIMP_(int) GetPixelFormat();
 
   size_t QueueCount();
   HRESULT QueuePacket(Packet *pPacket);

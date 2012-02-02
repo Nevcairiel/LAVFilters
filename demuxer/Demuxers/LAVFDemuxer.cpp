@@ -21,6 +21,7 @@
 #include "LAVFDemuxer.h"
 #include "LAVFUtils.h"
 #include "LAVFStreamInfo.h"
+#include "ILAVPinInfo.h"
 
 #include "LAVSplitterSettingsInternal.h"
 
@@ -1493,4 +1494,26 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
     best = streams->FindStream(NO_SUBTITLE_PID);
 
   return best;
+}
+
+STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
+{
+  if (!m_avFormat || dwStream >= m_avFormat->nb_streams)
+    return 0;
+
+  DWORD dwFlags = 0;
+  AVStream *st = m_avFormat->streams[dwStream];
+
+  if (st->codec->codec_id == CODEC_ID_H264 && (m_bAVI || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1))))
+    dwFlags |= LAV_STREAM_FLAG_H264_DTS;
+
+  return dwFlags;
+}
+
+STDMETHODIMP_(int) CLAVFDemuxer::GetPixelFormat(DWORD dwStream)
+{
+  if (!m_avFormat || dwStream >= m_avFormat->nb_streams)
+    return PIX_FMT_NONE;
+
+  return m_avFormat->streams[dwStream]->codec->pix_fmt;
 }

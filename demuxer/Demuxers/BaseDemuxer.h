@@ -144,6 +144,9 @@ public:
   // Called when the settings of the splitter change
   virtual void SettingsChanged(ILAVFSettingsInternal *pSettings) {};
 
+  virtual STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream) { return 0; }
+  virtual STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { return PIX_FMT_NONE; }
+
 public:
   class CStreamList : public std::deque<stream>
   {

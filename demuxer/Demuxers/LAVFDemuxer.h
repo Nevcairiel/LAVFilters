@@ -70,6 +70,9 @@ public:
 
   HRESULT SetActiveStream(StreamType type, int pid);
 
+  STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream);
+  STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream);
+
   // IAMExtendedSeeking
   STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
   STDMETHODIMP get_MarkerCount(long* pMarkerCount);
