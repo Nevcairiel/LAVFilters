@@ -20,6 +20,7 @@
 #pragma once
 
 #include "LAVVideoSettings.h"
+#include "ILAVPinInfo.h"
 
 /**
  * List of internally used pixel formats
@@ -127,6 +128,12 @@ typedef struct LAVFrame {
  */
 HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride = 0);
 
+typedef struct LAVPinInfo
+{
+  DWORD flags;              ///< Flags that describe the video content (see ILAVPinInfo.h for valid values)
+  PixelFormat pix_fmt;      ///< The pixel format used
+} LAVPinInfo;
+
 /**
  * Interface into the LAV Video core for the decoder implementations
  * This interface offers all required functions to properly communicate with the core
@@ -181,6 +188,13 @@ interface ILAVVideoCallback
   STDMETHOD_(BOOL, VC1IsDTS)() PURE;
 
   /**
+   * Check wether H264 is from a AVI file (or similar)
+   *
+   * @result TRUE/FALSE
+   */
+  STDMETHOD_(BOOL,H264IsAVI)() PURE;
+
+  /**
    * Check wether LAV Splitter is the source filter
    *
    * @return TRUE/FALSE
@@ -200,6 +214,11 @@ interface ILAVVideoCallback
    * @result media type
    */
   STDMETHOD_(CMediaType&, GetInputMediaType)() PURE;
+
+  /**
+   * Query the LAVPinInfo
+   */
+  STDMETHOD(GetLAVPinInfo)(LAVPinInfo &info) PURE;
 };
 
 /**

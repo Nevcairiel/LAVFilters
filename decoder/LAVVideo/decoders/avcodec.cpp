@@ -409,16 +409,16 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     }
   }
 
-  // Setup codec-specific timing logic
-  LPWSTR pszExtension = m_pCallback->GetFileExtension();
-  DbgLog((LOG_TRACE, 10, L"-> File extension: %s", pszExtension));
+  LAVPinInfo lavPinInfo = {0};
+  BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
 
+  // Setup codec-specific timing logic
   BOOL bVC1IsPTS = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
   // VC-1 is also a special case. Its required for splitters that deliver PTS timestamps (see bVC1IsPTS above)
-  m_bFFReordering        =  ( codec == CODEC_ID_H264 && (_wcsicmp(pszExtension, L".avi") != 0))
+  m_bFFReordering        =  ( codec == CODEC_ID_H264 && !m_pCallback->H264IsAVI())
                            || codec == CODEC_ID_VP8
                            || codec == CODEC_ID_VP3
                            || codec == CODEC_ID_THEORA
@@ -454,8 +454,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
                     || codec == CODEC_ID_QPEG
                     || codec == CODEC_ID_QTRLE
                     || codec == CODEC_ID_TSCC);
-
-  SAFE_CO_FREE(pszExtension);
 
   if (FAILED(AdditionaDecoderInit())) {
     return E_FAIL;
@@ -511,6 +509,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     m_pAVCtx->pix_fmt = PIX_FMT_YUV422P10;
   else if (codec == CODEC_ID_FRAPS)
     m_pAVCtx->pix_fmt = PIX_FMT_BGR24;
+
+  if (bLAVInfoValid && codec != CODEC_ID_FRAPS)
+    m_pAVCtx->pix_fmt = lavPinInfo.pix_fmt;
 
   DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_iInterlaced));
 

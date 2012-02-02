@@ -20,6 +20,7 @@
 #pragma once
 
 #include "decoders/ILAVDecoder.h"
+#include "ILAVPinInfo.h"
 
 #include "LAVPixFmtConverter.h"
 #include "LAVVideoSettings.h"
@@ -116,9 +117,11 @@ public:
   STDMETHODIMP_(LPWSTR) GetFileExtension();
   STDMETHODIMP_(BOOL) FilterInGraph(PIN_DIRECTION dir, const GUID &clsid) { if (dir == PINDIR_INPUT) return FilterInGraphSafe(m_pInput, clsid); else return FilterInGraphSafe(m_pOutput, clsid); }
   STDMETHODIMP_(BOOL) VC1IsDTS() { return m_bVC1IsDTS; }
+  STDMETHODIMP_(BOOL) H264IsAVI() { return m_bH264IsAVI; }
   STDMETHODIMP_(BOOL) IsLAVSplitter() { return m_bLAVSplitter; }
   STDMETHODIMP_(BOOL) IsVistaOrNewer();
   STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }
+  STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info) { if (m_LAVPinInfoValid) { info = m_LAVPinInfo; return S_OK; } return E_FAIL; }
 
 public:
   // Pin Configuration
@@ -167,6 +170,7 @@ private:
 
   DWORD                m_bDXVAExtFormatSupport;
   BOOL                 m_bVC1IsDTS;
+  BOOL                 m_bH264IsAVI;
   BOOL                 m_bLAVSplitter;
 
   AVFilterGraph        *m_pFilterGraph;
@@ -176,6 +180,9 @@ private:
   LAVPixelFormat       m_filterPixFmt;
   int                  m_filterWidth;
   int                  m_filterHeight;
+
+  BOOL                 m_LAVPinInfoValid;
+  LAVPinInfo           m_LAVPinInfo;
 
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {

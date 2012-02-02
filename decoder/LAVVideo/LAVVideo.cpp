@@ -64,17 +64,20 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bSendMediaType(FALSE)
   , m_bHWDecoder(FALSE), m_bHWDecoderFailed(FALSE)
   , m_bDXVAExtFormatSupport(-1)
-  , m_bVC1IsDTS(FALSE), m_bLAVSplitter(FALSE)
+  , m_bVC1IsDTS(FALSE), m_bH264IsAVI(FALSE), m_bLAVSplitter(FALSE)
   , m_pFilterGraph(NULL)
   , m_pFilterBufferSrc(NULL)
   , m_pFilterBufferSink(NULL)
   , m_filterPixFmt(LAVPixFmt_None)
   , m_filterWidth(0), m_filterHeight(0)
   , m_hrDeliver(S_OK)
+  , m_LAVPinInfoValid(FALSE)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
   m_processName = PathFindFileName (fileName);
+
+  memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
 
   avcodec_register_all();
   avfilter_register_all();
@@ -449,8 +452,28 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     return VFW_E_TYPE_NOT_ACCEPTED;
   }
 
+  ILAVPinInfo *pPinInfo = NULL;
+  hr = FindPinIntefaceInGraph(m_pInput, IID_ILAVPinInfo, (void **)&pPinInfo);
+  if (SUCCEEDED(hr)) {
+    memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
+
+    m_LAVPinInfoValid = TRUE;
+    m_LAVPinInfo.flags = pPinInfo->GetStreamFlags();
+    m_LAVPinInfo.pix_fmt = (PixelFormat)pPinInfo->GetPixelFormat();
+
+    SafeRelease(&pPinInfo);
+  } else {
+    m_LAVPinInfoValid = FALSE;
+  }
+
+  LPWSTR pszExtension = GetFileExtension();
+  DbgLog((LOG_TRACE, 10, L"-> File extension: %s", pszExtension));
+
   m_bVC1IsDTS    = (codec == CODEC_ID_VC1) && !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader));
+  m_bH264IsAVI   = (codec == CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && _wcsicmp(pszExtension, L".avi") == 0)));
   m_bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
+
+  SAFE_CO_FREE(pszExtension);
 
   // Check if codec is activated
   for(int i = 0; i < Codec_NB; ++i) {

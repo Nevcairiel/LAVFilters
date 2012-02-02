@@ -206,7 +206,8 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   m_bNeedSequenceCheck = FALSE;
   m_bInterlaced = TRUE;
-  m_bUseTimestampQueue = (codec == CODEC_ID_VC1 && m_pCallback->VC1IsDTS());
+  m_bUseTimestampQueue = (codec == CODEC_ID_H264 && m_pCallback->H264IsAVI())
+                      || (codec == CODEC_ID_VC1 && m_pCallback->VC1IsDTS());
 
   if (extralen > 0) {
     if (fourCC == FourCC_AVC1 || fourCC == FourCC_H264) {
