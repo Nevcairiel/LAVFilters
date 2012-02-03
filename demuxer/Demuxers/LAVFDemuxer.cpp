@@ -37,6 +37,7 @@ extern "C" {
 #include "BDDemuxer.h"
 
 #define AVFORMAT_GENPTS 0
+#define AVFORMAT_OPEN_TIMEOUT 20
 
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
 extern AVInputFormat lav_mkv_demuxer;
@@ -95,7 +96,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_pFontInstaller(NULL)
   , m_pszInputFormat(NULL)
   , m_bEnableTrackInfo(TRUE)
-  , m_Abort(0)
+  , m_Abort(0), m_timeOpening(0)
 {
   m_bSubStreams = settings->GetSubstreamsEnabled();
 
@@ -164,6 +165,12 @@ STDMETHODIMP CLAVFDemuxer::AbortOpening()
 int CLAVFDemuxer::avio_interrupt_cb(void *opaque)
 {
   CLAVFDemuxer *demux = (CLAVFDemuxer *)opaque;
+
+  // Check for file opening timeout
+  time_t now = time(NULL);
+  if (demux->m_timeOpening && now > (demux->m_timeOpening + AVFORMAT_OPEN_TIMEOUT))
+    return 1;
+
   return demux->m_Abort;
 }
 
@@ -192,12 +199,14 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   m_avFormat->pb = byteContext;
   m_avFormat->interrupt_callback = cb;
 
+  m_timeOpening = time(NULL);
   ret = avformat_open_input(&m_avFormat, fileName, NULL, NULL);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): avformat_open_input failed (%d)"), ret));
     goto done;
   }
-  DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): avformat_open_input opened file of type '%S'"), m_avFormat->iformat->name));
+  DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): avformat_open_input opened file of type '%S' (took %d seconds)"), m_avFormat->iformat->name, time(NULL) - m_timeOpening));
+  m_timeOpening = 0;
 
   CHECK_HR(hr = InitAVFormat(pszFileName));
 

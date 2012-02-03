@@ -163,4 +163,5 @@ private:
   CBDDemuxer *m_pBluRay;
 
   int m_Abort;
+  time_t m_timeOpening;
 };
