@@ -95,6 +95,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_pFontInstaller(NULL)
   , m_pszInputFormat(NULL)
   , m_bEnableTrackInfo(TRUE)
+  , m_Abort(0)
 {
   m_bSubStreams = settings->GetSubstreamsEnabled();
 
@@ -154,6 +155,18 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   return OpenInputStream(NULL, pszFileName);
 }
 
+STDMETHODIMP CLAVFDemuxer::AbortOpening()
+{
+  m_Abort = 1;
+  return S_OK;
+}
+
+int CLAVFDemuxer::avio_interrupt_cb(void *opaque)
+{
+  CLAVFDemuxer *demux = (CLAVFDemuxer *)opaque;
+  return demux->m_Abort;
+}
+
 STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName)
 {
   CAutoLock lock(m_pLock);
@@ -167,11 +180,12 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
     ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
   }
 
-  if (byteContext) {
-    // Create the avformat_context
-    m_avFormat = avformat_alloc_context();
-    m_avFormat->pb = byteContext;
-  }
+  AVIOInterruptCB cb = {avio_interrupt_cb, this};
+
+  // Create the avformat_context
+  m_avFormat = avformat_alloc_context();
+  m_avFormat->pb = byteContext;
+  m_avFormat->interrupt_callback = cb;
 
   ret = avformat_open_input(&m_avFormat, fileName, NULL, NULL);
   if (ret < 0) {

@@ -117,6 +117,8 @@ public:
 
   // Open the file
   virtual STDMETHODIMP Open(LPCOLESTR pszFileName) = 0;
+  // Abort opening the file
+  virtual STDMETHODIMP AbortOpening() { return E_NOTIMPL; }
   // Get Duration
   virtual REFERENCE_TIME GetDuration() const = 0;
   // Get the next packet from the file

@@ -55,6 +55,7 @@ class CLAVSplitter
   , public IFileSourceFilter
   , public IMediaSeeking
   , public IAMStreamSelect
+  , public IAMOpenProgress
   , public ILAVFSettingsInternal
   , public ISpecifyPropertyPages
   , public IObjectWithSite
@@ -103,6 +104,10 @@ public:
   STDMETHODIMP Count(DWORD *pcStreams);
   STDMETHODIMP Enable(long lIndex, DWORD dwFlags);
   STDMETHODIMP Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFlags, LCID *plcid, DWORD *pdwGroup, WCHAR **ppszName, IUnknown **ppObject, IUnknown **ppUnk);
+
+  // IAMOpenProgress
+  STDMETHODIMP QueryProgress(LONGLONG *pllTotal, LONGLONG *pllCurrent);
+  STDMETHODIMP AbortOperation();
 
   // ISpecifyPropertyPages
   STDMETHODIMP GetPages(CAUUID *pPages);

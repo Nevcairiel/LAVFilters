@@ -311,6 +311,18 @@ STDMETHODIMP CLAVSplitter::GetSite(REFIID riid, void **ppvSite)
   return E_NOINTERFACE;
 }
 
+// IAMOpenProgress
+
+STDMETHODIMP CLAVSplitter::QueryProgress(LONGLONG *pllTotal, LONGLONG *pllCurrent)
+{
+  return E_NOTIMPL;
+}
+
+STDMETHODIMP CLAVSplitter::AbortOperation()
+{
+  return m_pDemuxer->AbortOpening();
+}
+
 // CBaseSplitter
 int CLAVSplitter::GetPinCount()
 {
@@ -1491,5 +1503,6 @@ STDMETHODIMP CLAVSplitterSource::NonDelegatingQueryInterface(REFIID riid, void**
 
   return
     QI(IFileSourceFilter)
+    QI(IAMOpenProgress)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }

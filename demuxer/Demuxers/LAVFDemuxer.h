@@ -54,6 +54,7 @@ public:
 
   // CBaseDemuxer
   STDMETHODIMP Open(LPCOLESTR pszFileName);
+  STDMETHODIMP AbortOpening();
   REFERENCE_TIME GetDuration() const;
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
@@ -127,6 +128,8 @@ private:
 
   HRESULT UpdateForcedSubtitleStream(unsigned audio_pid);
 
+  static int avio_interrupt_cb(void *opaque);
+
 private:
   AVFormatContext *m_avFormat;
   const char *m_pszInputFormat;
@@ -158,4 +161,6 @@ private:
 
   BOOL m_bBluRay;
   CBDDemuxer *m_pBluRay;
+
+  int m_Abort;
 };
