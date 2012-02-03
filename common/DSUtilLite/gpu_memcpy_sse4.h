@@ -19,90 +19,86 @@
  *  Taken from the QuickSync decoder by Eric Gur
  */
 
+#include <emmintrin.h>
+
 // gpu_memcpy is a memcpy style function that copied data very fast from a
 // GPU tiled memory (write back)
 // Performance tip: page offset (12 lsb) of both addresses should be different
 //  optimally use a 2K offset between them.
 inline void* gpu_memcpy(void* d, const void* s, size_t size)
 {
+    static const size_t regsInLoop = sizeof(size_t) * 2; // 8 or 16
+
     if (d == NULL || s == NULL) return NULL;
 
-    //if memory is not aligned, use memcpy
+    // If memory is not aligned, use memcpy
     bool isAligned = (((size_t)(s) | (size_t)(d)) & 0xF) == 0;
     if (!isAligned)
     {
         return memcpy(d, s, size);
     }
 
-    size_t reminder = size & 127; // copy 128 bytes every loop
+    __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+#ifdef _M_X64
+    __m128i xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15;
+#endif
+
+    size_t reminder = size & (regsInLoop * sizeof(xmm0) - 1); // Copy 128 or 256 bytes every loop
     size_t end = 0;
 
     __m128i* pTrg = (__m128i*)d;
     __m128i* pTrgEnd = pTrg + ((size - reminder) >> 4);
     __m128i* pSrc = (__m128i*)s;
     
-    // make sure source is synced - doesn't hurt if not needed.
+    // Make sure source is synced - doesn't hurt if not needed.
     _mm_sfence();
 
-// split main loop to 32 and 64 bit code
-// 64 doesn't have inline assembly and assembly code is faster.
-// TODO: write a pure ASM function for the 64 bit verrsion.
-#ifdef _M_X64 
     while (pTrg < pTrgEnd)
     {
-        // Emits the Streaming SIMD Extensions 4 (SSE4.1) instruction movntdqa
-        // fastest method for copying GPU RAM. Availble since Penryn (45nm Core 2 Dou/Quad)
-        pTrg[0] = _mm_stream_load_si128(&pSrc[0]);
-        pTrg[1] = _mm_stream_load_si128(&pSrc[1]);
-        pTrg[2] = _mm_stream_load_si128(&pSrc[2]);
-        pTrg[3] = _mm_stream_load_si128(&pSrc[3]);
-        pTrg[4] = _mm_stream_load_si128(&pSrc[4]);
-        pTrg[5] = _mm_stream_load_si128(&pSrc[5]);
-        pTrg[6] = _mm_stream_load_si128(&pSrc[6]);
-        pTrg[7] = _mm_stream_load_si128(&pSrc[7]);
-        pSrc += 8;
-        pTrg += 8;
-    }
-#else // end of 64 bit code
-    __asm
-    {
-        mov ecx, pSrc;
-        mov edx, pTrg;
-        mov eax, pTrgEnd;
-
-        // test ending condition
-        cmp edx, eax; // if (pTrgEnd >= pTrg) goto endLoop
-        jae endLoop;
-startLoop:
-        movntdqa  xmm0,    [ecx];
-        movdqa    [edx],       xmm0;
-        movntdqa  xmm1,    [ecx + 16];
-        movdqa    [edx + 16],  xmm1;
-        movntdqa  xmm2,       [ecx + 32];
-        movdqa    [edx + 32],  xmm2;
-        movntdqa  xmm3,       [ecx + 48];
-        movdqa    [edx + 48],  xmm3;
-        movntdqa  xmm4,       [ecx + 64];
-        movdqa    [edx + 64],  xmm4;
-        movntdqa  xmm5,       [ecx + 80];
-        movdqa    [edx + 80],  xmm5;
-        movntdqa  xmm6,       [ecx + 96];
-        movdqa    [edx + 96],  xmm6;
-        movntdqa  xmm7,       [ecx + 112];
-        movdqa    [edx + 112], xmm7;
-        add  edx, 128;
-        add  ecx, 128;
-        cmp edx, eax; // if (pTrgEnd > pTrg) goto startLoop
-        jb  startLoop;
-endLoop:
+        // _mm_stream_load_si128 emits the Streaming SIMD Extensions 4 (SSE4.1) instruction MOVNTDQA
+        // Fastest method for copying GPU RAM. Available since Penryn (45nm Core 2 Duo/Quad)
+        xmm0  = _mm_stream_load_si128(pSrc);
+        xmm1  = _mm_stream_load_si128(pSrc + 1);
+        xmm2  = _mm_stream_load_si128(pSrc + 2);
+        xmm3  = _mm_stream_load_si128(pSrc + 3);
+        xmm4  = _mm_stream_load_si128(pSrc + 4);
+        xmm5  = _mm_stream_load_si128(pSrc + 5);
+        xmm6  = _mm_stream_load_si128(pSrc + 6);
+        xmm7  = _mm_stream_load_si128(pSrc + 7);
+#ifdef _M_X64 // Use all 16 xmm registers
+        xmm8  = _mm_stream_load_si128(pSrc + 8);
+        xmm9  = _mm_stream_load_si128(pSrc + 9);
+        xmm10 = _mm_stream_load_si128(pSrc + 10);
+        xmm11 = _mm_stream_load_si128(pSrc + 11);
+        xmm12 = _mm_stream_load_si128(pSrc + 12);
+        xmm13 = _mm_stream_load_si128(pSrc + 13);
+        xmm14 = _mm_stream_load_si128(pSrc + 14);
+        xmm15 = _mm_stream_load_si128(pSrc + 15);
+#endif
+        pSrc += regsInLoop;
+        // _mm_store_si128 emit the SSE2 intruction MOVDQA (aligned store)
+        _mm_store_si128(pTrg     , xmm0);
+        _mm_store_si128(pTrg +  1, xmm1);
+        _mm_store_si128(pTrg +  2, xmm2);
+        _mm_store_si128(pTrg +  3, xmm3);
+        _mm_store_si128(pTrg +  4, xmm4);
+        _mm_store_si128(pTrg +  5, xmm5);
+        _mm_store_si128(pTrg +  6, xmm6);
+        _mm_store_si128(pTrg +  7, xmm7);
+#ifdef _M_X64 // Use all 16 xmm registers
+        _mm_store_si128(pTrg +  8, xmm8);
+        _mm_store_si128(pTrg +  9, xmm9);
+        _mm_store_si128(pTrg + 10, xmm10);
+        _mm_store_si128(pTrg + 11, xmm11);
+        _mm_store_si128(pTrg + 12, xmm12);
+        _mm_store_si128(pTrg + 13, xmm13);
+        _mm_store_si128(pTrg + 14, xmm14);
+        _mm_store_si128(pTrg + 15, xmm15);
+#endif
+        pTrg += regsInLoop;
     }
 
-    pTrg = pTrgEnd;
-    pSrc += (size - reminder) >> 4;
-
-#endif // end of 32 bit code
-
-    // copy in 16 byte steps
+    // Copy in 16 byte steps
     if (reminder >= 16)
     {
         size = reminder;
@@ -110,11 +106,11 @@ endLoop:
         end = size >> 4;
         for (size_t i = 0; i < end; ++i)
         {
-            pTrg[i] = _mm_stream_load_si128(&pSrc[i]);
+            pTrg[i] = _mm_stream_load_si128(pSrc + i);
         }
     }
 
-    // copy last bytes
+    // Copy last bytes - shouldn't happen as strides are modulu 16
     if (reminder)
     {
         __m128i temp = _mm_stream_load_si128(pSrc + end);
