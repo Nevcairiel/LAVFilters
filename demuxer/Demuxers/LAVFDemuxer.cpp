@@ -175,9 +175,14 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   int ret; // return code from avformat functions
 
   // Convert the filename from wchar to char for avformat
-  char fileName[4096] = {0};
+  char fileName[4100] = {0};
   if (pszFileName) {
     ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
+  }
+
+  if (strnicmp("mms:", fileName, 4) == 0) {
+    memmove(fileName+1, fileName, strlen(fileName));
+    memcpy(fileName, "mmsh", 4);
   }
 
   AVIOInterruptCB cb = {avio_interrupt_cb, this};
