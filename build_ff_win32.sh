@@ -30,6 +30,7 @@ OPTIONS="
 --enable-filter=scale \
 --disable-protocols \
 --enable-protocol=file \
+--enable-protocol=rtsp \
 --disable-muxers \
 --enable-muxer=spdif \
 --disable-hwaccels \
@@ -51,7 +52,6 @@ OPTIONS="
 --disable-devices \
 --disable-avdevice \
 --disable-bsfs \
---disable-network \
 --arch=x86 --cpu=i686 --target-os=mingw32 \
 --build-suffix=-lav"
 

@@ -101,6 +101,16 @@ void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWSTR chkb
   va_end(extensions);
 }
 
+void RegisterProtocolSourceFilter(const CLSID& clsid, LPCWSTR protocol)
+{
+  SetRegKeyValue(protocol, _T(""), _T("Source Filter"), CStringFromGUID(clsid));
+}
+
+void UnRegisterProtocolSourceFilter(LPCWSTR protocol)
+{
+  DeleteRegKey(protocol, _T(""));
+}
+
 void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LPCWSTR> chkbytes, ...)
 {
   std::wstring null = CStringFromGUID(GUID_NULL);

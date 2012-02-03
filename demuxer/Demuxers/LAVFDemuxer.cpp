@@ -57,6 +57,8 @@ void CLAVFDemuxer::ffmpeg_init()
 
     av_register_all();
     av_register_input_format(&lav_mkv_demuxer);
+
+    avformat_network_init();
   }
 }
 

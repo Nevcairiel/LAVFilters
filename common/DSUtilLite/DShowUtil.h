@@ -86,6 +86,9 @@ extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, LPCWS
 extern void RegisterSourceFilter(const CLSID& clsid, const GUID& subtype2, std::list<LPCWSTR> chkbytes, ...);
 extern void UnRegisterSourceFilter(const GUID& subtype);
 
+extern void RegisterProtocolSourceFilter(const CLSID& clsid, LPCWSTR protocol);
+extern void UnRegisterProtocolSourceFilter(LPCWSTR protocol);
+
 // Locale
 extern std::string ISO6391ToLanguage(LPCSTR code);
 extern std::string ISO6392ToLanguage(LPCSTR code);

@@ -217,6 +217,8 @@ STDAPI DllRegisterServer()
     chkbytes,
     L".bdmv", L".mpls", NULL);
 
+  RegisterProtocolSourceFilter(__uuidof(CLAVSplitterSource), L"rtsp");
+
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);
 }
@@ -234,6 +236,8 @@ STDAPI DllUnregisterServer()
 
   // Current types
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVBluRay);
+
+  UnRegisterProtocolSourceFilter(L"rtsp");
 
   // Do not unregister default MS types, like MEDIASUBTYPE_Avi
 
