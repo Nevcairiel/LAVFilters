@@ -187,7 +187,7 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
     ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
   }
 
-  if (strnicmp("mms:", fileName, 4) == 0) {
+  if (_strnicmp("mms:", fileName, 4) == 0) {
     memmove(fileName+1, fileName, strlen(fileName));
     memcpy(fileName, "mmsh", 4);
   }
