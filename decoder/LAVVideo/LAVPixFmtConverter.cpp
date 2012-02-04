@@ -127,6 +127,10 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
   , m_pAlignedBuffer(NULL)
   , m_rgbCoeffs(NULL)
   , m_bRGBConverter(FALSE)
+  , m_pRandomDithers(NULL)
+  , m_ditherWidth(0)
+  , m_ditherHeight(0)
+  , m_ditherBits(0)
 {
   convert = &CLAVPixFmtConverter::convert_generic;
 
@@ -429,4 +433,35 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
       dst += dstPlaneStride;
     }
   }
+}
+
+const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int width, int height, int coeffs, int bits, int line, int col)
+{
+  int totalWidth = FFALIGN(width * height * coeffs, 16);
+  if (!m_pRandomDithers || totalWidth > m_ditherWidth || height > m_ditherHeight || bits != m_ditherBits) {
+    m_ditherWidth = totalWidth;
+    m_ditherHeight = height;
+    m_ditherBits = bits;
+    m_pRandomDithers = (uint16_t *)_aligned_malloc(m_ditherWidth * m_ditherHeight * 2, 16);
+
+    DbgLog((LOG_TRACE, 10, L"Creating dither matrix"));
+    for (int i = 0; i < m_ditherHeight; i++) {
+      for (int j = 0; j < m_ditherWidth; j++) {
+        m_pRandomDithers[i * m_ditherWidth + j] = (rand() % (1 << bits));
+      }
+    }
+    DbgLog((LOG_TRACE, 10, L"Finished creating dither matrix"));
+  }
+
+  col *= coeffs;
+  if (col < 0 || col >= (m_ditherWidth - 16))
+    col = rand() % (m_ditherWidth - 16);
+
+  if (line < 0 || line >= m_ditherHeight)
+    line = rand() % m_ditherHeight;
+
+  // We need to ensure 16-byte alignment
+  col = FFALIGN(col, 8);
+
+  return &m_pRandomDithers[line * m_ditherWidth + col];
 }

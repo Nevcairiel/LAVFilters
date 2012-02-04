@@ -117,7 +117,7 @@ private:
   HRESULT ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
   HRESULT ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
 
-  void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; };
+  void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; if (m_pRandomDithers) _aligned_free(m_pRandomDithers); m_pRandomDithers = NULL; };
   SwsContext *GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags);
 
   void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format);
@@ -144,6 +144,7 @@ private:
 
   template <int out32> DECLARE_CONV_FUNC(convert_yuv_rgb);
   RGBCoeffs* getRGBCoeffs(int width, int height);
+  const uint16_t* GetRandomDitherCoeffs(int width, int height, int coeffs, int bits, int line, int col);
 
 private:
   LAVPixelFormat  m_InputPixFmt;
@@ -168,4 +169,9 @@ private:
 
   RGBCoeffs *m_rgbCoeffs;
   BOOL m_bRGBConverter;
+
+  uint16_t *m_pRandomDithers;
+  int m_ditherWidth;
+  int m_ditherHeight;
+  int m_ditherBits;
 };
