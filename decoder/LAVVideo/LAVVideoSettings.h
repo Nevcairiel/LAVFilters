@@ -149,6 +149,11 @@ typedef enum LAVOutPixFmts {
   LAVOutPixFmt_NB               // Number of formats
 } LAVOutPixFmts;
 
+typedef enum LAVDitherMode {
+  LAVDither_Ordered,
+  LAVDither_Random
+} LAVDitherMode;
+
 // LAV Audio configuration interface
 [uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")]
 interface ILAVVideoSettings : public IUnknown
@@ -277,4 +282,10 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get wether all content is treated as progressive, and any interlaced flags are ignored
   STDMETHOD_(BOOL, GetDeintTreatAsProgressive)() = 0;
+
+  // Set the dithering mode used
+  STDMETHOD(SetDitherMode)(LAVDitherMode ditherMode) = 0;
+
+  // Get the dithering mode used
+  STDMETHOD_(LAVDitherMode, GetDitherMode)() = 0;
 };

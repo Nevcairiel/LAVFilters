@@ -165,6 +165,8 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.DeintTreatAsProgressive = FALSE;
 
+  m_settings.DitherMode = LAVDither_Random;
+
   return S_OK;
 }
 
@@ -259,6 +261,9 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
   if (SUCCEEDED(hr)) m_settings.DeintTreatAsProgressive = bFlag;
 
+  dwVal = reg.ReadDWORD(L"DitherMode", hr);
+  if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
+
   return S_OK;
 }
 
@@ -302,6 +307,7 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
     reg.WriteBOOL(L"DeintTreatAsProgressive", m_settings.DeintTreatAsProgressive);
+    reg.WriteDWORD(L"DitherMode", m_settings.DitherMode);
   }
   return S_OK;
 }
@@ -1371,4 +1377,15 @@ STDMETHODIMP CLAVVideo::SetDeintTreatAsProgressive(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVVideo::GetDeintTreatAsProgressive()
 {
   return m_settings.DeintTreatAsProgressive;
+}
+
+STDMETHODIMP CLAVVideo::SetDitherMode(LAVDitherMode ditherMode)
+{
+  m_settings.DitherMode = ditherMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(LAVDitherMode) CLAVVideo::GetDitherMode()
+{
+  return (LAVDitherMode)m_settings.DitherMode;
 }
