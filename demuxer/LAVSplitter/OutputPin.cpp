@@ -63,6 +63,14 @@ void CLAVOutputPin::SetQueueSizes()
   m_dwQueueHigh = MAX_PACKETS_IN_QUEUE * factor;
 }
 
+HRESULT CLAVOutputPin::GetQueueSize(int& samples, int& size)
+{
+  CAutoLock lock(&m_queue);
+  samples = m_queue.Size();
+  size = m_queue.DataSize();
+  return S_OK;
+}
+
 STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);

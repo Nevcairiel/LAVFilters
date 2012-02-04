@@ -100,6 +100,8 @@ public:
 
   HRESULT QueueFromParser(Packet *pPacket) { m_queue.Queue(pPacket); return S_OK; }
 
+  HRESULT GetQueueSize(int& samples, int& size);
+
 public:
   // Packet handling functions
   virtual HRESULT DeliverBeginFlush();

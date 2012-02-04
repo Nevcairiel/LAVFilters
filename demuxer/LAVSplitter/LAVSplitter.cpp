@@ -261,6 +261,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI2(ILAVFSettings)
     QI2(ILAVFSettingsInternal)
     QI(IObjectWithSite)
+    QI(IBufferInfo)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -309,6 +310,30 @@ STDMETHODIMP CLAVSplitter::GetSite(REFIID riid, void **ppvSite)
     return S_OK;
   }
   return E_NOINTERFACE;
+}
+
+// IBufferInfo
+STDMETHODIMP_(int) CLAVSplitter::GetCount()
+{
+  CAutoLock pinLock(&m_csPins);
+  return m_pPins.size();
+}
+
+STDMETHODIMP CLAVSplitter::GetStatus(int i, int& samples, int& size)
+{
+  CAutoLock pinLock(&m_csPins);
+  if (i >= m_pPins.size())
+    return E_FAIL;
+
+  CLAVOutputPin *pPin = m_pPins.at(i);
+  if (!pPin)
+    return E_FAIL;
+  return pPin->GetQueueSize(samples, size);
+}
+
+STDMETHODIMP_(DWORD) CLAVSplitter::GetPriority()
+{
+  return 0;
 }
 
 // IAMOpenProgress

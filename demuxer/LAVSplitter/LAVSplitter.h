@@ -33,6 +33,7 @@
 
 #include "LAVSplitterSettingsInternal.h"
 #include "SettingsProp.h"
+#include "IBufferInfo.h"
 
 #define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
 #define LAVF_REGISTRY_KEY_FORMATS LAVF_REGISTRY_KEY L"\\Formats"
@@ -59,6 +60,7 @@ class CLAVSplitter
   , public ILAVFSettingsInternal
   , public ISpecifyPropertyPages
   , public IObjectWithSite
+  , public IBufferInfo
 {
 public:
   CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
@@ -115,6 +117,11 @@ public:
   // IObjectWithSite
   STDMETHODIMP SetSite(IUnknown *pUnkSite);
   STDMETHODIMP GetSite(REFIID riid, void **ppvSite);
+
+  // IBufferInfo
+  STDMETHODIMP_(int) GetCount();
+  STDMETHODIMP GetStatus(int i, int& samples, int& size);
+  STDMETHODIMP_(DWORD) GetPriority();
 
   // ILAVFSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
