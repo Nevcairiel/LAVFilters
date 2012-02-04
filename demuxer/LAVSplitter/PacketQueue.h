@@ -24,6 +24,9 @@
 #define MIN_PACKETS_IN_QUEUE 100           // Below this is considered "drying pin"
 #define MAX_PACKETS_IN_QUEUE 1000
 
+// 512MB maximum for a single queue
+#define MAX_QUEUE_SIZE       (512 * 1024 * 1024)
+
 class Packet;
 
 // FIFO Packet Queue
