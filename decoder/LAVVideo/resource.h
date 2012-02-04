@@ -72,6 +72,7 @@
 #define IDC_OUT_V210                    1062
 #define IDC_OUT_V410                    1063
 #define IDC_HWACCEL_MPEG4               1064
+#define IDC_LBL_FORMATS                 1065
 
 // Next default values for new objects
 // 
@@ -79,7 +80,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1065
+#define _APS_NEXT_CONTROL_VALUE         1066
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
