@@ -25,6 +25,9 @@ void CPacketQueue::Queue(Packet *pPacket, BOOL tryAppend)
 {
   CAutoLock cAutoLock(this);
 
+  if (pPacket)
+    m_dataSize += pPacket->GetDataSize();
+
   if (tryAppend && pPacket) {
     if (pPacket->bAppendable && !pPacket->bDiscontinuity && !pPacket->pmt
       && pPacket->rtStart == Packet::INVALID_TIME && !IsEmpty()
@@ -60,6 +63,10 @@ Packet *CPacketQueue::Get()
   }
   Packet *pPacket = m_queue.front();
   m_queue.pop_front();
+
+  if (pPacket)
+    m_dataSize -= pPacket->GetDataSize();
+
   return pPacket;
 }
 
@@ -69,6 +76,14 @@ size_t CPacketQueue::Size()
   CAutoLock cAutoLock(this);
 
   return m_queue.size();
+}
+
+// Get the size of the queue
+size_t CPacketQueue::DataSize()
+{
+  CAutoLock cAutoLock(this);
+
+  return m_dataSize;
 }
 
 // Clear the List (all elements are free'ed)
@@ -83,4 +98,5 @@ void CPacketQueue::Clear()
     delete *it;
   }
   m_queue.clear();
+  m_dataSize = 0;
 }
