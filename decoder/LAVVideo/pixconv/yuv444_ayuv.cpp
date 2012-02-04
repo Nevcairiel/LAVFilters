@@ -95,6 +95,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   const int inStride = srcStride[0] >> 1;
   const int outStride = dstStride << 2;
 
+  LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
+  const uint16_t *dithers = GetRandomDitherCoeffs(height, 3, 8, 0);
+
   // Number of bits to shift to reach 8
   int shift = bpp - 8;
 
@@ -102,31 +105,39 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
-  xmm5 = _mm_setzero_si128();
-  xmm6 = _mm_set1_epi16(-256); /* 0xFF00 - 0A0A0A0A */
+  xmm7 = _mm_set1_epi16(-256); /* 0xFF00 - 0A0A0A0A */
 
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line
-    PIXCONV_LOAD_DITHER_COEFFS(xmm7,line,8,dithers);
+    if (ditherMode == LAVDither_Random) {
+      xmm4 = _mm_load_si128((const __m128i *)(dithers + (line * 24) +  0));
+      xmm5 = _mm_load_si128((const __m128i *)(dithers + (line * 24) +  8));
+      xmm6 = _mm_load_si128((const __m128i *)(dithers + (line * 24) + 16));
+    } else {
+      PIXCONV_LOAD_DITHER_COEFFS(xmm6,line,8,dithers);
+      xmm4 = xmm5 = xmm6;
+    }
 
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
 
     for (i = 0; i < width; i+=8) {
       // Load pixels into registers, and apply dithering
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm7, (y+i), shift); /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm1, xmm7, (u+i), shift); /* U0U0U0U0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm7, (v+i), shift); /* V0V0V0V0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i), shift); /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm1, xmm5, (u+i), shift); /* U0U0U0U0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i), shift); /* V0V0V0V0 */
 
       // Interlave into AYUV
-      xmm0 = _mm_or_si128(xmm0, xmm6);          /* YAYAYAYA */
-      xmm1 = _mm_and_si128(xmm1, xmm6);         /* clear out clobbered low-bytes */
+      xmm0 = _mm_or_si128(xmm0, xmm7);          /* YAYAYAYA */
+      xmm1 = _mm_and_si128(xmm1, xmm7);         /* clear out clobbered low-bytes */
       xmm2 = _mm_or_si128(xmm2, xmm1);          /* VUVUVUVU */
-      xmm3 = _mm_unpacklo_epi16(xmm2, xmm0);    /* VUYAVUYA */
-      xmm4 = _mm_unpackhi_epi16(xmm2, xmm0);    /* VUYAVUYA */
+
+      xmm3 = xmm2;
+      xmm2 = _mm_unpacklo_epi16(xmm2, xmm0);    /* VUYAVUYA */
+      xmm3 = _mm_unpackhi_epi16(xmm3, xmm0);    /* VUYAVUYA */
 
       // Write data back
+      _mm_stream_si128(dst128++, xmm2);
       _mm_stream_si128(dst128++, xmm3);
-      _mm_stream_si128(dst128++, xmm4);
     }
 
     y += inStride;
