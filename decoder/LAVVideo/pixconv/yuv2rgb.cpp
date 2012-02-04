@@ -26,7 +26,7 @@
 #include "pixconv_sse2_templates.h"
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
-template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge> __forceinline
+template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype> __forceinline
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs, const uint16_t* &dithers)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -231,11 +231,27 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   xmm1 = _mm_add_epi16(xmm1, xmm0);                           /* B (12bit) */
 
   // Dithering
-  /* Load dithering coeffs and combine them for two lines */
-  xmm2 = _mm_load_si128((const __m128i *)(dithers +  0));
-  xmm3 = _mm_load_si128((const __m128i *)(dithers +  8));
-  xmm4 = _mm_load_si128((const __m128i *)(dithers + 16));
-  dithers += 24;
+  if (dithertype == LAVDither_Random) {
+    /* Load random dithering coeffs from the dithers buffer */
+    xmm2 = _mm_load_si128((const __m128i *)(dithers +  0));
+    xmm3 = _mm_load_si128((const __m128i *)(dithers +  8));
+    xmm4 = _mm_load_si128((const __m128i *)(dithers + 16));
+    dithers += 24;
+  } else {
+    /* Load dithering coeffs and combine them for two lines */
+    const uint16_t *d1 = dither_8x8_256[line % 8];
+    xmm2 = _mm_load_si128((const __m128i *)d1);
+    const uint16_t *d2 = dither_8x8_256[(line+1) % 8];
+    xmm3 = _mm_load_si128((const __m128i *)d2);
+
+    xmm4 = xmm2;
+    xmm2 = _mm_unpacklo_epi64(xmm2, xmm3);
+    xmm4 = _mm_unpackhi_epi64(xmm4, xmm3);
+    xmm2 = _mm_srli_epi16(xmm2, 4);
+    xmm4 = _mm_srli_epi16(xmm4, 4);
+
+    xmm3 = xmm4;
+  }
 
   xmm6 = _mm_adds_epu16(xmm6, xmm2);                          /* Apply coefficients to the RGB values */
   xmm5 = _mm_adds_epu16(xmm5, xmm3);
@@ -300,7 +316,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   return 0;
 }
 
-template <LAVPixelFormat inputFormat, int shift, int out32>
+template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype>
 static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, int sliceYStart, int sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
@@ -321,9 +337,9 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (line == 0) {
       for (int i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
 
       line = 1;
     }
@@ -332,7 +348,8 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   }
 
   for (; line < lastLine; line += 2) {
-    lineDither = dithers + (line * srcStrideY * 3);
+    if (dithertype == LAVDither_Random)
+      lineDither = dithers + (line * srcStrideY * 3);
     y = srcY + line * srcStrideY;
 
     if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
@@ -346,33 +363,34 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
     rgb = dst + line * dstStride;
 
     for (int i = 0; i < endx; i += 4) {
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither);
     }
-    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither);
+    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither);
   }
 
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (sliceYEnd == height) {
-      lineDither = dithers + ((height - 1) * srcStrideY * 3);
+      if (dithertype == LAVDither_Random)
+        lineDither = dithers + ((height - 1) * srcStrideY * 3);
       y = srcY + (height - 1) * srcStrideY;
       u = srcU + ((height >> 1) - 1)  * srcStrideUV;
       v = srcV + ((height >> 1) - 1)  * srcStrideUV;
       rgb = dst + (height - 1) * dstStride;
 
       for (int i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
     }
   }
   return 0;
 }
 
-template <LAVPixelFormat inputFormat, int shift, int out32>
+template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype>
 inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, RGBCoeffs *coeffs, const uint16_t *dithers, int threads)
 {
   if (threads <= 1) {
-    yuv2rgb_process_lines<inputFormat, shift, out32>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs, dithers);
+    yuv2rgb_process_lines<inputFormat, shift, out32, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs, dithers);
   } else {
     const int is_odd = (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12);
     const int lines_per_thread = (height / threads)&~1;
@@ -380,49 +398,52 @@ inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8
     Concurrency::parallel_for(0, threads, [&](int i) {
       const int starty = (i * lines_per_thread);
       const int endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
-      yuv2rgb_process_lines<inputFormat, shift, out32>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs, dithers);
+      yuv2rgb_process_lines<inputFormat, shift, out32, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs, dithers);
     });
   }
   return 0;
 }
 
-template <int out32>
+template <int out32, int dithertype>
 DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
   RGBCoeffs *coeffs = getRGBCoeffs(width, height);
-  const uint16_t *dithers = GetRandomDitherCoeffs(width, height, 3, 4, 0, 0);
+  const uint16_t *dithers = NULL;
+
+  if (dithertype == LAVDither_Random)
+    dithers = GetRandomDitherCoeffs(width, height, 3, 4, 0, 0);
 
   // Wrap the input format into template args
   switch (inputFormat) {
   case LAVPixFmt_YUV420:
-    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
   case LAVPixFmt_NV12:
-    return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  m_NumThreads);
   case LAVPixFmt_YUV420bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV422:
-    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
   case LAVPixFmt_YUV422bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV444:
-    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
   case LAVPixFmt_YUV444bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
     else
       ASSERT(0);
     break;
@@ -433,8 +454,10 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 }
 
 // Force creation of these two variants
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0, 0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0, 1>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1, 0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1, 1>CONV_FUNC_PARAMS;
 
 RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
 {
