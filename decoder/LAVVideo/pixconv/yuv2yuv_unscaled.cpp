@@ -379,30 +379,40 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
   const int chromaWidth     = (width + 1) >> 1;
   const int shift           = bpp - 8;
 
-  int line,i;
-  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
+  LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
+  const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
 
-  xmm4 = _mm_set1_epi32(0xff00ff00);
+  int line,i;
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
   for (line = 0;  line < height; ++line) {
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
 
     // Load dithering coefficients for this line
-    PIXCONV_LOAD_DITHER_COEFFS(xmm5,line,8,dithers);
+    if (ditherMode == LAVDither_Random) {
+      xmm4 = _mm_load_si128((const __m128i *)(dithers + (line << 5) +  0));
+      xmm5 = _mm_load_si128((const __m128i *)(dithers + (line << 5) +  8));
+      xmm6 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 16));
+      xmm7 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 24));
+    } else {
+      PIXCONV_LOAD_DITHER_COEFFS(xmm7,line,8,dithers);
+      xmm4 = xmm5 = xmm6 = xmm7;
+    }
 
     for (i = 0; i < chromaWidth; i+=8) {
       // Load pixels
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm5, (y+(i*2)+0), shift);  /* YYYY */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+(i*2)+0), shift);  /* YYYY */
       PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+(i*2)+8), shift);  /* YYYY */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm5, (u+i), shift);        /* UUUU */
-      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm3, xmm5, (v+i), shift);   /* VVVV */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (u+i), shift);        /* UUUU */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i), shift);        /* VVVV */
 
       // Pack Ys
       xmm0 = _mm_packus_epi16(xmm0, xmm1);
 
       // Interleave Us and Vs
-      xmm3 = _mm_and_si128(xmm3, xmm4);
-      xmm2 = _mm_or_si128(xmm2, xmm3);
+      xmm2 = _mm_packus_epi16(xmm2, xmm2);
+      xmm3 = _mm_packus_epi16(xmm3, xmm3);
+      xmm2 = _mm_unpacklo_epi8(xmm2, xmm3);
 
       // Interlave those with the Ys
       if (uyvy) {
