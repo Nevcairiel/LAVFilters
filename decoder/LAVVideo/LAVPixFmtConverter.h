@@ -144,7 +144,7 @@ private:
 
   template <int out32, int dithertype> DECLARE_CONV_FUNC(convert_yuv_rgb);
   RGBCoeffs* getRGBCoeffs(int width, int height);
-  const uint16_t* GetRandomDitherCoeffs(int width, int height, int coeffs, int bits, int line, int col);
+  const uint16_t* GetRandomDitherCoeffs(int height, int coeffs, int bits, int line);
 
 private:
   LAVPixelFormat  m_InputPixFmt;

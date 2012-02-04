@@ -25,9 +25,11 @@
 #include "pixconv_internal.h"
 #include "pixconv_sse2_templates.h"
 
+#define DITHER_STEPS 3
+
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
 template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype> __forceinline
-static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs, const uint16_t* &dithers)
+static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs, const uint16_t* &dithers, int pos)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
   xmm7 = _mm_setzero_si128 ();
@@ -233,10 +235,10 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // Dithering
   if (dithertype == LAVDither_Random) {
     /* Load random dithering coeffs from the dithers buffer */
-    xmm2 = _mm_load_si128((const __m128i *)(dithers +  0));
-    xmm3 = _mm_load_si128((const __m128i *)(dithers +  8));
-    xmm4 = _mm_load_si128((const __m128i *)(dithers + 16));
-    dithers += 24;
+    int offset = (pos % (DITHER_STEPS * 4)) * 6;
+    xmm2 = _mm_load_si128((const __m128i *)(dithers +  0 + offset));
+    xmm3 = _mm_load_si128((const __m128i *)(dithers +  8 + offset));
+    xmm4 = _mm_load_si128((const __m128i *)(dithers + 16 + offset));
   } else {
     /* Load dithering coeffs and combine them for two lines */
     const uint16_t *d1 = dither_8x8_256[line % 8];
@@ -337,9 +339,9 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (line == 0) {
       for (int i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
 
       line = 1;
     }
@@ -349,7 +351,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
 
   for (; line < lastLine; line += 2) {
     if (dithertype == LAVDither_Random)
-      lineDither = dithers + (line * srcStrideY * 3);
+      lineDither = dithers + (line * 24 * DITHER_STEPS);
     y = srcY + line * srcStrideY;
 
     if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
@@ -363,24 +365,24 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
     rgb = dst + line * dstStride;
 
     for (int i = 0; i < endx; i += 4) {
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, i);
     }
-    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither);
+    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
   }
 
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (sliceYEnd == height) {
       if (dithertype == LAVDither_Random)
-        lineDither = dithers + ((height - 1) * srcStrideY * 3);
+        lineDither = dithers + ((height - 1) * 24 * DITHER_STEPS);
       y = srcY + (height - 1) * srcStrideY;
       u = srcU + ((height >> 1) - 1)  * srcStrideUV;
       v = srcV + ((height >> 1) - 1)  * srcStrideUV;
       rgb = dst + (height - 1) * dstStride;
 
       for (int i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
     }
   }
   return 0;
@@ -411,7 +413,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   const uint16_t *dithers = NULL;
 
   if (dithertype == LAVDither_Random)
-    dithers = GetRandomDitherCoeffs(width, height, 3, 4, 0, 0);
+    dithers = GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0);
 
   // Wrap the input format into template args
   switch (inputFormat) {

@@ -26,6 +26,9 @@
 #include <MMReg.h>
 #include "moreuuids.h"
 
+#include <time.h>
+#include "rand_sse.h"
+
 /*
  * Availability of custom high-quality converters
  * x = formatter available, s = swscale converter used, - = format conversion not available (fallback to sws if we get tricked into it)
@@ -441,33 +444,49 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
   }
 }
 
-const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int width, int height, int coeffs, int bits, int line, int col)
+const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int height, int coeffs, int bits, int line)
 {
-  int totalWidth = FFALIGN(width * height * coeffs, 16);
+  int totalWidth = 8 * coeffs;
   if (!m_pRandomDithers || totalWidth > m_ditherWidth || height > m_ditherHeight || bits != m_ditherBits) {
     m_ditherWidth = totalWidth;
     m_ditherHeight = height;
     m_ditherBits = bits;
     m_pRandomDithers = (uint16_t *)_aligned_malloc(m_ditherWidth * m_ditherHeight * 2, 16);
 
+#ifdef DEBUG
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
     DbgLog((LOG_TRACE, 10, L"Creating dither matrix"));
+#endif
+
+    // Seed random number generator
+    time_t seed = time(NULL);
+    seed >>= 8;
+    srand_sse(seed);
+
+    bits = (1 << bits);
     for (int i = 0; i < m_ditherHeight; i++) {
-      for (int j = 0; j < m_ditherWidth; j++) {
-        m_pRandomDithers[i * m_ditherWidth + j] = (rand() % (1 << bits));
+      uint16_t *ditherline = m_pRandomDithers + (m_ditherWidth * i);
+      for (int j = 0; j < m_ditherWidth; j += 4) {
+        int rnds[4];
+        rand_sse(rnds);
+        ditherline[j+0] = rnds[0] % bits;
+        ditherline[j+1] = rnds[1] % bits;
+        ditherline[j+2] = rnds[2] % bits;
+        ditherline[j+3] = rnds[3] % bits;
       }
     }
-    DbgLog((LOG_TRACE, 10, L"Finished creating dither matrix"));
-  }
+#ifdef DEBUG
+    QueryPerformanceCounter(&end);
+    double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
+    DbgLog((LOG_TRACE, 10, L"Finished creating dither matrix (took %2.3fms)", diff));
+#endif
 
-  col *= coeffs;
-  if (col < 0 || col >= (m_ditherWidth - 16))
-    col = rand() % (m_ditherWidth - 16);
+  }
 
   if (line < 0 || line >= m_ditherHeight)
     line = rand() % m_ditherHeight;
 
-  // We need to ensure 16-byte alignment
-  col = FFALIGN(col, 8);
-
-  return &m_pRandomDithers[line * m_ditherWidth + col];
+  return &m_pRandomDithers[line * m_ditherWidth];
 }
