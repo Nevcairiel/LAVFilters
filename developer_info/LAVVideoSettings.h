@@ -68,6 +68,10 @@ typedef enum LAVVideoCodec {
   Codec_8BPS,
   Codec_LOCO,
   Codec_ZMBV,
+  Codec_VCR1,
+  Codec_Snow,
+  Codec_FFV1,
+  Codec_v210,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
@@ -138,6 +142,9 @@ typedef enum LAVOutPixFmts {
 
   LAVOutPixFmt_v210,            // 4:2:2, 10bit, packed
   LAVOutPixFmt_v410,            // 4:4:4, 10bit, packed
+
+  LAVOutPixFmt_YV16,            // 4:2:2, 8-bit, planar
+  LAVOutPixFmt_YV24,            // 4:4:4, 8-bit, planar
 
   LAVOutPixFmt_NB               // Number of formats
 } LAVOutPixFmts;
