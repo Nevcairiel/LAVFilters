@@ -41,6 +41,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   int chromaWidth      = width;
   int chromaHeight     = height;
 
+  LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
+  const uint16_t *dithers = GetRandomDitherCoeffs(height, 2, 8, 0);
+
   if (inputFormat == LAVPixFmt_YUV420bX)
     chromaHeight = chromaHeight >> 1;
   if (inputFormat == LAVPixFmt_YUV420bX || inputFormat == LAVPixFmt_YUV422bX) {
@@ -50,25 +53,29 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 
   int line, i;
 
-  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
   uint8_t *dstY = dst;
   uint8_t *dstV = dst + outLumaStride * height;
   uint8_t *dstU = dstV + outChromaStride * chromaHeight;
 
-  xmm5 = _mm_set1_epi32(0xff00ff00);
-
   // Process Y
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line
-    PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
+    if (ditherMode == LAVDither_Random) {
+      xmm4 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 0));
+      xmm5 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 8));
+    } else {
+      PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
+      xmm5 = xmm4;
+    }
 
     __m128i *dst128Y = (__m128i *)(dst + line * outLumaStride);
 
     for (i = 0; i < width; i+=16) {
       // Load pixels into registers, and apply dithering
       PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i), shift);   /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm4, (y+i+8), shift); /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+i+8), shift); /* Y0Y0Y0Y0 */
       xmm0 = _mm_packus_epi16(xmm0, xmm1);                     /* YYYYYYYY */
 
       // Write data back
@@ -78,11 +85,20 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
     y += inYStride;
   }
 
-  // Process U & V
+  xmm7 = _mm_set1_epi32(0xff00ff00);
 
+  // Process U & V
   for (line = 0; line < chromaHeight; ++line) {
     // Load dithering coefficients for this line
-    PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
+    if (ditherMode == LAVDither_Random) {
+      xmm4 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 0));
+      xmm5 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 8));
+      xmm6 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 16));
+      xmm7 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 24));
+    } else {
+      PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
+      xmm5 = xmm6 = xmm7 = xmm4;
+    }
 
     __m128i *dst128UV = (__m128i *)(dstV + line * outLumaStride);
     __m128i *dst128U = (__m128i *)(dstU + line * outChromaStride);
@@ -90,24 +106,25 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 
     for (i = 0; i < chromaWidth; i+=16) {
       PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i), shift);    /* U0U0U0U0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm4, (u+i+8), shift);  /* U0U0U0U0 */
-      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm2, xmm4, (v+i), shift);    /* 0V0V0V0V */
-      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm3, xmm4, (v+i+8), shift);  /* 0V0V0V0V */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (u+i+8), shift);  /* U0U0U0U0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i), shift);    /* V0V0V0V0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i+8), shift);  /* V0V0V0V0 */
 
       if (nv12) {
-        xmm2 = _mm_and_si128(xmm2, xmm5);
-        xmm3 = _mm_and_si128(xmm3, xmm5);
-        xmm0 = _mm_or_si128(xmm0, xmm2);                        /* UVUVUVUV */
-        xmm1 = _mm_or_si128(xmm1, xmm3);                        /* UVUVUVUV */
+        xmm0 = _mm_packus_epi16(xmm0, xmm1);
+        xmm2 = _mm_packus_epi16(xmm2, xmm3);
+
+        xmm1 = xmm0;
+        xmm0 = _mm_unpacklo_epi8(xmm0, xmm2);
+        xmm1 = _mm_unpackhi_epi8(xmm1, xmm2);
+
         _mm_stream_si128(dst128UV++, xmm0);
         _mm_stream_si128(dst128UV++, xmm1);
       } else {
         xmm0 = _mm_packus_epi16(xmm0, xmm1);                    /* UUUUUUUU */
-        _mm_stream_si128(dst128U++, xmm0);
-
-        xmm2 = _mm_srli_epi16(xmm2, 8);
-        xmm3 = _mm_srli_epi16(xmm3, 8);
         xmm2 = _mm_packus_epi16(xmm2, xmm3);                    /* VVVVVVVV */
+
+        _mm_stream_si128(dst128U++, xmm0);
         _mm_stream_si128(dst128V++, xmm2);
       }
     }
