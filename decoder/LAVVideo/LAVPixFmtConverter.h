@@ -148,7 +148,7 @@ private:
 private:
   LAVPixelFormat  m_InputPixFmt;
   LAVOutPixFmts   m_OutputPixFmt;
-  int                  m_InBpp;
+  int             m_InBpp;
 
   int swsWidth, swsHeight;
   int swsOutputRange;
