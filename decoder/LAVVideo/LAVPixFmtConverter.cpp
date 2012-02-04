@@ -446,8 +446,14 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
 
 const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int height, int coeffs, int bits, int line)
 {
+  if (m_pSettings->GetDitherMode() != LAVDither_Random)
+    return NULL;
+
   int totalWidth = 8 * coeffs;
   if (!m_pRandomDithers || totalWidth > m_ditherWidth || height > m_ditherHeight || bits != m_ditherBits) {
+    if (m_pRandomDithers)
+      _aligned_free(m_pRandomDithers);
+    m_pRandomDithers = NULL;
     m_ditherWidth = totalWidth;
     m_ditherHeight = height;
     m_ditherBits = bits;
@@ -462,8 +468,8 @@ const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int height, int coeff
 
     // Seed random number generator
     time_t seed = time(NULL);
-    seed >>= 8;
-    srand_sse(seed);
+    seed >>= 1;
+    srand_sse((unsigned int)seed);
 
     bits = (1 << bits);
     for (int i = 0; i < m_ditherHeight; i++) {
