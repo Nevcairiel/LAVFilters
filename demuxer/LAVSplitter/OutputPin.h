@@ -120,6 +120,8 @@ private:
 
   void SetQueueSizes();
 
+  void MakeISCRHappy();
+
 private:
   CCritSec m_csMT;
   std::vector<CMediaType> m_mts;
