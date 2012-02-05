@@ -235,7 +235,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // Dithering
   if (dithertype == LAVDither_Random) {
     /* Load random dithering coeffs from the dithers buffer */
-    int offset = (pos % (DITHER_STEPS * 4)) * 6;
+    int offset = (pos % (DITHER_STEPS * 4 * 2)) * 6;
     xmm2 = _mm_load_si128((const __m128i *)(dithers +  0 + offset));
     xmm3 = _mm_load_si128((const __m128i *)(dithers +  8 + offset));
     xmm4 = _mm_load_si128((const __m128i *)(dithers + 16 + offset));
@@ -373,7 +373,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (sliceYEnd == height) {
       if (dithertype == LAVDither_Random)
-        lineDither = dithers + ((height - 1) * 24 * DITHER_STEPS);
+        lineDither = dithers + ((height - 2) * 24 * DITHER_STEPS);
       y = srcY + (height - 1) * srcStrideY;
       u = srcU + ((height >> 1) - 1)  * srcStrideUV;
       v = srcV + ((height >> 1) - 1)  * srcStrideUV;
