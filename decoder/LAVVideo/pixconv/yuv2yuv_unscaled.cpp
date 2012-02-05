@@ -42,7 +42,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   int chromaHeight     = height;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
-  const uint16_t *dithers = GetRandomDitherCoeffs(height, 2, 8, 0);
+  const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
   if (dithers == NULL)
     ditherMode = LAVDither_Ordered;
 
@@ -65,23 +65,29 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line
     if (ditherMode == LAVDither_Random) {
-      xmm4 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 0));
-      xmm5 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 8));
+      xmm4 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 0));
+      xmm5 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 8));
+      xmm6 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 16));
+      xmm7 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 24));
     } else {
-      PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
-      xmm5 = xmm4;
+      PIXCONV_LOAD_DITHER_COEFFS(xmm7,line,8,dithers);
+      xmm4 = xmm5 = xmm6 = xmm7;
     }
 
     __m128i *dst128Y = (__m128i *)(dst + line * outLumaStride);
 
-    for (i = 0; i < width; i+=16) {
+    for (i = 0; i < width; i+=32) {
       // Load pixels into registers, and apply dithering
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i), shift);   /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+i+8), shift); /* Y0Y0Y0Y0 */
-      xmm0 = _mm_packus_epi16(xmm0, xmm1);                     /* YYYYYYYY */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i+ 0), shift);  /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+i+ 8), shift);  /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (y+i+16), shift);  /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (y+i+24), shift);  /* Y0Y0Y0Y0 */
+      xmm0 = _mm_packus_epi16(xmm0, xmm1);                       /* YYYYYYYY */
+      xmm2 = _mm_packus_epi16(xmm2, xmm3);                       /* YYYYYYYY */
 
       // Write data back
       _mm_stream_si128(dst128Y++, xmm0);
+      _mm_stream_si128(dst128Y++, xmm2);
     }
 
     y += inYStride;

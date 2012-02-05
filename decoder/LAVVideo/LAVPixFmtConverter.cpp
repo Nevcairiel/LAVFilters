@@ -326,8 +326,8 @@ void CLAVPixFmtConverter::SelectConvertFunction()
         convert = &CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<TRUE>;
       } else {
         convert = &CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<FALSE>;
-        m_RequiredAlignment = 32; // the U/V planes need to be 16 aligned..
       }
+      m_RequiredAlignment = 32;
     } else if (((m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016) && m_InputPixFmt == LAVPixFmt_YUV420bX)
             || ((m_OutputPixFmt == LAVOutPixFmt_P210 || m_OutputPixFmt == LAVOutPixFmt_P216) && m_InputPixFmt == LAVPixFmt_YUV422bX)) {
       if (m_InBpp == 10)
