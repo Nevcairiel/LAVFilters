@@ -139,6 +139,10 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetSWDeintOutput(bFlag ? DeintOutput_FramePer2Field : DeintOutput_FramePerField);
 
+  BOOL bOrdered = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DITHER_ORDERED, BM_GETCHECK, 0, 0);
+  BOOL bRandom = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DITHER_RANDOM, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetDitherMode(bOrdered ? LAVDither_Ordered : LAVDither_Random);
+
   LoadData();
 
   return hr;
@@ -201,6 +205,9 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
   addHint(IDC_HWDEINT_HQ, L"Instruct the decoder to use the maximum quality possible.\nThis will cost performance, it is however required for the best deinterlacing quality.\n\nNOTE: This option has no effect on Windows XP.");
 
+  addHint(IDC_DITHER_ORDERED, L"Ordered Dithering uses a static pattern, resulting in very smooth and regular pattern. However, in some cases the regular pattern can be visible and distracting.");
+  addHint(IDC_DITHER_RANDOM, L"Random Dithering uses random noise to dither the video frames. This has the advantage of not creating any visible pattern, at the downside of increasing the noise floor slightly.");
+
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_bStreamAR, 0);
@@ -250,6 +257,9 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_SETCHECK, m_SWDeint, 0);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_FILM, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePer2Field), 0);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_VIDEO, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePerField), 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_DITHER_ORDERED, BM_SETCHECK, (m_DitherMode == LAVDither_Ordered), 0);
+    SendDlgItemMessage(m_Dlg, IDC_DITHER_RANDOM, BM_SETCHECK, (m_DitherMode == LAVDither_Random), 0);
 
     UpdateHWOptions();
   }
@@ -317,6 +327,7 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_SWDeintOutMode = m_pVideoSettings->GetSWDeintOutput();
 
   m_DeintProgressive = m_pVideoSettings->GetDeintTreatAsProgressive();
+  m_DitherMode = m_pVideoSettings->GetDitherMode();
 
   return hr;
 }
@@ -517,6 +528,16 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_SWDEINT_ENABLE && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_SWDeint) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_DITHER_ORDERED && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_DitherMode == LAVDither_Ordered)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_DITHER_RANDOM && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_DitherMode == LAVDither_Random)) {
         SetDirty();
       }
     }

@@ -76,6 +76,8 @@ private:
   BOOL  m_SWDeint;
   DWORD m_SWDeintOutMode;
   BOOL  m_DeintProgressive;
+
+  DWORD m_DitherMode;
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage
