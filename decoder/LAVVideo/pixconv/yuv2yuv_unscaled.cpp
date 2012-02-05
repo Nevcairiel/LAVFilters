@@ -90,55 +90,42 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
       _mm_stream_si128(dst128Y++, xmm2);
     }
 
-    y += inYStride;
-  }
+    // Process U/V for chromaHeight lines
+    if (line < chromaHeight) {
+      __m128i *dst128UV = (__m128i *)(dstV + line * outLumaStride);
+      __m128i *dst128U = (__m128i *)(dstU + line * outChromaStride);
+      __m128i *dst128V = (__m128i *)(dstV + line * outChromaStride);
 
-  xmm7 = _mm_set1_epi32(0xff00ff00);
+       for (i = 0; i < chromaWidth; i+=16) {
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i), shift);    /* U0U0U0U0 */
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (u+i+8), shift);  /* U0U0U0U0 */
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i), shift);    /* V0V0V0V0 */
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i+8), shift);  /* V0V0V0V0 */
 
-  // Process U & V
-  for (line = 0; line < chromaHeight; ++line) {
-    // Load dithering coefficients for this line
-    if (ditherMode == LAVDither_Random) {
-      xmm4 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 0));
-      xmm5 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 8));
-      xmm6 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 16));
-      xmm7 = _mm_load_si128((const __m128i *)(dithers + (line << 5) + 24));
-    } else {
-      PIXCONV_LOAD_DITHER_COEFFS(xmm4,line,8,dithers);
-      xmm5 = xmm6 = xmm7 = xmm4;
-    }
+        if (nv12) {
+          xmm0 = _mm_packus_epi16(xmm0, xmm1);
+          xmm2 = _mm_packus_epi16(xmm2, xmm3);
 
-    __m128i *dst128UV = (__m128i *)(dstV + line * outLumaStride);
-    __m128i *dst128U = (__m128i *)(dstU + line * outChromaStride);
-    __m128i *dst128V = (__m128i *)(dstV + line * outChromaStride);
+          xmm1 = xmm0;
+          xmm0 = _mm_unpacklo_epi8(xmm0, xmm2);
+          xmm1 = _mm_unpackhi_epi8(xmm1, xmm2);
 
-    for (i = 0; i < chromaWidth; i+=16) {
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i), shift);    /* U0U0U0U0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (u+i+8), shift);  /* U0U0U0U0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i), shift);    /* V0V0V0V0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i+8), shift);  /* V0V0V0V0 */
+          _mm_stream_si128(dst128UV++, xmm0);
+          _mm_stream_si128(dst128UV++, xmm1);
+        } else {
+          xmm0 = _mm_packus_epi16(xmm0, xmm1);                    /* UUUUUUUU */
+          xmm2 = _mm_packus_epi16(xmm2, xmm3);                    /* VVVVVVVV */
 
-      if (nv12) {
-        xmm0 = _mm_packus_epi16(xmm0, xmm1);
-        xmm2 = _mm_packus_epi16(xmm2, xmm3);
-
-        xmm1 = xmm0;
-        xmm0 = _mm_unpacklo_epi8(xmm0, xmm2);
-        xmm1 = _mm_unpackhi_epi8(xmm1, xmm2);
-
-        _mm_stream_si128(dst128UV++, xmm0);
-        _mm_stream_si128(dst128UV++, xmm1);
-      } else {
-        xmm0 = _mm_packus_epi16(xmm0, xmm1);                    /* UUUUUUUU */
-        xmm2 = _mm_packus_epi16(xmm2, xmm3);                    /* VVVVVVVV */
-
-        _mm_stream_si128(dst128U++, xmm0);
-        _mm_stream_si128(dst128V++, xmm2);
+          _mm_stream_si128(dst128U++, xmm0);
+          _mm_stream_si128(dst128V++, xmm2);
+        }
       }
+
+      u += inUVStride;
+      v += inUVStride;
     }
 
-    u += inUVStride;
-    v += inUVStride;
+    y += inYStride;
   }
 
   return S_OK;
