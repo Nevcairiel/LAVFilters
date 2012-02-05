@@ -454,8 +454,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
   RGBCoeffs *coeffs = getRGBCoeffs(width, height);
 
-  if (m_pSettings->GetDitherMode() == LAVDither_Random) {
-    const uint16_t *dithers = GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0);
+  LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
+  const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0) : NULL;
+  if (ditherMode == LAVDither_Random && dithers != NULL) {
     yuv2rgb_dispatch<out32, 1>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
   } else {
     yuv2rgb_dispatch<out32, 0>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);

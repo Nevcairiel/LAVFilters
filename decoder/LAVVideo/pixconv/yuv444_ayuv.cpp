@@ -97,6 +97,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 3, 8, 0);
+  if (dithers == NULL)
+    ditherMode = LAVDither_Ordered;
 
   // Number of bits to shift to reach 8
   int shift = bpp - 8;
