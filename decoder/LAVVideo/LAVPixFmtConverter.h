@@ -142,7 +142,7 @@ private:
   template <int uyvy> DECLARE_CONV_FUNC(convert_yuv422_yuy2_uyvy_dither_le);
   template <int nv12> DECLARE_CONV_FUNC(convert_yuv_yv_nv12_dither_le);
 
-  template <int out32, int dithertype> DECLARE_CONV_FUNC(convert_yuv_rgb);
+  template <int out32> DECLARE_CONV_FUNC(convert_yuv_rgb);
   RGBCoeffs* getRGBCoeffs(int width, int height);
   const uint16_t* GetRandomDitherCoeffs(int height, int coeffs, int bits, int line);
 

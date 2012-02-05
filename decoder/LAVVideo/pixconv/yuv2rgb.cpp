@@ -407,59 +407,66 @@ inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8
 }
 
 template <int out32, int dithertype>
-DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
+inline int yuv2rgb_dispatch(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, LAVPixelFormat inputFormat, int bpp, int numThreads, RGBCoeffs *coeffs, const uint16_t *dithers)
 {
-  RGBCoeffs *coeffs = getRGBCoeffs(width, height);
-  const uint16_t *dithers = NULL;
-
-  if (dithertype == LAVDither_Random)
-    dithers = GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0);
-
   // Wrap the input format into template args
   switch (inputFormat) {
   case LAVPixFmt_YUV420:
-    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_NV12:
-    return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  numThreads);
   case LAVPixFmt_YUV420bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV422:
-    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_YUV422bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV444:
-    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_YUV444bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, m_NumThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
   default:
     ASSERT(0);
   }
+  return 0;
+  }
+
+template <int out32>
+DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
+{
+  RGBCoeffs *coeffs = getRGBCoeffs(width, height);
+
+  if (m_pSettings->GetDitherMode() == LAVDither_Random) {
+    const uint16_t *dithers = GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0);
+    yuv2rgb_dispatch<out32, 1>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
+  } else {
+    yuv2rgb_dispatch<out32, 0>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+  }
+
   return S_OK;
 }
 
 // Force creation of these two variants
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0, 0>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0, 1>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1, 0>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1, 1>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1>CONV_FUNC_PARAMS;
 
 RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
 {

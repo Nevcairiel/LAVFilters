@@ -352,16 +352,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
              || m_InputPixFmt == LAVPixFmt_NV12)
             && m_InBpp <= 10) {
       if (m_OutputPixFmt == LAVOutPixFmt_RGB32) {
-        if (m_pSettings->GetDitherMode() == LAVDither_Ordered)
-          convert = &CLAVPixFmtConverter::convert_yuv_rgb<1, 0>;
-        else
-          convert = &CLAVPixFmtConverter::convert_yuv_rgb<1, 1>;
+        convert = &CLAVPixFmtConverter::convert_yuv_rgb<1>;
         m_RequiredAlignment = 4;
       } else {
-        if (m_pSettings->GetDitherMode() == LAVDither_Ordered)
-          convert = &CLAVPixFmtConverter::convert_yuv_rgb<0, 0>;
-        else
-          convert = &CLAVPixFmtConverter::convert_yuv_rgb<0, 1>;
+        convert = &CLAVPixFmtConverter::convert_yuv_rgb<0>;
       }
       m_bRGBConverter = TRUE;
     } else if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_NV12) {
