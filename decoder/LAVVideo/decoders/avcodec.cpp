@@ -59,7 +59,7 @@ static struct {
   { CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
   { CODEC_ID_PRORES,                     FF_THREAD_SLICE },
   { CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
-  { CODEC_ID_RV30,       FF_THREAD_FRAME                 },
+//  { CODEC_ID_RV30,       FF_THREAD_FRAME                 },
   { CODEC_ID_RV40,       FF_THREAD_FRAME                 },
   { CODEC_ID_DNXHD,      FF_THREAD_FRAME                 },
   { CODEC_ID_FFV1,                       FF_THREAD_SLICE },
