@@ -349,7 +349,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   CheckPointer(m_pFrame, E_POINTER);
 
   m_h264RandomAccess.SetAVCNALSize(0);
-  m_h264RandomAccess.flush(m_pAVCtx->thread_count);
 
   // Process Extradata
   BYTE *extra = NULL;
@@ -378,12 +377,17 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       // We'll put them all into one block and add a second block with 0 elements afterwards
       // The parsing logic does not care what type they are, it just expects 2 blocks.
       BYTE *p = extra+6, *end = extra+6+actual_len;
+      BOOL bSPS = FALSE, bPPS = FALSE;
       int count = 0;
       while (p+1 < end) {
         unsigned len = (((unsigned)p[0] << 8) | p[1]) + 2;
         if (p + len > end) {
           break;
         }
+        if ((p[2] & 0x1F) == 7)
+          bSPS = TRUE;
+        if ((p[2] & 0x1F) == 8)
+          bPPS = TRUE;
         count++;
         p += len;
       }
@@ -392,6 +396,10 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
 
       bH264avc = TRUE;
       m_h264RandomAccess.SetAVCNALSize(mp2vi->dwFlags);
+      if (!bSPS || !bPPS) {
+        DbgLog((LOG_TRACE, 10, L"-> AVC1 extradata doesn't contain SPS and PPS, setting thread_count = 1"));
+        m_pAVCtx->thread_count = 1;
+      }
     } else {
       // Just copy extradata for other formats
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
@@ -410,6 +418,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       }
     }
   }
+
+  m_h264RandomAccess.flush(m_pAVCtx->thread_count);
 
   LAVPinInfo lavPinInfo = {0};
   BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
