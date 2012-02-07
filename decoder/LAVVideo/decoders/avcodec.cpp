@@ -405,6 +405,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
       getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, NULL);
     }
+    // Hack to discard invalid MP4 metadata with AnnexB style video
+    if (codec == CODEC_ID_H264 && !bH264avc && extra[0] == 1) {
+      av_freep(&extra);
+      extralen = 0;
+    }
     m_pAVCtx->extradata = extra;
     m_pAVCtx->extradata_size = extralen;
   } else {
