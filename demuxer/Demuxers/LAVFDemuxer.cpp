@@ -1178,17 +1178,19 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
           duration = st_duration;
       }
 
-      st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
-      if (start_time != INT64_MAX && m_bMPEGTS && st->pts_wrap_bits < 60) {
-        int64_t start = av_rescale_q(start_time, AV_RATIONAL_TIMEBASE, st->time_base);
-        if (start < (3LL << (st->pts_wrap_bits - 3)) && st->start_time > (3LL << (st->pts_wrap_bits - 2))) {
-          start_time = av_rescale_q(start + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
-        } else if (st->start_time < (3LL << (st->pts_wrap_bits - 3)) && start > (3LL << (st->pts_wrap_bits - 2))) {
-          st_start_time = av_rescale_q(st->start_time + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
+      if (st->start_time != AV_NOPTS_VALUE) {
+        st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
+        if (start_time != INT64_MAX && m_bMPEGTS && st->pts_wrap_bits < 60) {
+          int64_t start = av_rescale_q(start_time, AV_RATIONAL_TIMEBASE, st->time_base);
+          if (start < (3LL << (st->pts_wrap_bits - 3)) && st->start_time > (3LL << (st->pts_wrap_bits - 2))) {
+            start_time = av_rescale_q(start + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
+          } else if (st->start_time < (3LL << (st->pts_wrap_bits - 3)) && start > (3LL << (st->pts_wrap_bits - 2))) {
+            st_start_time = av_rescale_q(st->start_time + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
+          }
         }
+        if (st_start_time < start_time)
+          start_time = st_start_time;
       }
-      if (st_start_time < start_time)
-        start_time = st_start_time;
     }
     if (st->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE)
       bHasPGS = true;
