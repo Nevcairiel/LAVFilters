@@ -575,7 +575,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     pPacket->bPosition = pkt.pos;
 
     if (m_bMatroska && stream->codec->codec_id == CODEC_ID_H264) {
-      if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1) {
+      if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1 || AV_RB32(pkt.data) == 0x00000001) {
         pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
       } else { // No DTS for H264 in native format
         pkt.dts = AV_NOPTS_VALUE;
