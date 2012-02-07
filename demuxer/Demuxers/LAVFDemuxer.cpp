@@ -156,9 +156,9 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   return OpenInputStream(NULL, pszFileName);
 }
 
-STDMETHODIMP CLAVFDemuxer::AbortOpening()
+STDMETHODIMP CLAVFDemuxer::AbortOpening(int mode)
 {
-  m_Abort = 1;
+  m_Abort = mode;
   return S_OK;
 }
 

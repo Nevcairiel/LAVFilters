@@ -102,6 +102,7 @@ STDMETHODIMP CLAVSplitter::Close()
 {
   CAutoLock cAutoLock(this);
 
+  AbortOperation();
   CAMThread::CallWorker(CMD_EXIT);
   CAMThread::Close();
 
@@ -746,10 +747,15 @@ STDMETHODIMP CLAVSplitter::Stop()
 {
   CAutoLock cAutoLock(this);
 
+  // Ask network operations to exit
+  m_pDemuxer->AbortOpening(1);
+
   DeliverBeginFlush();
   CAMThread::CallWorker(CMD_EXIT);
   CAMThread::Close();
   DeliverEndFlush();
+
+  m_pDemuxer->AbortOpening(0);
 
   HRESULT hr;
   if(FAILED(hr = __super::Stop())) {

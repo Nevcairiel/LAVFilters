@@ -120,7 +120,7 @@ public:
   // Start the demuxer
   virtual STDMETHODIMP Start() { return E_NOTIMPL; }
   // Abort opening the file
-  virtual STDMETHODIMP AbortOpening() { return E_NOTIMPL; }
+  virtual STDMETHODIMP AbortOpening(int mode = 1) { return E_NOTIMPL; }
   // Get Duration
   virtual REFERENCE_TIME GetDuration() const = 0;
   // Get the next packet from the file
