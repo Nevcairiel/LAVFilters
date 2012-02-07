@@ -117,6 +117,8 @@ public:
 
   // Open the file
   virtual STDMETHODIMP Open(LPCOLESTR pszFileName) = 0;
+  // Start the demuxer
+  virtual STDMETHODIMP Start() { return E_NOTIMPL; }
   // Abort opening the file
   virtual STDMETHODIMP AbortOpening() { return E_NOTIMPL; }
   // Get Duration

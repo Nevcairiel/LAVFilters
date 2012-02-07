@@ -589,6 +589,8 @@ DWORD CLAVSplitter::ThreadProc()
 
   SetThreadName(-1, "CLAVSplitter Demux");
 
+  m_pDemuxer->Start();
+
   m_fFlushing = false;
   m_eEndFlush.Set();
   for(DWORD cmd = (DWORD)-1; ; cmd = GetRequest())
