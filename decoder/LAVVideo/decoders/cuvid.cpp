@@ -940,7 +940,6 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   vpp.top_field_first = cuviddisp->top_field_first;
   vpp.second_field = (field == 1);
 
-  cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   cuStatus = cuda.cuvidMapVideoFrame(m_hDecoder, cuviddisp->picture_index, &devPtr, &pitch, &vpp);
   if (cuStatus != CUDA_SUCCESS) {
     DbgLog((LOG_CUSTOM1, 1, L"CDecCuvid::Deliver(): cuvidMapVideoFrame failed on index %d", cuviddisp->picture_index));
@@ -979,7 +978,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 #endif
   }
   cuda.cuvidUnmapVideoFrame(m_hDecoder, devPtr);
-  cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
+
 
   // Setup the LAVFrame
   LAVFrame *pFrame = NULL;
@@ -1038,7 +1037,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   return S_OK;
 
 cuda_fail:
-  cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
+  cuda.cuvidUnmapVideoFrame(m_hDecoder, devPtr);
   return E_FAIL;
 }
 
