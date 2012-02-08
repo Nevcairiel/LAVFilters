@@ -136,6 +136,7 @@ private:
   const char *m_pszInputFormat;
 
   BOOL m_bMatroska;
+  BOOL m_bOgg;
   BOOL m_bAVI;
   BOOL m_bMPEGTS;
   BOOL m_bEVO;

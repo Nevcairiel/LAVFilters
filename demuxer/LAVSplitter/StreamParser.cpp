@@ -61,7 +61,7 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
   if (!pPacket || (pPacket->dwFlags & LAV_PACKET_PARSED)) {
     Queue(pPacket);
   } else if ((m_strContainer == "mpegts" || m_strContainer == "mpeg" || m_strContainer == "avi" || m_strContainer == "wtv" || m_strContainer == "rawvideo"
-           || m_strContainer == "rtsp" || m_strContainer == "rtp" || m_strContainer == "asf" || (m_strContainer == "matroska" && (pPacket->dwFlags & LAV_PACKET_H264_ANNEXB))) && m_gSubtype == MEDIASUBTYPE_AVC1) {
+           || m_strContainer == "rtsp" || m_strContainer == "rtp" || m_strContainer == "asf" || ((m_strContainer == "ogg" || m_strContainer == "matroska") && (pPacket->dwFlags & LAV_PACKET_H264_ANNEXB))) && m_gSubtype == MEDIASUBTYPE_AVC1) {
     ParseH264AnnexB(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_HDMVSUB) {
     ParsePGS(pPacket);

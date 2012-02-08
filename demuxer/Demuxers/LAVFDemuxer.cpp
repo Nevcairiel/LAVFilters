@@ -82,6 +82,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_program(0)
   , m_rtCurrent(0)
   , m_bMatroska(FALSE)
+  , m_bOgg(FALSE)
   , m_bAVI(FALSE)
   , m_bMPEGTS(FALSE)
   , m_bEVO(FALSE)
@@ -315,6 +316,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
 
   m_bMatroska = (_strnicmp(m_pszInputFormat, "matroska", 8) == 0);
+  m_bOgg = (_strnicmp(m_pszInputFormat, "ogg", 3) == 0);
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
   m_bEVO = ((extension ? _wcsicmp(extension, L".evo") == 0 : TRUE) && _stricmp(m_pszInputFormat, "mpeg") == 0);
@@ -357,6 +359,10 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
       if (st->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
         st->need_parsing = AVSTREAM_PARSE_NONE;
       }
+    }
+
+    if (m_bOgg && st->codec->codec_id == CODEC_ID_H264) {
+      st->need_parsing = AVSTREAM_PARSE_FULL;
     }
 
     // Create the parsers with the appropriate flags
@@ -574,7 +580,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     pPacket = new Packet();
     pPacket->bPosition = pkt.pos;
 
-    if (m_bMatroska && stream->codec->codec_id == CODEC_ID_H264) {
+    if ((m_bMatroska || m_bOgg) && stream->codec->codec_id == CODEC_ID_H264) {
       if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1 || AV_RB32(pkt.data) == 0x00000001) {
         pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
       } else { // No DTS for H264 in native format
