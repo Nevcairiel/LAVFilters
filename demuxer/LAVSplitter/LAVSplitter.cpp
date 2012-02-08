@@ -346,7 +346,10 @@ STDMETHODIMP CLAVSplitter::QueryProgress(LONGLONG *pllTotal, LONGLONG *pllCurren
 
 STDMETHODIMP CLAVSplitter::AbortOperation()
 {
-  return m_pDemuxer->AbortOpening();
+  if (m_pDemuxer)
+    return m_pDemuxer->AbortOpening();
+  else
+    return E_UNEXPECTED;
 }
 
 // CBaseSplitter
@@ -748,14 +751,16 @@ STDMETHODIMP CLAVSplitter::Stop()
   CAutoLock cAutoLock(this);
 
   // Ask network operations to exit
-  m_pDemuxer->AbortOpening(1);
+  if (m_pDemuxer)
+    m_pDemuxer->AbortOpening(1);
 
   DeliverBeginFlush();
   CAMThread::CallWorker(CMD_EXIT);
   CAMThread::Close();
   DeliverEndFlush();
 
-  m_pDemuxer->AbortOpening(0);
+  if (m_pDemuxer)
+    m_pDemuxer->AbortOpening(0);
 
   HRESULT hr;
   if(FAILED(hr = __super::Stop())) {
