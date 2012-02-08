@@ -150,7 +150,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
 
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
-  if (avstream->codec->codec_tag == 0) {
+  if (avstream->codec->codec_tag == 0 && avstream->codec->codec_id != CODEC_ID_DVVIDEO) {
     avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
   }
 

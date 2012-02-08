@@ -91,6 +91,10 @@ CMediaType CLAVFVideoHelper::initVideoType(CodecID codecId, unsigned int &codecT
     mediaType.formattype = FORMAT_VideoInfo2;
     mediaType.subtype = FOURCCMap(codecTag);
     break;
+  case CODEC_ID_DVVIDEO:
+    if (codecTag == 0)
+      mediaType.subtype = MEDIASUBTYPE_DVCP;
+    break;
   }
 
   return mediaType;
