@@ -37,6 +37,9 @@ extern "C" {
 #include "libavcodec/dca.h"
 #include "libavutil/intreadwrite.h"
 #include "libavformat/spdif.h"
+
+extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesize);
+__declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 };
 
 extern HINSTANCE g_hInst;
@@ -1023,7 +1026,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   memset(&m_raData, 0, sizeof(m_raData));
 
   if (bTrustExtraData && extralen) {
-    if (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3) {
+    if (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3 || codec == CODEC_ID_SIPR) {
       uint8_t *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
       getExtraData((BYTE *)format, &format_type, formatlen, extra, NULL);
 
@@ -1033,7 +1036,21 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
         if (FAILED(hr))
           return hr;
 
-        m_raData.cook_processing = (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3);
+        if (codec == CODEC_ID_SIPR) {
+          if (m_raData.flavor > 3) {
+            DbgLog((LOG_TRACE, 10, L"->  Invalid SIPR flavor (%d)", m_raData.flavor));
+            return VFW_E_UNSUPPORTED_AUDIO;
+          }
+          m_pAVCtx->block_align = ff_sipr_subpk_size[m_raData.flavor];
+        } else if (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3) {
+          m_pAVCtx->block_align = m_raData.sub_packet_size;
+        }
+
+        // Validate some settings
+        if (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r')) {
+          if (m_raData.sub_packet_size <= 0 || m_raData.sub_packet_size > m_raData.audio_framesize)
+            return VFW_E_UNSUPPORTED_AUDIO;
+        }
       } else {
         // Try without any processing?
         m_pAVCtx->extradata_size = extralen;
@@ -1443,30 +1460,32 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
 
   BufferDetails out;
 
-  if (m_raData.cook_processing) {
-    if (m_raData.deint_id != MKBETAG('g', 'e', 'n', 'r')) {
-      DbgLog((LOG_TRACE, 10, L"-> Cook processing but deint_id is not what we expect .. this might sound wrong"));
-    }
-
-    int w = m_raData.coded_frame_size;
+  if (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r') || m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r')) {
+    int w = m_raData.audio_framesize;
     int h = m_raData.sub_packet_h;
     int sps = m_raData.sub_packet_size;
     int len = w * h;
     if (buffsize >= len) {
-      if (sps > 0) {
-        const BYTE *srcBuf = pDataInBuff;
-        tmpProcessBuf = (BYTE *)av_mallocz(len + FF_INPUT_BUFFER_PADDING_SIZE);
+      tmpProcessBuf = (BYTE *)av_mallocz(len + FF_INPUT_BUFFER_PADDING_SIZE);
 
+      // "genr" deinterleaving is used for COOK and ATRAC
+      if (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r')) {
+        const BYTE *srcBuf = pDataInBuff;
         for(int y = 0; y < h; y++) {
           for(int x = 0, w2 = w / sps; x < w2; x++) {
             memcpy(tmpProcessBuf + sps*(h*x+((h+1)/2)*(y&1)+(y>>1)), srcBuf, sps);
             srcBuf += sps;
           }
         }
-
-        pDataInBuff = tmpProcessBuf;
-        buffsize = len;
+      // "sipr" deinterleaving is used for ... SIPR
+      } else if (m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r')) {
+        memcpy(tmpProcessBuf, pDataInBuff, len);
+        ff_rm_reorder_sipr_data(tmpProcessBuf, h, w);
       }
+
+      pDataInBuff = tmpProcessBuf;
+      buffsize = len;
+
       m_rtStartInput = m_rtStartInputCache;
       m_rtStartInputCache = AV_NOPTS_VALUE;
     } else {
@@ -1475,6 +1494,12 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       return S_FALSE;
     }
   }
+#ifdef DEBUG
+  else if (m_raData.deint_id) {
+    const char *deint = (const char *)&m_raData.deint_id;
+    DbgLog((LOG_TRACE, 10, L"::Decode(): Unsupported deinterleaving algorithm '%c%c%c%c'", deint[3], deint[2], deint[1], deint[0]));
+  }
+#endif
 
   consumed = 0;
   while (buffsize > 0) {

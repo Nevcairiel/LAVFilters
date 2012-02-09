@@ -396,12 +396,12 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen)
     fmt += 4;  // dword - unknown
     fmt += 2;  // word - Version2
     fmt += 4;  // dword - header size
-    fmt += 2;  // word - codec flavor
+    m_raData.flavor = AV_RB16(fmt); fmt += 2;  // word - codec flavor
     m_raData.coded_frame_size = AV_RB32(fmt); fmt += 4;  // dword - coded frame size
     fmt += 12; // byte[12] - unknown
     m_raData.sub_packet_h = AV_RB16(fmt); fmt += 2;  // word - sub packet h
-    fmt += 2;  // word - frame size
-    m_raData.sub_packet_size = m_pAVCtx->block_align = AV_RB16(fmt); fmt += 2;  // word - subpacket size
+    m_raData.audio_framesize = m_pAVCtx->block_align = AV_RB16(fmt); fmt += 2;  // word - frame size
+    m_raData.sub_packet_size = AV_RB16(fmt); fmt += 2;  // word - subpacket size
     fmt += 2;  // word - unknown
     // 6 Unknown bytes in ver 5
     if (version == 5)
@@ -411,7 +411,7 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen)
     // Tag info in v4
     if (version == 4) {
       int len = *fmt++;
-      fmt += len;
+      m_raData.deint_id = AV_RB32(fmt); fmt += len;
       len = *fmt++;
       fmt += len;
     } else if (version == 5) {
