@@ -64,8 +64,10 @@ struct BufferDetails {
   unsigned              nSamples;         // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
   WORD                  wChannels;        // Number of channels
   DWORD                 dwChannelMask;    // channel mask
+  BOOL                  bTimeInvalid;     // Time Invalid flag
 
-  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0) {
+
+  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0), bTimeInvalid(FALSE) {
     bBuffer = new GrowableArray<BYTE>();
   };
   ~BufferDetails() {
