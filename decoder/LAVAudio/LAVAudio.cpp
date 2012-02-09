@@ -1023,7 +1023,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   memset(&m_raData, 0, sizeof(m_raData));
 
   if (bTrustExtraData && extralen) {
-    if (codec == CODEC_ID_COOK) {
+    if (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3) {
       uint8_t *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
       getExtraData((BYTE *)format, &format_type, formatlen, extra, NULL);
 
@@ -1033,7 +1033,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
         if (FAILED(hr))
           return hr;
 
-        m_raData.cook_processing = (codec == CODEC_ID_COOK);
+        m_raData.cook_processing = (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3);
       } else {
         // Try without any processing?
         m_pAVCtx->extradata_size = extralen;
