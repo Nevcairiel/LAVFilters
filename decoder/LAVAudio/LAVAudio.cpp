@@ -1467,7 +1467,11 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         pDataInBuff = tmpProcessBuf;
         buffsize = len;
       }
+      m_rtStartInput = m_rtStartInputCache;
+      m_rtStartInputCache = AV_NOPTS_VALUE;
     } else {
+      if (m_rtStartInputCache == AV_NOPTS_VALUE)
+        m_rtStartInputCache = m_rtStartInput;
       return S_FALSE;
     }
   }
