@@ -231,9 +231,11 @@ begin
         if CompareText(source, LavGUID) = 0 then
           RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype);
       end;
-      if RegQueryStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source) then begin
-        if CompareText(source, LavGUID) = 0 then
-          RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype);
+      if IsWin64 then begin
+        if RegQueryStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source) then begin
+          if CompareText(source, LavGUID) = 0 then
+            RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype);
+        end;
       end;
     end;
 end;
@@ -278,9 +280,11 @@ begin
           if CompareText(source, LavGUID) = 0 then
             RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\Extensions\.' + f.extensions[i]);
         end;
-        if RegQueryStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
-          if CompareText(source, LavGUID) = 0 then
-            RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\Extensions\.' + f.extensions[i]);
+        if IsWin64 then begin
+          if RegQueryStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
+            if CompareText(source, LavGUID) = 0 then
+              RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\Extensions\.' + f.extensions[i]);
+          end;
         end;
       end;
 
