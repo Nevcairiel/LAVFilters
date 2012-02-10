@@ -366,7 +366,7 @@ begin
   SplitterPage := CreateInputOptionPage(wpSelectTasks,
     'LAV Splitter Formats',
     'Select which formats LAV Splitter should be setup to handle',
-    'Select for which formats LAV Splitter should be setup to be the Source Filter.',
+    'Select for which formats LAV Splitter should be setup to be the Source Filter.'#10'Note: These are only the file formats for LAV Splitter, audio and video codecs are configured separately.',
     False, False);
 
   for i := 0 to NumFormatsMinusOne do
