@@ -1,31 +1,34 @@
-#define version_major = 0
-#define version_minor = 45
+; LAV Filters Inno Setup script
 
-; ToDo
-; - Maybe create custom page for the format selection. That for example allows using two columns to use space more effectively.
+; Include version info
+#define ISPP_INCLUDED
+#include "common\includes\version.h"
 
 [Setup]
-AllowCancelDuringInstall=no
-AllowNoIcons=yes
-AllowUNCPath=no
-AppId=lavfilters
-AppName=LAV Filters
-AppVerName=LAV Filters {#=version_major}.{#=version_minor}
-AppVersion={#=version_major}.{#=version_minor}
-Compression=lzma/ultra
-CreateAppDir=yes
-DefaultDirName={pf}\LAV Filters
-DefaultGroupName=LAV Filters
-DisableStartupPrompt=yes
-MinVersion=0,5.01SP2
-OutputBaseFilename=LAVFilters-{#=version_major}.{#=version_minor}
-OutputDir=.
-PrivilegesRequired=admin
-SolidCompression=yes
-Uninstallable=yes
-VersionInfoVersion={#=version_major}.{#=version_minor}.0.0
-DisableDirPage=auto
-DisableProgramGroupPage=auto
+AllowCancelDuringInstall  = no
+AllowNoIcons              = yes
+AllowUNCPath              = no
+AppId                     = lavfilters
+AppName                   = LAV Filters
+AppVerName                = LAV Filters {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}
+AppVersion                = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}
+VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.0.0
+VersionInfoCompany        = 1f0.de
+VersionInfoCopyright      = GPLv2
+OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}
+OutputDir                 = .
+Compression               = lzma/ultra
+SolidCompression          = yes
+MinVersion                = 0,5.01SP2
+PrivilegesRequired        = admin
+CreateAppDir              = yes
+DefaultDirName            = {pf}\LAV Filters
+DefaultGroupName          = LAV Filters
+DisableStartupPrompt      = yes
+Uninstallable             = yes
+DisableDirPage            = auto
+DisableProgramGroupPage   = auto
+UsePreviousTasks          = yes
 
 [Messages]
 WelcomeLabel1=[name/ver]
@@ -42,58 +45,6 @@ Name: lavaudio32;    Description: LAV Audio (x86);    Types: Normal;
 Name: lavaudio64;    Description: LAV Audio (x64);    Types: Normal; Check: IsWin64;
 Name: lavvideo32;    Description: LAV Video (x86);    Types: Normal;
 Name: lavvideo64;    Description: LAV Video (x64);    Types: Normal; Check: IsWin64;
-
-[Tasks]
-Name: lavs_avi;    Description: AVI;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_bluray; Description: Blu-ray;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_mkv;    Description: Matroska; GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_mp4;    Description: MP4;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_ogg;    Description: Ogg;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_flv;    Description: FLV;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_ts;     Description: MPEG-TS;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_ps;     Description: MPEG-PS;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_rm;     Description: RealMedia;GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64
-Name: lavs_wtv;    Description: WTV;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-Name: lavs_wmv;    Description: WMV;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-Name: lavs_flac;   Description: FLAC;     GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-Name: lavs_aac;    Description: AAC;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-Name: lavs_amr;    Description: AMR;      GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-Name: lavs_wv;     Description: WavPack;  GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-Name: lavs_mpc;    Description: Musepack; GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-Name: lavs_tta;    Description: TrueAudio;GroupDescription: "Use LAV Splitter for these file formats:"; Components: lavsplitter32 lavsplitter64; Flags: unchecked;
-
-Name: lavv_h264;      Description: H.264/AVC1;         GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_vc1;       Description: VC-1;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
-Name: lavv_mpeg1;     Description: MPEG1;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_mpeg2;     Description: MPEG2;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_mpeg4;     Description: MPEG4;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_msmpeg4;   Description: MS-MPEG4;           GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_vp8;       Description: VP8;                GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_wmv3;      Description: WMV3;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_wmv12;     Description: WMV1/2;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_mjpeg;     Description: M-JPEG;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_theora;    Description: Theora;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_flv;       Description: Flash Video 1;      GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_vp6;       Description: VP6;                GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_svq;       Description: SVQ 1/3;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_h261;      Description: H.261;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_h263;      Description: H.263;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_indeo;     Description: Intel Indea;        GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_camtasia;  Description: TechSmith/Camtasia; GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_fraps;     Description: Fraps;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_huffyuv;   Description: HuffYUV;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_qtrle;     Description: QTRle;              GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_dvvideo;   Description: DV;                 GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_bink;      Description: Bink;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_smackvid;  Description: Smacker;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_rv12;      Description: Real Video 1/2;     GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
-Name: lavv_rv34;      Description: Real Video 3/4;     GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_lagarith;  Description: Lagarith;           GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
-Name: lavv_cinepak;   Description: Cinepak;            GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
-Name: lavv_camstudio; Description: Camstudio;          GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_qpeg;      Description: QPEG;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64; Flags: unchecked;
-Name: lavv_zlib;      Description: ZLIB;               GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
-Name: lavv_rpza;      Description: QTRpza;             GroupDescription: "Use LAV Video for these codecs:"; Components: lavvideo32 lavvideo64
 
 [Files]
 Source: bin_Win32\avcodec-lav-53.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
@@ -142,207 +93,284 @@ Root: HKCU; Subkey: Software\LAV\Video;            Flags: uninsdeletekey; Compon
 Root: HKCU; Subkey: Software\LAV\Video\Formats;    Flags: uninsdeletekey; Components: lavvideo32 lavvideo64
 Root: HKCU; Subkey: Software\LAV\Video\Output;     Flags: uninsdeletekey; Components: lavvideo32 lavvideo64
 
+[Run]
+Description: "Open LAV Splitter Configuration"; Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x86; Components: lavsplitter32; Flags: postinstall nowait unchecked
+Description: "Open LAV Splitter Configuration"; Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x64; Components: lavsplitter64 AND NOT lavsplitter32; Flags: postinstall nowait unchecked
+Description: "Open LAV Audio Configuration";    Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x86; Components: lavaudio32; Flags: postinstall nowait unchecked
+Description: "Open LAV Audio Configuration";    Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x64; Components: lavaudio64 AND NOT lavaudio32; Flags: postinstall nowait unchecked
+Description: "Open LAV Video Configuration";    Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x86; Components: lavvideo32; Flags: postinstall nowait unchecked
+Description: "Open LAV Video Configuration";    Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x64; Components: lavvideo64 AND NOT lavvideo32; Flags: postinstall nowait unchecked
+
 [Code]
-procedure CleanMediaTypeExt(rootkey: Integer; extension, clsid: String);
+type
+  Format = record
+             id: String;
+             name: String;
+             default: Boolean;
+             subtype: String;
+             asyncSource: Boolean;
+             protocol: Boolean;
+             extensions: Array of String;
+             chkbytes: Array of String;
+           end;
+
+const
+  NumFormatsMinusOne = 19;
+  LavGUID = '{B98D13E7-55DB-4385-A33D-09FD1BA26338}';
+  LavSplitterFormatsReg = 'Software\LAV\Splitter\Formats';
+
 var
-  temp: String;
+  SplitterPage: TInputOptionWizardPage;
+  SplitterFormats: Array [0..NumFormatsMinusOne] of Format;
+
+function IsUpdate(): Boolean;
+var
+  sPrevPath: String;
 begin
-  if RegQueryStringValue(rootkey, 'Media Type\Extensions\' + extension, 'Source Filter', temp) then begin
-    if Lowercase(clsid) = Lowercase(temp) then begin
-      RegDeleteValue(rootkey, 'Media Type\Extensions\' + extension, 'Source Filter');
-      RegDeleteKeyIfEmpty(rootkey, 'Media Type\Extensions\' + extension);
+  sPrevPath := WizardForm.PrevAppDir;
+  Result := (sPrevPath <> '');
+end;
+
+procedure FR(var f: Format; const id, desc: String; const default: Boolean; const extensions: Array of String);
+begin
+  f.id         := id;
+  f.name       := desc;
+  f.default    := default;
+  f.extensions := extensions;
+  f.subtype    := '';
+  f.chkbytes   := [''];
+  f.protocol   := False;
+end;
+
+procedure FP(var f: Format; const id, desc: String; const default: Boolean; const extensions: Array of String);
+begin
+  FR(f, id, desc, default, extensions);
+  f.protocol := True;
+end;
+
+procedure FS(var f: Format; const subtype: String; const chkbytes : Array of String; UseAsync: Boolean);
+begin
+  f.subtype     := subtype;
+  f.chkbytes    := chkbytes;
+  f.asyncSource := UseAsync;
+end;
+
+procedure InitFormats();
+begin
+  FR(SplitterFormats[0], 'matroska', 'Matroska/WebM', True, ['mkv','mka', 'mks', 'webm', '']);
+  FS(SplitterFormats[0], '{1AC0BEBD-4D2B-45ad-BCEB-F2C41C5E3788}', ['0,4,,1A45DFA3', ''], True);
+  FR(SplitterFormats[1], 'avi', 'AVI', True, ['avi','divx', 'vp6', 'amv', '']);
+  FS(SplitterFormats[1], '{e436eb88-524f-11ce-9f53-0020af0ba770}', ['0,4,,52494646,8,4,,41564920', '0,4,,52494646,8,4,,41564958', '0,4,,52494646,8,4,,414D5620', ''], True);
+  FR(SplitterFormats[2], 'mp4', 'MP4/MOV', True, ['mp4', 'mov', '3gp', '']);
+  FS(SplitterFormats[2], '{08E22ADA-B715-45ed-9D20-7B87750301D4}', ['4,4,,66747970', '4,4,,6d6f6f76', '4,4,,6d646174', '4,4,,736b6970', '4,4,,75647461',
+                                                                    '4,12,ffffffff00000000ffffffff,77696465000000006d646174', '4,12,ffffffff00000000ffffffff,776964650000000066726565',
+                                                                    '4,12,ffffffff00000000ffffffff,6672656500000000636D6F76', '4,12,ffffffff00000000ffffffff,66726565000000006D766864',
+                                                                    '4,14,ffffffff000000000000ffffffff,706E6F7400000000000050494354', ''], True);
+  FR(SplitterFormats[3], 'mpegts', 'MPEG-TS', True, ['ts','m2ts', 'mts', '']);
+  FS(SplitterFormats[3], '{e06d8023-db46-11cf-b4d1-00805f6cbbea}', ['0,1,,47,188,1,,47,376,1,,47', '4,1,,47,196,1,,47,388,1,,47', '0,4,,54467263,1660,1,,47', ''], True);
+  FR(SplitterFormats[4], 'mpeg', 'MPEG-PS/VOB/EVO', True, ['mpg', 'mpeg', 'vob', 'evo', '']);
+  FS(SplitterFormats[4], '{e06d8022-db46-11cf-b4d1-00805f6cbbea}', ['0,5,FFFFFFFFC0,000001BA40', ''], True);
+  FR(SplitterFormats[5], 'bluray', 'Blu-ray', True, ['bdmv', 'mpls', '']);
+  FS(SplitterFormats[5], '{20884BC2-629F-45EA-B1C5-FA4FFA438250}', ['0,4,,494E4458', '0,4,,4D4F424A', '0,4,,4D504C53', ''], False);
+  FR(SplitterFormats[6], 'flv', 'FLV', True, ['flv', '']);
+  FS(SplitterFormats[6], '{F2FAC0F1-3852-4670-AAC0-9051D400AC54}', ['0,4,,464C5601', ''], True);
+  FR(SplitterFormats[7], 'ogg', 'Ogg/OGM', True, ['ogg', 'ogv', 'ogm', '']);
+  FS(SplitterFormats[7], '{D2855FA9-61A7-4db0-B979-71F297C17A04}', ['0,4,,4F676753', ''], True);
+  FR(SplitterFormats[8], 'rm', 'RealMedia (rm/rmvb)', True, ['rm', 'rmvb', '']);
+  FR(SplitterFormats[9], 'wtv', 'Windows Television (wtv)', False, ['wtv', '']);
+  FR(SplitterFormats[10], 'asf', 'WMV / ASF / DVR-MS', False, ['wmv', 'asf', 'dvr-ms', '']);
+  FR(SplitterFormats[11], 'bink', 'Bink', True, ['bik', '']);
+  FP(SplitterFormats[12], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
+  FP(SplitterFormats[13], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
+  FP(SplitterFormats[14], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
+  FR(SplitterFormats[15], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
+  FR(SplitterFormats[16], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
+  FR(SplitterFormats[17], 'aac', 'AAC Audio', True, ['aac', '']);
+  FR(SplitterFormats[18], 'mp3', 'MP3 Audio', True, ['mp3', '']);
+  FR(SplitterFormats[19], 'flac', 'FLAC Audio', True, ['flac', '']);
+end;
+
+procedure RegisterSourceFormatGUIDs(f: Format);
+var
+  i: Integer;
+  source: String;
+begin
+  i := 0;
+  if Length(f.subtype) > 0 then
+    begin
+      if f.asyncSource then
+        source := '{e436ebb5-524f-11ce-9f53-0020af0ba770}'
+      else
+        source := LavGUID;
+      if IsComponentSelected('lavsplitter32') then
+        RegWriteStringValue(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source);
+      if IsComponentSelected('lavsplitter64') then
+        RegWriteStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source);
     end;
-  end;
+
+  while Length(f.chkbytes[i]) > 0 do
+    begin
+      if IsComponentSelected('lavsplitter32') then
+        RegWriteStringValue(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, IntToStr(i), f.chkbytes[i]);
+      if IsComponentSelected('lavsplitter64') then
+        RegWriteStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, IntToStr(i), f.chkbytes[i]);
+
+      i := i+1;
+    end;
 end;
 
-procedure ConfigureFormat(rootkey: Integer; format: String; value: Boolean);
+procedure UnregisterSourceFormatGUIDs(f: Format);
+var
+  source: String;
 begin
-  RegWriteDWordValue(rootkey, 'Software\LAV\Splitter\Formats', format, ord(value));
+  if not f.asyncSource then
+    begin
+      if RegQueryStringValue(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source) then begin
+        if CompareText(source, LavGUID) = 0 then
+          RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype);
+      end;
+      if RegQueryStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source) then begin
+        if CompareText(source, LavGUID) = 0 then
+          RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype);
+      end;
+    end;
 end;
 
-procedure ConfigureVideoFormat(format: String);
+procedure RegisterSourceFormatExtensions(f: Format);
+var
+  i: Integer;
 begin
-  RegWriteDWordValue(HKCU, 'Software\LAV\Video\Formats', format, ord(IsTaskSelected('lavv_' + format)));
+  i := 0;
+  while Length(f.extensions[i]) > 0 do
+    begin
+      if f.protocol then begin
+        RegWriteStringValue(HKCR, f.extensions[i], 'Source Filter', LavGUID);
+      end else begin
+        if IsComponentSelected('lavsplitter32') then
+          RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
+        if IsComponentSelected('lavsplitter64') then
+          RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
+      end;
+
+      i := i+1;
+    end;
 end;
 
-procedure CleanMediaTypeExt32(extension: String);
+procedure UnregisterSourceFormatExtensions(f: Format);
+var
+  source: String;
+  i: Integer;
 begin
-  CleanMediaTypeExt(HKCR32, extension, '{B98D13E7-55DB-4385-A33D-09FD1BA26338}');
+  i := 0;
+  while Length(f.extensions[i]) > 0 do
+    begin
+      if f.protocol then begin
+        if RegQueryStringValue(HKCR, f.extensions[i], 'Source Filter', source) then begin
+          if CompareText(source, LavGUID) = 0 then begin
+            RegDeleteValue(HKCR, f.extensions[i], 'Source Filter');
+            RegDeleteKeyIfEmpty(HKCR, f.extensions[i]);
+          end;
+        end;
+      end else begin
+        if RegQueryStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
+          if CompareText(source, LavGUID) = 0 then
+            RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\Extensions\.' + f.extensions[i]);
+        end;
+        if RegQueryStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
+          if CompareText(source, LavGUID) = 0 then
+            RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\Extensions\.' + f.extensions[i]);
+        end;
+      end;
+
+      i := i+1;
+    end;
 end;
 
-procedure CleanMediaTypeExt64(extension: String);
+function GetDefaultFormatSetting(f: Format): Boolean;
+var
+  value: Cardinal;
 begin
-  CleanMediaTypeExt(HKCR64, extension, '{B98D13E7-55DB-4385-A33D-09FD1BA26338}');
-end;
-
-procedure CleanMediaTypeExtWrap(extension: String);
-begin
-  CleanMediaTypeExt32(extension);
-  if IsWin64 then begin
-    CleanMediaTypeExt64(extension);
-  end;
-end;
-
-procedure SetMediaTypeExt32(extension: String);
-begin
-  RegWriteStringValue(HKCR32, 'Media Type\Extensions\' + extension, 'Source Filter', '{B98D13E7-55DB-4385-A33D-09FD1BA26338}');
-end;
-
-procedure SetMediaTypeExt64(extension: String);
-begin
-  RegWriteStringValue(HKCR64, 'Media Type\Extensions\' + extension, 'Source Filter', '{B98D13E7-55DB-4385-A33D-09FD1BA26338}');
-end;
-
-procedure DoExtension32(extension, option: String);
-begin
-  if IsTaskSelected(option) then begin
-    SetMediaTypeExt32(extension);
+  if RegQueryDWordValue(HKCU, LavSplitterFormatsReg, f.id, value) then begin
+    Result := value > 0;
+  end else begin
+    Result := f.default;
   end
-  else begin
-    CleanMediaTypeExt32(extension);
-  end;
-end;
-
-procedure DoExtension64(extension, option: String);
-begin
-  if IsTaskSelected(option) then begin
-    SetMediaTypeExt64(extension);
-  end
-  else begin
-    CleanMediaTypeExt64(extension);
-  end;
-end;
-
-procedure DoExtension(extension, option: String);
-begin
-  if IsComponentSelected('lavsplitter32') then begin
-    DoExtension32(extension, option);
-  end;
-  if IsComponentSelected('lavsplitter64') then begin
-    DoExtension64(extension, option);
-  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
+var
+  i: Integer;
 begin
   if (CurStep = ssPostInstall) then begin
-    // Disable unwanted formats
-    if IsComponentSelected('lavsplitter32') or IsComponentSelected('lavsplitter64') then begin
-      ConfigureFormat(HKCU, 'matroska', IsTaskSelected('lavs_mkv'));
-      DoExtension('.mkv', 'lavs_mkv');
-      DoExtension('.mka', 'lavs_mkv');
-      ConfigureFormat(HKCU, 'bluray', IsTaskSelected('lavs_bluray'));
-      DoExtension('.bdmv', 'lavs_bluray');
-      DoExtension('.mpls', 'lavs_bluray');
-      ConfigureFormat(HKCU, 'mp4', IsTaskSelected('lavs_mp4'));
-      DoExtension('.mp4', 'lavs_mp4');
-      DoExtension('.mov', 'lavs_mp4');
-      DoExtension('.3gp', 'lavs_mp4');
-      ConfigureFormat(HKCU, 'avi', IsTaskSelected('lavs_avi'));
-      DoExtension('.avi', 'lavs_avi');
-      DoExtension('.divx', 'lavs_avi');
-      ConfigureFormat(HKCU, 'flv', IsTaskSelected('lavs_flv'));
-      DoExtension('.flv', 'lavs_flv');
-      ConfigureFormat(HKCU, 'ogg', IsTaskSelected('lavs_ogg'));
-      DoExtension('.ogg', 'lavs_ogg');
-      DoExtension('.ogm', 'lavs_ogg');
-      DoExtension('.ogv', 'lavs_ogg');
-      ConfigureFormat(HKCU, 'mpeg', IsTaskSelected('lavs_ps'));
-      DoExtension('.mpg', 'lavs_ps');
-      DoExtension('.vob', 'lavs_ps');
-      DoExtension('.evo', 'lavs_ps');
-      ConfigureFormat(HKCU, 'mpegts', IsTaskSelected('lavs_ts'));
-      DoExtension('.ts', 'lavs_ts');
-      DoExtension('.mts', 'lavs_ts');
-      DoExtension('.m2ts', 'lavs_ts');
-      DoExtension('.wtv', 'lavs_wtv');
-      DoExtension('.wmv', 'lavs_wmv');
-      DoExtension('.rm', 'lavs_rm');
-      DoExtension('.rmvb', 'lavs_rm');
-      DoExtension('.flac', 'lavs_flac');
-      DoExtension('.aac', 'lavs_aac');
-      DoExtension('.amr', 'lavs_amr');
-      DoExtension('.wv', 'lavs_amr');
-      DoExtension('.mpc', 'lavs_mpc');
-      DoExtension('.tta', 'lavs_tta');
-    end;
-
-    if IsComponentSelected('lavvideo32') or IsComponentSelected('lavvideo64') then begin
-        ConfigureVideoFormat('h264');
-        ConfigureVideoFormat('vc1');
-        ConfigureVideoFormat('mpeg1');
-        ConfigureVideoFormat('mpeg2');
-        ConfigureVideoFormat('mpeg4');
-        ConfigureVideoFormat('msmpeg4');
-        ConfigureVideoFormat('vp8');
-        ConfigureVideoFormat('wmv3');
-        ConfigureVideoFormat('wmv12');
-        ConfigureVideoFormat('mjpeg');
-        ConfigureVideoFormat('theora');
-        ConfigureVideoFormat('flv');
-        ConfigureVideoFormat('vp6');
-        ConfigureVideoFormat('svq');
-        ConfigureVideoFormat('h261');
-        ConfigureVideoFormat('h263');
-        ConfigureVideoFormat('indeo');
-        ConfigureVideoFormat('camtasia');
-        ConfigureVideoFormat('fraps');
-        ConfigureVideoFormat('huffyuv');
-        ConfigureVideoFormat('qtrle');
-        ConfigureVideoFormat('dvvideo');
-        ConfigureVideoFormat('bink');
-        ConfigureVideoFormat('smackvid');
-        ConfigureVideoFormat('rv12');
-        ConfigureVideoFormat('rv34');
-        ConfigureVideoFormat('lagarith');
-        ConfigureVideoFormat('cinepak');
-        ConfigureVideoFormat('camstudio');
-        ConfigureVideoFormat('qpeg');
-        ConfigureVideoFormat('zlib');
-        ConfigureVideoFormat('rpza');
-    end;
+    if IsComponentSelected('lavsplitter32') or IsComponentSelected('lavsplitter64') then
+      begin
+        for i := 0 to NumFormatsMinusOne do
+          begin
+            if SplitterPage.Values[i] then begin
+              RegisterSourceFormatGUIDs(SplitterFormats[i]);
+              RegisterSourceFormatExtensions(SplitterFormats[i]);
+            end else begin
+              UnregisterSourceFormatGUIDs(SplitterFormats[i]);
+              UnregisterSourceFormatExtensions(SplitterFormats[i]);
+            end;
+            RegWriteDWordValue(HKCU, LavSplitterFormatsReg, SplitterFormats[i].id, Ord(SplitterPage.Values[i]));
+          end;
+      end;
   end;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  i: Integer;
 begin
   if (CurUninstallStep = usUninstall) then begin
-    CleanMediaTypeExtWrap('.mkv');
-    CleanMediaTypeExtWrap('.mka');
-    CleanMediaTypeExtWrap('.bdmv');
-    CleanMediaTypeExtWrap('.mpls');
-    CleanMediaTypeExtWrap('.mp4');
-    CleanMediaTypeExtWrap('.mov');
-    CleanMediaTypeExtWrap('.3gp');
-    CleanMediaTypeExtWrap('.avi');
-    CleanMediaTypeExtWrap('.divx');
-    CleanMediaTypeExtWrap('.flv');
-    CleanMediaTypeExtWrap('.ogg');
-    CleanMediaTypeExtWrap('.ogm');
-    CleanMediaTypeExtWrap('.ogv');
-    CleanMediaTypeExtWrap('.mpg');
-    CleanMediaTypeExtWrap('.vob');
-    CleanMediaTypeExtWrap('.evo');
-    CleanMediaTypeExtWrap('.ts');
-    CleanMediaTypeExtWrap('.mts');
-    CleanMediaTypeExtWrap('.m2ts');
-    CleanMediaTypeExtWrap('.wtv');
-    CleanMediaTypeExtWrap('.wmv');
-    CleanMediaTypeExtWrap('.rm');
-    CleanMediaTypeExtWrap('.rmvb');
-    CleanMediaTypeExtWrap('.flac');
-    CleanMediaTypeExtWrap('.aac');
-    CleanMediaTypeExtWrap('.amr');
-    CleanMediaTypeExtWrap('.wv');
-    CleanMediaTypeExtWrap('.mpc');
-    CleanMediaTypeExtWrap('.tta');
+    for i := 0 to NumFormatsMinusOne do
+      begin
+        UnregisterSourceFormatGUIDs(SplitterFormats[i]);
+        UnregisterSourceFormatExtensions(SplitterFormats[i]);
+      end;
   end;
 end;
 
-procedure InitializeWizard();
+function ShouldSkipPage(PageID: Integer): Boolean;
 begin
+  Result := False;
+  if PageID = SplitterPage.ID then begin
+    if not (IsComponentSelected('lavsplitter32') or IsComponentSelected('lavsplitter64')) then
+      Result := True;
+  end;
+end;
+
+function InitializeSetup(): Boolean;
+begin
+  InitFormats;
+  Result := True;
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  InitFormats;
+  Result := True;
+end;
+
+procedure InitializeWizard();
+var
+  i: Integer;
+begin
+  SplitterPage := CreateInputOptionPage(wpSelectTasks,
+    'LAV Splitter Formats',
+    'Select which formats LAV Splitter should be setup to handle',
+    'Select for which formats LAV Splitter should be setup to be the Source Filter.',
+    False, False);
+
+  for i := 0 to NumFormatsMinusOne do
+    begin
+      SplitterPage.Add(SplitterFormats[i].name);
+      SplitterPage.Values[i] := GetDefaultFormatSetting(SplitterFormats[i]);
+    end;
+
   // Adjust tasks page
-	WizardForm.SelectTasksLabel.Hide;
-	WizardForm.TasksList.Top    := 0;
-	WizardForm.TasksList.Height := PageFromID(wpSelectTasks).SurfaceHeight;
+  WizardForm.SelectTasksLabel.Hide;
+  WizardForm.TasksList.Top    := 0;
+  WizardForm.TasksList.Height := PageFromID(wpSelectTasks).SurfaceHeight;
 end;

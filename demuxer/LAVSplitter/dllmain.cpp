@@ -135,87 +135,13 @@ STDAPI DllRegisterServer()
 {
   std::list<LPCWSTR> chkbytes;
 
-  // MKV/WEBM
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_Matroska,
-    L"0,4,,1A45DFA3",
-    L".mkv", L".mka", L".mks", L".webm", NULL);
-
-  // AVI
-  chkbytes.push_back(L"0,4,,52494646,8,4,,41564920"); // 'RIFF' ... 'AVI '
-  chkbytes.push_back(L"0,4,,52494646,8,4,,41564958"); // 'RIFF' ... 'AVIX'
-  chkbytes.push_back(L"0,4,,52494646,8,4,,414D5620"); // 'RIFF' ... 'AMV '
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_Avi,
-    chkbytes,
-    L".avi", L".divx", L".vp6", L".amv", NULL);
-
-  chkbytes.clear();
-
-  // MP4
-  chkbytes.push_back(L"4,4,,66747970"); // ftyp
-  chkbytes.push_back(L"4,4,,6d6f6f76"); // moov
-  chkbytes.push_back(L"4,4,,6d646174"); // mdat
-  chkbytes.push_back(L"4,4,,736b6970"); // skip
-  chkbytes.push_back(L"4,4,,75647461"); // udta
-  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,77696465000000006d646174"); // wide ? mdat
-  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,776964650000000066726565"); // wide ? free
-  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,6672656500000000636D6F76"); // free ? cmov
-  chkbytes.push_back(L"4,12,ffffffff00000000ffffffff,66726565000000006D766864"); // free ? mvhd
-  chkbytes.push_back(L"4,14,ffffffff000000000000ffffffff,706E6F7400000000000050494354"); // pnot ? PICT
-  chkbytes.push_back(L"3,3,,000001"); // mpeg4 video
-
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_MP4,
-    chkbytes,
-    L".mp4", L".mov", L".3gp", NULL);
-
-  chkbytes.clear();
-
-  // MPEG1
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_MPEG1System,
-    L"0,16,FFFFFFFFF100010001800001FFFFFFFF,000001BA2100010001800001000001BB", NULL);
-
-  // MPEG-PVA
-  chkbytes.push_back(L"0,8,fffffc00ffe00000,4156000055000000");
-  // MPEG-TS
-  chkbytes.push_back(L"0,1,,47,188,1,,47,376,1,,47");
-  chkbytes.push_back(L"4,1,,47,196,1,,47,388,1,,47");
-  chkbytes.push_back(L"0,4,,54467263,1660,1,,47");
-
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_MPEG2_TRANSPORT,
-    chkbytes,
-    L".ts", L".mts", L".m2ts", NULL);
-
-  // MPEG-PS
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_MPEG2_PROGRAM,
-    L"0,5,FFFFFFFFC0,000001BA40",
-    L".mpeg", L".mpg", L".vob", L".evo", NULL);
-
-  // FLV
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_FLV,
-    L"0,4,,464C5601",
-    L".flv", NULL);
-
-  // Ogg
-  RegisterSourceFilter(CLSID_AsyncReader,
-    MEDIASUBTYPE_Ogg,
-    L"0,4,,4F676753",
-    L".ogg", L".ogm", NULL);
-
   // BluRay
   chkbytes.clear();
   chkbytes.push_back(L"0,4,,494E4458"); // INDX (index.bdmv)
   chkbytes.push_back(L"0,4,,4D4F424A"); // MOBJ (MovieObject.bdmv)
   chkbytes.push_back(L"0,4,,4D504C53"); // MPLS
   RegisterSourceFilter(__uuidof(CLAVSplitterSource),
-    MEDIASUBTYPE_LAVBluRay,
-    chkbytes,
-    L".bdmv", L".mpls", NULL);
+    MEDIASUBTYPE_LAVBluRay, chkbytes, NULL);
 
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);
@@ -223,19 +149,7 @@ STDAPI DllRegisterServer()
 
 STDAPI DllUnregisterServer()
 {
-  // Deprecated and unused types
-  UnRegisterSourceFilter(MEDIATYPE_LAVSplitter);
-  UnRegisterSourceFilter(MEDIASUBTYPE_LAVAvi);
-  UnRegisterSourceFilter(MEDIASUBTYPE_LAVMatroska);
-  UnRegisterSourceFilter(MEDIASUBTYPE_LAVMP4);
-  UnRegisterSourceFilter(MEDIASUBTYPE_LAVMPEG);
-  UnRegisterSourceFilter(MEDIASUBTYPE_LAVFLV);
-  UnRegisterSourceFilter(MEDIASUBTYPE_LAVOgg);
-
-  // Current types
   UnRegisterSourceFilter(MEDIASUBTYPE_LAVBluRay);
-
-  // Do not unregister default MS types, like MEDIASUBTYPE_Avi
 
   // base classes will handle de-registration using the factory template table
   return AMovieDllRegisterServer2(false);
