@@ -84,6 +84,7 @@
 #define IDC_DELAY_ENABLED               1100
 #define IDC_DELAY                       1101
 #define IDC_DELAYSPIN                   1102
+#define IDC_LBL_FORMATS                 1103
 
 // Next default values for new objects
 // 
@@ -91,7 +92,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        109
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1103
+#define _APS_NEXT_CONTROL_VALUE         1104
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

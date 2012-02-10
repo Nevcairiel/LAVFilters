@@ -393,7 +393,7 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
   LVCOLUMN lvc = {LVCF_WIDTH, 0, 20, 0};
   ListView_InsertColumn(hlv, 0, &lvc);
   ListView_AddCol(hlv, nCol,  75, L"Codec", false);
-  ListView_AddCol(hlv, nCol, 177, L"Description", false);
+  ListView_AddCol(hlv, nCol, 350, L"Description", false);
 
   ListView_DeleteAllItems(hlv);
   ListView_SetItemCount(hlv, Codec_NB);
