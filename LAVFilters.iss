@@ -180,9 +180,11 @@ begin
   FR(SplitterFormats[9], 'wtv', 'Windows Television (wtv)', False, ['wtv', '']);
   FR(SplitterFormats[10], 'asf', 'WMV / ASF / DVR-MS', False, ['wmv', 'asf', 'dvr-ms', '']);
   FR(SplitterFormats[11], 'bink', 'Bink', True, ['bik', '']);
+
   FP(SplitterFormats[12], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
   FP(SplitterFormats[13], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
   FP(SplitterFormats[14], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
+
   FR(SplitterFormats[15], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
   FR(SplitterFormats[16], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
   FR(SplitterFormats[17], 'aac', 'AAC Audio', True, ['aac', '']);
