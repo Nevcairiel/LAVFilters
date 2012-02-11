@@ -59,6 +59,8 @@ void CLAVOutputPin::SetQueueSizes()
     factor = 25;
   } else if (m_mts.begin()->subtype == MEDIASUBTYPE_WAVE_DTS) {
     factor = 2;
+  } else if (m_mts.begin()->subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO || m_mts.begin()->subtype == MEDIASUBTYPE_BD_LPCM_AUDIO) {
+    factor = 5;
   }
 
   m_dwQueueLow  = MIN_PACKETS_IN_QUEUE * factor;
