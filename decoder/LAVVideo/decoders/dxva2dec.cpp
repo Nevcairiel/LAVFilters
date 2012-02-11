@@ -600,8 +600,8 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     }
   }
 
-  if (c->pix_fmt != PIX_FMT_DXVA2_VLD) {
-    DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt"));
+  if (c->pix_fmt != PIX_FMT_DXVA2_VLD || c->profile > FF_PROFILE_H264_HIGH) {
+    DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt or unsupported profile"));
     pDec->m_bFailHWDecode = TRUE;
     return -1;
   }
