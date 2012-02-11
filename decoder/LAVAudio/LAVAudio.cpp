@@ -1274,6 +1274,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     FlushOutput();
     m_rtStart = rtStart;
     m_rtStartCacheLT = AV_NOPTS_VALUE;
+    m_rtStartInputCache =  AV_NOPTS_VALUE;
     m_dStartOffset = 0.0;
     m_bQueueResync = FALSE;
   }
