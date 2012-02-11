@@ -184,7 +184,7 @@ private:
   HRESULT QueueOutput(BufferDetails &buffer);
   HRESULT FlushOutput(BOOL bDeliver = TRUE);
 
-  HRESULT Deliver(const BufferDetails &buffer);
+  HRESULT Deliver(BufferDetails &buffer);
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
   HRESULT ParseRealAudioHeader(const BYTE *extra, const int extralen);
@@ -217,7 +217,7 @@ private:
   HRESULT Create61Conformity(DWORD dwLayout);
   HRESULT Create71Conformity(DWORD dwLayout);
 
-  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat);
+  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback = FALSE);
   HRESULT ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat outputFormat);
 
 private:
@@ -245,6 +245,7 @@ private:
 
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples
+  BOOL                 m_bFallback16Int;
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 

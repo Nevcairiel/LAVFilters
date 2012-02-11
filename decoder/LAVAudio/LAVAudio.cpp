@@ -98,6 +98,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_DecodeLayoutSanified(0)
   , m_bChannelMappingRequired(FALSE)
   , m_bFindDTSInPCM(FALSE)
+  , m_bFallback16Int(FALSE)
 {
   av_register_all();
   if (av_lockmgr_addref() == 1)
@@ -738,7 +739,10 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   if(iPosition < 0) {
     return E_INVALIDARG;
   }
-  if(iPosition > 0) {
+
+  int maxIndex = m_avBSContext ? 0 : 1;
+
+  if(iPosition > maxIndex) {
     return VFW_S_NO_MORE_ITEMS;
   }
 
@@ -754,7 +758,10 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, m_pAVCtx->bits_per_raw_sample);
     int bits = m_pDTSDecoderContext ? 0 : m_pAVCtx->bits_per_raw_sample;
 
-    LAVAudioSampleFormat bestFmt = GetBestAvailableSampleFormat(lav_sample_fmt);
+    if (iPosition == 1)
+      lav_sample_fmt = SampleFormat_16;
+
+    LAVAudioSampleFormat bestFmt = GetBestAvailableSampleFormat(lav_sample_fmt, TRUE);
     if (bestFmt != lav_sample_fmt) {
       lav_sample_fmt = bestFmt;
       bits = get_byte_per_sample(lav_sample_fmt) << 3;
@@ -1083,6 +1090,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   }
 
   m_bFindDTSInPCM = (codec == CODEC_ID_PCM_S16LE && m_settings.bFormats[Codec_DTS]);
+  m_bFallback16Int = FALSE;
 
   return S_OK;
 }
@@ -1776,7 +1784,7 @@ HRESULT CLAVAudio::FlushOutput(BOOL bDeliver)
   return hr;
 }
 
-HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
+HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
 {
   HRESULT hr = S_OK;
 
@@ -1835,6 +1843,15 @@ HRESULT CLAVAudio::Deliver(const BufferDetails &buffer)
   if(hr == S_OK) {
     hr = m_pOutput->GetConnected()->QueryAccept(&mt);
     DbgLog((LOG_TRACE, 1, L"Sending new Media Type (QueryAccept: %0#.8x)", hr));
+    if (hr != S_OK && buffer.sfFormat != SampleFormat_16) {
+      mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask, 16);
+      hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+      if (hr == S_OK) {
+        DbgLog((LOG_TRACE, 1, L"-> 16-bit fallback type accepted"));
+        ConvertSampleFormat(&buffer, SampleFormat_16);
+        m_bFallback16Int = TRUE;
+      }
+    }
     m_pOutput->SetMediaType(&mt);
     pOut->SetMediaType(&mt);
   }
