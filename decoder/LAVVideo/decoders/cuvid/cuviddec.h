@@ -61,6 +61,7 @@ typedef enum cudaVideoCodec_enum {
     cudaVideoCodec_H264,
     cudaVideoCodec_JPEG,
     cudaVideoCodec_H264_SVC,
+    cudaVideoCodec_H264_MVC,
     cudaVideoCodec_NumCodecs,
     // Uncompressed YUV
     cudaVideoCodec_YUV420 = (('I'<<24)|('Y'<<16)|('U'<<8)|('V')),   // Y,U,V (4:2:0)
@@ -163,8 +164,9 @@ typedef struct _CUVIDH264SVCEXT
     unsigned char DQIdMax;
     unsigned char disable_inter_layer_deblocking_filter_idc;
     unsigned char ref_layer_chroma_phase_y_plus1;
-    char  inter_layer_slice_alpha_c0_offset_div2;
-    char  inter_layer_slice_beta_offset_div2;
+    signed char   inter_layer_slice_alpha_c0_offset_div2;
+    signed char   inter_layer_slice_beta_offset_div2;
+
     unsigned short DPBEntryValidFlag;
     unsigned char inter_layer_deblocking_filter_control_present_flag;
     unsigned char extended_spatial_scalability_idc;
@@ -172,6 +174,7 @@ typedef struct _CUVIDH264SVCEXT
     unsigned char slice_header_restriction_flag;
     unsigned char chroma_phase_x_plus1_flag;
     unsigned char chroma_phase_y_plus1;
+
     unsigned char tcoeff_level_prediction_flag;
     unsigned char constrained_intra_resampling_flag;
     unsigned char ref_layer_chroma_phase_x_plus1_flag;
@@ -185,6 +188,7 @@ typedef struct _CUVIDH264SVCEXT
     short scaled_ref_layer_top_offset;
     short scaled_ref_layer_right_offset;
     short scaled_ref_layer_bottom_offset;
+    unsigned short Reserved16Bits;
     struct _CUVIDPICPARAMS *pNextLayer; // Points to the picparams for the next layer to be decoded. Linked list ends at the target layer.
     int bRefBaseLayer;                 // whether to store ref base pic
 } CUVIDH264SVCEXT;
@@ -226,7 +230,19 @@ typedef struct _CUVIDH264PICPARAMS
     // Quantization Matrices (raster-order)
     unsigned char WeightScale4x4[6][16];
     unsigned char WeightScale8x8[2][64];
-    unsigned int  Reserved[16];
+    // FMO/ASO
+    unsigned char fmo_aso_enable;
+    unsigned char num_slice_groups_minus1;
+    unsigned char slice_group_map_type;
+    signed char pic_init_qs_minus26;
+    unsigned int slice_group_change_rate_minus1;
+    union
+    {
+        unsigned long long slice_group_map_addr;
+        const unsigned char *pMb2SliceGroupMap;
+    } fmo;
+    unsigned int  Reserved[12];
+    // SVC/MVC
     union
     {
         CUVIDH264MVCEXT mvcext;

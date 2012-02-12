@@ -163,7 +163,7 @@ typedef enum {
     CUVID_FMT_EXTFORMATINFO = 0x100,    // Return extended format structure (CUVIDEOFORMATEX)
 } CUvideosourceformat_flags;
 
-#ifdef _WIN32
+#if !defined(__APPLE__)
 // Video file source
 CUresult CUDAAPI cuvidCreateVideoSource(CUvideosource *pObj, const char *pszFileName, CUVIDSOURCEPARAMS *pParams);
 CUresult CUDAAPI cuvidCreateVideoSourceW(CUvideosource *pObj, const wchar_t *pwszFileName, CUVIDSOURCEPARAMS *pParams);
