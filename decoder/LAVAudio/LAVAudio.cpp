@@ -385,7 +385,7 @@ STDMETHODIMP CLAVAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
-  pPages->cElems = 3;
+  pPages->cElems = m_pInput && m_pInput->IsConnected() ? 3 : 2;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
   if (pPages->pElems == NULL) {
     return E_OUTOFMEMORY;
