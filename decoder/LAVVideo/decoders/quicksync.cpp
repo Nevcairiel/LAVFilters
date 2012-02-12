@@ -59,7 +59,7 @@ static struct {
 } quicksync_codecs[] = {
   { CODEC_ID_MPEG2VIDEO, FourCC_MPG2 },
   { CODEC_ID_VC1,        FourCC_VC1  },
-  //{ CODEC_ID_WMV3,       FourCC_WMV3 },
+  { CODEC_ID_WMV3,       FourCC_WMV3 },
   { CODEC_ID_H264,       FourCC_H264 },
 };
 
@@ -243,6 +243,9 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   // because this is not handled properly by the API (it expects DTS)
   qsConfig.bTimeStampCorrection = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
 
+  // Disallow software fallback
+  qsConfig.bEnableSwEmulation = false;
+
   // We want the pure image, no mod-16 padding
   qsConfig.bMod16Width = false;
 
@@ -285,10 +288,6 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
     bmi->biCompression = fourCC;
     break;
   }
-
-  // Ignore unsupported resolutions
-  if(bmi->biWidth > 2048 || bmi->biHeight > 2048)
-    return E_FAIL;
 
   hr = m_pDecoder->TestMediaType(&mt, fourCC);
   if (hr != S_OK) {

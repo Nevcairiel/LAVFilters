@@ -29,10 +29,19 @@
 #pragma once
 
 #define QS_DEC_DLL_NAME "IntelQuickSyncDecoder.dll"
-#define QS_DEC_VERSION  "v0.25 Beta"
+#define QS_DEC_VERSION  "v0.26 Beta"
 
 // Forward declarations
 struct IDirect3DDeviceManager9;
+
+// Return value of the check function.
+// Caps are bitwise OR of the following values
+enum QsCaps
+{
+    QS_CAP_UNSUPPORTED      = 0,
+    QS_CAP_HW_ACCELERATION  = 1,
+    QS_CAP_SW_EMULATION     = 2
+};
 
 // This struct holds an output frame + meta data
 struct QsFrameData
@@ -105,6 +114,7 @@ struct CQsConfig
             bool     bEnableMtDecode        :  1; // decode on a worker thread
             bool     bEnableMtProcessing    :  1; // perform post decode processing on another thread
             bool     bEnableVideoProcessing :  1;
+            bool     bEnableSwEmulation     :  1; // When true, a SW version of the decoder will be used (if possible) if HW fails
             unsigned reserved1              : 19;
         };
     };
@@ -210,4 +220,5 @@ extern "C"
     IQuickSyncDecoder* __stdcall createQuickSync();
     void               __stdcall destroyQuickSync(IQuickSyncDecoder*);
     void               __stdcall getVersion(char* ver, const char** license);
+    DWORD              __stdcall check();
 }
