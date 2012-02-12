@@ -45,6 +45,7 @@ __declspec(dllimport) extern const int avpriv_mpeg4audio_sample_rates[16];
 extern enum CodecID ff_codec_get_id(const AVCodecTag *tags, unsigned int tag);
 extern int ff_get_wav_header(AVIOContext *pb, AVCodecContext *codec, int size);
 extern AVChapter *avpriv_new_chapter(AVFormatContext *s, int id, AVRational time_base, int64_t start, int64_t end, const char *title);
+extern void ff_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp);
 };
 
 #define IO_BUFFER_SIZE 32768
@@ -256,7 +257,7 @@ static ulonglong mkv_get_track_mask(MatroskaDemuxContext *ctx)
   return mask;
 }
 
-static int mkv_read_header(AVFormatContext *s, AVFormatParameters *ap)
+static int mkv_read_header(AVFormatContext *s)
 {
   MatroskaDemuxContext *ctx = (MatroskaDemuxContext *)s->priv_data;
   char ErrorMessage[256];
@@ -690,7 +691,7 @@ static int mkv_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp
   if (cur_dts == -1)
     cur_dts = timestamp;
 
-  av_update_cur_dts(s, ctx->tracks[stream_index].stream, cur_dts);
+  ff_update_cur_dts(s, ctx->tracks[stream_index].stream, cur_dts);
 
   return 0;
 }
@@ -698,6 +699,12 @@ static int mkv_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp
 AVInputFormat lav_mkv_demuxer = {
   "matroska",                   /* name */
   "Matroska/WebM",              /* long name */
+  0,                            /* flags */
+  NULL,                         /* extensions */
+  NULL,                         /* codec_tag */
+  NULL,                         /* priv_class */
+  NULL,                         /* next */
+  0,                            /* raw_codec_id */
   sizeof(MatroskaDemuxContext), /* priv_data_size */
   mkv_probe,                    /* read_probe */
   mkv_read_header,              /* read_header */
@@ -705,13 +712,7 @@ AVInputFormat lav_mkv_demuxer = {
   mkv_read_close,               /* read_close */
   mkv_read_seek,                /* read_seek */
   NULL,                         /* read_timestamp */
-  0,                            /* flags */
-  NULL,                         /* extensions */
-  0,                            /* value */
   NULL,                         /* read_play */
   NULL,                         /* read_pause */
-  NULL,                         /* codec_tag */
   NULL,                         /* read_seek2 */
-  NULL,                         /* metadata_conv */
-  NULL,                         /* priv_class */
 };

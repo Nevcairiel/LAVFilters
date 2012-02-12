@@ -426,7 +426,7 @@ HRESULT CLAVAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
 
   if (m_pAVCtx) {
     float fDRC = bDRCEnabled ? (float)fDRCLevel / 100.0f : 0.0f;
-    m_pAVCtx->drc_scale = fDRC;
+    av_opt_set_double(m_pAVCtx, "drc_scale", fDRC, AV_OPT_SEARCH_CHILDREN);
   }
 
   SaveSettings();
@@ -1003,9 +1003,6 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   if (m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
     m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
 
-  // Set Dynamic Range Compression
-  m_pAVCtx->drc_scale             = m_settings.DRCEnabled ? (float)m_settings.DRCLevel / 100.0f : 0.0f;
-
 #if REQUEST_FLOAT
   m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_FLT;
 #endif
@@ -1080,6 +1077,10 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   } else {
     return VFW_E_UNSUPPORTED_AUDIO;
   }
+
+  // Set Dynamic Range Compression
+  float drc_scale = m_settings.DRCEnabled ? (float)m_settings.DRCLevel / 100.0f : 0.0f;
+  ret = av_opt_set_double(m_pAVCtx, "drc_scale", drc_scale, AV_OPT_SEARCH_CHILDREN);
 
   // This could probably be a bit smarter..
   if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {

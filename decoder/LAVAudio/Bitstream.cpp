@@ -132,7 +132,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   m_pAVCtx->channels    = st->codec->channels    = wfe->nChannels;
   m_pAVCtx->sample_rate = st->codec->sample_rate = wfe->nSamplesPerSec;
 
-  ret = av_write_header(m_avBSContext);
+  ret = avformat_write_header(m_avBSContext, NULL);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- av_write_header returned an error code (%d)", -ret));
     goto fail;

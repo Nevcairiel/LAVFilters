@@ -257,7 +257,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
       AVStream *avstream = GetAVStreamByPID(s->pid);
       if (avstream) {
         if (s->lang[0] != 0)
-          av_metadata_set2(&avstream->metadata, "language", (const char *)s->lang, 0);
+          av_dict_set(&avstream->metadata, "language", (const char *)s->lang, 0);
       }
     }
   }
@@ -470,7 +470,7 @@ void CLAVFDemuxer::UpdateSubStreams()
       }
       if (sub_st) {
         sub_st->disposition = st->disposition | LAVF_DISPOSITION_SUB_STREAM;
-        av_metadata_copy(&sub_st->metadata, st->metadata, 0);
+        av_dict_copy(&sub_st->metadata, st->metadata, 0);
       }
     }
   }
@@ -827,8 +827,8 @@ STDMETHODIMP CLAVFDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
   if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
   // Get the title, or generate one
   OLECHAR wTitle[128];
-  if (av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
-    char *title = av_metadata_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)->value;
+  if (av_dict_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
+    char *title = av_dict_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)->value;
     MultiByteToWideChar(CP_UTF8, 0, title, -1, wTitle, 128);
   } else {
     swprintf_s(wTitle, L"Chapter %d", MarkerNum);
@@ -1012,8 +1012,8 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
   BSTR trackName = NULL;
 
   const char *title = NULL;
-  if (av_metadata_get(st->metadata, "title", NULL, 0)) {
-    title = av_metadata_get(st->metadata, "title", NULL, 0)->value;
+  if (av_dict_get(st->metadata, "title", NULL, 0)) {
+    title = av_dict_get(st->metadata, "title", NULL, 0)->value;
   }
   if (title && title[0] != '\0') {
     trackName = ConvertCharToBSTR(title);
@@ -1061,8 +1061,8 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 
   // Extract language
   const char *lang = NULL;
-  if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
-    lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
+  if (av_dict_get(pStream->metadata, "language", NULL, 0)) {
+    lang = av_dict_get(pStream->metadata, "language", NULL, 0)->value;
   }
   s.language = lang ? ProbeForISO6392(lang) : "und";
   s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr);

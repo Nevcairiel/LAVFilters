@@ -52,8 +52,8 @@ static int get_bit_rate(AVCodecContext *ctx)
 const char *get_stream_language(const AVStream *pStream)
 {
   char *lang = NULL;
-  if (av_metadata_get(pStream->metadata, "language", NULL, 0)) {
-    lang = av_metadata_get(pStream->metadata, "language", NULL, 0)->value;
+  if (av_dict_get(pStream->metadata, "language", NULL, 0)) {
+    lang = av_dict_get(pStream->metadata, "language", NULL, 0)->value;
   }
   // Don't bother with undetermined languages (fallback value in some containers)
   if(lang && strncmp(lang, "und", 3))
@@ -209,10 +209,10 @@ std::string lavf_get_stream_description(AVStream *pStream)
   }
 
   char *title = NULL;
-  if (av_metadata_get(pStream->metadata, "title", NULL, 0)) {
-    title = av_metadata_get(pStream->metadata, "title", NULL, 0)->value;
-  } else if (av_metadata_get(pStream->metadata, "handler_name", NULL, 0)) {
-    title = av_metadata_get(pStream->metadata, "handler_name", NULL, 0)->value;
+  if (av_dict_get(pStream->metadata, "title", NULL, 0)) {
+    title = av_dict_get(pStream->metadata, "title", NULL, 0)->value;
+  } else if (av_dict_get(pStream->metadata, "handler_name", NULL, 0)) {
+    title = av_dict_get(pStream->metadata, "handler_name", NULL, 0)->value;
     if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "VideoHandler") == 0|| strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
       title = NULL;
   }
@@ -240,7 +240,7 @@ std::string lavf_get_stream_description(AVStream *pStream)
     buf << codec_name;
     // Pixel Format
     if (enc->pix_fmt != PIX_FMT_NONE) {
-      buf << ", " << avcodec_get_pix_fmt_name(enc->pix_fmt);
+      buf << ", " << av_get_pix_fmt_name(enc->pix_fmt);
     }
     // Dimensions
     if (enc->width) {

@@ -46,7 +46,6 @@ OPTIONS="
 --disable-ffplay \
 --disable-ffserver \
 --disable-ffmpeg \
---disable-avconv \
 --disable-ffprobe \
 --disable-devices \
 --disable-avdevice \

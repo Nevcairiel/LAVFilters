@@ -607,7 +607,6 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
   }
 
   pic->type = FF_BUFFER_TYPE_USER;
-  pic->age  = 256*256*256*64; // What?
 
   //pDec->m_pD3DDevMngr->TestDevice(
   int i, old, old_unused;

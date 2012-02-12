@@ -366,7 +366,7 @@ void CBDDemuxer::ProcessStreams(int count, BLURAY_STREAM_INFO *streams)
     AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(stream->pid);
     if (avstream) {
       if (stream->lang[0] != 0)
-        av_metadata_set2(&avstream->metadata, "language", (const char *)stream->lang, 0);
+        av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, 0);
     } else {
       DbgLog((LOG_TRACE, 10, "CBDDemuxer::ProcessStreams(): Stream with PID 0x%04x not found", stream->pid));
     }
