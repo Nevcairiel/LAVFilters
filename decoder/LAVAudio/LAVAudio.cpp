@@ -385,14 +385,16 @@ STDMETHODIMP CLAVAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
-  pPages->cElems = 3;
+  BOOL bShowStatusPage = m_pInput && m_pInput->IsConnected();
+  pPages->cElems = bShowStatusPage ? 3 : 2;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
   if (pPages->pElems == NULL) {
     return E_OUTOFMEMORY;
   }
   pPages->pElems[0] = CLSID_LAVAudioSettingsProp;
   pPages->pElems[1] = CLSID_LAVAudioFormatsProp;
-  pPages->pElems[2] = CLSID_LAVAudioStatusProp;
+  if (bShowStatusPage)
+    pPages->pElems[2] = CLSID_LAVAudioStatusProp;
   return S_OK;
 }
 
