@@ -1,5 +1,29 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.46 - 2012/02/12
+LAV Splitter
+- Experimental support for streaming protocols (RTSP, RTP, MMS)
+- Support for IBufferInfo (Buffer Status in MPC-HC "Statistics" pane)
+- Added a memory limit to avoid too high memory use from the frame queues
+- Fixed playback of files with Subtitles in WMP/WMC in some cases
+
+LAV Audio
+- Improved playback of files with bad audio frame interleaving
+- Improved support of COOK, ATRAC and SIPR (RealAudio codecs)
+
+LAV Video
+- Updated and improved Intel QuickSync decoder (0.26, r38)
+- Fixed DXVA2 software fallback on some lossless H264 clips
+- Improved Fraps decoding with EVR
+- Improved playback of MPEG4 in MP4
+- Multi-threaded decoding for Lagarith
+- Fixed playback of Theora with the MPC-HC Ogg Splitter
+- Dithering Enhancements:
+  - New "Random Dithering" option (new default)
+  - Improved "Ordered Dithering" in the RGB converter
+- Support for decoding v210/v410 raw formats
+- Support for Snow and FFV1
+
 0.45 - 2012/01/28
 LAV Splitter
 - Improved playback of concatenated H.264 MOV/MP4 files
