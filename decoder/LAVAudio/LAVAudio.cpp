@@ -1279,7 +1279,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
       DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity without timestamp"));
     }
 
-    if (pIn->IsSyncPoint() == S_OK) {
+    if (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK) {
       DbgLog((LOG_TRACE, 10, L"::Receive(): Got SyncPoint, resuming decoding...."));
       m_bNeedSyncpoint = FALSE;
     }
