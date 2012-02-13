@@ -99,6 +99,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bChannelMappingRequired(FALSE)
   , m_bFindDTSInPCM(FALSE)
   , m_bFallback16Int(FALSE)
+  , m_bNeedSyncpoint(FALSE)
 {
   av_register_all();
   if (av_lockmgr_addref() == 1)
@@ -1228,6 +1229,7 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   CAutoLock cAutoLock(&m_csReceive);
   m_rtStart = 0;
   m_bQueueResync = TRUE;
+  m_bNeedSyncpoint = (m_raData.deint_id != 0);
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
@@ -1268,13 +1270,18 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   REFERENCE_TIME rtStart = _I64_MIN, rtStop = _I64_MIN;
   hr = pIn->GetTime(&rtStart, &rtStop);
 
-  if(pIn->IsDiscontinuity() == S_OK) {
+  if(pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK)) {
     m_bDiscontinuity = TRUE;
     m_buff.SetSize(0);
     FlushOutput(FALSE);
     m_bQueueResync = TRUE;
     if(FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity without timestamp"));
+    }
+
+    if (pIn->IsSyncPoint() == S_OK) {
+      DbgLog((LOG_TRACE, 10, L"::Receive(): Got SyncPoint, resuming decoding...."));
+      m_bNeedSyncpoint = FALSE;
     }
   }
 
