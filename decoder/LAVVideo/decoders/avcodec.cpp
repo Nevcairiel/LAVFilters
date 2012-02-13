@@ -396,8 +396,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
 
       bH264avc = TRUE;
       m_h264RandomAccess.SetAVCNALSize(mp2vi->dwFlags);
-      if (!bSPS || !bPPS) {
-        DbgLog((LOG_TRACE, 10, L"-> AVC1 extradata doesn't contain SPS and PPS, setting thread_count = 1"));
+      if (!bSPS) {
+        DbgLog((LOG_TRACE, 10, L"-> AVC1 extradata doesn't contain a SPS, setting thread_count = 1"));
         m_pAVCtx->thread_count = 1;
       }
     } else {
