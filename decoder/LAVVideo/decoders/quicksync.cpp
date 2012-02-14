@@ -249,9 +249,6 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   // We want the pure image, no mod-16 padding
   qsConfig.bMod16Width = false;
 
-  // Output Queue
-  qsConfig.nOutputQueueLength = 8; //qsConfig.bTimeStampCorrection ? 8 : 2;
-
   // Disable video processing
   qsConfig.vpp = 0;
 
