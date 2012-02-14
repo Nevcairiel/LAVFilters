@@ -308,7 +308,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
           || (m_OutputPixFmt == LAVOutPixFmt_YV24 && m_InputPixFmt == LAVPixFmt_YUV444)) {
     convert = &CLAVPixFmtConverter::convert_yuv_yv;
     m_RequiredAlignment = 2;
-  } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12) || (m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
+  } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
     || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24)) {
     convert = &CLAVPixFmtConverter::plane_copy;
     m_RequiredAlignment = 0;
@@ -376,6 +376,8 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       }
 
       m_RequiredAlignment = 8; // Pixel alignment of 8 guarantees a byte alignment of 16
+    } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
+      convert = &CLAVPixFmtConverter::convert_nv12_nv12;
     }
   }
 

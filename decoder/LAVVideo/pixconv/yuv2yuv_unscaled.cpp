@@ -488,3 +488,46 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
 
   return S_OK;
 }
+
+DECLARE_CONV_FUNC_IMPL(convert_nv12_nv12)
+{
+  const uint8_t *y  = src[0];
+  const uint8_t *uv = src[1];
+
+  const int inStride = srcStride[0];
+  const int outStride = dstStride;
+  const int chromaHeight = (height >> 1);
+
+  uint8_t *dstY = dst;
+  uint8_t *dstUV = dstY + height * outStride;
+
+  int line, i;
+  __m128i xmm0;
+
+  _mm_sfence();
+
+  // Copy the data
+  for (line = 0; line < height; line++) {
+    __m128i *dstY128 = (__m128i *)(dstY + outStride * line);
+
+    for (i = 0; i < width; i+=16) {
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, y+i+0);
+      _mm_stream_si128(dstY128++, xmm0);
+    }
+
+    y += inStride;
+  }
+
+  for (line = 0; line < chromaHeight; line++) {
+    __m128i *dstUV128 = (__m128i *)(dstUV + outStride * line);
+
+    for (i = 0; i < width; i+=16) {
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, uv+i+0);
+      _mm_stream_si128(dstUV128++, xmm0);
+    }
+
+    uv += inStride;
+  }
+
+  return S_OK;
+}
