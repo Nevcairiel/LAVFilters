@@ -453,11 +453,18 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
 
   xmm7 = _mm_set1_epi16(0x00FF);
 
+  _mm_sfence();
+
   // Copy the y
   for (line = 0; line < height; line++) {
-    memcpy(dstY, y, width);
+    __m128i *dstY128 = (__m128i *)(dstY + outLumaStride * line);
+
+    for (i = 0; i < width; i+=16) {
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, y+i+0);
+      _mm_stream_si128(dstY128++, xmm0);
+    }
+
     y += inStride;
-    dstY += outLumaStride;
   }
 
   for (line = 0; line < chromaHeight; line++) {
