@@ -254,19 +254,31 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
   const int chromaWidth     = (width + 1) >> 1;
   const int chromaHeight    = height >> 1;
 
+  uint8_t *dstY = dst;
+  uint8_t *dstUV = dstY + height * outStride;
+
   int line,i;
   __m128i xmm0,xmm1,xmm2,xmm3;
 
+  _mm_sfence();
+
   // Y
   for(line = 0; line < height; ++line) {
-    memcpy(dst, y, width);
+    __m128i *dstY128 = (__m128i *)(dstY + outStride * line);
+
+    for (i = 0; i < width; i+=32) {
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, y+i+0);
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, y+i+16);
+      _mm_stream_si128(dstY128++, xmm0);
+      _mm_stream_si128(dstY128++, xmm1);
+    }
+
     y += inLumaStride;
-    dst += outStride;
   }
 
   // U/V
   for(line = 0; line < chromaHeight; ++line) {
-    __m128i *dst128UV = (__m128i *)(dst + line * outStride);
+    __m128i *dst128UV = (__m128i *)(dstUV + line * outStride);
 
     for (i = 0; i < chromaWidth; i+=16) {
       PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (v+i));  /* VVVV */
