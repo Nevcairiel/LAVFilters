@@ -34,6 +34,8 @@ public:
   STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return Init(); }
   STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() { return 0; }
   STDMETHOD_(BOOL, IsInterlaced)() { return TRUE; }
+  STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc) { return E_NOTIMPL; }
+  STDMETHODIMP PostConnect(IPin *pPin) { return S_FALSE; }
 
   STDMETHODIMP Decode(IMediaSample *pSample) {
     HRESULT hr;

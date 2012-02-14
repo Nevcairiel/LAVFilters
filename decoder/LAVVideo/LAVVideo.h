@@ -112,6 +112,7 @@ public:
   HRESULT Receive(IMediaSample *pIn);
 
   HRESULT BreakConnect(PIN_DIRECTION dir);
+  HRESULT CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin);
 
   // ILAVVideoCallback
   STDMETHODIMP AllocateFrame(LAVFrame **ppFrame);
@@ -125,6 +126,7 @@ public:
   STDMETHODIMP_(BOOL) IsVistaOrNewer();
   STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info) { if (m_LAVPinInfoValid) { info = m_LAVPinInfo; return S_OK; } return E_FAIL; }
+  STDMETHODIMP_(CBasePin*) GetOutputPin() { return m_pOutput; }
 
 public:
   // Pin Configuration
@@ -152,6 +154,8 @@ private:
   STDMETHODIMP DeliverToRenderer(LAVFrame *pFrame);
 
 private:
+  friend class CVideoOutputPin;
+
   ILAVDecoder          *m_pDecoder;
 
   REFERENCE_TIME       m_rtPrevStart;

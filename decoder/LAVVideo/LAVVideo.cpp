@@ -23,6 +23,8 @@
 #include "Media.h"
 #include <dvdmedia.h>
 
+#include "VideoOutputPin.h"
+
 #include "moreuuids.h"
 #include "registry.h"
 
@@ -76,6 +78,23 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
   m_processName = PathFindFileName (fileName);
+
+  m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
+  if(!m_pInput) {
+    *phr = E_OUTOFMEMORY;
+  }
+  if (FAILED(*phr)) {
+    return;
+  }
+
+  m_pOutput = new CVideoOutputPin(TEXT("CVideoOutputPin"), this, phr, L"Output");
+  if(!m_pOutput) {
+    *phr = E_OUTOFMEMORY;
+  }
+  if(FAILED(*phr))  {
+    SAFE_DELETE(m_pInput);
+    return;
+  }
 
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
 
@@ -513,8 +532,10 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
       m_pDecoder = CreateDecoderCUVID();
     else if (m_settings.HWAccel == HWAccel_QuickSync)
       m_pDecoder = CreateDecoderQuickSync();
-    else if (m_settings.HWAccel == HWAccel_DXVA2)
+    else if (m_settings.HWAccel == HWAccel_DXVA2CopyBack)
       m_pDecoder = CreateDecoderDXVA2();
+    else if (m_settings.HWAccel == HWAccel_DXVA2Native)
+      m_pDecoder = CreateDecoderDXVA2Native();
     m_bHWDecoder = TRUE;
   }
 
@@ -617,6 +638,23 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
       avfilter_graph_free(&m_pFilterGraph);
   }
   return __super::BreakConnect(dir);
+}
+
+HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
+{
+  DbgLog((LOG_TRACE, 10, L"::CompleteConnect"));
+  HRESULT hr = S_OK;
+  if (dir == PINDIR_OUTPUT) {
+    if (m_pDecoder) {
+      hr = m_pDecoder->PostConnect(pReceivePin);
+      if (FAILED(hr)) {
+        m_bHWDecoderFailed = TRUE;
+        CMediaType &mt = m_pInput->CurrentMediaType();
+        hr = CreateDecoder(&mt);
+      }
+    }
+  }
+  return S_OK;
 }
 
 HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration)
@@ -1005,7 +1043,10 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     return S_OK;
   }
 
-  return Filter(pFrame);
+  if (pFrame->format == LAVPixFmt_DXVA2)
+    return DeliverToRenderer(pFrame);
+  else
+    return Filter(pFrame);
 }
 
 STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
@@ -1046,9 +1087,14 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (avgDuration == 0)
     avgDuration = AV_NOPTS_VALUE;
 
-  if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
-    ReleaseFrame(&pFrame);
-    return hr;
+  if (pFrame->format == LAVPixFmt_DXVA2) {
+    pSampleOut = (IMediaSample *)pFrame->data[0];
+    pSampleOut->AddRef();
+  } else {
+    if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
+      ReleaseFrame(&pFrame);
+      return hr;
+    }
   }
 
   pSampleOut->SetTime(&pFrame->rtStart, &pFrame->rtStop);
@@ -1058,34 +1104,35 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   BITMAPINFOHEADER *pBIH = NULL;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
-  long required = pBIH->biSizeImage;
+  if (pFrame->format != LAVPixFmt_DXVA2) {
+    long required = pBIH->biSizeImage;
 
-  long lSampleSize = pSampleOut->GetSize();
-  if (lSampleSize < required) {
-    DbgLog((LOG_ERROR, 10, L"::Decode(): Buffer is too small! Actual: %d, Required: %d", lSampleSize, required));
-    SafeRelease(&pSampleOut);
-    ReleaseFrame(&pFrame);
-    return E_FAIL;
-  }
+    long lSampleSize = pSampleOut->GetSize();
+    if (lSampleSize < required) {
+      DbgLog((LOG_ERROR, 10, L"::Decode(): Buffer is too small! Actual: %d, Required: %d", lSampleSize, required));
+      SafeRelease(&pSampleOut);
+      ReleaseFrame(&pFrame);
+      return E_FAIL;
+    }
 
+  #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
+    LARGE_INTEGER frequency, start, end;
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&start);
+  #endif
+    m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth);
+  #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
+    QueryPerformanceCounter(&end);
+    double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
+    m_pixFmtTimingAvg.Sample(diff);
 
-#if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
-  LARGE_INTEGER frequency, start, end;
-  QueryPerformanceFrequency(&frequency);
-  QueryPerformanceCounter(&start);
-#endif
-  m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth);
-#if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
-  QueryPerformanceCounter(&end);
-  double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
-  m_pixFmtTimingAvg.Sample(diff);
+    DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
+  #endif
 
-  DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
-#endif
-
-  if ((mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) && pBIH->biHeight > 0) {
-    int bpp = (mt.subtype == MEDIASUBTYPE_RGB32) ? 4 : 3;
-    flip_plane(pDataOut, pBIH->biWidth * bpp, height);
+    if ((mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) && pBIH->biHeight > 0) {
+      int bpp = (mt.subtype == MEDIASUBTYPE_RGB32) ? 4 : 3;
+      flip_plane(pDataOut, pBIH->biWidth * bpp, height);
+    }
   }
 
   if (m_bSendMediaType) {
@@ -1273,9 +1320,16 @@ STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
       SAFE_DELETE(pDecoder);
     }
     break;
-  case HWAccel_DXVA2:
+  case HWAccel_DXVA2CopyBack:
     {
       ILAVDecoder *pDecoder = CreateDecoderDXVA2();
+      hr = pDecoder->InitInterfaces(this, this);
+      SAFE_DELETE(pDecoder);
+    }
+    break;
+  case HWAccel_DXVA2Native:
+    {
+      ILAVDecoder *pDecoder = CreateDecoderDXVA2Native();
       hr = pDecoder->InitInterfaces(this, this);
       SAFE_DELETE(pDecoder);
     }

@@ -30,7 +30,10 @@ typedef struct {
   LPDIRECT3DSURFACE9 d3d;
   uint64_t age;
   long ref;
+  IMediaSample *sample;
 } d3d_surface_t;
+
+class CDXVA2SurfaceAllocator;
 
 class CDecDXVA2 : public CDecAvcodec
 {
@@ -44,8 +47,13 @@ public:
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
 
+  STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
+  STDMETHODIMP PostConnect(IPin *pPin);
+
   // CDecBase
   STDMETHODIMP Init();
+
+  HRESULT SetNativeMode(BOOL bNative) { m_bNative = bNative; return S_OK; }
 
 protected:
   HRESULT AdditionaDecoderInit();
@@ -56,20 +64,27 @@ protected:
   bool CopyFrame(LAVFrame *pFrame);
 
 private:
+  HRESULT InitD3D();
   STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
   STDMETHODIMP LoadDXVA2Functions();
 
   HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
-  HRESULT CreateDXVAVideoService(IDirect3DDevice9 *pDevice, IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
+  HRESULT CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
   HRESULT FindVideoServiceConversion(CodecID codec, GUID *input, D3DFORMAT *output);
 
-  HRESULT CreateDXVA2Decoder();
+  HRESULT CreateDXVA2Decoder(int nSurfaces = 0, IDirect3DSurface9 **ppSurfaces = NULL);
+  HRESULT SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager);
+  HRESULT DXVA2NotifyEVR();
 
   static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
   static void release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
   d3d_surface_t *FindSurface(LPDIRECT3DSURFACE9 pSurface);
 
 private:
+  friend class CDXVA2SurfaceAllocator;
+  BOOL m_bNative;
+  CDXVA2SurfaceAllocator *m_pDXVA2Allocator;
+
   struct {
     HMODULE dxva2lib;
     pCreateDeviceManager9 *createDeviceManager;
@@ -79,6 +94,7 @@ private:
   IDirect3DDevice9        *m_pD3DDev;
   IDirect3DDeviceManager9 *m_pD3DDevMngr;
   UINT                    m_pD3DResetToken;
+  HANDLE                  m_hDevice;
 
   IDirectXVideoDecoderService *m_pDXVADecoderService;
   IDirectXVideoDecoder        *m_pDecoder;

@@ -147,6 +147,7 @@
     <ClCompile Include="decoders\avcodec.cpp" />
     <ClCompile Include="decoders\cuvid.cpp" />
     <ClCompile Include="decoders\dxva2dec.cpp" />
+    <ClCompile Include="decoders\dxva2\DXVA2SurfaceAllocator.cpp" />
     <ClCompile Include="decoders\pixfmt.cpp" />
     <ClCompile Include="decoders\quicksync.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="VideoOutputPin.cpp" />
     <ClCompile Include="VideoSettingsProp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +178,7 @@
     <ClInclude Include="decoders\cuvid.h" />
     <ClInclude Include="decoders\DecBase.h" />
     <ClInclude Include="decoders\dxva2dec.h" />
+    <ClInclude Include="decoders\dxva2\DXVA2SurfaceAllocator.h" />
     <ClInclude Include="decoders\ILAVDecoder.h" />
     <ClInclude Include="decoders\quicksync.h" />
     <ClInclude Include="H264RandomAccess.h" />
@@ -191,6 +194,7 @@
     <ClInclude Include="pixconv\pixconv_sse2_templates.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="VideoOutputPin.h" />
     <ClInclude Include="VideoSettingsProp.h" />
   </ItemGroup>
   <ItemGroup>

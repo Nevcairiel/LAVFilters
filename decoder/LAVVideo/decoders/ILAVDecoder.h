@@ -219,6 +219,11 @@ interface ILAVVideoCallback
    * Query the LAVPinInfo
    */
   STDMETHOD(GetLAVPinInfo)(LAVPinInfo &info) PURE;
+
+  /**
+   * Get a reference to the output pin
+   */
+  STDMETHOD_(CBasePin*, GetOutputPin)() PURE;
 };
 
 /**
@@ -299,6 +304,17 @@ interface ILAVDecoder
    * This function should return false if the format can 100% not be interlaced, and true if it can be interlaced (but also progressive).
    */
   STDMETHOD_(BOOL, IsInterlaced)() PURE;
+
+  /**
+   * Allows the decoder to handle an allocator.
+   * Used by DXVA2 decoding
+   */
+  STDMETHOD(InitAllocator)(IMemAllocator **ppAlloc) PURE;
+
+  /**
+   * Function called after connection is established, with the pin as argument
+   */
+  STDMETHOD(PostConnect)(IPin *pPin) PURE;
 };
 
 /**
@@ -310,3 +326,4 @@ ILAVDecoder *CreateDecoderAVCodec();
 ILAVDecoder *CreateDecoderCUVID();
 ILAVDecoder *CreateDecoderQuickSync();
 ILAVDecoder *CreateDecoderDXVA2();
+ILAVDecoder *CreateDecoderDXVA2Native();

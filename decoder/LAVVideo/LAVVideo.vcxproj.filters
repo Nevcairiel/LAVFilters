@@ -31,6 +31,12 @@
     <Filter Include="Header Files\decoders">
       <UniqueIdentifier>{c5cd3602-30d6-48ff-8100-230758b36fb4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\decoders\dxva2">
+      <UniqueIdentifier>{2417dd22-d693-40ad-a3f7-a6e3b4e22b9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\decoders\dxva2">
+      <UniqueIdentifier>{d3bbf10b-cfb1-45d9-8cb4-6323349e6b22}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -105,6 +111,12 @@
     <ClCompile Include="decoders\dxva2dec.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
+    <ClCompile Include="VideoOutputPin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="decoders\dxva2\DXVA2SurfaceAllocator.cpp">
+      <Filter>Source Files\decoders\dxva2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -166,6 +178,12 @@
     </ClInclude>
     <ClInclude Include="decoders\dxva2dec.h">
       <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoOutputPin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\dxva2\DXVA2SurfaceAllocator.h">
+      <Filter>Header Files\decoders\dxva2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

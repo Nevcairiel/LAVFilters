@@ -85,6 +85,8 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   { LAVPixFmt_RGB24,  8, 6, { LAVOutPixFmt_RGB24, LAVOutPixFmt_RGB32, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
   { LAVPixFmt_RGB32,  8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
   { LAVPixFmt_ARGB32, 8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
+
+  { LAVPixFmt_DXVA2, 7, 1, { LAVOutPixFmt_NV12 } },
 };
 
 LAVOutPixFmtDesc lav_pixfmt_desc[] = {
