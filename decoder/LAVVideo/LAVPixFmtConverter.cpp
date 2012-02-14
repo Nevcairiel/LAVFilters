@@ -379,6 +379,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
       convert = &CLAVPixFmtConverter::convert_nv12_nv12;
     }
+  // Fallbacks only to be used when SSE2 is not available
+  } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
+    convert = &CLAVPixFmtConverter::plane_copy;
+    m_RequiredAlignment = 0;
   }
 
   if (convert == NULL) {
