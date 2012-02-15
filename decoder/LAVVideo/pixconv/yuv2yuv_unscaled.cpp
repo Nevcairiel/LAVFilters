@@ -216,26 +216,28 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
     outChromaStride = outChromaStride >> 1;
   }
 
+  uint8_t *dstY = dst;
+  uint8_t *dstV = dstY + height * outLumaStride;
+  uint8_t *dstU = dstV + chromaHeight * outChromaStride;
+
   // Copy planes
+
+  _mm_sfence();
 
   // Y
   for(line = 0; line < height; ++line) {
-    memcpy(dst, y, width);
+    PIXCONV_MEMCPY_ALIGNED(dstY + outLumaStride * line, y, width);
     y += inLumaStride;
-    dst += outLumaStride;
   }
-
-  uint8_t *dstV = dst;
-  uint8_t *dstU = dst + chromaHeight * outChromaStride;
 
   // U/V
   for(line = 0; line < chromaHeight; ++line) {
-    memcpy(dstU, u, chromaWidth);
-    memcpy(dstV, v, chromaWidth);
+    PIXCONV_MEMCPY_ALIGNED_TWO(
+      dstU + outChromaStride * line, u,
+      dstV + outChromaStride * line, v,
+      chromaWidth);
     u += inChromaStride;
     v += inChromaStride;
-    dstU += outChromaStride;
-    dstV += outChromaStride;
   }
 
   return S_OK;
@@ -264,15 +266,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
 
   // Y
   for(line = 0; line < height; ++line) {
-    __m128i *dstY128 = (__m128i *)(dstY + outStride * line);
-
-    for (i = 0; i < width; i+=32) {
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, y+i+0);
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, y+i+16);
-      _mm_stream_si128(dstY128++, xmm0);
-      _mm_stream_si128(dstY128++, xmm1);
-    }
-
+    PIXCONV_MEMCPY_ALIGNED32(dstY + outStride * line, y, width);
     y += inLumaStride;
   }
 
@@ -469,13 +463,7 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
 
   // Copy the y
   for (line = 0; line < height; line++) {
-    __m128i *dstY128 = (__m128i *)(dstY + outLumaStride * line);
-
-    for (i = 0; i < width; i+=16) {
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, y+i+0);
-      _mm_stream_si128(dstY128++, xmm0);
-    }
-
+    PIXCONV_MEMCPY_ALIGNED(dstY + outLumaStride * line, y, width);
     y += inStride;
   }
 
@@ -520,31 +508,18 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_nv12)
   uint8_t *dstY = dst;
   uint8_t *dstUV = dstY + height * outStride;
 
-  int line, i;
-  __m128i xmm0;
+  int line;
 
   _mm_sfence();
 
   // Copy the data
   for (line = 0; line < height; line++) {
-    __m128i *dstY128 = (__m128i *)(dstY + outStride * line);
-
-    for (i = 0; i < width; i+=16) {
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, y+i+0);
-      _mm_stream_si128(dstY128++, xmm0);
-    }
-
+    PIXCONV_MEMCPY_ALIGNED(dstY + outStride * line, y, width);
     y += inStride;
   }
 
   for (line = 0; line < chromaHeight; line++) {
-    __m128i *dstUV128 = (__m128i *)(dstUV + outStride * line);
-
-    for (i = 0; i < width; i+=16) {
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, uv+i+0);
-      _mm_stream_si128(dstUV128++, xmm0);
-    }
-
+    PIXCONV_MEMCPY_ALIGNED(dstUV + outStride * line, uv, width);
     uv += inStride;
   }
 

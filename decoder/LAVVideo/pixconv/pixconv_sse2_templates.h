@@ -90,3 +90,54 @@
 // src     - source memory
 #define PIXCONV_LOAD_4PIXEL16(reg,src) \
    reg = _mm_loadl_epi64((const __m128i *)(src)); /* load 64-bit (4 pixel) */
+
+// SSE2 Aligned memcpy
+// dst - memory destination
+// src - memory source
+// len - size in bytes
+#define PIXCONV_MEMCPY_ALIGNED(dst,src,len)     \
+  {                                             \
+    __m128i reg;                                \
+    __m128i *dst128 =  (__m128i *)(dst);        \
+    for (int i = 0; i < len; i+=16) {           \
+      PIXCONV_LOAD_PIXEL8_ALIGNED(reg,(src)+i); \
+      _mm_stream_si128(dst128++, reg);          \
+    }                                           \
+  }
+
+// SSE2 Aligned memcpy (for 32-bit aligned data)
+// dst - memory destination
+// src - memory source
+// len - size in bytes
+#define PIXCONV_MEMCPY_ALIGNED32(dst,src,len)    \
+  {                                              \
+    __m128i reg1,reg2;                           \
+    __m128i *dst128 =  (__m128i *)(dst);         \
+    for (int i = 0; i < len; i+=32) {            \
+      PIXCONV_LOAD_PIXEL8_ALIGNED(reg1,(src)+i); \
+      PIXCONV_LOAD_PIXEL8_ALIGNED(reg2,(src)+i+16); \
+      _mm_stream_si128(dst128++, reg1);          \
+      _mm_stream_si128(dst128++, reg2);          \
+    }                                            \
+  }
+
+// SSE2 Aligned memcpy
+// Copys the same size from two source into two destinations at the same time
+// Can be useful to copy U/V planes in one go
+// dst1 - memory destination
+// src1 - memory source
+// dst2 - memory destination
+// src2 - memory source
+// len  - size in bytes
+#define PIXCONV_MEMCPY_ALIGNED_TWO(dst1,src1,dst2,src2,len)     \
+  {                                               \
+    __m128i reg1,reg2;                            \
+    __m128i *dst128_1 =  (__m128i *)(dst1);       \
+    __m128i *dst128_2 =  (__m128i *)(dst2);       \
+    for (int i = 0; i < len; i+=16) {             \
+      PIXCONV_LOAD_PIXEL8_ALIGNED(reg1,(src1)+i); \
+      PIXCONV_LOAD_PIXEL8_ALIGNED(reg2,(src2)+i); \
+      _mm_stream_si128(dst128_1++, reg1);         \
+      _mm_stream_si128(dst128_2++, reg2);         \
+    }                                             \
+  }
