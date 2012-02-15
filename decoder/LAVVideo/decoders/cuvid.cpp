@@ -960,6 +960,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
     cuStatus = cuda.cuMemAllocHost((void **)&m_pbRawNV12, size);
     if (cuStatus != CUDA_SUCCESS) {
       DbgLog((LOG_CUSTOM1, 1, L"CDecCuvid::Deliver(): cuMemAllocHost failed to allocate %d bytes (%d)", size, cuStatus));
+      goto cuda_fail;
     }
     m_cRawNV12 = size;
   }
@@ -976,6 +977,10 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
     }
 #else
     cuStatus = cuda.cuMemcpyDtoH(m_pbRawNV12, devPtr, size);
+    if (cuStatus != CUDA_SUCCESS) {
+      DbgLog((LOG_ERROR, 10, L"Memory Transfer failed"));
+      goto cuda_fail;
+    }
 #endif
   }
   cuda.cuvidUnmapVideoFrame(m_hDecoder, devPtr);
