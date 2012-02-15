@@ -982,6 +982,10 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
       goto cuda_fail;
     }
 #endif
+  } else {
+    // If we don't have our memory, this is bad.
+    DbgLog((LOG_ERROR, 10, L"No Valid Staging Memory - failing"));
+    goto cuda_fail;
   }
   cuda.cuvidUnmapVideoFrame(m_hDecoder, devPtr);
   cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
