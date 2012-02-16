@@ -112,7 +112,7 @@ CDXVA2SurfaceAllocator::CDXVA2SurfaceAllocator(CDecDXVA2 *m_pDXVA2Dec, HRESULT* 
 
 CDXVA2SurfaceAllocator::~CDXVA2SurfaceAllocator(void)
 {
-  if (m_pDec)
+  if (m_pDec && m_pDec->m_pDXVA2Allocator == this)
     m_pDec->m_pDXVA2Allocator = NULL;
 }
 

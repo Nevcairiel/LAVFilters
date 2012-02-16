@@ -244,8 +244,6 @@ STDMETHODIMP CDecDXVA2::InitAllocator(IMemAllocator **ppAlloc)
 STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
 {
   HRESULT hr = S_OK;
-  if (m_pD3DDevMngr)
-    return S_FALSE;
 
   DbgLog((LOG_TRACE, 10, L"CDecDXVA2::PostConnect()"));
 
@@ -878,7 +876,9 @@ void CDecDXVA2::release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
       pDec->m_pSurfaces[i].ref--;
       if (pDec->m_pSurfaces[i].ref == 0) {
         DbgLog((LOG_TRACE, 10, L"release_dxva2_buffer on dxva2 buffer %d", i));
-        SafeRelease(&pDec->m_pSurfaces[i].sample);
+        IMediaSample *pSample = pDec->m_pSurfaces[i].sample;
+        pDec->m_pSurfaces[i].sample = NULL;
+        SafeRelease(&pSample);
       }
     }
   }
@@ -929,7 +929,9 @@ STDMETHODIMP CDecDXVA2::Flush()
 
   for (int i = 0; i < m_NumSurfaces; i++) {
     d3d_surface_t *s = &m_pSurfaces[i];
-    SafeRelease(&s->sample);
+    IMediaSample *pSample = s->sample;
+    s->sample = NULL;
+    SafeRelease(&pSample);
     s->ref = 0;
     //s->age = 0;
   }
