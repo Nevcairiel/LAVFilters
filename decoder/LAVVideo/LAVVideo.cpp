@@ -701,7 +701,7 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
   return S_OK;
 }
 
-HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration)
+HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration, BOOL bDXVA)
 {
   CMediaType mt = m_pOutput->CurrentMediaType();
 
@@ -822,7 +822,10 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     }
 
     HRESULT hrQA = m_pOutput->GetConnected()->QueryAccept(&mt);
-    if(SUCCEEDED(hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt))) {
+    if (bDXVA) {
+      m_bSendMediaType = TRUE;
+      m_pOutput->SetMediaType(&mt);
+    } else if(SUCCEEDED(hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt))) {
       IMediaSample *pOut = NULL;
       if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0))) {
         AM_MEDIA_TYPE *pmt = NULL;
@@ -874,7 +877,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     } else {
       DbgLog((LOG_TRACE, 10, L"-> Receive Connection failed (hr: %x); QueryAccept: %x", hr, hrQA));
     }
-    if (bNeedReconnect)
+    if (bNeedReconnect && !bDXVA)
       NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
 
     hr = S_OK;
@@ -1090,6 +1093,8 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (pFrame->format == LAVPixFmt_DXVA2) {
     pSampleOut = (IMediaSample *)pFrame->data[0];
     pSampleOut->AddRef();
+
+    ReconnectOutput(width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration, TRUE);
   } else {
     if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
       ReleaseFrame(&pFrame);
@@ -1135,6 +1140,7 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     }
   }
 
+  BOOL bSizeChanged = FALSE;
   if (m_bSendMediaType) {
     AM_MEDIA_TYPE *sendmt = CreateMediaType(&mt);
     if (sendmt->formattype == FORMAT_VideoInfo) {
@@ -1147,6 +1153,8 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     pSampleOut->SetMediaType(sendmt);
     DeleteMediaType(sendmt);
     m_bSendMediaType = FALSE;
+    if (pFrame->format == LAVPixFmt_DXVA2)
+      bSizeChanged = TRUE;
   }
 
   SetFrameFlags(pSampleOut, pFrame);
@@ -1156,6 +1164,9 @@ STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     DbgLog((LOG_ERROR, 10, L"::Decode(): Deliver failed with hr: %x", hr));
     m_hrDeliver = hr;
   }
+
+  if (bSizeChanged)
+    NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(pBIH->biWidth, abs(pBIH->biHeight)), 0);
 
   SafeRelease(&pSampleOut);
   ReleaseFrame(&pFrame);
