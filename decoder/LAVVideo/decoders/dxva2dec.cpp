@@ -245,6 +245,9 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
 {
   HRESULT hr = S_OK;
 
+  if (!m_bNative && m_pD3DDevMngr)
+    return S_OK;
+
   DbgLog((LOG_TRACE, 10, L"CDecDXVA2::PostConnect()"));
 
   IMFGetService *pGetService = NULL;
@@ -269,7 +272,8 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
     goto done;
   }
 
-  hr = DXVA2NotifyEVR();
+  if (m_bNative)
+    hr = DXVA2NotifyEVR();
 
 done:
   SafeRelease(&pGetService);
