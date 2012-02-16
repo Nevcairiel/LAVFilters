@@ -671,6 +671,9 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   FindVideoServiceConversion(m_pAVCtx->codec_id, &input, &output);
 
   if (!nSurfaces) {
+    m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, 16);
+    m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, 16);
+
     m_NumSurfaces = (m_pAVCtx->codec_id == CODEC_ID_H264) ? 16 + DXVA2_QUEUE_SURFACES + 2 : 2 + DXVA2_QUEUE_SURFACES + 2;
     hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, m_NumSurfaces - 1, output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, NULL);
     if (FAILED(hr)) {
@@ -784,6 +787,15 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
   if (!pDec->m_pDecoder || FFALIGN(c->coded_width, 16) != pDec->m_dwSurfaceWidth || FFALIGN(c->coded_height, 16) != pDec->m_dwSurfaceHeight) {
     if (!pDec->m_pDecoder && pDec->m_bNative) {
       ASSERT(0);
+    } else if (pDec->m_bNative) {
+      avcodec_flush_buffers(c);
+
+      pDec->m_dwSurfaceWidth = FFALIGN(c->coded_width, 16);
+      pDec->m_dwSurfaceHeight = FFALIGN(c->coded_height, 16);
+
+      pDec->m_pDXVA2Allocator->Decommit();
+      pDec->m_pDXVA2Allocator->Alloc();
+      pDec->m_pDXVA2Allocator->Commit();
     } else if (!pDec->m_bNative) {
       hr = pDec->CreateDXVA2Decoder();
     }
