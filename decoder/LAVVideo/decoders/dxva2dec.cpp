@@ -655,6 +655,11 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
   return S_OK;
 }
 
+STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
+{
+  return (m_pAVCtx->codec_id == CODEC_ID_H264) ? 16 + DXVA2_QUEUE_SURFACES + 2 : 2 + DXVA2_QUEUE_SURFACES + 2;
+}
+
 HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfaces)
 {
   DbgLog((LOG_TRACE, 10, L"-> CDecDXVA2::CreateDXVA2Decoder"));
@@ -674,7 +679,7 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
     m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, 16);
     m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, 16);
 
-    m_NumSurfaces = (m_pAVCtx->codec_id == CODEC_ID_H264) ? 16 + DXVA2_QUEUE_SURFACES + 2 : 2 + DXVA2_QUEUE_SURFACES + 2;
+    m_NumSurfaces = GetBufferCount();
     hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, m_NumSurfaces - 1, output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, NULL);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> Creation of surfaces failed with hr: %X", hr));

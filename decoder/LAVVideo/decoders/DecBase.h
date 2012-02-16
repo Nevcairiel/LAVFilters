@@ -36,6 +36,7 @@ public:
   STDMETHODIMP_(BOOL) IsInterlaced() { return TRUE; }
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc) { return E_NOTIMPL; }
   STDMETHODIMP PostConnect(IPin *pPin) { return S_FALSE; }
+  STDMETHODIMP_(long) GetBufferCount() { return 4; }
 
   STDMETHODIMP Decode(IMediaSample *pSample) {
     HRESULT hr;

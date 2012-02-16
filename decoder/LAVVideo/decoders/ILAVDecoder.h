@@ -315,6 +315,11 @@ interface ILAVDecoder
    * Function called after connection is established, with the pin as argument
    */
   STDMETHOD(PostConnect)(IPin *pPin) PURE;
+
+  /**
+   * Get the number of sample buffers optimal for this decoder
+   */
+  STDMETHOD_(long, GetBufferCount)() PURE;
 };
 
 /**

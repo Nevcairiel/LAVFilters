@@ -50,6 +50,7 @@ public:
 
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
+  STDMETHODIMP_(long) GetBufferCount();
 
   // CDecBase
   STDMETHODIMP Init();
