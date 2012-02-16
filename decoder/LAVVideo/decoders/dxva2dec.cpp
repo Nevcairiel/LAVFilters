@@ -643,8 +643,9 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
     return hr;
   }
 
-  if ((codec == CODEC_ID_H264 || codec == CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != PIX_FMT_NONE) {
-    DbgLog((LOG_TRACE, 10, L"-> Incompatible pixel format detected, falling back to software decoding"));
+  if (((codec == CODEC_ID_H264 || codec == CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != PIX_FMT_NONE)
+    || (codec == CODEC_ID_H264 && m_pAVCtx->profile > 100)) {
+    DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
     return E_FAIL;
   }
 
@@ -774,7 +775,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
 
   HRESULT hr = S_OK;
 
-  if (c->pix_fmt != PIX_FMT_DXVA2_VLD || c->profile > FF_PROFILE_H264_HIGH) {
+  if (c->pix_fmt != PIX_FMT_DXVA2_VLD || (c->codec_id == CODEC_ID_H264 && c->profile > FF_PROFILE_H264_HIGH)) {
     DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt or unsupported profile"));
     pDec->m_bFailHWDecode = TRUE;
     return -1;
