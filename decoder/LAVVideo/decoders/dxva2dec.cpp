@@ -188,6 +188,10 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
 
   for (int i = 0; i < m_NumSurfaces; i++) {
     SafeRelease(&m_pSurfaces[i].d3d);
+    // To avoid a double free, remove the reference first, then call the release
+    IMediaSample *pSample = m_pSurfaces[i].sample;
+    m_pSurfaces[i].sample = NULL;
+    SafeRelease(&pSample);
   }
   m_NumSurfaces = 0;
 
@@ -682,6 +686,7 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   }
 
   for (int i = 0; i < m_NumSurfaces; i++) {
+    m_pSurfaces[i].index = i;
     m_pSurfaces[i].d3d = ppSurfaces[i];
     m_pSurfaces[i].ref = 0;
     m_pSurfaces[i].age = 0;
@@ -802,6 +807,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
       DbgLog((LOG_ERROR, 10, L"DXVA2Allocator returned error"));
       return -1;
     }
+
     ILAVDXVA2Sample *pLavDXVA2 = NULL;
     hr = pSample->QueryInterface(&pLavDXVA2);
     if (FAILED(hr)) {
@@ -965,7 +971,9 @@ HRESULT CDecDXVA2::DeliverDXVA2Frame(LAVFrame *pFrame)
   if (m_bNative) {
     d3d_surface_t *s = FindSurface((LPDIRECT3DSURFACE9)pFrame->data[3]);
 
-    ASSERT(s->sample);
+    if (!s->sample)
+      return S_FALSE;
+
     pFrame->data[0] = (uint8_t *)s->sample;
 
     pFrame->format = LAVPixFmt_DXVA2;

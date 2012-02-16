@@ -27,6 +27,7 @@
 typedef HRESULT WINAPI pCreateDeviceManager9(UINT *pResetToken, IDirect3DDeviceManager9 **);
 
 typedef struct {
+  int index;
   LPDIRECT3DSURFACE9 d3d;
   uint64_t age;
   long ref;

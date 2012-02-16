@@ -180,7 +180,7 @@ HRESULT CDXVA2SurfaceAllocator::Alloc()
   if (SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Creating samples"));
     // Important : create samples in reverse order !
-    for (m_lAllocated = m_lCount-1; m_lAllocated >= 0; m_lAllocated--) {
+    for (int i = m_lCount-1; i >= 0; i--) {
       CDXVA2Sample *pSample = new CDXVA2Sample(this, &hr);
       if (pSample == NULL) {
         hr = E_OUTOFMEMORY;
@@ -190,7 +190,7 @@ HRESULT CDXVA2SurfaceAllocator::Alloc()
         break;
       }
       // Assign the Direct3D surface pointer and the index.
-      pSample->SetSurface(m_lAllocated, m_ppRTSurfaceArray[m_lAllocated]);
+      pSample->SetSurface(i, m_ppRTSurfaceArray[i]);
 
       // Add to the sample list.
       m_lFree.Add(pSample);
@@ -201,6 +201,8 @@ HRESULT CDXVA2SurfaceAllocator::Alloc()
       Free();
     }
   }
+
+  m_lAllocated = m_lCount;
 
   if (SUCCEEDED(hr)) {
     m_bChanged = FALSE;
@@ -213,6 +215,8 @@ void CDXVA2SurfaceAllocator::Free()
 {
   DbgLog((LOG_TRACE, 10, L"CDXVA2SurfaceAllocator::Free()"));
   CMediaSample *pSample = NULL;
+
+  CAutoLock lock(this);
 
   if (m_pDec)
     m_pDec->Flush();
@@ -234,6 +238,6 @@ void CDXVA2SurfaceAllocator::Free()
     delete [] m_ppRTSurfaceArray;
     m_ppRTSurfaceArray = NULL;
   }
-  m_lAllocated		 = 0;
+  m_lAllocated = 0;
   m_nSurfaceArrayCount = 0;
 }
