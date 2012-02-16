@@ -834,8 +834,6 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     SafeRelease(&pLavDXVA2);
 
     pDec->m_pSurfaces[i].sample = pSample;
-
-    DbgLog((LOG_TRACE, 10, L"get_dxva2_buffer on dxva2 buffer %i", i));
   } else {
     int old, old_unused;
     for (i = 0, old = 0, old_unused = -1; i < pDec->m_NumSurfaces; i++) {
@@ -875,7 +873,6 @@ void CDecDXVA2::release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     if (pDec->m_pSurfaces[i].d3d == pSurface) {
       pDec->m_pSurfaces[i].ref--;
       if (pDec->m_pSurfaces[i].ref == 0) {
-        DbgLog((LOG_TRACE, 10, L"release_dxva2_buffer on dxva2 buffer %d", i));
         IMediaSample *pSample = pDec->m_pSurfaces[i].sample;
         pDec->m_pSurfaces[i].sample = NULL;
         SafeRelease(&pSample);
