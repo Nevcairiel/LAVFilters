@@ -792,7 +792,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
   }
 
   if (!pDec->m_pDecoder || FFALIGN(c->coded_width, 16) != pDec->m_dwSurfaceWidth || FFALIGN(c->coded_height, 16) != pDec->m_dwSurfaceHeight) {
-    if (!pDec->m_pDecoder && pDec->m_bNative) {
+    if (!pDec->m_pDecoder && pDec->m_bNative && !pDec->m_pDXVA2Allocator) {
       ASSERT(0);
     } else if (pDec->m_bNative) {
       avcodec_flush_buffers(c);
@@ -800,9 +800,9 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
       pDec->m_dwSurfaceWidth = FFALIGN(c->coded_width, 16);
       pDec->m_dwSurfaceHeight = FFALIGN(c->coded_height, 16);
 
-      pDec->m_pDXVA2Allocator->Decommit();
-      pDec->m_pDXVA2Allocator->Alloc();
-      pDec->m_pDXVA2Allocator->Commit();
+      // Re-Commit the allocator (creates surfaces and new decoder)
+      hr = pDec->m_pDXVA2Allocator->Decommit();
+      hr = pDec->m_pDXVA2Allocator->Commit();
     } else if (!pDec->m_bNative) {
       hr = pDec->CreateDXVA2Decoder();
     }
