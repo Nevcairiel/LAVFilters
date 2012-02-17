@@ -86,7 +86,7 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   { LAVPixFmt_RGB32,  8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
   { LAVPixFmt_ARGB32, 8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
 
-  { LAVPixFmt_DXVA2, 7, 1, { LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_DXVA2, 8, 1, { LAVOutPixFmt_NV12 } },
 };
 
 LAVOutPixFmtDesc lav_pixfmt_desc[] = {
@@ -271,6 +271,9 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   if (guid == MEDIASUBTYPE_RGB32 || guid == MEDIASUBTYPE_RGB24) {
     pBIH->biCompression = BI_RGB;
   }
+
+  if (m_InputPixFmt == LAVPixFmt_DXVA2)
+    pBIH->biCompression = mmioFOURCC('d','x','v','a');
 
   // Correct size for v210
   if (guid == FOURCCMap('012v')) {
