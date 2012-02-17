@@ -468,12 +468,16 @@ BOOL CLAVVideo::IsInterlaced()
   return m_settings.SWDeintMode == SWDeintMode_None && m_pDecoder->IsInterlaced();
 }
 
+#define HWFORMAT_ENABLED \
+   ((codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])                                                    \
+|| ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_settings.bHWFormats[HWCodec_VC1])                           \
+|| ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])            \
+|| (codec == CODEC_ID_MPEG4 && m_settings.bHWFormats[HWCodec_MPEG4]))
+
 HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 {
   DbgLog((LOG_TRACE, 10, L"::CreateDecoder(): Creating new decoder..."));
   HRESULT hr = S_OK;
-
-  SAFE_DELETE(m_pDecoder);
 
   CodecID codec = FindCodecId(pmt);
   if (codec == CODEC_ID_NONE) {
@@ -522,11 +526,15 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
   DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
 
-  if (!bHWDecBlackList && m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed &&
-    (  (codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])
-    || ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_settings.bHWFormats[HWCodec_VC1])
-    || ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])
-    || (codec == CODEC_ID_MPEG4 && m_settings.bHWFormats[HWCodec_MPEG4])))
+  // Try reusing the current HW decoder
+  if (m_pDecoder && m_bHWDecoder && !m_bHWDecoderFailed && HWFORMAT_ENABLED) {
+    hr = m_pDecoder->InitDecoder(codec, pmt);
+    goto done;
+  }
+
+  SAFE_DELETE(m_pDecoder);
+
+  if (!bHWDecBlackList && m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed && HWFORMAT_ENABLED)
   {
     if (m_settings.HWAccel == HWAccel_CUDA)
       m_pDecoder = CreateDecoderCUVID();
