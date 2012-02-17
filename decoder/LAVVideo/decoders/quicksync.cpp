@@ -87,12 +87,12 @@ CDecQuickSync::~CDecQuickSync(void)
 
 STDMETHODIMP CDecQuickSync::DestroyDecoder(bool bFull)
 {
-  if (bFull) {
-    if (m_pDecoder) {
-      qs.destroy(m_pDecoder);
-      m_pDecoder = NULL;
-    }
+  if (m_pDecoder) {
+    qs.destroy(m_pDecoder);
+    m_pDecoder = NULL;
+  }
 
+  if (bFull) {
     FreeLibrary(qs.quickSyncLib);
   }
 
@@ -111,27 +111,29 @@ STDMETHODIMP CDecQuickSync::Init()
     return E_FAIL;
   }
 
-  WCHAR wModuleFile[1024];
-  GetModuleFileName(g_hInst, wModuleFile, 1024);
-  PathRemoveFileSpecW(wModuleFile);
-  SetDllDirectory(wModuleFile);
+  if (!qs.quickSyncLib) {
+    WCHAR wModuleFile[1024];
+    GetModuleFileName(g_hInst, wModuleFile, 1024);
+    PathRemoveFileSpecW(wModuleFile);
+    SetDllDirectory(wModuleFile);
 
-  qs.quickSyncLib = LoadLibrary(TEXT(QS_DEC_DLL_NAME));
-  if (qs.quickSyncLib == NULL) {
-    DWORD dwError = GetLastError();
-    DbgLog((LOG_ERROR, 10, L"-> Loading of " TEXT(QS_DEC_DLL_NAME) L" failed (%d)", dwError));
-    return E_FAIL;
-  }
+    qs.quickSyncLib = LoadLibrary(TEXT(QS_DEC_DLL_NAME));
+    if (qs.quickSyncLib == NULL) {
+      DWORD dwError = GetLastError();
+      DbgLog((LOG_ERROR, 10, L"-> Loading of " TEXT(QS_DEC_DLL_NAME) L" failed (%d)", dwError));
+      return E_FAIL;
+    }
 
-  qs.create = (pcreateQuickSync *)GetProcAddress(qs.quickSyncLib, "createQuickSync");
-  if (qs.create == NULL) {
-    DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"createQuickSync\""));
-    return E_FAIL;
-  }
-  qs.destroy = (pdestroyQuickSync *)GetProcAddress(qs.quickSyncLib, "destroyQuickSync");
-  if (qs.destroy == NULL) {
-    DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"destroyQuickSync\""));
-    return E_FAIL;
+    qs.create = (pcreateQuickSync *)GetProcAddress(qs.quickSyncLib, "createQuickSync");
+    if (qs.create == NULL) {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"createQuickSync\""));
+      return E_FAIL;
+    }
+    qs.destroy = (pdestroyQuickSync *)GetProcAddress(qs.quickSyncLib, "destroyQuickSync");
+    if (qs.destroy == NULL) {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"destroyQuickSync\""));
+      return E_FAIL;
+    }
   }
 
   m_pDecoder = qs.create();
@@ -174,6 +176,8 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 10, L"CDecQuickSync::InitDecoder(): Initializing QuickSync decoder"));
 
+  DestroyDecoder(false);
+
   FOURCC fourCC = (FOURCC)0;
   for (int i = 0; i < countof(quicksync_codecs); i++) {
     if (quicksync_codecs[i].ffcodec == codec) {
@@ -186,6 +190,8 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
     DbgLog((LOG_TRACE, 10, L"-> Codec id %d does not map to a QuickSync FourCC codec", codec));
     return E_FAIL;
   }
+
+  Init();
 
   m_nAVCNalSize = 0;
   if (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1) {
