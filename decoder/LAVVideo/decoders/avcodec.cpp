@@ -64,6 +64,7 @@ static struct {
   { CODEC_ID_DNXHD,      FF_THREAD_FRAME                 },
   { CODEC_ID_FFV1,                       FF_THREAD_SLICE },
   { CODEC_ID_LAGARITH,   FF_THREAD_FRAME                 },
+  { CODEC_ID_FRAPS,      FF_THREAD_FRAME                 },
 };
 
 static int getThreadFlags(CodecID codecId)
