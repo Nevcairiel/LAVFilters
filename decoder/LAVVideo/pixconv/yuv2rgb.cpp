@@ -335,6 +335,8 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
 
   const uint16_t *lineDither = dithers;
 
+  _mm_sfence();
+
   // 4:2:0 needs special handling for the first and the last line
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (line == 0) {

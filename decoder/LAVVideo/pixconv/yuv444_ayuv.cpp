@@ -47,6 +47,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
 
   xmm6 = _mm_set1_epi32(-1);
 
+  _mm_sfence();
+
   for (line = 0; line < height; ++line) {
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
 
@@ -108,6 +110,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
   xmm7 = _mm_set1_epi16(-256); /* 0xFF00 - 0A0A0A0A */
+
+  _mm_sfence();
 
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line

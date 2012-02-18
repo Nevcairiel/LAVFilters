@@ -41,6 +41,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_y410)
   xmm7 = _mm_set1_epi32(0xC0000000);
   xmm6 = _mm_setzero_si128();
 
+  _mm_sfence();
+
   for (line = 0; line < height; ++line) {
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
 

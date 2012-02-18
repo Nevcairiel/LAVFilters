@@ -160,6 +160,8 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
   int line = 1;
   const int lastLine = height - 1;
 
+  _mm_sfence();
+
   // Process first line
   // This needs special handling because of the chroma offset of YUV420
   for (int i = 0; i < width; i += 8) {

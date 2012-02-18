@@ -61,6 +61,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   uint8_t *dstV = dst + outLumaStride * height;
   uint8_t *dstU = dstV + outChromaStride * chromaHeight;
 
+  _mm_sfence();
+
   // Process Y
   for (line = 0; line < height; ++line) {
     // Load dithering coefficients for this line
@@ -146,6 +148,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 
   int line, i;
   __m128i xmm0,xmm1,xmm2;
+
+  _mm_sfence();
 
   // Process Y
   for (line = 0; line < height; ++line) {
@@ -308,6 +312,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
   int line,i;
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
 
+  _mm_sfence();
+
   for (line = 0;  line < height; ++line) {
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
 
@@ -383,6 +389,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
 
   int line,i;
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
+
+  _mm_sfence();
 
   for (line = 0;  line < height; ++line) {
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
