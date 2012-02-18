@@ -37,7 +37,7 @@ extern "C" {
 __declspec(dllimport) extern const CodecTags ff_mkv_codec_tags[];
 __declspec(dllimport) extern const CodecMime ff_mkv_mime_tags[];
 __declspec(dllimport) extern const AVCodecTag ff_codec_bmp_tags[];
-__declspec(dllimport) extern const AVCodecTag codec_movvideo_tags[];
+__declspec(dllimport) extern const AVCodecTag ff_codec_movvideo_tags[];
 __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 __declspec(dllimport) extern const int avpriv_mpeg4audio_sample_rates[16];
 
@@ -366,7 +366,7 @@ static int mkv_read_header(AVFormatContext *s)
       extradata_offset = FFMIN(info->CodecPrivateSize, 18);
     } else if (!strcmp(info->CodecID, "V_QUICKTIME") && (info->CodecPrivateSize >= 86) && (info->CodecPrivate != NULL)) {
       fourcc = AV_RL32(info->CodecPrivate);
-      codec_id = ff_codec_get_id(codec_movvideo_tags, fourcc);
+      codec_id = ff_codec_get_id(ff_codec_movvideo_tags, fourcc);
     } else if (codec_id == CODEC_ID_PCM_S16BE) {
       switch (info->AV.Audio.BitDepth) {
       case  8:  codec_id = CODEC_ID_PCM_U8;     break;
