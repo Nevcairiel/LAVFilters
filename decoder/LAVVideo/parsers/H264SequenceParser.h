@@ -36,6 +36,7 @@ public:
     int chroma;
     int luma_bitdepth;
     int chroma_bitdepth;
+    int ref_frames;
     int interlaced;
 
     int full_range;

@@ -152,7 +152,7 @@ STDMETHODIMP CDecQuickSync::Init()
   return S_OK;
 }
 
-STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, int buflen, int nal_size)
+STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, int buflen, int nal_size, int *pRefFrames)
 {
   DbgLog((LOG_TRACE, 10, L"CDecQuickSync::CheckH264Sequence(): Checking H264 frame for SPS"));
   CH264SequenceParser h264parser;
@@ -160,6 +160,8 @@ STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, int buflen, in
   if (h264parser.sps.valid) {
     m_bInterlaced = h264parser.sps.interlaced;
     fillDXVAExtFormat(m_DXVAExtendedFormat, h264parser.sps.full_range, h264parser.sps.primaries, h264parser.sps.colorspace, h264parser.sps.trc);
+    if (pRefFrames)
+      *pRefFrames = h264parser.sps.ref_frames;
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with QuickSync, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
@@ -215,9 +217,11 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bUseTimestampQueue = (codec == CODEC_ID_H264 && m_pCallback->H264IsAVI())
                       || (codec == CODEC_ID_VC1 && m_pCallback->VC1IsDTS());
 
+  int ref_frames = 0;
+
   if (extralen > 0) {
     if (fourCC == FourCC_AVC1 || fourCC == FourCC_H264) {
-      hr = CheckH264Sequence(extradata, extralen, m_bAVC1 ? 2 : 0);
+      hr = CheckH264Sequence(extradata, extralen, m_bAVC1 ? 2 : 0, &ref_frames);
       if (FAILED(hr)) {
         return VFW_E_UNSUPPORTED_VIDEO;
       } else if (hr == S_FALSE) {
@@ -248,6 +252,15 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   // Timestamp correction is only used for VC-1 codecs which send PTS
   // because this is not handled properly by the API (it expects DTS)
   qsConfig.bTimeStampCorrection = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
+
+  // Configure number of buffers (dependant on ref_frames)
+  // MPEG2 and VC1 always use "low latency" mode
+  if (ref_frames >= 16)
+    qsConfig.nOutputQueueLength = 16;
+  else if (ref_frames > 8 || qsConfig.bTimeStampCorrection)
+    qsConfig.nOutputQueueLength = 8;
+  else
+    qsConfig.nOutputQueueLength = 0;
 
   // Disallow software fallback
   qsConfig.bEnableSwEmulation = false;

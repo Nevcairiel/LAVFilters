@@ -136,7 +136,7 @@ HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
       parser.SExpGolombRead();            // offset_for_ref_frame[i]
   }
 
-  parser.UExpGolombRead();                // ref_frame_count
+  sps.ref_frames = parser.UExpGolombRead(); // ref_frame_count
   parser.BitRead(1);                      // gaps_in_frame_num_allowed_flag
   parser.UExpGolombRead();                // mb_width
   parser.UExpGolombRead();                // mb_height
