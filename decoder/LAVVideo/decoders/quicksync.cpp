@@ -255,9 +255,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   // Configure number of buffers (dependant on ref_frames)
   // MPEG2 and VC1 always use "low latency" mode
-  if (ref_frames >= 16)
-    qsConfig.nOutputQueueLength = 16;
-  else if (ref_frames > 8 || qsConfig.bTimeStampCorrection)
+  if (ref_frames > 8 || qsConfig.bTimeStampCorrection)
     qsConfig.nOutputQueueLength = 8;
   else
     qsConfig.nOutputQueueLength = 0;
