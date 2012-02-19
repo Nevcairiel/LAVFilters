@@ -29,7 +29,7 @@
 #pragma once
 
 #define QS_DEC_DLL_NAME "IntelQuickSyncDecoder.dll"
-#define QS_DEC_VERSION  "v0.27 Beta"
+#define QS_DEC_VERSION  "v0.28 Beta"
 
 // Forward declarations
 struct IDirect3DDeviceManager9;
@@ -109,7 +109,7 @@ struct CQsConfig
             bool     bMod16Width            :  1; // image width is always modulu 16
             bool     bEnableMultithreading  :  1; // enable worker threads for low latency decode (better performance, more power)
             bool     bTimeStampCorrection   :  1; // when true time stamp will be generated.
-                                                  // when false -> DS filter will do this. implies disabled output queue (nOutputQueueLength=0)
+                                                  // when false -> DS filter will do this.
             bool     bEnableMtCopy          :  1; // enables MT frame copy
             bool     bEnableMtDecode        :  1; // decode on a worker thread
             bool     bEnableMtProcessing    :  1; // perform post decode processing on another thread
