@@ -657,6 +657,13 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, 16);
   m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, 16);
 
+  if (m_bNative) {
+    if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
+      DbgLog((LOG_TRACE, 10, L"-> Unsupported video dimensions (%dx%d)", m_pAVCtx->coded_width, m_pAVCtx->coded_height));
+      return E_FAIL;
+    }
+  }
+
   return S_OK;
 }
 
