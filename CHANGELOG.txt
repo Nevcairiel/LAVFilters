@@ -1,5 +1,17 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.47 - 2012/02/20
+LAV Audio
+- Fixed seeking in COOK audio with the MPC-HC RealMedia splitter
+
+LAV Video
+- New DXVA2 "native" decoder (see release notes)
+- Updated Intel QuickSync decoder and tweaked configuration (0.28, r41)
+- Overall performance improvements
+- Multi-threaded decoding for Fraps
+- Fixed a regression that resulted in only single-threaded playback on certain H264 files
+- Fixed a crash in the CUVID decoder introduced in 0.46 under certain circumstances
+
 0.46 - 2012/02/12
 LAV Splitter
 - Experimental support for streaming protocols (RTSP, RTP, MMS)
