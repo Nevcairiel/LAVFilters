@@ -251,10 +251,18 @@ begin
       if f.protocol then begin
         RegWriteStringValue(HKCR, f.extensions[i], 'Source Filter', LavGUID);
       end else begin
-        if IsComponentSelected('lavsplitter32') then
+        if IsComponentSelected('lavsplitter32') then begin
           RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
-        if IsComponentSelected('lavsplitter64') then
+          RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
+          if Length(f.subtype) > 0 then
+            RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
+        end;
+        if IsComponentSelected('lavsplitter64') then begin
           RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
+          RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
+          if Length(f.subtype) > 0 then
+            RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
+        end;
       end;
 
       i := i+1;
