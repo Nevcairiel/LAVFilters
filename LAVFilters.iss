@@ -117,6 +117,7 @@ type
 const
   NumFormatsMinusOne = 19;
   LavGUID = '{B98D13E7-55DB-4385-A33D-09FD1BA26338}';
+  StreamGUID = '{E436EB83-524F-11CE-9F53-0020AF0BA770}';
   LavSplitterFormatsReg = 'Software\LAV\Splitter\Formats';
 
 var
@@ -205,17 +206,17 @@ begin
       else
         source := LavGUID;
       if IsComponentSelected('lavsplitter32') then
-        RegWriteStringValue(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source);
+        RegWriteStringValue(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
       if IsComponentSelected('lavsplitter64') then
-        RegWriteStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source);
+        RegWriteStringValue(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
     end;
 
   while Length(f.chkbytes[i]) > 0 do
     begin
       if IsComponentSelected('lavsplitter32') then
-        RegWriteStringValue(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, IntToStr(i), f.chkbytes[i]);
+        RegWriteStringValue(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, IntToStr(i), f.chkbytes[i]);
       if IsComponentSelected('lavsplitter64') then
-        RegWriteStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, IntToStr(i), f.chkbytes[i]);
+        RegWriteStringValue(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, IntToStr(i), f.chkbytes[i]);
 
       i := i+1;
     end;
@@ -227,14 +228,14 @@ var
 begin
   if not f.asyncSource then
     begin
-      if RegQueryStringValue(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source) then begin
+      if RegQueryStringValue(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source) then begin
         if CompareText(source, LavGUID) = 0 then
-          RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype);
+          RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype);
       end;
       if IsWin64 then begin
-        if RegQueryStringValue(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype, 'Source Filter', source) then begin
+        if RegQueryStringValue(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source) then begin
           if CompareText(source, LavGUID) = 0 then
-            RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\{E436EB83-524F-11CE-9F53-0020AF0BA770}\' + f.subtype);
+            RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype);
         end;
       end;
     end;
