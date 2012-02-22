@@ -208,17 +208,24 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
   }
 
   if (bFull) {
-    SafeRelease(&m_pDXVADecoderService);
-    if (m_hDevice != INVALID_HANDLE_VALUE)
-      m_pD3DDevMngr->CloseDeviceHandle(m_hDevice);
-    m_hDevice = INVALID_HANDLE_VALUE;
-    SafeRelease(&m_pD3DDevMngr);
-    SafeRelease(&m_pD3DDev);
-    SafeRelease(&m_pD3D);
-
-    if (dx.dxva2lib)
-      FreeLibrary(dx.dxva2lib);
+    FreeD3DResources();
   }
+
+  return S_OK;
+}
+
+STDMETHODIMP CDecDXVA2::FreeD3DResources()
+{
+  SafeRelease(&m_pDXVADecoderService);
+  if (m_hDevice != INVALID_HANDLE_VALUE)
+    m_pD3DDevMngr->CloseDeviceHandle(m_hDevice);
+  m_hDevice = INVALID_HANDLE_VALUE;
+  SafeRelease(&m_pD3DDevMngr);
+  SafeRelease(&m_pD3DDev);
+  SafeRelease(&m_pD3D);
+
+  if (dx.dxva2lib)
+    FreeLibrary(dx.dxva2lib);
 
   return S_OK;
 }
@@ -251,8 +258,6 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
   DbgLog((LOG_TRACE, 10, L"CDecDXVA2::PostConnect()"));
 
   IMFGetService *pGetService = NULL;
-  IDirect3DDeviceManager9 *pDeviceManager = NULL;
-
   hr = pPin->QueryInterface(__uuidof(IMFGetService), (void**)&pGetService);
   if (FAILED(hr)) {
     DbgLog((LOG_ERROR, 10, L"-> IMFGetService not available"));
@@ -260,13 +265,13 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
   }
 
   // Get the Direct3D device manager.
-  hr = pGetService->GetService(MR_VIDEO_ACCELERATION_SERVICE, __uuidof(IDirect3DDeviceManager9), (void**)&pDeviceManager);
+  hr = pGetService->GetService(MR_VIDEO_ACCELERATION_SERVICE, __uuidof(IDirect3DDeviceManager9), (void**)&m_pD3DDevMngr);
   if (FAILED(hr)) {
     DbgLog((LOG_ERROR, 10, L"-> D3D Device Manager not available"));
     goto done;
   }
 
-  hr = SetD3DDeviceManager(pDeviceManager);
+  hr = SetD3DDeviceManager(m_pD3DDevMngr);
   if (FAILED(hr)) {
     DbgLog((LOG_ERROR, 10, L"-> Setting D3D Device Manager faield"));
     goto done;
@@ -278,7 +283,7 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
 done:
   SafeRelease(&pGetService);
   if (FAILED(hr)) {
-    SafeRelease(&pDeviceManager);
+    FreeD3DResources();
   }
   return hr;
 }
@@ -565,7 +570,7 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
   hr = CreateDXVAVideoService(m_pD3DDevMngr, &m_pDXVADecoderService);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 Decoder Service failed with hr: %X", hr));
-    return E_FAIL;
+    goto done;
   }
 
   // If the decoder was initialized already, check if we can use this device
@@ -575,11 +580,12 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
     hr = FindVideoServiceConversion(m_pAVCtx->codec_id, &input, &output);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> No decoder device available that can decode codec '%S' to NV12", avcodec_get_name(m_pAVCtx->codec_id)));
-      return E_FAIL;
+      goto done;
     }
   }
 
-  return S_OK;
+done:
+  return hr;
 }
 
 // ILAVDecoder

@@ -68,6 +68,7 @@ protected:
 private:
   HRESULT InitD3D();
   STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
+  STDMETHODIMP FreeD3DResources();
   STDMETHODIMP LoadDXVA2Functions();
 
   HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
