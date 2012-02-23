@@ -115,6 +115,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_AAC;
         wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
+      } else if (avstream->codec->codec_id == CODEC_ID_AAC_LATM) {
+        mtypes.push_back(mtype);
+        mtype.subtype = MEDIASUBTYPE_MPEG_LOAS;
+        wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
       }
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat2 && mtype.subtype == MEDIASUBTYPE_Vorbis2) {
