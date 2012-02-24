@@ -330,7 +330,8 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
   // Increase default probe sizes
   //m_avFormat->probesize            = 5 * 5000000;
-  //m_avFormat->max_analyze_duration = 5 * (5*AV_TIME_BASE);
+  if (m_bMPEGTS)
+    m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 3) / 2;
 
   m_timeOpening = time(NULL);
   int ret = avformat_find_stream_info(m_avFormat, NULL);
