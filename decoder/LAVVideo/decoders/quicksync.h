@@ -24,6 +24,7 @@
 
 typedef IQuickSyncDecoder* __stdcall pcreateQuickSync();
 typedef void               __stdcall pdestroyQuickSync(IQuickSyncDecoder*);
+typedef DWORD              __stdcall pcheck();
 
 #include <queue>
 
@@ -34,6 +35,7 @@ public:
   virtual ~CDecQuickSync(void);
 
   // ILAVDecoder
+  STDMETHODIMP Check();
   STDMETHODIMP InitDecoder(CodecID codec, const CMediaType *pmt);
   STDMETHODIMP Decode(IMediaSample *pSample);
   STDMETHODIMP Flush();
@@ -59,6 +61,7 @@ private:
 
     pcreateQuickSync *create;
     pdestroyQuickSync *destroy;
+    pcheck *check;
   } qs;
 
   IQuickSyncDecoder *m_pDecoder;

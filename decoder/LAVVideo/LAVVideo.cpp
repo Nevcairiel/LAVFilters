@@ -1324,35 +1324,28 @@ STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
     return 2;
 
   HRESULT hr = E_FAIL;
+  ILAVDecoder *pDecoder = NULL;
   switch(hwAccel) {
   case HWAccel_CUDA:
-    {
-      ILAVDecoder *pDecoder = CreateDecoderCUVID();
-      hr = pDecoder->InitInterfaces(this, this);
-      SAFE_DELETE(pDecoder);
-    }
+    pDecoder = CreateDecoderCUVID();
     break;
   case HWAccel_QuickSync:
-    {
-      ILAVDecoder *pDecoder = CreateDecoderQuickSync();
-      hr = pDecoder->InitInterfaces(this, this);
-      SAFE_DELETE(pDecoder);
-    }
+    pDecoder = CreateDecoderQuickSync();
     break;
   case HWAccel_DXVA2CopyBack:
-    {
-      ILAVDecoder *pDecoder = CreateDecoderDXVA2();
-      hr = pDecoder->InitInterfaces(this, this);
-      SAFE_DELETE(pDecoder);
-    }
+    pDecoder = CreateDecoderDXVA2();
     break;
   case HWAccel_DXVA2Native:
-    {
-      ILAVDecoder *pDecoder = CreateDecoderDXVA2Native();
-      hr = pDecoder->InitInterfaces(this, this);
-      SAFE_DELETE(pDecoder);
-    }
+    pDecoder = CreateDecoderDXVA2Native();
     break;
+  }
+
+  if (pDecoder) {
+    hr = pDecoder->InitInterfaces(this, this);
+    if (SUCCEEDED(hr)) {
+      hr = pDecoder->Check();
+    }
+    SAFE_DELETE(pDecoder);
   }
 
   return SUCCEEDED(hr) ? 1 : 0;

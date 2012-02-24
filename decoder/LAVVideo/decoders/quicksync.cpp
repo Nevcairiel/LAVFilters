@@ -134,22 +134,28 @@ STDMETHODIMP CDecQuickSync::Init()
       DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"destroyQuickSync\""));
       return E_FAIL;
     }
+    qs.check = (pcheck *)GetProcAddress(qs.quickSyncLib, "check");
+    if (qs.check == NULL) {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"check\""));
+      return E_FAIL;
+    }
   }
-
-  m_pDecoder = qs.create();
-  if (m_pDecoder == NULL) {
-    DbgLog((LOG_ERROR, 10, L"-> Creation of decoder failed"));
-    return E_FAIL;
-  }
-
-  if (!m_pDecoder->getOK()) {
-    DbgLog((LOG_ERROR, 10, L"-> Decoder reports abnormal status"));
-    return E_FAIL;
-  }
-
-  m_pDecoder->SetDeliverSurfaceCallback(this, &QS_DeliverSurfaceCallback);
 
   return S_OK;
+}
+
+STDMETHODIMP CDecQuickSync::Check()
+{
+  if (!qs.check)
+    return E_FAIL;
+
+  DWORD qsflags = qs.check();
+  if (qsflags & QS_CAP_HW_ACCELERATION) {
+    return S_OK;
+  }
+
+  DbgLog((LOG_TRACE, 10, L"-> Decoder records no HW acceleration"));
+  return E_FAIL;
 }
 
 STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, int buflen, int nal_size, int *pRefFrames)
@@ -193,7 +199,12 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
-  Init();
+  m_pDecoder = qs.create();
+  if (!m_pDecoder || !m_pDecoder->getOK()) {
+    DbgLog((LOG_TRACE, 10, L"-> Decoder creation failed"));
+    return E_FAIL;
+  }
+  m_pDecoder->SetDeliverSurfaceCallback(this, &QS_DeliverSurfaceCallback);
 
   m_nAVCNalSize = 0;
   if (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1) {

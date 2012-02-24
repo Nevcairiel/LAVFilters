@@ -249,6 +249,11 @@ interface ILAVDecoder
   STDMETHOD(InitInterfaces)(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) PURE;
 
   /**
+   * Check if the decoder is functional
+   */
+  STDMETHOD(Check)() PURE;
+
+  /**
    * Initialize the codec to decode a stream specified by codec and pmt.
    *
    * @param codec Codec Id
