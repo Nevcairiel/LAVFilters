@@ -25,9 +25,11 @@
 #include "pixconv_internal.h"
 #include "pixconv_sse2_templates.h"
 
+#define DITHER_STEPS 2
+
 // This function converts 8x2 pixels from the source into 8x2 YUY2 pixels in the destination
-template <LAVPixelFormat inputFormat, int shift, int uyvy> __forceinline
-static int yuv420yuy2_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line)
+template <LAVPixelFormat inputFormat, int shift, int uyvy, int dithertype> __forceinline
+static int yuv420yuy2_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, const uint16_t* &dithers, int pos)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
   xmm7 = _mm_setzero_si128 ();
@@ -105,22 +107,34 @@ static int yuv420yuy2_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU,
   }
 
   // Dither everything to 8-bit
-  
-  if (shift) {                                                /* Y only needs to be dithered if it was > 8 bit */
-    PIXCONV_LOAD_DITHER_COEFFS(xmm6, line, shift, dithers);   
-    xmm0 = _mm_adds_epu16(xmm0, xmm6);                        /* Apply dithering coeffs */
-    xmm0 = _mm_srai_epi16(xmm0, shift);                       /* Shift to 8 bit */
 
-    xmm5 = _mm_adds_epu16(xmm5, xmm6);                        /* Apply dithering coeffs */
-    xmm5 = _mm_srai_epi16(xmm5, shift);                       /* Shift to 8 bit */
+  // Dithering
+  if (dithertype == LAVDither_Random) {
+    /* Load random dithering coeffs from the dithers buffer */
+    int offset = (pos % (DITHER_STEPS * 8 * 2)) * 2;
+    xmm6 = _mm_load_si128((const __m128i *)(dithers +  0 + offset));
+    xmm7 = _mm_load_si128((const __m128i *)(dithers +  8 + offset));
+  } else {
+    PIXCONV_LOAD_DITHER_COEFFS(xmm6, line+0, shift+2, odithers);
+    PIXCONV_LOAD_DITHER_COEFFS(xmm7, line+1, shift+2, odithers2);
   }
 
   // Dither UV
-  PIXCONV_LOAD_DITHER_COEFFS(xmm6, line, shift+2, dithers);   
   xmm1 = _mm_adds_epu16(xmm1, xmm6);
-  xmm3 = _mm_adds_epu16(xmm3, xmm6);
+  xmm3 = _mm_adds_epu16(xmm3, xmm7);
   xmm1 = _mm_srai_epi16(xmm1, shift+2);
   xmm3 = _mm_srai_epi16(xmm3, shift+2);
+
+  if (shift) {                                                /* Y only needs to be dithered if it was > 8 bit */
+    xmm6 = _mm_srli_epi16(xmm6, 2);                           /* Shift dithering coeffs to proper strength */
+    xmm7 = _mm_srli_epi16(xmm6, 2);
+
+    xmm0 = _mm_adds_epu16(xmm0, xmm6);                        /* Apply dithering coeffs */
+    xmm0 = _mm_srai_epi16(xmm0, shift);                       /* Shift to 8 bit */
+
+    xmm5 = _mm_adds_epu16(xmm5, xmm7);                        /* Apply dithering coeffs */
+    xmm5 = _mm_srai_epi16(xmm5, shift);                       /* Shift to 8 bit */
+  }
 
   // Pack into 8-bit containers
   xmm0 = _mm_packus_epi16(xmm0, xmm5);
@@ -146,8 +160,8 @@ static int yuv420yuy2_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU,
   return 0;
 }
 
-template <LAVPixelFormat inputFormat, int shift, int uyvy>
-static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride)
+template <LAVPixelFormat inputFormat, int shift, int uyvy, int dithertype>
+static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
   const uint8_t *u = srcU;
@@ -160,15 +174,20 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
   int line = 1;
   const int lastLine = height - 1;
 
+  const uint16_t *lineDither = dithers;
+
   _mm_sfence();
 
   // Process first line
   // This needs special handling because of the chroma offset of YUV420
   for (int i = 0; i < width; i += 8) {
-    yuv420yuy2_convert_pixels<inputFormat, shift, uyvy>(y, u, v, yuy2, 0, 0, 0, line);
+    yuv420yuy2_convert_pixels<inputFormat, shift, uyvy, dithertype>(y, u, v, yuy2, 0, 0, 0, 0, lineDither, i);
   }
 
   for (; line < lastLine; line += 2) {
+    if (dithertype == LAVDither_Random)
+      lineDither = dithers + (line * 16 * DITHER_STEPS);
+
     y = srcY + line * srcStrideY;
 
     u = srcU + (line >> 1) * srcStrideUV;
@@ -177,19 +196,45 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
     yuy2 = dst + line * dstStride;
 
     for (int i = 0; i < width; i += 8) {
-      yuv420yuy2_convert_pixels<inputFormat, shift, uyvy>(y, u, v, yuy2, srcStrideY, srcStrideUV, dstStride, line);
+      yuv420yuy2_convert_pixels<inputFormat, shift, uyvy, dithertype>(y, u, v, yuy2, srcStrideY, srcStrideUV, dstStride, line, lineDither, i);
     }
   }
 
   // Process last line
   // This needs special handling because of the chroma offset of YUV420
+  if (dithertype == LAVDither_Random)
+    lineDither = dithers + ((height - 2) * 16 * DITHER_STEPS);
+
   y = srcY + (height - 1) * srcStrideY;
   u = srcU + ((height >> 1) - 1)  * srcStrideUV;
   v = srcV + ((height >> 1) - 1)  * srcStrideUV;
   yuy2 = dst + (height - 1) * dstStride;
 
   for (int i = 0; i < width; i += 8) {
-    yuv420yuy2_convert_pixels<inputFormat, shift, uyvy>(y, u, v, yuy2, 0, 0, 0, line);
+    yuv420yuy2_convert_pixels<inputFormat, shift, uyvy, dithertype>(y, u, v, yuy2, 0, 0, 0, line, lineDither, i);
+  }
+  return 0;
+}
+
+template<int uyvy, int dithertype>
+static int __stdcall yuv420yuy2_dispatch(LAVPixelFormat inputFormat, int bpp, const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, const uint16_t *dithers)
+{
+    // Wrap the input format into template args
+  switch (inputFormat) {
+  case LAVPixFmt_YUV420:
+    return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 0, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
+  case LAVPixFmt_NV12:
+    return yuv420yuy2_process_lines<LAVPixFmt_NV12, 0, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
+  case LAVPixFmt_YUV420bX:
+    if (bpp == 10)
+      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 2, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
+    else if (bpp == 9)
+      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 1, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
+    else
+      ASSERT(0);
+    break;
+  default:
+    ASSERT(0);
   }
   return 0;
 }
@@ -197,23 +242,14 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
 template<int uyvy>
 DECLARE_CONV_FUNC_IMPL(convert_yuv420_yuy2)
 {
-  // Wrap the input format into template args
-  switch (inputFormat) {
-  case LAVPixFmt_YUV420:
-    return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 0, uyvy>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride);
-  case LAVPixFmt_NV12:
-    return yuv420yuy2_process_lines<LAVPixFmt_NV12, 0, uyvy>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride);
-  case LAVPixFmt_YUV420bX:
-    if (bpp == 10)
-      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 2, uyvy>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride);
-    else if (bpp == 9)
-      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 1, uyvy>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride);
-    else
-      ASSERT(0);
-    break;
-  default:
-    ASSERT(0);
+  LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
+  const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 2, bpp - 8 + 2, 0) : NULL;
+  if (ditherMode == LAVDither_Random && dithers != NULL) {
+    yuv420yuy2_dispatch<uyvy, 1>(inputFormat, bpp, src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, dithers);
+  } else {
+    yuv420yuy2_dispatch<uyvy, 0>(inputFormat, bpp, src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, NULL);
   }
+
   return S_OK;
 }
 
