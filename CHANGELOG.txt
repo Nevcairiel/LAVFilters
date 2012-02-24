@@ -1,5 +1,12 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.48 - 2012/02/24
+LAV Splitter
+- Improved Video/Audio stream detection in some MPEG-TS files
+
+LAV Video
+- Fixed a potential crash with native DXVA2 when the software fallback was used
+
 0.47 - 2012/02/20
 LAV Audio
 - Fixed seeking in COOK audio with the MPC-HC RealMedia splitter
