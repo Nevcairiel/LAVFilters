@@ -33,6 +33,7 @@ OPTIONS="
 --enable-protocol=mmsh \
 --enable-protocol=mmst \
 --enable-protocol=rtp \
+--enable-protocol=http \
 --disable-muxers \
 --enable-muxer=spdif \
 --disable-hwaccels \
