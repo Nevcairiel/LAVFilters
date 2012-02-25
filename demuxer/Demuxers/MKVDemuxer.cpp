@@ -87,11 +87,17 @@ static int aviostream_read(struct AVIOStream *cc,ulonglong pos,void *buffer,int 
   int ret;
   int64_t ret64;
 
-  /* Seek to the desired position */
-  ret64 = avio_seek(cc->ctx->pb, pos, SEEK_SET);
-  if(ret64 < 0) {
-    DbgLog((LOG_ERROR, 10, L"aviostream_read(): Seek to %I64u failed with code %I64d", pos, ret64));
-    return -1;
+  if (count == 0)
+    return 0;
+
+  int64_t cur_pos = avio_tell(cc->ctx->pb);
+  if (cur_pos != pos) {
+    /* Seek to the desired position */
+    ret64 = avio_seek(cc->ctx->pb, pos, SEEK_SET);
+    if(ret64 < 0) {
+      DbgLog((LOG_ERROR, 10, L"aviostream_read(): Seek to %I64u failed with code %I64d", pos, ret64));
+      return -1;
+    }
   }
 
   /* Read the requested number of bytes */
@@ -109,11 +115,14 @@ static longlong aviostream_scan(struct AVIOStream *cc,ulonglong start,unsigned s
   int64_t ret64;
   unsigned cmp = 0;
 
-  /* Seek to the desired position */
-  ret64 = avio_seek(cc->ctx->pb, start, SEEK_SET);
-  if(ret64 < 0) {
-    DbgLog((LOG_ERROR, 10, L"aviostream_scan(): Seek to %I64u failed with code %I64d", start, ret64));
-    return -1;
+  int64_t cur_pos = avio_tell(cc->ctx->pb);
+  if (cur_pos != start) {
+    /* Seek to the desired position */
+    ret64 = avio_seek(cc->ctx->pb, start, SEEK_SET);
+    if(ret64 < 0) {
+      DbgLog((LOG_ERROR, 10, L"aviostream_scan(): Seek to %I64u failed with code %I64d", start, ret64));
+      return -1;
+    }
   }
 
   /* Scan for the byte signature, until EOF was found */
