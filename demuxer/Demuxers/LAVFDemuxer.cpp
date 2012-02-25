@@ -328,6 +328,15 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
   m_avFormat->flags |= AVFMT_FLAG_IGNPARSERSYNC;
 
+  if (pszFileName) {
+    WCHAR szOut[24];
+    DWORD dwNumChars = 24;
+    hr = UrlGetPart(pszFileName, szOut, &dwNumChars, URL_PART_SCHEME, 0);
+    if (SUCCEEDED(hr) && dwNumChars && (_wcsicmp(szOut, L"file") != 0)) {
+      m_avFormat->flags |= AVFMT_FLAG_NETWORK;
+    }
+  }
+
   // Increase default probe sizes
   //m_avFormat->probesize            = 5 * 5000000;
   if (m_bMPEGTS)

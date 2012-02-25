@@ -583,10 +583,13 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
   MatroskaTrack *track;
   char *frame_data = NULL;
 
-  ulonglong mask = mkv_get_track_mask(ctx);
-  if (mask != ctx->mask) {
-    mkv_SetTrackMask(ctx->matroska, mask);
-    ctx->mask = mask;
+  ulonglong mask = 0;
+  if (!(s->flags & AVFMT_FLAG_NETWORK)) {
+    mask = mkv_get_track_mask(ctx);
+    if (mask != ctx->mask) {
+      mkv_SetTrackMask(ctx->matroska, mask);
+      ctx->mask = mask;
+    }
   }
 
 again:
@@ -677,7 +680,7 @@ static int mkv_read_close(AVFormatContext *s)
 static int mkv_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp, int flags)
 {
   MatroskaDemuxContext *ctx = (MatroskaDemuxContext *)s->priv_data;
-  int mkvflags = !(flags & AVSEEK_FLAG_ANY) ? MKVF_SEEK_TO_PREV_KEYFRAME : 0;
+  int mkvflags = (!(flags & AVSEEK_FLAG_ANY) && !(s->flags & AVFMT_FLAG_NETWORK)) ? MKVF_SEEK_TO_PREV_KEYFRAME : 0;
   int i;
   AVStream *st = ctx->tracks[stream_index].stream;
 
@@ -690,7 +693,8 @@ static int mkv_read_seek(AVFormatContext *s, int stream_index, int64_t timestamp
   }
 
   /* update track mask */
-  mkv_SetTrackMask(ctx->matroska, mkv_get_track_mask(ctx));
+  if (!(s->flags & AVFMT_FLAG_NETWORK))
+    mkv_SetTrackMask(ctx->matroska, mkv_get_track_mask(ctx));
 
   /* perform seek */
   DBG_TIMING("mkv_Seek", 0, mkv_Seek(ctx->matroska, timestamp, mkvflags))
