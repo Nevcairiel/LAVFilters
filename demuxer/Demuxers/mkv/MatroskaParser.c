@@ -107,14 +107,15 @@ static void  mystrlcpy(char *dst,const char *src,unsigned size) {
 }
 
 struct QueueEntry {
-  struct QueueEntry *next;
-  unsigned int            Length;
+  struct QueueEntry   *next;
+  unsigned int         Length;
+  char                *Data;
 
   ulonglong            Start;
   ulonglong            End;
   ulonglong            Position;
 
-  unsigned int            flags;
+  unsigned int         flags;
 };
 
 struct Queue {
@@ -477,6 +478,7 @@ static struct QueueEntry  *QAlloc(MatroskaFile *mf) {
       errorjmp(mf,"Ouf of memory");
 
     qe = *qep;
+    qe->Data = NULL;
 
     for (i=0;i<QSEGSIZE-1;++i)
       qe[i].next = qe+i+1;
@@ -492,6 +494,8 @@ static struct QueueEntry  *QAlloc(MatroskaFile *mf) {
 }
 
 static inline void QFree(MatroskaFile *mf,struct QueueEntry *qe) {
+  mf->cache->memfree(mf->cache, qe->Data);
+  qe->Data = NULL;
   qe->next = mf->QFreeList;
   mf->QFreeList = qe;
 }
@@ -2126,6 +2130,8 @@ static void parseBlockAdditions(MatroskaFile *mf, ulonglong toplen, ulonglong ti
         qe->Start = qe->End = timecode;
         qe->Position = add_pos;
         qe->Length = (unsigned)add_len;
+        qe->Data = (char *)mf->cache->memalloc(mf->cache,qe->Length);
+        readbytes(mf, qe->Data, qe->Length);
         qe->flags = FRAME_UNKNOWN_START | FRAME_UNKNOWN_END |
           (((unsigned)add_id << FRAME_STREAM_SHIFT) & FRAME_STREAM_MASK);
 
@@ -2255,6 +2261,8 @@ found:
         qe->End = timecode;
         qe->Position = v;
         qe->Length = sizes[i];
+        qe->Data = (char *)mf->cache->memalloc(mf->cache,qe->Length);
+        readbytes(mf, qe->Data, qe->Length);
         qe->flags = FRAME_UNKNOWN_END | FRAME_KF;
         if (i == nframes-1 && gap)
           qe->flags |= FRAME_GAP;
@@ -2342,6 +2350,8 @@ static void ClearQueue(MatroskaFile *mf,struct Queue *q) {
 
   for (qe=q->head;qe;qe=qn) {
     qn = qe->next;
+    mf->cache->memfree(mf->cache, qe->Data);
+    qe->Data = NULL;
     qe->next = mf->QFreeList;
     mf->QFreeList = qe;
   }
@@ -2848,8 +2858,10 @@ void              mkv_Close(MatroskaFile *mf) {
     mf->cache->memfree(mf->cache,mf->Tracks[i]);
   mf->cache->memfree(mf->cache,mf->Tracks);
 
-  for (i=0;i<mf->nQBlocks;++i)
+  for (i=0;i<mf->nQBlocks;++i) {
+    mf->cache->memfree(mf->cache,mf->QBlocks[i]->Data);
     mf->cache->memfree(mf->cache,mf->QBlocks[i]);
+  }
   mf->cache->memfree(mf->cache,mf->QBlocks);
 
   mf->cache->memfree(mf->cache,mf->Queues);
@@ -3169,7 +3181,7 @@ int              mkv_ReadFrame(MatroskaFile *mf,
                             ulonglong mask,unsigned int *track,
                             ulonglong *StartTime,ulonglong *EndTime,
                             ulonglong *FilePos,unsigned int *FrameSize,
-                            unsigned int *FrameFlags)
+                            char **FrameData,unsigned int *FrameFlags)
 {
   unsigned int            i,j;
   struct QueueEntry *qe;
@@ -3199,6 +3211,8 @@ int              mkv_ReadFrame(MatroskaFile *mf,
       *EndTime = qe->End;
       *FilePos = qe->Position;
       *FrameSize = qe->Length;
+      *FrameData = (char *)mf->cache->memalloc(mf->cache, qe->Length);
+      memcpy(*FrameData, qe->Data, qe->Length);
       *FrameFlags = qe->flags;
 
       QFree(mf,qe);
@@ -3223,9 +3237,8 @@ struct CompressedStream {
   z_stream          zs;
 
   /* current compressed frame */
-  ulonglong          frame_pos;
   unsigned          frame_size;
-  char                  frame_buffer[2048];
+  char             *frame_buffer;
 
   /* decoded data buffer */
   char                  decoded_buffer[2048];
@@ -3293,13 +3306,13 @@ void                  cs_Destroy(/* in */ CompressedStream *cs) {
 /* advance to the next frame in matroska stream, you need to pass values returned
  * by mkv_ReadFrame */
 void                  cs_NextFrame(/* in */ CompressedStream *cs,
-                               /* in */ ulonglong pos,
-                               /* in */ unsigned size)
+                               /* in */ unsigned size,
+                               /* in */ char *frame_data)
 {
   cs->zs.avail_in = 0;
   inflateReset(&cs->zs);
-  cs->frame_pos = pos;
   cs->frame_size = size;
+  cs->frame_buffer = frame_data;
   cs->decoded_ptr = cs->decoded_size = 0;
 }
 
@@ -3332,19 +3345,11 @@ int                  cs_ReadData(CompressedStream *cs,char *buffer,unsigned bufs
       /* try to read more data */
       if (cs->zs.avail_in == 0 && cs->frame_size > 0) {
         todo = cs->frame_size;
-        if (todo > sizeof(cs->frame_buffer))
-          todo = sizeof(cs->frame_buffer);
-
-        if (cs->mf->cache->read(cs->mf->cache, cs->frame_pos, cs->frame_buffer, todo) != (int)todo) {
-          mystrlcpy(cs->errmsg, "File read failed", sizeof(cs->errmsg));
-          return -1;
-        }
 
         cs->zs.next_in = (Bytef *)cs->frame_buffer;
         cs->zs.avail_in = todo;
 
-        cs->frame_pos += todo;
-        cs->frame_size -= todo;
+        cs->frame_size = 0;
       }
 
       /* try to decode more data */

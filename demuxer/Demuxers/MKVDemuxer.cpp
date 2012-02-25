@@ -581,6 +581,7 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
   unsigned int size, offset = 0, flags, track_num;
   ulonglong start_time, end_time, pos;
   MatroskaTrack *track;
+  char *frame_data = NULL;
 
   ulonglong mask = mkv_get_track_mask(ctx);
   if (mask != ctx->mask) {
@@ -589,7 +590,8 @@ static int mkv_read_packet(AVFormatContext *s, AVPacket *pkt)
   }
 
 again:
-  ret = mkv_ReadFrame(ctx->matroska, mask, &track_num, &start_time, &end_time, &pos, &size, &flags);
+  av_freep(&frame_data);
+  ret = mkv_ReadFrame(ctx->matroska, mask, &track_num, &start_time, &end_time, &pos, &size, &frame_data, &flags);
   if (ret < 0)
     return AVERROR_EOF;
 
@@ -600,12 +602,13 @@ again:
   /* zlib compression */
   if (track->cs) {
     unsigned int frame_size = 0;
-    cs_NextFrame(track->cs, pos, size);
+    cs_NextFrame(track->cs, size, frame_data);
     for(;;) {
       ret = cs_ReadData(track->cs, ctx->CSBuffer, sizeof(ctx->CSBuffer));
       if (ret < 0) {
         DbgLog((LOG_ERROR, 10, L"cs_ReadData failed"));
-        return AVERROR(EIO);
+        ret = AVERROR(EIO);
+        goto done;
       } else if (ret == 0) {
         size = frame_size;
         break;
@@ -626,12 +629,7 @@ again:
     }
 
     av_new_packet(pkt, size+offset);
-    ret = aviostream_read(ctx->iostream, pos, pkt->data+offset, size);
-    if (ret < (int)size) {
-      av_free_packet(pkt);
-      return AVERROR(EIO);
-    }
-
+    memcpy(pkt->data+offset, frame_data, size);
     if (offset > 0)
       memcpy(pkt->data, track->info->CompMethodPrivate, offset);
   }
@@ -653,7 +651,10 @@ again:
   pkt->size = size+offset;
   pkt->stream_index = track->stream->index;
 
-  return 0;
+  ret = 0;
+done:
+  av_freep(&frame_data);
+  return ret;
 }
 
 static int mkv_read_close(AVFormatContext *s)

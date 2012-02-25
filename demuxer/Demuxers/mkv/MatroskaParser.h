@@ -371,6 +371,7 @@ X int	      mkv_ReadFrame(/* in */  MatroskaFile *mf,
 			    /* out */ ulonglong *EndTime /* in ns */,
 			    /* out */ ulonglong *FilePos /* in bytes from start of file */,
 			    /* out */ unsigned int *FrameSize /* in bytes */,
+			    /* out */ char **FrameData,
 			    /* out */ unsigned int *FrameFlags);
 
 #ifdef MATROSKA_COMPRESSION_SUPPORT
@@ -388,8 +389,8 @@ X void		  cs_Destroy(/* in */ CompressedStream *cs);
 /* advance to the next frame in matroska stream, you need to pass values returned
  * by mkv_ReadFrame */
 X void		  cs_NextFrame(/* in */ CompressedStream *cs,
-			       /* in */ ulonglong pos,
-			       /* in */ unsigned size);
+		               /* in */ unsigned size,
+		               /* in */ char *frame_data);
 
 /* read and decode more data from current frame, return number of bytes decoded,
  * 0 on end of frame, or -1 on error */
