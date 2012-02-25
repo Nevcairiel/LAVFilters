@@ -705,7 +705,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         int ret2 = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
         if (ret2 < 0) {
           DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
-          continue;
+          got_picture = 0;
         }
       } else {
         got_picture = 0;
