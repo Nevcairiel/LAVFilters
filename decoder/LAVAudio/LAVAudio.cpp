@@ -1462,6 +1462,23 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   return hr;
 }
 
+static DWORD get_lav_channel_layout(uint64_t layout)
+{
+  if (layout > UINT32_MAX) {
+    if (layout & AV_CH_WIDE_LEFT)
+      layout = (layout & ~AV_CH_WIDE_LEFT) | AV_CH_FRONT_LEFT_OF_CENTER;
+    if (layout & AV_CH_WIDE_RIGHT)
+      layout = (layout & ~AV_CH_WIDE_RIGHT) | AV_CH_FRONT_RIGHT_OF_CENTER;
+
+    if (layout & AV_CH_SURROUND_DIRECT_LEFT)
+      layout = (layout & ~AV_CH_SURROUND_DIRECT_LEFT) | AV_CH_SIDE_LEFT;
+    if (layout & AV_CH_SURROUND_DIRECT_RIGHT)
+      layout = (layout & ~AV_CH_SURROUND_DIRECT_RIGHT) | AV_CH_SIDE_RIGHT;
+  }
+
+  return (DWORD)layout;
+}
+
 HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   int got_frame	= 0;
@@ -1620,7 +1637,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       out.wChannels = m_pAVCtx->channels;
       out.dwSamplesPerSec = m_pAVCtx->sample_rate;
       if (m_pAVCtx->channel_layout)
-        out.dwChannelMask = (DWORD)m_pAVCtx->channel_layout;
+        out.dwChannelMask = get_lav_channel_layout(m_pAVCtx->channel_layout);
       else
         out.dwChannelMask = get_channel_mask(out.wChannels);
 
