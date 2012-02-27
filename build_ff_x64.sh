@@ -30,6 +30,10 @@ OPTIONS="
 --enable-filter=scale \
 --disable-protocols \
 --enable-protocol=file \
+--enable-protocol=mmsh \
+--enable-protocol=mmst \
+--enable-protocol=rtp \
+--enable-protocol=http \
 --disable-muxers \
 --enable-muxer=spdif \
 --disable-hwaccels \
