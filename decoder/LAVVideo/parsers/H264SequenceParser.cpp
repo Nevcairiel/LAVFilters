@@ -155,8 +155,8 @@ HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
 
   int vui_present = parser.BitRead(1);    // vui_parameters_present_flag
   if (vui_present) {
-    int ar_present = parser.BitRead(1);   // aspect_ratio_info_present_flag
-    if (ar_present) {
+    sps.ar_present = parser.BitRead(1);   // aspect_ratio_info_present_flag
+    if (sps.ar_present) {
       int ar_idc = parser.BitRead(8);     // aspect_ratio_idc
       if (ar_idc == 255) {
         parser.BitRead(16);               // sar.num

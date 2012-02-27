@@ -38,6 +38,7 @@ public:
     int chroma_bitdepth;
     int ref_frames;
     int interlaced;
+    int ar_present;
 
     int full_range;
     int primaries;

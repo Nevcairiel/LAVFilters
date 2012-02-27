@@ -163,6 +163,7 @@ private:
 
   int                    m_nSoftTelecine;
   BOOL                   m_bTFF;
+  BOOL                   m_bARPresent;
 
   HWND                   m_hwnd;
 };

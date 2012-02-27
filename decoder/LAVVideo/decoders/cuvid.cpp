@@ -126,6 +126,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bTFF(TRUE)
   , m_bVDPAULevelC(FALSE)
   , m_rtPrevDiff(AV_NOPTS_VALUE)
+  , m_bARPresent(TRUE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -588,6 +589,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bFormatIncompatible = FALSE;
   m_bTFF = TRUE;
   m_rtPrevDiff = AV_NOPTS_VALUE;
+  m_bARPresent = TRUE;
 
   // Create the CUDA Video Parser
   CUVIDPARSERPARAMS oVideoParserParameters;
@@ -1028,8 +1030,13 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->rtStart = rtStart;
   pFrame->rtStop = rtStop;
   pFrame->repeat = cuviddisp->repeat_first_field;
-  pFrame->aspect_ratio.num = m_VideoFormat.display_aspect_ratio.x;
-  pFrame->aspect_ratio.den = m_VideoFormat.display_aspect_ratio.y;
+  {
+    AVRational ar = { m_VideoFormat.display_aspect_ratio.x, m_VideoFormat.display_aspect_ratio.y };
+    AVRational arDim = { width, height };
+    if (m_bARPresent || av_cmp_q(ar, arDim) != 0) {
+      pFrame->aspect_ratio = ar;
+    }
+  }
   pFrame->ext_format = m_DXVAExtendedFormat;
   pFrame->interlaced = !cuviddisp->progressive_frame && m_VideoDecoderInfo.DeinterlaceMode == cudaVideoDeinterlaceMode_Weave;
   pFrame->tff = cuviddisp->top_field_first;
@@ -1061,6 +1068,7 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   if (h264parser.sps.valid) {
     m_bInterlaced = h264parser.sps.interlaced;
     m_iFullRange = h264parser.sps.full_range;
+    m_bARPresent = h264parser.sps.ar_present;
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
