@@ -623,7 +623,7 @@ HRESULT CLAVVideo::EndFlush()
 
 HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
-  DbgLog((LOG_TRACE, 1, L"::NewSegment - %d / %d", tStart, tStop));
+  DbgLog((LOG_TRACE, 1, L"::NewSegment - %I64d / %I64d", tStart, tStop));
   CAutoLock cAutoLock(&m_csReceive);
 
   m_pDecoder->Flush();
