@@ -465,7 +465,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
 
 BOOL CLAVVideo::IsInterlaced()
 {
-  return m_settings.SWDeintMode == SWDeintMode_None && m_pDecoder->IsInterlaced();
+  return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_pDecoder->IsInterlaced();
 }
 
 #define HWFORMAT_ENABLED \

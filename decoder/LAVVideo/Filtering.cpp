@@ -154,6 +154,7 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
 
     return S_OK;
   } else {
+    m_filterPixFmt = LAVPixFmt_None;
     deliver:
     return DeliverToRenderer(pFrame);
   }
