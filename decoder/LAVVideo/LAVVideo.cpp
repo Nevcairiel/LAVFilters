@@ -339,12 +339,13 @@ STDMETHODIMP CLAVVideo::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   *ppv = NULL;
 
   return
-    QI2(ISpecifyPropertyPages)
+    QI(ISpecifyPropertyPages)
+    QI(ISpecifyPropertyPages2)
     QI2(ILAVVideoSettings)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
-// ISpecifyPropertyPages
+// ISpecifyPropertyPages2
 STDMETHODIMP CLAVVideo::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
@@ -356,6 +357,28 @@ STDMETHODIMP CLAVVideo::GetPages(CAUUID *pPages)
   pPages->pElems[0] = CLSID_LAVVideoSettingsProp;
   pPages->pElems[1] = CLSID_LAVVideoFormatsProp;
   return S_OK;
+}
+
+STDMETHODIMP CLAVVideo::CreatePage(const GUID& guid, IPropertyPage** ppPage)
+{
+  CheckPointer(ppPage, E_POINTER);
+  HRESULT hr = S_OK;
+
+  if (*ppPage != NULL)
+    return E_INVALIDARG;
+
+  if (guid == CLSID_LAVVideoSettingsProp)
+    *ppPage = new CLAVVideoSettingsProp(NULL, &hr);
+  else if (guid == CLSID_LAVVideoFormatsProp)
+    *ppPage = new CLAVVideoFormatsProp(NULL, &hr);
+
+  if (SUCCEEDED(hr) && *ppPage) {
+    (*ppPage)->AddRef();
+    return S_OK;
+  } else {
+    SAFE_DELETE(*ppPage);
+    return E_FAIL;
+  }
 }
 
 STDMETHODIMP_(LPWSTR) CLAVVideo::GetFileExtension()

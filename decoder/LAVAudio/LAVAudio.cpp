@@ -374,13 +374,14 @@ STDMETHODIMP CLAVAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   *ppv = NULL;
 
   return 
-    QI2(ISpecifyPropertyPages)
+    QI(ISpecifyPropertyPages)
+    QI(ISpecifyPropertyPages2)
     QI2(ILAVAudioSettings)
     QI2(ILAVAudioStatus)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
-// ISpecifyPropertyPages
+// ISpecifyPropertyPages2
 STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
@@ -395,6 +396,30 @@ STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
   if (bShowStatusPage)
     pPages->pElems[2] = CLSID_LAVAudioStatusProp;
   return S_OK;
+}
+
+STDMETHODIMP CLAVAudio::CreatePage(const GUID& guid, IPropertyPage** ppPage)
+{
+  CheckPointer(ppPage, E_POINTER);
+  HRESULT hr = S_OK;
+
+  if (*ppPage != NULL)
+    return E_INVALIDARG;
+
+  if (guid == CLSID_LAVAudioSettingsProp)
+    *ppPage = new CLAVAudioSettingsProp(NULL, &hr);
+  else if (guid == CLSID_LAVAudioFormatsProp)
+    *ppPage = new CLAVAudioFormatsProp(NULL, &hr);
+  else if (guid == CLSID_LAVAudioStatusProp)
+    *ppPage = new CLAVAudioStatusProp(NULL, &hr);
+
+  if (SUCCEEDED(hr) && *ppPage) {
+    (*ppPage)->AddRef();
+    return S_OK;
+  } else {
+    SAFE_DELETE(*ppPage);
+    return E_FAIL;
+  }
 }
 
 // ILAVAudioSettings

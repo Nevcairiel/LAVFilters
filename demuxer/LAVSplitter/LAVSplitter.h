@@ -35,6 +35,8 @@
 #include "SettingsProp.h"
 #include "IBufferInfo.h"
 
+#include "ISpecifyPropertyPages2.h"
+
 #define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
 #define LAVF_REGISTRY_KEY_FORMATS LAVF_REGISTRY_KEY L"\\Formats"
 #define LAVF_LOG_FILE     L"LAVSplitter.txt"
@@ -58,7 +60,7 @@ class CLAVSplitter
   , public IAMStreamSelect
   , public IAMOpenProgress
   , public ILAVFSettingsInternal
-  , public ISpecifyPropertyPages
+  , public ISpecifyPropertyPages2
   , public IObjectWithSite
   , public IBufferInfo
 {
@@ -111,8 +113,9 @@ public:
   STDMETHODIMP QueryProgress(LONGLONG *pllTotal, LONGLONG *pllCurrent);
   STDMETHODIMP AbortOperation();
 
-  // ISpecifyPropertyPages
+  // ISpecifyPropertyPages2
   STDMETHODIMP GetPages(CAUUID *pPages);
+  STDMETHODIMP CreatePage(const GUID& guid, IPropertyPage** ppPage);
 
   // IObjectWithSite
   STDMETHODIMP SetSite(IUnknown *pUnkSite);

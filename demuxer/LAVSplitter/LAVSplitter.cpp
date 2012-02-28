@@ -258,7 +258,8 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   return
     QI(IMediaSeeking)
     QI(IAMStreamSelect)
-    QI2(ISpecifyPropertyPages)
+    QI(ISpecifyPropertyPages)
+    QI(ISpecifyPropertyPages2)
     QI2(ILAVFSettings)
     QI2(ILAVFSettingsInternal)
     QI(IObjectWithSite)
@@ -266,7 +267,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
-// ISpecifyPropertyPages
+// ISpecifyPropertyPages2
 STDMETHODIMP CLAVSplitter::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
@@ -278,6 +279,28 @@ STDMETHODIMP CLAVSplitter::GetPages(CAUUID *pPages)
   pPages->pElems[0] = CLSID_LAVSplitterSettingsProp;
   pPages->pElems[1] = CLSID_LAVSplitterFormatsProp;
   return S_OK;
+}
+
+STDMETHODIMP CLAVSplitter::CreatePage(const GUID& guid, IPropertyPage** ppPage)
+{
+  CheckPointer(ppPage, E_POINTER);
+  HRESULT hr = S_OK;
+
+  if (*ppPage != NULL)
+    return E_INVALIDARG;
+
+  if (guid == CLSID_LAVSplitterSettingsProp)
+    *ppPage = new CLAVSplitterSettingsProp(NULL, &hr);
+  else if (guid == CLSID_LAVSplitterFormatsProp)
+    *ppPage = new CLAVSplitterFormatsProp(NULL, &hr);
+
+  if (SUCCEEDED(hr) && *ppPage) {
+    (*ppPage)->AddRef();
+    return S_OK;
+  } else {
+    SAFE_DELETE(*ppPage);
+    return E_FAIL;
+  }
 }
 
 // IObjectWithSite

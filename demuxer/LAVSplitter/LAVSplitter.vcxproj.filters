@@ -104,6 +104,9 @@
     <ClInclude Include="..\..\common\includes\IBufferInfo.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\includes\ISpecifyPropertyPages2.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVSplitter.rc">

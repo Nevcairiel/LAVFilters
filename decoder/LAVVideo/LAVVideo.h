@@ -27,6 +27,8 @@
 #include "H264RandomAccess.h"
 #include "FloatingAverage.h"
 
+#include "ISpecifyPropertyPages2.h"
+
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
@@ -43,7 +45,7 @@ typedef struct {
 } TimingCache;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages, public ILAVVideoSettings, public ILAVVideoCallback
+class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoCallback
 {
 public:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
@@ -53,8 +55,9 @@ public:
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
 
-  // ISpecifyPropertyPages
+  // ISpecifyPropertyPages2
   STDMETHODIMP GetPages(CAUUID *pPages);
+  STDMETHODIMP CreatePage(const GUID& guid, IPropertyPage** ppPage);
 
   // ILAVVideoSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);

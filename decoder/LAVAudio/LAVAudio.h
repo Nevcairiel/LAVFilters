@@ -25,6 +25,8 @@
 #include "BitstreamParser.h"
 #include "PostProcessor.h"
 
+#include "ISpecifyPropertyPages2.h"
+
 //////////////////// Configuration //////////////////////////
 
 // Buffer Size for decoded PCM: 1s of 192kHz 32-bit with 8 channels
@@ -92,7 +94,7 @@ struct BufferDetails {
 struct DTSDecoder;
 
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
-class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages, public ILAVAudioSettings, public ILAVAudioStatus
+class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVAudioSettings, public ILAVAudioStatus
 {
 public:
   CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr);
@@ -102,8 +104,9 @@ public:
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
 
-  // ISpecifyPropertyPages
+  // ISpecifyPropertyPages2
   STDMETHODIMP GetPages(CAUUID *pPages);
+  STDMETHODIMP CreatePage(const GUID& guid, IPropertyPage** ppPage);
 
   // ILAVAudioSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
