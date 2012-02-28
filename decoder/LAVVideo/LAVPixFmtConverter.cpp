@@ -272,9 +272,6 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
     pBIH->biCompression = BI_RGB;
   }
 
-  if (m_InputPixFmt == LAVPixFmt_DXVA2)
-    pBIH->biCompression = mmioFOURCC('d','x','v','a');
-
   // Correct size for v210
   if (guid == FOURCCMap('012v')) {
     pBIH->biWidth = FFALIGN(biWidth, 48);

@@ -770,6 +770,12 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || abs(vih2->AvgTimePerFrame - avgFrameDuration) > 10 || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value) || bMTInterlaced != bInterlaced);
   }
 
+  if (!bNeedReconnect && bDXVA) {
+    BITMAPINFOHEADER *pBMI = NULL;
+    videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBMI);
+    bNeedReconnect = (pBMI->biCompression != mmioFOURCC('d','x','v','a'));
+  }
+
   if (bNeedReconnect) {
     DbgLog((LOG_TRACE, 10, L"::ReconnectOutput(): Performing reconnect"));
     BITMAPINFOHEADER *pBIH = NULL;
@@ -823,6 +829,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     pBIH->biWidth = width;
     pBIH->biHeight = pBIH->biHeight < 0 ? -height : height;
     pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
+
+    if (bDXVA)
+      pBIH->biCompression = mmioFOURCC('d','x','v','a');
 
     if (mt.subtype == FOURCCMap('012v')) {
       pBIH->biWidth = FFALIGN(width, 48);
