@@ -22,13 +22,17 @@
 // Exclude inline asm from being included
 #define AVCODEC_X86_MATHOPS_H
 
+extern "C" {
 #pragma warning( push )
 #pragma warning( disable : 4018 )
 #pragma warning( disable : 4244 )
 #pragma warning( disable : 4305 )
+#include "libavcodec/avcodec.h"
 #include "libavcodec/get_bits.h"
 #include "libavcodec/dcadata.h"
+#include "libavcodec/dca_parser.h"
 #pragma warning( pop )
+};
 
 #include "dts.h"
 #include "parser.h"
@@ -227,19 +231,22 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   if(!pContext) return -1;
   if(!pHeader) return -1;
 
-  GetBitContext *gb = pContext->gb;
-  init_get_bits(gb, pBuffer, uSize << 3);
-
   unsigned ExtDescriptor = 0, ExtCoding = 0;
 
+  uint8_t dts_buffer[32 + FF_INPUT_BUFFER_PADDING_SIZE] = {0};
+  int ret = ff_dca_convert_bitstream(pBuffer, uSize, dts_buffer, 32);
+
   /* Parse Core Header */
-  if (show_bits(gb, 32) != DCA_HD_MARKER) {
+  if (ret >= 0) {
     pHeader->HasCore = 1;
 
-    get_bits(gb, 32);                                   /* Sync code */
-    get_bits(gb, 1);                                    /* Frame type */
+    GetBitContext *gb = pContext->gb;
+    init_get_bits(gb, dts_buffer, 32 << 3);
+
+    skip_bits_long(gb, 32);                             /* Sync code */
+    skip_bits1(gb);                                     /* Frame type */
     pHeader->SamplesPerBlock  = get_bits(gb, 5) + 1;    /* Samples deficit */
-    pHeader->CRCPresent       = get_bits(gb, 1);        /* CRC present */
+    pHeader->CRCPresent       = get_bits1(gb);          /* CRC present */
     pHeader->Blocks           = get_bits(gb, 7) + 1;    /* Number of Blocks */
     pHeader->FrameSize        = get_bits(gb, 14) + 1;   /* Primary (core) Frame Size */
     pHeader->ChannelLayout    = get_bits(gb, 6);        /* Channel configuration */
@@ -247,24 +254,24 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
     pHeader->SampleRate       = dca_sample_rates[sample_index];
     unsigned bitrate_index    = get_bits(gb, 5);        /* Bitrate index */
     pHeader->Bitrate          = dca_bit_rates[bitrate_index];
-    get_bits(gb, 1);                                    /* Down mix */
-    get_bits(gb, 1);                                    /* Dynamic range */
-    get_bits(gb, 1);                                    /* Time stamp */
-    get_bits(gb, 1);                                    /* Auxiliary data */
-    get_bits(gb, 1);                                    /* HDCD */
+    skip_bits1(gb);                                     /* Down mix */
+    skip_bits1(gb);                                     /* Dynamic range */
+    skip_bits1(gb);                                     /* Time stamp */
+    skip_bits1(gb);                                     /* Auxiliary data */
+    skip_bits1(gb);                                     /* HDCD */
     ExtDescriptor             = get_bits(gb, 3);        /* External descriptor  */
-    ExtCoding                 = get_bits(gb, 1);        /* Extended coding */
-    get_bits(gb, 1);                                    /* ASPF */
+    ExtCoding                 = get_bits1(gb);          /* Extended coding */
+    skip_bits1(gb);                                     /* ASPF */
     pHeader->LFE              = get_bits(gb, 2);        /* LFE */
-    get_bits(gb, 1);                                    /* Predictor History */
+    skip_bits1(gb);                                     /* Predictor History */
     if(pHeader->CRCPresent)
-      get_bits(gb, 16);                                 /* CRC */
-    get_bits(gb, 1);                                    /* Multirate Interpolator */
-    get_bits(gb, 4);                                    /* Encoder Software Revision */
-    get_bits(gb, 2);                                    /* Copy history */
-    get_bits(gb, 1);                                    /* ES */
-    get_bits(gb, 4);                                    /* Dialog Normalization Parameter */
-    get_bits(gb, 4);                                    /* Unknown or Dialog Normalization Parameter */
+      skip_bits(gb, 16);                                /* CRC */
+    skip_bits1(gb);                                     /* Multirate Interpolator */
+    skip_bits(gb, 4);                                   /* Encoder Software Revision */
+    skip_bits(gb, 2);                                   /* Copy history */
+    skip_bits1(gb);                                     /* ES */
+    skip_bits(gb, 4);                                   /* Dialog Normalization Parameter */
+    skip_bits(gb, 4);                                   /* Unknown or Dialog Normalization Parameter */
   } else {
     pHeader->HasCore = 0;
   }
