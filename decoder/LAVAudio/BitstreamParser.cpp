@@ -79,5 +79,7 @@ HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserCon
 
   m_dwBitRate    = ctx->bit_rate;
   m_dwSampleRate = ctx->sample_rate;
+  m_dwSamples    = ctx->samples;
+
   return S_OK;
 }
