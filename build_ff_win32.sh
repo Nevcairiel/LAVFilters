@@ -57,7 +57,7 @@ OPTIONS="
 --arch=x86 --cpu=i686 --target-os=mingw32 \
 --build-suffix=-lav"
 
-./configure --extra-cflags="-I../common/includes/dxva2 -mmmx -msse" ${OPTIONS} &&
+./configure --extra-cflags="-I../common/includes/dxva2 -mmmx -msse -mfpmath=sse" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-lav-*.dll ../bin_Win32 &&
