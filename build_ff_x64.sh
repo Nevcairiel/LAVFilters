@@ -54,7 +54,6 @@ OPTIONS="
 --disable-devices \
 --disable-avdevice \
 --disable-bsfs \
---disable-network \
 --enable-cross-compile \
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 \
 --build-suffix=-lav"
