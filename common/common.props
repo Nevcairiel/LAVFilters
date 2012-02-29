@@ -35,6 +35,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)bin_$(PlatformName)\lib;$(SolutionDir)common\lib\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
