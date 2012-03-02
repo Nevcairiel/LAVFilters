@@ -1355,8 +1355,6 @@ static void parseTrackEntry(MatroskaFile *mf,ulonglong toplen) {
       readLangCC(mf, len, t.Language);
       break;
     case 0x86: // CodecID
-      if (t.CodecID)
-        errorjmp(mf,"Duplicate CodecID");
       STRGETA(mf,t.CodecID,len);
       break;
     case 0x63a2: // CodecPrivate
