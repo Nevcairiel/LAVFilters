@@ -236,6 +236,8 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   uint8_t dts_buffer[32 + FF_INPUT_BUFFER_PADDING_SIZE] = {0};
   int ret = ff_dca_convert_bitstream(pBuffer, uSize, dts_buffer, 32);
 
+  bool is16be = (AV_RB32(pBuffer) == DCA_MARKER_RAW_BE);
+
   /* Parse Core Header */
   if (ret >= 0) {
     pHeader->HasCore = 1;
@@ -275,6 +277,9 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   } else {
     pHeader->HasCore = 0;
   }
+
+  if (pHeader->HasCore && !is16be)
+    return 0;
 
   // DTS-HD parsing
   const uint8_t *pHD = NULL;
