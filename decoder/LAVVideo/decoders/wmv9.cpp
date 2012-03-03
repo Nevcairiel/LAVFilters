@@ -154,10 +154,16 @@ STDMETHODIMP CDecWMV9::Init()
 
   // Disable deinterlacing setting in the registry
   // Apparently required on XP
-  // Maybe there should be a backup of this setting, but its so extremely low quality that we'll just disable it for everyone
   CRegistry reg;
   reg.Open(HKEY_CURRENT_USER, L"Software\\Microsoft\\Scrunch");
-  reg.WriteDWORD(L"Deinterlace", 0);
+  reg.ReadDWORD(L"Deinterlace.old", hr);
+  if (FAILED(hr)) {
+    DWORD dwValue = reg.ReadDWORD(L"Deinterlace", hr);
+    if (FAILED(hr))
+      dwValue = 0;
+    reg.WriteDWORD(L"Deinterlace.old", dwValue);
+    reg.WriteDWORD(L"Deinterlace", 0);
+  }
 
   hr = CoCreateInstance(CLSID_CWMVDecMediaObject, NULL, CLSCTX_INPROC_SERVER, IID_IMediaObject, (void **)&m_pDMO);
   if (FAILED(hr)) {
