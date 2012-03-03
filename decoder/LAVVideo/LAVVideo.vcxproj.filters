@@ -117,6 +117,9 @@
     <ClCompile Include="decoders\dxva2\DXVA2SurfaceAllocator.cpp">
       <Filter>Source Files\decoders\dxva2</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\wmv9.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -184,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="decoders\dxva2\DXVA2SurfaceAllocator.h">
       <Filter>Header Files\decoders\dxva2</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\wmv9.h">
+      <Filter>Header Files\decoders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

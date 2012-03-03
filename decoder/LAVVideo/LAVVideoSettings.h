@@ -290,4 +290,10 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get the dithering mode used
   STDMETHOD_(LAVDitherMode, GetDitherMode)() = 0;
+
+  // Set if the MS WMV9 DMO Decoder should be used for VC-1/WMV3
+  STDMETHOD(SetUseMSWMV9Decoder)(BOOL bEnabled) = 0;
+
+  // Get if the MS WMV9 DMO Decoder should be used for VC-1/WMV3
+  STDMETHOD_(BOOL, GetUseMSWMV9Decoder)() = 0;
 };

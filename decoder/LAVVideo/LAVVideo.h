@@ -101,6 +101,9 @@ public:
   STDMETHODIMP SetDitherMode(LAVDitherMode ditherMode);
   STDMETHODIMP_(LAVDitherMode) GetDitherMode();
 
+  STDMETHODIMP SetUseMSWMV9Decoder(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetUseMSWMV9Decoder();
+
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
   HRESULT CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut);
@@ -199,6 +202,7 @@ private:
     BOOL StreamAR;
     DWORD NumThreads;
     BOOL bFormats[Codec_NB];
+    BOOL bMSWMV9DMO;
     BOOL bPixFmts[LAVOutPixFmt_NB];
     DWORD RGBRange;
     DWORD HWAccel;

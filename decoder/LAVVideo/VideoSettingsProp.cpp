@@ -592,6 +592,9 @@ HRESULT CLAVVideoFormatsProp::OnApplyChanges()
     m_pVideoSettings->SetFormatConfiguration((LAVVideoCodec)nItem, bFlag);
   }
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_CODECS_MSWMVDMO, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetUseMSWMV9Decoder(bFlag);
+
   LoadData();
 
   return hr;
@@ -648,6 +651,8 @@ HRESULT CLAVVideoFormatsProp::OnActivate()
     }
   }
 
+  SendDlgItemMessage(m_Dlg, IDC_CODECS_MSWMVDMO, BM_SETCHECK, m_bWMVDMO, 0);
+
   return hr;
 }
 
@@ -655,8 +660,10 @@ HRESULT CLAVVideoFormatsProp::LoadData()
 {
   HRESULT hr = S_OK;
   
- for (unsigned i = 0; i < Codec_NB; ++i)
+  for (unsigned i = 0; i < Codec_NB; ++i)
     m_bFormats[i] = m_pVideoSettings->GetFormatConfiguration((LAVVideoCodec)i) != 0;
+
+  m_bWMVDMO = m_pVideoSettings->GetUseMSWMV9Decoder();
 
   return hr;
 }
@@ -665,6 +672,14 @@ INT_PTR CLAVVideoFormatsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPar
 {
   switch (uMsg)
   {
+  case WM_COMMAND:
+    if (LOWORD(wParam) == IDC_CODECS_MSWMVDMO && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_bWMVDMO) {
+        SetDirty();
+      }
+    }
+    break;
   case WM_NOTIFY:
     NMHDR *hdr = (LPNMHDR)lParam;
     if (hdr->idFrom == IDC_CODECS) {

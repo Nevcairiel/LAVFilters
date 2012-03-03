@@ -157,11 +157,12 @@ HRESULT CLAVVideo::LoadDefaults()
   for (int i = 0; i < Codec_NB; ++i)
     m_settings.bFormats[i] = TRUE;
 
-  m_settings.bFormats[Codec_VC1]      = FALSE;
   m_settings.bFormats[Codec_RV12]     = FALSE;
   m_settings.bFormats[Codec_Cinepak]  = FALSE;
   m_settings.bFormats[Codec_QPEG]     = FALSE;
   m_settings.bFormats[Codec_MSRLE]    = FALSE;
+
+  m_settings.bMSWMV9DMO = TRUE;
 
   // Raw formats, off by default
   m_settings.bFormats[Codec_v210]     = FALSE;
@@ -236,6 +237,9 @@ HRESULT CLAVVideo::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
   }
 
+  bFlag = reg.ReadBOOL(L"MSWMV9DMO", hr);
+  if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
+
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT);
   CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
 
@@ -306,6 +310,8 @@ HRESULT CLAVVideo::SaveSettings()
       const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
       regF.WriteBOOL(info->name, m_settings.bFormats[i]);
     }
+
+    reg.WriteBOOL(L"MSWMV9DMO", m_settings.bMSWMV9DMO);
 
     CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
     for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
@@ -574,7 +580,10 @@ softwaredec:
   // Fallback for software
   if (!m_pDecoder) {
     m_bHWDecoder = FALSE;
-    m_pDecoder = CreateDecoderAVCodec();
+    if (m_settings.bMSWMV9DMO && (codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3))
+      m_pDecoder = CreateDecoderWMV9();
+    else
+      m_pDecoder = CreateDecoderAVCodec();
   }
 
   hr = m_pDecoder->InitInterfaces(static_cast<ILAVVideoSettings *>(this), static_cast<ILAVVideoCallback *>(this));
@@ -1486,4 +1495,15 @@ STDMETHODIMP CLAVVideo::SetDitherMode(LAVDitherMode ditherMode)
 STDMETHODIMP_(LAVDitherMode) CLAVVideo::GetDitherMode()
 {
   return (LAVDitherMode)m_settings.DitherMode;
+}
+
+STDMETHODIMP CLAVVideo::SetUseMSWMV9Decoder(BOOL bEnabled)
+{
+  m_settings.bMSWMV9DMO = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetUseMSWMV9Decoder()
+{
+  return m_settings.bMSWMV9DMO;
 }

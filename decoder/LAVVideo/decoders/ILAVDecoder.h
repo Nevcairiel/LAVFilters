@@ -333,6 +333,7 @@ interface ILAVDecoder
  * They are listed here so that including their header files is not required
  */
 ILAVDecoder *CreateDecoderAVCodec();
+ILAVDecoder *CreateDecoderWMV9();
 ILAVDecoder *CreateDecoderCUVID();
 ILAVDecoder *CreateDecoderQuickSync();
 ILAVDecoder *CreateDecoderDXVA2();
