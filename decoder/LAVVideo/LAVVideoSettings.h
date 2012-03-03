@@ -156,16 +156,16 @@ typedef enum LAVDitherMode {
   LAVDither_Random
 } LAVDitherMode;
 
-// LAV Audio configuration interface
+// LAV Video configuration interface
 [uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")]
 interface ILAVVideoSettings : public IUnknown
 {
   // Switch to Runtime Config mode. This will reset all settings to default, and no changes to the settings will be saved
-  // You can use this to programmatically configure LAV Audio without interfering with the users settings in the registry.
+  // You can use this to programmatically configure LAV Video without interfering with the users settings in the registry.
   // Subsequent calls to this function will reset all settings back to defaults, even if the mode does not change.
   //
   // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
-  // For smooth operations, it must be called before LAV Audio is connected to other filters.
+  // For smooth operations, it must be called before LAV Video is connected to other filters.
   STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
 
   // Configure which codecs are enabled
