@@ -152,6 +152,13 @@ STDMETHODIMP CDecWMV9::Init()
   DbgLog((LOG_TRACE, 10, L"CDecWMV9::Init(): Trying to open WMV9 DMO decoder"));
   HRESULT hr = S_OK;
 
+  // Disable deinterlacing setting in the registry
+  // Apparently required on XP
+  // Maybe there should be a backup of this setting, but its so extremely low quality that we'll just disable it for everyone
+  CRegistry reg;
+  reg.Open(HKEY_CURRENT_USER, L"Software\\Microsoft\\Scrunch");
+  reg.WriteDWORD(L"Deinterlace", 0);
+
   hr = CoCreateInstance(CLSID_CWMVDecMediaObject, NULL, CLSCTX_INPROC_SERVER, IID_IMediaObject, (void **)&m_pDMO);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Failed to create DMO object"));
@@ -168,13 +175,6 @@ STDMETHODIMP CDecWMV9::Init()
     pProp->Write(g_wszWMVCDecoderDeinterlacing, &var);
     SafeRelease(&pProp);
   }
-
-  // Disable deinterlacing setting in the registry
-  // Apparently required on XP
-  // Maybe there should be a backup of this setting, but its so extremely low quality that we'll just disable it for everyone
-  CRegistry reg;
-  reg.Open(HKEY_CURRENT_USER, L"Software\\Microsoft\\Scrunch");
-  reg.WriteDWORD(L"Deinterlace", 0);
 
   return S_OK;
 }
