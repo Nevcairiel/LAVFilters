@@ -104,6 +104,8 @@ public:
   STDMETHODIMP SetUseMSWMV9Decoder(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetUseMSWMV9Decoder();
 
+  STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_pDecoder ? m_pDecoder->GetDecoderName() : NULL; }
+
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
   HRESULT CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut);

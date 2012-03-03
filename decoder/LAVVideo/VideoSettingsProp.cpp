@@ -266,6 +266,9 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     UpdateHWOptions();
   }
 
+  const WCHAR *decoder = m_pVideoSettings->GetActiveDecoderName();
+  SendDlgItemMessage(m_Dlg, IDC_ACTIVE_DECODER, WM_SETTEXT, 0, (LPARAM)(decoder ? decoder : L"<inactive>"));
+
   return hr;
 }
 

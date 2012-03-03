@@ -325,6 +325,11 @@ interface ILAVDecoder
    * Get the number of sample buffers optimal for this decoder
    */
   STDMETHOD_(long, GetBufferCount)() PURE;
+
+  /**
+   * Get the name of the decoder
+   */
+  STDMETHOD_(const WCHAR*, GetDecoderName)() PURE;
 };
 
 /**

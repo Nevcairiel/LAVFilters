@@ -51,6 +51,7 @@ public:
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
   STDMETHODIMP_(long) GetBufferCount();
+  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bNative ? L"dxva2n" : L"dxva2cb"; }
 
   // CDecBase
   STDMETHODIMP Init();

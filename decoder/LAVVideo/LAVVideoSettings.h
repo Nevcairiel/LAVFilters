@@ -296,4 +296,7 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get if the MS WMV9 DMO Decoder should be used for VC-1/WMV3
   STDMETHOD_(BOOL, GetUseMSWMV9Decoder)() = 0;
+
+  // Get the name of the active decoder (can return NULL if none is active)
+  STDMETHOD_(const WCHAR *, GetActiveDecoderName)() = 0;
 };

@@ -36,6 +36,7 @@ public:
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
   STDMETHODIMP_(BOOL) IsInterlaced();
+  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"wmv9 dmo"; }
 
   // CDecBase
   STDMETHODIMP Init();
