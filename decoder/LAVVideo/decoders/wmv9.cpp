@@ -355,16 +355,32 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
     }
   }
 
-  if (m_OutPixFmt == LAVPixFmt_NV12) {
-    pFrame->data[0] = m_pRawBuffer;
-    pFrame->data[1] = m_pRawBuffer + pFrame->width * pFrame->height;
-    pFrame->stride[0] = pFrame->stride[1] = pFrame->width;
-  } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
-    pFrame->data[0] = m_pRawBuffer;
-    pFrame->data[2] = m_pRawBuffer + pFrame->width * pFrame->height;
-    pFrame->data[1] = pFrame->data[2] + (pFrame->width / 2) * (pFrame->height / 2);
-    pFrame->stride[0] = pFrame->width;
-    pFrame->stride[1] = pFrame->stride[2] = pFrame->width / 2;
+  // Check alignment
+  // If not properly aligned, we need to make the data aligned.
+  int alignment = (m_OutPixFmt == LAVPixFmt_NV12) ? 16 : 32;
+  if ((pFrame->width & alignment) != 0) {
+    AllocLAVFrameBuffers(pFrame);
+    size_t ySize = pFrame->width * pFrame->height;
+    memcpy(pFrame->data[0], m_pRawBuffer, ySize);
+    if (m_OutPixFmt == LAVPixFmt_NV12) {
+      memcpy(pFrame->data[1], m_pRawBuffer+ySize, ySize / 2);
+    } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
+      int uvSize = ySize / 4;
+      memcpy(pFrame->data[2], m_pRawBuffer+ySize, uvSize);
+      memcpy(pFrame->data[1], m_pRawBuffer+ySize+uvSize, uvSize);
+    }
+  } else {
+    if (m_OutPixFmt == LAVPixFmt_NV12) {
+      pFrame->data[0] = m_pRawBuffer;
+      pFrame->data[1] = m_pRawBuffer + pFrame->width * pFrame->height;
+      pFrame->stride[0] = pFrame->stride[1] = pFrame->width;
+    } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
+      pFrame->data[0] = m_pRawBuffer;
+      pFrame->data[2] = m_pRawBuffer + pFrame->width * pFrame->height;
+      pFrame->data[1] = pFrame->data[2] + (pFrame->width / 2) * (pFrame->height / 2);
+      pFrame->stride[0] = pFrame->width;
+      pFrame->stride[1] = pFrame->stride[2] = pFrame->width / 2;
+    }
   }
   Deliver(pFrame);
 
