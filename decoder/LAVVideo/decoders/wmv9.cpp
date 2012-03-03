@@ -125,9 +125,10 @@ private:
 CDecWMV9::CDecWMV9(void)
   : CDecBase()
   , m_pDMO(NULL)
-  , m_pNV12Buffer(NULL)
-  , m_pNV12BufferSize(0)
+  , m_pRawBuffer(NULL)
+  , m_pRawBufferSize(0)
   , m_bInterlaced(TRUE)
+  , m_OutPixFmt(LAVPixFmt_None)
 {
 }
 
@@ -138,8 +139,8 @@ CDecWMV9::~CDecWMV9(void)
 
 STDMETHODIMP CDecWMV9::DestroyDecoder(bool bFull)
 {
-  av_freep(&m_pNV12Buffer);
-  m_pNV12BufferSize = 0;
+  av_freep(&m_pRawBuffer);
+  m_pRawBufferSize = 0;
   if (bFull) {
     SafeRelease(&m_pDMO);
   }
@@ -214,10 +215,12 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   
   VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mtIn.AllocFormatBuffer(sizeof(VIDEOINFOHEADER) + extralen);
   memset(vih, 0, sizeof(VIDEOINFOHEADER));
-  vih->bmiHeader = *pBMI;
-  vih->bmiHeader.biPlanes = 1;
-  vih->bmiHeader.biBitCount = 24;
-  vih->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extralen;
+  vih->bmiHeader.biWidth       = pBMI->biWidth;
+  vih->bmiHeader.biHeight      = pBMI->biHeight;
+  vih->bmiHeader.biPlanes      = 1;
+  vih->bmiHeader.biBitCount    = 24;
+  vih->bmiHeader.biSizeImage   = pBMI->biWidth * pBMI->biHeight * 3 / 2;
+  vih->bmiHeader.biSize        = sizeof(BITMAPINFOHEADER) + extralen;
   vih->bmiHeader.biCompression = subtype.Data1;
   vih->AvgTimePerFrame = rtAvg;
   SetRect(&vih->rcSource, 0, 0, pBMI->biWidth, pBMI->biHeight);
@@ -235,34 +238,27 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   }
 
   /* Create output type */
+  int idx = 0;
+  while(SUCCEEDED(hr = m_pDMO->GetOutputType(0, idx++, &mtOut))) {
+    if (mtOut.subtype == MEDIASUBTYPE_NV12) {
+      hr = m_pDMO->SetOutputType(0, &mtOut, 0);
+      m_OutPixFmt = LAVPixFmt_NV12;
+      break;
+    } else if (mtOut.subtype == MEDIASUBTYPE_YV12) {
+      hr = m_pDMO->SetOutputType(0, &mtOut, 0);
+      m_OutPixFmt = LAVPixFmt_YUV420;
+      break;
+    }
+  }
 
-  mtOut.SetType(&MEDIATYPE_Video);
-  mtOut.SetSubtype(&MEDIASUBTYPE_NV12);
-  mtOut.SetFormatType(&FORMAT_VideoInfo);
-  mtOut.SetTemporalCompression(FALSE);
-
-  vih = (VIDEOINFOHEADER *)mtOut.AllocFormatBuffer(sizeof(VIDEOINFOHEADER));
-  memset(vih, 0, sizeof(VIDEOINFOHEADER));
-  vih->bmiHeader = *pBMI;
-  vih->bmiHeader.biPlanes = 1;
-  vih->bmiHeader.biBitCount = 12;
-  vih->bmiHeader.biSizeImage = pBMI->biWidth * pBMI->biHeight * 3 / 2;
-  vih->bmiHeader.biCompression = FOURCC_NV12;
-  vih->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-  vih->AvgTimePerFrame = rtAvg;
-  SetRect(&vih->rcSource, 0, 0, pBMI->biWidth, pBMI->biHeight);
-  vih->rcTarget = vih->rcSource;
-
-  mtOut.SetSampleSize(vih->bmiHeader.biSizeImage);
-
-  hr = m_pDMO->SetOutputType(0, &mtOut, 0);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Failed to set output type on DMO"));
     return hr;
   }
 
-  m_pNV12BufferSize = vih->bmiHeader.biSizeImage + FF_INPUT_BUFFER_PADDING_SIZE;
-  m_pNV12Buffer = (BYTE* )av_malloc(m_pNV12BufferSize);
+  videoFormatTypeHandler(mtOut, &pBMI);
+  m_pRawBufferSize = pBMI->biSizeImage + FF_INPUT_BUFFER_PADDING_SIZE;
+  m_pRawBuffer = (BYTE* )av_malloc(m_pRawBufferSize);
 
   m_bInterlaced = FALSE;
   if (codec == CODEC_ID_VC1 && extralen > 0) {
@@ -315,7 +311,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   HRESULT hr = S_OK;
   DWORD dwStatus = 0;
 
-  CMediaBuffer *pOutBuffer = new CMediaBuffer(m_pNV12Buffer, m_pNV12BufferSize, true);
+  CMediaBuffer *pOutBuffer = new CMediaBuffer(m_pRawBuffer, m_pRawBufferSize, true);
   pOutBuffer->SetLength(0);
 
   DMO_OUTPUT_DATA_BUFFER OutputBufferStructs[1];
@@ -337,7 +333,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   videoFormatTypeHandler(mtOut, &pBMI);
   pFrame->width     = pBMI->biWidth;
   pFrame->height    = pBMI->biHeight;
-  pFrame->format    = LAVPixFmt_NV12;
+  pFrame->format    = m_OutPixFmt;
   pFrame->key_frame = (OutputBufferStructs[0].dwStatus & DMO_OUTPUT_DATA_BUFFERF_SYNCPOINT);
 
   BYTE contentType = 0;
@@ -358,9 +354,18 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
       pFrame->rtStop = pFrame->rtStart + OutputBufferStructs[0].rtTimelength;
     }
   }
-  pFrame->data[0] = m_pNV12Buffer;
-  pFrame->data[1] = m_pNV12Buffer + pFrame->width * pFrame->height;
-  pFrame->stride[0] = pFrame->stride[1] = pFrame->width;
+
+  if (m_OutPixFmt == LAVPixFmt_NV12) {
+    pFrame->data[0] = m_pRawBuffer;
+    pFrame->data[1] = m_pRawBuffer + pFrame->width * pFrame->height;
+    pFrame->stride[0] = pFrame->stride[1] = pFrame->width;
+  } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
+    pFrame->data[0] = m_pRawBuffer;
+    pFrame->data[2] = m_pRawBuffer + pFrame->width * pFrame->height;
+    pFrame->data[1] = pFrame->data[2] + (pFrame->width / 2) * (pFrame->height / 2);
+    pFrame->stride[0] = pFrame->width;
+    pFrame->stride[1] = pFrame->stride[2] = pFrame->width / 2;
+  }
   Deliver(pFrame);
 
   SafeRelease(&pOutBuffer);
@@ -386,9 +391,8 @@ STDMETHODIMP CDecWMV9::EndOfStream()
 
 STDMETHODIMP CDecWMV9::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 {
-  // Output is always NV12
   if (pPix)
-    *pPix = LAVPixFmt_NV12;
+    *pPix = (m_OutPixFmt != LAVPixFmt_None) ? m_OutPixFmt : LAVPixFmt_NV12;
   if (pBpp)
     *pBpp = 8;
   return S_OK;

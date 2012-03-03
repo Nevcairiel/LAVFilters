@@ -50,8 +50,10 @@ private:
   CMediaType mtIn;
   CMediaType mtOut;
 
-  BYTE *m_pNV12Buffer;
-  DWORD m_pNV12BufferSize;
+  BYTE *m_pRawBuffer;
+  DWORD m_pRawBufferSize;
 
   BOOL m_bInterlaced;
+
+  LAVPixelFormat m_OutPixFmt;
 };
