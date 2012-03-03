@@ -229,19 +229,35 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   _mm_sfence();
 
   // Y
-  for(line = 0; line < height; ++line) {
-    PIXCONV_MEMCPY_ALIGNED(dstY + outLumaStride * line, y, width);
-    y += inLumaStride;
+  if ((outLumaStride % 16) == 0) {
+    for(line = 0; line < height; ++line) {
+      PIXCONV_MEMCPY_ALIGNED(dstY + outLumaStride * line, y, width);
+      y += inLumaStride;
+    }
+  } else {
+    for(line = 0; line < height; ++line) {
+      memcpy(dstY + outLumaStride * line, y, width);
+      y += inLumaStride;
+    }
   }
 
   // U/V
-  for(line = 0; line < chromaHeight; ++line) {
-    PIXCONV_MEMCPY_ALIGNED_TWO(
-      dstU + outChromaStride * line, u,
-      dstV + outChromaStride * line, v,
-      chromaWidth);
-    u += inChromaStride;
-    v += inChromaStride;
+  if ((outChromaStride % 16) == 0) {
+    for(line = 0; line < chromaHeight; ++line) {
+      PIXCONV_MEMCPY_ALIGNED_TWO(
+        dstU + outChromaStride * line, u,
+        dstV + outChromaStride * line, v,
+        chromaWidth);
+      u += inChromaStride;
+      v += inChromaStride;
+    }
+  } else {
+    for(line = 0; line < chromaHeight; ++line) {
+      memcpy(dstU + outChromaStride * line, u, chromaWidth);
+      memcpy(dstV + outChromaStride * line, v, chromaWidth);
+      u += inChromaStride;
+      v += inChromaStride;
+    }
   }
 
   return S_OK;
@@ -520,15 +536,29 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_nv12)
 
   _mm_sfence();
 
-  // Copy the data
-  for (line = 0; line < height; line++) {
-    PIXCONV_MEMCPY_ALIGNED(dstY + outStride * line, y, width);
-    y += inStride;
-  }
+  // Use SSE2 copy when the stride is aligned
+  if ((outStride % 16) == 0) {
+    // Copy the data
+    for (line = 0; line < height; line++) {
+      PIXCONV_MEMCPY_ALIGNED(dstY + outStride * line, y, width);
+      y += inStride;
+    }
 
-  for (line = 0; line < chromaHeight; line++) {
-    PIXCONV_MEMCPY_ALIGNED(dstUV + outStride * line, uv, width);
-    uv += inStride;
+    for (line = 0; line < chromaHeight; line++) {
+      PIXCONV_MEMCPY_ALIGNED(dstUV + outStride * line, uv, width);
+      uv += inStride;
+    }
+  } else {
+    // Copy the data
+    for (line = 0; line < height; line++) {
+      memcpy(dstY + outStride * line, y, width);
+      y += inStride;
+    }
+
+    for (line = 0; line < chromaHeight; line++) {
+      memcpy(dstUV + outStride * line, uv, width);
+      uv += inStride;
+    }
   }
 
   return S_OK;
