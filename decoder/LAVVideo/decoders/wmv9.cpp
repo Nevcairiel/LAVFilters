@@ -22,8 +22,10 @@
 
 #include "moreuuids.h"
 #include <wmsdk.h>
+#include <wmcodecdsp.h>
 
 #include "parsers/VC1HeaderParser.h"
+#include "registry.h"
 
 EXTERN_GUID(CLSID_CWMVDecMediaObject,
     0x82d353df, 0x90bd, 0x4382, 0x8b, 0xc2, 0x3f, 0x61, 0x92, 0xb7, 0x6e, 0x34);
@@ -155,6 +157,24 @@ STDMETHODIMP CDecWMV9::Init()
     DbgLog((LOG_TRACE, 10, L"-> Failed to create DMO object"));
     return hr;
   }
+
+  // Force decoder deinterlacing to off
+  IPropertyBag *pProp = NULL;
+  hr = m_pDMO->QueryInterface(&pProp);
+  if (SUCCEEDED(hr)) {
+    VARIANT var = {0};
+    var.vt = VT_BOOL;
+    var.boolVal = FALSE;
+    pProp->Write(g_wszWMVCDecoderDeinterlacing, &var);
+    SafeRelease(&pProp);
+  }
+
+  // Disable deinterlacing setting in the registry
+  // Apparently required on XP
+  // Maybe there should be a backup of this setting, but its so extremely low quality that we'll just disable it for everyone
+  CRegistry reg;
+  reg.Open(HKEY_CURRENT_USER, L"Software\\Microsoft\\Scrunch");
+  reg.WriteDWORD(L"Deinterlace", 0);
 
   return S_OK;
 }
