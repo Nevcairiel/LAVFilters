@@ -791,7 +791,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     AVRational display_aspect_ratio;
     int64_t num = (int64_t)m_pAVCtx->sample_aspect_ratio.num * m_pAVCtx->width;
     int64_t den = (int64_t)m_pAVCtx->sample_aspect_ratio.den * m_pAVCtx->height;
-    av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 255);
+    av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
 
     pOutFrame->width        = m_pAVCtx->width;
     pOutFrame->height       = m_pAVCtx->height;
