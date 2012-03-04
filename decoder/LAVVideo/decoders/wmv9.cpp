@@ -130,6 +130,7 @@ CDecWMV9::CDecWMV9(void)
   , m_bInterlaced(TRUE)
   , m_OutPixFmt(LAVPixFmt_None)
 {
+  memset(&m_StreamAR, 0, sizeof(m_StreamAR));
 }
 
 CDecWMV9::~CDecWMV9(void)
@@ -261,10 +262,12 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_pRawBuffer = (BYTE* )av_malloc(m_pRawBufferSize);
 
   m_bInterlaced = FALSE;
+  memset(&m_StreamAR, 0, sizeof(m_StreamAR));
   if (codec == CODEC_ID_VC1 && extralen > 0) {
     CVC1HeaderParser vc1hdr(extra, extralen);
     if (vc1hdr.hdr.valid) {
       m_bInterlaced = vc1hdr.hdr.interlaced;
+      m_StreamAR = vc1hdr.hdr.ar;
     }
   }
 
@@ -344,6 +347,11 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   pFrame->height    = pBMI->biHeight;
   pFrame->format    = m_OutPixFmt;
   pFrame->key_frame = (OutputBufferStructs[0].dwStatus & DMO_OUTPUT_DATA_BUFFERF_SYNCPOINT);
+
+  AVRational display_aspect_ratio;
+  int64_t num = (int64_t)m_StreamAR.num * pBMI->biWidth;
+  int64_t den = (int64_t)m_StreamAR.den * pBMI->biHeight;
+  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
 
   BYTE contentType = 0;
   DWORD dwPropSize = 1;

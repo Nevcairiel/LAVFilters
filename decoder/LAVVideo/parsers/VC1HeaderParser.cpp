@@ -23,8 +23,11 @@
 #pragma warning( push )
 #pragma warning( disable : 4018 )
 #pragma warning( disable : 4244 )
+extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
+__declspec(dllimport) const AVRational ff_vc1_pixel_aspect[16];
+};
 #pragma warning( pop )
 
 /** Markers used in VC-1 AP frame data */
@@ -136,21 +139,44 @@ void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, int length)
 void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
 {
   hdr.profile = get_bits(gb, 2);
-  
+
   if (hdr.profile == PROFILE_ADVANCED) {
     hdr.valid = 1;
 
     hdr.level = get_bits(gb, 3);
-    get_bits(gb, 2); // Chroma Format, only 1 should be set for 4:2:0
-    get_bits(gb, 3); // frmrtq_postproc
-    get_bits(gb, 5); // bitrtq_postproc
-    get_bits1(gb);   // postprocflag
+    skip_bits(gb, 2); // Chroma Format, only 1 should be set for 4:2:0
+    skip_bits(gb, 3); // frmrtq_postproc
+    skip_bits(gb, 5); // bitrtq_postproc
+    skip_bits1(gb);   // postprocflag
 
     hdr.width = (get_bits(gb, 12) + 1) << 1;
     hdr.height = (get_bits(gb, 12) + 1) << 1;
 
     hdr.broadcast = get_bits1(gb);    // broadcast
     hdr.interlaced = get_bits1(gb);   // interlaced
+
+    skip_bits1(gb); // tfcntrflag
+    skip_bits1(gb); // finterpflag
+    skip_bits1(gb); // reserved
+    skip_bits1(gb); // psf
+
+    if (get_bits1(gb)) { // Display Info
+      int w, h, ar = 0;
+      w = get_bits(gb, 14) + 1;
+      h = get_bits(gb, 14) + 1;
+      if (get_bits1(gb))
+        ar = get_bits(gb, 4);
+      if (ar && ar < 14) {
+        hdr.ar = ff_vc1_pixel_aspect[ar];
+      } else if (ar == 15) {
+        w = get_bits(gb, 8) + 1;
+        h = get_bits(gb, 8) + 1;
+        hdr.ar.num = w;
+        hdr.ar.den = h;
+      } else {
+        av_reduce(&hdr.ar.num, &hdr.ar.den, hdr.height * w, hdr.width * h, 1 << 30);
+      }
+    }
 
     // TODO: add other fields
   }

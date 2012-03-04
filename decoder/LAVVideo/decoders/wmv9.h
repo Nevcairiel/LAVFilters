@@ -54,6 +54,7 @@ private:
   DWORD m_pRawBufferSize;
 
   BOOL m_bInterlaced;
+  AVRational m_StreamAR;
 
   LAVPixelFormat m_OutPixFmt;
 };

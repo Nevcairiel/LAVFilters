@@ -39,6 +39,8 @@ public:
 
     int broadcast;
     int interlaced;
+
+    AVRational ar;
   } hdr;
 
 private:
