@@ -306,6 +306,15 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   return ProcessOutput();
 }
 
+static void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int height)
+{
+  for (int i = 0; i < height; i++) {
+    memcpy(dst, src, width);
+    dst += stride;
+    src += width;
+  }
+}
+
 STDMETHODIMP CDecWMV9::ProcessOutput()
 {
   HRESULT hr = S_OK;
@@ -361,13 +370,13 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   if ((pFrame->width & alignment) != 0) {
     AllocLAVFrameBuffers(pFrame);
     size_t ySize = pFrame->width * pFrame->height;
-    memcpy(pFrame->data[0], m_pRawBuffer, ySize);
+    memcpy_plane(pFrame->data[0], m_pRawBuffer, pFrame->width, pFrame->stride[0], pFrame->height);
     if (m_OutPixFmt == LAVPixFmt_NV12) {
-      memcpy(pFrame->data[1], m_pRawBuffer+ySize, ySize / 2);
+      memcpy_plane(pFrame->data[1], m_pRawBuffer+ySize, pFrame->width, pFrame->stride[1], pFrame->height / 2);
     } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
       int uvSize = ySize / 4;
-      memcpy(pFrame->data[2], m_pRawBuffer+ySize, uvSize);
-      memcpy(pFrame->data[1], m_pRawBuffer+ySize+uvSize, uvSize);
+      memcpy_plane(pFrame->data[2], m_pRawBuffer+ySize, pFrame->width / 2, pFrame->stride[2], pFrame->height / 2);
+      memcpy_plane(pFrame->data[1], m_pRawBuffer+ySize+uvSize, pFrame->width / 2, pFrame->stride[1], pFrame->height / 2);
     }
   } else {
     if (m_OutPixFmt == LAVPixFmt_NV12) {
