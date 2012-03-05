@@ -594,11 +594,6 @@ STDMETHODIMP CDecDXVA2::Init()
   DbgLog((LOG_TRACE, 10, L"CDecDXVA2::Init(): Trying to open DXVA2 decoder"));
   HRESULT hr = S_OK;
 
-  if (!m_pCallback->IsVistaOrNewer()) {
-    DbgLog((LOG_TRACE, 10, L"-> Needs Vista or newer...."));
-    return E_FAIL;
-  }
-
   // Initialize all D3D interfaces in non-native mode
   if (!m_bNative) {
     hr = InitD3D();
