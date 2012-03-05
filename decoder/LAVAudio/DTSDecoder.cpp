@@ -317,6 +317,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
     if (used_bytes >= pOut_size && m_bUpdateTimeCache) {
       m_rtStartInputCache = m_rtStartInput;
       m_rtStopInputCache = m_rtStopInput;
+      m_rtStartInput = m_rtStopInput = AV_NOPTS_VALUE;
       m_bUpdateTimeCache = FALSE;
     }
 
@@ -384,9 +385,12 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
       if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
         if (m_rtStartInputCache == AV_NOPTS_VALUE) {
-          DbgLog((LOG_CUSTOM5, 20, L"WARNING: m_rtStartInputCache is invalid, using calculated rtStart"));
+          out.bTimeInvalid = TRUE;
+          m_rtStartCacheLT = m_rtStart;
+        } else {
+          m_rtStartCacheLT = m_rtStartInputCache;
+          m_rtStartInputCache = AV_NOPTS_VALUE;
         }
-        m_rtStartCacheLT = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
       }
     }
 
