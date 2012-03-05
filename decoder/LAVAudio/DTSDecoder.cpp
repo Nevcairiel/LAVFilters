@@ -277,7 +277,6 @@ int CLAVAudio::SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int
   } __except(EXCEPTION_EXECUTE_HANDLER) {
     DbgLog((LOG_TRACE, 50, L"::Decode() - DTS Decoder threw an exception"));
     nPCMLen = 0;
-    FlushDTSDecoder(TRUE);
   }
   return nPCMLen;
 };
@@ -359,6 +358,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       }
       if (nPCMLength <= 0) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - DTS decoding failed"));
+        FlushDTSDecoder(TRUE);
         m_bQueueResync = TRUE;
         continue;
       }
