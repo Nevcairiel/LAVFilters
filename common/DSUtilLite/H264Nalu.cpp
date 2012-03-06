@@ -33,12 +33,14 @@ void CH264Nalu::SetBuffer(const BYTE* pBuffer, size_t nSize, int nNALSize)
   m_nNALStartPos = 0;
   m_nNALDataPos  = 0;
 
-  if (nNALSize == 0)
+  if (nNALSize == 0 && nSize > 0)
     MoveToNextAnnexBStartcode();
 }
 
 bool CH264Nalu::MoveToNextAnnexBStartcode()
 {
+	if (m_nSize < 4)
+		return false;
 	size_t nBuffEnd = m_nSize - 4;
 
 	for (size_t i=m_nCurPos; i<nBuffEnd; i++) {
