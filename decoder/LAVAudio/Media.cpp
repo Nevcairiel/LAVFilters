@@ -580,6 +580,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_WMAPRO }},                       // CC_WMAPRO
   { 1, { CODEC_ID_COOK }},                         // CC_COOK
   { 4, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288 }, L"realaudio", L"Real Audio (ATRAC, SIPR, 14.4 28.8)" }, // CC_REAL
+  { 1, { CODEC_ID_WMALOSSLESS }},                   // CC_WMALL
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)

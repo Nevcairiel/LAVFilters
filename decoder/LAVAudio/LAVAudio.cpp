@@ -182,6 +182,7 @@ HRESULT CLAVAudio::LoadDefaults()
   // Disable WMA codecs by default
   m_settings.bFormats[Codec_WMA2]   = FALSE;
   m_settings.bFormats[Codec_WMAPRO] = FALSE;
+  m_settings.bFormats[Codec_WMALL]  = FALSE;
 
   // Default bitstreaming to disabled
   memset(m_settings.bBitstream, 0, sizeof(m_settings.bBitstream));
