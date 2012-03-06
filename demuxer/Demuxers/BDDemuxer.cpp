@@ -367,6 +367,38 @@ void CBDDemuxer::ProcessStreams(int count, BLURAY_STREAM_INFO *streams)
     if (avstream) {
       if (stream->lang[0] != 0)
         av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, 0);
+      if (avstream->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+        if (avstream->codec->width == 0 || avstream->codec->height == 0) {
+          switch(stream->format) {
+          case BLURAY_VIDEO_FORMAT_480I:
+          case BLURAY_VIDEO_FORMAT_480P:
+            avstream->codec->width = 720;
+            avstream->codec->height = 480;
+            break;
+          case BLURAY_VIDEO_FORMAT_576I:
+          case BLURAY_VIDEO_FORMAT_576P:
+            avstream->codec->width = 720;
+            avstream->codec->height = 576;
+            break;
+          case BLURAY_VIDEO_FORMAT_720P:
+            avstream->codec->width = 1280;
+            avstream->codec->height = 720;
+            break;
+          case BLURAY_VIDEO_FORMAT_1080I:
+          case BLURAY_VIDEO_FORMAT_1080P:
+          default:
+            avstream->codec->width = 1920;
+            avstream->codec->height = 1080;
+            break;
+          }
+        }
+      } else if (avstream->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+        if (avstream->codec->channels == 0) {
+          avstream->codec->channels = (stream->format == BLURAY_AUDIO_FORMAT_MONO) ? 1 : (stream->format == BLURAY_AUDIO_FORMAT_STEREO) ? 2 : 6;
+          avstream->codec->channel_layout = av_get_default_channel_layout(avstream->codec->channels);
+          avstream->codec->sample_rate = (stream->rate == BLURAY_AUDIO_RATE_96) ? 96000 : (stream->rate == BLURAY_AUDIO_RATE_192) ? 192000 : 48000;
+        }
+      }
     } else {
       DbgLog((LOG_TRACE, 10, "CBDDemuxer::ProcessStreams(): Stream with PID 0x%04x not found", stream->pid));
     }
