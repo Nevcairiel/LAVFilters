@@ -245,7 +245,7 @@ HRESULT CLAVAudio::CheckChannelLayoutConformity(DWORD dwLayout)
   // No need to process full 5.1/6.1 layouts, or any 8 channel layouts
   if (dwLayout == AV_CH_LAYOUT_5POINT1
    || dwLayout == AV_CH_LAYOUT_5POINT1_BACK
-   || dwLayout == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)
+   || dwLayout == AV_CH_LAYOUT_6POINT1_BACK
    || channels == 8) {
     DbgLog((LOG_TRACE, 10, L"::CheckChannelLayoutConformity(): Layout is already a default layout (mask: 0x%x)", dwLayout));
     goto noprocessing;
@@ -259,8 +259,8 @@ HRESULT CLAVAudio::CheckChannelLayoutConformity(DWORD dwLayout)
    return Create51Conformity(dwLayout);
 
   // Check 6.1 channels (5.1 layouts + Back Center)
-  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER, dwLayout)        /* 6.1 with side channels */
-   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER, dwLayout)   /* 6.1 with back channels */
+  if (CHL_CONTAINS_ALL(AV_CH_LAYOUT_6POINT1, dwLayout)        /* 6.1 with side channels */
+   || CHL_CONTAINS_ALL(AV_CH_LAYOUT_6POINT1_BACK, dwLayout)   /* 6.1 with back channels */
    || CHL_CONTAINS_ALL(LAV_CH_LAYOUT_5POINT1_WIDE|AV_CH_BACK_CENTER, dwLayout)) /* 6.1 with side-front channels */
    return Create61Conformity(dwLayout);
 
@@ -341,7 +341,7 @@ HRESULT CLAVAudio::Create61Conformity(DWORD dwLayout)
 
   m_bChannelMappingRequired = TRUE;
   m_ChannelMapOutputChannels = 7;
-  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1_BACK | AV_CH_BACK_CENTER;
+  m_ChannelMapOutputLayout = AV_CH_LAYOUT_6POINT1_BACK;
   return S_OK;
 }
 
