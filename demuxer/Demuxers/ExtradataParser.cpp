@@ -22,7 +22,7 @@
 
 #define MARKER if(BitRead(1) != 1) {ASSERT(0); return 0;}
 
-CExtradataParser::CExtradataParser(BYTE *pExtradata, uint32_t extra_len)
+CExtradataParser::CExtradataParser(BYTE *pExtradata, size_t extra_len)
   : CByteParser(pExtradata, extra_len)
 {
 }
@@ -45,7 +45,7 @@ bool CExtradataParser::NextMPEGStartCode(BYTE &code)
   return true;
 }
 
-uint8_t CExtradataParser::ParseMPEGSequenceHeader(BYTE *pTarget)
+size_t CExtradataParser::ParseMPEGSequenceHeader(BYTE *pTarget)
 {
   BYTE id = 0;
   while(Remaining() && id != 0xb3) {
@@ -58,7 +58,7 @@ uint8_t CExtradataParser::ParseMPEGSequenceHeader(BYTE *pTarget)
     return 0;
   }
 
-  uint32_t shpos = Pos() - 4;
+  size_t shpos = Pos() - 4;
   BitRead(12); // Width
   BitRead(12); // Height
   BitRead(4); // AR
@@ -80,10 +80,10 @@ uint8_t CExtradataParser::ParseMPEGSequenceHeader(BYTE *pTarget)
     }
   }
   
-  uint8_t shlen = Pos() - shpos;
+  size_t shlen = Pos() - shpos;
 
-  uint32_t shextpos = 0;
-  uint8_t shextlen = 0;
+  size_t shextpos = 0;
+  size_t shextlen = 0;
 
   if(NextMPEGStartCode(id) && id == 0xb5) { // sequence header ext
     shextpos = Pos() - 4;

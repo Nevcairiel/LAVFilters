@@ -297,7 +297,7 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       WCHAR buffer[100];
       SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, 100, (LPARAM)&buffer);
       int delay = _wtoi(buffer);
-      int len = wcslen(buffer);
+      size_t len = wcslen(buffer);
       if (delay == 0 && (buffer[0] != L'0' || len > 1)) {
         SendDlgItemMessage(m_Dlg, LOWORD(wParam), EM_UNDO, 0, 0);
       } else {

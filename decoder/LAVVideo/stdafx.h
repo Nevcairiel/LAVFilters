@@ -36,20 +36,20 @@
 #include <d3d9.h>
 #include <dxva2api.h>
 
+#pragma warning(push)
+#pragma warning(disable:4244)
 extern "C" {
 #define __STDC_CONSTANT_MACROS
-#define FF_API_MAX_STREAMS 0
 #include "libavcodec/avcodec.h"
 #include "libswscale/swscale.h"
 #include "libavfilter/avfilter.h"
 #include "libavfilter/avfiltergraph.h"
 #include "libavfilter/vsrc_buffer.h"
 #include "libavfilter/buffersink.h"
-  // This causes a conflict in some structures
-#ifdef SampleFormat
-#undef SampleFormat
-#endif
+#include "libavutil/intreadwrite.h"
 }
+#pragma warning(pop)
+
 #include "streams.h"
 
 #include "DShowUtil.h"

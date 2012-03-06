@@ -337,13 +337,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   if (m_containerFormat == "mp4" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
     std::string strVobSubHeader = CreateVOBSubHeaderFromMP4(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576, (MOVStreamContext *)avstream->priv_data, avstream->codec->extradata, extra);
     size_t len = strVobSubHeader.length();
-    mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
+    mtype.ReallocFormatBuffer((ULONG)(sizeof(SUBTITLEINFO) + len));
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
   } else if (m_containerFormat == "mpeg" && avstream->codec->codec_id == CODEC_ID_DVD_SUBTITLE) {
     // And a VobSub type
     std::string strVobSubHeader = GetDefaultVOBSubHeader(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576);
     size_t len = strVobSubHeader.length();
-    mtype.ReallocFormatBuffer(sizeof(SUBTITLEINFO) + len);
+    mtype.ReallocFormatBuffer((ULONG)(sizeof(SUBTITLEINFO) + len));
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
     mtype.subtype = MEDIASUBTYPE_VOBSUB;
     mtypes.push_back(mtype);

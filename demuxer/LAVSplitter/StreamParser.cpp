@@ -30,7 +30,6 @@
 #pragma warning( disable : 4244 )
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
-#include "libavutil/intreadwrite.h"
 #include "libavcodec/get_bits.h"
 }
 #pragma warning( pop )
@@ -158,7 +157,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
       p3->SetDataSize(Nalu.GetDataLength() + 4);
 
       // Write size of the NALU (Big Endian)
-      AV_WB32(p3->GetData(), Nalu.GetDataLength());
+      AV_WB32(p3->GetData(), (uint32_t)Nalu.GetDataLength());
       memcpy(p3->GetData() + 4, Nalu.GetDataBuffer(), Nalu.GetDataLength());
 
       if (!p2) {

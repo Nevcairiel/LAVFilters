@@ -389,7 +389,7 @@ void CLAVAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LP
   pBuf[3] = get_lpcm_bit_per_sample_index(wfex_lpcm->wBitsPerSample) << 6;
 }
 
-HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen)
+HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen)
 {
   const uint8_t *fmt = extra+4;
   uint16_t version = AV_RB16(fmt);
@@ -430,9 +430,9 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const int extralen)
     if (version == 5)
       fmt++;
 
-    int ra_extralen = min((extra + extralen) - (fmt+4), AV_RB32(fmt));
+    size_t ra_extralen = min((extra + extralen) - (fmt+4), AV_RB32(fmt));
     if (ra_extralen > 0)  {
-      m_pAVCtx->extradata_size = ra_extralen;
+      m_pAVCtx->extradata_size = (int)ra_extralen;
       m_pAVCtx->extradata      = (uint8_t *)av_mallocz(ra_extralen + FF_INPUT_BUFFER_PADDING_SIZE);
       memcpy(m_pAVCtx->extradata, fmt+4, ra_extralen);
     }

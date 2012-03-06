@@ -25,7 +25,7 @@ public:
   CH264SequenceParser(void);
   virtual ~CH264SequenceParser(void);
 
-  HRESULT ParseNALs(const BYTE *buffer, int buflen, int nal_size);
+  HRESULT ParseNALs(const BYTE *buffer, size_t buflen, int nal_size);
 
 public:
   struct {
@@ -51,5 +51,5 @@ public:
   } pps;
 
 private:
-  HRESULT ParseSPS(const BYTE *buffer, int buflen);
+  HRESULT ParseSPS(const BYTE *buffer, size_t buflen);
 };

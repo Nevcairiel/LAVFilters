@@ -35,14 +35,14 @@ CH264SequenceParser::~CH264SequenceParser(void)
 {
 }
 
-HRESULT CH264SequenceParser::ParseNALs(const BYTE *buffer, int buflen, int nal_size)
+HRESULT CH264SequenceParser::ParseNALs(const BYTE *buffer, size_t buflen, int nal_size)
 {
   CH264Nalu nalu;
   nalu.SetBuffer(buffer, buflen, nal_size);
 
   while (nalu.ReadNext())  {
     const BYTE *data = nalu.GetDataBuffer() + 1;
-    const int len = nalu.GetDataLength() - 1;
+    const size_t len = nalu.GetDataLength() - 1;
     if (nalu.GetType() == NALU_TYPE_SPS) {
       ParseSPS(data, len);
       break;
@@ -67,7 +67,7 @@ static void SPSDecodeScalingList(CByteParser &parser, int size) {
   }
 }
 
-HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, int buflen)
+HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, size_t buflen)
 {
   CByteParser parser(buffer, buflen);
   int i;

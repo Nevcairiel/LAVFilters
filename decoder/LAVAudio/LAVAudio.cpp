@@ -35,7 +35,6 @@
 
 extern "C" {
 #include "libavcodec/dca.h"
-#include "libavutil/intreadwrite.h"
 #include "libavformat/spdif.h"
 
 extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesize);
@@ -1043,7 +1042,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   WORD nChannels, nBitsPerSample, nBlockAlign;
   audioFormatTypeHandler((BYTE *)format, &format_type, &nSamples, &nChannels, &nBitsPerSample, &nBlockAlign, &nBytesPerSec);
 
-  unsigned extralen = 0;
+  size_t extralen = 0;
   getExtraData((BYTE *)format, &format_type, formatlen, NULL, &extralen);
 
   m_pAVCtx->sample_rate           = nSamples;
@@ -1083,11 +1082,11 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
         }
       } else {
         // Try without any processing?
-        m_pAVCtx->extradata_size = extralen;
+        m_pAVCtx->extradata_size = (int)extralen;
         m_pAVCtx->extradata      = extra;
       }
     } else {
-      m_pAVCtx->extradata_size      = extralen;
+      m_pAVCtx->extradata_size      = (int)extralen;
       m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
       getExtraData((BYTE *)format, &format_type, formatlen, m_pAVCtx->extradata, NULL);
     }

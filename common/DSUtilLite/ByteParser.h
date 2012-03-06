@@ -30,7 +30,7 @@ class CByteParser
 {
 public:
   /** Construct a Byte Parser to parse the given BYTE array with the given length */
-  CByteParser(const BYTE *pData, unsigned int length);
+  CByteParser(const BYTE *pData, size_t length);
   virtual ~CByteParser();
 
   /** Read 1 to 32 Bits from the Byte Array. If peek is set, the data will just be returned, and the buffer not advanced. */
@@ -50,14 +50,14 @@ public:
   const BYTE *End() const { return m_pEnd; }
 
   /** Overall length (in bytes) of the byte array */
-  unsigned int Length() const { return m_dwLen; }
+  size_t Length() const { return m_dwLen; }
   /** Current byte position in the array. Any incomplete bytes ( buffer < 8 bits ) will not be counted */
-  unsigned int Pos() const { return unsigned int(m_pCurrent - m_pData) - (m_bitLen>>3); }
+  size_t Pos() const { return unsigned int(m_pCurrent - m_pData) - (m_bitLen>>3); }
   /** Number of bytes remaining in the array */
-  unsigned int Remaining() const { return Length() - Pos(); }
+  size_t Remaining() const { return Length() - Pos(); }
 
   /** Number of bits remaining */
-  unsigned int RemainingBits() const { return m_bitLen + (8 * (m_pEnd - m_pCurrent)); }
+  size_t RemainingBits() const { return m_bitLen + (8 * (m_pEnd - m_pCurrent)); }
 
   /** Flush any bits currently in the buffer */
   void BitFlush() { m_bitLen = 0; m_bitBuffer = 0; }
@@ -73,7 +73,7 @@ private:
   // Pointer to the end in the data buffer
   const BYTE * const m_pEnd;
 
-  const unsigned int m_dwLen;
+  const size_t m_dwLen;
 
   unsigned __int64 m_bitBuffer;
   unsigned int m_bitLen;

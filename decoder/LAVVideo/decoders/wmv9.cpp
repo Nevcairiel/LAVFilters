@@ -199,7 +199,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   DWORD dwARX = 0, dwARY = 0;
   videoFormatTypeHandler(*pmt, &pBMI, &rtAvg, &dwARX, &dwARY);
   
-  unsigned int extralen = 0;
+  size_t extralen = 0;
   BYTE *extra = NULL;
   getExtraData(*pmt, NULL, &extralen);
 
@@ -214,14 +214,14 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   mtIn.SetSampleSize(0);
   mtIn.SetVariableSize();
   
-  VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mtIn.AllocFormatBuffer(sizeof(VIDEOINFOHEADER) + extralen);
+  VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mtIn.AllocFormatBuffer((ULONG)(sizeof(VIDEOINFOHEADER) + extralen));
   memset(vih, 0, sizeof(VIDEOINFOHEADER));
   vih->bmiHeader.biWidth       = pBMI->biWidth;
   vih->bmiHeader.biHeight      = pBMI->biHeight;
   vih->bmiHeader.biPlanes      = 1;
   vih->bmiHeader.biBitCount    = 24;
   vih->bmiHeader.biSizeImage   = pBMI->biWidth * pBMI->biHeight * 3 / 2;
-  vih->bmiHeader.biSize        = sizeof(BITMAPINFOHEADER) + extralen;
+  vih->bmiHeader.biSize        = (DWORD)(sizeof(BITMAPINFOHEADER) + extralen);
   vih->bmiHeader.biCompression = subtype.Data1;
   vih->AvgTimePerFrame = rtAvg;
   SetRect(&vih->rcSource, 0, 0, pBMI->biWidth, pBMI->biHeight);
@@ -382,7 +382,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
     if (m_OutPixFmt == LAVPixFmt_NV12) {
       memcpy_plane(pFrame->data[1], m_pRawBuffer+ySize, pFrame->width, pFrame->stride[1], pFrame->height / 2);
     } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
-      int uvSize = ySize / 4;
+      size_t uvSize = ySize / 4;
       memcpy_plane(pFrame->data[2], m_pRawBuffer+ySize, pFrame->width / 2, pFrame->stride[2], pFrame->height / 2);
       memcpy_plane(pFrame->data[1], m_pRawBuffer+ySize+uvSize, pFrame->width / 2, pFrame->stride[1], pFrame->height / 2);
     }

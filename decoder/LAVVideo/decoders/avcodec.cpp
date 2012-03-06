@@ -27,8 +27,6 @@
 
 #include "Media.h"
 
-#include "libavutil/intreadwrite.h"
-
 #ifdef DEBUG
 #include "lavf_log.h"
 #endif
@@ -353,7 +351,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   // Process Extradata
   BYTE *extra = NULL;
-  unsigned int extralen = 0;
+  size_t extralen = 0;
   getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), NULL, &extralen);
 
   BOOL bH264avc = FALSE;
@@ -371,7 +369,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       extra[4] = (BYTE)(mp2vi->dwFlags ? mp2vi->dwFlags : 2) - 1;
 
       // Actually copy the metadata into our new buffer
-      unsigned int actual_len;
+      size_t actual_len;
       getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra+6, &actual_len);
 
       // Count the number of SPS/PPS in them and set the length
@@ -412,7 +410,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       extralen = 0;
     }
     m_pAVCtx->extradata = extra;
-    m_pAVCtx->extradata_size = extralen;
+    m_pAVCtx->extradata_size = (int)extralen;
   } else {
     if (codec == CODEC_ID_VP6 || codec == CODEC_ID_VP6A || codec == CODEC_ID_VP6F) {
       int cropH = pBMI->biWidth - biRealWidth;

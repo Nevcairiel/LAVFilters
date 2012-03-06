@@ -24,7 +24,7 @@ struct GetBitContext;
 class CVC1HeaderParser
 {
 public:
-  CVC1HeaderParser(const BYTE *pData, int length);
+  CVC1HeaderParser(const BYTE *pData, size_t length);
   ~CVC1HeaderParser(void);
 
 public:
@@ -44,6 +44,6 @@ public:
   } hdr;
 
 private:
-  void ParseVC1Header(const BYTE *pData, int length);
+  void ParseVC1Header(const BYTE *pData, size_t length);
   void VC1ParseSequenceHeader(GetBitContext *gb);
 };

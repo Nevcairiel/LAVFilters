@@ -42,18 +42,18 @@ typedef enum
 class CH264Nalu
 {
 private :
-  int       forbidden_bit;      //! should be always FALSE
-  int       nal_reference_idc;  //! NALU_PRIORITY_xxxx
-  NALU_TYPE nal_unit_type;      //! NALU_TYPE_xxxx
+  int        forbidden_bit;      //! should be always FALSE
+  int        nal_reference_idc;  //! NALU_PRIORITY_xxxx
+  NALU_TYPE  nal_unit_type;      //! NALU_TYPE_xxxx
 
-  int       m_nNALStartPos;     //! NALU start (including startcode / size)
-  int       m_nNALDataPos;      //! Useful part
+  size_t     m_nNALStartPos;     //! NALU start (including startcode / size)
+  size_t     m_nNALDataPos;      //! Useful part
 
   const BYTE *m_pBuffer;
-  int       m_nCurPos;
-  int       m_nNextRTP;
-  int       m_nSize;
-  int       m_nNALSize;
+  size_t     m_nCurPos;
+  size_t     m_nNextRTP;
+  size_t     m_nSize;
+  int        m_nNALSize;
 
   bool      MoveToNextAnnexBStartcode();
   bool      MoveToNextRTPStartcode();
@@ -63,18 +63,18 @@ public :
   NALU_TYPE GetType() const { return nal_unit_type; }
   bool      IsRefFrame() const { return (nal_reference_idc != 0); }
 
-  int       GetDataLength() const { return m_nCurPos - m_nNALDataPos; }
+  size_t    GetDataLength() const { return m_nCurPos - m_nNALDataPos; }
   const BYTE *GetDataBuffer() { return m_pBuffer + m_nNALDataPos; }
-  int       GetRoundedDataLength() const
+  size_t    GetRoundedDataLength() const
   {
-    int nSize = m_nCurPos - m_nNALDataPos;
+    size_t nSize = m_nCurPos - m_nNALDataPos;
     return nSize + 128 - (nSize %128);
   }
 
-  int       GetLength() const { return m_nCurPos - m_nNALStartPos; }
+  size_t    GetLength() const { return m_nCurPos - m_nNALStartPos; }
   const BYTE *GetNALBuffer() { return m_pBuffer + m_nNALStartPos; }
   bool      IsEOF() const { return m_nCurPos >= m_nSize; }
 
-  void      SetBuffer (const BYTE *pBuffer, int nSize, int nNALSize);
+  void      SetBuffer (const BYTE *pBuffer, size_t nSize, int nNALSize);
   bool      ReadNext();
 };

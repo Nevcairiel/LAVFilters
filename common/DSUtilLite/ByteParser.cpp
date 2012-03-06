@@ -22,7 +22,7 @@
 #include "stdafx.h"
 #include "ByteParser.h"
 
-CByteParser::CByteParser(const BYTE *pData, unsigned int length)
+CByteParser::CByteParser(const BYTE *pData, size_t length)
   : m_pData(pData), m_pCurrent(pData), m_pEnd(pData+length), m_dwLen(length), m_bitBuffer(0), m_bitLen(0)
 {
 }

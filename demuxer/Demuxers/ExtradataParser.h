@@ -25,10 +25,10 @@ class CExtradataParser :
   protected CByteParser
 {
 public:
-  CExtradataParser(BYTE *pExtradata, uint32_t extra_len);
+  CExtradataParser(BYTE *pExtradata, size_t extra_len);
   ~CExtradataParser();
 
-  uint8_t ParseMPEGSequenceHeader(BYTE *pTarget);
+  size_t ParseMPEGSequenceHeader(BYTE *pTarget);
 
 private:
   bool NextMPEGStartCode(BYTE &code);

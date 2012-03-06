@@ -33,11 +33,16 @@
 #include <Windows.h>
 #include <Commctrl.h>
 
+#pragma warning(push)
+#pragma warning(disable:4244)
 extern "C" {
 #define __STDC_CONSTANT_MACROS
 #include "libavformat/avformat.h"
 #include "libbluray/bluray.h"
+#include "libavutil/intreadwrite.h"
 }
+#pragma warning(pop)
+
 #include "streams.h"
 
 #include "DShowUtil.h"

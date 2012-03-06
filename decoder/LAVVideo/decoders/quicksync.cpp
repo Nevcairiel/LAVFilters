@@ -158,7 +158,7 @@ STDMETHODIMP CDecQuickSync::Check()
   return E_FAIL;
 }
 
-STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, int buflen, int nal_size, int *pRefFrames)
+STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, size_t buflen, int nal_size, int *pRefFrames)
 {
   DbgLog((LOG_TRACE, 10, L"CDecQuickSync::CheckH264Sequence(): Checking H264 frame for SPS"));
   CH264SequenceParser h264parser;
@@ -220,7 +220,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   }
 
   BYTE extradata[1024] = {0};
-  unsigned int extralen;
+  size_t extralen;
   getExtraData(*pmt, extradata, &extralen);
 
   m_bNeedSequenceCheck = FALSE;

@@ -121,5 +121,5 @@ unsigned int lav_xiphlacing(unsigned char *s, unsigned int v);
 void videoFormatTypeHandler(const AM_MEDIA_TYPE &mt, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
 void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
 void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *pnSamples, WORD *pnChannels, WORD *pnBitsPerSample, WORD *pnBlockAlign, DWORD *pnBytesPerSec);
-void getExtraData(const AM_MEDIA_TYPE &mt, BYTE *extra, unsigned int *extralen);
-void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, unsigned int *extralen);
+void getExtraData(const AM_MEDIA_TYPE &mt, BYTE *extra, size_t *extralen);
+void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, size_t *extralen);

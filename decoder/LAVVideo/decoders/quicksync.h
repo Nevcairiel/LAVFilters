@@ -54,7 +54,7 @@ private:
   static HRESULT QS_DeliverSurfaceCallback(void* obj, QsFrameData* data);
   STDMETHODIMP HandleFrame(QsFrameData *data);
 
-  STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen, int nal_size, int *pRefFrames = NULL);
+  STDMETHODIMP CheckH264Sequence(const BYTE *buffer, size_t buflen, int nal_size, int *pRefFrames = NULL);
 
 private:
   struct {

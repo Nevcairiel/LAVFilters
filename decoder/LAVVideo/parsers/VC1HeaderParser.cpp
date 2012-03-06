@@ -90,7 +90,7 @@ static inline int vc1_unescape_buffer(const uint8_t *src, int size, uint8_t *dst
     return dsize;
 }
 
-CVC1HeaderParser::CVC1HeaderParser(const BYTE *pData, int length)
+CVC1HeaderParser::CVC1HeaderParser(const BYTE *pData, size_t length)
 {
   memset(&hdr, 0, sizeof(hdr));
   ParseVC1Header(pData, length);
@@ -100,7 +100,7 @@ CVC1HeaderParser::~CVC1HeaderParser(void)
 {
 }
 
-void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, int length)
+void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, size_t length)
 {
   if (length < 16)
     return;
@@ -121,7 +121,7 @@ void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, int length)
 
   for(; next < end; start = next) {
     next = find_next_marker(start + 4, end);
-    size = next - start - 4;
+    size = (int)(next - start - 4);
     if(size <= 0) continue;
     buf2_size = vc1_unescape_buffer(start + 4, size, buf2);
 

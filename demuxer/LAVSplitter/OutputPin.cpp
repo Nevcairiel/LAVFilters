@@ -70,8 +70,8 @@ void CLAVOutputPin::SetQueueSizes()
 HRESULT CLAVOutputPin::GetQueueSize(int& samples, int& size)
 {
   CAutoLock lock(&m_queue);
-  samples = m_queue.Size();
-  size = m_queue.DataSize();
+  samples = (int)m_queue.Size();
+  size = (int)m_queue.DataSize();
   return S_OK;
 }
 

@@ -67,7 +67,7 @@ void CH264RandomAccess::flush(int threadCount)
   m_ThreadDelay = threadCount;
 }
 
-BOOL CH264RandomAccess::searchRecoveryPoint(const uint8_t *buf, int buf_size)
+BOOL CH264RandomAccess::searchRecoveryPoint(const uint8_t *buf, size_t buf_size)
 {
   if (m_RecoveryMode == 1) {
     int recoveryPoint = parseForRecoveryPoint(buf, buf_size, &m_RecoveryFrameCount);
@@ -142,7 +142,7 @@ void CH264RandomAccess::judgeFrameUsability(AVFrame *pFrame, int *got_picture_pt
   }
 }
 
-int CH264RandomAccess::parseForRecoveryPoint(const uint8_t *buf, int buf_size, int *recoveryFrameCount)
+int CH264RandomAccess::parseForRecoveryPoint(const uint8_t *buf, size_t buf_size, int *recoveryFrameCount)
 {
   int found = 0;
 
@@ -150,7 +150,7 @@ int CH264RandomAccess::parseForRecoveryPoint(const uint8_t *buf, int buf_size, i
   nal.SetBuffer(buf, buf_size, m_AVCNALSize);
   while(nal.ReadNext()) {
     const BYTE *pData = nal.GetDataBuffer() + 1;
-    int len = nal.GetDataLength() - 1;
+    size_t len = nal.GetDataLength() - 1;
     CByteParser parser(pData, len);
 
     switch (nal.GetType()) {

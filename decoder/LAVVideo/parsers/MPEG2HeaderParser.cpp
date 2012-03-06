@@ -43,7 +43,7 @@ static inline const uint8_t* find_next_marker(const uint8_t *src, const uint8_t 
   return end;
 }
 
-CMPEG2HeaderParser::CMPEG2HeaderParser(const BYTE *pData, int length)
+CMPEG2HeaderParser::CMPEG2HeaderParser(const BYTE *pData, size_t length)
 {
   memset(&hdr, 0, sizeof(hdr));
   ParseMPEG2Header(pData, length);
@@ -53,7 +53,7 @@ CMPEG2HeaderParser::~CMPEG2HeaderParser(void)
 {
 }
 
-void CMPEG2HeaderParser::ParseMPEG2Header(const BYTE *pData, int length)
+void CMPEG2HeaderParser::ParseMPEG2Header(const BYTE *pData, size_t length)
 {
   if (length < 16)
     return;
@@ -71,7 +71,7 @@ void CMPEG2HeaderParser::ParseMPEG2Header(const BYTE *pData, int length)
 
   for(; next < end; start = next) {
     next = find_next_marker(start + 4, end);
-    size = next - start - 4;
+    size = (int)(next - start - 4);
     if(size <= 0) continue;
 
     init_get_bits(&gb, start + 4, (size - 4) * 8);
