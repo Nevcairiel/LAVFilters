@@ -458,11 +458,10 @@ static int mkv_read_header(AVFormatContext *s)
       st->codec->codec_tag  = fourcc;
       st->codec->width  = info->AV.Video.PixelWidth;
       st->codec->height = info->AV.Video.PixelHeight;
-      av_reduce(&st->sample_aspect_ratio.num,
-        &st->sample_aspect_ratio.den,
+      av_reduce(&st->sample_aspect_ratio.num, &st->sample_aspect_ratio.den,
         st->codec->height * info->AV.Video.DisplayWidth,
         st->codec-> width * info->AV.Video.DisplayHeight,
-        255);
+        1 << 30);
       if (st->codec->codec_id != CODEC_ID_H264)
         st->need_parsing = AVSTREAM_PARSE_HEADERS;
       if (info->DefaultDuration)
