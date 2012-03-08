@@ -203,6 +203,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_AASC, CODEC_ID_AASC },
   { &MEDIASUBTYPE_SNOW, CODEC_ID_SNOW },
   { &MEDIASUBTYPE_FFV1, CODEC_ID_FFV1 },
+  { &MEDIASUBTYPE_FFVH, CODEC_ID_FFVHUFF },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, CODEC_ID_BINKVIDEO  },
@@ -388,6 +389,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_AASC },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_SNOW },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_FFV1 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_FFVH },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -447,7 +449,7 @@ static codec_config_t m_codec_config[] = {
   { 3, { CODEC_ID_INDEO3, CODEC_ID_INDEO4, CODEC_ID_INDEO5 }, L"indeo", L"Intel Indeo 3/4/5"}, // Codec_Indeo
   { 1, { CODEC_ID_TSCC }},                                                // Codec_TSCC
   { 1, { CODEC_ID_FRAPS }},                                               // Codec_Fraps
-  { 1, { CODEC_ID_HUFFYUV }},                                             // Codec_HuffYUV
+  { 2, { CODEC_ID_HUFFYUV, CODEC_ID_FFVHUFF }},                           // Codec_HuffYUV
   { 1, { CODEC_ID_QTRLE }},                                               // Codec_QTRle
   { 1, { CODEC_ID_DVVIDEO }},                                             // Codec_DV
   { 1, { CODEC_ID_BINKVIDEO }, L"bink"},                                  // Codec_Bink

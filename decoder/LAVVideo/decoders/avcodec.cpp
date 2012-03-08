@@ -54,6 +54,7 @@ static struct {
   { CODEC_ID_VP3,        FF_THREAD_FRAME                 },
   { CODEC_ID_THEORA,     FF_THREAD_FRAME                 },
   { CODEC_ID_HUFFYUV,    FF_THREAD_FRAME                 },
+  { CODEC_ID_FFVHUFF,    FF_THREAD_FRAME                 },
   { CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
   { CODEC_ID_PRORES,                     FF_THREAD_SLICE },
   { CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
@@ -439,6 +440,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
                            || codec == CODEC_ID_VP3
                            || codec == CODEC_ID_THEORA
                            || codec == CODEC_ID_HUFFYUV
+                           || codec == CODEC_ID_FFVHUFF
                            || codec == CODEC_ID_MPEG2VIDEO
                            || codec == CODEC_ID_MPEG1VIDEO
                            || codec == CODEC_ID_DIRAC
