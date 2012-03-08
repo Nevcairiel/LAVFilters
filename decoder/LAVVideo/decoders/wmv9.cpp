@@ -27,6 +27,9 @@
 #include "parsers/VC1HeaderParser.h"
 #include "registry.h"
 
+#define VC1_CODE_RES0 0x00000100
+#define IS_MARKER(x) (((x) & ~0xFF) == VC1_CODE_RES0)
+
 EXTERN_GUID(CLSID_CWMVDecMediaObject,
     0x82d353df, 0x90bd, 0x4382, 0x8b, 0xc2, 0x3f, 0x61, 0x92, 0xb7, 0x6e, 0x34);
 
@@ -200,8 +203,25 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   videoFormatTypeHandler(*pmt, &pBMI, &rtAvg, &dwARX, &dwARY);
   
   size_t extralen = 0;
-  BYTE *extra = NULL;
   getExtraData(*pmt, NULL, &extralen);
+  BYTE *extra = (BYTE *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+  getExtraData(*pmt, extra, &extralen);
+
+  if (codec == CODEC_ID_VC1) {
+    int i = 0;
+    for (i = 0; i < (extralen - 4); i++) {
+      uint32_t code = AV_RB32(extra+i);
+      if (IS_MARKER(code))
+        break;
+    }
+    if (i == 0) {
+      memmove(extra+1, extra, extralen);
+      *extra = 0;
+      extralen++;
+    } else if (i > 1) {
+      DbgLog((LOG_TRACE, 10, L"-> VC-1 Header at position %d (should be 0 or 1)", i));
+    }
+  }
 
   /* Create input type */
 
@@ -228,8 +248,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   vih->rcTarget = vih->rcSource;
   
   if (extralen > 0) {
-    extra = (BYTE *)vih + sizeof(VIDEOINFOHEADER);
-    getExtraData(*pmt, extra, NULL);
+    memcpy((BYTE *)vih + sizeof(VIDEOINFOHEADER), extra, extralen);
   }
 
   hr = m_pDMO->SetInputType(0, &mtIn, 0);
