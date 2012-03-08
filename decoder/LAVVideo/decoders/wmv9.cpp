@@ -375,7 +375,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   // Check alignment
   // If not properly aligned, we need to make the data aligned.
   int alignment = (m_OutPixFmt == LAVPixFmt_NV12) ? 16 : 32;
-  if ((pFrame->width & alignment) != 0) {
+  if ((pFrame->width % alignment) != 0) {
     AllocLAVFrameBuffers(pFrame);
     size_t ySize = pFrame->width * pFrame->height;
     memcpy_plane(pFrame->data[0], m_pRawBuffer, pFrame->width, pFrame->stride[0], pFrame->height);
