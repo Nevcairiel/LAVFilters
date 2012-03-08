@@ -184,11 +184,27 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   return pvi;
 }
 
+#define VC1_CODE_RES0 0x00000100
+#define IS_VC1_MARKER(x) (((x) & ~0xFF) == VC1_CODE_RES0)
+
 VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *size, std::string container)
 {
   int extra = 0;
   BYTE *extradata = NULL;
-  BOOL bZeroPad = (avstream->codec->codec_id == CODEC_ID_VC1 && (container == "mpegts" || container == "mpeg" || container == "mp4"));
+  BOOL bZeroPad = FALSE;
+  if (avstream->codec->codec_id == CODEC_ID_VC1 && avstream->codec->extradata_size) {
+    int i = 0;
+    for (i = 0; i < (avstream->codec->extradata_size-4); i++) {
+      uint32_t code = AV_RB32(avstream->codec->extradata + i);
+      if (IS_VC1_MARKER(code))
+        break;
+    }
+    if (i == 0) {
+      bZeroPad = TRUE;
+    } else if (i > 1) {
+      DbgLog((LOG_TRACE, 10, L"CLAVFVideoHelper::CreateVIH2(): VC-1 extradata does not start at position 0/1, but %d", i));
+    }
+  }
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
