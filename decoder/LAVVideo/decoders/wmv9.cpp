@@ -203,11 +203,14 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   videoFormatTypeHandler(*pmt, &pBMI, &rtAvg, &dwARX, &dwARY);
   
   size_t extralen = 0;
+  BYTE *extra = NULL;
   getExtraData(*pmt, NULL, &extralen);
-  BYTE *extra = (BYTE *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-  getExtraData(*pmt, extra, &extralen);
+  if (extralen > 0) {
+    extra = (BYTE *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+    getExtraData(*pmt, extra, &extralen);
+  }
 
-  if (codec == CODEC_ID_VC1) {
+  if (codec == CODEC_ID_VC1 && extralen) {
     int i = 0;
     for (i = 0; i < (extralen - 4); i++) {
       uint32_t code = AV_RB32(extra+i);
@@ -249,6 +252,8 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   
   if (extralen > 0) {
     memcpy((BYTE *)vih + sizeof(VIDEOINFOHEADER), extra, extralen);
+    av_freep(&extra);
+    extra = (BYTE *)vih + sizeof(VIDEOINFOHEADER);
   }
 
   hr = m_pDMO->SetInputType(0, &mtIn, 0);
