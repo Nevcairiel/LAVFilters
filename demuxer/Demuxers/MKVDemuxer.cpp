@@ -419,33 +419,6 @@ static int mkv_read_header(AVFormatContext *s)
       avio_wl32(pb, mkv_TruncFloat(info->AV.Audio.OutputSamplingFreq));
       avio_wl32(pb, (unsigned int)(s->duration * info->AV.Audio.OutputSamplingFreq));
       av_free(pb);
-    } else if (codec_id == CODEC_ID_RA_144) {
-      info->AV.Audio.OutputSamplingFreq = 8000;
-      info->AV.Audio.Channels = 1;
-    } else if (codec_id == CODEC_ID_RA_288 || codec_id == CODEC_ID_COOK ||
-      codec_id == CODEC_ID_ATRAC3 || codec_id == CODEC_ID_SIPR) {
-        int flavor;
-        AVIOContext *pb = avio_alloc_context((uint8_t *)info->CodecPrivate, info->CodecPrivateSize, AVIO_FLAG_READ, NULL, NULL, NULL, NULL);
-        avio_skip(pb, 22);
-        flavor              = avio_rb16(pb);
-        int coded_framesize = avio_rb32(pb);
-        avio_skip(pb, 12);
-        int sub_packet_h    = avio_rb16(pb);
-        int frame_size      = avio_rb16(pb);
-        int sub_packet_size = avio_rb16(pb);
-        uint8_t *buf        = (uint8_t *)av_malloc(frame_size * sub_packet_h);
-        if (codec_id == CODEC_ID_RA_288) {
-          st->codec->block_align = coded_framesize;
-          info->CodecPrivateSize = 0;
-        } else {
-          if (codec_id == CODEC_ID_SIPR && flavor < 4) {
-            const int sipr_bit_rate[4] = { 6504, 8496, 5000, 16000 };
-            sub_packet_size = ff_sipr_subpk_size[flavor];
-            st->codec->bit_rate = sipr_bit_rate[flavor];
-          }
-          st->codec->block_align = sub_packet_size;
-          extradata_offset = 78;
-        }
     }
     info->CodecPrivateSize -= extradata_offset;
 
