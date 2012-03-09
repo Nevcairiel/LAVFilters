@@ -686,11 +686,6 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Signaling Discontinuinty because of corrupt package"));
 #endif
 
-    // Update current time
-    if (rt != Packet::INVALID_TIME) {
-      m_rtCurrent = rt;
-    }
-
     av_free_packet(&pkt);
   }
 
