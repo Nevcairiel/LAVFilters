@@ -1238,8 +1238,12 @@ REFERENCE_TIME CLAVFDemuxer::ConvertTimestampToRT(int64_t pts, int num, int den,
     return Packet::INVALID_TIME;
   }
 
-  if(starttime == (int64_t)AV_NOPTS_VALUE) {
-    starttime = av_rescale(m_avFormat->start_time, den, (int64_t)AV_TIME_BASE * num);
+  if(starttime == AV_NOPTS_VALUE) {
+    if (m_avFormat->start_time != AV_NOPTS_VALUE) {
+      starttime = av_rescale(m_avFormat->start_time, den, (int64_t)AV_TIME_BASE * num);
+    } else {
+      starttime = 0;
+    }
   }
 
   if(starttime != 0) {
@@ -1260,8 +1264,12 @@ int64_t CLAVFDemuxer::ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, in
     return (int64_t)AV_NOPTS_VALUE;
   }
 
-  if(starttime == (int64_t)AV_NOPTS_VALUE) {
-    starttime = av_rescale(m_avFormat->start_time, den, (int64_t)AV_TIME_BASE * num);
+  if(starttime == AV_NOPTS_VALUE) {
+    if (m_avFormat->start_time != AV_NOPTS_VALUE) {
+      starttime = av_rescale(m_avFormat->start_time, den, (int64_t)AV_TIME_BASE * num);
+    } else {
+      starttime = 0;
+    }
   }
 
   int64_t pts = av_rescale(timestamp, den, (int64_t)num * DSHOW_TIME_BASE);
