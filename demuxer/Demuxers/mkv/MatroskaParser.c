@@ -2108,10 +2108,12 @@ static void parseSegment(MatroskaFile *mf,ulonglong toplen) {
 static void parseBlockAdditions(MatroskaFile *mf, ulonglong toplen, ulonglong timecode, unsigned track) {
   ulonglong        add_id = 1, add_pos, add_len;
   unsigned char        have_add;
+  void *add_data;
 
   FOREACH(mf, toplen)
     case 0xa6: // BlockMore
       have_add = 0;
+      add_data = NULL;
       FOREACH(mf, len)
         case 0xee: // BlockAddId
           add_id = readUInt(mf, (unsigned)len);
@@ -2119,7 +2121,8 @@ static void parseBlockAdditions(MatroskaFile *mf, ulonglong toplen, ulonglong ti
         case 0xa5: // BlockAddition
           add_pos = filepos(mf);
           add_len = len;
-          skipbytes(mf, len);
+          add_data = mf->cache->memrealloc(mf->cache,add_data,add_len);
+          readbytes(mf, add_data, len);
           ++have_add;
           break;
       ENDFOR(mf);
@@ -2128,12 +2131,13 @@ static void parseBlockAdditions(MatroskaFile *mf, ulonglong toplen, ulonglong ti
         qe->Start = qe->End = timecode;
         qe->Position = add_pos;
         qe->Length = (unsigned)add_len;
-        qe->Data = (char *)mf->cache->memalloc(mf->cache,qe->Length);
-        readbytes(mf, qe->Data, qe->Length);
+        qe->Data = (char *)add_data;
         qe->flags = FRAME_UNKNOWN_START | FRAME_UNKNOWN_END |
           (((unsigned)add_id << FRAME_STREAM_SHIFT) & FRAME_STREAM_MASK);
 
         QPut(&mf->Queues[track],qe);
+      } else if(add_data) {
+        mf->cache->memfree(mf->cache,add_data);
       }
       break;
   ENDFOR(mf);
