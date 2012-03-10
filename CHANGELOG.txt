@@ -1,5 +1,22 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.49 - 2012/03/10
+LAV Splitter
+- Improved MKV demuxing performance from slow sources (network streaming, etc)
+- Improved stream detection on Blu-rays
+- Improved support for RealAudio (COOK, SIPR, etc) in MKV
+- Support for streaming from HTTP URLs
+
+LAV Audio
+- Improved support for DTS files with Little-Endian or 14B encodings
+
+LAV Video
+- New VC1/WMV3 decoder based on the Microsoft DMO Decoder (new default)
+- Updated Intel QuickSync decoder (0.29, r44)
+- Fixed decoding of some MBAFF H264 streams with DXVA2
+- Improved Stream Aspect Ratio logic in the CUVID decoder for H264 streams
+- Fixed Deinterlacing when DXVA2 Native is active in certain situations
+
 0.48 - 2012/02/24
 LAV Splitter
 - Improved Video/Audio stream detection in some MPEG-TS files
