@@ -23,6 +23,11 @@
 DEFINE_GUID(IID_ILAVVideoSettings, 
 0xfa40d6e9, 0x4d38, 0x4761, 0xad, 0xd2, 0x71, 0xa9, 0xec, 0x5f, 0xd3, 0x2f);
 
+// {1CC2385F-36FA-41B1-9942-5024CE0235DC}
+DEFINE_GUID(IID_ILAVVideoStatus,
+0x1cc2385f, 0x36fa, 0x41b1, 0x99, 0x42, 0x50, 0x24, 0xce, 0x2, 0x35, 0xdc);
+
+
 // Codecs supported in the LAV Video configuration
 // Codecs not listed here cannot be turned off. You can request codecs to be added to this list, if you wish.
 typedef enum LAVVideoCodec {
@@ -156,16 +161,16 @@ typedef enum LAVDitherMode {
   LAVDither_Random
 } LAVDitherMode;
 
-// LAV Audio configuration interface
+// LAV Video configuration interface
 [uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")]
 interface ILAVVideoSettings : public IUnknown
 {
   // Switch to Runtime Config mode. This will reset all settings to default, and no changes to the settings will be saved
-  // You can use this to programmatically configure LAV Audio without interfering with the users settings in the registry.
+  // You can use this to programmatically configure LAV Video without interfering with the users settings in the registry.
   // Subsequent calls to this function will reset all settings back to defaults, even if the mode does not change.
   //
   // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
-  // For smooth operations, it must be called before LAV Audio is connected to other filters.
+  // For smooth operations, it must be called before LAV Video is connected to other filters.
   STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
 
   // Configure which codecs are enabled
@@ -290,4 +295,18 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get the dithering mode used
   STDMETHOD_(LAVDitherMode, GetDitherMode)() = 0;
+
+  // Set if the MS WMV9 DMO Decoder should be used for VC-1/WMV3
+  STDMETHOD(SetUseMSWMV9Decoder)(BOOL bEnabled) = 0;
+
+  // Get if the MS WMV9 DMO Decoder should be used for VC-1/WMV3
+  STDMETHOD_(BOOL, GetUseMSWMV9Decoder)() = 0;
+};
+
+// LAV Video status interface
+[uuid("1CC2385F-36FA-41B1-9942-5024CE0235DC")]
+interface ILAVVideoStatus : public IUnknown
+{
+  // Get the name of the active decoder (can return NULL if none is active)
+  STDMETHOD_(const WCHAR *, GetActiveDecoderName)() = 0;
 };
