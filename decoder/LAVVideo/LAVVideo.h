@@ -184,6 +184,7 @@ private:
   CH264RandomAccess    m_h264RandomAccess;
 
   DWORD                m_bDXVAExtFormatSupport;
+  DWORD                m_bMadVR;
   BOOL                 m_bVC1IsDTS;
   BOOL                 m_bH264IsAVI;
   BOOL                 m_bLAVSplitter;

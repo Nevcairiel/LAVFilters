@@ -74,6 +74,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_filterWidth(0), m_filterHeight(0)
   , m_hrDeliver(S_OK)
   , m_LAVPinInfoValid(FALSE)
+  , m_bMadVR(-1)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -764,11 +765,26 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   else
     dxvaExtFlags.value = 0;
 
+  if (m_bMadVR == -1)
+    m_bMadVR = FilterInGraph(PINDIR_OUTPUT, CLSID_madVR);
+
   // Only madVR really knows how to deal with these flags, disable them for everyone else
   if (m_bDXVAExtFormatSupport == -1)
-    m_bDXVAExtFormatSupport = FilterInGraph(PINDIR_OUTPUT, CLSID_madVR);
+    m_bDXVAExtFormatSupport = m_bMadVR;
 
   BOOL bInterlaced = IsInterlaced();
+  DWORD dwInterlacedFlags = 0;
+  if (m_bMadVR) {
+    if (bInterlaced && (m_settings.DeintForce || m_settings.DeintAggressive)) {
+      dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOnly;
+    } else if (bInterlaced) {
+      dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
+    } else {
+      dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeWeaveOnly;
+    }
+  } else {
+    dwInterlacedFlags = bInterlaced ? AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave : 0;
+  }
 
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
@@ -797,9 +813,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     }
     dwAspectX = num;
     dwAspectY = den;
-    BOOL bMTInterlaced = (vih2->dwInterlaceFlags != 0);
 
-    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || abs(vih2->AvgTimePerFrame - avgFrameDuration) > 10 || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value) || bMTInterlaced != bInterlaced);
+    bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || abs(vih2->AvgTimePerFrame - avgFrameDuration) > 10 || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value) || (vih2->dwInterlaceFlags != dwInterlacedFlags));
   }
 
   if (!bNeedReconnect && bDXVA) {
@@ -832,7 +847,6 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
       rcTargetOld = vih2->rcTarget;
 
-      DWORD dwInterlacedFlags = bInterlaced ? AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave : 0;
       DbgLog((LOG_TRACE, 10, L"Using VIH2, Format dump:"));
       DbgLog((LOG_TRACE, 10, L"-> width: %d -> %d", vih2->rcTarget.right, width));
       DbgLog((LOG_TRACE, 10, L"-> height: %d -> %d", vih2->rcTarget.bottom, height));
