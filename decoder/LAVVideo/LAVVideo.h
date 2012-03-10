@@ -45,7 +45,7 @@ typedef struct {
 } TimingCache;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoCallback
+class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback
 {
 public:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
@@ -104,6 +104,7 @@ public:
   STDMETHODIMP SetUseMSWMV9Decoder(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetUseMSWMV9Decoder();
 
+  // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_pDecoder ? m_pDecoder->GetDecoderName() : NULL; }
 
   // CTransformFilter

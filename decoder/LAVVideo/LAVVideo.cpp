@@ -349,6 +349,7 @@ STDMETHODIMP CLAVVideo::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(ISpecifyPropertyPages)
     QI(ISpecifyPropertyPages2)
     QI2(ILAVVideoSettings)
+    QI2(ILAVVideoStatus)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 

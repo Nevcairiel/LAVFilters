@@ -41,18 +41,26 @@ HRESULT CLAVVideoSettingsProp::OnConnect(IUnknown *pUnk)
     return E_POINTER;
   }
   ASSERT(m_pVideoSettings == NULL);
-  return pUnk->QueryInterface(&m_pVideoSettings);
+  HRESULT hr = pUnk->QueryInterface(&m_pVideoSettings);
+  if (FAILED(hr))
+    return hr;
+  hr =  pUnk->QueryInterface(&m_pVideoStatus);
+  if (FAILED(hr))
+    return hr;
+  return S_OK;
 }
 
 HRESULT CLAVVideoSettingsProp::OnDisconnect()
 {
   SafeRelease(&m_pVideoSettings);
+  SafeRelease(&m_pVideoStatus);
   return S_OK;
 }
 
 HRESULT CLAVVideoSettingsProp::OnApplyChanges()
 {
   ASSERT(m_pVideoSettings != NULL);
+  ASSERT(m_pVideoStatus != NULL);
   HRESULT hr = S_OK;
   BOOL bFlag;
   DWORD dwVal;
@@ -266,7 +274,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     UpdateHWOptions();
   }
 
-  const WCHAR *decoder = m_pVideoSettings->GetActiveDecoderName();
+  const WCHAR *decoder = m_pVideoStatus->GetActiveDecoderName();
   SendDlgItemMessage(m_Dlg, IDC_ACTIVE_DECODER, WM_SETTEXT, 0, (LPARAM)(decoder ? decoder : L"<inactive>"));
 
   return hr;
