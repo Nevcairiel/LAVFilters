@@ -25,7 +25,12 @@ void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
   // Nothing
 }
 
-STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
+static void avfilter_free_lav_buffer(LAVFrame *pFrame)
+{
+  avfilter_unref_buffer((AVFilterBufferRef *)pFrame->priv_data);
+}
+
+HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LAVFrame *pFrame))
 {
   if (m_pDecoder->IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
     PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? PIX_FMT_YUV422P : PIX_FMT_NV12;
@@ -118,7 +123,8 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
     in_picref->video->sample_aspect_ratio = pFrame->aspect_ratio;
 
     av_vsrc_buffer_add_video_buffer_ref(m_pFilterBufferSrc, in_picref, 0);
-    while (avfilter_poll_frame(m_pFilterBufferSink->inputs[0])) {
+    HRESULT hrDeliver = S_OK;
+    while (SUCCEEDED(hrDeliver) && avfilter_poll_frame(m_pFilterBufferSink->inputs[0])) {
       av_vsink_buffer_get_video_buffer_ref(m_pFilterBufferSink, &out_picref, 0);
       if (out_picref) {
         LAVFrame *outFrame = NULL;
@@ -143,9 +149,10 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
         memcpy(outFrame->data, out_picref->data, 4 * sizeof(uint8_t*));
         memcpy(outFrame->stride, out_picref->linesize, 4 * sizeof(int));
 
-        DeliverToRenderer(outFrame);
+        outFrame->destruct = avfilter_free_lav_buffer;
+        outFrame->priv_data = out_picref;
 
-        avfilter_unref_buffer(out_picref);
+        hrDeliver = (*this.*deliverFunc)(outFrame);
       }
     }
 
@@ -156,6 +163,6 @@ STDMETHODIMP CLAVVideo::Filter(LAVFrame *pFrame)
   } else {
     m_filterPixFmt = LAVPixFmt_None;
     deliver:
-    return DeliverToRenderer(pFrame);
+    return (*this.*deliverFunc)(pFrame);
   }
 }

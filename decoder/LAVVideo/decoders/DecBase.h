@@ -39,6 +39,8 @@ public:
   STDMETHODIMP PostConnect(IPin *pPin) { return S_FALSE; }
   STDMETHODIMP_(long) GetBufferCount() { return 4; }
 
+  STDMETHODIMP_(BOOL) BufferIsMTSafe() { return FALSE; }
+
   STDMETHODIMP Decode(IMediaSample *pSample) {
     HRESULT hr;
 

@@ -28,6 +28,7 @@
 #include "FloatingAverage.h"
 
 #include "ISpecifyPropertyPages2.h"
+#include "SynchronizedQueue.h"
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
@@ -39,13 +40,15 @@
 #define DEBUG_FRAME_TIMINGS 0
 #define DEBUG_PIXELCONV_TIMINGS 0
 
+#define LAV_MT_FILTER_QUEUE_SIZE 4
+
 typedef struct {
   REFERENCE_TIME rtStart;
   REFERENCE_TIME rtStop;
 } TimingCache;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback
+class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback, protected CAMThread
 {
 public:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
@@ -144,6 +147,9 @@ public:
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesOut[];
   const static int                      sudPinTypesOutCount;
 
+protected:
+  DWORD ThreadProc();
+
 private:
   HRESULT LoadDefaults();
   HRESULT LoadSettings();
@@ -159,8 +165,11 @@ private:
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
   BOOL IsInterlaced();
 
-  STDMETHODIMP Filter(LAVFrame *pFrame);
-  STDMETHODIMP DeliverToRenderer(LAVFrame *pFrame);
+
+  HRESULT Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LAVFrame *pFrame));
+  HRESULT DeliverToRenderer(LAVFrame *pFrame);
+  HRESULT QueueFrameForMTOutput(LAVFrame *pFrame);
+  void CloseMTFilterThread();
 
 private:
   friend class CVideoOutputPin;
@@ -200,6 +209,13 @@ private:
 
   BOOL                 m_LAVPinInfoValid;
   LAVPinInfo           m_LAVPinInfo;
+
+  BOOL                 m_bMTFiltering;
+  enum {CMD_EXIT, CMD_EOS, CMD_BEGIN_FLUSH, CMD_END_FLUSH};
+  struct {
+    CSynchronizedQueue<LAVFrame *> inputQueue;
+    CSynchronizedQueue<LAVFrame *> outputQueue;
+  } m_MTFilterContext;
 
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {

@@ -330,6 +330,11 @@ interface ILAVDecoder
    * Get the name of the decoder
    */
   STDMETHOD_(const WCHAR*, GetDecoderName)() PURE;
+
+  /**
+   * Get wether the decoder outputs thread-safe buffers
+   */
+  STDMETHOD_(BOOL, BufferIsMTSafe)() PURE;
 };
 
 /**

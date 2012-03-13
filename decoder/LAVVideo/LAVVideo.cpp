@@ -75,6 +75,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_hrDeliver(S_OK)
   , m_LAVPinInfoValid(FALSE)
   , m_bMadVR(-1)
+  , m_bMTFiltering(FALSE)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -120,6 +121,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVVideo::~CLAVVideo()
 {
+  CloseMTFilterThread();
   SAFE_DELETE(m_pDecoder);
 
   if (m_pFilterGraph)
@@ -499,6 +501,19 @@ BOOL CLAVVideo::IsInterlaced()
   return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_pDecoder->IsInterlaced();
 }
 
+void CLAVVideo::CloseMTFilterThread()
+{
+  if (m_bMTFiltering) {
+    CAMThread::CallWorker(CMD_EXIT);
+
+    LAVFrame *pFrame = NULL;
+    while(pFrame = m_MTFilterContext.inputQueue.Pop())
+      ReleaseFrame(&pFrame);
+    while(pFrame = m_MTFilterContext.outputQueue.Pop())
+      ReleaseFrame(&pFrame);
+  }
+}
+
 #define HWFORMAT_ENABLED \
    ((codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])                                                    \
 || ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_settings.bHWFormats[HWCodec_VC1])                           \
@@ -557,12 +572,13 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
   DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
 
+  CloseMTFilterThread();
+
   // Try reusing the current HW decoder
   if (m_pDecoder && m_bHWDecoder && !m_bHWDecoderFailed && HWFORMAT_ENABLED) {
     hr = m_pDecoder->InitDecoder(codec, pmt);
     goto done;
   }
-
   SAFE_DELETE(m_pDecoder);
 
   if (!bHWDecBlackList && m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed && HWFORMAT_ENABLED)
@@ -612,6 +628,14 @@ done:
     SAFE_DELETE(m_pDecoder);
     goto softwaredec;
   }
+
+  if (SUCCEEDED(hr) && m_pDecoder->BufferIsMTSafe()) {
+    m_bMTFiltering = TRUE;
+    CAMThread::Create();
+  } else {
+    m_bMTFiltering = FALSE;
+  }
+
   return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
 
@@ -638,6 +662,17 @@ HRESULT CLAVVideo::EndOfStream()
 
   m_pDecoder->EndOfStream();
 
+  if (m_bMTFiltering) {
+    // Tell Worker Thread to process all frames and then return
+    // This call blocks until everything is done
+    CAMThread::CallWorker(CMD_EOS);
+
+    // Deliver all frames in the output queue
+    LAVFrame *pFrame = NULL;
+    while(pFrame = m_MTFilterContext.outputQueue.Pop())
+      DeliverToRenderer(pFrame);
+  }
+
   DbgLog((LOG_TRACE, 1, L"EndOfStream finished, decoder flushed"));
   return __super::EndOfStream();
 }
@@ -661,6 +696,21 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   CAutoLock cAutoLock(&m_csReceive);
 
   m_pDecoder->Flush();
+
+  if (m_bMTFiltering) {
+    // Block until the worker thread is in idle-state
+    CAMThread::CallWorker(CMD_BEGIN_FLUSH);
+
+    // Release all input/output frames
+    LAVFrame *pFrame = NULL;
+    while(pFrame = m_MTFilterContext.inputQueue.Pop())
+      ReleaseFrame(&pFrame);
+    while(pFrame = m_MTFilterContext.outputQueue.Pop())
+      ReleaseFrame(&pFrame);
+
+    CAMThread::CallWorker(CMD_END_FLUSH);
+  }
+
   if (m_pFilterGraph)
     avfilter_graph_free(&m_pFilterGraph);
 
@@ -1071,6 +1121,52 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
   return S_OK;
 }
 
+HRESULT CLAVVideo::QueueFrameForMTOutput(LAVFrame *pFrame)
+{
+  m_MTFilterContext.outputQueue.Push(pFrame);
+  return S_OK;
+}
+
+DWORD CLAVVideo::ThreadProc()
+{
+  BOOL bFlushed = FALSE;
+  DWORD cmd;
+  LAVFrame *pFrame = NULL;
+
+  DbgLog((LOG_TRACE, 10, L"Starting MT Filtering thread"));
+  while(1) {
+    BOOL bRequest = CheckRequest(&cmd);
+    if (bRequest) {
+      if (cmd == CMD_EXIT) {
+        Reply(S_OK);
+        return 0;
+      } else if (cmd == CMD_EOS) {
+        if (m_MTFilterContext.inputQueue.Empty())
+          Reply(S_OK);
+      } else if (cmd == CMD_BEGIN_FLUSH) {
+        bFlushed = TRUE;
+        Reply(S_OK);
+      } else if (cmd == CMD_END_FLUSH) {
+        bFlushed = FALSE;
+        Reply(S_OK);
+      }
+    }
+
+    if (bFlushed) {
+      Sleep(1);
+      continue;
+    }
+
+    pFrame = m_MTFilterContext.inputQueue.Pop();
+    if (!pFrame) {
+      Sleep(1);
+      continue;
+    }
+
+    Filter(pFrame, &CLAVVideo::QueueFrameForMTOutput);
+  }
+}
+
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
@@ -1112,11 +1208,24 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 
   if (pFrame->format == LAVPixFmt_DXVA2)
     return DeliverToRenderer(pFrame);
-  else
-    return Filter(pFrame);
+  else {
+    if (m_bMTFiltering) {
+      // Feed new frames into queue
+      while (m_MTFilterContext.inputQueue.Size() > LAV_MT_FILTER_QUEUE_SIZE)
+        Sleep(1);
+
+      m_MTFilterContext.inputQueue.Push(pFrame);
+      // Take old ones out
+      while (pFrame = m_MTFilterContext.outputQueue.Pop()) {
+        DeliverToRenderer(pFrame);
+      }
+    } else
+      Filter(pFrame, &CLAVVideo::DeliverToRenderer);
+  }
+  return S_OK;
 }
 
-STDMETHODIMP CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
+HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
 
