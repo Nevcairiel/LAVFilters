@@ -128,7 +128,6 @@ private:
 CDecWMV9::CDecWMV9(void)
   : CDecBase()
   , m_pDMO(NULL)
-  , m_pRawBuffer(NULL)
   , m_pRawBufferSize(0)
   , m_bInterlaced(TRUE)
   , m_OutPixFmt(LAVPixFmt_None)
@@ -143,7 +142,6 @@ CDecWMV9::~CDecWMV9(void)
 
 STDMETHODIMP CDecWMV9::DestroyDecoder(bool bFull)
 {
-  av_freep(&m_pRawBuffer);
   m_pRawBufferSize = 0;
   if (bFull) {
     SafeRelease(&m_pDMO);
@@ -283,7 +281,6 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   videoFormatTypeHandler(mtOut, &pBMI);
   m_pRawBufferSize = pBMI->biSizeImage + FF_INPUT_BUFFER_PADDING_SIZE;
-  m_pRawBuffer = (BYTE* )av_malloc(m_pRawBufferSize);
 
   m_bInterlaced = FALSE;
   memset(&m_StreamAR, 0, sizeof(m_StreamAR));
@@ -342,12 +339,18 @@ static void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int 
   }
 }
 
+void CDecWMV9::wmv9_buffer_destruct(LAVFrame *pFrame)
+{
+  av_free(pFrame->data[0]);
+}
+
 STDMETHODIMP CDecWMV9::ProcessOutput()
 {
   HRESULT hr = S_OK;
   DWORD dwStatus = 0;
 
-  CMediaBuffer *pOutBuffer = new CMediaBuffer(m_pRawBuffer, m_pRawBufferSize, true);
+  BYTE *pBuffer = (BYTE *)av_malloc(m_pRawBufferSize + FF_INPUT_BUFFER_PADDING_SIZE);
+  CMediaBuffer *pOutBuffer = new CMediaBuffer(pBuffer, m_pRawBufferSize, true);
   pOutBuffer->SetLength(0);
 
   DMO_OUTPUT_DATA_BUFFER OutputBufferStructs[1];
@@ -356,11 +359,14 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
 
   hr = m_pDMO->ProcessOutput(0, 1, OutputBufferStructs, &dwStatus);
   if (FAILED(hr)) {
+    av_freep(&pBuffer);
     DbgLog((LOG_TRACE, 10, L"-> ProcessOutput failed with hr: %x", hr));
     return S_FALSE;
   }
-  if (hr == S_FALSE)
+  if (hr == S_FALSE) {
+    av_freep(&pBuffer);
     return S_FALSE;
+  }
 
   LAVFrame *pFrame = NULL;
   AllocateFrame(&pFrame);
@@ -402,26 +408,29 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   if ((pFrame->width % alignment) != 0) {
     AllocLAVFrameBuffers(pFrame);
     size_t ySize = pFrame->width * pFrame->height;
-    memcpy_plane(pFrame->data[0], m_pRawBuffer, pFrame->width, pFrame->stride[0], pFrame->height);
+    memcpy_plane(pFrame->data[0], pBuffer, pFrame->width, pFrame->stride[0], pFrame->height);
     if (m_OutPixFmt == LAVPixFmt_NV12) {
-      memcpy_plane(pFrame->data[1], m_pRawBuffer+ySize, pFrame->width, pFrame->stride[1], pFrame->height / 2);
+      memcpy_plane(pFrame->data[1], pBuffer+ySize, pFrame->width, pFrame->stride[1], pFrame->height / 2);
     } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
       size_t uvSize = ySize / 4;
-      memcpy_plane(pFrame->data[2], m_pRawBuffer+ySize, pFrame->width / 2, pFrame->stride[2], pFrame->height / 2);
-      memcpy_plane(pFrame->data[1], m_pRawBuffer+ySize+uvSize, pFrame->width / 2, pFrame->stride[1], pFrame->height / 2);
+      memcpy_plane(pFrame->data[2], pBuffer+ySize, pFrame->width / 2, pFrame->stride[2], pFrame->height / 2);
+      memcpy_plane(pFrame->data[1], pBuffer+ySize+uvSize, pFrame->width / 2, pFrame->stride[1], pFrame->height / 2);
     }
+    av_freep(&pBuffer);
   } else {
     if (m_OutPixFmt == LAVPixFmt_NV12) {
-      pFrame->data[0] = m_pRawBuffer;
-      pFrame->data[1] = m_pRawBuffer + pFrame->width * pFrame->height;
+      pFrame->data[0] = pBuffer;
+      pFrame->data[1] = pBuffer + pFrame->width * pFrame->height;
       pFrame->stride[0] = pFrame->stride[1] = pFrame->width;
     } else if (m_OutPixFmt == LAVPixFmt_YUV420) {
-      pFrame->data[0] = m_pRawBuffer;
-      pFrame->data[2] = m_pRawBuffer + pFrame->width * pFrame->height;
+      pFrame->data[0] = pBuffer;
+      pFrame->data[2] = pBuffer + pFrame->width * pFrame->height;
       pFrame->data[1] = pFrame->data[2] + (pFrame->width / 2) * (pFrame->height / 2);
       pFrame->stride[0] = pFrame->width;
       pFrame->stride[1] = pFrame->stride[2] = pFrame->width / 2;
     }
+    pFrame->destruct = wmv9_buffer_destruct;
+    pFrame->priv_data = this;
   }
   Deliver(pFrame);
 

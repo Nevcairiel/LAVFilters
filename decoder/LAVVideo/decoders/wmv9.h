@@ -37,6 +37,7 @@ public:
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
   STDMETHODIMP_(BOOL) IsInterlaced();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"wmv9 dmo"; }
+  STDMETHODIMP_(BOOL) BufferIsMTSafe() { return TRUE; }
 
   // CDecBase
   STDMETHODIMP Init();
@@ -45,12 +46,13 @@ private:
   STDMETHODIMP DestroyDecoder(bool bFull);
   STDMETHODIMP ProcessOutput();
 
+  static void wmv9_buffer_destruct(LAVFrame *pFrame);
+
 private:
   IMediaObject *m_pDMO;
   CMediaType mtIn;
   CMediaType mtOut;
 
-  BYTE *m_pRawBuffer;
   DWORD m_pRawBufferSize;
 
   BOOL m_bInterlaced;
