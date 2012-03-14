@@ -66,6 +66,9 @@
     <ClInclude Include="rand_sse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SynchronizedQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

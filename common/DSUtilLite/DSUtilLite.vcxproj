@@ -131,6 +131,7 @@
     <ClInclude Include="rand_sse.h" />
     <ClInclude Include="registry.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SynchronizedQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseDSPropPage.cpp" />
