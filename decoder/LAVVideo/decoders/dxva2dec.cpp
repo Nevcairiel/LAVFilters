@@ -675,7 +675,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
 
 STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
 {
-  return (m_pAVCtx->codec_id == CODEC_ID_H264) ? 16 + DXVA2_QUEUE_SURFACES + 2 : 2 + DXVA2_QUEUE_SURFACES + 2;
+  return (m_pAVCtx->codec_id == CODEC_ID_H264) ? 16 + DXVA2_QUEUE_SURFACES + 4 : 2 + DXVA2_QUEUE_SURFACES + 4;
 }
 
 HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfaces)
