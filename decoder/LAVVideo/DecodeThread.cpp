@@ -215,10 +215,12 @@ DWORD CDecodeThread::ThreadProc()
   DWORD cmd;
   BOOL bWasWaiting = FALSE;
 
+  BOOL bEOS = FALSE;
+
   SetThreadName(-1, "LAVVideo Decode Thread");
 
   while(1) {
-    if (m_Samples.Empty()) {
+    if (m_Samples.Empty() && !bEOS) {
       cmd = GetRequest();
       bWasWaiting = TRUE;
     } else {
@@ -252,12 +254,7 @@ DWORD CDecodeThread::ThreadProc()
         break;
       case CMD_EOS:
         {
-          // Only ack the EOS when all samples are processed
-          if (m_Samples.Empty()) {
-            m_pDecoder->EndOfStream();
-            Reply(S_OK);
-            m_evSample.Set();
-          }
+          bEOS = TRUE;
         }
         break;
       case CMD_EXIT:
@@ -296,6 +293,13 @@ DWORD CDecodeThread::ThreadProc()
 
     IMediaSample *pSample = m_Samples.Pop();
     if (!pSample) {
+      // Process the EOS now that the sample queue is empty
+      if (bEOS) {
+        bEOS = FALSE;
+        m_pDecoder->EndOfStream();
+        Reply(S_OK);
+        m_evSample.Set();
+      }
       continue;
     }
 
