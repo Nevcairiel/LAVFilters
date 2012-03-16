@@ -3,12 +3,12 @@
 // Used by LAVAudio.rc
 //
 #define IDD_PROPPAGE_AUDIO_SETTINGS     9
+#define IDD_PROPPAGE_FORMATS            10
+#define IDD_PROPPAGE_STATUS             11
 #define IDS_SETTINGS                    101
 #define IDS_STATUS                      102
 #define IDS_FORMATS                     103
-#define IDD_PROPPAGE_STATUS             106
-#define IDD_PROPPAGE_FORMATS            107
-#define IDI_ICON1                       108
+#define IDI_ICON1                       104
 #define IDC_INPUT_STATUS                1013
 #define IDC_SUP_SAMPLE_FORMATS          1020
 #define IDC_INT16                       1021
@@ -90,7 +90,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_RESOURCE_VALUE        105
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1104
 #define _APS_NEXT_SYMED_VALUE           101
