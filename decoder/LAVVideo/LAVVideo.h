@@ -183,6 +183,7 @@ private:
 
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;
+  BOOL                 m_bFlushing;
 
   HRESULT              m_hrDeliver;
 

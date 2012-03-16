@@ -77,6 +77,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_LAVPinInfoValid(FALSE)
   , m_bMadVR(-1)
   , m_bMTFiltering(FALSE)
+  , m_bFlushing(FALSE)
 {
   m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -626,6 +627,7 @@ HRESULT CLAVVideo::EndOfStream()
 HRESULT CLAVVideo::BeginFlush()
 {
   DbgLog((LOG_TRACE, 1, L"::BeginFlush"));
+  m_bFlushing = TRUE;
   return __super::BeginFlush();
 }
 
@@ -633,7 +635,9 @@ HRESULT CLAVVideo::EndFlush()
 {
   DbgLog((LOG_TRACE, 1, L"::EndFlush"));
   CAutoLock cAutoLock(&m_csReceive);
-  return __super::EndFlush();
+  HRESULT hr = __super::EndFlush();
+  m_bFlushing = FALSE;
+  return hr;
 }
 
 HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
@@ -1098,6 +1102,11 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
 
+  if (m_bFlushing) {
+    ReleaseFrame(&pFrame);
+    return S_FALSE;
+  }
+
   if (pFrame->rtStart == AV_NOPTS_VALUE) {
     pFrame->rtStart = m_rtPrevStop;
     pFrame->rtStop = AV_NOPTS_VALUE;
@@ -1156,6 +1165,11 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
+
+  if (m_bFlushing) {
+    ReleaseFrame(&pFrame);
+    return S_FALSE;
+  }
 
   // Collect width/height
   int width  = pFrame->width;
