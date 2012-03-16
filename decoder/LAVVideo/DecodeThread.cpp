@@ -213,21 +213,21 @@ DWORD CDecodeThread::ThreadProc()
 {
   HRESULT hr;
   DWORD cmd;
-  BOOL bWasWaiting = FALSE;
 
   BOOL bEOS = FALSE;
 
   SetThreadName(-1, "LAVVideo Decode Thread");
 
   while(1) {
+    BOOL bRequest = FALSE;
     if (m_Samples.Empty() && !bEOS) {
       cmd = GetRequest();
-      bWasWaiting = TRUE;
+      bRequest = TRUE;
     } else {
-      bWasWaiting = FALSE;
+      bRequest = CheckRequest(&cmd);
     }
 
-    if (bWasWaiting || CheckRequest(&cmd)) {
+    if (bRequest) {
       switch (cmd) {
       case CMD_CREATE_DECODER:
         {
