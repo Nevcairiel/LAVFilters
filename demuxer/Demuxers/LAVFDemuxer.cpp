@@ -286,7 +286,7 @@ inline static int init_parser(AVFormatContext *s, AVStream *st) {
 
 void CLAVFDemuxer::UpdateParserFlags(AVStream *st) {
   if (st->parser) {
-    if (st->codec->codec_id == CODEC_ID_MPEG2VIDEO || st->codec->codec_id == CODEC_ID_MPEG1VIDEO) {
+    if ((st->codec->codec_id == CODEC_ID_MPEG2VIDEO || st->codec->codec_id == CODEC_ID_MPEG1VIDEO) && _stricmp(m_pszInputFormat, "mpegvideo") != 0) {
       st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
     } else if (st->codec->codec_id == CODEC_ID_VC1) {
       if (m_bVC1Correction) {
