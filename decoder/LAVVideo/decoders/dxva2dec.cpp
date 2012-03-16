@@ -1009,8 +1009,10 @@ HRESULT CDecDXVA2::DeliverDXVA2Frame(LAVFrame *pFrame)
   if (m_bNative) {
     d3d_surface_t *s = FindSurface((LPDIRECT3DSURFACE9)pFrame->data[3]);
 
-    if (!s->sample)
+    if (!s->sample) {
+      ReleaseFrame(&pFrame);
       return S_FALSE;
+    }
 
     pFrame->data[0] = (uint8_t *)s->sample;
 
