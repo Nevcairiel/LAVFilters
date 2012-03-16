@@ -1056,7 +1056,13 @@ DWORD CLAVVideo::ThreadProc()
 
   DbgLog((LOG_TRACE, 10, L"Starting MT Filtering thread"));
   while(1) {
-    BOOL bRequest = CheckRequest(&cmd);
+    BOOL bRequest = FALSE;
+    if (bFlushed || m_MTFilterContext.inputQueue.Empty()) {
+      cmd = GetRequest();
+      bRequest = TRUE;
+    } else
+      bRequest = CheckRequest(&cmd);
+
     if (bRequest) {
       if (cmd == CMD_EXIT) {
         Reply(S_OK);
@@ -1070,17 +1076,17 @@ DWORD CLAVVideo::ThreadProc()
       } else if (cmd == CMD_END_FLUSH) {
         bFlushed = FALSE;
         Reply(S_OK);
+      } else if (cmd == CMD_INPUT) {
+        // Nothing
       }
     }
 
     if (bFlushed) {
-      Sleep(1);
       continue;
     }
 
     pFrame = m_MTFilterContext.inputQueue.Pop();
     if (!pFrame) {
-      Sleep(1);
       continue;
     }
 
@@ -1136,6 +1142,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
         Sleep(1);
 
       m_MTFilterContext.inputQueue.Push(pFrame);
+      CAMThread::SignalWorker(CMD_INPUT);
       // Take old ones out
       while (pFrame = m_MTFilterContext.outputQueue.Pop()) {
         DeliverToRenderer(pFrame);

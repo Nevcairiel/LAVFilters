@@ -209,7 +209,7 @@ private:
   LAVPinInfo           m_LAVPinInfo;
 
   BOOL                 m_bMTFiltering;
-  enum {CMD_EXIT, CMD_EOS, CMD_BEGIN_FLUSH, CMD_END_FLUSH};
+  enum {CMD_EXIT, CMD_EOS, CMD_BEGIN_FLUSH, CMD_END_FLUSH, CMD_INPUT};
   struct {
     CSynchronizedQueue<LAVFrame *> inputQueue;
     CSynchronizedQueue<LAVFrame *> outputQueue;
