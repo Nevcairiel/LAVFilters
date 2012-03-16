@@ -75,6 +75,9 @@ STDMETHODIMP CDecodeThread::InitAllocator(IMemAllocator **ppAlloc)
   if (!CAMThread::ThreadExists())
     return E_UNEXPECTED;
 
+  if (!m_pDecoder)
+    return S_FALSE;
+
   HRESULT hr = S_OK;
   {
     CAutoLock lock(&m_ThreadCritSec);
