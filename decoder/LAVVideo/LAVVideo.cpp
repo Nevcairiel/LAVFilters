@@ -999,6 +999,8 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     }
   }
 
+  m_hrDeliver = S_OK;
+
   hr = m_Decoder.Decode(pIn);
   if (FAILED(hr))
     return hr;
