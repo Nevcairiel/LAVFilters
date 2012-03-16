@@ -37,7 +37,7 @@ public:
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
   STDMETHODIMP_(BOOL) IsInterlaced();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"wmv9 dmo"; }
-  STDMETHODIMP_(BOOL) BufferIsMTSafe() { return TRUE; }
+  STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
 
   // CDecBase
   STDMETHODIMP Init();

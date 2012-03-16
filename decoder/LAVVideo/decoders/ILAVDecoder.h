@@ -334,7 +334,7 @@ interface ILAVDecoder
   /**
    * Get wether the decoder outputs thread-safe buffers
    */
-  STDMETHOD_(BOOL, BufferIsMTSafe)() PURE;
+  STDMETHOD(HasThreadSafeBuffers)() PURE;
 };
 
 /**

@@ -120,6 +120,9 @@
     <ClCompile Include="decoders\wmv9.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
+    <ClCompile Include="DecodeThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -190,6 +193,9 @@
     </ClInclude>
     <ClInclude Include="decoders\wmv9.h">
       <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="DecodeThread.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

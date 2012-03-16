@@ -20,6 +20,7 @@
 #pragma once
 
 #include "decoders/ILAVDecoder.h"
+#include "DecodeThread.h"
 #include "ILAVPinInfo.h"
 
 #include "LAVPixFmtConverter.h"
@@ -108,7 +109,7 @@ public:
   STDMETHODIMP_(BOOL) GetUseMSWMV9Decoder();
 
   // ILAVVideoStatus
-  STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_pDecoder ? m_pDecoder->GetDecoderName() : NULL; }
+  STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -173,8 +174,9 @@ private:
 
 private:
   friend class CVideoOutputPin;
+  friend class CDecodeThread;
 
-  ILAVDecoder          *m_pDecoder;
+  CDecodeThread        m_Decoder;
 
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
@@ -184,12 +186,8 @@ private:
 
   HRESULT              m_hrDeliver;
 
-  BOOL                 m_bHWDecoder;
-  BOOL                 m_bHWDecoderFailed;
-
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
-  std::wstring         m_processName;
 
   CH264RandomAccess    m_h264RandomAccess;
 

@@ -34,9 +34,7 @@ CVideoOutputPin::~CVideoOutputPin()
 HRESULT CVideoOutputPin::InitAllocator(IMemAllocator **ppAlloc)
 {
   HRESULT hr = S_FALSE;
-  if (m_pFilter->m_pDecoder) {
-    hr = m_pFilter->m_pDecoder->InitAllocator(ppAlloc);
-  }
+  hr = m_pFilter->m_Decoder.InitAllocator(ppAlloc);
 
   if (hr != S_OK)
     hr = __super::InitAllocator(ppAlloc);

@@ -151,6 +151,7 @@
     <ClCompile Include="decoders\pixfmt.cpp" />
     <ClCompile Include="decoders\quicksync.cpp" />
     <ClCompile Include="decoders\wmv9.cpp" />
+    <ClCompile Include="DecodeThread.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Filtering.cpp" />
     <ClCompile Include="H264RandomAccess.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="decoders\ILAVDecoder.h" />
     <ClInclude Include="decoders\quicksync.h" />
     <ClInclude Include="decoders\wmv9.h" />
+    <ClInclude Include="DecodeThread.h" />
     <ClInclude Include="H264RandomAccess.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />

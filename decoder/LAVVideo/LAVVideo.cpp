@@ -33,6 +33,8 @@
 #include "parsers/VC1HeaderParser.h"
 #include "parsers/MPEG2HeaderParser.h"
 
+#pragma warning(disable: 4355)
+
 static int ff_lockmgr(void **mutex, enum AVLockOp op)
 {
   DbgLog((LOG_TRACE, 10, L"ff_lockmgr: mutex: %p, op: %d", *mutex, op));
@@ -58,13 +60,12 @@ static int ff_lockmgr(void **mutex, enum AVLockOp op)
 
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("LAV Video Decoder"), 0, __uuidof(CLAVVideo))
-  , m_pDecoder(NULL)
+  , m_Decoder(this)
   , m_rtPrevStart(0)
   , m_rtPrevStop(0)
   , m_bRuntimeConfig(FALSE)
   , m_bForceInputAR(FALSE)
   , m_bSendMediaType(FALSE)
-  , m_bHWDecoder(FALSE), m_bHWDecoderFailed(FALSE)
   , m_bDXVAExtFormatSupport(-1)
   , m_bVC1IsDTS(FALSE), m_bH264IsAVI(FALSE), m_bLAVSplitter(FALSE)
   , m_pFilterGraph(NULL)
@@ -77,10 +78,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bMadVR(-1)
   , m_bMTFiltering(FALSE)
 {
-  WCHAR fileName[1024];
-  GetModuleFileName(NULL, fileName, 1024);
-  m_processName = PathFindFileName (fileName);
-
   m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
     *phr = E_OUTOFMEMORY;
@@ -122,7 +119,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVVideo::~CLAVVideo()
 {
   CloseMTFilterThread();
-  SAFE_DELETE(m_pDecoder);
+  m_Decoder.Close();
 
   if (m_pFilterGraph)
     avfilter_graph_free(&m_pFilterGraph);
@@ -452,7 +449,7 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
   CMediaType mtOut = m_pOutput->CurrentMediaType();
   videoFormatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH, NULL);
 
-  pProperties->cBuffers = m_pDecoder->GetBufferCount();
+  pProperties->cBuffers = m_Decoder.GetBufferCount();
   pProperties->cbBuffer = pBIH->biSizeImage;
   pProperties->cbAlign  = 1;
   pProperties->cbPrefix = 0;
@@ -491,20 +488,21 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   DWORD dwAspectX = 0, dwAspectY = 0;
   videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
-  m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, m_pDecoder->IsInterlaced(), bVIH1);
+  m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, m_Decoder.IsInterlaced(), bVIH1);
 
   return S_OK;
 }
 
 BOOL CLAVVideo::IsInterlaced()
 {
-  return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_pDecoder->IsInterlaced();
+  return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_Decoder.IsInterlaced();
 }
 
 void CLAVVideo::CloseMTFilterThread()
 {
   if (m_bMTFiltering) {
     CAMThread::CallWorker(CMD_EXIT);
+    CAMThread::Close();
 
     LAVFrame *pFrame = NULL;
     while(pFrame = m_MTFilterContext.inputQueue.Pop())
@@ -513,12 +511,6 @@ void CLAVVideo::CloseMTFilterThread()
       ReleaseFrame(&pFrame);
   }
 }
-
-#define HWFORMAT_ENABLED \
-   ((codec == CODEC_ID_H264 && m_settings.bHWFormats[HWCodec_H264])                                                    \
-|| ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_settings.bHWFormats[HWCodec_VC1])                           \
-|| ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_settings.bHWFormats[HWCodec_MPEG2])            \
-|| (codec == CODEC_ID_MPEG4 && m_settings.bHWFormats[HWCodec_MPEG4]))
 
 HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 {
@@ -569,73 +561,27 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 
   SAFE_CO_FREE(pszExtension);
 
-  BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
-  DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
-
   CloseMTFilterThread();
 
-  // Try reusing the current HW decoder
-  if (m_pDecoder && m_bHWDecoder && !m_bHWDecoderFailed && HWFORMAT_ENABLED) {
-    hr = m_pDecoder->InitDecoder(codec, pmt);
-    goto done;
-  }
-  SAFE_DELETE(m_pDecoder);
-
-  if (!bHWDecBlackList && m_settings.HWAccel != HWAccel_None && !m_bHWDecoderFailed && HWFORMAT_ENABLED)
-  {
-    if (m_settings.HWAccel == HWAccel_CUDA)
-      m_pDecoder = CreateDecoderCUVID();
-    else if (m_settings.HWAccel == HWAccel_QuickSync)
-      m_pDecoder = CreateDecoderQuickSync();
-    else if (m_settings.HWAccel == HWAccel_DXVA2CopyBack)
-      m_pDecoder = CreateDecoderDXVA2();
-    else if (m_settings.HWAccel == HWAccel_DXVA2Native)
-      m_pDecoder = CreateDecoderDXVA2Native();
-    m_bHWDecoder = TRUE;
-  }
-
-softwaredec:
-  // Fallback for software
-  if (!m_pDecoder) {
-    m_bHWDecoder = FALSE;
-    if (m_settings.bMSWMV9DMO && (codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3))
-      m_pDecoder = CreateDecoderWMV9();
-    else
-      m_pDecoder = CreateDecoderAVCodec();
-  }
-
-  hr = m_pDecoder->InitInterfaces(static_cast<ILAVVideoSettings *>(this), static_cast<ILAVVideoCallback *>(this));
+  hr = m_Decoder.CreateDecoder(pmt, codec);
   if (FAILED(hr)) {
-    DbgLog((LOG_TRACE, 10, L"-> Init Interfaces failed (hr: 0x%x)", hr));
-    goto done;
-  }
-
-  hr = m_pDecoder->InitDecoder(codec, pmt);
-  if (FAILED(hr)) {
-    DbgLog((LOG_TRACE, 10, L"-> Init Decoder failed (hr: 0x%x)", hr));
+    DbgLog((LOG_TRACE, 10, L"-> Decoder creation failed"));
     goto done;
   }
 
   LAVPixelFormat pix;
   int bpp;
-  m_pDecoder->GetPixelFormat(&pix, &bpp);
+  m_Decoder.GetPixelFormat(&pix, &bpp);
   m_PixFmtConverter.SetInputFmt(pix, bpp);
 
-done:
-  if (FAILED(hr) && m_bHWDecoder) {
-    DbgLog((LOG_TRACE, 10, L"-> Hardware decoder failed to initialize, re-trying with software..."));
-    m_bHWDecoderFailed = TRUE;
-    SAFE_DELETE(m_pDecoder);
-    goto softwaredec;
-  }
-
-  if (SUCCEEDED(hr) && m_pDecoder->BufferIsMTSafe()) {
+  if (SUCCEEDED(hr) && m_Decoder.HasThreadSafeBuffers() == S_OK) {
     m_bMTFiltering = TRUE;
     CAMThread::Create();
   } else {
     m_bMTFiltering = FALSE;
   }
 
+done:
   return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
 
@@ -660,7 +606,7 @@ HRESULT CLAVVideo::EndOfStream()
   DbgLog((LOG_TRACE, 1, L"EndOfStream, flushing decoder"));
   CAutoLock cAutoLock(&m_csReceive);
 
-  m_pDecoder->EndOfStream();
+  m_Decoder.EndOfStream();
 
   if (m_bMTFiltering) {
     // Tell Worker Thread to process all frames and then return
@@ -695,7 +641,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   DbgLog((LOG_TRACE, 1, L"::NewSegment - %I64d / %I64d", tStart, tStop));
   CAutoLock cAutoLock(&m_csReceive);
 
-  m_pDecoder->Flush();
+  m_Decoder.Flush();
 
   if (m_bMTFiltering) {
     // Block until the worker thread is in idle-state
@@ -723,8 +669,8 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
 {
   DbgLog((LOG_TRACE, 10, L"::BreakConnect"));
   if (dir == PINDIR_INPUT) {
-    m_bHWDecoderFailed = FALSE;
-    SAFE_DELETE(m_pDecoder);
+    CloseMTFilterThread();
+    m_Decoder.Close();
 
     if (m_pFilterGraph)
       avfilter_graph_free(&m_pFilterGraph);
@@ -737,14 +683,7 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   DbgLog((LOG_TRACE, 10, L"::CompleteConnect"));
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
-    if (m_pDecoder) {
-      hr = m_pDecoder->PostConnect(pReceivePin);
-      if (FAILED(hr)) {
-        m_bHWDecoderFailed = TRUE;
-        CMediaType &mt = m_pInput->CurrentMediaType();
-        hr = CreateDecoder(&mt);
-      }
-    }
+    hr = m_Decoder.PostConnect(pReceivePin);
   }
   return S_OK;
 }
@@ -1014,7 +953,7 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
 
   CMediaType mt;
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
-    m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, m_pDecoder->IsInterlaced(), bVIH1);
+    m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, m_Decoder.IsInterlaced(), bVIH1);
     //hr = m_pOutput->GetConnected()->QueryAccept(&mt);
     hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
     if (hr == S_OK) {
@@ -1046,7 +985,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   AM_MEDIA_TYPE *pmt = NULL;
   if (SUCCEEDED(pIn->GetMediaType(&pmt)) && pmt) {
     DbgLog((LOG_TRACE, 10, L"::Receive(): Input sample contained media type, dynamic format change..."));
-    m_pDecoder->EndOfStream();
+    m_Decoder.EndOfStream();
     CMediaType mt = *pmt;
     hr = m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
@@ -1056,27 +995,9 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     }
   }
 
-  if (!m_pDecoder)
-    return E_UNEXPECTED;
-
-  m_hrDeliver = S_OK;
-  hr = m_pDecoder->Decode(pIn);
-  // If a hardware decoder indicates a hard failure, we switch back to software
-  // This is used to indicate incompatible media
-  if (FAILED(hr) && m_bHWDecoder) {
-    DbgLog((LOG_TRACE, 10, L"::Receive(): Hardware decoder indicates failure, switching back to software"));
-    m_bHWDecoderFailed = TRUE;
-
-    CMediaType &mt = m_pInput->CurrentMediaType();
-    hr = CreateDecoder(&mt);
-    if (FAILED(hr)) {
-      DbgLog((LOG_ERROR, 10, L"-> Creating software decoder failed, this is bad."));
-      return E_FAIL;
-    }
-
-    DbgLog((LOG_TRACE, 10, L"-> Software decoder created, decoding frame again..."));
-    hr = m_pDecoder->Decode(pIn);
-  }
+  hr = m_Decoder.Decode(pIn);
+  if (FAILED(hr))
+    return hr;
 
   if (FAILED(m_hrDeliver))
     return m_hrDeliver;
@@ -1182,7 +1103,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     CMediaType &mt = m_pOutput->CurrentMediaType();
     videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
 
-    REFERENCE_TIME decoderDuration = m_pDecoder->GetFrameDuration();
+    REFERENCE_TIME decoderDuration = m_Decoder.GetFrameDuration();
     if (pFrame->avgFrameDuration && pFrame->avgFrameDuration != AV_NOPTS_VALUE) {
       duration = pFrame->avgFrameDuration;
     } else if (!duration && decoderDuration) {
@@ -1485,7 +1406,7 @@ STDMETHODIMP_(DWORD) CLAVVideo::GetRGBOutputRange()
 
 STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
 {
-  if (hwAccel == m_settings.HWAccel && m_bHWDecoder)
+  if (hwAccel == m_settings.HWAccel && m_Decoder.IsHWDecoderActive())
     return 2;
 
   HRESULT hr = E_FAIL;
