@@ -33,6 +33,8 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_Codec(CODEC_ID_NONE)
   , m_evDeliver(FALSE)
   , m_evSample(FALSE)
+  , m_evDecodeDone(FALSE)
+  , m_evEOSDone(FALSE)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -128,13 +130,13 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   m_Samples.Push(pSample);
 
   // Wake the worker thread
-  CAMThread::SignalWorker(CMD_INPUT);
+  CAMThread::CallWorker(CMD_INPUT);
 
   // If we don't have thread safe buffers, we need to synchronize
   // with the worker thread and deliver them when they are available
   // and then let it know that we did so
   if (!m_bThreadSafe) {
-    while (!CAMThread::CheckReply(NULL)) {
+    while (!m_evDecodeDone.Check()) {
       m_evSample.Wait();
       if (ProcessOutput() == S_OK)
         m_evDeliver.Set();
@@ -164,12 +166,12 @@ STDMETHODIMP CDecodeThread::EndOfStream()
   if (!CAMThread::ThreadExists())
     return E_UNEXPECTED;
 
-  CAMThread::SignalWorker(CMD_EOS);
+  CAMThread::CallWorker(CMD_EOS);
 
   m_evDeliver.Reset();
   m_evSample.Reset();
 
-  while (!CAMThread::CheckReply(NULL)) {
+  while (!m_evEOSDone.Check()) {
     m_evSample.Wait();
     if (ProcessOutput() == S_OK && !m_bThreadSafe)
       m_evDeliver.Set();
@@ -255,6 +257,8 @@ DWORD CDecodeThread::ThreadProc()
       case CMD_EOS:
         {
           bEOS = TRUE;
+          m_evEOSDone.Reset();
+          Reply(S_OK);
         }
         break;
       case CMD_EXIT:
@@ -283,7 +287,9 @@ DWORD CDecodeThread::ThreadProc()
         break;
       case CMD_INPUT:
         {
-          // Nothing
+          if (!m_bThreadSafe)
+            m_evDecodeDone.Reset();
+          Reply(S_OK);
         }
         break;
       default:
@@ -297,7 +303,7 @@ DWORD CDecodeThread::ThreadProc()
       if (bEOS) {
         bEOS = FALSE;
         m_pDecoder->EndOfStream();
-        Reply(S_OK);
+        m_evEOSDone.Set();
         m_evSample.Set();
       }
       continue;
@@ -306,8 +312,9 @@ DWORD CDecodeThread::ThreadProc()
     DecodeInternal(pSample);
     pSample->Release();
 
+    // Indicates we're done decoding this sample
     if (!m_bThreadSafe)
-      Reply(S_OK);
+      m_evDecodeDone.Set();
 
     // Set the Sample Event to unblock any waiting threads
     m_evSample.Set();

@@ -1077,7 +1077,7 @@ DWORD CLAVVideo::ThreadProc()
         bFlushed = FALSE;
         Reply(S_OK);
       } else if (cmd == CMD_INPUT) {
-        // Nothing
+        Reply(S_OK);
       }
     }
 
@@ -1142,7 +1142,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
         Sleep(1);
 
       m_MTFilterContext.inputQueue.Push(pFrame);
-      CAMThread::SignalWorker(CMD_INPUT);
+      CAMThread::CallWorker(CMD_INPUT);
       // Take old ones out
       while (pFrame = m_MTFilterContext.outputQueue.Pop()) {
         DeliverToRenderer(pFrame);

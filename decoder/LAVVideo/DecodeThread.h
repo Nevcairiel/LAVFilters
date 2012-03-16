@@ -90,6 +90,8 @@ private:
   BOOL         m_bThreadSafe;
   CAMEvent     m_evDeliver;
   CAMEvent     m_evSample;
+  CAMEvent     m_evDecodeDone;
+  CAMEvent     m_evEOSDone;
 
   CCritSec     m_ThreadCritSec;
   struct {
