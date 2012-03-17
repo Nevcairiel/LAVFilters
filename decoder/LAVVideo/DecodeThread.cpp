@@ -35,6 +35,7 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_evSample(FALSE)
   , m_evDecodeDone(FALSE)
   , m_evEOSDone(FALSE)
+  , m_evInput(TRUE)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -43,6 +44,7 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   memset(&m_ThreadCallContext, 0, sizeof(m_ThreadCallContext));
 
   CAMThread::Create();
+  m_evInput.Reset();
 }
 
 CDecodeThread::~CDecodeThread(void)
@@ -126,11 +128,15 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   m_evDeliver.Reset();
   m_evSample.Reset();
 
+  if (!m_bThreadSafe)
+    m_evDecodeDone.Reset();
+
   pSample->AddRef();
   m_Samples.Push(pSample);
 
-  // Wake the worker thread
-  CAMThread::CallWorker(CMD_INPUT);
+  // Wake the worker thread (if it was waiting)
+  // Needs to be done after inserting data into the queue, or it might cause a deadlock
+  m_evInput.Set();
 
   // If we don't have thread safe buffers, we need to synchronize
   // with the worker thread and deliver them when they are available
@@ -221,15 +227,13 @@ DWORD CDecodeThread::ThreadProc()
   SetThreadName(-1, "LAVVideo Decode Thread");
 
   while(1) {
-    BOOL bRequest = FALSE;
-    if (m_Samples.Empty() && !bEOS) {
-      cmd = GetRequest();
-      bRequest = TRUE;
-    } else {
-      bRequest = CheckRequest(&cmd);
+    if (!bEOS) {
+      // Wait for either an input sample, or an request
+      HANDLE hEvents[2] = { GetRequestHandle(), m_evInput };
+      WaitForMultipleObjects(2, hEvents, FALSE, INFINITE);
     }
 
-    if (bRequest) {
+    if (CheckRequest(&cmd)) {
       switch (cmd) {
       case CMD_CREATE_DECODER:
         {
@@ -285,19 +289,18 @@ DWORD CDecodeThread::ThreadProc()
           m_ThreadCallContext.pin = NULL;
         }
         break;
-      case CMD_INPUT:
-        {
-          if (!m_bThreadSafe)
-            m_evDecodeDone.Reset();
-          Reply(S_OK);
-        }
-        break;
       default:
         ASSERT(0);
       }
     }
 
-    IMediaSample *pSample = m_Samples.Pop();
+    IMediaSample *pSample = NULL;
+    {
+      CAutoLock sampleLock(&m_Samples);
+      pSample = m_Samples.Pop();
+      if (!pSample)
+        m_evInput.Reset();
+    }
     if (!pSample) {
       // Process the EOS now that the sample queue is empty
       if (bEOS) {

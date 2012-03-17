@@ -77,7 +77,7 @@ private:
   STDMETHODIMP ProcessOutput();
 
 private:
-  enum {CMD_CREATE_DECODER, CMD_CLOSE_DECODER, CMD_INPUT, CMD_FLUSH, CMD_EOS, CMD_EXIT, CMD_INIT_ALLOCATOR, CMD_POST_CONNECT};
+  enum {CMD_CREATE_DECODER, CMD_CLOSE_DECODER, CMD_FLUSH, CMD_EOS, CMD_EXIT, CMD_INIT_ALLOCATOR, CMD_POST_CONNECT};
 
   CLAVVideo    *m_pLAVVideo;
   ILAVDecoder  *m_pDecoder;
@@ -88,6 +88,7 @@ private:
   BOOL         m_bHWDecoderFailed;
 
   BOOL         m_bThreadSafe;
+  CAMEvent     m_evInput;
   CAMEvent     m_evDeliver;
   CAMEvent     m_evSample;
   CAMEvent     m_evDecodeDone;
