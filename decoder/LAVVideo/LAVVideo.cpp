@@ -78,6 +78,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bMadVR(-1)
   , m_bMTFiltering(FALSE)
   , m_bFlushing(FALSE)
+  , m_evFilterInput(TRUE)
 {
   m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -1056,45 +1057,51 @@ HRESULT CLAVVideo::QueueFrameForMTOutput(LAVFrame *pFrame)
 
 DWORD CLAVVideo::ThreadProc()
 {
-  BOOL bFlushed = FALSE;
+  BOOL bFlushed = FALSE, bEOS = FALSE;
   DWORD cmd;
   LAVFrame *pFrame = NULL;
 
   DbgLog((LOG_TRACE, 10, L"Starting MT Filtering thread"));
-  while(1) {
-    BOOL bRequest = FALSE;
-    if (bFlushed || m_MTFilterContext.inputQueue.Empty()) {
-      cmd = GetRequest();
-      bRequest = TRUE;
-    } else
-      bRequest = CheckRequest(&cmd);
 
-    if (bRequest) {
+  HANDLE hWaitEvents[2] = { GetRequestHandle(), m_evFilterInput };
+  while(1) {
+    if (!bEOS) {
+       WaitForMultipleObjects(2, hWaitEvents, FALSE, INFINITE);
+    }
+    if (CheckRequest(&cmd)) {
       if (cmd == CMD_EXIT) {
         Reply(S_OK);
         return 0;
       } else if (cmd == CMD_EOS) {
-        if (m_MTFilterContext.inputQueue.Empty())
+        if (m_MTFilterContext.inputQueue.Empty()) {
           Reply(S_OK);
+          bEOS = FALSE;
+        } else {
+          bEOS = TRUE;
+        }
       } else if (cmd == CMD_BEGIN_FLUSH) {
         bFlushed = TRUE;
+        // During a flush, all remaining data is removed by the caller, so assume there isn't any
+        m_evFilterInput.Reset();
         Reply(S_OK);
       } else if (cmd == CMD_END_FLUSH) {
         bFlushed = FALSE;
         Reply(S_OK);
-      } else if (cmd == CMD_INPUT) {
-        Reply(S_OK);
       }
     }
 
-    if (bFlushed) {
+    if (bFlushed)
       continue;
-    }
 
-    pFrame = m_MTFilterContext.inputQueue.Pop();
-    if (!pFrame) {
-      continue;
+    {
+      CAutoLock inLock(&m_MTFilterContext.inputQueue);
+      pFrame = m_MTFilterContext.inputQueue.Pop();
+      if (!pFrame || m_MTFilterContext.inputQueue.Empty()) {
+        m_evFilterInput.Reset();
+      }
     }
+    if (!pFrame)
+      continue;
 
     Filter(pFrame, &CLAVVideo::QueueFrameForMTOutput);
   }
@@ -1149,11 +1156,12 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   else {
     if (m_bMTFiltering) {
       // Feed new frames into queue
-      while (m_MTFilterContext.inputQueue.Size() > LAV_MT_FILTER_QUEUE_SIZE)
+      while (m_MTFilterContext.inputQueue.Size() >= LAV_MT_FILTER_QUEUE_SIZE)
         Sleep(1);
 
       m_MTFilterContext.inputQueue.Push(pFrame);
-      CAMThread::CallWorker(CMD_INPUT);
+      m_evFilterInput.Set();
+
       // Take old ones out
       while (pFrame = m_MTFilterContext.outputQueue.Pop()) {
         DeliverToRenderer(pFrame);
