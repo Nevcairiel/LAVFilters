@@ -33,8 +33,8 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_Codec(CODEC_ID_NONE)
   , m_evDeliver(FALSE)
   , m_evSample(FALSE)
-  , m_evDecodeDone(FALSE)
-  , m_evEOSDone(FALSE)
+  , m_evDecodeDone(TRUE)
+  , m_evEOSDone(TRUE)
   , m_evInput(TRUE)
 {
   WCHAR fileName[1024];
