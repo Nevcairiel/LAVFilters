@@ -166,10 +166,10 @@ STDMETHODIMP CDecodeThread::EndOfStream()
   if (!CAMThread::ThreadExists())
     return E_UNEXPECTED;
 
-  CAMThread::CallWorker(CMD_EOS);
-
   m_evDeliver.Reset();
   m_evSample.Reset();
+
+  CAMThread::CallWorker(CMD_EOS);
 
   while (!m_evEOSDone.Check()) {
     m_evSample.Wait();
