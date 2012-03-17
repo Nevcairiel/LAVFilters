@@ -226,11 +226,11 @@ DWORD CDecodeThread::ThreadProc()
 
   SetThreadName(-1, "LAVVideo Decode Thread");
 
+  HANDLE hWaitEvents[2] = { GetRequestHandle(), m_evInput };
   while(1) {
     if (!bEOS) {
       // Wait for either an input sample, or an request
-      HANDLE hEvents[2] = { GetRequestHandle(), m_evInput };
-      WaitForMultipleObjects(2, hEvents, FALSE, INFINITE);
+      WaitForMultipleObjects(2, hWaitEvents, FALSE, INFINITE);
     }
 
     if (CheckRequest(&cmd)) {
@@ -298,7 +298,7 @@ DWORD CDecodeThread::ThreadProc()
     {
       CAutoLock sampleLock(&m_Samples);
       pSample = m_Samples.Pop();
-      if (!pSample)
+      if (!pSample || m_Samples.Empty())
         m_evInput.Reset();
     }
     if (!pSample) {
