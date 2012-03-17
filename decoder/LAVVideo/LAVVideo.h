@@ -190,8 +190,6 @@ private:
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
 
-  CH264RandomAccess    m_h264RandomAccess;
-
   DWORD                m_bDXVAExtFormatSupport;
   DWORD                m_bMadVR;
   BOOL                 m_bVC1IsDTS;
