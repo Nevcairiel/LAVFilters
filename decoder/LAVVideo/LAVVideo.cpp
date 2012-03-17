@@ -1069,24 +1069,30 @@ DWORD CLAVVideo::ThreadProc()
        WaitForMultipleObjects(2, hWaitEvents, FALSE, INFINITE);
     }
     if (CheckRequest(&cmd)) {
-      if (cmd == CMD_EXIT) {
+      switch (cmd) {
+      case CMD_EXIT:
         Reply(S_OK);
         return 0;
-      } else if (cmd == CMD_EOS) {
+      case CMD_EOS:
         if (m_MTFilterContext.inputQueue.Empty()) {
           Reply(S_OK);
           bEOS = FALSE;
         } else {
           bEOS = TRUE;
         }
-      } else if (cmd == CMD_BEGIN_FLUSH) {
+        break;
+      case CMD_BEGIN_FLUSH:
         bFlushed = TRUE;
         // During a flush, all remaining data is removed by the caller, so assume there isn't any
         m_evFilterInput.Reset();
         Reply(S_OK);
-      } else if (cmd == CMD_END_FLUSH) {
+        break;
+      case CMD_END_FLUSH:
         bFlushed = FALSE;
         Reply(S_OK);
+        break;
+      default:
+        ASSERT(0);
       }
     }
 
