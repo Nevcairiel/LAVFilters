@@ -66,7 +66,7 @@ static struct {
   { CODEC_ID_FRAPS,      FF_THREAD_FRAME                 },
 };
 
-static int getThreadFlags(CodecID codecId)
+int getThreadFlags(CodecID codecId)
 {
   for(int i = 0; i < countof(ff_thread_codecs); ++i) {
     if (ff_thread_codecs[i].codecId == codecId) {
@@ -568,7 +568,6 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
 
 STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
-  HRESULT hr = S_OK;
   int     got_picture = 0;
   int     used_bytes  = 0;
   BOOL    bParserFrame = FALSE;
@@ -894,7 +893,7 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   SwsContext *pContext = sws_getCachedContext(m_pSwsContext, m_pAVCtx->width, m_pAVCtx->height, m_pAVCtx->pix_fmt, m_pAVCtx->width, m_pAVCtx->height, dstFormat, SWS_BILINEAR, NULL, NULL, NULL);
 
   // Perform conversion
-  int ret = sws_scale(pContext, pFrame->data, pFrame->linesize, 0, m_pAVCtx->height, pOutFrame->data, pOutFrame->stride);
+  sws_scale(pContext, pFrame->data, pFrame->linesize, 0, m_pAVCtx->height, pOutFrame->data, pOutFrame->stride);
 
   return S_OK;
 }

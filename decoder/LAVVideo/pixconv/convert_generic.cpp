@@ -172,7 +172,6 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
   int sourceStride = 0;
   BYTE *pTmpBuffer = NULL;
 
-  PixelFormat ffinput = getFFPixelFormatFromLAV(m_InputPixFmt, m_InBpp);
   if (m_InputPixFmt != LAVPixFmt_YUV422) {
     uint8_t *dst[4] = {NULL};
     int     dstStride[4] = {0};

@@ -546,7 +546,6 @@ STDMETHODIMP CDecCuvid::Init()
 STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::InitDecoder(): Initializing CUVID decoder"));
-  CUresult cuStatus = CUDA_SUCCESS;
   HRESULT hr = S_OK;
 
   if (!m_cudaContext) {
@@ -932,8 +931,6 @@ STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 
 STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 {
-  HRESULT hr = S_OK;
-
   CUdeviceptr devPtr = 0;
   unsigned int pitch = 0, width = 0, height = 0;
   CUVIDPROCPARAMS vpp;

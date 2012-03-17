@@ -1115,8 +1115,6 @@ DWORD CLAVVideo::ThreadProc()
 
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 {
-  HRESULT hr = S_OK;
-
   if (m_bFlushing) {
     ReleaseFrame(&pFrame);
     return S_FALSE;

@@ -103,7 +103,6 @@ STDMETHODIMP CDecQuickSync::DestroyDecoder(bool bFull)
 STDMETHODIMP CDecQuickSync::Init()
 {
   DbgLog((LOG_TRACE, 10, L"CDecQuickSync::Init(): Trying to open QuickSync decoder"));
-  HRESULT hr = S_OK;
 
   int flags = av_get_cpu_flags();
   if (!(flags & AV_CPU_FLAG_SSE4)) {
@@ -383,7 +382,6 @@ HRESULT CDecQuickSync::QS_DeliverSurfaceCallback(void* obj, QsFrameData* data)
   CDecQuickSync *filter = (CDecQuickSync *)obj;
 
   if (filter->m_bUseTimestampQueue) {
-    REFERENCE_TIME rtStartOld = data->rtStart;
     if (filter->m_timestampQueue.empty()) {
       data->rtStart = AV_NOPTS_VALUE;
     } else {

@@ -547,7 +547,6 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     short sub = min(outputBlack, inputBlack);
     short Ysub = inputBlack - sub;
     short RGB_add1 = outputBlack - sub;
-    short RGB_add3 = (RGB_add1 << 8) + (RGB_add1 << 16) + RGB_add1;
 
     short cy  = short(y_mul * 16384 + 0.5);
     short crv = short(vr_mul * 8192 + 0.5);

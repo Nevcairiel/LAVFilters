@@ -58,7 +58,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
   uint8_t *dstY = dst;
-  uint8_t *dstV = dst + outLumaStride * height;
+  uint8_t *dstV = dstY + outLumaStride * height;
   uint8_t *dstU = dstV + outChromaStride * chromaHeight;
 
   _mm_sfence();
@@ -76,7 +76,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
       xmm4 = xmm5 = xmm6 = xmm7;
     }
 
-    __m128i *dst128Y = (__m128i *)(dst + line * outLumaStride);
+    __m128i *dst128Y = (__m128i *)(dstY + line * outLumaStride);
 
     for (i = 0; i < width; i+=32) {
       // Load pixels into registers, and apply dithering

@@ -26,7 +26,7 @@
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
-__declspec(dllimport) const AVRational ff_vc1_pixel_aspect[16];
+extern __declspec(dllimport) const AVRational ff_vc1_pixel_aspect[16];
 };
 #pragma warning( pop )
 
