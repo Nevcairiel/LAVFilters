@@ -919,6 +919,8 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
   m_pAVCtx->release_buffer  = release_dxva2_buffer;
   m_pAVCtx->opaque          = this;
 
+  m_pAVCtx->slice_flags    |= SLICE_FLAG_ALLOW_FIELD;
+
   return S_OK;
 }
 
