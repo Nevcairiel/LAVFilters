@@ -1734,6 +1734,97 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         }
         out.sfFormat = SampleFormat_FP32;
         break;
+      // Planar Formats
+      case AV_SAMPLE_FMT_U8P:
+        {
+          out.bBuffer->SetSize(idx_start + dwPCMSize);
+          uint8_t *pOut = (uint8_t *)(out.bBuffer->Ptr() + idx_start);
+
+          for (size_t i = 0; i < out.nSamples; ++i) {
+            for(int ch = 0; ch < out.wChannels; ++ch) {
+              *pOut++ = ((uint8_t *)m_pFrame->data[ch])[i];
+            }
+          }
+        }
+        out.sfFormat = SampleFormat_U8;
+        break;
+      case AV_SAMPLE_FMT_S16P:
+        {
+          out.bBuffer->SetSize(idx_start + dwPCMSize);
+          int16_t *pOut = (int16_t *)(out.bBuffer->Ptr() + idx_start);
+
+          for (size_t i = 0; i < out.nSamples; ++i) {
+            for(int ch = 0; ch < out.wChannels; ++ch) {
+              *pOut++ = ((int16_t *)m_pFrame->data[ch])[i];
+            }
+          }
+        }
+        out.sfFormat = SampleFormat_16;
+        break;
+      case AV_SAMPLE_FMT_S32P:
+        {
+          // In FFMPEG, the 32-bit Sample Format is also used for 24-bit samples.
+          // So to properly support 24-bit samples, we have to process it here, and store it properly.
+
+          // Figure out the number of bits actually valid in there
+          // We only support writing 32, 24 and 16 (16 shouldn't be using AV_SAMPLE_FMT_S32, but who knows)
+          short bits_per_sample = 32;
+          if (m_pAVCtx->bits_per_raw_sample > 0 && m_pAVCtx->bits_per_raw_sample < 32) {
+            bits_per_sample = m_pAVCtx->bits_per_raw_sample > 24 ? 32 : (m_pAVCtx->bits_per_raw_sample > 16 ? 24 : 16);
+          }
+
+          const short bytes_per_sample = bits_per_sample >> 3;
+          // Number of bits to shift the value to the left
+          const short skip = 4 - bytes_per_sample;
+
+          const DWORD size = (out.nSamples * out.wChannels) * bytes_per_sample;
+          out.bBuffer->SetSize(idx_start + size);
+          // We use BYTE instead of int32_t because we don't know if its actually a 32-bit value we want to write
+          BYTE *pDataOut = (BYTE *)(out.bBuffer->Ptr() + idx_start);
+
+          // The source is always in 32-bit values
+          for (size_t i = 0; i < out.nSamples; ++i) {
+            for(int ch = 0; ch < out.wChannels; ++ch) {
+              // Get the 32-bit sample
+              int32_t sample = ((int32_t *)m_pFrame->data[ch]) [i];
+              // Create a pointer to the sample for easier access
+              BYTE * const b_sample = (BYTE *)&sample;
+              // Copy the relevant bytes
+              memcpy(pDataOut, b_sample + skip, bytes_per_sample);
+              pDataOut += bytes_per_sample;
+            }
+          }
+
+          out.sfFormat = bits_per_sample == 32 ? SampleFormat_32 : (bits_per_sample == 24 ? SampleFormat_24 : SampleFormat_16);
+          out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
+        }
+        break;
+      case AV_SAMPLE_FMT_FLTP:
+        {
+          out.bBuffer->SetSize(idx_start + dwPCMSize);
+          float *pOut = (float *)(out.bBuffer->Ptr() + idx_start);
+
+          for (size_t i = 0; i < out.nSamples; ++i) {
+            for(int ch = 0; ch < out.wChannels; ++ch) {
+              *pOut++ = ((float *)m_pFrame->data[ch])[i];
+            }
+          }
+        }
+        out.sfFormat = SampleFormat_FP32;
+        break;
+      case AV_SAMPLE_FMT_DBLP:
+        {
+          out.bBuffer->SetSize(idx_start + (dwPCMSize / 2));
+          float *pOut = (float *)(out.bBuffer->Ptr() + idx_start);
+
+          for (size_t i = 0; i < out.nSamples; ++i) {
+            for(int ch = 0; ch < out.wChannels; ++ch) {
+              *pOut++ = (float)((double *)m_pFrame->data[ch])[i];
+            }
+          }
+        }
+        out.sfFormat = SampleFormat_FP32;
+        break;
       default:
         assert(FALSE);
         break;
