@@ -29,6 +29,8 @@
 #include "Media.h"
 
 #include <Shlwapi.h>
+#include <dxva2api.h>
+#include <evr.h>
 
 // Timestamp padding to avoid an issue with negative timestamps
 // 10 hours should be enough padding to take care of all eventualities
@@ -75,6 +77,7 @@ CDecQuickSync::CDecQuickSync(void)
   , m_bAVC1(FALSE)
   , m_nAVCNalSize(0)
   , m_bUseTimestampQueue(FALSE)
+  , m_pD3DDevMngr(NULL)
 {
   ZeroMemory(&qs, sizeof(qs));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -93,6 +96,7 @@ STDMETHODIMP CDecQuickSync::DestroyDecoder(bool bFull)
   }
 
   if (bFull) {
+    SafeRelease(&m_pD3DDevMngr);
     FreeLibrary(qs.quickSyncLib);
   }
 
@@ -140,6 +144,40 @@ STDMETHODIMP CDecQuickSync::Init()
     }
   }
 
+  return S_OK;
+}
+
+STDMETHODIMP CDecQuickSync::PostConnect(IPin *pPin)
+{
+  HRESULT hr = S_OK;
+  DbgLog((LOG_TRACE, 10, L"CDecQuickSync::PostConnect()"));
+
+  IMFGetService *pGetService = NULL;
+  hr = pPin->QueryInterface(__uuidof(IMFGetService), (void**)&pGetService);
+  if (FAILED(hr)) {
+    DbgLog((LOG_ERROR, 10, L"-> IMFGetService not available"));
+    goto done;
+  }
+
+  // Get the Direct3D device manager.
+  IDirect3DDeviceManager9 *pDevMgr = NULL;
+  hr = pGetService->GetService(MR_VIDEO_ACCELERATION_SERVICE, __uuidof(IDirect3DDeviceManager9), (void**)&pDevMgr);
+  if (FAILED(hr)) {
+    DbgLog((LOG_ERROR, 10, L"-> D3D Device Manager not available"));
+    goto done;
+  }
+
+  // Release the previous manager (if any)
+  SafeRelease(&m_pD3DDevMngr);
+
+  // Store for later
+  m_pD3DDevMngr = pDevMgr;
+
+  // Tell the QuickSync decoder about it
+  m_pDecoder->SetD3DDeviceManager(m_pD3DDevMngr);
+
+done:
+  SafeRelease(&pGetService);
   return S_OK;
 }
 

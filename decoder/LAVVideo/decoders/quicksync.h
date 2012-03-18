@@ -45,6 +45,8 @@ public:
   STDMETHODIMP_(BOOL) IsInterlaced();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"quicksync"; }
 
+  STDMETHODIMP PostConnect(IPin *pPin);
+
   // CDecBase
   STDMETHODIMP Init();
 
@@ -78,4 +80,6 @@ private:
   DXVA2_ExtendedFormat m_DXVAExtendedFormat;
 
   FOURCC m_Codec;
+
+  IDirect3DDeviceManager9 *m_pD3DDevMngr;
 };
