@@ -142,11 +142,63 @@ CDecWMV9::~CDecWMV9(void)
 
 STDMETHODIMP CDecWMV9::DestroyDecoder(bool bFull)
 {
+  {
+    CAutoLock lock(&m_BufferCritSec);
+    for (auto it = m_BufferQueue.begin(); it != m_BufferQueue.end(); it++) {
+      av_free((*it)->buffer);
+      delete (*it);
+    }
+    m_BufferQueue.clear();
+  }
   m_pRawBufferSize = 0;
   if (bFull) {
     SafeRelease(&m_pDMO);
   }
   return S_OK;
+}
+
+BYTE *CDecWMV9::GetBuffer(size_t size)
+{
+  CAutoLock lock(&m_BufferCritSec);
+
+  Buffer *buffer = NULL;
+  for (auto it = m_BufferQueue.begin(); it != m_BufferQueue.end(); it++) {
+    if (!(*it)->used) {
+      buffer = *it;
+      break;
+    }
+  }
+  if (buffer) {
+    // Validate Size
+    if (buffer->size < size) {
+      av_freep(&buffer->buffer);
+      buffer->buffer = (BYTE *)av_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE);
+      buffer->size = size;
+    }
+  } else {
+    // Create a new buffer
+    DbgLog((LOG_TRACE, 10, L"Allocating new buffer for WMV9"));
+    buffer = new Buffer();
+    buffer->buffer = (BYTE *)av_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE);
+    buffer->size = size;
+    m_BufferQueue.push_back(buffer);
+  }
+  buffer->used = 1;
+  return buffer->buffer;
+}
+
+void CDecWMV9::ReleaseBuffer(BYTE *buffer)
+{
+  CAutoLock lock(&m_BufferCritSec);
+  Buffer *b = NULL;
+  for (auto it = m_BufferQueue.begin(); it != m_BufferQueue.end(); it++) {
+    if ((*it)->buffer == buffer) {
+      b = *it;
+      break;
+    }
+  }
+  ASSERT(b);
+  b->used = 0;
 }
 
 // ILAVDecoder
@@ -341,7 +393,8 @@ static void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int 
 
 void CDecWMV9::wmv9_buffer_destruct(LAVFrame *pFrame)
 {
-  av_free(pFrame->data[0]);
+  CDecWMV9 *pDec = (CDecWMV9 *)pFrame->priv_data;
+  pDec->ReleaseBuffer(pFrame->data[0]);
 }
 
 STDMETHODIMP CDecWMV9::ProcessOutput()
@@ -349,7 +402,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   HRESULT hr = S_OK;
   DWORD dwStatus = 0;
 
-  BYTE *pBuffer = (BYTE *)av_malloc(m_pRawBufferSize + FF_INPUT_BUFFER_PADDING_SIZE);
+  BYTE *pBuffer = GetBuffer(m_pRawBufferSize);
   CMediaBuffer *pOutBuffer = new CMediaBuffer(pBuffer, m_pRawBufferSize, true);
   pOutBuffer->SetLength(0);
 
@@ -359,12 +412,12 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
 
   hr = m_pDMO->ProcessOutput(0, 1, OutputBufferStructs, &dwStatus);
   if (FAILED(hr)) {
-    av_freep(&pBuffer);
+    ReleaseBuffer(pBuffer);
     DbgLog((LOG_TRACE, 10, L"-> ProcessOutput failed with hr: %x", hr));
     return S_FALSE;
   }
   if (hr == S_FALSE) {
-    av_freep(&pBuffer);
+    ReleaseBuffer(pBuffer);
     return S_FALSE;
   }
 
@@ -416,7 +469,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
       memcpy_plane(pFrame->data[2], pBuffer+ySize, pFrame->width / 2, pFrame->stride[2], pFrame->height / 2);
       memcpy_plane(pFrame->data[1], pBuffer+ySize+uvSize, pFrame->width / 2, pFrame->stride[1], pFrame->height / 2);
     }
-    av_freep(&pBuffer);
+    ReleaseBuffer(pBuffer);
   } else {
     if (m_OutPixFmt == LAVPixFmt_NV12) {
       pFrame->data[0] = pBuffer;

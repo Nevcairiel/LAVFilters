@@ -22,6 +22,14 @@
 
 #include <dmo.h>
 
+#include <vector>
+
+typedef struct _Buffer {
+  BYTE *buffer;
+  size_t size;
+  bool used;
+} Buffer;
+
 class CDecWMV9 : public CDecBase
 {
 public:
@@ -48,6 +56,9 @@ private:
 
   static void wmv9_buffer_destruct(LAVFrame *pFrame);
 
+  BYTE *GetBuffer(size_t size);
+  void ReleaseBuffer(BYTE *buffer);
+
 private:
   IMediaObject *m_pDMO;
   CMediaType mtIn;
@@ -59,4 +70,7 @@ private:
   AVRational m_StreamAR;
 
   LAVPixelFormat m_OutPixFmt;
+
+  CCritSec m_BufferCritSec;
+  std::vector<Buffer *> m_BufferQueue;
 };
