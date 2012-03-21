@@ -345,13 +345,17 @@ STDMETHODIMP CDecDXVA2::LoadDXVA2Functions()
   return S_OK;
 }
 
+#define VEND_ID_ATI     0x1002
+#define VEND_ID_NVIDIA  0x10DE
+#define VEND_ID_INTEL   0x8086
+
 static const struct {
   unsigned id;
   char     name[32];
 } vendors [] = {
-  { 0x1002, "ATI" },
-  { 0x10DE, "NVIDIA" },
-  { 0x8086, "Intel" },
+  { VEND_ID_ATI,    "ATI" },
+  { VEND_ID_NVIDIA, "NVIDIA" },
+  { VEND_ID_INTEL,  "Intel" },
   { 0, "" }
 };
 
@@ -557,6 +561,56 @@ HRESULT CDecDXVA2::InitD3D()
   return S_OK;
 }
 
+HRESULT CDecDXVA2::RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager)
+{
+  HANDLE hDevice = 0;
+  IDirect3D9 *pD3D = NULL;
+  IDirect3DDevice9 *pDevice = NULL;
+
+  HRESULT hr = pDevManager->OpenDeviceHandle(&hDevice);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> Failed to open device handle with hr: %X", hr));
+    goto done;
+  }
+
+  hr = pDevManager->LockDevice(hDevice, &pDevice, TRUE);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> Failed to lock device with hr: %X", hr));
+    goto done;
+  }
+
+  hr = pDevice->GetDirect3D(&pD3D);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> Failed to get D3D object hr: %X", hr));
+    goto done;
+  }
+
+  D3DDEVICE_CREATION_PARAMETERS devParams;
+  hr = pDevice->GetCreationParameters(&devParams);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> Failed to get device creation params hr: %X", hr));
+    goto done;
+  }
+
+  D3DADAPTER_IDENTIFIER9 adIdentifier;
+  hr = pD3D->GetAdapterIdentifier(devParams.AdapterOrdinal, 0, &adIdentifier);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> Failed to get adapter identified hr: %X", hr));
+    goto done;
+  }
+
+  m_dwVendorId = adIdentifier.VendorId;
+
+done:
+  SafeRelease(&pD3D);
+  SafeRelease(&pDevice);
+  if (hDevice != 0) {
+    pDevManager->UnlockDevice(hDevice, FALSE);
+    pDevManager->CloseDeviceHandle(&hDevice);
+  }
+  return hr;
+}
+
 /**
  * Called from both native and non-native mode
  * Initialize all the common DXVA2 interfaces and device handles
@@ -567,6 +621,11 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
   ASSERT(pDevManager);
 
   m_pD3DDevMngr = pDevManager;
+
+  if (m_bNative) {
+    RetrieveVendorId(pDevManager);
+  }
+
   hr = CreateDXVAVideoService(m_pD3DDevMngr, &m_pDXVADecoderService);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 Decoder Service failed with hr: %X", hr));
@@ -779,6 +838,13 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   ctx->surface       = m_pRawSurface;
   ctx->surface_count = m_NumSurfaces;
 
+  if (m_dwVendorId == VEND_ID_INTEL)
+    ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_GMA;
+  /*else if (m_dwVendorId == VEND_ID_ATI)
+    ctx->workaround = FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG;*/
+  else
+    ctx->workaround = 0;
+
   memset(m_pRawSurface, 0, sizeof(m_pRawSurface));
   for (int i = 0; i < m_NumSurfaces; i++) {
     m_pRawSurface[i] = m_pSurfaces[i].d3d;
@@ -908,9 +974,6 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
 {
   /* Create ffmpeg dxva_context, but keep it empty. When this is called, we don't have the data yet */
   dxva_context *ctx = (dxva_context *)av_mallocz(sizeof(dxva_context));
-
-  if (m_dwVendorId == 0x8086)
-    ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_GMA;
 
   m_pAVCtx->thread_count    = 1;
   m_pAVCtx->hwaccel_context = ctx;
