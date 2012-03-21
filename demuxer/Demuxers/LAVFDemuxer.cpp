@@ -714,6 +714,9 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
     }
   }
 
+  if (strcmp(m_pszInputFormat, "rawvideo") == 0 && seek_pts == 0)
+    return SeekByte(0, AVSEEK_FLAG_BACKWARD);
+
   int flags = AVSEEK_FLAG_BACKWARD;
 
   int ret = av_seek_frame(m_avFormat, videoStreamId, seek_pts, flags);
@@ -746,6 +749,8 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
     init_parser(m_avFormat, m_avFormat->streams[i]);
     UpdateParserFlags(m_avFormat->streams[i]);
   }
+
+  m_bVC1SeenTimestamp = FALSE;
 
   return S_OK;
 }
