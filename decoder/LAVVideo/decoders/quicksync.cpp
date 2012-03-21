@@ -152,6 +152,12 @@ STDMETHODIMP CDecQuickSync::PostConnect(IPin *pPin)
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 10, L"CDecQuickSync::PostConnect()"));
 
+  // TODO: Activate this code and try to fix playback in WMC
+
+/*
+  // Release the previous manager (if any)
+  SafeRelease(&m_pD3DDevMngr);
+
   IMFGetService *pGetService = NULL;
   hr = pPin->QueryInterface(__uuidof(IMFGetService), (void**)&pGetService);
   if (FAILED(hr)) {
@@ -167,9 +173,6 @@ STDMETHODIMP CDecQuickSync::PostConnect(IPin *pPin)
     goto done;
   }
 
-  // Release the previous manager (if any)
-  SafeRelease(&m_pD3DDevMngr);
-
   // Store for later
   m_pD3DDevMngr = pDevMgr;
 
@@ -178,6 +181,8 @@ STDMETHODIMP CDecQuickSync::PostConnect(IPin *pPin)
 
 done:
   SafeRelease(&pGetService);
+
+  */
   return S_OK;
 }
 
