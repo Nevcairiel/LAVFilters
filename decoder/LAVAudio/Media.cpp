@@ -111,6 +111,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_DNET,         CODEC_ID_AC3      },
   { &MEDIASUBTYPE_28_8,         CODEC_ID_RA_288   },
   { &MEDIASUBTYPE_14_4,         CODEC_ID_RA_144   },
+  { &MEDIASUBTYPE_RALF,         CODEC_ID_RALF     },
 
   // Special LAVFSplitter interface
   { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
@@ -208,6 +209,7 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DNET         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_28_8         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_14_4         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_RALF         },
 
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
@@ -581,8 +583,8 @@ static codec_config_t m_codec_config[] = {
   { 2, { CODEC_ID_WMAV2, CODEC_ID_WMAV1 }, L"wma", L"Windows Media Audio 1/2"}, // CC_WMA2
   { 1, { CODEC_ID_WMAPRO }},                       // CC_WMAPRO
   { 1, { CODEC_ID_COOK }},                         // CC_COOK
-  { 4, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288 }, L"realaudio", L"Real Audio (ATRAC, SIPR, 14.4 28.8)" }, // CC_REAL
-  { 1, { CODEC_ID_WMALOSSLESS }},                   // CC_WMALL
+  { 5, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288, CODEC_ID_RALF }, L"realaudio", L"Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
+  { 1, { CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)
