@@ -489,7 +489,7 @@ void CLAVFDemuxer::UpdateSubStreams()
 void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
 {
   int vc1Mode = pSettings->GetVC1TimestampMode();
-  if (vc1Mode == 1) {
+  if (vc1Mode == 1 || strcmp(m_pszInputFormat, "rawvideo") == 0) {
     m_bVC1Correction = true;
   } else if (vc1Mode == 2) {
     BOOL bReq = pSettings->IsVC1CorrectionRequired();
