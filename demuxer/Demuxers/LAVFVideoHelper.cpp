@@ -313,7 +313,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   return mp1vi;
 }
 
-MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container)
+MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bAnnexB)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -340,7 +340,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
   {
     BOOL bCopyUntouched = FALSE;
     // Don't even go there for mpeg-ts for now, we supply annex-b
-    if(avstream->codec->codec_id == CODEC_ID_H264)
+    if(avstream->codec->codec_id == CODEC_ID_H264 && !bAnnexB)
     {
       if (*(char *)extradata == 1) {
         if (extradata[1])

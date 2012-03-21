@@ -68,7 +68,7 @@ public:
   VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size);
   VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container = "");
   MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size);
-  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container = "");
+  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container = "", BOOL bAnnexB = FALSE);
 };
 
 extern CLAVFVideoHelper g_VideoHelper;
