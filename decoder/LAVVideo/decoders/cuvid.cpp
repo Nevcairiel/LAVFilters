@@ -692,10 +692,12 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
+  BOOL bDXVAMode = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && m_pCallback->IsVistaOrNewer());
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   CUVIDDECODECREATEINFO *dci = &m_VideoDecoderInfo;
 
+retry:
   if (m_hDecoder) {
     cuda.cuvidDestroyDecoder(m_hDecoder);
     m_hDecoder = 0;
@@ -718,13 +720,18 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
   dci->display_area.top    = (short)rcDisplayArea.top;
   dci->display_area.bottom = (short)rcDisplayArea.bottom;
 
-  dci->ulCreationFlags     = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && m_pCallback->IsVistaOrNewer()) ? cudaVideoCreate_PreferDXVA : cudaVideoCreate_PreferCUVID;
+  dci->ulCreationFlags     = bDXVAMode ? cudaVideoCreate_PreferDXVA : cudaVideoCreate_PreferCUVID;
   dci->vidLock             = m_cudaCtxLock;
 
   // create the decoder
   CUresult oResult = cuda.cuvidCreateDecoder(&m_hDecoder, dci);
   if (oResult != CUDA_SUCCESS) {
     DbgLog((LOG_ERROR, 10, L"-> Creation of decoder for type %d failed with code %d", dci->CodecType, oResult));
+    if (bDXVAMode) {
+      DbgLog((LOG_ERROR, 10, L"  -> Retrying in pure CUVID mode"));
+      bDXVAMode = FALSE;
+      goto retry;
+    }
     hr = E_FAIL;
   }
   cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
