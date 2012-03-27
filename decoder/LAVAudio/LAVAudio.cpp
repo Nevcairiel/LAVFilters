@@ -1658,7 +1658,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
     }
 
     // Channel re-mapping and sample format conversion
-    if (got_frame) {
+    if (got_frame && m_pFrame->nb_samples > 0) {
       const DWORD idx_start = out.bBuffer->GetCount();
 
       out.wChannels = m_pAVCtx->channels;
