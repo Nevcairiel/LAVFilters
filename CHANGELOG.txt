@@ -1,5 +1,20 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.50 - 2012/03/27
+LAV Splitter
+- Improved support for H264 Elementary Streams
+- Fixed a regression with seeking in MPEG-TS files recorded by some HD-PVR devices
+
+LAV Video
+- New Worker Thread design for Decoding/Deinterlacing
+  - WMV9+YADIF is up to 40% faster
+- Improved DXVA2 for MPEG-2 interlaced
+- Improved H264 DXVA2 on AMD with certain streams
+- Improved CUVID support for 4K streams on supported hardware (GT520, GTX680, other VP5 hardware)
+
+LAV Audio
+- Added support for RealAudio Lossless (RALF)
+
 0.49 - 2012/03/10
 LAV Splitter
 - Improved MKV demuxing performance from slow sources (network streaming, etc)
