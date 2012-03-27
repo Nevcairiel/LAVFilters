@@ -45,6 +45,9 @@ typedef enum LAVAudioCodec {
   Codec_TTA,
   Codec_WMA2,
   Codec_WMAPRO,
+  Codec_Cook,
+  Codec_RealAudio,
+  Codec_WMALL,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
