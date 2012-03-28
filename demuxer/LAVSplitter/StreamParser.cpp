@@ -275,7 +275,7 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 
   const uint8_t *buf_end = buf + buf_size;
   uint8_t       segment_type;
-  int           segment_length;
+  unsigned int  segment_length;
 
   if (buf_size < 3) {
     DbgLog((LOG_TRACE, 30, L"::ParsePGS(): Way too short PGS packet"));
@@ -284,10 +284,16 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 
   m_pgsBuffer.SetSize(0);
 
-  while(buf < buf_end) {
+  while((buf + 3) < buf_end) {
     const uint8_t *segment_start = buf;
+    const int segment_buf_len = buf_end - buf;
     segment_type   = AV_RB8(buf);
     segment_length = AV_RB16(buf+1);
+
+    if (segment_length > (segment_buf_len - 3)) {
+      DbgLog((LOG_TRACE, 10, "::ParsePGS(): segment_length bigger then input buffer: %d (buffer: %d)", segment_length, segment_buf_len));
+      segment_length = segment_buf_len - 3;
+    }
 
     buf += 3;
 
@@ -296,7 +302,7 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 #endif
 
     // Presentation segment
-    if (segment_type == 0x16) {
+    if (segment_type == 0x16 && segment_length > 10) {
       // Segment Layout
       // 2 bytes width
       // 2 bytes height
