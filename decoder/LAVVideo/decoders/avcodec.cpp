@@ -258,6 +258,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_bBFrameDelay(TRUE)
   , m_nBFramePos(0)
   , m_iInterlaced(-1)
+  , m_CurrentThread(0)
 {
 }
 
@@ -425,6 +426,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   }
 
   m_h264RandomAccess.flush(m_pAVCtx->thread_count);
+  m_CurrentThread = 0;
 
   LAVPinInfo lavPinInfo = {0};
   BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
