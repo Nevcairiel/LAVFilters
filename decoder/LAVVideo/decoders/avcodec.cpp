@@ -427,6 +427,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   m_h264RandomAccess.flush(m_pAVCtx->thread_count);
   m_CurrentThread = 0;
+  m_rtStartCache = AV_NOPTS_VALUE;
 
   LAVPinInfo lavPinInfo = {0};
   BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
