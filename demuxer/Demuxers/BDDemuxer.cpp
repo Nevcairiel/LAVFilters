@@ -364,6 +364,11 @@ void CBDDemuxer::ProcessStreams(int count, BLURAY_STREAM_INFO *streams)
   for (int i = 0; i < count; ++i) {
     BLURAY_STREAM_INFO *stream = &streams[i];
     AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(stream->pid);
+    if (!avstream) {
+      DbgLog((LOG_TRACE, 10, "CBDDemuxer::ProcessStreams(): Stream with PID 0x%04x not found, trying to add it..", stream->pid));
+      m_lavfDemuxer->AddMPEGTSStream(stream->pid, stream->coding_type);
+      avstream = m_lavfDemuxer->GetAVStreamByPID(stream->pid);
+    }
     if (avstream) {
       if (stream->lang[0] != 0)
         av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, 0);
@@ -399,8 +404,6 @@ void CBDDemuxer::ProcessStreams(int count, BLURAY_STREAM_INFO *streams)
           avstream->codec->sample_rate = (stream->rate == BLURAY_AUDIO_RATE_96) ? 96000 : (stream->rate == BLURAY_AUDIO_RATE_192) ? 192000 : 48000;
         }
       }
-    } else {
-      DbgLog((LOG_TRACE, 10, "CBDDemuxer::ProcessStreams(): Stream with PID 0x%04x not found", stream->pid));
     }
   }
 }

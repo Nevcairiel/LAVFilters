@@ -113,6 +113,8 @@ public:
   REFERENCE_TIME GetStartTime() const;
   void SetBluRay(CBDDemuxer *pBluRay) { m_bBluRay = TRUE; m_pBluRay = pBluRay; }
 
+  void AddMPEGTSStream(int pid, uint32_t stream_type);
+
 private:
   STDMETHODIMP AddStream(int streamId);
   STDMETHODIMP CreateStreams();

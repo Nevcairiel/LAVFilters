@@ -27,6 +27,10 @@
 
 #include "moreuuids.h"
 
+extern "C" {
+#include "libavformat/mpegts.h"
+}
+
 #ifdef DEBUG
 #include "lavf_log.h"
 extern "C" {
@@ -215,6 +219,21 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
 done:
   CleanupAVFormat();
   return E_FAIL;
+}
+
+void CLAVFDemuxer::AddMPEGTSStream(int pid, uint32_t stream_type)
+{
+  if (m_avFormat) {
+    int program = -1;
+    if (m_avFormat->nb_programs > 0) {
+      unsigned nb_streams = 0;
+      for (unsigned i = 0; i < m_avFormat->nb_programs; i++) {
+        if (m_avFormat->programs[i]->nb_stream_indexes > nb_streams)
+          program = i;
+      }
+    }
+    avpriv_mpegts_add_stream(m_avFormat, pid, stream_type, program >= 0 ? m_avFormat->programs[program]->id : -1);
+  }
 }
 
 HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
