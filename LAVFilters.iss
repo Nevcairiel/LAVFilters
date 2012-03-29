@@ -10,12 +10,12 @@ AllowNoIcons              = yes
 AllowUNCPath              = no
 AppId                     = lavfilters
 AppName                   = LAV Filters
-AppVerName                = LAV Filters {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}
-AppVersion                = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}
-VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.0.0
+AppVerName                = LAV Filters {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
+AppVersion                = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
+VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}.0
 VersionInfoCompany        = 1f0.de
 VersionInfoCopyright      = GPLv2
-OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}
+OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
 OutputDir                 = .
 Compression               = lzma/ultra
 SolidCompression          = yes
