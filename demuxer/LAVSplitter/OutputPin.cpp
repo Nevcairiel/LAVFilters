@@ -85,16 +85,6 @@ STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
-HRESULT CLAVOutputPin::CheckConnect(IPin* pPin) {
-  int iPosition = 0;
-  CMediaType mt;
-  while(S_OK == GetMediaType(iPosition++, &mt)) {
-    FreeMediaType(mt);
-    mt.InitMediaType();
-  }
-  return __super::CheckConnect(pPin);
-}
-
 HRESULT CLAVOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERTIES* pProperties)
 {
   CheckPointer(pAlloc, E_POINTER);

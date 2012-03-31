@@ -49,7 +49,6 @@ public:
   STDMETHODIMP Notify(IBaseFilter* pSender, Quality q) { return E_NOTIMPL; }
 
   // CBaseOutputPin
-  HRESULT CheckConnect(IPin* pPin);
   HRESULT DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERTIES* pProperties);
   HRESULT CheckMediaType(const CMediaType* pmt);
   HRESULT GetMediaType(int iPosition, CMediaType* pmt);
