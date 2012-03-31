@@ -23,6 +23,7 @@
 #include "Media.h"
 #include <dvdmedia.h>
 
+#include "DeCSS/DeCSSInputPin.h"
 #include "VideoOutputPin.h"
 
 #include "moreuuids.h"
@@ -58,7 +59,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_evFilterInput(TRUE)
   , m_bStreamARBlacklisted(FALSE)
 {
-  m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
+  m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
   if(!m_pInput) {
     *phr = E_OUTOFMEMORY;
   }

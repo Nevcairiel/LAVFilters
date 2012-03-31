@@ -229,6 +229,10 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   DestroyDecoder(false);
 
+  // QuickSync has no DVD support (yet)
+  if (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES)
+    return E_FAIL;
+
   FOURCC fourCC = (FOURCC)0;
   for (int i = 0; i < countof(quicksync_codecs); i++) {
     if (quicksync_codecs[i].ffcodec == codec) {

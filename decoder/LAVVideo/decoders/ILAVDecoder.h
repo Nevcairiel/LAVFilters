@@ -222,6 +222,11 @@ interface ILAVVideoCallback
   STDMETHOD(GetLAVPinInfo)(LAVPinInfo &info) PURE;
 
   /**
+   * Get a reference to the input pin
+   */
+  STDMETHOD_(CBasePin*, GetInputPin)() PURE;
+
+  /**
    * Get a reference to the output pin
    */
   STDMETHOD_(CBasePin*, GetOutputPin)() PURE;

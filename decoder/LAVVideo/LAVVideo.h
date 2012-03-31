@@ -139,6 +139,7 @@ public:
   STDMETHODIMP_(BOOL) IsVistaOrNewer();
   STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info) { if (m_LAVPinInfoValid) { info = m_LAVPinInfo; return S_OK; } return E_FAIL; }
+  STDMETHODIMP_(CBasePin*) GetInputPin() { return m_pInput; }
   STDMETHODIMP_(CBasePin*) GetOutputPin() { return m_pOutput; }
   STDMETHODIMP_(CMediaType&) GetOutputMediaType() { return m_pOutput->CurrentMediaType(); }
 

@@ -20,6 +20,7 @@
 #pragma once
 
 #include "ILAVDecoder.h"
+#include "DeCSS/DeCSSInputPin.h"
 
 class CDecBase : public ILAVDecoder
 {
@@ -59,7 +60,12 @@ public:
     } else if (hr == VFW_S_NO_STOP_TIME || rtStop-1 <= rtStart) {
       rtStop = AV_NOPTS_VALUE;
     }
-    return Decode(pData, pSample->GetActualDataLength(), rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK);
+
+    // DVD Stripping
+    long nSize = pSample->GetActualDataLength();
+    (static_cast<CDeCSSInputPin*>(m_pCallback->GetInputPin()))->StripPacket(pData, nSize);
+
+    return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK);
   }
 
 protected:
