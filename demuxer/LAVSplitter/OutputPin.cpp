@@ -89,6 +89,7 @@ HRESULT CLAVOutputPin::CheckConnect(IPin* pPin) {
   int iPosition = 0;
   CMediaType mt;
   while(S_OK == GetMediaType(iPosition++, &mt)) {
+    FreeMediaType(mt);
     mt.InitMediaType();
   }
   return __super::CheckConnect(pPin);

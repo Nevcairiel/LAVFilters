@@ -1257,6 +1257,7 @@ std::list<std::string> CLAVSplitter::GetPreferredAudioLanguageList()
   std::list<std::string> list;
 
   split(std::string(buffer), std::string(",; "), list);
+  CoTaskMemFree(buffer);
 
   return list;
 }
