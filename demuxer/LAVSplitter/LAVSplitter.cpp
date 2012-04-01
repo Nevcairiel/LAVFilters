@@ -463,6 +463,8 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
   m_pDemuxer = pDemux;
   m_pDemuxer->AddRef();
 
+  SAFE_CO_FREE(pszFileName);
+
   return InitDemuxer();
 }
 
