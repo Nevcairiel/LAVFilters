@@ -740,6 +740,9 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
 
       pPin->m_rtPrev = pPacket->rtStart;
     }
+
+    pPacket->rtStart = (REFERENCE_TIME)(pPacket->rtStart / m_dRate);
+    pPacket->rtStop = (REFERENCE_TIME)(pPacket->rtStop / m_dRate);
   }
 
   if(m_bDiscontinuitySent.find(pPacket->StreamId) == m_bDiscontinuitySent.end()) {

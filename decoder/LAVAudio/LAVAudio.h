@@ -237,6 +237,7 @@ private:
   BOOL                 m_bDiscontinuity; // Discontinuity
   REFERENCE_TIME       m_rtStart;        // Start time
   double               m_dStartOffset;   // Start time offset (extra precision)
+  double               m_dRate;
 
   REFERENCE_TIME       m_rtStartInput;   // rtStart of the last input package
   REFERENCE_TIME       m_rtStopInput;    // rtStop of the last input package

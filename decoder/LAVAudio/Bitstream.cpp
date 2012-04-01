@@ -398,7 +398,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
     if (rtStopInput != AV_NOPTS_VALUE)
       rtStop = rtStopInput;
     else // no actual time of the current frame, use typical TrueHD frame size, 24 * 0.83333ms
-      rtStop = rtStart + 200000;
+      rtStop = rtStart + (REFERENCE_TIME)(200000 / m_dRate);
     m_rtStart = rtStop;
   } else {
     double dDuration = 0;
@@ -417,7 +417,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
       dDuration = DBL_SECOND_MULT * m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate;
     }
     if (rtDur == AV_NOPTS_VALUE) {
-      rtDur = (REFERENCE_TIME)(dDuration + 0.5);
+      rtDur = (REFERENCE_TIME)((dDuration + 0.5) / m_dRate);
       m_dStartOffset += fmod(dDuration, 1.0);
 
       m_rtStart = rtStart + (REFERENCE_TIME)dDuration;
@@ -427,6 +427,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
         m_dStartOffset -= 1.0;
       }
     } else {
+      rtDur = (REFERENCE_TIME)(rtDur / m_dRate);
       m_rtStart = rtStart + rtDur;
     }
 
@@ -453,7 +454,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   m_rtStartCacheLT = AV_NOPTS_VALUE;
 
   if(m_settings.AudioDelayEnabled) {
-    REFERENCE_TIME rtDelay = m_settings.AudioDelay * 10000i64;
+    REFERENCE_TIME rtDelay = (REFERENCE_TIME)((m_settings.AudioDelay * 10000i64) / m_dRate);
     rtStart += rtDelay;
     rtStop += rtDelay;
   }

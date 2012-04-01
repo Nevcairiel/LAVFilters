@@ -99,6 +99,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFindDTSInPCM(FALSE)
   , m_bFallback16Int(FALSE)
   , m_bNeedSyncpoint(FALSE)
+  , m_dRate(1.0)
 {
   av_register_all();
   if (av_lockmgr_addref() == 1)
@@ -1255,6 +1256,10 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   m_rtStart = 0;
   m_bQueueResync = TRUE;
   m_bNeedSyncpoint = (m_raData.deint_id != 0);
+  if (dRate > 0.0)
+    m_dRate = dRate;
+  else
+    m_dRate = 1.0;
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
@@ -1946,7 +1951,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
   }
 
   // Length of the current sample
-  double dDuration = (double)buffer.nSamples / buffer.dwSamplesPerSec * DBL_SECOND_MULT;
+  double dDuration = (double)buffer.nSamples / buffer.dwSamplesPerSec * DBL_SECOND_MULT / m_dRate;
   m_dStartOffset += fmod(dDuration, 1.0);
 
   // Delivery Timestamps
@@ -2000,7 +2005,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
   }
 
   if(m_settings.AudioDelayEnabled) {
-    REFERENCE_TIME rtDelay = m_settings.AudioDelay * 10000i64;
+    REFERENCE_TIME rtDelay = (REFERENCE_TIME)((m_settings.AudioDelay * 10000i64) / m_dRate);
     rtStart += rtDelay;
     rtStop += rtDelay;
   }
