@@ -60,6 +60,7 @@ static FormatMapping audio_map[] = {
   { CODEC_ID_RA_288,     &MEDIASUBTYPE_28_8,              WAVE_FORMAT_28_8,       NULL },
   { CODEC_ID_RA_144,     &MEDIASUBTYPE_14_4,              WAVE_FORMAT_14_4,       NULL },
   { CODEC_ID_RALF,       &MEDIASUBTYPE_RALF,              WAVE_FORMAT_RALF,       NULL },
+  { CODEC_ID_ALAC,       &MEDIASUBTYPE_ALAC,              NULL,                   NULL },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecTag, std::string container)

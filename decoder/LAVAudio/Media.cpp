@@ -76,6 +76,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_TTA1,         CODEC_ID_TTA      },
   { &MEDIASUBTYPE_WAVPACK4,     CODEC_ID_WAVPACK  },
   { &MEDIASUBTYPE_MLP,          CODEC_ID_MLP      },
+  { &MEDIASUBTYPE_ALAC,         CODEC_ID_ALAC     },
 
   // BluRay LPCM
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
@@ -174,6 +175,7 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_TTA1         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_WAVPACK4     },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_MLP          },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_ALAC         },
 
   // BluRay LPCM
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO  },
@@ -585,6 +587,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_COOK }},                         // CC_COOK
   { 5, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288, CODEC_ID_RALF }, L"realaudio", L"Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
   { 1, { CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
+  { 1, { CODEC_ID_ALAC }},
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)
