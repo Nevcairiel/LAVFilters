@@ -229,7 +229,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   _mm_sfence();
 
   // Y
-  if ((outLumaStride % 16) == 0) {
+  if ((outLumaStride % 16) == 0 && ((intptr_t)dst % 16u) == 0) {
     for(line = 0; line < height; ++line) {
       PIXCONV_MEMCPY_ALIGNED(dstY + outLumaStride * line, y, width);
       y += inLumaStride;
@@ -242,7 +242,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   }
 
   // U/V
-  if ((outChromaStride % 16) == 0) {
+  if ((outChromaStride % 16) == 0 && ((intptr_t)dst % 16u) == 0) {
     for(line = 0; line < chromaHeight; ++line) {
       PIXCONV_MEMCPY_ALIGNED_TWO(
         dstU + outChromaStride * line, u,
