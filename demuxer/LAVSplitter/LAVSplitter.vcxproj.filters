@@ -42,6 +42,9 @@
     <ClCompile Include="InputPin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PacketAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -106,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="..\..\common\includes\ISpecifyPropertyPages2.h">
       <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketAllocator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

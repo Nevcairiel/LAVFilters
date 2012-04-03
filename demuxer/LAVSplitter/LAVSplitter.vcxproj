@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="InputPin.cpp" />
+    <ClCompile Include="PacketAllocator.cpp" />
     <ClCompile Include="SettingsProp.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -174,6 +175,7 @@
     <ClInclude Include="..\..\common\includes\stdint.h" />
     <ClInclude Include="..\..\common\includes\version.h" />
     <ClInclude Include="InputPin.h" />
+    <ClInclude Include="PacketAllocator.h" />
     <ClInclude Include="SettingsProp.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />

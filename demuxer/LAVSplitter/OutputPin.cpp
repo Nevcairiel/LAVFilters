@@ -26,6 +26,8 @@
 #include "LAVSplitter.h"
 #include "moreuuids.h"
 
+#include "PacketAllocator.h"
+
 CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
@@ -36,6 +38,7 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_pinType(pinType)
   , m_Parser(this, container)
   , m_rtPrev(Packet::INVALID_TIME)
+  , m_bPacketAllocator(FALSE)
 {
   m_mts = mts;
   m_nBuffers = max(nBuffers, 1);
@@ -85,6 +88,71 @@ STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
+HRESULT CLAVOutputPin::DecideAllocator(IMemInputPin * pPin, IMemAllocator **ppAlloc)
+{
+  HRESULT hr = NOERROR;
+  *ppAlloc = NULL;
+
+  // get downstream prop request
+  // the derived class may modify this in DecideBufferSize, but
+  // we assume that he will consistently modify it the same way,
+  // so we only get it once
+  ALLOCATOR_PROPERTIES prop;
+  ZeroMemory(&prop, sizeof(prop));
+
+  // whatever he returns, we assume prop is either all zeros
+  // or he has filled it out.
+  pPin->GetAllocatorRequirements(&prop);
+
+  // if he doesn't care about alignment, then set it to 1
+  if (prop.cbAlign == 0) {
+    prop.cbAlign = 1;
+  }
+
+  *ppAlloc = new CPacketAllocator(NAME("CPacketAllocator"), NULL, &hr);
+  (*ppAlloc)->AddRef();
+  if (SUCCEEDED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"Trying to use our CPacketAllocator"));
+    m_bPacketAllocator = TRUE;
+    hr = DecideBufferSize(*ppAlloc, &prop);
+    if (SUCCEEDED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"-> DecideBufferSize Success"));
+      hr = pPin->NotifyAllocator(*ppAlloc, FALSE);
+      if (SUCCEEDED(hr)) {
+        DbgLog((LOG_TRACE, 10, L"-> NotifyAllocator Success"));
+        return NOERROR;
+      }
+    }
+  }
+
+  if (*ppAlloc) {
+    (*ppAlloc)->Release();
+    *ppAlloc = NULL;
+  }
+
+  m_bPacketAllocator = FALSE;
+
+  /* Try the allocator provided by the input pin */
+  hr = pPin->GetAllocator(ppAlloc);
+  if (SUCCEEDED(hr)) {
+
+    hr = DecideBufferSize(*ppAlloc, &prop);
+    if (SUCCEEDED(hr)) {
+      hr = pPin->NotifyAllocator(*ppAlloc, FALSE);
+      if (SUCCEEDED(hr)) {
+        return NOERROR;
+      }
+    }
+  }
+
+  /* If the GetAllocator failed we may not have an interface */
+  if (*ppAlloc) {
+    (*ppAlloc)->Release();
+    *ppAlloc = NULL;
+  }
+  return hr;
+}
+
 HRESULT CLAVOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERTIES* pProperties)
 {
   CheckPointer(pAlloc, E_POINTER);
@@ -92,7 +160,7 @@ HRESULT CLAVOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERT
 
   HRESULT hr = S_OK;
 
-  pProperties->cBuffers = max(pProperties->cBuffers, m_nBuffers);
+  pProperties->cBuffers = max(pProperties->cBuffers, (m_bPacketAllocator ? 10 : m_nBuffers));
   pProperties->cbBuffer = max(max(m_mt.lSampleSize, 256000), (ULONG)pProperties->cbBuffer);
 
   // Vorbis requires at least 2 buffers
@@ -374,22 +442,35 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
 
   CHECK_HR(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0));
 
-  // Resize buffer if it is too small
-  // This can cause a playback hick-up, we should avoid this if possible by setting a big enough buffer size
-  if(nBytes > pSample->GetSize()) {
-    SafeRelease(&pSample);
-    ALLOCATOR_PROPERTIES props, actual;
-    CHECK_HR(hr = m_pAllocator->GetProperties(&props));
-    // Give us 2 times the requested size, so we don't resize every time
-    props.cbBuffer = nBytes*2;
-    if(props.cBuffers > 1) {
-      CHECK_HR(hr = __super::DeliverBeginFlush());
-      CHECK_HR(hr = __super::DeliverEndFlush());
+  if (m_bPacketAllocator) {
+    ILAVMediaSample *pLAVSample = NULL;
+    CHECK_HR(hr = pSample->QueryInterface(&pLAVSample));
+    CHECK_HR(hr = pLAVSample->SetPacket(pPacket));
+    SafeRelease(&pLAVSample);
+  } else {
+    // Resize buffer if it is too small
+    // This can cause a playback hick-up, we should avoid this if possible by setting a big enough buffer size
+    if(nBytes > pSample->GetSize()) {
+      SafeRelease(&pSample);
+      ALLOCATOR_PROPERTIES props, actual;
+      CHECK_HR(hr = m_pAllocator->GetProperties(&props));
+      // Give us 2 times the requested size, so we don't resize every time
+      props.cbBuffer = nBytes*2;
+      if(props.cBuffers > 1) {
+        CHECK_HR(hr = __super::DeliverBeginFlush());
+        CHECK_HR(hr = __super::DeliverEndFlush());
+      }
+      CHECK_HR(hr = m_pAllocator->Decommit());
+      CHECK_HR(hr = m_pAllocator->SetProperties(&props, &actual));
+      CHECK_HR(hr = m_pAllocator->Commit());
+      CHECK_HR(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0));
     }
-    CHECK_HR(hr = m_pAllocator->Decommit());
-    CHECK_HR(hr = m_pAllocator->SetProperties(&props, &actual));
-    CHECK_HR(hr = m_pAllocator->Commit());
-    CHECK_HR(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0));
+
+    // Fill the sample
+    BYTE* pData = NULL;
+    if(FAILED(hr = pSample->GetPointer(&pData)) || !pData) goto done;
+
+    memcpy(pData, pPacket->GetData(), nBytes);
   }
 
   if(pPacket->pmt) {
@@ -404,12 +485,6 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
 
   bool fTimeValid = pPacket->rtStart != Packet::INVALID_TIME;
 
-  // Fill the sample
-  BYTE* pData = NULL;
-  if(FAILED(hr = pSample->GetPointer(&pData)) || !pData) goto done;
-
-  memcpy(pData, pPacket->GetData(), nBytes);
-
   CHECK_HR(hr = pSample->SetActualDataLength(nBytes));
   CHECK_HR(hr = pSample->SetTime(fTimeValid ? &pPacket->rtStart : NULL, fTimeValid ? &pPacket->rtStop : NULL));
   CHECK_HR(hr = pSample->SetMediaTime(NULL, NULL));
@@ -420,7 +495,8 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   CHECK_HR(hr = Deliver(pSample));
 
 done:
-  SAFE_DELETE(pPacket);
+  if (!m_bPacketAllocator)
+    SAFE_DELETE(pPacket);
   SafeRelease(&pSample);
   return hr;
 }

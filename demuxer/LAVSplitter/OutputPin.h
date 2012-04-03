@@ -49,6 +49,7 @@ public:
   STDMETHODIMP Notify(IBaseFilter* pSender, Quality q) { return E_NOTIMPL; }
 
   // CBaseOutputPin
+  HRESULT DecideAllocator(IMemInputPin * pPin, IMemAllocator ** pAlloc);
   HRESULT DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERTIES* pProperties);
   HRESULT CheckMediaType(const CMediaType* pmt);
   HRESULT GetMediaType(int iPosition, CMediaType* pmt);
@@ -146,4 +147,5 @@ private:
   CBaseDemuxer::StreamType m_pinType;
 
   CStreamParser m_Parser;
+  BOOL m_bPacketAllocator;
 };
