@@ -125,6 +125,10 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   if (!CAMThread::ThreadExists())
     return E_UNEXPECTED;
 
+  // Wait until the queue is somewhat empty
+  while(m_Samples.Size() > 4)
+    Sleep(1);
+
   m_evDeliver.Reset();
   m_evSample.Reset();
 
