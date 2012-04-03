@@ -59,7 +59,7 @@ public:
   bool IsEmpty() const { return m_sSize == 0; }
 
   // Setter
-  void SetDataSize(size_t len) { m_sSize = len; if (m_sSize > m_sBlockSize) { m_pbData = (BYTE *)CoTaskMemRealloc(m_pbData, m_sSize); m_sBlockSize = m_sSize; }}
+  void SetDataSize(size_t len) { m_sSize = len; if (m_sSize > m_sBlockSize) { m_pbData = (BYTE *)CoTaskMemRealloc(m_pbData, m_sSize + FF_INPUT_BUFFER_PADDING_SIZE); m_sBlockSize = m_sSize; } memset(m_pbData+m_sSize, 0, FF_INPUT_BUFFER_PADDING_SIZE);}
   void SetData(const void* ptr, size_t len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
   void Clear() { m_sSize = m_sBlockSize = 0; SAFE_CO_FREE(m_pbData); }
 
