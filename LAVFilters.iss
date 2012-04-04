@@ -167,7 +167,7 @@ begin
                                                                     '4,12,ffffffff00000000ffffffff,77696465000000006d646174', '4,12,ffffffff00000000ffffffff,776964650000000066726565',
                                                                     '4,12,ffffffff00000000ffffffff,6672656500000000636D6F76', '4,12,ffffffff00000000ffffffff,66726565000000006D766864',
                                                                     '4,14,ffffffff000000000000ffffffff,706E6F7400000000000050494354', ''], True);
-  FR(SplitterFormats[3], 'mpegts', 'MPEG-TS', True, ['ts','m2ts', 'mts', '']);
+  FR(SplitterFormats[3], 'mpegts', 'MPEG-TS', True, ['ts', 'm2ts', 'mts', 'tp', '']);
   FS(SplitterFormats[3], '{e06d8023-db46-11cf-b4d1-00805f6cbbea}', ['0,1,,47,188,1,,47,376,1,,47', '4,1,,47,196,1,,47,388,1,,47', '0,4,,54467263,1660,1,,47', ''], True);
   FR(SplitterFormats[4], 'mpeg', 'MPEG-PS/VOB/EVO', True, ['mpg', 'mpeg', 'vob', 'evo', '']);
   FS(SplitterFormats[4], '{e06d8022-db46-11cf-b4d1-00805f6cbbea}', ['0,5,FFFFFFFFC0,000001BA40', ''], True);
