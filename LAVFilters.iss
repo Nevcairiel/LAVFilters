@@ -46,6 +46,10 @@ Name: lavaudio64;    Description: LAV Audio (x64);    Types: Normal; Check: IsWi
 Name: lavvideo32;    Description: LAV Video (x86);    Types: Normal;
 Name: lavvideo64;    Description: LAV Video (x64);    Types: Normal; Check: IsWin64;
 
+[Tasks]
+Name: icons;          Description: "Create Start Menu Shortcuts";
+Name: reset_settings; Description: "Reset Settings"; Flags: checkedonce unchecked; Check: SettingsExistCheck()
+
 [Files]
 Source: bin_Win32\avcodec-lav-54.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
 Source: bin_Win32\avfilter-lav-2.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
@@ -74,15 +78,15 @@ Source: README.txt;                    DestDir: {app};     Flags: ignoreversion 
 Source: CHANGELOG.txt;                 DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 
 [Icons]
-Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVSplitter.ax; IconIndex: 0; Components: lavsplitter32
-Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVSplitter.ax; IconIndex: 0; Components: lavsplitter64 AND NOT lavsplitter32
-Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVAudio.ax; IconIndex: 0; Components: lavaudio32
-Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVAudio.ax; IconIndex: 0; Components: lavaudio64 AND NOT lavaudio32
-Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVVideo.ax; IconIndex: 0; Components: lavvideo32
-Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVVideo.ax; IconIndex: 0; Components: lavvideo64 AND NOT lavvideo32
-Name: {group}\Visit LAV Filters Home Page;       Filename: "http://1f0.de/"
-Name: {group}\Visit LAV Filters on Doom9;        Filename: "http://forum.doom9.org/showthread.php?t=156191"
-Name: {group}\Uninstall LAV Filters;             Filename: {uninstallexe};
+Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVSplitter.ax; IconIndex: 0; Tasks: icons; Components: lavsplitter32
+Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVSplitter.ax; IconIndex: 0; Tasks: icons; Components: lavsplitter64 AND NOT lavsplitter32
+Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVAudio.ax; IconIndex: 0; Tasks: icons; Components: lavaudio32
+Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVAudio.ax; IconIndex: 0; Tasks: icons; Components: lavaudio64 AND NOT lavaudio32
+Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo32
+Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo64 AND NOT lavvideo32
+Name: {group}\Visit LAV Filters Home Page;       Filename: "http://1f0.de/"; Tasks: icons
+Name: {group}\Visit LAV Filters on Doom9;        Filename: "http://forum.doom9.org/showthread.php?t=156191"; Tasks: icons
+Name: {group}\Uninstall LAV Filters;             Filename: {uninstallexe}; Tasks: icons
 
 [Registry]
 Root: HKCU; Subkey: Software\LAV;                  Flags: uninsdeletekeyifempty
@@ -123,6 +127,14 @@ const
 var
   SplitterPage: TInputOptionWizardPage;
   SplitterFormats: Array [0..NumFormatsMinusOne] of Format;
+
+function SettingsExistCheck(): Boolean;
+begin
+  if RegKeyExists(HKCU, 'Software\LAV') then
+    Result := True
+  else
+    Result := False;
+end;
 
 function IsUpdate(): Boolean;
 var
@@ -312,11 +324,19 @@ begin
   end
 end;
 
+procedure ResetSettings();
+begin
+  RegDeleteKeyIncludingSubkeys(HKCU, 'Software\LAV');
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   i: Integer;
 begin
   if (CurStep = ssPostInstall) then begin
+    if IsTaskSelected('reset_settings') then
+      ResetSettings();
+
     if IsComponentSelected('lavsplitter32') or IsComponentSelected('lavsplitter64') then
       begin
         for i := 0 to NumFormatsMinusOne do
