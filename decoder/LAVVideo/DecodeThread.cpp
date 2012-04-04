@@ -120,6 +120,8 @@ STDMETHODIMP CDecodeThread::Close()
 
 STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
 {
+  CAutoLock decoderLock(this);
+
   if (!CAMThread::ThreadExists())
     return E_UNEXPECTED;
 
@@ -127,8 +129,6 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   // Do this before entering any locks, just to be safe.
   while(m_Samples.Size() > 4)
     Sleep(1);
-
-  CAutoLock decoderLock(this);
 
   m_evDeliver.Reset();
   m_evSample.Reset();
