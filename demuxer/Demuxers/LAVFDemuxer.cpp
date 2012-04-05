@@ -727,11 +727,30 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
   if (rTime > 0) {
     if (videoStreamId != -1) {
       AVStream *stream = m_avFormat->streams[videoStreamId];
-      seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
+      int64_t start_time = AV_NOPTS_VALUE;
+
+      // MPEG-TS needs a protection against a wrapped around start time
+      // It is possible for the start_time in m_avFormat to be wrapped around, but the start_time in the current stream not to be.
+      // In this case, ConvertRTToTimestamp would produce timestamps not valid for seeking.
+      //
+      // Compensate for this by creating a negative start_time, resembling the actual value in m_avFormat->start_time without wrapping.
+      if (m_bMPEGTS && stream->start_time != AV_NOPTS_VALUE) {
+        int64_t start = av_rescale_q(stream->start_time, stream->time_base, AV_RATIONAL_TIMEBASE);
+
+        if (start < m_avFormat->start_time
+          && m_avFormat->start_time > av_rescale_q(3LL << (stream->pts_wrap_bits - 2), stream->time_base, AV_RATIONAL_TIMEBASE)
+          && start < av_rescale_q(3LL << (stream->pts_wrap_bits - 3), stream->time_base, AV_RATIONAL_TIMEBASE)) {
+          start_time = m_avFormat->start_time - av_rescale_q(1LL << stream->pts_wrap_bits, stream->time_base, AV_RATIONAL_TIMEBASE);
+        }
+      }
+      seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den, start_time);
     } else {
       seek_pts = ConvertRTToTimestamp(rTime, 1, AV_TIME_BASE);
     }
   }
+
+  if (seek_pts < 0)
+    seek_pts = 0;
 
   if (strcmp(m_pszInputFormat, "rawvideo") == 0 && seek_pts == 0)
     return SeekByte(0, AVSEEK_FLAG_BACKWARD);
