@@ -90,7 +90,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtStartInputCache(AV_NOPTS_VALUE)
   , m_rtStopInputCache(AV_NOPTS_VALUE)
   , m_rtStartCacheLT(AV_NOPTS_VALUE)
-  , m_faJitter(100)
+  , m_faJitter(50)
   , m_hDllExtraDecoder(NULL)
   , m_pDTSDecoderContext(NULL)
   , m_DecodeLayout(0)
@@ -943,9 +943,9 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   DbgLog((LOG_TRACE, 10, "::ffmpeg_init(): Initializing decoder for codec %d", codec));
 
   if (codec == CODEC_ID_DTS || codec == CODEC_ID_TRUEHD)
-    m_faJitter.SetNumSamples(200);
+    m_faJitter.SetNumSamples(150);
   else
-    m_faJitter.SetNumSamples(100);
+    m_faJitter.SetNumSamples(50);
 
   // Fake codecs that are dependant in input bits per sample, mostly to handle QT PCM tracks
   if (codec == CODEC_ID_PCM_QTRAW || codec == CODEC_ID_PCM_SxxBE || codec == CODEC_ID_PCM_SxxLE || codec == CODEC_ID_PCM_UxxBE || codec == CODEC_ID_PCM_UxxLE) {
