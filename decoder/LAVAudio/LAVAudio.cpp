@@ -1911,7 +1911,7 @@ HRESULT CLAVAudio::QueueOutput(BufferDetails &buffer)
   double dDuration = (double)m_OutputQueue.nSamples / m_OutputQueue.dwSamplesPerSec * 10000000.0;
   double dOffset = fmod(dDuration, 1.0);
 
-  // Maximum of 100ms buffer
+  // Don't exceed the buffer
   if (dDuration >= PCM_BUFFER_MAX_DURATION || (dDuration >= PCM_BUFFER_MIN_DURATION && dOffset <= FLT_EPSILON)) {
     hr = FlushOutput();
   }
