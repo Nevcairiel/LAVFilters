@@ -174,7 +174,7 @@ begin
   FS(SplitterFormats[0], '{1AC0BEBD-4D2B-45ad-BCEB-F2C41C5E3788}', ['0,4,,1A45DFA3', ''], True);
   FR(SplitterFormats[1], 'avi', 'AVI', True, ['avi','divx', 'vp6', 'amv', '']);
   FS(SplitterFormats[1], '{e436eb88-524f-11ce-9f53-0020af0ba770}', ['0,4,,52494646,8,4,,41564920', '0,4,,52494646,8,4,,41564958', '0,4,,52494646,8,4,,414D5620', ''], True);
-  FR(SplitterFormats[2], 'mp4', 'MP4/MOV', True, ['mp4', 'mov', '3gp', '']);
+  FR(SplitterFormats[2], 'mp4', 'MP4/MOV', True, ['mp4', 'mov', '3gp', 'm4v', '']);
   FS(SplitterFormats[2], '{08E22ADA-B715-45ed-9D20-7B87750301D4}', ['4,4,,66747970', '4,4,,6d6f6f76', '4,4,,6d646174', '4,4,,736b6970', '4,4,,75647461',
                                                                     '4,12,ffffffff00000000ffffffff,77696465000000006d646174', '4,12,ffffffff00000000ffffffff,776964650000000066726565',
                                                                     '4,12,ffffffff00000000ffffffff,6672656500000000636D6F76', '4,12,ffffffff00000000ffffffff,66726565000000006D766864',
