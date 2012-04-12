@@ -1628,6 +1628,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
             m_rtStartCacheLT = m_rtStartInputCache;
             m_rtStartInputCache = AV_NOPTS_VALUE;
           }
+        } else {
+          out.bTimeInvalid = TRUE;
         }
 
       } else {
@@ -1661,6 +1663,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
           m_rtStartCacheLT = m_rtStartInput;
           m_rtStartInput = AV_NOPTS_VALUE;
         }
+      } else {
+        out.bTimeInvalid = TRUE;
       }
     }
 
@@ -1983,7 +1987,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
     }
 #endif
   }
-  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, sample duration: %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtStop-rtStart, rtJitter));
+  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, sample duration: %I64d, diff(%d): %I64d", rtStart, m_rtStartCacheLT, rtStop-rtStart, buffer.bTimeInvalid, rtJitter));
   m_rtStartCacheLT = AV_NOPTS_VALUE;
 
   if(rtStart < 0) {
