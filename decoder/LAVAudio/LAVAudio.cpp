@@ -1282,6 +1282,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     DeleteMediaType(pmt);
     pmt = NULL;
     m_buff.SetSize(0);
+
+    m_bQueueResync = TRUE;
   }
 
   if (!m_pAVCtx) {
