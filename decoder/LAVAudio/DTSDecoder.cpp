@@ -364,8 +364,6 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
         continue;
       }
 
-      m_bUpdateTimeCache = TRUE;
-
       out.wChannels        = channels;
       out.dwSamplesPerSec  = HDSampleRate;
       out.sfFormat         = m_DTSBitDepth == 24 ? SampleFormat_24 : SampleFormat_16;
@@ -381,17 +379,10 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
       m_pAVCtx->sample_rate = HDSampleRate;
       m_pAVCtx->profile     = profile;
 
-      // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
-      // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
-      if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
-        if (m_rtStartInputCache == AV_NOPTS_VALUE) {
-          out.bTimeInvalid = TRUE;
-          m_rtStartCacheLT = m_rtStart;
-        } else {
-          m_rtStartCacheLT = m_rtStartInputCache;
-          m_rtStartInputCache = AV_NOPTS_VALUE;
-        }
-      }
+      // Send current input time to the delivery function
+      out.rtStart = m_rtStartInputCache;
+      m_rtStartInputCache = AV_NOPTS_VALUE;
+      m_bUpdateTimeCache = TRUE;
     }
 
     // Send to Output

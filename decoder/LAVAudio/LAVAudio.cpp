@@ -89,7 +89,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bUpdateTimeCache(TRUE)
   , m_rtStartInputCache(AV_NOPTS_VALUE)
   , m_rtStopInputCache(AV_NOPTS_VALUE)
-  , m_rtStartCacheLT(AV_NOPTS_VALUE)
+  , m_rtBitstreamCache(AV_NOPTS_VALUE)
   , m_faJitter(50)
   , m_hDllExtraDecoder(NULL)
   , m_pDTSDecoderContext(NULL)
@@ -1321,8 +1321,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
     FlushOutput();
     m_rtStart = rtStart;
-    m_rtStartCacheLT = AV_NOPTS_VALUE;
     m_rtStartInputCache =  AV_NOPTS_VALUE;
+    m_rtBitstreamCache = AV_NOPTS_VALUE;
     m_dStartOffset = 0.0;
     m_bQueueResync = FALSE;
   }
@@ -1616,21 +1616,10 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
           continue;
         }
 
+        // Send current input time to the delivery function
+        out.rtStart = m_rtStartInputCache;
+        m_rtStartInputCache = AV_NOPTS_VALUE;
         m_bUpdateTimeCache = TRUE;
-
-        // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
-        // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
-        if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
-          if (m_rtStartInputCache == AV_NOPTS_VALUE) {
-            out.bTimeInvalid = TRUE;
-            m_rtStartCacheLT = m_rtStart;
-          } else {
-            m_rtStartCacheLT = m_rtStartInputCache;
-            m_rtStartInputCache = AV_NOPTS_VALUE;
-          }
-        } else {
-          out.bTimeInvalid = TRUE;
-        }
 
       } else {
         continue;
@@ -1653,19 +1642,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
       pDataInBuff += used_bytes;
       consumed += used_bytes;
 
-      // Set long-time cache to the first timestamp encountered, used on MPEG-TS containers
-      // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
-      if (m_rtStartCacheLT == AV_NOPTS_VALUE) {
-        if (m_rtStartInput == AV_NOPTS_VALUE) {
-          out.bTimeInvalid = TRUE;
-          m_rtStartCacheLT = m_rtStart;
-        } else {
-          m_rtStartCacheLT = m_rtStartInput;
-          m_rtStartInput = AV_NOPTS_VALUE;
-        }
-      } else {
-        out.bTimeInvalid = TRUE;
-      }
+      // Send current input time to the delivery function
+      out.rtStart = m_rtStartInput;
+      m_rtStartInput = AV_NOPTS_VALUE;
     }
 
     // Channel re-mapping and sample format conversion
@@ -1901,9 +1880,9 @@ HRESULT CLAVAudio::QueueOutput(BufferDetails &buffer)
   }
 
   if (m_OutputQueue.nSamples == 0)
-    m_OutputQueue.bTimeInvalid = buffer.bTimeInvalid;
-  else
-    m_OutputQueue.bTimeInvalid = (m_OutputQueue.bTimeInvalid && buffer.bTimeInvalid);
+    m_OutputQueue.rtStart = buffer.rtStart;
+  else if (m_OutputQueue.rtStart == AV_NOPTS_VALUE && buffer.rtStart != AV_NOPTS_VALUE)
+    m_OutputQueue.rtStart = buffer.rtStart - (REFERENCE_TIME)((double)m_OutputQueue.nSamples / m_OutputQueue.dwSamplesPerSec * 10000000.0);
 
   m_OutputQueue.nSamples += buffer.nSamples;
   m_OutputQueue.bBuffer->Append(buffer.bBuffer);
@@ -1971,8 +1950,8 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
     m_dStartOffset -= 1.0;
   }
 
-  REFERENCE_TIME rtJitter = rtStart - m_rtStartCacheLT;
-  if (!buffer.bTimeInvalid) {
+  if (buffer.rtStart != AV_NOPTS_VALUE) {
+    REFERENCE_TIME rtJitter = rtStart - buffer.rtStart;
     m_faJitter.Sample(rtJitter);
     REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
     if (m_settings.AutoAVSync && abs(rtJitterMin) > MAX_JITTER_DESYNC) {
@@ -1986,9 +1965,10 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
       DbgLog((LOG_CUSTOM2, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
     }
 #endif
+    DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, sample duration: %I64d, diff: %I64d", rtStart, buffer.rtStart, rtStop-rtStart, rtJitter));
+  } else {
+    DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): N/A, sample duration: %I64d, diff: N/A", rtStart, rtStop-rtStart));
   }
-  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, sample duration: %I64d, diff(%d): %I64d", rtStart, m_rtStartCacheLT, rtStop-rtStart, buffer.bTimeInvalid, rtJitter));
-  m_rtStartCacheLT = AV_NOPTS_VALUE;
 
   if(rtStart < 0) {
     goto done;

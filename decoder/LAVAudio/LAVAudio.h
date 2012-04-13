@@ -66,10 +66,10 @@ struct BufferDetails {
   unsigned              nSamples;         // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
   WORD                  wChannels;        // Number of channels
   DWORD                 dwChannelMask;    // channel mask
-  BOOL                  bTimeInvalid;     // Time Invalid flag
+  REFERENCE_TIME        rtStart;          // Start Time of the buffer
 
 
-  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0), bTimeInvalid(FALSE) {
+  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0), rtStart(AV_NOPTS_VALUE) {
     bBuffer = new GrowableArray<BYTE>();
   };
   ~BufferDetails() {
@@ -245,7 +245,7 @@ private:
   BOOL                 m_bUpdateTimeCache;
   REFERENCE_TIME       m_rtStartInputCache;   // rtStart of the last input package
   REFERENCE_TIME       m_rtStopInputCache;    // rtStop of the last input package
-  REFERENCE_TIME       m_rtStartCacheLT;      // long-term timing cache (used by TrueHD)
+  REFERENCE_TIME       m_rtBitstreamCache;    // Bitstreaming time cache
 
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples

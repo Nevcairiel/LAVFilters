@@ -349,8 +349,8 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT
 
       // Set long-time cache to the first timestamp encountered, used by TrueHD and E-AC3 because the S/PDIF muxer caches data internally
       // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
-      if (m_rtStartCacheLT == AV_NOPTS_VALUE)
-        m_rtStartCacheLT = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
+      if (m_rtBitstreamCache == AV_NOPTS_VALUE)
+        m_rtBitstreamCache = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
 
       // Deliver frame
       if (m_bsOutput.GetCount() > 0) {
@@ -392,8 +392,8 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   // Since the SPDIF muxer takes 24 frames and puts them into one IEC61937 frame, we use the cached timestamp from before.
   if (codec == CODEC_ID_TRUEHD) {
     // long-term cache is valid
-    if (m_rtStartCacheLT != AV_NOPTS_VALUE)
-      rtStart = m_rtStartCacheLT;
+    if (m_rtBitstreamCache != AV_NOPTS_VALUE)
+      rtStart = m_rtBitstreamCache;
     // Duration - stop time of the current frame is valid
     if (rtStopInput != AV_NOPTS_VALUE)
       rtStop = rtStopInput;
@@ -434,7 +434,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
     rtStop = rtStart + rtDur;
   }
 
-  REFERENCE_TIME rtJitter = rtStart - m_rtStartCacheLT;
+  REFERENCE_TIME rtJitter = rtStart - m_rtBitstreamCache;
   m_faJitter.Sample(rtJitter);
 
   REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
@@ -445,13 +445,13 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   }
 
 #ifdef DEBUG
-  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, diff: %I64d", rtStart, m_rtStartCacheLT, rtJitter));
+  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, diff: %I64d", rtStart, m_rtBitstreamCache, rtJitter));
 
   if (m_faJitter.CurrentSample() == 0) {
     DbgLog((LOG_TRACE, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
   }
 #endif
-  m_rtStartCacheLT = AV_NOPTS_VALUE;
+  m_rtBitstreamCache = AV_NOPTS_VALUE;
 
   if(m_settings.AudioDelayEnabled) {
     REFERENCE_TIME rtDelay = (REFERENCE_TIME)((m_settings.AudioDelay * 10000i64) / m_dRate);
