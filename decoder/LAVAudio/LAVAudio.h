@@ -41,8 +41,8 @@
 // 4ms
 #define PCM_BUFFER_MIN_DURATION 40000
 
-// Maximum desync that we attribute to jitter before re-syncing (20ms)
-#define MAX_JITTER_DESYNC 200000i64
+// Maximum desync that we attribute to jitter before re-syncing (10ms)
+#define MAX_JITTER_DESYNC 100000i64
 
 //////////////////// End Configuration //////////////////////
 
