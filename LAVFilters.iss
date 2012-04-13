@@ -10,6 +10,8 @@ AllowNoIcons              = yes
 AllowUNCPath              = no
 AppId                     = lavfilters
 AppName                   = LAV Filters
+AppPublisher              = Hendrik Leppkes
+AppPublisherURL           = http://1f0.de/
 AppVerName                = LAV Filters {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
 AppVersion                = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
 VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}.0
