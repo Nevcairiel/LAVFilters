@@ -91,6 +91,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtStopInputCache(AV_NOPTS_VALUE)
   , m_rtBitstreamCache(AV_NOPTS_VALUE)
   , m_faJitter(50)
+  , m_JitterLimit(MAX_JITTER_DESYNC)
   , m_hDllExtraDecoder(NULL)
   , m_pDTSDecoderContext(NULL)
   , m_DecodeLayout(0)
@@ -942,10 +943,13 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   ffmpeg_shutdown();
   DbgLog((LOG_TRACE, 10, "::ffmpeg_init(): Initializing decoder for codec %d", codec));
 
-  if (codec == CODEC_ID_DTS || codec == CODEC_ID_TRUEHD)
-    m_faJitter.SetNumSamples(400);
-  else
-    m_faJitter.SetNumSamples(100);
+  if (codec == CODEC_ID_DTS || codec == CODEC_ID_TRUEHD) {
+    m_faJitter.SetNumSamples(200);
+    m_JitterLimit = MAX_JITTER_DESYNC * 10;
+  } else {
+    m_faJitter.SetNumSamples(50);
+    m_JitterLimit = MAX_JITTER_DESYNC;
+  }
 
   // Fake codecs that are dependant in input bits per sample, mostly to handle QT PCM tracks
   if (codec == CODEC_ID_PCM_QTRAW || codec == CODEC_ID_PCM_SxxBE || codec == CODEC_ID_PCM_SxxLE || codec == CODEC_ID_PCM_UxxBE || codec == CODEC_ID_PCM_UxxLE) {
@@ -1954,7 +1958,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
     REFERENCE_TIME rtJitter = rtStart - buffer.rtStart;
     m_faJitter.Sample(rtJitter);
     REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
-    if (m_settings.AutoAVSync && abs(rtJitterMin) > MAX_JITTER_DESYNC) {
+    if (m_settings.AutoAVSync && abs(rtJitterMin) > m_JitterLimit) {
       DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
       m_rtStart -= rtJitterMin;
       m_faJitter.OffsetValues(-rtJitterMin);

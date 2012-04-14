@@ -288,6 +288,7 @@ private:
   BOOL                m_bFindDTSInPCM;
 
   FloatingAverage<REFERENCE_TIME> m_faJitter;
+  REFERENCE_TIME      m_JitterLimit;
 
   HMODULE             m_hDllExtraDecoder;
 
