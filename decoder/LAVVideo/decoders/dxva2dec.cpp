@@ -926,6 +926,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     hr = pSample->QueryInterface(&pLavDXVA2);
     if (FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L"Sample is no LAV DXVA2 sample?????"));
+      SafeRelease(&pSample);
       return -1;
     }
     i = pLavDXVA2->GetDXSurfaceId();
