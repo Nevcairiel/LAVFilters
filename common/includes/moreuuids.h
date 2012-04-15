@@ -26,8 +26,6 @@
 #include <dvdmedia.h>
 #include <dmodshow.h>
 
-#include "format_guids.h"
-
 // 30323449-0000-0010-8000-00AA00389B71  'I420' == MEDIASUBTYPE_I420
 DEFINE_GUID(MEDIASUBTYPE_I420,
 			0x30323449, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
@@ -1364,6 +1362,9 @@ DEFINE_GUID(KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD, 0x0000000b, 0x0cea, 0x0010, 0x
 //MAT(MLP) Meridian Lossless Packing (Dolby Digital True HD 24-bit 196KHz/up to 18M bps, 8 channels)
 DEFINE_GUID(KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP, 0x0000000c, 0x0cea, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
 
+// {20884BC2-629F-45EA-B1C5-FA4FFA438250}
+DEFINE_GUID(MEDIASUBTYPE_LAVBluRay,
+  0x20884bc2, 0x629f, 0x45ea, 0xb1, 0xc5, 0xfa, 0x4f, 0xfa, 0x43, 0x82, 0x50);
 
 // Additionnal DXVA GUIDs
 

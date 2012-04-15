@@ -161,7 +161,6 @@
     <ClCompile Include="StreamParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\includes\format_guids.h" />
     <ClInclude Include="..\..\common\includes\IBufferInfo.h" />
     <ClInclude Include="..\..\common\includes\IGraphRebuildDelegate.h" />
     <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h" />
