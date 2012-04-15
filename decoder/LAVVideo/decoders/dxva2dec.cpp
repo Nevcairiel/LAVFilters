@@ -939,6 +939,11 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
   }
 
   LPDIRECT3DSURFACE9 pSurface = pDec->m_pSurfaces[i].d3d;
+  if (!pSurface) {
+    DbgLog((LOG_ERROR, 10, L"There is a sample, but no D3D Surace? WTF?"));
+    SafeRelease(&pDec->m_pSurfaces[i].sample);
+    return -1;
+  }
 
   pDec->m_pSurfaces[i].age = pDec->m_CurrentSurfaceAge++;
   pDec->m_pSurfaces[i].ref = 1;
