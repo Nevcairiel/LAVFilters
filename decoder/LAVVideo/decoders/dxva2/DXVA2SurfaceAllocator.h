@@ -79,6 +79,7 @@ public:
 
   HRESULT Alloc();
   void Free();
+  STDMETHODIMP_(BOOL) DecommitInProgress() { return m_bDecommitInProgress; }
 
   STDMETHODIMP_(void) DecoderDestruct() { m_pDec = NULL; }
 
