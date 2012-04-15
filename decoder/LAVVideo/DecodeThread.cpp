@@ -339,6 +339,7 @@ DWORD CDecodeThread::ThreadProc()
 
 STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, CodecID codec)
 {
+  DbgLog((LOG_TRACE, 10, L"CDecodeThread::CreateDecoderInternal(): Creating new decoder for codec %S", avcodec_get_name(codec)));
   HRESULT hr = S_OK;
 
   BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
@@ -346,6 +347,7 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, CodecID
 
   // Try reusing the current HW decoder
   if (m_pDecoder && m_bHWDecoder && !m_bHWDecoderFailed && HWFORMAT_ENABLED) {
+    DbgLog((LOG_TRACE, 10, L"-> Trying to re-use old HW Decoder"));
     hr = m_pDecoder->InitDecoder(codec, pmt);
     goto done;
   }
@@ -354,6 +356,7 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, CodecID
   LAVHWAccel hwAccel = m_pLAVVideo->GetHWAccel();
   if (!bHWDecBlackList &&  hwAccel != HWAccel_None && !m_bHWDecoderFailed && HWFORMAT_ENABLED)
   {
+    DbgLog((LOG_TRACE, 10, L"-> Trying Hardware Codec %d", hwAccel));
     if (hwAccel == HWAccel_CUDA)
       m_pDecoder = CreateDecoderCUVID();
     else if (hwAccel == HWAccel_QuickSync)
@@ -368,12 +371,14 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, CodecID
 softwaredec:
   // Fallback for software
   if (!m_pDecoder) {
+    DbgLog((LOG_TRACE, 10, L"-> No HW Codec, using Software"));
     m_bHWDecoder = FALSE;
     if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3))
       m_pDecoder = CreateDecoderWMV9();
     else
       m_pDecoder = CreateDecoderAVCodec();
   }
+  DbgLog((LOG_TRACE, 10, L"-> Created Codec '%s'", m_pDecoder->GetDecoderName()));
 
   hr = m_pDecoder->InitInterfaces(static_cast<ILAVVideoSettings *>(m_pLAVVideo), static_cast<ILAVVideoCallback *>(this));
   if (FAILED(hr)) {
