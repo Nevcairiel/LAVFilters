@@ -235,7 +235,8 @@ HRESULT CLAVVideo::LoadSettings()
 
   for (int i = 0; i < Codec_NB; ++i) {
     const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
-    bFlag = regF.ReadBOOL(info->name, hr);
+    ATL::CA2W name(info->name);
+    bFlag = regF.ReadBOOL(name, hr);
     if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
   }
 
@@ -310,7 +311,8 @@ HRESULT CLAVVideo::SaveSettings()
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
     for (int i = 0; i < Codec_NB; ++i) {
       const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
-      regF.WriteBOOL(info->name, m_settings.bFormats[i]);
+      ATL::CA2W name(info->name);
+      regF.WriteBOOL(name, m_settings.bFormats[i]);
     }
 
     reg.WriteBOOL(L"MSWMV9DMO", m_settings.bMSWMV9DMO);

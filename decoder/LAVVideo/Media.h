@@ -27,8 +27,8 @@ int getThreadFlags(CodecID codecId);
 struct codec_config_t {
   int nCodecs;
   CodecID codecs[MAX_NUM_CC_CODECS];
-  const wchar_t *name;
-  const wchar_t *description;
+  const char *name;
+  const char *description;
 };
 const codec_config_t *get_codec_config(LAVVideoCodec codec);
 

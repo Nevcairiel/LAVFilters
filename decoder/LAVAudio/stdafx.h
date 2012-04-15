@@ -33,6 +33,9 @@
 #include <Windows.h>
 #include <Commctrl.h>
 
+#include <atlbase.h>
+#include <atlconv.h>
+
 #pragma warning(push)
 #pragma warning(disable:4244)
 extern "C" {

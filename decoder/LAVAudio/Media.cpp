@@ -578,14 +578,14 @@ static codec_config_t m_codec_config[] = {
   { 2, { CODEC_ID_TRUEHD, CODEC_ID_MLP }},         // CC_TRUEHD
   { 1, { CODEC_ID_FLAC }},                         // CC_FLAC
   { 1, { CODEC_ID_VORBIS }},                       // CC_VORBIS
-  { 2, { CODEC_ID_PCM_BLURAY, CODEC_ID_PCM_DVD }, L"lpcm", L"Linear PCM (BluRay & DVD)"}, // CC_LPCM
-  { 1, { CODEC_ID_NONE }, L"pcm", L"Raw PCM Types (including QT PCM)" }, // CC_LPCM
+  { 2, { CODEC_ID_PCM_BLURAY, CODEC_ID_PCM_DVD }, "lpcm", "Linear PCM (BluRay & DVD)"}, // CC_LPCM
+  { 1, { CODEC_ID_NONE }, "pcm", "Raw PCM Types (including QT PCM)" }, // CC_LPCM
   { 1, { CODEC_ID_WAVPACK }},                      // CC_WAVPACK
   { 1, { CODEC_ID_TTA }},                          // CC_TTA
-  { 2, { CODEC_ID_WMAV2, CODEC_ID_WMAV1 }, L"wma", L"Windows Media Audio 1/2"}, // CC_WMA2
+  { 2, { CODEC_ID_WMAV2, CODEC_ID_WMAV1 }, "wma", "Windows Media Audio 1/2"}, // CC_WMA2
   { 1, { CODEC_ID_WMAPRO }},                       // CC_WMAPRO
   { 1, { CODEC_ID_COOK }},                         // CC_COOK
-  { 5, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288, CODEC_ID_RALF }, L"realaudio", L"Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
+  { 5, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288, CODEC_ID_RALF }, "realaudio", "Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
   { 1, { CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
   { 1, { CODEC_ID_ALAC }},
 };
@@ -593,19 +593,15 @@ static codec_config_t m_codec_config[] = {
 const codec_config_t *get_codec_config(LAVAudioCodec codec)
 {
   codec_config_t *config = &m_codec_config[codec];
-  if (!config->name) {
-    AVCodec *codec = avcodec_find_decoder(config->codecs[0]);
-    if (codec) {
-      size_t name_len = strlen(codec->name) + 1;
-      wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, codec->name, -1, name, (int)name_len);
 
-      size_t desc_len = strlen(codec->long_name) + 1;
-      wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, codec->long_name, -1, desc, (int)desc_len);
+  AVCodec *avcodec = avcodec_find_decoder(config->codecs[0]);
+  if (avcodec) {
+    if (!config->name) {
+      config->name = avcodec->name;
+    }
 
-      config->name = name;
-      config->description = desc;
+    if (!config->description) {
+      config->description = avcodec->long_name;
     }
   }
 

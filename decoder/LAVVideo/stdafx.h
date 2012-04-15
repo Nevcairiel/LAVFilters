@@ -33,6 +33,9 @@
 #include <Windows.h>
 #include <Commctrl.h>
 
+#include <atlbase.h>
+#include <atlconv.h>
+
 #include <d3d9.h>
 #include <dxva2api.h>
 

@@ -432,39 +432,39 @@ CodecID FindCodecId(const CMediaType *mt)
 static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_H264 }},                                                // Codec_H264
   { 1, { CODEC_ID_VC1 }},                                                 // Codec_VC1
-  { 1, { CODEC_ID_MPEG1VIDEO }, L"mpeg1"},                                // Codec_MPEG1
-  { 1, { CODEC_ID_MPEG2VIDEO }, L"mpeg2"},                                // Codec_MPEG2
+  { 1, { CODEC_ID_MPEG1VIDEO }, "mpeg1"},                                 // Codec_MPEG1
+  { 1, { CODEC_ID_MPEG2VIDEO }, "mpeg2"},                                 // Codec_MPEG2
   { 1, { CODEC_ID_MPEG4 }},                                               // Codec_MPEG4
-  { 3, { CODEC_ID_MSMPEG4V1, CODEC_ID_MSMPEG4V2, CODEC_ID_MSMPEG4V3 }, L"msmpeg4", L"MS-MPEG-4 (DIVX3)" },   // Codec_MSMPEG4
+  { 3, { CODEC_ID_MSMPEG4V1, CODEC_ID_MSMPEG4V2, CODEC_ID_MSMPEG4V3 }, "msmpeg4", "MS-MPEG-4 (DIVX3)" },   // Codec_MSMPEG4
   { 1, { CODEC_ID_VP8 }},                                                 // Codec_VP8
   { 1, { CODEC_ID_WMV3 }},                                                // Codec_WMV3
-  { 2, { CODEC_ID_WMV1, CODEC_ID_WMV2 }, L"wmv12", L"Windows Media Video 7/8" },  // Codec_WMV12
+  { 2, { CODEC_ID_WMV1, CODEC_ID_WMV2 }, "wmv12", "Windows Media Video 7/8" },  // Codec_WMV12
   { 3, { CODEC_ID_MJPEG, CODEC_ID_MJPEGB, CODEC_ID_AMV }},                // Codec_MJPEG
   { 2, { CODEC_ID_THEORA, CODEC_ID_VP3 }},                                // Codec_Theora
-  { 2, { CODEC_ID_FLV1, CODEC_ID_FLASHSV }, L"flash", L"Flash Video (FLV1, FSV1)"}, // Codec_FLV1
+  { 2, { CODEC_ID_FLV1, CODEC_ID_FLASHSV }, "flash", "Flash Video (FLV1, FSV1)"}, // Codec_FLV1
   { 3, { CODEC_ID_VP6, CODEC_ID_VP6A, CODEC_ID_VP6F }},                   // Codec_VP6
-  { 2, { CODEC_ID_SVQ1, CODEC_ID_SVQ3 }, L"svq", L"SVQ 1 / SVQ 3"},       // Codec_SVQ
+  { 2, { CODEC_ID_SVQ1, CODEC_ID_SVQ3 }, "svq", "SVQ 1 / SVQ 3"},         // Codec_SVQ
   { 1, { CODEC_ID_H261 }},                                                // Codec_H261
   { 1, { CODEC_ID_H263 }},                                                // Codec_H263
-  { 3, { CODEC_ID_INDEO3, CODEC_ID_INDEO4, CODEC_ID_INDEO5 }, L"indeo", L"Intel Indeo 3/4/5"}, // Codec_Indeo
+  { 3, { CODEC_ID_INDEO3, CODEC_ID_INDEO4, CODEC_ID_INDEO5 }, "indeo", "Intel Indeo 3/4/5"}, // Codec_Indeo
   { 1, { CODEC_ID_TSCC }},                                                // Codec_TSCC
   { 1, { CODEC_ID_FRAPS }},                                               // Codec_Fraps
   { 2, { CODEC_ID_HUFFYUV, CODEC_ID_FFVHUFF }},                           // Codec_HuffYUV
   { 1, { CODEC_ID_QTRLE }},                                               // Codec_QTRle
   { 1, { CODEC_ID_DVVIDEO }},                                             // Codec_DV
-  { 1, { CODEC_ID_BINKVIDEO }, L"bink"},                                  // Codec_Bink
+  { 1, { CODEC_ID_BINKVIDEO }, "bink"},                                   // Codec_Bink
   { 1, { CODEC_ID_SMACKVIDEO }},                                          // Codec_Smacker
-  { 2, { CODEC_ID_RV10, CODEC_ID_RV20 }, L"rv12", L"RealVideo 1/2" },     // Codev_RV12
-  { 2, { CODEC_ID_RV30, CODEC_ID_RV40 }, L"rv34", L"RealVideo 3/4" },     // Codec_RV34
+  { 2, { CODEC_ID_RV10, CODEC_ID_RV20 }, "rv12", "RealVideo 1/2" },       // Codev_RV12
+  { 2, { CODEC_ID_RV30, CODEC_ID_RV40 }, "rv34", "RealVideo 3/4" },       // Codec_RV34
   { 1, { CODEC_ID_LAGARITH }},                                            // Codec_Lagarith
   { 1, { CODEC_ID_CINEPAK }},                                             // Codec_Cinepak
   { 1, { CODEC_ID_CSCD }},                                                // Codec_Camstudio
   { 1, { CODEC_ID_QPEG }},                                                // Codec_QPEG
-  { 2, { CODEC_ID_ZLIB, CODEC_ID_MSZH }, L"zlib", L"ZLIB/MSZH lossless" },// Codec_ZLIB
+  { 2, { CODEC_ID_ZLIB, CODEC_ID_MSZH }, "zlib", "ZLIB/MSZH lossless" },  // Codec_ZLIB
   { 1, { CODEC_ID_RPZA }},                                                // Codec_QTRpza
   { 1, { CODEC_ID_PNG }},                                                 // Codec_PNG
   { 2, { CODEC_ID_MSRLE, CODEC_ID_AASC }},                                // Codec_MSRLE
-  { 1, { CODEC_ID_PRORES }, L"prores", L"ProRes" },                       // Codec_ProRes
+  { 1, { CODEC_ID_PRORES }, "prores", "ProRes" },                         // Codec_ProRes
   { 1, { CODEC_ID_UTVIDEO }},                                             // Codec_UtVideo
   { 1, { CODEC_ID_DIRAC }},                                               // Codec_Dirac
   { 1, { CODEC_ID_DNXHD }},                                               // Codec_DNxHD
@@ -475,7 +475,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_VCR1 }},                                                // Codec_VCR1
   { 1, { CODEC_ID_SNOW }},                                                // Codec_Snow
   { 1, { CODEC_ID_FFV1 }},                                                // Codec_FFV1
-  { 2, { CODEC_ID_V210, CODEC_ID_V410 }, L"v210/v410", L"v210/v410 uncompressed"}, // Codec_v210
+  { 2, { CODEC_ID_V210, CODEC_ID_V410 }, "v210/v410", "v210/v410 uncompressed"}, // Codec_v210
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
@@ -485,19 +485,11 @@ const codec_config_t *get_codec_config(LAVVideoCodec codec)
   AVCodec *avcodec = avcodec_find_decoder(config->codecs[0]);
   if (avcodec) {
     if (!config->name) {
-      size_t name_len = strlen(avcodec->name) + 1;
-      wchar_t *name = (wchar_t *)calloc(name_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, avcodec->name, -1, name, (int)name_len);
-
-      config->name = name;
+      config->name = avcodec->name;
     }
 
     if (!config->description) {
-      size_t desc_len = strlen(avcodec->long_name) + 1;
-      wchar_t *desc = (wchar_t *)calloc(desc_len, sizeof(wchar_t));
-      MultiByteToWideChar(CP_UTF8, 0, avcodec->long_name, -1, desc, (int)desc_len);
-
-      config->description = desc;
+      config->description = avcodec->long_name;
     }
   }
 

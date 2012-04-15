@@ -412,8 +412,11 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
     ListView_InsertItem(hlv, &lvi);
 
     // Set sub item texts
-    ListView_SetItemText(hlv, nItem, 1, (LPWSTR)config->name);
-    ListView_SetItemText(hlv, nItem, 2, (LPWSTR)config->description);
+    ATL::CA2W name(config->name);
+    ListView_SetItemText(hlv, nItem, 1, (LPWSTR)name);
+
+    ATL::CA2W desc(config->description);
+    ListView_SetItemText(hlv, nItem, 2, (LPWSTR)desc);
   }
 
   hr = LoadData();
