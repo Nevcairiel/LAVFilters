@@ -62,7 +62,7 @@
         #error "Unsupported value of CUDA_FORCE_API_VERSION"
     #endif
 #else
-    #define __CUDA_API_VERSION 4010
+    #define __CUDA_API_VERSION 4020
 #endif /* CUDA_FORCE_API_VERSION */
 
 #if defined(__CUDA_API_VERSION_INTERNAL) || __CUDA_API_VERSION >= 3020
@@ -142,7 +142,7 @@
 /**
  * CUDA API version number
  */
-#define CUDA_VERSION 4010 /* 4.1 */
+#define CUDA_VERSION 4020
 
 #ifdef __cplusplus
 extern "C" {
@@ -432,6 +432,15 @@ typedef enum CUfunc_cache_enum {
 } CUfunc_cache;
 
 /**
+ * Shared memory configurations
+ */
+typedef enum CUsharedconfig_enum {
+    CU_SHARED_MEM_CONFIG_DEFAULT_BANK_SIZE    = 0x00, /**< set default shared memory bank size */
+    CU_SHARED_MEM_CONFIG_FOUR_BYTE_BANK_SIZE  = 0x01, /**< set shared memory bank width to four bytes */
+    CU_SHARED_MEM_CONFIG_EIGHT_BYTE_BANK_SIZE = 0x02  /**< set shared memory bank width to eight bytes */
+} CUsharedconfig;
+
+/**
  * Memory types
  */
 typedef enum CUmemorytype_enum {
@@ -553,7 +562,8 @@ typedef enum CUjit_target_enum
     CU_TARGET_COMPUTE_12,       /**< Compute device class 1.2 */
     CU_TARGET_COMPUTE_13,       /**< Compute device class 1.3 */
     CU_TARGET_COMPUTE_20,       /**< Compute device class 2.0 */
-    CU_TARGET_COMPUTE_21        /**< Compute device class 2.1 */
+    CU_TARGET_COMPUTE_21,       /**< Compute device class 2.1 */
+    CU_TARGET_COMPUTE_30        /**< Compute device class 3.0 */
 } CUjit_target;
 
 /**
@@ -1706,9 +1716,9 @@ CUresult CUDAAPI cuCtxCreate(CUcontext *pctx, unsigned int flags, CUdevice dev);
  * \brief Destroy a CUDA context
  *
  * Destroys the CUDA context specified by \p ctx.  The context \p ctx will be
- * destroyed regardless of how many threads it is current to.  It is the
- * caller's responsibility to ensure that no API call is issued to \p ctx
- * while ::cuCtxDestroy() is executing.
+ * destroyed regardless of how many threads it is current to.
+ * It is the responsibility of the calling function to ensure that no API
+ * call issues using \p ctx while ::cuCtxDestroy() is executing.
  *
  * If \p ctx is current to the calling thread then \p ctx will also be
  * popped from the current thread's context stack (as though ::cuCtxPopCurrent()
@@ -2093,7 +2103,7 @@ CUresult CUDAAPI cuCtxGetLimit(size_t *pvalue, CUlimit limit);
  * \brief Returns the preferred cache configuration for the current context.
  *
  * On devices where the L1 cache and shared memory use the same hardware
- * resources, this returns through \p pconfig the preferred cache configuration
+ * resources, this function returns through \p pconfig the preferred cache configuration
  * for the current context. This is only a preference. The driver will use
  * the requested configuration if possible, but it is free to choose a different
  * configuration if required to execute functions.
@@ -2180,17 +2190,111 @@ CUresult CUDAAPI cuCtxGetCacheConfig(CUfunc_cache *pconfig);
  */
 CUresult CUDAAPI cuCtxSetCacheConfig(CUfunc_cache config);
 
+#if __CUDA_API_VERSION >= 4020
+/**
+ * \brief Returns the current shared memory configuration for the current context.
+ *
+ * This function will return in \p pConfig the current size of shared memory banks
+ * in the current context. On devices with configurable shared memory banks,
+ * ::cuCtxSetSharedMemConfig can be used to change this setting, so that all
+ * subsequent kernel launches will by default use the new bank size. When
+ * ::cuCtxGetSharedMemConfig is called on devices without configurable shared
+ * memory, it will return the fixed bank size of the hardware.
+ *
+ * The returned bank configurations can be either:
+ * - ::CU_SHARED_MEM_CONFIG_FOUR_BYTE_BANK_SIZE:  shared memory bank width is
+ *   four bytes.
+ * - ::CU_SHARED_MEM_CONFIG_EIGHT_BYTE_BANK_SIZE: shared memory bank width will
+ *   eight bytes.
+ *
+ * \param pConfig - returned shared memory configuration
+ * \return
+ * ::CUDA_SUCCESS,
+ * ::CUDA_ERROR_DEINITIALIZED,
+ * ::CUDA_ERROR_NOT_INITIALIZED,
+ * ::CUDA_ERROR_INVALID_CONTEXT,
+ * ::CUDA_ERROR_INVALID_VALUE
+ * \notefnerr
+ *
+ * \sa ::cuCtxCreate,
+ * ::cuCtxDestroy,
+ * ::cuCtxGetApiVersion,
+ * ::cuCtxGetCacheConfig,
+ * ::cuCtxGetDevice,
+ * ::cuCtxGetLimit,
+ * ::cuCtxPopCurrent,
+ * ::cuCtxPushCurrent,
+ * ::cuCtxSetLimit,
+ * ::cuCtxSynchronize,
+ * ::cuCtxGetSharedMemConfig,
+ * ::cuFuncSetCacheConfig,
+ */
+CUresult CUDAAPI cuCtxGetSharedMemConfig(CUsharedconfig *pConfig);
+
+/**
+ * \brief Sets the shared memory configuration for the current context.
+ *
+ * On devices with configurable shared memory banks, this function will set
+ * the context's shared memory bank size which is used for subsequent kernel
+ * launches.
+ *
+ * Changed the shared memory configuration between launches may insert a device
+ * side synchronization point between those launches.
+ *
+ * Changing the shared memory bank size will not increase shared memory usage
+ * or affect occupancy of kernels, but may have major effects on performance.
+ * Larger bank sizes will allow for greater potential bandwidth to shared memory,
+ * but will change what kinds of accesses to shared memory will result in bank
+ * conflicts.
+ *
+ * This function will do nothing on devices with fixed shared memory bank size.
+ *
+ * The supported bank configurations are:
+ * - ::CU_SHARED_MEM_CONFIG_DEFAULT_BANK_SIZE: set bank width to the default initial
+ *   setting (currently, four bytes).
+ * - ::CU_SHARED_MEM_CONFIG_FOUR_BYTE_BANK_SIZE: set shared memory bank width to
+ *   be natively four bytes.
+ * - ::CU_SHARED_MEM_CONFIG_EIGHT_BYTE_BANK_SIZE: set shared memory bank width to
+ *   be natively eight bytes.
+ *
+ * \param config - requested shared memory configuration
+ *
+ * \return
+ * ::CUDA_SUCCESS,
+ * ::CUDA_ERROR_DEINITIALIZED,
+ * ::CUDA_ERROR_NOT_INITIALIZED,
+ * ::CUDA_ERROR_INVALID_CONTEXT,
+ * ::CUDA_ERROR_INVALID_VALUE
+ * \notefnerr
+ *
+ * \sa ::cuCtxCreate,
+ * ::cuCtxDestroy,
+ * ::cuCtxGetApiVersion,
+ * ::cuCtxGetCacheConfig,
+ * ::cuCtxGetDevice,
+ * ::cuCtxGetLimit,
+ * ::cuCtxPopCurrent,
+ * ::cuCtxPushCurrent,
+ * ::cuCtxSetLimit,
+ * ::cuCtxSynchronize,
+ * ::cuCtxGetSharedMemConfig,
+ * ::cuFuncSetCacheConfig,
+ */
+CUresult CUDAAPI cuCtxSetSharedMemConfig(CUsharedconfig config);
+#endif
+
 /**
  * \brief Gets the context's API version.
  *
- * Returns the API version used to create \p ctx in \p version. If \p ctx
- * is NULL, returns the API version used to create the currently bound
- * context.
+ * Returns a version number in \p version corresponding to the capabilities of
+ * the context (e.g. 3010 or 3020), which library developers can use to direct
+ * callers to a specific API version. If \p ctx is NULL, returns the API version
+ * used to create the currently bound context.
  *
- * This wil return the API version used to create a context (for example,
- * 3010 or 3020), which library developers can use to direct callers to a
- * specific API version. Note that this API version may not be the same as
- * returned by cuDriverGetVersion.
+ * Note that new API versions are only introduced when context capabilities are
+ * changed that break binary compatibility, so the API version and driver version
+ * may be different. For example, it is valid for the API version to be 3020 while
+ * the driver version is 4010.
  *
  * \param ctx     - Context to check
  * \param version - Pointer to version
@@ -4841,6 +4945,9 @@ CUresult CUDAAPI cuMemcpy3DPeerAsync(const CUDA_MEMCPY3D_PEER *pCopy, CUstream h
  * Sets the memory range of \p N 8-bit values to the specified value
  * \p uc.
  *
+ * Note that this function is asynchronous with respect to the host unless
+ * \p dstDevice refers to pinned host memory.
+ *
  * \param dstDevice - Destination device pointer
  * \param uc        - Value to set
  * \param N         - Number of elements
@@ -4874,6 +4981,9 @@ CUresult CUDAAPI cuMemsetD8(CUdeviceptr dstDevice, unsigned char uc, size_t N);
  * Sets the memory range of \p N 16-bit values to the specified value
  * \p us. The \p dstDevice pointer must be two byte aligned.
  *
+ * Note that this function is asynchronous with respect to the host unless
+ * \p dstDevice refers to pinned host memory.
+ *
  * \param dstDevice - Destination device pointer
  * \param us        - Value to set
  * \param N         - Number of elements
@@ -4906,6 +5016,9 @@ CUresult CUDAAPI cuMemsetD16(CUdeviceptr dstDevice, unsigned short us, size_t N)
  *
  * Sets the memory range of \p N 32-bit values to the specified value
  * \p ui. The \p dstDevice pointer must be four byte aligned.
+ *
+ * Note that this function is asynchronous with respect to the host unless
+ * \p dstDevice refers to pinned host memory.
  *
  * \param dstDevice - Destination device pointer
  * \param ui        - Value to set
@@ -4942,6 +5055,9 @@ CUresult CUDAAPI cuMemsetD32(CUdeviceptr dstDevice, unsigned int ui, size_t N);
  * specifies the number of bytes between each row. This function performs
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
+ *
+ * Note that this function is asynchronous with respect to the host unless
+ * \p dstDevice refers to pinned host memory.
  *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
@@ -4982,6 +5098,9 @@ CUresult CUDAAPI cuMemsetD2D8(CUdeviceptr dstDevice, size_t dstPitch, unsigned c
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
  *
+ * Note that this function is asynchronous with respect to the host unless
+ * \p dstDevice refers to pinned host memory.
+ *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
  * \param us        - Value to set
@@ -5020,6 +5139,9 @@ CUresult CUDAAPI cuMemsetD2D16(CUdeviceptr dstDevice, size_t dstPitch, unsigned 
  * and \p dstPitch offset must be four byte aligned. This function performs
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
+ *
+ * Note that this function is asynchronous with respect to the host unless
+ * \p dstDevice refers to pinned host memory.
  *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
@@ -5711,7 +5833,7 @@ CUresult CUDAAPI cuArray3DGetDescriptor(CUDA_ARRAY3D_DESCRIPTOR *pArrayDescripto
  * resides.  These properties may be queried using the function
  * ::cuPointerGetAttribute()
  *
- * Because pointers are unique, it is not necessary to specify information
+ * Since pointers are unique, it is not necessary to specify information
  * about the pointers specified to the various copy functions in the
  * CUDA API.  The function ::cuMemcpy() may be used to perform a copy
  * between two pointers, ignoring whether they point to host or device
@@ -5927,7 +6049,7 @@ CUresult CUDAAPI cuStreamCreate(CUstream *phStream, unsigned int Flags);
  * The stream \p hStream will wait only for the completion of the most recent
  * host call to ::cuEventRecord() on \p hEvent.  Once this call has returned,
  * any functions (including ::cuEventRecord() and ::cuEventDestroy()) may be
- * called on \p hEvent again, and the subsequent calls will not have any
+ * called on \p hEvent again, and subsequent calls will not have any
  * effect on \p hStream.
  *
  * If \p hStream is 0 (the NULL stream) any future work submitted in any stream
@@ -6012,7 +6134,7 @@ CUresult CUDAAPI cuStreamSynchronize(CUstream hStream);
  *
  * Destroys the stream specified by \p hStream.
  *
- * In the case that the device is still doing work in the stream \p hStream
+ * In case the device is still doing work in the stream \p hStream
  * when ::cuStreamDestroy() is called, the function will return immediately
  * and the resources associated with \p hStream will be released automatically
  * once the device has completed all work in \p hStream.
@@ -6192,7 +6314,7 @@ CUresult CUDAAPI cuEventSynchronize(CUevent hEvent);
  *
  * Destroys the event specified by \p hEvent.
  *
- * In the case that \p hEvent has been recorded but has not yet been completed
+ * In case \p hEvent has been recorded but has not yet been completed
  * when ::cuEventDestroy() is called, the function will return immediately and
  * the resources associated with \p hEvent will be released automatically once
  * the device has completed \p hEvent.
@@ -6352,6 +6474,7 @@ CUresult CUDAAPI cuFuncGetAttribute(int *pi, CUfunction_attribute attrib, CUfunc
  *
  * \return
  * ::CUDA_SUCCESS,
+ * ::CUDA_ERROR_INVALID_VALUE,
  * ::CUDA_ERROR_DEINITIALIZED,
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT
@@ -6363,6 +6486,59 @@ CUresult CUDAAPI cuFuncGetAttribute(int *pi, CUfunction_attribute attrib, CUfunc
  * ::cuLaunchKernel
  */
 CUresult CUDAAPI cuFuncSetCacheConfig(CUfunction hfunc, CUfunc_cache config);
+
+#if __CUDA_API_VERSION >= 4020
+/**
+ * \brief Sets the shared memory configuration for a device function.
+ *
+ * On devices with configurable shared memory banks, this function will
+ * force all subsequent launches of the specified device function to have
+ * the given shared memory bank size configuration. On any given launch of the
+ * function, the shared memory configuration of the device will be temporarily
+ * changed if needed to suit the function's preferred configuration. Changes in
+ * shared memory configuration between subsequent launches of functions,
+ * may introduce a device side synchronization point.
+ *
+ * Any per-function setting of shared memory bank size set via
+ * ::cuFuncSetSharedMemConfig will override the context wide setting set with
+ * ::cuCtxSetSharedMemConfig.
+ *
+ * Changing the shared memory bank size will not increase shared memory usage
+ * or affect occupancy of kernels, but may have major effects on performance.
+ * Larger bank sizes will allow for greater potential bandwidth to shared memory,
+ * but will change what kinds of accesses to shared memory will result in bank
+ * conflicts.
+ *
+ * This function will do nothing on devices with fixed shared memory bank size.
+ *
+ * The supported bank configurations are:
+ * - ::CU_SHARED_MEM_CONFIG_DEFAULT_BANK_SIZE: use the context's shared memory
+ *   configuration when launching this function.
+ * - ::CU_SHARED_MEM_CONFIG_FOUR_BYTE_BANK_SIZE: set shared memory bank width to
+ *   be natively four bytes when launching this function.
+ * - ::CU_SHARED_MEM_CONFIG_EIGHT_BYTE_BANK_SIZE: set shared memory bank width to
+ *   be natively eight bytes when launching this function.
+ *
+ * \param hfunc  - kernel to be given a shared memory config
+ * \param config - requested shared memory configuration
+ *
+ * \return
+ * ::CUDA_SUCCESS,
+ * ::CUDA_ERROR_INVALID_VALUE,
+ * ::CUDA_ERROR_DEINITIALIZED,
+ * ::CUDA_ERROR_NOT_INITIALIZED,
+ * ::CUDA_ERROR_INVALID_CONTEXT
+ * \notefnerr
+ *
+ * \sa ::cuCtxGetCacheConfig,
+ * ::cuCtxSetCacheConfig,
+ * ::cuCtxGetSharedMemConfig
+ * ::cuCtxSetSharedMemConfig
+ * ::cuFuncGetAttribute,
+ * ::cuLaunchKernel
+ */
+CUresult CUDAAPI cuFuncSetSharedMemConfig(CUfunction hfunc, CUsharedconfig config);
+#endif
 
 #if __CUDA_API_VERSION >= 4000
 /**
@@ -7621,9 +7797,9 @@ CUresult CUDAAPI cuGraphicsResourceGetMappedPointer(CUdeviceptr *pDevPtr, size_t
  * - ::CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE: Specifies no hints about how this
  *   resource will be used. It is therefore assumed that this resource will be
  *   read from and written to by CUDA kernels.  This is the default value.
- * - ::CU_GRAPHICS_MAP_RESOURCE_FLAGS_READONLY: Specifies that CUDA kernels which
+ * - ::CU_GRAPHICS_MAP_RESOURCE_FLAGS_READ_ONLY: Specifies that CUDA kernels which
  *   access this resource will not write to this resource.
- * - ::CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITEDISCARD: Specifies that CUDA kernels
+ * - ::CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD: Specifies that CUDA kernels
  *   which access this resource will not read from this resource and will
  *   write over the entire contents of the resource, so none of the data
  *   previously stored in the resource will be preserved.
