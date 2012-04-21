@@ -210,7 +210,7 @@ HRESULT CLAVAudio::FreeBitstreamContext()
   return S_OK;
 }
 
-CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
+CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec, DWORD dwSampleRate)
 {
    CMediaType mt;
 
@@ -231,7 +231,7 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
    switch(codec) {
    case CODEC_ID_AC3:
      wfe->wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF;
-     wfe->nSamplesPerSec = 48000;
+     wfe->nSamplesPerSec = min(dwSampleRate, 48000);
      break;
    case CODEC_ID_EAC3:
      wfe->nSamplesPerSec = 192000;
@@ -250,7 +250,7 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec)
        subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
      } else {
        wfe->wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF; // huh? but it works.
-       wfe->nSamplesPerSec = 48000;
+       wfe->nSamplesPerSec = min(dwSampleRate, 48000);
      }
      break;
    default:
@@ -367,7 +367,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
 {
   HRESULT hr = S_OK;
 
-  CMediaType mt = CreateBitstreamMediaType(codec);
+  CMediaType mt = CreateBitstreamMediaType(codec, m_bsParser.m_dwSampleRate);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
   if(FAILED(hr = ReconnectOutput(dwSize, mt))) {
@@ -445,7 +445,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   }
 
 #ifdef DEBUG
-  DbgLog((LOG_CUSTOM5, 20, L"PCM Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, diff: %I64d", rtStart, m_rtBitstreamCache, rtJitter));
+  DbgLog((LOG_CUSTOM5, 20, L"Bitstream Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, duration: %I64d, diff: %I64d", rtStart, m_rtBitstreamCache, rtStop-rtStart, rtJitter));
 
   if (m_faJitter.CurrentSample() == 0) {
     DbgLog((LOG_TRACE, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));

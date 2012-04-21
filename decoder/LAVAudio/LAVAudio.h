@@ -206,7 +206,7 @@ private:
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
   HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
-  CMediaType CreateBitstreamMediaType(CodecID codec);
+  CMediaType CreateBitstreamMediaType(CodecID codec, DWORD dwSampleRate);
   void ActivateDTSHDMuxing();
 
   HRESULT InitDTSDecoder();
