@@ -61,6 +61,7 @@ const AVCodecTag mp_wav_tags[] = {
   { CODEC_ID_TWINVQ,            MKTAG('T', 'W', 'I', '2')},
   { CODEC_ID_WESTWOOD_SND1,     MKTAG('S', 'N', 'D', '1')},
   { CODEC_ID_XAN_DPCM,          MKTAG('A', 'x', 'a', 'n')},
+  { CODEC_ID_MP4ALS,            MKTAG('A', 'L', 'S', ' ')},
 };
 
 const struct AVCodecTag * const mp_wav_taglists[] = { ff_codec_wav_tags, mp_wav_tags, 0};
