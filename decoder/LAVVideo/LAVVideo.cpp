@@ -35,29 +35,6 @@
 
 #pragma warning(disable: 4355)
 
-static int ff_lockmgr(void **mutex, enum AVLockOp op)
-{
-  DbgLog((LOG_TRACE, 10, L"ff_lockmgr: mutex: %p, op: %d", *mutex, op));
-  CRITICAL_SECTION **critSec = (CRITICAL_SECTION **)mutex;
-  switch (op) {
-  case AV_LOCK_CREATE:
-    *critSec = new CRITICAL_SECTION();
-    InitializeCriticalSection(*critSec);
-    break;
-  case AV_LOCK_OBTAIN:
-    EnterCriticalSection(*critSec);
-    break;
-  case AV_LOCK_RELEASE:
-    LeaveCriticalSection(*critSec);
-    break;
-  case AV_LOCK_DESTROY:
-    DeleteCriticalSection(*critSec);
-    SAFE_DELETE(*critSec);
-    break;
-  }
-  return 0;
-}
-
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("LAV Video Decoder"), 0, __uuidof(CLAVVideo))
   , m_Decoder(this)
@@ -101,8 +78,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   avcodec_register_all();
   avfilter_register_all();
-  if (av_lockmgr_addref() == 1)
-    av_lockmgr_register(ff_lockmgr);
 
   LoadSettings();
 
@@ -127,10 +102,6 @@ CLAVVideo::~CLAVVideo()
     avfilter_graph_free(&m_pFilterGraph);
   m_pFilterBufferSrc = NULL;
   m_pFilterBufferSink = NULL;
-
-  // If its 0, that means we're the last one using/owning the object, and can free it
-  if(av_lockmgr_release() == 0)
-    av_lockmgr_register(NULL);
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::IsVistaOrNewer()
