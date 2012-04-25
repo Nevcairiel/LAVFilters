@@ -77,9 +77,9 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   { LAVPixFmt_YUV422bX, 16, 10, { LAVOutPixFmt_P216, LAVOutPixFmt_P210, LAVOutPixFmt_v210, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
   
   // 4:4:4
-  { LAVPixFmt_YUV444,    8, 7, { LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
-  { LAVPixFmt_YUV444bX, 10, 9, { LAVOutPixFmt_Y410, LAVOutPixFmt_v410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
-  { LAVPixFmt_YUV444bX, 16, 10, { LAVOutPixFmt_Y416, LAVOutPixFmt_Y410, LAVOutPixFmt_v410, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
+  { LAVPixFmt_YUV444,    8, 8, { LAVOutPixFmt_YV24, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
+  { LAVPixFmt_YUV444bX, 10, 10, { LAVOutPixFmt_Y410, LAVOutPixFmt_v410, LAVOutPixFmt_YV24, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
+  { LAVPixFmt_YUV444bX, 16, 11, { LAVOutPixFmt_Y416, LAVOutPixFmt_Y410, LAVOutPixFmt_v410, LAVOutPixFmt_YV24, LAVOutPixFmt_AYUV, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
 
   // RGB
   { LAVPixFmt_RGB24,  8, 6, { LAVOutPixFmt_RGB24, LAVOutPixFmt_RGB32, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
@@ -106,7 +106,7 @@ LAVOutPixFmtDesc lav_pixfmt_desc[] = {
   { FOURCCMap('012v'),  24, 4, 0, { 1 }, { 1 } },                    // v210 (packed)
   { FOURCCMap('014v'),  32, 4, 0, { 1 }, { 1 }  },                   // v410 (packed)
   { MEDIASUBTYPE_YV16,  16, 1, 3, { 1, 1, 1 }, { 1, 2, 2 } },        // YV16
-  { FOURCCMap('42VY'),  24, 1, 3, { 1, 1, 1 }, { 1, 1, 1 } },        // YV24
+  { MEDIASUBTYPE_YV24,  24, 1, 3, { 1, 1, 1 }, { 1, 1, 1 } },        // YV24
 };
 
 static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, BOOL bFallbackToDefault = TRUE)

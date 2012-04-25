@@ -97,6 +97,7 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bPixFmts[LAVOutPixFmt_P210] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P210, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_v210] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_V210, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_P216] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_P216, BM_GETCHECK,0, 0);
+  bPixFmts[LAVOutPixFmt_YV24] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV24, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_AYUV] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_AYUV, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_Y410] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_Y410, BM_GETCHECK,0, 0);
   bPixFmts[LAVOutPixFmt_v410] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_V410, BM_GETCHECK,0, 0);
@@ -238,6 +239,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_OUT_P210, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_P210], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_V210, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_v210], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_P216, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_P216], 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUT_YV24, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_YV24], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_AYUV, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_AYUV], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_Y410, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_Y410], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_V410, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_v410], 0);
@@ -425,6 +427,11 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_OUT_P216 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_bPixFmts[LAVOutPixFmt_P216]) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_OUT_YV24 && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_bPixFmts[LAVOutPixFmt_YV24]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_AYUV && HIWORD(wParam) == BN_CLICKED) {
