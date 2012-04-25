@@ -23,10 +23,6 @@
 
 #include "dvdmedia.h"
 
-extern "C" {
-__declspec(dllimport) extern const AVCodecTag ff_codec_bmp_tags[];
-}
-
 const AVCodecTag mp_bmp_tags[] = {
   { CODEC_ID_AMV,               MKTAG('A', 'M', 'V', 'V')},
   { CODEC_ID_BETHSOFTVID,       MKTAG('B', 'E', 'T', 'H')},
@@ -56,8 +52,9 @@ const AVCodecTag mp_bmp_tags[] = {
   { CODEC_ID_VMDVIDEO,          MKTAG('V', 'M', 'D', 'V')},
   { CODEC_ID_WS_VQA,            MKTAG('V', 'Q', 'A', 'V')},
   { CODEC_ID_XAN_WC3,           MKTAG('W', 'C', '3', 'V')},
+  { CODEC_ID_NONE,              0}
 };
-const struct AVCodecTag * const mp_bmp_taglists[] = { ff_codec_bmp_tags, mp_bmp_tags, 0};
+const struct AVCodecTag * const mp_bmp_taglists[] = { avformat_get_riff_video_tags(), mp_bmp_tags, 0};
 
 class CLAVFVideoHelper
 {

@@ -24,10 +24,6 @@
 #include "dvdmedia.h"
 #include "moreuuids.h"
 
-extern "C" {
-__declspec(dllimport) extern const AVCodecTag ff_codec_wav_tags[];
-}
-
 const AVCodecTag mp_wav_tags[] = {
   { CODEC_ID_WAVPACK,           0x5756 },
   { CODEC_ID_TTA,               0x77A1 },
@@ -62,9 +58,10 @@ const AVCodecTag mp_wav_tags[] = {
   { CODEC_ID_WESTWOOD_SND1,     MKTAG('S', 'N', 'D', '1')},
   { CODEC_ID_XAN_DPCM,          MKTAG('A', 'x', 'a', 'n')},
   { CODEC_ID_MP4ALS,            MKTAG('A', 'L', 'S', ' ')},
+  { CODEC_ID_NONE,              0}
 };
 
-const struct AVCodecTag * const mp_wav_taglists[] = { ff_codec_wav_tags, mp_wav_tags, 0};
+const struct AVCodecTag * const mp_wav_taglists[] = { avformat_get_riff_audio_tags(), mp_wav_tags, 0};
 
 class CLAVFAudioHelper
 {
