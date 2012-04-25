@@ -23,6 +23,8 @@ OPTIONS="
 --enable-zlib \
 --enable-swscale \
 --enable-avfilter \
+--enable-demuxers \
+--disable-demuxer=matroska \
 --disable-filters \
 --enable-filter=yadif \
 --enable-filter=buffer \

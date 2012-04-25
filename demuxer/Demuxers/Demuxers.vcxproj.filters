@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\mkv">
-      <UniqueIdentifier>{d8166582-2057-4c88-ae81-e02a647ff3e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\mkv">
-      <UniqueIdentifier>{832b5e49-fe97-4a95-8592-aa218d87e923}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -50,9 +44,6 @@
     </ClInclude>
     <ClInclude Include="BDDemuxer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mkv\MatroskaParser.h">
-      <Filter>Header Files\mkv</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -88,12 +79,6 @@
     </ClCompile>
     <ClCompile Include="LAVFInputFormats.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MKVDemuxer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mkv\MatroskaParser.c">
-      <Filter>Source Files\mkv</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

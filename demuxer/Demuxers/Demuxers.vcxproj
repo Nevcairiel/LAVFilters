@@ -128,7 +128,6 @@
     <ClInclude Include="LAVFVideoHelper.h" />
     <ClInclude Include="LAVFStreamInfo.h" />
     <ClInclude Include="LAVFUtils.h" />
-    <ClInclude Include="mkv\MatroskaParser.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StreamInfo.h" />
   </ItemGroup>
@@ -142,10 +141,6 @@
     <ClCompile Include="LAVFVideoHelper.cpp" />
     <ClCompile Include="LAVFStreamInfo.cpp" />
     <ClCompile Include="LAVFUtils.cpp" />
-    <ClCompile Include="MKVDemuxer.cpp" />
-    <ClCompile Include="mkv\MatroskaParser.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
