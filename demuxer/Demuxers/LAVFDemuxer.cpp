@@ -569,8 +569,8 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     DbgLog((LOG_TRACE, 10, L"::GetNextPacket(): End of File reached"));
   } else if (result < 0) {
     // meh, fail
-  } else if (pkt.size < 0 || pkt.stream_index < 0 || (unsigned)pkt.stream_index >= m_avFormat->nb_streams) {
-    // XXX, in some cases ffmpeg returns a negative packet size
+  } else if (pkt.size <= 0 || pkt.stream_index < 0 || (unsigned)pkt.stream_index >= m_avFormat->nb_streams) {
+    // XXX, in some cases ffmpeg returns a zero or negative packet size
     if(m_avFormat->pb && !m_avFormat->pb->eof_reached) {
       bReturnEmpty = true;
     }
