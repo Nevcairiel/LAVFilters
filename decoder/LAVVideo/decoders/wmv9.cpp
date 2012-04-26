@@ -261,7 +261,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
   }
 
   if (codec == CODEC_ID_VC1 && extralen) {
-    int i = 0;
+    size_t i = 0;
     for (i = 0; i < (extralen - 4); i++) {
       uint32_t code = AV_RB32(extra+i);
       if (IS_MARKER(code))
@@ -272,7 +272,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
       *extra = 0;
       extralen++;
     } else if (i > 1) {
-      DbgLog((LOG_TRACE, 10, L"-> VC-1 Header at position %d (should be 0 or 1)", i));
+      DbgLog((LOG_TRACE, 10, L"-> VC-1 Header at position %u (should be 0 or 1)", i));
     }
   }
 
