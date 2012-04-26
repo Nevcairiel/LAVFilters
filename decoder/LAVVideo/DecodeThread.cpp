@@ -36,6 +36,7 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_evDecodeDone(TRUE)
   , m_evEOSDone(TRUE)
   , m_evInput(TRUE)
+  , m_NextSample(NULL)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -125,9 +126,8 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   if (!CAMThread::ThreadExists())
     return E_UNEXPECTED;
 
-  // Wait until the queue is somewhat empty
-  // Do this before entering any locks, just to be safe.
-  while(m_Samples.Size() > 4)
+  // Wait until the queue is empty
+  while(HasSample())
     Sleep(1);
 
   m_evDeliver.Reset();
@@ -137,7 +137,7 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
     m_evDecodeDone.Reset();
 
   pSample->AddRef();
-  m_Samples.Push(pSample);
+  PutSample(pSample);
 
   // Wake the worker thread (if it was waiting)
   // Needs to be done after inserting data into the queue, or it might cause a deadlock
@@ -205,12 +205,9 @@ STDMETHODIMP CDecodeThread::ProcessOutput()
 
 STDMETHODIMP CDecodeThread::ClearQueues()
 {
-  // Release input samples
-  {
-    CAutoLock lock(&m_Samples);
-    while (IMediaSample *pSample = m_Samples.Pop())
-      pSample->Release();
-  }
+  // Release input sample
+  ReleaseSample();
+
   // Release output samples
   {
     CAutoLock lock(&m_Output);
@@ -299,13 +296,8 @@ DWORD CDecodeThread::ThreadProc()
       }
     }
 
-    IMediaSample *pSample = NULL;
-    {
-      CAutoLock sampleLock(&m_Samples);
-      pSample = m_Samples.Pop();
-      if (!pSample || m_Samples.Empty())
-        m_evInput.Reset();
-    }
+    IMediaSample *pSample = GetSample();
+    m_evInput.Reset(); // Reset input trigger, no more input available
     if (!pSample) {
       // Process the EOS now that the sample queue is empty
       if (bEOS) {
@@ -318,7 +310,9 @@ DWORD CDecodeThread::ThreadProc()
     }
 
     DecodeInternal(pSample);
-    pSample->Release();
+
+    // Release the sample and clear input
+    ReleaseSample();
 
     // Indicates we're done decoding this sample
     if (!m_bThreadSafe)
