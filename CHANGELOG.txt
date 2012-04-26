@@ -1,5 +1,23 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.50.2 - 2012/04/26
+LAV Splitter
+- Improved support for Playback Rates other then 1.0x
+- Improved demuxing performance by implementing a custom Sample Allocator to avoid one extra memory copy
+
+LAV Video
+- Fixed a rare crash when using YV12 output on non-mod16 video
+- Fixed excessive memory consumption with Haali Splitter and DXVA2-CB
+- Fixed a deadlock on dynamic format changes with DXVA2 Native
+- Added support for YV24 output
+
+LAV Audio
+- Improved support for Playback Rates other then 1.0x
+- Support for ALAC and ALS with the MPC-HC MP4 splitter
+- Improved A/V Sync on dynamic format changes
+- Improved Auto A/V Sync Correction algorithm (lower threshold, faster reaction)
+- Fixed audio pitch when bitstreaming 44.1KHz AC3/DTS
+
 0.50.1 - 2012/03/29
 LAV Splitter
 - Fixed Stream Detection on some Blu-rays with short Logo clips before the main movie
