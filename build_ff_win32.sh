@@ -44,6 +44,7 @@ OPTIONS="
 --enable-hwaccel=wmv3_dxva2 \
 --enable-hwaccel=mpeg2_dxva2 \
 --disable-swresample \
+--disable-avresample \
 --disable-postproc \
 --disable-static \
 --disable-altivec \
