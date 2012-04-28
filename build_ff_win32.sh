@@ -19,10 +19,6 @@ OPTIONS="
 --enable-gpl \
 --enable-w32threads \
 --enable-runtime-cpudetect \
---enable-asm \
---enable-zlib \
---enable-swscale \
---enable-avfilter \
 --enable-demuxers \
 --disable-demuxer=matroska \
 --disable-filters \
@@ -43,20 +39,19 @@ OPTIONS="
 --enable-hwaccel=vc1_dxva2 \
 --enable-hwaccel=wmv3_dxva2 \
 --enable-hwaccel=mpeg2_dxva2 \
---disable-swresample \
+--disable-avdevice \
 --disable-avresample \
 --disable-postproc \
+--disable-swresample \
 --disable-static \
---disable-altivec \
---disable-encoders \
 --disable-debug \
+--disable-encoders \
+--disable-bsfs \
+--disable-devices \
 --disable-ffplay \
 --disable-ffserver \
 --disable-ffmpeg \
 --disable-ffprobe \
---disable-devices \
---disable-avdevice \
---disable-bsfs \
 --arch=x86 --cpu=i686 --target-os=mingw32 \
 --build-suffix=-lav"
 
