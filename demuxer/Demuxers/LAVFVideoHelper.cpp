@@ -146,14 +146,12 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
   // Get the frame rate
-  REFERENCE_TIME r_avg = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num);
-  REFERENCE_TIME avg_avg = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num);
-  REFERENCE_TIME tb_avg = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame, avstream->codec->time_base.den);
-  if (avstream->r_frame_rate.den > 0 &&  avstream->r_frame_rate.num > 0 && (r_avg > MIN_TIME_PER_FRAME)) {
+  REFERENCE_TIME r_avg, avg_avg, tb_avg;
+  if (avstream->r_frame_rate.den > 0 &&  avstream->r_frame_rate.num > 0 && ((r_avg = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num)) > MIN_TIME_PER_FRAME)) {
     pvi->AvgTimePerFrame = r_avg;
-  } else if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0 && (avg_avg > MIN_TIME_PER_FRAME)) {
+  } else if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0 && ((avg_avg = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num)) > MIN_TIME_PER_FRAME)) {
     pvi->AvgTimePerFrame = avg_avg;
-  } else if (avstream->time_base.den > 0 &&  avstream->time_base.num > 0 && avstream->codec->ticks_per_frame > 0 && (tb_avg > MIN_TIME_PER_FRAME)) {
+  } else if (avstream->time_base.den > 0 &&  avstream->time_base.num > 0 && avstream->codec->ticks_per_frame > 0 && ((tb_avg = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame, avstream->codec->time_base.den)) > MIN_TIME_PER_FRAME)) {
     pvi->AvgTimePerFrame = tb_avg;
   }
   pvi->dwBitErrorRate = 0;
