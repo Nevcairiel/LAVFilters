@@ -517,32 +517,32 @@ HRESULT CLAVAudio::ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat 
   return S_OK;
 }
 
-HRESULT CLAVAudio::TruncateBufferBitdepth(BufferDetails *buffer)
+HRESULT CLAVAudio::Truncate32Buffer(BufferDetails *buffer)
 {
+  ASSERT(buffer->sfFormat == SampleFormat_32 && buffer->wBitsPerSample <= 24);
   GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
 
-  const short bits_per_sample = buffer->wBitsPerSample > 16 ? 24 : 16;
-  const short bytes_per_sample = bits_per_sample >> 3;
-  const short skip = 4 - bytes_per_sample;
+  const int bytes_per_sample = buffer->wBitsPerSample > 16 ? 3 : 2;
+  const int skip = 4 - bytes_per_sample;
 
   const DWORD size = (buffer->nSamples * buffer->wChannels) * bytes_per_sample;
   pcmOut->SetSize(size);
 
-  BYTE *pDataIn = (BYTE *)buffer->bBuffer->Ptr();
-  BYTE *pDataOut = (BYTE *)pcmOut->Ptr();
+  const BYTE *pDataIn = buffer->bBuffer->Ptr();
+  BYTE *pDataOut = pcmOut->Ptr();
 
-  for (size_t i = 0; i < buffer->nSamples; ++i) {
+  pDataIn += skip;
+  for (unsigned int i = 0; i < buffer->nSamples; ++i) {
     for(int ch = 0; ch < buffer->wChannels; ++ch) {
-      int32_t sample = ((int32_t *)pDataIn) [ch+i*buffer->wChannels];
-      BYTE * const b_sample = (BYTE *)&sample;
-      memcpy(pDataOut, b_sample + skip, bytes_per_sample);
+      memcpy(pDataOut, pDataIn, bytes_per_sample);
       pDataOut += bytes_per_sample;
+      pDataIn += 4;
     }
   }
 
   delete buffer->bBuffer;
   buffer->bBuffer = pcmOut;
-  buffer->sfFormat = bits_per_sample == 24 ? SampleFormat_24 : SampleFormat_16;
+  buffer->sfFormat = bytes_per_sample == 3 ? SampleFormat_24 : SampleFormat_16;
 
   return S_OK;
 }
@@ -594,7 +594,7 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
   }
 
   if (buffer->sfFormat == SampleFormat_32 && buffer->wBitsPerSample && buffer->wBitsPerSample <= 24) {
-    TruncateBufferBitdepth(buffer);
+    Truncate32Buffer(buffer);
   }
   return S_OK;
 }

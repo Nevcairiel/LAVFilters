@@ -222,7 +222,7 @@ private:
 
   LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback = FALSE);
   HRESULT ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat outputFormat);
-  HRESULT TruncateBufferBitdepth(BufferDetails *buffer);
+  HRESULT Truncate32Buffer(BufferDetails *buffer);
 
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
