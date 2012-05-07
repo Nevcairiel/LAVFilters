@@ -39,6 +39,7 @@ OPTIONS="
 --enable-hwaccel=vc1_dxva2 \
 --enable-hwaccel=wmv3_dxva2 \
 --enable-hwaccel=mpeg2_dxva2 \
+--enable-libspeex \
 --disable-avdevice \
 --disable-avresample \
 --disable-postproc \
@@ -55,7 +56,7 @@ OPTIONS="
 --arch=x86 --cpu=i686 --target-os=mingw32 \
 --build-suffix=-lav"
 
-./configure --extra-cflags="-I../common/includes/dxva2 -mmmx -msse -mfpmath=sse" ${OPTIONS} &&
+./configure --extra-ldflags="-L../thirdparty/lib32" --extra-cflags="-I../thirdparty/includes -I../common/includes/dxva2 -mmmx -msse -mfpmath=sse" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-lav-*.dll ../bin_Win32 &&
