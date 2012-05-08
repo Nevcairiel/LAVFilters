@@ -17,6 +17,7 @@ make distclean
 OPTIONS="
 --enable-shared \
 --enable-gpl \
+--enable-version3 \
 --enable-w32threads \
 --enable-runtime-cpudetect \
 --enable-demuxers \
@@ -40,6 +41,8 @@ OPTIONS="
 --enable-hwaccel=wmv3_dxva2 \
 --enable-hwaccel=mpeg2_dxva2 \
 --enable-libspeex \
+--enable-libopencore-amrnb \
+--enable-libopencore-amrwb \
 --disable-avdevice \
 --disable-avresample \
 --disable-postproc \

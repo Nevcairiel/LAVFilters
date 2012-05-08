@@ -251,6 +251,8 @@ static const struct s_ffmpeg_codec_overrides {
   { CODEC_ID_MP1, "mp1float" },
   { CODEC_ID_MP2, "mp2float" },
   { CODEC_ID_MP3, "mp3float" },
+  { CODEC_ID_AMR_NB, "libopencore_amrnb" },
+  { CODEC_ID_AMR_WB, "libopencore_amrwb" },
 };
 
 const char *find_codec_override(CodecID codec)

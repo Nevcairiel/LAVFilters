@@ -988,12 +988,16 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     InitDTSDecoder();
   }
 
+  m_pAVCodec = NULL;
+
+  // Try codec overrides
   const char *codec_override = find_codec_override(codec);
-  if (codec_override) {
-    m_pAVCodec    = avcodec_find_decoder_by_name(codec_override);
-  } else {
-    m_pAVCodec    = avcodec_find_decoder(codec);
-  }
+  if (codec_override)
+    m_pAVCodec = avcodec_find_decoder_by_name(codec_override);
+  
+  // Fallback to default
+  if (!m_pAVCodec)
+    m_pAVCodec = avcodec_find_decoder(codec);
   CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_AUDIO);
 
   m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
