@@ -33,7 +33,6 @@ STDMETHODIMP CMediaPacketSample::QueryInterface(REFIID riid, void **ppv)
 {
   if (riid == __uuidof(ILAVMediaSample)) {
     return GetInterface((ILAVMediaSample *) this, ppv);
-    return S_OK;
   }
   return CMediaSample::QueryInterface(riid, ppv);
 }

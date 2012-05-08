@@ -271,7 +271,7 @@ static const scmap_t m_scmap_default[] = {
 
 DWORD get_channel_mask(int num_channels)
 {
-  if (num_channels < 1 && num_channels > 8)
+  if (num_channels < 1 || num_channels > 8)
     return 0;
   return m_scmap_default[num_channels - 1].dwChannelMask;
 }

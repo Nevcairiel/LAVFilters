@@ -270,7 +270,7 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
   return hr;
 }
 
-STDMETHODIMP CBDDemuxer::SetTitle(int idx)
+STDMETHODIMP CBDDemuxer::SetTitle(uint32_t idx)
 {
   HRESULT hr = S_OK;
   int ret; // return values
