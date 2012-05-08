@@ -115,6 +115,9 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_14_4,         CODEC_ID_RA_144   },
   { &MEDIASUBTYPE_RALF,         CODEC_ID_RALF     },
 
+  // Misc
+  { &MEDIASUBTYPE_SPEEX,        CODEC_ID_SPEEX    },
+
   // Special LAVFSplitter interface
   { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
 };
@@ -214,6 +217,9 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_28_8         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_14_4         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_RALF         },
+
+  // Misc
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_SPEEX        },
 
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
