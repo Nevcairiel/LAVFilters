@@ -36,6 +36,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVVideo", "decoder\LAVVide
 		{E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA} = {E8A3F6FA-AE1C-4C8E-A0B6-9C8480324EAA}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IntelQuickSyncDecoder", "qsdecoder\IntelQuickSyncDecoder.vcxproj", "{83F0170E-6AB3-467B-98D5-E061BD2BF00D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -100,6 +102,14 @@ Global
 		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Release|Win32.Build.0 = Release|Win32
 		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Release|x64.ActiveCfg = Release|x64
 		{D29ADED3-086B-46A8-9455-97EFF6B14775}.Release|x64.Build.0 = Release|x64
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Debug|Win32.Build.0 = Debug|Win32
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Debug|x64.ActiveCfg = Debug|x64
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Debug|x64.Build.0 = Debug|x64
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Release|Win32.ActiveCfg = Release|Win32
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Release|Win32.Build.0 = Release|Win32
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Release|x64.ActiveCfg = Release|x64
+		{83F0170E-6AB3-467B-98D5-E061BD2BF00D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
