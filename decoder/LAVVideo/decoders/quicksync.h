@@ -20,7 +20,7 @@
 #pragma once
 #include "DecBase.h"
 
-#include "quicksync/IQuickSyncDecoder.h"
+#include "IQuickSyncDecoder.h"
 
 typedef IQuickSyncDecoder* __stdcall pcreateQuickSync();
 typedef void               __stdcall pdestroyQuickSync(IQuickSyncDecoder*);
