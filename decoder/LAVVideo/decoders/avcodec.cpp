@@ -893,10 +893,10 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   PixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
-  SwsContext *pContext = sws_getCachedContext(m_pSwsContext, m_pAVCtx->width, m_pAVCtx->height, m_pAVCtx->pix_fmt, m_pAVCtx->width, m_pAVCtx->height, dstFormat, SWS_BILINEAR, NULL, NULL, NULL);
+  m_pSwsContext = sws_getCachedContext(m_pSwsContext, m_pAVCtx->width, m_pAVCtx->height, m_pAVCtx->pix_fmt, m_pAVCtx->width, m_pAVCtx->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, NULL, NULL, NULL);
 
   // Perform conversion
-  sws_scale(pContext, pFrame->data, pFrame->linesize, 0, m_pAVCtx->height, pOutFrame->data, pOutFrame->stride);
+  sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, m_pAVCtx->height, pOutFrame->data, pOutFrame->stride);
 
   return S_OK;
 }
