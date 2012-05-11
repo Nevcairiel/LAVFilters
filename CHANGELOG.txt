@@ -1,5 +1,19 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.50.3 - 2012/05/11
+LAV Splitter
+- Fixed playback of raw PCM in AVI streams
+- Fixed a rare misdetection of MPEG-2 as VC-1
+
+LAV Video
+- QuickSync: Fixed playback of some H.264 streams that would run out of sync on newer drivers
+- Fixed a memory leak when playing H.264 RGB (and some other formats)
+- Improved behaviour for H.264 and MPEG-2 on Live TV channel changes
+
+LAV Audio
+- Added support for Speex (via libspeex)
+- Improved support for AMR-NB/WB (using OpenCore decoder)
+
 0.50.2 - 2012/04/26
 LAV Splitter
 - Improved support for Playback Rates other then 1.0x
