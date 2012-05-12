@@ -173,6 +173,8 @@ CDecDXVA2::CDecDXVA2(void)
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
   ZeroMemory(&m_pSurfaces, sizeof(m_pSurfaces));
   ZeroMemory(&m_FrameQueue, sizeof(m_FrameQueue));
+
+  m_bDXVA = TRUE;
 }
 
 CDecDXVA2::~CDecDXVA2(void)
@@ -1043,10 +1045,6 @@ STDMETHODIMP CDecDXVA2::Flush()
       ReleaseFrame(&m_FrameQueue[m_FrameQueuePosition]);
     }
     m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
-  }
-
-  if (m_nCodecId == CODEC_ID_H264 || m_nCodecId == CODEC_ID_MPEG2VIDEO) {
-    InitDecoder(m_nCodecId, &m_pCallback->GetInputMediaType());
   }
 
   return S_OK;

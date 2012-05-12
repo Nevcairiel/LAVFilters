@@ -61,6 +61,7 @@ protected:
   AVCodecContext       *m_pAVCtx;
   AVFrame              *m_pFrame;
   CodecID              m_nCodecId;
+  BOOL                 m_bDXVA;
 
 private:
   AVCodec              *m_pAVCodec;
