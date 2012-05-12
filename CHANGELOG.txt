@@ -1,5 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.50.4 - 2012/05/12
+LAV Video
+- Fixed seeking with QuickSync running in madVR Exclusive Mode
+
 0.50.3 - 2012/05/11
 LAV Splitter
 - Fixed playback of raw PCM in AVI streams
