@@ -1,5 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.50.5 - 2012/05/12
+LAV Video
+- Fixed a crash in DXVA2-Native decoding (introduced in 0.50.4)
+
 0.50.4 - 2012/05/12
 LAV Video
 - Fixed seeking with QuickSync running in madVR Exclusive Mode
