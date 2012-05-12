@@ -864,6 +864,10 @@ STDMETHODIMP CDecAvcodec::Flush()
   m_tcBFrameDelay[0].rtStart = m_tcBFrameDelay[0].rtStop = AV_NOPTS_VALUE;
   m_tcBFrameDelay[1].rtStart = m_tcBFrameDelay[1].rtStop = AV_NOPTS_VALUE;
 
+  if (m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && (m_nCodecId == CODEC_ID_H264 || m_nCodecId == CODEC_ID_MPEG2VIDEO)) {
+    InitDecoder(m_nCodecId, &m_pCallback->GetInputMediaType());
+  }
+
   return S_OK;
 }
 

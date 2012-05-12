@@ -1045,6 +1045,10 @@ STDMETHODIMP CDecDXVA2::Flush()
     m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
   }
 
+  if (m_nCodecId == CODEC_ID_H264 || m_nCodecId == CODEC_ID_MPEG2VIDEO) {
+    InitDecoder(m_nCodecId, &m_pCallback->GetInputMediaType());
+  }
+
   return S_OK;
 }
 

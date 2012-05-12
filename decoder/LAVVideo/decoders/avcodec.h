@@ -60,6 +60,7 @@ private:
 protected:
   AVCodecContext       *m_pAVCtx;
   AVFrame              *m_pFrame;
+  CodecID              m_nCodecId;
 
 private:
   AVCodec              *m_pAVCodec;
@@ -69,8 +70,6 @@ private:
   int                  m_nFFBufferSize;
 
   SwsContext           *m_pSwsContext;
-
-  CodecID              m_nCodecId;
 
   CH264RandomAccess    m_h264RandomAccess;
 

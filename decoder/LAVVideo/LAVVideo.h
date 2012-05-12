@@ -177,7 +177,6 @@ private:
   friend class CDecodeThread;
 
   CDecodeThread        m_Decoder;
-  CodecID              m_Codec;
 
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;

@@ -56,7 +56,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bMTFiltering(FALSE)
   , m_bFlushing(FALSE)
   , m_evFilterInput(TRUE)
-  , m_Codec(CODEC_ID_NONE)
 {
   m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -559,8 +558,6 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_bMTFiltering = FALSE;
   }
 
-  m_Codec = codec;
-
 done:
   return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
@@ -644,10 +641,6 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
     avfilter_graph_free(&m_pFilterGraph);
 
   m_rtPrevStart = m_rtPrevStop = 0;
-
-  if (m_Codec == CODEC_ID_H264 || m_Codec == CODEC_ID_MPEG2VIDEO) {
-    CreateDecoder(&m_pInput->CurrentMediaType());
-  }
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
