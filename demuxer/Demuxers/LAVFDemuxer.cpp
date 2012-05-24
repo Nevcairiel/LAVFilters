@@ -52,6 +52,8 @@ void CLAVFDemuxer::ffmpeg_init()
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
   av_log_set_callback(lavf_log_callback);
+#else
+  av_log_set_callback(NULL);
 #endif
 
   av_register_all();

@@ -41,6 +41,10 @@ extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesiz
 __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 };
 
+#ifdef DEBUG
+#include "lavf_log.h"
+#endif
+
 extern HINSTANCE g_hInst;
 
 // Constructor
@@ -79,6 +83,13 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bNeedSyncpoint(FALSE)
   , m_dRate(1.0)
 {
+#ifdef DEBUG
+  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
+  av_log_set_callback(lavf_log_callback);
+#else
+  av_log_set_callback(NULL);
+#endif
+
   av_register_all();
 
   m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
