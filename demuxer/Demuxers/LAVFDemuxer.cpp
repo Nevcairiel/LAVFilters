@@ -1370,6 +1370,11 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
     uint64_t bestPixels = m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
     uint64_t checkPixels = m_avFormat->streams[check->pid]->codec->width * m_avFormat->streams[check->pid]->codec->height;
 
+    if (m_avFormat->streams[best->pid]->codec->codec_id == CODEC_ID_NONE && m_avFormat->streams[check->pid]->codec->codec_id != CODEC_ID_NONE) {
+      best = check;
+      continue;
+    }
+
     int check_nb_f = m_avFormat->streams[check->pid]->codec_info_nb_frames;
     int best_nb_f  = m_avFormat->streams[best->pid]->codec_info_nb_frames;
     if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0)) {
