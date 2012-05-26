@@ -1096,8 +1096,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     || pStream->discard == AVDISCARD_ALL 
     || (pStream->codec->codec_id == CODEC_ID_NONE && pStream->codec->codec_tag == 0) 
     || (!m_bSubStreams && (pStream->disposition & LAVF_DISPOSITION_SUB_STREAM)) 
-    || (pStream->disposition & AV_DISPOSITION_ATTACHED_PIC)
-    || (pStream->codec->codec_type == AVMEDIA_TYPE_VIDEO && (!pStream->codec->width || !pStream->codec->height))) {
+    || (pStream->disposition & AV_DISPOSITION_ATTACHED_PIC)) {
     pStream->discard = AVDISCARD_ALL;
     return S_FALSE;
   }
@@ -1115,6 +1114,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 
   if(FAILED(hr)) {
     delete s.streamInfo;
+    pStream->discard = AVDISCARD_ALL;
     return hr;
   }
 
