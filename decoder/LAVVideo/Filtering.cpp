@@ -144,8 +144,10 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
         outFrame->height       = out_picref->video->h;
         outFrame->aspect_ratio = out_picref->video->sample_aspect_ratio;
         outFrame->tff          = out_picref->video->top_field_first;
-        outFrame->rtStart      = out_picref->pts;
-        outFrame->rtStop       = out_picref->pts + rtDuration;
+        
+        REFERENCE_TIME pts     = av_rescale(out_picref->pts, m_pFilterBufferSink->inputs[0]->time_base.num * 10000000LL, m_pFilterBufferSink->inputs[0]->time_base.den);
+        outFrame->rtStart      = pts;
+        outFrame->rtStop       = pts + rtDuration;
         memcpy(outFrame->data, out_picref->data, 4 * sizeof(uint8_t*));
         memcpy(outFrame->stride, out_picref->linesize, 4 * sizeof(int));
 
