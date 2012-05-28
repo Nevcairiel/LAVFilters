@@ -81,6 +81,7 @@ private:
   BOOL                 m_bFFReordering;
   BOOL                 m_bCalculateStopTime;
   BOOL                 m_bRVDropBFrameTimings;
+  BOOL                 m_bInputPadded;
 
   BOOL                 m_bBFrameDelay;
   TimingCache          m_tcBFrameDelay[2];

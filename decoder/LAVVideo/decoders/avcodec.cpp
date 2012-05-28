@@ -260,6 +260,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_iInterlaced(-1)
   , m_CurrentThread(0)
   , m_bDXVA(FALSE)
+  , m_bInputPadded(FALSE)
 {
 }
 
@@ -435,6 +436,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   LAVPinInfo lavPinInfo = {0};
   BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
 
+  m_bInputPadded = m_pCallback->IsLAVSplitter();
+
   // Setup codec-specific timing logic
   BOOL bVC1IsPTS = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
 
@@ -597,20 +600,24 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
   uint8_t *pDataBuffer = NULL;
   if (!bFlush) {
-    // Copy bitstream into temporary buffer to ensure overread protection
-    // Verify buffer size
-    if (buflen > m_nFFBufferSize) {
-      m_nFFBufferSize	= buflen;
-      m_pFFBuffer = (BYTE *)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1);
-      if (!m_pFFBuffer) {
-        m_nFFBufferSize = 0;
-        return E_FAIL;
+    if (!m_bInputPadded && (!(m_pAVCtx->active_thread_type & FF_THREAD_FRAME) || m_pParser)) {
+      // Copy bitstream into temporary buffer to ensure overread protection
+      // Verify buffer size
+      if (buflen > m_nFFBufferSize) {
+        m_nFFBufferSize	= buflen;
+        m_pFFBuffer = (BYTE *)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1);
+        if (!m_pFFBuffer) {
+          m_nFFBufferSize = 0;
+          return E_FAIL;
+        }
       }
+      
+      memcpy(m_pFFBuffer, buffer, buflen);
+      memset(m_pFFBuffer+buflen, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+      pDataBuffer = m_pFFBuffer;
+    } else {
+      pDataBuffer = (uint8_t *)buffer;
     }
-
-    memcpy(m_pFFBuffer, buffer, buflen);
-    memset(m_pFFBuffer+buflen, 0, FF_INPUT_BUFFER_PADDING_SIZE);
-    pDataBuffer = m_pFFBuffer;
 
     if (m_nCodecId == CODEC_ID_H264) {
       BOOL bRecovered = m_h264RandomAccess.searchRecoveryPoint(pDataBuffer, buflen);
