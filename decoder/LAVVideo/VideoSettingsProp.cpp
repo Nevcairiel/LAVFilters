@@ -288,21 +288,21 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
   DWORD dwSupport = m_pVideoSettings->CheckHWAccelSupport(hwAccel);
   BOOL bEnabled = (hwAccel != HWAccel_None) && dwSupport;
-  BOOL bHWDeint = bEnabled && (hwAccel == HWAccel_CUDA);
-  BOOL bMPEG4 = bEnabled && (hwAccel == HWAccel_CUDA);
+  BOOL bHWDeint = bEnabled && (hwAccel == HWAccel_CUDA || hwAccel == HWAccel_QuickSync);
+  BOOL bCUDAOnly = bEnabled && (hwAccel == HWAccel_CUDA);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG2), bEnabled);
 
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bMPEG4);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bCUDAOnly);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_WEAVE), bHWDeint);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_BOB), bHWDeint);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_BOB), bCUDAOnly);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_ADAPTIVE), bHWDeint);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_FILM), bHWDeint);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_VIDEO), bHWDeint);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bHWDeint);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bCUDAOnly);
 
   WCHAR hwAccelEmpty[] = L"";
   WCHAR hwAccelUnavailable[] = L"Not available";
