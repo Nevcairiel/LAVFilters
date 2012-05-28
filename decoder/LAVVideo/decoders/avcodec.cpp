@@ -595,14 +595,30 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     m_nBFramePos = !m_nBFramePos;
   }
 
+  uint8_t *pDataBuffer = NULL;
   if (!bFlush) {
+    // Copy bitstream into temporary buffer to ensure overread protection
+    // Verify buffer size
+    if (buflen > m_nFFBufferSize) {
+      m_nFFBufferSize	= buflen;
+      m_pFFBuffer = (BYTE *)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1);
+      if (!m_pFFBuffer) {
+        m_nFFBufferSize = 0;
+        return E_FAIL;
+      }
+    }
+
+    memcpy(m_pFFBuffer, buffer, buflen);
+    memset(m_pFFBuffer+buflen, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+    pDataBuffer = m_pFFBuffer;
+
     if (m_nCodecId == CODEC_ID_H264) {
-      BOOL bRecovered = m_h264RandomAccess.searchRecoveryPoint(buffer, buflen);
+      BOOL bRecovered = m_h264RandomAccess.searchRecoveryPoint(pDataBuffer, buflen);
       if (!bRecovered) {
         return S_OK;
       }
     } else if (m_nCodecId == CODEC_ID_VP8 && m_bWaitingForKeyFrame) {
-      if (!(buffer[0] & 1)) {
+      if (!(pDataBuffer[0] & 1)) {
         DbgLog((LOG_TRACE, 10, L"::Decode(): Found VP8 key-frame, resuming decoding"));
         m_bWaitingForKeyFrame = FALSE;
       } else {
@@ -614,22 +630,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   while (buflen > 0 || bFlush) {
     REFERENCE_TIME rtStart = rtStartIn, rtStop = rtStopIn;
 
-    // Copy bitstream into temporary buffer to ensure overread protection
     if (!bFlush) {
-      // Verify buffer size
-      if (buflen > m_nFFBufferSize) {
-        m_nFFBufferSize	= buflen;
-        m_pFFBuffer = (BYTE *)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1);
-        if (!m_pFFBuffer) {
-          m_nFFBufferSize = 0;
-          return E_FAIL;
-        }
-      }
-
-      memcpy(m_pFFBuffer, buffer, buflen);
-      memset(m_pFFBuffer+buflen, 0, FF_INPUT_BUFFER_PADDING_SIZE);
-
-      avpkt.data = m_pFFBuffer;
+      avpkt.data = pDataBuffer;
       avpkt.size = buflen;
       avpkt.pts = rtStartIn;
       avpkt.dts = rtStopIn;
@@ -685,23 +687,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
       if (pOut_size > 0 || bFlush) {
 
-        if (pOut_size > 0) {
-          // Copy output data into the work buffer
-          if (pOut_size > m_nFFBufferSize) {
-            m_nFFBufferSize	= pOut_size;
-            BYTE *tmp = (BYTE *)av_realloc(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE);
-            if (!tmp) {
-              av_freep(&m_pFFBuffer);
-              m_nFFBufferSize = 0;
-              return E_FAIL;
-            }
-            m_pFFBuffer = tmp;
-          }
-
-          memcpy(m_pFFBuffer, pOut, pOut_size);
-          memset(m_pFFBuffer+pOut_size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
-
-          avpkt.data = m_pFFBuffer;
+        if (pOut && pOut_size > 0) {
+          avpkt.data = pOut;
           avpkt.size = pOut_size;
           avpkt.pts = rtStart;
           avpkt.dts = AV_NOPTS_VALUE;
@@ -735,7 +722,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       buflen = 0;
     } else {
       buflen -= used_bytes;
-      buffer += used_bytes;
+      pDataBuffer += used_bytes;
     }
 
     // Judge frame usability
