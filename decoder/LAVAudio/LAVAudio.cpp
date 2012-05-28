@@ -82,6 +82,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFallback16Int(FALSE)
   , m_bNeedSyncpoint(FALSE)
   , m_dRate(1.0)
+  , m_bInputPadded(FALSE)
 {
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -987,6 +988,8 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     }
   }
 
+  m_bInputPadded = FilterInGraphSafe(m_pInput, CLSID_LAVSplitter) || FilterInGraphSafe(m_pInput, CLSID_LAVSplitterSource);
+
   // If the codec is bitstreaming, and enabled for it, go there now
   if (IsBitstreaming(codec)) {
     WAVEFORMATEX *wfe = (format_type == FORMAT_WaveFormatEx) ? (WAVEFORMATEX *)format : NULL;
@@ -1505,10 +1508,9 @@ static DWORD get_lav_channel_layout(uint64_t layout)
   return (DWORD)layout;
 }
 
-HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver)
+HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   int got_frame	= 0;
-  const BYTE *pDataInBuff = p;
   BYTE *tmpProcessBuf = NULL;
   HRESULT hr = S_FALSE;
 
@@ -1520,6 +1522,17 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
 
   BufferDetails out;
 
+  // Copy data onto our properly padded data buffer (to avoid overreads)
+  const uint8_t *pDataBuffer = NULL;
+  if (!m_bInputPadded) {
+    if (!bEOF) {
+      COPY_TO_BUFFER(buffer, buffsize);
+    }
+    pDataBuffer = m_pFFBuffer;
+  } else {
+    pDataBuffer = buffer;
+  }
+
   if (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r') || m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r')) {
     int w = m_raData.audio_framesize;
     int h = m_raData.sub_packet_h;
@@ -1530,7 +1543,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
 
       // "genr" deinterleaving is used for COOK and ATRAC
       if (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r')) {
-        const BYTE *srcBuf = pDataInBuff;
+        const BYTE *srcBuf = pDataBuffer;
         for(int y = 0; y < h; y++) {
           for(int x = 0, w2 = w / sps; x < w2; x++) {
             memcpy(tmpProcessBuf + sps*(h*x+((h+1)/2)*(y&1)+(y>>1)), srcBuf, sps);
@@ -1539,11 +1552,11 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         }
       // "sipr" deinterleaving is used for ... SIPR
       } else if (m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r')) {
-        memcpy(tmpProcessBuf, pDataInBuff, len);
+        memcpy(tmpProcessBuf, pDataBuffer, len);
         ff_rm_reorder_sipr_data(tmpProcessBuf, h, w);
       }
 
-      pDataInBuff = tmpProcessBuf;
+      pDataBuffer = tmpProcessBuf;
       buffsize = len;
 
       m_rtStartInput = m_rtStartInputCache;
@@ -1565,14 +1578,11 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
   while (buffsize > 0) {
     got_frame = 0;
     if (bEOF) buffsize = 0;
-    else {
-      COPY_TO_BUFFER(pDataInBuff, buffsize);
-    }
 
     if (m_pParser) {
       BYTE *pOut = NULL;
       int pOut_size = 0;
-      int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+      int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, pDataBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
       if (used_bytes < 0) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - audio parsing failed (ret: %d)", -used_bytes));
         goto fail;
@@ -1592,13 +1602,12 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
 
       if (!bEOF && used_bytes > 0) {
         buffsize -= used_bytes;
-        pDataInBuff += used_bytes;
+        pDataBuffer += used_bytes;
         consumed += used_bytes;
       }
 
       if (pOut_size > 0) {
-        COPY_TO_BUFFER(pOut, pOut_size);
-        avpkt.data = m_pFFBuffer;
+        avpkt.data = pOut;
         avpkt.size = pOut_size;
 
         int ret2 = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
@@ -1619,7 +1628,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
     } else if(bEOF) {
       return S_FALSE;
     } else {
-      avpkt.data = (uint8_t *)m_pFFBuffer;
+      avpkt.data = (uint8_t *)pDataBuffer;
       avpkt.size = buffsize;
 
       int used_bytes = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
@@ -1631,7 +1640,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const p, int buffsize, int &consumed, HRE
         break;
       }
       buffsize -= used_bytes;
-      pDataInBuff += used_bytes;
+      pDataBuffer += used_bytes;
       consumed += used_bytes;
 
       // Send current input time to the delivery function

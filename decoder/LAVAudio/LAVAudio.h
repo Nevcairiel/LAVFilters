@@ -254,6 +254,8 @@ private:
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 
+  BOOL                 m_bInputPadded;
+
   // Settings
   struct AudioSettings {
     BOOL DRCEnabled;

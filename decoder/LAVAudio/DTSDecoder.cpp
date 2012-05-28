@@ -281,30 +281,37 @@ int CLAVAudio::SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int
   return nPCMLen;
 };
 
-HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, HRESULT *hrDeliver)
+HRESULT CLAVAudio::DecodeDTS(const BYTE * const buffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   HRESULT hr = S_FALSE;
   int nPCMLength	= 0;
-  const BYTE *pDataInBuff = p;
 
   BOOL bEOF = (buffsize == -1);
   if (buffsize == -1) buffsize = 1;
 
   BufferDetails out;
 
+  // Copy data onto our properly padded data buffer (to avoid overreads)
+  const uint8_t *pDataBuffer = NULL;
+  if (!m_bInputPadded) {
+    if (!bEOF) {
+      COPY_TO_BUFFER(buffer, buffsize);
+    }
+    pDataBuffer = m_pFFBuffer;
+  } else {
+    pDataBuffer = buffer;
+  }
+
   consumed = 0;
   while (buffsize > 0) {
     nPCMLength = 0;
     if (bEOF) buffsize = 0;
-    else {
-      COPY_TO_BUFFER(pDataInBuff, buffsize);
-    }
 
     ASSERT(m_pParser);
 
     BYTE *pOut = NULL;
     int pOut_size = 0;
-    int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, pDataBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
     if (used_bytes < 0) {
       return E_FAIL;
     } else if(used_bytes == 0 && pOut_size == 0) {
@@ -323,15 +330,13 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
     if (!bEOF && used_bytes > 0) {
       buffsize -= used_bytes;
-      pDataInBuff += used_bytes;
+      pDataBuffer += used_bytes;
       consumed += used_bytes;
     }
 
-    if (pOut_size > 0) {
-      COPY_TO_BUFFER(pOut, pOut_size);
-
+    if (pOut && pOut_size > 0) {
       // Parse DTS headers
-      m_bsParser.Parse(CODEC_ID_DTS, m_pFFBuffer, pOut_size, NULL);
+      m_bsParser.Parse(CODEC_ID_DTS, pOut, pOut_size, NULL);
       unsigned decode_channels = dts_determine_decode_channels(m_bsParser.m_DTSHeader);
 
       // Init Decoder with new Parameters, if required
@@ -344,7 +349,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
 
       int bitdepth = 0, channels = 0, CoreSampleRate = 0, HDSampleRate = 0, profile = 0;
       int unk4 = 0, unk5 = 0;
-      nPCMLength = SafeDTSDecode(m_pFFBuffer, pOut_size, m_pDTSDecoderContext->dtsPCMBuffer, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+      nPCMLength = SafeDTSDecode(pOut, pOut_size, m_pDTSDecoderContext->dtsPCMBuffer, 0, 8, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
       if (nPCMLength > 0 && bitdepth != m_DTSBitDepth) {
         int decodeBits = bitdepth > 16 ? 24 : 16;
 
@@ -354,7 +359,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const p, int buffsize, int &consumed, 
           m_DTSBitDepth = decodeBits;
 
           FlushDTSDecoder();
-          nPCMLength = SafeDTSDecode(m_pFFBuffer, pOut_size, m_pDTSDecoderContext->dtsPCMBuffer, 0, 2, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
+          nPCMLength = SafeDTSDecode(pOut, pOut_size, m_pDTSDecoderContext->dtsPCMBuffer, 0, 2, &bitdepth, &channels, &CoreSampleRate, &unk4, &HDSampleRate, &unk5, &profile);
         }
       }
       if (nPCMLength <= 0) {

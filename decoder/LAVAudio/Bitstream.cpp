@@ -282,10 +282,9 @@ void CLAVAudio::ActivateDTSHDMuxing()
   DbgLog((LOG_TRACE, 20, L"::ActivateDTSHDMuxing(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
 }
 
-HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver)
+HRESULT CLAVAudio::Bitstream(const BYTE *buffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   int ret = 0;
-  const BYTE *pDataInBuff = p;
   BOOL bEOF = (buffsize == -1);
   if (buffsize == -1) buffsize = 1;
 
@@ -293,18 +292,26 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT
   av_init_packet(&avpkt);
   avpkt.duration = 1;
 
-  ASSERT(pDataInBuff || bEOF);
+  ASSERT(buffer || bEOF);
+
+  // Copy data onto our properly padded data buffer (to avoid overreads)
+  const uint8_t *pDataBuffer = NULL;
+  if (!m_bInputPadded) {
+    if (!bEOF) {
+      COPY_TO_BUFFER(buffer, buffsize);
+    }
+    pDataBuffer = m_pFFBuffer;
+  } else {
+    pDataBuffer = buffer;
+  }
 
   consumed = 0;
   while (buffsize > 0) {
     if (bEOF) buffsize = 0;
-    else {
-      COPY_TO_BUFFER(pDataInBuff, buffsize);
-    }
 
     BYTE *pOut = NULL;
     int pOut_size = 0;
-    int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, m_pFFBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+    int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, pDataBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
     if (used_bytes < 0) {
       DbgLog((LOG_TRACE, 50, L"::Bitstream() - audio parsing failed (ret: %d)", -used_bytes));
       return E_FAIL;
@@ -323,7 +330,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT
 
     if (!bEOF && used_bytes > 0) {
       buffsize -= used_bytes;
-      pDataInBuff += used_bytes;
+      pDataBuffer += used_bytes;
       consumed += used_bytes;
     }
 
@@ -333,8 +340,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT
         ActivateDTSHDMuxing();
       }
 
-      COPY_TO_BUFFER(pOut, pOut_size);
-      avpkt.data = m_pFFBuffer;
+      avpkt.data = pOut;
       avpkt.size = pOut_size;
 
       // Write SPDIF muxed frame
