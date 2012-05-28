@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <stdint.h>
+struct GetBitContext;
 
 /**
 * Byte Parser Utility Class
@@ -41,40 +41,27 @@ public:
   /** Read a signed number in Exponential Golomb encoding (with k = 0) */
   int SExpGolombRead();
 
-  /** Seek to the position (in bytes) in the byte array */
-  void Seek(DWORD pos);
-
   /** Pointer to the start of the byte array */
   const BYTE *Start() const { return m_pData; }
   /** Pointer to the end of the byte array */
   const BYTE *End() const { return m_pEnd; }
 
   /** Overall length (in bytes) of the byte array */
-  size_t Length() const { return m_dwLen; }
-  /** Current byte position in the array. Any incomplete bytes ( buffer < 8 bits ) will not be counted */
-  size_t Pos() const { return unsigned int(m_pCurrent - m_pData) - (m_bitLen>>3); }
+  size_t Length() const;
+
+  size_t Pos() const;
+
   /** Number of bytes remaining in the array */
-  size_t Remaining() const { return Length() - Pos(); }
+  size_t Remaining() const { return RemainingBits() >> 3; }
 
   /** Number of bits remaining */
-  size_t RemainingBits() const { return m_bitLen + (8 * (m_pEnd - m_pCurrent)); }
+  size_t RemainingBits() const;
 
-  /** Flush any bits currently in the buffer */
-  void BitFlush() { m_bitLen = 0; m_bitBuffer = 0; }
-  /** Skip bits until the next byte border */
-  void BitByteAlign() { BitRead(m_bitLen & 7); }
+  void BitByteAlign();
 
 private:
-  // Pointer to the start of the data buffer
-  const BYTE * const m_pData;
+  GetBitContext *m_gbCtx;
 
-  // Pointer to the current position in the data buffer
-  const BYTE *m_pCurrent;
-  // Pointer to the end in the data buffer
-  const BYTE * const m_pEnd;
-
-  const size_t m_dwLen;
-
-  unsigned __int64 m_bitBuffer;
-  unsigned int m_bitLen;
+  const BYTE *m_pData;
+  const BYTE *m_pEnd;
 };

@@ -22,63 +22,64 @@
 #include "stdafx.h"
 #include "ByteParser.h"
 
+#pragma warning( push )
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4244 )
+extern "C" {
+#define AVCODEC_X86_MATHOPS_H
+#define __STDC_CONSTANT_MACROS
+
+#include "libavcodec/get_bits.h"
+};
+#pragma warning( pop )
+
 CByteParser::CByteParser(const BYTE *pData, size_t length)
-  : m_pData(pData), m_pCurrent(pData), m_pEnd(pData+length), m_dwLen(length), m_bitBuffer(0), m_bitLen(0)
+  : m_pData(pData), m_pEnd(pData+length)
 {
+  m_gbCtx = (GetBitContext *)av_mallocz(sizeof(GetBitContext));
+  init_get_bits(m_gbCtx, pData, length << 3);
 }
 
 CByteParser::~CByteParser()
 {
+  av_freep(&m_gbCtx);
 }
 
 unsigned int CByteParser::BitRead(unsigned int numBits, bool peek)
 {
-  ASSERT(numBits <= 32);
-  ASSERT(numBits <= RemainingBits());
+  if (peek)
+    return show_bits_long(m_gbCtx, numBits);
+  else
+    return get_bits_long(m_gbCtx, numBits);
+}
 
-  if (numBits == 0 || RemainingBits() < numBits) { return 0; }
+size_t CByteParser::RemainingBits() const
+{
+  return get_bits_left(m_gbCtx);
+}
 
-  bool atEnd = false;
-  // Read more data in the buffer
-  while(m_bitLen < numBits) {
-    m_bitBuffer <<= 8;
-    m_bitBuffer += !atEnd ? *m_pCurrent : 0;
-    // Just a safety check so we don't cross the array boundary
-    if (m_pCurrent < m_pEnd) { m_pCurrent++; } else { atEnd = true; }
-    m_bitLen += 8;
-  }
-
-  // Number of superfluous bits in the buffer
-  int bitlen = m_bitLen - numBits;
-
-  // Compose the return value
-  // Shift the value so the superfluous bits fall off, and then crop the result with an AND
-  unsigned int ret = (m_bitBuffer >> bitlen) & ((1ui64 << numBits) - 1);
-
-  // If we're not peeking, then update the buffer and remove the data we just read
-  if(!peek) {
-    m_bitBuffer &= ((1ui64 << bitlen) - 1);
-    m_bitLen = bitlen;
-  }
-
-  return ret;
+size_t CByteParser::Pos() const
+{
+  return (size_t)(m_pEnd - Remaining());
 }
 
 // Exponential Golomb Coding (with k = 0)
 // As used in H.264/MPEG-4 AVC
 // http://en.wikipedia.org/wiki/Exponential-Golomb_coding
 
-unsigned CByteParser::UExpGolombRead() {
+unsigned CByteParser::UExpGolombRead()
+{
   int n = -1;
   for(BYTE b = 0; !b && RemainingBits(); n++) {
-    b = BitRead(1);
+    b = get_bits1(m_gbCtx);
   }
   if (!RemainingBits())
     return 0;
   return ((1 << n) | BitRead(n)) - 1;
 }
 
-int CByteParser::SExpGolombRead() {
+int CByteParser::SExpGolombRead()
+{
   int k = UExpGolombRead() + 1;
   // Negative numbers are interleaved in the series
   // unsigned: 0, 1,  2, 3,  4, 5,  6, ...
@@ -91,8 +92,7 @@ int CByteParser::SExpGolombRead() {
    return (k>>1);
 }
 
-void CByteParser::Seek(DWORD pos)
+void CByteParser::BitByteAlign()
 {
-  m_pCurrent = m_pData + min(m_dwLen, pos);
-  BitFlush();
+  align_get_bits(m_gbCtx);
 }
