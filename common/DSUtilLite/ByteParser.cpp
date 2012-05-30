@@ -47,6 +47,9 @@ CByteParser::~CByteParser()
 
 unsigned int CByteParser::BitRead(unsigned int numBits, bool peek)
 {
+  if (numBits == 0)
+    return 0;
+
   if (peek)
     return show_bits_long(m_gbCtx, numBits);
   else
