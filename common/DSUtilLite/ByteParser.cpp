@@ -63,7 +63,7 @@ size_t CByteParser::RemainingBits() const
 
 size_t CByteParser::Pos() const
 {
-  return (size_t)(m_pEnd - Remaining());
+  return (size_t)(m_pEnd - m_pData - Remaining());
 }
 
 // Exponential Golomb Coding (with k = 0)
