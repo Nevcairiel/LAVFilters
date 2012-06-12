@@ -1514,8 +1514,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
   BYTE *tmpProcessBuf = NULL;
   HRESULT hr = S_FALSE;
 
-  BOOL bEOF = (buffsize == -1);
-  if (buffsize == -1) buffsize = 1;
+  BOOL bFlush = (buffer == NULL);
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -1525,7 +1524,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
   // Copy data onto our properly padded data buffer (to avoid overreads)
   const uint8_t *pDataBuffer = NULL;
   if (!m_bInputPadded) {
-    if (!bEOF) {
+    if (!bFlush) {
       COPY_TO_BUFFER(buffer, buffsize);
     }
     pDataBuffer = m_pFFBuffer;
@@ -1575,9 +1574,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 #endif
 
   consumed = 0;
-  while (buffsize > 0) {
+  while (buffsize > 0 || bFlush) {
     got_frame = 0;
-    if (bEOF) buffsize = 0;
+    if (bFlush) buffsize = 0;
 
     if (m_pParser) {
       BYTE *pOut = NULL;
@@ -1600,7 +1599,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         m_bUpdateTimeCache = FALSE;
       }
 
-      if (!bEOF && used_bytes > 0) {
+      if (!bFlush && used_bytes > 0) {
         buffsize -= used_bytes;
         pDataBuffer += used_bytes;
         consumed += used_bytes;
@@ -1625,8 +1624,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
       } else {
         continue;
       }
-    } else if(bEOF) {
-      return S_FALSE;
+    } else if(bFlush) {
+      hr = S_FALSE;
+      break;
     } else {
       avpkt.data = (uint8_t *)pDataBuffer;
       avpkt.size = buffsize;

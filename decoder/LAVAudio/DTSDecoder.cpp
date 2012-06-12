@@ -286,15 +286,14 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const buffer, int buffsize, int &consu
   HRESULT hr = S_FALSE;
   int nPCMLength	= 0;
 
-  BOOL bEOF = (buffsize == -1);
-  if (buffsize == -1) buffsize = 1;
+  BOOL bFlush = (buffer == NULL);
 
   BufferDetails out;
 
   // Copy data onto our properly padded data buffer (to avoid overreads)
   const uint8_t *pDataBuffer = NULL;
   if (!m_bInputPadded) {
-    if (!bEOF) {
+    if (!bFlush) {
       COPY_TO_BUFFER(buffer, buffsize);
     }
     pDataBuffer = m_pFFBuffer;
@@ -305,7 +304,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const buffer, int buffsize, int &consu
   consumed = 0;
   while (buffsize > 0) {
     nPCMLength = 0;
-    if (bEOF) buffsize = 0;
+    if (bFlush) buffsize = 0;
 
     ASSERT(m_pParser);
 
@@ -328,7 +327,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const buffer, int buffsize, int &consu
       m_bUpdateTimeCache = FALSE;
     }
 
-    if (!bEOF && used_bytes > 0) {
+    if (!bFlush && used_bytes > 0) {
       buffsize -= used_bytes;
       pDataBuffer += used_bytes;
       consumed += used_bytes;

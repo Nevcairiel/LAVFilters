@@ -79,7 +79,7 @@ struct BufferDetails {
 
 // Copy the given data into our buffer, including padding, so broken decoders do not overread and crash
 #define COPY_TO_BUFFER(data, size) { \
-  if (size > m_nFFBufferSize) { \
+  if (size > m_nFFBufferSize || !m_pFFBuffer) { \
     m_nFFBufferSize = size; \
     m_pFFBuffer = (BYTE*)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1); \
     if (!m_pFFBuffer) { \
