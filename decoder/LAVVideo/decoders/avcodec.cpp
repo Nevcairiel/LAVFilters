@@ -641,7 +641,10 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       avpkt.data = pDataBuffer;
       avpkt.size = buflen;
       avpkt.pts = rtStartIn;
-      avpkt.dts = rtStopIn;
+      if (rtStartIn != AV_NOPTS_VALUE && rtStopIn != AV_NOPTS_VALUE)
+        avpkt.duration = rtStopIn - rtStartIn;
+      else
+        avpkt.duration = 0;
       avpkt.flags = AV_PKT_FLAG_KEY;
 
       if (m_bHasPalette) {
@@ -764,7 +767,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     if (m_bFFReordering) {
       rtStart = m_pFrame->pkt_pts;
-      rtStop = m_pFrame->pkt_dts;
+      rtStop  = m_pFrame->pkt_pts + m_pFrame->pkt_duration;
     } else if (m_bBFrameDelay && m_pAVCtx->has_b_frames) {
       rtStart = m_tcBFrameDelay[m_nBFramePos].rtStart;
       rtStop  = m_tcBFrameDelay[m_nBFramePos].rtStop;
