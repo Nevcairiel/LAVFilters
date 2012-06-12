@@ -20,7 +20,7 @@
 #include "stdafx.h"
 #include "BDDemuxer.h"
 
-#define BD_READ_BUFFER_SIZE (6144 * 5)
+#define BD_READ_BUFFER_SIZE (6144 * 20)
 
 int BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size)
 {
