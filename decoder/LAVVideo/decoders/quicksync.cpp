@@ -322,12 +322,15 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   // Configure video processing
   qsConfig.vpp = 0;
   
-  bool bDeint                                  = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Hardware;
+  bool bDeint                                  = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Hardware && !m_pSettings->GetDeintTreatAsProgressive();
   qsConfig.bEnableVideoProcessing              = bDeint;
   qsConfig.bVppEnableDeinterlacing             = bDeint;
   qsConfig.bVppEnableFullRateDI                = m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField;
   qsConfig.bVppEnableDITimeStampsInterpolation = true;
-  qsConfig.bVppEnableForcedDeinterlacing       = /*(m_bInterlaced && m_pSettings->GetDeintAggressive()) || */m_pSettings->GetDeintForce();
+  qsConfig.bVppEnableForcedDeinterlacing       = bDeint && ((m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce());
+
+  qsConfig.bForceFieldOrder                    = m_pSettings->GetDeintFieldOrder() != DeintFieldOrder_Auto;
+  qsConfig.eFieldOrder                         = (QsFieldOrder)m_pSettings->GetDeintFieldOrder();
 
   // Save!
   m_pDecoder->SetConfig(&qsConfig);
