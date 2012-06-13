@@ -55,7 +55,7 @@ static struct {
   { CODEC_ID_THEORA,     FF_THREAD_FRAME                 },
   { CODEC_ID_HUFFYUV,    FF_THREAD_FRAME                 },
   { CODEC_ID_FFVHUFF,    FF_THREAD_FRAME                 },
-  { CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
+  //{ CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
   { CODEC_ID_PRORES,                     FF_THREAD_SLICE },
   { CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
   { CODEC_ID_RV30,       FF_THREAD_FRAME                 },
