@@ -472,7 +472,7 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   pFrame->aspect_ratio.num = data->dwPictAspectRatioX;
   pFrame->aspect_ratio.den = data->dwPictAspectRatioY;
   pFrame->ext_format = m_DXVAExtendedFormat;
-  pFrame->interlaced = !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
+  pFrame->interlaced = m_bDI ? 0 : !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
   pFrame->tff = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_FIELD1FIRST);
   pFrame->avgFrameDuration = GetFrameDuration();
 
