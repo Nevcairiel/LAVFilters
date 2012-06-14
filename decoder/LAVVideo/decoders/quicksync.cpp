@@ -323,7 +323,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   // Configure video processing
   qsConfig.vpp = 0;
   
-  m_bDI                                        = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Hardware && !m_pSettings->GetDeintTreatAsProgressive();
+  m_bDI                                        = FALSE; //m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Hardware && !m_pSettings->GetDeintTreatAsProgressive();
   qsConfig.bEnableVideoProcessing              = m_bDI;
   qsConfig.bVppEnableDeinterlacing             = m_bDI;
   qsConfig.bVppEnableFullRateDI                = m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField;

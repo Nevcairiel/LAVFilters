@@ -288,7 +288,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
   DWORD dwSupport = m_pVideoSettings->CheckHWAccelSupport(hwAccel);
   BOOL bEnabled = (hwAccel != HWAccel_None) && dwSupport;
-  BOOL bHWDeint = bEnabled && (hwAccel == HWAccel_CUDA || hwAccel == HWAccel_QuickSync);
+  BOOL bHWDeint = bEnabled && (hwAccel == HWAccel_CUDA); // || hwAccel == HWAccel_QuickSync);
   BOOL bCUDAOnly = bEnabled && (hwAccel == HWAccel_CUDA);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
