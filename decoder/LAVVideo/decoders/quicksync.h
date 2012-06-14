@@ -71,6 +71,7 @@ private:
 
   BOOL m_bNeedSequenceCheck;
   BOOL m_bInterlaced;
+  bool m_bDI;
   BOOL m_bAVC1;
   int  m_nAVCNalSize;
 

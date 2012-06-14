@@ -78,6 +78,7 @@ CDecQuickSync::CDecQuickSync(void)
   , m_nAVCNalSize(0)
   , m_bUseTimestampQueue(FALSE)
   , m_pD3DDevMngr(NULL)
+  , m_bDI(false)
 {
   ZeroMemory(&qs, sizeof(qs));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -322,12 +323,12 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
   // Configure video processing
   qsConfig.vpp = 0;
   
-  bool bDeint                                  = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Hardware && !m_pSettings->GetDeintTreatAsProgressive();
-  qsConfig.bEnableVideoProcessing              = bDeint;
-  qsConfig.bVppEnableDeinterlacing             = bDeint;
+  m_bDI                                        = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Hardware && !m_pSettings->GetDeintTreatAsProgressive();
+  qsConfig.bEnableVideoProcessing              = m_bDI;
+  qsConfig.bVppEnableDeinterlacing             = m_bDI;
   qsConfig.bVppEnableFullRateDI                = m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField;
   qsConfig.bVppEnableDITimeStampsInterpolation = true;
-  qsConfig.bVppEnableForcedDeinterlacing       = bDeint && ((m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce());
+  qsConfig.bVppEnableForcedDeinterlacing       = m_bDI && ((m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce());
 
   qsConfig.bForceFieldOrder                    = m_pSettings->GetDeintFieldOrder() != DeintFieldOrder_Auto;
   qsConfig.eFieldOrder                         = (QsFieldOrder)m_pSettings->GetDeintFieldOrder();
@@ -473,6 +474,7 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   pFrame->ext_format = m_DXVAExtendedFormat;
   pFrame->interlaced = !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
   pFrame->tff = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_FIELD1FIRST);
+  pFrame->avgFrameDuration = GetFrameDuration();
 
   // Assign the buffer to the LAV Frame bufers
   pFrame->data[0] = data->y;
@@ -519,10 +521,13 @@ STDMETHODIMP CDecQuickSync::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 
 STDMETHODIMP_(REFERENCE_TIME) CDecQuickSync::GetFrameDuration()
 {
-  return 0;
+  CMediaType &mt = m_pCallback->GetInputMediaType();
+  REFERENCE_TIME rtDuration = 0;
+  videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &rtDuration, NULL, NULL);
+  return (m_bInterlaced && m_bDI && m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField) ? rtDuration / 2 : rtDuration;
 }
 
 STDMETHODIMP_(BOOL) CDecQuickSync::IsInterlaced()
 {
-  return !m_pSettings->GetDeintTreatAsProgressive() && (m_bInterlaced || m_pSettings->GetDeintForce()) && m_pSettings->GetHWAccelDeintMode() != HWDeintMode_Hardware;
+  return (m_bInterlaced || m_pSettings->GetDeintForce()) && !m_bDI;
 }
