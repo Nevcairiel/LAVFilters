@@ -730,7 +730,7 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
       // In this case, ConvertRTToTimestamp would produce timestamps not valid for seeking.
       //
       // Compensate for this by creating a negative start_time, resembling the actual value in m_avFormat->start_time without wrapping.
-      if (m_bMPEGTS && stream->start_time != AV_NOPTS_VALUE) {
+      if ((m_bMPEGTS || m_bMPEGPS) && stream->start_time != AV_NOPTS_VALUE) {
         int64_t start = av_rescale_q(stream->start_time, stream->time_base, AV_RATIONAL_TIMEBASE);
 
         if (start < m_avFormat->start_time
@@ -1234,7 +1234,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
       if (st->start_time != AV_NOPTS_VALUE) {
         st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
-        if (start_time != INT64_MAX && m_bMPEGTS && st->pts_wrap_bits < 60) {
+        if (start_time != INT64_MAX && (m_bMPEGTS || m_bMPEGPS) && st->pts_wrap_bits < 60) {
           int64_t start = av_rescale_q(start_time, AV_RATIONAL_TIMEBASE, st->time_base);
           if (start < (3LL << (st->pts_wrap_bits - 3)) && st->start_time > (3LL << (st->pts_wrap_bits - 2))) {
             start_time = av_rescale_q(start + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
