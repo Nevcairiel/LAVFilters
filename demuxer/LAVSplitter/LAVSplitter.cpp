@@ -529,6 +529,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
 
   m_bMPEGTS = strcmp(m_pDemuxer->GetContainerFormat(), "mpegts") == 0;
+  m_bMPEGPS = strcmp(m_pDemuxer->GetContainerFormat(), "mpeg") == 0;
 
   const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
   if (videoStream) {
@@ -729,12 +730,12 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
 
     // Filter PTS values
     // This will try to compensate for timestamp discontinuities in the stream
-    if (m_bMPEGTS) {
+    if (m_bMPEGTS || m_bMPEGPS) {
       if (pPin->m_rtPrev != Packet::INVALID_TIME && !pPin->IsSubtitlePin()) {
         REFERENCE_TIME rt = pPacket->rtStart + m_rtOffset;
         if(_abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {
           m_rtOffset += pPin->m_rtPrev - rt;
-          DbgLog((LOG_TRACE, 10, L"::DeliverPacket(): MPEG-TS discontinuity detected, adjusting offset to %I64d", m_rtOffset));
+          DbgLog((LOG_TRACE, 10, L"::DeliverPacket(): MPEG-TS/PS discontinuity detected, adjusting offset to %I64d", m_rtOffset));
         }
       }
       pPacket->rtStart += m_rtOffset;

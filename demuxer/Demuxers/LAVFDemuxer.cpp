@@ -82,6 +82,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_bOgg(FALSE)
   , m_bAVI(FALSE)
   , m_bMPEGTS(FALSE)
+  , m_bMPEGPS(FALSE)
   , m_bEVO(FALSE)
   , m_bRM(FALSE)
   , m_bBluRay(FALSE)
@@ -332,6 +333,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bOgg = (_strnicmp(m_pszInputFormat, "ogg", 3) == 0);
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
+  m_bMPEGPS = (_stricmp(m_pszInputFormat, "mpeg") == 0);
   m_bEVO = ((extension ? _wcsicmp(extension, L".evo") == 0 : TRUE) && _stricmp(m_pszInputFormat, "mpeg") == 0);
   m_bRM = (_stricmp(m_pszInputFormat, "rm") == 0);
 
@@ -632,7 +634,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     pPacket->StreamId = (DWORD)pkt.stream_index;
 
-    if (m_bMPEGTS && !m_bBluRay) {
+    if ((m_bMPEGTS && !m_bBluRay) || m_bMPEGPS) {
       int64_t start_time = av_rescale_q(m_avFormat->start_time, AV_RATIONAL_TIMEBASE, stream->time_base);
       const int64_t pts_diff = pkt.pts - start_time;
       const int64_t dts_diff = pkt.dts - start_time;

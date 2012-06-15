@@ -141,6 +141,7 @@ private:
   BOOL m_bOgg;
   BOOL m_bAVI;
   BOOL m_bMPEGTS;
+  BOOL m_bMPEGPS;
   BOOL m_bEVO;
   BOOL m_bRM;
   BOOL m_bVC1Correction;
