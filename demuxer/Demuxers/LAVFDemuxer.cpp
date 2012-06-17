@@ -701,6 +701,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Signaling Discontinuinty because of corrupt package"));
 #endif
 
+    if (pPacket->rtStart != AV_NOPTS_VALUE)
+      m_rtCurrent = pPacket->rtStart;
+
     av_free_packet(&pkt);
   }
 
