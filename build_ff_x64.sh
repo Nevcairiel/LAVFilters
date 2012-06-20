@@ -60,7 +60,7 @@ OPTIONS="
 --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 \
 --build-suffix=-lav"
 
-./configure --extra-ldflags="-L../thirdparty/lib64" --extra-cflags="-I../thirdparty/include -I../common/includes/dxva2" ${OPTIONS} &&
+./configure --extra-ldflags="-L../thirdparty/lib64" --extra-cflags="-I../thirdparty/include -idirafter../common/includes/dxva2" ${OPTIONS} &&
  
 make -j8 &&
 cp lib*/*-lav-*.dll ../bin_x64 &&
