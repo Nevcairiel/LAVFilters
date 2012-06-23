@@ -642,7 +642,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       avpkt.size = buflen;
       avpkt.pts = rtStartIn;
       if (rtStartIn != AV_NOPTS_VALUE && rtStopIn != AV_NOPTS_VALUE)
-        avpkt.duration = rtStopIn - rtStartIn;
+        avpkt.duration = (int)(rtStopIn - rtStartIn);
       else
         avpkt.duration = 0;
       avpkt.flags = AV_PKT_FLAG_KEY;

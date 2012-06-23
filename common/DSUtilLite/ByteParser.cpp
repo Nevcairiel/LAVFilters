@@ -37,7 +37,7 @@ CByteParser::CByteParser(const BYTE *pData, size_t length)
   : m_pData(pData), m_pEnd(pData+length)
 {
   m_gbCtx = (GetBitContext *)av_mallocz(sizeof(GetBitContext));
-  init_get_bits(m_gbCtx, pData, length << 3);
+  init_get_bits(m_gbCtx, pData, (int)(length << 3));
 }
 
 CByteParser::~CByteParser()

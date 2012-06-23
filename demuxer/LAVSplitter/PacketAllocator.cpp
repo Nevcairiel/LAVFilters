@@ -82,7 +82,7 @@ STDMETHODIMP CMediaPacketSample::SetPacket(Packet *pPacket)
 {
   SAFE_DELETE(m_pPacket);
   m_pPacket = pPacket;
-  SetPointer(pPacket->GetData(), pPacket->GetDataSize());
+  SetPointer(pPacket->GetData(), (LONG)pPacket->GetDataSize());
 
   return S_OK;
 }
