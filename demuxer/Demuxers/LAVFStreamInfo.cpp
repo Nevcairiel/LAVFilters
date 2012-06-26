@@ -158,7 +158,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
   }
 
-  if (avstream->codec->width == 0 || avstream->codec->height == 0)
+  if (avstream->codec->width == 0 || avstream->codec->height == 0
+    || ((avstream->codec->codec_id == CODEC_ID_MPEG1VIDEO || avstream->codec->codec_id == CODEC_ID_MPEG2VIDEO) && (avstream->codec->time_base.den == 0 || avstream->codec->time_base.num == 0)))
     return E_FAIL;
 
   CMediaType mtype = g_VideoHelper.initVideoType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
