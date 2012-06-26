@@ -151,7 +151,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
     pvi->AvgTimePerFrame = r_avg;
   } else if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0 && ((avg_avg = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num)) > MIN_TIME_PER_FRAME)) {
     pvi->AvgTimePerFrame = avg_avg;
-  } else if (avstream->time_base.den > 0 &&  avstream->time_base.num > 0 && avstream->codec->ticks_per_frame > 0 && ((tb_avg = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame, avstream->codec->time_base.den)) > MIN_TIME_PER_FRAME)) {
+  } else if (avstream->codec->time_base.den > 0 &&  avstream->codec->time_base.num > 0 && avstream->codec->ticks_per_frame > 0 && ((tb_avg = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame, avstream->codec->time_base.den)) > MIN_TIME_PER_FRAME)) {
     pvi->AvgTimePerFrame = tb_avg;
   }
   pvi->dwBitErrorRate = 0;
