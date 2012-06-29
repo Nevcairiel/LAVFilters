@@ -95,6 +95,7 @@ public:
   }
 
   DWORD GetCount() const { return m_count; }
+  DWORD GetAllocated() const { return m_allocated; }
 
   // Accessor.
   T& operator[](DWORD index)

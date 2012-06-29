@@ -43,8 +43,8 @@ OPTIONS="
 --enable-libspeex \
 --enable-libopencore-amrnb \
 --enable-libopencore-amrwb \
+--enable-avresample \
 --disable-avdevice \
---disable-avresample \
 --disable-postproc \
 --disable-swresample \
 --disable-static \

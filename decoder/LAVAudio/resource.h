@@ -3,12 +3,14 @@
 // Used by LAVAudio.rc
 //
 #define IDD_PROPPAGE_AUDIO_SETTINGS     9
-#define IDD_PROPPAGE_FORMATS            10
-#define IDD_PROPPAGE_STATUS             11
+#define IDD_PROPPAGE_AUDIO_MIXING       10
+#define IDD_PROPPAGE_FORMATS            11
+#define IDD_PROPPAGE_STATUS             12
 #define IDS_SETTINGS                    101
 #define IDS_STATUS                      102
 #define IDS_FORMATS                     103
 #define IDI_ICON1                       104
+#define IDS_MIXER                       105
 #define IDC_INPUT_STATUS                1013
 #define IDC_SUP_SAMPLE_FORMATS          1020
 #define IDC_INT16                       1021
@@ -85,14 +87,22 @@
 #define IDC_DELAY                       1101
 #define IDC_DELAYSPIN                   1102
 #define IDC_LBL_FORMATS                 1103
+#define IDC_MIXING                      1104
+#define IDC_MIXER                       1105
+#define IDC_DOWNMIX                     1106
+#define IDC_OUTPUT_SPEAKERS             1108
+#define IDC_UNTOUCHED_STEREO            1109
+#define IDC_MIX_SETTINGS                1110
+#define IDC_LBL_OUTPUT_SPEAKERS         1111
+#define IDC_LBL_MIXING                  1112
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        105
+#define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1104
+#define _APS_NEXT_CONTROL_VALUE         1113
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

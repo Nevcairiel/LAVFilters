@@ -325,6 +325,152 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Mixer Configurations
+
+CLAVAudioMixingProp::CLAVAudioMixingProp(LPUNKNOWN pUnk, HRESULT* phr)
+  : CBaseDSPropPage(NAME("LAVCAudioMixing"), pUnk, IDD_PROPPAGE_AUDIO_MIXING, IDS_MIXER), m_pAudioSettings(NULL)
+{
+}
+
+
+CLAVAudioMixingProp::~CLAVAudioMixingProp()
+{
+}
+
+HRESULT CLAVAudioMixingProp::OnConnect(IUnknown *pUnk)
+{
+  if (pUnk == NULL)
+  {
+    return E_POINTER;
+  }
+  ASSERT(m_pAudioSettings == NULL);
+  return pUnk->QueryInterface(&m_pAudioSettings);
+}
+
+HRESULT CLAVAudioMixingProp::OnDisconnect()
+{
+  SafeRelease(&m_pAudioSettings);
+  return S_OK;
+}
+
+static DWORD dwSpkLayouts[] = {
+  AV_CH_LAYOUT_STEREO,
+  AV_CH_LAYOUT_2_2,
+  AV_CH_LAYOUT_5POINT1_BACK,
+  AV_CH_LAYOUT_6POINT1,
+  AV_CH_LAYOUT_7POINT1,
+};
+static DWORD get_speaker_index(DWORD dwLayout) {
+  int i = 0;
+  for(i = 0; i < countof(dwSpkLayouts); i++) {
+    if (dwSpkLayouts[i] == dwLayout)
+      return i;
+  }
+  return (DWORD)-1;
+}
+
+HRESULT CLAVAudioMixingProp::OnApplyChanges()
+{
+  ASSERT(m_pAudioSettings != NULL);
+  HRESULT hr = S_OK;
+  DWORD dwVal = 0;
+  BOOL bVal = FALSE;
+
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_GETCURSEL, 0, 0);
+  m_pAudioSettings->SetMixingLayout(dwSpkLayouts[dwVal]);
+
+  bVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MIXING, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetMixingEnabled(bVal);
+
+  DWORD dwMixingFlags = 0;
+  bVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_UNTOUCHED_STEREO, BM_GETCHECK, 0, 0);
+  if (bVal) dwMixingFlags |= LAV_MIXING_FLAG_UNTOUCHED_STEREO;
+
+  m_pAudioSettings->SetMixingFlags(dwMixingFlags);
+
+  LoadData();
+
+  return hr;
+}
+
+HRESULT CLAVAudioMixingProp::OnActivate()
+{
+  HRESULT hr = S_OK;
+  INITCOMMONCONTROLSEX icc;
+  icc.dwSize = sizeof(INITCOMMONCONTROLSEX);
+  icc.dwICC = ICC_BAR_CLASSES | ICC_STANDARD_CLASSES;
+  if (InitCommonControlsEx(&icc) == FALSE)
+  {
+    return E_FAIL;
+  }
+  ASSERT(m_pAudioSettings != NULL);
+
+  WCHAR spkStereo[] = L"Stereo";
+  WCHAR spkQuadro[] = L"4.0";
+  WCHAR spk51Surround[] = L"5.1";
+  WCHAR spk61Surround[] = L"6.1";
+  WCHAR spk71Surround[] = L"7.1";
+
+  SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_RESETCONTENT, 0, 0);
+  SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spkStereo);
+  SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spkQuadro);
+  SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spk51Surround);
+  SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spk61Surround);
+  SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spk71Surround);
+
+  hr = LoadData();
+  if (SUCCEEDED(hr)) {
+    SendDlgItemMessage(m_Dlg, IDC_MIXING, BM_SETCHECK, m_bMixing, 0);
+    SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_SETCURSEL, get_speaker_index(m_dwSpeakerLayout), 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_UNTOUCHED_STEREO, BM_SETCHECK, !!(m_dwFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO), 0);
+  }
+
+  return hr;
+}
+
+HRESULT CLAVAudioMixingProp::LoadData()
+{
+  HRESULT hr = S_OK;
+
+  m_dwSpeakerLayout = m_pAudioSettings->GetMixingLayout();
+  m_bMixing         = m_pAudioSettings->GetMixingEnabled();
+  m_dwFlags         = m_pAudioSettings->GetMixingFlags();
+
+  return hr;
+}
+
+INT_PTR CLAVAudioMixingProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  LRESULT lValue;
+  switch (uMsg)
+  {
+  case WM_COMMAND:
+    if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_OUTPUT_SPEAKERS) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_dwSpeakerLayout) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_MIXING && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != m_bMixing) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_UNTOUCHED_STEREO && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue == !(m_dwFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO)) {
+        SetDirty();
+      }
+    }
+    break;
+  case WM_HSCROLL:
+    break;
+  }
+  // Let the parent class handle the message.
+  return __super::OnReceiveMessage(hwnd, uMsg, wParam, lParam);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Format Configurations
 
 CLAVAudioFormatsProp::CLAVAudioFormatsProp(LPUNKNOWN pUnk, HRESULT* phr)

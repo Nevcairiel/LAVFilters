@@ -370,6 +370,29 @@ LAVAudioSampleFormat get_lav_sample_fmt(AVSampleFormat sample_fmt, int bits)
   return lav_sample_fmt;
 }
 
+AVSampleFormat get_ff_sample_fmt(LAVAudioSampleFormat sample_fmt)
+{
+  AVSampleFormat ff_sample_fmt;
+  switch(sample_fmt) {
+  case SampleFormat_16:
+    ff_sample_fmt = AV_SAMPLE_FMT_S16;
+    break;
+  case SampleFormat_32:
+    ff_sample_fmt = AV_SAMPLE_FMT_S32;
+    break;
+  case SampleFormat_FP32:
+    ff_sample_fmt = AV_SAMPLE_FMT_FLT;
+    break;
+  case SampleFormat_U8:
+    ff_sample_fmt = AV_SAMPLE_FMT_U8;
+    break;
+  case SampleFormat_24:
+    assert(0);
+    break;
+  }
+  return ff_sample_fmt;
+}
+
 static BYTE get_lpcm_sample_rate_index(int sample_rate)
 {
   switch(sample_rate) {

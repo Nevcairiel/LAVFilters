@@ -57,6 +57,7 @@ const char *get_sample_format_desc(CMediaType &mt);
 BYTE get_byte_per_sample(LAVAudioSampleFormat sfFormat);
 
 LAVAudioSampleFormat get_lav_sample_fmt(AVSampleFormat sample_fmt, int bits = 0);
+AVSampleFormat get_ff_sample_fmt(LAVAudioSampleFormat sample_fmt);
 
 WORD get_channel_from_flag(DWORD dwMask, DWORD dwFlag);
 DWORD get_flag_from_channel(DWORD dwMask, WORD wChannel);

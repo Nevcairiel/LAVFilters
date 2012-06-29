@@ -132,6 +132,12 @@ public:
   STDMETHODIMP SetSampleFormat(LAVAudioSampleFormat format, BOOL bEnabled);
   STDMETHODIMP GetAudioDelay(BOOL *pbEnabled, int *pDelay);
   STDMETHODIMP SetAudioDelay(BOOL bEnabled, int delay);
+  STDMETHODIMP SetMixingEnabled(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetMixingEnabled();
+  STDMETHODIMP SetMixingLayout(DWORD dwLayout);
+  STDMETHODIMP_(DWORD) GetMixingLayout();
+  STDMETHODIMP SetMixingFlags(DWORD dwFlags);
+  STDMETHODIMP_(DWORD) GetMixingFlags();
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -224,6 +230,8 @@ private:
   HRESULT ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat outputFormat);
   HRESULT Truncate32Buffer(BufferDetails *buffer);
 
+  HRESULT PerformMixing(BufferDetails *buffer);
+
 private:
   CodecID              m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
@@ -256,6 +264,11 @@ private:
 
   BOOL                 m_bInputPadded;
 
+  AVAudioResampleContext *m_avrContext;
+  LAVAudioSampleFormat m_sfRemixFormat;
+  DWORD                m_dwRemixLayout;
+  BOOL                 m_bAVResampleFailed;
+
   // Settings
   struct AudioSettings {
     BOOL DRCEnabled;
@@ -271,6 +284,10 @@ private:
     BOOL bSampleFormats[SampleFormat_NB];
     BOOL AudioDelayEnabled;
     int  AudioDelay;
+
+    BOOL MixingEnabled;
+    DWORD MixingLayout;
+    DWORD MixingFlags;
   } m_settings;
   BOOL                m_bRuntimeConfig;
 

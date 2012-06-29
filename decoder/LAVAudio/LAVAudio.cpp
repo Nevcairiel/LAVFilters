@@ -83,6 +83,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bNeedSyncpoint(FALSE)
   , m_dRate(1.0)
   , m_bInputPadded(FALSE)
+  , m_avrContext(NULL)
+  , m_bAVResampleFailed(FALSE)
 {
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -189,6 +191,10 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.AudioDelayEnabled = FALSE;
   m_settings.AudioDelay = 0;
 
+  m_settings.MixingEnabled = FALSE;
+  m_settings.MixingLayout  = AV_CH_LAYOUT_STEREO;
+  m_settings.MixingFlags   = 0;
+
   return S_OK;
 }
 
@@ -251,6 +257,15 @@ HRESULT CLAVAudio::LoadSettings()
   bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
   if (SUCCEEDED(hr)) m_settings.OutputStandardLayout = bFlag;
 
+  bFlag = reg.ReadBOOL(L"Mixing", hr);
+  if (SUCCEEDED(hr)) m_settings.MixingEnabled = bFlag;
+
+  dwVal = reg.ReadDWORD(L"MixingLayout", hr);
+  if (SUCCEEDED(hr)) m_settings.MixingLayout = dwVal;
+
+  dwVal = reg.ReadDWORD(L"MixingFlags", hr);
+  if (SUCCEEDED(hr)) m_settings.MixingFlags = dwVal;
+
   // Deprecated sample format storage
   pBuf = reg.ReadBinary(L"SampleFormats", dwVal, hr);
   if (SUCCEEDED(hr)) {
@@ -307,6 +322,10 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBOOL(L"AudioDelayEnabled", m_settings.AudioDelayEnabled);
     reg.WriteDWORD(L"AudioDelay", m_settings.AudioDelay);
 
+    reg.WriteBOOL(L"Mixing", m_settings.MixingEnabled);
+    reg.WriteDWORD(L"MixingLayout", m_settings.MixingLayout);
+    reg.WriteDWORD(L"MixingFlags", m_settings.MixingFlags);
+
     reg.DeleteKey(L"Formats");
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
     for (int i = 0; i < Codec_NB; ++i) {
@@ -346,6 +365,11 @@ void CLAVAudio::ffmpeg_shutdown()
     m_pParser = NULL;
   }
 
+  if (m_avrContext) {
+    avresample_close(m_avrContext);
+    avresample_free(&m_avrContext);
+  }
+
   FreeBitstreamContext();
 
   FreeDTSDecoder();
@@ -373,15 +397,16 @@ STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
 {
   CheckPointer(pPages, E_POINTER);
   BOOL bShowStatusPage = m_pInput && m_pInput->IsConnected();
-  pPages->cElems = bShowStatusPage ? 3 : 2;
+  pPages->cElems = bShowStatusPage ? 4 : 3;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
   if (pPages->pElems == NULL) {
     return E_OUTOFMEMORY;
   }
   pPages->pElems[0] = CLSID_LAVAudioSettingsProp;
-  pPages->pElems[1] = CLSID_LAVAudioFormatsProp;
+  pPages->pElems[1] = CLSID_LAVAudioMixingProp;
+  pPages->pElems[2] = CLSID_LAVAudioFormatsProp;
   if (bShowStatusPage)
-    pPages->pElems[2] = CLSID_LAVAudioStatusProp;
+    pPages->pElems[3] = CLSID_LAVAudioStatusProp;
   return S_OK;
 }
 
@@ -395,6 +420,8 @@ STDMETHODIMP CLAVAudio::CreatePage(const GUID& guid, IPropertyPage** ppPage)
 
   if (guid == CLSID_LAVAudioSettingsProp)
     *ppPage = new CLAVAudioSettingsProp(NULL, &hr);
+  else if (guid == CLSID_LAVAudioMixingProp)
+    *ppPage = new CLAVAudioMixingProp(NULL, &hr);
   else if (guid == CLSID_LAVAudioFormatsProp)
     *ppPage = new CLAVAudioFormatsProp(NULL, &hr);
   else if (guid == CLSID_LAVAudioStatusProp)
@@ -599,6 +626,45 @@ STDMETHODIMP CLAVAudio::SetAudioDelay(BOOL bEnabled, int delay)
   SaveSettings();
 
   return S_OK;
+}
+
+STDMETHODIMP CLAVAudio::SetMixingEnabled(BOOL bEnabled)
+{
+  m_settings.MixingEnabled = bEnabled;
+  SaveSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetMixingEnabled()
+{
+  return m_settings.MixingEnabled;
+}
+
+STDMETHODIMP CLAVAudio::SetMixingLayout(DWORD dwLayout)
+{
+  m_settings.MixingLayout = dwLayout;
+  SaveSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(DWORD) CLAVAudio::GetMixingLayout()
+{
+  return m_settings.MixingLayout;
+}
+
+STDMETHODIMP CLAVAudio::SetMixingFlags(DWORD dwFlags)
+{
+  m_settings.MixingFlags = dwFlags;
+  SaveSettings();
+
+  return S_OK;
+}
+
+STDMETHODIMP_(DWORD) CLAVAudio::GetMixingFlags()
+{
+  return m_settings.MixingFlags;
 }
 
 // ILAVAudioStatus
@@ -1651,6 +1717,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
     // Channel re-mapping and sample format conversion
     if (got_frame && m_pFrame->nb_samples > 0) {
       const DWORD idx_start = out.bBuffer->GetCount();
+      const DWORD allocated = out.bBuffer->GetAllocated();
 
       out.wChannels = m_pAVCtx->channels;
       out.dwSamplesPerSec = m_pAVCtx->sample_rate;
@@ -1661,27 +1728,33 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
       out.nSamples = m_pFrame->nb_samples;
       DWORD dwPCMSize = out.nSamples * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
+      DWORD dwPCMSizeAligned = FFALIGN(out.nSamples, 32) * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
 
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
+        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_U8;
         break;
       case AV_SAMPLE_FMT_S16:
+        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_16;
         break;
       case AV_SAMPLE_FMT_S32:
+        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_32;
         out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
         break;
       case AV_SAMPLE_FMT_FLT:
+        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_FP32;
         break;
       case AV_SAMPLE_FMT_DBL:
         {
+          out.bBuffer->Allocate(allocated + (dwPCMSizeAligned / 2));
           out.bBuffer->SetSize(idx_start + (dwPCMSize / 2));
           float *pDataOut = (float *)(out.bBuffer->Ptr() + idx_start);
 
@@ -1697,6 +1770,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
       // Planar Formats
       case AV_SAMPLE_FMT_U8P:
         {
+          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
           out.bBuffer->SetSize(idx_start + dwPCMSize);
           uint8_t *pOut = (uint8_t *)(out.bBuffer->Ptr() + idx_start);
 
@@ -1710,6 +1784,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_S16P:
         {
+          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
           out.bBuffer->SetSize(idx_start + dwPCMSize);
           int16_t *pOut = (int16_t *)(out.bBuffer->Ptr() + idx_start);
 
@@ -1723,6 +1798,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_S32P:
         {
+          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
           out.bBuffer->SetSize(idx_start + dwPCMSize);
           int32_t *pOut = (int32_t *)(out.bBuffer->Ptr() + idx_start);
 
@@ -1737,6 +1813,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_FLTP:
         {
+          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
           out.bBuffer->SetSize(idx_start + dwPCMSize);
           float *pOut = (float *)(out.bBuffer->Ptr() + idx_start);
 
@@ -1750,6 +1827,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_DBLP:
         {
+          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
           out.bBuffer->SetSize(idx_start + (dwPCMSize / 2));
           float *pOut = (float *)(out.bBuffer->Ptr() + idx_start);
 

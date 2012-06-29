@@ -138,6 +138,19 @@ interface ILAVAudioSettings : public IUnknown
   // Configure a delay for the audio
   STDMETHOD(GetAudioDelay)(BOOL *pbEnabled, int *pDelay) = 0;
   STDMETHOD(SetAudioDelay)(BOOL bEnabled, int delay) = 0;
+
+  // Enable/Disable Mixing
+  STDMETHOD(SetMixingEnabled)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetMixingEnabled)() = 0;
+
+  // Control Mixing Layout
+  STDMETHOD(SetMixingLayout)(DWORD dwLayout) = 0;
+  STDMETHOD_(DWORD,GetMixingLayout)() = 0;
+
+#define LAV_MIXING_FLAG_UNTOUCHED_STEREO 0x0001
+  // Enable/Disable Mixing
+  STDMETHOD(SetMixingFlags)(DWORD dwFlags) = 0;
+  STDMETHOD_(DWORD,GetMixingFlags)() = 0;
 };
 
 // LAV Audio Status Interface

@@ -547,13 +547,71 @@ HRESULT CLAVAudio::Truncate32Buffer(BufferDetails *buffer)
   return S_OK;
 }
 
-HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
+HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
 {
-  LAVAudioSampleFormat outputFormat = GetBestAvailableSampleFormat(buffer->sfFormat);
-  if (outputFormat != buffer->sfFormat) {
-    ConvertSampleFormat(buffer, outputFormat);
+  // Check if we need mixing, either already in target mask or in stereo (no downmixing from stereo)
+  if (buffer->dwChannelMask == m_settings.MixingLayout || (buffer->wChannels <= 2 && (m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO)))
+    return S_FALSE;
+
+  // Sadly, we need to convert this, avresample has no 24-bit mode
+  if (buffer->sfFormat == SampleFormat_24) {
+    ConvertSampleFormat(buffer, SampleFormat_32);
   }
 
+  if (buffer->dwChannelMask != m_DecodeLayoutSanified || (!m_avrContext && !m_bAVResampleFailed) || m_settings.MixingLayout != m_dwRemixLayout) {
+    m_bAVResampleFailed = FALSE;
+    if (m_avrContext) {
+      avresample_close(m_avrContext);
+      avresample_free(&m_avrContext);
+    }
+
+    m_DecodeLayoutSanified = buffer->dwChannelMask;
+    // We prefer to mix to FP32, so try to use that
+    m_sfRemixFormat = GetBestAvailableSampleFormat(SampleFormat_FP32);
+    // avresample has no 24-bit mode
+    if (m_sfRemixFormat == SampleFormat_24)
+      m_sfRemixFormat = SampleFormat_32;
+
+    m_avrContext = avresample_alloc_context();
+    av_opt_set_int(m_avrContext, "in_channel_layout", buffer->dwChannelMask, 0);
+    av_opt_set_int(m_avrContext, "in_sample_fmt", get_ff_sample_fmt(buffer->sfFormat), 0);
+
+    av_opt_set_int(m_avrContext, "out_channel_layout", m_settings.MixingLayout, 0);
+    av_opt_set_int(m_avrContext, "out_sample_fmt", get_ff_sample_fmt(m_sfRemixFormat), 0);
+
+    int ret = avresample_open(m_avrContext);
+    if (ret < 0) {
+      DbgLog((LOG_ERROR, 10, L"avresample_open failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, m_settings.MixingLayout, buffer->sfFormat, m_sfRemixFormat));
+      avresample_free(&m_avrContext);
+      m_bAVResampleFailed = TRUE;
+    }
+
+    m_dwRemixLayout = m_settings.MixingLayout;
+  }
+
+  if (!m_avrContext)
+    return S_FALSE;
+
+  GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
+  pcmOut->Allocate(FFALIGN(buffer->nSamples, 32) * av_get_channel_layout_nb_channels(m_dwRemixLayout) * get_byte_per_sample(m_sfRemixFormat));
+  BYTE *pOut = pcmOut->Ptr();
+
+  BYTE *pIn = buffer->bBuffer->Ptr();
+  avresample_convert(m_avrContext, (void **)&pOut, pcmOut->GetAllocated(), buffer->nSamples, (void **)&pIn, buffer->bBuffer->GetAllocated(), buffer->nSamples);
+
+  delete buffer->bBuffer;
+  buffer->bBuffer = pcmOut;
+  buffer->dwChannelMask = m_dwRemixLayout;
+  buffer->sfFormat = m_sfRemixFormat;
+  buffer->wBitsPerSample = get_byte_per_sample(m_sfRemixFormat) << 3;
+  buffer->wChannels = av_get_channel_layout_nb_channels(m_dwRemixLayout);
+  buffer->bBuffer->SetSize(buffer->wChannels * buffer->nSamples * get_byte_per_sample(m_sfRemixFormat));
+
+  return S_OK;
+}
+
+HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
+{
   buffer->dwChannelMask = sanitize_mask(buffer->dwChannelMask, m_nCodecId);
 
   int layout_channels = av_get_channel_layout_nb_channels(buffer->dwChannelMask);
@@ -563,8 +621,11 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
     buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
   }
 
+  if (m_settings.MixingEnabled) {
+    PerformMixing(buffer);
+  }
   // Remap to standard configurations, if requested
-  if (m_settings.OutputStandardLayout) {
+  else if (m_settings.OutputStandardLayout) {
     if (buffer->dwChannelMask != m_DecodeLayoutSanified) {
       m_DecodeLayoutSanified = buffer->dwChannelMask;
       CheckChannelLayoutConformity(buffer->dwChannelMask);
@@ -593,8 +654,16 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
     UpdateVolumeStats(*buffer);
   }
 
-  if (buffer->sfFormat == SampleFormat_32 && buffer->wBitsPerSample && buffer->wBitsPerSample <= 24) {
+  // Truncate 24-in-32 to real 24
+  if (buffer->sfFormat == SampleFormat_32 && GetSampleFormat(SampleFormat_24) && buffer->wBitsPerSample && buffer->wBitsPerSample <= 24) {
     Truncate32Buffer(buffer);
   }
+
+  // Convert Sample format, if necessary
+  LAVAudioSampleFormat outputFormat = GetBestAvailableSampleFormat(buffer->sfFormat);
+  if (outputFormat != buffer->sfFormat) {
+    ConvertSampleFormat(buffer, outputFormat);
+  }
+
   return S_OK;
 }
