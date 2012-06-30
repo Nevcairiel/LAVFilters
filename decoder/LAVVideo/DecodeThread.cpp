@@ -465,3 +465,4 @@ STDMETHODIMP_(BOOL) CDecodeThread::IsVistaOrNewer() { return m_pLAVVideo->IsVist
 STDMETHODIMP_(CMediaType&) CDecodeThread::GetInputMediaType() { return m_pLAVVideo->GetInputMediaType(); }
 STDMETHODIMP CDecodeThread::GetLAVPinInfo(LAVPinInfo &info) { return m_pLAVVideo->GetLAVPinInfo(info); }
 STDMETHODIMP_(CBasePin*) CDecodeThread::GetOutputPin() { return m_pLAVVideo->GetOutputPin(); }
+STDMETHODIMP_(CMediaType&) CDecodeThread::GetOutputMediaType() { return m_pLAVVideo->GetOutputMediaType(); }

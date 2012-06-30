@@ -86,7 +86,7 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   { LAVPixFmt_RGB32,  8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
   { LAVPixFmt_ARGB32, 8, 6, { LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_NV12, LAVOutPixFmt_YV12 } },
 
-  { LAVPixFmt_DXVA2, 8, 1, { LAVOutPixFmt_NV12 } },
+  { LAVPixFmt_DXVA2, 8, 6, { LAVOutPixFmt_NV12, LAVOutPixFmt_YV12, LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24 } },
 };
 
 LAVOutPixFmtDesc lav_pixfmt_desc[] = {
@@ -167,7 +167,7 @@ int CLAVPixFmtConverter::GetFilteredFormatCount()
   LAV_INOUT_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt, m_InBpp);
   int count = 0;
   for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
-    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
+    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) || (m_InputPixFmt == LAVPixFmt_DXVA2 && pixFmtMap->lav_pix_fmts[i] == LAVOutPixFmt_NV12))
       count++;
   }
 
@@ -182,7 +182,7 @@ LAVOutPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
   LAV_INOUT_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt, m_InBpp);
   int actualIndex = -1;
   for (int i = 0; i < pixFmtMap->num_pix_fmt; ++i) {
-    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
+    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) || (m_InputPixFmt == LAVPixFmt_DXVA2 && pixFmtMap->lav_pix_fmts[i] == LAVOutPixFmt_NV12))
       actualIndex++;
     if (index == actualIndex)
       return pixFmtMap->lav_pix_fmts[i];

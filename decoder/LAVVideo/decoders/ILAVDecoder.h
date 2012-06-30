@@ -224,6 +224,13 @@ interface ILAVVideoCallback
    * Get a reference to the output pin
    */
   STDMETHOD_(CBasePin*, GetOutputPin)() PURE;
+
+  /**
+   * Get the output media type
+   *
+   * @result media type
+   */
+  STDMETHOD_(CMediaType&, GetOutputMediaType)() PURE;
 };
 
 /**

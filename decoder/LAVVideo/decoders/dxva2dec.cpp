@@ -279,8 +279,15 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
     goto done;
   }
 
-  if (m_bNative)
+  if (m_bNative) {
+    CMediaType mt = m_pCallback->GetOutputMediaType();
+    if (mt.subtype != MEDIASUBTYPE_NV12) {
+      DbgLog((LOG_ERROR, 10, L"-> Connection is not NV12"));
+      hr = E_FAIL;
+      goto done;
+    }
     hr = DXVA2NotifyEVR();
+  }
 
 done:
   SafeRelease(&pGetService);

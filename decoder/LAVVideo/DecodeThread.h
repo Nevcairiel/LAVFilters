@@ -64,6 +64,7 @@ public:
   STDMETHODIMP_(CMediaType&) GetInputMediaType();
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info);
   STDMETHODIMP_(CBasePin*) GetOutputPin();
+  STDMETHODIMP_(CMediaType&) GetOutputMediaType();
 
 protected:
   DWORD ThreadProc();
