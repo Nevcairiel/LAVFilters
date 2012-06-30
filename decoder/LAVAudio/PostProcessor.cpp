@@ -549,6 +549,8 @@ HRESULT CLAVAudio::Truncate32Buffer(BufferDetails *buffer)
 
 HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
 {
+  int ret = 0;
+
   // Check if we need mixing, either already in target mask or in stereo (no downmixing from stereo)
   if (buffer->dwChannelMask == m_settings.MixingLayout || (buffer->wChannels <= 2 && (m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO)))
     return S_FALSE;
@@ -579,11 +581,31 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     av_opt_set_int(m_avrContext, "out_channel_layout", m_settings.MixingLayout, 0);
     av_opt_set_int(m_avrContext, "out_sample_fmt", get_ff_sample_fmt(m_sfRemixFormat), 0);
 
-    int ret = avresample_open(m_avrContext);
+    // Create Matrix
+    int in_ch = buffer->wChannels;
+    int out_ch = av_get_channel_layout_nb_channels(m_settings.MixingLayout);
+    double *matrix_dbl = (double *)av_mallocz(in_ch * out_ch * sizeof(*matrix_dbl));
+
+    ret = avresample_build_matrix(buffer->dwChannelMask, m_settings.MixingLayout, M_SQRT1_2, M_SQRT1_2, 0.0, 1, matrix_dbl, in_ch, AV_MATRIX_ENCODING_NONE);
+    if (ret < 0) {
+      DbgLog((LOG_ERROR, 10, L"avresample_build_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, m_settings.MixingLayout, buffer->sfFormat, m_sfRemixFormat));
+      av_free(matrix_dbl);
+      goto setuperr;
+    }
+
+    // Set Matrix on the context
+    ret = avresample_set_matrix(m_avrContext, matrix_dbl, in_ch);
+    av_free(matrix_dbl);
+    if (ret < 0) {
+      DbgLog((LOG_ERROR, 10, L"avresample_set_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, m_settings.MixingLayout, buffer->sfFormat, m_sfRemixFormat));
+      goto setuperr;
+    }
+
+    // Open Resample Context
+    ret = avresample_open(m_avrContext);
     if (ret < 0) {
       DbgLog((LOG_ERROR, 10, L"avresample_open failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, m_settings.MixingLayout, buffer->sfFormat, m_sfRemixFormat));
-      avresample_free(&m_avrContext);
-      m_bAVResampleFailed = TRUE;
+      goto setuperr;
     }
 
     m_dwRemixLayout = m_settings.MixingLayout;
@@ -597,7 +619,12 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
   BYTE *pOut = pcmOut->Ptr();
 
   BYTE *pIn = buffer->bBuffer->Ptr();
-  avresample_convert(m_avrContext, (void **)&pOut, pcmOut->GetAllocated(), buffer->nSamples, (void **)&pIn, buffer->bBuffer->GetAllocated(), buffer->nSamples);
+  ret = avresample_convert(m_avrContext, (void **)&pOut, pcmOut->GetAllocated(), buffer->nSamples, (void **)&pIn, buffer->bBuffer->GetAllocated(), buffer->nSamples);
+  if (ret < 0) {
+    DbgLog((LOG_ERROR, 10, L"avresample_convert failed"));
+    delete pcmOut;
+    return S_FALSE;
+  }
 
   delete buffer->bBuffer;
   buffer->bBuffer = pcmOut;
@@ -608,6 +635,10 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
   buffer->bBuffer->SetSize(buffer->wChannels * buffer->nSamples * get_byte_per_sample(m_sfRemixFormat));
 
   return S_OK;
+setuperr:
+  avresample_free(&m_avrContext);
+  m_bAVResampleFailed = TRUE;
+  return S_FALSE;
 }
 
 HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
