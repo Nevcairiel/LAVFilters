@@ -85,6 +85,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bInputPadded(FALSE)
   , m_avrContext(NULL)
   , m_bAVResampleFailed(FALSE)
+  , m_bMixingSettingsChanged(FALSE)
+  , m_fMixingClipThreshold(0.0f)
 {
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -193,7 +195,7 @@ HRESULT CLAVAudio::LoadDefaults()
 
   m_settings.MixingEnabled = FALSE;
   m_settings.MixingLayout  = AV_CH_LAYOUT_STEREO;
-  m_settings.MixingFlags   = 0;
+  m_settings.MixingFlags   = LAV_MIXING_FLAG_CLIP_PROTECTION;
 
   return S_OK;
 }
@@ -633,6 +635,8 @@ STDMETHODIMP CLAVAudio::SetMixingEnabled(BOOL bEnabled)
   m_settings.MixingEnabled = bEnabled;
   SaveSettings();
 
+  m_bMixingSettingsChanged = TRUE;
+
   return S_OK;
 }
 
@@ -646,6 +650,8 @@ STDMETHODIMP CLAVAudio::SetMixingLayout(DWORD dwLayout)
   m_settings.MixingLayout = dwLayout;
   SaveSettings();
 
+  m_bMixingSettingsChanged = TRUE;
+
   return S_OK;
 }
 
@@ -658,6 +664,8 @@ STDMETHODIMP CLAVAudio::SetMixingFlags(DWORD dwFlags)
 {
   m_settings.MixingFlags = dwFlags;
   SaveSettings();
+
+  m_bMixingSettingsChanged = TRUE;
 
   return S_OK;
 }
@@ -1321,6 +1329,7 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
     m_dRate = dRate;
   else
     m_dRate = 1.0;
+  m_fMixingClipThreshold = 0.0f;
   return __super::NewSegment(tStart, tStop, dRate);
 }
 

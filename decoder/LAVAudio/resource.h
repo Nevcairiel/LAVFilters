@@ -95,6 +95,8 @@
 #define IDC_MIX_SETTINGS                1110
 #define IDC_LBL_OUTPUT_SPEAKERS         1111
 #define IDC_LBL_MIXING                  1112
+#define IDC_NORMALIZE_MATRIX            1113
+#define IDC_CLIP_PROTECTION             1114
 
 // Next default values for new objects
 // 
@@ -102,7 +104,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1113
+#define _APS_NEXT_CONTROL_VALUE         1115
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

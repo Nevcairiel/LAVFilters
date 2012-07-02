@@ -268,6 +268,8 @@ private:
   LAVAudioSampleFormat m_sfRemixFormat;
   DWORD                m_dwRemixLayout;
   BOOL                 m_bAVResampleFailed;
+  BOOL                 m_bMixingSettingsChanged;
+  float                m_fMixingClipThreshold;
 
   // Settings
   struct AudioSettings {

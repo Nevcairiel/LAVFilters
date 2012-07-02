@@ -560,8 +560,9 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     ConvertSampleFormat(buffer, SampleFormat_32);
   }
 
-  if (buffer->dwChannelMask != m_DecodeLayoutSanified || (!m_avrContext && !m_bAVResampleFailed) || m_settings.MixingLayout != m_dwRemixLayout) {
+  if (buffer->dwChannelMask != m_DecodeLayoutSanified || (!m_avrContext && !m_bAVResampleFailed) || m_bMixingSettingsChanged) {
     m_bAVResampleFailed = FALSE;
+    m_bMixingSettingsChanged = FALSE;
     if (m_avrContext) {
       avresample_close(m_avrContext);
       avresample_free(&m_avrContext);
@@ -573,6 +574,11 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     // avresample has no 24-bit mode
     if (m_sfRemixFormat == SampleFormat_24)
       m_sfRemixFormat = SampleFormat_32;
+
+    BOOL bNormalize = !!(m_settings.MixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX);
+    // Force FP32 output from remixing when not performing normalization
+    if (!bNormalize)
+      m_sfRemixFormat = SampleFormat_FP32;
 
     m_avrContext = avresample_alloc_context();
     av_opt_set_int(m_avrContext, "in_channel_layout", buffer->dwChannelMask, 0);
@@ -586,7 +592,7 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     int out_ch = av_get_channel_layout_nb_channels(m_settings.MixingLayout);
     double *matrix_dbl = (double *)av_mallocz(in_ch * out_ch * sizeof(*matrix_dbl));
 
-    ret = avresample_build_matrix(buffer->dwChannelMask, m_settings.MixingLayout, M_SQRT1_2, M_SQRT1_2, 0.0, 1, matrix_dbl, in_ch, AV_MATRIX_ENCODING_NONE);
+    ret = avresample_build_matrix(buffer->dwChannelMask, m_settings.MixingLayout, M_SQRT1_2, M_SQRT1_2, 0.0, bNormalize, matrix_dbl, in_ch, AV_MATRIX_ENCODING_NONE);
     if (ret < 0) {
       DbgLog((LOG_ERROR, 10, L"avresample_build_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, m_settings.MixingLayout, buffer->sfFormat, m_sfRemixFormat));
       av_free(matrix_dbl);
@@ -624,6 +630,25 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     DbgLog((LOG_ERROR, 10, L"avresample_convert failed"));
     delete pcmOut;
     return S_FALSE;
+  }
+
+  if (!(m_settings.MixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX) && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION)) {
+    ASSERT(m_sfRemixFormat == SampleFormat_FP32);
+
+    DWORD dwSamples = av_get_channel_layout_nb_channels(m_dwRemixLayout) * buffer->nSamples;
+    BOOL bNeedNormalize = (m_fMixingClipThreshold > 1.0f);
+    float *pfOut = (float *)pOut;
+    for (DWORD i = 0; i < dwSamples; i++) {
+      float fVal = abs(pfOut[i]);
+      if (fVal > 1.0f && fVal > m_fMixingClipThreshold) {
+        m_fMixingClipThreshold = fVal;
+        bNeedNormalize = TRUE;
+        DbgLog((LOG_TRACE, 10, L"PerformMixing: Clipping Protection engaged with coeff of %f", m_fMixingClipThreshold));
+      }
+      if (bNeedNormalize) {
+        pfOut[i] /= m_fMixingClipThreshold;
+      }
+    }
   }
 
   delete buffer->bBuffer;

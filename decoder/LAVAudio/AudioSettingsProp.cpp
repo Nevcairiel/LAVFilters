@@ -386,6 +386,12 @@ HRESULT CLAVAudioMixingProp::OnApplyChanges()
   bVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_UNTOUCHED_STEREO, BM_GETCHECK, 0, 0);
   if (bVal) dwMixingFlags |= LAV_MIXING_FLAG_UNTOUCHED_STEREO;
 
+  bVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_NORMALIZE_MATRIX, BM_GETCHECK, 0, 0);
+  if (bVal) dwMixingFlags |= LAV_MIXING_FLAG_NORMALIZE_MATRIX;
+
+  bVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_CLIP_PROTECTION, BM_GETCHECK, 0, 0);
+  if (bVal) dwMixingFlags |= LAV_MIXING_FLAG_CLIP_PROTECTION;
+
   m_pAudioSettings->SetMixingFlags(dwMixingFlags);
 
   LoadData();
@@ -424,6 +430,8 @@ HRESULT CLAVAudioMixingProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_SETCURSEL, get_speaker_index(m_dwSpeakerLayout), 0);
 
     SendDlgItemMessage(m_Dlg, IDC_UNTOUCHED_STEREO, BM_SETCHECK, !!(m_dwFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO), 0);
+    SendDlgItemMessage(m_Dlg, IDC_NORMALIZE_MATRIX, BM_SETCHECK, !!(m_dwFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX), 0);
+    SendDlgItemMessage(m_Dlg, IDC_CLIP_PROTECTION, BM_SETCHECK, !!(m_dwFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
   }
 
   return hr;
@@ -459,6 +467,16 @@ INT_PTR CLAVAudioMixingProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
     } else if (LOWORD(wParam) == IDC_UNTOUCHED_STEREO && HIWORD(wParam) == BN_CLICKED) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (lValue == !(m_dwFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_NORMALIZE_MATRIX && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue == !(m_dwFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_CLIP_PROTECTION && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue == !(m_dwFlags & LAV_MIXING_FLAG_CLIP_PROTECTION)) {
         SetDirty();
       }
     }

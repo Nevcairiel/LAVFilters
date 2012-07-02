@@ -148,6 +148,8 @@ interface ILAVAudioSettings : public IUnknown
   STDMETHOD_(DWORD,GetMixingLayout)() = 0;
 
 #define LAV_MIXING_FLAG_UNTOUCHED_STEREO 0x0001
+#define LAV_MIXING_FLAG_NORMALIZE_MATRIX 0x0002
+#define LAV_MIXING_FLAG_CLIP_PROTECTION  0x0004
   // Enable/Disable Mixing
   STDMETHOD(SetMixingFlags)(DWORD dwFlags) = 0;
   STDMETHOD_(DWORD,GetMixingFlags)() = 0;
