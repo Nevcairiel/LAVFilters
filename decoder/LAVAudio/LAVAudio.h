@@ -138,6 +138,8 @@ public:
   STDMETHODIMP_(DWORD) GetMixingLayout();
   STDMETHODIMP SetMixingFlags(DWORD dwFlags);
   STDMETHODIMP_(DWORD) GetMixingFlags();
+  STDMETHODIMP SetMixingMode(LAVAudioMixingMode mixingMode);
+  STDMETHODIMP_(LAVAudioMixingMode) GetMixingMode();
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -290,6 +292,7 @@ private:
     BOOL MixingEnabled;
     DWORD MixingLayout;
     DWORD MixingFlags;
+    DWORD MixingMode;
   } m_settings;
   BOOL                m_bRuntimeConfig;
 

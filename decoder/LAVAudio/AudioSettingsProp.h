@@ -110,6 +110,7 @@ private:
   BOOL  m_bMixing;
   DWORD m_dwSpeakerLayout;
   DWORD m_dwFlags;
+  DWORD m_dwMixingMode;
 };
 
 class CLAVAudioFormatsProp : public CBaseDSPropPage

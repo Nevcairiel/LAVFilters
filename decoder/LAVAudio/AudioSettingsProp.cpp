@@ -394,6 +394,11 @@ HRESULT CLAVAudioMixingProp::OnApplyChanges()
 
   m_pAudioSettings->SetMixingFlags(dwMixingFlags);
 
+  BOOL bNormal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MIXMODE_NORMAL, BM_GETCHECK, 0, 0);
+  BOOL bDolby = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DOLBY, BM_GETCHECK, 0, 0);
+  BOOL bDPL2 = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DPL2, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetMixingMode(bDolby ? MatrixEncoding_Dolby : (bDPL2 ? MatrixEncoding_DPLII : MatrixEncoding_None));
+
   LoadData();
 
   return hr;
@@ -432,6 +437,10 @@ HRESULT CLAVAudioMixingProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_UNTOUCHED_STEREO, BM_SETCHECK, !!(m_dwFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO), 0);
     SendDlgItemMessage(m_Dlg, IDC_NORMALIZE_MATRIX, BM_SETCHECK, !!(m_dwFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX), 0);
     SendDlgItemMessage(m_Dlg, IDC_CLIP_PROTECTION, BM_SETCHECK, !!(m_dwFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_MIXMODE_NORMAL, BM_SETCHECK, (m_dwMixingMode == MatrixEncoding_None), 0);
+    SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DOLBY, BM_SETCHECK, (m_dwMixingMode == MatrixEncoding_Dolby), 0);
+    SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DPL2, BM_SETCHECK, (m_dwMixingMode == MatrixEncoding_DPLII), 0);
   }
 
   return hr;
@@ -444,6 +453,7 @@ HRESULT CLAVAudioMixingProp::LoadData()
   m_dwSpeakerLayout = m_pAudioSettings->GetMixingLayout();
   m_bMixing         = m_pAudioSettings->GetMixingEnabled();
   m_dwFlags         = m_pAudioSettings->GetMixingFlags();
+  m_dwMixingMode    = m_pAudioSettings->GetMixingMode();
 
   return hr;
 }
@@ -477,6 +487,21 @@ INT_PTR CLAVAudioMixingProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
     } else if (LOWORD(wParam) == IDC_CLIP_PROTECTION && HIWORD(wParam) == BN_CLICKED) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (lValue == !(m_dwFlags & LAV_MIXING_FLAG_CLIP_PROTECTION)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_MIXMODE_NORMAL && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_dwMixingMode == MatrixEncoding_None)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_MIXMODE_DOLBY && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_dwMixingMode == MatrixEncoding_Dolby)) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_MIXMODE_DPL2 && HIWORD(wParam) == BN_CLICKED) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (lValue != (m_dwMixingMode == MatrixEncoding_DPLII)) {
         SetDirty();
       }
     }

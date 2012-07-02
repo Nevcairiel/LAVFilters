@@ -196,6 +196,7 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.MixingEnabled = FALSE;
   m_settings.MixingLayout  = AV_CH_LAYOUT_STEREO;
   m_settings.MixingFlags   = LAV_MIXING_FLAG_CLIP_PROTECTION;
+  m_settings.MixingMode    = MatrixEncoding_None;
 
   return S_OK;
 }
@@ -268,6 +269,9 @@ HRESULT CLAVAudio::LoadSettings()
   dwVal = reg.ReadDWORD(L"MixingFlags", hr);
   if (SUCCEEDED(hr)) m_settings.MixingFlags = dwVal;
 
+  dwVal = reg.ReadDWORD(L"MixingMode", hr);
+  if (SUCCEEDED(hr)) m_settings.MixingMode = dwVal;
+
   // Deprecated sample format storage
   pBuf = reg.ReadBinary(L"SampleFormats", dwVal, hr);
   if (SUCCEEDED(hr)) {
@@ -327,6 +331,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBOOL(L"Mixing", m_settings.MixingEnabled);
     reg.WriteDWORD(L"MixingLayout", m_settings.MixingLayout);
     reg.WriteDWORD(L"MixingFlags", m_settings.MixingFlags);
+    reg.WriteDWORD(L"MixingMode", m_settings.MixingMode);
 
     reg.DeleteKey(L"Formats");
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
@@ -673,6 +678,21 @@ STDMETHODIMP CLAVAudio::SetMixingFlags(DWORD dwFlags)
 STDMETHODIMP_(DWORD) CLAVAudio::GetMixingFlags()
 {
   return m_settings.MixingFlags;
+}
+
+STDMETHODIMP CLAVAudio::SetMixingMode(LAVAudioMixingMode mixingMode)
+{
+  m_settings.MixingMode = mixingMode;
+  SaveSettings();
+
+  m_bMixingSettingsChanged = TRUE;
+
+  return S_OK;
+}
+
+STDMETHODIMP_(LAVAudioMixingMode) CLAVAudio::GetMixingMode()
+{
+  return (LAVAudioMixingMode)m_settings.MixingMode;
 }
 
 // ILAVAudioStatus

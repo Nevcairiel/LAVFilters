@@ -77,6 +77,14 @@ typedef enum LAVAudioSampleFormat {
   SampleFormat_NB     // Number of entrys (do not use when dynamically linking)
 };
 
+typedef enum LAVAudioMixingMode {
+  MatrixEncoding_None,
+  MatrixEncoding_Dolby,
+  MatrixEncoding_DPLII,
+
+  MatrixEncoding_NB
+};
+
 // LAV Audio configuration interface
 [uuid("4158A22B-6553-45D0-8069-24716F8FF171")]
 interface ILAVAudioSettings : public IUnknown
@@ -150,9 +158,13 @@ interface ILAVAudioSettings : public IUnknown
 #define LAV_MIXING_FLAG_UNTOUCHED_STEREO 0x0001
 #define LAV_MIXING_FLAG_NORMALIZE_MATRIX 0x0002
 #define LAV_MIXING_FLAG_CLIP_PROTECTION  0x0004
-  // Enable/Disable Mixing
+  // Set Mixing Flags
   STDMETHOD(SetMixingFlags)(DWORD dwFlags) = 0;
   STDMETHOD_(DWORD,GetMixingFlags)() = 0;
+
+  // Set Mixing Mode
+  STDMETHOD(SetMixingMode)(LAVAudioMixingMode mixingMode) = 0;
+  STDMETHOD_(LAVAudioMixingMode,GetMixingMode)() = 0;
 };
 
 // LAV Audio Status Interface

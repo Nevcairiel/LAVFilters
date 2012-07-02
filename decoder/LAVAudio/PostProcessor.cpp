@@ -592,7 +592,7 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     int out_ch = av_get_channel_layout_nb_channels(m_settings.MixingLayout);
     double *matrix_dbl = (double *)av_mallocz(in_ch * out_ch * sizeof(*matrix_dbl));
 
-    ret = avresample_build_matrix(buffer->dwChannelMask, m_settings.MixingLayout, M_SQRT1_2, M_SQRT1_2, 0.0, bNormalize, matrix_dbl, in_ch, AV_MATRIX_ENCODING_NONE);
+    ret = avresample_build_matrix(buffer->dwChannelMask, m_settings.MixingLayout, M_SQRT1_2, M_SQRT1_2, 0.0, bNormalize, matrix_dbl, in_ch, (AVMatrixEncoding)m_settings.MixingMode);
     if (ret < 0) {
       DbgLog((LOG_ERROR, 10, L"avresample_build_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, m_settings.MixingLayout, buffer->sfFormat, m_sfRemixFormat));
       av_free(matrix_dbl);
