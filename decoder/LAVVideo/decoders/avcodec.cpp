@@ -223,7 +223,8 @@ static CodecID ff_interlace_capable[] = {
   CODEC_ID_VC1,
   CODEC_ID_PNG,
   CODEC_ID_PRORES,
-  CODEC_ID_RAWVIDEO
+  CODEC_ID_RAWVIDEO,
+  CODEC_ID_UTVIDEO
 };
 
 static struct PixelFormatMapping getPixFmtMapping(PixelFormat pixfmt) {
