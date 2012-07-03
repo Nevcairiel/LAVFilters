@@ -28,7 +28,7 @@
 #define DITHER_STEPS 3
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
-template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype> __forceinline
+template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype, int ycgco> __forceinline
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs, const uint16_t* &dithers, int pos)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -171,12 +171,6 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm3 = _mm_slli_epi16(xmm2, 4-shift);
   }
 
-  // After this step, xmm1 & xmm3 contain 4 UV pairs, each in a 16-bit value, filling 12-bit.
-
-  xmm2 = coeffs->CbCr_center;
-  xmm1 = _mm_subs_epi16(xmm1, xmm2);
-  xmm3 = _mm_subs_epi16(xmm3, xmm2);
-
   // Load Y
   if (shift > 0) {
     // Load 4 Y values from line 0/1 into registers
@@ -193,44 +187,74 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm0 = _mm_unpacklo_epi8(xmm0, xmm7);                       /* YYYY0000 (16-bit fields)*/
   }
 
-  xmm0 = _mm_unpacklo_epi64(xmm0, xmm5);                      /* YYYYYYYY */
+  xmm0 = _mm_unpacklo_epi64(xmm0, xmm5);                        /* YYYYYYYY */
 
-  // Shift to 14 bits
-  xmm0 = _mm_slli_epi16(xmm0, 6-shift);
-  xmm0 = _mm_subs_epu16(xmm0, coeffs->Ysub);                  /* Y-16 (in case of range expansion) */
-  xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
-  xmm0 = _mm_add_epi16(xmm0, coeffs->rgb_add);                /* Y*cy + 16 (in case of range compression) */
+  xmm2 = coeffs->CbCr_center;                                   /* move CbCr/CgCo to proper range */
+  xmm1 = _mm_subs_epi16(xmm1, xmm2);
+  xmm3 = _mm_subs_epi16(xmm3, xmm2);
 
-  xmm6 = xmm1;
-  xmm4 = xmm3;
-  xmm6 = _mm_madd_epi16(xmm6, coeffs->cR_Cr);                 /* Result is 25 bits (12 from chroma, 13 from coeff) */
-  xmm4 = _mm_madd_epi16(xmm4, coeffs->cR_Cr);
-  xmm6 = _mm_srai_epi32(xmm6, 13);                            /* Reduce to 12 bit */
-  xmm4 = _mm_srai_epi32(xmm4, 13);
-  xmm6 = _mm_packs_epi32(xmm6, xmm7);                         /* Pack back into 16 bit cells */
-  xmm4 = _mm_packs_epi32(xmm4, xmm7);
-  xmm6 = _mm_unpacklo_epi64(xmm4, xmm6);                      /* Interleave both parts */
-  xmm6 = _mm_add_epi16(xmm6, xmm0);                           /* R (12bit) */
+  // After this step, xmm1 & xmm3 contain 4 UV pairs, each in a 16-bit value, filling 12-bit.
+  if (!ycgco) {
+    // YCbCr conversion
+    // Shift to 14 bits
+    xmm0 = _mm_slli_epi16(xmm0, 6-shift);
+    xmm0 = _mm_subs_epu16(xmm0, coeffs->Ysub);                  /* Y-16 (in case of range expansion) */
+    xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
+    xmm0 = _mm_add_epi16(xmm0, coeffs->rgb_add);                /* Y*cy + 16 (in case of range compression) */
 
-  xmm5 = xmm1;
-  xmm4 = xmm3;
-  xmm5 = _mm_madd_epi16(xmm5, coeffs->cG_Cb_cG_Cr);           /* Result is 25 bits (12 from chroma, 13 from coeff) */
-  xmm4 = _mm_madd_epi16(xmm4, coeffs->cG_Cb_cG_Cr);
-  xmm5 = _mm_srai_epi32(xmm5, 13);                            /* Reduce to 12 bit */
-  xmm4 = _mm_srai_epi32(xmm4, 13);
-  xmm5 = _mm_packs_epi32(xmm5, xmm7);                         /* Pack back into 16 bit cells */
-  xmm4 = _mm_packs_epi32(xmm4, xmm7);
-  xmm5 = _mm_unpacklo_epi64(xmm4, xmm5);                      /* Interleave both parts */
-  xmm5 = _mm_add_epi16(xmm5, xmm0);                           /* G (12bit) */
+    xmm6 = xmm1;
+    xmm4 = xmm3;
+    xmm6 = _mm_madd_epi16(xmm6, coeffs->cR_Cr);                 /* Result is 25 bits (12 from chroma, 13 from coeff) */
+    xmm4 = _mm_madd_epi16(xmm4, coeffs->cR_Cr);
+    xmm6 = _mm_srai_epi32(xmm6, 13);                            /* Reduce to 12 bit */
+    xmm4 = _mm_srai_epi32(xmm4, 13);
+    xmm6 = _mm_packs_epi32(xmm6, xmm7);                         /* Pack back into 16 bit cells */
+    xmm4 = _mm_packs_epi32(xmm4, xmm7);
+    xmm6 = _mm_unpacklo_epi64(xmm4, xmm6);                      /* Interleave both parts */
+    xmm6 = _mm_add_epi16(xmm6, xmm0);                           /* R (12bit) */
 
-  xmm1 = _mm_madd_epi16(xmm1, coeffs->cB_Cb);                 /* Result is 25 bits (12 from chroma, 13 from coeff) */
-  xmm3 = _mm_madd_epi16(xmm3, coeffs->cB_Cb);
-  xmm1 = _mm_srai_epi32(xmm1, 13);                            /* Reduce to 12 bit */
-  xmm3 = _mm_srai_epi32(xmm3, 13);
-  xmm1 = _mm_packs_epi32(xmm1, xmm7);                         /* Pack back into 16 bit cells */
-  xmm3 = _mm_packs_epi32(xmm3, xmm7);
-  xmm1 = _mm_unpacklo_epi64(xmm3, xmm1);                      /* Interleave both parts */
-  xmm1 = _mm_add_epi16(xmm1, xmm0);                           /* B (12bit) */
+    xmm5 = xmm1;
+    xmm4 = xmm3;
+    xmm5 = _mm_madd_epi16(xmm5, coeffs->cG_Cb_cG_Cr);           /* Result is 25 bits (12 from chroma, 13 from coeff) */
+    xmm4 = _mm_madd_epi16(xmm4, coeffs->cG_Cb_cG_Cr);
+    xmm5 = _mm_srai_epi32(xmm5, 13);                            /* Reduce to 12 bit */
+    xmm4 = _mm_srai_epi32(xmm4, 13);
+    xmm5 = _mm_packs_epi32(xmm5, xmm7);                         /* Pack back into 16 bit cells */
+    xmm4 = _mm_packs_epi32(xmm4, xmm7);
+    xmm5 = _mm_unpacklo_epi64(xmm4, xmm5);                      /* Interleave both parts */
+    xmm5 = _mm_add_epi16(xmm5, xmm0);                           /* G (12bit) */
+
+    xmm1 = _mm_madd_epi16(xmm1, coeffs->cB_Cb);                 /* Result is 25 bits (12 from chroma, 13 from coeff) */
+    xmm3 = _mm_madd_epi16(xmm3, coeffs->cB_Cb);
+    xmm1 = _mm_srai_epi32(xmm1, 13);                            /* Reduce to 12 bit */
+    xmm3 = _mm_srai_epi32(xmm3, 13);
+    xmm1 = _mm_packs_epi32(xmm1, xmm7);                         /* Pack back into 16 bit cells */
+    xmm3 = _mm_packs_epi32(xmm3, xmm7);
+    xmm1 = _mm_unpacklo_epi64(xmm3, xmm1);                      /* Interleave both parts */
+    xmm1 = _mm_add_epi16(xmm1, xmm0);                           /* B (12bit) */
+  } else {
+    // YCgCo conversion
+    xmm0 = _mm_slli_epi16(xmm0, 4-shift);                       /* Shift Y to 12 bits */
+
+    xmm7 = _mm_set1_epi32(0x0000FFFF);
+    xmm2 = xmm1;
+    xmm4 = xmm3;
+
+    xmm1 = _mm_and_si128(xmm1, xmm7);                          /* null out the high-order bytes to get the Cg values */
+    xmm2 = _mm_and_si128(xmm2, xmm7);
+
+    xmm3 = _mm_srli_epi32(xmm3, 16);                           /* right shift the V values */
+    xmm4 = _mm_srli_epi32(xmm4, 16);
+
+    xmm1 = _mm_packus_epi32(xmm1, xmm2);                       /* Pack Cg into xmm1 */
+    xmm3 = _mm_packus_epi32(xmm3, xmm4);                       /* Pack Co into xmm3 */
+
+    xmm2 = xmm0;
+    xmm2 = _mm_subs_epi16(xmm2, xmm1);                         /* tmp = Y - Cg */
+    xmm6 = _mm_adds_epi16(xmm2, xmm3);                         /* R = tmp + Co */
+    xmm5 = _mm_adds_epi16(xmm0, xmm1);                         /* G = Y + Cg */
+    xmm1 = _mm_subs_epi16(xmm2, xmm3);                         /* B = tmp - Co */
+  }
 
   // Dithering
   if (dithertype == LAVDither_Random) {
@@ -318,7 +342,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   return 0;
 }
 
-template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype>
+template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
 static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, int sliceYStart, int sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
@@ -341,9 +365,9 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (line == 0) {
       for (int i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
 
       line = 1;
     }
@@ -367,9 +391,9 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
     rgb = dst + line * dstStride;
 
     for (int i = 0; i < endx; i += 4) {
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, i);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, i);
     }
-    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
+    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
   }
 
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
@@ -382,19 +406,19 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
       rgb = dst + (height - 1) * dstStride;
 
       for (int i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
+        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
+      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
     }
   }
   return 0;
 }
 
-template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype>
+template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
 inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, RGBCoeffs *coeffs, const uint16_t *dithers, int threads)
 {
   if (threads <= 1) {
-    yuv2rgb_process_lines<inputFormat, shift, out32, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs, dithers);
+    yuv2rgb_process_lines<inputFormat, shift, out32, dithertype, ycgco>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs, dithers);
   } else {
     const int is_odd = (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12);
     const int lines_per_thread = (height / threads)&~1;
@@ -402,46 +426,46 @@ inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8
     Concurrency::parallel_for(0, threads, [&](int i) {
       const int starty = (i * lines_per_thread);
       const int endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
-      yuv2rgb_process_lines<inputFormat, shift, out32, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs, dithers);
+      yuv2rgb_process_lines<inputFormat, shift, out32, dithertype, ycgco>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs, dithers);
     });
   }
   return 0;
 }
 
-template <int out32, int dithertype>
+template <int out32, int dithertype, int ycgco>
 inline int yuv2rgb_dispatch(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, LAVPixelFormat inputFormat, int bpp, int numThreads, RGBCoeffs *coeffs, const uint16_t *dithers)
 {
   // Wrap the input format into template args
   switch (inputFormat) {
   case LAVPixFmt_YUV420:
-    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_NV12:
-    return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  numThreads);
+    return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  numThreads);
   case LAVPixFmt_YUV420bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV422:
-    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_YUV422bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV444:
-    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_YUV444bX:
     if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32, dithertype>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
@@ -459,9 +483,17 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0) : NULL;
   if (ditherMode == LAVDither_Random && dithers != NULL) {
-    yuv2rgb_dispatch<out32, 1>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
+    if (m_ColorProps.VideoTransferMatrix == 7) {
+      yuv2rgb_dispatch<out32, 1, 1>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
+    } else {
+      yuv2rgb_dispatch<out32, 1, 0>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
+    }
   } else {
-    yuv2rgb_dispatch<out32, 0>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+    if (m_ColorProps.VideoTransferMatrix == 7) {
+      yuv2rgb_dispatch<out32, 0, 1>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+    } else {
+      yuv2rgb_dispatch<out32, 0, 0>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+    }
   }
 
   return S_OK;
@@ -563,6 +595,13 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     m_rgbCoeffs->cB_Cb       = _mm_set1_epi32(cbu);               // B
 
     m_rgbCoeffs->rgb_add     = _mm_set1_epi16(RGB_add1 << 4);
+
+    // YCgCo
+    if (matrix == 7) {
+      m_rgbCoeffs->CbCr_center = _mm_set1_epi16(0x0800);
+      // Other Coeffs are not used in YCgCo
+    }
+
   }
   return m_rgbCoeffs;
 }
