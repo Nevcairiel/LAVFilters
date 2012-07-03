@@ -1585,7 +1585,10 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
       if (it->dwFlags == 0
         || ((it->dwFlags & SUBTITLE_FLAG_DEFAULT) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT))
         || ((it->dwFlags & SUBTITLE_FLAG_FORCED) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_FORCED))
-        || ((it->dwFlags & SUBTITLE_FLAG_PGS) && (m_avFormat->streams[sit->pid]->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE))) {
+        || ((it->dwFlags & SUBTITLE_FLAG_IMPAIRED) && (m_avFormat->streams[sit->pid]->disposition & (AV_DISPOSITION_HEARING_IMPAIRED|AV_DISPOSITION_VISUAL_IMPAIRED)))
+        || ((it->dwFlags & SUBTITLE_FLAG_PGS) && (m_avFormat->streams[sit->pid]->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE))
+        || ((it->dwFlags & SUBTITLE_FLAG_NORMAL)
+         && !(m_avFormat->streams[sit->pid]->disposition & (AV_DISPOSITION_DEFAULT|AV_DISPOSITION_FORCED|AV_DISPOSITION_HEARING_IMPAIRED|AV_DISPOSITION_VISUAL_IMPAIRED)))) {
         std::string streamLanguage = sit->language;
         if (does_language_match(it->subtitleLanguage, streamLanguage))
           checkedStreams.push_back(&*sit);

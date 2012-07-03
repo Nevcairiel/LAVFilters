@@ -1303,7 +1303,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
         if (m_settings.subtitleMode == LAVSubtitleMode_Default)
           tokenList.push_back(token + "|d");
       } else
-        tokenList.push_back(token);
+        tokenList.push_back(token + "|!h");
     }
 
     // Add fallbacks (forced/default)
@@ -1324,7 +1324,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   // Add the "off" termination element
   tokenList.push_back("*:off");
 
-  std::tr1::regex advRegex("(?:(\\*|[[:alpha:]]+):)?(\\*|[[:alpha:]]+)(?:\\|([fd]+))?");
+  std::tr1::regex advRegex("(?:(\\*|[[:alpha:]]+):)?(\\*|[[:alpha:]]+)(?:\\|(!?)([fdnh]+))?");
   std::list<std::string>::iterator it;
   for (it = tokenList.begin(); it != tokenList.end(); it++) {
     std::tr1::cmatch res;
@@ -1334,16 +1334,27 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
       selector.audioLanguage = res[1].str().empty() ? "*" : ProbeForISO6392(res[1].str().c_str());
       selector.subtitleLanguage = ProbeForISO6392(res[2].str().c_str());
       selector.dwFlags = 0;
+
       // Parse flags
-      std::string flags = res[3];
+      std::string flags = res[4];
       if (flags.length() > 0) {
         if (flags.find('d') != flags.npos)
           selector.dwFlags |= SUBTITLE_FLAG_DEFAULT;
         if (flags.find('f') != flags.npos)
           selector.dwFlags |= SUBTITLE_FLAG_FORCED;
+        if (flags.find('n') != flags.npos)
+          selector.dwFlags |= SUBTITLE_FLAG_NORMAL;
+        if (flags.find('h') != flags.npos)
+          selector.dwFlags |= SUBTITLE_FLAG_IMPAIRED;
+
+        // Check for flag negation
+        std::string not = res[3];
+        if (not.length() == 1 && not == "!") {
+          selector.dwFlags = (~selector.dwFlags) & 0xFF;
+        }
       }
       selectorList.push_back(selector);
-      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: %d)", it->c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags));
+      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x)", it->c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags));
     } else {
       DbgLog((LOG_ERROR, 10, L"::GetSubtitleSelectors(): Selector string \"%S\" could not be parsed", it->c_str()));
     }

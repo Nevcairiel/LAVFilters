@@ -73,7 +73,9 @@ The "off" flag is only valid for the subtitle language, and it instructs LAV Spl
 So "eng:off" means that when the audio is english, the subtitles will be deactivated.
 
 Additionally to the syntax above, two flags are supported to enhance the subtitle selection.
-Specifically, LAV Splitter understands the flag "d" for default subtitles, and the flag "f" for forced subtitles.
+Specifically, LAV Splitter understands the flag "d" for default subtitles, the flag "f" for forced subtitles,
+the flag "h" for hearing impaired, and the flag "n" for normal streams (not default, forced, or impaired).
+In addition, flags can be negated with a leading "!" before the whole flags block - "!h" becomes "dfn", etc.
 Flags are appended to the subtitle language, separated by a pipe symbol ("|"). Example: "*:*|f"
 This token specifys that on any audio language, you want any subtitle that is flagged forced.
 
