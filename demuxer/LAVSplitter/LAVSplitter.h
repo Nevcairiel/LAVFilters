@@ -154,6 +154,8 @@ public:
   STDMETHODIMP_(BOOL) GetStreamSwitchRemoveAudio();
   STDMETHODIMP GetAdvancedSubtitleConfig(WCHAR **ppAdvancedConfig);
   STDMETHODIMP SetAdvancedSubtitleConfig(WCHAR *pAdvancedConfig);
+  STDMETHODIMP SetUseAudioForHearingVisuallyImpaired(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetUseAudioForHearingVisuallyImpaired();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
@@ -253,6 +255,7 @@ private:
     BOOL videoParsing;
 
     BOOL StreamSwitchRemoveAudio;
+    BOOL ImpairedAudio;
 
     std::map<std::string, BOOL> formats;
   } m_settings;

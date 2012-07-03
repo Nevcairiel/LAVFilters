@@ -144,4 +144,10 @@ interface ILAVFSettings : public IUnknown
   // To reset the config, pass NULL or the empty string.
   // If no subtitle language is set, the main language preference is used.
   STDMETHOD(SetAdvancedSubtitleConfig)(WCHAR *pAdvancedConfig) = 0;
+
+  // Set if LAV Splitter should prefer audio streams for the hearing or visually impaired
+  STDMETHOD(SetUseAudioForHearingVisuallyImpaired)(BOOL bEnabled) = 0;
+
+  // Get if LAV Splitter should prefer audio streams for the hearing or visually impaired
+  STDMETHOD_(BOOL,GetUseAudioForHearingVisuallyImpaired)() = 0;
 };

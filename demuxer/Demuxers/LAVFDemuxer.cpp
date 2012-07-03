@@ -1507,6 +1507,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
     }
   }
 
+  BOOL bImpaired = m_pSettings->GetUseAudioForHearingVisuallyImpaired();
+#define DISPO_IMPAIRED (AV_DISPOSITION_HEARING_IMPAIRED|AV_DISPOSITION_VISUAL_IMPAIRED)
+
   if (!best && !checkedStreams.empty()) {
     // If only one stream is left, just use that one
     if (checkedStreams.size() == 1) {
@@ -1524,6 +1527,12 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
         if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0)) {
           best = *sit;
         } else if (!m_bRM || check_nb_f > 0) {
+          if (!(old_stream->disposition & DISPO_IMPAIRED) != !(new_stream->disposition & DISPO_IMPAIRED)) {
+            if ((bImpaired && !(old_stream->disposition & DISPO_IMPAIRED)) || (!bImpaired && !(new_stream->disposition & DISPO_IMPAIRED))) {
+              best = *sit;
+            }
+            continue;
+          }
           // First, check number of channels
           int old_num_chans = old_stream->codec->channels;
           int new_num_chans = new_stream->codec->channels;

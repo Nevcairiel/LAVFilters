@@ -106,6 +106,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetStreamSwitchRemoveAudio(bFlag));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetUseAudioForHearingVisuallyImpaired(bFlag));
+
   LoadData();
 
 done:    
@@ -203,6 +206,8 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_SETCHECK, m_StreamSwitchRemoveAudio, 0);
   addHint(IDC_STREAM_SWITCH_REMOVE_AUDIO, L"Remove the old Audio Decoder from the Playback Chain before switching the audio stream, forcing DirectShow to select a new one.\n\nThis option ensures that the preferred decoder is always used, however it does not work properly with all players.");
 
+  SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_SETCHECK, m_ImpairedAudio, 0);
+
   UpdateSubtitleMode(m_subtitleMode);
 
   return hr;
@@ -228,6 +233,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
 
   m_videoParsing = m_pLAVF->GetVideoParsingEnabled();
   m_StreamSwitchRemoveAudio = m_pLAVF->GetStreamSwitchRemoveAudio();
+  m_ImpairedAudio = m_pLAVF->GetUseAudioForHearingVisuallyImpaired();
 
 done:
   return hr;
@@ -296,6 +302,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
     } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_STREAM_SWITCH_REMOVE_AUDIO) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
       if (bFlag != m_StreamSwitchRemoveAudio) {
+        SetDirty();
+      }
+    }  else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_IMPAIRED_AUDIO) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_GETCHECK, 0, 0);
+      if (bFlag != m_ImpairedAudio) {
         SetDirty();
       }
     }

@@ -140,6 +140,7 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.videoParsing     = TRUE;
 
   m_settings.StreamSwitchRemoveAudio = FALSE;
+  m_settings.ImpairedAudio    = FALSE;
 
   std::set<FormatInfo>::iterator it;
   for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
@@ -192,6 +193,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
   if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
 
+  bFlag = reg.ReadDWORD(L"ImpairedAudio", hr);
+  if (SUCCEEDED(hr)) m_settings.ImpairedAudio = bFlag;
+
   CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
 
@@ -227,6 +231,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"substreams", m_settings.substreams);
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
     reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
+    reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
   }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
@@ -1556,6 +1561,17 @@ STDMETHODIMP CLAVSplitter::SetAdvancedSubtitleConfig(WCHAR *pAdvancedConfig)
 {
   m_settings.subtitleAdvanced = std::wstring(pAdvancedConfig);
   return SaveSettings();
+}
+
+STDMETHODIMP CLAVSplitter::SetUseAudioForHearingVisuallyImpaired(BOOL bEnabled)
+{
+  m_settings.ImpairedAudio = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetUseAudioForHearingVisuallyImpaired()
+{
+  return m_settings.ImpairedAudio;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

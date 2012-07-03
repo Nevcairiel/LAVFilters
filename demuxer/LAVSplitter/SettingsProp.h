@@ -73,6 +73,7 @@ private:
 
   BOOL m_videoParsing;
   BOOL m_StreamSwitchRemoveAudio;
+  BOOL m_ImpairedAudio;
 
   LAVSubtitleMode m_selectedSubMode;
   WCHAR m_subLangBuffer[256];

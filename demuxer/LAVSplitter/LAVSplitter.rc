@@ -88,6 +88,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,233,168,10
     LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,7,268,221,8,0,WS_EX_RIGHT
     LTEXT           "",IDC_SUBTITLE_NOTE,7,94,221,19
+    CONTROL         "Prefer Audio Streams for the Hearing/Visually Impaired",IDC_IMPAIRED_AUDIO,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,248,195,10
 END
 
 IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 235, 283
