@@ -80,6 +80,8 @@ public:
   // ILAVPinInfo
   STDMETHODIMP_(DWORD) GetStreamFlags();
   STDMETHODIMP_(int) GetPixelFormat();
+  STDMETHODIMP_(int) GetVersion() { return 1; }
+  STDMETHODIMP_(int) GetHasBFrames();
 
   size_t QueueCount();
   HRESULT QueuePacket(Packet *pPacket);

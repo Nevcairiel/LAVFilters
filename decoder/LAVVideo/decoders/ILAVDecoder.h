@@ -132,6 +132,7 @@ typedef struct LAVPinInfo
 {
   DWORD flags;              ///< Flags that describe the video content (see ILAVPinInfo.h for valid values)
   PixelFormat pix_fmt;      ///< The pixel format used
+  int has_b_frames;
 } LAVPinInfo;
 
 /**

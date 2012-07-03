@@ -33,4 +33,10 @@ interface ILAVPinInfo : public IUnknown
 
   // Get the pixel format detected for this video stream
   STDMETHOD_(int,GetPixelFormat)() PURE;
+
+  // Get the interface version
+  STDMETHOD_(int,GetVersion)() PURE;
+
+  // Get the number of B-Frames probed for this format
+  STDMETHOD_(int,GetHasBFrames)() PURE;
 };

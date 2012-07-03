@@ -580,3 +580,8 @@ STDMETHODIMP_(int) CLAVOutputPin::GetPixelFormat()
 {
   return (static_cast<CLAVSplitter*>(m_pFilter))->GetPixelFormat(m_streamId);
 }
+
+STDMETHODIMP_(int) CLAVOutputPin::GetHasBFrames()
+{
+  return (static_cast<CLAVSplitter*>(m_pFilter))->GetHasBFrames(m_streamId);
+}

@@ -1628,3 +1628,11 @@ STDMETHODIMP_(int) CLAVFDemuxer::GetPixelFormat(DWORD dwStream)
 
   return m_avFormat->streams[dwStream]->codec->pix_fmt;
 }
+
+STDMETHODIMP_(int) CLAVFDemuxer::GetHasBFrames(DWORD dwStream)
+{
+  if (!m_avFormat || dwStream >= m_avFormat->nb_streams)
+    return -1;
+
+  return m_avFormat->streams[dwStream]->codec->has_b_frames;
+}

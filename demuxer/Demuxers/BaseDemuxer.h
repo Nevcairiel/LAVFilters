@@ -154,6 +154,7 @@ public:
 
   virtual STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream) { return 0; }
   virtual STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { return PIX_FMT_NONE; }
+  virtual STDMETHODIMP_(int) GetHasBFrames(DWORD dwStream) { return -1; }
 
 public:
   class CStreamList : public std::deque<stream>
