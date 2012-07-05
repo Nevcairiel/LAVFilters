@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <emmintrin.h>
+
 // Load the dithering coefficients for this line
 // reg   - register to load coefficients into
 // line  - index of line to process (0 based)
@@ -28,16 +30,23 @@
   reg = _mm_load_si128((const __m128i *)name);          \
   reg = _mm_srli_epi16(reg, 8-bits); /* shift to the required dithering strength */
 
+// Load 8 16-bit pixels into a register, using aligned memory access
+// reg   - register to store pixels in
+// src   - memory pointer of the source
+// bpp   - bit depth of the pixels
+#define PIXCONV_LOAD_PIXEL16(reg,src,bpp)                              \
+  reg = _mm_load_si128((const __m128i *)(src));  /* load (aligned) */  \
+  reg = _mm_slli_epi16(reg, 16-bpp);             /* shift to 16-bit */
+
 // Load 8 16-bit pixels into a register, and dither them to 8 bit
 // The 8-bit pixels will be in the high-bytes of the 8 16-bit parts
 // NOTE: the low-bytes are clobbered, and not empty.
 // reg   - register to store pixels in
 // dreg  - register with dithering coefficients
 // src   - memory pointer of the source
-// shift - shift offset to 8-bit (ie. 2 for 10bit)
-#define PIXCONV_LOAD_PIXEL16_DITHER_HIGH(reg,dreg,src,shift)          \
-  reg = _mm_load_si128((const __m128i *)(src)); /* load (aligned) */  \
-  reg = _mm_slli_epi16(reg, 8-shift);           /* shift to 16-bit */ \
+// bpp   - bit depth of the pixels
+#define PIXCONV_LOAD_PIXEL16_DITHER_HIGH(reg,dreg,src,bpp)      \
+  PIXCONV_LOAD_PIXEL16(reg,src,bpp)                             \
   reg = _mm_adds_epu16(reg, dreg);              /* dither */
 
 // Load 8 16-bit pixels into a register, and dither them to 8 bit
@@ -45,9 +54,9 @@
 // reg   - register to store pixels in
 // dreg  - register with dithering coefficients
 // src   - memory pointer of the source
-// shift - shift offset to 8-bit (ie. 2 for 10bit)
-#define PIXCONV_LOAD_PIXEL16_DITHER(reg,dreg,src,shift)          \
-  PIXCONV_LOAD_PIXEL16_DITHER_HIGH(reg,dreg,src,shift)           \
+// bpp   - bit depth of the pixels
+#define PIXCONV_LOAD_PIXEL16_DITHER(reg,dreg,src,bpp)          \
+  PIXCONV_LOAD_PIXEL16_DITHER_HIGH(reg,dreg,src,bpp)           \
   reg = _mm_srli_epi16(reg, 8);                 /* shift to 8-bit */
 
 // Load 8 16-bit pixels into a register, and dither them to 8 bit
@@ -55,9 +64,9 @@
 // reg   - register to store pixels in
 // dreg  - register with dithering coefficients
 // src   - memory pointer of the source
-// shift - shift offset to 16-bit (ie. 6 for 10bit)
-#define PIXCONV_LOAD_PIXEL16_DITHER_PACKED(reg,dreg,zero,src,shift)   \
-  PIXCONV_LOAD_PIXEL16_DITHER(reg,dreg,src,shift) /* load unpacked */ \
+// bpp   - bit depth of the pixels
+#define PIXCONV_LOAD_PIXEL16_DITHER_PACKED(reg,dreg,zero,src,bpp)   \
+  PIXCONV_LOAD_PIXEL16_DITHER(reg,dreg,src,bpp) /* load unpacked */ \
   reg = _mm_packus_epi16(reg, zero);              /* pack */
 
 // Load 16 8-bit pixels into a register
@@ -71,13 +80,6 @@
 // src   - memory pointer of the source
 #define PIXCONV_LOAD_PIXEL8_ALIGNED(reg,src) \
   reg = _mm_load_si128((const __m128i *)(src));      /* load (aligned) */
-
-// Load 8 16-bit pixels into a register, using aligned memory access
-// reg   - register to store pixels in
-// src   - memory pointer of the source
-#define PIXCONV_LOAD_PIXEL16(reg,src,shift)                             \
-  reg = _mm_load_si128((const __m128i *)(src));  /* load (aligned) */     \
-  reg = _mm_slli_epi16(reg, shift);            /* shift to 16-bit */
 
 // Load 4 8-bit pixels into the register
 // reg     - register to store pixels in

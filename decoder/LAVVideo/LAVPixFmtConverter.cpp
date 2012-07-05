@@ -327,12 +327,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       m_RequiredAlignment = 32;
     } else if (((m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016) && m_InputPixFmt == LAVPixFmt_YUV420bX)
             || ((m_OutputPixFmt == LAVOutPixFmt_P210 || m_OutputPixFmt == LAVOutPixFmt_P216) && m_InputPixFmt == LAVPixFmt_YUV422bX)) {
-      if (m_InBpp == 10)
-        convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<6>;
-      else if (m_InBpp == 9)
-        convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<7>;
-      else if (m_InBpp == 16)
-        convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le<0>;
+      convert = &CLAVPixFmtConverter::convert_yuv420_px1x_le;
     } else if (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_YUV420) {
       convert = &CLAVPixFmtConverter::convert_yuv420_nv12;
       m_RequiredAlignment = 32;

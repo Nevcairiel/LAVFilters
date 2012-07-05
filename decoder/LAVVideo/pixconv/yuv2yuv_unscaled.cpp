@@ -34,8 +34,6 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   const int inYStride = srcStride[0] >> 1;
   const int inUVStride = srcStride[1] >> 1;
 
-  const int shift = bpp - 8;
-
   int outLumaStride    = dstStride;
   int outChromaStride  = dstStride;
   int chromaWidth      = width;
@@ -80,12 +78,12 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 
     for (i = 0; i < width; i+=32) {
       // Load pixels into registers, and apply dithering
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i+ 0), shift);  /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+i+ 8), shift);  /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (y+i+16), shift);  /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (y+i+24), shift);  /* Y0Y0Y0Y0 */
-      xmm0 = _mm_packus_epi16(xmm0, xmm1);                       /* YYYYYYYY */
-      xmm2 = _mm_packus_epi16(xmm2, xmm3);                       /* YYYYYYYY */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i+ 0), bpp);  /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+i+ 8), bpp);  /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (y+i+16), bpp);  /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (y+i+24), bpp);  /* Y0Y0Y0Y0 */
+      xmm0 = _mm_packus_epi16(xmm0, xmm1);                     /* YYYYYYYY */
+      xmm2 = _mm_packus_epi16(xmm2, xmm3);                     /* YYYYYYYY */
 
       // Write data back
       _mm_stream_si128(dst128Y++, xmm0);
@@ -99,13 +97,13 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
       __m128i *dst128V = (__m128i *)(dstV + line * outChromaStride);
 
        for (i = 0; i < chromaWidth; i+=16) {
-        PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i), shift);    /* U0U0U0U0 */
-        PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (u+i+8), shift);  /* U0U0U0U0 */
-        PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i), shift);    /* V0V0V0V0 */
-        PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i+8), shift);  /* V0V0V0V0 */
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i+0), bpp);  /* U0U0U0U0 */
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (u+i+8), bpp);  /* U0U0U0U0 */
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i+0), bpp);  /* V0V0V0V0 */
+        PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i+8), bpp);  /* V0V0V0V0 */
 
-        xmm0 = _mm_packus_epi16(xmm0, xmm1);                      /* UUUUUUUU */
-        xmm2 = _mm_packus_epi16(xmm2, xmm3);                      /* VVVVVVVV */
+        xmm0 = _mm_packus_epi16(xmm0, xmm1);                    /* UUUUUUUU */
+        xmm2 = _mm_packus_epi16(xmm2, xmm3);                    /* VVVVVVVV */
         if (nv12) {
           xmm1 = xmm0;
           xmm0 = _mm_unpacklo_epi8(xmm0, xmm2);
@@ -133,7 +131,6 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 template HRESULT CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<0>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv_yv_nv12_dither_le<1>CONV_FUNC_PARAMS;
 
-template <int shift>
 DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 {
   const uint16_t *y = (const uint16_t *)src[0];
@@ -157,8 +154,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 
     for (i = 0; i < width; i+=16) {
       // Load 8 pixels into register
-      PIXCONV_LOAD_PIXEL16(xmm0, (y+i), shift); /* YYYY */
-      PIXCONV_LOAD_PIXEL16(xmm1, (y+i+8), shift); /* YYYY */
+      PIXCONV_LOAD_PIXEL16(xmm0, (y+i+0), bpp); /* YYYY */
+      PIXCONV_LOAD_PIXEL16(xmm1, (y+i+8), bpp); /* YYYY */
       // and write them out
       _mm_stream_si128(dst128Y++, xmm0);
       _mm_stream_si128(dst128Y++, xmm1);
@@ -175,8 +172,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 
     for (i = 0; i < uvWidth; i+=8) {
       // Load 8 pixels into register
-      PIXCONV_LOAD_PIXEL16(xmm0, (v+i), shift); /* VVVV */
-      PIXCONV_LOAD_PIXEL16(xmm1, (u+i), shift); /* UUUU */
+      PIXCONV_LOAD_PIXEL16(xmm0, (v+i), bpp); /* VVVV */
+      PIXCONV_LOAD_PIXEL16(xmm1, (u+i), bpp); /* UUUU */
 
       xmm2 = xmm0;
       xmm0 = _mm_unpacklo_epi16(xmm1, xmm0);    /* UVUV */
@@ -192,11 +189,6 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 
   return S_OK;
 }
-
-// Force creation of these two variants
-template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<0>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<6>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv420_px1x_le<7>CONV_FUNC_PARAMS;
 
 DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
 {
@@ -396,7 +388,6 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
   const int inChromaStride  = srcStride[1] >> 1;
   const int outStride       = dstStride << 1;
   const int chromaWidth     = (width + 1) >> 1;
-  const int shift           = bpp - 8;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
@@ -424,10 +415,10 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
 
     for (i = 0; i < chromaWidth; i+=8) {
       // Load pixels
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+(i*2)+0), shift);  /* YYYY */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+(i*2)+8), shift);  /* YYYY */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (u+i), shift);        /* UUUU */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i), shift);        /* VVVV */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+(i*2)+0), bpp);  /* YYYY */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm1, xmm5, (y+(i*2)+8), bpp);  /* YYYY */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (u+i), bpp);        /* UUUU */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm3, xmm7, (v+i), bpp);        /* VVVV */
 
       // Pack Ys
       xmm0 = _mm_packus_epi16(xmm0, xmm1);

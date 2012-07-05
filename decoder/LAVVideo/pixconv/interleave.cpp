@@ -47,9 +47,12 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_y410)
     __m128i *dst128 = (__m128i *)(dst + line * outStride);
 
     for (i = 0; i < width; i+=8) {
-      PIXCONV_LOAD_PIXEL16(xmm0, (y+i), shift);
-      PIXCONV_LOAD_PIXEL16(xmm1, (u+i), shift);
-      PIXCONV_LOAD_PIXEL16(xmm2, (v+i), shift+4); // +4 so its directly aligned properly (data from bit 14 to bit 4)
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (y+i));
+      xmm0 = _mm_slli_epi16(xmm0, shift);
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, (u+i));
+      xmm1 = _mm_slli_epi16(xmm1, shift);
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, (v+i));
+      xmm2 = _mm_slli_epi16(xmm2, shift+4);  // +4 so its directly aligned properly (data from bit 14 to bit 4)
 
       xmm3 = _mm_unpacklo_epi16(xmm1, xmm2); // 0VVVVV00000UUUUU
       xmm4 = _mm_unpackhi_epi16(xmm1, xmm2); // 0VVVVV00000UUUUU

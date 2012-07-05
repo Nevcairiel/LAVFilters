@@ -133,7 +133,7 @@ private:
   DECLARE_CONV_FUNC(convert_yuv444_ayuv);
   DECLARE_CONV_FUNC(convert_yuv444_ayuv_dither_le);
   DECLARE_CONV_FUNC(convert_yuv444_y410);
-  template <int shift> DECLARE_CONV_FUNC(convert_yuv420_px1x_le);
+  DECLARE_CONV_FUNC(convert_yuv420_px1x_le);
   DECLARE_CONV_FUNC(convert_yuv420_nv12);
   DECLARE_CONV_FUNC(convert_yuv_yv);
   DECLARE_CONV_FUNC(convert_nv12_yv12);

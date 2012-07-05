@@ -102,9 +102,6 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   if (dithers == NULL)
     ditherMode = LAVDither_Ordered;
 
-  // Number of bits to shift to reach 8
-  int shift = bpp - 8;
-
   int line, i;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -128,9 +125,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
 
     for (i = 0; i < width; i+=8) {
       // Load pixels into registers, and apply dithering
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i), shift); /* Y0Y0Y0Y0 */
-      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm1, xmm5, (u+i), shift); /* U0U0U0U0 */
-      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i), shift); /* V0V0V0V0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (y+i), bpp); /* Y0Y0Y0Y0 */
+      PIXCONV_LOAD_PIXEL16_DITHER_HIGH(xmm1, xmm5, (u+i), bpp); /* U0U0U0U0 */
+      PIXCONV_LOAD_PIXEL16_DITHER(xmm2, xmm6, (v+i), bpp); /* V0V0V0V0 */
 
       // Interlave into AYUV
       xmm0 = _mm_or_si128(xmm0, xmm7);          /* YAYAYAYA */
