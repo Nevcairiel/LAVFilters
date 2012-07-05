@@ -47,8 +47,8 @@ extern "C" {
 #include "libswscale/swscale.h"
 #include "libavfilter/avfilter.h"
 #include "libavfilter/avfiltergraph.h"
-#include "libavfilter/vsrc_buffer.h"
 #include "libavfilter/buffersink.h"
+#include "libavfilter/buffersrc.h"
 #include "libavutil/intreadwrite.h"
 }
 #pragma warning(pop)

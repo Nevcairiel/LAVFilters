@@ -122,7 +122,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
     in_picref->buf->free              = lav_avfilter_default_free_buffer;
     in_picref->video->sample_aspect_ratio = pFrame->aspect_ratio;
 
-    av_vsrc_buffer_add_video_buffer_ref(m_pFilterBufferSrc, in_picref, 0);
+    av_buffersrc_add_ref(m_pFilterBufferSrc, in_picref, 0);
     HRESULT hrDeliver = S_OK;
     while (SUCCEEDED(hrDeliver) && av_buffersink_poll_frame(m_pFilterBufferSink)) {
       int ret = av_buffersink_get_buffer_ref(m_pFilterBufferSink, &out_picref, 0);
