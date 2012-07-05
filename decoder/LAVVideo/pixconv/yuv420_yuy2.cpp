@@ -226,10 +226,18 @@ static int __stdcall yuv420yuy2_dispatch(LAVPixelFormat inputFormat, int bpp, co
   case LAVPixFmt_NV12:
     return yuv420yuy2_process_lines<LAVPixFmt_NV12, 0, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
   case LAVPixFmt_YUV420bX:
-    if (bpp == 10)
-      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 2, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
-    else if (bpp == 9)
+    if (bpp == 9)
       return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 1, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
+    else if (bpp == 10)
+      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 2, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
+    /*else if (bpp == 11)
+      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 3, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);*/
+    else if (bpp == 12)
+      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 4, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
+    /*else if (bpp == 13)
+      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 5, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);*/
+    else if (bpp == 14)
+      return yuv420yuy2_process_lines<LAVPixFmt_YUV420, 6, uyvy, dithertype>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, dithers);
     else
       ASSERT(0);
     break;

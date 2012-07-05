@@ -25,6 +25,9 @@
 #include "pixconv_internal.h"
 #include "pixconv_sse2_templates.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4556)
+
 #define DITHER_STEPS 3
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
@@ -101,6 +104,11 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 
     // 4:2:0 - upsample to 4:2:2 using 75:25
     if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
+      // Too high bitdepth, shift down to 14-bit
+      if (shift >= 7) {
+        xmm0 = _mm_srli_epi16(xmm0, shift-6);
+        xmm2 = _mm_srli_epi16(xmm2, shift-6);
+      }
       xmm1 = xmm0;
       xmm1 = _mm_add_epi16(xmm1, xmm0);                         /* 2x line 0 */
       xmm1 = _mm_add_epi16(xmm1, xmm0);                         /* 3x line 0 */
@@ -110,15 +118,24 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
       xmm3 = _mm_add_epi16(xmm3, xmm2);                         /* 2x line 1 */
       xmm3 = _mm_add_epi16(xmm3, xmm2);                         /* 3x line 1 */
       xmm3 = _mm_add_epi16(xmm3, xmm0);                         /* 3x line 1 + line 0 (10bit) */
+
+      // If the bit depth is too high, we need to reduce it here (max 15bit)
+      // 14-16 bits need the reduction, because they all result in a 16-bit result
+      if (shift >= 6) {
+        xmm1 = _mm_srli_epi16(xmm1, 1);
+        xmm3 = _mm_srli_epi16(xmm3, 1);
+      }
     } else {
       xmm1 = xmm0;
       xmm3 = xmm2;
 
-      // Shift to 11 bit
-      xmm1 = _mm_slli_epi16(xmm1, 3-shift);
-      xmm3 = _mm_slli_epi16(xmm3, 3-shift);
+      // Shift to maximum of 15-bit, if required
+      if (shift >= 8) {
+        xmm1 = _mm_srli_epi16(xmm1, 1);
+        xmm3 = _mm_srli_epi16(xmm3, 1);
+      }
     }
-    // After this step, xmm1 and xmm3 contain 8 16-bit values, V and U interleaved. For 4:2:2, filling 11 bit. For 4:2:0, filling input+2 bits (10, 11, 12).
+    // After this step, xmm1 and xmm3 contain 8 16-bit values, V and U interleaved. For 4:2:2, filling 8 to 15 bits (original bit depth). For 4:2:0, filling input+2 bits (10 to 15).
 
     // Upsample to 4:4:4 using 100:0, 50:50, 0:100 scheme (MPEG2 chroma siting)
     // TODO: MPEG1 chroma siting, use 75:25
@@ -128,11 +145,11 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm1 = _mm_srli_si128(xmm1, 4);                            /* UV UV UV 00 */
     xmm1 = _mm_unpacklo_epi32(xmm7, xmm1);                     /* 00 UV 00 UV */
 
-    xmm1 = _mm_add_epi16(xmm1, xmm0);                          /*  UV  UV  UV  UV */
-    xmm1 = _mm_add_epi16(xmm1, xmm0);                          /* 2UV  UV 2UV  UV */
+    xmm1 = _mm_add_epi16(xmm1, xmm0);                         /*  UV  UV  UV  UV */
+    xmm1 = _mm_add_epi16(xmm1, xmm0);                         /* 2UV  UV 2UV  UV */
 
     xmm0 = _mm_slli_si128(xmm0, 4);                            /*  00  UV  00  UV */
-    xmm1 = _mm_add_epi16(xmm1, xmm0);                          /* 2UV 2UV 2UV 2UV */
+    xmm1 = _mm_add_epi16(xmm1, xmm0);                         /* 2UV 2UV 2UV 2UV */
 
     // Same for the second row
     xmm2 = xmm3;                                               /* UV UV UV UV */
@@ -140,18 +157,34 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm3 = _mm_srli_si128(xmm3, 4);                            /* UV UV UV 00 */
     xmm3 = _mm_unpacklo_epi32(xmm7, xmm3);                     /* 00 UV 00 UV */
 
-    xmm3 = _mm_add_epi16(xmm3, xmm2);                          /*  UV  UV  UV  UV */
-    xmm3 = _mm_add_epi16(xmm3, xmm2);                          /* 2UV  UV 2UV  UV */
+    xmm3 = _mm_add_epi16(xmm3, xmm2);                         /*  UV  UV  UV  UV */
+    xmm3 = _mm_add_epi16(xmm3, xmm2);                         /* 2UV  UV 2UV  UV */
 
     xmm2 = _mm_slli_si128(xmm2, 4);                            /*  00  UV  00  UV */
-    xmm3 = _mm_add_epi16(xmm3, xmm2);                          /* 2UV 2UV 2UV 2UV */
+    xmm3 = _mm_add_epi16(xmm3, xmm2);                         /* 2UV 2UV 2UV 2UV */
 
     // Shift the result to 12 bit
     // For 10-bit input, we need to shift one bit off, or we exceed the allowed processing depth
     // For 8-bit, we need to add one bit
-    if (inputFormat == LAVPixFmt_YUV420 && shift == 2) {
-      xmm1 = _mm_srli_epi16(xmm1, 1);
-      xmm3 = _mm_srli_epi16(xmm3, 1);
+    if (inputFormat == LAVPixFmt_YUV420 && shift > 1) {
+      if (shift >= 5) {
+        xmm1 = _mm_srli_epi16(xmm1, 4);
+        xmm3 = _mm_srli_epi16(xmm3, 4);
+      } else {
+        xmm1 = _mm_srli_epi16(xmm1, shift-1);
+        xmm3 = _mm_srli_epi16(xmm3, shift-1);
+      }
+    } else if (inputFormat == LAVPixFmt_YUV422) {
+      if (shift >= 7) {
+        xmm1 = _mm_srli_epi16(xmm1, 4);
+        xmm3 = _mm_srli_epi16(xmm3, 4);
+      } else if (shift > 3) {
+        xmm1 = _mm_srli_epi16(xmm1, shift-3);
+        xmm3 = _mm_srli_epi16(xmm3, shift-3);
+      } else if (shift < 3) {
+        xmm1 = _mm_slli_epi16(xmm1, 3-shift);
+        xmm3 = _mm_slli_epi16(xmm3, 3-shift);
+      }
     } else if ((inputFormat == LAVPixFmt_YUV420 && shift == 0) || inputFormat == LAVPixFmt_NV12) {
       xmm1 = _mm_slli_epi16(xmm1, 1);
       xmm3 = _mm_slli_epi16(xmm3, 1);
@@ -167,8 +200,13 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
       srcV += 4;
     }
     // Shift to 12 bit
-    xmm1 = _mm_slli_epi16(xmm0, 4-shift);
-    xmm3 = _mm_slli_epi16(xmm2, 4-shift);
+    if (shift > 4) {
+      xmm1 = _mm_srli_epi16(xmm0, shift-4);
+      xmm3 = _mm_srli_epi16(xmm2, shift-4);
+    } else if (shift < 4) {
+      xmm1 = _mm_slli_epi16(xmm0, 4-shift);
+      xmm3 = _mm_slli_epi16(xmm2, 4-shift);
+    }
   }
 
   // Load Y
@@ -196,8 +234,12 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // After this step, xmm1 & xmm3 contain 4 UV pairs, each in a 16-bit value, filling 12-bit.
   if (!ycgco) {
     // YCbCr conversion
-    // Shift to 14 bits
-    xmm0 = _mm_slli_epi16(xmm0, 6-shift);
+    // Shift Y to 14 bits
+    if (shift < 6) {
+      xmm0 = _mm_slli_epi16(xmm0, 6-shift);
+    } else if (shift > 6) {
+      xmm0 = _mm_srli_epi16(xmm0, shift-6);
+    }
     xmm0 = _mm_subs_epu16(xmm0, coeffs->Ysub);                  /* Y-16 (in case of range expansion) */
     xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
     xmm0 = _mm_add_epi16(xmm0, coeffs->rgb_add);                /* Y*cy + 16 (in case of range compression) */
@@ -234,7 +276,12 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm1 = _mm_add_epi16(xmm1, xmm0);                           /* B (12bit) */
   } else {
     // YCgCo conversion
-    xmm0 = _mm_slli_epi16(xmm0, 4-shift);                       /* Shift Y to 12 bits */
+    // Shift Y to 12 bits
+    if (shift < 4) {
+      xmm0 = _mm_slli_epi16(xmm0, 4-shift);
+    } else if (shift > 4) {
+      xmm0 = _mm_srli_epi16(xmm0, shift-4);
+    }
 
     xmm7 = _mm_set1_epi32(0x0000FFFF);
     xmm2 = xmm1;
@@ -442,30 +489,66 @@ inline int yuv2rgb_dispatch(const uint8_t* const src[4], const int srcStride[4],
   case LAVPixFmt_NV12:
     return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  numThreads);
   case LAVPixFmt_YUV420bX:
-    if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else if (bpp == 9)
+    if (bpp == 9)
       return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    else if (bpp == 10)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 11)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 3, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 12)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 4, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 13)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 5, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 14)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 6, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 15)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 7, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 16)
+      return yuv2rgb_convert<LAVPixFmt_YUV420, 8, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV422:
     return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_YUV422bX:
-    if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else if (bpp == 9)
+    if (bpp == 9)
       return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    else if (bpp == 10)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 11)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 3, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 12)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 4, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 13)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 5, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 14)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 6, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 15)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 7, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 16)
+      return yuv2rgb_convert<LAVPixFmt_YUV422, 8, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
   case LAVPixFmt_YUV444:
     return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
   case LAVPixFmt_YUV444bX:
-    if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else if (bpp == 9)
+    if (bpp == 9)
       return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    else if (bpp == 10)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 11)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 3, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 12)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 4, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 13)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 5, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 14)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 6, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
+    /*else if (bpp == 15)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 7, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
+    else if (bpp == 16)
+      return yuv2rgb_convert<LAVPixFmt_YUV444, 8, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
     else
       ASSERT(0);
     break;
@@ -605,3 +688,5 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
   }
   return m_rgbCoeffs;
 }
+
+#pragma warning(pop)
