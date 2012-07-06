@@ -185,6 +185,8 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
   addHint(IDC_THREADS, L"Enable Multi-Threading for codecs that support it.\nAuto will automatically use the maximum number of threads suitable for your CPU. Using 1 thread disables multi-threading.\n\nMT decoding is supported for H264, MPEG2, MPEG4, VP8, VP3/Theora, DV and HuffYUV");
 
+  addHint(IDC_STREAMAR, L"Checked - Stream AR will be used.\nUnchecked - Frame AR will not be used.\nIndeterminate (Auto) - Stream AR will not be used on files with a container AR (recommended).");
+
   WCHAR hwAccelNone[] = L"None";
   WCHAR hwAccelCUDA[] = L"NVIDIA CUVID";
   WCHAR hwAccelQuickSync[] = L"Intel\xae QuickSync";

@@ -56,6 +56,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bMTFiltering(FALSE)
   , m_bFlushing(FALSE)
   , m_evFilterInput(TRUE)
+  , m_bStreamARBlacklisted(FALSE)
 {
   m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -120,7 +121,7 @@ HRESULT CLAVVideo::LoadDefaults()
 
 
   // Set Defaults
-  m_settings.StreamAR = TRUE;
+  m_settings.StreamAR = 2;
   m_settings.NumThreads = 0;
   m_settings.DeintFieldOrder = DeintFieldOrder_Auto;
   m_settings.DeintAggressive = FALSE;
@@ -185,8 +186,8 @@ HRESULT CLAVVideo::LoadSettings()
   // and we need to fill the settings with defaults.
   // ReadString returns an empty string in case of failure, so thats fine!
 
-  bFlag = reg.ReadDWORD(L"StreamAR", hr);
-  if (SUCCEEDED(hr)) m_settings.StreamAR = bFlag;
+  dwVal = reg.ReadDWORD(L"StreamAR", hr);
+  if (SUCCEEDED(hr)) m_settings.StreamAR = dwVal;
 
   dwVal = reg.ReadDWORD(L"NumThreads", hr);
   if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
@@ -274,7 +275,7 @@ HRESULT CLAVVideo::SaveSettings()
   HRESULT hr;
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
-    reg.WriteBOOL(L"StreamAR", m_settings.StreamAR);
+    reg.WriteDWORD(L"StreamAR", m_settings.StreamAR);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
     reg.WriteDWORD(L"DeintFieldOrder", m_settings.DeintFieldOrder);
     reg.WriteBOOL(L"DeintAggressive", m_settings.DeintAggressive);
@@ -489,6 +490,12 @@ void CLAVVideo::CloseMTFilterThread()
   }
 }
 
+static const LPWSTR stream_ar_blacklist[] = {
+  L".mkv", L".webm",
+  L".mp4", L".mov", L".m4v",
+  L".avi", L".divx"
+};
+
 HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 {
   DbgLog((LOG_TRACE, 10, L"::CreateDecoder(): Creating new decoder..."));
@@ -530,11 +537,22 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_LAVPinInfoValid = FALSE;
   }
 
+  m_bStreamARBlacklisted = FALSE;
+
   LPWSTR pszExtension = GetFileExtension();
-  DbgLog((LOG_TRACE, 10, L"-> File extension: %s", pszExtension));
+  if (pszExtension) {
+    DbgLog((LOG_TRACE, 10, L"-> File extension: %s", pszExtension));
+
+    for (int i = 0; i < countof(stream_ar_blacklist); i++) {
+      if (_wcsicmp(stream_ar_blacklist[i], pszExtension) == 0) {
+        m_bStreamARBlacklisted = TRUE;
+        break;
+      }
+    }
+  }
 
   m_bVC1IsDTS    = (codec == CODEC_ID_VC1) && !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader));
-  m_bH264IsAVI   = (codec == CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && _wcsicmp(pszExtension, L".avi") == 0)));
+  m_bH264IsAVI   = (codec == CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
   m_bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
 
   SAFE_CO_FREE(pszExtension);
@@ -768,15 +786,16 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     if (avgFrameDuration == AV_NOPTS_VALUE)
       avgFrameDuration = vih2->AvgTimePerFrame;
 
+    DWORD dwARX, dwARY;
+    videoFormatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
+
     int num = ar.num, den = ar.den;
-    if (!m_settings.StreamAR || num == 0 || den == 0) {
-      if (m_bForceInputAR) {
-        DWORD dwARX, dwARY;
-        videoFormatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
+    BOOL bStreamAR = (m_settings.StreamAR == 1) || (m_settings.StreamAR == 2 && (!m_bStreamARBlacklisted || !(dwARX && dwARY)));
+    if (!bStreamAR || num == 0 || den == 0) {
+      if (m_bForceInputAR && dwARX && dwARY) {
         num = dwARX;
         den = dwARY;
-      }
-      if (!m_bForceInputAR || num == 0 || den == 0) {
+      } else {
         num = vih2->dwPictAspectRatioX;
         den = vih2->dwPictAspectRatioY;
       }
