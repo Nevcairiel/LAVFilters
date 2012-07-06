@@ -472,7 +472,7 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   pFrame->aspect_ratio.num = data->dwPictAspectRatioX;
   pFrame->aspect_ratio.den = data->dwPictAspectRatioY;
   pFrame->ext_format = m_DXVAExtendedFormat;
-  pFrame->interlaced = m_bDI ? 0 : !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
+  pFrame->interlaced = !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
   pFrame->tff = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_FIELD1FIRST);
   pFrame->avgFrameDuration = GetFrameDuration();
 
@@ -483,6 +483,8 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
 
   if (!m_bInterlaced && pFrame->interlaced)
     m_bInterlaced = TRUE;
+
+  pFrame->interlaced = (pFrame->interlaced || (m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce()) && !m_pSettings->GetDeintTreatAsProgressive() && !m_bDI;
 
   m_pCallback->Deliver(pFrame);
 
@@ -529,5 +531,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecQuickSync::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecQuickSync::IsInterlaced()
 {
-  return (m_bInterlaced || m_pSettings->GetDeintForce()) && !m_bDI;
+  return !m_pSettings->GetDeintTreatAsProgressive() && (m_bInterlaced || m_pSettings->GetDeintForce()) && !m_bDI;
 }
