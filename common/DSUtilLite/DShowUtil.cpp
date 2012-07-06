@@ -385,6 +385,58 @@ HRESULT FindFilterSafe(IPin *pPin, const GUID &guid, IBaseFilter **ppFilter)
   return E_NOINTERFACE;
 }
 
+// pPin - pin of our filter to start searching
+// guid - guid of the filter to find
+// ppFilter - variable that'll receive a AddRef'd reference to the filter
+BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType)
+{
+  CheckPointer(pPin, E_POINTER);
+  BOOL bFound = FALSE;
+
+  PIN_DIRECTION dir;
+  pPin->QueryDirection(&dir);
+
+  IPin *pOtherPin = NULL;
+  if (SUCCEEDED(pPin->ConnectedTo(&pOtherPin)) && pOtherPin) {
+    IBaseFilter *pFilter = GetFilterFromPin(pOtherPin);
+
+    HRESULT hrFilter = E_NOINTERFACE;
+    IEnumPins *pPinEnum = NULL;
+    pFilter->EnumPins(&pPinEnum);
+
+    HRESULT hrPin = E_FAIL;
+    for (IPin *pOtherPin2 = NULL; pPinEnum->Next(1, &pOtherPin2, 0) == S_OK; pOtherPin2 = NULL) {
+      if (pOtherPin2 != pOtherPin) {
+        PIN_DIRECTION pinDir;
+        pOtherPin2->QueryDirection(&pinDir);
+        if (dir != pinDir) {
+          IEnumMediaTypes *pMediaTypeEnum = NULL;
+          if (SUCCEEDED(pOtherPin2->EnumMediaTypes(&pMediaTypeEnum))) {
+            for (AM_MEDIA_TYPE *mt = NULL; pMediaTypeEnum->Next(1, &mt, 0) == S_OK; mt = NULL) {
+              if (mt->majortype == mediaType) {
+                bFound = TRUE;
+              }
+              DeleteMediaType(mt);
+              if (bFound)
+                break;
+            }
+            SafeRelease(&pMediaTypeEnum);
+          }
+        } else {
+          bFound = HasSourceWithType(pOtherPin2, mediaType);
+        }
+      }
+      SafeRelease(&pOtherPin2);
+      if (bFound)
+        break;
+    }
+    SafeRelease(&pOtherPin);
+    SafeRelease(&pPinEnum);
+    SafeRelease(&pFilter);
+  }
+  return bFound;
+}
+
 BOOL FilterInGraphSafe(IPin *pPin, const GUID &guid)
 {
   IBaseFilter *pFilter = NULL;

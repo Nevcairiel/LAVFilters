@@ -87,6 +87,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bAVResampleFailed(FALSE)
   , m_bMixingSettingsChanged(FALSE)
   , m_fMixingClipThreshold(0.0f)
+  , m_bHasVideo(TRUE)
 {
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -1083,6 +1084,8 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   }
 
   m_bInputPadded = FilterInGraphSafe(m_pInput, CLSID_LAVSplitter) || FilterInGraphSafe(m_pInput, CLSID_LAVSplitterSource);
+  m_bHasVideo = HasSourceWithType(m_pInput, MEDIATYPE_Video) || m_pInput->CurrentMediaType().majortype != MEDIATYPE_Audio;
+  DbgLog((LOG_TRACE, 10, L"-> Do we have video? %d", m_bHasVideo));
 
   // If the codec is bitstreaming, and enabled for it, go there now
   if (IsBitstreaming(codec)) {
@@ -2005,7 +2008,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
     REFERENCE_TIME rtJitter = rtStart - buffer.rtStart;
     m_faJitter.Sample(rtJitter);
     REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
-    if (m_settings.AutoAVSync && abs(rtJitterMin) > m_JitterLimit) {
+    if (m_settings.AutoAVSync && abs(rtJitterMin) > m_JitterLimit && m_bHasVideo) {
       DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
       m_rtStart -= rtJitterMin;
       m_faJitter.OffsetValues(-rtJitterMin);

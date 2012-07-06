@@ -265,6 +265,7 @@ private:
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 
   BOOL                 m_bInputPadded;
+  BOOL                 m_bHasVideo;
 
   AVAudioResampleContext *m_avrContext;
   LAVAudioSampleFormat m_sfRemixFormat;
