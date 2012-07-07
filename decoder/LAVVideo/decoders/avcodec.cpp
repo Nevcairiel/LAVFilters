@@ -635,7 +635,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   }
 
   uint8_t *pDataBuffer = NULL;
-  if (!bFlush) {
+  if (!bFlush && buflen > 0) {
     if (!m_bInputPadded && (!(m_pAVCtx->active_thread_type & FF_THREAD_FRAME) || m_pParser)) {
       // Copy bitstream into temporary buffer to ensure overread protection
       // Verify buffer size
