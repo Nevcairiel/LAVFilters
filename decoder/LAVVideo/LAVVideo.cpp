@@ -549,6 +549,12 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
         break;
       }
     }
+    if (m_bStreamARBlacklisted) {
+      // MPC-HC MP4 Splitter fails at Container AR
+      if (FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMP4Splitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMP4SplitterSource)) {
+        m_bStreamARBlacklisted = FALSE;
+      }
+    }
   }
 
   m_bVC1IsDTS    = (codec == CODEC_ID_VC1) && !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader));
