@@ -1,5 +1,28 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.51.0 - 2012/07/09
+LAV Splitter
+- Increased IO responsiveness on high-latency network connections
+- Improved timestamp handling for MPEG-PS (.mpg/.vob/.evo)
+- Improved support for H264 streams in SSIF MPEG-TS files
+- Added an option to control the priority of audio streams for the hearing/visually impaired
+- Added new flags to the advanced subtitle selection
+  - "h" for hearing impaired
+  - "n" for normal streams (no flags)
+  - "!" NOT operator for inverting the meaning of the flags
+
+LAV Video
+- Improved DXVA2 Native to software fallback in some situations
+- Support for YCgCo to RGB conversion
+- Added a new smart Stream Aspect Ratio mode
+  - Will only use Stream AR when the container does not provide a realiable AR
+
+LAV Audio
+- Improved decoding performance of MP4 ALS and a few other formats
+- Fixed playback of COOK with the MPC-HC RM Splitter
+- Auto A/V Sync is now automatically disabled on pure-audio files to avoid potential conflicts
+- Audio Down-Mixing support
+
 0.50.5 - 2012/05/12
 LAV Video
 - Fixed a crash in DXVA2-Native decoding (introduced in 0.50.4)
