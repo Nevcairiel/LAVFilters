@@ -276,6 +276,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_pParser(NULL)
   , m_pFrame(NULL)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0)
+  , m_pFFBuffer2(NULL), m_nFFBufferSize2(0)
   , m_pSwsContext(NULL)
   , m_nCodecId(CODEC_ID_NONE)
   , m_rtStartCache(AV_NOPTS_VALUE)
@@ -601,6 +602,9 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
   av_freep(&m_pFFBuffer);
   m_nFFBufferSize = 0;
 
+  av_freep(&m_pFFBuffer2);
+  m_nFFBufferSize2 = 0;
+
   if (m_pSwsContext) {
     sws_freeContext(m_pSwsContext);
     m_pSwsContext = NULL;
@@ -734,10 +738,24 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       if (pOut_size > 0 || bFlush) {
 
         if (pOut && pOut_size > 0) {
-          avpkt.data = pOut;
+          if (pOut_size > m_nFFBufferSize2) {
+            m_nFFBufferSize2	= pOut_size;
+            m_pFFBuffer2 = (BYTE *)av_realloc_f(m_pFFBuffer2, m_nFFBufferSize2 + FF_INPUT_BUFFER_PADDING_SIZE, 1);
+            if (!m_pFFBuffer2) {
+              m_nFFBufferSize2 = 0;
+              return E_FAIL;
+            }
+          }
+          memcpy(m_pFFBuffer2, pOut, pOut_size);
+          memset(m_pFFBuffer2+pOut_size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+
+          avpkt.data = m_pFFBuffer2;
           avpkt.size = pOut_size;
           avpkt.pts = rtStart;
           avpkt.dts = AV_NOPTS_VALUE;
+        } else {
+          avpkt.data = NULL;
+          avpkt.size = 0;
         }
 
         int ret2 = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);

@@ -68,7 +68,9 @@ private:
   AVCodecParserContext *m_pParser;
 
   BYTE                 *m_pFFBuffer;
+  BYTE                 *m_pFFBuffer2;
   int                  m_nFFBufferSize;
+  int                  m_nFFBufferSize2;
 
   SwsContext           *m_pSwsContext;
 
