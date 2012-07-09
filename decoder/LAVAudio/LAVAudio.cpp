@@ -1428,6 +1428,9 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   }
 
   long len = pIn->GetActualDataLength();
+  if (len == 0) {
+    return S_OK;
+  }
 
   (static_cast<CDeCSSInputPin*>(m_pInput))->StripPacket(pDataIn, len);
 
