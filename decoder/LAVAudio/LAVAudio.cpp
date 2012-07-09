@@ -198,6 +198,9 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.MixingLayout  = AV_CH_LAYOUT_STEREO;
   m_settings.MixingFlags   = LAV_MIXING_FLAG_CLIP_PROTECTION;
   m_settings.MixingMode    = MatrixEncoding_None;
+  m_settings.MixingCenterLevel   = 7071;
+  m_settings.MixingSurroundLevel = 7071;
+  m_settings.MixingLFELevel      = 0;
 
   return S_OK;
 }
@@ -273,6 +276,15 @@ HRESULT CLAVAudio::LoadSettings()
   dwVal = reg.ReadDWORD(L"MixingMode", hr);
   if (SUCCEEDED(hr)) m_settings.MixingMode = dwVal;
 
+  dwVal = reg.ReadDWORD(L"MixingCenterLevel", hr);
+  if (SUCCEEDED(hr)) m_settings.MixingCenterLevel = dwVal;
+
+  dwVal = reg.ReadDWORD(L"MixingSurroundLevel", hr);
+  if (SUCCEEDED(hr)) m_settings.MixingSurroundLevel = dwVal;
+
+  dwVal = reg.ReadDWORD(L"MixingLFELevel", hr);
+  if (SUCCEEDED(hr)) m_settings.MixingLFELevel = dwVal;
+
   // Deprecated sample format storage
   pBuf = reg.ReadBinary(L"SampleFormats", dwVal, hr);
   if (SUCCEEDED(hr)) {
@@ -333,6 +345,9 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteDWORD(L"MixingLayout", m_settings.MixingLayout);
     reg.WriteDWORD(L"MixingFlags", m_settings.MixingFlags);
     reg.WriteDWORD(L"MixingMode", m_settings.MixingMode);
+    reg.WriteDWORD(L"MixingCenterLevel", m_settings.MixingCenterLevel);
+    reg.WriteDWORD(L"MixingSurroundLevel", m_settings.MixingSurroundLevel);
+    reg.WriteDWORD(L"MixingLFELevel", m_settings.MixingLFELevel);
 
     reg.DeleteKey(L"Formats");
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
@@ -694,6 +709,30 @@ STDMETHODIMP CLAVAudio::SetMixingMode(LAVAudioMixingMode mixingMode)
 STDMETHODIMP_(LAVAudioMixingMode) CLAVAudio::GetMixingMode()
 {
   return (LAVAudioMixingMode)m_settings.MixingMode;
+}
+
+STDMETHODIMP CLAVAudio::SetMixingLevels(DWORD dwCenterLevel, DWORD dwSurroundLevel, DWORD dwLFELevel)
+{
+  m_settings.MixingCenterLevel = dwCenterLevel;
+  m_settings.MixingSurroundLevel = dwSurroundLevel;
+  m_settings.MixingLFELevel = dwLFELevel;
+  SaveSettings();
+
+  m_bMixingSettingsChanged = TRUE;
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVAudio::GetMixingLevels(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel)
+{
+  if (dwCenterLevel)
+    *dwCenterLevel = m_settings.MixingCenterLevel;
+  if (dwSurroundLevel)
+    *dwSurroundLevel = m_settings.MixingSurroundLevel;
+  if (dwLFELevel)
+    *dwLFELevel = m_settings.MixingLFELevel;
+
+  return S_OK;
 }
 
 // ILAVAudioStatus

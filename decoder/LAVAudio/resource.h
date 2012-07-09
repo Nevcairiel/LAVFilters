@@ -101,6 +101,16 @@
 #define IDC_MIXMODE_NORMAL              1116
 #define IDC_MIXMODE_DOLBY               1117
 #define IDC_MIXMODE_DPL2                1118
+#define IDC_MIX_LEVEL_CENTER            1121
+#define IDC_MIX_LEVEL_SURROUND          1122
+#define IDC_MIX_LEVEL_LFE               1123
+#define IDC_LBL_CENTER_LEVEL            1124
+#define IDC_LBL_SURROUND_LEVEL          1125
+#define IDC_LBL_LFE_LEVEL               1126
+#define IDC_MIX_LEVEL_CENTER_TEXT       1127
+#define IDC_MIX_LEVEL_SURROUND_TEXT     1128
+#define IDC_MIX_LEVEL_LFE_TEXT          1129
+#define IDC_LBL_MIXING_LEVEL            1130
 
 // Next default values for new objects
 // 
@@ -108,7 +118,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1119
+#define _APS_NEXT_CONTROL_VALUE         1131
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

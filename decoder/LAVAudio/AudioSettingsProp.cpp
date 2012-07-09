@@ -399,6 +399,11 @@ HRESULT CLAVAudioMixingProp::OnApplyChanges()
   BOOL bDPL2 = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DPL2, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetMixingMode(bDolby ? MatrixEncoding_Dolby : (bDPL2 ? MatrixEncoding_DPLII : MatrixEncoding_None));
 
+  DWORD dwMixCenter = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_GETPOS, 0, 0);
+  DWORD dwMixSurround = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_GETPOS, 0, 0);
+  DWORD dwMixLFE = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_GETPOS, 0, 0);
+  m_pAudioSettings->SetMixingLevels(dwMixCenter, dwMixSurround, dwMixLFE);
+
   LoadData();
 
   return hr;
@@ -429,6 +434,13 @@ HRESULT CLAVAudioMixingProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spk61Surround);
   SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spk71Surround);
 
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETRANGE, 0, MAKELONG(0, 10000));
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETTICFREQ, 100, 0);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETRANGE, 0, MAKELONG(0, 10000));
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETTICFREQ, 100, 0);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETRANGE, 0, MAKELONG(0, 10000));
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETTICFREQ, 100, 0);
+
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_MIXING, BM_SETCHECK, m_bMixing, 0);
@@ -441,6 +453,18 @@ HRESULT CLAVAudioMixingProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_MIXMODE_NORMAL, BM_SETCHECK, (m_dwMixingMode == MatrixEncoding_None), 0);
     SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DOLBY, BM_SETCHECK, (m_dwMixingMode == MatrixEncoding_Dolby), 0);
     SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DPL2, BM_SETCHECK, (m_dwMixingMode == MatrixEncoding_DPLII), 0);
+
+    SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETPOS, 1, m_dwMixCenter);
+    SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETPOS, 1, m_dwMixSurround);
+    SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETPOS, 1, m_dwMixLFE);
+
+    WCHAR buffer[10];
+    _snwprintf_s(buffer, _TRUNCATE, L"%.2f", (double)m_dwMixCenter / 10000.0);
+    SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
+    _snwprintf_s(buffer, _TRUNCATE, L"%.2f", (double)m_dwMixSurround / 10000.0);
+    SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
+    _snwprintf_s(buffer, _TRUNCATE, L"%.2f", (double)m_dwMixLFE / 10000.0);
+    SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
   }
 
   return hr;
@@ -454,6 +478,7 @@ HRESULT CLAVAudioMixingProp::LoadData()
   m_bMixing         = m_pAudioSettings->GetMixingEnabled();
   m_dwFlags         = m_pAudioSettings->GetMixingFlags();
   m_dwMixingMode    = m_pAudioSettings->GetMixingMode();
+  m_pAudioSettings->GetMixingLevels(&m_dwMixCenter, &m_dwMixSurround, &m_dwMixLFE);
 
   return hr;
 }
@@ -507,6 +532,31 @@ INT_PTR CLAVAudioMixingProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
     }
     break;
   case WM_HSCROLL:
+    if ((HWND)lParam == GetDlgItem(m_Dlg, IDC_MIX_LEVEL_CENTER)) {
+      lValue = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_GETPOS, 0, 0);
+      if (lValue != m_dwMixCenter) {
+        SetDirty();
+      }
+      WCHAR buffer[10];
+      _snwprintf_s(buffer, _TRUNCATE, L"%.2f", (double)lValue / 10000.0);
+      SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
+    } else if ((HWND)lParam == GetDlgItem(m_Dlg, IDC_MIX_LEVEL_SURROUND)) {
+      lValue = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_GETPOS, 0, 0);
+      if (lValue != m_dwMixSurround) {
+        SetDirty();
+      }
+      WCHAR buffer[10];
+      _snwprintf_s(buffer, _TRUNCATE, L"%.2f", (double)lValue / 10000.0);
+      SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
+    } else if ((HWND)lParam == GetDlgItem(m_Dlg, IDC_MIX_LEVEL_LFE)) {
+      lValue = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_GETPOS, 0, 0);
+      if (lValue != m_dwMixLFE) {
+        SetDirty();
+      }
+      WCHAR buffer[10];
+      _snwprintf_s(buffer, _TRUNCATE, L"%.2f", (double)lValue / 10000.0);
+      SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
+    }
     break;
   }
   // Let the parent class handle the message.

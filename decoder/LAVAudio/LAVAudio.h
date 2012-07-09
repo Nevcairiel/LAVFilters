@@ -140,6 +140,8 @@ public:
   STDMETHODIMP_(DWORD) GetMixingFlags();
   STDMETHODIMP SetMixingMode(LAVAudioMixingMode mixingMode);
   STDMETHODIMP_(LAVAudioMixingMode) GetMixingMode();
+  STDMETHODIMP SetMixingLevels(DWORD dwCenterLevel, DWORD dwSurroundLevel, DWORD dwLFELevel);
+  STDMETHODIMP GetMixingLevels(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel);
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -294,6 +296,9 @@ private:
     DWORD MixingLayout;
     DWORD MixingFlags;
     DWORD MixingMode;
+    DWORD MixingCenterLevel;
+    DWORD MixingSurroundLevel;
+    DWORD MixingLFELevel;
   } m_settings;
   BOOL                m_bRuntimeConfig;
 

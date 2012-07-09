@@ -111,6 +111,9 @@ private:
   DWORD m_dwSpeakerLayout;
   DWORD m_dwFlags;
   DWORD m_dwMixingMode;
+  DWORD m_dwMixCenter;
+  DWORD m_dwMixSurround;
+  DWORD m_dwMixLFE;
 };
 
 class CLAVAudioFormatsProp : public CBaseDSPropPage

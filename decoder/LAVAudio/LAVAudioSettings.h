@@ -165,6 +165,10 @@ interface ILAVAudioSettings : public IUnknown
   // Set Mixing Mode
   STDMETHOD(SetMixingMode)(LAVAudioMixingMode mixingMode) = 0;
   STDMETHOD_(LAVAudioMixingMode,GetMixingMode)() = 0;
+
+  // Set Mixing Levels
+  STDMETHOD(SetMixingLevels)(DWORD dwCenterLevel, DWORD dwSurroundLevel, DWORD dwLFELevel) = 0;
+  STDMETHOD(GetMixingLevels)(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel) = 0;
 };
 
 // LAV Audio Status Interface
