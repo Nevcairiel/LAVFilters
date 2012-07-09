@@ -48,6 +48,7 @@ typedef enum LAVAudioCodec {
   Codec_Cook,
   Codec_RealAudio,
   Codec_WMALL,
+  Codec_ALAC,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
@@ -74,6 +75,14 @@ typedef enum LAVAudioSampleFormat {
   SampleFormat_Bitstream,
 
   SampleFormat_NB     // Number of entrys (do not use when dynamically linking)
+};
+
+typedef enum LAVAudioMixingMode {
+  MatrixEncoding_None,
+  MatrixEncoding_Dolby,
+  MatrixEncoding_DPLII,
+
+  MatrixEncoding_NB
 };
 
 // LAV Audio configuration interface
@@ -137,6 +146,29 @@ interface ILAVAudioSettings : public IUnknown
   // Configure a delay for the audio
   STDMETHOD(GetAudioDelay)(BOOL *pbEnabled, int *pDelay) = 0;
   STDMETHOD(SetAudioDelay)(BOOL bEnabled, int delay) = 0;
+
+  // Enable/Disable Mixing
+  STDMETHOD(SetMixingEnabled)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetMixingEnabled)() = 0;
+
+  // Control Mixing Layout
+  STDMETHOD(SetMixingLayout)(DWORD dwLayout) = 0;
+  STDMETHOD_(DWORD,GetMixingLayout)() = 0;
+
+#define LAV_MIXING_FLAG_UNTOUCHED_STEREO 0x0001
+#define LAV_MIXING_FLAG_NORMALIZE_MATRIX 0x0002
+#define LAV_MIXING_FLAG_CLIP_PROTECTION  0x0004
+  // Set Mixing Flags
+  STDMETHOD(SetMixingFlags)(DWORD dwFlags) = 0;
+  STDMETHOD_(DWORD,GetMixingFlags)() = 0;
+
+  // Set Mixing Mode
+  STDMETHOD(SetMixingMode)(LAVAudioMixingMode mixingMode) = 0;
+  STDMETHOD_(LAVAudioMixingMode,GetMixingMode)() = 0;
+
+  // Set Mixing Levels
+  STDMETHOD(SetMixingLevels)(DWORD dwCenterLevel, DWORD dwSurroundLevel, DWORD dwLFELevel) = 0;
+  STDMETHOD(GetMixingLevels)(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel) = 0;
 };
 
 // LAV Audio Status Interface
