@@ -1,5 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.51.1 - 2012/07/10
+LAV Video
+- Improved compatibility between DXVA and certain DVB players
+
 0.51.0 - 2012/07/09
 LAV Splitter
 - Increased IO responsiveness on high-latency network connections
