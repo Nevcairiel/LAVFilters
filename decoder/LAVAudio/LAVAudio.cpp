@@ -1920,7 +1920,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
       hr = S_OK;
 
-      m_DecodeFormat = out.sfFormat == SampleFormat_32 && out.wBitsPerSample > 0 && out.wBitsPerSample <= 24 ? (out.wBitsPerSample < 16 ? SampleFormat_16 : SampleFormat_24) : out.sfFormat;
+      m_DecodeFormat = out.sfFormat == SampleFormat_32 && out.wBitsPerSample > 0 && out.wBitsPerSample <= 24 ? (out.wBitsPerSample <= 16 ? SampleFormat_16 : SampleFormat_24) : out.sfFormat;
       m_DecodeLayout = out.dwChannelMask;
 
       if (SUCCEEDED(PostProcess(&out))) {
