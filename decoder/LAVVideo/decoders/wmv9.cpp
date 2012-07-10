@@ -440,8 +440,10 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   DWORD dwPropSize = 1;
   pOutBuffer->GetProperty(WM_SampleExtensionGUID_ContentType, &contentType, &dwPropSize);
   pFrame->interlaced = !!(contentType & WM_CT_INTERLACED);
-  pFrame->tff        = !!(contentType & WM_CT_TOP_FIELD_FIRST);
   pFrame->repeat     = !!(contentType & WM_CT_REPEAT_FIRST_FIELD);
+
+  LAVDeintFieldOrder fo = m_pSettings->GetDeintFieldOrder();
+  pFrame->tff           = (fo == DeintFieldOrder_Auto) ? !!(contentType & WM_CT_TOP_FIELD_FIRST) : (fo == DeintFieldOrder_TopFieldFirst);
 
   if (pFrame->interlaced && !m_bInterlaced)
     m_bInterlaced = TRUE;

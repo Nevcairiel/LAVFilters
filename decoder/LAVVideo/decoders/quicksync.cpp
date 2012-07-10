@@ -473,8 +473,11 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   pFrame->aspect_ratio.den = data->dwPictAspectRatioY;
   pFrame->ext_format = m_DXVAExtendedFormat;
   pFrame->interlaced = !(data->dwInterlaceFlags & AM_VIDEO_FLAG_WEAVE);
-  pFrame->tff = !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_FIELD1FIRST);
   pFrame->avgFrameDuration = GetFrameDuration();
+
+  LAVDeintFieldOrder fo = m_pSettings->GetDeintFieldOrder();
+  pFrame->tff           = (fo == DeintFieldOrder_Auto) ? !!(data->dwInterlaceFlags & AM_VIDEO_FLAG_FIELD1FIRST) : (fo == DeintFieldOrder_TopFieldFirst);
+
 
   // Assign the buffer to the LAV Frame bufers
   pFrame->data[0] = data->y;
