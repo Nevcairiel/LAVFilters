@@ -288,13 +288,13 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm4 = xmm3;
 
     xmm1 = _mm_and_si128(xmm1, xmm7);                          /* null out the high-order bytes to get the Cg values */
-    xmm2 = _mm_and_si128(xmm2, xmm7);
+    xmm4 = _mm_and_si128(xmm4, xmm7);
 
     xmm3 = _mm_srli_epi32(xmm3, 16);                           /* right shift the Co values */
-    xmm4 = _mm_srli_epi32(xmm4, 16);
+    xmm2 = _mm_srli_epi32(xmm2, 16);
 
-    xmm1 = _mm_packs_epi32(xmm1, xmm2);                       /* Pack Cg into xmm1 */
-    xmm3 = _mm_packs_epi32(xmm3, xmm4);                       /* Pack Co into xmm3 */
+    xmm1 = _mm_packs_epi32(xmm4, xmm1);                       /* Pack Cg into xmm1 */
+    xmm3 = _mm_packs_epi32(xmm3, xmm2);                       /* Pack Co into xmm3 */
 
     xmm2 = coeffs->CbCr_center;                               /* move CgCo to proper range */
     xmm1 = _mm_subs_epi16(xmm1, xmm2);
