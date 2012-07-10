@@ -821,7 +821,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     if (m_bFFReordering) {
       rtStart = m_pFrame->pkt_pts;
-      rtStop  = m_pFrame->pkt_pts + m_pFrame->pkt_duration;
+      if (m_pFrame->pkt_duration)
+        rtStop  = m_pFrame->pkt_pts + m_pFrame->pkt_duration;
     } else if (m_bBFrameDelay && m_pAVCtx->has_b_frames) {
       rtStart = m_tcBFrameDelay[m_nBFramePos].rtStart;
       rtStop  = m_tcBFrameDelay[m_nBFramePos].rtStop;
