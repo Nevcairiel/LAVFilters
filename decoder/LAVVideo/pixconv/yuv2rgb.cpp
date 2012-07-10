@@ -227,10 +227,6 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 
   xmm0 = _mm_unpacklo_epi64(xmm0, xmm5);                        /* YYYYYYYY */
 
-  xmm2 = coeffs->CbCr_center;                                   /* move CbCr/CgCo to proper range */
-  xmm1 = _mm_subs_epi16(xmm1, xmm2);
-  xmm3 = _mm_subs_epi16(xmm3, xmm2);
-
   // After this step, xmm1 & xmm3 contain 4 UV pairs, each in a 16-bit value, filling 12-bit.
   if (!ycgco) {
     // YCbCr conversion
@@ -243,6 +239,10 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm0 = _mm_subs_epu16(xmm0, coeffs->Ysub);                  /* Y-16 (in case of range expansion) */
     xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
     xmm0 = _mm_add_epi16(xmm0, coeffs->rgb_add);                /* Y*cy + 16 (in case of range compression) */
+
+    xmm2 = coeffs->CbCr_center;                                 /* move CbCr to proper range */
+    xmm1 = _mm_subs_epi16(xmm1, xmm2);
+    xmm3 = _mm_subs_epi16(xmm3, xmm2);
 
     xmm6 = xmm1;
     xmm4 = xmm3;
@@ -290,11 +290,15 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm1 = _mm_and_si128(xmm1, xmm7);                          /* null out the high-order bytes to get the Cg values */
     xmm2 = _mm_and_si128(xmm2, xmm7);
 
-    xmm3 = _mm_srli_epi32(xmm3, 16);                           /* right shift the V values */
+    xmm3 = _mm_srli_epi32(xmm3, 16);                           /* right shift the Co values */
     xmm4 = _mm_srli_epi32(xmm4, 16);
 
-    xmm1 = _mm_packus_epi32(xmm1, xmm2);                       /* Pack Cg into xmm1 */
-    xmm3 = _mm_packus_epi32(xmm3, xmm4);                       /* Pack Co into xmm3 */
+    xmm1 = _mm_packs_epi32(xmm1, xmm2);                       /* Pack Cg into xmm1 */
+    xmm3 = _mm_packs_epi32(xmm3, xmm4);                       /* Pack Co into xmm3 */
+
+    xmm2 = coeffs->CbCr_center;                               /* move CgCo to proper range */
+    xmm1 = _mm_subs_epi16(xmm1, xmm2);
+    xmm3 = _mm_subs_epi16(xmm3, xmm2);
 
     xmm2 = xmm0;
     xmm2 = _mm_subs_epi16(xmm2, xmm1);                         /* tmp = Y - Cg */
