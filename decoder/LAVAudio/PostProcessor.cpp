@@ -520,12 +520,15 @@ HRESULT CLAVAudio::ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat 
 HRESULT CLAVAudio::Truncate32Buffer(BufferDetails *buffer)
 {
   ASSERT(buffer->sfFormat == SampleFormat_32 && buffer->wBitsPerSample <= 24);
-  GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
 
-  const int bytes_per_sample = buffer->wBitsPerSample > 16 ? 3 : 2;
+  // Determine the bytes per sample to keep. Cut a 16-bit sample to 24 if 16-bit is disabled for some reason
+  const int bytes_per_sample = buffer->wBitsPerSample <= 16 && GetSampleFormat(SampleFormat_16) ? 2 : 3;
+  if (bytes_per_sample == 3 && !GetSampleFormat(SampleFormat_24))
+    return S_FALSE;
+
   const int skip = 4 - bytes_per_sample;
-
   const DWORD size = (buffer->nSamples * buffer->wChannels) * bytes_per_sample;
+  GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
   pcmOut->SetSize(size);
 
   const BYTE *pDataIn = buffer->bBuffer->Ptr();
@@ -714,7 +717,7 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
   }
 
   // Truncate 24-in-32 to real 24
-  if (buffer->sfFormat == SampleFormat_32 && GetSampleFormat(SampleFormat_24) && buffer->wBitsPerSample && buffer->wBitsPerSample <= 24) {
+  if (buffer->sfFormat == SampleFormat_32 && buffer->wBitsPerSample && buffer->wBitsPerSample <= 24) {
     Truncate32Buffer(buffer);
   }
 
