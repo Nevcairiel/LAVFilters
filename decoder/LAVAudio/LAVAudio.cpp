@@ -1850,7 +1850,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
-              *pOut++ = ((uint8_t *)m_pFrame->data[ch])[i];
+              *pOut++ = ((uint8_t *)m_pFrame->extended_data[ch])[i];
             }
           }
         }
@@ -1864,7 +1864,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
-              *pOut++ = ((int16_t *)m_pFrame->data[ch])[i];
+              *pOut++ = ((int16_t *)m_pFrame->extended_data[ch])[i];
             }
           }
         }
@@ -1878,7 +1878,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
-              *pOut++ = ((int32_t *)m_pFrame->data[ch])[i];
+              *pOut++ = ((int32_t *)m_pFrame->extended_data[ch])[i];
             }
           }
         }
@@ -1893,7 +1893,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
-              *pOut++ = ((float *)m_pFrame->data[ch])[i];
+              *pOut++ = ((float *)m_pFrame->extended_data[ch])[i];
             }
           }
         }
@@ -1907,7 +1907,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
-              *pOut++ = (float)((double *)m_pFrame->data[ch])[i];
+              *pOut++ = (float)((double *)m_pFrame->extended_data[ch])[i];
             }
           }
         }
