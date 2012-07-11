@@ -1006,7 +1006,11 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
     wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
     wfex.dwChannelMask = dwChannelMask;
     if (wBitsPerSample > 0) {
-      wfex.Samples.wValidBitsPerSample = wBitsPerSample;
+      WORD wBpp = wBitsPerSample;
+      if ( (outputFormat == SampleFormat_24 && wBpp <= 16)
+        || (outputFormat == SampleFormat_32 && wBpp < 24))
+        wBpp = 24;
+      wfex.Samples.wValidBitsPerSample = wBpp;
     } else {
       wfex.Samples.wValidBitsPerSample = wfex.Format.wBitsPerSample;
     }
