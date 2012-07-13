@@ -899,11 +899,17 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     const int nChannels = m_pAVCtx->channels;
     const int nSamplesPerSec = m_pAVCtx->sample_rate;
 
-    const AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_S16);
+    AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_NONE);
+    if (sample_fmt == AV_SAMPLE_FMT_NONE) {
+      if (m_pAVCtx->bits_per_coded_sample > 16)
+        sample_fmt = AV_SAMPLE_FMT_S32;
+      else
+        sample_fmt = AV_SAMPLE_FMT_S16;
+    }
     const DWORD dwChannelMask = get_channel_mask(nChannels);
 
-    LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, m_pAVCtx->bits_per_raw_sample);
-    int bits = m_pDTSDecoderContext ? 0 : m_pAVCtx->bits_per_raw_sample;
+    int bits = m_pDTSDecoderContext ? 0 : m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
+    LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, bits);
 
     if (iPosition == 1)
       lav_sample_fmt = SampleFormat_16;
