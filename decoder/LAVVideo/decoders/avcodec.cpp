@@ -518,9 +518,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       DbgLog((LOG_TRACE, 10, L"-> Setting has_b_frames to %d", lavPinInfo.has_b_frames));
       m_pAVCtx->has_b_frames = lavPinInfo.has_b_frames;
     }
-  } else if (codec == CODEC_ID_H264) {
-    DbgLog((LOG_TRACE, 10, L"-> Using Strict Standards Compliance Mode"));
-    m_pAVCtx->strict_std_compliance = FF_COMPLIANCE_STRICT;
   }
 
   // Open the decoder
