@@ -441,6 +441,13 @@ HRESULT CLAVAudioMixingProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETRANGE, 0, MAKELONG(0, 10000));
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETTICFREQ, 100, 0);
 
+  addHint(IDC_UNTOUCHED_STEREO, L"With this option on, stereo sources will not be mixed. This is useful when you want to mix all surround sources to eg. 5.1, but leave stereo untouched.");
+  addHint(IDC_NORMALIZE_MATRIX, L"Normalizing the matrix will apply a global attenuation to the audio, in effect making it quieter to ensure that there is a consistent volume throughout the file, and no clipping occurs.\n\n"
+                                L"This mode will produce inconsistent volumes between different source formats (stereo will be louder then 5.1), but the volume during playback of one file not change.");
+  addHint(IDC_CLIP_PROTECTION, L"Clipping protection analyzes the audio, and reduces the volume if clipping is detected.\n\n"
+                               L"This mode trys to preserve the original volume of the audio, and is generally more consistent between different source formats. It may however cause a sudden volume change during playback. "
+                               L"In addition, this mode has a higher volume then a normalized matrix and is preferred on weak speakers or headphones.");
+
   hr = LoadData();
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_MIXING, BM_SETCHECK, m_bMixing, 0);
