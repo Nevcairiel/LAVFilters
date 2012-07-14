@@ -263,6 +263,7 @@ private:
   GrowableArray<BYTE>  m_buff;           // Input Buffer
   LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples
   BOOL                 m_bFallback16Int;
+  DWORD                m_dwOverrideMixer;
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 
