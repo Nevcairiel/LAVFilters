@@ -1,5 +1,18 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.51.2 - 2012/07/15
+LAV Splitter
+- Improved H264 media type creation with some files
+
+LAV Video
+- Reduced latency of H264 software decoding (improves Live TV playback)
+- Fixed chroma handling of the YCgCo to RGB conversion
+- Fixed timestamp handling of MPEG2 (regression introduced in 0.51)
+
+LAV Audio
+- Re-Mix audio as a fallback when the audio chain refuses a new channel configuration
+- Fixed an error that caused 16-bit FLAC to show as 24-bit on the status panel
+
 0.51.1 - 2012/07/10
 LAV Video
 - Improved compatibility between DXVA and certain DVB players
