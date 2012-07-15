@@ -3,6 +3,7 @@ LAV DirectShow Filters Changelog
 0.51.2 - 2012/07/15
 LAV Splitter
 - Improved H264 media type creation with some files
+- Fixed reading of QuickTime/AppleText chapters in MOV/MP4
 
 LAV Video
 - Reduced latency of H264 software decoding (improves Live TV playback)
