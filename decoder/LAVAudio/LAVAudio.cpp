@@ -910,19 +910,15 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     }
     const DWORD dwChannelMask = get_channel_mask(nChannels);
 
-    int bits = m_pDTSDecoderContext ? 0 : m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
+    // Prefer bits_per_raw_sample if set, but if not, try to do a better guess with bits per coded sample
+    const int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
     LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, bits);
 
     if (iPosition == 1)
       lav_sample_fmt = SampleFormat_16;
 
-    LAVAudioSampleFormat bestFmt = GetBestAvailableSampleFormat(lav_sample_fmt, TRUE);
-    if (bestFmt != lav_sample_fmt) {
-      lav_sample_fmt = bestFmt;
-      bits = get_byte_per_sample(lav_sample_fmt) << 3;
-    }
-
-    *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, bits);
+    lav_sample_fmt = GetBestAvailableSampleFormat(lav_sample_fmt, TRUE);
+    *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, m_pAVCtx->bits_per_raw_sample);
   }
   return S_OK;
 }
@@ -1013,7 +1009,7 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
     wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
     wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
     wfex.dwChannelMask = dwChannelMask;
-    if (wBitsPerSample > 0) {
+    if (wBitsPerSample > 0 && (outputFormat == SampleFormat_24 || outputFormat == SampleFormat_32)) {
       WORD wBpp = wBitsPerSample;
       if ( (outputFormat == SampleFormat_24 && wBpp <= 16)
         || (outputFormat == SampleFormat_32 && wBpp < 24))
