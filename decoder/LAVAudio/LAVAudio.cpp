@@ -898,8 +898,9 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   if (m_avBSContext) {
     *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate);
   } else {
-    const int nChannels = m_pAVCtx->channels;
     const int nSamplesPerSec = m_pAVCtx->sample_rate;
+    int nChannels = m_pAVCtx->channels;
+    DWORD dwChannelMask = get_channel_mask(nChannels);
 
     AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_NONE);
     if (sample_fmt == AV_SAMPLE_FMT_NONE) {
@@ -908,11 +909,19 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
       else
         sample_fmt = AV_SAMPLE_FMT_S16;
     }
-    const DWORD dwChannelMask = get_channel_mask(nChannels);
 
     // Prefer bits_per_raw_sample if set, but if not, try to do a better guess with bits per coded sample
     const int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
     LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, bits);
+
+    if (m_settings.MixingEnabled) {
+      if (nChannels != av_get_channel_layout_nb_channels(m_settings.MixingLayout)
+        && (nChannels > 2 || !(m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO))) {
+        lav_sample_fmt = SampleFormat_FP32;
+        dwChannelMask = m_settings.MixingLayout;
+        nChannels = av_get_channel_layout_nb_channels(dwChannelMask);
+      }
+    }
 
     if (iPosition == 1)
       lav_sample_fmt = SampleFormat_16;
