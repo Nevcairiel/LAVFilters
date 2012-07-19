@@ -405,7 +405,7 @@ BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType)
     pFilter->EnumPins(&pPinEnum);
 
     HRESULT hrPin = E_FAIL;
-    for (IPin *pOtherPin2 = NULL; pPinEnum->Next(1, &pOtherPin2, 0) == S_OK; pOtherPin2 = NULL) {
+    for (IPin *pOtherPin2 = NULL; !bFound && pPinEnum->Next(1, &pOtherPin2, 0) == S_OK; pOtherPin2 = NULL) {
       if (pOtherPin2 != pOtherPin) {
         PIN_DIRECTION pinDir;
         pOtherPin2->QueryDirection(&pinDir);
@@ -417,8 +417,6 @@ BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType)
                 bFound = TRUE;
               }
               DeleteMediaType(mt);
-              if (bFound)
-                break;
             }
             SafeRelease(&pMediaTypeEnum);
           }
@@ -427,12 +425,10 @@ BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType)
         }
       }
       SafeRelease(&pOtherPin2);
-      if (bFound)
-        break;
     }
-    SafeRelease(&pOtherPin);
     SafeRelease(&pPinEnum);
     SafeRelease(&pFilter);
+    SafeRelease(&pOtherPin);
   }
   return bFound;
 }
