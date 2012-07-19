@@ -1139,8 +1139,17 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     }
   }
 
+  WCHAR fileName[1024];
+  GetModuleFileName(NULL, fileName, 1024);
+  std::wstring processName = PathFindFileName(fileName);
+
   m_bInputPadded = FilterInGraphSafe(m_pInput, CLSID_LAVSplitter) || FilterInGraphSafe(m_pInput, CLSID_LAVSplitterSource);
-  m_bHasVideo = HasSourceWithType(m_pInput, MEDIATYPE_Video) || m_pInput->CurrentMediaType().majortype != MEDIATYPE_Audio;
+  m_bHasVideo =  _wcsicmp(processName.c_str(), L"dllhost.exe") == 0
+              || _wcsicmp(processName.c_str(), L"explorer.exe") == 0
+              || _wcsicmp(processName.c_str(), L"ReClockHelper.dll") == 0
+              || _wcsicmp(processName.c_str(), L"dvbviewer.exe") == 0
+              || HasSourceWithType(m_pInput, MEDIATYPE_Video)
+              || m_pInput->CurrentMediaType().majortype != MEDIATYPE_Audio;
   DbgLog((LOG_TRACE, 10, L"-> Do we have video? %d", m_bHasVideo));
 
   // If the codec is bitstreaming, and enabled for it, go there now
