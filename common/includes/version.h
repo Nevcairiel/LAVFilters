@@ -2,7 +2,7 @@
 
 #define LAV_VERSION_MAJOR     0
 #define LAV_VERSION_MINOR    51
-#define LAV_VERSION_REVISION  2
+#define LAV_VERSION_REVISION  3
 
 #define LAV_AUDIO "LAV Audio Decoder"
 #define LAV_VIDEO "LAV Video Decoder"

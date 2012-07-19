@@ -1,5 +1,13 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.51.3 - 2012/07/19
+LAV Splitter
+- Further improved H264 media type creation
+
+LAV Audio
+- Fixed an issue with the initial media types causing graph building failures in some situations
+- Fixed a bug with DVBViewer which caused a delay on channel changes
+
 0.51.2 - 2012/07/15
 LAV Splitter
 - Improved H264 media type creation with some files
