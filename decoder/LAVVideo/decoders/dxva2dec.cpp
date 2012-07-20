@@ -927,7 +927,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     IMediaSample *pSample = NULL;
     hr = pDec->m_pDXVA2Allocator->GetBuffer(&pSample, NULL, NULL, 0);
     if (FAILED(hr)) {
-      DbgLog((LOG_ERROR, 10, L"DXVA2Allocator returned error"));
+      DbgLog((LOG_ERROR, 10, L"DXVA2Allocator returned error, hr: 0x%x", hr));
       return -1;
     }
 
