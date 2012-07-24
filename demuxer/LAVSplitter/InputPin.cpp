@@ -125,14 +125,21 @@ int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
     return -1;
   }
   if (hr == S_FALSE) {
-    // read single bytes, its internally buffered..
-    int count = 0;
-    do {
-      hr = pin->m_pAsyncReader->SyncRead(pin->m_llPos, 1, buf+count);
-      pin->m_llPos++;
-    } while(hr == S_OK && (++count) < buf_size);
+    LONGLONG total = 0;
+    LONGLONG available = 0;
+    if (S_OK == pin->m_pAsyncReader->Length(&total, &available) && total > pin->m_llPos) {
+      DbgLog((LOG_TRACE, 10, L"At EOF, pos: %I64d, size: %I64d, remainder: %I64d", pin->m_llPos, total, total - pin->m_llPos));
+      return (int)(total - pin->m_llPos);
+    } else {
+      DbgLog((LOG_TRACE, 10, L"We're at EOF, but Length seems unreliable, trying reading manually"));
+      int count = 0;
+      do {
+        hr = pin->m_pAsyncReader->SyncRead(pin->m_llPos, 1, buf+count);
+        pin->m_llPos++;
+      } while(hr == S_OK && (++count) < buf_size);
 
-    return count;
+      return count;
+    }
   }
   pin->m_llPos += buf_size;
   return buf_size;
