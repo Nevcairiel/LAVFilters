@@ -438,7 +438,7 @@ HRESULT CLAVAudioMixingProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETTICFREQ, 100, 0);
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETRANGE, 0, MAKELONG(0, 10000));
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETTICFREQ, 100, 0);
-  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETRANGE, 0, MAKELONG(0, 10000));
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETRANGE, 0, MAKELONG(0, 30000));
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETTICFREQ, 100, 0);
 
   addHint(IDC_UNTOUCHED_STEREO, L"With this option on, stereo sources will not be mixed. This is useful when you want to mix all surround sources to e.g. 5.1, but leave stereo untouched.");
