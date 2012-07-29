@@ -180,6 +180,7 @@
     <ClCompile Include="VideoSettingsProp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\common\includes\SubRenderIntf.h" />
     <ClInclude Include="decoders\avcodec.h" />
     <ClInclude Include="decoders\cuvid.h" />
     <ClInclude Include="decoders\DecBase.h" />

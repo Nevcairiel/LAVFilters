@@ -37,6 +37,9 @@
     <Filter Include="Header Files\decoders\dxva2">
       <UniqueIdentifier>{d3bbf10b-cfb1-45d9-8cb4-6323349e6b22}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\subs">
+      <UniqueIdentifier>{edcd1461-a03c-4080-84ef-a1e5d2e4f2b4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -196,6 +199,9 @@
     </ClInclude>
     <ClInclude Include="DecodeThread.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\includes\SubRenderIntf.h">
+      <Filter>Header Files\subs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

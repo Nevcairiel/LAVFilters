@@ -58,4 +58,6 @@ extern "C" {
 #include "DShowUtil.h"
 #include "growarray.h"
 
+#include "SubRenderIntf.h"
+
 #define REF_SECOND_MULT 10000000LL
