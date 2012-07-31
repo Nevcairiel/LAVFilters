@@ -33,8 +33,6 @@
 // 192000 (Samples) * 4 (Bytes per Sample) * 8 (channels)
 #define LAV_AUDIO_BUFFER_SIZE 6144000
 
-#define REQUEST_FLOAT 1
-
 // Maximum Durations (in reference time)
 // 10ms (DTS has 10.6667 ms samples, don't want to queue them up)
 #define PCM_BUFFER_MAX_DURATION 100000

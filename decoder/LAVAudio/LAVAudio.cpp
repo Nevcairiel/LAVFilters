@@ -1185,9 +1185,17 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   if (m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
     m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
 
-#if REQUEST_FLOAT
-  m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_FLT;
-#endif
+  if ( codec == CODEC_ID_AAC
+    || codec == CODEC_ID_AC3
+    || codec == CODEC_ID_ATRAC3
+    || codec == CODEC_ID_DTS
+    || codec == CODEC_ID_OPUS
+    || codec == CODEC_ID_NELLYMOSER
+    || codec == CODEC_ID_VORBIS) {
+    m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_FLT;
+  } else if (codec == CODEC_ID_ALAC) {
+    m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_S32P;
+  }
 
   // We can only trust LAV Splitters LATM AAC header...
   BOOL bTrustExtraData = TRUE;
