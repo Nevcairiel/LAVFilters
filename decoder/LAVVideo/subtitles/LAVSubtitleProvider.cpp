@@ -22,19 +22,44 @@
 
 #define OFFSET(x) offsetof(LAVSubtitleProviderContext, x)
 static const SubRenderOption options[] = {
-  { "name", OFFSET(name), SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
-  { "frameRate", OFFSET(avgTimePerFrame), SROPT_TYPE_ULONGLONG, 0 },
+  { "name",           OFFSET(name),            SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
+  { "version",        OFFSET(version),         SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
+  { "combineBitmaps", OFFSET(combineBitmaps),  SROPT_TYPE_BOOL,   0                   },
   { 0 }
 };
 
 CLAVSubtitleProvider::CLAVSubtitleProvider(void)
   : CSubRenderOptionsImpl(::options, &context)
   , CUnknown(L"CLAVSubtitleProvider", NULL)
+  , m_pConsumer(NULL)
 {
-  context.name = L"LAV Video";
-  context.avgTimePerFrame = 666666;
+  ZeroMemory(&context, sizeof(context));
+  context.name = TEXT(LAV_VIDEO);
+  context.version = TEXT(LAV_VERSION_STR);
 }
 
 CLAVSubtitleProvider::~CLAVSubtitleProvider(void)
 {
+  DisconnectConsumer();
+}
+
+STDMETHODIMP CLAVSubtitleProvider::DisconnectConsumer(void)
+{
+  CheckPointer(m_pConsumer, S_FALSE);
+  m_pConsumer->Disconnect();
+  SafeRelease(&m_pConsumer);
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop)
+{
+  ASSERT(m_pConsumer);
+  return S_OK;
+}
+
+STDMETHODIMP CLAVSubtitleProvider::Disconnect(void)
+{
+  SafeRelease(&m_pConsumer);
+  return S_OK;
 }

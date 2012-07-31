@@ -25,16 +25,26 @@ typedef struct LAVSubtitleProviderContext {
   LPWSTR name;                    ///< name of the Provider
   LPWSTR version;                 ///< Version of the Provider
 
-  REFERENCE_TIME avgTimePerFrame;
+  bool combineBitmaps;            ///< Control if the provider combines all bitmaps into one
 } LAVSubtitleProviderContext;
 
-class CLAVSubtitleProvider : public CSubRenderOptionsImpl, public CUnknown
+class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown
 {
 public:
   CLAVSubtitleProvider(void);
   ~CLAVSubtitleProvider(void);
   DECLARE_IUNKNOWN;
+  DECLARE_ISUBRENDEROPTIONS;
+
+  // ISubRenderProvider
+  STDMETHODIMP RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop);
+  STDMETHODIMP Disconnect(void);
+
+  // CLAVSubtitleProvider public
+  STDMETHODIMP DisconnectConsumer(void);
 
 private:
   LAVSubtitleProviderContext context;
+
+  ISubRenderConsumer *m_pConsumer;
 };
