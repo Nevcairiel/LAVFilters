@@ -20,7 +20,7 @@
 #include "stdafx.h"
 #include "LAVVideo.h"
 
-void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
+static void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
 {
   // Nothing
 }
