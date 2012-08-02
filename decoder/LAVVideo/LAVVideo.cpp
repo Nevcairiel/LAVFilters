@@ -1161,9 +1161,12 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     return S_OK;
   }
 
-  if (pFrame->format == LAVPixFmt_DXVA2)
+  // Only perform filtering if we have to.
+  // DXVA Native generally can't be filtered, and the only filtering we currently support is YADIF deint
+  if ( pFrame->format == LAVPixFmt_DXVA2
+    || !(m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)) {
     return DeliverToRenderer(pFrame);
-  else {
+  } else {
     if (m_bMTFiltering) {
       // Feed new frames into queue
       while (m_MTFilterContext.inputQueue.Size() >= LAV_MT_FILTER_QUEUE_SIZE)
