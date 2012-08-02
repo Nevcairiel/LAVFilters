@@ -646,8 +646,6 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   DbgLog((LOG_TRACE, 1, L"::NewSegment - %I64d / %I64d", tStart, tStop));
   CAutoLock cAutoLock(&m_csReceive);
 
-  m_Decoder.Flush();
-
   if (m_bMTFiltering) {
     // Block until the worker thread is in idle-state
     CAMThread::CallWorker(CMD_BEGIN_FLUSH);
@@ -661,6 +659,8 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 
     CAMThread::CallWorker(CMD_END_FLUSH);
   }
+
+  m_Decoder.Flush();
 
   if (m_pFilterGraph)
     avfilter_graph_free(&m_pFilterGraph);
