@@ -311,8 +311,8 @@ DWORD CDecodeThread::ThreadProc()
 
     DecodeInternal(pSample);
 
-    // Release the sample and clear input
-    ReleaseSample();
+    // Release the sample
+    SafeRelease(&pSample);
 
     // Indicates we're done decoding this sample
     if (!m_bThreadSafe)

@@ -79,7 +79,7 @@ private:
 
   bool HasSample() { CAutoLock lock(&m_SampleCritSec); return m_NextSample != NULL; }
   void PutSample(IMediaSample *pSample) { CAutoLock lock(&m_SampleCritSec); m_NextSample = pSample; }
-  IMediaSample* GetSample() { CAutoLock lock(&m_SampleCritSec); return m_NextSample; }
+  IMediaSample* GetSample() { CAutoLock lock(&m_SampleCritSec); IMediaSample *pSample = m_NextSample; m_NextSample = NULL; return pSample; }
   void ReleaseSample() { CAutoLock lock(&m_SampleCritSec); SafeRelease(&m_NextSample); }
 
 private:
