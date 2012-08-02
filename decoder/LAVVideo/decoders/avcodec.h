@@ -63,6 +63,7 @@ private:
   STDMETHODIMP ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame);
 
   static int lav_get_buffer(struct AVCodecContext *c, AVFrame *pic);
+  static int lav_reget_buffer(struct AVCodecContext *c, AVFrame *pic);
   static void lav_release_buffer(struct AVCodecContext *c, AVFrame *pic);
   static void lav_frame_destruct(struct LAVFrame *);
 
