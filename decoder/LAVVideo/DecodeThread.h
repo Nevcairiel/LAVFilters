@@ -77,10 +77,10 @@ private:
   STDMETHODIMP ClearQueues();
   STDMETHODIMP ProcessOutput();
 
-  bool HasSample() { CAutoLock lock(&m_SampleCritSec); return m_NextSample != NULL; }
-  void PutSample(IMediaSample *pSample) { CAutoLock lock(&m_SampleCritSec); m_NextSample = pSample; }
-  IMediaSample* GetSample() { CAutoLock lock(&m_SampleCritSec); IMediaSample *pSample = m_NextSample; m_NextSample = NULL; return pSample; }
-  void ReleaseSample() { CAutoLock lock(&m_SampleCritSec); SafeRelease(&m_NextSample); }
+  bool HasSample();
+  void PutSample(IMediaSample *pSample);
+  IMediaSample* GetSample();
+  void ReleaseSample();
 
 private:
   enum {CMD_CREATE_DECODER, CMD_CLOSE_DECODER, CMD_FLUSH, CMD_EOS, CMD_EXIT, CMD_INIT_ALLOCATOR, CMD_POST_CONNECT};

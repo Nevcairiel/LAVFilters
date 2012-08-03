@@ -119,6 +119,47 @@ STDMETHODIMP CDecodeThread::Close()
   return S_OK;
 }
 
+bool CDecodeThread::HasSample()
+{
+  CAutoLock lock(&m_SampleCritSec);
+  return m_NextSample != NULL;
+}
+
+void CDecodeThread::PutSample(IMediaSample *pSample)
+{
+  CAutoLock lock(&m_SampleCritSec);
+  ASSERT(m_NextSample == NULL);
+  // Provide Sample to worker thread
+  m_NextSample = pSample;
+
+  // Wake worker thread
+  m_evInput.Set();
+}
+
+IMediaSample* CDecodeThread::GetSample()
+{
+  CAutoLock lock(&m_SampleCritSec);
+
+  // Take the sample out of the buffer
+  IMediaSample *pSample = m_NextSample;
+  m_NextSample = NULL;
+
+  // Reset input event (no more input)
+  m_evInput.Reset();
+
+  return pSample;
+}
+
+void CDecodeThread::ReleaseSample()
+{
+  CAutoLock lock(&m_SampleCritSec);
+  // Free any sample that was still queued
+  SafeRelease(&m_NextSample);
+
+  // Reset input event (no more input)
+  m_evInput.Reset();
+}
+
 STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
 {
   CAutoLock decoderLock(this);
@@ -137,11 +178,9 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
     m_evDecodeDone.Reset();
 
   pSample->AddRef();
-  PutSample(pSample);
 
-  // Wake the worker thread (if it was waiting)
-  // Needs to be done after inserting data into the queue, or it might cause a deadlock
-  m_evInput.Set();
+  // Send data to worker thread, and wake it (if it was waiting)
+  PutSample(pSample);
 
   // If we don't have thread safe buffers, we need to synchronize
   // with the worker thread and deliver them when they are available
@@ -297,7 +336,6 @@ DWORD CDecodeThread::ThreadProc()
     }
 
     IMediaSample *pSample = GetSample();
-    m_evInput.Reset(); // Reset input trigger, no more input available
     if (!pSample) {
       // Process the EOS now that the sample queue is empty
       if (bEOS) {
