@@ -135,6 +135,9 @@
     <ClCompile Include="subtitles\SubRenderOptionsImpl.cpp">
       <Filter>Source Files\subtitles</Filter>
     </ClCompile>
+    <ClCompile Include="subtitles\LAVSubtitleFrame.cpp">
+      <Filter>Source Files\subtitles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -216,6 +219,9 @@
       <Filter>Header Files\subtitles</Filter>
     </ClInclude>
     <ClInclude Include="subtitles\SubRenderOptionsImpl.h">
+      <Filter>Header Files\subtitles</Filter>
+    </ClInclude>
+    <ClInclude Include="subtitles\LAVSubtitleFrame.h">
       <Filter>Header Files\subtitles</Filter>
     </ClInclude>
   </ItemGroup>

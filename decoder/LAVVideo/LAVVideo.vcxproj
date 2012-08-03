@@ -176,6 +176,7 @@
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="subtitles\LAVSubtitleFrame.cpp" />
     <ClCompile Include="subtitles\LAVSubtitleProvider.cpp" />
     <ClCompile Include="subtitles\SubRenderOptionsImpl.cpp" />
     <ClCompile Include="VideoOutputPin.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="pixconv\pixconv_sse2_templates.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="subtitles\LAVSubtitleFrame.h" />
     <ClInclude Include="subtitles\LAVSubtitleProvider.h" />
     <ClInclude Include="subtitles\SubRenderOptionsImpl.h" />
     <ClInclude Include="VideoOutputPin.h" />

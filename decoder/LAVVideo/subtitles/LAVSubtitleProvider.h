@@ -20,6 +20,7 @@
 #pragma once
 
 #include "SubRenderOptionsImpl.h"
+#include "LAVSubtitleFrame.h"
 
 typedef struct LAVSubtitleProviderContext {
   LPWSTR name;                    ///< name of the Provider
