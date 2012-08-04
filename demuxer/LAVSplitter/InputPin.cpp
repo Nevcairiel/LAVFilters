@@ -127,17 +127,22 @@ int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
   if (hr == S_FALSE) {
     LONGLONG total = 0;
     LONGLONG available = 0;
-    if (S_OK == pin->m_pAsyncReader->Length(&total, &available) && total > pin->m_llPos) {
-      DbgLog((LOG_TRACE, 10, L"At EOF, pos: %I64d, size: %I64d, remainder: %I64d", pin->m_llPos, total, total - pin->m_llPos));
-      return (int)(total - pin->m_llPos);
+    if (S_OK == pin->m_pAsyncReader->Length(&total, &available) && total >= pin->m_llPos && total <= (pin->m_llPos + buf_size)) {
+      int read = (int)(total - pin->m_llPos);
+      DbgLog((LOG_TRACE, 10, L"At EOF, pos: %I64d, size: %I64d, remainder: %d", pin->m_llPos, total, read));
+      pin->m_llPos += read;
+      return read;
     } else {
-      DbgLog((LOG_TRACE, 10, L"We're at EOF, but Length seems unreliable, trying reading manually"));
+      DbgLog((LOG_TRACE, 10, L"We're at EOF (pos: %I64d), but Length seems unreliable, trying reading manually", pin->m_llPos));
       int count = 0;
+      LONGLONG pos = pin->m_llPos;
       do {
         hr = pin->m_pAsyncReader->SyncRead(pin->m_llPos, 1, buf+count);
-        pin->m_llPos++;
+        if (hr == S_OK)
+          pin->m_llPos++;
       } while(hr == S_OK && (++count) < buf_size);
 
+      DbgLog((LOG_TRACE, 10, L"-> Read %d bytes", count));
       return count;
     }
   }
