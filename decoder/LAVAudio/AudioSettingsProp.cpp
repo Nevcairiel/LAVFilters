@@ -354,6 +354,7 @@ HRESULT CLAVAudioMixingProp::OnDisconnect()
 }
 
 static DWORD dwSpkLayouts[] = {
+  AV_CH_LAYOUT_MONO,
   AV_CH_LAYOUT_STEREO,
   AV_CH_LAYOUT_2_2,
   AV_CH_LAYOUT_5POINT1_BACK,
@@ -421,6 +422,7 @@ HRESULT CLAVAudioMixingProp::OnActivate()
   }
   ASSERT(m_pAudioSettings != NULL);
 
+  WCHAR spkMono[] = L"Mono";
   WCHAR spkStereo[] = L"Stereo";
   WCHAR spkQuadro[] = L"4.0";
   WCHAR spk51Surround[] = L"5.1";
@@ -428,6 +430,7 @@ HRESULT CLAVAudioMixingProp::OnActivate()
   WCHAR spk71Surround[] = L"7.1";
 
   SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_RESETCONTENT, 0, 0);
+  SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spkMono);
   SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spkStereo);
   SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spkQuadro);
   SendDlgItemMessage(m_Dlg, IDC_OUTPUT_SPEAKERS, CB_ADDSTRING, 0, (LPARAM)spk51Surround);
@@ -498,7 +501,7 @@ INT_PTR CLAVAudioMixingProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
   case WM_COMMAND:
     if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_OUTPUT_SPEAKERS) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
-      if (lValue != m_dwSpeakerLayout) {
+      if (dwSpkLayouts[lValue] != m_dwSpeakerLayout) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_MIXING && HIWORD(wParam) == BN_CLICKED) {
