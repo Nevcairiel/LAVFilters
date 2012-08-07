@@ -25,7 +25,7 @@
 #include <map>
 
 #define AVCODEC_MAX_THREADS 16
-#define AVCODEC_USE_DR1 1
+#define AVCODEC_USE_DR1 0
 #define AVCODEC_DR1_DEBUG 0
 
 typedef struct {
