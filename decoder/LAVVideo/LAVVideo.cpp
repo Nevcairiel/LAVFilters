@@ -905,7 +905,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
         }
         pOut->Release();
       }
-    } else if (hrQA == S_OK && hr == VFW_E_ALREADY_CONNECTED) {
+    } else if (hrQA == S_OK) {
       DbgLog((LOG_TRACE, 10, L"-> Downstream accepts new format, but cannot reconnect dynamically..."));
       if (pBIH->biSizeImage > oldSizeImage) {
         DbgLog((LOG_TRACE, 10, L"-> But, we need a bigger buffer, try to adapt allocator manually"));
