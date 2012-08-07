@@ -1297,6 +1297,9 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
   SetFrameFlags(pSampleOut, pFrame);
 
+  // Release frame before delivery, so it can be re-used by the decoder (if required)
+  ReleaseFrame(&pFrame);
+
   hr = m_pOutput->Deliver(pSampleOut);
   if (FAILED(hr)) {
     DbgLog((LOG_ERROR, 10, L"::Decode(): Deliver failed with hr: %x", hr));
@@ -1307,7 +1310,6 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(pBIH->biWidth, abs(pBIH->biHeight)), 0);
 
   SafeRelease(&pSampleOut);
-  ReleaseFrame(&pFrame);
 
   return hr;
 }
