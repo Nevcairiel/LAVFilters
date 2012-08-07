@@ -62,10 +62,12 @@ protected:
 private:
   STDMETHODIMP ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame);
 
+#if AVCODEC_USE_DR1
   static int lav_get_buffer(struct AVCodecContext *c, AVFrame *pic);
   static int lav_reget_buffer(struct AVCodecContext *c, AVFrame *pic);
   static void lav_release_buffer(struct AVCodecContext *c, AVFrame *pic);
   static void lav_frame_destruct(struct LAVFrame *);
+#endif
 
 protected:
   AVCodecContext       *m_pAVCtx;
@@ -107,6 +109,9 @@ private:
   int                  m_iInterlaced;
 
   BOOL                 m_bDR1;
+
+#if AVCODEC_USE_DR1
   CCritSec             m_BufferCritSec;
   std::map<uint8_t*,int> m_Buffers;
+#endif
 };

@@ -513,7 +513,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
                     || codec == CODEC_ID_QTRLE
                     || codec == CODEC_ID_TSCC);
 
-  if (AVCODEC_USE_DR1 && !m_bDXVA && m_pAVCodec->capabilities & CODEC_CAP_DR1) {
+#if AVCODEC_USE_DR1
+  if (!m_bDXVA && m_pAVCodec->capabilities & CODEC_CAP_DR1) {
     m_bDR1                   = TRUE;
     m_pAVCtx->opaque         = this;
     m_pAVCtx->get_buffer     = lav_get_buffer;
@@ -523,6 +524,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   } else {
     m_bDR1                   = FALSE;
   }
+#endif
 
   if (FAILED(AdditionaDecoderInit())) {
     return E_FAIL;
@@ -627,6 +629,8 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
 
   return S_OK;
 }
+
+#if AVCODEC_USE_DR1
 
 int CDecAvcodec::lav_get_buffer(struct AVCodecContext *c, AVFrame *pic)
 {
@@ -758,6 +762,8 @@ void CDecAvcodec::lav_frame_destruct(struct LAVFrame *f)
   }
 #endif
 }
+
+#endif
 
 STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
@@ -1029,6 +1035,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         pOutFrame->data[i]   = m_pFrame->data[i];
         pOutFrame->stride[i] = m_pFrame->linesize[i];
       }
+#if AVCODEC_USE_DR1
       if (m_bDR1) {
         {
           CAutoLock lock(&m_BufferCritSec);
@@ -1037,6 +1044,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         pOutFrame->destruct = lav_frame_destruct;
         pOutFrame->priv_data = this;
       }
+#endif
     }
 
     if (pOutFrame->format  == LAVPixFmt_DXVA2) {
