@@ -117,6 +117,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
 
   // Misc
   { &MEDIASUBTYPE_SPEEX,        CODEC_ID_SPEEX    },
+  { &MEDIASUBTYPE_OPUS,         CODEC_ID_OPUS     },
 
   // Special LAVFSplitter interface
   { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
@@ -220,6 +221,7 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
 
   // Misc
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_SPEEX        },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_OPUS         },
 
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
@@ -620,7 +622,8 @@ static codec_config_t m_codec_config[] = {
   { 1, { CODEC_ID_COOK }},                         // CC_COOK
   { 5, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288, CODEC_ID_RALF }, "realaudio", "Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
   { 1, { CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
-  { 1, { CODEC_ID_ALAC }},
+  { 1, { CODEC_ID_ALAC }},                         // CC_ALAC
+  { 1, { CODEC_ID_OPUS }, "opus", "Opus Audio Codec"}, // CC_OPUS
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)

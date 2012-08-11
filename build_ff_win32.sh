@@ -43,6 +43,7 @@ OPTIONS="
 --enable-libspeex \
 --enable-libopencore-amrnb \
 --enable-libopencore-amrwb \
+--enable-libopus \
 --enable-avresample \
 --disable-avdevice \
 --disable-postproc \
