@@ -181,6 +181,7 @@ private:
 
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
+  int                  m_nSoftTelecine;
 
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;

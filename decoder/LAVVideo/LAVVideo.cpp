@@ -57,6 +57,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFlushing(FALSE)
   , m_evFilterInput(TRUE)
   , m_bStreamARBlacklisted(FALSE)
+  , m_nSoftTelecine(0)
 {
   m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -666,6 +667,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
     avfilter_graph_free(&m_pFilterGraph);
 
   m_rtPrevStart = m_rtPrevStop = 0;
+  m_nSoftTelecine = 0;
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
@@ -1126,27 +1128,39 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     return S_FALSE;
   }
 
+  REFERENCE_TIME duration = 0;
+
+  CMediaType &mt = m_pOutput->CurrentMediaType();
+  videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
+
+  REFERENCE_TIME decoderDuration = m_Decoder.GetFrameDuration();
+  if (pFrame->avgFrameDuration && pFrame->avgFrameDuration != AV_NOPTS_VALUE) {
+    duration = pFrame->avgFrameDuration;
+  } else if (!duration && decoderDuration) {
+    duration = decoderDuration;
+  } else if(!duration) {
+    duration = 1;
+  }
+
   if (pFrame->rtStart == AV_NOPTS_VALUE) {
     pFrame->rtStart = m_rtPrevStop;
     pFrame->rtStop = AV_NOPTS_VALUE;
   }
 
   if (pFrame->rtStop == AV_NOPTS_VALUE) {
-    REFERENCE_TIME duration = 0;
-
-    CMediaType &mt = m_pOutput->CurrentMediaType();
-    videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
-
-    REFERENCE_TIME decoderDuration = m_Decoder.GetFrameDuration();
-    if (pFrame->avgFrameDuration && pFrame->avgFrameDuration != AV_NOPTS_VALUE) {
-      duration = pFrame->avgFrameDuration;
-    } else if (!duration && decoderDuration) {
-      duration = decoderDuration;
-    } else if(!duration) {
-      duration = 1;
-    }
-
     pFrame->rtStop = pFrame->rtStart + (duration * (pFrame->repeat ? 3 : 2)  / 2);
+  }
+
+  if (pFrame->repeat)
+    m_nSoftTelecine = 2;
+  else if (m_nSoftTelecine > 0)
+    m_nSoftTelecine--;
+
+  if (m_nSoftTelecine && duration < 400000) {
+    if (pFrame->repeat)
+      pFrame->rtStop -= duration >> 2;
+    else
+      pFrame->rtStart -= duration >> 2;
   }
 
 #if defined(DEBUG) && DEBUG_FRAME_TIMINGS
