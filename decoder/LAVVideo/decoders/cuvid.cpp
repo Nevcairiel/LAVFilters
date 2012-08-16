@@ -1006,6 +1006,8 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 
   if (m_rtAvgTimePerFrame != AV_NOPTS_VALUE) {
     pFrame->avgFrameDuration = m_rtAvgTimePerFrame;
+    if (m_bDoubleRateDeint && field == 2)
+      pFrame->avgFrameDuration *= 2;
   }
 
   REFERENCE_TIME rtStart = cuviddisp->timestamp, rtStop = AV_NOPTS_VALUE;
