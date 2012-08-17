@@ -19,14 +19,14 @@
 
 #pragma once
 
-CodecID FindCodecId(const CMediaType *mt);
-int getThreadFlags(CodecID codecId);
+AVCodecID FindCodecId(const CMediaType *mt);
+int getThreadFlags(AVCodecID codecId);
 
 #define MAX_NUM_CC_CODECS 3
 
 struct codec_config_t {
   int nCodecs;
-  CodecID codecs[MAX_NUM_CC_CODECS];
+  AVCodecID codecs[MAX_NUM_CC_CODECS];
   const char *name;
   const char *description;
 };

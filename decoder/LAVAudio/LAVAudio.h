@@ -44,11 +44,11 @@
 
 //////////////////// End Configuration //////////////////////
 
-#define CODEC_ID_PCM_SxxBE (CodecID)0x19001
-#define CODEC_ID_PCM_SxxLE (CodecID)0x19002
-#define CODEC_ID_PCM_UxxBE (CodecID)0x19003
-#define CODEC_ID_PCM_UxxLE (CodecID)0x19004
-#define CODEC_ID_PCM_QTRAW (CodecID)0x19005
+#define AV_CODEC_ID_PCM_SxxBE (AVCodecID)0x19001
+#define AV_CODEC_ID_PCM_SxxLE (AVCodecID)0x19002
+#define AV_CODEC_ID_PCM_UxxBE (AVCodecID)0x19003
+#define AV_CODEC_ID_PCM_UxxLE (AVCodecID)0x19004
+#define AV_CODEC_ID_PCM_QTRAW (AVCodecID)0x19005
 
 #define LAVC_AUDIO_REGISTRY_KEY L"Software\\LAV\\Audio"
 #define LAVC_AUDIO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Audio\\Formats"
@@ -182,7 +182,7 @@ private:
   HRESULT LoadSettings();
   HRESULT SaveSettings();
 
-  HRESULT ffmpeg_init(CodecID codec, const void *format, GUID format_type, DWORD formatlen);
+  HRESULT ffmpeg_init(AVCodecID codec, const void *format, GUID format_type, DWORD formatlen);
   void ffmpeg_shutdown();
 
   CMediaType CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels, DWORD dwChannelMask, WORD wBitsPerSample = 0) const;
@@ -202,19 +202,19 @@ private:
 
   void UpdateVolumeStats(const BufferDetails &buffer);
 
-  BOOL IsBitstreaming(CodecID codec);
+  BOOL IsBitstreaming(AVCodecID codec);
   HRESULT InitBitstreaming();
   HRESULT ShutdownBitstreaming();
   static int BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size);
 
-  HRESULT CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe);
+  HRESULT CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe);
   HRESULT UpdateBitstreamContext();
   HRESULT FreeBitstreamContext();
 
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
-  HRESULT DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
+  HRESULT DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
-  CMediaType CreateBitstreamMediaType(CodecID codec, DWORD dwSampleRate);
+  CMediaType CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate);
   void ActivateDTSHDMuxing();
 
   HRESULT InitDTSDecoder();
@@ -235,7 +235,7 @@ private:
   HRESULT PerformMixing(BufferDetails *buffer);
 
 private:
-  CodecID              m_nCodecId;       // FFMPEG Codec Id
+  AVCodecID            m_nCodecId;       // FFMPEG Codec Id
   AVCodec              *m_pAVCodec;      // AVCodec reference
   AVCodecContext       *m_pAVCtx;        // AVCodecContext reference
   AVCodecParserContext *m_pParser;       // AVCodecParserContext reference

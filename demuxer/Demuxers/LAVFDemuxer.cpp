@@ -300,9 +300,9 @@ inline static int init_parser(AVFormatContext *s, AVStream *st) {
 
 void CLAVFDemuxer::UpdateParserFlags(AVStream *st) {
   if (st->parser) {
-    if ((st->codec->codec_id == CODEC_ID_MPEG2VIDEO || st->codec->codec_id == CODEC_ID_MPEG1VIDEO) && _stricmp(m_pszInputFormat, "mpegvideo") != 0) {
+    if ((st->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || st->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO) && _stricmp(m_pszInputFormat, "mpegvideo") != 0) {
       st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-    } else if (st->codec->codec_id == CODEC_ID_VC1) {
+    } else if (st->codec->codec_id == AV_CODEC_ID_VC1) {
       if (m_bVC1Correction) {
         st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
       } else {
@@ -381,12 +381,12 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
     // Disable full stream parsing for these formats
     if (st->need_parsing == AVSTREAM_PARSE_FULL) {
-      if (st->codec->codec_id == CODEC_ID_DVB_SUBTITLE) {
+      if (st->codec->codec_id == AV_CODEC_ID_DVB_SUBTITLE) {
         st->need_parsing = AVSTREAM_PARSE_NONE;
       }
     }
 
-    if (m_bOgg && st->codec->codec_id == CODEC_ID_H264) {
+    if (m_bOgg && st->codec->codec_id == AV_CODEC_ID_H264) {
       st->need_parsing = AVSTREAM_PARSE_FULL;
     }
 
@@ -399,13 +399,13 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 #endif
     m_stOrigParser[idx] = st->need_parsing;
 
-    if ((st->codec->codec_id == CODEC_ID_DTS && st->codec->codec_tag == 0xA2)
-     || (st->codec->codec_id == CODEC_ID_EAC3 && st->codec->codec_tag == 0xA1))
+    if ((st->codec->codec_id == AV_CODEC_ID_DTS && st->codec->codec_tag == 0xA2)
+     || (st->codec->codec_id == AV_CODEC_ID_EAC3 && st->codec->codec_tag == 0xA1))
       st->disposition |= LAVF_DISPOSITION_SECONDARY_AUDIO;
 
     UpdateSubStreams();
 
-    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT && st->codec->codec_id == CODEC_ID_TTF) {
+    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT && st->codec->codec_id == AV_CODEC_ID_TTF) {
       if (!m_pFontInstaller) {
         m_pFontInstaller = new CFontInstaller();
       }
@@ -482,7 +482,7 @@ void CLAVFDemuxer::UpdateSubStreams()
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
     // Find and flag the AC-3 substream
-    if (m_bMPEGTS && st->codec->codec_id == CODEC_ID_TRUEHD) {
+    if (m_bMPEGTS && st->codec->codec_id == AV_CODEC_ID_TRUEHD) {
       int id = st->id;
       AVStream *sub_st = NULL;
 
@@ -515,7 +515,7 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
 
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
-    if (st->codec->codec_id == CODEC_ID_VC1) {
+    if (st->codec->codec_id == AV_CODEC_ID_VC1) {
       UpdateParserFlags(st);
     } else if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
@@ -605,7 +605,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     pPacket = new Packet();
     pPacket->bPosition = pkt.pos;
 
-    if ((m_bMatroska || m_bOgg) && stream->codec->codec_id == CODEC_ID_H264) {
+    if ((m_bMatroska || m_bOgg) && stream->codec->codec_id == AV_CODEC_ID_H264) {
       if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1 || AV_RB32(pkt.data) == 0x00000001) {
         pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
       } else { // No DTS for H264 in native format
@@ -620,12 +620,12 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       pkt.pts = AV_NOPTS_VALUE;
     }
 
-    if (stream->codec->codec_id == CODEC_ID_RV10 || stream->codec->codec_id == CODEC_ID_RV20 || stream->codec->codec_id == CODEC_ID_RV30 || stream->codec->codec_id == CODEC_ID_RV40) {
+    if (stream->codec->codec_id == AV_CODEC_ID_RV10 || stream->codec->codec_id == AV_CODEC_ID_RV20 || stream->codec->codec_id == AV_CODEC_ID_RV30 || stream->codec->codec_id == AV_CODEC_ID_RV40) {
       pkt.pts = AV_NOPTS_VALUE;
     }
 
     // Never use DTS for these formats
-    if (!m_bAVI && (stream->codec->codec_id == CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == CODEC_ID_MPEG1VIDEO || (stream->codec->codec_id == CODEC_ID_H264 && !m_bMatroska)))
+    if (!m_bAVI && (stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO || (stream->codec->codec_id == AV_CODEC_ID_H264 && !m_bMatroska)))
       pkt.dts = AV_NOPTS_VALUE;
 
     if(pkt.data) {
@@ -658,7 +658,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       rt = dts;
     }
 
-    if (stream->codec->codec_id == CODEC_ID_VC1) {
+    if (stream->codec->codec_id == AV_CODEC_ID_VC1) {
       if (m_bMatroska && m_bVC1Correction) {
         rt = pts;
         if (!m_bVC1SeenTimestamp) {
@@ -670,18 +670,18 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         rt = dts;
         pPacket->dwFlags |= LAV_PACKET_PARSED;
       }
-    } else if (stream->codec->codec_id == CODEC_ID_MOV_TEXT) {
+    } else if (stream->codec->codec_id == AV_CODEC_ID_MOV_TEXT) {
       pPacket->dwFlags |= LAV_PACKET_MOV_TEXT;
     }
 
     // Mark the packet as parsed, so the forced subtitle parser doesn't hit it
-    if (stream->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE && m_bPGSNoParsing) {
+    if (stream->codec->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE && m_bPGSNoParsing) {
       pPacket->dwFlags |= LAV_PACKET_PARSED;
     }
 
     pPacket->rtStart = pPacket->rtStop = rt;
     if (rt != Packet::INVALID_TIME) {
-      pPacket->rtStop += (duration > 0 || stream->codec->codec_id == CODEC_ID_TRUEHD) ? duration : 1;
+      pPacket->rtStop += (duration > 0 || stream->codec->codec_id == AV_CODEC_ID_TRUEHD) ? duration : 1;
     }
 
     if (stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
@@ -1099,7 +1099,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 
   if ( pStream->codec->codec_type == AVMEDIA_TYPE_UNKNOWN
     || pStream->discard == AVDISCARD_ALL 
-    || (pStream->codec->codec_id == CODEC_ID_NONE && pStream->codec->codec_tag == 0) 
+    || (pStream->codec->codec_id == AV_CODEC_ID_NONE && pStream->codec->codec_tag == 0)
     || (!m_bSubStreams && (pStream->disposition & LAVF_DISPOSITION_SUB_STREAM)) 
     || (pStream->disposition & AV_DISPOSITION_ATTACHED_PIC)) {
     pStream->discard = AVDISCARD_ALL;
@@ -1249,7 +1249,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
           start_time = st_start_time;
       }
     }
-    if (st->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE)
+    if (st->codec->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE)
       bHasPGS = true;
   }
 
@@ -1379,7 +1379,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
     uint64_t bestPixels = m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
     uint64_t checkPixels = m_avFormat->streams[check->pid]->codec->width * m_avFormat->streams[check->pid]->codec->height;
 
-    if (m_avFormat->streams[best->pid]->codec->codec_id == CODEC_ID_NONE && m_avFormat->streams[check->pid]->codec->codec_id != CODEC_ID_NONE) {
+    if (m_avFormat->streams[best->pid]->codec->codec_id == AV_CODEC_ID_NONE && m_avFormat->streams[check->pid]->codec->codec_id != AV_CODEC_ID_NONE) {
       best = check;
       continue;
     }
@@ -1407,37 +1407,37 @@ static int audio_codec_priority(AVCodecContext *codec)
 {
   int priority = 0;
   switch(codec->codec_id) {
-  case CODEC_ID_FLAC:
-  case CODEC_ID_TRUEHD:
-  case CODEC_ID_MLP:
-  case CODEC_ID_TTA:
-  case CODEC_ID_MP4ALS:
+  case AV_CODEC_ID_FLAC:
+  case AV_CODEC_ID_TRUEHD:
+  case AV_CODEC_ID_MLP:
+  case AV_CODEC_ID_TTA:
+  case AV_CODEC_ID_MP4ALS:
   // All the PCM codecs
-  case CODEC_ID_PCM_S16LE:
-  case CODEC_ID_PCM_S16BE:
-  case CODEC_ID_PCM_U16LE:
-  case CODEC_ID_PCM_U16BE:
-  case CODEC_ID_PCM_S32LE:
-  case CODEC_ID_PCM_S32BE:
-  case CODEC_ID_PCM_U32LE:
-  case CODEC_ID_PCM_U32BE:
-  case CODEC_ID_PCM_S24LE:
-  case CODEC_ID_PCM_S24BE:
-  case CODEC_ID_PCM_U24LE:
-  case CODEC_ID_PCM_U24BE:
-  case CODEC_ID_PCM_F32BE:
-  case CODEC_ID_PCM_F32LE:
-  case CODEC_ID_PCM_F64BE:
-  case CODEC_ID_PCM_F64LE:
-  case CODEC_ID_PCM_DVD:
-  case CODEC_ID_PCM_BLURAY:
+  case AV_CODEC_ID_PCM_S16LE:
+  case AV_CODEC_ID_PCM_S16BE:
+  case AV_CODEC_ID_PCM_U16LE:
+  case AV_CODEC_ID_PCM_U16BE:
+  case AV_CODEC_ID_PCM_S32LE:
+  case AV_CODEC_ID_PCM_S32BE:
+  case AV_CODEC_ID_PCM_U32LE:
+  case AV_CODEC_ID_PCM_U32BE:
+  case AV_CODEC_ID_PCM_S24LE:
+  case AV_CODEC_ID_PCM_S24BE:
+  case AV_CODEC_ID_PCM_U24LE:
+  case AV_CODEC_ID_PCM_U24BE:
+  case AV_CODEC_ID_PCM_F32BE:
+  case AV_CODEC_ID_PCM_F32LE:
+  case AV_CODEC_ID_PCM_F64BE:
+  case AV_CODEC_ID_PCM_F64LE:
+  case AV_CODEC_ID_PCM_DVD:
+  case AV_CODEC_ID_PCM_BLURAY:
     priority = 10;
     break;
-  case CODEC_ID_WAVPACK:
-  case CODEC_ID_EAC3:
+  case AV_CODEC_ID_WAVPACK:
+  case AV_CODEC_ID_EAC3:
     priority = 8;
     break;
-  case CODEC_ID_DTS:
+  case AV_CODEC_ID_DTS:
     priority = 7;
     if (codec->profile >= FF_PROFILE_DTS_HD_HRA) {
       priority += 2;
@@ -1445,9 +1445,9 @@ static int audio_codec_priority(AVCodecContext *codec)
       priority += 1;
     }
     break;
-  case CODEC_ID_AC3:
-  case CODEC_ID_AAC:
-  case CODEC_ID_AAC_LATM:
+  case AV_CODEC_ID_AC3:
+  case AV_CODEC_ID_AAC:
+  case AV_CODEC_ID_AAC_LATM:
     priority = 5;
     break;
   }
@@ -1595,7 +1595,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
         || ((it->dwFlags & SUBTITLE_FLAG_DEFAULT) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT))
         || ((it->dwFlags & SUBTITLE_FLAG_FORCED) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_FORCED))
         || ((it->dwFlags & SUBTITLE_FLAG_IMPAIRED) && (m_avFormat->streams[sit->pid]->disposition & (AV_DISPOSITION_HEARING_IMPAIRED|AV_DISPOSITION_VISUAL_IMPAIRED)))
-        || ((it->dwFlags & SUBTITLE_FLAG_PGS) && (m_avFormat->streams[sit->pid]->codec->codec_id == CODEC_ID_HDMV_PGS_SUBTITLE))
+        || ((it->dwFlags & SUBTITLE_FLAG_PGS) && (m_avFormat->streams[sit->pid]->codec->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE))
         || ((it->dwFlags & SUBTITLE_FLAG_NORMAL)
          && !(m_avFormat->streams[sit->pid]->disposition & (AV_DISPOSITION_DEFAULT|AV_DISPOSITION_FORCED|AV_DISPOSITION_HEARING_IMPAIRED|AV_DISPOSITION_VISUAL_IMPAIRED)))) {
         std::string streamLanguage = sit->language;
@@ -1621,10 +1621,10 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
   DWORD dwFlags = 0;
   AVStream *st = m_avFormat->streams[dwStream];
 
-  if (st->codec->codec_id == CODEC_ID_H264 && (m_bAVI || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1))))
+  if (st->codec->codec_id == AV_CODEC_ID_H264 && (m_bAVI || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1))))
     dwFlags |= LAV_STREAM_FLAG_H264_DTS;
 
-  if (m_bMatroska && (st->codec->codec_id == CODEC_ID_RV30 || st->codec->codec_id == CODEC_ID_RV40))
+  if (m_bMatroska && (st->codec->codec_id == AV_CODEC_ID_RV30 || st->codec->codec_id == AV_CODEC_ID_RV40))
     dwFlags |= LAV_STREAM_FLAG_RV34_MKV;
 
   return dwFlags;

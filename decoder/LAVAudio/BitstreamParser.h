@@ -28,7 +28,7 @@ public:
   CBitstreamParser();
   ~CBitstreamParser();
 
-  HRESULT Parse(CodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+  HRESULT Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
   void Reset();
 
 private:

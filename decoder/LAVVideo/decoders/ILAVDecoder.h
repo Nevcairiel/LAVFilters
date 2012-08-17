@@ -268,7 +268,7 @@ interface ILAVDecoder
    * @param pmt DirectShow Media Type
    * @return S_OK on success, an error code otherwise
    */
-  STDMETHOD(InitDecoder)(CodecID codec, const CMediaType *pmt) PURE;
+  STDMETHOD(InitDecoder)(AVCodecID codec, const CMediaType *pmt) PURE;
 
   /**
    * Decode a frame.

@@ -39,7 +39,7 @@ public:
   STDMETHODIMP HasThreadSafeBuffers() { return m_bThreadSafe ? S_OK : S_FALSE; }
 
 
-  STDMETHODIMP CreateDecoder(const CMediaType *pmt, CodecID codec);
+  STDMETHODIMP CreateDecoder(const CMediaType *pmt, AVCodecID codec);
   STDMETHODIMP Close();
 
   STDMETHODIMP Decode(IMediaSample *pSample);
@@ -70,7 +70,7 @@ protected:
   DWORD ThreadProc();
 
 private:
-  STDMETHODIMP CreateDecoderInternal(const CMediaType *pmt, CodecID codec);
+  STDMETHODIMP CreateDecoderInternal(const CMediaType *pmt, AVCodecID codec);
   STDMETHODIMP PostConnectInternal(IPin *pPin);
 
   STDMETHODIMP DecodeInternal(IMediaSample *pSample);
@@ -88,7 +88,7 @@ private:
   CLAVVideo    *m_pLAVVideo;
   ILAVDecoder  *m_pDecoder;
 
-  CodecID      m_Codec;
+  AVCodecID    m_Codec;
 
   BOOL         m_bHWDecoder;
   BOOL         m_bHWDecoderFailed;
@@ -103,7 +103,7 @@ private:
   CCritSec     m_ThreadCritSec;
   struct {
     const CMediaType *pmt;
-    CodecID codec;
+    AVCodecID codec;
     IMemAllocator **allocator;
     IPin *pin;
   } m_ThreadCallContext;

@@ -62,25 +62,25 @@ typedef struct {
 /* XXX Prefered modes must come first */
 static const dxva2_mode_t dxva2_modes[] = {
   /* Intel specific modes (sometimes work better on newer GPUs) */
-  { "H.264 variable-length decoder, no film grain technology (Intel ClearVideo)",   &DXVADDI_Intel_ModeH264_E,              CODEC_ID_H264 },
+  { "H.264 variable-length decoder, no film grain technology (Intel ClearVideo)",   &DXVADDI_Intel_ModeH264_E,              AV_CODEC_ID_H264 },
   { "H.264 inverse discrete cosine transform, no film grain technology (Intel)",    &DXVADDI_Intel_ModeH264_C,              0 },
   { "H.264 motion compensation, no film grain technology (Intel)",                  &DXVADDI_Intel_ModeH264_A,              0 },
   { "VC-1 variable-length decoder 2 (Intel)",                                       &DXVA_Intel_VC1_ClearVideo_2,           0 },
   { "VC-1 variable-length decoder (Intel)",                                         &DXVA_Intel_VC1_ClearVideo,             0 },
 
   /* MPEG-1/2 */
-  { "MPEG-2 variable-length decoder",                                               &DXVA2_ModeMPEG2_VLD,                   CODEC_ID_MPEG2VIDEO },
-  { "MPEG-2 & MPEG-1 variable-length decoder",                                      &DXVA2_ModeMPEG2and1_VLD,               CODEC_ID_MPEG2VIDEO },
+  { "MPEG-2 variable-length decoder",                                               &DXVA2_ModeMPEG2_VLD,                   AV_CODEC_ID_MPEG2VIDEO },
+  { "MPEG-2 & MPEG-1 variable-length decoder",                                      &DXVA2_ModeMPEG2and1_VLD,               AV_CODEC_ID_MPEG2VIDEO },
   { "MPEG-2 motion compensation",                                                   &DXVA2_ModeMPEG2_MoComp,                0 },
   { "MPEG-2 inverse discrete cosine transform",                                     &DXVA2_ModeMPEG2_IDCT,                  0 },
 
   { "MPEG-1 variable-length decoder",                                               &DXVA2_ModeMPEG1_VLD,                   0 },
 
   /* H.264 */
-  { "H.264 variable-length decoder, film grain technology",                         &DXVA2_ModeH264_F,                      CODEC_ID_H264 },
-  { "H.264 variable-length decoder, no film grain technology",                      &DXVA2_ModeH264_E,                      CODEC_ID_H264 },
-  { "H.264 variable-length decoder, no film grain technology, FMO/ASO",             &DXVA_ModeH264_VLD_WithFMOASO_NoFGT,    CODEC_ID_H264 },
-  { "H.264 variable-length decoder, no film grain technology, Flash",               &DXVA_ModeH264_VLD_NoFGT_Flash,         CODEC_ID_H264 },
+  { "H.264 variable-length decoder, film grain technology",                         &DXVA2_ModeH264_F,                      AV_CODEC_ID_H264 },
+  { "H.264 variable-length decoder, no film grain technology",                      &DXVA2_ModeH264_E,                      AV_CODEC_ID_H264 },
+  { "H.264 variable-length decoder, no film grain technology, FMO/ASO",             &DXVA_ModeH264_VLD_WithFMOASO_NoFGT,    AV_CODEC_ID_H264 },
+  { "H.264 variable-length decoder, no film grain technology, Flash",               &DXVA_ModeH264_VLD_NoFGT_Flash,         AV_CODEC_ID_H264 },
 
   { "H.264 inverse discrete cosine transform, film grain technology",               &DXVA2_ModeH264_D,                      0 },
   { "H.264 inverse discrete cosine transform, no film grain technology",            &DXVA2_ModeH264_C,                      0 },
@@ -97,10 +97,10 @@ static const dxva2_mode_t dxva2_modes[] = {
   { "Windows Media Video 9 post processing",                                        &DXVA2_ModeWMV9_A,                      0 },
 
   /* VC-1 */
-  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       CODEC_ID_VC1 },
-  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       CODEC_ID_WMV3 },
-  { "VC-1 variable-length decoder (2010)",                                          &DXVA2_ModeVC1_D2010,                   CODEC_ID_VC1 },
-  { "VC-1 variable-length decoder (2010)",                                          &DXVA2_ModeVC1_D2010,                   CODEC_ID_WMV3 },
+  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       AV_CODEC_ID_VC1 },
+  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       AV_CODEC_ID_WMV3 },
+  { "VC-1 variable-length decoder (2010)",                                          &DXVA2_ModeVC1_D2010,                   AV_CODEC_ID_VC1 },
+  { "VC-1 variable-length decoder (2010)",                                          &DXVA2_ModeVC1_D2010,                   AV_CODEC_ID_WMV3 },
 
   { "VC-1 inverse discrete cosine transform",                                       &DXVA2_ModeVC1_C,                       0 },
   { "VC-1 motion compensation",                                                     &DXVA2_ModeVC1_B,                       0 },
@@ -425,7 +425,7 @@ done:
   return hr;
 }
 
-HRESULT CDecDXVA2::FindVideoServiceConversion(CodecID codec, GUID *input, D3DFORMAT *output)
+HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, GUID *input, D3DFORMAT *output)
 {
   HRESULT hr = S_OK;
 
@@ -695,7 +695,7 @@ STDMETHODIMP CDecDXVA2::Init()
 #define H264_CHECK_PROFILE(profile) \
   (((profile) & ~FF_PROFILE_H264_CONSTRAINED) <= FF_PROFILE_H264_HIGH)
 
-STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 10, L"CDecDXVA2::InitDecoder(): Initializing DXVA2 decoder"));
@@ -722,8 +722,8 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
     return hr;
   }
 
-  if (((codec == CODEC_ID_H264 || codec == CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != PIX_FMT_YUVJ420P && m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != PIX_FMT_NONE)
-    || (codec == CODEC_ID_H264 && m_pAVCtx->profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(m_pAVCtx->profile))) {
+  if (((codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != PIX_FMT_YUVJ420P && m_pAVCtx->pix_fmt != PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != PIX_FMT_NONE)
+    || (codec == AV_CODEC_ID_H264 && m_pAVCtx->profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(m_pAVCtx->profile))) {
     DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
     return E_FAIL;
   }
@@ -743,7 +743,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(CodecID codec, const CMediaType *pmt)
 
 STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
 {
-  long buffers = (m_pAVCtx->codec_id == CODEC_ID_H264) ? 16 + 4 : 2 + 4;
+  long buffers = (m_pAVCtx->codec_id == AV_CODEC_ID_H264) ? 16 + 4 : 2 + 4;
   if (!m_bNative) {
     buffers += DXVA2_QUEUE_SURFACES;
   }
@@ -817,7 +817,7 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
     int score;
     if (cfg->ConfigBitstreamRaw == 1)
       score = 1;
-    else if (m_pAVCtx->codec_id == CODEC_ID_H264 && cfg->ConfigBitstreamRaw == 2)
+    else if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && cfg->ConfigBitstreamRaw == 2)
       score = 2;
     else
       continue;
@@ -880,7 +880,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
 
   HRESULT hr = S_OK;
 
-  if (c->pix_fmt != PIX_FMT_DXVA2_VLD || (c->codec_id == CODEC_ID_H264 && !H264_CHECK_PROFILE(c->profile))) {
+  if (c->pix_fmt != PIX_FMT_DXVA2_VLD || (c->codec_id == AV_CODEC_ID_H264 && !H264_CHECK_PROFILE(c->profile))) {
     DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt or unsupported profile"));
     pDec->m_bFailHWDecode = TRUE;
     return -1;

@@ -48,12 +48,12 @@ void CBitstreamParser::Reset()
 }
 
 
-HRESULT CBitstreamParser::Parse(CodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext)
+HRESULT CBitstreamParser::Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext)
 {
   switch (codec) {
-  case CODEC_ID_DTS:
+  case AV_CODEC_ID_DTS:
     return ParseDTS(pBuffer, dwSize);
-  case CODEC_ID_AC3:
+  case AV_CODEC_ID_AC3:
     return ParseAC3(pBuffer, dwSize, pParserContext);
   }
   return S_OK;

@@ -56,13 +56,13 @@ static const FOURCC FourCC_H264 = mmioFOURCC('H','2','6','4');
 static const FOURCC FourCC_AVC1 = mmioFOURCC('A','V','C','1');
 
 static struct {
-  CodecID ffcodec;
+  AVCodecID ffcodec;
   FOURCC fourCC;
 } quicksync_codecs[] = {
-  { CODEC_ID_MPEG2VIDEO, FourCC_MPG2 },
-  { CODEC_ID_VC1,        FourCC_VC1  },
-  { CODEC_ID_WMV3,       FourCC_WMV3 },
-  { CODEC_ID_H264,       FourCC_H264 },
+  { AV_CODEC_ID_MPEG2VIDEO, FourCC_MPG2 },
+  { AV_CODEC_ID_VC1,        FourCC_VC1  },
+  { AV_CODEC_ID_WMV3,       FourCC_WMV3 },
+  { AV_CODEC_ID_H264,       FourCC_H264 },
 };
 
 
@@ -222,7 +222,7 @@ STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, size_t buflen,
   return S_FALSE;
 }
 
-STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 10, L"CDecQuickSync::InitDecoder(): Initializing QuickSync decoder"));
@@ -268,8 +268,8 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   m_bNeedSequenceCheck = FALSE;
   m_bInterlaced = TRUE;
-  m_bUseTimestampQueue = (codec == CODEC_ID_H264 && m_pCallback->H264IsAVI())
-                      || (codec == CODEC_ID_VC1 && m_pCallback->VC1IsDTS());
+  m_bUseTimestampQueue = (codec == AV_CODEC_ID_H264 && m_pCallback->H264IsAVI())
+                      || (codec == AV_CODEC_ID_VC1 && m_pCallback->VC1IsDTS());
 
   int ref_frames = 0;
 
@@ -305,7 +305,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   // Timestamp correction is only used for VC-1 codecs which send PTS
   // because this is not handled properly by the API (it expects DTS)
-  qsConfig.bTimeStampCorrection = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
+  qsConfig.bTimeStampCorrection = (codec == AV_CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
 
   // Configure number of buffers (dependant on ref_frames)
   // MPEG2 and VC1 always use "low latency" mode

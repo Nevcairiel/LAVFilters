@@ -41,14 +41,14 @@ ILAVDecoder *CreateDecoderCUVID() {
 ////////////////////////////////////////////////////////////////////////////////
 
 static struct {
-  CodecID ffcodec;
+  AVCodecID ffcodec;
   cudaVideoCodec cudaCodec;
 } cuda_codecs[] = {
-  { CODEC_ID_MPEG1VIDEO, cudaVideoCodec_MPEG1 },
-  { CODEC_ID_MPEG2VIDEO, cudaVideoCodec_MPEG2 },
-  { CODEC_ID_VC1,        cudaVideoCodec_VC1   },
-  { CODEC_ID_H264,       cudaVideoCodec_H264  },
-  { CODEC_ID_MPEG4,      cudaVideoCodec_MPEG4 },
+  { AV_CODEC_ID_MPEG1VIDEO, cudaVideoCodec_MPEG1 },
+  { AV_CODEC_ID_MPEG2VIDEO, cudaVideoCodec_MPEG2 },
+  { AV_CODEC_ID_VC1,        cudaVideoCodec_VC1   },
+  { AV_CODEC_ID_H264,       cudaVideoCodec_H264  },
+  { AV_CODEC_ID_MPEG4,      cudaVideoCodec_MPEG4 },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -544,7 +544,7 @@ STDMETHODIMP CDecCuvid::Init()
   return S_OK;
 }
 
-STDMETHODIMP CDecCuvid::InitDecoder(CodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::InitDecoder(): Initializing CUVID decoder"));
   HRESULT hr = S_OK;

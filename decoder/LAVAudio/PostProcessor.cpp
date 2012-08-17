@@ -389,12 +389,12 @@ HRESULT CLAVAudio::Create71Conformity(DWORD dwLayout)
   return S_OK;
 }
 
-static DWORD sanitize_mask(DWORD mask, CodecID codec)
+static DWORD sanitize_mask(DWORD mask, AVCodecID codec)
 {
   DWORD newmask = mask;
   // Alot of codecs set 6.1/6.0 wrong..
   // Only these codecs we can trust to properly set BL/BR + BC layouts
-  if (codec != CODEC_ID_DTS) {
+  if (codec != AV_CODEC_ID_DTS) {
     // 6.1
     if (mask == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER))
       newmask = AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER;
@@ -403,7 +403,7 @@ static DWORD sanitize_mask(DWORD mask, CodecID codec)
       newmask = AV_CH_LAYOUT_5POINT0|AV_CH_BACK_CENTER;
   }
   // The reverse, TrueHD sets SL/SR when it actually should be BL/BR
-  if (codec == CODEC_ID_TRUEHD) {
+  if (codec == AV_CODEC_ID_TRUEHD) {
     // 6.1
     if(mask == (AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER))
       newmask = AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER;

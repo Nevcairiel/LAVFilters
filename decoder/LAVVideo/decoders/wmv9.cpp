@@ -240,7 +240,7 @@ STDMETHODIMP CDecWMV9::Init()
   return S_OK;
 }
 
-STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 10, L"CDecWMV9::InitDecoder(): Initializing WMV9 DMO decoder"));
@@ -260,7 +260,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
     getExtraData(*pmt, extra, &extralen);
   }
 
-  if (codec == CODEC_ID_VC1 && extralen) {
+  if (codec == AV_CODEC_ID_VC1 && extralen) {
     size_t i = 0;
     for (i = 0; i < (extralen - 4); i++) {
       uint32_t code = AV_RB32(extra+i);
@@ -278,7 +278,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   /* Create input type */
 
-  GUID subtype = codec == CODEC_ID_VC1 ? MEDIASUBTYPE_WVC1 : MEDIASUBTYPE_WMV3;
+  GUID subtype = codec == AV_CODEC_ID_VC1 ? MEDIASUBTYPE_WVC1 : MEDIASUBTYPE_WMV3;
 
   mtIn.SetType(&MEDIATYPE_Video);
   mtIn.SetSubtype(&subtype);
@@ -336,7 +336,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   m_bInterlaced = FALSE;
   memset(&m_StreamAR, 0, sizeof(m_StreamAR));
-  if (codec == CODEC_ID_VC1 && extralen > 0) {
+  if (codec == AV_CODEC_ID_VC1 && extralen > 0) {
     CVC1HeaderParser vc1hdr(extra, extralen);
     if (vc1hdr.hdr.valid) {
       m_bInterlaced = vc1hdr.hdr.interlaced;

@@ -29,98 +29,98 @@ extern "C" {
 };
 
 typedef struct {
-  const CLSID*        clsMinorType;
-  const enum CodecID  nFFCodec;
+  const CLSID*         clsMinorType;
+  const enum AVCodecID nFFCodec;
 } FFMPEG_SUBTYPE_MAP;
 
 // Map Media Subtype <> FFMPEG Codec Id
 static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   // AAC
-  { &MEDIASUBTYPE_AAC,          CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_LATM_AAC,     CODEC_ID_AAC_LATM },
-  { &MEDIASUBTYPE_MPEG_LOAS,    CODEC_ID_AAC_LATM },
-  { &MEDIASUBTYPE_MP4A,         CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_mp4a,         CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_AAC_ADTS,     CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_MPEG_ADTS_AAC,CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_MPEG_RAW_AAC, CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_MPEG_HEAAC,   CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_ALS,          CODEC_ID_MP4ALS   },
+  { &MEDIASUBTYPE_AAC,          AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_LATM_AAC,     AV_CODEC_ID_AAC_LATM },
+  { &MEDIASUBTYPE_MPEG_LOAS,    AV_CODEC_ID_AAC_LATM },
+  { &MEDIASUBTYPE_MP4A,         AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_mp4a,         AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_AAC_ADTS,     AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_MPEG_ADTS_AAC,AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_MPEG_RAW_AAC, AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_MPEG_HEAAC,   AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_ALS,          AV_CODEC_ID_MP4ALS   },
 
   // Dolby
-  { &MEDIASUBTYPE_DOLBY_AC3,    CODEC_ID_AC3      },
-  { &MEDIASUBTYPE_DOLBY_DDPLUS, CODEC_ID_EAC3     },
-  { &MEDIASUBTYPE_DOLBY_DDPLUS_ARCSOFT, CODEC_ID_EAC3 },
-  { &MEDIASUBTYPE_DOLBY_TRUEHD, CODEC_ID_TRUEHD   },
-  { &MEDIASUBTYPE_WAVE_DOLBY_AC3, CODEC_ID_AC3    },
+  { &MEDIASUBTYPE_DOLBY_AC3,    AV_CODEC_ID_AC3      },
+  { &MEDIASUBTYPE_DOLBY_DDPLUS, AV_CODEC_ID_EAC3     },
+  { &MEDIASUBTYPE_DOLBY_DDPLUS_ARCSOFT, AV_CODEC_ID_EAC3 },
+  { &MEDIASUBTYPE_DOLBY_TRUEHD, AV_CODEC_ID_TRUEHD   },
+  { &MEDIASUBTYPE_WAVE_DOLBY_AC3, AV_CODEC_ID_AC3    },
 
   // DTS
-  { &MEDIASUBTYPE_DTS,          CODEC_ID_DTS      },
-  { &MEDIASUBTYPE_DTS_HD,       CODEC_ID_DTS      },
-  { &MEDIASUBTYPE_WAVE_DTS,     CODEC_ID_DTS      },
+  { &MEDIASUBTYPE_DTS,          AV_CODEC_ID_DTS      },
+  { &MEDIASUBTYPE_DTS_HD,       AV_CODEC_ID_DTS      },
+  { &MEDIASUBTYPE_WAVE_DTS,     AV_CODEC_ID_DTS      },
 
   // MPEG Audio
-  { &MEDIASUBTYPE_MPEG1Packet,  CODEC_ID_MP1      },
-  { &MEDIASUBTYPE_MPEG1Payload, CODEC_ID_MP1      },
-  { &MEDIASUBTYPE_MPEG1AudioPayload, CODEC_ID_MP1 },
-  { &MEDIASUBTYPE_MPEG2_AUDIO,  CODEC_ID_MP2      },
-  { &MEDIASUBTYPE_MP3,          CODEC_ID_MP3      },
+  { &MEDIASUBTYPE_MPEG1Packet,  AV_CODEC_ID_MP1      },
+  { &MEDIASUBTYPE_MPEG1Payload, AV_CODEC_ID_MP1      },
+  { &MEDIASUBTYPE_MPEG1AudioPayload, AV_CODEC_ID_MP1 },
+  { &MEDIASUBTYPE_MPEG2_AUDIO,  AV_CODEC_ID_MP2      },
+  { &MEDIASUBTYPE_MP3,          AV_CODEC_ID_MP3      },
 
   // FLAC
-  { &MEDIASUBTYPE_FLAC,         CODEC_ID_FLAC     },
-  { &MEDIASUBTYPE_FLAC_FRAMED,  CODEC_ID_FLAC     },
+  { &MEDIASUBTYPE_FLAC,         AV_CODEC_ID_FLAC     },
+  { &MEDIASUBTYPE_FLAC_FRAMED,  AV_CODEC_ID_FLAC     },
 
   // Ogg Vorbis
-  { &MEDIASUBTYPE_Vorbis2,      CODEC_ID_VORBIS   },
+  { &MEDIASUBTYPE_Vorbis2,      AV_CODEC_ID_VORBIS   },
 
   // Other Lossless formats
-  { &MEDIASUBTYPE_TTA1,         CODEC_ID_TTA      },
-  { &MEDIASUBTYPE_WAVPACK4,     CODEC_ID_WAVPACK  },
-  { &MEDIASUBTYPE_MLP,          CODEC_ID_MLP      },
-  { &MEDIASUBTYPE_ALAC,         CODEC_ID_ALAC     },
+  { &MEDIASUBTYPE_TTA1,         AV_CODEC_ID_TTA      },
+  { &MEDIASUBTYPE_WAVPACK4,     AV_CODEC_ID_WAVPACK  },
+  { &MEDIASUBTYPE_MLP,          AV_CODEC_ID_MLP      },
+  { &MEDIASUBTYPE_ALAC,         AV_CODEC_ID_ALAC     },
 
   // BluRay LPCM
-  { &MEDIASUBTYPE_DVD_LPCM_AUDIO, CODEC_ID_PCM_DVD },
-  { &MEDIASUBTYPE_BD_LPCM_AUDIO,   CODEC_ID_PCM_BLURAY },
-  { &MEDIASUBTYPE_HDMV_LPCM_AUDIO, CODEC_ID_PCM_BLURAY }, // MPC-HC MPEG Splitter type with header stripped off
+  { &MEDIASUBTYPE_DVD_LPCM_AUDIO, AV_CODEC_ID_PCM_DVD },
+  { &MEDIASUBTYPE_BD_LPCM_AUDIO,   AV_CODEC_ID_PCM_BLURAY },
+  { &MEDIASUBTYPE_HDMV_LPCM_AUDIO, AV_CODEC_ID_PCM_BLURAY }, // MPC-HC MPEG Splitter type with header stripped off
 
   // QT PCM
-  { &MEDIASUBTYPE_PCM_NONE,     CODEC_ID_PCM_QTRAW},
-  { &MEDIASUBTYPE_PCM_RAW,      CODEC_ID_PCM_QTRAW},
-  { &MEDIASUBTYPE_PCM_TWOS,     CODEC_ID_PCM_SxxBE},
-  { &MEDIASUBTYPE_PCM_SOWT,     CODEC_ID_PCM_SxxLE},
-  { &MEDIASUBTYPE_PCM_IN24,     CODEC_ID_PCM_S24BE},
-  { &MEDIASUBTYPE_PCM_IN32,     CODEC_ID_PCM_S32BE},
-  { &MEDIASUBTYPE_PCM_FL32,     CODEC_ID_PCM_F32BE},
-  { &MEDIASUBTYPE_PCM_FL64,     CODEC_ID_PCM_F64BE},
-  { &MEDIASUBTYPE_PCM_IN24_le,  CODEC_ID_PCM_S24LE},
-  { &MEDIASUBTYPE_PCM_IN32_le,  CODEC_ID_PCM_S32LE},
-  { &MEDIASUBTYPE_PCM_FL32_le,  CODEC_ID_PCM_F32LE},
-  { &MEDIASUBTYPE_PCM_FL64_le,  CODEC_ID_PCM_F64LE},
+  { &MEDIASUBTYPE_PCM_NONE,     AV_CODEC_ID_PCM_QTRAW},
+  { &MEDIASUBTYPE_PCM_RAW,      AV_CODEC_ID_PCM_QTRAW},
+  { &MEDIASUBTYPE_PCM_TWOS,     AV_CODEC_ID_PCM_SxxBE},
+  { &MEDIASUBTYPE_PCM_SOWT,     AV_CODEC_ID_PCM_SxxLE},
+  { &MEDIASUBTYPE_PCM_IN24,     AV_CODEC_ID_PCM_S24BE},
+  { &MEDIASUBTYPE_PCM_IN32,     AV_CODEC_ID_PCM_S32BE},
+  { &MEDIASUBTYPE_PCM_FL32,     AV_CODEC_ID_PCM_F32BE},
+  { &MEDIASUBTYPE_PCM_FL64,     AV_CODEC_ID_PCM_F64BE},
+  { &MEDIASUBTYPE_PCM_IN24_le,  AV_CODEC_ID_PCM_S24LE},
+  { &MEDIASUBTYPE_PCM_IN32_le,  AV_CODEC_ID_PCM_S32LE},
+  { &MEDIASUBTYPE_PCM_FL32_le,  AV_CODEC_ID_PCM_F32LE},
+  { &MEDIASUBTYPE_PCM_FL64_le,  AV_CODEC_ID_PCM_F64LE},
 
   // WMV
-  { &MEDIASUBTYPE_WMAUDIO1,     CODEC_ID_WMAV1    },
-  { &MEDIASUBTYPE_WMAUDIO2,     CODEC_ID_WMAV2    },
-  { &MEDIASUBTYPE_WMAUDIO3,     CODEC_ID_WMAPRO   },
-  { &MEDIASUBTYPE_WMALOSSLESS,  CODEC_ID_WMALOSSLESS },
+  { &MEDIASUBTYPE_WMAUDIO1,     AV_CODEC_ID_WMAV1    },
+  { &MEDIASUBTYPE_WMAUDIO2,     AV_CODEC_ID_WMAV2    },
+  { &MEDIASUBTYPE_WMAUDIO3,     AV_CODEC_ID_WMAPRO   },
+  { &MEDIASUBTYPE_WMALOSSLESS,  AV_CODEC_ID_WMALOSSLESS },
 
   // RealMedia Audio
-  { &MEDIASUBTYPE_COOK,         CODEC_ID_COOK     },
-  { &MEDIASUBTYPE_ATRC,         CODEC_ID_ATRAC3   },
-  { &MEDIASUBTYPE_RAAC,         CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_RACP,         CODEC_ID_AAC      },
-  { &MEDIASUBTYPE_SIPR,         CODEC_ID_SIPR     },
-  { &MEDIASUBTYPE_DNET,         CODEC_ID_AC3      },
-  { &MEDIASUBTYPE_28_8,         CODEC_ID_RA_288   },
-  { &MEDIASUBTYPE_14_4,         CODEC_ID_RA_144   },
-  { &MEDIASUBTYPE_RALF,         CODEC_ID_RALF     },
+  { &MEDIASUBTYPE_COOK,         AV_CODEC_ID_COOK     },
+  { &MEDIASUBTYPE_ATRC,         AV_CODEC_ID_ATRAC3   },
+  { &MEDIASUBTYPE_RAAC,         AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_RACP,         AV_CODEC_ID_AAC      },
+  { &MEDIASUBTYPE_SIPR,         AV_CODEC_ID_SIPR     },
+  { &MEDIASUBTYPE_DNET,         AV_CODEC_ID_AC3      },
+  { &MEDIASUBTYPE_28_8,         AV_CODEC_ID_RA_288   },
+  { &MEDIASUBTYPE_14_4,         AV_CODEC_ID_RA_144   },
+  { &MEDIASUBTYPE_RALF,         AV_CODEC_ID_RALF     },
 
   // Misc
-  { &MEDIASUBTYPE_SPEEX,        CODEC_ID_SPEEX    },
-  { &MEDIASUBTYPE_OPUS,         CODEC_ID_OPUS     },
+  { &MEDIASUBTYPE_SPEEX,        AV_CODEC_ID_SPEEX    },
+  { &MEDIASUBTYPE_OPUS,         AV_CODEC_ID_OPUS     },
 
   // Special LAVFSplitter interface
-  { &MEDIASUBTYPE_FFMPEG_AUDIO, CODEC_ID_NONE     },
+  { &MEDIASUBTYPE_FFMPEG_AUDIO, AV_CODEC_ID_NONE     },
 };
 
 // Define Input Media Types
@@ -236,28 +236,28 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesOut[] = {
 const int CLAVAudio::sudPinTypesOutCount = countof(CLAVAudio::sudPinTypesOut);
 
 // Crawl the lavc_audio_codecs array for the proper codec
-CodecID FindCodecId(const CMediaType *mt)
+AVCodecID FindCodecId(const CMediaType *mt)
 {
   for (int i=0; i<countof(lavc_audio_codecs); ++i) {
     if (mt->subtype == *lavc_audio_codecs[i].clsMinorType) {
       return lavc_audio_codecs[i].nFFCodec;
     }
   }
-  return CODEC_ID_NONE;
+  return AV_CODEC_ID_NONE;
 }
 
 static const struct s_ffmpeg_codec_overrides {
-  CodecID codec;
+  AVCodecID codec;
   const char *override;
 } ffmpeg_codec_overrides[] = {
-  { CODEC_ID_MP1, "mp1float" },
-  { CODEC_ID_MP2, "mp2float" },
-  { CODEC_ID_MP3, "mp3float" },
-  { CODEC_ID_AMR_NB, "libopencore_amrnb" },
-  { CODEC_ID_AMR_WB, "libopencore_amrwb" },
+  { AV_CODEC_ID_MP1, "mp1float" },
+  { AV_CODEC_ID_MP2, "mp2float" },
+  { AV_CODEC_ID_MP3, "mp3float" },
+  { AV_CODEC_ID_AMR_NB, "libopencore_amrnb" },
+  { AV_CODEC_ID_AMR_WB, "libopencore_amrwb" },
 };
 
-const char *find_codec_override(CodecID codec)
+const char *find_codec_override(AVCodecID codec)
 {
   for (int i=0; i<countof(ffmpeg_codec_overrides); ++i) {
     if (ffmpeg_codec_overrides[i].codec == codec)
@@ -600,30 +600,30 @@ const char *get_channel_desc(DWORD dwFlag)
 }
 
 // Strings will be filled in eventually.
-// CODEC_ID_NONE means there is some special handling going on.
+// AV_CODEC_ID_NONE means there is some special handling going on.
 // Order is Important, has to be the same as the CC Enum
 // Also, the order is used for storage in the Registry
 static codec_config_t m_codec_config[] = {
-  { 2, { CODEC_ID_AAC, CODEC_ID_AAC_LATM }},       // CC_AAC
-  { 1, { CODEC_ID_AC3 }},                          // CC_AC3
-  { 1, { CODEC_ID_EAC3 }},                         // CC_EAC3
-  { 1, { CODEC_ID_DTS }},                          // CC_DTS
-  { 2, { CODEC_ID_MP2, CODEC_ID_MP1 }},            // CC_MP2
-  { 1, { CODEC_ID_MP3 }},                          // CC_MP3
-  { 2, { CODEC_ID_TRUEHD, CODEC_ID_MLP }},         // CC_TRUEHD
-  { 1, { CODEC_ID_FLAC }},                         // CC_FLAC
-  { 1, { CODEC_ID_VORBIS }},                       // CC_VORBIS
-  { 2, { CODEC_ID_PCM_BLURAY, CODEC_ID_PCM_DVD }, "lpcm", "Linear PCM (BluRay & DVD)"}, // CC_LPCM
-  { 1, { CODEC_ID_NONE }, "pcm", "Raw PCM Types (including QT PCM)" }, // CC_LPCM
-  { 1, { CODEC_ID_WAVPACK }},                      // CC_WAVPACK
-  { 1, { CODEC_ID_TTA }},                          // CC_TTA
-  { 2, { CODEC_ID_WMAV2, CODEC_ID_WMAV1 }, "wma", "Windows Media Audio 1/2"}, // CC_WMA2
-  { 1, { CODEC_ID_WMAPRO }},                       // CC_WMAPRO
-  { 1, { CODEC_ID_COOK }},                         // CC_COOK
-  { 5, { CODEC_ID_SIPR, CODEC_ID_ATRAC3, CODEC_ID_RA_144, CODEC_ID_RA_288, CODEC_ID_RALF }, "realaudio", "Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
-  { 1, { CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
-  { 1, { CODEC_ID_ALAC }},                         // CC_ALAC
-  { 1, { CODEC_ID_OPUS }, "opus", "Opus Audio Codec"}, // CC_OPUS
+  { 2, { AV_CODEC_ID_AAC, AV_CODEC_ID_AAC_LATM }},       // CC_AAC
+  { 1, { AV_CODEC_ID_AC3 }},                          // CC_AC3
+  { 1, { AV_CODEC_ID_EAC3 }},                         // CC_EAC3
+  { 1, { AV_CODEC_ID_DTS }},                          // CC_DTS
+  { 2, { AV_CODEC_ID_MP2, AV_CODEC_ID_MP1 }},            // CC_MP2
+  { 1, { AV_CODEC_ID_MP3 }},                          // CC_MP3
+  { 2, { AV_CODEC_ID_TRUEHD, AV_CODEC_ID_MLP }},         // CC_TRUEHD
+  { 1, { AV_CODEC_ID_FLAC }},                         // CC_FLAC
+  { 1, { AV_CODEC_ID_VORBIS }},                       // CC_VORBIS
+  { 2, { AV_CODEC_ID_PCM_BLURAY, AV_CODEC_ID_PCM_DVD }, "lpcm", "Linear PCM (BluRay & DVD)"}, // CC_LPCM
+  { 1, { AV_CODEC_ID_NONE }, "pcm", "Raw PCM Types (including QT PCM)" }, // CC_LPCM
+  { 1, { AV_CODEC_ID_WAVPACK }},                      // CC_WAVPACK
+  { 1, { AV_CODEC_ID_TTA }},                          // CC_TTA
+  { 2, { AV_CODEC_ID_WMAV2, AV_CODEC_ID_WMAV1 }, "wma", "Windows Media Audio 1/2"}, // CC_WMA2
+  { 1, { AV_CODEC_ID_WMAPRO }},                       // CC_WMAPRO
+  { 1, { AV_CODEC_ID_COOK }},                         // CC_COOK
+  { 5, { AV_CODEC_ID_SIPR, AV_CODEC_ID_ATRAC3, AV_CODEC_ID_RA_144, AV_CODEC_ID_RA_288, AV_CODEC_ID_RALF }, "realaudio", "Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
+  { 1, { AV_CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
+  { 1, { AV_CODEC_ID_ALAC }},                         // CC_ALAC
+  { 1, { AV_CODEC_ID_OPUS }, "opus", "Opus Audio Codec"}, // CC_OPUS
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)

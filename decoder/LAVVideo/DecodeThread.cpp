@@ -30,7 +30,7 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_bHWDecoder(FALSE)
   , m_bHWDecoderFailed(FALSE)
   , m_bThreadSafe(FALSE)
-  , m_Codec(CODEC_ID_NONE)
+  , m_Codec(AV_CODEC_ID_NONE)
   , m_evDeliver(FALSE)
   , m_evSample(FALSE)
   , m_evDecodeDone(TRUE)
@@ -55,7 +55,7 @@ CDecodeThread::~CDecodeThread(void)
   CAMThread::Close();
 }
 
-STDMETHODIMP CDecodeThread::CreateDecoder(const CMediaType *pmt, CodecID codec)
+STDMETHODIMP CDecodeThread::CreateDecoder(const CMediaType *pmt, AVCodecID codec)
 {
   CAutoLock decoderLock(this);
 
@@ -364,12 +364,12 @@ DWORD CDecodeThread::ThreadProc()
 }
 
 #define HWFORMAT_ENABLED \
-   ((codec == CODEC_ID_H264 && m_pLAVVideo->GetHWAccelCodec(HWCodec_H264))                                                    \
-|| ((codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3) && m_pLAVVideo->GetHWAccelCodec(HWCodec_VC1))                           \
-|| ((codec == CODEC_ID_MPEG2VIDEO || codec == CODEC_ID_MPEG1VIDEO) && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2))            \
-|| (codec == CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)))
+   ((codec == AV_CODEC_ID_H264 && m_pLAVVideo->GetHWAccelCodec(HWCodec_H264))                                                    \
+|| ((codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3) && m_pLAVVideo->GetHWAccelCodec(HWCodec_VC1))                           \
+|| ((codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_MPEG1VIDEO) && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2))            \
+|| (codec == AV_CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)))
 
-STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, CodecID codec)
+STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodecID codec)
 {
   DbgLog((LOG_TRACE, 10, L"CDecodeThread::CreateDecoderInternal(): Creating new decoder for codec %S", avcodec_get_name(codec)));
   HRESULT hr = S_OK;
@@ -405,7 +405,7 @@ softwaredec:
   if (!m_pDecoder) {
     DbgLog((LOG_TRACE, 10, L"-> No HW Codec, using Software"));
     m_bHWDecoder = FALSE;
-    if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == CODEC_ID_VC1 || codec == CODEC_ID_WMV3))
+    if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3))
       m_pDecoder = CreateDecoderWMV9();
     else
       m_pDecoder = CreateDecoderAVCodec();

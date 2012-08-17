@@ -31,41 +31,41 @@ CLAVFAudioHelper g_AudioHelper;
 
 // Map codec ids to media subtypes
 static FormatMapping audio_map[] = {
-  { CODEC_ID_AC3,        &MEDIASUBTYPE_DOLBY_AC3,         WAVE_FORMAT_DOLBY_AC3,  NULL },
-  { CODEC_ID_AAC,        &MEDIASUBTYPE_AAC,               WAVE_FORMAT_AAC,        NULL },
-  { CODEC_ID_AAC_LATM,   &MEDIASUBTYPE_LATM_AAC,          WAVE_FORMAT_LATM_AAC,   NULL },
-  { CODEC_ID_DTS,        &MEDIASUBTYPE_WAVE_DTS,          NULL,                   NULL },
-  { CODEC_ID_EAC3,       &MEDIASUBTYPE_DOLBY_DDPLUS,      NULL,                   NULL },
-  { CODEC_ID_TRUEHD,     &MEDIASUBTYPE_DOLBY_TRUEHD,      NULL,                   NULL },
-  { CODEC_ID_MLP,        &MEDIASUBTYPE_MLP,               WAVE_FORMAT_MLP,        NULL },
-  { CODEC_ID_VORBIS,     &MEDIASUBTYPE_Vorbis2,           NULL,                   &FORMAT_VorbisFormat2 },
-  { CODEC_ID_MP1,        &MEDIASUBTYPE_MPEG1AudioPayload, WAVE_FORMAT_MPEG,       NULL },
-  { CODEC_ID_MP2,        &MEDIASUBTYPE_MPEG2_AUDIO,       WAVE_FORMAT_MPEG,       NULL },
-  { CODEC_ID_MP3,        &MEDIASUBTYPE_MP3,               WAVE_FORMAT_MPEGLAYER3, NULL },
-  { CODEC_ID_PCM_BLURAY, &MEDIASUBTYPE_BD_LPCM_AUDIO,     NULL,                   NULL },
-  { CODEC_ID_PCM_DVD,    &MEDIASUBTYPE_DVD_LPCM_AUDIO,    NULL,                   NULL },
-  { CODEC_ID_PCM_S16LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
-  { CODEC_ID_PCM_S24LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
-  { CODEC_ID_PCM_S32LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
-  { CODEC_ID_PCM_F32LE,  &MEDIASUBTYPE_IEEE_FLOAT,        WAVE_FORMAT_IEEE_FLOAT, NULL },
-  { CODEC_ID_WMAV1,      &MEDIASUBTYPE_WMAUDIO1,          WAVE_FORMAT_MSAUDIO1,   NULL },
-  { CODEC_ID_WMAV2,      &MEDIASUBTYPE_WMAUDIO2,          WAVE_FORMAT_WMAUDIO2,   NULL },
-  { CODEC_ID_WMAPRO,     &MEDIASUBTYPE_WMAUDIO3,          WAVE_FORMAT_WMAUDIO3,   NULL },
-  { CODEC_ID_ADPCM_IMA_AMV, &MEDIASUBTYPE_IMA_AMV,        NULL,                   NULL },
-  { CODEC_ID_FLAC,       &MEDIASUBTYPE_FLAC_FRAMED,       WAVE_FORMAT_FLAC,       NULL },
-  { CODEC_ID_COOK,       &MEDIASUBTYPE_COOK,              WAVE_FORMAT_COOK,       NULL },
-  { CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       NULL },
-  { CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       NULL },
-  { CODEC_ID_SIPR,       &MEDIASUBTYPE_SIPR,              WAVE_FORMAT_SIPR,       NULL },
-  { CODEC_ID_RA_288,     &MEDIASUBTYPE_28_8,              WAVE_FORMAT_28_8,       NULL },
-  { CODEC_ID_RA_144,     &MEDIASUBTYPE_14_4,              WAVE_FORMAT_14_4,       NULL },
-  { CODEC_ID_RALF,       &MEDIASUBTYPE_RALF,              WAVE_FORMAT_RALF,       NULL },
-  { CODEC_ID_ALAC,       &MEDIASUBTYPE_ALAC,              NULL,                   NULL },
-  { CODEC_ID_MP4ALS,     &MEDIASUBTYPE_ALS,               NULL,                   NULL },
-  { CODEC_ID_OPUS,       &MEDIASUBTYPE_OPUS,              NULL,                   NULL },
+  { AV_CODEC_ID_AC3,        &MEDIASUBTYPE_DOLBY_AC3,         WAVE_FORMAT_DOLBY_AC3,  NULL },
+  { AV_CODEC_ID_AAC,        &MEDIASUBTYPE_AAC,               WAVE_FORMAT_AAC,        NULL },
+  { AV_CODEC_ID_AAC_LATM,   &MEDIASUBTYPE_LATM_AAC,          WAVE_FORMAT_LATM_AAC,   NULL },
+  { AV_CODEC_ID_DTS,        &MEDIASUBTYPE_WAVE_DTS,          NULL,                   NULL },
+  { AV_CODEC_ID_EAC3,       &MEDIASUBTYPE_DOLBY_DDPLUS,      NULL,                   NULL },
+  { AV_CODEC_ID_TRUEHD,     &MEDIASUBTYPE_DOLBY_TRUEHD,      NULL,                   NULL },
+  { AV_CODEC_ID_MLP,        &MEDIASUBTYPE_MLP,               WAVE_FORMAT_MLP,        NULL },
+  { AV_CODEC_ID_VORBIS,     &MEDIASUBTYPE_Vorbis2,           NULL,                   &FORMAT_VorbisFormat2 },
+  { AV_CODEC_ID_MP1,        &MEDIASUBTYPE_MPEG1AudioPayload, WAVE_FORMAT_MPEG,       NULL },
+  { AV_CODEC_ID_MP2,        &MEDIASUBTYPE_MPEG2_AUDIO,       WAVE_FORMAT_MPEG,       NULL },
+  { AV_CODEC_ID_MP3,        &MEDIASUBTYPE_MP3,               WAVE_FORMAT_MPEGLAYER3, NULL },
+  { AV_CODEC_ID_PCM_BLURAY, &MEDIASUBTYPE_BD_LPCM_AUDIO,     NULL,                   NULL },
+  { AV_CODEC_ID_PCM_DVD,    &MEDIASUBTYPE_DVD_LPCM_AUDIO,    NULL,                   NULL },
+  { AV_CODEC_ID_PCM_S16LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
+  { AV_CODEC_ID_PCM_S24LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
+  { AV_CODEC_ID_PCM_S32LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
+  { AV_CODEC_ID_PCM_F32LE,  &MEDIASUBTYPE_IEEE_FLOAT,        WAVE_FORMAT_IEEE_FLOAT, NULL },
+  { AV_CODEC_ID_WMAV1,      &MEDIASUBTYPE_WMAUDIO1,          WAVE_FORMAT_MSAUDIO1,   NULL },
+  { AV_CODEC_ID_WMAV2,      &MEDIASUBTYPE_WMAUDIO2,          WAVE_FORMAT_WMAUDIO2,   NULL },
+  { AV_CODEC_ID_WMAPRO,     &MEDIASUBTYPE_WMAUDIO3,          WAVE_FORMAT_WMAUDIO3,   NULL },
+  { AV_CODEC_ID_ADPCM_IMA_AMV, &MEDIASUBTYPE_IMA_AMV,        NULL,                   NULL },
+  { AV_CODEC_ID_FLAC,       &MEDIASUBTYPE_FLAC_FRAMED,       WAVE_FORMAT_FLAC,       NULL },
+  { AV_CODEC_ID_COOK,       &MEDIASUBTYPE_COOK,              WAVE_FORMAT_COOK,       NULL },
+  { AV_CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       NULL },
+  { AV_CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       NULL },
+  { AV_CODEC_ID_SIPR,       &MEDIASUBTYPE_SIPR,              WAVE_FORMAT_SIPR,       NULL },
+  { AV_CODEC_ID_RA_288,     &MEDIASUBTYPE_28_8,              WAVE_FORMAT_28_8,       NULL },
+  { AV_CODEC_ID_RA_144,     &MEDIASUBTYPE_14_4,              WAVE_FORMAT_14_4,       NULL },
+  { AV_CODEC_ID_RALF,       &MEDIASUBTYPE_RALF,              WAVE_FORMAT_RALF,       NULL },
+  { AV_CODEC_ID_ALAC,       &MEDIASUBTYPE_ALAC,              NULL,                   NULL },
+  { AV_CODEC_ID_MP4ALS,     &MEDIASUBTYPE_ALS,               NULL,                   NULL },
+  { AV_CODEC_ID_OPUS,       &MEDIASUBTYPE_OPUS,              NULL,                   NULL },
 };
 
-CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecTag, std::string container)
+CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -90,11 +90,11 @@ CMediaType CLAVFAudioHelper::initAudioType(CodecID codecId, unsigned int &codecT
   // special cases
   switch(codecId)
   {
-  case CODEC_ID_PCM_F64LE:
+  case AV_CODEC_ID_PCM_F64LE:
     // Qt PCM
     if (codecTag == MKTAG('f', 'l', '6', '4')) mediaType.subtype = MEDIASUBTYPE_PCM_FL64_le;
     break;
-  case CODEC_ID_PCM_S16BE:
+  case AV_CODEC_ID_PCM_S16BE:
     if (container == "mpeg")
        mediaType.subtype = MEDIASUBTYPE_DVD_LPCM_AUDIO;
     break;
@@ -112,7 +112,7 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
   wvfmt->nSamplesPerSec = avstream->codec->sample_rate ? avstream->codec->sample_rate : 48000;
   wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
 
-  if(avstream->codec->codec_id == CODEC_ID_AAC || avstream->codec->codec_id == CODEC_ID_AAC_LATM) {
+  if(avstream->codec->codec_id == AV_CODEC_ID_AAC || avstream->codec->codec_id == AV_CODEC_ID_AAC_LATM) {
     wvfmt->wBitsPerSample = 0;
     wvfmt->nBlockAlign = 1;
   } else {
@@ -261,13 +261,13 @@ MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULON
 
   mpwvfmt->dwHeadBitrate = avstream->codec->bit_rate;
   mpwvfmt->fwHeadMode = avstream->codec->channels == 1 ? ACM_MPEG_SINGLECHANNEL : ACM_MPEG_DUALCHANNEL;
-  mpwvfmt->fwHeadLayer = (avstream->codec->codec_id == CODEC_ID_MP1) ? ACM_MPEG_LAYER1 : ACM_MPEG_LAYER2;
+  mpwvfmt->fwHeadLayer = (avstream->codec->codec_id == AV_CODEC_ID_MP1) ? ACM_MPEG_LAYER1 : ACM_MPEG_LAYER2;
 
   if (avstream->codec->sample_rate == 0) {
     avstream->codec->sample_rate = 48000;
   }
   mpwvfmt->wfx.wFormatTag = WAVE_FORMAT_MPEG;
-  mpwvfmt->wfx.nBlockAlign = (avstream->codec->codec_id == CODEC_ID_MP1)
+  mpwvfmt->wfx.nBlockAlign = (avstream->codec->codec_id == AV_CODEC_ID_MP1)
         ? (12 * avstream->codec->bit_rate / avstream->codec->sample_rate) * 4
         : 144 * avstream->codec->bit_rate / avstream->codec->sample_rate;
 

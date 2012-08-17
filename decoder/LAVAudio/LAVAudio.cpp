@@ -50,7 +50,7 @@ extern HINSTANCE g_hInst;
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
-  , m_nCodecId(CODEC_ID_NONE)
+  , m_nCodecId(AV_CODEC_ID_NONE)
   , m_pAVCodec(NULL)
   , m_pAVCtx(NULL)
   , m_pFrame(NULL)
@@ -399,7 +399,7 @@ void CLAVAudio::ffmpeg_shutdown()
 
   FreeDTSDecoder();
 
-  m_nCodecId = CODEC_ID_NONE;
+  m_nCodecId = AV_CODEC_ID_NONE;
 }
 
 // IUnknown
@@ -1073,13 +1073,13 @@ HRESULT CLAVAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
     : NOERROR;
 }
 
-HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID format_type, DWORD formatlen)
+HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID format_type, DWORD formatlen)
 {
   CAutoLock lock(&m_csReceive);
   ffmpeg_shutdown();
   DbgLog((LOG_TRACE, 10, "::ffmpeg_init(): Initializing decoder for codec %d", codec));
 
-  if (codec == CODEC_ID_DTS || codec == CODEC_ID_TRUEHD) {
+  if (codec == AV_CODEC_ID_DTS || codec == AV_CODEC_ID_TRUEHD) {
     m_faJitter.SetNumSamples(200);
     m_JitterLimit = MAX_JITTER_DESYNC * 10;
   } else {
@@ -1088,32 +1088,32 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   }
 
   // Fake codecs that are dependant in input bits per sample, mostly to handle QT PCM tracks
-  if (codec == CODEC_ID_PCM_QTRAW || codec == CODEC_ID_PCM_SxxBE || codec == CODEC_ID_PCM_SxxLE || codec == CODEC_ID_PCM_UxxBE || codec == CODEC_ID_PCM_UxxLE) {
+  if (codec == AV_CODEC_ID_PCM_QTRAW || codec == AV_CODEC_ID_PCM_SxxBE || codec == AV_CODEC_ID_PCM_SxxLE || codec == AV_CODEC_ID_PCM_UxxBE || codec == AV_CODEC_ID_PCM_UxxLE) {
     if (format_type == FORMAT_WaveFormatEx) {
       WAVEFORMATEX *wfein = (WAVEFORMATEX *)format;
       ASSERT(wfein->wBitsPerSample == 8 || wfein->wBitsPerSample == 16);
       switch(codec) {
-      case CODEC_ID_PCM_QTRAW:
-        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_U8 : CODEC_ID_PCM_S16BE;
+      case AV_CODEC_ID_PCM_QTRAW:
+        codec = wfein->wBitsPerSample == 8 ? AV_CODEC_ID_PCM_U8 : AV_CODEC_ID_PCM_S16BE;
         break;
-      case CODEC_ID_PCM_SxxBE:
-        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_S8 : CODEC_ID_PCM_S16BE;
+      case AV_CODEC_ID_PCM_SxxBE:
+        codec = wfein->wBitsPerSample == 8 ? AV_CODEC_ID_PCM_S8 : AV_CODEC_ID_PCM_S16BE;
         break;
-      case CODEC_ID_PCM_SxxLE:
-        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_S8 : CODEC_ID_PCM_S16LE;
+      case AV_CODEC_ID_PCM_SxxLE:
+        codec = wfein->wBitsPerSample == 8 ? AV_CODEC_ID_PCM_S8 : AV_CODEC_ID_PCM_S16LE;
         break;
-      case CODEC_ID_PCM_UxxBE:
-        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_U8 : CODEC_ID_PCM_U16BE;
+      case AV_CODEC_ID_PCM_UxxBE:
+        codec = wfein->wBitsPerSample == 8 ? AV_CODEC_ID_PCM_U8 : AV_CODEC_ID_PCM_U16BE;
         break;
-      case CODEC_ID_PCM_UxxLE:
-        codec = wfein->wBitsPerSample == 8 ? CODEC_ID_PCM_U8 : CODEC_ID_PCM_U16LE;
+      case AV_CODEC_ID_PCM_UxxLE:
+        codec = wfein->wBitsPerSample == 8 ? AV_CODEC_ID_PCM_U8 : AV_CODEC_ID_PCM_U16LE;
         break;
       }
     }
   }
 
   // Special check for enabled PCM
-  if (codec >= 0x10000 && codec < 0x12000 && codec != CODEC_ID_PCM_BLURAY && codec != CODEC_ID_PCM_DVD && !m_settings.bFormats[Codec_PCM])
+  if (codec >= 0x10000 && codec < 0x12000 && codec != AV_CODEC_ID_PCM_BLURAY && codec != AV_CODEC_ID_PCM_DVD && !m_settings.bFormats[Codec_PCM])
     return VFW_E_UNSUPPORTED_AUDIO;
 
   for(int i = 0; i < Codec_NB; ++i) {
@@ -1130,11 +1130,11 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     }
   }
 
-  if (codec == CODEC_ID_PCM_DVD) {
+  if (codec == AV_CODEC_ID_PCM_DVD) {
     if (format_type == FORMAT_WaveFormatEx) {
       WAVEFORMATEX *wfein = (WAVEFORMATEX *)format;
       if (wfein->wBitsPerSample == 16) {
-        codec = CODEC_ID_PCM_S16BE;
+        codec = AV_CODEC_ID_PCM_S16BE;
       }
     }
   }
@@ -1160,7 +1160,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     }
   }
 
-  if (codec == CODEC_ID_DTS) {
+  if (codec == AV_CODEC_ID_DTS) {
     InitDTSDecoder();
   }
 
@@ -1179,27 +1179,27 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
   CheckPointer(m_pAVCtx, E_POINTER);
 
-  if (codec != CODEC_ID_AAC && codec != CODEC_ID_FLAC && codec != CODEC_ID_COOK)
+  if (codec != AV_CODEC_ID_AAC && codec != AV_CODEC_ID_FLAC && codec != AV_CODEC_ID_COOK)
     m_pParser = av_parser_init(codec);
 
   if (m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
     m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
 
-  if ( codec == CODEC_ID_AAC
-    || codec == CODEC_ID_AC3
-    || codec == CODEC_ID_ATRAC3
-    || codec == CODEC_ID_DTS
-    || codec == CODEC_ID_OPUS
-    || codec == CODEC_ID_NELLYMOSER
-    || codec == CODEC_ID_VORBIS) {
+  if ( codec == AV_CODEC_ID_AAC
+    || codec == AV_CODEC_ID_AC3
+    || codec == AV_CODEC_ID_ATRAC3
+    || codec == AV_CODEC_ID_DTS
+    || codec == AV_CODEC_ID_OPUS
+    || codec == AV_CODEC_ID_NELLYMOSER
+    || codec == AV_CODEC_ID_VORBIS) {
     m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_FLT;
-  } else if (codec == CODEC_ID_ALAC) {
+  } else if (codec == AV_CODEC_ID_ALAC) {
     m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_S32P;
   }
 
   // We can only trust LAV Splitters LATM AAC header...
   BOOL bTrustExtraData = TRUE;
-  if (codec == CODEC_ID_AAC_LATM) {
+  if (codec == AV_CODEC_ID_AAC_LATM) {
     if (!(FilterInGraphSafe(m_pInput, CLSID_LAVSplitter) || FilterInGraphSafe(m_pInput, CLSID_LAVSplitterSource))) {
       bTrustExtraData = FALSE;
     }
@@ -1222,7 +1222,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   memset(&m_raData, 0, sizeof(m_raData));
 
   if (bTrustExtraData && extralen) {
-    if (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3 || codec == CODEC_ID_SIPR) {
+    if (codec == AV_CODEC_ID_COOK || codec == AV_CODEC_ID_ATRAC3 || codec == AV_CODEC_ID_SIPR) {
       uint8_t *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
       getExtraData((BYTE *)format, &format_type, formatlen, extra, NULL);
 
@@ -1232,13 +1232,13 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
         if (FAILED(hr))
           return hr;
 
-        if (codec == CODEC_ID_SIPR) {
+        if (codec == AV_CODEC_ID_SIPR) {
           if (m_raData.flavor > 3) {
             DbgLog((LOG_TRACE, 10, L"->  Invalid SIPR flavor (%d)", m_raData.flavor));
             return VFW_E_UNSUPPORTED_AUDIO;
           }
           m_pAVCtx->block_align = ff_sipr_subpk_size[m_raData.flavor];
-        } else if (codec == CODEC_ID_COOK || codec == CODEC_ID_ATRAC3) {
+        } else if (codec == AV_CODEC_ID_COOK || codec == AV_CODEC_ID_ATRAC3) {
           m_pAVCtx->block_align = m_raData.sub_packet_size;
         }
 
@@ -1273,7 +1273,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
   ret = av_opt_set_double(m_pAVCtx, "drc_scale", drc_scale, AV_OPT_SEARCH_CHILDREN);
 
   // This could probably be a bit smarter..
-  if (codec == CODEC_ID_PCM_BLURAY || codec == CODEC_ID_PCM_DVD) {
+  if (codec == AV_CODEC_ID_PCM_BLURAY || codec == AV_CODEC_ID_PCM_DVD) {
     m_pAVCtx->bits_per_raw_sample = m_pAVCtx->bits_per_coded_sample;
   }
 
@@ -1282,7 +1282,7 @@ HRESULT CLAVAudio::ffmpeg_init(CodecID codec, const void *format, const GUID for
     return VFW_E_UNSUPPORTED_AUDIO;
   }
 
-  m_bFindDTSInPCM = (codec == CODEC_ID_PCM_S16LE && m_settings.bFormats[Codec_DTS]);
+  m_bFindDTSInPCM = (codec == AV_CODEC_ID_PCM_S16LE && m_settings.bFormats[Codec_DTS]);
   m_bFallback16Int = FALSE;
   m_dwOverrideMixer = 0;
   m_bMixingSettingsChanged = TRUE;
@@ -1294,7 +1294,7 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
   DbgLog((LOG_TRACE, 5, L"SetMediaType -- %S", dir == PINDIR_INPUT ? "in" : "out"));
   if (dir == PINDIR_INPUT) {
-    CodecID codec = CODEC_ID_NONE;
+    AVCodecID codec = AV_CODEC_ID_NONE;
     const void *format = pmt->Format();
     GUID format_type = pmt->formattype;
     DWORD formatlen = pmt->cbFormat;
@@ -1302,7 +1302,7 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     // Override the format type
     if (pmt->subtype == MEDIASUBTYPE_FFMPEG_AUDIO && pmt->formattype == FORMAT_WaveFormatExFFMPEG) {
       WAVEFORMATEXFFMPEG *wfexff = (WAVEFORMATEXFFMPEG *)pmt->Format();
-      codec = (CodecID)wfexff->nCodecId;
+      codec = (AVCodecID)wfexff->nCodecId;
       format = &wfexff->wfex;
       format_type = FORMAT_WaveFormatEx;
       formatlen -= sizeof(WAVEFORMATEXFFMPEG) - sizeof(WAVEFORMATEX);
@@ -1310,29 +1310,29 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
       codec = FindCodecId(pmt);
     }
 
-    if (codec == CODEC_ID_NONE) {
+    if (codec == AV_CODEC_ID_NONE) {
       if (m_settings.AllowRawSPDIF) {
         if (pmt->formattype == FORMAT_WaveFormatEx && pmt->subtype == MEDIASUBTYPE_PCM) {
           WAVEFORMATEX *wfex = (WAVEFORMATEX *)pmt->Format();
           switch (wfex->wBitsPerSample) {
           case 8:
-            codec = CODEC_ID_PCM_U8;
+            codec = AV_CODEC_ID_PCM_U8;
             break;
           case 16:
-            codec = CODEC_ID_PCM_S16LE;
+            codec = AV_CODEC_ID_PCM_S16LE;
             break;
           case 24:
-            codec = CODEC_ID_PCM_S24LE;
+            codec = AV_CODEC_ID_PCM_S24LE;
             break;
           case 32:
-            codec = CODEC_ID_PCM_S32LE;
+            codec = AV_CODEC_ID_PCM_S32LE;
             break;
           }
         } else if (pmt->subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF) {
-          codec = CODEC_ID_AC3;
+          codec = AV_CODEC_ID_AC3;
         }
       }
-      if (codec == CODEC_ID_NONE)
+      if (codec == AV_CODEC_ID_NONE)
         return VFW_E_TYPE_NOT_ACCEPTED;
     }
 
@@ -1570,7 +1570,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
       if (count >= 4) {
         DbgLog((LOG_TRACE, 10, L"::ProcessBuffer(): Detected %d DTS sync words in %d bytes of data, switching to DTS-in-WAV decoding", count, buffer_size));
         CMediaType mt = m_pInput->CurrentMediaType();
-        ffmpeg_init(CODEC_ID_DTS, mt.Format(), *mt.FormatType(), mt.FormatLength());
+        ffmpeg_init(AV_CODEC_ID_DTS, mt.Format(), *mt.FormatType(), mt.FormatLength());
         m_bFindDTSInPCM = FALSE;
       }
 

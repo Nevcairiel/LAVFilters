@@ -335,7 +335,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * const buffer, int buffsize, int &consu
 
     if (pOut && pOut_size > 0) {
       // Parse DTS headers
-      m_bsParser.Parse(CODEC_ID_DTS, pOut, pOut_size, NULL);
+      m_bsParser.Parse(AV_CODEC_ID_DTS, pOut, pOut_size, NULL);
       unsigned decode_channels = dts_determine_decode_channels(m_bsParser.m_DTSHeader);
 
       // Init Decoder with new Parameters, if required

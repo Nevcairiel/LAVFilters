@@ -43,7 +43,7 @@ public:
   virtual ~CDecDXVA2(void);
 
   // ILAVDecoder
-  STDMETHODIMP InitDecoder(CodecID codec, const CMediaType *pmt);
+  STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
@@ -75,7 +75,7 @@ private:
 
   HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
   HRESULT CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
-  HRESULT FindVideoServiceConversion(CodecID codec, GUID *input, D3DFORMAT *output);
+  HRESULT FindVideoServiceConversion(AVCodecID codec, GUID *input, D3DFORMAT *output);
 
   HRESULT CreateDXVA2Decoder(int nSurfaces = 0, IDirect3DSurface9 **ppSurfaces = NULL);
   HRESULT SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager);

@@ -20,7 +20,7 @@
 #pragma once
 
 typedef struct sFormatMapping {
-  CodecID codec;
+  AVCodecID codec;
   const GUID *subtype;
   unsigned codecTag;
   const GUID *format;

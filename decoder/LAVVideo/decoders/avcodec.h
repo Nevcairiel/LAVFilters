@@ -40,7 +40,7 @@ public:
   virtual ~CDecAvcodec(void);
 
   // ILAVDecoder
-  STDMETHODIMP InitDecoder(CodecID codec, const CMediaType *pmt);
+  STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
   STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity);
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
@@ -72,7 +72,7 @@ private:
 protected:
   AVCodecContext       *m_pAVCtx;
   AVFrame              *m_pFrame;
-  CodecID              m_nCodecId;
+  AVCodecID            m_nCodecId;
   BOOL                 m_bDXVA;
 
 private:

@@ -43,7 +43,7 @@ public:
   virtual ~CDecCuvid(void);
 
   // ILAVDecoder
-  STDMETHODIMP InitDecoder(CodecID codec, const CMediaType *pmt);
+  STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
   STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity);
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();

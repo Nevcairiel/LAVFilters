@@ -27,17 +27,17 @@
 #define LAV_BITSTREAM_DTS_HD_RATE 768000
 
 static struct {
-  CodecID codec;
+  AVCodecID codec;
   LAVBitstreamCodec config;
 } lavf_bitstream_config[] = {
-  { CODEC_ID_AC3,    Bitstream_AC3 },
-  { CODEC_ID_EAC3,   Bitstream_EAC3 },
-  { CODEC_ID_TRUEHD, Bitstream_TRUEHD },
-  { CODEC_ID_DTS,    Bitstream_DTS } // DTS-HD is still DTS, and handled special below
+  { AV_CODEC_ID_AC3,    Bitstream_AC3 },
+  { AV_CODEC_ID_EAC3,   Bitstream_EAC3 },
+  { AV_CODEC_ID_TRUEHD, Bitstream_TRUEHD },
+  { AV_CODEC_ID_DTS,    Bitstream_DTS } // DTS-HD is still DTS, and handled special below
 };
 
 // Check wether a codec is bitstreaming eligible and enabled
-BOOL CLAVAudio::IsBitstreaming(CodecID codec)
+BOOL CLAVAudio::IsBitstreaming(AVCodecID codec)
 {
   for(int i = 0; i < countof(lavf_bitstream_config); ++i) {
     if (lavf_bitstream_config[i].codec == codec) {
@@ -81,7 +81,7 @@ int CLAVAudio::BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size)
   return buf_size;
 }
 
-HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
+HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
 {
   int ret = 0;
 
@@ -90,7 +90,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(CodecID codec, WAVEFORMATEX *wfe)
   m_bsParser.Reset();
 
   // Increase DTS buffer even further, as we do not have any sample caching
-  if (codec == CODEC_ID_DTS)
+  if (codec == AV_CODEC_ID_DTS)
     m_faJitter.SetNumSamples(400);
   else
     m_faJitter.SetNumSamples(100);
@@ -210,7 +210,7 @@ HRESULT CLAVAudio::FreeBitstreamContext()
   return S_OK;
 }
 
-CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec, DWORD dwSampleRate)
+CMediaType CLAVAudio::CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate)
 {
    CMediaType mt;
 
@@ -229,21 +229,21 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(CodecID codec, DWORD dwSampleRate
    GUID subtype = GUID_NULL;
 
    switch(codec) {
-   case CODEC_ID_AC3:
+   case AV_CODEC_ID_AC3:
      wfe->wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF;
      wfe->nSamplesPerSec = min(dwSampleRate, 48000);
      break;
-   case CODEC_ID_EAC3:
+   case AV_CODEC_ID_EAC3:
      wfe->nSamplesPerSec = 192000;
      wfe->nChannels      = 2;
      subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL_PLUS;
      break;
-   case CODEC_ID_TRUEHD:
+   case AV_CODEC_ID_TRUEHD:
      wfe->nSamplesPerSec = 192000;
      wfe->nChannels      = 8;
      subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
      break;
-   case CODEC_ID_DTS:
+   case AV_CODEC_ID_DTS:
      if (m_settings.bBitstream[Bitstream_DTSHD] && m_bDTSHD) {
        wfe->nSamplesPerSec = 192000;
        wfe->nChannels      = 8;
@@ -333,7 +333,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *buffer, int buffsize, int &consumed, HR
 
     if (pOut_size > 0) {
       m_bsParser.Parse(m_nCodecId, pOut, pOut_size, m_pParser->priv_data);
-      if (m_nCodecId == CODEC_ID_DTS && !m_bDTSHD && m_bsParser.m_bDTSHD && m_settings.bBitstream[Bitstream_DTSHD]) {
+      if (m_nCodecId == AV_CODEC_ID_DTS && !m_bDTSHD && m_bsParser.m_bDTSHD && m_settings.bBitstream[Bitstream_DTSHD]) {
         ActivateDTSHDMuxing();
       }
 
@@ -366,7 +366,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *buffer, int buffsize, int &consumed, HR
   return S_OK;
 }
 
-HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
+HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
 {
   HRESULT hr = S_OK;
 
@@ -393,7 +393,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE, rtDur = AV_NOPTS_VALUE;
   // TrueHD timings
   // Since the SPDIF muxer takes 24 frames and puts them into one IEC61937 frame, we use the cached timestamp from before.
-  if (codec == CODEC_ID_TRUEHD) {
+  if (codec == AV_CODEC_ID_TRUEHD) {
     // long-term cache is valid
     if (m_rtBitstreamCache != AV_NOPTS_VALUE)
       rtStart = m_rtBitstreamCache;
@@ -406,7 +406,7 @@ HRESULT CLAVAudio::DeliverBitstream(CodecID codec, const BYTE *buffer, DWORD dwS
   } else {
     double dDuration = 0;
     // E-AC3 trusts the incoming timestamps until a better solution can be found
-    if (codec == CODEC_ID_EAC3) {
+    if (codec == AV_CODEC_ID_EAC3) {
       if (rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
         rtStart = rtStartInput;
         rtDur = rtStopInput - rtStartInput;

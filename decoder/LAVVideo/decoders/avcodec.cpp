@@ -47,30 +47,30 @@ ILAVDecoder *CreateDecoderAVCodec() {
 // Multi-threaded decoding configuration
 ////////////////////////////////////////////////////////////////////////////////
 static struct {
-  CodecID codecId;
+  AVCodecID codecId;
   int     threadFlags;
 } ff_thread_codecs[] = {
-  { CODEC_ID_H264,       FF_THREAD_FRAME|FF_THREAD_SLICE },
-  { CODEC_ID_MPEG1VIDEO,                 FF_THREAD_SLICE },
-  { CODEC_ID_MPEG2VIDEO,                 FF_THREAD_SLICE },
-  { CODEC_ID_DVVIDEO,                    FF_THREAD_SLICE },
-  { CODEC_ID_VP8,        FF_THREAD_FRAME                 },
-  { CODEC_ID_VP3,        FF_THREAD_FRAME                 },
-  { CODEC_ID_THEORA,     FF_THREAD_FRAME                 },
-  { CODEC_ID_HUFFYUV,    FF_THREAD_FRAME                 },
-  { CODEC_ID_FFVHUFF,    FF_THREAD_FRAME                 },
-  //{ CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
-  { CODEC_ID_PRORES,                     FF_THREAD_SLICE },
-  { CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
-  { CODEC_ID_RV30,       FF_THREAD_FRAME                 },
-  { CODEC_ID_RV40,       FF_THREAD_FRAME                 },
-  { CODEC_ID_DNXHD,      FF_THREAD_FRAME                 },
-  { CODEC_ID_FFV1,                       FF_THREAD_SLICE },
-  { CODEC_ID_LAGARITH,   FF_THREAD_FRAME                 },
-  { CODEC_ID_FRAPS,      FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_H264,       FF_THREAD_FRAME|FF_THREAD_SLICE },
+  { AV_CODEC_ID_MPEG1VIDEO,                 FF_THREAD_SLICE },
+  { AV_CODEC_ID_MPEG2VIDEO,                 FF_THREAD_SLICE },
+  { AV_CODEC_ID_DVVIDEO,                    FF_THREAD_SLICE },
+  { AV_CODEC_ID_VP8,        FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_VP3,        FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_THEORA,     FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_HUFFYUV,    FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_FFVHUFF,    FF_THREAD_FRAME                 },
+  //{ AV_CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_PRORES,                     FF_THREAD_SLICE },
+  { AV_CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_RV30,       FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_RV40,       FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_DNXHD,      FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_FFV1,                       FF_THREAD_SLICE },
+  { AV_CODEC_ID_LAGARITH,   FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_FRAPS,      FF_THREAD_FRAME                 },
 };
 
-int getThreadFlags(CodecID codecId)
+int getThreadFlags(AVCodecID codecId)
 {
   for(int i = 0; i < countof(ff_thread_codecs); ++i) {
     if (ff_thread_codecs[i].codecId == codecId) {
@@ -240,19 +240,19 @@ static struct PixelFormatMapping {
   { PIX_FMT_DXVA2_VLD, LAVPixFmt_DXVA2, FALSE },
 };
 
-static CodecID ff_interlace_capable[] = {
-  CODEC_ID_DNXHD,
-  CODEC_ID_DVVIDEO,
-  CODEC_ID_FRWU,
-  CODEC_ID_MJPEG,
-  CODEC_ID_MPEG4,
-  CODEC_ID_MPEG2VIDEO,
-  CODEC_ID_H264,
-  CODEC_ID_VC1,
-  CODEC_ID_PNG,
-  CODEC_ID_PRORES,
-  CODEC_ID_RAWVIDEO,
-  CODEC_ID_UTVIDEO
+static AVCodecID ff_interlace_capable[] = {
+  AV_CODEC_ID_DNXHD,
+  AV_CODEC_ID_DVVIDEO,
+  AV_CODEC_ID_FRWU,
+  AV_CODEC_ID_MJPEG,
+  AV_CODEC_ID_MPEG4,
+  AV_CODEC_ID_MPEG2VIDEO,
+  AV_CODEC_ID_H264,
+  AV_CODEC_ID_VC1,
+  AV_CODEC_ID_PNG,
+  AV_CODEC_ID_PRORES,
+  AV_CODEC_ID_RAWVIDEO,
+  AV_CODEC_ID_UTVIDEO
 };
 
 static struct PixelFormatMapping getPixFmtMapping(PixelFormat pixfmt) {
@@ -282,7 +282,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_pFFBuffer(NULL), m_nFFBufferSize(0)
   , m_pFFBuffer2(NULL), m_nFFBufferSize2(0)
   , m_pSwsContext(NULL)
-  , m_nCodecId(CODEC_ID_NONE)
+  , m_nCodecId(AV_CODEC_ID_NONE)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_bWaitingForKeyFrame(FALSE)
   , m_bBFrameDelay(TRUE)
@@ -314,7 +314,7 @@ STDMETHODIMP CDecAvcodec::Init()
   return S_OK;
 }
 
-STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   DestroyDecoder();
   DbgLog((LOG_TRACE, 10, L"Initializing ffmpeg for codec %d", codec));
@@ -328,7 +328,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
   CheckPointer(m_pAVCtx, E_POINTER);
 
-  if(codec == CODEC_ID_MPEG1VIDEO || codec == CODEC_ID_MPEG2VIDEO || pmt->subtype == FOURCCMap(MKTAG('H','2','6','4')) || pmt->subtype == FOURCCMap(MKTAG('h','2','6','4'))) {
+  if(codec == AV_CODEC_ID_MPEG1VIDEO || codec == AV_CODEC_ID_MPEG2VIDEO || pmt->subtype == FOURCCMap(MKTAG('H','2','6','4')) || pmt->subtype == FOURCCMap(MKTAG('h','2','6','4'))) {
     m_pParser = av_parser_init(codec);
   }
 
@@ -356,7 +356,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
   m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT;
 
-  if (codec == CODEC_ID_H264)
+  if (codec == AV_CODEC_ID_H264)
     m_pAVCtx->flags2             |= CODEC_FLAG2_SHOW_ALL;
 
   // Setup threading
@@ -376,7 +376,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
     m_pAVCtx->thread_count = 1;
   }
 
-  if ((codec == CODEC_ID_THEORA || codec == CODEC_ID_VP3)
+  if ((codec == AV_CODEC_ID_THEORA || codec == AV_CODEC_ID_VP3)
     && (m_pCallback->FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSplitter) || m_pCallback->FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSource))) {
     m_pAVCtx->thread_count = 1;
   }
@@ -442,14 +442,14 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
       getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, NULL);
     }
     // Hack to discard invalid MP4 metadata with AnnexB style video
-    if (codec == CODEC_ID_H264 && !bH264avc && extra[0] == 1) {
+    if (codec == AV_CODEC_ID_H264 && !bH264avc && extra[0] == 1) {
       av_freep(&extra);
       extralen = 0;
     }
     m_pAVCtx->extradata = extra;
     m_pAVCtx->extradata_size = (int)extralen;
   } else {
-    if (codec == CODEC_ID_VP6 || codec == CODEC_ID_VP6A || codec == CODEC_ID_VP6F) {
+    if (codec == AV_CODEC_ID_VP6 || codec == AV_CODEC_ID_VP6A || codec == AV_CODEC_ID_VP6F) {
       int cropH = pBMI->biWidth - biRealWidth;
       int cropV = pBMI->biHeight - biRealHeight;
       if (cropH >= 0 && cropH <= 0x0f && cropV >= 0 && cropV <= 0x0f) {
@@ -470,48 +470,48 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
   m_bInputPadded = m_pCallback->IsLAVSplitter();
 
   // Setup codec-specific timing logic
-  BOOL bVC1IsPTS = (codec == CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
+  BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
   // VC-1 is also a special case. Its required for splitters that deliver PTS timestamps (see bVC1IsPTS above)
-  m_bFFReordering        =  ( codec == CODEC_ID_H264 && !m_pCallback->H264IsAVI())
-                           || codec == CODEC_ID_VP8
-                           || codec == CODEC_ID_VP3
-                           || codec == CODEC_ID_THEORA
-                           || codec == CODEC_ID_HUFFYUV
-                           || codec == CODEC_ID_FFVHUFF
-                           || codec == CODEC_ID_MPEG2VIDEO
-                           || codec == CODEC_ID_MPEG1VIDEO
-                           || codec == CODEC_ID_DIRAC
-                           || codec == CODEC_ID_UTVIDEO
-                           || codec == CODEC_ID_DNXHD
-                           || (codec == CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video)
+  m_bFFReordering        =  ( codec == AV_CODEC_ID_H264 && !m_pCallback->H264IsAVI())
+                           || codec == AV_CODEC_ID_VP8
+                           || codec == AV_CODEC_ID_VP3
+                           || codec == AV_CODEC_ID_THEORA
+                           || codec == AV_CODEC_ID_HUFFYUV
+                           || codec == AV_CODEC_ID_FFVHUFF
+                           || codec == AV_CODEC_ID_MPEG2VIDEO
+                           || codec == AV_CODEC_ID_MPEG1VIDEO
+                           || codec == AV_CODEC_ID_DIRAC
+                           || codec == AV_CODEC_ID_UTVIDEO
+                           || codec == AV_CODEC_ID_DNXHD
+                           || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video)
                            || bVC1IsPTS;
 
   // Stop time is unreliable, drop it and calculate it
-  m_bCalculateStopTime   = (codec == CODEC_ID_H264 || codec == CODEC_ID_DIRAC || (codec == CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video) || bVC1IsPTS);
+  m_bCalculateStopTime   = (codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_DIRAC || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video) || bVC1IsPTS);
 
   // Real Video content has some odd timestamps
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
-  m_bRVDropBFrameTimings = (codec == CODEC_ID_RV10 || codec == CODEC_ID_RV20 || ((codec == CODEC_ID_RV30 || codec == CODEC_ID_RV40) && (!m_pCallback->IsLAVSplitter() || (bLAVInfoValid && (lavPinInfo.flags & LAV_STREAM_FLAG_RV34_MKV)))));
+  m_bRVDropBFrameTimings = (codec == AV_CODEC_ID_RV10 || codec == AV_CODEC_ID_RV20 || ((codec == AV_CODEC_ID_RV30 || codec == AV_CODEC_ID_RV40) && (!m_pCallback->IsLAVSplitter() || (bLAVInfoValid && (lavPinInfo.flags & LAV_STREAM_FLAG_RV34_MKV)))));
 
   // Enable B-Frame delay handling
   m_bBFrameDelay = !m_bFFReordering && !m_bRVDropBFrameTimings;
 
   m_bWaitingForKeyFrame = TRUE;
 
-  m_bNoBufferConsumption =    codec == CODEC_ID_MJPEGB
-                           || codec == CODEC_ID_LOCO;
+  m_bNoBufferConsumption =    codec == AV_CODEC_ID_MJPEGB
+                           || codec == AV_CODEC_ID_LOCO;
 
   m_bHasPalette = m_pAVCtx->bits_per_coded_sample <= 8 && m_pAVCtx->extradata_size && !m_pCallback->IsLAVSplitter()
-                  &&  (codec == CODEC_ID_MSVIDEO1
-                    || codec == CODEC_ID_MSRLE
-                    || codec == CODEC_ID_CINEPAK
-                    || codec == CODEC_ID_8BPS
-                    || codec == CODEC_ID_QPEG
-                    || codec == CODEC_ID_QTRLE
-                    || codec == CODEC_ID_TSCC);
+                  &&  (codec == AV_CODEC_ID_MSVIDEO1
+                    || codec == AV_CODEC_ID_MSRLE
+                    || codec == AV_CODEC_ID_CINEPAK
+                    || codec == AV_CODEC_ID_8BPS
+                    || codec == AV_CODEC_ID_QPEG
+                    || codec == AV_CODEC_ID_QTRLE
+                    || codec == AV_CODEC_ID_TSCC);
 
 #if AVCODEC_USE_DR1
   if (!m_bDXVA && m_pAVCodec->capabilities & CODEC_CAP_DR1) {
@@ -559,7 +559,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
 
   // Detect chroma and interlaced
   if (m_pAVCtx->extradata && m_pAVCtx->extradata_size) {
-    if (codec == CODEC_ID_MPEG2VIDEO) {
+    if (codec == AV_CODEC_ID_MPEG2VIDEO) {
       CMPEG2HeaderParser mpeg2Parser(extra, extralen);
       if (mpeg2Parser.hdr.valid) {
         if (mpeg2Parser.hdr.chroma < 2) {
@@ -569,7 +569,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
         }
         m_iInterlaced = mpeg2Parser.hdr.interlaced;
       }
-    } else if (codec == CODEC_ID_H264) {
+    } else if (codec == AV_CODEC_ID_H264) {
       CH264SequenceParser h264parser;
       if (bH264avc)
         h264parser.ParseNALs(extra+6, extralen-6, 2);
@@ -577,19 +577,19 @@ STDMETHODIMP CDecAvcodec::InitDecoder(CodecID codec, const CMediaType *pmt)
         h264parser.ParseNALs(extra, extralen, 0);
       if (h264parser.sps.valid)
         m_iInterlaced = h264parser.sps.interlaced;
-    } else if (codec == CODEC_ID_VC1) {
+    } else if (codec == AV_CODEC_ID_VC1) {
       CVC1HeaderParser vc1parser(extra, extralen);
       if (vc1parser.hdr.valid)
         m_iInterlaced = (vc1parser.hdr.interlaced ? -1 : 0);
     }
   }
 
-  if (codec == CODEC_ID_DNXHD)
+  if (codec == AV_CODEC_ID_DNXHD)
     m_pAVCtx->pix_fmt = PIX_FMT_YUV422P10;
-  else if (codec == CODEC_ID_FRAPS)
+  else if (codec == AV_CODEC_ID_FRAPS)
     m_pAVCtx->pix_fmt = PIX_FMT_BGR24;
 
-  if (bLAVInfoValid && codec != CODEC_ID_FRAPS)
+  if (bLAVInfoValid && codec != AV_CODEC_ID_FRAPS)
     m_pAVCtx->pix_fmt = lavPinInfo.pix_fmt;
 
   DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_iInterlaced));
@@ -625,7 +625,7 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
     m_pSwsContext = NULL;
   }
 
-  m_nCodecId = CODEC_ID_NONE;
+  m_nCodecId = AV_CODEC_ID_NONE;
 
   return S_OK;
 }
@@ -809,12 +809,12 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       pDataBuffer = (uint8_t *)buffer;
     }
 
-    if (m_nCodecId == CODEC_ID_H264) {
+    if (m_nCodecId == AV_CODEC_ID_H264) {
       BOOL bRecovered = m_h264RandomAccess.searchRecoveryPoint(pDataBuffer, buflen);
       if (!bRecovered) {
         return S_OK;
       }
-    } else if (m_nCodecId == CODEC_ID_VP8 && m_bWaitingForKeyFrame) {
+    } else if (m_nCodecId == AV_CODEC_ID_VP8 && m_bWaitingForKeyFrame) {
       if (!(pDataBuffer[0] & 1)) {
         DbgLog((LOG_TRACE, 10, L"::Decode(): Found VP8 key-frame, resuming decoding"));
         m_bWaitingForKeyFrame = FALSE;
@@ -943,9 +943,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     // This determines if a frame is artifact free and can be delivered
     // For H264 this does some wicked magic hidden away in the H264RandomAccess class
     // MPEG-2 and VC-1 just wait for a keyframe..
-    if (m_nCodecId == CODEC_ID_H264 && (bParserFrame || !m_pParser || got_picture)) {
+    if (m_nCodecId == AV_CODEC_ID_H264 && (bParserFrame || !m_pParser || got_picture)) {
       m_h264RandomAccess.judgeFrameUsability(m_pFrame, &got_picture);
-    } else if (m_nCodecId == CODEC_ID_MPEG2VIDEO || m_nCodecId == CODEC_ID_VC1 || m_nCodecId == CODEC_ID_RV30 || m_nCodecId == CODEC_ID_RV40) {
+    } else if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO || m_nCodecId == AV_CODEC_ID_VC1 || m_nCodecId == AV_CODEC_ID_RV30 || m_nCodecId == AV_CODEC_ID_RV40) {
       if (m_bWaitingForKeyFrame && got_picture) {
         if (m_pFrame->key_frame) {
           m_bWaitingForKeyFrame = FALSE;
@@ -1025,7 +1025,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->format       = map.lavpixfmt;
     pOutFrame->bpp          = map.bpp;
 
-    if (m_nCodecId == CODEC_ID_MPEG2VIDEO)
+    if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)
       pOutFrame->avgFrameDuration = GetFrameDuration();
 
     if (map.conversion) {
@@ -1089,7 +1089,7 @@ STDMETHODIMP CDecAvcodec::Flush()
   m_tcBFrameDelay[0].rtStart = m_tcBFrameDelay[0].rtStop = AV_NOPTS_VALUE;
   m_tcBFrameDelay[1].rtStart = m_tcBFrameDelay[1].rtStop = AV_NOPTS_VALUE;
 
-  if (!m_bDXVA && (m_nCodecId == CODEC_ID_H264 || m_nCodecId == CODEC_ID_MPEG2VIDEO)) {
+  if (!m_bDXVA && (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)) {
     InitDecoder(m_nCodecId, &m_pCallback->GetInputMediaType());
   }
 

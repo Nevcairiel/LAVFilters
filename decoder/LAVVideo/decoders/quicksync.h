@@ -36,7 +36,7 @@ public:
 
   // ILAVDecoder
   STDMETHODIMP Check();
-  STDMETHODIMP InitDecoder(CodecID codec, const CMediaType *pmt);
+  STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
   STDMETHODIMP Decode(IMediaSample *pSample);
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();

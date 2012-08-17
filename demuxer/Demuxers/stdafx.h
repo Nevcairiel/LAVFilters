@@ -38,7 +38,7 @@ extern "C" {
 
 #define AVFORMAT_INTERNAL_H
 typedef struct AVCodecTag {
-    enum CodecID id;
+    enum AVCodecID id;
     unsigned int tag;
 } AVCodecTag;
 

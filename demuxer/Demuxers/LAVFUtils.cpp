@@ -68,21 +68,21 @@ struct s_id_map {
 
 struct s_id_map nice_codec_names[] = {
   // Video
-  { CODEC_ID_H264, "h264" }, // XXX: Do not remove, required for custom profile/level formatting
-  { CODEC_ID_VC1, "vc-1" },  // XXX: Do not remove, required for custom profile/level formatting
-  { CODEC_ID_MPEG2VIDEO, "mpeg2" },
+  { AV_CODEC_ID_H264, "h264" }, // XXX: Do not remove, required for custom profile/level formatting
+  { AV_CODEC_ID_VC1, "vc-1" },  // XXX: Do not remove, required for custom profile/level formatting
+  { AV_CODEC_ID_MPEG2VIDEO, "mpeg2" },
   // Audio
-  { CODEC_ID_DTS, "dts" },
-  { CODEC_ID_AAC_LATM, "aac (latm)" },
+  { AV_CODEC_ID_DTS, "dts" },
+  { AV_CODEC_ID_AAC_LATM, "aac (latm)" },
   // Subs
-  { CODEC_ID_TEXT, "txt" },
-  { CODEC_ID_MOV_TEXT, "tx3g" },
-  { CODEC_ID_SRT, "srt" },
-  { CODEC_ID_HDMV_PGS_SUBTITLE, "pgs" },
-  { CODEC_ID_DVD_SUBTITLE, "vobsub" },
-  { CODEC_ID_DVB_SUBTITLE, "dvbsub" },
-  { CODEC_ID_SSA, "ssa/ass" },
-  { CODEC_ID_XSUB, "xsub" },
+  { AV_CODEC_ID_TEXT, "txt" },
+  { AV_CODEC_ID_MOV_TEXT, "tx3g" },
+  { AV_CODEC_ID_SRT, "srt" },
+  { AV_CODEC_ID_HDMV_PGS_SUBTITLE, "pgs" },
+  { AV_CODEC_ID_DVD_SUBTITLE, "vobsub" },
+  { AV_CODEC_ID_DVB_SUBTITLE, "dvbsub" },
+  { AV_CODEC_ID_SSA, "ssa/ass" },
+  { AV_CODEC_ID_XSUB, "xsub" },
 };
 
 // Uppercase the given string
@@ -97,7 +97,7 @@ static std::string tolower(const char *str) {
 
 std::string get_codec_name(AVCodecContext *pCodecCtx)
 {
-  CodecID id = pCodecCtx->codec_id;
+  AVCodecID id = pCodecCtx->codec_id;
 
   // Grab the codec
   AVCodec *p = avcodec_find_decoder(id);
@@ -114,23 +114,23 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
     }
   }
 
-  if (id == CODEC_ID_DTS && pCodecCtx->codec_tag == 0xA2) {
+  if (id == AV_CODEC_ID_DTS && pCodecCtx->codec_tag == 0xA2) {
     profile = "DTS Express";
   }
 
-  if (id == CODEC_ID_H264 && profile) {
+  if (id == AV_CODEC_ID_H264 && profile) {
     codec_name << nice_name << " " << tolower(profile);
     if (pCodecCtx->level && pCodecCtx->level != FF_LEVEL_UNKNOWN && pCodecCtx->level < 1000) {
       char l_buf[5];
       sprintf_s(l_buf, "%.1f", pCodecCtx->level / 10.0);
       codec_name << " L" << l_buf;
     }
-  } else if (id == CODEC_ID_VC1 && profile) {
+  } else if (id == AV_CODEC_ID_VC1 && profile) {
     codec_name << nice_name << " " << tolower(profile);
     if (pCodecCtx->level != FF_LEVEL_UNKNOWN) {
       codec_name << " L" << pCodecCtx->level;
     }
-  } else if (id == CODEC_ID_DTS && profile) {
+  } else if (id == AV_CODEC_ID_DTS && profile) {
     codec_name << tolower(profile);
   } else if (nice_name) {
     codec_name << nice_name;
@@ -174,19 +174,19 @@ static std::string format_flags(int flags){
   return out.str();
 }
 
-static bool show_sample_fmt(CodecID codec_id) {
+static bool show_sample_fmt(AVCodecID codec_id) {
   // PCM Codecs
   if (codec_id >= 0x10000 && codec_id < 0x12000) {
     return true;
   }
   // Lossless Codecs
-  if (codec_id == CODEC_ID_MLP
-   || codec_id == CODEC_ID_TRUEHD
-   || codec_id == CODEC_ID_FLAC
-   || codec_id == CODEC_ID_WMALOSSLESS
-   || codec_id == CODEC_ID_WAVPACK
-   || codec_id == CODEC_ID_MP4ALS
-   || codec_id == CODEC_ID_ALAC) {
+  if (codec_id == AV_CODEC_ID_MLP
+   || codec_id == AV_CODEC_ID_TRUEHD
+   || codec_id == AV_CODEC_ID_FLAC
+   || codec_id == AV_CODEC_ID_WMALOSSLESS
+   || codec_id == AV_CODEC_ID_WAVPACK
+   || codec_id == AV_CODEC_ID_MP4ALS
+   || codec_id == AV_CODEC_ID_ALAC) {
      return true;
   }
   return false;
