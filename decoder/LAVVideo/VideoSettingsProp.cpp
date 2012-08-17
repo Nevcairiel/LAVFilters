@@ -65,8 +65,8 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   BOOL bFlag;
   DWORD dwVal;
   
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetStreamAR(bFlag);
+  dwVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetStreamAR(dwVal);
 
   dwVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SOFT_TC, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetSoftTelecineMode(dwVal);
@@ -229,7 +229,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   if (SUCCEEDED(hr)) {
     SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_SETCURSEL, m_dwNumThreads, 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_bStreamAR, 0);
+    SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_StreamAR, 0);
     SendDlgItemMessage(m_Dlg, IDC_SOFT_TC, BM_SETCHECK, m_SoftTCMode, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_SETCURSEL, m_DeintFieldOrder, 0);
@@ -327,7 +327,7 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   HRESULT hr = S_OK;
   
   m_dwNumThreads    = m_pVideoSettings->GetNumThreads();
-  m_bStreamAR       = m_pVideoSettings->GetStreamAR();
+  m_StreamAR        = m_pVideoSettings->GetStreamAR();
   m_DeintFieldOrder = m_pVideoSettings->GetDeintFieldOrder();
   m_DeintAggressive = m_pVideoSettings->GetDeintAggressive();
   m_DeintForce      = m_pVideoSettings->GetDeintForce();
@@ -366,7 +366,7 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
   case WM_COMMAND:
     if (LOWORD(wParam) == IDC_STREAMAR && HIWORD(wParam) == BN_CLICKED) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (lValue != m_bStreamAR) {
+      if (lValue != m_StreamAR) {
         SetDirty();
       }
     } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_THREADS) {

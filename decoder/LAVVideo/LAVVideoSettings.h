@@ -192,14 +192,16 @@ interface ILAVVideoSettings : public IUnknown
 
   // Set wether the aspect ratio encoded in the stream should be forwarded to the renderer,
   // or the aspect ratio specified by the source filter should be kept.
-  // TRUE  = AR from the Stream
-  // FALSE = AR from the source filter
-  STDMETHOD(SetStreamAR)(BOOL bStreamAR) = 0;
+  // 0 = AR from the source filter
+  // 1 = AR from the Stream
+  // 2 = AR from stream if source is not reliable
+  STDMETHOD(SetStreamAR)(DWORD bStreamAR) = 0;
 
   // Get wether the aspect ratio encoded in the stream should be forwarded to the renderer,
   // or the aspect ratio specified by the source filter should be kept.
-  // TRUE  = AR from the Stream
-  // FALSE = AR from the source filter
+  // 0 = AR from the source filter
+  // 1 = AR from the Stream
+  // 2 = AR from stream if source is not reliable
   STDMETHOD_(BOOL,GetStreamAR)() = 0;
 
   // Configure which pixel formats are enabled for output

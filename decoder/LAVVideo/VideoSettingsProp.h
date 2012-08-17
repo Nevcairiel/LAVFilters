@@ -61,7 +61,7 @@ private:
   ILAVVideoStatus   *m_pVideoStatus;
 
   DWORD m_dwNumThreads;
-  BOOL  m_bStreamAR;
+  DWORD m_StreamAR;
   DWORD m_DeintFieldOrder;
   BOOL  m_DeintAggressive;
   BOOL  m_DeintForce;

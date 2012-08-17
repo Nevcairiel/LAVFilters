@@ -69,7 +69,7 @@ public:
   STDMETHODIMP_(BOOL) GetFormatConfiguration(LAVVideoCodec vCodec);
   STDMETHODIMP SetNumThreads(DWORD dwNum);
   STDMETHODIMP_(DWORD) GetNumThreads();
-  STDMETHODIMP SetStreamAR(BOOL bStreamAR);
+  STDMETHODIMP SetStreamAR(DWORD bStreamAR);
   STDMETHODIMP_(BOOL) GetStreamAR();
   STDMETHODIMP SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetPixelFormat(LAVOutPixFmts pixFmt);

@@ -1400,7 +1400,7 @@ STDMETHODIMP_(DWORD) CLAVVideo::GetNumThreads()
   return m_settings.NumThreads;
 }
 
-STDMETHODIMP CLAVVideo::SetStreamAR(BOOL bStreamAR)
+STDMETHODIMP CLAVVideo::SetStreamAR(DWORD bStreamAR)
 {
   m_settings.StreamAR = bStreamAR;
   return SaveSettings();
