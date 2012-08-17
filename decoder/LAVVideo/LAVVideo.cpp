@@ -1158,7 +1158,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   }
 
   if (m_settings.RemoveSoftTC == 1) {
-    if (pFrame->repeat)
+    if (pFrame->repeat == 1)
       m_nSoftTelecine = 2;
     else if (m_nSoftTelecine > 0)
       m_nSoftTelecine--;
