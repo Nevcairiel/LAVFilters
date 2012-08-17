@@ -164,6 +164,8 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.DitherMode = LAVDither_Random;
 
+  m_settings.RemoveSoftTC = 1;
+
   return S_OK;
 }
 
@@ -265,6 +267,9 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"DitherMode", hr);
   if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
 
+  dwVal = reg.ReadDWORD(L"RemoveSoftTC", hr);
+  if (SUCCEEDED(hr)) m_settings.RemoveSoftTC = dwVal;
+
   return S_OK;
 }
 
@@ -312,6 +317,7 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
     reg.WriteBOOL(L"DeintTreatAsProgressive", m_settings.DeintTreatAsProgressive);
     reg.WriteDWORD(L"DitherMode", m_settings.DitherMode);
+    reg.WriteDWORD(L"RemoveSoftTC", m_settings.RemoveSoftTC);
   }
   return S_OK;
 }
@@ -1151,16 +1157,19 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     pFrame->rtStop = pFrame->rtStart + (duration * (pFrame->repeat ? 3 : 2)  / 2);
   }
 
-  if (pFrame->repeat)
-    m_nSoftTelecine = 2;
-  else if (m_nSoftTelecine > 0)
-    m_nSoftTelecine--;
-
-  if (m_nSoftTelecine && duration < 400000) {
+  if (m_settings.RemoveSoftTC == 1) {
     if (pFrame->repeat)
-      pFrame->rtStop -= duration >> 2;
-    else
-      pFrame->rtStart -= duration >> 2;
+      m_nSoftTelecine = 2;
+    else if (m_nSoftTelecine > 0)
+      m_nSoftTelecine--;
+
+    if (m_nSoftTelecine && duration < 400000) {
+      REFERENCE_TIME rtFrameDuration = pFrame->rtStop - pFrame->rtStart;
+      if (rtFrameDuration > 400000)
+        pFrame->rtStop -= duration >> 2;
+      else if (rtFrameDuration < 400000)
+        pFrame->rtStart -= duration >> 2;
+    }
   }
 
 #if defined(DEBUG) && DEBUG_FRAME_TIMINGS
@@ -1343,7 +1352,7 @@ HRESULT CLAVVideo::SetFrameFlags(IMediaSample* pMS, LAVFrame *pFrame)
       if (pFrame->tff)
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_FIELD1FIRST;
 
-      if (pFrame->repeat)
+      if (pFrame->repeat && !m_settings.RemoveSoftTC)
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_REPEAT_FIELD;
 
       pMS2->SetProperties(sizeof(props), (BYTE*)&props);
@@ -1611,4 +1620,15 @@ STDMETHODIMP CLAVVideo::SetUseMSWMV9Decoder(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVVideo::GetUseMSWMV9Decoder()
 {
   return m_settings.bMSWMV9DMO;
+}
+
+STDMETHODIMP CLAVVideo::SetSoftTelecineMode(DWORD dwMode)
+{
+  m_settings.RemoveSoftTC = dwMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVVideo::GetSoftTelecineMode()
+{
+  return m_settings.RemoveSoftTC;
 }

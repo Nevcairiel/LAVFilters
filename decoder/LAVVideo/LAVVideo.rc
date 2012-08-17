@@ -69,7 +69,8 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     LTEXT           "LAV Video Decoder x.xx",IDC_LAVVIDEO_FOOTER,7,235,387,8,0,WS_EX_RIGHT
     GROUPBOX        "Settings",IDC_VIDEO_SETTINGS,7,7,226,102
-    CONTROL         "Use Stream Aspect Ratio",IDC_STREAMAR,"Button",BS_AUTO3STATE | WS_TABSTOP,109,24,93,10
+    CONTROL         "Use Stream Aspect Ratio",IDC_STREAMAR,"Button",BS_AUTO3STATE | WS_TABSTOP,109,24,100,10
+    CONTROL         "Remove Soft-Telecine",IDC_SOFT_TC,"Button",BS_AUTO3STATE | WS_TABSTOP,109,38,100,10
     COMBOBOX        IDC_THREADS,15,30,75,200,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Threads for Multi-Threading",IDC_LBL_MULTITHREAD,14,20,91,8
     LTEXT           "Settings for Deinterlacing\nApplies to Hardware+Software+Renderer Deinterlacing",IDC_DEINT_SETTINGS,12,48,184,16

@@ -79,6 +79,8 @@ private:
   BOOL  m_DeintProgressive;
 
   DWORD m_DitherMode;
+
+  DWORD m_SoftTCMode;
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage
