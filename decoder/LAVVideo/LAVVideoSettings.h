@@ -202,7 +202,7 @@ interface ILAVVideoSettings : public IUnknown
   // 0 = AR from the source filter
   // 1 = AR from the Stream
   // 2 = AR from stream if source is not reliable
-  STDMETHOD_(BOOL,GetStreamAR)() = 0;
+  STDMETHOD_(DWORD,GetStreamAR)() = 0;
 
   // Configure which pixel formats are enabled for output
   // If pixFmt is invalid, Get will return FALSE and Set E_FAIL

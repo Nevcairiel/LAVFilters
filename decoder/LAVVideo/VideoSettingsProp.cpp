@@ -65,10 +65,10 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   BOOL bFlag;
   DWORD dwVal;
   
-  dwVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetStreamAR(dwVal);
 
-  dwVal = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SOFT_TC, BM_GETCHECK, 0, 0);
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SOFT_TC, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetSoftTelecineMode(dwVal);
 
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);

@@ -1406,7 +1406,7 @@ STDMETHODIMP CLAVVideo::SetStreamAR(DWORD bStreamAR)
   return SaveSettings();
 }
 
-STDMETHODIMP_(BOOL) CLAVVideo::GetStreamAR()
+STDMETHODIMP_(DWORD) CLAVVideo::GetStreamAR()
 {
   return m_settings.StreamAR;
 }

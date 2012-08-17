@@ -70,7 +70,7 @@ public:
   STDMETHODIMP SetNumThreads(DWORD dwNum);
   STDMETHODIMP_(DWORD) GetNumThreads();
   STDMETHODIMP SetStreamAR(DWORD bStreamAR);
-  STDMETHODIMP_(BOOL) GetStreamAR();
+  STDMETHODIMP_(DWORD) GetStreamAR();
   STDMETHODIMP SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetPixelFormat(LAVOutPixFmts pixFmt);
   STDMETHODIMP SetRGBOutputRange(DWORD dwRange);
