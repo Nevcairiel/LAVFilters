@@ -58,7 +58,10 @@ unsigned int CByteParser::BitRead(unsigned int numBits, bool peek)
 
 size_t CByteParser::RemainingBits() const
 {
-  return get_bits_left(m_gbCtx);
+  int bits = get_bits_left(m_gbCtx);
+  if (bits < 0)
+    return 0;
+  return (size_t)bits;
 }
 
 size_t CByteParser::Pos() const
