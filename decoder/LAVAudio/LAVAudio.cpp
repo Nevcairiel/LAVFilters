@@ -2013,8 +2013,13 @@ HRESULT CLAVAudio::QueueOutput(BufferDetails &buffer)
   else if (m_OutputQueue.rtStart == AV_NOPTS_VALUE && buffer.rtStart != AV_NOPTS_VALUE)
     m_OutputQueue.rtStart = buffer.rtStart - (REFERENCE_TIME)((double)m_OutputQueue.nSamples / m_OutputQueue.dwSamplesPerSec * 10000000.0);
 
+  // Try to retain the buffer, if possible
+  if (m_OutputQueue.nSamples == 0) {
+    FFSWAP(GrowableArray<BYTE>*, m_OutputQueue.bBuffer, buffer.bBuffer);
+  } else {
+    m_OutputQueue.bBuffer->Append(buffer.bBuffer);
+  }
   m_OutputQueue.nSamples += buffer.nSamples;
-  m_OutputQueue.bBuffer->Append(buffer.bBuffer);
 
   buffer.bBuffer->SetSize(0);
   buffer.nSamples = 0;
