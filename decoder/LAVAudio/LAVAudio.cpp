@@ -1826,9 +1826,6 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
     // Channel re-mapping and sample format conversion
     if (got_frame && m_pFrame->nb_samples > 0) {
-      const DWORD idx_start = out.bBuffer->GetCount();
-      const DWORD allocated = out.bBuffer->GetAllocated();
-
       out.wChannels = m_pAVCtx->channels;
       out.dwSamplesPerSec = m_pAVCtx->sample_rate;
       if (m_pAVCtx->channel_layout)
@@ -1842,31 +1839,31 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
 
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
-        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
+        out.bBuffer->Allocate(dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_U8;
         break;
       case AV_SAMPLE_FMT_S16:
-        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
+        out.bBuffer->Allocate(dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_16;
         break;
       case AV_SAMPLE_FMT_S32:
-        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
+        out.bBuffer->Allocate(dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_32;
         out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
         break;
       case AV_SAMPLE_FMT_FLT:
-        out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
+        out.bBuffer->Allocate(dwPCMSizeAligned);
         out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
         out.sfFormat = SampleFormat_FP32;
         break;
       case AV_SAMPLE_FMT_DBL:
         {
-          out.bBuffer->Allocate(allocated + (dwPCMSizeAligned / 2));
-          out.bBuffer->SetSize(idx_start + (dwPCMSize / 2));
-          float *pDataOut = (float *)(out.bBuffer->Ptr() + idx_start);
+          out.bBuffer->Allocate(dwPCMSizeAligned / 2);
+          out.bBuffer->SetSize(dwPCMSize / 2);
+          float *pDataOut = (float *)(out.bBuffer->Ptr());
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
@@ -1880,9 +1877,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
       // Planar Formats
       case AV_SAMPLE_FMT_U8P:
         {
-          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
-          out.bBuffer->SetSize(idx_start + dwPCMSize);
-          uint8_t *pOut = (uint8_t *)(out.bBuffer->Ptr() + idx_start);
+          out.bBuffer->Allocate(dwPCMSizeAligned);
+          out.bBuffer->SetSize(dwPCMSize);
+          uint8_t *pOut = (uint8_t *)(out.bBuffer->Ptr());
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
@@ -1894,9 +1891,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_S16P:
         {
-          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
-          out.bBuffer->SetSize(idx_start + dwPCMSize);
-          int16_t *pOut = (int16_t *)(out.bBuffer->Ptr() + idx_start);
+          out.bBuffer->Allocate(dwPCMSizeAligned);
+          out.bBuffer->SetSize(dwPCMSize);
+          int16_t *pOut = (int16_t *)(out.bBuffer->Ptr());
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
@@ -1908,9 +1905,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_S32P:
         {
-          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
-          out.bBuffer->SetSize(idx_start + dwPCMSize);
-          int32_t *pOut = (int32_t *)(out.bBuffer->Ptr() + idx_start);
+          out.bBuffer->Allocate(dwPCMSizeAligned);
+          out.bBuffer->SetSize(dwPCMSize);
+          int32_t *pOut = (int32_t *)(out.bBuffer->Ptr());
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
@@ -1923,9 +1920,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_FLTP:
         {
-          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
-          out.bBuffer->SetSize(idx_start + dwPCMSize);
-          float *pOut = (float *)(out.bBuffer->Ptr() + idx_start);
+          out.bBuffer->Allocate(dwPCMSizeAligned);
+          out.bBuffer->SetSize(dwPCMSize);
+          float *pOut = (float *)(out.bBuffer->Ptr());
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
@@ -1937,9 +1934,9 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         break;
       case AV_SAMPLE_FMT_DBLP:
         {
-          out.bBuffer->Allocate(allocated + dwPCMSizeAligned);
-          out.bBuffer->SetSize(idx_start + (dwPCMSize / 2));
-          float *pOut = (float *)(out.bBuffer->Ptr() + idx_start);
+          out.bBuffer->Allocate(dwPCMSizeAligned);
+          out.bBuffer->SetSize(dwPCMSize / 2);
+          float *pOut = (float *)(out.bBuffer->Ptr());
 
           for (size_t i = 0; i < out.nSamples; ++i) {
             for(int ch = 0; ch < out.wChannels; ++ch) {
