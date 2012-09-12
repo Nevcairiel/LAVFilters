@@ -108,9 +108,6 @@ public:
   STDMETHODIMP SetUseMSWMV9Decoder(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetUseMSWMV9Decoder();
 
-  STDMETHODIMP SetSoftTelecineMode(DWORD dwMode);
-  STDMETHODIMP_(DWORD) GetSoftTelecineMode();
-
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
 
@@ -184,7 +181,6 @@ private:
 
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;
-  int                  m_nSoftTelecine;
 
   BOOL                 m_bForceInputAR;
   BOOL                 m_bSendMediaType;
@@ -241,7 +237,6 @@ private:
     DWORD SWDeintOutput;
     BOOL DeintTreatAsProgressive;
     DWORD DitherMode;
-    DWORD RemoveSoftTC;
   } m_settings;
 
 #ifdef DEBUG

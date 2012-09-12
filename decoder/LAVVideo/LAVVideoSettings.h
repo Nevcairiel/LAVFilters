@@ -303,14 +303,6 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get if the MS WMV9 DMO Decoder should be used for VC-1/WMV3
   STDMETHOD_(BOOL, GetUseMSWMV9Decoder)() = 0;
-
-  // Set how Soft Telecine is handled
-  // 0 - pass to renderer, 1 - remove flags and smooth timestamps, 2 - only remove flags
-  STDMETHOD(SetSoftTelecineMode)(DWORD dwMode) = 0;
-
-  // Get how Soft Telecine is handled
-  // 0 - pass to renderer, 1 - remove flags and smooth timestamps, 2 - only remove flags
-  STDMETHOD_(DWORD,GetSoftTelecineMode)() = 0;
 };
 
 // LAV Video status interface

@@ -68,9 +68,6 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetStreamAR(dwVal);
 
-  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SOFT_TC, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetSoftTelecineMode(dwVal);
-
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_GETCURSEL, 0, 0);
   m_pVideoSettings->SetNumThreads(dwVal);
 
@@ -189,7 +186,6 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   addHint(IDC_THREADS, L"Enable Multi-Threading for codecs that support it.\nAuto will automatically use the maximum number of threads suitable for your CPU. Using 1 thread disables multi-threading.\n\nMT decoding is supported for H264, MPEG2, MPEG4, VP8, VP3/Theora, DV and HuffYUV");
 
   addHint(IDC_STREAMAR, L"Checked - Stream AR will be used.\nUnchecked - Frame AR will not be used.\nIndeterminate (Auto) - Stream AR will not be used on files with a container AR (recommended).");
-  addHint(IDC_SOFT_TC, L"Unchecked - Soft Telecine will be handled by the renderer.\nChecked - Soft Telecine will be removed and timestamps adjusted.\nIndeterminate (Auto) - Soft Telecine flags will be removed, but timestamps left alone.");
 
   WCHAR hwAccelNone[] = L"None";
   WCHAR hwAccelCUDA[] = L"NVIDIA CUVID";
@@ -230,7 +226,6 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_SETCURSEL, m_dwNumThreads, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_StreamAR, 0);
-    SendDlgItemMessage(m_Dlg, IDC_SOFT_TC, BM_SETCHECK, m_SoftTCMode, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_SETCURSEL, m_DeintFieldOrder, 0);
 
@@ -351,8 +346,6 @@ HRESULT CLAVVideoSettingsProp::LoadData()
 
   m_DeintProgressive = m_pVideoSettings->GetDeintTreatAsProgressive();
   m_DitherMode = m_pVideoSettings->GetDitherMode();
-
-  m_SoftTCMode = m_pVideoSettings->GetSoftTelecineMode();
 
   return hr;
 }
@@ -568,11 +561,6 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_DITHER_RANDOM && HIWORD(wParam) == BN_CLICKED) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (lValue != (m_DitherMode == LAVDither_Random)) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_SOFT_TC && HIWORD(wParam) == BN_CLICKED) {
-      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (lValue != m_SoftTCMode) {
         SetDirty();
       }
     }

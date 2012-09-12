@@ -57,7 +57,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFlushing(FALSE)
   , m_evFilterInput(TRUE)
   , m_bStreamARBlacklisted(FALSE)
-  , m_nSoftTelecine(0)
 {
   m_pInput = new CTransformInputPin(TEXT("CTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -164,8 +163,6 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.DitherMode = LAVDither_Random;
 
-  m_settings.RemoveSoftTC = 1;
-
   return S_OK;
 }
 
@@ -267,9 +264,6 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"DitherMode", hr);
   if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
 
-  dwVal = reg.ReadDWORD(L"RemoveSoftTC", hr);
-  if (SUCCEEDED(hr)) m_settings.RemoveSoftTC = dwVal;
-
   return S_OK;
 }
 
@@ -317,7 +311,6 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
     reg.WriteBOOL(L"DeintTreatAsProgressive", m_settings.DeintTreatAsProgressive);
     reg.WriteDWORD(L"DitherMode", m_settings.DitherMode);
-    reg.WriteDWORD(L"RemoveSoftTC", m_settings.RemoveSoftTC);
   }
   return S_OK;
 }
@@ -673,7 +666,6 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
     avfilter_graph_free(&m_pFilterGraph);
 
   m_rtPrevStart = m_rtPrevStop = 0;
-  m_nSoftTelecine = 0;
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
@@ -1134,42 +1126,27 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     return S_FALSE;
   }
 
-  REFERENCE_TIME duration = 0;
-
-  CMediaType &mt = m_pOutput->CurrentMediaType();
-  videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
-
-  REFERENCE_TIME decoderDuration = m_Decoder.GetFrameDuration();
-  if (pFrame->avgFrameDuration && pFrame->avgFrameDuration != AV_NOPTS_VALUE) {
-    duration = pFrame->avgFrameDuration;
-  } else if (!duration && decoderDuration) {
-    duration = decoderDuration;
-  } else if(!duration) {
-    duration = 1;
-  }
-
   if (pFrame->rtStart == AV_NOPTS_VALUE) {
     pFrame->rtStart = m_rtPrevStop;
     pFrame->rtStop = AV_NOPTS_VALUE;
   }
 
   if (pFrame->rtStop == AV_NOPTS_VALUE) {
-    pFrame->rtStop = pFrame->rtStart + (duration * (pFrame->repeat ? 3 : 2)  / 2);
-  }
+    REFERENCE_TIME duration = 0;
 
-  if (m_settings.RemoveSoftTC == 1) {
-    if (pFrame->repeat == 1)
-      m_nSoftTelecine = 2;
-    else if (m_nSoftTelecine > 0)
-      m_nSoftTelecine--;
+    CMediaType &mt = m_pOutput->CurrentMediaType();
+    videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
 
-    if (m_nSoftTelecine && duration < 400000) {
-      REFERENCE_TIME rtFrameDuration = pFrame->rtStop - pFrame->rtStart;
-      if (rtFrameDuration > 400000)
-        pFrame->rtStop -= duration >> 2;
-      else if (rtFrameDuration < 400000)
-        pFrame->rtStart -= duration >> 2;
+    REFERENCE_TIME decoderDuration = m_Decoder.GetFrameDuration();
+    if (pFrame->avgFrameDuration && pFrame->avgFrameDuration != AV_NOPTS_VALUE) {
+      duration = pFrame->avgFrameDuration;
+    } else if (!duration && decoderDuration) {
+      duration = decoderDuration;
+    } else if(!duration) {
+      duration = 1;
     }
+
+    pFrame->rtStop = pFrame->rtStart + (duration * (pFrame->repeat ? 3 : 2)  / 2);
   }
 
 #if defined(DEBUG) && DEBUG_FRAME_TIMINGS
@@ -1352,7 +1329,7 @@ HRESULT CLAVVideo::SetFrameFlags(IMediaSample* pMS, LAVFrame *pFrame)
       if (pFrame->tff)
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_FIELD1FIRST;
 
-      if (pFrame->repeat && !m_settings.RemoveSoftTC)
+      if (pFrame->repeat)
         props.dwTypeSpecificFlags |= AM_VIDEO_FLAG_REPEAT_FIELD;
 
       pMS2->SetProperties(sizeof(props), (BYTE*)&props);
@@ -1620,15 +1597,4 @@ STDMETHODIMP CLAVVideo::SetUseMSWMV9Decoder(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVVideo::GetUseMSWMV9Decoder()
 {
   return m_settings.bMSWMV9DMO;
-}
-
-STDMETHODIMP CLAVVideo::SetSoftTelecineMode(DWORD dwMode)
-{
-  m_settings.RemoveSoftTC = dwMode;
-  return SaveSettings();
-}
-
-STDMETHODIMP_(DWORD) CLAVVideo::GetSoftTelecineMode()
-{
-  return m_settings.RemoveSoftTC;
 }
