@@ -31,6 +31,8 @@
 #include "ISpecifyPropertyPages2.h"
 #include "SynchronizedQueue.h"
 
+#include "subtitles/LAVSubtitleConsumer.h"
+
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
@@ -209,6 +211,8 @@ private:
 
   BOOL                 m_LAVPinInfoValid;
   LAVPinInfo           m_LAVPinInfo;
+
+  CLAVSubtitleConsumer *m_SubtitleConsumer;
 
   BOOL                 m_bMTFiltering;
   CAMEvent             m_evFilterInput;

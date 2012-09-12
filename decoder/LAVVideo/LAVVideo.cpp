@@ -104,6 +104,10 @@ CLAVVideo::~CLAVVideo()
     avfilter_graph_free(&m_pFilterGraph);
   m_pFilterBufferSrc = NULL;
   m_pFilterBufferSink = NULL;
+
+  if (m_SubtitleConsumer)
+    m_SubtitleConsumer->DisconnectProvider();
+  SafeRelease(&m_SubtitleConsumer);
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::IsVistaOrNewer()
@@ -1259,6 +1263,14 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
       return E_FAIL;
     }
 
+    // Check if we are doing RGB output
+    BOOL bRGBOut = (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32);
+    // And blend subtitles if we're on YUV output before blending (because the output YUV formats are more complicated to handle)
+    if (m_SubtitleConsumer) {
+      m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
+      if (!bRGBOut)
+        m_SubtitleConsumer->ProcessFrame(pFrame->format, pFrame->bpp, pFrame->width, pFrame->height, pFrame->data, pFrame->stride);
+    }
   #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
     LARGE_INTEGER frequency, start, end;
     QueryPerformanceFrequency(&frequency);
@@ -1272,6 +1284,22 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
     DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
   #endif
+
+    // .. and if we do RGB conversion, blend after the conversion, for improved quality
+    if (bRGBOut && m_SubtitleConsumer) {
+      int strideBytes = pBIH->biWidth;
+      LAVPixelFormat pixFmt;
+      if (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32) {
+        pixFmt = LAVPixFmt_RGB32;
+        strideBytes *= 4;
+      } else {
+        pixFmt = LAVPixFmt_RGB24;
+        strideBytes *= 3;
+      }
+      BYTE *data[4] = { pDataOut, 0, 0, 0};
+      int stride[4] = { strideBytes, 0, 0, 0};
+      m_SubtitleConsumer->ProcessFrame(pixFmt, pFrame->bpp, pFrame->width, pFrame->height, data, stride);
+    }
 
     if ((mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) && pBIH->biHeight > 0) {
       int bpp = (mt.subtype == MEDIASUBTYPE_RGB32) ? 4 : 3;
