@@ -100,7 +100,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 
   av_register_all();
 
-  m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
+  m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
     *phr = E_OUTOFMEMORY;
   }
@@ -1468,7 +1468,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     return S_OK;
   }
 
-  (static_cast<CDeCSSInputPin*>(m_pInput))->StripPacket(pDataIn, len);
+  (static_cast<CDeCSSTransformInputPin*>(m_pInput))->StripPacket(pDataIn, len);
 
   REFERENCE_TIME rtStart = _I64_MIN, rtStop = _I64_MIN;
   hr = pIn->GetTime(&rtStart, &rtStop);

@@ -31,11 +31,11 @@
 #include "../DShowUtil.h"
 
 //
-// CDeCSSInputPin
+// CDeCSSPinHelper
 //
 
-CDeCSSInputPin::CDeCSSInputPin(TCHAR* pObjectName, CTransformFilter* pFilter, HRESULT* phr, LPWSTR pName)
-  : CTransformInputPin(pObjectName, pFilter, phr, pName)
+CDeCSSPinHelper::CDeCSSPinHelper(CBaseInputPin *pPin)
+  : m_BasePin(pPin)
 {
   m_varient = -1;
   memset(m_Challenge, 0, sizeof(m_Challenge));
@@ -44,24 +44,15 @@ CDeCSSInputPin::CDeCSSInputPin(TCHAR* pObjectName, CTransformFilter* pFilter, HR
   memset(m_TitleKey, 0, sizeof(m_TitleKey));
 }
 
-STDMETHODIMP CDeCSSInputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
-{
-  CheckPointer(ppv, E_POINTER);
-
-  return
-    QI(IKsPropertySet)
-    __super::NonDelegatingQueryInterface(riid, ppv);
-}
-
-// IMemInputPin
-
-STDMETHODIMP CDeCSSInputPin::Receive(IMediaSample* pSample)
+void CDeCSSPinHelper::Decrypt(IMediaSample* pSample)
 {
   long len = pSample->GetActualDataLength();
 
   BYTE* p = NULL;
   if(SUCCEEDED(pSample->GetPointer(&p)) && len > 0) {
-    if(m_mt.majortype == MEDIATYPE_DVD_ENCRYPTED_PACK && len == 2048 && (p[0x14]&0x30)) {
+    AM_MEDIA_TYPE mt;
+    m_BasePin->ConnectionMediaType(&mt);
+    if(mt.majortype == MEDIATYPE_DVD_ENCRYPTED_PACK && len == 2048 && (p[0x14]&0x30)) {
       CSSdescramble(p, m_TitleKey);
       p[0x14] &= ~0x30;
 
@@ -77,17 +68,17 @@ STDMETHODIMP CDeCSSInputPin::Receive(IMediaSample* pSample)
         pMS2->Release();
       }
     }
+    FreeMediaType(mt);
   }
-
-  HRESULT hr = Transform(pSample);
-
-  return hr == S_OK ? __super::Receive(pSample) :
-    hr == S_FALSE ? S_OK : hr;
 }
 
-void CDeCSSInputPin::StripPacket(BYTE*& p, long& len)
+void CDeCSSPinHelper::StripPacket(BYTE*& p, long& len)
 {
-  GUID majortype = m_mt.majortype;
+  AM_MEDIA_TYPE mt;
+  m_BasePin->ConnectionMediaType(&mt);
+  GUID majortype = mt.majortype;
+  GUID subtype = mt.subtype;
+  FreeMediaType(mt);
 
   if(majortype == MEDIATYPE_MPEG2_PACK || majortype == MEDIATYPE_DVD_ENCRYPTED_PACK) {
     if(len > 0 && *(DWORD*)p == 0xba010000) { // MEDIATYPE_*_PACK
@@ -158,11 +149,11 @@ void CDeCSSInputPin::StripPacket(BYTE*& p, long& len)
         if(ps1) {
           len--;
           p++;
-          if(m_mt.subtype == MEDIASUBTYPE_DVD_LPCM_AUDIO) {
+          if(subtype == MEDIASUBTYPE_DVD_LPCM_AUDIO) {
             len -= 6;
             p += 6;
-          } else if(m_mt.subtype == MEDIASUBTYPE_DOLBY_AC3 || m_mt.subtype == FOURCCMap(0x2000)
-            || m_mt.subtype == MEDIASUBTYPE_DTS || m_mt.subtype == FOURCCMap(0x2001)) {
+          } else if(subtype == MEDIASUBTYPE_DOLBY_AC3 || subtype == FOURCCMap(0x2000)
+            || subtype == MEDIASUBTYPE_DTS || subtype == FOURCCMap(0x2001)) {
               len -= 3;
               p += 3;
           }
@@ -183,7 +174,7 @@ void CDeCSSInputPin::StripPacket(BYTE*& p, long& len)
 
 // IKsPropertySet
 
-STDMETHODIMP CDeCSSInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength)
+STDMETHODIMP CDeCSSPinHelper::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength)
 {
   if(PropSet != AM_KSPROPSETID_CopyProt) {
     return E_NOTIMPL;
@@ -281,7 +272,7 @@ STDMETHODIMP CDeCSSInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData
   return S_OK;
 }
 
-STDMETHODIMP CDeCSSInputPin::Get(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength, ULONG* pBytesReturned)
+STDMETHODIMP CDeCSSPinHelper::Get(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength, ULONG* pBytesReturned)
 {
   if(PropSet != AM_KSPROPSETID_CopyProt) {
     return E_NOTIMPL;
@@ -328,7 +319,7 @@ STDMETHODIMP CDeCSSInputPin::Get(REFGUID PropSet, ULONG Id, LPVOID pInstanceData
   return S_OK;
 }
 
-STDMETHODIMP CDeCSSInputPin::QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport)
+STDMETHODIMP CDeCSSPinHelper::QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport)
 {
   if(PropSet != AM_KSPROPSETID_CopyProt) {
     return E_NOTIMPL;
@@ -364,4 +355,32 @@ STDMETHODIMP CDeCSSInputPin::QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pT
   }
 
   return S_OK;
+}
+
+//
+// CDeCSSTransformInputPin
+//
+
+#pragma warning(push)
+#pragma warning(disable:4355)
+CDeCSSTransformInputPin::CDeCSSTransformInputPin(TCHAR* pObjectName, CTransformFilter* pFilter, HRESULT* phr, LPWSTR pName)
+  : CTransformInputPin(pObjectName, pFilter, phr, pName)
+  , CDeCSSPinHelper(static_cast<CBaseInputPin*>(this))
+{
+}
+#pragma warning(pop)
+
+STDMETHODIMP CDeCSSTransformInputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+{
+  CheckPointer(ppv, E_POINTER);
+
+  return
+    QI(IKsPropertySet)
+    __super::NonDelegatingQueryInterface(riid, ppv);
+}
+
+STDMETHODIMP CDeCSSTransformInputPin::Receive(IMediaSample* pSample)
+{
+  Decrypt(pSample);
+  return __super::Receive(pSample);
 }

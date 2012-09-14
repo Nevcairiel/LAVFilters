@@ -63,7 +63,7 @@ public:
 
     // DVD Stripping
     long nSize = pSample->GetActualDataLength();
-    (static_cast<CDeCSSInputPin*>(m_pCallback->GetInputPin()))->StripPacket(pData, nSize);
+    (static_cast<CDeCSSTransformInputPin*>(m_pCallback->GetInputPin()))->StripPacket(pData, nSize);
 
     return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK);
   }

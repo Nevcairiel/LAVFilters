@@ -59,7 +59,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_evFilterInput(TRUE)
   , m_bStreamARBlacklisted(FALSE)
 {
-  m_pInput = new CDeCSSInputPin(TEXT("CDeCSSInputPin"), this, phr, L"Input");
+  m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
     *phr = E_OUTOFMEMORY;
   }
