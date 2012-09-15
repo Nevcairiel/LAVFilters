@@ -32,6 +32,7 @@
 #include "SynchronizedQueue.h"
 
 #include "subtitles/LAVSubtitleConsumer.h"
+#include "subtitles/LAVVideoSubtitleInputPin.h"
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
@@ -129,6 +130,9 @@ public:
   HRESULT BreakConnect(PIN_DIRECTION dir);
   HRESULT CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin);
 
+  int GetPinCount();
+  CBasePin* GetPin(int n);
+
   // ILAVVideoCallback
   STDMETHODIMP AllocateFrame(LAVFrame **ppFrame);
   STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);
@@ -212,6 +216,7 @@ private:
   BOOL                 m_LAVPinInfoValid;
   LAVPinInfo           m_LAVPinInfo;
 
+  CLAVVideoSubtitleInputPin *m_pSubtitleInput;
   CLAVSubtitleConsumer *m_SubtitleConsumer;
 
   BOOL                 m_bMTFiltering;

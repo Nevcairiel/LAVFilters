@@ -147,6 +147,9 @@
     <ClCompile Include="subtitles\blend\blend_generic.cpp">
       <Filter>Source Files\subtitles\blend</Filter>
     </ClCompile>
+    <ClCompile Include="subtitles\LAVVideoSubtitleInputPin.cpp">
+      <Filter>Source Files\subtitles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -234,6 +237,9 @@
       <Filter>Header Files\subtitles</Filter>
     </ClInclude>
     <ClInclude Include="subtitles\LAVSubtitleConsumer.h">
+      <Filter>Header Files\subtitles</Filter>
+    </ClInclude>
+    <ClInclude Include="subtitles\LAVVideoSubtitleInputPin.h">
       <Filter>Header Files\subtitles</Filter>
     </ClInclude>
   </ItemGroup>

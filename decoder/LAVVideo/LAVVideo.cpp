@@ -58,6 +58,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFlushing(FALSE)
   , m_evFilterInput(TRUE)
   , m_bStreamARBlacklisted(FALSE)
+  , m_pSubtitleInput(NULL)
 {
   *phr = S_OK;
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
@@ -66,6 +67,8 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   m_pOutput = new CVideoOutputPin(TEXT("CVideoOutputPin"), this, phr, L"Output");
   ASSERT(SUCCEEDED(*phr));
 
+  m_pSubtitleInput = new CLAVVideoSubtitleInputPin(TEXT("CLAVVideoSubtitleInputPin"), this, &m_csFilter, phr, L"Subtitle Input");
+  ASSERT(SUCCEEDED(*phr));
 
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
 
@@ -99,6 +102,8 @@ CLAVVideo::~CLAVVideo()
   if (m_SubtitleConsumer)
     m_SubtitleConsumer->DisconnectProvider();
   SafeRelease(&m_SubtitleConsumer);
+
+  SAFE_DELETE(m_pSubtitleInput);
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::IsVistaOrNewer()
@@ -389,6 +394,21 @@ STDMETHODIMP_(LPWSTR) CLAVVideo::GetFileExtension()
 }
 
 // CTransformFilter
+
+int CLAVVideo::GetPinCount()
+{
+  if (m_pSubtitleInput)
+    return 3;
+  return 2;
+}
+
+CBasePin* CLAVVideo::GetPin(int n)
+{
+  if (n == 2)
+    return m_pSubtitleInput;
+  return __super::GetPin(n);
+}
+
 HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 {
   for(int i = 0; i < sudPinTypesInCount; i++) {
