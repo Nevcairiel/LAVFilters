@@ -20,7 +20,7 @@
 #include "stdafx.h"
 #include "LAVVideoSubtitleInputPin.h"
 
-#include <dvdmedia.h>
+#include "moreuuids.h"
 
 typedef struct {
   const CLSID*        clsMajorType;
@@ -62,11 +62,46 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::NonDelegatingQueryInterface(REFIID riid,
 HRESULT CLAVVideoSubtitleInputPin::CheckMediaType(const CMediaType *mtIn)
 {
   for(int i = 0; i < countof(lav_subtitle_codecs); i++) {
-    if(*lav_subtitle_codecs[i].clsMajorType == mtIn->majortype && *lav_subtitle_codecs[i].clsMinorType == mtIn->subtype) {
-        return S_OK;
+    if(*lav_subtitle_codecs[i].clsMajorType == mtIn->majortype && *lav_subtitle_codecs[i].clsMinorType == mtIn->subtype
+      && (mtIn->formattype == FORMAT_SubtitleInfo || mtIn->formattype == FORMAT_MPEG2_VIDEO)) {
+      return S_OK;
     }
   }
   return VFW_E_TYPE_NOT_ACCEPTED;
+}
+
+HRESULT CLAVVideoSubtitleInputPin::SetMediaType(const CMediaType *pmt)
+{
+  ASSERT(m_pConsumer);
+  SafeRelease(&m_pProvider);
+
+  AVCodecID codecId = AV_CODEC_ID_NONE;
+  for(int i = 0; i < countof(lav_subtitle_codecs); i++) {
+    if(*lav_subtitle_codecs[i].clsMajorType == pmt->majortype && *lav_subtitle_codecs[i].clsMinorType == pmt->subtype) {
+      codecId = lav_subtitle_codecs[i].nFFCodec;
+    }
+  }
+
+  if (codecId == AV_CODEC_ID_NONE)
+    return VFW_E_TYPE_NOT_ACCEPTED;
+
+  m_pProvider = new CLAVSubtitleProvider(m_pConsumer);
+  m_pProvider->AddRef();
+  HRESULT hr = m_pProvider->InitDecoder(pmt, codecId);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"Subtitle Decoder Init failed...."));
+    return hr;
+  }
+  return __super::SetMediaType(pmt);
+}
+
+HRESULT CLAVVideoSubtitleInputPin::BreakConnect()
+{
+  if (m_pProvider) {
+    m_pProvider->DisconnectConsumer();
+    SafeRelease(&m_pProvider);
+  }
+  return __super::BreakConnect();
 }
 
 HRESULT CLAVVideoSubtitleInputPin::SetSubtitleConsumer(ISubRenderConsumer *pConsumer)
@@ -80,16 +115,18 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Receive(IMediaSample* pSample)
   CAutoLock lock(&m_csReceive);
   Decrypt(pSample);
 
+  ASSERT(m_pProvider);
+
   HRESULT hr = CBaseInputPin::Receive(pSample);
   if (hr == S_OK) {
-
+    DbgLog((LOG_TRACE, 10, L"Subtitle Packet of size: %d", pSample->GetActualDataLength()));
+    m_pProvider->Decode(pSample);
   }
 
   return hr;
 }
 
 // IKsPropertySet
-
 STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength)
 {
   if (PropSet != AM_KSPROPSETID_DvdSubPic) {

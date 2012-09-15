@@ -38,6 +38,8 @@ public:
 
   // CBasePin
   HRESULT CheckMediaType(const CMediaType *mtIn);
+  HRESULT SetMediaType(const CMediaType *pmt);
+  HRESULT BreakConnect();
 
   HRESULT SetSubtitleConsumer(ISubRenderConsumer *pConsumer);
 
