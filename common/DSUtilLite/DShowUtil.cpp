@@ -590,6 +590,10 @@ void getExtraData(const BYTE *format, const GUID *formattype, const size_t forma
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)format;
     extraposition = (BYTE *)mp2vi->dwSequenceHeader;
     extralength   = min(mp2vi->cbSequenceHeader, formatlen - FIELD_OFFSET(MPEG2VIDEOINFO, dwSequenceHeader[0]));
+  } else if (*formattype == FORMAT_SubtitleInfo) {
+    SUBTITLEINFO *sub = (SUBTITLEINFO *)format;
+    extraposition = format + sub->dwOffset;
+    extralength   = formatlen - sub->dwOffset;
   }
 
   if (extra && extralength)
