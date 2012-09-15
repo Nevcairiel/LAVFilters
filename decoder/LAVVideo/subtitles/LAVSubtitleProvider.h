@@ -32,7 +32,7 @@ typedef struct LAVSubtitleProviderContext {
 class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown
 {
 public:
-  CLAVSubtitleProvider(void);
+  CLAVSubtitleProvider(ISubRenderConsumer *pConsumer);
   ~CLAVSubtitleProvider(void);
   DECLARE_IUNKNOWN;
   DECLARE_ISUBRENDEROPTIONS;

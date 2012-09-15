@@ -28,14 +28,21 @@ static const SubRenderOption options[] = {
   { 0 }
 };
 
-CLAVSubtitleProvider::CLAVSubtitleProvider(void)
+CLAVSubtitleProvider::CLAVSubtitleProvider(ISubRenderConsumer *pConsumer)
   : CSubRenderOptionsImpl(::options, &context)
   , CUnknown(L"CLAVSubtitleProvider", NULL)
-  , m_pConsumer(NULL)
+  , m_pConsumer(pConsumer)
 {
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
   context.version = TEXT(LAV_VERSION_STR);
+
+  ASSERT(m_pConsumer);
+
+  AddRef();
+
+  m_pConsumer->AddRef();
+  m_pConsumer->Connect(this);
 }
 
 CLAVSubtitleProvider::~CLAVSubtitleProvider(void)
