@@ -39,10 +39,15 @@ public:
   // CBasePin
   HRESULT CheckMediaType(const CMediaType *mtIn);
 
-  HRESULT CreateSubtitleProvider(ISubRenderConsumer *pConsumer);
+  HRESULT SetSubtitleConsumer(ISubRenderConsumer *pConsumer);
+
+  // KsPropertySet
+  STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength);
+	STDMETHODIMP QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport);
 
 protected:
   CCritSec m_csReceive;
 
+  ISubRenderConsumer   *m_pConsumer;
   CLAVSubtitleProvider *m_pProvider;
 };

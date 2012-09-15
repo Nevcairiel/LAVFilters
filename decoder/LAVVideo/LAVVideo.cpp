@@ -81,6 +81,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   m_SubtitleConsumer = new CLAVSubtitleConsumer();
   m_SubtitleConsumer->AddRef();
+  m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
 
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);

@@ -20,6 +20,20 @@
 #include "stdafx.h"
 #include "LAVVideoSubtitleInputPin.h"
 
+#include <dvdmedia.h>
+
+typedef struct {
+  const CLSID*        clsMajorType;
+  const CLSID*        clsMinorType;
+  const enum AVCodecID  nFFCodec;
+} LAV_TYPE_MAP;
+
+static const LAV_TYPE_MAP lav_subtitle_codecs[] = {
+  { &MEDIATYPE_DVD_ENCRYPTED_PACK, &MEDIASUBTYPE_DVD_SUBPICTURE, AV_CODEC_ID_DVD_SUBTITLE },
+  { &MEDIATYPE_MPEG2_PACK,         &MEDIASUBTYPE_DVD_SUBPICTURE, AV_CODEC_ID_DVD_SUBTITLE },
+  { &MEDIATYPE_MPEG2_PES,          &MEDIASUBTYPE_DVD_SUBPICTURE, AV_CODEC_ID_DVD_SUBTITLE },
+  { &MEDIATYPE_Video,              &MEDIASUBTYPE_DVD_SUBPICTURE, AV_CODEC_ID_DVD_SUBTITLE }
+};
 
 #pragma warning(push)
 #pragma warning(disable:4355)
@@ -47,15 +61,17 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::NonDelegatingQueryInterface(REFIID riid,
 
 HRESULT CLAVVideoSubtitleInputPin::CheckMediaType(const CMediaType *mtIn)
 {
+  for(int i = 0; i < countof(lav_subtitle_codecs); i++) {
+    if(*lav_subtitle_codecs[i].clsMajorType == mtIn->majortype && *lav_subtitle_codecs[i].clsMinorType == mtIn->subtype) {
+        return S_OK;
+    }
+  }
   return VFW_E_TYPE_NOT_ACCEPTED;
 }
 
-HRESULT CLAVVideoSubtitleInputPin::CreateSubtitleProvider(ISubRenderConsumer *pConsumer)
+HRESULT CLAVVideoSubtitleInputPin::SetSubtitleConsumer(ISubRenderConsumer *pConsumer)
 {
-  ASSERT(m_pProvider == NULL);
-  m_pProvider = new CLAVSubtitleProvider(pConsumer);
-  m_pProvider->AddRef();
-
+  m_pConsumer = pConsumer;
   return S_OK;
 }
 
@@ -70,4 +86,65 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Receive(IMediaSample* pSample)
   }
 
   return hr;
+}
+
+// IKsPropertySet
+
+STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength)
+{
+  if (PropSet != AM_KSPROPSETID_DvdSubPic) {
+    return __super::Set(PropSet, Id, pInstanceData, InstanceLength, pPropertyData, DataLength);
+  }
+
+  switch (Id) {
+  case AM_PROPERTY_DVDSUBPIC_PALETTE:
+    {
+      DbgLog((LOG_TRACE, 10, L"New Palette"));
+      CAutoLock cAutoLock(&m_csReceive);
+      AM_PROPERTY_SPPAL* pSPPAL = (AM_PROPERTY_SPPAL*)pPropertyData;
+
+    }
+    break;
+  case AM_PROPERTY_DVDSUBPIC_HLI:
+    {
+      CAutoLock cAutoLock(&m_csReceive);
+      AM_PROPERTY_SPHLI* pSPHLI = (AM_PROPERTY_SPHLI*)pPropertyData;
+      DbgLog((LOG_TRACE, 10, L"HLI event. HLISS: %d", pSPHLI->HLISS));
+    }
+    break;
+  case AM_PROPERTY_DVDSUBPIC_COMPOSIT_ON:
+    {
+      DbgLog((LOG_TRACE, 10, L"Composit Event"));
+      CAutoLock cAutoLock(&m_csReceive);
+      AM_PROPERTY_COMPOSIT_ON* pCompositOn = (AM_PROPERTY_COMPOSIT_ON*)pPropertyData;
+    }
+    break;
+  default:
+    return E_PROP_ID_UNSUPPORTED;
+  }
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVVideoSubtitleInputPin::QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport)
+{
+  if (PropSet != AM_KSPROPSETID_DvdSubPic) {
+    return __super::QuerySupported(PropSet, Id, pTypeSupport);
+  }
+
+  switch (Id) {
+  case AM_PROPERTY_DVDSUBPIC_PALETTE:
+    *pTypeSupport = KSPROPERTY_SUPPORT_SET;
+    break;
+  case AM_PROPERTY_DVDSUBPIC_HLI:
+    *pTypeSupport = KSPROPERTY_SUPPORT_SET;
+    break;
+  case AM_PROPERTY_DVDSUBPIC_COMPOSIT_ON:
+    *pTypeSupport = KSPROPERTY_SUPPORT_SET;
+    break;
+  default:
+    return E_PROP_ID_UNSUPPORTED;
+  }
+
+  return S_OK;
 }
