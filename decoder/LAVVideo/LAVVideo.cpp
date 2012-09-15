@@ -79,6 +79,9 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   m_PixFmtConverter.SetSettings(this);
 
+  m_SubtitleConsumer = new CLAVSubtitleConsumer();
+  m_SubtitleConsumer->AddRef();
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -1277,7 +1280,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     // Check if we are doing RGB output
     BOOL bRGBOut = (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32);
     // And blend subtitles if we're on YUV output before blending (because the output YUV formats are more complicated to handle)
-    if (m_SubtitleConsumer) {
+    if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
       m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
       if (!bRGBOut)
         m_SubtitleConsumer->ProcessFrame(pFrame->format, pFrame->bpp, pFrame->width, pFrame->height, pFrame->data, pFrame->stride);
@@ -1297,7 +1300,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   #endif
 
     // .. and if we do RGB conversion, blend after the conversion, for improved quality
-    if (bRGBOut && m_SubtitleConsumer) {
+    if (bRGBOut && m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
       int strideBytes = pBIH->biWidth;
       LAVPixelFormat pixFmt;
       if (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32) {
