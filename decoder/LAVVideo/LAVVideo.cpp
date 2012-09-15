@@ -59,22 +59,13 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_evFilterInput(TRUE)
   , m_bStreamARBlacklisted(FALSE)
 {
+  *phr = S_OK;
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
-  if(!m_pInput) {
-    *phr = E_OUTOFMEMORY;
-  }
-  if (FAILED(*phr)) {
-    return;
-  }
+  ASSERT(SUCCEEDED(*phr));
 
   m_pOutput = new CVideoOutputPin(TEXT("CVideoOutputPin"), this, phr, L"Output");
-  if(!m_pOutput) {
-    *phr = E_OUTOFMEMORY;
-  }
-  if(FAILED(*phr))  {
-    SAFE_DELETE(m_pInput);
-    return;
-  }
+  ASSERT(SUCCEEDED(*phr));
+
 
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
 
