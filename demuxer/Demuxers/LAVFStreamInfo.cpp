@@ -369,6 +369,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   }
 
   mtype.subtype = avstream->codec->codec_id == AV_CODEC_ID_TEXT ? MEDIASUBTYPE_UTF8 :
+                  //avstream->codec->codec_id == AV_CODEC_ID_SRT ? MEDIASUBTYPE_UTF8 : /* SRT is essentially SUBRIP with inband timing information, can't really handle that yet */
+                  avstream->codec->codec_id == AV_CODEC_ID_SUBRIP ? MEDIASUBTYPE_UTF8 :
                   avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT ? MEDIASUBTYPE_UTF8 :
                   avstream->codec->codec_id == AV_CODEC_ID_SSA ? MEDIASUBTYPE_ASS :
                   avstream->codec->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE ? MEDIASUBTYPE_HDMVSUB :
