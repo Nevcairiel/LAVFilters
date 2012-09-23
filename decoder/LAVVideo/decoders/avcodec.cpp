@@ -317,7 +317,7 @@ STDMETHODIMP CDecAvcodec::Init()
 STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   DestroyDecoder();
-  DbgLog((LOG_TRACE, 10, L"Initializing ffmpeg for codec %d", codec));
+  DbgLog((LOG_TRACE, 10, L"Initializing ffmpeg for codec %S", avcodec_get_name(codec)));
 
   BITMAPINFOHEADER *pBMI = NULL;
   videoFormatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI);

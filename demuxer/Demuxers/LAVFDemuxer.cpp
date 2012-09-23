@@ -395,7 +395,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
     UpdateParserFlags(st);
 
 #ifdef DEBUG
-    DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %d; parsing: %S;", idx, st->id, st->codec->codec_id, lavf_get_parsing_string(st->need_parsing)));
+    DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - codec: %S; parsing: %S;", idx, st->id, avcodec_get_name(st->codec->codec_id), lavf_get_parsing_string(st->need_parsing)));
 #endif
     m_stOrigParser[idx] = st->need_parsing;
 

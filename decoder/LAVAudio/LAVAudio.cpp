@@ -1077,7 +1077,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
 {
   CAutoLock lock(&m_csReceive);
   ffmpeg_shutdown();
-  DbgLog((LOG_TRACE, 10, "::ffmpeg_init(): Initializing decoder for codec %d", codec));
+  DbgLog((LOG_TRACE, 10, L"::ffmpeg_init(): Initializing decoder for codec %S", avcodec_get_name(codec)));
 
   if (codec == AV_CODEC_ID_DTS || codec == AV_CODEC_ID_TRUEHD) {
     m_faJitter.SetNumSamples(200);
