@@ -73,7 +73,7 @@ public:
   void ProcessClipLanguages();
 
 private:
-  void ProcessStreams(int count, BLURAY_STREAM_INFO *streams);
+  void ProcessClipInfo(struct clpi_cl *clpi);
   void ProcessBDEvents();
 
 private:
