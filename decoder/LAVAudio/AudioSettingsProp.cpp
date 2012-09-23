@@ -400,9 +400,9 @@ HRESULT CLAVAudioMixingProp::OnApplyChanges()
   BOOL bDPL2 = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MIXMODE_DPL2, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetMixingMode(bDolby ? MatrixEncoding_Dolby : (bDPL2 ? MatrixEncoding_DPLII : MatrixEncoding_None));
 
-  DWORD dwMixCenter = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_GETPOS, 0, 0);
-  DWORD dwMixSurround = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_GETPOS, 0, 0);
-  DWORD dwMixLFE = SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_GETPOS, 0, 0);
+  DWORD dwMixCenter = (DWORD)SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_GETPOS, 0, 0);
+  DWORD dwMixSurround = (DWORD)SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_GETPOS, 0, 0);
+  DWORD dwMixLFE = (DWORD)SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_GETPOS, 0, 0);
   m_pAudioSettings->SetMixingLevels(dwMixCenter, dwMixSurround, dwMixLFE);
 
   LoadData();
