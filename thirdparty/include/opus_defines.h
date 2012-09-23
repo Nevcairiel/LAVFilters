@@ -111,7 +111,8 @@ extern "C" {
 #endif
 
 /** These are the actual Encoder CTL ID numbers.
-  * They should not be used directly by applications. */
+  * They should not be used directly by applications.
+  * In general, SETs should be even and GETs should be odd.*/
 #define OPUS_SET_APPLICATION_REQUEST         4000
 #define OPUS_GET_APPLICATION_REQUEST         4001
 #define OPUS_SET_BITRATE_REQUEST             4002
@@ -138,6 +139,7 @@ extern "C" {
 #define OPUS_GET_SIGNAL_REQUEST              4025
 #define OPUS_GET_LOOKAHEAD_REQUEST           4027
 /* #define OPUS_RESET_STATE 4028 */
+#define OPUS_GET_SAMPLE_RATE_REQUEST         4029
 #define OPUS_GET_FINAL_RANGE_REQUEST         4031
 #define OPUS_GET_PITCH_REQUEST               4033
 #define OPUS_SET_GAIN_REQUEST                4034
@@ -171,11 +173,11 @@ extern "C" {
 
 #define OPUS_SIGNAL_VOICE                    3001 /**< Signal being encoded is voice */
 #define OPUS_SIGNAL_MUSIC                    3002 /**< Signal being encoded is music */
-#define OPUS_BANDWIDTH_NARROWBAND            1101 /**< 4kHz bandpass @hideinitializer*/
-#define OPUS_BANDWIDTH_MEDIUMBAND            1102 /**< 6kHz bandpass @hideinitializer*/
-#define OPUS_BANDWIDTH_WIDEBAND              1103 /**< 8kHz bandpass @hideinitializer*/
-#define OPUS_BANDWIDTH_SUPERWIDEBAND         1104 /**<12kHz bandpass @hideinitializer*/
-#define OPUS_BANDWIDTH_FULLBAND              1105 /**<20kHz bandpass @hideinitializer*/
+#define OPUS_BANDWIDTH_NARROWBAND            1101 /**< 4 kHz bandpass @hideinitializer*/
+#define OPUS_BANDWIDTH_MEDIUMBAND            1102 /**< 6 kHz bandpass @hideinitializer*/
+#define OPUS_BANDWIDTH_WIDEBAND              1103 /**< 8 kHz bandpass @hideinitializer*/
+#define OPUS_BANDWIDTH_SUPERWIDEBAND         1104 /**<12 kHz bandpass @hideinitializer*/
+#define OPUS_BANDWIDTH_FULLBAND              1105 /**<20 kHz bandpass @hideinitializer*/
 
 /**@}*/
 
@@ -194,7 +196,7 @@ extern "C" {
   * ret = opus_encoder_ctl(enc_ctx, OPUS_SET_BANDWIDTH(OPUS_AUTO));
   * if (ret != OPUS_OK) return ret;
   *
-  * int rate;
+  * opus_int32 rate;
   * opus_encoder_ctl(enc_ctx, OPUS_GET_BANDWIDTH(&rate));
   *
   * opus_encoder_ctl(enc_ctx, OPUS_RESET_STATE);
@@ -206,143 +208,229 @@ extern "C" {
 
 /** Configures the encoder's computational complexity.
   * The supported range is 0-10 inclusive with 10 representing the highest complexity.
-  * The default value is 10.
-  * @param[in] x <tt>int</tt>:   0-10, inclusive
+  * @see OPUS_GET_COMPLEXITY
+  * @param[in] x <tt>opus_int32</tt>: Allowed values: 0-10, inclusive.
+  *
   * @hideinitializer */
 #define OPUS_SET_COMPLEXITY(x) OPUS_SET_COMPLEXITY_REQUEST, __opus_check_int(x)
-/** Gets the encoder's complexity configuration. @see OPUS_SET_COMPLEXITY
-  * @param[out] x <tt>int*</tt>: 0-10, inclusive
+/** Gets the encoder's complexity configuration.
+  * @see OPUS_SET_COMPLEXITY
+  * @param[out] x <tt>opus_int32 *</tt>: Returns a value in the range 0-10,
+  *                                      inclusive.
   * @hideinitializer */
 #define OPUS_GET_COMPLEXITY(x) OPUS_GET_COMPLEXITY_REQUEST, __opus_check_int_ptr(x)
 
 /** Configures the bitrate in the encoder.
-  * Rates from 500 to 512000 bits per second are meaningful as well as the
-  * special values OPUS_BITRATE_AUTO and OPUS_BITRATE_MAX.
-  * The value OPUS_BITRATE_MAX can be used to cause the codec to use as much rate
-  * as it can, which is useful for controlling the rate by adjusting the output
-  * buffer size.
-  * @param[in] x <tt>opus_int32</tt>:   bitrate in bits per second.
+  * Rates from 500 to 512000 bits per second are meaningful, as well as the
+  * special values #OPUS_AUTO and #OPUS_BITRATE_MAX.
+  * The value #OPUS_BITRATE_MAX can be used to cause the codec to use as much
+  * rate as it can, which is useful for controlling the rate by adjusting the
+  * output buffer size.
+  * @see OPUS_GET_BITRATE
+  * @param[in] x <tt>opus_int32</tt>: Bitrate in bits per second. The default
+  *                                   is determined based on the number of
+  *                                   channels and the input sampling rate.
   * @hideinitializer */
 #define OPUS_SET_BITRATE(x) OPUS_SET_BITRATE_REQUEST, __opus_check_int(x)
-/** Gets the encoder's bitrate configuration. @see OPUS_SET_BITRATE
-  * @param[out] x <tt>opus_int32*</tt>: bitrate in bits per second.
+/** Gets the encoder's bitrate configuration.
+  * @see OPUS_SET_BITRATE
+  * @param[out] x <tt>opus_int32 *</tt>: Returns the bitrate in bits per second.
+  *                                      The default is determined based on the
+  *                                      number of channels and the input
+  *                                      sampling rate.
   * @hideinitializer */
 #define OPUS_GET_BITRATE(x) OPUS_GET_BITRATE_REQUEST, __opus_check_int_ptr(x)
 
-/** Configures VBR in the encoder.
-  * The following values are currently supported:
-  *  - 0 CBR
-  *  - 1 VBR (default)
+/** Enables or disables variable bitrate (VBR) in the encoder.
   * The configured bitrate may not be met exactly because frames must
   * be an integer number of bytes in length.
   * @warning Only the MDCT mode of Opus can provide hard CBR behavior.
-  * @param[in] x <tt>int</tt>:   0; 1 (default)
+  * @see OPUS_GET_VBR
+  * @see OPUS_SET_VBR_CONSTRAINT
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>0</dt><dd>Hard CBR. For LPC/hybrid modes at very low bit-rate, this can
+  *               cause noticeable quality degradation.</dd>
+  * <dt>1</dt><dd>VBR (default). The exact type of VBR is controlled by
+  *               #OPUS_SET_VBR_CONSTRAINT.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_VBR(x) OPUS_SET_VBR_REQUEST, __opus_check_int(x)
-/** Gets the encoder's VBR configuration. @see OPUS_SET_VBR
-  * @param[out] x <tt>int*</tt>: 0; 1
+/** Determine if variable bitrate (VBR) is enabled in the encoder.
+  * @see OPUS_SET_VBR
+  * @see OPUS_GET_VBR_CONSTRAINT
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>0</dt><dd>Hard CBR.</dd>
+  * <dt>1</dt><dd>VBR (default). The exact type of VBR may be retrieved via
+  *               #OPUS_GET_VBR_CONSTRAINT.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_VBR(x) OPUS_GET_VBR_REQUEST, __opus_check_int_ptr(x)
 
-/** Configures constrained VBR in the encoder.
-  * The following values are currently supported:
-  *  - 0 Unconstrained VBR (default)
-  *  - 1 Maximum one frame buffering delay assuming transport with a serialization speed of the nominal bitrate
-  * This setting is irrelevant when the encoder is in CBR mode.
+/** Enables or disables constrained VBR in the encoder.
+  * This setting is ignored when the encoder is in CBR mode.
   * @warning Only the MDCT mode of Opus currently heeds the constraint.
   *  Speech mode ignores it completely, hybrid mode may fail to obey it
   *  if the LPC layer uses more bitrate than the constraint would have
   *  permitted.
-  * @param[in] x <tt>int</tt>:   0 (default); 1
+  * @see OPUS_GET_VBR_CONSTRAINT
+  * @see OPUS_SET_VBR
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>0</dt><dd>Unconstrained VBR.</dd>
+  * <dt>1</dt><dd>Constrained VBR (default). This creates a maximum of one
+  *               frame of buffering delay assuming a transport with a
+  *               serialization speed of the nominal bitrate.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_VBR_CONSTRAINT(x) OPUS_SET_VBR_CONSTRAINT_REQUEST, __opus_check_int(x)
-/** Gets the encoder's constrained VBR configuration @see OPUS_SET_VBR_CONSTRAINT
-  * @param[out] x <tt>int*</tt>: 0; 1
+/** Determine if constrained VBR is enabled in the encoder.
+  * @see OPUS_SET_VBR_CONSTRAINT
+  * @see OPUS_GET_VBR
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>0</dt><dd>Unconstrained VBR.</dd>
+  * <dt>1</dt><dd>Constrained VBR (default).</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_VBR_CONSTRAINT(x) OPUS_GET_VBR_CONSTRAINT_REQUEST, __opus_check_int_ptr(x)
 
 /** Configures mono/stereo forcing in the encoder.
-  * This is useful when the caller knows that the input signal is currently a mono
-  * source embedded in a stereo stream.
-  * @param[in] x <tt>int</tt>:   OPUS_AUTO (default); 1 (forced mono); 2 (forced stereo)
+  * This can force the encoder to produce packets encoded as either mono or
+  * stereo, regardless of the format of the input audio. This is useful when
+  * the caller knows that the input signal is currently a mono source embedded
+  * in a stereo stream.
+  * @see OPUS_GET_FORCE_CHANNELS
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>#OPUS_AUTO</dt><dd>Not forced (default)</dd>
+  * <dt>1</dt>         <dd>Forced mono</dd>
+  * <dt>2</dt>         <dd>Forced stereo</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_FORCE_CHANNELS(x) OPUS_SET_FORCE_CHANNELS_REQUEST, __opus_check_int(x)
-/** Gets the encoder's forced channel configuration. @see OPUS_SET_FORCE_CHANNELS
-  * @param[out] x <tt>int*</tt>: OPUS_AUTO; 0; 1
+/** Gets the encoder's forced channel configuration.
+  * @see OPUS_SET_FORCE_CHANNELS
+  * @param[out] x <tt>opus_int32 *</tt>:
+  * <dl>
+  * <dt>#OPUS_AUTO</dt><dd>Not forced (default)</dd>
+  * <dt>1</dt>         <dd>Forced mono</dd>
+  * <dt>2</dt>         <dd>Forced stereo</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_FORCE_CHANNELS(x) OPUS_GET_FORCE_CHANNELS_REQUEST, __opus_check_int_ptr(x)
 
 /** Configures the maximum bandpass that the encoder will select automatically.
-  * Applications should normally use this instead of \a OPUS_SET_BANDWIDTH
-  * (leaving that set to the default, \c OPUS_AUTO). This allows the
+  * Applications should normally use this instead of #OPUS_SET_BANDWIDTH
+  * (leaving that set to the default, #OPUS_AUTO). This allows the
   * application to set an upper bound based on the type of input it is
   * providing, but still gives the encoder the freedom to reduce the bandpass
   * when the bitrate becomes too low, for better overall quality.
   * @see OPUS_GET_MAX_BANDWIDTH
-  * The supported values are:
-  *  - OPUS_BANDWIDTH_NARROWBAND     4kHz passband
-  *  - OPUS_BANDWIDTH_MEDIUMBAND     6kHz passband
-  *  - OPUS_BANDWIDTH_WIDEBAND       8kHz passband
-  *  - OPUS_BANDWIDTH_SUPERWIDEBAND 12kHz passband
-  *  - OPUS_BANDWIDTH_FULLBAND      20kHz passband (default)
-  * @param[in] x <tt>int</tt>:   Bandwidth value
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>OPUS_BANDWIDTH_NARROWBAND</dt>    <dd>4 kHz passband</dd>
+  * <dt>OPUS_BANDWIDTH_MEDIUMBAND</dt>    <dd>6 kHz passband</dd>
+  * <dt>OPUS_BANDWIDTH_WIDEBAND</dt>      <dd>8 kHz passband</dd>
+  * <dt>OPUS_BANDWIDTH_SUPERWIDEBAND</dt><dd>12 kHz passband</dd>
+  * <dt>OPUS_BANDWIDTH_FULLBAND</dt>     <dd>20 kHz passband (default)</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_MAX_BANDWIDTH(x) OPUS_SET_MAX_BANDWIDTH_REQUEST, __opus_check_int(x)
 
-/** Gets the encoder's configured maximum bandpass allowed. @see OPUS_SET_MAX_BANDWIDTH
-  * @param[out] x <tt>int*</tt>: Bandwidth value
+/** Gets the encoder's configured maximum allowed bandpass.
+  * @see OPUS_SET_MAX_BANDWIDTH
+  * @param[out] x <tt>opus_int32 *</tt>: Allowed values:
+  * <dl>
+  * <dt>#OPUS_BANDWIDTH_NARROWBAND</dt>    <dd>4 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_MEDIUMBAND</dt>    <dd>6 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_WIDEBAND</dt>      <dd>8 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_SUPERWIDEBAND</dt><dd>12 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_FULLBAND</dt>     <dd>20 kHz passband (default)</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_MAX_BANDWIDTH(x) OPUS_GET_MAX_BANDWIDTH_REQUEST, __opus_check_int_ptr(x)
 
 /** Sets the encoder's bandpass to a specific value.
   * This prevents the encoder from automatically selecting the bandpass based
   * on the available bitrate. If an application knows the bandpass of the input
-  * audio it is providing, it should normally use \a OPUS_SET_MAX_BANDWIDTH
+  * audio it is providing, it should normally use #OPUS_SET_MAX_BANDWIDTH
   * instead, which still gives the encoder the freedom to reduce the bandpass
   * when the bitrate becomes too low, for better overall quality.
   * @see OPUS_GET_BANDWIDTH
-  * The supported values are:
-  *  - OPUS_AUTO (default)
-  *  - OPUS_BANDWIDTH_NARROWBAND     4kHz passband
-  *  - OPUS_BANDWIDTH_MEDIUMBAND     6kHz passband
-  *  - OPUS_BANDWIDTH_WIDEBAND       8kHz passband
-  *  - OPUS_BANDWIDTH_SUPERWIDEBAND 12kHz passband
-  *  - OPUS_BANDWIDTH_FULLBAND      20kHz passband
-  * @param[in] x <tt>int</tt>:   Bandwidth value
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>#OPUS_AUTO</dt>                    <dd>(default)</dd>
+  * <dt>#OPUS_BANDWIDTH_NARROWBAND</dt>    <dd>4 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_MEDIUMBAND</dt>    <dd>6 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_WIDEBAND</dt>      <dd>8 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_SUPERWIDEBAND</dt><dd>12 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_FULLBAND</dt>     <dd>20 kHz passband</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_BANDWIDTH(x) OPUS_SET_BANDWIDTH_REQUEST, __opus_check_int(x)
 
 /** Configures the type of signal being encoded.
   * This is a hint which helps the encoder's mode selection.
-  * The supported values are:
-  *  - OPUS_SIGNAL_AUTO (default)
-  *  - OPUS_SIGNAL_VOICE
-  *  - OPUS_SIGNAL_MUSIC
-  * @param[in] x <tt>int</tt>:   Signal type
+  * @see OPUS_GET_SIGNAL
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>#OPUS_AUTO</dt>        <dd>(default)</dd>
+  * <dt>#OPUS_SIGNAL_VOICE</dt><dd>Bias thresholds towards choosing LPC or Hybrid modes.</dd>
+  * <dt>#OPUS_SIGNAL_MUSIC</dt><dd>Bias thresholds towards choosing MDCT modes.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_SIGNAL(x) OPUS_SET_SIGNAL_REQUEST, __opus_check_int(x)
-/** Gets the encoder's configured signal type. @see OPUS_SET_SIGNAL
-  *
-  * @param[out] x <tt>int*</tt>: Signal type
+/** Gets the encoder's configured signal type.
+  * @see OPUS_SET_SIGNAL
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>#OPUS_AUTO</dt>        <dd>(default)</dd>
+  * <dt>#OPUS_SIGNAL_VOICE</dt><dd>Bias thresholds towards choosing LPC or Hybrid modes.</dd>
+  * <dt>#OPUS_SIGNAL_MUSIC</dt><dd>Bias thresholds towards choosing MDCT modes.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_SIGNAL(x) OPUS_GET_SIGNAL_REQUEST, __opus_check_int_ptr(x)
 
 
 /** Configures the encoder's intended application.
   * The initial value is a mandatory argument to the encoder_create function.
-  * The supported values are:
-  *  - OPUS_APPLICATION_VOIP Process signal for improved speech intelligibility
-  *  - OPUS_APPLICATION_AUDIO Favor faithfulness to the original input
-  *  - OPUS_APPLICATION_RESTRICTED_LOWDELAY Configure the minimum possible coding delay
-  *
-  * @param[in] x <tt>int</tt>:     Application value
+  * @see OPUS_GET_APPLICATION
+  * @param[in] x <tt>opus_int32</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>#OPUS_APPLICATION_VOIP</dt>
+  * <dd>Process signal for improved speech intelligibility.</dd>
+  * <dt>#OPUS_APPLICATION_AUDIO</dt>
+  * <dd>Favor faithfulness to the original input.</dd>
+  * <dt>#OPUS_APPLICATION_RESTRICTED_LOWDELAY</dt>
+  * <dd>Configure the minimum possible coding delay by disabling certain modes
+  * of operation.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_APPLICATION(x) OPUS_SET_APPLICATION_REQUEST, __opus_check_int(x)
-/** Gets the encoder's configured application. @see OPUS_SET_APPLICATION
-  *
-  * @param[out] x <tt>int*</tt>:   Application value
+/** Gets the encoder's configured application.
+  * @see OPUS_SET_APPLICATION
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>#OPUS_APPLICATION_VOIP</dt>
+  * <dd>Process signal for improved speech intelligibility.</dd>
+  * <dt>#OPUS_APPLICATION_AUDIO</dt>
+  * <dd>Favor faithfulness to the original input.</dd>
+  * <dt>#OPUS_APPLICATION_RESTRICTED_LOWDELAY</dt>
+  * <dd>Configure the minimum possible coding delay by disabling certain modes
+  * of operation.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_APPLICATION(x) OPUS_GET_APPLICATION_REQUEST, __opus_check_int_ptr(x)
+
+/** Gets the sampling rate the encoder or decoder was initialized with.
+  * This simply returns the <code>Fs</code> value passed to opus_encoder_init()
+  * or opus_decoder_init().
+  * @param[out] x <tt>opus_int32 *</tt>: Sampling rate of encoder or decoder.
+  * @hideinitializer
+  */
+#define OPUS_GET_SAMPLE_RATE(x) OPUS_GET_SAMPLE_RATE_REQUEST, __opus_check_int_ptr(x)
 
 /** Gets the total samples of delay added by the entire codec.
   * This can be queried by the encoder and then the provided number of samples can be
@@ -355,19 +443,27 @@ extern "C" {
   * version to version, or even depend on the encoder's initial configuration.
   * Applications needing delay compensation should call this CTL rather than
   * hard-coding a value.
-  * @param[out] x <tt>int*</tt>:   Number of lookahead samples
+  * @param[out] x <tt>opus_int32 *</tt>:   Number of lookahead samples
   * @hideinitializer */
 #define OPUS_GET_LOOKAHEAD(x) OPUS_GET_LOOKAHEAD_REQUEST, __opus_check_int_ptr(x)
 
-/** Configures the encoder's use of inband forward error correction.
+/** Configures the encoder's use of inband forward error correction (FEC).
   * @note This is only applicable to the LPC layer
-  *
-  * @param[in] x <tt>int</tt>:   FEC flag, 0 (disabled) is default
+  * @see OPUS_GET_INBAND_FEC
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>0</dt><dd>Disable inband FEC (default).</dd>
+  * <dt>1</dt><dd>Enable inband FEC.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_INBAND_FEC(x) OPUS_SET_INBAND_FEC_REQUEST, __opus_check_int(x)
-/** Gets encoder's configured use of inband forward error correction. @see OPUS_SET_INBAND_FEC
-  *
-  * @param[out] x <tt>int*</tt>: FEC flag
+/** Gets encoder's configured use of inband forward error correction.
+  * @see OPUS_SET_INBAND_FEC
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>0</dt><dd>Inband FEC disabled (default).</dd>
+  * <dt>1</dt><dd>Inband FEC enabled.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_INBAND_FEC(x) OPUS_GET_INBAND_FEC_REQUEST, __opus_check_int_ptr(x)
 
@@ -375,25 +471,34 @@ extern "C" {
   * Higher values with trigger progressively more loss resistant behavior in the encoder
   * at the expense of quality at a given bitrate in the lossless case, but greater quality
   * under loss.
-  *
-  * @param[in] x <tt>int</tt>:   Loss percentage in the range 0-100, inclusive.
+  * @see OPUS_GET_PACKET_LOSS_PERC
+  * @param[in] x <tt>opus_int32</tt>:   Loss percentage in the range 0-100, inclusive (default: 0).
   * @hideinitializer */
 #define OPUS_SET_PACKET_LOSS_PERC(x) OPUS_SET_PACKET_LOSS_PERC_REQUEST, __opus_check_int(x)
-/** Gets the encoder's configured packet loss percentage. @see OPUS_SET_PACKET_LOSS_PERC
-  *
-  * @param[out] x <tt>int*</tt>: Loss percentage in the range 0-100, inclusive.
+/** Gets the encoder's configured packet loss percentage.
+  * @see OPUS_SET_PACKET_LOSS_PERC
+  * @param[out] x <tt>opus_int32 *</tt>: Returns the configured loss percentage
+  *                                      in the range 0-100, inclusive (default: 0).
   * @hideinitializer */
 #define OPUS_GET_PACKET_LOSS_PERC(x) OPUS_GET_PACKET_LOSS_PERC_REQUEST, __opus_check_int_ptr(x)
 
-/** Configures the encoder's use of discontinuous transmission.
+/** Configures the encoder's use of discontinuous transmission (DTX).
   * @note This is only applicable to the LPC layer
-  *
-  * @param[in] x <tt>int</tt>:   DTX flag, 0 (disabled) is default
+  * @see OPUS_GET_DTX
+  * @param[in] x <tt>opus_int32</tt>: Allowed values:
+  * <dl>
+  * <dt>0</dt><dd>Disable DTX (default).</dd>
+  * <dt>1</dt><dd>Enabled DTX.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_SET_DTX(x) OPUS_SET_DTX_REQUEST, __opus_check_int(x)
-/** Gets encoder's configured use of discontinuous transmission. @see OPUS_SET_DTX
-  *
-  * @param[out] x <tt>int*</tt>:  DTX flag
+/** Gets encoder's configured use of discontinuous transmission.
+  * @see OPUS_SET_DTX
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>0</dt><dd>DTX disabled (default).</dd>
+  * <dt>1</dt><dd>DTX enabled.</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_DTX(x) OPUS_GET_DTX_REQUEST, __opus_check_int_ptr(x)
 /**@}*/
@@ -444,7 +549,7 @@ extern "C" {
   * The encoder and decoder state should be identical after coding a payload
   * (assuming no data corruption or software bugs)
   *
-  * @param[out] x <tt>opus_uint32*</tt>: Entropy coder state
+  * @param[out] x <tt>opus_uint32 *</tt>: Entropy coder state
   *
   * @hideinitializer */
 #define OPUS_GET_FINAL_RANGE(x) OPUS_GET_FINAL_RANGE_REQUEST, __opus_check_uint_ptr(x)
@@ -456,25 +561,36 @@ extern "C" {
   *
   * This CTL is only implemented for decoder instances.
   *
-  * @param[out] x <tt>opus_int32*</tt>: pitch period at 48 kHz (or 0 if not available)
+  * @param[out] x <tt>opus_int32 *</tt>: pitch period at 48 kHz (or 0 if not available)
   *
   * @hideinitializer */
 #define OPUS_GET_PITCH(x) OPUS_GET_PITCH_REQUEST, __opus_check_int_ptr(x)
 
-/** Gets the encoder's configured bandpass or the decoder's last bandpass. @see OPUS_SET_BANDWIDTH
-  * @param[out] x <tt>int*</tt>: Bandwidth value
+/** Gets the encoder's configured bandpass or the decoder's last bandpass.
+  * @see OPUS_SET_BANDWIDTH
+  * @param[out] x <tt>opus_int32 *</tt>: Returns one of the following values:
+  * <dl>
+  * <dt>#OPUS_AUTO</dt>                    <dd>(default)</dd>
+  * <dt>#OPUS_BANDWIDTH_NARROWBAND</dt>    <dd>4 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_MEDIUMBAND</dt>    <dd>6 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_WIDEBAND</dt>      <dd>8 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_SUPERWIDEBAND</dt><dd>12 kHz passband</dd>
+  * <dt>#OPUS_BANDWIDTH_FULLBAND</dt>     <dd>20 kHz passband</dd>
+  * </dl>
   * @hideinitializer */
 #define OPUS_GET_BANDWIDTH(x) OPUS_GET_BANDWIDTH_REQUEST, __opus_check_int_ptr(x)
 
 /** Configures the depth of signal being encoded.
   * This is a hint which helps the encoder identify silence and near-silence.
-  * The supported values are between 8 and 24 (default)
-  * @param[in] x <tt>opus_int32</tt>:   Input precision
+  * @see OPUS_GET_LSB_DEPTH
+  * @param[in] x <tt>opus_int32</tt>: Input precision in bits, between 8 and 24
+  *                                   (default: 24).
   * @hideinitializer */
 #define OPUS_SET_LSB_DEPTH(x) OPUS_SET_LSB_DEPTH_REQUEST, __opus_check_int(x)
-/** Gets the encoder's configured signal depth. @see OPUS_SET_LSB_DEPTH
-  *
-  * @param[out] x <tt>opus_int32*</tt>: Input precision
+/** Gets the encoder's configured signal depth.
+  * @see OPUS_SET_LSB_DEPTH
+  * @param[out] x <tt>opus_int32 *</tt>: Input precision in bits, between 8 and
+  *                                      24 (default: 24).
   * @hideinitializer */
 #define OPUS_GET_LSB_DEPTH(x) OPUS_GET_LSB_DEPTH_REQUEST, __opus_check_int_ptr(x)
 /**@}*/
@@ -497,7 +613,7 @@ extern "C" {
 #define OPUS_SET_GAIN(x) OPUS_SET_GAIN_REQUEST, __opus_check_int(x)
 /** Gets the decoder's configured gain adjustment. @see OPUS_SET_GAIN
   *
-  * @param[out] x <tt>opus_int32*</tt>: Amount to scale PCM signal by in Q8 dB units.
+  * @param[out] x <tt>opus_int32 *</tt>: Amount to scale PCM signal by in Q8 dB units.
   * @hideinitializer */
 #define OPUS_GET_GAIN(x) OPUS_GET_GAIN_REQUEST, __opus_check_int_ptr(x)
 
