@@ -321,8 +321,7 @@ void CBDDemuxer::ProcessClipLanguages()
 {
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
   for (uint32_t i = 0; i < m_pTitle->clip_count; ++i) {
-    BLURAY_CLIP_INFO *clip = &m_pTitle->clips[i];
-    clpi_cl *clpi = bd_get_clpi(m_pBD, i);
+    CLPI_CL *clpi = bd_get_clpi(m_pBD, i);
     ProcessClipInfo(clpi);
     bd_free_clpi(clpi);
   }
@@ -360,10 +359,11 @@ STDMETHODIMP CBDDemuxer::GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, 
   return E_FAIL;
 }
 
-void CBDDemuxer::ProcessClipInfo(struct clpi_cl *clpi)
+void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
 {
+  if (!clpi) { return; }
   for (int k = 0; k < clpi->program.num_prog; k++) {
-    for (int i = 0; i < clpi->program.progs[k].num_streams; k++) {
+    for (int i = 0; i < clpi->program.progs[k].num_streams; i++) {
       CLPI_PROG_STREAM *stream = &clpi->program.progs[k].streams[i];
       AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(stream->pid);
       if (!avstream) {
