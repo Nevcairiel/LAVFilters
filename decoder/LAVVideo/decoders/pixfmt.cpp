@@ -113,6 +113,19 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
   return S_OK;
 }
 
+HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame)
+{
+  CheckPointer(pFrame, E_POINTER);
+
+  if (pFrame->destruct) {
+    pFrame->destruct(pFrame);
+    pFrame->destruct = NULL;
+  }
+  memset(pFrame->data, 0, sizeof(pFrame->data));
+  memset(pFrame->stride, 0, sizeof(pFrame->stride));
+  return S_OK;
+}
+
 HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
 {
   *ppDst = (LAVFrame *)CoTaskMemAlloc(sizeof(LAVFrame));
@@ -133,8 +146,7 @@ HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame)
 {
   LAVFrame *tmpFrame = NULL;
   CopyLAVFrame(pFrame, &tmpFrame);
-  if (pFrame->destruct)
-    pFrame->destruct(pFrame);
+  FreeLAVFrameBuffers(pFrame);
   *pFrame = *tmpFrame;
   SAFE_CO_FREE(tmpFrame);
   return S_OK;

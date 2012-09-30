@@ -132,6 +132,11 @@ typedef struct LAVFrame {
 HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride = 0);
 
 /**
+ * Destruct a LAV Frame, freeing its data pointers
+ */
+HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame);
+
+/**
  * Copy a LAV Frame, including a memcpy of the data
  */
 HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst);

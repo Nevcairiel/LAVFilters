@@ -1068,9 +1068,7 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
 
   // Allow *ppFrame to be NULL already
   if (*ppFrame) {
-    if ((*ppFrame)->destruct) {
-      (*ppFrame)->destruct(*ppFrame);
-    }
+    FreeLAVFrameBuffers(*ppFrame);
     SAFE_CO_FREE(*ppFrame);
   }
   return S_OK;
@@ -1301,6 +1299,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
   #endif
 
+    // Once we're done with the old frame, release its buffers
+    // This does not release the frame yet, just free its buffers
+    FreeLAVFrameBuffers(pFrame);
+
     // .. and if we do RGB conversion, blend after the conversion, for improved quality
     if (bRGBOut && m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
       int strideBytes = pBIH->biWidth;
@@ -1313,19 +1315,14 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
         strideBytes *= 3;
       }
 
-      // We need to create a dummy RGB frame
-      LAVFrame *rgbFrame = NULL;
-      AllocateFrame(&rgbFrame);
-      *rgbFrame = *pFrame;
-      memset(rgbFrame->data, 0, sizeof(rgbFrame->data));
-      memset(rgbFrame->stride, 0, sizeof(rgbFrame->stride));
-      rgbFrame->data[0]   = pDataOut;
-      rgbFrame->stride[0] = strideBytes;
-      rgbFrame->format    = pixFmt;
-      rgbFrame->bpp       = 8;
-      rgbFrame->flags    |= LAV_FRAME_FLAG_BUFFER_MODIFY;
-      m_SubtitleConsumer->ProcessFrame(rgbFrame);
-      SAFE_CO_FREE(rgbFrame);
+      // We need to supply a LAV Frame to the subtitle API
+      // So update it with the appropriate settings
+      pFrame->data[0]   = pDataOut;
+      pFrame->stride[0] = strideBytes;
+      pFrame->format    = pixFmt;
+      pFrame->bpp       = 8;
+      pFrame->flags    |= LAV_FRAME_FLAG_BUFFER_MODIFY;
+      m_SubtitleConsumer->ProcessFrame(pFrame);
     }
 
     if ((mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) && pBIH->biHeight > 0) {
