@@ -1089,6 +1089,8 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   return S_FALSE;
 }
 
+extern "C" const uint8_t *avpriv_mpv_find_start_code(const uint8_t *p, const uint8_t *end, uint32_t *state);
+
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   CUresult result;
@@ -1143,6 +1145,22 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   if (m_bFormatIncompatible) {
     DbgLog((LOG_ERROR, 10, L"CDecCuvid::Decode(): Incompatible format detected, indicating failure..."));
     return E_FAIL;
+  }
+
+  // Check for MPEG2 End-Of-Sequence code, and immediately flush all frames out of the decoder
+  // This is mostly required to get still-frames in DVDs (and possibly Blu-rays) to output as soon as they are ready,
+  // otherwise they might be delayed until the next track switch, and all you see is black (or the previous image)
+  if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_MPEG2 && pCuvidPacket.payload && pCuvidPacket.payload_size >= 4) {
+    uint32_t state;
+    const uint8_t *p = pCuvidPacket.payload, *end = pCuvidPacket.payload + pCuvidPacket.payload_size;
+    while (p < end) {
+      p = avpriv_mpv_find_start_code(p, end, &state);
+      if (state == 0x000001b7) {
+        DbgLog((LOG_TRACE, 50, L"Found SEQ_END_CODE at %p (end: %p)", p, end));
+        EndOfStream();
+        break;
+      }
+    }
   }
 
   return S_OK;
