@@ -194,8 +194,6 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
     return S_OK;
   }
 
-  DbgLog((LOG_TRACE, 10, L"Packet! rtStart: %I64d, rtStop: %I64d, size: %d", rtStartIn, rtStopIn, buflen));
-
   while (buflen > 0) {
     REFERENCE_TIME rtStart = rtStartIn, rtStop = rtStopIn;
     int used_bytes = 0;
