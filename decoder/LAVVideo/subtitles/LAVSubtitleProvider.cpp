@@ -359,6 +359,7 @@ extern "C" __declspec(dllimport) uint8_t ff_cropTbl[256 + 2 * MAX_NEG_CROP];
 
 STDMETHODIMP CLAVSubtitleProvider::SetDVDPalette(AM_PROPERTY_SPPAL *pPal)
 {
+  DbgLog((LOG_TRACE, 10, L"CLAVSubtitleProvider(): Setting new DVD Palette"));
   CAutoLock lock(this);
   if (!m_pAVCtx || m_pAVCtx->codec_id != AV_CODEC_ID_DVD_SUBTITLE || !pPal) {
     return E_FAIL;
