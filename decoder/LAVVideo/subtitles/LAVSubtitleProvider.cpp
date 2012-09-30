@@ -57,6 +57,7 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(ISubRenderConsumer *pConsumer)
 
 CLAVSubtitleProvider::~CLAVSubtitleProvider(void)
 {
+  Flush();
   CloseDecoder();
   DisconnectConsumer();
 }
