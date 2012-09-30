@@ -236,8 +236,11 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
 
     // Calculate scaled size
     // We must ensure that the scaled subs still fit into the video
+
+    // HACK: Scale to video size. In the future, we should take AR and the likes into account
+    RECT newRect = videoRect;
+    /*
     float subAR = (float)subRect.right / (float)subRect.bottom;
-    RECT newRect = subRect;
     if (newRect.right != videoRect.right) {
       newRect.right = videoRect.right;
       newRect.bottom = (LONG)(newRect.right / subAR);
@@ -245,7 +248,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     if (newRect.bottom > videoRect.bottom) {
       newRect.bottom = videoRect.bottom;
       newRect.right = (LONG)(newRect.bottom * subAR);
-    }
+    }*/
 
     SIZE newSize;
     newSize.cx = FFALIGN((LONG)av_rescale(subSize.cx, newRect.right, subRect.right), 2);
