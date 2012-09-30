@@ -42,6 +42,8 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(ISubRenderConsumer *pConsumer)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_SubPicId(0)
 {
+  avcodec_register_all();
+
   ASSERT(m_pConsumer);
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
@@ -60,6 +62,7 @@ CLAVSubtitleProvider::~CLAVSubtitleProvider(void)
 
 void CLAVSubtitleProvider::CloseDecoder()
 {
+  CAutoLock lock(this);
   m_pAVCodec = NULL;
   if (m_pAVCtx) {
     if (m_pAVCtx->extradata)
@@ -75,6 +78,7 @@ void CLAVSubtitleProvider::CloseDecoder()
 
 STDMETHODIMP CLAVSubtitleProvider::DisconnectConsumer(void)
 {
+  CAutoLock lock(this);
   CheckPointer(m_pConsumer, S_FALSE);
   m_pConsumer->Disconnect();
   SafeRelease(&m_pConsumer);
@@ -121,6 +125,7 @@ STDMETHODIMP CLAVSubtitleProvider::Disconnect(void)
 
 STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID codecId)
 {
+  CAutoLock lock(this);
   m_pAVCodec = avcodec_find_decoder(codecId);
   CheckPointer(m_pAVCodec, VFW_E_TYPE_NOT_ACCEPTED);
 
@@ -163,6 +168,7 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
 
 STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
 {
+  CAutoLock lock(this);
   ASSERT(m_pAVCtx);
 
   AVPacket avpkt;
