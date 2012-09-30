@@ -113,17 +113,34 @@ HRESULT CLAVVideoSubtitleInputPin::SetSubtitleConsumer(ISubRenderConsumer *pCons
 STDMETHODIMP CLAVVideoSubtitleInputPin::Receive(IMediaSample* pSample)
 {
   CAutoLock lock(&m_csReceive);
+  HRESULT hr = S_OK;
   Decrypt(pSample);
 
   ASSERT(m_pProvider);
 
-  HRESULT hr = CBaseInputPin::Receive(pSample);
+  hr = CBaseInputPin::Receive(pSample);
   if (hr == S_OK) {
-    DbgLog((LOG_TRACE, 10, L"Subtitle Packet of size: %d", pSample->GetActualDataLength()));
-    m_pProvider->Decode(pSample);
+    long len = pSample->GetActualDataLength();
+    BYTE *pBuffer = NULL;
+    if (FAILED(hr = pSample->GetPointer(&pBuffer))) {
+      DbgLog((LOG_TRACE, 10, L"CLAVVideoSubtitleInputPin::Receive() GetPointer failed"));
+      return S_OK;
+    }
+
+    StripPacket(pBuffer, len);
+
+    REFERENCE_TIME rtStart, rtStop;
+    hr = pSample->GetTime(&rtStart, &rtStop);
+    if (hr == VFW_S_NO_STOP_TIME) {
+      rtStop = AV_NOPTS_VALUE;
+    } else if (FAILED(hr)) {
+      rtStart = rtStop = AV_NOPTS_VALUE;
+    }
+
+    m_pProvider->Decode(pBuffer, len, rtStart, rtStop);
   }
 
-  return hr;
+  return S_OK;
 }
 
 // IKsPropertySet

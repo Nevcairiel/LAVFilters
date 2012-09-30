@@ -29,7 +29,7 @@ typedef struct LAVSubtitleProviderContext {
   bool combineBitmaps;            ///< Control if the provider combines all bitmaps into one
 } LAVSubtitleProviderContext;
 
-class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown
+class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown, private CCritSec
 {
 public:
   CLAVSubtitleProvider(ISubRenderConsumer *pConsumer);
@@ -45,10 +45,13 @@ public:
   STDMETHODIMP DisconnectConsumer(void);
 
   STDMETHODIMP InitDecoder(const CMediaType *pmt, AVCodecID codecId);
-  STDMETHODIMP Decode(IMediaSample *pSample);
+  STDMETHODIMP Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
 
 private:
   void CloseDecoder();
+
+  void ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
+  void AddSubtitleRect(LAVSubRect *rect);
 
 private:
   LAVSubtitleProviderContext context;
@@ -58,4 +61,9 @@ private:
   const AVCodec        *m_pAVCodec;
   AVCodecContext       *m_pAVCtx;
   AVCodecParserContext *m_pParser;
+
+  REFERENCE_TIME        m_rtStartCache;
+  ULONGLONG             m_SubPicId;
+
+  std::list<LAVSubRect*> m_SubFrames;
 };

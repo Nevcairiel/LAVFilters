@@ -47,6 +47,8 @@ public:
   STDMETHODIMP AddBitmap(const LAVSubRect &subRect);
   STDMETHODIMP AddBitmap(ULONGLONG id, POINT position, SIZE size, LPCVOID pixels, int pitch);
 
+  BOOL Empty() const { return m_NumBitmaps == 0; };
+
 private:
   RECT m_outputRect;
   RECT m_clipRect;

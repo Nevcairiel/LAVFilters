@@ -211,7 +211,9 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
   }
 
   BOOL bNeedScaling = FALSE;
-  if (subRect.right != videoRect.right || subRect.bottom != videoRect.bottom) {
+
+  // We need scaling if the width is not the same, or the subtitle rect is higher then the video rect
+  if (subRect.right != videoRect.right || subRect.bottom > videoRect.bottom) {
     bNeedScaling = TRUE;
   }
 
@@ -233,9 +235,21 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     const PixelFormat avPixFmt = getFFPixFmtForSubtitle(pixFmt);
 
     // Calculate scaled size
+    // We must ensure that the scaled subs still fit into the video
+    float subAR = (float)subRect.right / (float)subRect.bottom;
+    RECT newRect = subRect;
+    if (newRect.right != videoRect.right) {
+      newRect.right = videoRect.right;
+      newRect.bottom = (LONG)(newRect.right / subAR);
+    }
+    if (newRect.bottom > videoRect.bottom) {
+      newRect.bottom = videoRect.bottom;
+      newRect.right = (LONG)(newRect.bottom * subAR);
+    }
+
     SIZE newSize;
-    newSize.cx = FFALIGN((LONG)av_rescale(subSize.cx, videoRect.right, subRect.right), 2);
-    newSize.cy = FFALIGN((LONG)av_rescale(subSize.cy, videoRect.bottom, subRect.bottom), 2);
+    newSize.cx = FFALIGN((LONG)av_rescale(subSize.cx, videoRect.right, newRect.right), 2);
+    newSize.cy = FFALIGN((LONG)av_rescale(subSize.cy, videoRect.bottom, newRect.bottom), 2);
 
     // And scaled position
     subPosition.x = (LONG)av_rescale(subPosition.x, newSize.cx, subSize.cx);
