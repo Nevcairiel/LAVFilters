@@ -487,6 +487,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
     pFrame->destruct = wmv9_buffer_destruct;
     pFrame->priv_data = this;
   }
+  pFrame->flags |= LAV_FRAME_FLAG_BUFFER_MODIFY;
   Deliver(pFrame);
 
   SafeRelease(&pOutBuffer);

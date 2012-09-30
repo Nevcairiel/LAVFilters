@@ -1058,6 +1058,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->data[0] = m_pbRawNV12;
   pFrame->data[1] = m_pbRawNV12+Ysize;
   pFrame->stride[0] = pFrame->stride[1] = pitch;
+  pFrame->flags  |= LAV_FRAME_FLAG_BUFFER_MODIFY;
 
   m_pCallback->Deliver(pFrame);
 

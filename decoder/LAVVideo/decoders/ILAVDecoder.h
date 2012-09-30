@@ -111,6 +111,9 @@ typedef struct LAVFrame {
   int tff;                          ///< top field is first
   char frame_type;                  ///< frame type char (I/P/B/?)
 
+  int flags;                        ///< frame flags
+#define LAV_FRAME_FLAG_BUFFER_MODIFY 0x00000001
+
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);
   void *priv_data;                  ///< private data from the decoder (mostly for destruct)
@@ -127,6 +130,18 @@ typedef struct LAVFrame {
  * @return HRESULT
  */
 HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride = 0);
+
+/**
+ * Copy a LAV Frame, including a memcpy of the data
+ */
+HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst);
+
+/**
+ * Copy the buffers in the LAV Frame, calling destruct on the old buffers.
+ *
+ * Usually useful to release decoder-specific buffers, and move to memory buffers
+ */
+HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame);
 
 typedef struct LAVPinInfo
 {

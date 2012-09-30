@@ -1285,7 +1285,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
       m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
       if (!bRGBOut)
-        m_SubtitleConsumer->ProcessFrame(pFrame->format, pFrame->bpp, pFrame->width, pFrame->height, pFrame->data, pFrame->stride);
+        m_SubtitleConsumer->ProcessFrame(pFrame);
     }
   #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
     LARGE_INTEGER frequency, start, end;
@@ -1312,9 +1312,20 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
         pixFmt = LAVPixFmt_RGB24;
         strideBytes *= 3;
       }
-      BYTE *data[4] = { pDataOut, 0, 0, 0};
-      int stride[4] = { strideBytes, 0, 0, 0};
-      m_SubtitleConsumer->ProcessFrame(pixFmt, pFrame->bpp, pFrame->width, pFrame->height, data, stride);
+
+      // We need to create a dummy RGB frame
+      LAVFrame *rgbFrame = NULL;
+      AllocateFrame(&rgbFrame);
+      *rgbFrame = *pFrame;
+      memset(rgbFrame->data, 0, sizeof(rgbFrame->data));
+      memset(rgbFrame->stride, 0, sizeof(rgbFrame->stride));
+      rgbFrame->data[0]   = pDataOut;
+      rgbFrame->stride[0] = strideBytes;
+      rgbFrame->format    = pixFmt;
+      rgbFrame->bpp       = 8;
+      rgbFrame->flags    |= LAV_FRAME_FLAG_BUFFER_MODIFY;
+      m_SubtitleConsumer->ProcessFrame(rgbFrame);
+      SAFE_CO_FREE(rgbFrame);
     }
 
     if ((mt.subtype == MEDIASUBTYPE_RGB32 || mt.subtype == MEDIASUBTYPE_RGB24) && pBIH->biHeight > 0) {

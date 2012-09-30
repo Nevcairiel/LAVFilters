@@ -84,7 +84,7 @@ STDMETHODIMP CLAVSubtitleConsumer::RequestFrame(REFERENCE_TIME rtStart, REFERENC
   return m_pProvider->RequestFrame(rtStart, rtStop);
 }
 
-STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVPixelFormat pixFmt, int bpp, DWORD dwWidth, DWORD dwHeight, BYTE *data[4], int stride[4])
+STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
 {
   CheckPointer(m_pProvider, E_FAIL);
 
@@ -97,8 +97,17 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVPixelFormat pixFmt, int bpp, 
       count = 0;
     }
 
+    if (count == 0) {
+      SafeRelease(&m_SubtitleFrame);
+      return S_FALSE;
+    }
+
+    if (!(pFrame->flags & LAV_FRAME_FLAG_BUFFER_MODIFY)) {
+      CopyLAVFrameInPlace(pFrame);
+    }
+
     RECT videoRect;
-    ::SetRect(&videoRect, 0, 0, dwWidth, dwHeight);
+    ::SetRect(&videoRect, 0, 0, pFrame->width, pFrame->height);
 
     RECT subRect;
     m_SubtitleFrame->GetOutputRect(&subRect);
@@ -113,12 +122,13 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVPixelFormat pixFmt, int bpp, 
         DbgLog((LOG_TRACE, 10, L"GetBitmap() failed on index %d", i));
         break;
       }
-      ProcessSubtitleBitmap(pixFmt, bpp, videoRect, data, stride, subRect, position, size, rgbData, pitch);
+      ProcessSubtitleBitmap(pFrame->format, pFrame->bpp, videoRect, pFrame->data, pFrame->stride, subRect, position, size, rgbData, pitch);
     }
     SafeRelease(&m_SubtitleFrame);
+    return S_OK;
   }
 
-  return S_OK;
+  return S_FALSE;
 }
 
 static struct {

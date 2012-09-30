@@ -108,6 +108,34 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
   }
 
   pFrame->destruct = &free_buffers;
+  pFrame->flags   |= LAV_FRAME_FLAG_BUFFER_MODIFY;
 
+  return S_OK;
+}
+
+HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
+{
+  *ppDst = (LAVFrame *)CoTaskMemAlloc(sizeof(LAVFrame));
+  **ppDst = *pSrc;
+
+  AllocLAVFrameBuffers(*ppDst, pSrc->stride[0]);
+
+  LAVPixFmtDesc desc = getPixelFormatDesc(pSrc->format);
+  for (int plane = 0; plane < desc.planes; plane++) {
+    size_t size =  pSrc->stride[plane] * (pSrc->height / desc.planeHeight[plane]);
+    memcpy((*ppDst)->data[plane], pSrc->data[plane], size);
+  }
+
+  return S_OK;
+}
+
+HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame)
+{
+  LAVFrame *tmpFrame = NULL;
+  CopyLAVFrame(pFrame, &tmpFrame);
+  if (pFrame->destruct)
+    pFrame->destruct(pFrame);
+  *pFrame = *tmpFrame;
+  SAFE_CO_FREE(tmpFrame);
   return S_OK;
 }
