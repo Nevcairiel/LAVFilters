@@ -502,6 +502,6 @@ STDMETHODIMP_(BOOL) CDecodeThread::IsLAVSplitter() { return m_pLAVVideo->IsLAVSp
 STDMETHODIMP_(BOOL) CDecodeThread::IsVistaOrNewer() { return m_pLAVVideo->IsVistaOrNewer(); }
 STDMETHODIMP_(CMediaType&) CDecodeThread::GetInputMediaType() { return m_pLAVVideo->GetInputMediaType(); }
 STDMETHODIMP CDecodeThread::GetLAVPinInfo(LAVPinInfo &info) { return m_pLAVVideo->GetLAVPinInfo(info); }
-STDMETHODIMP_(CBasePin*) CDecodeThread::GetInputPin() { return m_pLAVVideo->GetInputPin(); }
 STDMETHODIMP_(CBasePin*) CDecodeThread::GetOutputPin() { return m_pLAVVideo->GetOutputPin(); }
 STDMETHODIMP_(CMediaType&) CDecodeThread::GetOutputMediaType() { return m_pLAVVideo->GetOutputMediaType(); }
+STDMETHODIMP CDecodeThread::DVDStripPacket(BYTE*& p, long& len) { return m_pLAVVideo->DVDStripPacket(p, len); }

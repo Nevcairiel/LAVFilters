@@ -63,9 +63,9 @@ public:
   STDMETHODIMP_(BOOL) IsVistaOrNewer();
   STDMETHODIMP_(CMediaType&) GetInputMediaType();
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info);
-  STDMETHODIMP_(CBasePin*) GetInputPin();
   STDMETHODIMP_(CBasePin*) GetOutputPin();
   STDMETHODIMP_(CMediaType&) GetOutputMediaType();
+  STDMETHODIMP DVDStripPacket(BYTE*& p, long& len);
 
 protected:
   DWORD ThreadProc();
