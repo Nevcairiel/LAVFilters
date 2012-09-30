@@ -67,7 +67,7 @@ private:
   BlendFn blend;
 
   DECLARE_BLEND_FUNC(blend_rgb_c);
-  template <class pixT> DECLARE_BLEND_FUNC(blend_yuv_c);
+  template <class pixT, int nv12> DECLARE_BLEND_FUNC(blend_yuv_c);
 
 private:
   ISubRenderProvider *m_pProvider;

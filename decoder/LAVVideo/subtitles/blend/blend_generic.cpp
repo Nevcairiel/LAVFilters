@@ -61,10 +61,10 @@ DECLARE_BLEND_FUNC_IMPL(blend_rgb_c)
   return S_OK;
 }
 
-template <class pixT>
+template <class pixT, int nv12>
 DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
 {
-  ASSERT(pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_YUV422 || pixFmt == LAVPixFmt_YUV444 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_YUV422bX || pixFmt == LAVPixFmt_YUV444bX);
+  ASSERT(pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_NV12 || pixFmt == LAVPixFmt_YUV422 || pixFmt == LAVPixFmt_YUV444 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_YUV422bX || pixFmt == LAVPixFmt_YUV444bX);
 
   BYTE *y = video[0];
   BYTE *u = video[1];
@@ -85,7 +85,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
   int yPos = position.y;
   int xPos = position.x;
 
-  const int hsub = (pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_YUV420bX);
+  const int hsub = (pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_NV12);
   const int vsub = (pixFmt != LAVPixFmt_YUV444 && pixFmt != LAVPixFmt_YUV444bX);
   const int shift = sizeof(pixT) > 1 ? bpp - 8 : 0;
 
@@ -108,6 +108,8 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
   }
 
   for (line = 0; line < h; line++) {
+    pixT *dstUV = (pixT *)(u + (line + yPos) * outStrideUV) + (xPos << 1);
+
     pixT *dstU = (pixT *)(u + (line + yPos) * outStrideUV) + xPos;
     const BYTE *srcU = subU + line * inStrideUV;
 
@@ -127,8 +129,13 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
       } else {
         alpha = srcA[0];
       }
-      dstU[col] = FAST_DIV255(dstU[col] * (255 - alpha) + (srcU[col] << shift) * alpha);
-      dstV[col] = FAST_DIV255(dstV[col] * (255 - alpha) + (srcV[col] << shift) * alpha);
+      if (nv12) {
+        dstUV[(col << 1)+0] = FAST_DIV255(dstUV[(col << 1)+0] * (255 - alpha) + (srcU[col] << shift) * alpha);
+        dstUV[(col << 1)+1] = FAST_DIV255(dstUV[(col << 1)+1] * (255 - alpha) + (srcV[col] << shift) * alpha);
+      } else {
+        dstU[col] = FAST_DIV255(dstU[col] * (255 - alpha) + (srcU[col] << shift) * alpha);
+        dstV[col] = FAST_DIV255(dstV[col] * (255 - alpha) + (srcV[col] << shift) * alpha);
+      }
       srcA += 1 << vsub;
     }
   }
@@ -136,5 +143,6 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
   return S_OK;
 }
 
-template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint8_t>BLEND_FUNC_PARAMS;
-template HRESULT CLAVSubtitleConsumer::blend_yuv_c<int16_t>BLEND_FUNC_PARAMS;
+template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint8_t,1>BLEND_FUNC_PARAMS;
+template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint8_t,0>BLEND_FUNC_PARAMS;
+template HRESULT CLAVSubtitleConsumer::blend_yuv_c<int16_t,0>BLEND_FUNC_PARAMS;
