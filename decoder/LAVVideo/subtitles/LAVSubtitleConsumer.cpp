@@ -248,8 +248,8 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     }
 
     SIZE newSize;
-    newSize.cx = FFALIGN((LONG)av_rescale(subSize.cx, videoRect.right, newRect.right), 2);
-    newSize.cy = FFALIGN((LONG)av_rescale(subSize.cy, videoRect.bottom, newRect.bottom), 2);
+    newSize.cx = FFALIGN((LONG)av_rescale(subSize.cx, newRect.right, subRect.right), 2);
+    newSize.cy = FFALIGN((LONG)av_rescale(subSize.cy, newRect.bottom, subRect.bottom), 2);
 
     // And scaled position
     subPosition.x = (LONG)av_rescale(subPosition.x, newSize.cx, subSize.cx);
