@@ -59,6 +59,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_evFilterInput(TRUE)
   , m_bStreamARBlacklisted(FALSE)
   , m_pSubtitleInput(NULL)
+  , m_SubtitleConsumer(NULL)
 {
   *phr = S_OK;
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
