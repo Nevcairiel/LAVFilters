@@ -23,24 +23,24 @@
 
 class CDeCSSPinHelper : public IKsPropertySet
 {
-	int m_varient;
-	BYTE m_Challenge[10], m_KeyCheck[5], m_Key[10];
-	BYTE m_DiscKey[6], m_TitleKey[6];
+  int m_varient;
+  BYTE m_Challenge[10], m_KeyCheck[5], m_Key[10];
+  BYTE m_DiscKey[6], m_TitleKey[6];
 
   CMediaType m_mt;
 
 public:
-	CDeCSSPinHelper();
+  CDeCSSPinHelper();
 
   void Decrypt(IMediaSample* pSample);
-	void StripPacket(BYTE*& p, long& len);
+  void StripPacket(BYTE*& p, long& len);
 
   void SetCSSMediaType(const CMediaType *pmt) { m_mt = *pmt; }
 
-	// IKsPropertySet
-	STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength);
-	STDMETHODIMP Get(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength, ULONG* pBytesReturned);
-	STDMETHODIMP QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport);
+  // IKsPropertySet
+  STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength);
+  STDMETHODIMP Get(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength, ULONG* pBytesReturned);
+  STDMETHODIMP QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport);
 };
 
 class CDeCSSTransformInputPin : public CTransformInputPin, public CDeCSSPinHelper
