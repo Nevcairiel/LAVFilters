@@ -42,6 +42,7 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(ISubRenderConsumer *pConsumer)
   , m_pParser(NULL)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_SubPicId(0)
+  , m_pHLI(NULL)
 {
   avcodec_register_all();
 
@@ -102,10 +103,16 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   subtitleFrame->SetOutputRect(outputRect);
 
   for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
-    LAVSubRect *rect = *it;
-    if ((rect->rtStart == AV_NOPTS_VALUE || rect->rtStart <= start)
-      && (rect->rtStop == AV_NOPTS_VALUE || rect->rtStop >= stop)) {
-      subtitleFrame->AddBitmap(*rect);
+    LAVSubRect *pRect = *it;
+    if ((pRect->rtStart == AV_NOPTS_VALUE || pRect->rtStart <= start)
+      && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop >= stop)) {
+
+      LAVSubRect rect = *pRect;
+
+      if (m_pHLI) {
+        ProcessDVDHLI(rect);
+      }
+      subtitleFrame->AddBitmap(rect);
     }
   }
 
@@ -173,6 +180,7 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   CAutoLock lock(this);
   for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
     CoTaskMemFree((LPVOID)(*it)->pixels);
+    CoTaskMemFree((LPVOID)(*it)->pixelsPal);
     delete *it;
   }
   std::list<LAVSubRect*>().swap(m_SubFrames);
@@ -248,6 +256,8 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
 
     if (got_sub) {
       REFERENCE_TIME rtSubStart = rtStart, rtSubStop = AV_NOPTS_VALUE;
+      if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE && sub.num_rects && sub.rects && sub.rects[0]->forced)
+        rtSubStart = AV_NOPTS_VALUE;
       if (rtSubStart != AV_NOPTS_VALUE) {
         if (sub.end_display_time > 0) {
           rtSubStop = rtSubStart + (sub.end_display_time * 10000i64);
@@ -310,6 +320,11 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
       lavRect->rtStart  = rtStart;
       lavRect->rtStop   = rtStop;
 
+      if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
+        lavRect->pixelsPal = CoTaskMemAlloc(lavRect->pitch * rect->h);
+        memcpy(lavRect->pixelsPal, rect->pict.data[0], lavRect->pitch * rect->h);
+      }
+
       // Ensure the width/height in avctx are valid
       m_pAVCtx->width  = FFMAX(m_pAVCtx->width,  rect->x + rect->w);
       m_pAVCtx->height = FFMAX(m_pAVCtx->height, rect->y + rect->h);
@@ -357,13 +372,82 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDPalette(AM_PROPERTY_SPPAL *pPal)
   int r_add, g_add, b_add;
   uint8_t *cm = ff_cropTbl + MAX_NEG_CROP;
   for (i = 0; i < 16; i++) {
-     y  = pPal->sppal[i].Y;
-     cb = pPal->sppal[i].U;
-     cr = pPal->sppal[i].V;
-     YUV_TO_RGB1_CCIR(cb, cr);
-     YUV_TO_RGB2_CCIR(r, g, b, y);
-     ctx->palette[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+    y  = pPal->sppal[i].Y;
+    cb = pPal->sppal[i].V;
+    cr = pPal->sppal[i].U;
+    YUV_TO_RGB1_CCIR(cb, cr);
+    YUV_TO_RGB2_CCIR(r, g, b, y);
+    ctx->palette[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
   }
 
   return S_OK;
+}
+
+STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
+{
+  CAutoLock lock(this);
+
+  if (pHLI) {
+    DbgLog((LOG_TRACE, 10, L"CLAVSubtitleProvider(): DVD HLI event. HLISS: %d, x: %d->%d, y: %d->%d", pHLI->HLISS, pHLI->StartX, pHLI->StopX, pHLI->StartY, pHLI->StopY));
+    m_pHLI = new AM_PROPERTY_SPHLI(*pHLI);
+  } else {
+    SAFE_DELETE(m_pHLI);
+  }
+
+  return S_OK;
+}
+
+void CLAVSubtitleProvider::ProcessDVDHLI(LAVSubRect &rect)
+{
+  DVDSubContext *ctx = (DVDSubContext *)m_pAVCtx->priv_data;
+  if (!m_pHLI || !rect.pixelsPal || !ctx->has_palette)
+    return;
+
+  LPVOID newPixels = CoTaskMemAlloc(rect.pitch * rect.size.cy * 4);
+  memcpy(newPixels, rect.pixels, rect.pitch * rect.size.cy * 4);
+
+  rect.pixels = newPixels;
+  rect.freePixels = true;
+
+  uint8_t *palette   = (uint8_t *)ctx->palette;
+  for (int y = 0; y < rect.size.cy; y++) {
+    if (y+rect.position.y < m_pHLI->StartY || y+rect.position.y > m_pHLI->StopY)
+      continue;
+    uint8_t *pixelsPal = ((uint8_t *)rect.pixelsPal) + rect.pitch * y;
+    uint8_t *pixels = ((uint8_t *)rect.pixels) + rect.pitch * y * 4;
+    for (int x = 0; x < rect.size.cx; x++) {
+      if (x+rect.position.x < m_pHLI->StartX || x+rect.position.x > m_pHLI->StopX)
+        continue;
+      uint8_t idx = pixelsPal[x];
+      uint8_t alpha;
+      switch (idx) {
+      case 0:
+        idx = m_pHLI->ColCon.backcol;
+        alpha = m_pHLI->ColCon.backcon;
+        break;
+      case 1:
+        idx = m_pHLI->ColCon.patcol;
+        alpha = m_pHLI->ColCon.patcon;
+        break;
+      case 2:
+        idx = m_pHLI->ColCon.emph1col;
+        alpha = m_pHLI->ColCon.emph1con;
+        break;
+      case 3:
+        idx = m_pHLI->ColCon.emph2col;
+        alpha = m_pHLI->ColCon.emph2con;
+        break;
+      }
+      // Read RGB values from palette
+      BYTE b = palette[(idx << 2) + 0];
+      BYTE g = palette[(idx << 2) + 1];
+      BYTE r = palette[(idx << 2) + 2];
+      BYTE a = alpha << 4;
+      // Store as RGBA pixel, pre-multiplied
+      pixels[(x << 2) + 0] = FAST_DIV255(b * a);
+      pixels[(x << 2) + 1] = FAST_DIV255(g * a);
+      pixels[(x << 2) + 2] = FAST_DIV255(r * a);
+      pixels[(x << 2) + 3] = a;
+    }
+  }
 }

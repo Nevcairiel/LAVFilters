@@ -33,6 +33,10 @@ CLAVSubtitleFrame::CLAVSubtitleFrame(void)
 
 CLAVSubtitleFrame::~CLAVSubtitleFrame(void)
 {
+  for (int i = 0; i < m_NumBitmaps; i++) {
+    if (m_Bitmaps[i].freePixels)
+      SAFE_CO_FREE(m_Bitmaps[i].pixels);
+  }
   SAFE_CO_FREE(m_Bitmaps);
 }
 
@@ -62,7 +66,7 @@ STDMETHODIMP CLAVSubtitleFrame::AddBitmap(const LAVSubRect &subRect)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSubtitleFrame::AddBitmap(ULONGLONG id, POINT position, SIZE size, LPCVOID pixels, int pitch)
+STDMETHODIMP CLAVSubtitleFrame::AddBitmap(ULONGLONG id, POINT position, SIZE size, LPVOID pixels, int pitch)
 {
   LAVSubRect rect;
   rect.id       = id;

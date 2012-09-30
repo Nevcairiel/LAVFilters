@@ -25,8 +25,11 @@ typedef struct LAVSubRect {
   ULONGLONG id;            ///< Unique Identifier (same ID = same subtitle)
   POINT position;          ///< Position (relative to outputRect)
   SIZE size;               ///< Size
-  LPCVOID pixels;          ///< Pixel Data
+  LPVOID pixels;           ///< Pixel Data
+  LPVOID pixelsPal;        ///< Pixel Data (in paletted form, required by dvd HLI)
   int pitch;               ///< Pitch of the subtitle lines
+
+  bool freePixels;         ///< If true, pixel data is free'ed upon destroy
 } LAVSubRect;
 
 class CLAVSubtitleFrame : public ISubRenderFrame, public CUnknown
@@ -45,7 +48,7 @@ public:
   STDMETHODIMP SetOutputRect(RECT outputRect);
   STDMETHODIMP SetClipRect(RECT clipRect);
   STDMETHODIMP AddBitmap(const LAVSubRect &subRect);
-  STDMETHODIMP AddBitmap(ULONGLONG id, POINT position, SIZE size, LPCVOID pixels, int pitch);
+  STDMETHODIMP AddBitmap(ULONGLONG id, POINT position, SIZE size, LPVOID pixels, int pitch);
 
   BOOL Empty() const { return m_NumBitmaps == 0; };
 

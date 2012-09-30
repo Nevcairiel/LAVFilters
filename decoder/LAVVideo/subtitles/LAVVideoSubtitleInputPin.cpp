@@ -173,7 +173,15 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pI
     {
       CAutoLock cAutoLock(&m_csReceive);
       AM_PROPERTY_SPHLI* pSPHLI = (AM_PROPERTY_SPHLI*)pPropertyData;
-      DbgLog((LOG_TRACE, 10, L"HLI event. HLISS: %d", pSPHLI->HLISS));
+      if (pSPHLI->HLISS) {
+        if (m_pProvider) {
+          m_pProvider->SetDVDHLI(pSPHLI);
+        }
+      } else {
+        if (m_pProvider) {
+          m_pProvider->SetDVDHLI(NULL);
+        }
+      }
     }
     break;
   case AM_PROPERTY_DVDSUBPIC_COMPOSIT_ON:

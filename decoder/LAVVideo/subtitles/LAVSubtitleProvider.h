@@ -30,6 +30,7 @@ typedef struct LAVSubtitleProviderContext {
 } LAVSubtitleProviderContext;
 
 struct _AM_PROPERTY_SPPAL;
+struct _AM_PROPERTY_SPHLI;
 
 class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown, private CCritSec
 {
@@ -52,12 +53,14 @@ public:
   STDMETHODIMP Flush();
 
   STDMETHODIMP SetDVDPalette(struct _AM_PROPERTY_SPPAL *pPal);
+  STDMETHODIMP SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI);
 
 private:
   void CloseDecoder();
 
   void ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
   void AddSubtitleRect(LAVSubRect *rect);
+  void ProcessDVDHLI(LAVSubRect &rect);
 
 private:
   LAVSubtitleProviderContext context;
@@ -72,4 +75,6 @@ private:
   ULONGLONG             m_SubPicId;
 
   std::list<LAVSubRect*> m_SubFrames;
+
+  struct _AM_PROPERTY_SPHLI *m_pHLI;
 };
