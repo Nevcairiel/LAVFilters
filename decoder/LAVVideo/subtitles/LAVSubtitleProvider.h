@@ -47,6 +47,8 @@ public:
   STDMETHODIMP InitDecoder(const CMediaType *pmt, AVCodecID codecId);
   STDMETHODIMP Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
 
+  STDMETHODIMP Flush();
+
 private:
   void CloseDecoder();
 

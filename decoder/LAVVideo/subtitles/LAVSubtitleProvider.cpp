@@ -166,6 +166,17 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
   return S_OK;
 }
 
+STDMETHODIMP CLAVSubtitleProvider::Flush()
+{
+  CAutoLock lock(this);
+  for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
+    CoTaskMemFree((LPVOID)(*it)->pixels);
+    delete *it;
+  }
+  std::list<LAVSubRect*>().swap(m_SubFrames);
+  return S_OK;
+}
+
 STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
 {
   CAutoLock lock(this);

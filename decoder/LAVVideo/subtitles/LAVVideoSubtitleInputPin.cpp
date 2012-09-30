@@ -104,6 +104,14 @@ HRESULT CLAVVideoSubtitleInputPin::BreakConnect()
   return __super::BreakConnect();
 }
 
+STDMETHODIMP CLAVVideoSubtitleInputPin::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
+{
+  if (m_pProvider) {
+    m_pProvider->Flush();
+  }
+  return __super::NewSegment(tStart, tStop, dRate);
+}
+
 HRESULT CLAVVideoSubtitleInputPin::SetSubtitleConsumer(ISubRenderConsumer *pConsumer)
 {
   m_pConsumer = pConsumer;

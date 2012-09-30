@@ -40,6 +40,7 @@ public:
   HRESULT CheckMediaType(const CMediaType *mtIn);
   HRESULT SetMediaType(const CMediaType *pmt);
   HRESULT BreakConnect();
+  STDMETHODIMP NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
   HRESULT SetSubtitleConsumer(ISubRenderConsumer *pConsumer);
 
