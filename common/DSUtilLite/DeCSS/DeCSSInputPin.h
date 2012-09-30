@@ -27,13 +27,15 @@ class CDeCSSPinHelper : public IKsPropertySet
 	BYTE m_Challenge[10], m_KeyCheck[5], m_Key[10];
 	BYTE m_DiscKey[6], m_TitleKey[6];
 
-  CBaseInputPin *m_BasePin;
+  CMediaType m_mt;
 
 public:
-	CDeCSSPinHelper(CBaseInputPin *pPin);
+	CDeCSSPinHelper();
 
   void Decrypt(IMediaSample* pSample);
 	void StripPacket(BYTE*& p, long& len);
+
+  void SetCSSMediaType(const CMediaType *pmt) { m_mt = *pmt; }
 
 	// IKsPropertySet
 	STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength);
@@ -51,4 +53,5 @@ public:
 
   // IMemInputPin
   STDMETHODIMP Receive(IMediaSample* pSample);
+  HRESULT SetMediaType(const CMediaType *pmt);
 };

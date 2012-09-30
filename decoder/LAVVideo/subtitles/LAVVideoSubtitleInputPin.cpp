@@ -35,15 +35,12 @@ static const LAV_TYPE_MAP lav_subtitle_codecs[] = {
   { &MEDIATYPE_Video,              &MEDIASUBTYPE_DVD_SUBPICTURE, AV_CODEC_ID_DVD_SUBTITLE }
 };
 
-#pragma warning(push)
-#pragma warning(disable:4355)
 CLAVVideoSubtitleInputPin::CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CBaseFilter* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName)
   : CBaseInputPin(pObjectName, pFilter, pcsFilter, phr, pName)
-  , CDeCSSPinHelper(this)
+  , CDeCSSPinHelper()
   , m_pProvider(NULL)
 {
 }
-#pragma warning(pop)
 
 CLAVVideoSubtitleInputPin::~CLAVVideoSubtitleInputPin(void)
 {
@@ -72,6 +69,8 @@ HRESULT CLAVVideoSubtitleInputPin::CheckMediaType(const CMediaType *mtIn)
 
 HRESULT CLAVVideoSubtitleInputPin::SetMediaType(const CMediaType *pmt)
 {
+  SetCSSMediaType(pmt);
+
   ASSERT(m_pConsumer);
   SafeRelease(&m_pProvider);
 

@@ -67,9 +67,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   m_pOutput = new CVideoOutputPin(TEXT("CVideoOutputPin"), this, phr, L"Output");
   ASSERT(SUCCEEDED(*phr));
 
-  m_pSubtitleInput = new CLAVVideoSubtitleInputPin(TEXT("CLAVVideoSubtitleInputPin"), this, &m_csFilter, phr, L"Subtitle Input");
-  ASSERT(SUCCEEDED(*phr));
-
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
 
   avcodec_register_all();
@@ -78,10 +75,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   LoadSettings();
 
   m_PixFmtConverter.SetSettings(this);
-
-  m_SubtitleConsumer = new CLAVSubtitleConsumer();
-  m_SubtitleConsumer->AddRef();
-  m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
 
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
@@ -709,6 +702,14 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
     hr = m_Decoder.PostConnect(pReceivePin);
+  } else if (dir == PINDIR_INPUT) {
+    if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_VIDEO && !m_pSubtitleInput) {
+      m_pSubtitleInput = new CLAVVideoSubtitleInputPin(TEXT("CLAVVideoSubtitleInputPin"), this, &m_csFilter, &hr, L"Subtitle Input");
+      ASSERT(SUCCEEDED(hr));
+      m_SubtitleConsumer = new CLAVSubtitleConsumer();
+      m_SubtitleConsumer->AddRef();
+      m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
+    }
   }
   return S_OK;
 }

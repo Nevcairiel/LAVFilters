@@ -34,8 +34,7 @@
 // CDeCSSPinHelper
 //
 
-CDeCSSPinHelper::CDeCSSPinHelper(CBaseInputPin *pPin)
-  : m_BasePin(pPin)
+CDeCSSPinHelper::CDeCSSPinHelper()
 {
   m_varient = -1;
   memset(m_Challenge, 0, sizeof(m_Challenge));
@@ -50,9 +49,7 @@ void CDeCSSPinHelper::Decrypt(IMediaSample* pSample)
 
   BYTE* p = NULL;
   if(SUCCEEDED(pSample->GetPointer(&p)) && len > 0) {
-    AM_MEDIA_TYPE mt;
-    m_BasePin->ConnectionMediaType(&mt);
-    if(mt.majortype == MEDIATYPE_DVD_ENCRYPTED_PACK && len == 2048 && (p[0x14]&0x30)) {
+    if(m_mt.majortype == MEDIATYPE_DVD_ENCRYPTED_PACK && len == 2048 && (p[0x14]&0x30)) {
       CSSdescramble(p, m_TitleKey);
       p[0x14] &= ~0x30;
 
@@ -68,17 +65,13 @@ void CDeCSSPinHelper::Decrypt(IMediaSample* pSample)
         pMS2->Release();
       }
     }
-    FreeMediaType(mt);
   }
 }
 
 void CDeCSSPinHelper::StripPacket(BYTE*& p, long& len)
 {
-  AM_MEDIA_TYPE mt;
-  m_BasePin->ConnectionMediaType(&mt);
-  GUID majortype = mt.majortype;
-  GUID subtype = mt.subtype;
-  FreeMediaType(mt);
+  GUID majortype = m_mt.majortype;
+  GUID subtype = m_mt.subtype;
 
   if(majortype == MEDIATYPE_MPEG2_PACK || majortype == MEDIATYPE_DVD_ENCRYPTED_PACK) {
     if(len > 0 && *(DWORD*)p == 0xba010000) { // MEDIATYPE_*_PACK
@@ -361,14 +354,11 @@ STDMETHODIMP CDeCSSPinHelper::QuerySupported(REFGUID PropSet, ULONG Id, ULONG* p
 // CDeCSSTransformInputPin
 //
 
-#pragma warning(push)
-#pragma warning(disable:4355)
 CDeCSSTransformInputPin::CDeCSSTransformInputPin(TCHAR* pObjectName, CTransformFilter* pFilter, HRESULT* phr, LPWSTR pName)
   : CTransformInputPin(pObjectName, pFilter, phr, pName)
-  , CDeCSSPinHelper(static_cast<CBaseInputPin*>(this))
+  , CDeCSSPinHelper()
 {
 }
-#pragma warning(pop)
 
 STDMETHODIMP CDeCSSTransformInputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
@@ -383,4 +373,10 @@ STDMETHODIMP CDeCSSTransformInputPin::Receive(IMediaSample* pSample)
 {
   Decrypt(pSample);
   return __super::Receive(pSample);
+}
+
+HRESULT CDeCSSTransformInputPin::SetMediaType(const CMediaType *pmt)
+{
+  SetCSSMediaType(pmt);
+  return __super::SetMediaType(pmt);
 }
