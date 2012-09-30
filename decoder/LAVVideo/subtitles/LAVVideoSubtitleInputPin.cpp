@@ -104,12 +104,18 @@ HRESULT CLAVVideoSubtitleInputPin::BreakConnect()
   return __super::BreakConnect();
 }
 
-STDMETHODIMP CLAVVideoSubtitleInputPin::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
+STDMETHODIMP CLAVVideoSubtitleInputPin::BeginFlush()
 {
+  return __super::BeginFlush();
+}
+
+STDMETHODIMP CLAVVideoSubtitleInputPin::EndFlush()
+{
+  DbgLog((LOG_TRACE, 10, L"CLAVVideoSubtitleInputPin::EndFlush()"));
   if (m_pProvider) {
     m_pProvider->Flush();
   }
-  return __super::NewSegment(tStart, tStop, dRate);
+  return __super::EndFlush();
 }
 
 HRESULT CLAVVideoSubtitleInputPin::SetSubtitleConsumer(ISubRenderConsumer *pConsumer)
