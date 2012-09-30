@@ -164,7 +164,9 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pI
       DbgLog((LOG_TRACE, 10, L"New Palette"));
       CAutoLock cAutoLock(&m_csReceive);
       AM_PROPERTY_SPPAL* pSPPAL = (AM_PROPERTY_SPPAL*)pPropertyData;
-
+      if (m_pProvider) {
+        m_pProvider->SetDVDPalette(pSPPAL);
+      }
     }
     break;
   case AM_PROPERTY_DVDSUBPIC_HLI:

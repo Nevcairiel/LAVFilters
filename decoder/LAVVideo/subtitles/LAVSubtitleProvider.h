@@ -29,6 +29,8 @@ typedef struct LAVSubtitleProviderContext {
   bool combineBitmaps;            ///< Control if the provider combines all bitmaps into one
 } LAVSubtitleProviderContext;
 
+struct _AM_PROPERTY_SPPAL;
+
 class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown, private CCritSec
 {
 public:
@@ -48,6 +50,8 @@ public:
   STDMETHODIMP Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
 
   STDMETHODIMP Flush();
+
+  STDMETHODIMP SetDVDPalette(struct _AM_PROPERTY_SPPAL *pPal);
 
 private:
   void CloseDecoder();

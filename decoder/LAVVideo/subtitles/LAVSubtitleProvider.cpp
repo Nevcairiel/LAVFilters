@@ -21,6 +21,7 @@
 #include "LAVSubtitleProvider.h"
 
 #include "moreuuids.h"
+#include "libavutil/colorspace.h"
 
 #define FAST_DIV255(x) ((((x) + 128) * 257) >> 16)
 
@@ -329,4 +330,41 @@ void CLAVSubtitleProvider::AddSubtitleRect(LAVSubRect *rect)
 {
   CAutoLock lock(this);
   m_SubFrames.push_back(rect);
+}
+
+typedef struct DVDSubContext
+{
+  uint32_t palette[16];
+  int      has_palette;
+  uint8_t  colormap[4];
+  uint8_t  alpha[256];
+} DVDSubContext;
+
+#define MAX_NEG_CROP 1024
+extern "C" __declspec(dllimport) uint8_t ff_cropTbl[256 + 2 * MAX_NEG_CROP];
+
+STDMETHODIMP CLAVSubtitleProvider::SetDVDPalette(AM_PROPERTY_SPPAL *pPal)
+{
+  CAutoLock lock(this);
+  if (!m_pAVCtx || m_pAVCtx->codec_id != AV_CODEC_ID_DVD_SUBTITLE || !pPal) {
+    return E_FAIL;
+  }
+
+  DVDSubContext *ctx = (DVDSubContext *)m_pAVCtx->priv_data;
+  ctx->has_palette = 1;
+
+  uint8_t r,g,b;
+  int i, y, cb, cr;
+  int r_add, g_add, b_add;
+  uint8_t *cm = ff_cropTbl + MAX_NEG_CROP;
+  for (i = 0; i < 16; i++) {
+     y  = pPal->sppal[i].Y;
+     cb = pPal->sppal[i].U;
+     cr = pPal->sppal[i].V;
+     YUV_TO_RGB1_CCIR(cb, cr);
+     YUV_TO_RGB2_CCIR(r, g, b, y);
+     ctx->palette[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+  }
+
+  return S_OK;
 }
