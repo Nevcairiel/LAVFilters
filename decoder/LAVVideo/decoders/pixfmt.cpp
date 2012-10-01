@@ -120,6 +120,7 @@ HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame)
   if (pFrame->destruct) {
     pFrame->destruct(pFrame);
     pFrame->destruct = NULL;
+    pFrame->priv_data = NULL;
   }
   memset(pFrame->data, 0, sizeof(pFrame->data));
   memset(pFrame->stride, 0, sizeof(pFrame->stride));
