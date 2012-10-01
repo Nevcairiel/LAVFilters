@@ -149,6 +149,8 @@ public:
   STDMETHODIMP_(CMediaType&) GetOutputMediaType() { return m_pOutput->CurrentMediaType(); }
   STDMETHODIMP DVDStripPacket(BYTE*& p, long& len) { static_cast<CDeCSSTransformInputPin*>(m_pInput)->StripPacket(p, len); return S_OK; }
 
+  STDMETHODIMP RedrawStillImage();
+
 public:
   // Pin Configuration
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesIn[];
@@ -218,6 +220,8 @@ private:
 
   CLAVVideoSubtitleInputPin *m_pSubtitleInput;
   CLAVSubtitleConsumer *m_SubtitleConsumer;
+
+  LAVFrame             *m_pLastSequenceFrame;
 
   BOOL                 m_bMTFiltering;
   CAMEvent             m_evFilterInput;

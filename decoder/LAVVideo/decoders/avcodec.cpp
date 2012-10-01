@@ -292,6 +292,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_bDXVA(FALSE)
   , m_bInputPadded(FALSE)
   , m_bDR1(FALSE)
+  , m_bEndOfSequence(FALSE)
 {
 }
 
@@ -1047,6 +1048,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)
       pOutFrame->avgFrameDuration = GetFrameDuration();
 
+    if (m_bEndOfSequence)
+      pOutFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
+
     if (map.conversion) {
       ConvertPixFmt(m_pFrame, pOutFrame);
     } else {
@@ -1077,8 +1081,11 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     }
   }
 
-  if (bEndOfSequenceFlush)
+  if (bEndOfSequenceFlush) {
+    m_bEndOfSequence = TRUE;
     EndOfStream();
+    m_bEndOfSequence = FALSE;
+  }
 
   return S_OK;
 }

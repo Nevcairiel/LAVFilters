@@ -60,6 +60,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bStreamARBlacklisted(FALSE)
   , m_pSubtitleInput(NULL)
   , m_SubtitleConsumer(NULL)
+  , m_pLastSequenceFrame(NULL)
 {
   *phr = S_OK;
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
@@ -102,6 +103,7 @@ CLAVVideo::~CLAVVideo()
   SafeRelease(&m_SubtitleConsumer);
 
   SAFE_DELETE(m_pSubtitleInput);
+  ReleaseFrame(&m_pLastSequenceFrame);
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::IsVistaOrNewer()
@@ -650,6 +652,7 @@ HRESULT CLAVVideo::EndFlush()
 {
   DbgLog((LOG_TRACE, 1, L"::EndFlush"));
   CAutoLock cAutoLock(&m_csReceive);
+  ReleaseFrame(&m_pLastSequenceFrame);
   HRESULT hr = __super::EndFlush();
   m_bFlushing = FALSE;
   return hr;
@@ -675,6 +678,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   }
 
   m_Decoder.Flush();
+  ReleaseFrame(&m_pLastSequenceFrame);
 
   if (m_pFilterGraph)
     avfilter_graph_free(&m_pFilterGraph);
@@ -707,7 +711,7 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
     if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_VIDEO && !m_pSubtitleInput) {
       m_pSubtitleInput = new CLAVVideoSubtitleInputPin(TEXT("CLAVVideoSubtitleInputPin"), this, &m_csFilter, &hr, L"Subtitle Input");
       ASSERT(SUCCEEDED(hr));
-      m_SubtitleConsumer = new CLAVSubtitleConsumer();
+      m_SubtitleConsumer = new CLAVSubtitleConsumer(this);
       m_SubtitleConsumer->AddRef();
       m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
     }
@@ -1209,6 +1213,11 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
 
+  if (pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE && pFrame->format != LAVPixFmt_DXVA2) {
+    ReleaseFrame(&m_pLastSequenceFrame);
+    CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
+  }
+
   if (m_bFlushing) {
     ReleaseFrame(&pFrame);
     return S_FALSE;
@@ -1366,6 +1375,18 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   SafeRelease(&pSampleOut);
 
   return hr;
+}
+
+STDMETHODIMP CLAVVideo::RedrawStillImage()
+{
+  if (m_pLastSequenceFrame) {
+    DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redrawing still image"));
+    LAVFrame *pFrame = NULL;
+    CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
+    return Deliver(pFrame);
+  }
+
+  return S_FALSE;
 }
 
 HRESULT CLAVVideo::SetFrameFlags(IMediaSample* pMS, LAVFrame *pFrame)

@@ -35,12 +35,16 @@
 typedef struct LAVSubtitleConsumerContext {
   LPWSTR name;                    ///< name of the Consumer
   LPWSTR version;                 ///< Version of the Consumer
+
+  bool   redraw;
 } LAVSubtitleConsumerContext;
+
+class CLAVVideo;
 
 class CLAVSubtitleConsumer : public ISubRenderConsumer, public CSubRenderOptionsImpl, public CUnknown
 {
 public:
-  CLAVSubtitleConsumer(void);
+  CLAVSubtitleConsumer(CLAVVideo *pLAVVideo);
   virtual ~CLAVSubtitleConsumer(void);
   DECLARE_IUNKNOWN;
   DECLARE_ISUBRENDEROPTIONS;
@@ -50,6 +54,9 @@ public:
   STDMETHODIMP Connect(ISubRenderProvider *subtitleRenderer);
   STDMETHODIMP Disconnect(void);
   STDMETHODIMP DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, ISubRenderFrame *subtitleFrame);
+
+  // ISubRenderOptions
+  STDMETHODIMP OnSubOptionSet(LPCSTR field);
 
   // LAV Internal methods
   STDMETHODIMP RequestFrame(REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
@@ -78,4 +85,6 @@ private:
   LAVPixelFormat     m_PixFmt;
 
   LAVSubtitleConsumerContext context;
+
+  CLAVVideo          *m_pLAVVideo;
 };

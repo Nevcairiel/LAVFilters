@@ -52,8 +52,9 @@ static const SubRenderOption* sropt_find_option(const SubRenderOption* options, 
   CheckPointer(o, E_INVALIDARG);                                                     \
   if (o->type != t) return E_INVALIDARG;
 
-#define SET_VALUE                                     \
-  memcpy(((uint8_t*)context)+o->offset, &value, sizeof(value));
+#define SET_VALUE                                                \
+  memcpy(((uint8_t*)context)+o->offset, &value, sizeof(value));  \
+  OnSubOptionSet(field);
 
 STDMETHODIMP CSubRenderOptionsImpl::GetBool(LPCSTR field, bool *value)
 {

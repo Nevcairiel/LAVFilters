@@ -127,6 +127,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bVDPAULevelC(FALSE)
   , m_rtPrevDiff(AV_NOPTS_VALUE)
   , m_bARPresent(TRUE)
+  , m_bEndOfSequence(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -1060,6 +1061,9 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->stride[0] = pFrame->stride[1] = pitch;
   pFrame->flags  |= LAV_FRAME_FLAG_BUFFER_MODIFY;
 
+  if (m_bEndOfSequence)
+    pFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
+
   m_pCallback->Deliver(pFrame);
 
   return S_OK;
@@ -1158,7 +1162,9 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
       p = avpriv_mpv_find_start_code(p, end, &state);
       if (state == 0x000001b7) {
         DbgLog((LOG_TRACE, 50, L"Found SEQ_END_CODE at %p (end: %p)", p, end));
+        m_bEndOfSequence = TRUE;
         EndOfStream();
+        m_bEndOfSequence = FALSE;
         break;
       }
     }

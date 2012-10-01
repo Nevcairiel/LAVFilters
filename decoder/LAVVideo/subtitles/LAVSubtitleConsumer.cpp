@@ -19,17 +19,20 @@
 
 #include "stdafx.h"
 #include "LAVSubtitleConsumer.h"
+#include "LAVVideo.h"
 
 #define OFFSET(x) offsetof(LAVSubtitleConsumerContext, x)
 static const SubRenderOption options[] = {
   { "name",           OFFSET(name),            SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "version",        OFFSET(version),         SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
+
+  { "redraw",         OFFSET(redraw),          SROPT_TYPE_BOOL,   0                   },
   { 0 }
 };
 
 #define FAST_DIV255(x) ((((x) + 128) * 257) >> 16)
 
-CLAVSubtitleConsumer::CLAVSubtitleConsumer(void)
+CLAVSubtitleConsumer::CLAVSubtitleConsumer(CLAVVideo *pLAVVideo)
   : CSubRenderOptionsImpl(::options, &context)
   , CUnknown(L"CLAVSubtitleConsumer", NULL)
   , m_pProvider(NULL)
@@ -37,6 +40,7 @@ CLAVSubtitleConsumer::CLAVSubtitleConsumer(void)
   , m_evFrame(FALSE)
   , m_pSwsContext(NULL)
   , m_PixFmt(LAVPixFmt_None)
+  , m_pLAVVideo(pLAVVideo)
 {
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
@@ -324,6 +328,15 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     for (int i = 0; i < 4; i++) {
       av_freep(&subData[i]);
     }
+  }
+
+  return S_OK;
+}
+
+STDMETHODIMP CLAVSubtitleConsumer::OnSubOptionSet(LPCSTR field)
+{
+  if (strcmp(field, "redraw") == 0) {
+    m_pLAVVideo->RedrawStillImage();
   }
 
   return S_OK;

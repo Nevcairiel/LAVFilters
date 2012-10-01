@@ -79,6 +79,8 @@ public:
   STDMETHODIMP SetString   (LPCSTR field, LPWSTR    value, int chars);
   STDMETHODIMP SetBin      (LPCSTR field, LPVOID    value, int size );
 
+  virtual STDMETHODIMP OnSubOptionSet(LPCSTR field) { return E_NOTIMPL; }
+
 private:
   const SubRenderOption *options;
   void *context;

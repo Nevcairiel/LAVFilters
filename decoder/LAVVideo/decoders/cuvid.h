@@ -165,6 +165,7 @@ private:
   int                    m_nSoftTelecine;
   BOOL                   m_bTFF;
   BOOL                   m_bARPresent;
+  BOOL                   m_bEndOfSequence;
 
   HWND                   m_hwnd;
 };

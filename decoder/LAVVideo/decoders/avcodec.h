@@ -109,6 +109,7 @@ private:
   int                  m_iInterlaced;
 
   BOOL                 m_bDR1;
+  BOOL                 m_bEndOfSequence;
 
 #if AVCODEC_USE_DR1
   CCritSec             m_BufferCritSec;
