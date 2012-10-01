@@ -411,6 +411,9 @@ void CLAVSubtitleProvider::ProcessDVDHLI(LAVSubRect &rect)
   rect.pixels = newPixels;
   rect.freePixels = true;
 
+  // Need to assign a new Id since we're modifying it here..
+  rect.id = m_SubPicId++;
+
   uint8_t *palette   = (uint8_t *)ctx->palette;
   for (int y = 0; y < rect.size.cy; y++) {
     if (y+rect.position.y < m_pHLI->StartY || y+rect.position.y > m_pHLI->StopY)
