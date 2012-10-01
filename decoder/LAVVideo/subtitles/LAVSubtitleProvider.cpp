@@ -184,6 +184,7 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
     delete *it;
   }
   std::list<LAVSubRect*>().swap(m_SubFrames);
+  SAFE_DELETE(m_pHLI);
   return S_OK;
 }
 
