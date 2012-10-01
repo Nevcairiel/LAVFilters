@@ -30,6 +30,8 @@
 
 // 125fps is the highest we accept as "sane"
 #define MIN_TIME_PER_FRAME 80000
+// 10fps is the lowest that is "sane" in our definition
+#define MAX_TIME_PER_FRAME 1000000
 
 CLAVFVideoHelper g_VideoHelper;
 
@@ -148,11 +150,11 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
   // Get the frame rate
   REFERENCE_TIME r_avg, avg_avg, tb_avg;
-  if (avstream->r_frame_rate.den > 0 &&  avstream->r_frame_rate.num > 0 && ((r_avg = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num)) > MIN_TIME_PER_FRAME)) {
+  if (avstream->r_frame_rate.den > 0 &&  avstream->r_frame_rate.num > 0 && ((r_avg = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num)) > MIN_TIME_PER_FRAME) && r_avg < MAX_TIME_PER_FRAME) {
     pvi->AvgTimePerFrame = r_avg;
-  } else if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0 && ((avg_avg = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num)) > MIN_TIME_PER_FRAME)) {
+  } else if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0 && ((avg_avg = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num)) > MIN_TIME_PER_FRAME) && avg_avg < MAX_TIME_PER_FRAME) {
     pvi->AvgTimePerFrame = avg_avg;
-  } else if (avstream->codec->time_base.den > 0 &&  avstream->codec->time_base.num > 0 && avstream->codec->ticks_per_frame > 0 && ((tb_avg = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame, avstream->codec->time_base.den)) > MIN_TIME_PER_FRAME)) {
+  } else if (avstream->codec->time_base.den > 0 &&  avstream->codec->time_base.num > 0 && avstream->codec->ticks_per_frame > 0 && ((tb_avg = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame, avstream->codec->time_base.den)) > MIN_TIME_PER_FRAME) && tb_avg < MAX_TIME_PER_FRAME) {
     pvi->AvgTimePerFrame = tb_avg;
   }
   pvi->dwBitErrorRate = 0;
