@@ -136,8 +136,14 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
 
   LAVPixFmtDesc desc = getPixelFormatDesc(pSrc->format);
   for (int plane = 0; plane < desc.planes; plane++) {
-    size_t size =  pSrc->stride[plane] * (pSrc->height / desc.planeHeight[plane]);
-    memcpy((*ppDst)->data[plane], pSrc->data[plane], size);
+    size_t linesize = (pSrc->width / desc.planeWidth[plane]);
+    BYTE *dst = (*ppDst)->data[plane];
+    BYTE *src = pSrc->data[plane];
+    for (int i = 0; i < (pSrc->height / desc.planeHeight[plane]); i++) {
+      memcpy(dst, src, linesize);
+      dst += (*ppDst)->stride[plane];
+      src += pSrc->stride[plane];
+    }
   }
 
   return S_OK;
