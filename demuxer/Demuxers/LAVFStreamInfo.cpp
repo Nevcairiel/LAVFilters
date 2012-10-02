@@ -306,7 +306,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   mtype.formattype = FORMAT_SubtitleInfo;
 
   int extra = avstream->codec->extradata_size;
-  if (avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT) {
+  if (avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT || avstream->codec->codec_id == AV_CODEC_ID_TEXT || avstream->codec->codec_id == AV_CODEC_ID_SUBRIP) {
     extra = 0;
   }
 
