@@ -96,6 +96,7 @@ std::wstring CRegistry::ReadString(LPCTSTR pszKey, HRESULT &hr)
   if (lRet == ERROR_SUCCESS) {
     // Alloc Buffer to fit the data
     WCHAR *buffer = (WCHAR *)CoTaskMemAlloc(dwSize);
+    if (!buffer) { hr = E_OUTOFMEMORY; return result; }
     memset(buffer, 0, dwSize);
     lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, (LPBYTE)buffer, &dwSize);
     result = std::wstring(buffer);
@@ -185,6 +186,7 @@ BYTE *CRegistry::ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr)
   if (lRet == ERROR_SUCCESS) {
     // Alloc Buffer to fit the data
     result = (BYTE *)CoTaskMemAlloc(dwSize);
+    if (!result) { hr = E_OUTOFMEMORY; return result; }
     memset(result, 0, dwSize);
     lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, (LPBYTE)result, &dwSize);
   }

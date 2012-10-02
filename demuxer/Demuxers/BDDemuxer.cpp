@@ -311,6 +311,8 @@ STDMETHODIMP CBDDemuxer::SetTitle(uint32_t idx)
 
   // space for storing stream offsets
   m_rtOffset = (REFERENCE_TIME *)CoTaskMemAlloc(sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
+  if (!m_rtOffset)
+    return E_OUTOFMEMORY;
   memset(m_rtOffset, 0, sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
 
   DbgLog((LOG_TRACE, 20, L"Opened BD title with %d clips and %d chapters", m_pTitle->clip_count, m_pTitle->chapter_count));
@@ -350,7 +352,8 @@ STDMETHODIMP CBDDemuxer::GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, 
       swprintf_s(buffer, L"Title %d", idx + 1);
       size_t size = (wcslen(buffer) + 1) * sizeof(WCHAR);
       *ppszName = (WCHAR *)CoTaskMemAlloc(size);
-      memcpy(*ppszName, buffer, size);
+      if (*ppszName)
+        memcpy(*ppszName, buffer, size);
     }
 
     return S_OK;

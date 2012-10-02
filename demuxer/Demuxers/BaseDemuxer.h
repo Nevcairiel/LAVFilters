@@ -55,12 +55,21 @@ public:
   // Getter
   size_t GetDataSize() const { return m_sSize; }
   BYTE *GetData() { return m_pbData; }
-  BYTE GetAt(DWORD pos) const { return m_pbData[pos]; }
   bool IsEmpty() const { return m_sSize == 0; }
 
   // Setter
-  void SetDataSize(size_t len) { m_sSize = len; if (m_sSize > m_sBlockSize || !m_pbData) { m_pbData = (BYTE *)CoTaskMemRealloc(m_pbData, m_sSize + FF_INPUT_BUFFER_PADDING_SIZE); m_sBlockSize = m_sSize; } memset(m_pbData+m_sSize, 0, FF_INPUT_BUFFER_PADDING_SIZE);}
-  void SetData(const void* ptr, size_t len) { SetDataSize(len); memcpy(m_pbData, ptr, len); }
+  void SetDataSize(size_t len) {
+    m_sSize = len;
+    if (m_sSize > m_sBlockSize || !m_pbData) {
+      BYTE *tmp = (BYTE *)CoTaskMemRealloc(m_pbData, m_sSize + FF_INPUT_BUFFER_PADDING_SIZE);
+      if (!tmp) SAFE_CO_FREE(m_pbData);
+      m_pbData = tmp;
+      m_sBlockSize = m_sSize;
+    }
+    if (m_pbData)
+      memset(m_pbData+m_sSize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+  }
+  void SetData(const void* ptr, size_t len) { SetDataSize(len); if (m_pbData) memcpy(m_pbData, ptr, len); }
   void Clear() { m_sSize = m_sBlockSize = 0; SAFE_CO_FREE(m_pbData); }
 
   // Append the data of the package to our data buffer
@@ -71,13 +80,15 @@ public:
   void AppendData(const void* ptr, size_t len) {
     size_t prevSize = m_sSize;
     SetDataSize(m_sSize + len);
-    memcpy(m_pbData+prevSize, ptr, len);
+    if (m_pbData)
+      memcpy(m_pbData+prevSize, ptr, len);
   }
 
   // Remove count bytes from position index
   void RemoveHead(size_t count) {
     count = min(count, m_sSize);
-    memmove(m_pbData, m_pbData+count, m_sSize-count);
+    if (m_pbData && count > 0)
+      memmove(m_pbData, m_pbData+count, m_sSize-count);
     SetDataSize(m_sSize - count);
   }
 

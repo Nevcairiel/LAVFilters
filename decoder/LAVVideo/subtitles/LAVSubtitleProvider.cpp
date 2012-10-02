@@ -282,6 +282,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
     for (unsigned i = 0; i < sub->num_rects; i++) {
       AVSubtitleRect *rect = sub->rects[i];
       BYTE *rgbSub = (BYTE *)CoTaskMemAlloc(rect->pict.linesize[0] * rect->h * 4);
+      if (!rgbSub) return;
       BYTE *rgbSubStart = rgbSub;
       const BYTE *palSub = rect->pict.data[0];
       const BYTE *palette = rect->pict.data[1];
@@ -313,6 +314,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
       POINT position = { rect->x, rect->y };
       SIZE size = { rect->w, rect->h };
       LAVSubRect *lavRect = new LAVSubRect();
+      if (!lavRect) return;
       lavRect->id       = m_SubPicId++;
       lavRect->pitch    = rect->pict.linesize[0];
       lavRect->pixels   = rgbSubStart;
@@ -323,6 +325,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
 
       if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
         lavRect->pixelsPal = CoTaskMemAlloc(lavRect->pitch * rect->h);
+        if (!lavRect->pixelsPal) return;
         memcpy(lavRect->pixelsPal, rect->pict.data[0], lavRect->pitch * rect->h);
       }
 
@@ -411,6 +414,7 @@ void CLAVSubtitleProvider::ProcessDVDHLI(LAVSubRect &rect)
     return;
 
   LPVOID newPixels = CoTaskMemAlloc(rect.pitch * rect.size.cy * 4);
+  if (!newPixels) return;
   memcpy(newPixels, rect.pixels, rect.pitch * rect.size.cy * 4);
 
   rect.pixels = newPixels;

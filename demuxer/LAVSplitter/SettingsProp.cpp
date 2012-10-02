@@ -400,6 +400,8 @@ HRESULT CLAVSplitterFormatsProp::OnActivate()
 
   SAFE_CO_FREE(m_bFormats);
   m_bFormats = (BOOL *)CoTaskMemAlloc(sizeof(BOOL) * m_Formats.size());
+  if (!m_bFormats)
+    return E_OUTOFMEMORY;
   memset(m_bFormats, 0, sizeof(BOOL) * m_Formats.size());
 
   // Create entrys for the formats

@@ -52,7 +52,7 @@ HRESULT CLAVAudio::InitBitstreaming()
   // Alloc buffer for the AVIO context
   BYTE *buffer = (BYTE *)CoTaskMemAlloc(LAV_BITSTREAM_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
   if(!buffer)
-    return E_FAIL;
+    return E_OUTOFMEMORY;
   
   // Create AVIO context
   m_avioBitstream = avio_alloc_context(buffer, LAV_BITSTREAM_BUFFER_SIZE, 1, this, NULL, BSWriteBuffer, NULL);

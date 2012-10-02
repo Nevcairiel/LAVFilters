@@ -130,6 +130,7 @@ HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame)
 HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
 {
   *ppDst = (LAVFrame *)CoTaskMemAlloc(sizeof(LAVFrame));
+  if (!*ppDst) return E_OUTOFMEMORY;
   **ppDst = *pSrc;
 
   AllocLAVFrameBuffers(*ppDst, pSrc->stride[0]);
@@ -139,6 +140,8 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
     size_t linesize = (pSrc->width / desc.planeWidth[plane]);
     BYTE *dst = (*ppDst)->data[plane];
     BYTE *src = pSrc->data[plane];
+    if (!dst || !src)
+      return E_FAIL;
     for (int i = 0; i < (pSrc->height / desc.planeHeight[plane]); i++) {
       memcpy(dst, src, linesize);
       dst += (*ppDst)->stride[plane];

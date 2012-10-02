@@ -147,6 +147,7 @@ size_t avc_parse_annexb(BYTE *extra, int extrasize, BYTE *dst)
 VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size)
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
+  if (!pvi) return NULL;
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
   // Get the frame rate
   REFERENCE_TIME r_avg, avg_avg, tb_avg;
@@ -213,6 +214,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
+  if (!vih) return NULL;
 
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
@@ -225,6 +227,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   }
 
   VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)CoTaskMemAlloc(sizeof(VIDEOINFOHEADER2) + extra); 
+  if (!vih2) return NULL;
   memset(vih2, 0, sizeof(VIDEOINFOHEADER2));
 
   vih2->rcSource = vih->rcSource;
@@ -288,6 +291,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
+  if (!vih) return NULL;
 
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
@@ -295,6 +299,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   }
 
   MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG1VIDEOINFO) + extra);
+  if (!mp1vi) return NULL;
   memset(mp1vi, 0, sizeof(MPEG1VIDEOINFO));
 
   // The MPEG1VI is a thin wrapper around a VIH, so its easy!
@@ -325,13 +330,15 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER2 *vih2 = CreateVIH2(avstream, size);
+  if (!vih2) return NULL;
 
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
     extradata = avstream->codec->extradata;
   }
 
-  MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG2VIDEOINFO) + max(extra - 4, 0)); 
+  MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG2VIDEOINFO) + max(extra - 4, 0));
+  if (!mp2vi) return NULL;
   memset(mp2vi, 0, sizeof(MPEG2VIDEOINFO));
   memcpy(&mp2vi->hdr, vih2, sizeof(VIDEOINFOHEADER2));
   mp2vi->hdr.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);

@@ -1231,7 +1231,8 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
           WCHAR str[] = L"S: No subtitles";
           size_t len = wcslen(str) + 1;
           *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
-          wcsncpy_s(*ppszName, len, str, _TRUNCATE);
+          if (*ppszName)
+            wcsncpy_s(*ppszName, len, str, _TRUNCATE);
         }
       } else if (s.pid == FORCED_SUBTITLE_PID) {
         if (plcid) {
@@ -1242,7 +1243,8 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
           WCHAR str[] = L"S: " FORCED_SUB_STRING;
           size_t len = wcslen(str) + 1;
           *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
-          wcsncpy_s(*ppszName, len, str, _TRUNCATE);
+          if (*ppszName)
+            wcsncpy_s(*ppszName, len, str, _TRUNCATE);
         }
       } else {
         // Populate stream name and language code
@@ -1260,12 +1262,14 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
 // setting helpers
 std::list<std::string> CLAVSplitter::GetPreferredAudioLanguageList()
 {
+  std::list<std::string> list;
+
   // Convert to multi-byte ascii
   int bufSize = (int)(sizeof(WCHAR) * (m_settings.prefAudioLangs.length() + 1));
   char *buffer = (char *)CoTaskMemAlloc(bufSize);
+  if (!buffer)
+    return list;
   WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
-
-  std::list<std::string> list;
 
   split(std::string(buffer), std::string(",; "), list);
   CoTaskMemFree(buffer);
@@ -1286,6 +1290,8 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     // Convert to multi-byte ascii
     size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
     char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    if (!buffer)
+      return selectorList;
     ZeroMemory(buffer, bufSize);
     WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
 
@@ -1319,6 +1325,8 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     // Convert to multi-byte ascii
     size_t bufSize = sizeof(WCHAR) * (m_settings.subtitleAdvanced.length() + 1);
     char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    if (!buffer)
+      return selectorList;
     ZeroMemory(buffer, bufSize);
     WideCharToMultiByte(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
 
@@ -1385,7 +1393,8 @@ STDMETHODIMP CLAVSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
   size_t len = m_settings.prefAudioLangs.length() + 1;
   if (len > 1) {
     *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
-    wcsncpy_s(*ppLanguages, len,  m_settings.prefAudioLangs.c_str(), _TRUNCATE);
+    if (*ppLanguages)
+      wcsncpy_s(*ppLanguages, len,  m_settings.prefAudioLangs.c_str(), _TRUNCATE);
   } else {
     *ppLanguages = NULL;
   }
@@ -1404,7 +1413,8 @@ STDMETHODIMP CLAVSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
   size_t len = m_settings.prefSubLangs.length() + 1;
   if (len > 1) {
     *ppLanguages = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
-    wcsncpy_s(*ppLanguages, len,  m_settings.prefSubLangs.c_str(), _TRUNCATE);
+    if (*ppLanguages)
+      wcsncpy_s(*ppLanguages, len,  m_settings.prefSubLangs.c_str(), _TRUNCATE);
   } else {
     *ppLanguages = NULL;
   }
@@ -1550,7 +1560,8 @@ STDMETHODIMP CLAVSplitter::GetAdvancedSubtitleConfig(WCHAR **ppAdvancedConfig)
   size_t len = m_settings.subtitleAdvanced.length() + 1;
   if (len > 1) {
     *ppAdvancedConfig = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * len);
-    wcsncpy_s(*ppAdvancedConfig, len,  m_settings.subtitleAdvanced.c_str(), _TRUNCATE);
+    if (*ppAdvancedConfig)
+      wcsncpy_s(*ppAdvancedConfig, len,  m_settings.subtitleAdvanced.c_str(), _TRUNCATE);
   } else {
     *ppAdvancedConfig = NULL;
   }

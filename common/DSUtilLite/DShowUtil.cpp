@@ -193,6 +193,8 @@ BSTR ConvertCharToBSTR(const char *sz)
   size_t len = MultiByteToWideChar(CP_UTF8, 0, sz, -1, NULL, 0);
 
   WCHAR *wide = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
+  if (!wide)
+    return NULL;
   MultiByteToWideChar(CP_UTF8, 0, sz, -1, wide, (int)len);
 
   BSTR bstr = SysAllocString(wide);

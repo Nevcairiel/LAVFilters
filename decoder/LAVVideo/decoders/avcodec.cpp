@@ -802,7 +802,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         m_pFFBuffer = (BYTE *)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1);
         if (!m_pFFBuffer) {
           m_nFFBufferSize = 0;
-          return E_FAIL;
+          return E_OUTOFMEMORY;
         }
       }
       
@@ -897,7 +897,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
             m_pFFBuffer2 = (BYTE *)av_realloc_f(m_pFFBuffer2, m_nFFBufferSize2 + FF_INPUT_BUFFER_PADDING_SIZE, 1);
             if (!m_pFFBuffer2) {
               m_nFFBufferSize2 = 0;
-              return E_FAIL;
+              return E_OUTOFMEMORY;
             }
           }
           memcpy(m_pFFBuffer2, pOut, pOut_size);

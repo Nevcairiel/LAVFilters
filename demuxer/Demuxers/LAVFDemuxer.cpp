@@ -113,6 +113,8 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
     DWORD dwVersionSize = GetFileVersionInfoSize(fileName, NULL);
     if (dwVersionSize > 0) {
       void *versionInfo = CoTaskMemAlloc(dwVersionSize);
+      if (!versionInfo)
+        return;
       GetFileVersionInfo(fileName, 0, dwVersionSize, versionInfo);
       VS_FIXEDFILEINFO *info;
       unsigned cbInfo;
@@ -249,6 +251,8 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   a_len += 2;// one extra char because CLIPINF is 7 chars and STREAM is 6, and one for the terminating-zero
 
   char *path = (char *)CoTaskMemAlloc(a_len * sizeof(char));
+  if (!path)
+    return E_OUTOFMEMORY;
   WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, path, (int)a_len, NULL, NULL);
 
   // Remove file name itself
@@ -375,6 +379,8 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
   SAFE_CO_FREE(m_stOrigParser);
   m_stOrigParser = (enum AVStreamParseType *)CoTaskMemAlloc(m_avFormat->nb_streams * sizeof(enum AVStreamParseType));
+  if (!m_stOrigParser)
+    return E_OUTOFMEMORY;
 
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
@@ -603,6 +609,8 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     AVStream *stream = m_avFormat->streams[pkt.stream_index];
     pPacket = new Packet();
+    if (!pPacket)
+      return E_OUTOFMEMORY;
     pPacket->bPosition = pkt.pos;
 
     if ((m_bMatroska || m_bOgg) && stream->codec->codec_id == AV_CODEC_ID_H264) {
@@ -630,6 +638,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     if(pkt.data) {
       pPacket->SetData(pkt.data, pkt.size);
+      if (!pPacket->GetData()) {
+        return E_OUTOFMEMORY;
+      }
     }
 
     pPacket->StreamId = (DWORD)pkt.stream_index;
@@ -814,7 +825,8 @@ HRESULT CLAVFDemuxer::StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCH
     std::string info = s.streamInfo->codecInfo;
     size_t len = info.size() + 1;
     *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
-    MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, (int)len);
+    if (*ppszName)
+      MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, (int)len);
   }
 
   return S_OK;

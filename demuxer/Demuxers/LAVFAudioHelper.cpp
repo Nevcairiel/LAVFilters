@@ -104,6 +104,8 @@ CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &code
 
 WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *size) {
   WAVEFORMATEX *wvfmt = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
+  if (!wvfmt)
+    return NULL;
   memset(wvfmt, 0, sizeof(WAVEFORMATEX));
 
   wvfmt->wFormatTag = avstream->codec->codec_tag;
@@ -141,9 +143,13 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
 
 WAVEFORMATEXFFMPEG *CLAVFAudioHelper::CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size) {
   WAVEFORMATEX *wvfmt = CreateWVFMTEX(avstream, size);
+  if (!wvfmt)
+    return NULL;
 
   const size_t diff_size = sizeof(WAVEFORMATEXFFMPEG) - sizeof(WAVEFORMATEX);
   WAVEFORMATEXFFMPEG *wfex_ff = (WAVEFORMATEXFFMPEG *)CoTaskMemAlloc(diff_size + *size);
+  if (!wfex_ff)
+    return NULL;
   memset(wfex_ff, 0, sizeof(WAVEFORMATEXFFMPEG));
   memcpy(&wfex_ff->wfex, wvfmt, *size);
 
@@ -208,6 +214,8 @@ WAVEFORMATEX_HDMV_LPCM *CLAVFAudioHelper::CreateWVFMTEX_LPCM(const AVStream *avs
 WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avstream, ULONG *size, const GUID subtype, ULONG *samplesize)
 {
   WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)CoTaskMemAlloc(sizeof(WAVEFORMATEXTENSIBLE));
+  if (!wfex)
+    return NULL;
   memset(wfex, 0, sizeof(*wfex));
 
   WAVEFORMATEX *wfe = &wfex->Format;
@@ -254,8 +262,12 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
 
 MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULONG *size) {
   WAVEFORMATEX *wvfmt = CreateWVFMTEX(avstream, size);
+  if (!wvfmt)
+    return NULL;
 
   MPEG1WAVEFORMAT *mpwvfmt = (MPEG1WAVEFORMAT *)CoTaskMemAlloc(sizeof(MPEG1WAVEFORMAT));
+  if (!mpwvfmt)
+    return NULL;
   memset(mpwvfmt, 0, sizeof(MPEG1WAVEFORMAT));
   memcpy(&mpwvfmt->wfx, wvfmt, sizeof(WAVEFORMATEX));
 
@@ -281,6 +293,8 @@ MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULON
 
 VORBISFORMAT *CLAVFAudioHelper::CreateVorbis(const AVStream *avstream, ULONG *size) {
   VORBISFORMAT *vfmt = (VORBISFORMAT *)CoTaskMemAlloc(sizeof(VORBISFORMAT));
+  if (!vfmt)
+    return NULL;
   memset(vfmt, 0, sizeof(VORBISFORMAT));
 
   vfmt->nChannels = avstream->codec->channels;
@@ -314,6 +328,8 @@ VORBISFORMAT2 *CLAVFAudioHelper::CreateVorbis2(const AVStream *avstream, ULONG *
   // 3 blocks is the currently valid Vorbis format
   if(sizes.size() == 3) {
     VORBISFORMAT2* pvf2 = (VORBISFORMAT2*)CoTaskMemAlloc(sizeof(VORBISFORMAT2) + totalsize);
+    if (!pvf2)
+      return NULL;
     memset(pvf2, 0, sizeof(VORBISFORMAT2));
     
     pvf2->Channels = avstream->codec->channels;
