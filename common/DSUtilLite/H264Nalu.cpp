@@ -43,7 +43,7 @@ bool CH264Nalu::MoveToNextAnnexBStartcode()
 		return false;
 	size_t nBuffEnd = m_nSize - 4;
 
-	for (size_t i=m_nCurPos; i<nBuffEnd; i++) {
+	for (size_t i=m_nCurPos; i<=nBuffEnd; i++) {
 		if ((*((DWORD*)(m_pBuffer+i)) & 0x00FFFFFF) == 0x00010000) {
 			// Find next AnnexB Nal
 			m_nCurPos = i;
