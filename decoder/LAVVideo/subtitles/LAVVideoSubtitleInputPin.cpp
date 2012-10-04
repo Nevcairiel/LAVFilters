@@ -190,9 +190,10 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pI
     break;
   case AM_PROPERTY_DVDSUBPIC_COMPOSIT_ON:
     {
-      DbgLog((LOG_TRACE, 10, L"Composit Event"));
       CAutoLock cAutoLock(&m_csReceive);
       AM_PROPERTY_COMPOSIT_ON* pCompositOn = (AM_PROPERTY_COMPOSIT_ON*)pPropertyData;
+      DbgLog((LOG_TRACE, 10, L"Composit Event - on: %d", *pCompositOn));
+      m_pProvider->SetDVDComposit(*pCompositOn);
     }
     break;
   default:

@@ -43,6 +43,7 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(ISubRenderConsumer *pConsumer)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_SubPicId(0)
   , m_pHLI(NULL)
+  , m_bComposit(TRUE)
 {
   avcodec_register_all();
 
@@ -105,7 +106,8 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
     LAVSubRect *pRect = *it;
     if ((pRect->rtStart == AV_NOPTS_VALUE || pRect->rtStart <= start)
-      && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop >= stop)) {
+      && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop >= stop)
+      && (m_bComposit || pRect->forced)) {
 
       LAVSubRect rect = *pRect;
 
@@ -322,6 +324,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
       lavRect->size     = size;
       lavRect->rtStart  = rtStart;
       lavRect->rtStop   = rtStop;
+      lavRect->forced   = !!rect->forced;
 
       if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
         lavRect->pixelsPal = CoTaskMemAlloc(lavRect->pitch * rect->h);
@@ -464,4 +467,10 @@ void CLAVSubtitleProvider::ProcessDVDHLI(LAVSubRect &rect)
       pixels[(x << 2) + 3] = a;
     }
   }
+}
+
+STDMETHODIMP CLAVSubtitleProvider::SetDVDComposit(BOOL bComposit)
+{
+  m_bComposit = bComposit;
+  return S_OK;
 }

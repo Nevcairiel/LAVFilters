@@ -28,6 +28,7 @@ typedef struct LAVSubRect {
   LPVOID pixels;           ///< Pixel Data
   LPVOID pixelsPal;        ///< Pixel Data (in paletted form, required by dvd HLI)
   int pitch;               ///< Pitch of the subtitle lines
+  bool forced;             ///< Forced/Menu
 
   bool freePixels;         ///< If true, pixel data is free'ed upon destroy
 } LAVSubRect;

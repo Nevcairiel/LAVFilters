@@ -54,6 +54,7 @@ public:
 
   STDMETHODIMP SetDVDPalette(struct _AM_PROPERTY_SPPAL *pPal);
   STDMETHODIMP SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI);
+  STDMETHODIMP SetDVDComposit(BOOL bComposit);
 
 private:
   void CloseDecoder();
@@ -73,6 +74,7 @@ private:
 
   REFERENCE_TIME        m_rtStartCache;
   ULONGLONG             m_SubPicId;
+  BOOL                  m_bComposit;
 
   std::list<LAVSubRect*> m_SubFrames;
 
