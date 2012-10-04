@@ -136,7 +136,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
         dstU[col] = FAST_DIV255(dstU[col] * (255 - alpha) + (srcU[col] << shift) * alpha);
         dstV[col] = FAST_DIV255(dstV[col] * (255 - alpha) + (srcV[col] << shift) * alpha);
       }
-      srcA += 1 << vsub;
+      srcA += (ptrdiff_t)(1 << vsub);
     }
   }
 
