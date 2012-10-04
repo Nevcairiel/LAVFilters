@@ -156,6 +156,8 @@ public:
   STDMETHODIMP SetAdvancedSubtitleConfig(WCHAR *pAdvancedConfig);
   STDMETHODIMP SetUseAudioForHearingVisuallyImpaired(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetUseAudioForHearingVisuallyImpaired();
+  STDMETHODIMP SetMaxQueueMemSize(DWORD dwMaxSize);
+  STDMETHODIMP_(DWORD) GetMaxQueueMemSize();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
@@ -256,6 +258,7 @@ private:
 
     BOOL StreamSwitchRemoveAudio;
     BOOL ImpairedAudio;
+    DWORD QueueMaxSize;
 
     std::map<std::string, BOOL> formats;
   } m_settings;

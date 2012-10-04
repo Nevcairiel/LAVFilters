@@ -33,6 +33,10 @@
 #define IDC_STREAM_SWITCH_REMOVE_AUDIO  1024
 #define IDC_SUBTITLE_NOTE               1025
 #define IDC_IMPAIRED_AUDIO              1026
+#define IDC_QUEUE_SETTINGS              1027
+#define IDC_LBL_QUEUE_MEM               1028
+#define IDC_QUEUE_MEM                   1029
+#define IDC_QUEUE_MEM_SPIN              1030
 
 // Next default values for new objects
 // 
@@ -40,7 +44,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1027
+#define _APS_NEXT_CONTROL_VALUE         1031
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

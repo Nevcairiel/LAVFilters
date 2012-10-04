@@ -39,6 +39,7 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_Parser(this, container)
   , m_rtPrev(Packet::INVALID_TIME)
   , m_bPacketAllocator(FALSE)
+  , m_dwQueueMaxMem(256)
 {
   m_mts = mts;
   m_nBuffers = max(nBuffers, 1);
@@ -68,6 +69,11 @@ void CLAVOutputPin::SetQueueSizes()
 
   m_dwQueueLow  = MIN_PACKETS_IN_QUEUE * factor;
   m_dwQueueHigh = MAX_PACKETS_IN_QUEUE * factor;
+
+  m_dwQueueMaxMem = (static_cast<CLAVSplitter*>(m_pFilter))->GetMaxQueueMemSize() * 1024 * 1024;
+  if (!m_dwQueueMaxMem) {
+    m_dwQueueMaxMem = 256 * 1024 * 1024;
+  }
 }
 
 HRESULT CLAVOutputPin::GetQueueSize(int& samples, int& size)
@@ -327,8 +333,9 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
   // The queu has a "soft" limit of MAX_PACKETS_IN_QUEUE, and a hard limit of MAX_PACKETS_IN_QUEUE * 2
   // That means, even if one pin is drying, we'll never exceed MAX_PACKETS_IN_QUEUE * 2
   while(S_OK == m_hrDeliver 
-    && ((m_queue.Size() > 2*m_dwQueueHigh || m_queue.DataSize() > (MAX_QUEUE_SIZE*3/2))
-    || ((m_queue.Size() > m_dwQueueHigh || m_queue.DataSize() > MAX_QUEUE_SIZE) && !pSplitter->IsAnyPinDrying())))
+    && (m_queue.DataSize() > m_dwQueueMaxMem
+    || m_queue.Size() > 2*m_dwQueueHigh
+    || (m_queue.Size() > m_dwQueueHigh && !pSplitter->IsAnyPinDrying())))
     Sleep(10);
 
   if(S_OK != m_hrDeliver) {

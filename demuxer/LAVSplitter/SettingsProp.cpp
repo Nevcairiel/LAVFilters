@@ -109,6 +109,10 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetUseAudioForHearingVisuallyImpaired(bFlag));
 
+  SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+  int maxMem = _wtoi(buffer);
+  CHECK_HR(hr = m_pLAVF->SetMaxQueueMemSize(maxMem));
+
   LoadData();
 
 done:    
@@ -208,6 +212,15 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
 
   SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_SETCHECK, m_ImpairedAudio, 0);
 
+  SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM_SPIN, UDM_SETRANGE32, 0, 2048);
+
+  addHint(IDC_QUEUE_MEM, L"Set the maximum memory a frame queue can use for buffering (in megabytes).\nNote that this is the maximum value, only very high bitrate files will usually even reach the default maximum value.");
+  addHint(IDC_QUEUE_MEM_SPIN, L"Set the maximum memory a frame queue can use for buffering (in megabytes).\nNote that this is the maximum value, only very high bitrate files will usually even reach the default maximum value.");
+
+  WCHAR stringBuffer[100];
+  swprintf_s(stringBuffer, L"%d", m_QueueMaxMem);
+  SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM, WM_SETTEXT, 0, (LPARAM)stringBuffer);
+
   UpdateSubtitleMode(m_subtitleMode);
 
   return hr;
@@ -234,6 +247,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_videoParsing = m_pLAVF->GetVideoParsingEnabled();
   m_StreamSwitchRemoveAudio = m_pLAVF->GetStreamSwitchRemoveAudio();
   m_ImpairedAudio = m_pLAVF->GetUseAudioForHearingVisuallyImpaired();
+  m_QueueMaxMem = m_pLAVF->GetMaxQueueMemSize();
 
 done:
   return hr;
@@ -308,6 +322,20 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_GETCHECK, 0, 0);
       if (bFlag != m_ImpairedAudio) {
         SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_QUEUE_MEM && HIWORD(wParam) == EN_CHANGE) {
+      WCHAR buffer[100];
+      SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, 100, (LPARAM)&buffer);
+      int maxMem = _wtoi(buffer);
+      size_t len = wcslen(buffer);
+      if (maxMem == 0 && (buffer[0] != L'0' || len > 1)) {
+        SendDlgItemMessage(m_Dlg, LOWORD(wParam), EM_UNDO, 0, 0);
+      } else {
+        swprintf_s(buffer, L"%d", maxMem);
+        if (wcslen(buffer) != len)
+          SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM, WM_SETTEXT, 0, (LPARAM)buffer);
+        if (maxMem != m_QueueMaxMem)
+          SetDirty();
       }
     }
     break;

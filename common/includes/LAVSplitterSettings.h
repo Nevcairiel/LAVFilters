@@ -150,4 +150,10 @@ interface ILAVFSettings : public IUnknown
 
   // Get if LAV Splitter should prefer audio streams for the hearing or visually impaired
   STDMETHOD_(BOOL,GetUseAudioForHearingVisuallyImpaired)() = 0;
+
+  // Set the maximum queue size, in megabytes
+  STDMETHOD(SetMaxQueueMemSize)(DWORD dwMaxSize) = 0;
+
+  // Get the maximum queue size, in megabytes
+  STDMETHOD_(DWORD,GetMaxQueueMemSize)() = 0;
 };

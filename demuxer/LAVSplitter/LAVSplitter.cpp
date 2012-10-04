@@ -141,6 +141,7 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
 
   m_settings.StreamSwitchRemoveAudio = FALSE;
   m_settings.ImpairedAudio    = FALSE;
+  m_settings.QueueMaxSize     = 256;
 
   std::set<FormatInfo>::iterator it;
   for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
@@ -196,6 +197,9 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   bFlag = reg.ReadDWORD(L"ImpairedAudio", hr);
   if (SUCCEEDED(hr)) m_settings.ImpairedAudio = bFlag;
 
+  dwVal = reg.ReadDWORD(L"QueueMaxSize", hr);
+  if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
+
   CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
 
@@ -232,6 +236,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
     reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
     reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
+    reg.WriteDWORD(L"QueueMaxSize", m_settings.QueueMaxSize);
   }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
@@ -1583,6 +1588,20 @@ STDMETHODIMP CLAVSplitter::SetUseAudioForHearingVisuallyImpaired(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetUseAudioForHearingVisuallyImpaired()
 {
   return m_settings.ImpairedAudio;
+}
+
+STDMETHODIMP CLAVSplitter::SetMaxQueueMemSize(DWORD dwMaxSize)
+{
+  m_settings.QueueMaxSize = dwMaxSize;
+  for(auto it = m_pPins.begin(); it != m_pPins.end(); it++) {
+    (*it)->SetQueueSizes();
+  }
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVSplitter::GetMaxQueueMemSize()
+{
+  return m_settings.QueueMaxSize;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

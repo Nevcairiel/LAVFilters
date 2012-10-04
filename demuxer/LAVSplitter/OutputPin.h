@@ -111,6 +111,8 @@ public:
 
   virtual HRESULT DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
+  void SetQueueSizes();
+
   REFERENCE_TIME m_rtPrev;
 
 protected:
@@ -119,8 +121,6 @@ protected:
 private:
   enum {CMD_EXIT};
   DWORD ThreadProc();
-
-  void SetQueueSizes();
 
   void MakeISCRHappy();
 
@@ -142,6 +142,7 @@ private:
   int m_nBuffers;
   DWORD m_dwQueueLow;
   DWORD m_dwQueueHigh;
+  DWORD m_dwQueueMaxMem;
 
   DWORD m_streamId;
   CMediaType *m_newMT;
