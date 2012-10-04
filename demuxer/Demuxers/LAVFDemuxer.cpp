@@ -306,6 +306,8 @@ void CLAVFDemuxer::UpdateParserFlags(AVStream *st) {
   if (st->parser) {
     if ((st->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || st->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO) && _stricmp(m_pszInputFormat, "mpegvideo") != 0) {
       st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+    } else if (st->codec->codec_id == AV_CODEC_ID_H264) {
+      st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
     } else if (st->codec->codec_id == AV_CODEC_ID_VC1) {
       if (m_bVC1Correction) {
         st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
@@ -344,8 +346,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   if (AVFORMAT_GENPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
   }
-
-  m_avFormat->flags |= AVFMT_FLAG_IGNPARSERSYNC;
 
   if (pszFileName) {
     WCHAR szOut[24];
