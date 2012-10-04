@@ -1286,6 +1286,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_bFallback16Int = FALSE;
   m_dwOverrideMixer = 0;
   m_bMixingSettingsChanged = TRUE;
+  m_fMixingClipThreshold = 0.0f;
 
   return S_OK;
 }
@@ -1427,7 +1428,6 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
     m_dRate = dRate;
   else
     m_dRate = 1.0;
-  m_fMixingClipThreshold = 0.0f;
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
