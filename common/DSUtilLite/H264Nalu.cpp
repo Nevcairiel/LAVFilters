@@ -39,31 +39,31 @@ void CH264Nalu::SetBuffer(const BYTE* pBuffer, size_t nSize, int nNALSize)
 
 bool CH264Nalu::MoveToNextAnnexBStartcode()
 {
-	if (m_nSize < 4)
-		return false;
-	size_t nBuffEnd = m_nSize - 4;
+  if (m_nSize < 4)
+    return false;
+  size_t nBuffEnd = m_nSize - 4;
 
-	for (size_t i=m_nCurPos; i<=nBuffEnd; i++) {
-		if ((*((DWORD*)(m_pBuffer+i)) & 0x00FFFFFF) == 0x00010000) {
-			// Find next AnnexB Nal
-			m_nCurPos = i;
-			return true;
-		}
-	}
+  for (size_t i=m_nCurPos; i<=nBuffEnd; i++) {
+    if ((*((DWORD*)(m_pBuffer+i)) & 0x00FFFFFF) == 0x00010000) {
+      // Find next AnnexB Nal
+      m_nCurPos = i;
+      return true;
+    }
+  }
 
-	m_nCurPos = m_nSize;
-	return false;
+  m_nCurPos = m_nSize;
+  return false;
 }
 
 bool CH264Nalu::MoveToNextRTPStartcode()
 {
-	if (m_nNextRTP < m_nSize) {
-		m_nCurPos = m_nNextRTP;
-		return true;
-	}
+  if (m_nNextRTP < m_nSize) {
+    m_nCurPos = m_nNextRTP;
+    return true;
+  }
 
-	m_nCurPos = m_nSize;
-	return false;
+  m_nCurPos = m_nSize;
+  return false;
 }
 
 bool CH264Nalu::ReadNext()
