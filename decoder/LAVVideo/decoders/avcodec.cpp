@@ -437,6 +437,12 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         DbgLog((LOG_TRACE, 10, L"-> AVC1 extradata doesn't contain a SPS, setting thread_count = 1"));
         m_pAVCtx->thread_count = 1;
       }
+    } else if (pmt->subtype == MEDIASUBTYPE_LAV_RAWVIDEO) {
+      if (extralen != sizeof(m_pAVCtx->pix_fmt)) {
+        DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is wrong size.."));
+      } else {
+        getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), (BYTE *)&m_pAVCtx->pix_fmt, NULL);
+      }
     } else {
       // Just copy extradata for other formats
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);

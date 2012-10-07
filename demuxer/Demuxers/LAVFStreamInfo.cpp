@@ -214,19 +214,54 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     }
   }
 
-  if (avstream->codec->codec_id == AV_CODEC_ID_RAWVIDEO && !avstream->codec->codec_tag) {
-    switch (avstream->codec->pix_fmt) {
-    case PIX_FMT_BGRA:
-      mtype.subtype = MEDIASUBTYPE_ARGB32;
-      mtypes.push_back(mtype);
-      mtype.subtype = MEDIASUBTYPE_RGB32;
-      break;
-    case PIX_FMT_BGR24:
-      mtype.subtype = MEDIASUBTYPE_RGB24;
-      break;
-    default:
-      DbgLog((LOG_TRACE, 10, L"::CreateVideoMediaType(): Unsupported raw video pixel format"));
+  if (avstream->codec->codec_id == AV_CODEC_ID_RAWVIDEO) {
+    BITMAPINFOHEADER *pBMI = NULL;
+    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
+    mtype.bFixedSizeSamples = TRUE;
+    mtype.bTemporalCompression = FALSE;
+    mtype.lSampleSize = pBMI->biSizeImage;
+    if (!avstream->codec->codec_tag || avstream->codec->codec_tag == MKTAG('r','a','w',' ')) {
+      switch (avstream->codec->pix_fmt) {
+      case PIX_FMT_BGRA:
+        mtype.subtype = MEDIASUBTYPE_ARGB32;
+        mtypes.push_back(mtype);
+        mtype.subtype = MEDIASUBTYPE_RGB32;
+        break;
+      case PIX_FMT_BGR24:
+        mtype.subtype = MEDIASUBTYPE_RGB24;
+        break;
+      default:
+        DbgLog((LOG_TRACE, 10, L"::CreateVideoMediaType(): Unsupported raw video pixel format"));
+      }
+    } else {
+      switch (avstream->codec->codec_tag) {
+      case MKTAG('B','G','R','A'):
+        {
+          pBMI->biHeight = -pBMI->biHeight;
+          mtype.subtype = MEDIASUBTYPE_ARGB32;
+          mtypes.push_back(mtype);
+          mtype.subtype = MEDIASUBTYPE_RGB32;
+        }
+        break;
+      default:
+        DbgLog((LOG_TRACE, 10, L"::CreateVideoMediaType(): Unsupported raw video codec tag format"));
+      }
     }
+    mtypes.push_back(mtype);
+    mtype.subtype = MEDIASUBTYPE_LAV_RAWVIDEO;
+    size_t hdrsize = 0;
+    if (mtype.formattype == FORMAT_VideoInfo) {
+      hdrsize = sizeof(VIDEOINFOHEADER);
+    } else if (mtype.formattype == FORMAT_VideoInfo2) {
+      hdrsize = sizeof(VIDEOINFOHEADER2);
+    } else {
+      ASSERT(0);
+    }
+    mtype.ReallocFormatBuffer(hdrsize + sizeof(avstream->codec->pix_fmt));
+    *(int *)(mtype.pbFormat + hdrsize) = avstream->codec->pix_fmt;
+    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
+    pBMI->biSize = sizeof(BITMAPINFOHEADER) + sizeof(avstream->codec->pix_fmt);
+    mtypes.push_back(mtype);
   }
 
   if (avstream->codec->codec_id == AV_CODEC_ID_MJPEG) {

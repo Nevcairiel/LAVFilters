@@ -214,6 +214,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   // Special raw formats
   { &MEDIASUBTYPE_v210, AV_CODEC_ID_V210 },
   { &MEDIASUBTYPE_v410, AV_CODEC_ID_V410 },
+  { &MEDIASUBTYPE_LAV_RAWVIDEO, AV_CODEC_ID_RAWVIDEO },
 };
 
 // Define Input Media Types
@@ -404,6 +405,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   // Special raw formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_v210 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_v410 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_LAV_RAWVIDEO },
 };
 const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
 
