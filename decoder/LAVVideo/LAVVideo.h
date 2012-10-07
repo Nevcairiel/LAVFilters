@@ -148,6 +148,7 @@ public:
   STDMETHODIMP_(CBasePin*) GetOutputPin() { return m_pOutput; }
   STDMETHODIMP_(CMediaType&) GetOutputMediaType() { return m_pOutput->CurrentMediaType(); }
   STDMETHODIMP DVDStripPacket(BYTE*& p, long& len) { static_cast<CDeCSSTransformInputPin*>(m_pInput)->StripPacket(p, len); return S_OK; }
+  STDMETHODIMP_(LAVFrame*) GetFlushFrame();
 
   STDMETHODIMP RedrawStillImage();
 

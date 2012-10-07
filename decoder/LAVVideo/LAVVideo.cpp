@@ -1079,6 +1079,16 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
   return S_OK;
 }
 
+STDMETHODIMP_(LAVFrame*) CLAVVideo::GetFlushFrame()
+{
+  LAVFrame *pFlushFrame = NULL;
+  AllocateFrame(&pFlushFrame);
+  pFlushFrame->flags |= LAV_FRAME_FLAG_FLUSH;
+  pFlushFrame->rtStart = INT64_MAX;
+  pFlushFrame->rtStop = INT64_MAX;
+  return pFlushFrame;
+}
+
 HRESULT CLAVVideo::QueueFrameForMTOutput(LAVFrame *pFrame)
 {
   m_MTFilterContext.outputQueue.Push(pFrame);

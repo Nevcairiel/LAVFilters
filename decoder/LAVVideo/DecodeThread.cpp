@@ -505,3 +505,4 @@ STDMETHODIMP CDecodeThread::GetLAVPinInfo(LAVPinInfo &info) { return m_pLAVVideo
 STDMETHODIMP_(CBasePin*) CDecodeThread::GetOutputPin() { return m_pLAVVideo->GetOutputPin(); }
 STDMETHODIMP_(CMediaType&) CDecodeThread::GetOutputMediaType() { return m_pLAVVideo->GetOutputMediaType(); }
 STDMETHODIMP CDecodeThread::DVDStripPacket(BYTE*& p, long& len) { return m_pLAVVideo->DVDStripPacket(p, len); }
+STDMETHODIMP_(LAVFrame*) CDecodeThread::GetFlushFrame() { return m_pLAVVideo->GetFlushFrame(); }

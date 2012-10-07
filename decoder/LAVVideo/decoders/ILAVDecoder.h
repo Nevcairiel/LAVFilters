@@ -114,6 +114,7 @@ typedef struct LAVFrame {
   int flags;                        ///< frame flags
 #define LAV_FRAME_FLAG_BUFFER_MODIFY        0x00000001
 #define LAV_FRAME_FLAG_END_OF_SEQUENCE      0x00000002
+#define LAV_FRAME_FLAG_FLUSH                0x00000004
 
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);
@@ -258,6 +259,11 @@ interface ILAVVideoCallback
    * Strip the packet for DVD decoding
    */
   STDMETHOD(DVDStripPacket)(BYTE*& p, long& len) PURE;
+
+  /**
+   * Get a Dummy frame used for flusing
+   */
+  STDMETHOD_(LAVFrame*,GetFlushFrame)() PURE;
 };
 
 /**
