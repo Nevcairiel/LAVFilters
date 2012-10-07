@@ -1039,11 +1039,20 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
 // Check if the types are compatible
 HRESULT CLAVAudio::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut)
 {
-  return SUCCEEDED(CheckInputType(mtIn))
-    && mtOut->majortype == MEDIATYPE_Audio
-    && (mtOut->subtype == MEDIASUBTYPE_PCM || mtOut->subtype == MEDIASUBTYPE_IEEE_FLOAT)
-    ? S_OK
-    : VFW_E_TYPE_NOT_ACCEPTED;
+  // Check major types
+  if (FAILED(CheckInputType(mtIn)) || mtOut->majortype != MEDIATYPE_Audio || (mtOut->subtype != MEDIASUBTYPE_PCM && mtOut->subtype != MEDIASUBTYPE_IEEE_FLOAT)
+    || mtOut->formattype != FORMAT_WaveFormatEx) {
+    return VFW_E_TYPE_NOT_ACCEPTED;
+  } else {
+    // Check for valid pcm settings
+    if (!m_avBSContext && m_pAVCtx) {
+      WAVEFORMATEX *wfex = (WAVEFORMATEX *)mtOut->pbFormat;
+      if (wfex->nSamplesPerSec != m_pAVCtx->sample_rate) {
+        return VFW_E_TYPE_NOT_ACCEPTED;
+      }
+    }
+  }
+  return S_OK;
 }
 
 HRESULT CLAVAudio::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERTIES* pProperties)
