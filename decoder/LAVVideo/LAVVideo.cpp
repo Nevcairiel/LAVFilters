@@ -625,17 +625,7 @@ HRESULT CLAVVideo::EndOfStream()
   CAutoLock cAutoLock(&m_csReceive);
 
   m_Decoder.EndOfStream();
-
-  if (m_bMTFiltering) {
-    // Tell Worker Thread to process all frames and then return
-    // This call blocks until everything is done
-    CAMThread::CallWorker(CMD_EOS);
-
-    // Deliver all frames in the output queue
-    LAVFrame *pFrame = NULL;
-    while(pFrame = m_MTFilterContext.outputQueue.Pop())
-      DeliverToRenderer(pFrame);
-  }
+  FilteringEndOfStream();
 
   DbgLog((LOG_TRACE, 1, L"EndOfStream finished, decoder flushed"));
   return __super::EndOfStream();
@@ -1151,6 +1141,24 @@ DWORD CLAVVideo::ThreadProc()
 
     Filter(pFrame, &CLAVVideo::QueueFrameForMTOutput);
   }
+}
+
+STDMETHODIMP CLAVVideo::FilteringEndOfStream()
+{
+  if (m_bMTFiltering) {
+    // Tell Worker Thread to process all frames and then return
+    // This call blocks until everything is done
+    CAMThread::CallWorker(CMD_EOS);
+
+    // Deliver all frames in the output queue
+    LAVFrame *pFrame = NULL;
+    while(pFrame = m_MTFilterContext.outputQueue.Pop())
+      DeliverToRenderer(pFrame);
+  } else {
+    Filter(GetFlushFrame(), &CLAVVideo::DeliverToRenderer);
+  }
+
+  return S_OK;
 }
 
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)

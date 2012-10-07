@@ -181,6 +181,7 @@ private:
   HRESULT Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LAVFrame *pFrame));
   HRESULT DeliverToRenderer(LAVFrame *pFrame);
   HRESULT QueueFrameForMTOutput(LAVFrame *pFrame);
+  STDMETHODIMP FilteringEndOfStream();
   void CloseMTFilterThread();
 
 private:
