@@ -1163,6 +1163,17 @@ STDMETHODIMP CLAVVideo::FilteringEndOfStream()
 
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 {
+  // Out-of-sequence flush event to get all frames delivered,
+  // only triggered by decoders when they are already "empty"
+  // so no need to flush the decoder here
+  if (pFrame->flags & LAV_FRAME_FLAG_FLUSH) {
+    DbgLog((LOG_TRACE, 10, L"Decoder triggered a flush..."));
+    FilteringEndOfStream();
+
+    ReleaseFrame(&pFrame);
+    return S_FALSE;
+  }
+
   if (m_bFlushing) {
     ReleaseFrame(&pFrame);
     return S_FALSE;
@@ -1230,6 +1241,12 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
+
+  // This should never get here, but better check
+  if (pFrame->flags & LAV_FRAME_FLAG_FLUSH) {
+    ReleaseFrame(&pFrame);
+    return S_FALSE;
+  }
 
   if (pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE && pFrame->format != LAVPixFmt_DXVA2) {
     ReleaseFrame(&m_pLastSequenceFrame);
