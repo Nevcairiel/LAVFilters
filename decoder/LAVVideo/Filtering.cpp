@@ -68,7 +68,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
 
       m_pFilterGraph = avfilter_graph_alloc();
 
-      _snprintf_s(args, sizeof(args), "%d:%d:%d:1:10000000:1:1", pFrame->width, pFrame->height, ff_pixfmt);
+      _snprintf_s(args, sizeof(args), "video_size=%dx%d:pix_fmt=%s:time_base=1/10000000:pixel_aspect=1/1", pFrame->width, pFrame->height, av_get_pix_fmt_name(ff_pixfmt));
       ret = avfilter_graph_create_filter(&m_pFilterBufferSrc, buffersrc, "in", args, NULL, m_pFilterGraph);
       if (ret < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Creating the input buffer filter failed with code %d", ret));

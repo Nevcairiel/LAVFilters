@@ -50,6 +50,7 @@ extern "C" {
 #include "libavfilter/buffersink.h"
 #include "libavfilter/buffersrc.h"
 #include "libavutil/intreadwrite.h"
+#include "libavutil/pixdesc.h"
 }
 #pragma warning(pop)
 
