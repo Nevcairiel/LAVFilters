@@ -1221,7 +1221,8 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   // Only perform filtering if we have to.
   // DXVA Native generally can't be filtered, and the only filtering we currently support is YADIF deint
   if ( pFrame->format == LAVPixFmt_DXVA2
-    || !(m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)) {
+    || !(m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)
+    || pFrame->flags & LAV_FRAME_FLAG_REDRAW) {
     return DeliverToRenderer(pFrame);
   } else {
     if (m_bMTFiltering) {
@@ -1422,6 +1423,7 @@ STDMETHODIMP CLAVVideo::RedrawStillImage()
     DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redrawing still image"));
     LAVFrame *pFrame = NULL;
     CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
+    pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
     return Deliver(pFrame);
   }
 
