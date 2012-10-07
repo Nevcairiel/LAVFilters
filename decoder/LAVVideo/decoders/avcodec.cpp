@@ -1091,6 +1091,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     m_bEndOfSequence = TRUE;
     EndOfStream();
     m_bEndOfSequence = FALSE;
+    Deliver(m_pCallback->GetFlushFrame());
   }
 
   return S_OK;

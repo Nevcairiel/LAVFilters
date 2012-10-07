@@ -1165,6 +1165,7 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
         m_bEndOfSequence = TRUE;
         EndOfStream();
         m_bEndOfSequence = FALSE;
+        m_pCallback->Deliver(m_pCallback->GetFlushFrame());
         break;
       }
     }
