@@ -70,6 +70,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   ASSERT(SUCCEEDED(*phr));
 
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
+  memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
 
   avcodec_register_all();
   avfilter_register_all();
@@ -674,6 +675,7 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
     avfilter_graph_free(&m_pFilterGraph);
 
   m_rtPrevStart = m_rtPrevStop = 0;
+  memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
@@ -1105,6 +1107,7 @@ DWORD CLAVVideo::ThreadProc()
         return 0;
       case CMD_EOS:
         if (m_MTFilterContext.inputQueue.Empty()) {
+          Filter(GetFlushFrame(), &CLAVVideo::QueueFrameForMTOutput);
           Reply(S_OK);
           bEOS = FALSE;
         } else {
@@ -1140,6 +1143,7 @@ DWORD CLAVVideo::ThreadProc()
       continue;
 
     Filter(pFrame, &CLAVVideo::QueueFrameForMTOutput);
+    pFrame = NULL;
   }
 }
 

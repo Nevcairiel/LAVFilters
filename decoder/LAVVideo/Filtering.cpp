@@ -32,10 +32,12 @@ static void avfilter_free_lav_buffer(LAVFrame *pFrame)
 
 HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LAVFrame *pFrame))
 {
-  if (m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF && (pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
+  int ret = 0;
+  BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
+  if (m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF && (bFlush || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
     PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? PIX_FMT_YUV422P : PIX_FMT_NV12;
 
-    if (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight) {
+    if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight)) {
       DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing YADIF deinterlacing filter..."));
       if (m_pFilterGraph) {
         avfilter_graph_free(&m_pFilterGraph);
@@ -48,7 +50,6 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
       m_filterHeight = pFrame->height;
 
       char args[512];
-      int ret = 0;
       enum PixelFormat pix_fmts[3];
 
       if (ff_pixfmt == PIX_FMT_NV12) {
@@ -111,21 +112,34 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
       DbgLog((LOG_TRACE, 10, L":Filter()(init) YADIF Initialization complete"));
     }
 
+    if (!m_pFilterGraph)
+      goto deliver;
+
     AVFilterBufferRef *out_picref = NULL;
     AVFilterBufferRef *in_picref = NULL;
 
-    in_picref = avfilter_get_video_buffer_ref_from_arrays(pFrame->data, pFrame->stride, AV_PERM_READ, pFrame->width, pFrame->height, ff_pixfmt);
+    // When flushing, we feed a NULL frame
+    if (!bFlush) {
+      in_picref = avfilter_get_video_buffer_ref_from_arrays(pFrame->data, pFrame->stride, AV_PERM_READ, pFrame->width, pFrame->height, ff_pixfmt);
 
-    in_picref->pts                    = pFrame->rtStart;
-    in_picref->video->interlaced      = pFrame->interlaced;
-    in_picref->video->top_field_first = pFrame->tff;
-    in_picref->buf->free              = lav_avfilter_default_free_buffer;
-    in_picref->video->sample_aspect_ratio = pFrame->aspect_ratio;
+      in_picref->pts                    = pFrame->rtStart;
+      in_picref->video->interlaced      = pFrame->interlaced;
+      in_picref->video->top_field_first = pFrame->tff;
+      in_picref->buf->free              = lav_avfilter_default_free_buffer;
+      in_picref->video->sample_aspect_ratio = pFrame->aspect_ratio;
+
+      m_FilterPrevFrame = *pFrame;
+      memset(m_FilterPrevFrame.data, 0, sizeof(m_FilterPrevFrame.data));
+      m_FilterPrevFrame.destruct = NULL;
+    } else {
+      if (!m_FilterPrevFrame.height) // if height is not set, the frame is most likely not valid
+        return S_OK;
+      *pFrame = m_FilterPrevFrame;
+    }
 
     av_buffersrc_add_ref(m_pFilterBufferSrc, in_picref, 0);
     HRESULT hrDeliver = S_OK;
-    while (SUCCEEDED(hrDeliver) && av_buffersink_poll_frame(m_pFilterBufferSink)) {
-      int ret = av_buffersink_get_buffer_ref(m_pFilterBufferSink, &out_picref, 0);
+    while (SUCCEEDED(hrDeliver) && (av_buffersink_get_buffer_ref(m_pFilterBufferSink, &out_picref, 0) >= 0)) {
       if (ret >= 0 && out_picref) {
         LAVFrame *outFrame = NULL;
         AllocateFrame(&outFrame);
@@ -139,6 +153,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
         outFrame->bpp          = pFrame->bpp;
         outFrame->ext_format   = pFrame->ext_format;
         outFrame->avgFrameDuration = pFrame->avgFrameDuration;
+        outFrame->flags        = pFrame->flags;
 
         outFrame->width        = out_picref->video->w;
         outFrame->height       = out_picref->video->h;
@@ -158,8 +173,18 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
       }
     }
 
-    avfilter_unref_buffer(in_picref);
+    if (in_picref)
+      avfilter_unref_buffer(in_picref);
     ReleaseFrame(&pFrame);
+
+    // We EOF'ed the graph, need to close it
+    if (bFlush) {
+      if (m_pFilterGraph) {
+        avfilter_graph_free(&m_pFilterGraph);
+        m_pFilterBufferSrc = NULL;
+        m_pFilterBufferSink = NULL;
+      }
+    }
 
     return S_OK;
   } else {

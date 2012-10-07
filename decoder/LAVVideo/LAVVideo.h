@@ -216,6 +216,7 @@ private:
   LAVPixelFormat       m_filterPixFmt;
   int                  m_filterWidth;
   int                  m_filterHeight;
+  LAVFrame             m_FilterPrevFrame;
 
   BOOL                 m_LAVPinInfoValid;
   LAVPinInfo           m_LAVPinInfo;
