@@ -47,6 +47,7 @@ public:
 #define LAV_PACKET_MOV_TEXT         0x0002
 #define LAV_PACKET_FORCED_SUBTITLE  0x0004
 #define LAV_PACKET_H264_ANNEXB      0x0008
+#define LAV_PACKET_SRT              0x0010
   DWORD dwFlags;
 
   Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_sSize = 0; m_sBlockSize = 0; bPosition = -1; dwFlags = 0; }

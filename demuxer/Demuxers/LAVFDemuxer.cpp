@@ -702,6 +702,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         pPacket->dwFlags |= LAV_PACKET_FORCED_SUBTITLE;
         pPacket->dwFlags &= ~LAV_PACKET_PARSED;
       }
+
+      if (stream->codec->codec_id == AV_CODEC_ID_SRT) {
+        pPacket->dwFlags |= LAV_PACKET_SRT;
+      }
     }
 
     pPacket->bSyncPoint = pkt.flags & AV_PKT_FLAG_KEY;

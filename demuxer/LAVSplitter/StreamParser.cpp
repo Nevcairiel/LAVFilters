@@ -73,6 +73,8 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     ParseRawSSA(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_AAC && (m_strContainer != "matroska" && m_strContainer != "mp4")) {
     ParseAAC(pPacket);
+  } else if (m_gSubtype == MEDIASUBTYPE_UTF8 && (pPacket->dwFlags & LAV_PACKET_SRT)) {
+    ParseSRT(pPacket);
   } else {
     Queue(pPacket);
   }
@@ -434,4 +436,65 @@ HRESULT CStreamParser::ParseAAC(Packet *pPacket)
     pPacket->RemoveHead(AAC_ADTS_HEADER_SIZE + 2*!crc_abs);
   }
   return Queue(pPacket);
+}
+
+static const char *read_srt_ts(const char *buf, int *ts_start, int *ts_end, int *x1, int *y1, int *x2, int *y2)
+{
+    int i, hs, ms, ss, he, me, se;
+
+    for (i=0; i<2; i++) {
+        /* try to read timestamps in either the first or second line */
+        int c = sscanf_s(buf, "%d:%2d:%2d%*1[,.]%3d --> %d:%2d:%2d%*1[,.]%3d"
+                       "%*[ ]X1:%u X2:%u Y1:%u Y2:%u",
+                       &hs, &ms, &ss, ts_start, &he, &me, &se, ts_end,
+                       x1, x2, y1, y2);
+        buf += strcspn(buf, "\n") + 1;
+        if (c >= 8) {
+            *ts_start = 100*(ss + 60*(ms + 60*hs)) + *ts_start/10;
+            *ts_end   = 100*(se + 60*(me + 60*he)) + *ts_end  /10;
+            return buf;
+        }
+    }
+    return NULL;
+}
+
+HRESULT CStreamParser::ParseSRT(Packet *pPacket)
+{
+  int ts_start, ts_end, x1 = -1, y1 = -1, x2 = -1, y2 = -1;
+
+  const char *ptr = (const char *)pPacket->GetData();
+  const char *end = ptr + pPacket->GetDataSize();
+
+  if (pPacket->GetDataSize() == 0)
+    return S_FALSE;
+
+  while(ptr && end > ptr && *ptr) {
+    // Read the embeded timestamp and find the start of the subtitle
+    ptr = read_srt_ts(ptr, &ts_start, &ts_end, &x1, &y1, &x2, &y2);
+    if (ptr) {
+      const char *linestart = ptr;
+      while (end > ptr) {
+        if (*ptr != ' ' && *ptr != '\n' && *ptr != '\r') {
+          ptr += strcspn(ptr, "\n") + 1;
+        } else {
+          if (*ptr++ == '\n')
+            break;
+        }
+      }
+      int size = ptr - linestart;
+
+      Packet *p = new Packet();
+      p->pmt            = pPacket->pmt; pPacket->pmt = NULL;
+      p->bDiscontinuity = pPacket->bDiscontinuity;
+      p->bSyncPoint     = pPacket->bSyncPoint;
+      p->StreamId       = pPacket->StreamId;
+      p->rtStart        = pPacket->rtStart;
+      p->rtStop         = pPacket->rtStop;
+      p->AppendData(linestart, size);
+      Queue(p);
+    }
+  }
+
+  SAFE_DELETE(pPacket);
+  return S_FALSE;
 }
