@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/sh
 
 if [ ! -d bin_Win32/lib ]
 then
