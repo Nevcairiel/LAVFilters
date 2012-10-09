@@ -76,7 +76,9 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
         goto deliver;
       }
 
-      ret = avfilter_graph_create_filter(&m_pFilterBufferSink, buffersink, "out", NULL, pix_fmts, m_pFilterGraph);
+      AVBufferSinkParams params;
+      params.pixel_fmts = pix_fmts;
+      ret = avfilter_graph_create_filter(&m_pFilterBufferSink, buffersink, "out", NULL, &params, m_pFilterGraph);
       if (ret < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Creating the buffer sink filter failed with code %d", ret));
         avfilter_free(m_pFilterBufferSrc);
