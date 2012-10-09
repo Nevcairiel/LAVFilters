@@ -363,8 +363,6 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     break;
   case FourCC_AVC1:
   case FourCC_H264:
-    if (mp2vi) mp2vi->dwProfile = 100;
-    if (mp2vi) mp2vi->dwLevel = 41;
     break;
   case FourCC_VC1:
     if (mp2vi) mp2vi->dwProfile = 3;
