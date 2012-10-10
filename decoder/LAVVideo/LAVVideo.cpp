@@ -574,7 +574,14 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     }
   }
 
-  m_bVC1IsDTS    = (codec == AV_CODEC_ID_VC1) && !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader) || FilterInGraph(PINDIR_INPUT, CLSID_SageTVMpegDeMux));
+  // Certain filters send VC-1 in PTS instead of DTS, so list them here
+  // Usually, these are MPEG systems.
+  m_bVC1IsDTS    = (codec == AV_CODEC_ID_VC1) &&
+                    !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter)
+                   || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource)
+                   || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader)
+                   || FilterInGraph(PINDIR_INPUT, CLSID_SageTVMpegDeMux));
+
   m_bH264IsAVI   = (codec == AV_CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
   m_bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
 
