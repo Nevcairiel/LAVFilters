@@ -511,7 +511,10 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_bResumeAtKeyFrame =    codec == AV_CODEC_ID_MPEG2VIDEO
                         || codec == AV_CODEC_ID_VC1
                         || codec == AV_CODEC_ID_RV30
-                        || codec == AV_CODEC_ID_RV40;
+                        || codec == AV_CODEC_ID_RV40
+                        || codec == AV_CODEC_ID_VP3
+                        || codec == AV_CODEC_ID_THEORA
+                        || codec == AV_CODEC_ID_MPEG4;
 
   m_bNoBufferConsumption =    codec == AV_CODEC_ID_MJPEGB
                            || codec == AV_CODEC_ID_LOCO;
