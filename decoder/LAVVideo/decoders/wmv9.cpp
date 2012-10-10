@@ -27,8 +27,36 @@
 #include "parsers/VC1HeaderParser.h"
 #include "registry.h"
 
-#define VC1_CODE_RES0 0x00000100
+extern "C" {
+#define AVCODEC_X86_MATHOPS_H
+#include "libavcodec/get_bits.h"
+#include "libavcodec/unary.h"
+};
+
+enum VC1Code{
+  VC1_CODE_RES0       = 0x00000100,
+  VC1_CODE_ENDOFSEQ   = 0x0000010A,
+  VC1_CODE_SLICE,
+  VC1_CODE_FIELD,
+  VC1_CODE_FRAME,
+  VC1_CODE_ENTRYPOINT,
+  VC1_CODE_SEQHDR,
+};
+
 #define IS_MARKER(x) (((x) & ~0xFF) == VC1_CODE_RES0)
+
+enum Profile {
+  PROFILE_SIMPLE,
+  PROFILE_MAIN,
+  PROFILE_COMPLEX, ///< TODO: WMV9 specific
+  PROFILE_ADVANCED
+};
+
+enum FrameCodingMode {
+  PROGRESSIVE = 0,    ///<  in the bitstream is reported as 00b
+  ILACE_FRAME,        ///<  in the bitstream is reported as 10b
+  ILACE_FIELD         ///<  in the bitstream is reported as 11b
+};
 
 EXTERN_GUID(CLSID_CWMVDecMediaObject,
     0x82d353df, 0x90bd, 0x4382, 0x8b, 0xc2, 0x3f, 0x61, 0x92, 0xb7, 0x6e, 0x34);
@@ -131,6 +159,10 @@ CDecWMV9::CDecWMV9(void)
   , m_pRawBufferSize(0)
   , m_bInterlaced(TRUE)
   , m_OutPixFmt(LAVPixFmt_None)
+  , m_bManualReorder(FALSE)
+  , m_bReorderBufferValid(FALSE)
+  , m_rtReorderBuffer(AV_NOPTS_VALUE)
+  , m_vc1Profile(0)
 {
   memset(&m_StreamAR, 0, sizeof(m_StreamAR));
 }
@@ -339,12 +371,83 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   if (codec == AV_CODEC_ID_VC1 && extralen > 0) {
     CVC1HeaderParser vc1hdr(extra, extralen);
     if (vc1hdr.hdr.valid) {
+      m_vc1Profile = vc1hdr.hdr.profile;
       m_bInterlaced = vc1hdr.hdr.interlaced;
       m_StreamAR = vc1hdr.hdr.ar;
     }
   }
 
+  m_bManualReorder = (codec == AV_CODEC_ID_VC1) && !m_pCallback->VC1IsDTS();
+
   return S_OK;
+}
+
+static inline const uint8_t* find_next_marker(const uint8_t *src, const uint8_t *end)
+{
+  uint32_t mrk = 0xFFFFFFFF;
+
+  if (end-src < 4)
+    return end;
+  while (src < end) {
+    mrk = (mrk << 8) | *src++;
+    if (IS_MARKER(mrk))
+      return src - 4;
+  }
+  return end;
+}
+
+static AVPictureType parse_picture_type(const uint8_t *buf, int buflen, int profile, int interlaced)
+{
+  AVPictureType pictype = AV_PICTURE_TYPE_NONE;
+  int skipped = 0;
+  const BYTE *framestart = buf;
+  if (IS_MARKER(AV_RB32(buf))) {
+    framestart = NULL;
+    const BYTE *start, *end, *next;
+    next = buf;
+    for (start = buf, end = buf + buflen; next < end; start = next) {
+      if (AV_RB32(start) == VC1_CODE_FRAME) {
+        framestart = start + 4;
+        break;
+      }
+      next = find_next_marker(start + 4, end);
+    }
+  }
+  if (framestart) {
+    GetBitContext gb;
+    init_get_bits(&gb, framestart, (buflen - (framestart-buf))*8);
+    if (profile == PROFILE_ADVANCED) {
+      int fcm = PROGRESSIVE;
+      if (interlaced)
+        fcm = decode012(&gb);
+      if (fcm == ILACE_FIELD) {
+        int fptype = get_bits(&gb, 3);
+        pictype = (fptype & 2) ? AV_PICTURE_TYPE_P : AV_PICTURE_TYPE_I;
+        if (fptype & 4) // B-picture
+          pictype = (fptype & 2) ? AV_PICTURE_TYPE_BI : AV_PICTURE_TYPE_B;
+      } else {
+        switch (get_unary(&gb, 0, 4)) {
+        case 0:
+            pictype = AV_PICTURE_TYPE_P;
+            break;
+        case 1:
+            pictype = AV_PICTURE_TYPE_B;
+            break;
+        case 2:
+            pictype = AV_PICTURE_TYPE_I;
+            break;
+        case 3:
+            pictype = AV_PICTURE_TYPE_BI;
+            break;
+        case 4:
+            pictype = AV_PICTURE_TYPE_P; // skipped pic
+            skipped = 1;
+            break;
+        }
+      }
+    }
+  }
+  return pictype;
 }
 
 STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
@@ -369,6 +472,18 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
     dwFlags |= DMO_INPUT_DATA_BUFFERF_TIME;
   if (rtStop != AV_NOPTS_VALUE)
     dwFlags |= DMO_INPUT_DATA_BUFFERF_TIMELENGTH;
+
+  if (m_bManualReorder) {
+    AVPictureType pictype = parse_picture_type(buffer, buflen, m_vc1Profile, m_bInterlaced);
+    if (pictype == AV_PICTURE_TYPE_I || pictype == AV_PICTURE_TYPE_P) {
+      if (m_bReorderBufferValid)
+        m_timestampQueue.push(m_rtReorderBuffer);
+      m_rtReorderBuffer = rtStart;
+      m_bReorderBufferValid = TRUE;
+    } else {
+      m_timestampQueue.push(rtStart);
+    }
+  }
 
   hr = m_pDMO->ProcessInput(0, pInBuffer, dwFlags, rtStart, rtStop - rtStart);
   if (FAILED(hr)) {
@@ -450,10 +565,20 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
 
   pFrame->interlaced = (pFrame->interlaced || (m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce()) && !m_pSettings->GetDeintTreatAsProgressive();
 
-  if (OutputBufferStructs[0].dwStatus & DMO_OUTPUT_DATA_BUFFERF_TIME) {
-    pFrame->rtStart = OutputBufferStructs[0].rtTimestamp;
-    if (OutputBufferStructs[0].dwStatus & DMO_OUTPUT_DATA_BUFFERF_TIMELENGTH) {
-      pFrame->rtStop = pFrame->rtStart + OutputBufferStructs[0].rtTimelength;
+  if (m_bManualReorder) {
+    if (!m_timestampQueue.empty()) {
+      pFrame->rtStart = m_timestampQueue.front();
+      m_timestampQueue.pop();
+      if (OutputBufferStructs[0].dwStatus & DMO_OUTPUT_DATA_BUFFERF_TIMELENGTH) {
+        pFrame->rtStop = pFrame->rtStart + OutputBufferStructs[0].rtTimelength;
+      }
+    }
+  } else {
+    if (OutputBufferStructs[0].dwStatus & DMO_OUTPUT_DATA_BUFFERF_TIME) {
+      pFrame->rtStart = OutputBufferStructs[0].rtTimestamp;
+      if (OutputBufferStructs[0].dwStatus & DMO_OUTPUT_DATA_BUFFERF_TIMELENGTH) {
+        pFrame->rtStop = pFrame->rtStart + OutputBufferStructs[0].rtTimelength;
+      }
     }
   }
 
@@ -501,11 +626,20 @@ STDMETHODIMP CDecWMV9::Flush()
 {
   DbgLog((LOG_TRACE, 10, L"CDecWMV9::Flush(): Flushing WMV9 decoder"));
   m_pDMO->Flush();
+
+  std::queue<REFERENCE_TIME>().swap(m_timestampQueue);
+  m_rtReorderBuffer = AV_NOPTS_VALUE;
+  m_bReorderBufferValid = FALSE;
+
   return S_OK;
 }
 
 STDMETHODIMP CDecWMV9::EndOfStream()
 {
+  if (m_bReorderBufferValid)
+    m_timestampQueue.push(m_rtReorderBuffer);
+  m_bReorderBufferValid = FALSE;
+  m_rtReorderBuffer = AV_NOPTS_VALUE;
   m_pDMO->Discontinuity(0);
   ProcessOutput();
   return S_OK;

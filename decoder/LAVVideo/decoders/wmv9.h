@@ -23,6 +23,7 @@
 #include <dmo.h>
 
 #include <vector>
+#include <queue>
 
 typedef struct _Buffer {
   BYTE *buffer;
@@ -67,10 +68,16 @@ private:
   DWORD m_pRawBufferSize;
 
   BOOL m_bInterlaced;
+  int m_vc1Profile;
   AVRational m_StreamAR;
 
   LAVPixelFormat m_OutPixFmt;
 
   CCritSec m_BufferCritSec;
   std::vector<Buffer *> m_BufferQueue;
+
+  BOOL m_bManualReorder;
+  BOOL m_bReorderBufferValid;
+  REFERENCE_TIME m_rtReorderBuffer;
+  std::queue<REFERENCE_TIME> m_timestampQueue;
 };
