@@ -105,6 +105,7 @@ private:
   int                  m_CurrentThread;
 
   REFERENCE_TIME       m_rtStartCache;
+  BOOL                 m_bResumeAtKeyFrame;
   BOOL                 m_bWaitingForKeyFrame;
   int                  m_iInterlaced;
 

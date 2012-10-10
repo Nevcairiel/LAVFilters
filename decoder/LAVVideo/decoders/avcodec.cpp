@@ -284,6 +284,7 @@ CDecAvcodec::CDecAvcodec(void)
   , m_pSwsContext(NULL)
   , m_nCodecId(AV_CODEC_ID_NONE)
   , m_rtStartCache(AV_NOPTS_VALUE)
+  , m_bResumeAtKeyFrame(FALSE)
   , m_bWaitingForKeyFrame(FALSE)
   , m_bBFrameDelay(TRUE)
   , m_nBFramePos(0)
@@ -507,6 +508,10 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_bBFrameDelay = !m_bFFReordering && !m_bRVDropBFrameTimings;
 
   m_bWaitingForKeyFrame = TRUE;
+  m_bResumeAtKeyFrame =    codec == AV_CODEC_ID_MPEG2VIDEO
+                        || codec == AV_CODEC_ID_VC1
+                        || codec == AV_CODEC_ID_RV30
+                        || codec == AV_CODEC_ID_RV40;
 
   m_bNoBufferConsumption =    codec == AV_CODEC_ID_MJPEGB
                            || codec == AV_CODEC_ID_LOCO;
@@ -971,7 +976,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     // MPEG-2 and VC-1 just wait for a keyframe..
     if (m_nCodecId == AV_CODEC_ID_H264 && (bParserFrame || !m_pParser || got_picture)) {
       m_h264RandomAccess.judgeFrameUsability(m_pFrame, &got_picture);
-    } else if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO || m_nCodecId == AV_CODEC_ID_VC1 || m_nCodecId == AV_CODEC_ID_RV30 || m_nCodecId == AV_CODEC_ID_RV40) {
+    } else if (m_bResumeAtKeyFrame) {
       if (m_bWaitingForKeyFrame && got_picture) {
         if (m_pFrame->key_frame) {
           m_bWaitingForKeyFrame = FALSE;
