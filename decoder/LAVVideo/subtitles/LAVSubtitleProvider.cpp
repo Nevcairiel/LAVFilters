@@ -195,7 +195,7 @@ void CLAVSubtitleProvider::ClearSubtitleRects()
     CoTaskMemFree((LPVOID)(*it)->pixelsPal);
     delete *it;
   }
-  std::list<LAVSubRect*>().swap(m_SubFrames);
+  m_SubFrames.clear();
 }
 
 void CLAVSubtitleProvider::TimeoutSubtitleRects(REFERENCE_TIME rt)
@@ -208,7 +208,8 @@ void CLAVSubtitleProvider::TimeoutSubtitleRects(REFERENCE_TIME rt)
       DbgLog((LOG_TRACE, 10, L"Timed out subtitle at %I64d", (*it)->rtStart));
       CoTaskMemFree((LPVOID)(*it)->pixels);
       CoTaskMemFree((LPVOID)(*it)->pixelsPal);
-      m_SubFrames.erase(it++);
+      delete *it;
+      it = m_SubFrames.erase(it);
     } else {
       it++;
     }
