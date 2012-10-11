@@ -1260,9 +1260,12 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     return S_FALSE;
   }
 
-  if (pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE && pFrame->format != LAVPixFmt_DXVA2) {
+  if (!(pFrame->flags & LAV_FRAME_FLAG_REDRAW)) {
+    // Release the old End-of-Sequence frame, this ensures any "normal" frame will clear the stored EOS frame
     ReleaseFrame(&m_pLastSequenceFrame);
-    CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
+    if (pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE && pFrame->format != LAVPixFmt_DXVA2) {
+      CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
+    }
   }
 
   if (m_bFlushing) {
