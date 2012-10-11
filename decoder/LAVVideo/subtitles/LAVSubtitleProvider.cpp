@@ -180,14 +180,20 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
 STDMETHODIMP CLAVSubtitleProvider::Flush()
 {
   CAutoLock lock(this);
+  ClearSubtitleRects();
+  SAFE_DELETE(m_pHLI);
+  return S_OK;
+}
+
+void CLAVSubtitleProvider::ClearSubtitleRects()
+{
+  CAutoLock lock(this);
   for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
     CoTaskMemFree((LPVOID)(*it)->pixels);
     CoTaskMemFree((LPVOID)(*it)->pixelsPal);
     delete *it;
   }
   std::list<LAVSubRect*>().swap(m_SubFrames);
-  SAFE_DELETE(m_pHLI);
-  return S_OK;
 }
 
 STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
@@ -281,6 +287,11 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
 void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop)
 {
   if (sub->num_rects > 0) {
+    if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
+      if (rtStart == AV_NOPTS_VALUE && sub->rects[0]->forced) {
+        ClearSubtitleRects();
+      }
+    }
     for (unsigned i = 0; i < sub->num_rects; i++) {
       AVSubtitleRect *rect = sub->rects[i];
       BYTE *rgbSub = (BYTE *)CoTaskMemAlloc(rect->pict.linesize[0] * rect->h * 4);
