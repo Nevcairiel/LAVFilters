@@ -1430,6 +1430,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 STDMETHODIMP CLAVVideo::RedrawStillImage()
 {
   if (m_pLastSequenceFrame) {
+    CAutoLock lock(&m_csReceive);
     DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redrawing still image"));
     LAVFrame *pFrame = NULL;
     CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
