@@ -982,6 +982,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     } else if (m_bResumeAtKeyFrame) {
       if (m_bWaitingForKeyFrame && got_picture) {
         if (m_pFrame->key_frame) {
+          DbgLog((LOG_TRACE, 50, L"::Decode() - Found Key-Frame, resuming decoding at %I64d", m_pFrame->pkt_pts));
           m_bWaitingForKeyFrame = FALSE;
         } else {
           got_picture = 0;
