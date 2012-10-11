@@ -1431,6 +1431,11 @@ STDMETHODIMP CLAVVideo::RedrawStillImage()
 {
   if (m_pLastSequenceFrame) {
     CAutoLock lock(&m_csReceive);
+    // Since a delivery call can clear the stored sequence frame, we need a second check here
+    // Because only after we obtained the receive lock, we are in charge..
+    if (!m_pLastSequenceFrame)
+      return S_FALSE;
+
     DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redrawing still image"));
     LAVFrame *pFrame = NULL;
     CopyLAVFrame(m_pLastSequenceFrame, &pFrame);

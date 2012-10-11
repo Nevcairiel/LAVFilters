@@ -426,19 +426,27 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDPalette(AM_PROPERTY_SPPAL *pPal)
 
 STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
 {
-  CAutoLock lock(this);
+  bool redraw = false;
 
-  if (pHLI) {
-#define DHLI(var) (pHLI->var != m_pHLI->var)
-    if (!m_pHLI || DHLI(StartX) || DHLI(StopX) || DHLI(StartY) || DHLI(StopY)) {
-      DbgLog((LOG_TRACE, 10, L"CLAVSubtitleProvider(): DVD HLI event. HLISS: %d, x: %d->%d, y: %d->%d", pHLI->HLISS, pHLI->StartX, pHLI->StopX, pHLI->StartY, pHLI->StopY));
+  // Scoped lock so the lock is lifted when the redraw is issued
+  // Otherwise we can deadlock in the decoder - this one holding the provider lock, the decoder holding the decoder lock...
+  {
+    CAutoLock lock(this);
+    if (pHLI) {
+  #define DHLI(var) (pHLI->var != m_pHLI->var)
+      if (!m_pHLI || DHLI(StartX) || DHLI(StopX) || DHLI(StartY) || DHLI(StopY)) {
+        DbgLog((LOG_TRACE, 10, L"CLAVSubtitleProvider(): DVD HLI event. HLISS: %d, x: %d->%d, y: %d->%d", pHLI->HLISS, pHLI->StartX, pHLI->StopX, pHLI->StartY, pHLI->StopY));
+        SAFE_DELETE(m_pHLI);
+        m_pHLI = new AM_PROPERTY_SPHLI(*pHLI);
+        redraw = true;
+      }
+    } else {
       SAFE_DELETE(m_pHLI);
-      m_pHLI = new AM_PROPERTY_SPHLI(*pHLI);
-      m_pConsumer->SetBool("redraw", true);
     }
-  } else {
-    SAFE_DELETE(m_pHLI);
   }
+
+  if (redraw)
+    m_pConsumer->SetBool("redraw", true);
 
   return S_OK;
 }
