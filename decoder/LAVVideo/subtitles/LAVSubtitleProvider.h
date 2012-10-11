@@ -63,6 +63,7 @@ private:
   void AddSubtitleRect(LAVSubRect *rect);
   void ProcessDVDHLI(LAVSubRect &rect);
   void ClearSubtitleRects();
+  void TimeoutSubtitleRects(REFERENCE_TIME rtStop);
 
 private:
   LAVSubtitleProviderContext context;

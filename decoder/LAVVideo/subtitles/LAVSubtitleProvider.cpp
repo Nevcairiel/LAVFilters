@@ -125,6 +125,8 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   // Deliver Frame
   m_pConsumer->DeliverFrame(start, stop, subtitleFrame);
 
+  TimeoutSubtitleRects(stop);
+
   return S_OK;
 }
 
@@ -194,6 +196,23 @@ void CLAVSubtitleProvider::ClearSubtitleRects()
     delete *it;
   }
   std::list<LAVSubRect*>().swap(m_SubFrames);
+}
+
+void CLAVSubtitleProvider::TimeoutSubtitleRects(REFERENCE_TIME rt)
+{
+  CAutoLock lock(this);
+  REFERENCE_TIME timestamp = rt - 10 * 10000000; // Timeout all subs 10 seconds in the past
+  auto it = m_SubFrames.begin();
+  while (it != m_SubFrames.end()) {
+    if ((*it)->rtStop != AV_NOPTS_VALUE && (*it)->rtStop < timestamp) {
+      DbgLog((LOG_TRACE, 10, L"Timed out subtitle at %I64d", (*it)->rtStart));
+      CoTaskMemFree((LPVOID)(*it)->pixels);
+      CoTaskMemFree((LPVOID)(*it)->pixelsPal);
+      m_SubFrames.erase(it++);
+    } else {
+      it++;
+    }
+  }
 }
 
 STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
