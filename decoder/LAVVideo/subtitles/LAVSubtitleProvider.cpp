@@ -92,7 +92,6 @@ STDMETHODIMP CLAVSubtitleProvider::DisconnectConsumer(void)
 
 STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop)
 {
-  CAutoLock lock(this);
   ASSERT(m_pConsumer);
 
   // Create a new frame
@@ -103,18 +102,22 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   ::SetRect(&outputRect, 0, 0, m_pAVCtx->width, m_pAVCtx->height);
   subtitleFrame->SetOutputRect(outputRect);
 
-  for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
-    LAVSubRect *pRect = *it;
-    if ((pRect->rtStart == AV_NOPTS_VALUE || pRect->rtStart <= start)
-      && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop >= stop)
-      && (m_bComposit || pRect->forced)) {
+  // Scope this so we limit the provider-lock to the part where its needed
+  {
+    CAutoLock lock(this);
+    for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
+      LAVSubRect *pRect = *it;
+      if ((pRect->rtStart == AV_NOPTS_VALUE || pRect->rtStart <= start)
+        && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop >= stop)
+        && (m_bComposit || pRect->forced)) {
 
-      LAVSubRect rect = *pRect;
+        LAVSubRect rect = *pRect;
 
-      if (m_pHLI) {
-        ProcessDVDHLI(rect);
+        if (m_pHLI) {
+          ProcessDVDHLI(rect);
+        }
+        subtitleFrame->AddBitmap(rect);
       }
-      subtitleFrame->AddBitmap(rect);
     }
   }
 
@@ -218,7 +221,6 @@ void CLAVSubtitleProvider::TimeoutSubtitleRects(REFERENCE_TIME rt)
 
 STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn)
 {
-  CAutoLock lock(this);
   ASSERT(m_pAVCtx);
 
   AVPacket avpkt;
@@ -502,6 +504,7 @@ void CLAVSubtitleProvider::ProcessDVDHLI(LAVSubRect &rect)
 
 STDMETHODIMP CLAVSubtitleProvider::SetDVDComposit(BOOL bComposit)
 {
+  CAutoLock lock(this);
   m_bComposit = bComposit;
   return S_OK;
 }

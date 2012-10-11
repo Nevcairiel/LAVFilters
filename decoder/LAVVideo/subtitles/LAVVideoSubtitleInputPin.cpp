@@ -69,6 +69,7 @@ HRESULT CLAVVideoSubtitleInputPin::CheckMediaType(const CMediaType *mtIn)
 
 HRESULT CLAVVideoSubtitleInputPin::SetMediaType(const CMediaType *pmt)
 {
+  CAutoLock lock(&m_csReceive);
   SetCSSMediaType(pmt);
 
   ASSERT(m_pConsumer);
@@ -110,6 +111,7 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::BeginFlush()
 
 STDMETHODIMP CLAVVideoSubtitleInputPin::EndFlush()
 {
+  CAutoLock lock(&m_csReceive);
   DbgLog((LOG_TRACE, 10, L"CLAVVideoSubtitleInputPin::EndFlush()"));
   if (m_pProvider) {
     m_pProvider->Flush();
@@ -166,7 +168,6 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pI
   switch (Id) {
   case AM_PROPERTY_DVDSUBPIC_PALETTE:
     {
-      CAutoLock cAutoLock(&m_csReceive);
       AM_PROPERTY_SPPAL* pSPPAL = (AM_PROPERTY_SPPAL*)pPropertyData;
       if (m_pProvider) {
         m_pProvider->SetDVDPalette(pSPPAL);
@@ -175,7 +176,6 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pI
     break;
   case AM_PROPERTY_DVDSUBPIC_HLI:
     {
-      CAutoLock cAutoLock(&m_csReceive);
       AM_PROPERTY_SPHLI* pSPHLI = (AM_PROPERTY_SPHLI*)pPropertyData;
       if (pSPHLI->HLISS) {
         if (m_pProvider) {
@@ -190,7 +190,6 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pI
     break;
   case AM_PROPERTY_DVDSUBPIC_COMPOSIT_ON:
     {
-      CAutoLock cAutoLock(&m_csReceive);
       AM_PROPERTY_COMPOSIT_ON* pCompositOn = (AM_PROPERTY_COMPOSIT_ON*)pPropertyData;
       DbgLog((LOG_TRACE, 10, L"Composit Event - on: %d", *pCompositOn));
       m_pProvider->SetDVDComposit(*pCompositOn);
