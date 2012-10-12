@@ -1156,7 +1156,7 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   // This is mostly required to get still-frames in DVDs (and possibly Blu-rays) to output as soon as they are ready,
   // otherwise they might be delayed until the next track switch, and all you see is black (or the previous image)
   if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_MPEG2 && pCuvidPacket.payload && pCuvidPacket.payload_size >= 4) {
-    uint32_t state;
+    uint32_t state = (uint32_t)-1;
     const uint8_t *p = pCuvidPacket.payload, *end = pCuvidPacket.payload + pCuvidPacket.payload_size;
     while (p < end) {
       p = avpriv_mpv_find_start_code(p, end, &state);
