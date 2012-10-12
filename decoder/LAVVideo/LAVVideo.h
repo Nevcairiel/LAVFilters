@@ -210,6 +210,7 @@ private:
   BOOL                 m_bH264IsAVI;
   BOOL                 m_bLAVSplitter;
   BOOL                 m_bStreamARBlacklisted;
+  BOOL                 m_bDVDPlayback;
 
   AVFilterGraph        *m_pFilterGraph;
   AVFilterContext      *m_pFilterBufferSrc;
