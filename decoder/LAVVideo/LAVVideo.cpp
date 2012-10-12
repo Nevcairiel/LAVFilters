@@ -656,9 +656,8 @@ HRESULT CLAVVideo::EndFlush()
   return hr;
 }
 
-HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
+HRESULT CLAVVideo::PerformFlush()
 {
-  DbgLog((LOG_TRACE, 1, L"::NewSegment - %I64d / %I64d", tStart, tStop));
   CAutoLock cAutoLock(&m_csReceive);
 
   if (m_bMTFiltering) {
@@ -683,6 +682,15 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 
   m_rtPrevStart = m_rtPrevStop = 0;
   memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
+
+  return S_OK;
+}
+
+HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
+{
+  DbgLog((LOG_TRACE, 1, L"::NewSegment - %I64d / %I64d", tStart, tStop));
+
+  PerformFlush();
 
   return __super::NewSegment(tStart, tStop, dRate);
 }

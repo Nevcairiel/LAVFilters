@@ -184,6 +184,8 @@ private:
   STDMETHODIMP FilteringEndOfStream();
   void CloseMTFilterThread();
 
+  HRESULT PerformFlush();
+
 private:
   friend class CVideoOutputPin;
   friend class CDecodeThread;
