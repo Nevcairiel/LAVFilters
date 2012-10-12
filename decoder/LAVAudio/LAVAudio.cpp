@@ -1423,6 +1423,8 @@ HRESULT CLAVAudio::EndFlush()
   FlushDTSDecoder();
   m_bsOutput.SetSize(0);
 
+  m_bQueueResync = TRUE;
+
   return __super::EndFlush();
 }
 
