@@ -930,7 +930,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         // This is mostly required to get still-frames in DVDs (and possibly Blu-rays) to output as soon as they are ready,
         // otherwise they might be delayed until the next track switch, and all you see is black (or the previous image)
         if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO && avpkt.data && avpkt.size >= 4) {
-          uint32_t state;
+          uint32_t state = (uint32_t)-1;
           const uint8_t *p = avpkt.data, *end = avpkt.data + avpkt.size;
           while (p < end) {
             p = avpriv_mpv_find_start_code(p, end, &state);
