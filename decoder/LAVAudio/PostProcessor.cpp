@@ -683,6 +683,9 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
   // Validate channel mask
   if (!buffer->dwChannelMask || layout_channels != buffer->wChannels) {
     buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
+    if (!buffer->dwChannelMask && buffer->wChannels <= 2) {
+      buffer->dwChannelMask = buffer->wChannels == 2 ? AV_CH_LAYOUT_STEREO : AV_CH_LAYOUT_MONO;
+    }
   }
 
   if (m_settings.MixingEnabled || m_dwOverrideMixer) {
