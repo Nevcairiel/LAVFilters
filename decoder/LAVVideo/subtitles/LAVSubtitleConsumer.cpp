@@ -285,7 +285,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
 
     for (int plane = 0; plane < desc.planes; plane++) {
       subStride[plane]  = stride / desc.planeWidth[plane];
-      const size_t size = subStride[plane] * FFALIGN(newSize.cy / desc.planeHeight[plane], 2);
+      const size_t size = subStride[plane] * FFALIGN(newSize.cy, 2) / desc.planeHeight[plane];
       subData[plane]    = (BYTE *)av_mallocz(size + FF_INPUT_BUFFER_PADDING_SIZE);
     }
 
