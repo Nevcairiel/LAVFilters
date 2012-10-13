@@ -285,7 +285,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
 #include "libavformat/isom.h"
 
-std::string CreateVOBSubHeaderFromMP4(int vidW, int vidH, MOVStreamContext *context, const BYTE *buffer, int buf_size)
+static std::string CreateVOBSubHeaderFromMP4(int vidW, int vidH, MOVStreamContext *context, const BYTE *buffer, int buf_size)
 {
   std::ostringstream header;
   if (buf_size >= 16*4) {
@@ -315,7 +315,7 @@ std::string CreateVOBSubHeaderFromMP4(int vidW, int vidH, MOVStreamContext *cont
   return header.str();
 }
 
-std::string GetDefaultVOBSubHeader(int w, int h)
+static std::string GetDefaultVOBSubHeader(int w, int h)
 {
   std::ostringstream header;
   header << "# VobSub index file, v7 (do not modify this line!)\n";
