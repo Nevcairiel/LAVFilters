@@ -433,7 +433,7 @@ done:
   }
 
   m_Codec = codec;
-  m_bThreadSafe = m_pDecoder->HasThreadSafeBuffers() == S_OK;
+  m_bThreadSafe = m_pDecoder->HasThreadSafeBuffers() == S_OK && !(m_pLAVVideo->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD);
 
   return hr;
 }
