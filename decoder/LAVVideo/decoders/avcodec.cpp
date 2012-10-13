@@ -334,6 +334,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_pParser = av_parser_init(codec);
   }
 
+  DWORD dwDecFlags = m_pCallback->GetDecodeFlags();
+
   LONG biRealWidth = pBMI->biWidth, biRealHeight = pBMI->biHeight;
   if (pmt->formattype == FORMAT_VideoInfo || pmt->formattype == FORMAT_MPEGVideo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)pmt->Format();
@@ -378,8 +380,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_pAVCtx->thread_count = 1;
   }
 
-  if ((codec == AV_CODEC_ID_THEORA || codec == AV_CODEC_ID_VP3)
-    && (m_pCallback->FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSplitter) || m_pCallback->FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSource))) {
+  if (dwDecFlags & LAV_VIDEO_DEC_FLAG_NO_MT) {
     m_pAVCtx->thread_count = 1;
   }
 
@@ -475,7 +476,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   LAVPinInfo lavPinInfo = {0};
   BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
 
-  DWORD dwDecFlags = m_pCallback->GetDecodeFlags();
   m_bInputPadded = dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER;
 
   // Setup codec-specific timing logic

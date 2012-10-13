@@ -215,6 +215,7 @@ interface ILAVVideoCallback
 #define LAV_VIDEO_DEC_FLAG_H264_AVI               0x00000004
 #define LAV_VIDEO_DEC_FLAG_LAVSPLITTER            0x00000008
 #define LAV_VIDEO_DEC_FLAG_DVD                    0x00000010
+#define LAV_VIDEO_DEC_FLAG_NO_MT                  0x00000020
 
   /**
    * Check wether we're running on Vista or newer

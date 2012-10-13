@@ -584,6 +584,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   BOOL bH264IsAVI   = (codec == AV_CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
   BOOL bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
   BOOL bDVDPlayback = (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES);
+  BOOL bTheoraMPCHCOgg = (codec == AV_CODEC_ID_THEORA || codec == AV_CODEC_ID_VP3) && (FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSource));
 
   if (bVC1DTS)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_VC1_DTS;
@@ -593,6 +594,8 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_LAVSPLITTER;
   if (bDVDPlayback)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_DVD;
+  if (bTheoraMPCHCOgg)
+    m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_NO_MT;
 
   SAFE_CO_FREE(pszExtension);
 
