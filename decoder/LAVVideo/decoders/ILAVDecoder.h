@@ -198,13 +198,6 @@ interface ILAVVideoCallback
   STDMETHOD_(LPWSTR, GetFileExtension)() PURE;
 
   /**
-   * Check wether a filter matching the clsid is in the graph
-   *
-   * @result TRUE if the filter was found, false otherwise
-   */
-  STDMETHOD_(BOOL, FilterInGraph)(PIN_DIRECTION dir, const GUID &clsid) PURE;
-
-  /**
    * Get Decode Flags
    *
    * @return flags

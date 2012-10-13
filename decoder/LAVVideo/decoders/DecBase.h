@@ -82,10 +82,6 @@ protected:
     return m_pCallback->ReleaseFrame(ppFrame);
   }
 
-  inline BOOL FilterInGraph(PIN_DIRECTION dir, const GUID &clsid) {
-    return m_pCallback->FilterInGraph(dir, clsid);
-  }
-
 protected:
   ILAVVideoSettings *m_pSettings;
   ILAVVideoCallback *m_pCallback;
