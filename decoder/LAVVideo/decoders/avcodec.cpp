@@ -475,15 +475,16 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   LAVPinInfo lavPinInfo = {0};
   BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
 
-  m_bInputPadded = m_pCallback->IsLAVSplitter();
+  DWORD dwDecFlags = m_pCallback->GetDecodeFlags();
+  m_bInputPadded = dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER;
 
   // Setup codec-specific timing logic
-  BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !m_pCallback->VC1IsDTS());
+  BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_VC1_DTS));
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
   // VC-1 is also a special case. Its required for splitters that deliver PTS timestamps (see bVC1IsPTS above)
-  m_bFFReordering        =  ( codec == AV_CODEC_ID_H264 && !m_pCallback->H264IsAVI())
+  m_bFFReordering        =  ( codec == AV_CODEC_ID_H264 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_H264_AVI))
                            || codec == AV_CODEC_ID_VP8
                            || codec == AV_CODEC_ID_VP3
                            || codec == AV_CODEC_ID_THEORA
@@ -502,7 +503,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   // Real Video content has some odd timestamps
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
-  m_bRVDropBFrameTimings = (codec == AV_CODEC_ID_RV10 || codec == AV_CODEC_ID_RV20 || ((codec == AV_CODEC_ID_RV30 || codec == AV_CODEC_ID_RV40) && (!m_pCallback->IsLAVSplitter() || (bLAVInfoValid && (lavPinInfo.flags & LAV_STREAM_FLAG_RV34_MKV)))));
+  m_bRVDropBFrameTimings = (codec == AV_CODEC_ID_RV10 || codec == AV_CODEC_ID_RV20 || ((codec == AV_CODEC_ID_RV30 || codec == AV_CODEC_ID_RV40) && (!(dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER) || (bLAVInfoValid && (lavPinInfo.flags & LAV_STREAM_FLAG_RV34_MKV)))));
 
   // Enable B-Frame delay handling
   m_bBFrameDelay = !m_bFFReordering && !m_bRVDropBFrameTimings;
@@ -519,7 +520,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_bNoBufferConsumption =    codec == AV_CODEC_ID_MJPEGB
                            || codec == AV_CODEC_ID_LOCO;
 
-  m_bHasPalette = m_pAVCtx->bits_per_coded_sample <= 8 && m_pAVCtx->extradata_size && !m_pCallback->IsLAVSplitter()
+  m_bHasPalette = m_pAVCtx->bits_per_coded_sample <= 8 && m_pAVCtx->extradata_size && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER)
                   &&  (codec == AV_CODEC_ID_MSVIDEO1
                     || codec == AV_CODEC_ID_MSRLE
                     || codec == AV_CODEC_ID_CINEPAK

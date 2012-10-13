@@ -45,7 +45,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bForceInputAR(FALSE)
   , m_bSendMediaType(FALSE)
   , m_bDXVAExtFormatSupport(-1)
-  , m_bVC1IsDTS(FALSE), m_bH264IsAVI(FALSE), m_bLAVSplitter(FALSE)
+  , m_dwDecodeFlags(0)
   , m_pFilterGraph(NULL)
   , m_pFilterBufferSrc(NULL)
   , m_pFilterBufferSink(NULL)
@@ -57,11 +57,9 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bMTFiltering(FALSE)
   , m_bFlushing(FALSE)
   , m_evFilterInput(TRUE)
-  , m_bStreamARBlacklisted(FALSE)
   , m_pSubtitleInput(NULL)
   , m_SubtitleConsumer(NULL)
   , m_pLastSequenceFrame(NULL)
-  , m_bDVDPlayback(NULL)
 {
   *phr = S_OK;
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
@@ -555,7 +553,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_LAVPinInfoValid = FALSE;
   }
 
-  m_bStreamARBlacklisted = FALSE;
+  m_dwDecodeFlags = 0;
 
   LPWSTR pszExtension = GetFileExtension();
   if (pszExtension) {
@@ -563,29 +561,38 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 
     for (int i = 0; i < countof(stream_ar_blacklist); i++) {
       if (_wcsicmp(stream_ar_blacklist[i], pszExtension) == 0) {
-        m_bStreamARBlacklisted = TRUE;
+        m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_STREAMAR_BLACKLIST;
         break;
       }
     }
-    if (m_bStreamARBlacklisted) {
+    if (m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_STREAMAR_BLACKLIST) {
       // MPC-HC MP4 Splitter fails at Container AR
       if (FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMP4Splitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMP4SplitterSource)) {
-        m_bStreamARBlacklisted = FALSE;
+        m_dwDecodeFlags &= ~LAV_VIDEO_DEC_FLAG_STREAMAR_BLACKLIST;
       }
     }
   }
 
   // Certain filters send VC-1 in PTS instead of DTS, so list them here
   // Usually, these are MPEG systems.
-  m_bVC1IsDTS    = (codec == AV_CODEC_ID_VC1) &&
-                    !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter)
-                   || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource)
-                   || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader)
-                   || FilterInGraph(PINDIR_INPUT, CLSID_SageTVMpegDeMux));
+  BOOL bVC1DTS =  (codec == AV_CODEC_ID_VC1) &&
+                 !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter)
+                || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource)
+                || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader)
+                || FilterInGraph(PINDIR_INPUT, CLSID_SageTVMpegDeMux));
 
-  m_bH264IsAVI   = (codec == AV_CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
-  m_bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
-  m_bDVDPlayback = (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES);
+  BOOL bH264IsAVI   = (codec == AV_CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
+  BOOL bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
+  BOOL bDVDPlayback = (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES);
+
+  if (bVC1DTS)
+    m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_VC1_DTS;
+  if (bH264IsAVI)
+    m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_H264_AVI;
+  if (bLAVSplitter)
+    m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_LAVSPLITTER;
+  if (bDVDPlayback)
+    m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_DVD;
 
   SAFE_CO_FREE(pszExtension);
 
@@ -654,7 +661,7 @@ HRESULT CLAVVideo::EndFlush()
   CAutoLock cAutoLock(&m_csReceive);
   ReleaseFrame(&m_pLastSequenceFrame);
 
-  if (m_bDVDPlayback) {
+  if (m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_DVD) {
     PerformFlush();
   }
 
@@ -836,7 +843,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     videoFormatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
 
     int num = ar.num, den = ar.den;
-    BOOL bStreamAR = (m_settings.StreamAR == 1) || (m_settings.StreamAR == 2 && (!m_bStreamARBlacklisted || !(dwARX && dwARY)));
+    BOOL bStreamAR = (m_settings.StreamAR == 1) || (m_settings.StreamAR == 2 && (!(m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_STREAMAR_BLACKLIST) || !(dwARX && dwARY)));
     if (!bStreamAR || num == 0 || den == 0) {
       if (m_bForceInputAR && dwARX && dwARY) {
         num = dwARX;

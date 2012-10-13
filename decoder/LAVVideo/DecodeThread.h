@@ -57,9 +57,7 @@ public:
   STDMETHODIMP Deliver(LAVFrame *pFrame);
   STDMETHODIMP_(LPWSTR) GetFileExtension();
   STDMETHODIMP_(BOOL) FilterInGraph(PIN_DIRECTION dir, const GUID &clsid);
-  STDMETHODIMP_(BOOL) VC1IsDTS();
-  STDMETHODIMP_(BOOL) H264IsAVI();
-  STDMETHODIMP_(BOOL) IsLAVSplitter();
+  STDMETHODIMP_(DWORD) GetDecodeFlags();
   STDMETHODIMP_(BOOL) IsVistaOrNewer();
   STDMETHODIMP_(CMediaType&) GetInputMediaType();
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info);

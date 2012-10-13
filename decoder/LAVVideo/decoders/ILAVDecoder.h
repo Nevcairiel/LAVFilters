@@ -205,25 +205,16 @@ interface ILAVVideoCallback
   STDMETHOD_(BOOL, FilterInGraph)(PIN_DIRECTION dir, const GUID &clsid) PURE;
 
   /**
-   * Check wether VC-1 timestamps are DTS instead of PTS
+   * Get Decode Flags
    *
-   * @result TRUE if DTS, FALSE if PTS
+   * @return flags
    */
-  STDMETHOD_(BOOL, VC1IsDTS)() PURE;
-
-  /**
-   * Check wether H264 is from a AVI file (or similar)
-   *
-   * @result TRUE/FALSE
-   */
-  STDMETHOD_(BOOL,H264IsAVI)() PURE;
-
-  /**
-   * Check wether LAV Splitter is the source filter
-   *
-   * @return TRUE/FALSE
-   */
-  STDMETHOD_(BOOL, IsLAVSplitter)() PURE;
+  STDMETHOD_(DWORD, GetDecodeFlags)() PURE;
+#define LAV_VIDEO_DEC_FLAG_STREAMAR_BLACKLIST     0x00000001
+#define LAV_VIDEO_DEC_FLAG_VC1_DTS                0x00000002
+#define LAV_VIDEO_DEC_FLAG_H264_AVI               0x00000004
+#define LAV_VIDEO_DEC_FLAG_LAVSPLITTER            0x00000008
+#define LAV_VIDEO_DEC_FLAG_DVD                    0x00000010
 
   /**
    * Check wether we're running on Vista or newer
