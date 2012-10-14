@@ -89,7 +89,8 @@ HRESULT CH264SequenceParser::ParseSPS(const BYTE *buffer, size_t buflen)
 
   if(sps.profile == 100 || sps.profile == 110 || sps.profile == 122 ||
      sps.profile == 244 || sps.profile ==  44 || sps.profile ==  83 ||
-     sps.profile ==  86 || sps.profile == 118 || sps.profile == 128) {
+     sps.profile ==  86 || sps.profile == 118 || sps.profile == 128 ||
+     sps.profile == 144) {
     sps.chroma = (int)parser.UExpGolombRead();
     if (sps.chroma == 3)
       parser.BitRead(1);
