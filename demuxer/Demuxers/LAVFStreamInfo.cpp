@@ -395,7 +395,11 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
     CMediaType dvdmtype;
     dvdmtype.majortype = MEDIATYPE_Video;
     dvdmtype.subtype = MEDIASUBTYPE_DVD_SUBPICTURE;
-    dvdmtype.formattype = FORMAT_None;
+    dvdmtype.formattype = FORMAT_MPEG2_VIDEO;
+    MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)dvdmtype.AllocFormatBuffer(sizeof(MPEG2VIDEOINFO));
+    ZeroMemory(mp2vi, sizeof(MPEG2VIDEOINFO));
+    mp2vi->hdr.bmiHeader.biWidth = vidStream ? vidStream->codec->width : 720;
+    mp2vi->hdr.bmiHeader.biHeight = vidStream ? vidStream->codec->height : 576;
     mtypes.push_back(dvdmtype);
 
     return S_OK;
