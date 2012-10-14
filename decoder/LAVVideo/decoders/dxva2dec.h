@@ -52,6 +52,7 @@ public:
   STDMETHODIMP PostConnect(IPin *pPin);
   STDMETHODIMP_(long) GetBufferCount();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bNative ? L"dxva2n" : L"dxva2cb"; }
+  STDMETHODIMP HasThreadSafeBuffers() { return m_bNative ? S_FALSE : S_OK; }
 
   // CDecBase
   STDMETHODIMP Init();
