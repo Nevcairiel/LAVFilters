@@ -322,7 +322,7 @@ static std::string GetDefaultVOBSubHeader(int w, int h)
   header << "size: " << w << "x" << h << "\n";
   header << "palette: ";
   //header << "000000,f0f0f0,cccccc,999999,";
-  header << "000000,f0f0f0,dddddd,222222,";
+  header << "000000,e0e0e0,808080,202020,";
   header << "3333fa,1111bb,fa3333,bb1111,";
   header << "33fa33,11bb11,fafa33,bbbb11,";
   header << "fa33fa,bb11bb,33fafa,11bbbb\n";
