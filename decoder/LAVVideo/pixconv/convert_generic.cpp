@@ -602,7 +602,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   }
 
   // 32-bit per pixel
-  dstStride = (FFALIGN(dstStride, 48) / 48) * 128;
+  dstStride = ((dstStride + 47) / 48) * 128;
 
   BYTE *pdst = pOut;
   int32_t *p = (int32_t *)pdst;
