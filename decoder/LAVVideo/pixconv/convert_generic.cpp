@@ -564,7 +564,8 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   const int16_t *y = NULL;
   const int16_t *u = NULL;
   const int16_t *v = NULL;
-  int sourceStride = 0;
+  int srcyStride = 0;
+  int srcuvStride = 0;
 
   BYTE *pTmpBuffer = NULL;
 
@@ -580,8 +581,8 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
     dst[2] = dst[1] + (height * scaleStride * 2);
     dst[3] = NULL;
     dstStride[0] = scaleStride * 2;
-    dstStride[1] = scaleStride * 2;
-    dstStride[2] = scaleStride * 2;
+    dstStride[1] = scaleStride;
+    dstStride[2] = scaleStride;
     dstStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), PIX_FMT_YUV422P10LE, SWS_POINT);
@@ -590,12 +591,14 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
     y = (int16_t *)dst[0];
     u = (int16_t *)dst[1];
     v = (int16_t *)dst[2];
-    sourceStride = scaleStride;
+    srcyStride = scaleStride;
+    srcuvStride = scaleStride >> 1;
   } else {
     y = (int16_t *)src[0];
     u = (int16_t *)src[1];
     v = (int16_t *)src[2];
-    sourceStride = srcStride[0] / 2;
+    srcyStride = srcStride[0] >> 1;
+    srcuvStride = srcStride[1] >> 1;
   }
 
   // 32-bit per pixel
@@ -641,9 +644,9 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
     pdst += dstStride;
     memset(p, 0, pdst - (BYTE *)p);
     p = (int32_t *)pdst;
-    y += sourceStride - width;
-    u += (sourceStride - width) >> 1;
-    v += (sourceStride - width) >> 1;
+    y += srcyStride - width;
+    u += srcuvStride - (width >> 1);
+    v += srcuvStride - (width >> 1);
   }
   av_freep(&pTmpBuffer);
 
