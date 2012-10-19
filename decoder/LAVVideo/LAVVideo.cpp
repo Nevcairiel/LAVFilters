@@ -712,6 +712,17 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   return __super::NewSegment(tStart, tStop, dRate);
 }
 
+HRESULT CLAVVideo::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
+{
+  if (dir == PINDIR_INPUT) {
+    if (FilterInGraphSafe(pPin, CLSID_LAVVideo, TRUE)) {
+      DbgLog((LOG_TRACE, 10, L"CLAVVideo::CheckConnect(): LAVVideo is already in this graph branch, aborting."));
+      return E_FAIL;
+    }
+  }
+  return __super::CheckConnect(dir, pPin);
+}
+
 HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
 {
   DbgLog((LOG_TRACE, 10, L"::BreakConnect"));

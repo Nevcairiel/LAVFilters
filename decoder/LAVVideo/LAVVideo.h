@@ -127,6 +127,7 @@ public:
   HRESULT NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
   HRESULT Receive(IMediaSample *pIn);
 
+  HRESULT CheckConnect(PIN_DIRECTION dir, IPin *pPin);
   HRESULT BreakConnect(PIN_DIRECTION dir);
   HRESULT CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin);
 
