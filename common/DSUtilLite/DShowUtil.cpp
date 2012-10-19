@@ -340,16 +340,25 @@ HRESULT FindPinIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown)
 // pPin - pin of our filter to start searching
 // guid - guid of the filter to find
 // ppFilter - variable that'll receive a AddRef'd reference to the filter
-HRESULT FindFilterSafe(IPin *pPin, const GUID &guid, IBaseFilter **ppFilter)
+HRESULT FindFilterSafe(IPin *pPin, const GUID &guid, IBaseFilter **ppFilter, BOOL bReverse)
 {
   CheckPointer(ppFilter, E_POINTER);
   CheckPointer(pPin, E_POINTER);
+  HRESULT hr = S_OK;
 
   PIN_DIRECTION dir;
   pPin->QueryDirection(&dir);
 
   IPin *pOtherPin = NULL;
-  if (SUCCEEDED(pPin->ConnectedTo(&pOtherPin)) && pOtherPin) {
+  if (bReverse) {
+    dir = (dir == PINDIR_INPUT) ? PINDIR_OUTPUT : PINDIR_INPUT;
+    pOtherPin = pPin;
+    pPin->AddRef();
+    hr = S_OK;
+  } else {
+    hr = pPin->ConnectedTo(&pOtherPin);
+  }
+  if (SUCCEEDED(hr) && pOtherPin) {
     IBaseFilter *pFilter = GetFilterFromPin(pOtherPin);
     SafeRelease(&pOtherPin);
 
@@ -435,10 +444,10 @@ BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType)
   return bFound;
 }
 
-BOOL FilterInGraphSafe(IPin *pPin, const GUID &guid)
+BOOL FilterInGraphSafe(IPin *pPin, const GUID &guid, BOOL bReverse)
 {
   IBaseFilter *pFilter = NULL;
-  HRESULT hr = FindFilterSafe(pPin, guid, &pFilter);
+  HRESULT hr = FindFilterSafe(pPin, guid, &pFilter, bReverse);
   if (SUCCEEDED(hr) && pFilter)  {
     SafeRelease(&pFilter);
     return TRUE;
