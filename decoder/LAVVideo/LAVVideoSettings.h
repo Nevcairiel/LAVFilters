@@ -303,6 +303,12 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get if the MS WMV9 DMO Decoder should be used for VC-1/WMV3
   STDMETHOD_(BOOL, GetUseMSWMV9Decoder)() = 0;
+
+  // Set if DVD Video support is enabled
+  STDMETHOD(SetDVDVideoSupport)(BOOL bEnabled) = 0;
+
+  // Get if DVD Video support is enabled
+  STDMETHOD_(BOOL,GetDVDVideoSupport)() = 0;
 };
 
 // LAV Video status interface

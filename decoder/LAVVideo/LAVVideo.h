@@ -111,6 +111,9 @@ public:
   STDMETHODIMP SetUseMSWMV9Decoder(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetUseMSWMV9Decoder();
 
+  STDMETHODIMP SetDVDVideoSupport(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetDVDVideoSupport();
+
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
 
@@ -252,6 +255,7 @@ private:
     DWORD SWDeintOutput;
     BOOL DeintTreatAsProgressive;
     DWORD DitherMode;
+    BOOL bDVDVideo;
   } m_settings;
 
 #ifdef DEBUG

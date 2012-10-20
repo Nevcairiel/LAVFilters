@@ -137,6 +137,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.bFormats[Codec_QPEG]     = FALSE;
   m_settings.bFormats[Codec_MSRLE]    = FALSE;
 
+  m_settings.bDVDVideo  = TRUE;
   m_settings.bMSWMV9DMO = TRUE;
 
   // Raw formats, off by default
@@ -215,6 +216,9 @@ HRESULT CLAVVideo::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
   }
 
+  bFlag = reg.ReadBOOL(L"DVDVideo", hr);
+  if (SUCCEEDED(hr)) m_settings.bDVDVideo = bFlag;
+
   bFlag = reg.ReadBOOL(L"MSWMV9DMO", hr);
   if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
 
@@ -290,6 +294,7 @@ HRESULT CLAVVideo::SaveSettings()
       regF.WriteBOOL(name, m_settings.bFormats[i]);
     }
 
+    reg.WriteBOOL(L"DVDVideo", m_settings.bDVDVideo);
     reg.WriteBOOL(L"MSWMV9DMO", m_settings.bMSWMV9DMO);
 
     CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
@@ -585,6 +590,11 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   BOOL bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
   BOOL bDVDPlayback = (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES);
   BOOL bTheoraMPCHCOgg = (codec == AV_CODEC_ID_THEORA || codec == AV_CODEC_ID_VP3) && (FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSource));
+
+  if (bDVDPlayback && !m_settings.bDVDVideo) {
+    DbgLog((LOG_TRACE, 10, L"-> DVD Video support is disabled"));
+    return VFW_E_TYPE_NOT_ACCEPTED;
+  }
 
   if (bVC1DTS)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_VC1_DTS;
@@ -1765,4 +1775,15 @@ STDMETHODIMP CLAVVideo::SetUseMSWMV9Decoder(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVVideo::GetUseMSWMV9Decoder()
 {
   return m_settings.bMSWMV9DMO;
+}
+
+STDMETHODIMP CLAVVideo::SetDVDVideoSupport(BOOL bEnabled)
+{
+  m_settings.bDVDVideo = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetDVDVideoSupport()
+{
+  return m_settings.bDVDVideo;
 }

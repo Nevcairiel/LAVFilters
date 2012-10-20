@@ -110,4 +110,5 @@ private:
 
   BOOL m_bFormats[Codec_NB];
   BOOL m_bWMVDMO;
+  BOOL m_bDVD;
 };

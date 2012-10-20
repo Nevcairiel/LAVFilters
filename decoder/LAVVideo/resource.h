@@ -78,6 +78,7 @@
 #define IDC_CODECS_MSWMVDMO             1068
 #define IDC_ACTIVE_DECODER              1069
 #define IDC_OUT_YV24                    1070
+#define IDC_DVD_VIDEO                   1071
 
 // Next default values for new objects
 // 
@@ -85,7 +86,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1071
+#define _APS_NEXT_CONTROL_VALUE         1072
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

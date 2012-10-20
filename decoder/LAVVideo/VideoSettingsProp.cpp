@@ -616,6 +616,9 @@ HRESULT CLAVVideoFormatsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_CODECS_MSWMVDMO, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetUseMSWMV9Decoder(bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DVD_VIDEO, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetDVDVideoSupport(bFlag);
+
   LoadData();
 
   return hr;
@@ -676,6 +679,7 @@ HRESULT CLAVVideoFormatsProp::OnActivate()
   }
 
   SendDlgItemMessage(m_Dlg, IDC_CODECS_MSWMVDMO, BM_SETCHECK, m_bWMVDMO, 0);
+  SendDlgItemMessage(m_Dlg, IDC_DVD_VIDEO, BM_SETCHECK, m_bDVD, 0);
 
   return hr;
 }
@@ -688,6 +692,7 @@ HRESULT CLAVVideoFormatsProp::LoadData()
     m_bFormats[i] = m_pVideoSettings->GetFormatConfiguration((LAVVideoCodec)i) != 0;
 
   m_bWMVDMO = m_pVideoSettings->GetUseMSWMV9Decoder();
+  m_bDVD    = m_pVideoSettings->GetDVDVideoSupport();
 
   return hr;
 }
@@ -700,6 +705,11 @@ INT_PTR CLAVVideoFormatsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPar
     if (LOWORD(wParam) == IDC_CODECS_MSWMVDMO && HIWORD(wParam) == BN_CLICKED) {
       BOOL bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_bWMVDMO) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_DVD_VIDEO && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_bDVD) {
         SetDirty();
       }
     }
