@@ -578,13 +578,15 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     }
   }
 
+  BOOL bSageVC1Hack = (codec == AV_CODEC_ID_VC1) && FilterInGraph(PINDIR_INPUT, CLSID_SageTVMpegDeMux);
+
   // Certain filters send VC-1 in PTS instead of DTS, so list them here
   // Usually, these are MPEG systems.
   BOOL bVC1DTS =  (codec == AV_CODEC_ID_VC1) &&
                  !(FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitter)
                 || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCMPEGSplitterSource)
                 || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader)
-                || FilterInGraph(PINDIR_INPUT, CLSID_SageTVMpegDeMux));
+                || bSageVC1Hack);
 
   BOOL bH264IsAVI   = (codec == AV_CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
   BOOL bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
@@ -606,6 +608,8 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_DVD;
   if (bTheoraMPCHCOgg)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_NO_MT;
+  if (bSageVC1Hack)
+    m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_SAGE_HACK;
 
   SAFE_CO_FREE(pszExtension);
 

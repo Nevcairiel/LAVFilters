@@ -25,7 +25,7 @@
 class CDecBase : public ILAVDecoder
 {
 public:
-  CDecBase(void) : m_pSettings(NULL), m_pCallback(NULL) {}
+  CDecBase(void) : m_pSettings(NULL), m_pCallback(NULL), m_rtTimestampBuffer(0) {}
   virtual ~CDecBase(void) {}
 
   STDMETHOD(Init)() PURE;
@@ -65,10 +65,16 @@ public:
     long nSize = pSample->GetActualDataLength();
     m_pCallback->DVDStripPacket(pData, nSize);
 
+    if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_SAGE_HACK) {
+      FFSWAP(REFERENCE_TIME, rtStart, m_rtTimestampBuffer);
+      rtStop = AV_NOPTS_VALUE;
+    }
+
     return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK);
   }
 
   STDMETHODIMP Flush() {
+    m_rtTimestampBuffer = 0;
     return S_OK;
   };
 
@@ -89,4 +95,6 @@ protected:
 protected:
   ILAVVideoSettings *m_pSettings;
   ILAVVideoCallback *m_pCallback;
+
+  REFERENCE_TIME m_rtTimestampBuffer;
 };

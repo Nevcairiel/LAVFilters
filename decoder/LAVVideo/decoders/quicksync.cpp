@@ -430,6 +430,11 @@ STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
   else if (hr == VFW_S_NO_STOP_TIME)
     rtStop = AV_NOPTS_VALUE;
 
+  if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_SAGE_HACK) {
+    FFSWAP(REFERENCE_TIME, rtStart, m_rtTimestampBuffer);
+    rtStop = AV_NOPTS_VALUE;
+  }
+
   if (rtStart != AV_NOPTS_VALUE) {
     rtStart += RTPADDING;
     if (rtStart < 0)
