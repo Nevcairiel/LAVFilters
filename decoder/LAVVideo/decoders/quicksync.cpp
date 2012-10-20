@@ -201,7 +201,7 @@ STDMETHODIMP CDecQuickSync::Check()
   return E_FAIL;
 }
 
-STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, size_t buflen, int nal_size, int *pRefFrames)
+STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, size_t buflen, int nal_size, int *pRefFrames, int *pProfile, int *pLevel)
 {
   DbgLog((LOG_TRACE, 10, L"CDecQuickSync::CheckH264Sequence(): Checking H264 frame for SPS"));
   CH264SequenceParser h264parser;
@@ -211,6 +211,10 @@ STDMETHODIMP CDecQuickSync::CheckH264Sequence(const BYTE *buffer, size_t buflen,
     fillDXVAExtFormat(m_DXVAExtendedFormat, h264parser.sps.full_range, h264parser.sps.primaries, h264parser.sps.colorspace, h264parser.sps.trc);
     if (pRefFrames)
       *pRefFrames = h264parser.sps.ref_frames;
+    if (pProfile)
+      *pProfile = h264parser.sps.profile;
+    if (pLevel)
+      *pLevel = h264parser.sps.level;
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
     if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 || h264parser.sps.chroma_bitdepth != 8) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with QuickSync, aborting (profile: %d, chroma: %d, bitdepth: %d/%d)", h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth, h264parser.sps.chroma_bitdepth));
@@ -276,10 +280,12 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                       || (codec == AV_CODEC_ID_VC1 && m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_VC1_DTS);
 
   int ref_frames = 0;
+  int profile = 0;
+  int level = 0;
 
   if (extralen > 0) {
     if (fourCC == FourCC_AVC1 || fourCC == FourCC_H264) {
-      hr = CheckH264Sequence(extradata, extralen, m_bAVC1 ? 2 : 0, &ref_frames);
+      hr = CheckH264Sequence(extradata, extralen, m_bAVC1 ? 2 : 0, &ref_frames, &profile, &level);
       if (FAILED(hr)) {
         return VFW_E_UNSUPPORTED_VIDEO;
       } else if (hr == S_FALSE) {
@@ -363,6 +369,12 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     break;
   case FourCC_AVC1:
   case FourCC_H264:
+    if (mp2vi) {
+      if (profile)
+        mp2vi->dwProfile = profile;
+      if (level)
+        mp2vi->dwLevel = level;
+    }
     break;
   case FourCC_VC1:
     if (mp2vi) mp2vi->dwProfile = 3;
