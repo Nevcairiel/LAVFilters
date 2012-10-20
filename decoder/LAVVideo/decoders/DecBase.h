@@ -68,6 +68,10 @@ public:
     return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK);
   }
 
+  STDMETHODIMP Flush() {
+    return S_OK;
+  };
+
 protected:
   // Convenience wrapper around m_pCallback
   inline HRESULT Deliver(LAVFrame *pFrame) {

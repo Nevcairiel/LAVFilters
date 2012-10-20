@@ -525,7 +525,7 @@ STDMETHODIMP CDecQuickSync::Flush()
   // Clear timestamp queue
   std::queue<REFERENCE_TIME>().swap(m_timestampQueue);
 
-  return S_OK;
+  return __super::Flush();
 }
 
 STDMETHODIMP CDecQuickSync::EndOfStream()

@@ -1139,7 +1139,7 @@ STDMETHODIMP CDecAvcodec::Flush()
     InitDecoder(m_nCodecId, &m_pCallback->GetInputMediaType());
   }
 
-  return S_OK;
+  return __super::Flush();
 }
 
 STDMETHODIMP CDecAvcodec::EndOfStream()

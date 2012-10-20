@@ -1200,7 +1200,7 @@ STDMETHODIMP CDecCuvid::Flush()
 
   m_nSoftTelecine = 0;
 
-  return S_OK;
+  return __super::Flush();
 }
 
 STDMETHODIMP CDecCuvid::EndOfStream()

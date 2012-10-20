@@ -631,7 +631,7 @@ STDMETHODIMP CDecWMV9::Flush()
   m_rtReorderBuffer = AV_NOPTS_VALUE;
   m_bReorderBufferValid = FALSE;
 
-  return S_OK;
+  return __super::Flush();
 }
 
 STDMETHODIMP CDecWMV9::EndOfStream()
