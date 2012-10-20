@@ -757,7 +757,7 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   if (dir == PINDIR_OUTPUT) {
     hr = m_Decoder.PostConnect(pReceivePin);
   } else if (dir == PINDIR_INPUT) {
-    if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_VIDEO && !m_pSubtitleInput) {
+    if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_VIDEO && !m_pSubtitleInput && (m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_DVD)) {
       m_pSubtitleInput = new CLAVVideoSubtitleInputPin(TEXT("CLAVVideoSubtitleInputPin"), this, &m_csFilter, &hr, L"Subtitle Input");
       ASSERT(SUCCEEDED(hr));
       m_SubtitleConsumer = new CLAVSubtitleConsumer(this);
