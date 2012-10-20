@@ -1,5 +1,32 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.52.0 - 2012/10/20
+LAV Splitter
+- Improved IO performance on network sources
+- Added an option to configure the maximum memory usage of the frame queues
+- Support ALAC in MKV
+- Support SRT subtitles in AVI
+- Improved raw video support in combination with LAV Video
+
+LAV Video
+- Support for DVD Video decoding
+- Slight GPU memory usage reduction with DXVA2 Native
+- Fixed video corruption after seeks with VP3/Theora
+- Fixed decoding of "old" H.264 4:4:4 lossless files
+- More stricter handling of output pixel formats, only enabled formats are allowed for output
+- QuickSync: Improved compatibility with new driver series
+- Improved support for VC-1 with the SageTV MpegDemux
+
+LAV Audio
+- Fixed a few issues with audio mixing
+  - Some channels would occasionally be mixed twice, causing incorrect audio levels
+  - Downmixing 8ch to stereo could crash on some systems
+  - Increased maximum LFE coefficient to 3.0 and fixed scale to be consistent with surround/center coefficients
+  - Added downmixing to Mono
+  - Clipping protection is no longer reset on seeks
+- Added support for Opus
+- Fixed excessive memory allocations when decoding MPEG4-ALS
+
 0.51.3 - 2012/07/19
 LAV Splitter
 - Further improved H264 media type creation
