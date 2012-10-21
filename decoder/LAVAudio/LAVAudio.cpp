@@ -1493,12 +1493,14 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   hr = pIn->GetTime(&rtStart, &rtStop);
 
   if(pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK)) {
+    DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity, flushing decoder.."));
     m_bDiscontinuity = TRUE;
     m_buff.SetSize(0);
     FlushOutput(FALSE);
+    FlushDecoder();
     m_bQueueResync = TRUE;
     if(FAILED(hr)) {
-      DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity without timestamp"));
+      DbgLog((LOG_ERROR, 10, L" -> Discontinuity without timestamp"));
     }
 
     if (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK) {
