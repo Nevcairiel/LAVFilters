@@ -1410,17 +1410,8 @@ HRESULT CLAVAudio::EndFlush()
   m_buff.SetSize(0);
   FlushOutput(FALSE);
 
-  if(m_pParser) {
-    av_parser_close(m_pParser);
-    m_pParser = av_parser_init(m_nCodecId);
-    m_bUpdateTimeCache = TRUE;
-  }
+  FlushDecoder();
 
-  if (m_pAVCtx && m_pAVCtx->codec) {
-    avcodec_flush_buffers (m_pAVCtx);
-  }
-
-  FlushDTSDecoder();
   m_bsOutput.SetSize(0);
 
   m_bQueueResync = TRUE;
@@ -1440,6 +1431,23 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   else
     m_dRate = 1.0;
   return __super::NewSegment(tStart, tStop, dRate);
+}
+
+HRESULT CLAVAudio::FlushDecoder()
+{
+  if(m_pParser) {
+    av_parser_close(m_pParser);
+    m_pParser = av_parser_init(m_nCodecId);
+    m_bUpdateTimeCache = TRUE;
+  }
+
+  if (m_pAVCtx && m_pAVCtx->codec) {
+    avcodec_flush_buffers (m_pAVCtx);
+  }
+
+  FlushDTSDecoder();
+
+  return S_OK;
 }
 
 HRESULT CLAVAudio::Receive(IMediaSample *pIn)

@@ -194,6 +194,7 @@ private:
 
   HRESULT QueueOutput(BufferDetails &buffer);
   HRESULT FlushOutput(BOOL bDeliver = TRUE);
+  HRESULT FlushDecoder();
 
   HRESULT Deliver(BufferDetails &buffer);
 
