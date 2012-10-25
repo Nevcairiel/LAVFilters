@@ -735,12 +735,13 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
 STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
 {
-  int videoStreamId = m_dActiveStreams[video];
+  int seekStreamId = m_dActiveStreams[video];
   int64_t seek_pts = 0;
+retry:
   // If we have a video stream, seek on that one. If we don't, well, then don't!
   if (rTime > 0) {
-    if (videoStreamId != -1) {
-      AVStream *stream = m_avFormat->streams[videoStreamId];
+    if (seekStreamId != -1) {
+      AVStream *stream = m_avFormat->streams[seekStreamId];
       int64_t start_time = AV_NOPTS_VALUE;
 
       // MPEG-TS needs a protection against a wrapped around start time
@@ -771,12 +772,17 @@ STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
 
   int flags = AVSEEK_FLAG_BACKWARD;
 
-  int ret = av_seek_frame(m_avFormat, videoStreamId, seek_pts, flags);
+  int ret = av_seek_frame(m_avFormat, seekStreamId, seek_pts, flags);
   if(ret < 0) {
     DbgLog((LOG_CUSTOM1, 1, L"::Seek() -- Key-Frame Seek failed"));
-    ret = av_seek_frame(m_avFormat, videoStreamId, seek_pts, flags | AVSEEK_FLAG_ANY);
+    ret = av_seek_frame(m_avFormat, seekStreamId, seek_pts, flags | AVSEEK_FLAG_ANY);
     if (ret < 0) {
       DbgLog((LOG_ERROR, 1, L"::Seek() -- Inaccurate Seek failed as well"));
+      if (seekStreamId == m_dActiveStreams[video] && seekStreamId != -1 && m_dActiveStreams[audio] != -1) {
+        DbgLog((LOG_ERROR, 1, L"::Seek() -- retrying seek on audio stream"));
+        seekStreamId = m_dActiveStreams[audio];
+        goto retry;
+      }
       if (seek_pts == 0)
         return SeekByte(0, AVSEEK_FLAG_BACKWARD);
     }
