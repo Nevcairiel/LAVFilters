@@ -66,6 +66,8 @@ struct lavf_iformat_map
   { "u32be", RAW_AUDIO, RAW_AUDIO_DESC },
   { "u32le", RAW_AUDIO, RAW_AUDIO_DESC },
   { "u8",    RAW_AUDIO, RAW_AUDIO_DESC },
+  { "image2", "image2", "Image Files" },
+  { "image2pipe", "image2", "Image Files" },
 
   // Disabled Formats
   { "applehttp", NULL, NULL },

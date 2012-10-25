@@ -176,6 +176,15 @@ int CLAVFDemuxer::avio_interrupt_cb(void *opaque)
   return demux->m_Abort;
 }
 
+static LPCWSTR wszImageExtensions[] = {
+  L".png", L".mng", L".pns",    // PNG
+  L".tif", L".tiff",            // TIFF
+  L".jpeg", L".jpg", L".jps",   // JPEG
+  L".gif",                      // GIF
+  L".tga",                      // TGA
+  L".bmp"                       // BMP
+};
+
 STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName)
 {
   CAutoLock lock(m_pLock);
@@ -201,8 +210,25 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   m_avFormat->pb = byteContext;
   m_avFormat->interrupt_callback = cb;
 
+  LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
+
+  AVInputFormat *inputFormat = NULL;
+  if (pszFileName) {
+    LPWSTR extension = PathFindExtensionW(pszFileName);
+    for (int i = 0; i < countof(wszImageExtensions); i++) {
+      if (_wcsicmp(extension, wszImageExtensions[i]) == 0) {
+        if (byteContext) {
+          inputFormat = av_find_input_format("image2pipe");
+        } else {
+          inputFormat = av_find_input_format("image2");
+        }
+        break;
+      }
+    }
+  }
+
   m_timeOpening = time(NULL);
-  ret = avformat_open_input(&m_avFormat, fileName, NULL, NULL);
+  ret = avformat_open_input(&m_avFormat, fileName, inputFormat, NULL);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): avformat_open_input failed (%d)"), ret));
     goto done;
