@@ -77,6 +77,7 @@ class CMediaBuffer : public IMediaBuffer, public INSSBuffer3
 {
 public:
   CMediaBuffer(BYTE *pData, DWORD dwLength, bool bNSSBuffer) : m_pData(pData), m_dwLength(dwLength), m_dwMaxLength(dwLength), m_cRef(1), m_bNSSBuffer(bNSSBuffer), m_ContentType(0) {}
+  virtual ~CMediaBuffer() {}
 
   // IUnknown
   HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject)
@@ -134,6 +135,8 @@ public:
     return NS_E_UNSUPPORTED_PROPERTY;
   }
 
+protected:
+  HRESULT SetBuffer(BYTE *pData, DWORD dwLen) { m_pData = pData; m_dwLength = m_dwMaxLength = dwLen; return S_OK; }
 private:
   ULONG m_cRef;
   bool  m_bNSSBuffer;
@@ -147,6 +150,25 @@ private:
   };
 
   uint8_t m_ContentType;
+};
+
+class CMediaBufferDecode : public CMediaBuffer
+{
+public:
+  CMediaBufferDecode(const BYTE *pData, DWORD dwLength) 
+    : CMediaBuffer(NULL, 0, false)
+  {
+    m_pBuffer = (BYTE *)av_malloc(dwLength + FF_INPUT_BUFFER_PADDING_SIZE);
+    memcpy(m_pBuffer, pData, dwLength);
+    SetBuffer(m_pBuffer, dwLength);
+  }
+
+  ~CMediaBufferDecode() {
+    av_freep(&m_pBuffer);
+  }
+
+private:
+  BYTE *m_pBuffer;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -463,7 +485,7 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   if (!(dwStatus & DMO_INPUT_STATUSF_ACCEPT_DATA))
     return S_FALSE;
 
-  CMediaBuffer *pInBuffer = new CMediaBuffer(const_cast<BYTE*>(buffer), buflen, false);
+  CMediaBuffer *pInBuffer = new CMediaBufferDecode(buffer, buflen);
   
   DWORD dwFlags = 0;
   if (bSyncPoint)
