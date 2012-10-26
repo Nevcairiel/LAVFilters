@@ -96,8 +96,8 @@ public:
     }
     return S_OK;
   }
-  ULONG STDMETHODCALLTYPE AddRef() { InterlockedIncrement( &m_cRef ); return m_cRef; }
-  ULONG STDMETHODCALLTYPE Release() { InterlockedDecrement( &m_cRef ); if (m_cRef == 0) { m_cRef++; delete this; return 0; } return m_cRef; }
+  ULONG STDMETHODCALLTYPE AddRef() { LONG lRef = InterlockedIncrement( &m_cRef ); return max(ULONG(lRef),1ul); }
+  ULONG STDMETHODCALLTYPE Release() { LONG lRef = InterlockedDecrement( &m_cRef ); if (lRef == 0) { m_cRef++; delete this; return 0; } return max(ULONG(lRef),1ul); }
 
   // IMediaBuffer
   HRESULT STDMETHODCALLTYPE SetLength(DWORD cbLength) { if (cbLength <= m_dwMaxLength) { m_dwLength = cbLength; return S_OK; } return E_INVALIDARG; }
