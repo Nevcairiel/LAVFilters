@@ -313,6 +313,14 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
       if (rtStart == AV_NOPTS_VALUE && sub->rects[0]->forced) {
         ClearSubtitleRects();
       }
+      if (rtStart != AV_NOPTS_VALUE) {
+        CAutoLock lock(this);
+        for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
+          if ((*it)->rtStop == AV_NOPTS_VALUE) {
+            (*it)->rtStop = rtStart-1;
+          }
+        }
+      }
     }
     for (unsigned i = 0; i < sub->num_rects; i++) {
       AVSubtitleRect *rect = sub->rects[i];
