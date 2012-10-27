@@ -88,6 +88,9 @@ CMediaType CLAVFVideoHelper::initVideoType(AVCodecID codecId, unsigned int &code
   case AV_CODEC_ID_MPEG4:
     if (container == "mp4") {
       mediaType.formattype = FORMAT_MPEG2Video;
+    } else if (container == "mpegts") {
+      mediaType.formattype = FORMAT_VideoInfo2;
+      mediaType.subtype = MEDIASUBTYPE_MP4V;
     } else {
       mediaType.formattype = FORMAT_VideoInfo2;
     }
