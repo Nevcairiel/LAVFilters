@@ -64,6 +64,11 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_MP4ALS,     &MEDIASUBTYPE_ALS,               NULL,                   NULL },
   { AV_CODEC_ID_OPUS,       &MEDIASUBTYPE_OPUS,              NULL,                   NULL },
   { AV_CODEC_ID_NELLYMOSER, &MEDIASUBTYPE_NELLYMOSER,        NULL,                   NULL },
+  { AV_CODEC_ID_PCM_ALAW,   &MEDIASUBTYPE_ALAW,              WAVE_FORMAT_ALAW,       NULL },
+  { AV_CODEC_ID_PCM_MULAW,  &MEDIASUBTYPE_MULAW,             WAVE_FORMAT_MULAW,      NULL },
+  { AV_CODEC_ID_GSM_MS,     &MEDIASUBTYPE_MSGSM610,          WAVE_FORMAT_GSM610,     NULL },
+  { AV_CODEC_ID_ADPCM_MS,   &MEDIASUBTYPE_ADPCM_MS,          WAVE_FORMAT_ADPCM,      NULL },
+  { AV_CODEC_ID_TRUESPEECH, &MEDIASUBTYPE_TRUESPEECH,        WAVE_FORMAT_DSPGROUP_TRUESPEECH, NULL },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)

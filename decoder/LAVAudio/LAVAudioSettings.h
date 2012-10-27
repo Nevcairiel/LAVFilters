@@ -52,6 +52,8 @@ typedef enum LAVAudioCodec {
   Codec_Opus,
   Codec_AMR,
   Codec_Nellymoser,
+  Codec_MSPCM,
+  Codec_Truespeech,
 
   Codec_NB            // Number of entrys (do not use when dynamically linking)
 };
