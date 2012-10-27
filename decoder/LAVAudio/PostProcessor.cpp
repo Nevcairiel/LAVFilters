@@ -648,7 +648,7 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     float *pfOut = (float *)pOut;
     for (DWORD i = 0; i < dwSamples; i++) {
       float fVal = abs(pfOut[i]);
-      if (fVal > 1.0f && fVal > m_fMixingClipThreshold) {
+      if (fVal > m_fMixingClipThreshold) {
         m_fMixingClipThreshold = fVal;
         bNeedNormalize = TRUE;
         DbgLog((LOG_TRACE, 10, L"PerformMixing: Clipping Protection engaged with coeff of %f", m_fMixingClipThreshold));

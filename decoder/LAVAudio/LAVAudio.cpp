@@ -87,7 +87,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_avrContext(NULL)
   , m_bAVResampleFailed(FALSE)
   , m_bMixingSettingsChanged(FALSE)
-  , m_fMixingClipThreshold(0.0f)
+  , m_fMixingClipThreshold(1.0f)
   , m_bHasVideo(TRUE)
   , m_dwRemixLayout(0)
 {
@@ -1295,7 +1295,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_bFallback16Int = FALSE;
   m_dwOverrideMixer = 0;
   m_bMixingSettingsChanged = TRUE;
-  m_fMixingClipThreshold = 0.0f;
+  m_fMixingClipThreshold = 1.0f;
 
   return S_OK;
 }
