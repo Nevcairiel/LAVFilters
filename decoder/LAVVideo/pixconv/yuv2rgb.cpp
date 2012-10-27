@@ -30,6 +30,12 @@
 
 #define DITHER_STEPS 3
 
+#if defined(DEBUG) && _MSC_VER == 1700
+#define SHIFTFIX(x) (max((x),0))
+#else
+#define SHIFTFIX(x) x
+#endif
+
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
 template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype, int ycgco> __forceinline
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs, const uint16_t* &dithers, int pos)
@@ -106,8 +112,8 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
       // Too high bitdepth, shift down to 14-bit
       if (shift >= 7) {
-        xmm0 = _mm_srli_epi16(xmm0, shift-6);
-        xmm2 = _mm_srli_epi16(xmm2, shift-6);
+        xmm0 = _mm_srli_epi16(xmm0, SHIFTFIX(shift-6));
+        xmm2 = _mm_srli_epi16(xmm2, SHIFTFIX(shift-6));
       }
       xmm1 = xmm0;
       xmm1 = _mm_add_epi16(xmm1, xmm0);                         /* 2x line 0 */
@@ -171,19 +177,19 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
         xmm1 = _mm_srli_epi16(xmm1, 4);
         xmm3 = _mm_srli_epi16(xmm3, 4);
       } else {
-        xmm1 = _mm_srli_epi16(xmm1, shift-1);
-        xmm3 = _mm_srli_epi16(xmm3, shift-1);
+        xmm1 = _mm_srli_epi16(xmm1, SHIFTFIX(shift-1));
+        xmm3 = _mm_srli_epi16(xmm3, SHIFTFIX(shift-1));
       }
     } else if (inputFormat == LAVPixFmt_YUV422) {
       if (shift >= 7) {
         xmm1 = _mm_srli_epi16(xmm1, 4);
         xmm3 = _mm_srli_epi16(xmm3, 4);
       } else if (shift > 3) {
-        xmm1 = _mm_srli_epi16(xmm1, shift-3);
-        xmm3 = _mm_srli_epi16(xmm3, shift-3);
+        xmm1 = _mm_srli_epi16(xmm1, SHIFTFIX(shift-3));
+        xmm3 = _mm_srli_epi16(xmm3, SHIFTFIX(shift-3));
       } else if (shift < 3) {
-        xmm1 = _mm_slli_epi16(xmm1, 3-shift);
-        xmm3 = _mm_slli_epi16(xmm3, 3-shift);
+        xmm1 = _mm_slli_epi16(xmm1, SHIFTFIX(3-shift));
+        xmm3 = _mm_slli_epi16(xmm3, SHIFTFIX(3-shift));
       }
     } else if ((inputFormat == LAVPixFmt_YUV420 && shift == 0) || inputFormat == LAVPixFmt_NV12) {
       xmm1 = _mm_slli_epi16(xmm1, 1);
@@ -201,11 +207,11 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     }
     // Shift to 12 bit
     if (shift > 4) {
-      xmm1 = _mm_srli_epi16(xmm0, shift-4);
-      xmm3 = _mm_srli_epi16(xmm2, shift-4);
+      xmm1 = _mm_srli_epi16(xmm0, SHIFTFIX(shift-4));
+      xmm3 = _mm_srli_epi16(xmm2, SHIFTFIX(shift-4));
     } else if (shift < 4) {
-      xmm1 = _mm_slli_epi16(xmm0, 4-shift);
-      xmm3 = _mm_slli_epi16(xmm2, 4-shift);
+      xmm1 = _mm_slli_epi16(xmm0, SHIFTFIX(4-shift));
+      xmm3 = _mm_slli_epi16(xmm2, SHIFTFIX(4-shift));
     }
   }
 
@@ -232,9 +238,9 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     // YCbCr conversion
     // Shift Y to 14 bits
     if (shift < 6) {
-      xmm0 = _mm_slli_epi16(xmm0, 6-shift);
+      xmm0 = _mm_slli_epi16(xmm0, SHIFTFIX(6-shift));
     } else if (shift > 6) {
-      xmm0 = _mm_srli_epi16(xmm0, shift-6);
+      xmm0 = _mm_srli_epi16(xmm0, SHIFTFIX(shift-6));
     }
     xmm0 = _mm_subs_epu16(xmm0, coeffs->Ysub);                  /* Y-16 (in case of range expansion) */
     xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
@@ -278,9 +284,9 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     // YCgCo conversion
     // Shift Y to 12 bits
     if (shift < 4) {
-      xmm0 = _mm_slli_epi16(xmm0, 4-shift);
+      xmm0 = _mm_slli_epi16(xmm0, SHIFTFIX(4-shift));
     } else if (shift > 4) {
-      xmm0 = _mm_srli_epi16(xmm0, shift-4);
+      xmm0 = _mm_srli_epi16(xmm0, SHIFTFIX(shift-4));
     }
 
     xmm7 = _mm_set1_epi32(0x0000FFFF);
