@@ -118,6 +118,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   // Misc
   { &MEDIASUBTYPE_SPEEX,        AV_CODEC_ID_SPEEX    },
   { &MEDIASUBTYPE_OPUS,         AV_CODEC_ID_OPUS     },
+  { &MEDIASUBTYPE_SAMR,         AV_CODEC_ID_AMR_NB   },
+  { &MEDIASUBTYPE_NELLYMOSER,   AV_CODEC_ID_NELLYMOSER },
 
   // Special LAVFSplitter interface
   { &MEDIASUBTYPE_FFMPEG_AUDIO, AV_CODEC_ID_NONE     },
@@ -222,6 +224,8 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   // Misc
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_SPEEX        },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_OPUS         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_SAMR         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_NELLYMOSER   },
 
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
@@ -624,6 +628,8 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
   { 1, { AV_CODEC_ID_ALAC }},                         // CC_ALAC
   { 1, { AV_CODEC_ID_OPUS }, "opus", "Opus Audio Codec"}, // CC_OPUS
+  { 2, { AV_CODEC_ID_AMR_NB, AV_CODEC_ID_AMR_WB }, "amr", "AMR-NB/WB (Adaptive Multi-Rate NarrowBand/WideBand)" }, // CC_AMR
+  { 1, { AV_CODEC_ID_NELLYMOSER }},                   // CC_Nellymoser
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)
