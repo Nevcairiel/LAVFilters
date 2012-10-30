@@ -94,6 +94,8 @@ build() (
   make -j8
 )
 
+echo Building ffmpeg in GCC ${arch} Release config...
+
 make_dirs
 
 cd ffmpeg
