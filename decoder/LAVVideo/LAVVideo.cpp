@@ -850,7 +850,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     } else if (bInterlaced) {
       dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
     } else {
-      dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeWeaveOnly;
+      dwInterlacedFlags = 0;
     }
   } else {
     dwInterlacedFlags = bInterlaced ? AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave : 0;
