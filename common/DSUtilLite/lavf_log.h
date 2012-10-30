@@ -36,7 +36,7 @@ inline void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
     return;
   }
   if(count>0){
-    fprintf(stderr, "    Last message repeated %d times\n", count);
+    DbgLog((LOG_CUSTOM1, level, L"    Last message repeated %d times\n", count));
     count=0;
   }
   if (line[strlen(line)-1] == '\n') {
