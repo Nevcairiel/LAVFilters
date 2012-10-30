@@ -633,7 +633,7 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
   BYTE *pOut = pcmOut->Ptr();
 
   BYTE *pIn = buffer->bBuffer->Ptr();
-  ret = avresample_convert(m_avrContext, (void **)&pOut, pcmOut->GetAllocated(), buffer->nSamples, (void **)&pIn, buffer->bBuffer->GetAllocated(), buffer->nSamples);
+  ret = avresample_convert(m_avrContext, &pOut, pcmOut->GetAllocated(), buffer->nSamples, &pIn, buffer->bBuffer->GetAllocated(), buffer->nSamples);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 10, L"avresample_convert failed"));
     delete pcmOut;
