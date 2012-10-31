@@ -41,19 +41,6 @@ extern __declspec(dllimport) const uint32_t avpriv_dca_sample_rates[16];
 
 #include <vector>
 
-/** DCA syncwords */
-#define DCA_MARKER_RAW_BE 0x7FFE8001
-#define DCA_MARKER_RAW_LE 0xFE7F0180
-#define DCA_MARKER_14B_BE 0x1FFFE800
-#define DCA_MARKER_14B_LE 0xFF1F00E8
-
-/** DCA-HD specific block starts with this marker. */
-#define DCA_HD_MARKER     0x64582025
-
-/** DCA extension blocks */
-#define DCA_XCH_MARKER    0x5a5a5a5a
-#define DCA_XXCH_MARKER   0x47004A03
-
 struct DTSParserContext {
   GetBitContext *gb;
 };

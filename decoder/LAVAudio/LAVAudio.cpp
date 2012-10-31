@@ -34,7 +34,6 @@
 #include "DeCSS/DeCSSInputPin.h"
 
 extern "C" {
-#include "libavcodec/dca.h"
 #include "libavformat/spdif.h"
 
 extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesize);
