@@ -98,6 +98,14 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   CLAVSubtitleFrame *subtitleFrame = new CLAVSubtitleFrame();
   subtitleFrame->AddRef();
 
+  if (m_pAVCtx->width == 720 && m_pAVCtx->height == 480) {
+    SIZE videoSize;
+    m_pConsumer->GetSize("originalVideoSize", &videoSize);
+    if (videoSize.cx == 720) {
+      m_pAVCtx->height = videoSize.cy;
+    }
+  }
+
   RECT outputRect;
   ::SetRect(&outputRect, 0, 0, m_pAVCtx->width, m_pAVCtx->height);
   subtitleFrame->SetOutputRect(outputRect);

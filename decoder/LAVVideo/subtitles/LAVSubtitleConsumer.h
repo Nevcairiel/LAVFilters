@@ -35,6 +35,7 @@
 typedef struct LAVSubtitleConsumerContext {
   LPWSTR name;                    ///< name of the Consumer
   LPWSTR version;                 ///< Version of the Consumer
+  SIZE   originalVideoSize;       ///< Size of the video
 
   bool   redraw;
 } LAVSubtitleConsumerContext;
@@ -65,6 +66,8 @@ public:
   STDMETHODIMP DisconnectProvider() { if (m_pProvider) return m_pProvider->Disconnect(); SafeRelease(&m_pProvider); return S_OK; }
 
   BOOL HasProvider() const { return m_pProvider != NULL; }
+
+  void SetVideoSize(LONG w, LONG h) { context.originalVideoSize.cx = w; context.originalVideoSize.cy = h; }
 
 private:
   STDMETHODIMP ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], int videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch);

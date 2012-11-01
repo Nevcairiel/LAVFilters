@@ -766,6 +766,12 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
       m_SubtitleConsumer = new CLAVSubtitleConsumer(this);
       m_SubtitleConsumer->AddRef();
       m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
+
+      BITMAPINFOHEADER *pBIH = NULL;
+      videoFormatTypeHandler(m_pInput->CurrentMediaType(), &pBIH);
+      if (pBIH) {
+        m_SubtitleConsumer->SetVideoSize(pBIH->biWidth, pBIH->biHeight);
+      }
     }
   }
   return S_OK;
@@ -1394,6 +1400,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     BOOL bRGBOut = (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32);
     // And blend subtitles if we're on YUV output before blending (because the output YUV formats are more complicated to handle)
     if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
+      m_SubtitleConsumer->SetVideoSize(width, height);
       m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
       if (!bRGBOut)
         m_SubtitleConsumer->ProcessFrame(pFrame);

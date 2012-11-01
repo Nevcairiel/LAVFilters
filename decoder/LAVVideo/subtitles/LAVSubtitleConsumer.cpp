@@ -25,6 +25,7 @@
 static const SubRenderOption options[] = {
   { "name",           OFFSET(name),            SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "version",        OFFSET(version),         SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
+  { "originalVideoSize", OFFSET(originalVideoSize), SROPT_TYPE_SIZE, SROPT_FLAG_READONLY },
 
   { "redraw",         OFFSET(redraw),          SROPT_TYPE_BOOL,   0                   },
   { 0 }
