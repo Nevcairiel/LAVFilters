@@ -78,6 +78,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_WAVPACK4,     AV_CODEC_ID_WAVPACK  },
   { &MEDIASUBTYPE_MLP,          AV_CODEC_ID_MLP      },
   { &MEDIASUBTYPE_ALAC,         AV_CODEC_ID_ALAC     },
+  { &MEDIASUBTYPE_TAK,          AV_CODEC_ID_TAK      },
 
   // BluRay LPCM
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, AV_CODEC_ID_PCM_DVD },
@@ -189,6 +190,7 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_WAVPACK4     },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_MLP          },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_ALAC         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_TAK          },
 
   // BluRay LPCM
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO  },
@@ -642,6 +644,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_NELLYMOSER }},                   // CC_Nellymoser
   { 4, { AV_CODEC_ID_PCM_ALAW, AV_CODEC_ID_PCM_MULAW, AV_CODEC_ID_GSM_MS, AV_CODEC_ID_ADPCM_MS }, "mspcm", "Microsoft PCM (A-Law, muLaw, MS-GSM, MS ADPCM)" }, // CC_MSPCM
   { 1, { AV_CODEC_ID_TRUESPEECH }},                   // CC_Truespeech
+  { 1, { AV_CODEC_ID_TAK }},                          // CC_TAK
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)
