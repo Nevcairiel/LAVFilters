@@ -38,6 +38,7 @@ typedef struct LAVSubtitleConsumerContext {
   SIZE   originalVideoSize;       ///< Size of the video
 
   bool   redraw;
+  bool   menu;
 } LAVSubtitleConsumerContext;
 
 class CLAVVideo;

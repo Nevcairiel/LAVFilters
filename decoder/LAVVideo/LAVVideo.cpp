@@ -60,6 +60,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pSubtitleInput(NULL)
   , m_SubtitleConsumer(NULL)
   , m_pLastSequenceFrame(NULL)
+  , m_bInDVDMenu(FALSE)
 {
   *phr = S_OK;
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
@@ -710,6 +711,7 @@ HRESULT CLAVVideo::PerformFlush()
 
   m_Decoder.Flush();
   ReleaseFrame(&m_pLastSequenceFrame);
+  m_bInDVDMenu = FALSE;
 
   if (m_pFilterGraph)
     avfilter_graph_free(&m_pFilterGraph);
@@ -1322,7 +1324,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (!(pFrame->flags & LAV_FRAME_FLAG_REDRAW)) {
     // Release the old End-of-Sequence frame, this ensures any "normal" frame will clear the stored EOS frame
     ReleaseFrame(&m_pLastSequenceFrame);
-    if (pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE && pFrame->format != LAVPixFmt_DXVA2) {
+    if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu) && pFrame->format != LAVPixFmt_DXVA2) {
       CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
     }
   }

@@ -195,6 +195,10 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   CAutoLock lock(this);
   ClearSubtitleRects();
   SAFE_DELETE(m_pHLI);
+
+  if (m_pConsumer)
+    m_pConsumer->SetBool("menu", false);
+
   return S_OK;
 }
 
@@ -320,6 +324,8 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
       if (rtStart == AV_NOPTS_VALUE && sub->rects[0]->forced) {
         ClearSubtitleRects();
+        if (m_pConsumer)
+          m_pConsumer->SetBool("menu", true);
       }
       if (rtStart != AV_NOPTS_VALUE) {
         CAutoLock lock(this);

@@ -28,6 +28,7 @@ static const SubRenderOption options[] = {
   { "originalVideoSize", OFFSET(originalVideoSize), SROPT_TYPE_SIZE, SROPT_FLAG_READONLY },
 
   { "redraw",         OFFSET(redraw),          SROPT_TYPE_BOOL,   0                   },
+  { "menu",           OFFSET(menu),            SROPT_TYPE_BOOL,   0                   },
   { 0 }
 };
 
@@ -338,6 +339,8 @@ STDMETHODIMP CLAVSubtitleConsumer::OnSubOptionSet(LPCSTR field)
 {
   if (strcmp(field, "redraw") == 0) {
     m_pLAVVideo->RedrawStillImage();
+  } else if (strcmp(field, "menu") == 0) {
+    m_pLAVVideo->SetInDVDMenu(context.menu);
   }
 
   return S_OK;

@@ -153,6 +153,7 @@ public:
   STDMETHODIMP_(LAVFrame*) GetFlushFrame();
 
   STDMETHODIMP RedrawStillImage();
+  STDMETHODIMP SetInDVDMenu(bool menu) { m_bInDVDMenu = menu; return S_OK; }
 
 public:
   // Pin Configuration
@@ -209,6 +210,8 @@ private:
   DWORD                m_bDXVAExtFormatSupport;
   DWORD                m_bMadVR;
   DWORD                m_dwDecodeFlags;
+
+  BOOL                 m_bInDVDMenu;
 
   AVFilterGraph        *m_pFilterGraph;
   AVFilterContext      *m_pFilterBufferSrc;
