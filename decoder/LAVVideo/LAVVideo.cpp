@@ -230,6 +230,8 @@ HRESULT CLAVVideo::LoadSettings()
     bFlag = regP.ReadBOOL(pixFmtSettingsMap[i], hr);
     if (SUCCEEDED(hr)) m_settings.bPixFmts[i] = bFlag;
   }
+  // Force disable, for future use
+  m_settings.bPixFmts[LAVOutPixFmt_YV16] = FALSE;
 
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL);
   CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr);
