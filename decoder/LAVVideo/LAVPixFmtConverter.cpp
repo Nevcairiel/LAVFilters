@@ -58,7 +58,7 @@ typedef struct {
 } LAV_INOUT_PIXFMT_MAP;
 
 #define PIXOUT_420_8    LAVOutPixFmt_NV12, LAVOutPixFmt_YV12
-#define PIXOUT_422_8    LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY
+#define PIXOUT_422_8    LAVOutPixFmt_YUY2, LAVOutPixFmt_UYVY, LAVOutPixFmt_YV16
 #define PIXOUT_444_8    LAVOutPixFmt_YV24, LAVOutPixFmt_AYUV
 #define PIXOUT_RGB_8    LAVOutPixFmt_RGB32, LAVOutPixFmt_RGB24
 
