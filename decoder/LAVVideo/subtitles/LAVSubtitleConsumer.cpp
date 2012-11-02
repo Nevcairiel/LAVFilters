@@ -48,10 +48,15 @@ CLAVSubtitleConsumer::CLAVSubtitleConsumer(CLAVVideo *pLAVVideo)
   context.name = TEXT(LAV_VIDEO);
   context.version = TEXT(LAV_VERSION_STR);
   m_evFrame.Reset();
+
+  CAMThread::Create();
 }
 
 CLAVSubtitleConsumer::~CLAVSubtitleConsumer(void)
 {
+  CAMThread::CallWorker(CMD_EXIT);
+  CAMThread::Close();
+
   if (m_pProvider) {
     m_pProvider->Disconnect();
   }
@@ -338,10 +343,28 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
 STDMETHODIMP CLAVSubtitleConsumer::OnSubOptionSet(LPCSTR field)
 {
   if (strcmp(field, "redraw") == 0) {
-    m_pLAVVideo->RedrawStillImage();
+    CAMThread::CallWorker(CMD_REDRAW);
   } else if (strcmp(field, "menu") == 0) {
     m_pLAVVideo->SetInDVDMenu(context.menu);
   }
 
   return S_OK;
+}
+
+DWORD CLAVSubtitleConsumer::ThreadProc()
+{
+  DWORD cmd;
+  while(1) {
+    cmd = GetRequest();
+    switch(cmd) {
+    case CMD_EXIT:
+      Reply(S_OK);
+      return 0;
+    case CMD_REDRAW:
+      Reply(S_OK);
+      m_pLAVVideo->RedrawStillImage();
+      break;
+    }
+  }
+  return 1;
 }

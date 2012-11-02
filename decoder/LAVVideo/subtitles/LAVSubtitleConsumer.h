@@ -43,7 +43,7 @@ typedef struct LAVSubtitleConsumerContext {
 
 class CLAVVideo;
 
-class CLAVSubtitleConsumer : public ISubRenderConsumer, public CSubRenderOptionsImpl, public CUnknown
+class CLAVSubtitleConsumer : public ISubRenderConsumer, public CSubRenderOptionsImpl, public CUnknown, protected CAMThread
 {
 public:
   CLAVSubtitleConsumer(CLAVVideo *pLAVVideo);
@@ -69,6 +69,10 @@ public:
   BOOL HasProvider() const { return m_pProvider != NULL; }
 
   void SetVideoSize(LONG w, LONG h) { context.originalVideoSize.cx = w; context.originalVideoSize.cy = h; }
+  
+protected:
+  DWORD ThreadProc();
+  enum {CMD_EXIT, CMD_REDRAW};
 
 private:
   STDMETHODIMP ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], int videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch);
