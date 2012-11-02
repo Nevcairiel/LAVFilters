@@ -338,11 +338,27 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
     }
     for (unsigned i = 0; i < sub->num_rects; i++) {
       AVSubtitleRect *rect = sub->rects[i];
-      BYTE *rgbSub = (BYTE *)CoTaskMemAlloc(rect->pict.linesize[0] * rect->h * 4);
+      int hpad = rect->x & 1;
+      int vpad = rect->y & 1;
+
+      int width = rect->w + hpad;
+      if (width & 1) width++;
+
+      int height = rect->h + vpad;
+      if (height & 1) height++;
+
+      int rgbStride = FFALIGN(width, 16);
+
+      BYTE *rgbSub = (BYTE *)CoTaskMemAlloc(rgbStride * height * 4);
       if (!rgbSub) return;
       BYTE *rgbSubStart = rgbSub;
       const BYTE *palSub = rect->pict.data[0];
       const BYTE *palette = rect->pict.data[1];
+
+      memset(rgbSub, 0, rgbStride * height * 4);
+
+      rgbSub += (rgbStride * vpad + hpad) * 4;
+
       for (int y = 0; y < rect->h; y++) {
         for (int x = 0; x < rect->w; x++) {
           // Read paletted value
@@ -364,16 +380,16 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
           rgbSub[(x << 2) + 3] = a;
         }
         palSub += rect->pict.linesize[0];
-        rgbSub += rect->pict.linesize[0] * 4;
+        rgbSub += rgbStride * 4;
       }
 
       // Store the rect
-      POINT position = { rect->x, rect->y };
-      SIZE size = { rect->w, rect->h };
+      POINT position = { rect->x - hpad, rect->y - vpad };
+      SIZE size = { width, height };
       LAVSubRect *lavRect = new LAVSubRect();
       if (!lavRect) return;
       lavRect->id       = m_SubPicId++;
-      lavRect->pitch    = rect->pict.linesize[0];
+      lavRect->pitch    = rgbStride;
       lavRect->pixels   = rgbSubStart;
       lavRect->position = position;
       lavRect->size     = size;
@@ -382,14 +398,31 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
       lavRect->forced   = !!rect->forced;
 
       if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
-        lavRect->pixelsPal = CoTaskMemAlloc(lavRect->pitch * rect->h);
+        lavRect->pixelsPal = CoTaskMemAlloc(lavRect->pitch * lavRect->size.cy);
         if (!lavRect->pixelsPal) return;
-        memcpy(lavRect->pixelsPal, rect->pict.data[0], lavRect->pitch * rect->h);
+
+        int paletteTransparent = 0;
+        for (int i = 0; i < rect->nb_colors; i++) {
+          if (palette[(i << 2) + 3] == 0) {
+            paletteTransparent = i;
+            break;
+          }
+        }
+        memset(lavRect->pixelsPal, paletteTransparent, lavRect->pitch * lavRect->size.cy);
+        BYTE *palPixels = (BYTE *)lavRect->pixelsPal;
+        palSub = rect->pict.data[0];
+
+        palPixels += lavRect->pitch * vpad + hpad;
+        for (int y = 0; y < rect->h; y++) {
+          memcpy(palPixels, palSub, rect->w);
+          palPixels += lavRect->pitch;
+          palSub += rect->pict.linesize[0];
+        }
       }
 
       // Ensure the width/height in avctx are valid
-      m_pAVCtx->width  = FFMAX(m_pAVCtx->width,  rect->x + rect->w);
-      m_pAVCtx->height = FFMAX(m_pAVCtx->height, rect->y + rect->h);
+      m_pAVCtx->width  = FFMAX(m_pAVCtx->width,  position.x + size.cx);
+      m_pAVCtx->height = FFMAX(m_pAVCtx->height, position.y + size.cy);
 
       // HACK: Since we're only dealing with DVDs so far, do some trickery here
       if (m_pAVCtx->height > 480 && m_pAVCtx->height < 576)
