@@ -31,23 +31,22 @@
 
 /*
  * Availability of custom high-quality converters
- * x = formatter available, s = swscale converter used, - = format conversion not available (fallback to sws if we get tricked into it)
- * 1 = up to 10-bit (fallback to sws), 2 = only 16-bit
+ * x = formatter available, - = fallback using swscale
+ * 1 = up to 14-bit only
  * in/out       YV12    NV12    YV16     YUY2    UYVY    YV24   AYUV    P010    P210    v210    Y410    v410    P016    P216    Y416   RGB24   RGB32
  * YUV420         x       x       -       x       x       -       -       -       -       -       -       -       -       -       -      x       x
- * YUV420bX       x       x       -       x       x       -       -       x       -       -       -       -       x2      -       -      x1      x1
- * YUV422         s       s       x       x       x       -       s       -       -       -       -       -       -       -       -      x       x
- * YUV422bX       s       s       x       x       x       -       s       -       x       -       -       -       -       x2      -      x1      x1
- * YUV444         s       s       -       s       s       x       x       -       -       -       -       -       -       -       -      x       x
- * YUV444bX       s       s       -       s       s       x       x       -       -       -       x       -       -       -       x2     x1      x1
+ * YUV420bX       x       x       -       x1      x1      -       -       x       -       -       -       -       x       -       -      x       x
+ * YUV422         -       -       x       x       x       -       -       -       -       -       -       -       -       -       -      x       x
+ * YUV422bX       -       -       x       x       x       -       -       -       x       -       -       -       -       x       -      x       x
+ * YUV444         -       -       -       -       -       x       x       -       -       -       -       -       -       -       -      x       x
+ * YUV444bX       -       -       -       -       -       x       x       -       -       -       x       -       -       -       x      x       x
  * NV12           x       x       -       x       x       -       -       -       -       -       -       -       -       -       -      x       x
- * YUY2           s       s       s       s       s       -       -       -       -       -       -       -       -       -       -      s       s
- * RGB24          s       s       -       s       s       -       -       -       -       -       -       -       -       -       -      x       s
- * RGB32          s       s       -       s       s       -       -       -       -       -       -       -       -       -       -      s       x
- * ARGB32         s       s       -       s       s       -       -       -       -       -       -       -       -       -       -      s       x
+ * YUY2           -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       -
+ * RGB24          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      x       -
+ * RGB32          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       x
+ * ARGB32         -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       x
  *
- * Every processing path has a swscale fallback (even those with a "-" above).
- * The "bX" formats usually only support 9/10 or 16-bit, 11-15 are not supported due to lack of samples.
+ * Every processing path has a swscale fallback (even those with a "-" above), every combination of input/output is possible, just not optimized (ugly and/or slow)
  */
 
 
