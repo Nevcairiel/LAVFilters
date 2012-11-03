@@ -282,7 +282,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     subPosition.x = (LONG)av_rescale(subPosition.x, newSize.cx, subSize.cx);
     subPosition.y = (LONG)av_rescale(subPosition.y, newSize.cy, subSize.cy);
 
-    m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP|SWS_PRINT_INFO, NULL, NULL, NULL);
+    m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, NULL, NULL, NULL);
 
     const uint8_t *src[4] = { (const uint8_t *)rgbData, NULL, NULL, NULL };
     const int srcStride[4] = { pitch * 4, 0, 0, 0 };
