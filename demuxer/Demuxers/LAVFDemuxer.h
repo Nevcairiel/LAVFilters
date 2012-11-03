@@ -92,6 +92,18 @@ public:
   // ITrackInfo
   STDMETHODIMP_(UINT) GetTrackCount();
 
+  // \param aTrackIdx the track index (from 0 to GetTrackCount()-1)
+  STDMETHODIMP_(BOOL) GetTrackInfo(UINT aTrackIdx, struct TrackElement* pStructureToFill);
+
+  // Get an extended information struct relative to the track type
+  STDMETHODIMP_(BOOL) GetTrackExtendedInfo(UINT aTrackIdx, void* pStructureToFill);
+
+  STDMETHODIMP_(BSTR) GetTrackCodecID(UINT aTrackIdx) { return NULL; }
+  STDMETHODIMP_(BSTR) GetTrackName(UINT aTrackIdx);
+  STDMETHODIMP_(BSTR) GetTrackCodecName(UINT aTrackIdx);
+  STDMETHODIMP_(BSTR) GetTrackCodecInfoURL(UINT aTrackIdx) { return NULL; }
+  STDMETHODIMP_(BSTR) GetTrackCodecDownloadURL(UINT aTrackIdx) { return NULL; }
+
   // IAMMediaContent
   STDMETHODIMP get_AuthorName(BSTR *pbstrAuthorName) { return GetBSTRMetadata("artist", pbstrAuthorName); }
   STDMETHODIMP get_Title(BSTR *pbstrTitle) { return GetBSTRMetadata("title", pbstrTitle); }
@@ -106,18 +118,6 @@ public:
   STDMETHODIMP get_MoreInfoBannerImage(BSTR *pbstrMoreInfoBannerImage) { return E_NOTIMPL; }
   STDMETHODIMP get_MoreInfoBannerURL(BSTR *pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
   STDMETHODIMP get_MoreInfoText(BSTR *pbstrMoreInfoText) { return E_NOTIMPL; }
-
-  // \param aTrackIdx the track index (from 0 to GetTrackCount()-1)
-  STDMETHODIMP_(BOOL) GetTrackInfo(UINT aTrackIdx, struct TrackElement* pStructureToFill);
-
-  // Get an extended information struct relative to the track type
-  STDMETHODIMP_(BOOL) GetTrackExtendedInfo(UINT aTrackIdx, void* pStructureToFill);
-
-  STDMETHODIMP_(BSTR) GetTrackCodecID(UINT aTrackIdx) { return NULL; }
-  STDMETHODIMP_(BSTR) GetTrackName(UINT aTrackIdx);
-  STDMETHODIMP_(BSTR) GetTrackCodecName(UINT aTrackIdx);
-  STDMETHODIMP_(BSTR) GetTrackCodecInfoURL(UINT aTrackIdx) { return NULL; }
-  STDMETHODIMP_(BSTR) GetTrackCodecDownloadURL(UINT aTrackIdx) { return NULL; }
 
   STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = NULL);
   STDMETHODIMP SeekByte(int64_t pos, int flags);
