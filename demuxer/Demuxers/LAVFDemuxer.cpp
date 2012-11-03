@@ -148,6 +148,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(IKeyFrameInfo)
     m_bEnableTrackInfo && QI(ITrackInfo)
     QI2(IAMExtendedSeeking)
+    QI2(IAMMediaContent)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -1694,4 +1695,20 @@ STDMETHODIMP_(int) CLAVFDemuxer::GetHasBFrames(DWORD dwStream)
     return -1;
 
   return m_avFormat->streams[dwStream]->codec->has_b_frames;
+}
+
+STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue)
+{
+  if (!m_avFormat)
+    return VFW_E_NOT_FOUND;
+
+  AVDictionaryEntry *entry = av_dict_get(m_avFormat->metadata, key, NULL, 0);
+  if (!entry || !entry->value || entry->value[0] == '\0')
+    return VFW_E_NOT_FOUND;
+
+  *pbstrValue = ConvertCharToBSTR(entry->value);
+  if (*pbstrValue == NULL)
+    return E_OUTOFMEMORY;
+
+  return S_OK;
 }

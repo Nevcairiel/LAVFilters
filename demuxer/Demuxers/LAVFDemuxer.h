@@ -33,7 +33,7 @@ class FormatInfo;
 class CBDDemuxer;
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
-class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo
+class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo, public IAMMediaContent
 {
 public:
   CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings);
@@ -92,6 +92,21 @@ public:
   // ITrackInfo
   STDMETHODIMP_(UINT) GetTrackCount();
 
+  // IAMMediaContent
+  STDMETHODIMP get_AuthorName(BSTR *pbstrAuthorName) { return GetBSTRMetadata("artist", pbstrAuthorName); }
+  STDMETHODIMP get_Title(BSTR *pbstrTitle) { return GetBSTRMetadata("title", pbstrTitle); }
+  STDMETHODIMP get_Rating(BSTR *pbstrRating) { return E_NOTIMPL; }
+  STDMETHODIMP get_Description(BSTR *pbstrDescription) { return GetBSTRMetadata("comment", pbstrDescription); }
+  STDMETHODIMP get_Copyright(BSTR *pbstrCopyright) { return GetBSTRMetadata("copyright", pbstrCopyright); }
+  STDMETHODIMP get_BaseURL(BSTR *pbstrBaseURL) { return E_NOTIMPL; }
+  STDMETHODIMP get_LogoURL(BSTR *pbstrLogoURL) { return E_NOTIMPL; }
+  STDMETHODIMP get_LogoIconURL(BSTR *pbstrLogoURL) { return E_NOTIMPL; }
+  STDMETHODIMP get_WatermarkURL(BSTR *pbstrWatermarkURL) { return E_NOTIMPL; }
+  STDMETHODIMP get_MoreInfoURL(BSTR *pbstrMoreInfoURL) { return E_NOTIMPL; }
+  STDMETHODIMP get_MoreInfoBannerImage(BSTR *pbstrMoreInfoBannerImage) { return E_NOTIMPL; }
+  STDMETHODIMP get_MoreInfoBannerURL(BSTR *pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
+  STDMETHODIMP get_MoreInfoText(BSTR *pbstrMoreInfoText) { return E_NOTIMPL; }
+
   // \param aTrackIdx the track index (from 0 to GetTrackCount()-1)
   STDMETHODIMP_(BOOL) GetTrackInfo(UINT aTrackIdx, struct TrackElement* pStructureToFill);
 
@@ -133,6 +148,8 @@ private:
   HRESULT UpdateForcedSubtitleStream(unsigned audio_pid);
 
   static int avio_interrupt_cb(void *opaque);
+
+  STDMETHODIMP GetBSTRMetadata(const char *key, BSTR *pbstrValue);
 
 private:
   AVFormatContext *m_avFormat;
