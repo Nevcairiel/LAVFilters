@@ -299,7 +299,7 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
 
     if (got_sub) {
       REFERENCE_TIME rtSubStart = rtStart, rtSubStop = AV_NOPTS_VALUE;
-      if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE && sub.num_rects && sub.rects && sub.rects[0]->forced)
+      if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE && sub.num_rects && sub.rects && sub.rects[0]->flags & AV_SUBTITLE_FLAG_FORCED)
         rtSubStart = AV_NOPTS_VALUE;
       if (rtSubStart != AV_NOPTS_VALUE) {
         if (sub.end_display_time > 0) {
@@ -322,7 +322,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
 {
   if (sub->num_rects > 0) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
-      if (rtStart == AV_NOPTS_VALUE && sub->rects[0]->forced) {
+      if (rtStart == AV_NOPTS_VALUE && sub->rects[0]->flags & AV_SUBTITLE_FLAG_FORCED) {
         ClearSubtitleRects();
         if (m_pConsumer)
           m_pConsumer->SetBool("menu", true);
@@ -395,7 +395,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
       lavRect->size     = size;
       lavRect->rtStart  = rtStart;
       lavRect->rtStop   = rtStop;
-      lavRect->forced   = !!rect->forced;
+      lavRect->forced   = rect->flags & AV_SUBTITLE_FLAG_FORCED;
 
       if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
         lavRect->pixelsPal = CoTaskMemAlloc(lavRect->pitch * lavRect->size.cy);
