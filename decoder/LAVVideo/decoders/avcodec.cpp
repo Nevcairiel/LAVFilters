@@ -998,7 +998,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     }
 
     if (!got_picture || !m_pFrame->data[0]) {
-      bFlush = FALSE; // End flushing, no more frames
+      if (!avpkt.size)
+        bFlush = FALSE; // End flushing, no more frames
       continue;
     }
 
