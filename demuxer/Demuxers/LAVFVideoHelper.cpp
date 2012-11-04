@@ -181,8 +181,10 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   pvi->bmiHeader.biHeight = avstream->codec->height;
   pvi->bmiHeader.biBitCount = avstream->codec->bits_per_coded_sample;
   // Validate biBitCount is set to something useful
-  if (pvi->bmiHeader.biBitCount == 0 || avstream->codec->codec_id == AV_CODEC_ID_RAWVIDEO) {
-    pvi->bmiHeader.biBitCount = av_get_bits_per_pixel(av_pix_fmt_desc_get(avstream->codec->pix_fmt));
+  if ((pvi->bmiHeader.biBitCount == 0 || avstream->codec->codec_id == AV_CODEC_ID_RAWVIDEO) && avstream->codec->pix_fmt != AV_PIX_FMT_NONE) {
+    const AVPixFmtDescriptor *pixdecs = av_pix_fmt_desc_get(avstream->codec->pix_fmt);
+    if (pixdecs)
+      pvi->bmiHeader.biBitCount = av_get_bits_per_pixel(pixdecs);
   }
   pvi->bmiHeader.biSizeImage = DIBSIZE(pvi->bmiHeader); // Calculating this value doesn't really make alot of sense, but apparently some decoders freak out if its 0
 
