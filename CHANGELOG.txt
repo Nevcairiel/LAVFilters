@@ -1,5 +1,30 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.53.0 - 2012/11/05
+LAV Splitter
+- Added support for reading image files (tiff, png, jpeg, tga, bmp)
+- Support for MPEG-4 ASP in MPEG-TS
+- Support for reading metadata using the IAMMediaContent interface
+- Fixed Aspect Ratio on some wmv/asf files
+
+LAV Video
+- Fixed a crash in the WMV9 DMO decoder on Windows 8
+- DVD improvements
+  - Subtitles are properly cleared from the screen, and won't be shown forever on some discs
+  - Improved subtitle/menu positioning on some PAL discs
+  - Improved handling of still frame DVD menus
+  - Fixed a deadlock that caused the player to freeze in some DVD menus
+  - Improved quality of blending subtitles/menus
+- QuickSync improvements
+  - Support using QuickSync in Fullscreen Exclusive mode (ie. in WMC)
+  - Improved fallback to software decoding if QuickSync is not available
+  - Support for DVD decoding
+- Added support for Avid DV
+- Properly indicate progressive video when YADIF deinterlacing is activated
+
+LAV Audio
+- Added proper DirectShow types and config options for AMR-NB, Nellymoser and various (AD)PCM variants
+
 0.52.0 - 2012/10/20
 LAV Splitter
 - Improved IO performance on network sources
