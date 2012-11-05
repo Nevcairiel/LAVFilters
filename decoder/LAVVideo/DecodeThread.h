@@ -82,6 +82,8 @@ private:
   IMediaSample* GetSample();
   void ReleaseSample();
 
+  bool CheckForEndOfSequence(IMediaSample *pSample);
+
 private:
   enum {CMD_CREATE_DECODER, CMD_CLOSE_DECODER, CMD_FLUSH, CMD_EOS, CMD_EXIT, CMD_INIT_ALLOCATOR, CMD_POST_CONNECT};
 
@@ -99,6 +101,8 @@ private:
   CAMEvent     m_evSample;
   CAMEvent     m_evDecodeDone;
   CAMEvent     m_evEOSDone;
+
+  BOOL         m_bEndOfSequence;
 
   CCritSec     m_ThreadCritSec;
   struct {

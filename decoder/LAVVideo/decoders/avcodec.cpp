@@ -293,7 +293,6 @@ CDecAvcodec::CDecAvcodec(void)
   , m_bDXVA(FALSE)
   , m_bInputPadded(FALSE)
   , m_bDR1(FALSE)
-  , m_bEndOfSequence(FALSE)
 {
 }
 
@@ -781,15 +780,12 @@ void CDecAvcodec::lav_frame_destruct(struct LAVFrame *f)
 
 #endif
 
-extern "C" const uint8_t *avpriv_mpv_find_start_code(const uint8_t *p, const uint8_t *end, uint32_t *state);
-
 STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   int     got_picture = 0;
   int     used_bytes  = 0;
   BOOL    bParserFrame = FALSE;
   BOOL    bFlush = (buffer == NULL);
-  BOOL    bEndOfSequenceFlush = FALSE;
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -927,22 +923,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
           avpkt.size = 0;
         }
 
-        // Check for MPEG2 End-Of-Sequence code, and immediately flush all frames out of the decoder
-        // This is mostly required to get still-frames in DVDs (and possibly Blu-rays) to output as soon as they are ready,
-        // otherwise they might be delayed until the next track switch, and all you see is black (or the previous image)
-        if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO && avpkt.data && avpkt.size >= 4) {
-          uint32_t state = (uint32_t)-1;
-          const uint8_t *p = avpkt.data, *end = avpkt.data + avpkt.size;
-          while (p < end) {
-            p = avpriv_mpv_find_start_code(p, end, &state);
-            if (state == 0x000001b7) {
-              DbgLog((LOG_TRACE, 50, L"Found SEQ_END_CODE at %p (end: %p)", p, end));
-              bEndOfSequenceFlush = TRUE;
-              break;
-            }
-          }
-        }
-
         int ret2 = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
         if (ret2 < 0) {
           DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
@@ -1065,9 +1045,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)
       pOutFrame->avgFrameDuration = GetFrameDuration();
 
-    if (m_bEndOfSequence)
-      pOutFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
-
     if (map.conversion) {
       ConvertPixFmt(m_pFrame, pOutFrame);
     } else {
@@ -1096,13 +1073,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (bFlush) {
       m_CurrentThread = (m_CurrentThread + 1) % m_pAVCtx->thread_count;
     }
-  }
-
-  if (bEndOfSequenceFlush) {
-    m_bEndOfSequence = TRUE;
-    EndOfStream();
-    m_bEndOfSequence = FALSE;
-    Deliver(m_pCallback->GetFlushFrame());
   }
 
   return S_OK;

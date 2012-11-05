@@ -127,7 +127,6 @@ CDecCuvid::CDecCuvid(void)
   , m_bVDPAULevelC(FALSE)
   , m_rtPrevDiff(AV_NOPTS_VALUE)
   , m_bARPresent(TRUE)
-  , m_bEndOfSequence(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -1061,9 +1060,6 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->stride[0] = pFrame->stride[1] = pitch;
   pFrame->flags  |= LAV_FRAME_FLAG_BUFFER_MODIFY;
 
-  if (m_bEndOfSequence)
-    pFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
-
   m_pCallback->Deliver(pFrame);
 
   return S_OK;
@@ -1093,8 +1089,6 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   }
   return S_FALSE;
 }
-
-extern "C" const uint8_t *avpriv_mpv_find_start_code(const uint8_t *p, const uint8_t *end, uint32_t *state);
 
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
@@ -1150,25 +1144,6 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   if (m_bFormatIncompatible) {
     DbgLog((LOG_ERROR, 10, L"CDecCuvid::Decode(): Incompatible format detected, indicating failure..."));
     return E_FAIL;
-  }
-
-  // Check for MPEG2 End-Of-Sequence code, and immediately flush all frames out of the decoder
-  // This is mostly required to get still-frames in DVDs (and possibly Blu-rays) to output as soon as they are ready,
-  // otherwise they might be delayed until the next track switch, and all you see is black (or the previous image)
-  if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_MPEG2 && pCuvidPacket.payload && pCuvidPacket.payload_size >= 4) {
-    uint32_t state = (uint32_t)-1;
-    const uint8_t *p = pCuvidPacket.payload, *end = pCuvidPacket.payload + pCuvidPacket.payload_size;
-    while (p < end) {
-      p = avpriv_mpv_find_start_code(p, end, &state);
-      if (state == 0x000001b7) {
-        DbgLog((LOG_TRACE, 50, L"Found SEQ_END_CODE at %p (end: %p)", p, end));
-        m_bEndOfSequence = TRUE;
-        EndOfStream();
-        m_bEndOfSequence = FALSE;
-        m_pCallback->Deliver(m_pCallback->GetFlushFrame());
-        break;
-      }
-    }
   }
 
   return S_OK;
