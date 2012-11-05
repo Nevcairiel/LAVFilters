@@ -229,10 +229,6 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   DestroyDecoder(false);
 
-  // QuickSync has no DVD support (yet)
-  if (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES)
-    return E_FAIL;
-
   FOURCC fourCC = (FOURCC)0;
   for (int i = 0; i < countof(quicksync_codecs); i++) {
     if (quicksync_codecs[i].ffcodec == codec) {
@@ -323,6 +319,9 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // Disallow software fallback
   qsConfig.bEnableSwEmulation = false;
 
+  // Enable DVD support
+  qsConfig.bEnableDvdDecoding = true;
+
   // We want the pure image, no mod-16 padding
   qsConfig.bMod16Width = false;
 
@@ -354,7 +353,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // We usually do not trust the media type information and instead scan the bitstream.
   // This ensures that we only ever send valid and supported data to the decoder,
   // so with this we try to circumvent the checks in the QuickSync decoder
-  mt.SetType(&MEDIATYPE_Video);
+  mt.SetType(m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD ? &MEDIATYPE_DVD_ENCRYPTED_PACK : &MEDIATYPE_Video);
   MPEG2VIDEOINFO *mp2vi = (*mt.FormatType() == FORMAT_MPEG2Video) ? (MPEG2VIDEOINFO *)mt.Format() : NULL;
   BITMAPINFOHEADER *bmi = NULL;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &bmi);
