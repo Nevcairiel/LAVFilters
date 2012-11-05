@@ -531,6 +531,7 @@ STDMETHODIMP CDecQuickSync::Flush()
 STDMETHODIMP CDecQuickSync::EndOfStream()
 {
   m_pDecoder->Flush(true);
+  m_pDecoder->OnSeek(0);
   return S_OK;
 }
 
