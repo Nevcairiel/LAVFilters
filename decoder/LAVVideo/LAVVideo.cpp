@@ -637,6 +637,9 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_bMTFiltering = FALSE;
   }
 
+  if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12)
+    m_filterPixFmt = pix;
+
 done:
   return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
