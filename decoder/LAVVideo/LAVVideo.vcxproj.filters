@@ -150,6 +150,9 @@
     <ClCompile Include="subtitles\LAVVideoSubtitleInputPin.cpp">
       <Filter>Source Files\subtitles</Filter>
     </ClCompile>
+    <ClCompile Include="VideoInputPin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -241,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="subtitles\LAVVideoSubtitleInputPin.h">
       <Filter>Header Files\subtitles</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoInputPin.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

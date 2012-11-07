@@ -23,7 +23,7 @@
 #include "Media.h"
 #include <dvdmedia.h>
 
-#include "DeCSS/DeCSSInputPin.h"
+#include "VideoInputPin.h"
 #include "VideoOutputPin.h"
 
 #include "moreuuids.h"
@@ -63,7 +63,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bInDVDMenu(FALSE)
 {
   *phr = S_OK;
-  m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
+  m_pInput = new CVideoInputPin(TEXT("CVideoInputPin"), this, phr, L"Input");
   ASSERT(SUCCEEDED(*phr));
 
   m_pOutput = new CVideoOutputPin(TEXT("CVideoOutputPin"), this, phr, L"Output");
