@@ -786,6 +786,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   int     used_bytes  = 0;
   BOOL    bParserFrame = FALSE;
   BOOL    bFlush = (buffer == NULL);
+  BOOL    bEndOfSequence = FALSE;
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -918,6 +919,11 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
           avpkt.size = pOut_size;
           avpkt.pts = rtStart;
           avpkt.duration = 0;
+
+          const uint8_t *eosmarker = CheckForEndOfSequence(m_nCodecId, avpkt.data, avpkt.size);
+          if (eosmarker) {
+            bEndOfSequence = TRUE;
+          }
         } else {
           avpkt.data = NULL;
           avpkt.size = 0;
@@ -1064,10 +1070,18 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 #endif
     }
 
+    if (bEndOfSequence)
+      pOutFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
+
     if (pOutFrame->format  == LAVPixFmt_DXVA2) {
       HandleDXVA2Frame(pOutFrame);
     } else {
       Deliver(pOutFrame);
+    }
+
+    if (bEndOfSequence) {
+      bEndOfSequence = FALSE;
+      Deliver(m_pCallback->GetFlushFrame());
     }
 
     if (bFlush) {

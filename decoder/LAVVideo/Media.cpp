@@ -595,3 +595,24 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
     break;
   }
 }
+
+extern "C" const uint8_t *avpriv_mpv_find_start_code(const uint8_t *p, const uint8_t *end, uint32_t *state);
+
+const uint8_t* CheckForEndOfSequence(AVCodecID codec, const uint8_t *buf, long len)
+{
+  if (buf && len > 0) {
+    uint32_t state = (uint32_t)-1;
+    const uint8_t *p = buf, *end = buf + len;
+    if (codec == AV_CODEC_ID_MPEG2VIDEO) {
+      while (p < end) {
+        p = avpriv_mpv_find_start_code(p, end, &state);
+        if (state == 0x000001b7) {
+          DbgLog((LOG_TRACE, 50, L"Found SEQ_END_CODE at %p (end: %p)", p, end));
+          return p;
+        }
+      }
+    }
+    return NULL;
+  }
+  return NULL;
+}

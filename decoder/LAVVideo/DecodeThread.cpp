@@ -37,7 +37,6 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_evEOSDone(TRUE)
   , m_evInput(TRUE)
   , m_NextSample(NULL)
-  , m_bEndOfSequence(FALSE)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -196,18 +195,6 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
 
   ProcessOutput();
 
-  // Check for MPEG2 End-Of-Sequence code, and immediately flush all frames out of the decoder
-  // This is mostly required to get still-frames in DVDs (and possibly Blu-rays) to output as soon as they are ready,
-  // otherwise they might be delayed until the next track switch, and all you see is black (or the previous image)
-  if (m_Codec == AV_CODEC_ID_MPEG2VIDEO) {
-    if (CheckForEndOfSequence(pSample)) {
-      m_bEndOfSequence = TRUE;
-      EndOfStream();
-      m_bEndOfSequence = FALSE;
-      m_pLAVVideo->Deliver(GetFlushFrame());
-    }
-  }
-
   return S_OK;
 }
 
@@ -250,8 +237,6 @@ STDMETHODIMP CDecodeThread::ProcessOutput()
   HRESULT hr = S_FALSE;
   while (LAVFrame *pFrame = m_Output.Pop()) {
     hr = S_OK;
-    if (m_bEndOfSequence)
-      pFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
     m_pLAVVideo->Deliver(pFrame);
   }
   return hr;
@@ -271,30 +256,6 @@ STDMETHODIMP CDecodeThread::ClearQueues()
   }
 
   return S_OK;
-}
-
-extern "C" const uint8_t *avpriv_mpv_find_start_code(const uint8_t *p, const uint8_t *end, uint32_t *state);
-
-bool CDecodeThread::CheckForEndOfSequence(IMediaSample *pSample)
-{
-  HRESULT hr = S_OK;
-  BYTE *buf = NULL;
-  long len = 0;
-  hr = pSample->GetPointer(&buf);
-  if (SUCCEEDED(hr) && buf && (len = pSample->GetActualDataLength()) > 0) {
-    if (m_Codec == AV_CODEC_ID_MPEG2VIDEO) {
-      uint32_t state = (uint32_t)-1;
-      const uint8_t *p = buf, *end = buf + len;
-      while (p < end) {
-        p = avpriv_mpv_find_start_code(p, end, &state);
-        if (state == 0x000001b7) {
-          DbgLog((LOG_TRACE, 50, L"Found SEQ_END_CODE at %p (end: %p)", p, end));
-          return true;
-        }
-      }
-    }
-  }
-  return false;
 }
 
 DWORD CDecodeThread::ThreadProc()

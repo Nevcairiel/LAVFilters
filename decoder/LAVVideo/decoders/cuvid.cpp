@@ -127,6 +127,7 @@ CDecCuvid::CDecCuvid(void)
   , m_bVDPAULevelC(FALSE)
   , m_rtPrevDiff(AV_NOPTS_VALUE)
   , m_bARPresent(TRUE)
+  , m_bEndOfSequence(FALSE)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -1060,6 +1061,9 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->stride[0] = pFrame->stride[1] = pitch;
   pFrame->flags  |= LAV_FRAME_FLAG_BUFFER_MODIFY;
 
+  if (m_bEndOfSequence)
+    pFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
+
   m_pCallback->Deliver(pFrame);
 
   return S_OK;
@@ -1109,6 +1113,20 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   } else {
     pCuvidPacket.payload      = buffer;
     pCuvidPacket.payload_size = buflen;
+
+    if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_MPEG2) {
+      const uint8_t *eosmarker = CheckForEndOfSequence(AV_CODEC_ID_MPEG2VIDEO, buffer, buflen);
+      const uint8_t *end = buffer+buflen;
+      if (eosmarker && eosmarker != end) {
+        Decode(buffer, buflen - (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+
+        rtStart = rtStop = AV_NOPTS_VALUE;
+        pCuvidPacket.payload      = eosmarker;
+        pCuvidPacket.payload_size = end - eosmarker;
+      } else if (eosmarker) {
+        m_bEndOfSequence = TRUE;
+      }
+    }
   }
 
   if (m_bNeedSequenceCheck && m_VideoDecoderInfo.CodecType == cudaVideoCodec_H264) {
@@ -1140,6 +1158,12 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
 
   av_freep(&pBuffer);
+
+  if (m_bEndOfSequence) {
+    EndOfStream();
+    m_pCallback->Deliver(m_pCallback->GetFlushFrame());
+    m_bEndOfSequence = FALSE;
+  }
 
   if (m_bFormatIncompatible) {
     DbgLog((LOG_ERROR, 10, L"CDecCuvid::Decode(): Incompatible format detected, indicating failure..."));

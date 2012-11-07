@@ -102,8 +102,6 @@ private:
   CAMEvent     m_evDecodeDone;
   CAMEvent     m_evEOSDone;
 
-  BOOL         m_bEndOfSequence;
-
   CCritSec     m_ThreadCritSec;
   struct {
     const CMediaType *pmt;
