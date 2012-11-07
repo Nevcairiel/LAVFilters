@@ -1079,14 +1079,16 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
 
   AM_MEDIA_TYPE *pmt = NULL;
   if (SUCCEEDED(pIn->GetMediaType(&pmt)) && pmt) {
-    DbgLog((LOG_TRACE, 10, L"::Receive(): Input sample contained media type, dynamic format change..."));
-    m_Decoder.EndOfStream();
     CMediaType mt = *pmt;
-    hr = m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
-    if (FAILED(hr)) {
-      DbgLog((LOG_ERROR, 10, L"::Receive(): Setting new media type failed..."));
-      return hr;
+    if (mt != m_pInput->CurrentMediaType() || !(m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_DVD)) {
+      DbgLog((LOG_TRACE, 10, L"::Receive(): Input sample contained media type, dynamic format change..."));
+      m_Decoder.EndOfStream();
+      hr = m_pInput->SetMediaType(&mt);
+      if (FAILED(hr)) {
+        DbgLog((LOG_ERROR, 10, L"::Receive(): Setting new media type failed..."));
+        return hr;
+      }
     }
   }
 
