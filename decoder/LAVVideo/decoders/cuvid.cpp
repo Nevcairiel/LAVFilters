@@ -1118,7 +1118,7 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
       const uint8_t *eosmarker = CheckForEndOfSequence(AV_CODEC_ID_MPEG2VIDEO, buffer, buflen);
       const uint8_t *end = buffer+buflen;
       if (eosmarker && eosmarker != end) {
-        Decode(buffer, buflen - (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+        Decode(buffer, (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
 
         rtStart = rtStop = AV_NOPTS_VALUE;
         pCuvidPacket.payload      = eosmarker;
