@@ -167,6 +167,7 @@ CDecQuickSync::CDecQuickSync(void)
   , m_bUseTimestampQueue(FALSE)
   , m_pD3DDevMngr(NULL)
   , m_bDI(false)
+  , m_bEndOfSequence(FALSE)
 {
   ZeroMemory(&qs, sizeof(qs));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -500,6 +501,20 @@ STDMETHODIMP CDecQuickSync::Decode(const BYTE *buffer, int buflen, REFERENCE_TIM
     }
   }
 
+  if (m_Codec == FourCC_MPG2) {
+    const uint8_t *eosmarker = CheckForEndOfSequence(AV_CODEC_ID_MPEG2VIDEO, buffer, buflen);
+    const uint8_t *end = buffer+buflen;
+    if (eosmarker && eosmarker != end) {
+      Decode(buffer, (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+
+      rtStart = rtStop = AV_NOPTS_VALUE;
+      buffer = eosmarker;
+      buflen = end - eosmarker;
+    } else if (eosmarker) {
+      m_bEndOfSequence = TRUE;
+    }
+  }
+
   if (rtStart != AV_NOPTS_VALUE) {
     rtStart += RTPADDING;
     if (rtStart < 0)
@@ -523,6 +538,12 @@ STDMETHODIMP CDecQuickSync::Decode(const BYTE *buffer, int buflen, REFERENCE_TIM
   hr = m_pDecoder->Decode(pSample);
 
   SafeRelease(&pSample);
+
+  if (m_bEndOfSequence) {
+    m_bEndOfSequence = FALSE;
+    EndOfStream();
+    Deliver(m_pCallback->GetFlushFrame());
+  }
 
   return hr;
 }
@@ -584,6 +605,9 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
     m_bInterlaced = TRUE;
 
   pFrame->interlaced = (pFrame->interlaced || (m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce()) && !m_pSettings->GetDeintTreatAsProgressive() && !m_bDI;
+
+  if (m_bEndOfSequence)
+    pFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
 
   m_pCallback->Deliver(pFrame);
 

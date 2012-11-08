@@ -74,6 +74,7 @@ private:
   bool m_bDI;
   BOOL m_bAVC1;
   int  m_nAVCNalSize;
+  BOOL m_bEndOfSequence;
 
   BOOL                   m_bUseTimestampQueue;
   std::queue<REFERENCE_TIME> m_timestampQueue;
