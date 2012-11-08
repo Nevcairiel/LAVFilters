@@ -37,7 +37,7 @@ public:
   // ILAVDecoder
   STDMETHODIMP Check();
   STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
-  STDMETHODIMP Decode(IMediaSample *pSample);
+  STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity);
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);

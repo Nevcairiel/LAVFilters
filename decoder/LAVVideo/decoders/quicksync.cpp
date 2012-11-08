@@ -65,6 +65,94 @@ static struct {
   { AV_CODEC_ID_H264,       FourCC_H264 },
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// CQSMediaSample Implementation
+////////////////////////////////////////////////////////////////////////////////
+
+class CQSMediaSample : public IMediaSample
+{
+public:
+  CQSMediaSample(BYTE *pBuffer, long len)
+    : m_pBuffer(pBuffer), m_lLen(len), m_lActualLen(len)
+    , m_rtStart(AV_NOPTS_VALUE), m_rtStop(AV_NOPTS_VALUE), m_bSyncPoint(FALSE), m_bDiscontinuity(FALSE), m_cRef(1)
+  {}
+
+  // IUnknown
+  STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject)
+  {
+    if (riid == IID_IUnknown) {
+      AddRef();
+      *ppvObject = (IUnknown *)this;
+    } else if (riid == IID_IMediaSample) {
+      AddRef();
+      *ppvObject = (IMediaSample *)this;
+    } else {
+      return E_NOINTERFACE;
+    }
+    return S_OK;
+  }
+  STDMETHODIMP_(ULONG) AddRef() { LONG lRef = InterlockedIncrement( &m_cRef ); return max(ULONG(lRef),1ul); }
+  STDMETHODIMP_(ULONG) Release() { LONG lRef = InterlockedDecrement( &m_cRef ); if (lRef == 0) { m_cRef++; delete this; return 0; } return max(ULONG(lRef),1ul); }
+
+  // IMediaSample
+  STDMETHODIMP GetPointer(BYTE **ppBuffer) { CheckPointer(ppBuffer, E_POINTER); *ppBuffer = m_pBuffer; return S_OK; }
+  STDMETHODIMP_(long) GetSize(void) { return m_lLen; }
+  STDMETHODIMP GetTime(REFERENCE_TIME *pTimeStart, REFERENCE_TIME *pTimeEnd)
+  {
+    CheckPointer(pTimeStart, E_POINTER);
+    CheckPointer(pTimeEnd, E_POINTER);
+
+    if (m_rtStart != AV_NOPTS_VALUE) {
+      *pTimeStart = m_rtStart;
+      if (m_rtStop != AV_NOPTS_VALUE) {
+        *pTimeEnd = m_rtStop;
+        return S_OK;
+      }
+      *pTimeEnd = m_rtStart+1;
+      return VFW_S_NO_STOP_TIME;
+    }
+    return VFW_E_SAMPLE_TIME_NOT_SET;
+  }
+
+  STDMETHODIMP SetTime(REFERENCE_TIME *pTimeStart, REFERENCE_TIME *pTimeEnd)
+  {
+    if (!pTimeStart) {
+      m_rtStart = m_rtStop = AV_NOPTS_VALUE;
+    } else {
+      m_rtStart = *pTimeStart;
+      if (!pTimeEnd)
+        m_rtStop = AV_NOPTS_VALUE;
+      else
+        m_rtStop = *pTimeEnd;
+    }
+    return S_OK;
+  }
+
+  STDMETHODIMP IsSyncPoint(void) { return m_bSyncPoint ? S_OK : S_FALSE; }
+  STDMETHODIMP SetSyncPoint(BOOL bIsSyncPoint) { m_bSyncPoint = bIsSyncPoint; return S_OK; }
+  STDMETHODIMP IsPreroll(void)  { return E_NOTIMPL; }
+  STDMETHODIMP SetPreroll(BOOL bIsPreroll) { return E_NOTIMPL; }
+  STDMETHODIMP_(long) GetActualDataLength(void) { return m_lActualLen; }
+  STDMETHODIMP SetActualDataLength(long length) { m_lActualLen = length; return S_OK; }
+  STDMETHODIMP GetMediaType(AM_MEDIA_TYPE **ppMediaType) { return S_FALSE; }
+  STDMETHODIMP SetMediaType(AM_MEDIA_TYPE *pMediaType) { return E_NOTIMPL; }
+  STDMETHODIMP IsDiscontinuity(void) { return m_bDiscontinuity ? S_OK : S_FALSE; }
+  STDMETHODIMP SetDiscontinuity(BOOL bDiscontinuity) { m_bDiscontinuity = bDiscontinuity; return S_OK; }
+  STDMETHODIMP GetMediaTime(LONGLONG *pTimeStart, LONGLONG *pTimeEnd) { return E_NOTIMPL; }
+  STDMETHODIMP SetMediaTime(LONGLONG *pTimeStart, LONGLONG *pTimeEnd) { return E_NOTIMPL; }
+
+private:
+  BYTE *m_pBuffer;
+  long  m_lLen;
+  long  m_lActualLen;
+  REFERENCE_TIME m_rtStart;
+  REFERENCE_TIME m_rtStop;
+
+  BOOL m_bSyncPoint;
+  BOOL m_bDiscontinuity;
+
+  ULONG m_cRef;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // QuickSync decoder implementation
@@ -353,7 +441,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // We usually do not trust the media type information and instead scan the bitstream.
   // This ensures that we only ever send valid and supported data to the decoder,
   // so with this we try to circumvent the checks in the QuickSync decoder
-  mt.SetType(m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD ? &MEDIATYPE_DVD_ENCRYPTED_PACK : &MEDIATYPE_Video);
+  mt.SetType(&MEDIATYPE_Video);
   MPEG2VIDEOINFO *mp2vi = (*mt.FormatType() == FORMAT_MPEG2Video) ? (MPEG2VIDEOINFO *)mt.Format() : NULL;
   BITMAPINFOHEADER *bmi = NULL;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &bmi);
@@ -399,35 +487,17 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   return S_OK;
 }
 
-STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
+STDMETHODIMP CDecQuickSync::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   HRESULT hr;
 
   if (m_bNeedSequenceCheck && (m_Codec == FourCC_H264 || m_Codec == FourCC_AVC1)) {
-    BYTE *data = NULL;
-    long dataLen = 0;
-
-    pSample->GetPointer(&data);
-    dataLen = pSample->GetActualDataLength();
-
-    hr = CheckH264Sequence(data, dataLen, m_nAVCNalSize);
+    hr = CheckH264Sequence(buffer, buflen, m_nAVCNalSize);
     if (FAILED(hr)) {
       return E_FAIL;
     } else if (hr == S_OK) {
       m_bNeedSequenceCheck = FALSE;
     }
-  }
-
-  REFERENCE_TIME rtStart, rtStop;
-  hr = pSample->GetTime(&rtStart, &rtStop);
-  if (FAILED(hr))
-    rtStart = rtStop = AV_NOPTS_VALUE;
-  else if (hr == VFW_S_NO_STOP_TIME)
-    rtStop = AV_NOPTS_VALUE;
-
-  if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_SAGE_HACK) {
-    FFSWAP(REFERENCE_TIME, rtStart, m_rtTimestampBuffer);
-    rtStop = AV_NOPTS_VALUE;
   }
 
   if (rtStart != AV_NOPTS_VALUE) {
@@ -439,14 +509,20 @@ STDMETHODIMP CDecQuickSync::Decode(IMediaSample *pSample)
       if (rtStop < 0)
         rtStop = AV_NOPTS_VALUE;
     }
-    pSample->SetTime(&rtStart, rtStop != AV_NOPTS_VALUE ? &rtStop : NULL);
   }
 
   if (m_bUseTimestampQueue) {
     m_timestampQueue.push(rtStart);
   }
 
+  IMediaSample *pSample = new CQSMediaSample(const_cast<BYTE*>(buffer), buflen);
+  pSample->SetTime(&rtStart, &rtStop);
+  pSample->SetDiscontinuity(bDiscontinuity);
+  pSample->SetSyncPoint(bSyncPoint);
+
   hr = m_pDecoder->Decode(pSample);
+
+  SafeRelease(&pSample);
 
   return hr;
 }
