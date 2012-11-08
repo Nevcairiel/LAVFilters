@@ -703,6 +703,12 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   DestroyDecoder(false);
 
+  m_DisplayDelay = DXVA2_QUEUE_SURFACES;
+
+  // Reduce display delay for DVD decoding for lower decode latency
+  if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD)
+    m_DisplayDelay /= 2;
+
   // If we have a DXVA Decoder, check if its capable
   // If we don't have one yet, it may be handed to us later, and compat is checked at that point
   if (m_pDXVADecoderService) {
