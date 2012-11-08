@@ -168,4 +168,6 @@ private:
   BOOL                   m_bEndOfSequence;
 
   HWND                   m_hwnd;
+
+  int                    m_DisplayDelay;
 };

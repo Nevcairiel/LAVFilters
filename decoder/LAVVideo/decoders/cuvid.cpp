@@ -128,6 +128,7 @@ CDecCuvid::CDecCuvid(void)
   , m_rtPrevDiff(AV_NOPTS_VALUE)
   , m_bARPresent(TRUE)
   , m_bEndOfSequence(FALSE)
+  , m_DisplayDelay(DISPLAY_DELAY)
 {
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
@@ -597,7 +598,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   ZeroMemory(&oVideoParserParameters, sizeof(CUVIDPARSERPARAMS));
   oVideoParserParameters.CodecType              = cudaCodec;
   oVideoParserParameters.ulMaxNumDecodeSurfaces = MAX_DECODE_FRAMES;
-  oVideoParserParameters.ulMaxDisplayDelay      = DISPLAY_DELAY;
+  oVideoParserParameters.ulMaxDisplayDelay      = m_DisplayDelay;
   oVideoParserParameters.pUserData              = this;
   oVideoParserParameters.pfnSequenceCallback    = CDecCuvid::HandleVideoSequence;    // Called before decoding frames and/or whenever there is a format change
   oVideoParserParameters.pfnDecodePicture       = CDecCuvid::HandlePictureDecode;    // Called when a picture is ready to be decoded (decode order)
@@ -762,7 +763,7 @@ STDMETHODIMP CDecCuvid::DecodeSequenceData()
 
 CUVIDPARSERDISPINFO* CDecCuvid::GetNextFrame()
 {
-  int next = (m_DisplayPos + 1) % DISPLAY_DELAY;
+  int next = (m_DisplayPos + 1) % m_DisplayDelay;
   return &m_DisplayQueue[next];
 }
 
@@ -835,7 +836,7 @@ int CUDAAPI CDecCuvid::HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic)
   int flush_pos = filter->m_DisplayPos;
   for (;;) {
     bool frame_in_use = false;
-    for (int i=0; i<DISPLAY_DELAY; i++) {
+    for (int i=0; i<filter->m_DisplayDelay; i++) {
       if (filter->m_DisplayQueue[i].picture_index == cuvidpic->CurrPicIdx) {
         frame_in_use = true;
         break;
@@ -851,7 +852,7 @@ int CUDAAPI CDecCuvid::HandlePictureDecode(void *obj, CUVIDPICPARAMS *cuvidpic)
       filter->Display(&filter->m_DisplayQueue[flush_pos]);
       filter->m_DisplayQueue[flush_pos].picture_index = -1;
     }
-    flush_pos = (flush_pos + 1) % DISPLAY_DELAY;
+    flush_pos = (flush_pos + 1) % filter->m_DisplayDelay;
   }
 
   filter->cuda.cuvidCtxLock(filter->m_cudaCtxLock, 0);
@@ -896,7 +897,7 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
     filter->m_DisplayQueue[filter->m_DisplayPos].picture_index = -1;
   }
   filter->m_DisplayQueue[filter->m_DisplayPos] = *cuviddisp;
-  filter->m_DisplayPos = (filter->m_DisplayPos + 1) % DISPLAY_DELAY;
+  filter->m_DisplayPos = (filter->m_DisplayPos + 1) % filter->m_DisplayDelay;
 
   return TRUE;
 }
@@ -1183,11 +1184,11 @@ STDMETHODIMP CDecCuvid::Flush()
   FlushParser();
 
   // Flush display queue
-  for (int i=0; i<DISPLAY_DELAY; ++i) {
+  for (int i=0; i<m_DisplayDelay; ++i) {
     if (m_DisplayQueue[m_DisplayPos].picture_index >= 0) {
       m_DisplayQueue[m_DisplayPos].picture_index = -1;
     }
-    m_DisplayPos = (m_DisplayPos + 1) % DISPLAY_DELAY;
+    m_DisplayPos = (m_DisplayPos + 1) % m_DisplayDelay;
   }
 
   m_bFlushing = FALSE;
@@ -1209,12 +1210,12 @@ STDMETHODIMP CDecCuvid::EndOfStream()
   FlushParser();
 
   // Display all frames left in the queue
-  for (int i=0; i<DISPLAY_DELAY; ++i) {
+  for (int i=0; i<m_DisplayDelay; ++i) {
     if (m_DisplayQueue[m_DisplayPos].picture_index >= 0) {
       Display(&m_DisplayQueue[m_DisplayPos]);
       m_DisplayQueue[m_DisplayPos].picture_index = -1;
     }
-    m_DisplayPos = (m_DisplayPos + 1) % DISPLAY_DELAY;
+    m_DisplayPos = (m_DisplayPos + 1) % m_DisplayDelay;
   }
 
   return S_OK;
