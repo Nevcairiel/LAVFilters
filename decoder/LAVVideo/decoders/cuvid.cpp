@@ -565,6 +565,12 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_DisplayQueue[i].picture_index = -1;
   m_DisplayPos = 0;
 
+  m_DisplayDelay = DISPLAY_DELAY;
+
+  // Reduce display delay for DVD decoding for lower decode latency
+  if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD)
+    m_DisplayDelay /= 2;
+
   cudaVideoCodec cudaCodec = (cudaVideoCodec)-1;
   for (int i = 0; i < countof(cuda_codecs); i++) {
     if (cuda_codecs[i].ffcodec == codec) {
