@@ -168,6 +168,7 @@ CDecDXVA2::CDecDXVA2(void)
   , m_dwVendorId(0)
   , m_pDXVA2Allocator(NULL)
   , m_hDevice(INVALID_HANDLE_VALUE)
+  , m_DisplayDelay(DXVA2_QUEUE_SURFACES)
 {
   ZeroMemory(&dx, sizeof(dx));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -745,7 +746,7 @@ STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
 {
   long buffers = (m_pAVCtx->codec_id == AV_CODEC_ID_H264) ? 16 + 4 : 2 + 4;
   if (!m_bNative) {
-    buffers += DXVA2_QUEUE_SURFACES;
+    buffers += m_DisplayDelay;
   }
   return buffers;
 }
@@ -1051,11 +1052,11 @@ STDMETHODIMP CDecDXVA2::Flush()
   }
 
   // Flush display queue
-  for (int i=0; i < DXVA2_QUEUE_SURFACES; ++i) {
+  for (int i=0; i < m_DisplayDelay; ++i) {
     if (m_FrameQueue[m_FrameQueuePosition]) {
       ReleaseFrame(&m_FrameQueue[m_FrameQueuePosition]);
     }
-    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
+    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
   }
 
   return S_OK;
@@ -1066,12 +1067,12 @@ STDMETHODIMP CDecDXVA2::EndOfStream()
   CDecAvcodec::EndOfStream();
 
   // Flush display queue
-  for (int i=0; i < DXVA2_QUEUE_SURFACES; ++i) {
+  for (int i=0; i < m_DisplayDelay; ++i) {
     if (m_FrameQueue[m_FrameQueuePosition]) {
       DeliverDXVA2Frame(m_FrameQueue[m_FrameQueuePosition]);
       m_FrameQueue[m_FrameQueuePosition] = NULL;
     }
-    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
+    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
   }
 
   return S_OK;
@@ -1088,7 +1089,7 @@ HRESULT CDecDXVA2::HandleDXVA2Frame(LAVFrame *pFrame)
     d3d_surface_t *s = FindSurface((LPDIRECT3DSURFACE9)pFrame->data[3]);
     s->ref++;
 
-    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % DXVA2_QUEUE_SURFACES;
+    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
 
     if (pQueuedFrame) {
       s = FindSurface((LPDIRECT3DSURFACE9)pQueuedFrame->data[3]);
