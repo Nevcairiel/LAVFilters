@@ -252,6 +252,9 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = regHW.ReadBOOL(L"mpeg4", hr);
   if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG4] = bFlag;
 
+  bFlag = regHW.ReadBOOL(L"dvd", hr);
+  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2DVD] = bFlag;
+
   dwVal = regHW.ReadDWORD(L"HWDeintMode", hr);
   if (SUCCEEDED(hr)) m_settings.HWDeintMode = dwVal;
 
@@ -312,6 +315,7 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteBOOL(L"vc1", m_settings.bHWFormats[HWCodec_VC1]);
     regHW.WriteBOOL(L"mpeg2",m_settings.bHWFormats[HWCodec_MPEG2]);
     regHW.WriteBOOL(L"mpeg4",m_settings.bHWFormats[HWCodec_MPEG4]);
+    regHW.WriteBOOL(L"dvd",m_settings.bHWFormats[HWCodec_MPEG2DVD]);
 
     regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);

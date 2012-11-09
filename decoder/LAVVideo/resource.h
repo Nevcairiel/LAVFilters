@@ -73,6 +73,7 @@
 #define IDC_OUT_V410                    1063
 #define IDC_HWACCEL_MPEG4               1064
 #define IDC_LBL_FORMATS                 1065
+#define IDC_HWACCEL_MPEG2_DVD           1065
 #define IDC_DITHER_ORDERED              1066
 #define IDC_DITHER_RANDOM               1067
 #define IDC_CODECS_MSWMVDMO             1068

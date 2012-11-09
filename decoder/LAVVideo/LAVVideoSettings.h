@@ -87,8 +87,9 @@ typedef enum LAVVideoHWCodec {
   HWCodec_VC1   = Codec_VC1,
   HWCodec_MPEG2 = Codec_MPEG2,
   HWCodec_MPEG4 = Codec_MPEG4,
+  HWCodec_MPEG2DVD,
 
-  HWCodec_NB    = HWCodec_MPEG4 + 1
+  HWCodec_NB    = HWCodec_MPEG2DVD + 1
 };
 
 // Type of hardware accelerations
