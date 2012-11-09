@@ -1122,7 +1122,7 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
     pCuvidPacket.payload_size = buflen;
 
     if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_MPEG2) {
-      const uint8_t *eosmarker = CheckForEndOfSequence(AV_CODEC_ID_MPEG2VIDEO, buffer, buflen);
+      const uint8_t *eosmarker = CheckForEndOfSequence(AV_CODEC_ID_MPEG2VIDEO, buffer, buflen, &m_MpegParserState);
       const uint8_t *end = buffer+buflen;
       // If we found a EOS marker, but its not at the end of the packet, then split the packet
       // to be able to individually decode the frame before the EOS, and then decode the remainder
