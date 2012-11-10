@@ -1081,7 +1081,11 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
     if (bEndOfSequence) {
       bEndOfSequence = FALSE;
-      Deliver(m_pCallback->GetFlushFrame());
+      if (pOutFrame->format == LAVPixFmt_DXVA2) {
+        HandleDXVA2Frame(m_pCallback->GetFlushFrame());
+      } else {
+        Deliver(m_pCallback->GetFlushFrame());
+      }
     }
 
     if (bFlush) {

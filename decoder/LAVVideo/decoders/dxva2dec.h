@@ -86,6 +86,8 @@ private:
   static void release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
   d3d_surface_t *FindSurface(LPDIRECT3DSURFACE9 pSurface);
 
+  STDMETHODIMP FlushDisplayQueue();
+
 private:
   friend class CDXVA2SurfaceAllocator;
   BOOL m_bNative;

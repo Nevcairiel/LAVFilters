@@ -1062,11 +1062,8 @@ STDMETHODIMP CDecDXVA2::Flush()
   return S_OK;
 }
 
-STDMETHODIMP CDecDXVA2::EndOfStream()
+STDMETHODIMP CDecDXVA2::FlushDisplayQueue()
 {
-  CDecAvcodec::EndOfStream();
-
-  // Flush display queue
   for (int i=0; i < m_DisplayDelay; ++i) {
     if (m_FrameQueue[m_FrameQueuePosition]) {
       DeliverDXVA2Frame(m_FrameQueue[m_FrameQueuePosition]);
@@ -1078,8 +1075,25 @@ STDMETHODIMP CDecDXVA2::EndOfStream()
   return S_OK;
 }
 
+STDMETHODIMP CDecDXVA2::EndOfStream()
+{
+  CDecAvcodec::EndOfStream();
+
+  // Flush display queue
+  FlushDisplayQueue();
+
+  return S_OK;
+}
+
 HRESULT CDecDXVA2::HandleDXVA2Frame(LAVFrame *pFrame)
 {
+  if (pFrame->flags & LAV_FRAME_FLAG_FLUSH) {
+    if (!m_bNative) {
+      FlushDisplayQueue();
+    }
+    Deliver(pFrame);
+    return S_OK;
+  }
   if (m_bNative) {
     DeliverDXVA2Frame(pFrame);
   } else {
