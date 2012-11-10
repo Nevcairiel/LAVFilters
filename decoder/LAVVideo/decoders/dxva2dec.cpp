@@ -616,7 +616,7 @@ done:
   SafeRelease(&pDevice);
   if (hDevice != 0) {
     pDevManager->UnlockDevice(hDevice, FALSE);
-    pDevManager->CloseDeviceHandle(&hDevice);
+    pDevManager->CloseDeviceHandle(hDevice);
   }
   return hr;
 }
