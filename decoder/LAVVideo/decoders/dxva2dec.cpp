@@ -398,7 +398,7 @@ HRESULT CDecDXVA2::CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDi
 {
   HRESULT hr = S_OK;
 
-  IDirectXVideoDecoderService *pService;
+  IDirectXVideoDecoderService *pService = NULL;
 
   hr = pManager->OpenDeviceHandle(&m_hDevice);
   if (FAILED(hr)) {
@@ -406,15 +406,9 @@ HRESULT CDecDXVA2::CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDi
     goto done;
   }
 
-  HRESULT hr2 = pManager->GetVideoService(m_hDevice, IID_IDirectXVideoDecoderService, (void**)&pService);
-
-  if (FAILED(hr2)) {
-    DbgLog((LOG_ERROR, 10, L"-> Acquiring VideoDecoderService failed"));
-    goto done;
-  }
-
+  hr = pManager->GetVideoService(m_hDevice, IID_IDirectXVideoDecoderService, (void**)&pService);
   if (FAILED(hr)) {
-    DbgLog((LOG_ERROR, 10, L"-> CloseDeviceHandle failed"));
+    DbgLog((LOG_ERROR, 10, L"-> Acquiring VideoDecoderService failed"));
     goto done;
   }
 
