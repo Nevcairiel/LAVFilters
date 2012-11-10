@@ -1073,7 +1073,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (bEndOfSequence)
       pOutFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
 
-    if (pOutFrame->format  == LAVPixFmt_DXVA2) {
+    if (pOutFrame->format == LAVPixFmt_DXVA2) {
       HandleDXVA2Frame(pOutFrame);
     } else {
       Deliver(pOutFrame);
