@@ -1,5 +1,13 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.53.1 - 2012/11/10
+LAV Video
+- Fixed initial media type when YADIF is active
+- Fixed an image corruption issue with DVD playback
+- Improved handling of DVD menus on some discs
+- Reduced decode latency with CUVID/DXVA2-CB on DVDs for smoother playback in some situations
+- Added an option to toggle HW decoding for DVDs
+
 0.53.0 - 2012/11/05
 LAV Splitter
 - Added support for reading image files (tiff, png, jpeg, tga, bmp)
