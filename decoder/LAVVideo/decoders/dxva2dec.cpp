@@ -614,7 +614,7 @@ HRESULT CDecDXVA2::RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager)
 done:
   SafeRelease(&pD3D);
   SafeRelease(&pDevice);
-  if (hDevice != 0) {
+  if (hDevice && hDevice != INVALID_HANDLE_VALUE) {
     pDevManager->UnlockDevice(hDevice, FALSE);
     pDevManager->CloseDeviceHandle(hDevice);
   }
