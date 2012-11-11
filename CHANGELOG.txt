@@ -1,5 +1,10 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.53.2 - 2012/11/11
+LAV Video
+- Fixed DVD menu still frames with DXVA2 Copy Back
+- Fixed Live TV playback with QuickSync
+
 0.53.1 - 2012/11/10
 LAV Video
 - Fixed initial media type when YADIF is active
