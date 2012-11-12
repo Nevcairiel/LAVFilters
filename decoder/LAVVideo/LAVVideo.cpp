@@ -130,7 +130,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.DeintForce = 0;
   m_settings.RGBRange = 2; // Full range default
 
-  for (int i = 0; i < Codec_NB; ++i)
+  for (int i = 0; i < Codec_VideoNB; ++i)
     m_settings.bFormats[i] = TRUE;
 
   m_settings.bFormats[Codec_RV12]     = FALSE;
@@ -211,7 +211,7 @@ HRESULT CLAVVideo::LoadSettings()
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
 
-  for (int i = 0; i < Codec_NB; ++i) {
+  for (int i = 0; i < Codec_VideoNB; ++i) {
     const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
     ATL::CA2W name(info->name);
     bFlag = regF.ReadBOOL(name, hr);
@@ -295,7 +295,7 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteDWORD(L"RGBRange", m_settings.RGBRange);
 
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
-    for (int i = 0; i < Codec_NB; ++i) {
+    for (int i = 0; i < Codec_VideoNB; ++i) {
       const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
       ATL::CA2W name(info->name);
       regF.WriteBOOL(name, m_settings.bFormats[i]);
@@ -536,7 +536,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   }
 
   // Check if codec is activated
-  for(int i = 0; i < Codec_NB; ++i) {
+  for(int i = 0; i < Codec_VideoNB; ++i) {
     const codec_config_t *config = get_codec_config((LAVVideoCodec)i);
     bool bMatched = false;
     for (int k = 0; k < config->nCodecs; ++k) {
@@ -1553,7 +1553,7 @@ STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)
 
 STDMETHODIMP CLAVVideo::SetFormatConfiguration(LAVVideoCodec vCodec, BOOL bEnabled)
 {
-  if (vCodec < 0 || vCodec >= Codec_NB)
+  if (vCodec < 0 || vCodec >= Codec_VideoNB)
     return E_FAIL;
 
   m_settings.bFormats[vCodec] = bEnabled;
@@ -1563,7 +1563,7 @@ STDMETHODIMP CLAVVideo::SetFormatConfiguration(LAVVideoCodec vCodec, BOOL bEnabl
 
 STDMETHODIMP_(BOOL) CLAVVideo::GetFormatConfiguration(LAVVideoCodec vCodec)
 {
-  if (vCodec < 0 || vCodec >= Codec_NB)
+  if (vCodec < 0 || vCodec >= Codec_VideoNB)
     return FALSE;
 
   return m_settings.bFormats[vCodec];

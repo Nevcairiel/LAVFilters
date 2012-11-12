@@ -645,7 +645,7 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
   ListView_AddCol(hlv, nCol, 350, L"Description", false);
 
   ListView_DeleteAllItems(hlv);
-  ListView_SetItemCount(hlv, Codec_NB);
+  ListView_SetItemCount(hlv, Codec_AudioNB);
 
   // Create entrys for the formats
   LVITEM lvi;
@@ -653,7 +653,7 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
   lvi.mask = LVIF_TEXT|LVIF_PARAM;
 
   int nItem = 0;
-  for (nItem = 0; nItem < Codec_NB; ++nItem) {
+  for (nItem = 0; nItem < Codec_AudioNB; ++nItem) {
     const codec_config_t *config = get_codec_config((LAVAudioCodec)nItem);
 
     // Create main entry
@@ -682,7 +682,7 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
 HRESULT CLAVAudioFormatsProp::LoadData()
 {
   HRESULT hr = S_OK;
-  for (unsigned i = 0; i < Codec_NB; ++i)
+  for (unsigned i = 0; i < Codec_AudioNB; ++i)
     m_bFormats[i] = m_pAudioSettings->GetFormatConfiguration((LAVAudioCodec)i) != 0;
   return hr;
 }

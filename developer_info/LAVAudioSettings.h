@@ -56,7 +56,7 @@ typedef enum LAVAudioCodec {
   Codec_Truespeech,
   Codec_TAK,
 
-  Codec_NB            // Number of entrys (do not use when dynamically linking)
+  Codec_AudioNB            // Number of entrys (do not use when dynamically linking)
 };
 
 // Bitstreaming Codecs supported in LAV Audio

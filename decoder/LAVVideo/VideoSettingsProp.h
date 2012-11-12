@@ -108,7 +108,7 @@ private:
 private:
   ILAVVideoSettings *m_pVideoSettings;
 
-  BOOL m_bFormats[Codec_NB];
+  BOOL m_bFormats[Codec_VideoNB];
   BOOL m_bWMVDMO;
   BOOL m_bDVD;
 };

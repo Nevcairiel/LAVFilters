@@ -242,7 +242,7 @@ private:
   struct VideoSettings {
     DWORD StreamAR;
     DWORD NumThreads;
-    BOOL bFormats[Codec_NB];
+    BOOL bFormats[Codec_VideoNB];
     BOOL bMSWMV9DMO;
     BOOL bPixFmts[LAVOutPixFmt_NB];
     DWORD RGBRange;

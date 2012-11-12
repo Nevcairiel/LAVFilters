@@ -167,7 +167,7 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.DRCLevel   = 100;
 
   // Default all Codecs to enabled
-  for(int i = 0; i < Codec_NB; ++i)
+  for(int i = 0; i < Codec_AudioNB; ++i)
     m_settings.bFormats[i] = TRUE;
 
   // Disable WMA codecs by default
@@ -302,7 +302,7 @@ HRESULT CLAVAudio::LoadSettings()
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
 
-  for (int i = 0; i < Codec_NB; ++i) {
+  for (int i = 0; i < Codec_AudioNB; ++i) {
     const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
     ATL::CA2W name(info->name);
     bFlag = regF.ReadBOOL(name, hr);
@@ -352,7 +352,7 @@ HRESULT CLAVAudio::SaveSettings()
 
     reg.DeleteKey(L"Formats");
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
-    for (int i = 0; i < Codec_NB; ++i) {
+    for (int i = 0; i < Codec_AudioNB; ++i) {
       const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
       ATL::CA2W name(info->name);
       regF.WriteBOOL(name, m_settings.bFormats[i]);
@@ -497,14 +497,14 @@ HRESULT CLAVAudio::SetDRC(BOOL bDRCEnabled, int fDRCLevel)
 
 BOOL CLAVAudio::GetFormatConfiguration(LAVAudioCodec aCodec)
 {
-  if (aCodec < 0 || aCodec >= Codec_NB)
+  if (aCodec < 0 || aCodec >= Codec_AudioNB)
     return FALSE;
   return m_settings.bFormats[aCodec];
 }
 
 HRESULT CLAVAudio::SetFormatConfiguration(LAVAudioCodec aCodec, BOOL bEnabled)
 {
-  if (aCodec < 0 || aCodec >= Codec_NB)
+  if (aCodec < 0 || aCodec >= Codec_AudioNB)
     return E_FAIL;
 
   m_settings.bFormats[aCodec] = (bEnabled != 0);
@@ -1124,7 +1124,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   if (codec >= 0x10000 && codec < 0x12000 && codec != AV_CODEC_ID_PCM_BLURAY && codec != AV_CODEC_ID_PCM_DVD && !m_settings.bFormats[Codec_PCM])
     return VFW_E_UNSUPPORTED_AUDIO;
 
-  for(int i = 0; i < Codec_NB; ++i) {
+  for(int i = 0; i < Codec_AudioNB; ++i) {
     const codec_config_t *config = get_codec_config((LAVAudioCodec)i);
     bool bMatched = false;
     for (int k = 0; k < config->nCodecs; ++k) {

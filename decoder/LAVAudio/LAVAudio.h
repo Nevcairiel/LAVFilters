@@ -280,7 +280,7 @@ private:
   struct AudioSettings {
     BOOL DRCEnabled;
     int DRCLevel;
-    BOOL bFormats[Codec_NB];
+    BOOL bFormats[Codec_AudioNB];
     BOOL bBitstream[Bitstream_NB];
     BOOL DTSHDFraming;
     BOOL AutoAVSync;

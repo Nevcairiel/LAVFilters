@@ -143,7 +143,7 @@ private:
 private:
   ILAVAudioSettings *m_pAudioSettings;
 
-  bool m_bFormats[Codec_NB];
+  bool m_bFormats[Codec_AudioNB];
 };
 
 

@@ -78,7 +78,7 @@ typedef enum LAVVideoCodec {
   Codec_FFV1,
   Codec_v210,
 
-  Codec_NB            // Number of entrys (do not use when dynamically linking)
+  Codec_VideoNB            // Number of entrys (do not use when dynamically linking)
 };
 
 // Codecs with hardware acceleration
