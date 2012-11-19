@@ -98,6 +98,8 @@ STDMETHODIMP CLAVSubtitleConsumer::RequestFrame(REFERENCE_TIME rtStart, REFERENC
 STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
 {
   CheckPointer(m_pProvider, E_FAIL);
+  HRESULT hr = S_OK;
+  LPDIRECT3DSURFACE9 pSurface = NULL;
 
   // Wait for the requested frame
   m_evFrame.Wait();
@@ -113,8 +115,38 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
       return S_FALSE;
     }
 
-    if (!(pFrame->flags & LAV_FRAME_FLAG_BUFFER_MODIFY)) {
-      CopyLAVFrameInPlace(pFrame);
+    BYTE *data[4] = {0};
+    int stride[4] = {0};
+    LAVPixelFormat format = pFrame->format;
+    int bpp = pFrame->bpp;
+
+    if (pFrame->format == LAVPixFmt_DXVA2) {
+      pSurface = (LPDIRECT3DSURFACE9)pFrame->data[3];
+
+      D3DSURFACE_DESC surfaceDesc;
+      pSurface->GetDesc(&surfaceDesc);
+
+      D3DLOCKED_RECT LockedRect;
+      hr = pSurface->LockRect(&LockedRect, NULL, 0);
+      if (FAILED(hr)) {
+        DbgLog((LOG_TRACE, 10, L"pSurface->LockRect failed (hr: %X)", hr));
+        SafeRelease(&m_SubtitleFrame);
+        return E_FAIL;
+      }
+
+      data[0] = (BYTE *)LockedRect.pBits;
+      data[1] = data[0] + (surfaceDesc.Height * LockedRect.Pitch);
+      stride[0] = LockedRect.Pitch;
+      stride[1] = LockedRect.Pitch;
+
+      format = LAVPixFmt_NV12;
+      bpp = 8;
+    } else {
+      if (!(pFrame->flags & LAV_FRAME_FLAG_BUFFER_MODIFY)) {
+        CopyLAVFrameInPlace(pFrame);
+      }
+      memcpy(&data, &pFrame->data, sizeof(pFrame->data));
+      memcpy(&stride, &pFrame->stride, sizeof(pFrame->stride));
     }
 
     RECT videoRect;
@@ -133,8 +165,12 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
         DbgLog((LOG_TRACE, 10, L"GetBitmap() failed on index %d", i));
         break;
       }
-      ProcessSubtitleBitmap(pFrame->format, pFrame->bpp, videoRect, pFrame->data, pFrame->stride, subRect, position, size, rgbData, pitch);
+      ProcessSubtitleBitmap(format, bpp, videoRect, data, stride, subRect, position, size, rgbData, pitch);
     }
+
+    if (pSurface)
+      pSurface->UnlockRect();
+
     SafeRelease(&m_SubtitleFrame);
     return S_OK;
   }
