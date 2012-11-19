@@ -94,7 +94,16 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
     const BYTE *srcY = subY + (line * inStride);
     const BYTE *srcA = subA + (line * inStride);
     for (col = 0; col < w; col++) {
-      dstY[col] = FAST_DIV255(dstY[col] * (255 - srcA[col]) + (srcY[col] << shift) * srcA[col]);
+      switch (srcA[col]) {
+      case 0:
+        break;
+      case 255:
+        dstY[col] = srcY[col] << shift;
+        break;
+      default:
+        dstY[col] = FAST_DIV255(dstY[col] * (255 - srcA[col]) + (srcY[col] << shift) * srcA[col]);
+        break;
+      }
     }
   }
 
@@ -130,11 +139,31 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
         alpha = srcA[0];
       }
       if (nv12) {
-        dstUV[(col << 1)+0] = FAST_DIV255(dstUV[(col << 1)+0] * (255 - alpha) + (srcU[col] << shift) * alpha);
-        dstUV[(col << 1)+1] = FAST_DIV255(dstUV[(col << 1)+1] * (255 - alpha) + (srcV[col] << shift) * alpha);
+        switch(alpha) {
+        case 0:
+          break;
+        case 255:
+          dstUV[(col << 1)+0] = srcU[col] << shift;
+          dstUV[(col << 1)+0] = srcV[col] << shift;
+          break;
+        default:
+          dstUV[(col << 1)+0] = FAST_DIV255(dstUV[(col << 1)+0] * (255 - alpha) + (srcU[col] << shift) * alpha);
+          dstUV[(col << 1)+1] = FAST_DIV255(dstUV[(col << 1)+1] * (255 - alpha) + (srcV[col] << shift) * alpha);
+          break;
+        }
       } else {
-        dstU[col] = FAST_DIV255(dstU[col] * (255 - alpha) + (srcU[col] << shift) * alpha);
-        dstV[col] = FAST_DIV255(dstV[col] * (255 - alpha) + (srcV[col] << shift) * alpha);
+        switch(alpha) {
+        case 0:
+          break;
+        case 255:
+          dstU[col] = srcU[col] << shift;
+          dstV[col] = srcV[col] << shift;
+          break;
+        default:
+          dstU[col] = FAST_DIV255(dstU[col] * (255 - alpha) + (srcU[col] << shift) * alpha);
+          dstV[col] = FAST_DIV255(dstV[col] * (255 - alpha) + (srcV[col] << shift) * alpha);
+          break;
+        }
       }
       srcA += (ptrdiff_t)(1 << vsub);
     }
