@@ -1318,8 +1318,10 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
         tokenList.push_back(token + "|f");
         if (m_settings.subtitleMode == LAVSubtitleMode_Default)
           tokenList.push_back(token + "|d");
-      } else
+      } else {
+        tokenList.push_back(token + "|d");
         tokenList.push_back(token + "|!h");
+      }
     }
 
     // Add fallbacks (forced/default)
