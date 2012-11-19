@@ -267,6 +267,9 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
     goto done;
   }
 
+  // Release old device manager, we're about to grab a new one
+  SafeRelease(&m_pD3DDevMngr);
+
   // Get the Direct3D device manager.
   hr = pGetService->GetService(MR_VIDEO_ACCELERATION_SERVICE, __uuidof(IDirect3DDeviceManager9), (void**)&m_pD3DDevMngr);
   if (FAILED(hr)) {
