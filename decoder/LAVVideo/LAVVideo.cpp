@@ -1364,36 +1364,29 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
           AllocateFrame(&m_pLastSequenceFrame);
           m_pLastSequenceFrame->format = LAVPixFmt_DXVA2;
 
-          IMediaSample *pSample = NULL;
-          HRESULT hr = m_pOutput->GetDeliveryBuffer(&pSample, NULL, NULL, 0);
-          if (SUCCEEDED(hr)) {
-            IMFGetService *pService = NULL;
-            hr = pSample->QueryInterface(&pService);
-            if (SUCCEEDED(hr)) {
-              IDirect3DSurface9 *pSurface = NULL;
-              hr = pService->GetService(MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (LPVOID *)&pSurface);
-              if (SUCCEEDED(hr)) {
-                m_pLastSequenceFrame->data[0] = (BYTE *)pSample;
-                m_pLastSequenceFrame->data[3] = (BYTE *)pSurface;
-              }
-              SafeRelease(&pService);
-            }
+          hr = GetD3DBuffer(m_pLastSequenceFrame);
+          if (FAILED(hr)) {
+            ReleaseFrame(&m_pLastSequenceFrame);
           }
         }
-        BYTE *data0 = m_pLastSequenceFrame->data[0], *data3 = m_pLastSequenceFrame->data[3];
-        *m_pLastSequenceFrame = *pFrame;
-        m_pLastSequenceFrame->data[0] = data0;
-        m_pLastSequenceFrame->data[3] = data3;
+        if (m_pLastSequenceFrame && m_pLastSequenceFrame->data[0] && m_pLastSequenceFrame->data[3]) {
+          BYTE *data0 = m_pLastSequenceFrame->data[0], *data3 = m_pLastSequenceFrame->data[3];
+          *m_pLastSequenceFrame = *pFrame;
+          m_pLastSequenceFrame->data[0] = data0;
+          m_pLastSequenceFrame->data[3] = data3;
 
-        IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)m_pLastSequenceFrame->data[3];
+          IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)m_pLastSequenceFrame->data[3];
 
-        IDirect3DDevice9 *pDevice = NULL;
-        pSurface->GetDevice(&pDevice);
-        hr = pDevice->StretchRect((IDirect3DSurface9 *)pFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
-        if (FAILED(hr)) {
-          DbgLog((LOG_TRACE, 10, L"::Decode(): Copying DXVA2 surface failed"));
+          IDirect3DDevice9 *pDevice = NULL;
+          hr = pSurface->GetDevice(&pDevice);
+          if (SUCCEEDED(hr)) {
+            hr = pDevice->StretchRect((IDirect3DSurface9 *)pFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
+            if (FAILED(hr)) {
+              DbgLog((LOG_TRACE, 10, L"::Decode(): Copying DXVA2 surface failed"));
+            }
+            SafeRelease(&pDevice);
+          }
         }
-        SafeRelease(&pDevice);
       }
     }
   }
@@ -1559,6 +1552,28 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   return hr;
 }
 
+HRESULT CLAVVideo::GetD3DBuffer(LAVFrame *pFrame)
+{
+  CheckPointer(pFrame, E_POINTER);
+
+  IMediaSample *pSample = NULL;
+  HRESULT hr = m_pOutput->GetDeliveryBuffer(&pSample, NULL, NULL, 0);
+  if (SUCCEEDED(hr)) {
+    IMFGetService *pService = NULL;
+    hr = pSample->QueryInterface(&pService);
+    if (SUCCEEDED(hr)) {
+      IDirect3DSurface9 *pSurface = NULL;
+      hr = pService->GetService(MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (LPVOID *)&pSurface);
+      if (SUCCEEDED(hr)) {
+        pFrame->data[0] = (BYTE *)pSample;
+        pFrame->data[3] = (BYTE *)pSurface;
+      }
+      SafeRelease(&pService);
+    }
+  }
+  return hr;
+}
+
 STDMETHODIMP CLAVVideo::RedrawStillImage()
 {
   if (m_pLastSequenceFrame) {
@@ -1575,31 +1590,24 @@ STDMETHODIMP CLAVVideo::RedrawStillImage()
     if (m_pLastSequenceFrame->format == LAVPixFmt_DXVA2) {
       AllocateFrame(&pFrame);
       *pFrame = *m_pLastSequenceFrame;
-      IMediaSample *pSample = NULL;
-      HRESULT hr = m_pOutput->GetDeliveryBuffer(&pSample, NULL, NULL, 0);
+      HRESULT hr = GetD3DBuffer(pFrame);
       if (SUCCEEDED(hr)) {
-        IMFGetService *pService = NULL;
-        hr = pSample->QueryInterface(&pService);
-        if (SUCCEEDED(hr)) {
-          IDirect3DSurface9 *pSurface = NULL;
-          hr = pService->GetService(MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (LPVOID *)&pSurface);
+        IMediaSample *pSample = (IMediaSample *)pFrame->data[0];
+        IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)pFrame->data[3];
+
+        pSample->SetTime(&m_pLastSequenceFrame->rtStart, &m_pLastSequenceFrame->rtStop);
+
+        IDirect3DDevice9 *pDevice = NULL;
+        if (SUCCEEDED(pSurface->GetDevice(&pDevice))) {
+          hr = pDevice->StretchRect((IDirect3DSurface9 *)m_pLastSequenceFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
           if (SUCCEEDED(hr)) {
-            pFrame->data[0] = (BYTE *)pSample;
-            pFrame->data[3] = (BYTE *)pSurface;
-
-            pSample->SetTime(&m_pLastSequenceFrame->rtStart, &m_pLastSequenceFrame->rtStop);
-
-            IDirect3DDevice9 *pDevice = NULL;
-            pSurface->GetDevice(&pDevice);
-            hr = pDevice->StretchRect((IDirect3DSurface9 *)m_pLastSequenceFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
-
             pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
             hr = Deliver(pFrame);
-
-            SafeRelease(&pSurface);
           }
-          SafeRelease(&pService);
+          SafeRelease(&pDevice);
         }
+
+        SafeRelease(&pSurface);
         SafeRelease(&pSample);
       }
       return hr;

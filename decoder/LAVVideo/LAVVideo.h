@@ -190,6 +190,8 @@ private:
   HRESULT PerformFlush();
   HRESULT ReleaseLastSequenceFrame();
 
+  HRESULT GetD3DBuffer(LAVFrame *pFrame);
+
 private:
   friend class CVideoOutputPin;
   friend class CDecodeThread;
