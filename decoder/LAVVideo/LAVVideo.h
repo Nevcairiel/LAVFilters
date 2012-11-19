@@ -188,6 +188,7 @@ private:
   void CloseMTFilterThread();
 
   HRESULT PerformFlush();
+  HRESULT ReleaseLastSequenceFrame();
 
 private:
   friend class CVideoOutputPin;

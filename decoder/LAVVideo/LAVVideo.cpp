@@ -34,6 +34,10 @@
 #include "parsers/VC1HeaderParser.h"
 #include "parsers/MPEG2HeaderParser.h"
 
+#include <Mfidl.h>
+#include <evr.h>
+#include <d3d9.h>
+
 #pragma warning(disable: 4355)
 
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
@@ -92,6 +96,8 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVVideo::~CLAVVideo()
 {
   CloseMTFilterThread();
+
+  ReleaseLastSequenceFrame();
   m_Decoder.Close();
 
   if (m_pFilterGraph)
@@ -104,7 +110,6 @@ CLAVVideo::~CLAVVideo()
   SafeRelease(&m_SubtitleConsumer);
 
   SAFE_DELETE(m_pSubtitleInput);
-  ReleaseFrame(&m_pLastSequenceFrame);
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::IsVistaOrNewer()
@@ -687,7 +692,8 @@ HRESULT CLAVVideo::EndFlush()
 {
   DbgLog((LOG_TRACE, 1, L"::EndFlush"));
   CAutoLock cAutoLock(&m_csReceive);
-  ReleaseFrame(&m_pLastSequenceFrame);
+
+  ReleaseLastSequenceFrame();
 
   if (m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_DVD) {
     PerformFlush();
@@ -696,6 +702,20 @@ HRESULT CLAVVideo::EndFlush()
   HRESULT hr = __super::EndFlush();
   m_bFlushing = FALSE;
   return hr;
+}
+
+HRESULT CLAVVideo::ReleaseLastSequenceFrame()
+{
+  // Release DXVA2 frames hold in the last sequence frame
+  if (m_pLastSequenceFrame && m_pLastSequenceFrame->format == LAVPixFmt_DXVA2) {
+    IMediaSample *pSample = (IMediaSample *)m_pLastSequenceFrame->data[0];
+    IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)m_pLastSequenceFrame->data[3];
+    SafeRelease(&pSample);
+    SafeRelease(&pSurface);
+  }
+  ReleaseFrame(&m_pLastSequenceFrame);
+
+  return S_OK;
 }
 
 HRESULT CLAVVideo::PerformFlush()
@@ -716,8 +736,9 @@ HRESULT CLAVVideo::PerformFlush()
     CAMThread::CallWorker(CMD_END_FLUSH);
   }
 
+  ReleaseLastSequenceFrame();
   m_Decoder.Flush();
-  ReleaseFrame(&m_pLastSequenceFrame);
+
   m_bInDVDMenu = FALSE;
 
   if (m_pFilterGraph)
@@ -1332,9 +1353,48 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
   if (!(pFrame->flags & LAV_FRAME_FLAG_REDRAW)) {
     // Release the old End-of-Sequence frame, this ensures any "normal" frame will clear the stored EOS frame
-    ReleaseFrame(&m_pLastSequenceFrame);
-    if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu) && pFrame->format != LAVPixFmt_DXVA2) {
-      CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
+    if (pFrame->format != LAVPixFmt_DXVA2) {
+      ReleaseFrame(&m_pLastSequenceFrame);
+      if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
+        CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
+      }
+    } else {
+      if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
+        if (!m_pLastSequenceFrame) {
+          AllocateFrame(&m_pLastSequenceFrame);
+          m_pLastSequenceFrame->format = LAVPixFmt_DXVA2;
+
+          IMediaSample *pSample = NULL;
+          HRESULT hr = m_pOutput->GetDeliveryBuffer(&pSample, NULL, NULL, 0);
+          if (SUCCEEDED(hr)) {
+            IMFGetService *pService = NULL;
+            hr = pSample->QueryInterface(&pService);
+            if (SUCCEEDED(hr)) {
+              IDirect3DSurface9 *pSurface = NULL;
+              hr = pService->GetService(MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (LPVOID *)&pSurface);
+              if (SUCCEEDED(hr)) {
+                m_pLastSequenceFrame->data[0] = (BYTE *)pSample;
+                m_pLastSequenceFrame->data[3] = (BYTE *)pSurface;
+              }
+              SafeRelease(&pService);
+            }
+          }
+        }
+        BYTE *data0 = m_pLastSequenceFrame->data[0], *data3 = m_pLastSequenceFrame->data[3];
+        *m_pLastSequenceFrame = *pFrame;
+        m_pLastSequenceFrame->data[0] = data0;
+        m_pLastSequenceFrame->data[3] = data3;
+
+        IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)m_pLastSequenceFrame->data[3];
+
+        IDirect3DDevice9 *pDevice = NULL;
+        pSurface->GetDevice(&pDevice);
+        hr = pDevice->StretchRect((IDirect3DSurface9 *)pFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
+        if (FAILED(hr)) {
+          DbgLog((LOG_TRACE, 10, L"::Decode(): Copying DXVA2 surface failed"));
+        }
+        SafeRelease(&pDevice);
+      }
     }
   }
 
@@ -1509,10 +1569,47 @@ STDMETHODIMP CLAVVideo::RedrawStillImage()
       return S_FALSE;
 
     DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redrawing still image"));
+
     LAVFrame *pFrame = NULL;
-    CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
-    pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
-    return Deliver(pFrame);
+
+    if (m_pLastSequenceFrame->format == LAVPixFmt_DXVA2) {
+      AllocateFrame(&pFrame);
+      *pFrame = *m_pLastSequenceFrame;
+      IMediaSample *pSample = NULL;
+      HRESULT hr = m_pOutput->GetDeliveryBuffer(&pSample, NULL, NULL, 0);
+      if (SUCCEEDED(hr)) {
+        IMFGetService *pService = NULL;
+        hr = pSample->QueryInterface(&pService);
+        if (SUCCEEDED(hr)) {
+          IDirect3DSurface9 *pSurface = NULL;
+          hr = pService->GetService(MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (LPVOID *)&pSurface);
+          if (SUCCEEDED(hr)) {
+            pFrame->data[0] = (BYTE *)pSample;
+            pFrame->data[3] = (BYTE *)pSurface;
+
+            pSample->SetTime(&m_pLastSequenceFrame->rtStart, &m_pLastSequenceFrame->rtStop);
+
+            IDirect3DDevice9 *pDevice = NULL;
+            pSurface->GetDevice(&pDevice);
+            hr = pDevice->StretchRect((IDirect3DSurface9 *)m_pLastSequenceFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
+
+            pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
+            hr = Deliver(pFrame);
+
+            SafeRelease(&pSurface);
+          }
+          SafeRelease(&pService);
+        }
+        SafeRelease(&pSample);
+      }
+      return hr;
+    } else {
+      LAVFrame *pFrame = NULL;
+      CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
+      pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
+      return Deliver(pFrame);
+    }
+    return S_FALSE;
   }
 
   return S_FALSE;
