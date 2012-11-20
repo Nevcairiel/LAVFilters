@@ -269,7 +269,6 @@ HRESULT CLAVOutputPin::DeliverBeginFlush()
 HRESULT CLAVOutputPin::DeliverEndFlush()
 {
   DbgLog((LOG_TRACE, 20, L"::DeliverEndFlush on %s Pin", CBaseDemuxer::CStreamList::ToStringW(m_pinType)));
-  if(!ThreadExists()) return S_FALSE;
   HRESULT hr = IsConnected() ? GetConnected()->EndFlush() : S_OK;
 
   m_Parser.Flush();
