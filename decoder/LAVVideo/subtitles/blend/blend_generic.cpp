@@ -144,7 +144,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
           break;
         case 255:
           dstUV[(col << 1)+0] = srcU[col] << shift;
-          dstUV[(col << 1)+0] = srcV[col] << shift;
+          dstUV[(col << 1)+1] = srcV[col] << shift;
           break;
         default:
           dstUV[(col << 1)+0] = FAST_DIV255(dstUV[(col << 1)+0] * (255 - alpha) + (srcU[col] << shift) * alpha);
