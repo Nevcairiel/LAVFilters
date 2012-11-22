@@ -85,8 +85,8 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
   int yPos = position.y;
   int xPos = position.x;
 
-  const int hsub = (pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_NV12);
-  const int vsub = (pixFmt != LAVPixFmt_YUV444 && pixFmt != LAVPixFmt_YUV444bX);
+  const int hsub = nv12 || (pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_NV12);
+  const int vsub = nv12 || (pixFmt != LAVPixFmt_YUV444 && pixFmt != LAVPixFmt_YUV444bX);
   const int shift = sizeof(pixT) > 1 ? bpp - 8 : 0;
 
   for (line = 0; line < h; line++) {
