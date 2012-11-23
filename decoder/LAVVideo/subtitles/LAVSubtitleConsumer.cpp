@@ -130,23 +130,25 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
         if (FAILED(hr)) {
           DbgLog((LOG_TRACE, 10, L"CLAVSubtitleConsumer::ProcessFrame: getting a new D3D buffer failed"));
         } else {
+          IMediaSample *pNewSample = (IMediaSample *)pFrame->data[0];
+          pSurface = (LPDIRECT3DSURFACE9)pFrame->data[3];
           IDirect3DDevice9 *pDevice = NULL;
           if (SUCCEEDED(hr = pSurface->GetDevice(&pDevice))) {
-            hr = pDevice->StretchRect(pOrigSurface, NULL, (LPDIRECT3DSURFACE9)pFrame->data[3], NULL, D3DTEXF_NONE);
+            hr = pDevice->StretchRect(pOrigSurface, NULL, pSurface, NULL, D3DTEXF_NONE);
             if (SUCCEEDED(hr)) {
               pFrame->flags |= LAV_FRAME_FLAG_BUFFER_MODIFY;
               SafeRelease(&pOrigSample);
               pOrigSurface = NULL;
 
               // Release the surface, we only want to hold a ref on the media buffer
-              ((LPDIRECT3DSURFACE9)pFrame->data[3])->Release();
+              pSurface->Release();
             }
             SafeRelease(&pDevice);
           }
           if (FAILED(hr)) {
             DbgLog((LOG_TRACE, 10, L"CLAVSubtitleConsumer::ProcessFrame: processing d3d buffer failed, restoring previous buffer"));
-            ((IMediaSample *)pFrame->data[0])->Release();
-            ((LPDIRECT3DSURFACE9)pFrame->data[3])->Release();
+            pNewSample->Release();
+            pSurface->Release();
             pFrame->data[0] = (BYTE *)pOrigSample;
             pFrame->data[3] = (BYTE *)pOrigSurface;
           }
