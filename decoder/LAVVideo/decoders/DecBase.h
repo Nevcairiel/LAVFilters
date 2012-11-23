@@ -38,7 +38,7 @@ public:
   STDMETHODIMP_(BOOL) IsInterlaced() { return TRUE; }
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc) { return E_NOTIMPL; }
   STDMETHODIMP PostConnect(IPin *pPin) { return S_FALSE; }
-  STDMETHODIMP_(long) GetBufferCount() { return 4; }
+  STDMETHODIMP_(long) GetBufferCount() { return 2; }
 
   STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
 
