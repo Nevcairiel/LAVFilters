@@ -758,6 +758,49 @@ STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
   return buffers;
 }
 
+HRESULT CDecDXVA2::FindDecoderConfiguration(const GUID &input, const DXVA2_VideoDesc *pDesc, DXVA2_ConfigPictureDecode *pConfig)
+{
+  CheckPointer(pConfig, E_INVALIDARG);
+  CheckPointer(pDesc, E_INVALIDARG);
+  HRESULT hr = S_OK;
+  UINT cfg_count = 0;
+  DXVA2_ConfigPictureDecode *cfg_list = NULL;
+  hr = m_pDXVADecoderService->GetDecoderConfigurations(input, pDesc, NULL, &cfg_count, &cfg_list);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> GetDecoderConfigurations failed with hr: %X", hr));
+    return E_FAIL;
+  }
+
+  DbgLog((LOG_TRACE, 10, L"-> We got %d decoder configurations", cfg_count));
+  int best_score = 0;
+  DXVA2_ConfigPictureDecode best_cfg;
+  for (unsigned i = 0; i < cfg_count; i++) {
+    DXVA2_ConfigPictureDecode *cfg = &cfg_list[i];
+
+    int score;
+    if (cfg->ConfigBitstreamRaw == 1)
+      score = 1;
+    else if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && cfg->ConfigBitstreamRaw == 2)
+      score = 2;
+    else
+      continue;
+    if (IsEqualGUID(cfg->guidConfigBitstreamEncryption, DXVA2_NoEncrypt))
+      score += 16;
+    if (score > best_score) {
+      best_score = score;
+      best_cfg = *cfg;
+    }
+  }
+  SAFE_CO_FREE(cfg_list);
+  if (best_score <= 0) {
+    DbgLog((LOG_TRACE, 10, L"-> No matching configuration available"));
+    return E_FAIL;
+  }
+
+  *pConfig = best_cfg;
+  return S_OK;
+}
+
 HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfaces)
 {
   DbgLog((LOG_TRACE, 10, L"-> CDecDXVA2::CreateDXVA2Decoder"));
@@ -808,43 +851,13 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   desc.SampleHeight = m_pAVCtx->height;
   desc.Format = output;
 
-  UINT cfg_count = 0;
-  DXVA2_ConfigPictureDecode *cfg_list = NULL;
-  hr = m_pDXVADecoderService->GetDecoderConfigurations(input, &desc, NULL, &cfg_count, &cfg_list);
+  hr = FindDecoderConfiguration(input, &desc, &m_DXVAVideoDecoderConfig);
   if (FAILED(hr)) {
-    DbgLog((LOG_TRACE, 10, L"-> GetDecoderConfigurations failed with hr: %X", hr));
-    return E_FAIL;
+    DbgLog((LOG_TRACE, 10, L"-> FindDecoderConfiguration failed with hr: %X", hr));
+    return hr;
   }
 
-  DbgLog((LOG_TRACE, 10, L"-> We got %d decoder configurations", cfg_count));
-  int best_score = 0;
-  DXVA2_ConfigPictureDecode best_cfg;
-  for (unsigned i = 0; i < cfg_count; i++) {
-    DXVA2_ConfigPictureDecode *cfg = &cfg_list[i];
-
-    int score;
-    if (cfg->ConfigBitstreamRaw == 1)
-      score = 1;
-    else if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && cfg->ConfigBitstreamRaw == 2)
-      score = 2;
-    else
-      continue;
-    if (IsEqualGUID(cfg->guidConfigBitstreamEncryption, DXVA2_NoEncrypt))
-      score += 16;
-    if (score > best_score) {
-      best_score = score;
-      best_cfg = *cfg;
-    }
-  }
-  SAFE_CO_FREE(cfg_list);
-  if (best_score <= 0) {
-    DbgLog((LOG_TRACE, 10, L"-> No matching configuration available"));
-    return E_FAIL;
-  }
-
-  m_DXVAVideoDecoderConfig = best_cfg;
-
-  IDirectXVideoDecoder *decoder;
+  IDirectXVideoDecoder *decoder = NULL;
   hr = m_pDXVADecoderService->CreateVideoDecoder(input, &desc, &m_DXVAVideoDecoderConfig, ppSurfaces, m_NumSurfaces, &decoder);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> CreateVideoDecoder failed with hr: %X", hr));

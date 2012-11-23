@@ -76,6 +76,7 @@ private:
   HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
   HRESULT CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
   HRESULT FindVideoServiceConversion(AVCodecID codec, GUID *input, D3DFORMAT *output);
+  HRESULT FindDecoderConfiguration(const GUID &input, const DXVA2_VideoDesc *pDesc, DXVA2_ConfigPictureDecode *pConfig);
 
   HRESULT CreateDXVA2Decoder(int nSurfaces = 0, IDirect3DSurface9 **ppSurfaces = NULL);
   HRESULT SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager);
