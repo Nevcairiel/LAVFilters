@@ -416,10 +416,8 @@ HRESULT CDecDXVA2::CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDi
   }
 
   (*ppService) = pService;
-  (*ppService)->AddRef();
 
 done:
-  SafeRelease(&pService);
   return hr;
 }
 
@@ -632,6 +630,9 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
   if (m_bNative) {
     RetrieveVendorId(pDevManager);
   }
+
+  // This should really be null here, but since we're overwriting it, make sure its actually released
+  SafeRelease(&m_pDXVADecoderService);
 
   hr = CreateDXVAVideoService(m_pD3DDevMngr, &m_pDXVADecoderService);
   if (FAILED(hr)) {
