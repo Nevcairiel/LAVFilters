@@ -1456,9 +1456,6 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     }
   }
 
-  pSampleOut->SetTime(&pFrame->rtStart, &pFrame->rtStop);
-  pSampleOut->SetMediaTime(NULL, NULL);
-
   CMediaType& mt = m_pOutput->CurrentMediaType();
   BITMAPINFOHEADER *pBIH = NULL;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
@@ -1537,6 +1534,11 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
       bSizeChanged = TRUE;
   }
 
+  // Set frame timings..
+  pSampleOut->SetTime(&pFrame->rtStart, &pFrame->rtStop);
+  pSampleOut->SetMediaTime(NULL, NULL);
+
+  // And frame flags..
   SetFrameFlags(pSampleOut, pFrame);
 
   // Release frame before delivery, so it can be re-used by the decoder (if required)
