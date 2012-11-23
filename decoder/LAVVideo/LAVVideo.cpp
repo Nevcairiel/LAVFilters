@@ -1426,6 +1426,17 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     pFrame->ext_format.NominalRange = DXVA2_NominalRange_0_255;
   }
 
+  // Check if we are doing RGB output
+  BOOL bRGBOut = (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32);
+  // And blend subtitles if we're on YUV output before blending (because the output YUV formats are more complicated to handle)
+  if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
+    m_SubtitleConsumer->SetVideoSize(width, height);
+    m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
+    if (!bRGBOut)
+      m_SubtitleConsumer->ProcessFrame(pFrame);
+  }
+
+  // Grab a media sample, and start assembling the data for it.
   IMediaSample *pSampleOut = NULL;
   BYTE         *pDataOut   = NULL;
 
@@ -1451,16 +1462,6 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   CMediaType& mt = m_pOutput->CurrentMediaType();
   BITMAPINFOHEADER *pBIH = NULL;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
-
-  // Check if we are doing RGB output
-  BOOL bRGBOut = (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32);
-  // And blend subtitles if we're on YUV output before blending (because the output YUV formats are more complicated to handle)
-  if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
-    m_SubtitleConsumer->SetVideoSize(width, height);
-    m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
-    if (!bRGBOut)
-      m_SubtitleConsumer->ProcessFrame(pFrame);
-  }
 
   if (pFrame->format != LAVPixFmt_DXVA2) {
     long required = pBIH->biSizeImage;
