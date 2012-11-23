@@ -46,6 +46,7 @@ public:
 private:
   HRESULT LoadData();
   HRESULT UpdateHWOptions();
+  HRESULT UpdateYADIFOptions();
 
   void SetDirty()
   {

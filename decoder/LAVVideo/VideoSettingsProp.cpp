@@ -292,6 +292,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_DITHER_RANDOM, BM_SETCHECK, (m_DitherMode == LAVDither_Random), 0);
 
     UpdateHWOptions();
+    UpdateYADIFOptions();
   }
 
   const WCHAR *decoder = m_pVideoStatus->GetActiveDecoderName();
@@ -334,6 +335,17 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   WCHAR hwAccelActive[]      = L"Active";
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AVAIL, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_None ? hwAccelEmpty : dwSupport == 0 ? hwAccelUnavailable : dwSupport == 1 ? hwAccelAvailable : hwAccelActive));
+
+  return S_OK;
+}
+
+HRESULT CLAVVideoSettingsProp::UpdateYADIFOptions()
+{
+  BOOL bYadifEnabled = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_GETCHECK, 0, 0);
+
+  EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_SWDEINT_MODE), bYadifEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_FILM), bYadifEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_VIDEO), bYadifEnabled);
 
   return S_OK;
 }
@@ -573,6 +585,7 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       if (bValue != m_SWDeint) {
         SetDirty();
       }
+      UpdateYADIFOptions();
     } else if (LOWORD(wParam) == IDC_DITHER_ORDERED && HIWORD(wParam) == BN_CLICKED) {
       lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (lValue != (m_DitherMode == LAVDither_Ordered)) {
