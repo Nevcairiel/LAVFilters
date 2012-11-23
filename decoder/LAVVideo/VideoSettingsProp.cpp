@@ -217,6 +217,10 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
   addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
 
+  addHint(IDC_HWRES_SD, L"Use Hardware Decoding for Standard-definition content (DVD, SDTV)");
+  addHint(IDC_HWRES_HD, L"Use Hardware Decoding for High-definition content (Blu-ray, HDTV)");
+  addHint(IDC_HWRES_UHD, L"Use Hardware Decoding for Ultra-high-definition content (4K, UHDTV)");
+
   addHint(IDC_DEINT_AGGRESSIVE, L"Force deinterlacing of all frames if the stream is flagged interlaced.");
   addHint(IDC_DEINT_FORCE, L"Force deinterlacing of all frames flagged as progressive (always).");
   addHint(IDC_DEINT_PROGRESSIVE, L"Treat all streams/frames as progressive, disabling all forms of deinterlacing completely.\n\nNOTE: This includes deinterlacing by the renderer.\nIf this option is checked, LAV Video will no longer tell the renderer that the material is interlaced.");
