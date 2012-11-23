@@ -461,10 +461,13 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
   CMediaType mtOut = m_pOutput->CurrentMediaType();
   videoFormatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH, NULL);
 
+  long downstreamBuffers = pProperties->cBuffers;
   pProperties->cBuffers = max(pProperties->cBuffers, 2) + m_Decoder.GetBufferCount();
   pProperties->cbBuffer = pBIH->biSizeImage;
   pProperties->cbAlign  = 1;
   pProperties->cbPrefix = 0;
+
+  DbgLog((LOG_TRACE, 10, L" -> Downstream wants %d buffers, decoder wants %d, for a total of: %d", downstreamBuffers, m_Decoder.GetBufferCount(), pProperties->cBuffers));
 
   HRESULT hr;
   ALLOCATOR_PROPERTIES Actual;
