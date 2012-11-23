@@ -1577,7 +1577,7 @@ HRESULT CLAVVideo::GetD3DBuffer(LAVFrame *pFrame)
   return hr;
 }
 
-STDMETHODIMP CLAVVideo::RedrawStillImage()
+HRESULT CLAVVideo::RedrawStillImage()
 {
   if (m_pLastSequenceFrame) {
     CAutoLock lock(&m_csReceive);

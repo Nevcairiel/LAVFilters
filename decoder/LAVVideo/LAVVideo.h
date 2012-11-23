@@ -152,9 +152,6 @@ public:
   STDMETHODIMP DVDStripPacket(BYTE*& p, long& len) { static_cast<CDeCSSTransformInputPin*>(m_pInput)->StripPacket(p, len); return S_OK; }
   STDMETHODIMP_(LAVFrame*) GetFlushFrame();
 
-  STDMETHODIMP RedrawStillImage();
-  STDMETHODIMP SetInDVDMenu(bool menu) { m_bInDVDMenu = menu; return S_OK; }
-
 public:
   // Pin Configuration
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesIn[];
@@ -191,10 +188,13 @@ private:
   HRESULT ReleaseLastSequenceFrame();
 
   HRESULT GetD3DBuffer(LAVFrame *pFrame);
+  HRESULT RedrawStillImage();
+  HRESULT SetInDVDMenu(bool menu) { m_bInDVDMenu = menu; return S_OK; }
 
 private:
   friend class CVideoOutputPin;
   friend class CDecodeThread;
+  friend class CLAVSubtitleConsumer;
 
   CDecodeThread        m_Decoder;
 
