@@ -925,7 +925,9 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
 
   pic->type = FF_BUFFER_TYPE_USER;
 
-  //pDec->m_pD3DDevMngr->TestDevice(
+  if (FAILED(pDec->m_pD3DDevMngr->TestDevice(pDec->m_hDevice))) {
+    DbgLog((LOG_ERROR, 10, L"Device Lost"));
+  }
 
   int i;
   if (pDec->m_bNative) {
