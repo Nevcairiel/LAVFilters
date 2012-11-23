@@ -642,11 +642,49 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
 
   // If the decoder was initialized already, check if we can use this device
   if (m_pAVCtx) {
+    DbgLog((LOG_TRACE, 10, L"-> Checking hardware for format support..."));
+
     GUID input = GUID_NULL;
     D3DFORMAT output;
     hr = FindVideoServiceConversion(m_pAVCtx->codec_id, &input, &output);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> No decoder device available that can decode codec '%S' to NV12", avcodec_get_name(m_pAVCtx->codec_id)));
+      goto done;
+    }
+
+    DXVA2_VideoDesc desc;
+    ZeroMemory(&desc, sizeof(desc));
+    desc.SampleWidth = m_pAVCtx->width;
+    desc.SampleHeight = m_pAVCtx->height;
+    desc.Format = output;
+
+    DXVA2_ConfigPictureDecode config;
+    hr = FindDecoderConfiguration(input, &desc, &config);
+    if (FAILED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"-> No decoder configuration available for codec '%S'", avcodec_get_name(m_pAVCtx->codec_id)));
+      goto done;
+    }
+
+    LPDIRECT3DSURFACE9 pSurfaces[DXVA2_MAX_SURFACES] = {0};
+    UINT numSurfaces = max(config.ConfigMinRenderTargetBuffCount, 1);
+    hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, max(config.ConfigMinRenderTargetBuffCount, 1), output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, NULL);
+    if (FAILED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"-> Creation of surfaces failed with hr: %X", hr));
+      goto done;
+    }
+
+    IDirectXVideoDecoder *decoder = NULL;
+    hr = m_pDXVADecoderService->CreateVideoDecoder(input, &desc, &config, pSurfaces, numSurfaces, &decoder);
+
+    // Release resources, decoder and surfaces
+    SafeRelease(&decoder);
+    int i = DXVA2_MAX_SURFACES;
+    while (i > 0) {
+      SafeRelease(&pSurfaces[--i]);
+    }
+
+    if (FAILED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"-> Creation of decoder failed with hr: %X", hr));
       goto done;
     }
   }
@@ -735,13 +773,6 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, 16);
   m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, 16);
-
-  if (m_bNative) {
-    if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
-      DbgLog((LOG_TRACE, 10, L"-> Unsupported video dimensions (%dx%d)", m_pAVCtx->coded_width, m_pAVCtx->coded_height));
-      return E_FAIL;
-    }
-  }
 
   return S_OK;
 }
