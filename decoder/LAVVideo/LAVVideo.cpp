@@ -161,6 +161,8 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.bHWFormats[HWCodec_MPEG4] = FALSE;
 
+  m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD;
+
   m_settings.HWDeintMode = HWDeintMode_Weave;
   m_settings.HWDeintOutput = DeintOutput_FramePerField;
   m_settings.HWDeintHQ = IsVistaOrNewer(); // Activate by default on Vista and above, on XP it causes issues
@@ -260,6 +262,9 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = regHW.ReadBOOL(L"dvd", hr);
   if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2DVD] = bFlag;
 
+  dwVal = regHW.ReadDWORD(L"HWResFlags", hr);
+  if (SUCCEEDED(hr)) m_settings.HWAccelResFlags = dwVal;
+
   dwVal = regHW.ReadDWORD(L"HWDeintMode", hr);
   if (SUCCEEDED(hr)) m_settings.HWDeintMode = dwVal;
 
@@ -321,6 +326,8 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteBOOL(L"mpeg2",m_settings.bHWFormats[HWCodec_MPEG2]);
     regHW.WriteBOOL(L"mpeg4",m_settings.bHWFormats[HWCodec_MPEG4]);
     regHW.WriteBOOL(L"dvd",m_settings.bHWFormats[HWCodec_MPEG2DVD]);
+
+    regHW.WriteDWORD(L"HWResFlags", m_settings.HWAccelResFlags);
 
     regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
@@ -1926,4 +1933,15 @@ STDMETHODIMP CLAVVideo::SetDVDVideoSupport(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVVideo::GetDVDVideoSupport()
 {
   return m_settings.bDVDVideo;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelResolutionFlags(DWORD dwResFlags)
+{
+  m_settings.HWAccelResFlags = dwResFlags;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelResolutionFlags()
+{
+  return m_settings.HWAccelResFlags;
 }

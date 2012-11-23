@@ -114,6 +114,9 @@ public:
   STDMETHODIMP SetDVDVideoSupport(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetDVDVideoSupport();
 
+  STDMETHODIMP SetHWAccelResolutionFlags(DWORD dwResFlags);
+  STDMETHODIMP_(DWORD) GetHWAccelResolutionFlags();
+
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
 
@@ -251,6 +254,7 @@ private:
     DWORD RGBRange;
     DWORD HWAccel;
     BOOL bHWFormats[HWCodec_NB];
+    DWORD HWAccelResFlags;
     DWORD HWDeintMode;
     DWORD HWDeintOutput;
     BOOL HWDeintHQ;

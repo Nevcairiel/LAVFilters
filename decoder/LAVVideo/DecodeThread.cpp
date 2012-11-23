@@ -369,6 +369,11 @@ DWORD CDecodeThread::ThreadProc()
 || ((codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_MPEG1VIDEO) && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2) && (!(GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) || m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2DVD)))            \
 || (codec == AV_CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)))
 
+#define HWRESOLUTION_ENABLED \
+  ((pBMI->biHeight <= 576 && pBMI->biWidth <= 1024 && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_SD)     \
+|| ((pBMI->biHeight > 576 || pBMI->biWidth > 1024) && pBMI->biHeight <= 1200 && pBMI->biWidth <= 1920 && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_HD)    \
+|| ((pBMI->biHeight > 1200 || pBMI->biWidth > 1920) && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_UHD))
+
 STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodecID codec)
 {
   DbgLog((LOG_TRACE, 10, L"CDecodeThread::CreateDecoderInternal(): Creating new decoder for codec %S", avcodec_get_name(codec)));
@@ -377,8 +382,11 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodec
   BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
   DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
 
+  BITMAPINFOHEADER *pBMI = NULL;
+  videoFormatTypeHandler(*pmt, &pBMI);
+
   // Try reusing the current HW decoder
-  if (m_pDecoder && m_bHWDecoder && !m_bHWDecoderFailed && HWFORMAT_ENABLED) {
+  if (m_pDecoder && m_bHWDecoder && !m_bHWDecoderFailed && HWFORMAT_ENABLED && HWRESOLUTION_ENABLED) {
     DbgLog((LOG_TRACE, 10, L"-> Trying to re-use old HW Decoder"));
     hr = m_pDecoder->InitDecoder(codec, pmt);
     goto done;
@@ -386,7 +394,7 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodec
   SAFE_DELETE(m_pDecoder);
 
   LAVHWAccel hwAccel = m_pLAVVideo->GetHWAccel();
-  if (!bHWDecBlackList &&  hwAccel != HWAccel_None && !m_bHWDecoderFailed && HWFORMAT_ENABLED)
+  if (!bHWDecBlackList &&  hwAccel != HWAccel_None && !m_bHWDecoderFailed && HWFORMAT_ENABLED && HWRESOLUTION_ENABLED)
   {
     DbgLog((LOG_TRACE, 10, L"-> Trying Hardware Codec %d", hwAccel));
     if (hwAccel == HWAccel_CUDA)

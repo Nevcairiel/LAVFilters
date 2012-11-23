@@ -71,6 +71,8 @@ private:
   DWORD m_HWAccel;
   BOOL  m_HWAccelCodecs[HWCodec_NB];
 
+  DWORD m_HWRes;
+
   DWORD m_HWDeintAlgo;
   DWORD m_HWDeintOutMode;
   BOOL  m_HWDeintHQ;

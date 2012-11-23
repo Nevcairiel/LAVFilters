@@ -69,7 +69,6 @@
 #define IDC_OUT_V410                    1063
 #define IDC_HWACCEL_MPEG4               1064
 #define IDC_LBL_FORMATS                 1065
-#define IDC_HWACCEL_MPEG2_DVD           1065
 #define IDC_DITHER_ORDERED              1066
 #define IDC_DITHER_RANDOM               1067
 #define IDC_CODECS_MSWMVDMO             1068
@@ -79,6 +78,10 @@
 #define IDC_GROUP_HWDEINT               1072
 #define IDC_HWDEINT_ENABLE              1073
 #define IDC_LBL_HWRESOLUTIONS           1074
+#define IDC_HWRES_SD                    1075
+#define IDC_HWRES_HD                    1076
+#define IDC_HWRES_UHD                   1077
+#define IDC_HWACCEL_MPEG2_DVD           1078
 
 // Next default values for new objects
 // 
@@ -86,7 +89,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1075
+#define _APS_NEXT_CONTROL_VALUE         1079
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
