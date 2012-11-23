@@ -747,7 +747,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
 STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
 {
-  long buffers = (m_pAVCtx->codec_id == AV_CODEC_ID_H264) ? 16 + 4 : 2 + 4;
+  long buffers = (m_pAVCtx->codec_id == AV_CODEC_ID_H264) ? 16 + 4 : 4 + 4;
   if (!m_bNative) {
     buffers += m_DisplayDelay;
   }
