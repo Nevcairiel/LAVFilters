@@ -1604,7 +1604,7 @@ HRESULT CLAVVideo::RedrawStillImage()
         if (SUCCEEDED(pSurface->GetDevice(&pDevice))) {
           hr = pDevice->StretchRect((IDirect3DSurface9 *)m_pLastSequenceFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
           if (SUCCEEDED(hr)) {
-            pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
+            pFrame->flags |= LAV_FRAME_FLAG_REDRAW|LAV_FRAME_FLAG_BUFFER_MODIFY;
             hr = Deliver(pFrame);
           }
           SafeRelease(&pDevice);
