@@ -751,6 +751,9 @@ STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
   if (!m_bNative) {
     buffers += m_DisplayDelay;
   }
+  if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) {
+    buffers += 4;
+  }
   return buffers;
 }
 
