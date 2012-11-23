@@ -127,10 +127,8 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2_DVD, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelCodec(HWCodec_MPEG2DVD, bFlag);
 
-  BOOL bWeave = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_WEAVE, BM_GETCHECK, 0, 0);
-  BOOL bBOB = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_BOB, BM_GETCHECK, 0, 0);
-  BOOL bAdaptive = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ADAPTIVE, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetHWAccelDeintMode(bWeave ? HWDeintMode_Weave : bBOB ? HWDeintMode_BOB : HWDeintMode_Hardware);
+  BOOL bHWDeint = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ENABLE, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelDeintMode(bHWDeint ? HWDeintMode_Hardware : HWDeintMode_Weave);
 
   BOOL bFilm = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_GETCHECK, 0, 0);
   //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
@@ -259,9 +257,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG4, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG4], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2_DVD, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2DVD], 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_WEAVE, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_Weave), 0);
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_BOB, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_BOB), 0);
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ADAPTIVE, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_Hardware), 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ENABLE, BM_SETCHECK, (m_HWDeintAlgo == HWDeintMode_Hardware), 0);
 
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePer2Field), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePerField), 0);
@@ -301,9 +297,8 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bCUDAOnly);
 
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_WEAVE), bHWDeint);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_BOB), bCUDAOnly);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_ADAPTIVE), bHWDeint);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_ENABLE), bHWDeint);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_HWDEINT_MODE), bHWDeint);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_FILM), bHWDeint);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_VIDEO), bHWDeint);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bCUDAOnly);
@@ -515,17 +510,7 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       if (bValue != m_HWAccelCodecs[HWCodec_MPEG2DVD]) {
         SetDirty();
       }
-    } else if (LOWORD(wParam) == IDC_HWDEINT_WEAVE && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != (m_HWDeintAlgo == HWDeintMode_Weave)) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_HWDEINT_BOB && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != (m_HWDeintAlgo == HWDeintMode_BOB)) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_HWDEINT_ADAPTIVE && HIWORD(wParam) == BN_CLICKED) {
+    } else if (LOWORD(wParam) == IDC_HWDEINT_ENABLE && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != (m_HWDeintAlgo == HWDeintMode_Hardware)) {
         SetDirty();

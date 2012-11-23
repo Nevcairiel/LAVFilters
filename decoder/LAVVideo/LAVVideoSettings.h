@@ -105,7 +105,7 @@ typedef enum LAVHWAccel {
 // Deinterlace algorithms offered by the hardware decoders
 typedef enum LAVHWDeintModes {
   HWDeintMode_Weave,
-  HWDeintMode_BOB,
+  HWDeintMode_BOB, // Deprecated
   HWDeintMode_Hardware
 };
 
