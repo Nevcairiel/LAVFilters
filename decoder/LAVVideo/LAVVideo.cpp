@@ -1446,7 +1446,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
   if (pFrame->format == LAVPixFmt_DXVA2) {
     pSampleOut = (IMediaSample *)pFrame->data[0];
-    pSampleOut->AddRef();
+    // Addref the sample if we need to. If its coming from the decoder, it should be addref'ed,
+    // but if its a copy from the subtitle engine, then it should not be addref'ed.
+    if (!(pFrame->flags & LAV_FRAME_FLAG_DXVA_NOADDREF))
+      pSampleOut->AddRef();
 
     ReconnectOutput(width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration, TRUE);
   } else {

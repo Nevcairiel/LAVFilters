@@ -116,6 +116,7 @@ typedef struct LAVFrame {
 #define LAV_FRAME_FLAG_END_OF_SEQUENCE      0x00000002
 #define LAV_FRAME_FLAG_FLUSH                0x00000004
 #define LAV_FRAME_FLAG_REDRAW               0x00000008
+#define LAV_FRAME_FLAG_DXVA_NOADDREF        0x00000010
 
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);

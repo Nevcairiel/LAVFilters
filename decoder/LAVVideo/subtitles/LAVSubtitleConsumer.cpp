@@ -136,8 +136,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
           if (SUCCEEDED(hr = pSurface->GetDevice(&pDevice))) {
             hr = pDevice->StretchRect(pOrigSurface, NULL, pSurface, NULL, D3DTEXF_NONE);
             if (SUCCEEDED(hr)) {
-              pFrame->flags |= LAV_FRAME_FLAG_BUFFER_MODIFY;
-              SafeRelease(&pOrigSample);
+              pFrame->flags |= LAV_FRAME_FLAG_BUFFER_MODIFY|LAV_FRAME_FLAG_DXVA_NOADDREF;
               pOrigSurface = NULL;
 
               // Release the surface, we only want to hold a ref on the media buffer
