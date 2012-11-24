@@ -953,6 +953,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
       hr = pDec->m_pDXVA2Allocator->Decommit();
       if (pDec->m_pDXVA2Allocator->DecommitInProgress()) {
         DbgLog((LOG_TRACE, 10, L"WARNING! DXVA2 Allocator is still busy, trying to flush downstream"));
+        pDec->m_pCallback->ReleaseAllDXVAResources();
         pDec->m_pCallback->GetOutputPin()->GetConnected()->BeginFlush();
         pDec->m_pCallback->GetOutputPin()->GetConnected()->EndFlush();
         if (pDec->m_pDXVA2Allocator->DecommitInProgress()) {

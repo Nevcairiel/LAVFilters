@@ -65,6 +65,7 @@ public:
   STDMETHODIMP_(CMediaType&) GetOutputMediaType();
   STDMETHODIMP DVDStripPacket(BYTE*& p, long& len);
   STDMETHODIMP_(LAVFrame*) GetFlushFrame();
+  STDMETHODIMP ReleaseAllDXVAResources();
 
 protected:
   DWORD ThreadProc();

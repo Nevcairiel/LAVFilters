@@ -252,6 +252,11 @@ interface ILAVVideoCallback
    * Get a Dummy frame used for flusing
    */
   STDMETHOD_(LAVFrame*,GetFlushFrame)() PURE;
+
+  /**
+   * Ask the decoder to release all DXVA resources
+   */
+  STDMETHOD(ReleaseAllDXVAResources)() PURE;
 };
 
 /**
