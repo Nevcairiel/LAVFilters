@@ -1,5 +1,19 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.54.0 - 2012/11/24
+LAV Splitter
+- Subtitle selection in "Default" mode now properly takes the "Default Track" flag into account
+- Fixed an issue that could cause graph flush events to be send out of sync
+
+LAV Video
+- The DXVA2 Native decoder can now properly detect hardware support for video resolutions
+  - Allows 4K DXVA2 decoding on NVIDIA
+- New options to control which resolutions are being handled by the hardware decoder (SD, HD and 4K/UHD)
+- Added support for DVD menu overlays and DVD subtitles with DXVA2 Native.
+- Improved DXVA2 Native support with madVR
+- Fixed a freeze when playing corrupted H.264 streams in DXVA2 Native.
+- Fixed a few rare DVD menu issues when using the QuickSync decoder
+
 0.53.2 - 2012/11/11
 LAV Video
 - Fixed DVD menu still frames with DXVA2 Copy Back
