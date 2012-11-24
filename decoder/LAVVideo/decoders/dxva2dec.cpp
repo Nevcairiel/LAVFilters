@@ -118,6 +118,12 @@ static const dxva2_mode_t dxva2_modes[] = {
   { "H.264 MVC variable-length decoder, stereo",                                    &DXVA_ModeH264_VLD_Stereo_NoFGT,             0 },
   { "H.264 MVC variable-length decoder, multiview",                                 &DXVA_ModeH264_VLD_Multiview_NoFGT,          0 },
 
+  /* H.264 SVC */
+  { "H.264 SVC variable-length decoder, baseline",                                  &DXVA_ModeH264_VLD_SVC_Scalable_Baseline,                    0 },
+  { "H.264 SVC variable-length decoder, constrained baseline",                      &DXVA_ModeH264_VLD_SVC_Restricted_Scalable_Baseline,         0 },
+  { "H.264 SVC variable-length decoder, high",                                      &DXVA_ModeH264_VLD_SVC_Scalable_High,                        0 },
+  { "H.264 SVC variable-length decoder, constrained high progressive",              &DXVA_ModeH264_VLD_SVC_Restricted_Scalable_High_Progressive, 0 },
+
   { NULL, NULL, 0 }
 };
 
