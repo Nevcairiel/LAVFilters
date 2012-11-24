@@ -627,9 +627,15 @@ done:
 
 HRESULT CDecDXVA2::CheckHWCompatConditions()
 {
+  int max_ref_frames_dpb41 = min(11, 8388608 / (m_dwSurfaceWidth * m_dwSurfaceHeight));
   if (m_dwVendorId == VEND_ID_ATI) {
     if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
       DbgLog((LOG_TRACE, 10, L"-> UHD/4K resolutions blacklisted on AMD/ATI GPUs"));
+      return E_FAIL;
+    }
+  } else if (m_dwVendorId == VEND_ID_INTEL) {
+    if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && m_pAVCtx->refs > max_ref_frames_dpb41) {
+      DbgLog((LOG_TRACE, 10, L"-> Too many reference frames for Intel H.264 decoder implementation"));
       return E_FAIL;
     }
   }
