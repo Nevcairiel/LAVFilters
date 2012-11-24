@@ -195,6 +195,7 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
 {
   SafeRelease(&m_pDecoder);
 
+  m_pCallback->ReleaseAllDXVAResources();
   for (int i = 0; i < m_NumSurfaces; i++) {
     SafeRelease(&m_pSurfaces[i].d3d);
     // To avoid a double free, remove the reference first, then call the release
@@ -272,6 +273,8 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
     DbgLog((LOG_ERROR, 10, L"-> IMFGetService not available"));
     goto done;
   }
+
+  m_pCallback->ReleaseAllDXVAResources();
 
   // Release old device manager, we're about to grab a new one
   SafeRelease(&m_pD3DDevMngr);
