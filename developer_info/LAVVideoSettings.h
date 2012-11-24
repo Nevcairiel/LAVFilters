@@ -92,6 +92,11 @@ typedef enum LAVVideoHWCodec {
   HWCodec_NB    = HWCodec_MPEG2DVD + 1
 };
 
+// Flags for HW Resolution support
+#define LAVHWResFlag_SD      0x0001
+#define LAVHWResFlag_HD      0x0002
+#define LAVHWResFlag_UHD     0x0004
+
 // Type of hardware accelerations
 typedef enum LAVHWAccel {
   HWAccel_None,
@@ -105,7 +110,7 @@ typedef enum LAVHWAccel {
 // Deinterlace algorithms offered by the hardware decoders
 typedef enum LAVHWDeintModes {
   HWDeintMode_Weave,
-  HWDeintMode_BOB,
+  HWDeintMode_BOB, // Deprecated
   HWDeintMode_Hardware
 };
 
@@ -310,6 +315,14 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get if DVD Video support is enabled
   STDMETHOD_(BOOL,GetDVDVideoSupport)() = 0;
+
+  // Set the HW Accel Resolution Flags
+  // flags: bitmask of LAVHWResFlag flags
+  STDMETHOD(SetHWAccelResolutionFlags)(DWORD dwResFlags) = 0;
+
+  // Get the HW Accel Resolution Flags
+  // flags: bitmask of LAVHWResFlag flags
+  STDMETHOD_(DWORD, GetHWAccelResolutionFlags)() = 0;
 };
 
 // LAV Video status interface
