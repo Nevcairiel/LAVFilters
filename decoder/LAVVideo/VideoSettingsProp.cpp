@@ -219,7 +219,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
   addHint(IDC_HWRES_SD, L"Use Hardware Decoding for Standard-definition content (DVD, SDTV)\n\nThis affects all videos with a resolution less than 1024x576 (DVD resolution)");
   addHint(IDC_HWRES_HD, L"Use Hardware Decoding for High-definition content (Blu-ray, HDTV)\n\nAffects all videos above SD resolution, up to Full-HD, 1920x1200");
-  addHint(IDC_HWRES_UHD, L"Use Hardware Decoding for Ultra-high-definition content (4K, UHDTV)\n\nAffects all videos above HD resolution. Note that not all hardware supports decoding 4K/UHD content.");
+  addHint(IDC_HWRES_UHD, L"Use Hardware Decoding for Ultra-high-definition content (4K, UHDTV)\n\nAffects all videos above HD resolution. Note that not all hardware supports decoding 4K/UHD content. On AMD GPUs, 4K support is very fragile, and may even cause crashes or BSODs, use at your own risk.");
 
   addHint(IDC_DEINT_AGGRESSIVE, L"Force deinterlacing of all frames if the stream is flagged interlaced.");
   addHint(IDC_DEINT_FORCE, L"Force deinterlacing of all frames flagged as progressive (always).");
