@@ -9,9 +9,9 @@ LAV Video
 - The DXVA2 Native decoder can now properly detect hardware support for video resolutions
   - Allows 4K DXVA2 decoding on NVIDIA
 - New options to control which resolutions are being handled by the hardware decoder (SD, HD and 4K/UHD)
-- Added support for DVD menu overlays and DVD subtitles with DXVA2 Native.
+- Added support for DVD menu overlays and DVD subtitles with DXVA2 Native
 - Improved DXVA2 Native support with madVR
-- Fixed a freeze when playing corrupted H.264 streams in DXVA2 Native.
+- Fixed a freeze when playing corrupted H.264 streams in DXVA2 Native
 - Fixed a few rare DVD menu issues when using the QuickSync decoder
 
 0.53.2 - 2012/11/11
@@ -65,7 +65,7 @@ LAV Video
 - Slight GPU memory usage reduction with DXVA2 Native
 - Fixed video corruption after seeks with VP3/Theora
 - Fixed decoding of "old" H.264 4:4:4 lossless files
-- More stricter handling of output pixel formats, only enabled formats are allowed for output
+- More strict handling of output pixel formats, only enabled formats are allowed for output
 - QuickSync: Improved compatibility with new driver series
 - Improved support for VC-1 with the SageTV MpegDemux
 
