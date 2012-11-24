@@ -625,6 +625,17 @@ done:
   return hr;
 }
 
+HRESULT CDecDXVA2::CheckHWCompatConditions()
+{
+  if (m_dwVendorId == VEND_ID_ATI) {
+    if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
+      DbgLog((LOG_TRACE, 10, L"-> UHD/4K resolutions blacklisted on AMD/ATI GPUs"));
+      return E_FAIL;
+    }
+  }
+  return S_OK;
+}
+
 /**
  * Called from both native and non-native mode
  * Initialize all the common DXVA2 interfaces and device handles
@@ -659,12 +670,9 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
       goto done;
     }
 
-    if (m_dwVendorId == VEND_ID_ATI) {
-      if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
-        DbgLog((LOG_TRACE, 10, L"-> UHD/4K resolutions blacklisted on AMD/ATI GPUs"));
-        hr = E_FAIL;
-        goto done;
-      }
+    if (FAILED(CheckHWCompatConditions())) {
+      hr = E_FAIL;
+      goto done;
     }
 
     DXVA2_VideoDesc desc;
@@ -789,11 +797,8 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, 16);
   m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, 16);
 
-  if (m_dwVendorId == VEND_ID_ATI) {
-    if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
-      DbgLog((LOG_TRACE, 10, L"-> UHD/4K resolutions blacklisted on AMD/ATI GPUs"));
-      return E_FAIL;
-    }
+  if (FAILED(CheckHWCompatConditions())) {
+    return E_FAIL;
   }
 
   return S_OK;

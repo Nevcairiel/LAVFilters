@@ -82,6 +82,7 @@ private:
   HRESULT SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager);
   HRESULT DXVA2NotifyEVR();
   HRESULT RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager);
+  HRESULT CheckHWCompatConditions();
 
   static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
   static void release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
