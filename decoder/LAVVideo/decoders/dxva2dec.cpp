@@ -61,13 +61,6 @@ typedef struct {
 } dxva2_mode_t;
 /* XXX Prefered modes must come first */
 static const dxva2_mode_t dxva2_modes[] = {
-  /* Intel specific modes (sometimes work better on newer GPUs) */
-  { "H.264 variable-length decoder, no film grain technology (Intel ClearVideo)",   &DXVADDI_Intel_ModeH264_E,              AV_CODEC_ID_H264 },
-  { "H.264 inverse discrete cosine transform, no film grain technology (Intel)",    &DXVADDI_Intel_ModeH264_C,              0 },
-  { "H.264 motion compensation, no film grain technology (Intel)",                  &DXVADDI_Intel_ModeH264_A,              0 },
-  { "VC-1 variable-length decoder 2 (Intel)",                                       &DXVA_Intel_VC1_ClearVideo_2,           0 },
-  { "VC-1 variable-length decoder (Intel)",                                         &DXVA_Intel_VC1_ClearVideo,             0 },
-
   /* MPEG-1/2 */
   { "MPEG-2 variable-length decoder",                                               &DXVA2_ModeMPEG2_VLD,                   AV_CODEC_ID_MPEG2VIDEO },
   { "MPEG-2 & MPEG-1 variable-length decoder",                                      &DXVA2_ModeMPEG2and1_VLD,               AV_CODEC_ID_MPEG2VIDEO },
@@ -123,6 +116,13 @@ static const dxva2_mode_t dxva2_modes[] = {
   { "H.264 SVC variable-length decoder, constrained baseline",                      &DXVA_ModeH264_VLD_SVC_Restricted_Scalable_Baseline,         0 },
   { "H.264 SVC variable-length decoder, high",                                      &DXVA_ModeH264_VLD_SVC_Scalable_High,                        0 },
   { "H.264 SVC variable-length decoder, constrained high progressive",              &DXVA_ModeH264_VLD_SVC_Restricted_Scalable_High_Progressive, 0 },
+
+  /* Intel specific modes (only useful on older GPUs) */
+  { "H.264 variable-length decoder, no film grain technology (Intel ClearVideo)",   &DXVADDI_Intel_ModeH264_E,              AV_CODEC_ID_H264 },
+  { "H.264 inverse discrete cosine transform, no film grain technology (Intel)",    &DXVADDI_Intel_ModeH264_C,              0 },
+  { "H.264 motion compensation, no film grain technology (Intel)",                  &DXVADDI_Intel_ModeH264_A,              0 },
+  { "VC-1 variable-length decoder 2 (Intel)",                                       &DXVA_Intel_VC1_ClearVideo_2,           0 },
+  { "VC-1 variable-length decoder (Intel)",                                         &DXVA_Intel_VC1_ClearVideo,             0 },
 
   { NULL, NULL, 0 }
 };
@@ -625,7 +625,7 @@ done:
   return hr;
 }
 
-HRESULT CDecDXVA2::CheckHWCompatConditions()
+HRESULT CDecDXVA2::CheckHWCompatConditions(GUID decoderGuid)
 {
   int max_ref_frames_dpb41 = min(11, 8388608 / (m_dwSurfaceWidth * m_dwSurfaceHeight));
   if (m_dwVendorId == VEND_ID_ATI) {
@@ -633,7 +633,7 @@ HRESULT CDecDXVA2::CheckHWCompatConditions()
       DbgLog((LOG_TRACE, 10, L"-> UHD/4K resolutions blacklisted on AMD/ATI GPUs"));
       return E_FAIL;
     }
-  } else if (m_dwVendorId == VEND_ID_INTEL) {
+  } else if (m_dwVendorId == VEND_ID_INTEL && decoderGuid == DXVADDI_Intel_ModeH264_E) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && m_pAVCtx->refs > max_ref_frames_dpb41) {
       DbgLog((LOG_TRACE, 10, L"-> Too many reference frames for Intel H.264 decoder implementation"));
       return E_FAIL;
@@ -676,7 +676,7 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
       goto done;
     }
 
-    if (FAILED(CheckHWCompatConditions())) {
+    if (FAILED(CheckHWCompatConditions(input))) {
       hr = E_FAIL;
       goto done;
     }
@@ -776,8 +776,8 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   // If we have a DXVA Decoder, check if its capable
   // If we don't have one yet, it may be handed to us later, and compat is checked at that point
+  GUID input = GUID_NULL;
   if (m_pDXVADecoderService) {
-    GUID input = GUID_NULL;
     D3DFORMAT output;
     hr = FindVideoServiceConversion(codec, &input, &output);
     if (FAILED(hr)) {
@@ -803,7 +803,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, 16);
   m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, 16);
 
-  if (FAILED(CheckHWCompatConditions())) {
+  if (FAILED(CheckHWCompatConditions(input))) {
     return E_FAIL;
   }
 
@@ -936,8 +936,8 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   ctx->surface       = m_pRawSurface;
   ctx->surface_count = m_NumSurfaces;
 
-  if (m_dwVendorId == VEND_ID_INTEL)
-    ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_GMA;
+  if (m_dwVendorId == VEND_ID_INTEL && input == DXVADDI_Intel_ModeH264_E)
+    ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_CLEARVIDEO;
   /*else if (m_dwVendorId == VEND_ID_ATI)
     ctx->workaround = FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG;*/
   else
