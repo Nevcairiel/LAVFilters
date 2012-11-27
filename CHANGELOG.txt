@@ -1,5 +1,15 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.54.1 - 2012/11/27
+LAV Splitter
+- Improved seeking in MP4 files created by Windows Live Movie Maker
+
+LAV Video
+- Improved H.264 DXVA on recent Intel GPUs (Sandy/Ivy Bridge and newer Atoms)
+  - Fixed corruption with high number of reference frames ( > 11 )
+  - Fixed corruption in MBAFF interlaced content
+- Fixed an issue that caused DVD menus/subtitles to stop working in DXVA2 Native mode in some situations
+
 0.54.0 - 2012/11/24
 LAV Splitter
 - Subtitle selection in "Default" mode now properly takes the "Default Track" flag into account
