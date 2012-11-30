@@ -11,6 +11,16 @@
 /////////////////////////////////////////////////////////
 #ifndef ISPP_INCLUDED
 
+// Set XP as the minimal targeted OS
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0502
+#ifdef WINVER
+#undef WINVER
+#endif
+#define WINVER _WIN32_WINNT
+
 #define DO_MAKE_STR(x) #x
 #define MAKE_STR(x) DO_MAKE_STR(x)
 
