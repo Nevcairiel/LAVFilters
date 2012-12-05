@@ -683,7 +683,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   {
     RECT rcDisplayArea = {0, 0, bmi->biWidth, bmi->biHeight};
-    hr = CreateCUVIDDecoder(cudaCodec, bmi->biWidth, bmi->biHeight, bmi->biWidth, bmi->biHeight, rcDisplayArea);
+    hr = CreateCUVIDDecoder(cudaCodec, bmi->biWidth, bmi->biHeight, rcDisplayArea);
     if (FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L"-> Creating CUVID decoder failed"));
       return hr;
@@ -697,7 +697,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   return S_OK;
 }
 
-STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, DWORD dwDisplayWidth, DWORD dwDisplayHeight, RECT rcDisplayArea)
+STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, RECT rcDisplayArea)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
@@ -721,8 +721,8 @@ retry:
   dci->DeinterlaceMode     = (cudaVideoDeinterlaceMode)m_pSettings->GetHWAccelDeintMode();
   dci->ulNumOutputSurfaces = 1;
 
-  dci->ulTargetWidth       = dwDisplayWidth;
-  dci->ulTargetHeight      = dwDisplayHeight;
+  dci->ulTargetWidth       = dwWidth;
+  dci->ulTargetHeight      = dwHeight;
 
   dci->display_area.left   = (short)rcDisplayArea.left;
   dci->display_area.right  = (short)rcDisplayArea.right;
@@ -790,7 +790,7 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
   {
     filter->m_bForceSequenceUpdate = FALSE;
     RECT rcDisplayArea = {cuvidfmt->display_area.left, cuvidfmt->display_area.top, cuvidfmt->display_area.right, cuvidfmt->display_area.bottom};
-    filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->display_area.right, cuvidfmt->display_area.bottom, rcDisplayArea);
+    filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, rcDisplayArea);
   }
 
   filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
@@ -948,7 +948,7 @@ STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 {
   CUdeviceptr devPtr = 0;
-  unsigned int pitch = 0, width = 0, height = 0;
+  unsigned int pitch = 0;
   CUVIDPROCPARAMS vpp;
   CUresult cuStatus = CUDA_SUCCESS;
 
@@ -964,10 +964,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
     goto cuda_fail;
   }
 
-  width = m_VideoDecoderInfo.display_area.right;
-  height = m_VideoDecoderInfo.display_area.bottom;
-  int size = pitch * height * 3 / 2;
-
+  int size = pitch * m_VideoDecoderInfo.ulTargetHeight * 3 / 2;
   if(!m_pbRawNV12 || size > m_cRawNV12) {
     if (m_pbRawNV12) {
       cuda.cuMemFreeHost(m_pbRawNV12);
@@ -1042,14 +1039,14 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   }
 
   pFrame->format = LAVPixFmt_NV12;
-  pFrame->width  = width;
-  pFrame->height = height;
+  pFrame->width  = m_VideoDecoderInfo.display_area.right;
+  pFrame->height = m_VideoDecoderInfo.display_area.bottom;
   pFrame->rtStart = rtStart;
   pFrame->rtStop = rtStop;
   pFrame->repeat = cuviddisp->repeat_first_field;
   {
     AVRational ar = { m_VideoFormat.display_aspect_ratio.x, m_VideoFormat.display_aspect_ratio.y };
-    AVRational arDim = { width, height };
+    AVRational arDim = { pFrame->width, pFrame->height };
     if (m_bARPresent || av_cmp_q(ar, arDim) != 0) {
       pFrame->aspect_ratio = ar;
     }
@@ -1062,7 +1059,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   pFrame->frame_type = m_PicParams[cuviddisp->picture_index].intra_pic_flag ? 'I' : (m_PicParams[cuviddisp->picture_index].ref_pic_flag ? 'P' : 'B');
 
   // Assign the buffer to the LAV Frame bufers
-  int Ysize = height * pitch;
+  int Ysize = m_VideoDecoderInfo.ulTargetHeight * pitch;
   pFrame->data[0] = m_pbRawNV12;
   pFrame->data[1] = m_pbRawNV12+Ysize;
   pFrame->stride[0] = pFrame->stride[1] = pitch;

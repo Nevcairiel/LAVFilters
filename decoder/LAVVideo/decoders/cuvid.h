@@ -59,7 +59,7 @@ private:
   STDMETHODIMP LoadCUDAFuncRefs();
   STDMETHODIMP DestroyDecoder(bool bFull);
 
-  STDMETHODIMP CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, DWORD dwDisplayWidth, DWORD dwDisplayHeight, RECT rcDisplayArea);
+  STDMETHODIMP CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, RECT rcDisplayArea);
   STDMETHODIMP DecodeSequenceData();
 
   // CUDA Callbacks
