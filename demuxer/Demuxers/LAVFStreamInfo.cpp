@@ -249,7 +249,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     }
     mtypes.push_back(mtype);
     mtype.subtype = MEDIASUBTYPE_LAV_RAWVIDEO;
-    size_t hdrsize = 0;
+    size_t hdrsize = 0, extrasize = 0;
     if (mtype.formattype == FORMAT_VideoInfo) {
       hdrsize = sizeof(VIDEOINFOHEADER);
     } else if (mtype.formattype == FORMAT_VideoInfo2) {
@@ -257,10 +257,14 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     } else {
       ASSERT(0);
     }
-    mtype.ReallocFormatBuffer(hdrsize + sizeof(avstream->codec->pix_fmt));
+    extrasize = mtype.cbFormat - hdrsize;
+    mtype.ReallocFormatBuffer(hdrsize + extrasize + sizeof(avstream->codec->pix_fmt));
+    if (extrasize) {
+      memmove(mtype.pbFormat + hdrsize + sizeof(avstream->codec->pix_fmt), mtype.pbFormat + hdrsize, extrasize);
+    }
     *(int *)(mtype.pbFormat + hdrsize) = avstream->codec->pix_fmt;
     videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
-    pBMI->biSize = sizeof(BITMAPINFOHEADER) + sizeof(avstream->codec->pix_fmt);
+    pBMI->biSize = sizeof(BITMAPINFOHEADER) + sizeof(avstream->codec->pix_fmt) + extrasize;
     mtypes.push_back(mtype);
   }
 

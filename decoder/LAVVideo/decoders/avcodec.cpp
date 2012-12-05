@@ -439,10 +439,14 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         m_pAVCtx->thread_count = 1;
       }
     } else if (pmt->subtype == MEDIASUBTYPE_LAV_RAWVIDEO) {
-      if (extralen != sizeof(m_pAVCtx->pix_fmt)) {
-        DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is wrong size.."));
+      if (extralen < sizeof(m_pAVCtx->pix_fmt)) {
+        DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is missing.."));
       } else {
-        getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), (BYTE *)&m_pAVCtx->pix_fmt, NULL);
+        extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+        getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, NULL);
+        m_pAVCtx->pix_fmt = *(AVPixelFormat *)extra;
+        extralen -= sizeof(AVPixelFormat);
+        memmove(extra, extra+sizeof(AVPixelFormat), extralen);
       }
     } else {
       // Just copy extradata for other formats
