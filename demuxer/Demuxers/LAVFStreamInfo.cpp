@@ -205,6 +205,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat, m_containerFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
     BOOL bAnnexB = (m_containerFormat == "rawvideo" || m_containerFormat == "rtp" || m_containerFormat == "rtsp" || m_containerFormat == "avi");
+    if (m_containerFormat == "ogg" && avstream->codec->codec_id == AV_CODEC_ID_H264) {
+      if (!avstream->codec->extradata_size || avstream->codec->extradata[0] != 1)
+        bAnnexB = TRUE;
+    }
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, bAnnexB);
     if (avstream->codec->codec_id == AV_CODEC_ID_H264 && bAnnexB) {
       mtype.subtype = MEDIASUBTYPE_H264;
