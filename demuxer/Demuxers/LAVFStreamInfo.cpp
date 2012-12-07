@@ -181,7 +181,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   }
 
   if (mtype.formattype == FORMAT_VideoInfo) {
-    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH(avstream, &mtype.cbFormat);
+    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH(avstream, &mtype.cbFormat, m_containerFormat);
   } else if (mtype.formattype == FORMAT_VideoInfo2) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateVIH2(avstream, &mtype.cbFormat, m_containerFormat);
     if (mtype.subtype == MEDIASUBTYPE_WVC1) {
@@ -202,7 +202,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       vih2->bmiHeader.biCompression = mtype.subtype.Data1;
     }
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
-    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat);
+    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat, m_containerFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
     BOOL bAnnexB = (m_containerFormat == "rawvideo" || m_containerFormat == "rtp" || m_containerFormat == "rtsp" || m_containerFormat == "avi");
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, bAnnexB);

@@ -152,7 +152,7 @@ size_t avc_parse_annexb(BYTE *extra, int extrasize, BYTE *dst)
   return dstSize;
 }
 
-VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size)
+VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size, std::string container)
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
   if (!pvi) return NULL;
@@ -223,7 +223,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   }
 
   // Create a VIH that we'll convert
-  VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
+  VIDEOINFOHEADER *vih = CreateVIH(avstream, size, container);
   if (!vih) return NULL;
 
   if(avstream->codec->extradata_size > 0) {
@@ -294,13 +294,13 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   return vih2;
 }
 
-MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *size)
+MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *size, std::string container)
 {
   int extra = 0;
   BYTE *extradata = NULL;
 
   // Create a VIH that we'll convert
-  VIDEOINFOHEADER *vih = CreateVIH(avstream, size);
+  VIDEOINFOHEADER *vih = CreateVIH(avstream, size, container);
   if (!vih) return NULL;
 
   if(avstream->codec->extradata_size > 0) {
@@ -339,7 +339,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
   BYTE *extradata = NULL;
 
   // Create a VIH that we'll convert
-  VIDEOINFOHEADER2 *vih2 = CreateVIH2(avstream, size);
+  VIDEOINFOHEADER2 *vih2 = CreateVIH2(avstream, size, container);
   if (!vih2) return NULL;
 
   if(avstream->codec->extradata_size > 0) {

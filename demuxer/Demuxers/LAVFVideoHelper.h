@@ -62,10 +62,10 @@ public:
   CLAVFVideoHelper() {};
   CMediaType initVideoType(AVCodecID codecId, unsigned int &codecTag, std::string container);
 
-  VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size);
-  VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container = "");
-  MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size);
-  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container = "", BOOL bAnnexB = FALSE);
+  VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size, std::string container);
+  VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container);
+  MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size, std::string container);
+  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bAnnexB = FALSE);
 };
 
 extern CLAVFVideoHelper g_VideoHelper;
