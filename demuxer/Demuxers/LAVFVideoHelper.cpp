@@ -176,7 +176,14 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
     pvi->AvgTimePerFrame = avg_avg;
   else if (tb_avg >= MIN_TIME_PER_FRAME && tb_avg <= MAX_TIME_PER_FRAME)
     pvi->AvgTimePerFrame = tb_avg;
+
+  if (container == "matroska" && r_avg && tb_avg && (avstream->codec->codec_id == AV_CODEC_ID_H264 || avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO)) {
+    float factor = (float)r_avg / (float)tb_avg;
+    if ((factor > 0.4 && factor < 0.6) || (factor > 1.9 && factor < 2.1)) {
+      pvi->AvgTimePerFrame = tb_avg;
+    }
   }
+
   pvi->dwBitErrorRate = 0;
   pvi->dwBitRate = avstream->codec->bit_rate;
   RECT empty_tagrect = {0,0,0,0};
