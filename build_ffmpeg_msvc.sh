@@ -35,8 +35,6 @@ configure() (
     --disable-demuxer=matroska \
     --disable-filters \
     --enable-filter=yadif \
-    --enable-filter=buffer \
-    --enable-filter=buffersink \
     --enable-filter=scale \
     --disable-protocols \
     --enable-protocol=file \
