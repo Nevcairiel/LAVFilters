@@ -711,10 +711,16 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
   }
 
   // 6.1 -> 7.1 expansion
-  if (m_settings.Expand61 && buffer->dwChannelMask == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER)) {
-    ExtendedChannelMap map = {{0,0}, {1,0}, {2,0}, {3,0}, {6,-2}, {6,-2}, {4,0}, {5,0}};
-    ExtendedChannelMapping(buffer, 8, map);
-    buffer->dwChannelMask = AV_CH_LAYOUT_7POINT1;
+  if (m_settings.Expand61) {
+    if (buffer->dwChannelMask == AV_CH_LAYOUT_6POINT1_BACK) {
+      ExtendedChannelMap map = {{0,0}, {1,0}, {2,0}, {3,0}, {6,-2}, {6,-2}, {4,0}, {5,0}};
+      ExtendedChannelMapping(buffer, 8, map);
+      buffer->dwChannelMask = AV_CH_LAYOUT_7POINT1;
+    } else if (buffer->dwChannelMask == AV_CH_LAYOUT_6POINT1) {
+      ExtendedChannelMap map = {{0,0}, {1,0}, {2,0}, {3,0}, {4,-2}, {4,-2}, {5,0}, {6,0}};
+      ExtendedChannelMapping(buffer, 8, map);
+      buffer->dwChannelMask = AV_CH_LAYOUT_7POINT1;
+    }
   }
 
   if (m_bVolumeStats) {
