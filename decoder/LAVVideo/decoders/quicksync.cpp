@@ -417,8 +417,6 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // Configure threading
   qsConfig.bEnableMultithreading = true;
   qsConfig.bEnableMtCopy         = true;
-  qsConfig.bEnableMtDecode       = false; // Enabling this causes some issues in recent drivers
-  qsConfig.bEnableMtProcessing   = false; // Enabling this causes some issues in recent drivers
 
   // Configure video processing
   qsConfig.vpp = 0;
