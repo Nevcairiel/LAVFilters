@@ -160,16 +160,21 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   HRESULT hr;
   DWORD dwVal;
   BOOL bFlag;
+  std::wstring strVal;
 
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
   // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
   // and we need to fill the settings with defaults.
-  // ReadString returns an empty string in case of failure, so thats fine!
 
   // Language preferences
-  m_settings.prefAudioLangs = reg.ReadString(L"prefAudioLangs", hr);
-  m_settings.prefSubLangs = reg.ReadString(L"prefSubLangs", hr);
-  m_settings.subtitleAdvanced = reg.ReadString(L"subtitleAdvanced", hr);
+  strVal = reg.ReadString(L"prefAudioLangs", hr);
+  if (SUCCEEDED(hr)) m_settings.prefAudioLangs = strVal;
+
+  strVal = reg.ReadString(L"prefSubLangs", hr);
+  if (SUCCEEDED(hr)) m_settings.prefSubLangs = strVal;
+
+  strVal = reg.ReadString(L"subtitleAdvanced", hr);
+  if (SUCCEEDED(hr)) m_settings.subtitleAdvanced = strVal;
 
   // Subtitle mode, defaults to all subtitles
   dwVal = reg.ReadDWORD(L"subtitleMode", hr);
