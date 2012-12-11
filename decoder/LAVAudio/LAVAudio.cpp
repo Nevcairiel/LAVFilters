@@ -225,7 +225,6 @@ HRESULT CLAVAudio::LoadSettings()
   BOOL bFlag;
   BYTE *pBuf = NULL;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
   // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
   // and we need to fill the settings with defaults.
@@ -299,7 +298,6 @@ HRESULT CLAVAudio::LoadSettings()
   dwVal = reg.ReadDWORD(L"AudioDelay", hr);
   if (SUCCEEDED(hr)) m_settings.AudioDelay = (int)dwVal;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
 
   for (int i = 0; i < Codec_AudioNB; ++i) {
@@ -330,6 +328,7 @@ HRESULT CLAVAudio::SaveSettings()
     return S_FALSE;
 
   HRESULT hr;
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
     reg.WriteBOOL(L"DRCEnabled", m_settings.DRCEnabled);
@@ -351,6 +350,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteDWORD(L"MixingLFELevel", m_settings.MixingLFELevel);
 
     reg.DeleteKey(L"Formats");
+    CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS);
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
     for (int i = 0; i < Codec_AudioNB; ++i) {
       const codec_config_t *info = get_codec_config((LAVAudioCodec)i);

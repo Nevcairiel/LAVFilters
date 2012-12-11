@@ -192,7 +192,6 @@ HRESULT CLAVVideo::LoadSettings()
   BOOL bFlag;
   DWORD dwVal;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
   // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
   // and we need to fill the settings with defaults.
@@ -216,7 +215,6 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"RGBRange", hr);
   if (SUCCEEDED(hr)) m_settings.RGBRange = dwVal;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
 
   for (int i = 0; i < Codec_VideoNB; ++i) {
@@ -232,7 +230,6 @@ HRESULT CLAVVideo::LoadSettings()
   bFlag = reg.ReadBOOL(L"MSWMV9DMO", hr);
   if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT);
   CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
 
   for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
@@ -242,7 +239,6 @@ HRESULT CLAVVideo::LoadSettings()
   // Force disable, for future use
   m_settings.bPixFmts[LAVOutPixFmt_YV16] = FALSE;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL);
   CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr);
 
   dwVal = regHW.ReadDWORD(L"HWAccel", hr);
@@ -296,6 +292,7 @@ HRESULT CLAVVideo::SaveSettings()
     return S_FALSE;
 
   HRESULT hr;
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
     reg.WriteDWORD(L"StreamAR", m_settings.StreamAR);
@@ -305,6 +302,7 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteBOOL(L"DeintForce", m_settings.DeintForce);
     reg.WriteDWORD(L"RGBRange", m_settings.RGBRange);
 
+    CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS);
     CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
     for (int i = 0; i < Codec_VideoNB; ++i) {
       const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
@@ -315,11 +313,13 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteBOOL(L"DVDVideo", m_settings.bDVDVideo);
     reg.WriteBOOL(L"MSWMV9DMO", m_settings.bMSWMV9DMO);
 
+    CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT);
     CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
     for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
       regP.WriteBOOL(pixFmtSettingsMap[i], m_settings.bPixFmts[i]);
     }
 
+    CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL);
     CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr);
     regHW.WriteDWORD(L"HWAccel", m_settings.HWAccel);
     regHW.WriteBOOL(L"h264", m_settings.bHWFormats[HWCodec_H264]);

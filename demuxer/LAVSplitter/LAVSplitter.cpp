@@ -161,7 +161,6 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   DWORD dwVal;
   BOOL bFlag;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
   // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
   // and we need to fill the settings with defaults.
@@ -200,7 +199,6 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   dwVal = reg.ReadDWORD(L"QueueMaxSize", hr);
   if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
 
-  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
 
   WCHAR wBuffer[80];
@@ -223,6 +221,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
   }
 
   HRESULT hr;
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
     reg.WriteString(L"prefAudioLangs", m_settings.prefAudioLangs.c_str());
@@ -239,6 +238,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteDWORD(L"QueueMaxSize", m_settings.QueueMaxSize);
   }
 
+  CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
