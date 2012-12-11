@@ -443,7 +443,9 @@ void CLAVSubtitleProvider::AddSubtitleRect(LAVSubRect *rect)
 
 typedef struct DVDSubContext
 {
+  AVClass *avclass;
   uint32_t palette[16];
+  char    *palette_str;
   int      has_palette;
   uint8_t  colormap[4];
   uint8_t  alpha[256];
