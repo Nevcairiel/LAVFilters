@@ -105,7 +105,7 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
   }
 
   // Color Range, 0-255 or 16-235
-  BOOL ffFullRange = (ctx->color_range == AVCOL_RANGE_JPEG) || ctx->pix_fmt == PIX_FMT_YUVJ420P || ctx->pix_fmt == PIX_FMT_YUVJ422P || ctx->pix_fmt == PIX_FMT_YUVJ444P || ctx->pix_fmt == PIX_FMT_YUVJ440P;
+  BOOL ffFullRange = (ctx->color_range == AVCOL_RANGE_JPEG) || frame->format == PIX_FMT_YUVJ420P || frame->format == PIX_FMT_YUVJ422P || frame->format == PIX_FMT_YUVJ444P || frame->format == PIX_FMT_YUVJ440P;
   fmt.NominalRange = ffFullRange ? DXVA2_NominalRange_0_255 : (ctx->color_range == AVCOL_RANGE_MPEG) ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_Unknown;
 
   return fmt;
@@ -1025,12 +1025,12 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     AllocateFrame(&pOutFrame);
 
     AVRational display_aspect_ratio;
-    int64_t num = (int64_t)m_pAVCtx->sample_aspect_ratio.num * m_pAVCtx->width;
-    int64_t den = (int64_t)m_pAVCtx->sample_aspect_ratio.den * m_pAVCtx->height;
+    int64_t num = (int64_t)m_pFrame->sample_aspect_ratio.num * m_pFrame->width;
+    int64_t den = (int64_t)m_pFrame->sample_aspect_ratio.den * m_pFrame->height;
     av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
 
-    pOutFrame->width        = m_pAVCtx->width;
-    pOutFrame->height       = m_pAVCtx->height;
+    pOutFrame->width        = m_pFrame->width;
+    pOutFrame->height       = m_pFrame->height;
     pOutFrame->aspect_ratio = display_aspect_ratio;
     pOutFrame->repeat       = m_pFrame->repeat_pict;
     pOutFrame->key_frame    = m_pFrame->key_frame;
@@ -1048,7 +1048,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->rtStart      = rtStart;
     pOutFrame->rtStop       = rtStop;
 
-    PixelFormatMapping map  = getPixFmtMapping(m_pAVCtx->pix_fmt);
+    PixelFormatMapping map  = getPixFmtMapping((AVPixelFormat)m_pFrame->format);
     pOutFrame->format       = map.lavpixfmt;
     pOutFrame->bpp          = map.bpp;
 
@@ -1161,10 +1161,10 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   PixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
-  m_pSwsContext = sws_getCachedContext(m_pSwsContext, m_pAVCtx->width, m_pAVCtx->height, m_pAVCtx->pix_fmt, m_pAVCtx->width, m_pAVCtx->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, NULL, NULL, NULL);
+  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, NULL, NULL, NULL);
 
   // Perform conversion
-  sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, m_pAVCtx->height, pOutFrame->data, pOutFrame->stride);
+  sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
 
   return S_OK;
 }
