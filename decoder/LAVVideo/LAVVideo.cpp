@@ -1028,8 +1028,12 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 #endif
           DeleteMediaType(pmt);
         } else { // No Stride Request? We're ok with that, too!
-          //long size = pOut->GetSize();
-          //pBIH->biWidth = size / abs(pBIH->biHeight) * 8 / pBIH->biBitCount;
+          // The overlay mixer doesn't ask for a stride, but it needs one anyway
+          // It'll provide a buffer just in the right size, so we can calculate this here.
+          if (m_bOverlayMixer) {
+            long size = pOut->GetSize();
+            pBIH->biWidth = size / abs(pBIH->biHeight) * 8 / pBIH->biBitCount;
+          }
           DbgLog((LOG_TRACE, 10, L"-> We did not get a stride request, using width %d for stride", pBIH->biWidth));
           m_bSendMediaType = TRUE;
           m_pOutput->SetMediaType(&mt);
