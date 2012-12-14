@@ -298,15 +298,6 @@ HRESULT CLAVAudio::LoadSettings()
   dwVal = reg.ReadDWORD(L"AudioDelay", hr);
   if (SUCCEEDED(hr)) m_settings.AudioDelay = (int)dwVal;
 
-  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
-
-  for (int i = 0; i < Codec_AudioNB; ++i) {
-    const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
-    ATL::CA2W name(info->name);
-    bFlag = regF.ReadBOOL(name, hr);
-    if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
-  }
-
   for (int i = 0; i < Bitstream_NB; ++i) {
     std::wstring key = std::wstring(L"Bitstreaming_") + std::wstring(bitstreamingCodecs[i]);
     bFlag = reg.ReadBOOL(key.c_str(), hr);
@@ -317,6 +308,15 @@ HRESULT CLAVAudio::LoadSettings()
     std::wstring key = std::wstring(L"SampleFormat_") + std::wstring(sampleFormats[i]);
     bFlag = reg.ReadBOOL(key.c_str(), hr);
     if (SUCCEEDED(hr)) m_settings.bSampleFormats[i] = bFlag;
+  }
+
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
+
+  for (int i = 0; i < Codec_AudioNB; ++i) {
+    const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
+    ATL::CA2W name(info->name);
+    bFlag = regF.ReadBOOL(name, hr);
+    if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
   }
 
   return S_OK;

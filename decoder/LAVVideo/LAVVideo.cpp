@@ -215,6 +215,24 @@ HRESULT CLAVVideo::LoadSettings()
   dwVal = reg.ReadDWORD(L"RGBRange", hr);
   if (SUCCEEDED(hr)) m_settings.RGBRange = dwVal;
 
+  dwVal = reg.ReadDWORD(L"SWDeintMode", hr);
+  if (SUCCEEDED(hr)) m_settings.SWDeintMode = dwVal;
+
+  dwVal = reg.ReadDWORD(L"SWDeintOutput", hr);
+  if (SUCCEEDED(hr)) m_settings.SWDeintOutput = dwVal;
+
+  bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
+  if (SUCCEEDED(hr)) m_settings.DeintTreatAsProgressive = bFlag;
+
+  dwVal = reg.ReadDWORD(L"DitherMode", hr);
+  if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
+
+  bFlag = reg.ReadBOOL(L"DVDVideo", hr);
+  if (SUCCEEDED(hr)) m_settings.bDVDVideo = bFlag;
+
+  bFlag = reg.ReadBOOL(L"MSWMV9DMO", hr);
+  if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
+
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
 
   for (int i = 0; i < Codec_VideoNB; ++i) {
@@ -223,12 +241,6 @@ HRESULT CLAVVideo::LoadSettings()
     bFlag = regF.ReadBOOL(name, hr);
     if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
   }
-
-  bFlag = reg.ReadBOOL(L"DVDVideo", hr);
-  if (SUCCEEDED(hr)) m_settings.bDVDVideo = bFlag;
-
-  bFlag = reg.ReadBOOL(L"MSWMV9DMO", hr);
-  if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
 
   CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
 
@@ -270,18 +282,6 @@ HRESULT CLAVVideo::LoadSettings()
 
   bFlag = regHW.ReadBOOL(L"HWDeintHQ", hr);
   if (SUCCEEDED(hr)) m_settings.HWDeintHQ = bFlag;
-
-  dwVal = reg.ReadDWORD(L"SWDeintMode", hr);
-  if (SUCCEEDED(hr)) m_settings.SWDeintMode = dwVal;
-
-  dwVal = reg.ReadDWORD(L"SWDeintOutput", hr);
-  if (SUCCEEDED(hr)) m_settings.SWDeintOutput = dwVal;
-
-  bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
-  if (SUCCEEDED(hr)) m_settings.DeintTreatAsProgressive = bFlag;
-
-  dwVal = reg.ReadDWORD(L"DitherMode", hr);
-  if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
 
   return S_OK;
 }
