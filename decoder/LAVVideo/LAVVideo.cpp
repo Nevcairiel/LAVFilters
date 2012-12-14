@@ -58,6 +58,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_hrDeliver(S_OK)
   , m_LAVPinInfoValid(FALSE)
   , m_bMadVR(-1)
+  , m_bOverlayMixer(-1)
   , m_bMTFiltering(FALSE)
   , m_bFlushing(FALSE)
   , m_evFilterInput(TRUE)
@@ -887,10 +888,16 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   if (m_bMadVR == -1)
     m_bMadVR = FilterInGraph(PINDIR_OUTPUT, CLSID_madVR);
 
+  if (m_bOverlayMixer == -1)
+    m_bOverlayMixer = !m_bMadVR && FilterInGraph(PINDIR_OUTPUT, CLSID_OverlayMixer);
+
   // Only madVR really knows how to deal with these flags, disable them for everyone else
   if (m_bDXVAExtFormatSupport == -1)
     m_bDXVAExtFormatSupport = m_bMadVR;
 
+  // Determine Interlaced flags
+  // - madVR handles the flags properly, so properly indicate forced deint, adaptive deint and progressive
+  // - The OverlayMixer fails at interlaced support, so completely disable interlaced flags for it
   BOOL bInterlaced = IsInterlaced();
   DWORD dwInterlacedFlags = 0;
   if (m_bMadVR) {
@@ -901,7 +908,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     } else {
       dwInterlacedFlags = 0;
     }
-  } else {
+  } else if (!m_bOverlayMixer) {
     dwInterlacedFlags = bInterlaced ? AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave : 0;
   }
 

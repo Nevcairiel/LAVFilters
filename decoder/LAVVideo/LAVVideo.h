@@ -216,6 +216,7 @@ private:
 
   DWORD                m_bDXVAExtFormatSupport;
   DWORD                m_bMadVR;
+  DWORD                m_bOverlayMixer;
   DWORD                m_dwDecodeFlags;
 
   BOOL                 m_bInDVDMenu;
