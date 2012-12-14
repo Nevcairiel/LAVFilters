@@ -193,95 +193,96 @@ HRESULT CLAVVideo::LoadSettings()
   DWORD dwVal;
 
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
-  // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
-  // and we need to fill the settings with defaults.
-  // ReadString returns an empty string in case of failure, so thats fine!
+  if (SUCCEEDED(hr)) {
+    dwVal = reg.ReadDWORD(L"StreamAR", hr);
+    if (SUCCEEDED(hr)) m_settings.StreamAR = dwVal;
 
-  dwVal = reg.ReadDWORD(L"StreamAR", hr);
-  if (SUCCEEDED(hr)) m_settings.StreamAR = dwVal;
+    dwVal = reg.ReadDWORD(L"NumThreads", hr);
+    if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
 
-  dwVal = reg.ReadDWORD(L"NumThreads", hr);
-  if (SUCCEEDED(hr)) m_settings.NumThreads = dwVal;
+    dwVal = reg.ReadDWORD(L"DeintFieldOrder", hr);
+    if (SUCCEEDED(hr)) m_settings.DeintFieldOrder = dwVal;
 
-  dwVal = reg.ReadDWORD(L"DeintFieldOrder", hr);
-  if (SUCCEEDED(hr)) m_settings.DeintFieldOrder = dwVal;
+    bFlag = reg.ReadBOOL(L"DeintAggressive", hr);
+    if (SUCCEEDED(hr)) m_settings.DeintAggressive = bFlag;
 
-  bFlag = reg.ReadBOOL(L"DeintAggressive", hr);
-  if (SUCCEEDED(hr)) m_settings.DeintAggressive = bFlag;
+    bFlag = reg.ReadBOOL(L"DeintForce", hr);
+    if (SUCCEEDED(hr)) m_settings.DeintForce = bFlag;
 
-  bFlag = reg.ReadBOOL(L"DeintForce", hr);
-  if (SUCCEEDED(hr)) m_settings.DeintForce = bFlag;
+    dwVal = reg.ReadDWORD(L"RGBRange", hr);
+    if (SUCCEEDED(hr)) m_settings.RGBRange = dwVal;
 
-  dwVal = reg.ReadDWORD(L"RGBRange", hr);
-  if (SUCCEEDED(hr)) m_settings.RGBRange = dwVal;
+    dwVal = reg.ReadDWORD(L"SWDeintMode", hr);
+    if (SUCCEEDED(hr)) m_settings.SWDeintMode = dwVal;
 
-  dwVal = reg.ReadDWORD(L"SWDeintMode", hr);
-  if (SUCCEEDED(hr)) m_settings.SWDeintMode = dwVal;
+    dwVal = reg.ReadDWORD(L"SWDeintOutput", hr);
+    if (SUCCEEDED(hr)) m_settings.SWDeintOutput = dwVal;
 
-  dwVal = reg.ReadDWORD(L"SWDeintOutput", hr);
-  if (SUCCEEDED(hr)) m_settings.SWDeintOutput = dwVal;
+    bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
+    if (SUCCEEDED(hr)) m_settings.DeintTreatAsProgressive = bFlag;
 
-  bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
-  if (SUCCEEDED(hr)) m_settings.DeintTreatAsProgressive = bFlag;
+    dwVal = reg.ReadDWORD(L"DitherMode", hr);
+    if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
 
-  dwVal = reg.ReadDWORD(L"DitherMode", hr);
-  if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
+    bFlag = reg.ReadBOOL(L"DVDVideo", hr);
+    if (SUCCEEDED(hr)) m_settings.bDVDVideo = bFlag;
 
-  bFlag = reg.ReadBOOL(L"DVDVideo", hr);
-  if (SUCCEEDED(hr)) m_settings.bDVDVideo = bFlag;
-
-  bFlag = reg.ReadBOOL(L"MSWMV9DMO", hr);
-  if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
+    bFlag = reg.ReadBOOL(L"MSWMV9DMO", hr);
+    if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
+  }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
-
-  for (int i = 0; i < Codec_VideoNB; ++i) {
-    const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
-    ATL::CA2W name(info->name);
-    bFlag = regF.ReadBOOL(name, hr);
-    if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
+  if (SUCCEEDED(hr)) {
+    for (int i = 0; i < Codec_VideoNB; ++i) {
+      const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
+      ATL::CA2W name(info->name);
+      bFlag = regF.ReadBOOL(name, hr);
+      if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
+    }
   }
 
   CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
-
-  for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
-    bFlag = regP.ReadBOOL(pixFmtSettingsMap[i], hr);
-    if (SUCCEEDED(hr)) m_settings.bPixFmts[i] = bFlag;
+  if (SUCCEEDED(hr)) {
+    for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
+      bFlag = regP.ReadBOOL(pixFmtSettingsMap[i], hr);
+      if (SUCCEEDED(hr)) m_settings.bPixFmts[i] = bFlag;
+    }
+    // Force disable, for future use
+    m_settings.bPixFmts[LAVOutPixFmt_YV16] = FALSE;
   }
-  // Force disable, for future use
-  m_settings.bPixFmts[LAVOutPixFmt_YV16] = FALSE;
 
   CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr);
+  if (SUCCEEDED(hr)) {
+    dwVal = regHW.ReadDWORD(L"HWAccel", hr);
+    if (SUCCEEDED(hr)) m_settings.HWAccel = dwVal;
 
-  dwVal = regHW.ReadDWORD(L"HWAccel", hr);
-  if (SUCCEEDED(hr)) m_settings.HWAccel = dwVal;
+    bFlag = regHW.ReadBOOL(L"h264", hr);
+    if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_H264] = bFlag;
 
-  bFlag = regHW.ReadBOOL(L"h264", hr);
-  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_H264] = bFlag;
+    bFlag = regHW.ReadBOOL(L"vc1", hr);
+    if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_VC1] = bFlag;
 
-  bFlag = regHW.ReadBOOL(L"vc1", hr);
-  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_VC1] = bFlag;
+    bFlag = regHW.ReadBOOL(L"mpeg2", hr);
+    if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2] = bFlag;
 
-  bFlag = regHW.ReadBOOL(L"mpeg2", hr);
-  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2] = bFlag;
+    bFlag = regHW.ReadBOOL(L"mpeg4", hr);
+    if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG4] = bFlag;
 
-  bFlag = regHW.ReadBOOL(L"mpeg4", hr);
-  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG4] = bFlag;
+    bFlag = regHW.ReadBOOL(L"dvd", hr);
+    if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2DVD] = bFlag;
 
-  bFlag = regHW.ReadBOOL(L"dvd", hr);
-  if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2DVD] = bFlag;
+    dwVal = regHW.ReadDWORD(L"HWResFlags", hr);
+    if (SUCCEEDED(hr)) m_settings.HWAccelResFlags = dwVal;
 
-  dwVal = regHW.ReadDWORD(L"HWResFlags", hr);
-  if (SUCCEEDED(hr)) m_settings.HWAccelResFlags = dwVal;
+    dwVal = regHW.ReadDWORD(L"HWDeintMode", hr);
+    if (SUCCEEDED(hr)) m_settings.HWDeintMode = dwVal;
 
-  dwVal = regHW.ReadDWORD(L"HWDeintMode", hr);
-  if (SUCCEEDED(hr)) m_settings.HWDeintMode = dwVal;
+    dwVal = regHW.ReadDWORD(L"HWDeintOutput", hr);
+    if (SUCCEEDED(hr)) m_settings.HWDeintOutput = dwVal;
 
-  dwVal = regHW.ReadDWORD(L"HWDeintOutput", hr);
-  if (SUCCEEDED(hr)) m_settings.HWDeintOutput = dwVal;
-
-  bFlag = regHW.ReadBOOL(L"HWDeintHQ", hr);
-  if (SUCCEEDED(hr)) m_settings.HWDeintHQ = bFlag;
+    bFlag = regHW.ReadBOOL(L"HWDeintHQ", hr);
+    if (SUCCEEDED(hr)) m_settings.HWDeintHQ = bFlag;
+  }
 
   return S_OK;
 }

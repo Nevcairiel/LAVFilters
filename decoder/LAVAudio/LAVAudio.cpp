@@ -226,97 +226,97 @@ HRESULT CLAVAudio::LoadSettings()
   BYTE *pBuf = NULL;
 
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
-  // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
-  // and we need to fill the settings with defaults.
-  // ReadString returns an empty string in case of failure, so thats fine!
-  bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
-  if (SUCCEEDED(hr)) m_settings.DRCEnabled = bFlag;
-
-  dwVal = reg.ReadDWORD(L"DRCLevel", hr);
-  if (SUCCEEDED(hr)) m_settings.DRCLevel = (int)dwVal;
-
-  // Deprecated format storage
-  pBuf = reg.ReadBinary(L"Formats", dwVal, hr);
   if (SUCCEEDED(hr)) {
-    memcpy(&m_settings.bFormats, pBuf, min(dwVal, sizeof(m_settings.bFormats)));
-    SAFE_CO_FREE(pBuf);
-  }
+    bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
+    if (SUCCEEDED(hr)) m_settings.DRCEnabled = bFlag;
 
-  // Deprecated bitstreaming storage
-  pBuf = reg.ReadBinary(L"Bitstreaming", dwVal, hr);
-  if (SUCCEEDED(hr)) {
-    memcpy(&m_settings.bBitstream, pBuf, min(dwVal, sizeof(m_settings.bBitstream)));
-    SAFE_CO_FREE(pBuf);
-  }
+    dwVal = reg.ReadDWORD(L"DRCLevel", hr);
+    if (SUCCEEDED(hr)) m_settings.DRCLevel = (int)dwVal;
 
-  bFlag = reg.ReadBOOL(L"DTSHDFraming", hr);
-  if (SUCCEEDED(hr)) m_settings.DTSHDFraming = bFlag;
+    // Deprecated format storage
+    pBuf = reg.ReadBinary(L"Formats", dwVal, hr);
+    if (SUCCEEDED(hr)) {
+      memcpy(&m_settings.bFormats, pBuf, min(dwVal, sizeof(m_settings.bFormats)));
+      SAFE_CO_FREE(pBuf);
+    }
 
-  bFlag = reg.ReadBOOL(L"AutoAVSync", hr);
-  if (SUCCEEDED(hr)) m_settings.AutoAVSync = bFlag;
+    // Deprecated bitstreaming storage
+    pBuf = reg.ReadBinary(L"Bitstreaming", dwVal, hr);
+    if (SUCCEEDED(hr)) {
+      memcpy(&m_settings.bBitstream, pBuf, min(dwVal, sizeof(m_settings.bBitstream)));
+      SAFE_CO_FREE(pBuf);
+    }
 
-  bFlag = reg.ReadBOOL(L"ExpandMono", hr);
-  if (SUCCEEDED(hr)) m_settings.ExpandMono = bFlag;
+    bFlag = reg.ReadBOOL(L"DTSHDFraming", hr);
+    if (SUCCEEDED(hr)) m_settings.DTSHDFraming = bFlag;
 
-  bFlag = reg.ReadBOOL(L"Expand61", hr);
-  if (SUCCEEDED(hr)) m_settings.Expand61 = bFlag;
+    bFlag = reg.ReadBOOL(L"AutoAVSync", hr);
+    if (SUCCEEDED(hr)) m_settings.AutoAVSync = bFlag;
 
-  bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
-  if (SUCCEEDED(hr)) m_settings.OutputStandardLayout = bFlag;
+    bFlag = reg.ReadBOOL(L"ExpandMono", hr);
+    if (SUCCEEDED(hr)) m_settings.ExpandMono = bFlag;
 
-  bFlag = reg.ReadBOOL(L"Mixing", hr);
-  if (SUCCEEDED(hr)) m_settings.MixingEnabled = bFlag;
+    bFlag = reg.ReadBOOL(L"Expand61", hr);
+    if (SUCCEEDED(hr)) m_settings.Expand61 = bFlag;
 
-  dwVal = reg.ReadDWORD(L"MixingLayout", hr);
-  if (SUCCEEDED(hr)) m_settings.MixingLayout = dwVal;
+    bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
+    if (SUCCEEDED(hr)) m_settings.OutputStandardLayout = bFlag;
 
-  dwVal = reg.ReadDWORD(L"MixingFlags", hr);
-  if (SUCCEEDED(hr)) m_settings.MixingFlags = dwVal;
+    bFlag = reg.ReadBOOL(L"Mixing", hr);
+    if (SUCCEEDED(hr)) m_settings.MixingEnabled = bFlag;
 
-  dwVal = reg.ReadDWORD(L"MixingMode", hr);
-  if (SUCCEEDED(hr)) m_settings.MixingMode = dwVal;
+    dwVal = reg.ReadDWORD(L"MixingLayout", hr);
+    if (SUCCEEDED(hr)) m_settings.MixingLayout = dwVal;
 
-  dwVal = reg.ReadDWORD(L"MixingCenterLevel", hr);
-  if (SUCCEEDED(hr)) m_settings.MixingCenterLevel = dwVal;
+    dwVal = reg.ReadDWORD(L"MixingFlags", hr);
+    if (SUCCEEDED(hr)) m_settings.MixingFlags = dwVal;
 
-  dwVal = reg.ReadDWORD(L"MixingSurroundLevel", hr);
-  if (SUCCEEDED(hr)) m_settings.MixingSurroundLevel = dwVal;
+    dwVal = reg.ReadDWORD(L"MixingMode", hr);
+    if (SUCCEEDED(hr)) m_settings.MixingMode = dwVal;
 
-  dwVal = reg.ReadDWORD(L"MixingLFELevel", hr);
-  if (SUCCEEDED(hr)) m_settings.MixingLFELevel = dwVal;
+    dwVal = reg.ReadDWORD(L"MixingCenterLevel", hr);
+    if (SUCCEEDED(hr)) m_settings.MixingCenterLevel = dwVal;
 
-  // Deprecated sample format storage
-  pBuf = reg.ReadBinary(L"SampleFormats", dwVal, hr);
-  if (SUCCEEDED(hr)) {
-    memcpy(&m_settings.bSampleFormats, pBuf, min(dwVal, sizeof(m_settings.bSampleFormats)));
-    SAFE_CO_FREE(pBuf);
-  }
+    dwVal = reg.ReadDWORD(L"MixingSurroundLevel", hr);
+    if (SUCCEEDED(hr)) m_settings.MixingSurroundLevel = dwVal;
 
-  bFlag = reg.ReadBOOL(L"AudioDelayEnabled", hr);
-  if (SUCCEEDED(hr)) m_settings.AudioDelayEnabled = bFlag;
+    dwVal = reg.ReadDWORD(L"MixingLFELevel", hr);
+    if (SUCCEEDED(hr)) m_settings.MixingLFELevel = dwVal;
 
-  dwVal = reg.ReadDWORD(L"AudioDelay", hr);
-  if (SUCCEEDED(hr)) m_settings.AudioDelay = (int)dwVal;
+    // Deprecated sample format storage
+    pBuf = reg.ReadBinary(L"SampleFormats", dwVal, hr);
+    if (SUCCEEDED(hr)) {
+      memcpy(&m_settings.bSampleFormats, pBuf, min(dwVal, sizeof(m_settings.bSampleFormats)));
+      SAFE_CO_FREE(pBuf);
+    }
 
-  for (int i = 0; i < Bitstream_NB; ++i) {
-    std::wstring key = std::wstring(L"Bitstreaming_") + std::wstring(bitstreamingCodecs[i]);
-    bFlag = reg.ReadBOOL(key.c_str(), hr);
-    if (SUCCEEDED(hr)) m_settings.bBitstream[i] = bFlag;
-  }
+    bFlag = reg.ReadBOOL(L"AudioDelayEnabled", hr);
+    if (SUCCEEDED(hr)) m_settings.AudioDelayEnabled = bFlag;
 
-  for (int i = 0; i < SampleFormat_Bitstream; ++i) {
-    std::wstring key = std::wstring(L"SampleFormat_") + std::wstring(sampleFormats[i]);
-    bFlag = reg.ReadBOOL(key.c_str(), hr);
-    if (SUCCEEDED(hr)) m_settings.bSampleFormats[i] = bFlag;
+    dwVal = reg.ReadDWORD(L"AudioDelay", hr);
+    if (SUCCEEDED(hr)) m_settings.AudioDelay = (int)dwVal;
+
+    for (int i = 0; i < Bitstream_NB; ++i) {
+      std::wstring key = std::wstring(L"Bitstreaming_") + std::wstring(bitstreamingCodecs[i]);
+      bFlag = reg.ReadBOOL(key.c_str(), hr);
+      if (SUCCEEDED(hr)) m_settings.bBitstream[i] = bFlag;
+    }
+
+    for (int i = 0; i < SampleFormat_Bitstream; ++i) {
+      std::wstring key = std::wstring(L"SampleFormat_") + std::wstring(sampleFormats[i]);
+      bFlag = reg.ReadBOOL(key.c_str(), hr);
+      if (SUCCEEDED(hr)) m_settings.bSampleFormats[i] = bFlag;
+    }
   }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
-
-  for (int i = 0; i < Codec_AudioNB; ++i) {
-    const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
-    ATL::CA2W name(info->name);
-    bFlag = regF.ReadBOOL(name, hr);
-    if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
+  if (SUCCEEDED(hr)) {
+    for (int i = 0; i < Codec_AudioNB; ++i) {
+      const codec_config_t *info = get_codec_config((LAVAudioCodec)i);
+      ATL::CA2W name(info->name);
+      bFlag = regF.ReadBOOL(name, hr);
+      if (SUCCEEDED(hr)) m_settings.bFormats[i] = bFlag;
+    }
   }
 
   return S_OK;

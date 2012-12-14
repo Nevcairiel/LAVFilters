@@ -163,55 +163,55 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   std::wstring strVal;
 
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
-  // We don't check if opening succeeded, because the read functions will set their hr accordingly anyway,
-  // and we need to fill the settings with defaults.
+  if (SUCCEEDED(hr)) {
+    // Language preferences
+    strVal = reg.ReadString(L"prefAudioLangs", hr);
+    if (SUCCEEDED(hr)) m_settings.prefAudioLangs = strVal;
 
-  // Language preferences
-  strVal = reg.ReadString(L"prefAudioLangs", hr);
-  if (SUCCEEDED(hr)) m_settings.prefAudioLangs = strVal;
+    strVal = reg.ReadString(L"prefSubLangs", hr);
+    if (SUCCEEDED(hr)) m_settings.prefSubLangs = strVal;
 
-  strVal = reg.ReadString(L"prefSubLangs", hr);
-  if (SUCCEEDED(hr)) m_settings.prefSubLangs = strVal;
+    strVal = reg.ReadString(L"subtitleAdvanced", hr);
+    if (SUCCEEDED(hr)) m_settings.subtitleAdvanced = strVal;
 
-  strVal = reg.ReadString(L"subtitleAdvanced", hr);
-  if (SUCCEEDED(hr)) m_settings.subtitleAdvanced = strVal;
+    // Subtitle mode, defaults to all subtitles
+    dwVal = reg.ReadDWORD(L"subtitleMode", hr);
+    if (SUCCEEDED(hr)) m_settings.subtitleMode = (LAVSubtitleMode)dwVal;
 
-  // Subtitle mode, defaults to all subtitles
-  dwVal = reg.ReadDWORD(L"subtitleMode", hr);
-  if (SUCCEEDED(hr)) m_settings.subtitleMode = (LAVSubtitleMode)dwVal;
+    bFlag = reg.ReadBOOL(L"PGSForcedStream", hr);
+    if (SUCCEEDED(hr)) m_settings.PGSForcedStream = bFlag;
 
-  bFlag = reg.ReadBOOL(L"PGSForcedStream", hr);
-  if (SUCCEEDED(hr)) m_settings.PGSForcedStream = bFlag;
+    bFlag = reg.ReadBOOL(L"PGSOnlyForced", hr);
+    if (SUCCEEDED(hr)) m_settings.PGSOnlyForced = bFlag;
 
-  bFlag = reg.ReadBOOL(L"PGSOnlyForced", hr);
-  if (SUCCEEDED(hr)) m_settings.PGSOnlyForced = bFlag;
+    dwVal = reg.ReadDWORD(L"vc1TimestampMode", hr);
+    if (SUCCEEDED(hr)) m_settings.vc1Mode = dwVal;
 
-  dwVal = reg.ReadDWORD(L"vc1TimestampMode", hr);
-  if (SUCCEEDED(hr)) m_settings.vc1Mode = dwVal;
+    bFlag = reg.ReadDWORD(L"substreams", hr);
+    if (SUCCEEDED(hr)) m_settings.substreams = bFlag;
 
-  bFlag = reg.ReadDWORD(L"substreams", hr);
-  if (SUCCEEDED(hr)) m_settings.substreams = bFlag;
+    bFlag = reg.ReadDWORD(L"videoParsing", hr);
+    if (SUCCEEDED(hr)) m_settings.videoParsing = bFlag;
 
-  bFlag = reg.ReadDWORD(L"videoParsing", hr);
-  if (SUCCEEDED(hr)) m_settings.videoParsing = bFlag;
+    bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
+    if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
 
-  bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
-  if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
+    bFlag = reg.ReadDWORD(L"ImpairedAudio", hr);
+    if (SUCCEEDED(hr)) m_settings.ImpairedAudio = bFlag;
 
-  bFlag = reg.ReadDWORD(L"ImpairedAudio", hr);
-  if (SUCCEEDED(hr)) m_settings.ImpairedAudio = bFlag;
-
-  dwVal = reg.ReadDWORD(L"QueueMaxSize", hr);
-  if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
+    dwVal = reg.ReadDWORD(L"QueueMaxSize", hr);
+    if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
+  }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
-
-  WCHAR wBuffer[80];
-  std::set<FormatInfo>::iterator it;
-  for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
-    MultiByteToWideChar(CP_UTF8, 0, it->strName, -1, wBuffer, 80);
-    bFlag = regF.ReadBOOL(wBuffer, hr);
-    if (SUCCEEDED(hr)) m_settings.formats[std::string(it->strName)] = bFlag;
+  if (SUCCEEDED(hr)) {
+    WCHAR wBuffer[80];
+    std::set<FormatInfo>::iterator it;
+    for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
+      MultiByteToWideChar(CP_UTF8, 0, it->strName, -1, wBuffer, 80);
+      bFlag = regF.ReadBOOL(wBuffer, hr);
+      if (SUCCEEDED(hr)) m_settings.formats[std::string(it->strName)] = bFlag;
+    }
   }
 
   return S_OK;
