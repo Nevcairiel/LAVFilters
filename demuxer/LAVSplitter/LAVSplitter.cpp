@@ -162,7 +162,7 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   BOOL bFlag;
   std::wstring strVal;
 
-  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr);
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
     // Language preferences
     strVal = reg.ReadString(L"prefAudioLangs", hr);
@@ -203,7 +203,7 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
   }
 
-  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr, TRUE);
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
     std::set<FormatInfo>::iterator it;

@@ -52,10 +52,10 @@ CRegistry::CRegistry() : m_key(NULL)
 {
 }
 
-CRegistry::CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr)
+CRegistry::CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr, BOOL bReadOnly)
   : m_key(NULL)
 {
-  hr = Open(hkeyRoot, pszSubKey);
+  hr = Open(hkeyRoot, pszSubKey, bReadOnly);
 }
 
 CRegistry::~CRegistry()
@@ -65,14 +65,14 @@ CRegistry::~CRegistry()
   delete m_key;
 }
 
-HRESULT CRegistry::Open(HKEY hkeyRoot, LPCTSTR pszSubKey)
+HRESULT CRegistry::Open(HKEY hkeyRoot, LPCTSTR pszSubKey, BOOL bReadOnly)
 {
   LONG lRet;
   
   if (m_key != NULL) { return E_UNEXPECTED; }
   
   m_key = new HKEY();
-  lRet = RegOpenKeyEx(hkeyRoot, pszSubKey, 0, KEY_READ | KEY_WRITE, m_key);
+  lRet = RegOpenKeyEx(hkeyRoot, pszSubKey, 0, bReadOnly ? KEY_READ : KEY_READ|KEY_WRITE, m_key);
   if (lRet != ERROR_SUCCESS) {
     delete m_key;
     m_key = NULL;

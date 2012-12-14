@@ -225,7 +225,7 @@ HRESULT CLAVAudio::LoadSettings()
   BOOL bFlag;
   BYTE *pBuf = NULL;
 
-  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
     bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
     if (SUCCEEDED(hr)) m_settings.DRCEnabled = bFlag;
@@ -309,7 +309,7 @@ HRESULT CLAVAudio::LoadSettings()
     }
   }
 
-  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr);
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr, TRUE);
   if (SUCCEEDED(hr)) {
     for (int i = 0; i < Codec_AudioNB; ++i) {
       const codec_config_t *info = get_codec_config((LAVAudioCodec)i);

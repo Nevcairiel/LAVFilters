@@ -192,7 +192,7 @@ HRESULT CLAVVideo::LoadSettings()
   BOOL bFlag;
   DWORD dwVal;
 
-  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
+  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
     dwVal = reg.ReadDWORD(L"StreamAR", hr);
     if (SUCCEEDED(hr)) m_settings.StreamAR = dwVal;
@@ -231,7 +231,7 @@ HRESULT CLAVVideo::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.bMSWMV9DMO = bFlag;
   }
 
-  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr);
+  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS, hr, TRUE);
   if (SUCCEEDED(hr)) {
     for (int i = 0; i < Codec_VideoNB; ++i) {
       const codec_config_t *info = get_codec_config((LAVVideoCodec)i);
@@ -241,7 +241,7 @@ HRESULT CLAVVideo::LoadSettings()
     }
   }
 
-  CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr);
+  CRegistry regP = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_OUTPUT, hr, TRUE);
   if (SUCCEEDED(hr)) {
     for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
       bFlag = regP.ReadBOOL(pixFmtSettingsMap[i], hr);
@@ -251,7 +251,7 @@ HRESULT CLAVVideo::LoadSettings()
     m_settings.bPixFmts[LAVOutPixFmt_YV16] = FALSE;
   }
 
-  CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr);
+  CRegistry regHW = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_HWACCEL, hr, TRUE);
   if (SUCCEEDED(hr)) {
     dwVal = regHW.ReadDWORD(L"HWAccel", hr);
     if (SUCCEEDED(hr)) m_settings.HWAccel = dwVal;
