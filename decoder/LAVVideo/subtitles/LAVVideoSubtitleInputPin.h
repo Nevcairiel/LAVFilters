@@ -24,10 +24,12 @@
 
 #include "LAVSubtitleProvider.h"
 
+class CLAVVideo;
+
 class CLAVVideoSubtitleInputPin : public CBaseInputPin, public CDeCSSPinHelper
 {
 public:
-  CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CBaseFilter* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName);
+  CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName);
   ~CLAVVideoSubtitleInputPin(void);
 
   DECLARE_IUNKNOWN
@@ -54,4 +56,5 @@ protected:
 
   ISubRenderConsumer   *m_pConsumer;
   CLAVSubtitleProvider *m_pProvider;
+  CLAVVideo            *m_pLAVVideo;
 };

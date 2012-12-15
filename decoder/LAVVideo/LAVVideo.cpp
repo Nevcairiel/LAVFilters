@@ -38,6 +38,19 @@
 #include <evr.h>
 #include <d3d9.h>
 
+class CLAVControlThread : public CAMThread
+{
+public:
+  CLAVControlThread(CLAVVideo *m_pLAVVideo);
+  ~CLAVControlThread();
+
+protected:
+  DWORD ThreadProc();
+
+private:
+  CLAVVideo *m_pLAVVideo;
+};
+
 #pragma warning(disable: 4355)
 
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
@@ -66,6 +79,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_SubtitleConsumer(NULL)
   , m_pLastSequenceFrame(NULL)
   , m_bInDVDMenu(FALSE)
+  , m_ControlThread(NULL)
 {
   *phr = S_OK;
   m_pInput = new CVideoInputPin(TEXT("CVideoInputPin"), this, phr, L"Input");
@@ -84,6 +98,8 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   m_PixFmtConverter.SetSettings(this);
 
+  m_ControlThread = new CLAVControlThread(this);
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -96,6 +112,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVVideo::~CLAVVideo()
 {
+  SAFE_DELETE(m_ControlThread);
   CloseMTFilterThread();
 
   ReleaseLastSequenceFrame();
@@ -1956,4 +1973,37 @@ STDMETHODIMP CLAVVideo::SetHWAccelResolutionFlags(DWORD dwResFlags)
 STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelResolutionFlags()
 {
   return m_settings.HWAccelResFlags;
+}
+
+
+CLAVControlThread::CLAVControlThread(CLAVVideo *pLAVVideo)
+  : CAMThread()
+  , m_pLAVVideo(pLAVVideo)
+{
+  Create();
+}
+
+CLAVControlThread::~CLAVControlThread()
+{
+  CallWorker(CLAVVideo::CNTRL_EXIT);
+  Close();
+}
+
+DWORD CLAVControlThread::ThreadProc()
+{
+  SetThreadName(-1, "LAV Control Thread");
+  DWORD cmd;
+  while(1) {
+    cmd = GetRequest();
+    switch(cmd) {
+    case CLAVVideo::CNTRL_EXIT:
+      Reply(S_OK);
+      return 0;
+    case CLAVVideo::CNTRL_REDRAW:
+      Reply(S_OK);
+      m_pLAVVideo->RedrawStillImage();
+      break;
+    }
+  }
+  return 1;
 }

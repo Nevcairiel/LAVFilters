@@ -22,6 +22,8 @@
 #include "SubRenderOptionsImpl.h"
 #include "LAVSubtitleFrame.h"
 
+class CLAVVideo;
+
 typedef struct LAVSubtitleProviderContext {
   LPWSTR name;                    ///< name of the Provider
   LPWSTR version;                 ///< Version of the Provider
@@ -35,7 +37,7 @@ struct _AM_PROPERTY_SPHLI;
 class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown, private CCritSec
 {
 public:
-  CLAVSubtitleProvider(ISubRenderConsumer *pConsumer);
+  CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsumer *pConsumer);
   ~CLAVSubtitleProvider(void);
   DECLARE_IUNKNOWN;
   DECLARE_ISUBRENDEROPTIONS;
@@ -67,6 +69,7 @@ private:
 
 private:
   LAVSubtitleProviderContext context;
+  CLAVVideo *m_pLAVVideo;
 
   ISubRenderConsumer *m_pConsumer;
 

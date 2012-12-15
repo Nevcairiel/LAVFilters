@@ -195,12 +195,20 @@ private:
   HRESULT RedrawStillImage();
   HRESULT SetInDVDMenu(bool menu) { m_bInDVDMenu = menu; return S_OK; }
 
+  enum {CNTRL_EXIT, CNTRL_REDRAW};
+  HRESULT ControlCmd(DWORD cmd) {
+    return m_ControlThread->CallWorker(cmd);
+  }
+
 private:
   friend class CVideoOutputPin;
   friend class CDecodeThread;
+  friend class CLAVControlThread;
+  friend class CLAVSubtitleProvider;
   friend class CLAVSubtitleConsumer;
 
   CDecodeThread        m_Decoder;
+  CAMThread            *m_ControlThread;
 
   REFERENCE_TIME       m_rtPrevStart;
   REFERENCE_TIME       m_rtPrevStop;

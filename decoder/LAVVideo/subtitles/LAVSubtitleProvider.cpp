@@ -23,6 +23,8 @@
 #include "moreuuids.h"
 #include "libavutil/colorspace.h"
 
+#include "LAVVideo.h"
+
 #define FAST_DIV255(x) ((((x) + 128) * 257) >> 16)
 
 #define OFFSET(x) offsetof(LAVSubtitleProviderContext, x)
@@ -33,9 +35,10 @@ static const SubRenderOption options[] = {
   { 0 }
 };
 
-CLAVSubtitleProvider::CLAVSubtitleProvider(ISubRenderConsumer *pConsumer)
+CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsumer *pConsumer)
   : CSubRenderOptionsImpl(::options, &context)
   , CUnknown(L"CLAVSubtitleProvider", NULL)
+  , m_pLAVVideo(pLAVVideo)
   , m_pConsumer(pConsumer)
   , m_pAVCodec(NULL)
   , m_pAVCtx(NULL)
@@ -196,8 +199,7 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   ClearSubtitleRects();
   SAFE_DELETE(m_pHLI);
 
-  if (m_pConsumer)
-    m_pConsumer->SetBool("menu", false);
+  m_pLAVVideo->SetInDVDMenu(false);
 
   return S_OK;
 }
@@ -324,8 +326,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitle *sub, REFERENCE_TIME r
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
       if (rtStart == AV_NOPTS_VALUE && sub->rects[0]->flags & AV_SUBTITLE_FLAG_FORCED) {
         ClearSubtitleRects();
-        if (m_pConsumer)
-          m_pConsumer->SetBool("menu", true);
+        m_pLAVVideo->SetInDVDMenu(true);
       }
       if (rtStart != AV_NOPTS_VALUE) {
         CAutoLock lock(this);
@@ -503,7 +504,7 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
   }
 
   if (redraw)
-    m_pConsumer->SetBool("redraw", true);
+    m_pLAVVideo->ControlCmd(CLAVVideo::CNTRL_REDRAW);
 
   return S_OK;
 }

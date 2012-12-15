@@ -19,6 +19,7 @@
 
 #include "stdafx.h"
 #include "LAVVideoSubtitleInputPin.h"
+#include "LAVVideo.h"
 
 #include "moreuuids.h"
 
@@ -35,8 +36,9 @@ static const LAV_TYPE_MAP lav_subtitle_codecs[] = {
   { &MEDIATYPE_Video,              &MEDIASUBTYPE_DVD_SUBPICTURE, AV_CODEC_ID_DVD_SUBTITLE }
 };
 
-CLAVVideoSubtitleInputPin::CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CBaseFilter* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName)
+CLAVVideoSubtitleInputPin::CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName)
   : CBaseInputPin(pObjectName, pFilter, pcsFilter, phr, pName)
+  , m_pLAVVideo(pFilter)
   , CDeCSSPinHelper()
   , m_pProvider(NULL)
 {
@@ -85,7 +87,7 @@ HRESULT CLAVVideoSubtitleInputPin::SetMediaType(const CMediaType *pmt)
   if (codecId == AV_CODEC_ID_NONE)
     return VFW_E_TYPE_NOT_ACCEPTED;
 
-  m_pProvider = new CLAVSubtitleProvider(m_pConsumer);
+  m_pProvider = new CLAVSubtitleProvider(m_pLAVVideo, m_pConsumer);
   m_pProvider->AddRef();
   HRESULT hr = m_pProvider->InitDecoder(pmt, codecId);
   if (FAILED(hr)) {
