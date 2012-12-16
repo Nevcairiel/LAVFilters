@@ -388,7 +388,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   if (m_bMPEGTS)
     m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 3) / 2;
 
-  av_opt_set_int(m_avFormat, "correct_ts_overflow", 0, 0);
+  av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_bBluRay, 0);
 
   m_timeOpening = time(NULL);
   int ret = avformat_find_stream_info(m_avFormat, NULL);
@@ -674,18 +674,6 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     pPacket->StreamId = (DWORD)pkt.stream_index;
 
-    if ((m_bMPEGTS && !m_bBluRay) || m_bMPEGPS) {
-      int64_t start_time = av_rescale_q(m_avFormat->start_time, AV_RATIONAL_TIMEBASE, stream->time_base);
-      const int64_t pts_diff = pkt.pts - start_time;
-      const int64_t dts_diff = pkt.dts - start_time;
-      if ((pkt.pts == AV_NOPTS_VALUE || pts_diff < -stream->time_base.den) && (pkt.dts == AV_NOPTS_VALUE || dts_diff < -stream->time_base.den) && stream->pts_wrap_bits < 63) {
-        if (pkt.pts != AV_NOPTS_VALUE)
-          pkt.pts += 1LL << stream->pts_wrap_bits;
-        if (pkt.dts != AV_NOPTS_VALUE)
-        pkt.dts += 1LL << stream->pts_wrap_bits;
-      }
-    }
-
     REFERENCE_TIME pts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
     REFERENCE_TIME dts = (REFERENCE_TIME)ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
     REFERENCE_TIME duration = (REFERENCE_TIME)ConvertTimestampToRT((m_bMatroska && stream->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) ? pkt.convergence_duration : pkt.duration, stream->time_base.num, stream->time_base.den, 0);
@@ -771,23 +759,7 @@ retry:
   if (rTime > 0) {
     if (seekStreamId != -1) {
       AVStream *stream = m_avFormat->streams[seekStreamId];
-      int64_t start_time = AV_NOPTS_VALUE;
-
-      // MPEG-TS needs a protection against a wrapped around start time
-      // It is possible for the start_time in m_avFormat to be wrapped around, but the start_time in the current stream not to be.
-      // In this case, ConvertRTToTimestamp would produce timestamps not valid for seeking.
-      //
-      // Compensate for this by creating a negative start_time, resembling the actual value in m_avFormat->start_time without wrapping.
-      if ((m_bMPEGTS || m_bMPEGPS) && stream->start_time != AV_NOPTS_VALUE) {
-        int64_t start = av_rescale_q(stream->start_time, stream->time_base, AV_RATIONAL_TIMEBASE);
-
-        if (start < m_avFormat->start_time
-          && m_avFormat->start_time > av_rescale_q(3LL << (stream->pts_wrap_bits - 2), stream->time_base, AV_RATIONAL_TIMEBASE)
-          && start < av_rescale_q(3LL << (stream->pts_wrap_bits - 3), stream->time_base, AV_RATIONAL_TIMEBASE)) {
-          start_time = m_avFormat->start_time - av_rescale_q(1LL << stream->pts_wrap_bits, stream->time_base, AV_RATIONAL_TIMEBASE);
-        }
-      }
-      seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den, start_time);
+      seek_pts = ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
     } else {
       seek_pts = ConvertRTToTimestamp(rTime, 1, AV_TIME_BASE);
     }
@@ -1290,14 +1262,6 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
       if (st->start_time != AV_NOPTS_VALUE) {
         st_start_time = av_rescale_q(st->start_time, st->time_base, AV_RATIONAL_TIMEBASE);
-        if (start_time != INT64_MAX && (m_bMPEGTS || m_bMPEGPS) && st->pts_wrap_bits < 60) {
-          int64_t start = av_rescale_q(start_time, AV_RATIONAL_TIMEBASE, st->time_base);
-          if (start < (3LL << (st->pts_wrap_bits - 3)) && st->start_time > (3LL << (st->pts_wrap_bits - 2))) {
-            start_time = av_rescale_q(start + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
-          } else if (st->start_time < (3LL << (st->pts_wrap_bits - 3)) && start > (3LL << (st->pts_wrap_bits - 2))) {
-            st_start_time = av_rescale_q(st->start_time + (1LL << st->pts_wrap_bits), st->time_base, AV_RATIONAL_TIMEBASE);
-          }
-        }
         if (st_start_time < start_time)
           start_time = st_start_time;
       }
