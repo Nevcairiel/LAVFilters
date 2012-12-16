@@ -419,100 +419,28 @@ static DWORD sanitize_mask(DWORD mask, AVCodecID codec)
   return newmask;
 }
 
-template <LAVAudioSampleFormat in, LAVAudioSampleFormat out>
-static void SampleConvert(const BYTE *pPCMIn, BYTE *pPCMOut, unsigned samples, unsigned channels)
+HRESULT CLAVAudio::PadTo32(BufferDetails *buffer)
 {
-  unsigned i, ch;
+  ASSERT(buffer->sfFormat == SampleFormat_24);
 
-  const int bppIn  = get_byte_per_sample(in);
-  const int bppOut = get_byte_per_sample(out);
+  const DWORD size = (buffer->nSamples * buffer->wChannels) * 4;
+  GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
+  pcmOut->SetSize(size);
 
-  for (i = 0; i < samples; i++) {
-    for (ch = 0; ch < channels; ch++) {
-      if (in == SampleFormat_16) {
-        int32_t value = *(int16_t *)pPCMIn;
-        switch (out) {
-        case SampleFormat_24: AV_WL24(pPCMOut, ((int32_t)value << 8));        break;
-        case SampleFormat_32: *(int32_t *)pPCMOut = ((int32_t)value << 16);   break;
-        case SampleFormat_U8: *pPCMOut = (value >> 8) + 0x80;                 break;
-        case SampleFormat_FP32: *(float *)pPCMOut = value * (1.0f / (1U<<15)); break;
-        }
-      } else if (in == SampleFormat_24 || in == SampleFormat_32) {
-        int32_t value = 0;
-        if (in == SampleFormat_24)
-          value = (pPCMIn[0] << 8) + (pPCMIn[1] << 16) + (pPCMIn[2] << 24);
-        else
-          value = *(int32_t *)pPCMIn;
-        switch (out) {
-        case SampleFormat_16: *(int16_t *)pPCMOut = value >> 16;               break;
-        case SampleFormat_24: AV_WL24(pPCMOut, value >> 8);                    break;
-        case SampleFormat_32: *(int32_t *)pPCMOut = value;                     break;
-        case SampleFormat_U8: *pPCMOut = (value >> 24) + 0x80;                 break;
-        case SampleFormat_FP32: *(float *)pPCMOut = value * (1.0f / (1U<<31)); break;
-        }
-      } else if (in == SampleFormat_U8) {
-        int32_t value = *pPCMIn - 0x80;
-        switch (out) {
-        case SampleFormat_16: *(int16_t *)pPCMOut = value << 8;                break;
-        case SampleFormat_24: AV_WL24(pPCMOut, value << 16);                   break;
-        case SampleFormat_32: *(int32_t *)pPCMOut = value << 24;               break;
-        case SampleFormat_FP32: *(float *)pPCMOut = value * (1.0f / (1U<<7));   break;
-        }
-      } else if (in == SampleFormat_FP32) {
-        float value = *(float *)pPCMIn;
-        switch (out) {
-        case SampleFormat_16: *(int16_t *)pPCMOut = av_clip_int16(int(value * (1U<<15)));             break;
-        case SampleFormat_24: AV_WL24(pPCMOut, av_clip(int(value * (1U<<23)), INT24_MIN, INT24_MAX)); break;
-        case SampleFormat_32: *(int32_t *)pPCMOut = av_clipl_int32(int64_t(value * (1U<<31)));        break;
-        case SampleFormat_U8: *pPCMOut = av_clip_uint8(int(value * (1U<<7)) + 0x80);                  break;
-        }
-      }
-      pPCMIn += bppIn;
-      pPCMOut += bppOut;
+  const BYTE *pDataIn = buffer->bBuffer->Ptr();
+  BYTE *pDataOut = pcmOut->Ptr();
+
+  for (unsigned int i = 0; i < buffer->nSamples; ++i) {
+    for(int ch = 0; ch < buffer->wChannels; ++ch) {
+      AV_WL32(pDataOut, AV_RL24(pDataIn) << 8);
+      pDataOut += 4;
+      pDataIn += 3;
     }
   }
-}
-
-#define CONV_MAP(in, out)  \
-  if (pcm->sfFormat == in  && outputFormat == out) { \
-    SampleConvert<in, out>(pcm->bBuffer->Ptr(), pcmOut->Ptr(), pcm->nSamples, pcm->wChannels); \
-  }
-
-HRESULT CLAVAudio::ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat outputFormat)
-{
-  const unsigned uSampleSize = get_byte_per_sample(outputFormat);
-
-  // New Output Buffer
-  GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
-  pcmOut->SetSize(pcm->wChannels * pcm->nSamples * uSampleSize);
-
-       CONV_MAP(SampleFormat_16, SampleFormat_24)
-  else CONV_MAP(SampleFormat_16, SampleFormat_32)
-  else CONV_MAP(SampleFormat_16, SampleFormat_U8)
-  else CONV_MAP(SampleFormat_16, SampleFormat_FP32)
-  else CONV_MAP(SampleFormat_24, SampleFormat_16)
-  else CONV_MAP(SampleFormat_24, SampleFormat_32)
-  else CONV_MAP(SampleFormat_24, SampleFormat_U8)
-  else CONV_MAP(SampleFormat_24, SampleFormat_FP32)
-  else CONV_MAP(SampleFormat_32, SampleFormat_16)
-  else CONV_MAP(SampleFormat_32, SampleFormat_24)
-  else CONV_MAP(SampleFormat_32, SampleFormat_U8)
-  else CONV_MAP(SampleFormat_32, SampleFormat_FP32)
-  else CONV_MAP(SampleFormat_FP32, SampleFormat_16)
-  else CONV_MAP(SampleFormat_FP32, SampleFormat_24)
-  else CONV_MAP(SampleFormat_FP32, SampleFormat_32)
-  else CONV_MAP(SampleFormat_FP32, SampleFormat_U8)
-  else CONV_MAP(SampleFormat_U8, SampleFormat_16)
-  else CONV_MAP(SampleFormat_U8, SampleFormat_24)
-  else CONV_MAP(SampleFormat_U8, SampleFormat_32)
-  else CONV_MAP(SampleFormat_U8, SampleFormat_FP32)
-  else ASSERT(0);
-
-  // Apply changes to buffer
-  delete pcm->bBuffer;
-  pcm->bBuffer        = pcmOut;
-  pcm->sfFormat       = outputFormat;
-  pcm->wBitsPerSample = get_byte_per_sample(outputFormat) << 3;
+  delete buffer->bBuffer;
+  buffer->bBuffer = pcmOut;
+  buffer->sfFormat = SampleFormat_32;
+  buffer->wBitsPerSample = 24;
 
   return S_OK;
 }
@@ -550,22 +478,35 @@ HRESULT CLAVAudio::Truncate32Buffer(BufferDetails *buffer)
   return S_OK;
 }
 
-HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
+HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
 {
   int ret = 0;
 
-  DWORD dwMixingLayout = m_dwOverrideMixer ? m_dwOverrideMixer : m_settings.MixingLayout;
+  DWORD dwMixingLayout = m_dwOverrideMixer ? m_dwOverrideMixer : (m_settings.MixingEnabled ? m_settings.MixingLayout : buffer->dwChannelMask);
+  // No mixing stereo, if the user doesn't want it
+  if (buffer->wChannels <= 2 && (m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO))
+    dwMixingLayout = buffer->dwChannelMask;
 
-  // Check if we need mixing, either already in target mask or in stereo (no downmixing from stereo)
-  if (buffer->dwChannelMask == dwMixingLayout || (buffer->wChannels <= 2 && (m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO) && !m_dwOverrideMixer))
-    return S_FALSE;
+  LAVAudioSampleFormat outputFormat = (dwMixingLayout != buffer->dwChannelMask) ? GetBestAvailableSampleFormat(SampleFormat_FP32) : GetBestAvailableSampleFormat(buffer->sfFormat);
+
+  // Short Circuit some processing
+  if (dwMixingLayout == buffer->dwChannelMask && !buffer->bPlanar) {
+    if (buffer->sfFormat == SampleFormat_24 && outputFormat == SampleFormat_32) {
+      PadTo32(buffer);
+      return S_OK;
+    } else if (buffer->sfFormat == SampleFormat_32 && outputFormat == SampleFormat_24) {
+      buffer->wBitsPerSample = 24;
+      Truncate32Buffer(buffer);
+      return S_OK;
+    }
+  }
 
   // Sadly, we need to convert this, avresample has no 24-bit mode
   if (buffer->sfFormat == SampleFormat_24) {
-    ConvertSampleFormat(buffer, SampleFormat_32);
+    PadTo32(buffer);
   }
 
-  if (buffer->dwChannelMask != m_DecodeLayoutSanified || (!m_avrContext && !m_bAVResampleFailed) || m_bMixingSettingsChanged || m_dwRemixLayout != dwMixingLayout) {
+  if (buffer->dwChannelMask != m_MixingInputLayout || (!m_avrContext && !m_bAVResampleFailed) || m_bMixingSettingsChanged || m_dwRemixLayout != dwMixingLayout || outputFormat != m_sfRemixFormat || buffer->sfFormat != m_MixingInputFormat) {
     m_bAVResampleFailed = FALSE;
     m_bMixingSettingsChanged = FALSE;
     if (m_avrContext) {
@@ -573,14 +514,10 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
       avresample_free(&m_avrContext);
     }
 
-    m_DecodeLayoutSanified = buffer->dwChannelMask;
-    // We prefer to mix to FP32, so try to use that
-    m_sfRemixFormat = GetBestAvailableSampleFormat(SampleFormat_FP32);
-    // avresample has no 24-bit mode
-    if (m_sfRemixFormat == SampleFormat_24)
-      m_sfRemixFormat = SampleFormat_32;
-
-    BOOL bNormalize = !!(m_settings.MixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX);
+    m_MixingInputLayout = buffer->dwChannelMask;
+    m_MixingInputFormat = buffer->sfFormat;
+    m_dwRemixLayout = dwMixingLayout;
+    m_sfRemixFormat = outputFormat;
 
     m_avrContext = avresample_alloc_context();
     av_opt_set_int(m_avrContext, "in_channel_layout", buffer->dwChannelMask, 0);
@@ -589,29 +526,33 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     av_opt_set_int(m_avrContext, "out_channel_layout", dwMixingLayout, 0);
     av_opt_set_int(m_avrContext, "out_sample_fmt", get_ff_sample_fmt(m_sfRemixFormat), 0);
 
-    av_opt_set_int(m_avrContext, "clip_protection", !bNormalize && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
+    // Setup mixing properties, if needed
+    if (buffer->dwChannelMask != dwMixingLayout) {
+      BOOL bNormalize = !!(m_settings.MixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX);
+      av_opt_set_int(m_avrContext, "clip_protection", !bNormalize && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
 
-    // Create Matrix
-    int in_ch = buffer->wChannels;
-    int out_ch = av_get_channel_layout_nb_channels(dwMixingLayout);
-    double *matrix_dbl = (double *)av_mallocz(in_ch * out_ch * sizeof(*matrix_dbl));
+      // Create Matrix
+      int in_ch = buffer->wChannels;
+      int out_ch = av_get_channel_layout_nb_channels(dwMixingLayout);
+      double *matrix_dbl = (double *)av_mallocz(in_ch * out_ch * sizeof(*matrix_dbl));
 
-    const double center_mix_level = (double)m_settings.MixingCenterLevel / 10000.0 / M_SQRT1_2;
-    const double surround_mix_level = (double)m_settings.MixingSurroundLevel / 10000.0;
-    const double lfe_mix_level = (double)m_settings.MixingLFELevel / 10000.0 / (dwMixingLayout == AV_CH_LAYOUT_MONO ? 1.0 : M_SQRT1_2);
-    ret = avresample_build_matrix(buffer->dwChannelMask, dwMixingLayout, center_mix_level, surround_mix_level, lfe_mix_level, bNormalize, matrix_dbl, in_ch, (AVMatrixEncoding)m_settings.MixingMode);
-    if (ret < 0) {
-      DbgLog((LOG_ERROR, 10, L"avresample_build_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
+      const double center_mix_level = (double)m_settings.MixingCenterLevel / 10000.0 / M_SQRT1_2;
+      const double surround_mix_level = (double)m_settings.MixingSurroundLevel / 10000.0;
+      const double lfe_mix_level = (double)m_settings.MixingLFELevel / 10000.0 / (dwMixingLayout == AV_CH_LAYOUT_MONO ? 1.0 : M_SQRT1_2);
+      ret = avresample_build_matrix(buffer->dwChannelMask, dwMixingLayout, center_mix_level, surround_mix_level, lfe_mix_level, bNormalize, matrix_dbl, in_ch, (AVMatrixEncoding)m_settings.MixingMode);
+      if (ret < 0) {
+        DbgLog((LOG_ERROR, 10, L"avresample_build_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
+        av_free(matrix_dbl);
+        goto setuperr;
+      }
+
+      // Set Matrix on the context
+      ret = avresample_set_matrix(m_avrContext, matrix_dbl, in_ch);
       av_free(matrix_dbl);
-      goto setuperr;
-    }
-
-    // Set Matrix on the context
-    ret = avresample_set_matrix(m_avrContext, matrix_dbl, in_ch);
-    av_free(matrix_dbl);
-    if (ret < 0) {
-      DbgLog((LOG_ERROR, 10, L"avresample_set_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
-      goto setuperr;
+      if (ret < 0) {
+        DbgLog((LOG_ERROR, 10, L"avresample_set_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
+        goto setuperr;
+      }
     }
 
     // Open Resample Context
@@ -620,15 +561,17 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
       DbgLog((LOG_ERROR, 10, L"avresample_open failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
       goto setuperr;
     }
-
-    m_dwRemixLayout = dwMixingLayout;
   }
 
-  if (!m_avrContext)
-    return S_FALSE;
+  if (!m_avrContext) {
+    DbgLog((LOG_ERROR, 10, L"avresample context missing?"));
+    return E_FAIL;
+  }
+
+  LAVAudioSampleFormat bufferFormat = (m_sfRemixFormat == SampleFormat_24) ? SampleFormat_32 : m_sfRemixFormat; // avresample always outputs 32-bit
 
   GrowableArray<BYTE> *pcmOut = new GrowableArray<BYTE>();
-  pcmOut->Allocate(FFALIGN(buffer->nSamples, 32) * av_get_channel_layout_nb_channels(m_dwRemixLayout) * get_byte_per_sample(m_sfRemixFormat));
+  pcmOut->Allocate(FFALIGN(buffer->nSamples, 32) * av_get_channel_layout_nb_channels(m_dwRemixLayout) * get_byte_per_sample(bufferFormat));
   BYTE *pOut = pcmOut->Ptr();
 
   BYTE *pIn = buffer->bBuffer->Ptr();
@@ -642,16 +585,16 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
   delete buffer->bBuffer;
   buffer->bBuffer = pcmOut;
   buffer->dwChannelMask = m_dwRemixLayout;
-  buffer->sfFormat = m_sfRemixFormat;
+  buffer->sfFormat = bufferFormat;
   buffer->wBitsPerSample = get_byte_per_sample(m_sfRemixFormat) << 3;
   buffer->wChannels = av_get_channel_layout_nb_channels(m_dwRemixLayout);
-  buffer->bBuffer->SetSize(buffer->wChannels * buffer->nSamples * get_byte_per_sample(m_sfRemixFormat));
+  buffer->bBuffer->SetSize(buffer->wChannels * buffer->nSamples * get_byte_per_sample(buffer->sfFormat));
 
   return S_OK;
 setuperr:
   avresample_free(&m_avrContext);
   m_bAVResampleFailed = TRUE;
-  return S_FALSE;
+  return E_FAIL;
 }
 
 HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
@@ -668,11 +611,16 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
     }
   }
 
-  if (m_settings.MixingEnabled || m_dwOverrideMixer) {
-    PerformMixing(buffer);
+  DWORD dwMixingLayout = m_dwOverrideMixer ? m_dwOverrideMixer : m_settings.MixingLayout;
+  BOOL bMixing = (m_settings.MixingEnabled || m_dwOverrideMixer) && buffer->dwChannelMask != dwMixingLayout;
+  LAVAudioSampleFormat outputFormat = GetBestAvailableSampleFormat(buffer->sfFormat);
+  // Perform conversion to layout and sample format, if required
+  if (bMixing || outputFormat != buffer->sfFormat) {
+    PerformAVRProcessing(buffer);
   }
-  // Remap to standard configurations, if requested
-  else if (m_settings.OutputStandardLayout) {
+
+  // Remap to standard configurations, if requested (not in combination with mixing)
+  if (!bMixing && m_settings.OutputStandardLayout) {
     if (buffer->dwChannelMask != m_DecodeLayoutSanified) {
       m_DecodeLayoutSanified = buffer->dwChannelMask;
       CheckChannelLayoutConformity(buffer->dwChannelMask);
@@ -710,12 +658,6 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
   // Truncate 24-in-32 to real 24
   if (buffer->sfFormat == SampleFormat_32 && buffer->wBitsPerSample && buffer->wBitsPerSample <= 24) {
     Truncate32Buffer(buffer);
-  }
-
-  // Convert Sample format, if necessary
-  LAVAudioSampleFormat outputFormat = GetBestAvailableSampleFormat(buffer->sfFormat);
-  if (outputFormat != buffer->sfFormat) {
-    ConvertSampleFormat(buffer, outputFormat);
   }
 
   return S_OK;

@@ -73,6 +73,7 @@ typedef enum LAVBitstreamCodec {
 
 // Supported Sample Formats in LAV Audio
 typedef enum LAVAudioSampleFormat {
+  SampleFormat_None = -1,
   SampleFormat_16,
   SampleFormat_24,
   SampleFormat_32,

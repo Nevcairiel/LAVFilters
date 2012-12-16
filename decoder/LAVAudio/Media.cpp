@@ -400,6 +400,7 @@ AVSampleFormat get_ff_sample_fmt(LAVAudioSampleFormat sample_fmt)
   case SampleFormat_16:
     ff_sample_fmt = AV_SAMPLE_FMT_S16;
     break;
+  case SampleFormat_24:
   case SampleFormat_32:
     ff_sample_fmt = AV_SAMPLE_FMT_S32;
     break;
@@ -409,7 +410,7 @@ AVSampleFormat get_ff_sample_fmt(LAVAudioSampleFormat sample_fmt)
   case SampleFormat_U8:
     ff_sample_fmt = AV_SAMPLE_FMT_U8;
     break;
-  case SampleFormat_24:
+  default:
     assert(0);
     break;
   }
@@ -682,8 +683,8 @@ LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleForma
 {
   ASSERT(inFormat >= 0 && inFormat < SampleFormat_Bitstream);
 
-  if (m_bFallback16Int && !bNoFallback)
-    return SampleFormat_16;
+  if (m_FallbackFormat != SampleFormat_None && !bNoFallback)
+    return m_FallbackFormat;
 
   LAVAudioSampleFormat outFormat = sampleFormatMapping[inFormat][0];
   for(int i = 0; i < 5; i++) {

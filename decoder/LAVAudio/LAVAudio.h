@@ -65,9 +65,10 @@ struct BufferDetails {
   WORD                  wChannels;        // Number of channels
   DWORD                 dwChannelMask;    // channel mask
   REFERENCE_TIME        rtStart;          // Start Time of the buffer
+  BOOL                  bPlanar;          // Planar (not used)
 
 
-  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0), rtStart(AV_NOPTS_VALUE) {
+  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0), rtStart(AV_NOPTS_VALUE), bPlanar(FALSE) {
     bBuffer = new GrowableArray<BYTE>();
   };
   ~BufferDetails() {
@@ -230,10 +231,10 @@ private:
   HRESULT Create71Conformity(DWORD dwLayout);
 
   LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback = FALSE);
-  HRESULT ConvertSampleFormat(BufferDetails *pcm, LAVAudioSampleFormat outputFormat);
   HRESULT Truncate32Buffer(BufferDetails *buffer);
+  HRESULT PadTo32(BufferDetails *buffer);
 
-  HRESULT PerformMixing(BufferDetails *buffer);
+  HRESULT PerformAVRProcessing(BufferDetails *buffer);
 
 private:
   AVCodecID            m_nCodecId;       // FFMPEG Codec Id
@@ -260,8 +261,9 @@ private:
   REFERENCE_TIME       m_rtBitstreamCache;    // Bitstreaming time cache
 
   GrowableArray<BYTE>  m_buff;           // Input Buffer
-  LAVAudioSampleFormat     m_DecodeFormat;  // Number of bits in the samples
-  BOOL                 m_bFallback16Int;
+  LAVAudioSampleFormat m_DecodeFormat;   // Decode Format
+  LAVAudioSampleFormat m_MixingInputFormat;
+  LAVAudioSampleFormat m_FallbackFormat;
   DWORD                m_dwOverrideMixer;
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
@@ -329,6 +331,7 @@ private:
 
   DWORD               m_DecodeLayout;
   DWORD               m_DecodeLayoutSanified;
+  DWORD               m_MixingInputLayout;
   BOOL                m_bChannelMappingRequired;
 
   ExtendedChannelMap  m_ChannelMap;

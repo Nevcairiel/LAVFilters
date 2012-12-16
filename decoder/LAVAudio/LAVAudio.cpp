@@ -78,7 +78,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_DecodeLayoutSanified(0)
   , m_bChannelMappingRequired(FALSE)
   , m_bFindDTSInPCM(FALSE)
-  , m_bFallback16Int(FALSE)
+  , m_FallbackFormat(SampleFormat_None)
   , m_dwOverrideMixer(0)
   , m_bNeedSyncpoint(FALSE)
   , m_dRate(1.0)
@@ -89,6 +89,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_fMixingClipThreshold(1.0f)
   , m_bHasVideo(TRUE)
   , m_dwRemixLayout(0)
+  , m_MixingInputFormat(SampleFormat_None)
+  , m_MixingInputLayout(0)
 {
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -1291,7 +1293,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   }
 
   m_bFindDTSInPCM = (codec == AV_CODEC_ID_PCM_S16LE && m_settings.bFormats[Codec_DTS]);
-  m_bFallback16Int = FALSE;
+  m_FallbackFormat = SampleFormat_None;
   m_dwOverrideMixer = 0;
   m_bMixingSettingsChanged = TRUE;
   m_fMixingClipThreshold = 1.0f;
@@ -2137,11 +2139,11 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
         hr = m_pOutput->GetConnected()->QueryAccept(&mt);
         if (hr == S_OK) {
           DbgLog((LOG_TRACE, 1, L"-> 16-bit fallback type accepted"));
-          ConvertSampleFormat(&buffer, SampleFormat_16);
-          m_bFallback16Int = TRUE;
+          m_FallbackFormat = SampleFormat_16;
+          PerformAVRProcessing(&buffer);
         }
       }
-      // If a 16-bit fallback isn't enough, try to retain current channel layout
+      // If a 16-bit fallback isn't enough, try to retain current channel layout as well
       if (hr != S_OK) {
         WAVEFORMATEX* wfeCurrent = (WAVEFORMATEX*)m_pOutput->CurrentMediaType().Format();
         WORD wChannels = wfeCurrent->nChannels;
@@ -2152,33 +2154,15 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
         } else {
           dwChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
         }
-        mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, wChannels, dwChannelMask, buffer.wBitsPerSample);
+        mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, dwChannelMask, buffer.wBitsPerSample);
         hr = m_pOutput->GetConnected()->QueryAccept(&mt);
         if (hr == S_OK) {
           DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%x", dwChannelMask));
           m_dwOverrideMixer = dwChannelMask;
+          m_FallbackFormat = SampleFormat_16;
           m_bMixingSettingsChanged = TRUE;
-          LAVAudioSampleFormat sf = buffer.sfFormat;
           // Mix to the new layout
-          PerformMixing(&buffer);
-          // Convert to old sample format, if required
-          if (buffer.sfFormat != sf) {
-            ConvertSampleFormat(&buffer, sf);
-          }
-        } else {
-          // If current channel layout alone wasn't enough, also go 16-bit
-          mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, dwChannelMask, 16);
-          hr = m_pOutput->GetConnected()->QueryAccept(&mt);
-          if (hr == S_OK) {
-            DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%x with 16-bit fallback type", dwChannelMask));
-            m_dwOverrideMixer = dwChannelMask;
-            m_bMixingSettingsChanged = TRUE;
-            // Mix to new layout
-            PerformMixing(&buffer);
-            // Convert to 16-bit
-            ConvertSampleFormat(&buffer, SampleFormat_16);
-            m_bFallback16Int = TRUE;
-          }
+          PerformAVRProcessing(&buffer);
         }
       }
     }
