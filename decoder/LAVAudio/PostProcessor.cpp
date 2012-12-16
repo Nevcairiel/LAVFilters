@@ -581,9 +581,6 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
       m_sfRemixFormat = SampleFormat_32;
 
     BOOL bNormalize = !!(m_settings.MixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX);
-    // Force FP32 output from remixing when not performing normalization
-    if (!bNormalize)
-      m_sfRemixFormat = SampleFormat_FP32;
 
     m_avrContext = avresample_alloc_context();
     av_opt_set_int(m_avrContext, "in_channel_layout", buffer->dwChannelMask, 0);
@@ -591,6 +588,8 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
 
     av_opt_set_int(m_avrContext, "out_channel_layout", dwMixingLayout, 0);
     av_opt_set_int(m_avrContext, "out_sample_fmt", get_ff_sample_fmt(m_sfRemixFormat), 0);
+
+    av_opt_set_int(m_avrContext, "clip_protection", !bNormalize && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
 
     // Open Resample Context
     ret = avresample_open(m_avrContext);
@@ -638,25 +637,6 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     DbgLog((LOG_ERROR, 10, L"avresample_convert failed"));
     delete pcmOut;
     return S_FALSE;
-  }
-
-  if (!(m_settings.MixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX) && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION)) {
-    ASSERT(m_sfRemixFormat == SampleFormat_FP32);
-
-    DWORD dwSamples = av_get_channel_layout_nb_channels(m_dwRemixLayout) * buffer->nSamples;
-    BOOL bNeedNormalize = (m_fMixingClipThreshold > 1.0f);
-    float *pfOut = (float *)pOut;
-    for (DWORD i = 0; i < dwSamples; i++) {
-      const float fVal = abs(pfOut[i]);
-      if (fVal > m_fMixingClipThreshold) {
-        m_fMixingClipThreshold = fVal;
-        bNeedNormalize = TRUE;
-        DbgLog((LOG_TRACE, 10, L"PerformMixing: Clipping Protection engaged with coeff of %f", m_fMixingClipThreshold));
-      }
-      if (bNeedNormalize) {
-        pfOut[i] /= m_fMixingClipThreshold;
-      }
-    }
   }
 
   delete buffer->bBuffer;
