@@ -1033,10 +1033,7 @@ static int QueryAcceptMediaTypes(IPin *pPin, std::vector<CMediaType> pmts)
 STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
-
-#ifndef DEBUG
   if (TrackNumSrc == TrackNumDst) return S_OK;
-#endif
 
   CLAVOutputPin* pPin = GetOutputPin(TrackNumSrc);
 
