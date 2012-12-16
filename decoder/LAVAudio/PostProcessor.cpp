@@ -591,13 +591,6 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
 
     av_opt_set_int(m_avrContext, "clip_protection", !bNormalize && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
 
-    // Open Resample Context
-    ret = avresample_open(m_avrContext);
-    if (ret < 0) {
-      DbgLog((LOG_ERROR, 10, L"avresample_open failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
-      goto setuperr;
-    }
-
     // Create Matrix
     int in_ch = buffer->wChannels;
     int out_ch = av_get_channel_layout_nb_channels(dwMixingLayout);
@@ -618,6 +611,13 @@ HRESULT CLAVAudio::PerformMixing(BufferDetails *buffer)
     av_free(matrix_dbl);
     if (ret < 0) {
       DbgLog((LOG_ERROR, 10, L"avresample_set_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
+      goto setuperr;
+    }
+
+    // Open Resample Context
+    ret = avresample_open(m_avrContext);
+    if (ret < 0) {
+      DbgLog((LOG_ERROR, 10, L"avresample_open failed, layout in: %x, out: %x, sample fmt in: %d, out: %d", buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
       goto setuperr;
     }
 
