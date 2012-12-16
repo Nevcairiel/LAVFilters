@@ -388,6 +388,8 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   if (m_bMPEGTS)
     m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 3) / 2;
 
+  av_opt_set_int(m_avFormat, "correct_ts_overflow", 0, 0);
+
   m_timeOpening = time(NULL);
   int ret = avformat_find_stream_info(m_avFormat, NULL);
   if (ret < 0) {

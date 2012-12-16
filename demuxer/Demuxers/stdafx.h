@@ -33,6 +33,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 #include "libavutil/intreadwrite.h"
 #include "libavutil/pixdesc.h"
+#include "libavutil/opt.h"
 
 #include "libbluray/bluray.h"
 }
