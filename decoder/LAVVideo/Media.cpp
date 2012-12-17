@@ -157,6 +157,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_h263, AV_CODEC_ID_H263 },
   { &MEDIASUBTYPE_S263, AV_CODEC_ID_H263 },
   { &MEDIASUBTYPE_s263, AV_CODEC_ID_H263 },
+  { &MEDIASUBTYPE_I263, AV_CODEC_ID_H263I },
+  { &MEDIASUBTYPE_i263, AV_CODEC_ID_H263I },
   { &MEDIASUBTYPE_THEORA, AV_CODEC_ID_THEORA },
   { &MEDIASUBTYPE_theora, AV_CODEC_ID_THEORA },
   { &MEDIASUBTYPE_TSCC, AV_CODEC_ID_TSCC },
@@ -355,6 +357,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_h263 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_S263 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_s263 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_I263 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_i263 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_THEORA },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_theora },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_TSCC },
@@ -465,7 +469,7 @@ static codec_config_t m_codec_config[] = {
   { 3, { AV_CODEC_ID_VP6, AV_CODEC_ID_VP6A, AV_CODEC_ID_VP6F }},                   // Codec_VP6
   { 2, { AV_CODEC_ID_SVQ1, AV_CODEC_ID_SVQ3 }, "svq", "SVQ 1 / SVQ 3"},         // Codec_SVQ
   { 1, { AV_CODEC_ID_H261 }},                                                // Codec_H261
-  { 1, { AV_CODEC_ID_H263 }},                                                // Codec_H263
+  { 2, { AV_CODEC_ID_H263, AV_CODEC_ID_H263I }},                             // Codec_H263
   { 3, { AV_CODEC_ID_INDEO3, AV_CODEC_ID_INDEO4, AV_CODEC_ID_INDEO5 }, "indeo", "Intel Indeo 3/4/5"}, // Codec_Indeo
   { 1, { AV_CODEC_ID_TSCC }},                                                // Codec_TSCC
   { 1, { AV_CODEC_ID_FRAPS }},                                               // Codec_Fraps

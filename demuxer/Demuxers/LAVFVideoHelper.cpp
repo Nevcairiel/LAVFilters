@@ -38,7 +38,7 @@ CLAVFVideoHelper g_VideoHelper;
 // Map codec ids to media subtypes
 static FormatMapping video_map[] = {
   { AV_CODEC_ID_H263,       &MEDIASUBTYPE_H263,         NULL,                   NULL },
-  { AV_CODEC_ID_H263I,      &MEDIASUBTYPE_H263,         NULL,                   NULL },
+  { AV_CODEC_ID_H263I,      &MEDIASUBTYPE_I263,         NULL,                   NULL },
   { AV_CODEC_ID_H264,       &MEDIASUBTYPE_AVC1,         MKTAG('A','V','C','1'), &FORMAT_MPEG2Video },
   { AV_CODEC_ID_MPEG1VIDEO, &MEDIASUBTYPE_MPEG1Payload, NULL,                   &FORMAT_MPEGVideo  },
   { AV_CODEC_ID_MPEG2VIDEO, &MEDIASUBTYPE_MPEG2_VIDEO,  NULL,                   &FORMAT_MPEG2Video },
