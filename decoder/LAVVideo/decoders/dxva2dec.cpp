@@ -741,9 +741,6 @@ STDMETHODIMP CDecDXVA2::Init()
       if (cpu_flags & AV_CPU_FLAG_SSE4) {
         DbgLog((LOG_TRACE, 10, L"-> Using SSE4 frame copy"));
         CopyFrameNV12 = CopyFrameNV12_SSE4;
-      } else if (FALSE && cpu_flags & AV_CPU_FLAG_SSE2) {
-        DbgLog((LOG_TRACE, 10, L"-> Using SSE2 frame copy"));
-        //CopyFrameNV12 = CopyFrameNV12_SSE2;
       } else {
         DbgLog((LOG_TRACE, 10, L"-> Using fallback frame copy"));
         CopyFrameNV12 = CopyFrameNV12_fallback;
