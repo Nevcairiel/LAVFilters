@@ -696,7 +696,7 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
 
     LPDIRECT3DSURFACE9 pSurfaces[DXVA2_MAX_SURFACES] = {0};
     UINT numSurfaces = max(config.ConfigMinRenderTargetBuffCount, 1);
-    hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, max(config.ConfigMinRenderTargetBuffCount, 1), output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, NULL);
+    hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, numSurfaces, output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, NULL);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> Creation of surfaces failed with hr: %X", hr));
       goto done;
