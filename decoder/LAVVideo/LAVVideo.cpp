@@ -138,7 +138,7 @@ STDMETHODIMP CLAVVideo::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
   CAutoLock cObjectLock(m_pLock);
   HRESULT hr = __super::JoinFilterGraph(pGraph, pName);
   if (pGraph && !m_pTrayIcon) {
-    m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_SPLITTER), IDI_ICON1);
+    m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_VIDEO), IDI_ICON1);
   } else if (!pGraph && m_pTrayIcon) {
     SAFE_DELETE(m_pTrayIcon);
   }
