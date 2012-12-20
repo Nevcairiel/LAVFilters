@@ -151,7 +151,6 @@ public:
   STDMETHODIMP_(LPWSTR) GetFileExtension();
   STDMETHODIMP_(BOOL) FilterInGraph(PIN_DIRECTION dir, const GUID &clsid) { if (dir == PINDIR_INPUT) return FilterInGraphSafe(m_pInput, clsid); else return FilterInGraphSafe(m_pOutput, clsid); }
   STDMETHODIMP_(DWORD) GetDecodeFlags() { return m_dwDecodeFlags; }
-  STDMETHODIMP_(BOOL) IsVistaOrNewer();
   STDMETHODIMP_(CMediaType&) GetInputMediaType() { return m_pInput->CurrentMediaType(); }
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info) { if (m_LAVPinInfoValid) { info = m_LAVPinInfo; return S_OK; } return E_FAIL; }
   STDMETHODIMP_(CBasePin*) GetOutputPin() { return m_pOutput; }

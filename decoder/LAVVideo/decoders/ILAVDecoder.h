@@ -213,13 +213,6 @@ interface ILAVVideoCallback
 #define LAV_VIDEO_DEC_FLAG_SAGE_HACK              0x00000040
 
   /**
-   * Check wether we're running on Vista or newer
-   *
-   * @return TRUE/FALSE
-   */
-  STDMETHOD_(BOOL, IsVistaOrNewer)() PURE;
-
-  /**
    * Get the input media type
    *
    * @result media type
