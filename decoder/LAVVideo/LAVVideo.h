@@ -142,6 +142,8 @@ public:
   int GetPinCount();
   CBasePin* GetPin(int n);
 
+  STDMETHODIMP JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName);
+
   // ILAVVideoCallback
   STDMETHODIMP AllocateFrame(LAVFrame **ppFrame);
   STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);

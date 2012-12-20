@@ -83,6 +83,8 @@ public:
   STDMETHODIMP Pause();
   STDMETHODIMP Run(REFERENCE_TIME tStart);
 
+  STDMETHODIMP JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName);
+
   // IFileSourceFilter
   STDMETHODIMP Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt);
   STDMETHODIMP GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt);

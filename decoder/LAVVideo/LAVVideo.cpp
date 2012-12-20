@@ -102,8 +102,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   m_ControlThread = new CLAVControlThread(this);
 
-  m_pTrayIcon = new CBaseTrayIcon(TEXT(LAV_VIDEO), IDI_ICON1);
-
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -133,6 +131,18 @@ CLAVVideo::~CLAVVideo()
   SafeRelease(&m_SubtitleConsumer);
 
   SAFE_DELETE(m_pSubtitleInput);
+}
+
+STDMETHODIMP CLAVVideo::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
+{
+  CAutoLock cObjectLock(m_pLock);
+  HRESULT hr = __super::JoinFilterGraph(pGraph, pName);
+  if (pGraph && !m_pTrayIcon) {
+    m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_SPLITTER), IDI_ICON1);
+  } else if (!pGraph && m_pTrayIcon) {
+    SAFE_DELETE(m_pTrayIcon);
+  }
+  return hr;
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::IsVistaOrNewer()

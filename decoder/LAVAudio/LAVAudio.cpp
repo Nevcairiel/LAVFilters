@@ -130,8 +130,6 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 
   InitBitstreaming();
 
-  m_pTrayIcon = new CBaseTrayIcon(TEXT(LAV_AUDIO), IDI_ICON1);
-
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
@@ -160,6 +158,18 @@ CLAVAudio::~CLAVAudio()
 #if defined(DEBUG) && ENABLE_DEBUG_LOGFILE
   DbgCloseLogFile();
 #endif
+}
+
+STDMETHODIMP CLAVAudio::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
+{
+  CAutoLock cObjectLock(m_pLock);
+  HRESULT hr = __super::JoinFilterGraph(pGraph, pName);
+  if (pGraph && !m_pTrayIcon) {
+    m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_SPLITTER), IDI_ICON1);
+  } else if (!pGraph && m_pTrayIcon) {
+    SAFE_DELETE(m_pTrayIcon);
+  }
+  return hr;
 }
 
 HRESULT CLAVAudio::LoadDefaults()

@@ -159,6 +159,8 @@ public:
 
   HRESULT Receive(IMediaSample *pIn);
 
+  STDMETHODIMP JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName);
+
   // Optional Overrides
   HRESULT CheckConnect(PIN_DIRECTION dir, IPin *pPin);
   HRESULT SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt);
