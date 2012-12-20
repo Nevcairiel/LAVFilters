@@ -119,7 +119,6 @@ STDMETHODIMP CLAVSplitter::Close()
 STDMETHODIMP CLAVSplitter::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
 {
   CAutoLock cObjectLock(m_pLock);
-  DbgLog((LOG_TRACE, 10, L"Joining Filter Graph with graph: %p", pGraph));
   HRESULT hr = __super::JoinFilterGraph(pGraph, pName);
   if (pGraph && !m_pTrayIcon) {
     m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_SPLITTER), IDI_ICON1);
