@@ -65,7 +65,7 @@ void CBaseDSPropPage::ListView_AddCol(HWND hlv, int &ncol, int w, const wchar_t 
   ncol++;
 }
 
-HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter)
+HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner)
 {
   CheckPointer(pFilter, E_INVALIDARG);
   CoInitialize(NULL);
@@ -86,7 +86,7 @@ HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter)
     pProp->GetPages(&caGUID);
     pProp->Release();
     hr = OleCreatePropertyFrame(
-        NULL,                   // Parent window
+        hwndOwner,              // Parent window
         0, 0,                   // Reserved
         FilterInfo.achName,     // Caption for the dialog box
         1,                      // Number of objects (just the filter)
