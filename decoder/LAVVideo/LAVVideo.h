@@ -34,6 +34,8 @@
 #include "subtitles/LAVSubtitleConsumer.h"
 #include "subtitles/LAVVideoSubtitleInputPin.h"
 
+#include "BaseTrayIcon.h"
+
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
@@ -277,6 +279,8 @@ private:
     DWORD DitherMode;
     BOOL bDVDVideo;
   } m_settings;
+
+  CBaseTrayIcon *m_pTrayIcon;
 
 #ifdef DEBUG
   FloatingAverage<double> m_pixFmtTimingAvg;

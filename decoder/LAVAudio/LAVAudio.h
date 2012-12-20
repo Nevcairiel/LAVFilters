@@ -26,6 +26,7 @@
 #include "PostProcessor.h"
 
 #include "ISpecifyPropertyPages2.h"
+#include "BaseTrayIcon.h"
 
 //////////////////// Configuration //////////////////////////
 
@@ -346,4 +347,6 @@ private:
     int sub_packet_size;
     unsigned int deint_id;
   } m_raData;
+
+  CBaseTrayIcon *m_pTrayIcon;
 };

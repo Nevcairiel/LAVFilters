@@ -30,6 +30,7 @@
 #include "AudioSettingsProp.h"
 
 #include "registry.h"
+#include "resource.h"
 
 #include "DeCSS/DeCSSInputPin.h"
 
@@ -91,6 +92,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_dwRemixLayout(0)
   , m_MixingInputFormat(SampleFormat_None)
   , m_MixingInputLayout(0)
+  , m_pTrayIcon(NULL)
 {
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -128,6 +130,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 
   InitBitstreaming();
 
+  m_pTrayIcon = new CBaseTrayIcon(TEXT(LAV_AUDIO), IDI_ICON1);
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
@@ -142,6 +146,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVAudio::~CLAVAudio()
 {
+  SAFE_DELETE(m_pTrayIcon);
   ffmpeg_shutdown();
   av_freep(&m_pFFBuffer);
 

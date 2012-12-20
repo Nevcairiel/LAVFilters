@@ -37,6 +37,8 @@
 
 #include "ISpecifyPropertyPages2.h"
 
+#include "BaseTrayIcon.h"
+
 #define LAVF_REGISTRY_KEY L"Software\\LAV\\Splitter"
 #define LAVF_REGISTRY_KEY_FORMATS LAVF_REGISTRY_KEY L"\\Formats"
 #define LAVF_LOG_FILE     L"LAVSplitter.txt"
@@ -266,6 +268,8 @@ private:
   BOOL m_bRuntimeConfig;
 
   IUnknown *m_pSite;
+
+  CBaseTrayIcon *m_pTrayIcon;
 };
 
 [uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]

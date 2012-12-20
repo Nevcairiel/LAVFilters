@@ -28,6 +28,7 @@
 
 #include "moreuuids.h"
 #include "registry.h"
+#include "resource.h"
 
 #include <Shlwapi.h>
 
@@ -80,6 +81,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_pLastSequenceFrame(NULL)
   , m_bInDVDMenu(FALSE)
   , m_ControlThread(NULL)
+  , m_pTrayIcon(NULL)
 {
   *phr = S_OK;
   m_pInput = new CVideoInputPin(TEXT("CVideoInputPin"), this, phr, L"Input");
@@ -100,6 +102,8 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   m_ControlThread = new CLAVControlThread(this);
 
+  m_pTrayIcon = new CBaseTrayIcon(TEXT(LAV_VIDEO), IDI_ICON1);
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -112,6 +116,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVVideo::~CLAVVideo()
 {
+  SAFE_DELETE(m_pTrayIcon);
   SAFE_DELETE(m_ControlThread);
   CloseMTFilterThread();
 

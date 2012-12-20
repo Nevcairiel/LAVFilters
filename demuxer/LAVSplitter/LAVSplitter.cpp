@@ -53,6 +53,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bFakeASFReader(FALSE)
   , m_bStopValid(FALSE)
   , m_rtOffset(0)
+  , m_pTrayIcon(NULL)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -69,6 +70,8 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 
   m_pInput = new CLAVInputPin(NAME("LAV Input Pin"), this, this, phr);
 
+  m_pTrayIcon = new CBaseTrayIcon(TEXT(LAV_SPLITTER), IDI_ICON1);
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -82,6 +85,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVSplitter::~CLAVSplitter()
 {
   SAFE_DELETE(m_pInput);
+  SAFE_DELETE(m_pTrayIcon);
   Close();
 
   // delete old pins
