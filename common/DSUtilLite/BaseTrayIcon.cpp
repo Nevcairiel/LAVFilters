@@ -57,9 +57,10 @@ CBaseTrayIcon::~CBaseTrayIcon(void)
     SendMessage(m_hWnd, MSG_QUIT, 0, 0);
 
   // Wait for thread to shut down and close its handle
-  if (m_hThread)
+  if (m_hThread) {
+    WaitForSingleObject(m_hThread, INFINITE);
     CloseHandle(m_hThread);
-
+  }
   // Unregister the window class we used
   UnregisterClass(L"LAVTrayIconClass", g_hInst);
 }
