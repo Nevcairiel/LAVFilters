@@ -104,6 +104,7 @@ DWORD CBaseTrayIcon::TrayMessageThread()
 
   CreateTrayIconData();
   Shell_NotifyIcon(NIM_ADD, &m_NotifyIconData);
+  Shell_NotifyIcon(NIM_SETVERSION, &m_NotifyIconData);
 
   m_evSetupFinished.Set();
 
