@@ -260,9 +260,11 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
     skip_bits1(gb);                                     /* Multirate Interpolator */
     skip_bits(gb, 4);                                   /* Encoder Software Revision */
     skip_bits(gb, 2);                                   /* Copy history */
-    skip_bits1(gb);                                     /* ES */
-    skip_bits(gb, 4);                                   /* Dialog Normalization Parameter */
-    skip_bits(gb, 4);                                   /* Unknown or Dialog Normalization Parameter */
+    pHeader->ES = get_bits1(gb);                        /* ES */
+    skip_bits(gb, 2);                                   /* PCMR (source PCM resolution) */
+    skip_bits1(gb);                                     /* SUMF (Front Sum/Difference Flag) */
+    skip_bits1(gb);                                     /* SUMS (Surround Sum/Difference Flag) */
+    skip_bits(gb, 4);                                   /* Dialog Normalization Parameter or Unspecified (dependent on encoder version) */
   } else {
     pHeader->HasCore = 0;
   }

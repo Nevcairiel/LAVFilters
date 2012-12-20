@@ -48,6 +48,7 @@ struct DTSHeader {
   unsigned LFE;
 
   // Extensions
+  unsigned ES;
   unsigned XChChannelLayout;
 
   unsigned IsHD;
