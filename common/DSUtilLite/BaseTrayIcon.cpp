@@ -19,6 +19,7 @@
 
 #include "stdafx.h"
 #include "BaseTrayIcon.h"
+#include "BaseDSPropPage.h"
 
 #include <time.h>
 #include <process.h>
@@ -27,13 +28,17 @@
 #define MSG_TRAYICON   WM_USER + 1
 #define MSG_QUIT       WM_USER + 2
 
-CBaseTrayIcon::CBaseTrayIcon(const WCHAR *wszName, int resIcon)
+CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon)
   : m_hWnd(0)
   , m_hThread(0)
+  , m_pFilter(pFilter)
   , m_wszName(wszName)
   , m_resIcon(resIcon)
+  , m_bPropPageOpen(FALSE)
+  , m_evSetupFinished(TRUE)
 {
   memset(&m_NotifyIconData, 0, sizeof(m_NotifyIconData));
+  m_evSetupFinished.Reset();
   StartMessageThread();
 }
 
@@ -59,6 +64,7 @@ HRESULT CBaseTrayIcon::StartMessageThread()
                                      0,                            /* 0 = Start Immediately */
                                      NULL                          /* Thread Address */
                                      );
+  m_evSetupFinished.Wait();
   return S_OK;
 }
 
@@ -67,7 +73,7 @@ unsigned int WINAPI CBaseTrayIcon::InitialThreadProc(LPVOID pv)
   HRESULT hrCo = CoInitialize(NULL);
 
   CBaseTrayIcon *pTrayIcon = (CBaseTrayIcon *) pv;
-  unsigned int ret = pTrayIcon->ThreadProc();
+  unsigned int ret = pTrayIcon->TrayMessageThread();
 
   if (SUCCEEDED(hrCo))
     CoUninitialize();
@@ -75,7 +81,7 @@ unsigned int WINAPI CBaseTrayIcon::InitialThreadProc(LPVOID pv)
   return ret;
 }
 
-DWORD CBaseTrayIcon::ThreadProc()
+DWORD CBaseTrayIcon::TrayMessageThread()
 {
   HRESULT hr;
   MSG msg;
@@ -98,6 +104,8 @@ DWORD CBaseTrayIcon::ThreadProc()
 
   CreateTrayIconData();
   Shell_NotifyIcon(NIM_ADD, &m_NotifyIconData);
+
+  m_evSetupFinished.Set();
 
   // Message loop
   while (GetMessage(&msg, NULL, 0, 0) > 0) {
@@ -138,6 +146,7 @@ HRESULT CBaseTrayIcon::CreateTrayIconData()
   m_NotifyIconData.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE;
   m_NotifyIconData.hIcon = (HICON)LoadImage(g_hInst, MAKEINTRESOURCE(m_resIcon), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
   m_NotifyIconData.uCallbackMessage = MSG_TRAYICON;
+  m_NotifyIconData.uVersion = NOTIFYICON_VERSION;
   wcscpy_s(m_NotifyIconData.szTip, m_wszName);
 
   return S_OK;
@@ -154,7 +163,20 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
     DestroyWindow(hwnd);
     break;
   case MSG_TRAYICON:
-    if (icon) {
+    {
+      UINT trayMsg = LOWORD(lParam);
+      if (icon) {
+        switch (trayMsg) {
+        case WM_LBUTTONUP:
+          DbgLog((LOG_TRACE, 10, L"Left Click"));
+          if (!icon->m_bPropPageOpen) {
+            icon->m_bPropPageOpen = TRUE;
+            CBaseDSPropPage::ShowPropPageDialog(icon->m_pFilter, icon->m_hWnd);
+            icon->m_bPropPageOpen = FALSE;
+          }
+          break;
+        }
+      }
     }
     break;
   }

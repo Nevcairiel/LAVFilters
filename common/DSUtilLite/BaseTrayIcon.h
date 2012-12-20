@@ -24,7 +24,7 @@
 class CBaseTrayIcon
 {
 public:
-  CBaseTrayIcon(const WCHAR *wszName, int resIcon);
+  CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
   virtual ~CBaseTrayIcon(void);
 
 private:
@@ -33,15 +33,19 @@ private:
   HRESULT CreateMessageWindow();
   HRESULT CreateTrayIconData();
 
-  DWORD ThreadProc();
+  DWORD TrayMessageThread();
   static unsigned int WINAPI InitialThreadProc(LPVOID pv);
 
   static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
+  CAMEvent m_evSetupFinished;
+
   HANDLE m_hThread;
   HWND m_hWnd;
+  BOOL m_bPropPageOpen;
 
+  IBaseFilter *m_pFilter;
   const WCHAR *m_wszName;
   int m_resIcon;
   NOTIFYICONDATA m_NotifyIconData;
