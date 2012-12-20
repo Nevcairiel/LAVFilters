@@ -169,7 +169,6 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
       if (icon) {
         switch (trayMsg) {
         case WM_LBUTTONUP:
-          DbgLog((LOG_TRACE, 10, L"Left Click"));
           if (!icon->m_bPropPageOpen) {
             icon->m_bPropPageOpen = TRUE;
             CBaseDSPropPage::ShowPropPageDialog(icon->m_pFilter, icon->m_hWnd);
