@@ -49,8 +49,10 @@ CBaseTrayIcon::~CBaseTrayIcon(void)
     Shell_NotifyIcon(NIM_DELETE, &m_NotifyIconData);
 
   // Free icon resources
-  if (m_NotifyIconData.hIcon)
+  if (m_NotifyIconData.hIcon) {
     DestroyIcon(m_NotifyIconData.hIcon);
+    m_NotifyIconData.hIcon = NULL;
+  }
 
   // Instruct the window to destroy itself
   if (m_hWnd)
