@@ -330,7 +330,7 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
       if (bFlag != m_ImpairedAudio) {
         SetDirty();
       }
-     }  else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_TRAYICON) {
+    } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_TRAYICON) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_TRAYICON, BM_GETCHECK, 0, 0);
       if (bFlag != m_TrayIcon) {
         SetDirty();
