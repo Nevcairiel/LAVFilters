@@ -119,6 +119,9 @@ public:
   STDMETHODIMP SetHWAccelResolutionFlags(DWORD dwResFlags);
   STDMETHODIMP_(DWORD) GetHWAccelResolutionFlags();
 
+  STDMETHODIMP SetDeinterlacingMode(LAVDeintMode deintMode);
+  STDMETHODIMP_(LAVDeintMode) GetDeinterlacingMode();
+
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
 
@@ -272,11 +275,9 @@ private:
     DWORD HWDeintOutput;
     BOOL HWDeintHQ;
     DWORD DeintFieldOrder;
-    BOOL DeintAggressive;
-    BOOL DeintForce;
+    LAVDeintMode DeintMode;
     DWORD SWDeintMode;
     DWORD SWDeintOutput;
-    BOOL DeintTreatAsProgressive;
     DWORD DitherMode;
     BOOL bDVDVideo;
   } m_settings;

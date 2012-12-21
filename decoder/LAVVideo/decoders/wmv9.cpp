@@ -585,7 +585,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   if (pFrame->interlaced && !m_bInterlaced)
     m_bInterlaced = TRUE;
 
-  pFrame->interlaced = (pFrame->interlaced || (m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce()) && !m_pSettings->GetDeintTreatAsProgressive();
+  pFrame->interlaced = (pFrame->interlaced || (m_bInterlaced && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Disable);
 
   if (m_bManualReorder) {
     if (!m_timestampQueue.empty()) {
@@ -683,5 +683,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecWMV9::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecWMV9::IsInterlaced()
 {
-  return !m_pSettings->GetDeintTreatAsProgressive() && (m_bInterlaced || m_pSettings->GetDeintForce());
+  return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force);
 }

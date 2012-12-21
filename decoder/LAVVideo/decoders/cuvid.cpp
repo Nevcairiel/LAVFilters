@@ -797,7 +797,7 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
   filter->m_bDoubleRateDeint = FALSE;
   if (filter->m_bInterlaced && cuvidfmt->frame_rate.numerator && cuvidfmt->frame_rate.denominator) {
     double dFrameTime = 10000000.0 / ((double)cuvidfmt->frame_rate.numerator / cuvidfmt->frame_rate.denominator);
-    if (filter->m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField && filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave && !filter->m_pSettings->GetDeintTreatAsProgressive() && (int)(dFrameTime / 10000.0) != 41) {
+    if (filter->m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField && filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave && !(filter->m_pSettings->GetDeinterlacingMode() == DeintMode_Disable) && (int)(dFrameTime / 10000.0) != 41) {
       filter->m_bDoubleRateDeint = TRUE;
       dFrameTime /= 2.0;
     }
@@ -910,7 +910,7 @@ int CUDAAPI CDecCuvid::HandlePictureDisplay(void *obj, CUVIDPARSERDISPINFO *cuvi
 
 STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
 {
-  BOOL bTreatAsProgressive = m_pSettings->GetDeintTreatAsProgressive();
+  BOOL bTreatAsProgressive = m_pSettings->GetDeinterlacingMode() == DeintMode_Disable;
 
   if (bTreatAsProgressive) {
     cuviddisp->progressive_frame = TRUE;
@@ -926,7 +926,7 @@ STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
         m_bTFF = cuviddisp->top_field_first;
     }
 
-    cuviddisp->progressive_frame = (cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeintAggressive() && m_VideoFormat.codec != cudaVideoCodec_VC1) && !m_pSettings->GetDeintForce());
+    cuviddisp->progressive_frame = (cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive && m_VideoFormat.codec != cudaVideoCodec_VC1) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Force));
   }
 
   LAVDeintFieldOrder fo        = m_pSettings->GetDeintFieldOrder();
@@ -1241,5 +1241,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecCuvid::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecCuvid::IsInterlaced()
 {
-  return !m_pSettings->GetDeintTreatAsProgressive() && (m_bInterlaced || m_pSettings->GetDeintForce()) && (m_VideoDecoderInfo.DeinterlaceMode == cudaVideoDeinterlaceMode_Weave);
+  return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && (m_VideoDecoderInfo.DeinterlaceMode == cudaVideoDeinterlaceMode_Weave);
 }

@@ -10,6 +10,10 @@
 #define IDS_FIELDORDER_AUTO             104
 #define IDS_FIELDORDER_TOP              105
 #define IDS_FIELDORDER_BOTTOM           106
+#define IDS_DEINTMODE_AUTO              107
+#define IDS_DEINTMODE_AGGRESSIVE        108
+#define IDS_DEINTMODE_FORCE             109
+#define IDS_DEINTMODE_DISABLE           110
 #define IDC_CODECS                      1001
 #define IDC_LAVVIDEO_FOOTER             1002
 #define IDC_VIDEO_SETTINGS              1003
@@ -54,17 +58,16 @@
 #define IDC_HWDEINT_OUT_FILM            1048
 #define IDC_LBL_DEINT_FIELDORDER        1049
 #define IDC_DEINT_FIELDORDER            1050
-#define IDC_DEINT_FORCE                 1051
+#define IDC_LBL_DEINT_MODE              1051
 #define IDC_HWDEINT_HQ                  1052
 #define IDC_HWACCEL_AVAIL               1053
 #define IDC_DEINT_SETTINGS              1054
-#define IDC_DEINT_AGGRESSIVE            1055
+#define IDC_DEINT_MODE                  1055
 #define IDC_SWDEINT_ENABLE              1056
 #define IDC_SWDEINT                     1057
 #define IDC_LBL_SWDEINT_MODE            1058
 #define IDC_SWDEINT_OUT_FILM            1059
 #define IDC_SWDEINT_OUT_VIDEO           1060
-#define IDC_DEINT_PROGRESSIVE           1061
 #define IDC_OUT_V210                    1062
 #define IDC_OUT_V410                    1063
 #define IDC_HWACCEL_MPEG4               1064
@@ -87,7 +90,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        107
+#define _APS_NEXT_RESOURCE_VALUE        111
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1079
 #define _APS_NEXT_SYMED_VALUE           101

@@ -64,8 +64,7 @@ private:
   DWORD m_dwNumThreads;
   DWORD m_StreamAR;
   DWORD m_DeintFieldOrder;
-  BOOL  m_DeintAggressive;
-  BOOL  m_DeintForce;
+  LAVDeintMode m_DeintMode;
   DWORD m_dwRGBOutput;
 
   BOOL  m_bPixFmts[LAVOutPixFmt_NB];
@@ -79,7 +78,6 @@ private:
   BOOL  m_HWDeintHQ;
   BOOL  m_SWDeint;
   DWORD m_SWDeintOutMode;
-  BOOL  m_DeintProgressive;
 
   DWORD m_DitherMode;
 };

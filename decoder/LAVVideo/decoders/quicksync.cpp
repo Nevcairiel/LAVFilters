@@ -426,7 +426,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   qsConfig.bVppEnableDeinterlacing             = m_bDI;
   qsConfig.bVppEnableFullRateDI                = m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField;
   qsConfig.bVppEnableDITimeStampsInterpolation = true;
-  qsConfig.bVppEnableForcedDeinterlacing       = m_bDI && ((m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce());
+  qsConfig.bVppEnableForcedDeinterlacing       = m_bDI && ((m_bInterlaced && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) || m_pSettings->GetDeinterlacingMode() == DeintMode_Force);
 
   qsConfig.bForceFieldOrder                    = m_pSettings->GetDeintFieldOrder() != DeintFieldOrder_Auto;
   qsConfig.eFieldOrder                         = (QsFieldOrder)m_pSettings->GetDeintFieldOrder();
@@ -602,7 +602,7 @@ STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
   if (!m_bInterlaced && pFrame->interlaced)
     m_bInterlaced = TRUE;
 
-  pFrame->interlaced = (pFrame->interlaced || (m_bInterlaced && m_pSettings->GetDeintAggressive()) || m_pSettings->GetDeintForce()) && !m_pSettings->GetDeintTreatAsProgressive() && !m_bDI;
+  pFrame->interlaced = (pFrame->interlaced || (m_bInterlaced && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Disable) && !m_bDI;
 
   if (m_bEndOfSequence)
     pFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
@@ -653,5 +653,5 @@ STDMETHODIMP_(REFERENCE_TIME) CDecQuickSync::GetFrameDuration()
 
 STDMETHODIMP_(BOOL) CDecQuickSync::IsInterlaced()
 {
-  return !m_pSettings->GetDeintTreatAsProgressive() && (m_bInterlaced || m_pSettings->GetDeintForce()) && !m_bDI;
+  return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && !m_bDI;
 }

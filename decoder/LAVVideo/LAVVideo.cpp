@@ -153,8 +153,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.StreamAR = 2;
   m_settings.NumThreads = 0;
   m_settings.DeintFieldOrder = DeintFieldOrder_Auto;
-  m_settings.DeintAggressive = FALSE;
-  m_settings.DeintForce = 0;
+  m_settings.DeintMode = DeintMode_Auto;
   m_settings.RGBRange = 2; // Full range default
 
   for (int i = 0; i < Codec_VideoNB; ++i)
@@ -192,8 +191,6 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.SWDeintMode = SWDeintMode_None;
   m_settings.SWDeintOutput = DeintOutput_FramePerField;
 
-  m_settings.DeintTreatAsProgressive = FALSE;
-
   m_settings.DitherMode = LAVDither_Random;
 
   return S_OK;
@@ -224,11 +221,18 @@ HRESULT CLAVVideo::LoadSettings()
     dwVal = reg.ReadDWORD(L"DeintFieldOrder", hr);
     if (SUCCEEDED(hr)) m_settings.DeintFieldOrder = dwVal;
 
+    // Load deprecated deint flags and convert them
     bFlag = reg.ReadBOOL(L"DeintAggressive", hr);
-    if (SUCCEEDED(hr)) m_settings.DeintAggressive = bFlag;
+    if (SUCCEEDED(hr) && bFlag) m_settings.DeintMode = DeintMode_Aggressive;
 
     bFlag = reg.ReadBOOL(L"DeintForce", hr);
-    if (SUCCEEDED(hr)) m_settings.DeintForce = bFlag;
+    if (SUCCEEDED(hr) && bFlag) m_settings.DeintMode = DeintMode_Force;
+
+    bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
+    if (SUCCEEDED(hr) && bFlag) m_settings.DeintMode = DeintMode_Disable;
+
+    dwVal = reg.ReadDWORD(L"DeintMode", hr);
+    if (SUCCEEDED(hr)) m_settings.DeintMode = (LAVDeintMode)dwVal;
 
     dwVal = reg.ReadDWORD(L"RGBRange", hr);
     if (SUCCEEDED(hr)) m_settings.RGBRange = dwVal;
@@ -238,9 +242,6 @@ HRESULT CLAVVideo::LoadSettings()
 
     dwVal = reg.ReadDWORD(L"SWDeintOutput", hr);
     if (SUCCEEDED(hr)) m_settings.SWDeintOutput = dwVal;
-
-    bFlag = reg.ReadBOOL(L"DeintTreatAsProgressive", hr);
-    if (SUCCEEDED(hr)) m_settings.DeintTreatAsProgressive = bFlag;
 
     dwVal = reg.ReadDWORD(L"DitherMode", hr);
     if (SUCCEEDED(hr)) m_settings.DitherMode = dwVal;
@@ -320,8 +321,7 @@ HRESULT CLAVVideo::SaveSettings()
     reg.WriteDWORD(L"StreamAR", m_settings.StreamAR);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
     reg.WriteDWORD(L"DeintFieldOrder", m_settings.DeintFieldOrder);
-    reg.WriteBOOL(L"DeintAggressive", m_settings.DeintAggressive);
-    reg.WriteBOOL(L"DeintForce", m_settings.DeintForce);
+    reg.WriteDWORD(L"DeintMode", m_settings.DeintMode);
     reg.WriteDWORD(L"RGBRange", m_settings.RGBRange);
 
     CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY_FORMATS);
@@ -358,8 +358,11 @@ HRESULT CLAVVideo::SaveSettings()
 
     reg.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
-    reg.WriteBOOL(L"DeintTreatAsProgressive", m_settings.DeintTreatAsProgressive);
     reg.WriteDWORD(L"DitherMode", m_settings.DitherMode);
+
+    reg.DeleteKey(L"DeintAggressive");
+    reg.DeleteKey(L"DeintForce");
+    reg.DeleteKey(L"DeintTreatAsProgressive");
   }
   return S_OK;
 }
@@ -540,7 +543,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
 
 BOOL CLAVVideo::IsInterlaced()
 {
-  return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_Decoder.IsInterlaced();
+  return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_Decoder.IsInterlaced() && !(m_settings.DeintMode == DeintMode_Disable);
 }
 
 void CLAVVideo::CloseMTFilterThread()
@@ -923,7 +926,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   BOOL bInterlaced = IsInterlaced();
   DWORD dwInterlacedFlags = 0;
   if (m_bMadVR) {
-    if (bInterlaced && (m_settings.DeintForce || m_settings.DeintAggressive)) {
+    if (bInterlaced && (m_settings.DeintMode == DeintMode_Force || m_settings.DeintMode == DeintMode_Aggressive)) {
       dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOnly;
     } else if (bInterlaced) {
       dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
@@ -1759,24 +1762,30 @@ STDMETHODIMP_(LAVDeintFieldOrder) CLAVVideo::GetDeintFieldOrder()
 
 STDMETHODIMP CLAVVideo::SetDeintAggressive(BOOL bAggressive)
 {
-  m_settings.DeintAggressive = bAggressive;
+  if (m_settings.DeintMode == DeintMode_Auto && bAggressive)
+    m_settings.DeintMode = DeintMode_Aggressive;
+  else if (m_settings.DeintMode == DeintMode_Aggressive && !bAggressive)
+    m_settings.DeintMode = DeintMode_Auto;
   return SaveSettings();
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::GetDeintAggressive()
 {
-  return m_settings.DeintAggressive;
+  return (m_settings.DeintMode == DeintMode_Aggressive);
 }
 
 STDMETHODIMP CLAVVideo::SetDeintForce(BOOL bForce)
 {
-  m_settings.DeintForce = bForce;
+  if ((m_settings.DeintMode == DeintMode_Auto || m_settings.DeintMode == DeintMode_Aggressive) && bForce)
+    m_settings.DeintMode = DeintMode_Force;
+  else if (m_settings.DeintMode == DeintMode_Force && !bForce)
+    m_settings.DeintMode = DeintMode_Auto;
   return SaveSettings();
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::GetDeintForce()
 {
-  return m_settings.DeintForce;
+  return (m_settings.DeintMode == DeintMode_Force);
 }
 
 STDMETHODIMP CLAVVideo::SetPixelFormat(LAVOutPixFmts pixFmt, BOOL bEnabled)
@@ -1926,13 +1935,13 @@ STDMETHODIMP_(LAVDeintOutput) CLAVVideo::GetSWDeintOutput()
 
 STDMETHODIMP CLAVVideo::SetDeintTreatAsProgressive(BOOL bEnabled)
 {
-  m_settings.DeintTreatAsProgressive = bEnabled;
+  m_settings.DeintMode = bEnabled ? DeintMode_Disable : DeintMode_Auto;
   return SaveSettings();
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::GetDeintTreatAsProgressive()
 {
-  return m_settings.DeintTreatAsProgressive;
+  return (m_settings.DeintMode == DeintMode_Disable);
 }
 
 STDMETHODIMP CLAVVideo::SetDitherMode(LAVDitherMode ditherMode)
@@ -1979,6 +1988,16 @@ STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelResolutionFlags()
   return m_settings.HWAccelResFlags;
 }
 
+STDMETHODIMP CLAVVideo::SetDeinterlacingMode(LAVDeintMode deintMode)
+{
+  m_settings.DeintMode = deintMode;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(LAVDeintMode) CLAVVideo::GetDeinterlacingMode()
+{
+  return m_settings.DeintMode;
+}
 
 CLAVControlThread::CLAVControlThread(CLAVVideo *pLAVVideo)
   : CAMThread()

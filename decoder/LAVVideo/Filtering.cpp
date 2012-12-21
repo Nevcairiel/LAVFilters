@@ -34,7 +34,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
 {
   int ret = 0;
   BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
-  if (m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF && ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
+  if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable && m_settings.SWDeintMode == SWDeintMode_YADIF && ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
     PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? PIX_FMT_YUV422P : PIX_FMT_NV12;
 
     if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight)) {

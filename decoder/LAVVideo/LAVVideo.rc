@@ -74,10 +74,9 @@ BEGIN
     LTEXT           "Threads for Multi-Threading",IDC_LBL_MULTITHREAD,14,20,91,8
     LTEXT           "Settings for Deinterlacing\nApplies to Hardware+Software+Renderer Deinterlacing",IDC_DEINT_SETTINGS,12,48,184,16
     LTEXT           "Field Order",IDC_LBL_DEINT_FIELDORDER,14,68,79,8
+    LTEXT           "Deinterlacing Mode",IDC_LBL_DEINT_MODE,109,68,79,8
+    COMBOBOX        IDC_DEINT_MODE,111,79,110,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_DEINT_FIELDORDER,15,79,75,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Aggressive Deinterlacing",IDC_DEINT_AGGRESSIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,100,68,96,10
-    CONTROL         "Force Deinterlacing",IDC_DEINT_FORCE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,100,82,96,10
-    CONTROL         "Treat as Progressive",IDC_DEINT_PROGRESSIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,100,94,96,10
     GROUPBOX        "Output Formats",IDC_OUTPUT_FORMATS,7,113,226,130
     LTEXT           "8-bit",IDC_OUT_8BIT,38,124,32,8
     LTEXT           "10-bit",IDC_OUT_10BIT,115,124,32,8
@@ -190,6 +189,10 @@ BEGIN
     IDS_FIELDORDER_AUTO     "Auto"
     IDS_FIELDORDER_TOP      "Top-Field First"
     IDS_FIELDORDER_BOTTOM   "Bottom-Field First"
+    IDS_DEINTMODE_AUTO      "Auto"
+    IDS_DEINTMODE_AGGRESSIVE "Aggressive"
+    IDS_DEINTMODE_FORCE     "Force"
+    IDS_DEINTMODE_DISABLE   "Disabled (Progressive)"
 END
 
 #endif    // English (United States) resources

@@ -74,14 +74,8 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_GETCURSEL, 0, 0);
   m_pVideoSettings->SetDeintFieldOrder((LAVDeintFieldOrder)dwVal);
 
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DEINT_AGGRESSIVE, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetDeintAggressive(bFlag);
-
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DEINT_FORCE, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetDeintForce(bFlag);
-
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DEINT_PROGRESSIVE, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetDeintTreatAsProgressive(bFlag);
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_GETCURSEL, 0, 0);
+  m_pVideoSettings->SetDeinterlacingMode((LAVDeintMode)dwVal);
 
   m_bPixFmts[LAVOutPixFmt_YV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_GETCHECK,0, 0);
   m_bPixFmts[LAVOutPixFmt_NV12] = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_GETCHECK,0, 0);
@@ -215,15 +209,24 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   WideStringFromResource(stringBuffer, IDS_FIELDORDER_BOTTOM);
   SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
 
+  // Deint Mode combo box
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_RESETCONTENT, 0, 0);
+  WideStringFromResource(stringBuffer, IDS_DEINTMODE_AUTO);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  WideStringFromResource(stringBuffer, IDS_DEINTMODE_AGGRESSIVE);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  WideStringFromResource(stringBuffer, IDS_DEINTMODE_FORCE);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+  WideStringFromResource(stringBuffer, IDS_DEINTMODE_DISABLE);
+  SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
+
   addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
 
   addHint(IDC_HWRES_SD, L"Use Hardware Decoding for Standard-definition content (DVD, SDTV)\n\nThis affects all videos with a resolution less than 1024x576 (DVD resolution)");
   addHint(IDC_HWRES_HD, L"Use Hardware Decoding for High-definition content (Blu-ray, HDTV)\n\nAffects all videos above SD resolution, up to Full-HD, 1920x1200");
   addHint(IDC_HWRES_UHD, L"Use Hardware Decoding for Ultra-high-definition content (4K, UHDTV)\n\nAffects all videos above HD resolution. Note that not all hardware supports decoding 4K/UHD content. On AMD GPUs, 4K support is very fragile, and may even cause crashes or BSODs, use at your own risk.");
 
-  addHint(IDC_DEINT_AGGRESSIVE, L"Force deinterlacing of all frames if the stream is flagged interlaced.");
-  addHint(IDC_DEINT_FORCE, L"Force deinterlacing of all frames flagged as progressive (always).");
-  addHint(IDC_DEINT_PROGRESSIVE, L"Treat all streams/frames as progressive, disabling all forms of deinterlacing completely.\n\nNOTE: This includes deinterlacing by the renderer.\nIf this option is checked, LAV Video will no longer tell the renderer that the material is interlaced.");
+  addHint(IDC_DEINT_MODE, L"Controls how interlaced material is handled.\n\nAuto: Frame flags are used to determine content type.\nAggressive: All frames in an interlaced streams are handled interlaced.\nForce: All frames are handles as interlaced.\nDisabled: All frames are handled as progressive.");
 
   addHint(IDC_HWDEINT_OUT_FILM, L"Deinterlace in \"Film\" Mode.\nFor every pair of interlaced fields, one frame will be created, resulting in 25/30 fps.");
   addHint(IDC_HWDEINT_OUT_VIDEO, L"Deinterlace in \"Video\" Mode. (Recommended)\nFor every interlaced field, one frame will be created, resulting in 50/60 fps.");
@@ -240,10 +243,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_STREAMAR, BM_SETCHECK, m_StreamAR, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_SETCURSEL, m_DeintFieldOrder, 0);
-
-    SendDlgItemMessage(m_Dlg, IDC_DEINT_AGGRESSIVE, BM_SETCHECK, m_DeintAggressive, 0);
-    SendDlgItemMessage(m_Dlg, IDC_DEINT_FORCE, BM_SETCHECK, m_DeintForce, 0);
-    SendDlgItemMessage(m_Dlg, IDC_DEINT_PROGRESSIVE, BM_SETCHECK, m_DeintProgressive, 0);
+    SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_SETCURSEL, m_DeintMode, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_OUT_YV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_YV12], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_NV12, BM_SETCHECK, m_bPixFmts[LAVOutPixFmt_NV12], 0);
@@ -357,8 +357,7 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_dwNumThreads    = m_pVideoSettings->GetNumThreads();
   m_StreamAR        = m_pVideoSettings->GetStreamAR();
   m_DeintFieldOrder = m_pVideoSettings->GetDeintFieldOrder();
-  m_DeintAggressive = m_pVideoSettings->GetDeintAggressive();
-  m_DeintForce      = m_pVideoSettings->GetDeintForce();
+  m_DeintMode       = m_pVideoSettings->GetDeinterlacingMode();
   m_dwRGBOutput     = m_pVideoSettings->GetRGBOutputRange();
 
   for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
@@ -379,7 +378,6 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_SWDeint = m_pVideoSettings->GetSWDeintMode() == SWDeintMode_YADIF;
   m_SWDeintOutMode = m_pVideoSettings->GetSWDeintOutput();
 
-  m_DeintProgressive = m_pVideoSettings->GetDeintTreatAsProgressive();
   m_DitherMode = m_pVideoSettings->GetDitherMode();
 
   return hr;
@@ -407,19 +405,9 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       if (lValue != m_DeintFieldOrder) {
         SetDirty();
       }
-    } else if (LOWORD(wParam) == IDC_DEINT_AGGRESSIVE && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_DeintAggressive) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_DEINT_FORCE && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_DeintForce) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_DEINT_PROGRESSIVE && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_DeintProgressive) {
+    } else if (LOWORD(wParam) == IDC_DEINT_MODE && HIWORD(wParam) == CBN_SELCHANGE) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_DeintMode) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_OUT_YV12 && HIWORD(wParam) == BN_CLICKED) {
