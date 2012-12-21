@@ -124,6 +124,8 @@ DWORD CBaseTrayIcon::TrayMessageThread()
     DispatchMessage(&msg);
   }
 
+  Shell_NotifyIcon(NIM_DELETE, &m_NotifyIconData);
+
   return 0;
 }
 
