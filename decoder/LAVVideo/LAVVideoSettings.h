@@ -332,6 +332,12 @@ interface ILAVVideoSettings : public IUnknown
   // flags: bitmask of LAVHWResFlag flags
   STDMETHOD_(DWORD, GetHWAccelResolutionFlags)() = 0;
 
+  // Toggle Tray Icon
+  STDMETHOD(SetTrayIcon)(BOOL bEnabled) = 0;
+
+  // Get Tray Icon
+  STDMETHOD_(BOOL,GetTrayIcon)() = 0;
+
   // Set the Deint Mode
   STDMETHOD(SetDeinterlacingMode)(LAVDeintMode deintMode) = 0;
 

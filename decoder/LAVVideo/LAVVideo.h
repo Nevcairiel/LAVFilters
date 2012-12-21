@@ -119,6 +119,9 @@ public:
   STDMETHODIMP SetHWAccelResolutionFlags(DWORD dwResFlags);
   STDMETHODIMP_(DWORD) GetHWAccelResolutionFlags();
 
+  STDMETHODIMP SetTrayIcon(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetTrayIcon();
+
   STDMETHODIMP SetDeinterlacingMode(LAVDeintMode deintMode);
   STDMETHODIMP_(LAVDeintMode) GetDeinterlacingMode();
 
@@ -176,6 +179,8 @@ private:
   HRESULT LoadDefaults();
   HRESULT LoadSettings();
   HRESULT SaveSettings();
+
+  HRESULT CreateTrayIcon();
 
   HRESULT CreateDecoder(const CMediaType *pmt);
 
@@ -262,6 +267,7 @@ private:
 
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {
+    BOOL TrayIcon;
     DWORD StreamAR;
     DWORD NumThreads;
     BOOL bFormats[Codec_VideoNB];

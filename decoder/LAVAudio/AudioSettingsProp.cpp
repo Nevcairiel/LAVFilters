@@ -118,6 +118,9 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   int delay = _wtoi(buffer);
   m_pAudioSettings->SetAudioDelay(bFlag, delay);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_TRAYICON, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetTrayIcon(bFlag);
+
   LoadData();
 
   return hr;
@@ -188,6 +191,8 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     WCHAR stringBuffer[100];
     swprintf_s(stringBuffer, L"%d", m_iAudioDelay);
     SendDlgItemMessage(m_Dlg, IDC_DELAY, WM_SETTEXT, 0, (LPARAM)stringBuffer);
+
+    SendDlgItemMessage(m_Dlg, IDC_TRAYICON, BM_SETCHECK, m_TrayIcon, 0);
   }
 
   return hr;
@@ -209,6 +214,8 @@ HRESULT CLAVAudioSettingsProp::LoadData()
     m_bSampleFormats[i] = m_pAudioSettings->GetSampleFormat((LAVAudioSampleFormat)i) != 0;
 
   m_pAudioSettings->GetAudioDelay(&m_bAudioDelay, &m_iAudioDelay);
+
+  m_TrayIcon = m_pAudioSettings->GetTrayIcon();
 
   return hr;
 }
@@ -307,6 +314,10 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
         if (delay != m_iAudioDelay)
           SetDirty();
       }
+    } else if (LOWORD(wParam) == IDC_TRAYICON && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
+      if (bFlag != m_TrayIcon)
+        SetDirty();
     }
 
     break;

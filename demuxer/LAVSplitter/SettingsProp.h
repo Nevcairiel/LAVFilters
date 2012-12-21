@@ -76,6 +76,8 @@ private:
   BOOL m_ImpairedAudio;
   DWORD m_QueueMaxMem;
 
+  BOOL m_TrayIcon;
+
   LAVSubtitleMode m_selectedSubMode;
   WCHAR m_subLangBuffer[256];
   WCHAR m_advSubBuffer[256];

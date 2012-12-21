@@ -111,6 +111,7 @@
 #define IDC_MIX_LEVEL_SURROUND_TEXT     1128
 #define IDC_MIX_LEVEL_LFE_TEXT          1129
 #define IDC_LBL_MIXING_LEVEL            1130
+#define IDC_TRAYICON                    1131
 
 // Next default values for new objects
 // 
@@ -118,7 +119,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1131
+#define _APS_NEXT_CONTROL_VALUE         1132
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

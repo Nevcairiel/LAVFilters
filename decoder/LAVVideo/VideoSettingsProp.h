@@ -80,6 +80,7 @@ private:
   DWORD m_SWDeintOutMode;
 
   DWORD m_DitherMode;
+  BOOL m_TrayIcon;
 };
 
 class CLAVVideoFormatsProp : public CBaseDSPropPage

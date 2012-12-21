@@ -85,6 +85,7 @@
 #define IDC_HWRES_HD                    1076
 #define IDC_HWRES_UHD                   1077
 #define IDC_HWACCEL_MPEG2_DVD           1078
+#define IDC_TRAYICON                    1079
 
 // Next default values for new objects
 // 
@@ -92,7 +93,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        111
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1079
+#define _APS_NEXT_CONTROL_VALUE         1080
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

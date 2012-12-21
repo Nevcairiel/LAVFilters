@@ -78,6 +78,7 @@ private:
   bool m_bSampleFormats[SampleFormat_NB];
   BOOL m_bAudioDelay;
   int  m_iAudioDelay;
+  BOOL m_TrayIcon;
 };
 
 class CLAVAudioMixingProp : public CBaseDSPropPage

@@ -133,12 +133,18 @@ CLAVVideo::~CLAVVideo()
   SAFE_DELETE(m_pSubtitleInput);
 }
 
+HRESULT CLAVVideo::CreateTrayIcon()
+{
+  m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_VIDEO), IDI_ICON1);
+  return S_OK;
+}
+
 STDMETHODIMP CLAVVideo::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
 {
   CAutoLock cObjectLock(m_pLock);
   HRESULT hr = __super::JoinFilterGraph(pGraph, pName);
-  if (pGraph && !m_pTrayIcon) {
-    m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_VIDEO), IDI_ICON1);
+  if (pGraph && !m_pTrayIcon && m_settings.TrayIcon) {
+    CreateTrayIcon();
   } else if (!pGraph && m_pTrayIcon) {
     SAFE_DELETE(m_pTrayIcon);
   }
@@ -147,7 +153,7 @@ STDMETHODIMP CLAVVideo::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
 
 HRESULT CLAVVideo::LoadDefaults()
 {
-
+  m_settings.TrayIcon = FALSE;
 
   // Set Defaults
   m_settings.StreamAR = 2;
@@ -212,6 +218,9 @@ HRESULT CLAVVideo::LoadSettings()
 
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
+    bFlag = reg.ReadBOOL(L"TrayIcon", hr);
+    if (SUCCEEDED(hr)) m_settings.TrayIcon = bFlag;
+
     dwVal = reg.ReadDWORD(L"StreamAR", hr);
     if (SUCCEEDED(hr)) m_settings.StreamAR = dwVal;
 
@@ -318,6 +327,7 @@ HRESULT CLAVVideo::SaveSettings()
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_VIDEO_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
+    reg.WriteBOOL(L"TrayIcon", m_settings.TrayIcon);
     reg.WriteDWORD(L"StreamAR", m_settings.StreamAR);
     reg.WriteDWORD(L"NumThreads", m_settings.NumThreads);
     reg.WriteDWORD(L"DeintFieldOrder", m_settings.DeintFieldOrder);
@@ -1986,6 +1996,22 @@ STDMETHODIMP CLAVVideo::SetHWAccelResolutionFlags(DWORD dwResFlags)
 STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelResolutionFlags()
 {
   return m_settings.HWAccelResFlags;
+}
+
+STDMETHODIMP CLAVVideo::SetTrayIcon(BOOL bEnabled)
+{
+  m_settings.TrayIcon = bEnabled;
+  if (!bEnabled && m_pTrayIcon) {
+    SAFE_DELETE(m_pTrayIcon);
+  } else if (bEnabled && m_pGraph && !m_pTrayIcon) {
+    CreateTrayIcon();
+  }
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVVideo::GetTrayIcon()
+{
+  return m_settings.TrayIcon;
 }
 
 STDMETHODIMP CLAVVideo::SetDeinterlacingMode(LAVDeintMode deintMode)

@@ -162,6 +162,8 @@ public:
   STDMETHODIMP_(BOOL) GetUseAudioForHearingVisuallyImpaired();
   STDMETHODIMP SetMaxQueueMemSize(DWORD dwMaxSize);
   STDMETHODIMP_(DWORD) GetMaxQueueMemSize();
+  STDMETHODIMP SetTrayIcon(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetTrayIcon();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
@@ -211,6 +213,8 @@ protected:
   STDMETHODIMP LoadSettings();
   STDMETHODIMP SaveSettings();
 
+  STDMETHODIMP CreateTrayIcon();
+
 protected:
   CLAVInputPin *m_pInput;
 
@@ -250,6 +254,7 @@ private:
 
   // Settings
   struct Settings {
+    BOOL TrayIcon;
     std::wstring prefAudioLangs;
     std::wstring prefSubLangs;
     std::wstring subtitleAdvanced;

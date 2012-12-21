@@ -160,12 +160,18 @@ CLAVAudio::~CLAVAudio()
 #endif
 }
 
+STDMETHODIMP CLAVAudio::CreateTrayIcon()
+{
+  m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_AUDIO), IDI_ICON1);
+  return S_OK;
+}
+
 STDMETHODIMP CLAVAudio::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
 {
   CAutoLock cObjectLock(m_pLock);
   HRESULT hr = __super::JoinFilterGraph(pGraph, pName);
-  if (pGraph && !m_pTrayIcon) {
-    m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_AUDIO), IDI_ICON1);
+  if (pGraph && !m_pTrayIcon && m_settings.TrayIcon) {
+    CreateTrayIcon();
   } else if (!pGraph && m_pTrayIcon) {
     SAFE_DELETE(m_pTrayIcon);
   }
@@ -174,6 +180,8 @@ STDMETHODIMP CLAVAudio::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
 
 HRESULT CLAVAudio::LoadDefaults()
 {
+  m_settings.TrayIcon   = FALSE;
+
   m_settings.DRCEnabled = FALSE;
   m_settings.DRCLevel   = 100;
 
@@ -238,6 +246,9 @@ HRESULT CLAVAudio::LoadSettings()
 
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
+    bFlag = reg.ReadDWORD(L"TrayIcon", hr);
+    if (SUCCEEDED(hr)) m_settings.TrayIcon = bFlag;
+
     bFlag = reg.ReadDWORD(L"DRCEnabled", hr);
     if (SUCCEEDED(hr)) m_settings.DRCEnabled = bFlag;
 
@@ -342,6 +353,7 @@ HRESULT CLAVAudio::SaveSettings()
   CreateRegistryKey(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY);
   CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr);
   if (SUCCEEDED(hr)) {
+    reg.WriteBOOL(L"TrayIcon", m_settings.TrayIcon);
     reg.WriteBOOL(L"DRCEnabled", m_settings.DRCEnabled);
     reg.WriteDWORD(L"DRCLevel", m_settings.DRCLevel);
     reg.WriteBOOL(L"DTSHDFraming", m_settings.DTSHDFraming);
@@ -745,6 +757,22 @@ STDMETHODIMP CLAVAudio::GetMixingLevels(DWORD *dwCenterLevel, DWORD *dwSurroundL
     *dwLFELevel = m_settings.MixingLFELevel;
 
   return S_OK;
+}
+
+STDMETHODIMP CLAVAudio::SetTrayIcon(BOOL bEnabled)
+{
+  m_settings.TrayIcon = bEnabled;
+  if (!bEnabled && m_pTrayIcon) {
+    SAFE_DELETE(m_pTrayIcon);
+  } else if (bEnabled && m_pGraph && !m_pTrayIcon) {
+    CreateTrayIcon();
+  }
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetTrayIcon()
+{
+  return m_settings.TrayIcon;
 }
 
 // ILAVAudioStatus

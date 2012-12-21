@@ -142,6 +142,8 @@ public:
   STDMETHODIMP_(LAVAudioMixingMode) GetMixingMode();
   STDMETHODIMP SetMixingLevels(DWORD dwCenterLevel, DWORD dwSurroundLevel, DWORD dwLFELevel);
   STDMETHODIMP GetMixingLevels(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel);
+  STDMETHODIMP SetTrayIcon(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetTrayIcon();
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -185,6 +187,8 @@ private:
   HRESULT LoadDefaults();
   HRESULT LoadSettings();
   HRESULT SaveSettings();
+
+  STDMETHODIMP CreateTrayIcon();
 
   HRESULT ffmpeg_init(AVCodecID codec, const void *format, GUID format_type, DWORD formatlen);
   void ffmpeg_shutdown();
@@ -283,6 +287,7 @@ private:
 
   // Settings
   struct AudioSettings {
+    BOOL TrayIcon;
     BOOL DRCEnabled;
     int DRCLevel;
     BOOL bFormats[Codec_AudioNB];

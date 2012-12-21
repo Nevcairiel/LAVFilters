@@ -176,6 +176,10 @@ interface ILAVAudioSettings : public IUnknown
   // Set Mixing Levels
   STDMETHOD(SetMixingLevels)(DWORD dwCenterLevel, DWORD dwSurroundLevel, DWORD dwLFELevel) = 0;
   STDMETHOD(GetMixingLevels)(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel) = 0;
+
+  // Toggle Tray Icon
+  STDMETHOD(SetTrayIcon)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetTrayIcon)() = 0;
 };
 
 // LAV Audio Status Interface

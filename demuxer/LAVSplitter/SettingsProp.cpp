@@ -113,6 +113,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   int maxMem = _wtoi(buffer);
   CHECK_HR(hr = m_pLAVF->SetMaxQueueMemSize(maxMem));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_TRAYICON, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetTrayIcon(bFlag));
+
   LoadData();
 
 done:    
@@ -223,6 +226,8 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
 
   UpdateSubtitleMode(m_subtitleMode);
 
+  SendDlgItemMessage(m_Dlg, IDC_TRAYICON, BM_SETCHECK, m_TrayIcon, 0);
+
   return hr;
 }
 HRESULT CLAVSplitterSettingsProp::LoadData()
@@ -248,6 +253,8 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_StreamSwitchRemoveAudio = m_pLAVF->GetStreamSwitchRemoveAudio();
   m_ImpairedAudio = m_pLAVF->GetUseAudioForHearingVisuallyImpaired();
   m_QueueMaxMem = m_pLAVF->GetMaxQueueMemSize();
+
+  m_TrayIcon = m_pLAVF->GetTrayIcon();
 
 done:
   return hr;
@@ -321,6 +328,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
     }  else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_IMPAIRED_AUDIO) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_GETCHECK, 0, 0);
       if (bFlag != m_ImpairedAudio) {
+        SetDirty();
+      }
+     }  else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_TRAYICON) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_TRAYICON, BM_GETCHECK, 0, 0);
+      if (bFlag != m_TrayIcon) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_QUEUE_MEM && HIWORD(wParam) == EN_CHANGE) {

@@ -89,7 +89,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,164,162,10
     CONTROL         "Expand Mono to Stereo",IDC_EXPAND_MONO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,178,91,10
     CONTROL         "Expand 6.1 to 7.1",IDC_EXPAND61,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,118,178,74,10
-    LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,7,202,351,8,0,WS_EX_RIGHT
+    LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,209,202,149,8,0,WS_EX_RIGHT
     GROUPBOX        "Output Formats",IDC_OUTPUT_FORMATS,207,59,151,132
     LTEXT           "Select which output formats are available.\nThe format most suitable for the audio will be used.",IDC_LBL_OUTPUTFORMATS,212,70,139,28
     CONTROL         "16-bit Integer",IDC_OUT_S16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,100,61,10
@@ -103,6 +103,7 @@ BEGIN
     LTEXT           "Delay (in ms):",IDC_STATIC,213,37,47,8
     EDITTEXT        IDC_DELAY,261,35,46,13,ES_AUTOHSCROLL,WS_EX_RIGHT
     CONTROL         "",IDC_DELAYSPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS | UDS_HOTTRACK,305,35,11,13
+    CONTROL         "Enable System Tray Icon",IDC_TRAYICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,200,192,10
 END
 
 IDD_PROPPAGE_AUDIO_MIXING DIALOGEX 0, 0, 369, 215
