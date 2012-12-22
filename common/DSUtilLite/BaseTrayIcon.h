@@ -25,9 +25,11 @@ class CBaseTrayIcon
 {
 public:
   CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
-  virtual ~CBaseTrayIcon(void);
+  void Destroy();
 
 private:
+  virtual ~CBaseTrayIcon(void);
+
   HRESULT StartMessageThread();
   HRESULT RegisterWindowClass();
   HRESULT CreateMessageWindow();
@@ -40,6 +42,7 @@ private:
 
 private:
   CAMEvent m_evSetupFinished;
+  BOOL m_bDestroy;
 
   HANDLE m_hThread;
   HWND m_hWnd;

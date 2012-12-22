@@ -36,6 +36,7 @@ CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int res
   , m_resIcon(resIcon)
   , m_bPropPageOpen(FALSE)
   , m_evSetupFinished(TRUE)
+  , m_bDestroy(FALSE)
 {
   memset(&m_NotifyIconData, 0, sizeof(m_NotifyIconData));
   m_evSetupFinished.Reset();
@@ -54,17 +55,27 @@ CBaseTrayIcon::~CBaseTrayIcon(void)
     m_NotifyIconData.hIcon = NULL;
   }
 
-  // Instruct the window to destroy itself
-  if (m_hWnd)
-    SendMessage(m_hWnd, MSG_QUIT, 0, 0);
+  // We do not destroy the window here, because it should already
+  // be destroyed by the MSG_QUIT send by the ::Destroy method
 
-  // Wait for thread to shut down and close its handle
-  if (m_hThread) {
-    WaitForSingleObject(m_hThread, INFINITE);
+  // The thread should either be deleting itself or already be shutdown at this point.
+  if (m_hThread)
     CloseHandle(m_hThread);
-  }
+
   // Unregister the window class we used
   UnregisterClass(L"LAVTrayIconClass", g_hInst);
+}
+
+void CBaseTrayIcon::Destroy()
+{
+  // If the thread/window (still) exist, task it to exit and delete itself
+  if (m_hWnd && m_hThread) {
+    m_bDestroy = TRUE;
+    SendMessage(m_hWnd, MSG_QUIT, 0, 0);
+  } else {
+    // Otherwise, just delete it
+    delete this;
+  }
 }
 
 HRESULT CBaseTrayIcon::StartMessageThread()
@@ -89,6 +100,9 @@ unsigned int WINAPI CBaseTrayIcon::InitialThreadProc(LPVOID pv)
 
   if (SUCCEEDED(hrCo))
     CoUninitialize();
+
+  if (pTrayIcon->m_bDestroy)
+    delete pTrayIcon;
 
   return ret;
 }

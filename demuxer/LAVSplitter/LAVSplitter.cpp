@@ -83,7 +83,10 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 CLAVSplitter::~CLAVSplitter()
 {
   SAFE_DELETE(m_pInput);
-  SAFE_DELETE(m_pTrayIcon);
+  if (m_pTrayIcon) {
+    m_pTrayIcon->Destroy();
+    m_pTrayIcon = NULL;
+  }
   Close();
 
   // delete old pins
@@ -129,7 +132,10 @@ STDMETHODIMP CLAVSplitter::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
   if (pGraph && !m_pTrayIcon && m_settings.TrayIcon) {
     CreateTrayIcon();
   } else if (!pGraph && m_pTrayIcon) {
-    SAFE_DELETE(m_pTrayIcon);
+    if (m_pTrayIcon) {
+      m_pTrayIcon->Destroy();
+      m_pTrayIcon = NULL;
+    }
   }
   return hr;
 }
@@ -1638,7 +1644,10 @@ STDMETHODIMP CLAVSplitter::SetTrayIcon(BOOL bEnabled)
 {
   m_settings.TrayIcon = bEnabled;
   if (!bEnabled && m_pTrayIcon) {
-    SAFE_DELETE(m_pTrayIcon);
+    if (m_pTrayIcon) {
+      m_pTrayIcon->Destroy();
+      m_pTrayIcon = NULL;
+    }
   } else if (bEnabled && m_pGraph && !m_pTrayIcon) {
     CreateTrayIcon();
   }

@@ -144,7 +144,10 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVAudio::~CLAVAudio()
 {
-  SAFE_DELETE(m_pTrayIcon);
+  if (m_pTrayIcon) {
+    m_pTrayIcon->Destroy();
+    m_pTrayIcon = NULL;
+  }
   ffmpeg_shutdown();
   av_freep(&m_pFFBuffer);
 
@@ -173,7 +176,10 @@ STDMETHODIMP CLAVAudio::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
   if (pGraph && !m_pTrayIcon && m_settings.TrayIcon) {
     CreateTrayIcon();
   } else if (!pGraph && m_pTrayIcon) {
-    SAFE_DELETE(m_pTrayIcon);
+    if (m_pTrayIcon) {
+      m_pTrayIcon->Destroy();
+      m_pTrayIcon = NULL;
+    }
   }
   return hr;
 }
@@ -763,7 +769,10 @@ STDMETHODIMP CLAVAudio::SetTrayIcon(BOOL bEnabled)
 {
   m_settings.TrayIcon = bEnabled;
   if (!bEnabled && m_pTrayIcon) {
-    SAFE_DELETE(m_pTrayIcon);
+    if (m_pTrayIcon) {
+      m_pTrayIcon->Destroy();
+      m_pTrayIcon = NULL;
+    }
   } else if (bEnabled && m_pGraph && !m_pTrayIcon) {
     CreateTrayIcon();
   }
