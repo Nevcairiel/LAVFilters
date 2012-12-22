@@ -173,9 +173,7 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
 
   m_evDeliver.Reset();
   m_evSample.Reset();
-
-  if (!m_bThreadSafe)
-    m_evDecodeDone.Reset();
+  m_evDecodeDone.Reset();
 
   pSample->AddRef();
 
@@ -353,8 +351,7 @@ DWORD CDecodeThread::ThreadProc()
     SafeRelease(&pSample);
 
     // Indicates we're done decoding this sample
-    if (!m_bThreadSafe)
-      m_evDecodeDone.Set();
+    m_evDecodeDone.Set();
 
     // Set the Sample Event to unblock any waiting threads
     m_evSample.Set();
@@ -486,9 +483,6 @@ STDMETHODIMP CDecodeThread::DecodeInternal(IMediaSample *pSample)
 
     DbgLog((LOG_TRACE, 10, L"-> Software decoder created, decoding frame again..."));
     hr = m_pDecoder->Decode(pSample);
-
-    if (!bThreadSafeBefore && m_bThreadSafe)
-      m_evDecodeDone.Set();
   }
 
   return S_OK;
