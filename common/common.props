@@ -8,9 +8,6 @@
     <OutDir>$(SolutionDir)bin_$(PlatformName)\lib\</OutDir>
     <IntDir>$(SolutionDir)bin_$(PlatformName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(VisualStudioVersion)' == '11.0'">
-    <PlatformToolset>v110_xp</PlatformToolset>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)common\includes;$(SolutionDir)common\baseclasses;$(SolutionDir)ffmpeg;$(SolutionDir)libbluray\src;$(SolutionDir)common\DSUtilLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
