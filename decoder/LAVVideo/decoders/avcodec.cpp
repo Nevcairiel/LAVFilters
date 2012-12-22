@@ -604,7 +604,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   else if (codec == AV_CODEC_ID_FRAPS)
     m_pAVCtx->pix_fmt = PIX_FMT_BGR24;
 
-  if (bLAVInfoValid && codec != AV_CODEC_ID_FRAPS)
+  if (bLAVInfoValid && codec != AV_CODEC_ID_FRAPS && m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD)
     m_pAVCtx->pix_fmt = lavPinInfo.pix_fmt;
 
   DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_iInterlaced));
