@@ -28,6 +28,10 @@
 #define MSG_TRAYICON   WM_USER + 1
 #define MSG_QUIT       WM_USER + 2
 
+// The assumed size of the propery page
+#define PROP_WIDTH_OFFSET  400
+#define PROP_HEIGHT_OFFSET 250
+
 CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon)
   : m_hWnd(0)
   , m_hThread(0)
@@ -199,6 +203,9 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         case WM_LBUTTONUP:
           if (!icon->m_bPropPageOpen) {
             icon->m_bPropPageOpen = TRUE;
+            RECT desktopRect;
+            GetWindowRect(GetDesktopWindow(), &desktopRect);
+            SetWindowPos(icon->m_hWnd, 0, (desktopRect.right / 2) - PROP_WIDTH_OFFSET, (desktopRect.bottom / 2) - PROP_HEIGHT_OFFSET, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
             CBaseDSPropPage::ShowPropPageDialog(icon->m_pFilter, icon->m_hWnd);
             icon->m_bPropPageOpen = FALSE;
           }
