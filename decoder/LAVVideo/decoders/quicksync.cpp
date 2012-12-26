@@ -154,6 +154,60 @@ private:
   ULONG m_cRef;
 };
 
+class CIDirect3DDeviceManager9Proxy : public IDirect3DDeviceManager9
+{
+public:
+  CIDirect3DDeviceManager9Proxy(IPin *pPin) : m_pPin(pPin), m_D3DManager(NULL), m_cRef(1) {}
+  ~CIDirect3DDeviceManager9Proxy() { SafeRelease(&m_D3DManager); }
+
+#define CREATE_DEVICE \
+  if (!m_D3DManager) { if (FAILED(CreateDeviceManager())) return E_FAIL; }
+
+  // IUnknown
+  HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) { CREATE_DEVICE; return m_D3DManager->QueryInterface(riid, ppvObject); }
+  ULONG STDMETHODCALLTYPE AddRef(void) { ULONG lRef = InterlockedIncrement( &m_cRef ); return max(ULONG(lRef),1ul); }
+  ULONG STDMETHODCALLTYPE Release(void) { ULONG lRef = InterlockedDecrement( &m_cRef ); if (lRef == 0) { m_cRef++; delete this; return 0; } return max(ULONG(lRef),1ul); }
+
+  // IDirect3DDeviceManager9
+  HRESULT STDMETHODCALLTYPE ResetDevice(IDirect3DDevice9 *pDevice, UINT resetToken) { CREATE_DEVICE; return m_D3DManager->ResetDevice(pDevice, resetToken); }
+  HRESULT STDMETHODCALLTYPE OpenDeviceHandle(HANDLE *phDevice) { CREATE_DEVICE; return m_D3DManager->OpenDeviceHandle(phDevice); }
+  HRESULT STDMETHODCALLTYPE CloseDeviceHandle(HANDLE hDevice) { CREATE_DEVICE; return m_D3DManager->CloseDeviceHandle(hDevice); }
+  HRESULT STDMETHODCALLTYPE TestDevice(HANDLE hDevice) { CREATE_DEVICE; return m_D3DManager->TestDevice(hDevice); }
+  HRESULT STDMETHODCALLTYPE LockDevice(HANDLE hDevice, IDirect3DDevice9 **ppDevice, BOOL fBlock) { CREATE_DEVICE; return m_D3DManager->LockDevice(hDevice, ppDevice, fBlock); }
+  HRESULT STDMETHODCALLTYPE UnlockDevice(HANDLE hDevice, BOOL fSaveState) { CREATE_DEVICE; return m_D3DManager->UnlockDevice(hDevice, fSaveState); }
+  HRESULT STDMETHODCALLTYPE GetVideoService(HANDLE hDevice, REFIID riid, void **ppService) { CREATE_DEVICE; return m_D3DManager->GetVideoService(hDevice, riid, ppService); }
+
+private:
+  HRESULT STDMETHODCALLTYPE CreateDeviceManager() {
+    DbgLog((LOG_TRACE, 10, L"CIDirect3DDeviceManager9Proxy::CreateDeviceManager()"));
+    HRESULT hr = S_OK;
+    IMFGetService *pGetService = NULL;
+    hr = m_pPin->QueryInterface(__uuidof(IMFGetService), (void**)&pGetService);
+    if (FAILED(hr)) {
+      DbgLog((LOG_ERROR, 10, L"-> IMFGetService not available"));
+      goto done;
+    }
+
+    // Get the Direct3D device manager.
+    IDirect3DDeviceManager9 *pDevMgr = NULL;
+    hr = pGetService->GetService(MR_VIDEO_ACCELERATION_SERVICE, __uuidof(IDirect3DDeviceManager9), (void**)&pDevMgr);
+    if (FAILED(hr)) {
+      DbgLog((LOG_ERROR, 10, L"-> D3D Device Manager not available"));
+      goto done;
+    }
+
+    m_D3DManager = pDevMgr;
+done:
+    SafeRelease(&pGetService);
+    return hr;
+  }
+
+private:
+  IDirect3DDeviceManager9 *m_D3DManager;
+  IPin *m_pPin;
+  ULONG m_cRef;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // QuickSync decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
@@ -245,29 +299,11 @@ STDMETHODIMP CDecQuickSync::PostConnect(IPin *pPin)
   // Release the previous manager (if any)
   SafeRelease(&m_pD3DDevMngr);
 
-  IMFGetService *pGetService = NULL;
-  hr = pPin->QueryInterface(__uuidof(IMFGetService), (void**)&pGetService);
-  if (FAILED(hr)) {
-    DbgLog((LOG_ERROR, 10, L"-> IMFGetService not available"));
-    goto done;
-  }
-
-  // Get the Direct3D device manager.
-  IDirect3DDeviceManager9 *pDevMgr = NULL;
-  hr = pGetService->GetService(MR_VIDEO_ACCELERATION_SERVICE, __uuidof(IDirect3DDeviceManager9), (void**)&pDevMgr);
-  if (FAILED(hr)) {
-    DbgLog((LOG_ERROR, 10, L"-> D3D Device Manager not available"));
-    goto done;
-  }
-
-  // Store for later
-  m_pD3DDevMngr = pDevMgr;
+  // Create our proxy object
+  m_pD3DDevMngr = new CIDirect3DDeviceManager9Proxy(pPin);
 
   // Tell the QuickSync decoder about it
   m_pDecoder->SetD3DDeviceManager(m_pD3DDevMngr);
-
-done:
-  SafeRelease(&pGetService);
 
   return S_OK;
 }
