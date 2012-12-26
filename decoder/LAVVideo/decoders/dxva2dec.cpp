@@ -683,8 +683,8 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
 
     DXVA2_VideoDesc desc;
     ZeroMemory(&desc, sizeof(desc));
-    desc.SampleWidth = m_pAVCtx->width;
-    desc.SampleHeight = m_pAVCtx->height;
+    desc.SampleWidth = m_pAVCtx->coded_width;
+    desc.SampleHeight = m_pAVCtx->coded_height;
     desc.Format = output;
 
     DXVA2_ConfigPictureDecode config;
