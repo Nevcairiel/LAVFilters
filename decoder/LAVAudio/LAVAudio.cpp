@@ -1238,9 +1238,6 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   if (codec != AV_CODEC_ID_AAC && codec != AV_CODEC_ID_FLAC && codec != AV_CODEC_ID_COOK)
     m_pParser = av_parser_init(codec);
 
-  if (m_pAVCodec->capabilities & CODEC_CAP_TRUNCATED)
-    m_pAVCtx->flags                |= CODEC_FLAG_TRUNCATED;
-
   if (codec == AV_CODEC_ID_OPUS) {
     m_pAVCtx->request_sample_fmt = AV_SAMPLE_FMT_FLT;
   } else if (codec == AV_CODEC_ID_ALAC) {
