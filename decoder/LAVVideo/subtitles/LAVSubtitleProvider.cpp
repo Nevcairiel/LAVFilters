@@ -113,13 +113,14 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   ::SetRect(&outputRect, 0, 0, m_pAVCtx->width, m_pAVCtx->height);
   subtitleFrame->SetOutputRect(outputRect);
 
+  REFERENCE_TIME mid = start + ((stop-start) >> 1);
+
   // Scope this so we limit the provider-lock to the part where its needed
   {
     CAutoLock lock(this);
     for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
       LAVSubRect *pRect = *it;
-      if ((pRect->rtStart == AV_NOPTS_VALUE || pRect->rtStart <= start)
-        && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop >= stop)
+      if ((pRect->rtStart == AV_NOPTS_VALUE) || ((pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop >= mid) && pRect->rtStart <= mid)
         && (m_bComposit || pRect->forced)) {
 
         LAVSubRect rect = *pRect;
