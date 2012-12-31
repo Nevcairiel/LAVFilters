@@ -23,7 +23,7 @@ class CLAVSubRect : public IUnknown
 {
 public:
   CLAVSubRect() : m_cRef(0), rtStart(AV_NOPTS_VALUE), rtStop(AV_NOPTS_VALUE), id(0), pixels(NULL), pixelsPal(NULL), pitch(0), forced(false), freePixels(false) { memset(&position, 0, sizeof(position)); memset(&size, 0, sizeof(size));}
-  ~CLAVSubRect() { SAFE_CO_FREE(pixels); SAFE_CO_FREE(pixelsPal); DbgLog((LOG_TRACE, 10, L"Rect at %I64d deleted", rtStart));}
+  ~CLAVSubRect() { SAFE_CO_FREE(pixels); SAFE_CO_FREE(pixelsPal); }
 
   // IUnknown
   STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject)
