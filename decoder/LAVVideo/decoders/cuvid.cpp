@@ -682,8 +682,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   videoFormatTypeHandler(pmt->Format(), pmt->FormatType(), &bmi);
 
   {
-    RECT rcDisplayArea = {0, 0, bmi->biWidth, bmi->biHeight};
-    hr = CreateCUVIDDecoder(cudaCodec, bmi->biWidth, bmi->biHeight, rcDisplayArea);
+    hr = CreateCUVIDDecoder(cudaCodec, bmi->biWidth, bmi->biHeight);
     if (FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L"-> Creating CUVID decoder failed"));
       return hr;
@@ -697,7 +696,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   return S_OK;
 }
 
-STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, RECT rcDisplayArea)
+STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
@@ -724,10 +723,9 @@ retry:
   dci->ulTargetWidth       = dwWidth;
   dci->ulTargetHeight      = dwHeight;
 
-  dci->display_area.left   = (short)rcDisplayArea.left;
-  dci->display_area.right  = (short)rcDisplayArea.right;
-  dci->display_area.top    = (short)rcDisplayArea.top;
-  dci->display_area.bottom = (short)rcDisplayArea.bottom;
+  // can't provide the original values here, or the decoder starts doing weird things - scaling to the size and cropping afterwards
+  dci->display_area.right  = (short)dwWidth;
+  dci->display_area.bottom = (short)dwHeight;
 
   dci->ulCreationFlags     = bDXVAMode ? cudaVideoCreate_PreferDXVA : cudaVideoCreate_PreferCUVID;
   dci->vidLock             = m_cudaCtxLock;
@@ -783,14 +781,11 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
   if ((cuvidfmt->codec != dci->CodecType)
     || (cuvidfmt->coded_width != dci->ulWidth)
     || (cuvidfmt->coded_height != dci->ulHeight)
-    || (cuvidfmt->display_area.right != dci->ulTargetWidth)
-    || (cuvidfmt->display_area.bottom != dci->ulTargetHeight)
     || (cuvidfmt->chroma_format != dci->ChromaFormat)
     || filter->m_bForceSequenceUpdate)
   {
     filter->m_bForceSequenceUpdate = FALSE;
-    RECT rcDisplayArea = {cuvidfmt->display_area.left, cuvidfmt->display_area.top, cuvidfmt->display_area.right, cuvidfmt->display_area.bottom};
-    filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, rcDisplayArea);
+    filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height);
   }
 
   filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
@@ -1039,8 +1034,8 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   }
 
   pFrame->format = LAVPixFmt_NV12;
-  pFrame->width  = m_VideoDecoderInfo.display_area.right;
-  pFrame->height = m_VideoDecoderInfo.display_area.bottom;
+  pFrame->width  = m_VideoFormat.display_area.right;
+  pFrame->height = m_VideoFormat.display_area.bottom;
   pFrame->rtStart = rtStart;
   pFrame->rtStop = rtStop;
   pFrame->repeat = cuviddisp->repeat_first_field;
