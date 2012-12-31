@@ -339,13 +339,35 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
       }
     }
     for (unsigned i = 0; i < sub->num_rects; i++) {
-      ProcessSubtitleRect(sub->rects[i], rtStart, rtStop);
+      if (sub->num_dvd_palette > 1) {
+        REFERENCE_TIME rtStartRect = rtStart - (sub->start_display_time * 10000i64);
+        REFERENCE_TIME rtStopRect = rtStart;
+        for (unsigned k = 0; k < sub->num_dvd_palette; k++) {
+          // Start is the stop of the previous part
+          rtStartRect = rtStopRect;
+
+          // Stop is either the start of the next part, or the final stop
+          if (k < (sub->num_dvd_palette-1))
+            rtStopRect = rtStart + (sub->dvd_palette[k+1]->start_display_time * 10000i64);
+          else
+            rtStopRect = rtStop;
+
+          // Update palette with new alpha values
+          for (unsigned j = 0; j < 4; j++)
+            sub->rects[i]->pict.data[1][(j << 2) + 3] = sub->dvd_palette[k]->alpha[j] * 17;
+
+          ProcessSubtitleRect(sub->rects[i], rtStartRect, rtStopRect);
+        }
+      } else {
+        ProcessSubtitleRect(sub->rects[i], rtStart, rtStop);
+      }
     }
   }
 }
 
 void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop)
 {
+  DbgLog((LOG_TRACE, 10, L"Subtitle Rect, start: %I64d, stop: %I64d", rtStart, rtStop));
   int hpad = rect->x & 1;
   int vpad = rect->y & 1;
 
