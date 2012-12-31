@@ -34,8 +34,7 @@ CLAVSubtitleFrame::CLAVSubtitleFrame(void)
 CLAVSubtitleFrame::~CLAVSubtitleFrame(void)
 {
   for (int i = 0; i < m_NumBitmaps; i++) {
-    if (m_Bitmaps[i].freePixels)
-      SAFE_CO_FREE(m_Bitmaps[i].pixels);
+    m_Bitmaps[i]->Release();
   }
   SAFE_CO_FREE(m_Bitmaps);
 }
@@ -52,30 +51,22 @@ STDMETHODIMP CLAVSubtitleFrame::SetClipRect(RECT clipRect)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSubtitleFrame::AddBitmap(const LAVSubRect &subRect)
+STDMETHODIMP CLAVSubtitleFrame::AddBitmap(CLAVSubRect *subRect)
 {
   // Allocate memory for the new block
   void *mem = CoTaskMemRealloc(m_Bitmaps, sizeof(*m_Bitmaps) * (m_NumBitmaps+1));
   if (!mem) {
     return E_OUTOFMEMORY;
   }
-  m_Bitmaps = (LAVSubRect *)mem;
+
+  m_Bitmaps = (CLAVSubRect **)mem;
   m_Bitmaps[m_NumBitmaps] = subRect;
   m_NumBitmaps++;
 
+  // Hold reference on the subtitle rect
+  subRect->AddRef();
+
   return S_OK;
-}
-
-STDMETHODIMP CLAVSubtitleFrame::AddBitmap(ULONGLONG id, POINT position, SIZE size, LPVOID pixels, int pitch)
-{
-  LAVSubRect rect;
-  rect.id       = id;
-  rect.position = position;
-  rect.size     = size;
-  rect.pixels   = pixels;
-  rect.pitch    = pitch;
-
-  return AddBitmap(rect);
 }
 
 STDMETHODIMP CLAVSubtitleFrame::GetOutputRect(RECT *outputRect)
@@ -109,11 +100,11 @@ STDMETHODIMP CLAVSubtitleFrame::GetBitmap(int index, ULONGLONG *id, POINT *posit
   CheckPointer(pixels,   E_POINTER);
   CheckPointer(pitch,    E_POINTER);
 
-  *id       = m_Bitmaps[index].id;
-  *position = m_Bitmaps[index].position;
-  *size     = m_Bitmaps[index].size;
-  *pixels   = m_Bitmaps[index].pixels;
-  *pitch    = m_Bitmaps[index].pitch;
+  *id       = m_Bitmaps[index]->id;
+  *position = m_Bitmaps[index]->position;
+  *size     = m_Bitmaps[index]->size;
+  *pixels   = m_Bitmaps[index]->pixels;
+  *pitch    = m_Bitmaps[index]->pitch;
 
   return S_OK;
 }

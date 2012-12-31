@@ -63,8 +63,8 @@ private:
 
   void ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
   void ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
-  void AddSubtitleRect(LAVSubRect *rect);
-  void ProcessDVDHLI(LAVSubRect &rect);
+  void AddSubtitleRect(CLAVSubRect *rect);
+  CLAVSubRect* ProcessDVDHLI(CLAVSubRect *rect);
   void ClearSubtitleRects();
   void TimeoutSubtitleRects(REFERENCE_TIME rtStop);
 
@@ -82,7 +82,7 @@ private:
   ULONGLONG             m_SubPicId;
   BOOL                  m_bComposit;
 
-  std::list<LAVSubRect*> m_SubFrames;
+  std::list<CLAVSubRect *> m_SubFrames;
 
   struct _AM_PROPERTY_SPHLI *m_pHLI;
 };

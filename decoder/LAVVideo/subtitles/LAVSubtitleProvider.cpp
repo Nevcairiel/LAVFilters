@@ -121,16 +121,14 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   {
     CAutoLock lock(this);
     for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
-      LAVSubRect *pRect = *it;
+      CLAVSubRect *pRect = *it;
       if ((pRect->rtStart == AV_NOPTS_VALUE) || ((pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop > mid) && pRect->rtStart <= mid)
         && (m_bComposit || pRect->forced)) {
 
-        LAVSubRect rect = *pRect;
-
         if (m_pHLI && PTS2RT(m_pHLI->StartPTM) <= mid && PTS2RT(m_pHLI->EndPTM) >= mid) {
-          ProcessDVDHLI(rect);
+          pRect = ProcessDVDHLI(pRect);
         }
-        subtitleFrame->AddBitmap(rect);
+        subtitleFrame->AddBitmap(pRect);
       }
     }
   }
@@ -211,9 +209,7 @@ void CLAVSubtitleProvider::ClearSubtitleRects()
 {
   CAutoLock lock(this);
   for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
-    CoTaskMemFree((LPVOID)(*it)->pixels);
-    CoTaskMemFree((LPVOID)(*it)->pixelsPal);
-    delete *it;
+    (*it)->Release();
   }
   m_SubFrames.clear();
 }
@@ -226,9 +222,7 @@ void CLAVSubtitleProvider::TimeoutSubtitleRects(REFERENCE_TIME rt)
   while (it != m_SubFrames.end()) {
     if ((*it)->rtStop != AV_NOPTS_VALUE && (*it)->rtStop < timestamp) {
       DbgLog((LOG_TRACE, 10, L"Timed out subtitle at %I64d", (*it)->rtStart));
-      CoTaskMemFree((LPVOID)(*it)->pixels);
-      CoTaskMemFree((LPVOID)(*it)->pixelsPal);
-      delete *it;
+      (*it)->Release();
       it = m_SubFrames.erase(it);
     } else {
       it++;
@@ -421,7 +415,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_T
   // Store the rect
   POINT position = { rect->x - hpad, rect->y - vpad };
   SIZE size = { width, height };
-  LAVSubRect *lavRect = new LAVSubRect();
+  CLAVSubRect *lavRect = new CLAVSubRect();
   if (!lavRect) return;
   lavRect->id       = m_SubPicId++;
   lavRect->pitch    = rgbStride;
@@ -466,9 +460,10 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_T
   AddSubtitleRect(lavRect);
 }
 
-void CLAVSubtitleProvider::AddSubtitleRect(LAVSubRect *rect)
+void CLAVSubtitleProvider::AddSubtitleRect(CLAVSubRect *rect)
 {
   CAutoLock lock(this);
+  rect->AddRef();
   m_SubFrames.push_back(rect);
 }
 
@@ -539,30 +534,36 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
   return S_OK;
 }
 
-void CLAVSubtitleProvider::ProcessDVDHLI(LAVSubRect &rect)
+CLAVSubRect* CLAVSubtitleProvider::ProcessDVDHLI(CLAVSubRect *rect)
 {
   DVDSubContext *ctx = (DVDSubContext *)m_pAVCtx->priv_data;
-  if (!m_pHLI || !rect.pixelsPal || !ctx->has_palette)
-    return;
+  if (!m_pHLI || !rect->pixelsPal || !ctx->has_palette)
+    return rect;
 
-  LPVOID newPixels = CoTaskMemAlloc(rect.pitch * rect.size.cy * 4);
-  if (!newPixels) return;
-  memcpy(newPixels, rect.pixels, rect.pitch * rect.size.cy * 4);
+  LPVOID newPixels = CoTaskMemAlloc(rect->pitch * rect->size.cy * 4);
+  if (!newPixels) return rect;
 
-  rect.pixels = newPixels;
-  rect.freePixels = true;
+  // copy pixels before modification
+  memcpy(newPixels, rect->pixels, rect->pitch * rect->size.cy * 4);
+
+  uint8_t *originalPalPixels = (uint8_t *)rect->pixelsPal;
+
+  // create new object
+  rect = new CLAVSubRect(*rect);
+  rect->pixels = newPixels;
+  rect->pixelsPal = NULL;
 
   // Need to assign a new Id since we're modifying it here..
-  rect.id = m_SubPicId++;
+  rect->id = m_SubPicId++;
 
   uint8_t *palette   = (uint8_t *)ctx->palette;
-  for (int y = 0; y < rect.size.cy; y++) {
-    if (y+rect.position.y < m_pHLI->StartY || y+rect.position.y > m_pHLI->StopY)
+  for (int y = 0; y < rect->size.cy; y++) {
+    if (y+rect->position.y < m_pHLI->StartY || y+rect->position.y > m_pHLI->StopY)
       continue;
-    uint8_t *pixelsPal = ((uint8_t *)rect.pixelsPal) + rect.pitch * y;
-    uint8_t *pixels = ((uint8_t *)rect.pixels) + rect.pitch * y * 4;
-    for (int x = 0; x < rect.size.cx; x++) {
-      if (x+rect.position.x < m_pHLI->StartX || x+rect.position.x > m_pHLI->StopX)
+    uint8_t *pixelsPal = originalPalPixels + rect->pitch * y;
+    uint8_t *pixels = ((uint8_t *)rect->pixels) + rect->pitch * y * 4;
+    for (int x = 0; x < rect->size.cx; x++) {
+      if (x+rect->position.x < m_pHLI->StartX || x+rect->position.x > m_pHLI->StopX)
         continue;
       uint8_t idx = pixelsPal[x];
       uint8_t alpha;
@@ -596,6 +597,7 @@ void CLAVSubtitleProvider::ProcessDVDHLI(LAVSubRect &rect)
       pixels[(x << 2) + 3] = a;
     }
   }
+  return rect;
 }
 
 STDMETHODIMP CLAVSubtitleProvider::SetDVDComposit(BOOL bComposit)

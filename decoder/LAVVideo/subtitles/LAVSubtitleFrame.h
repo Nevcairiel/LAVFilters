@@ -19,7 +19,27 @@
 
 #pragma once
 
-typedef struct LAVSubRect {
+class CLAVSubRect : public IUnknown
+{
+public:
+  CLAVSubRect() : m_cRef(0), rtStart(AV_NOPTS_VALUE), rtStop(AV_NOPTS_VALUE), id(0), pixels(NULL), pixelsPal(NULL), pitch(0), forced(false), freePixels(false) { memset(&position, 0, sizeof(position)); memset(&size, 0, sizeof(size));}
+  ~CLAVSubRect() { SAFE_CO_FREE(pixels); SAFE_CO_FREE(pixelsPal); DbgLog((LOG_TRACE, 10, L"Rect at %I64d deleted", rtStart));}
+
+  // IUnknown
+  STDMETHODIMP QueryInterface(REFIID riid, void **ppvObject)
+  {
+    if (riid == IID_IUnknown) {
+      AddRef();
+      *ppvObject = (IUnknown *)this;
+    } else {
+      return E_NOINTERFACE;
+    }
+    return S_OK;
+  }
+  STDMETHODIMP_(ULONG) AddRef() { ULONG lRef = InterlockedIncrement( &m_cRef ); return max(ULONG(lRef),1ul); }
+  STDMETHODIMP_(ULONG) Release() { ULONG lRef = InterlockedDecrement( &m_cRef ); if (lRef == 0) { m_cRef++; delete this; return 0; } return max(ULONG(lRef),1ul); }
+
+public:
   REFERENCE_TIME rtStart;  ///< Start Time
   REFERENCE_TIME rtStop;   ///< Stop time
   ULONGLONG id;            ///< Unique Identifier (same ID = same subtitle)
@@ -31,7 +51,10 @@ typedef struct LAVSubRect {
   bool forced;             ///< Forced/Menu
 
   bool freePixels;         ///< If true, pixel data is free'ed upon destroy
-} LAVSubRect;
+
+private:
+  ULONG m_cRef;
+};
 
 class CLAVSubtitleFrame : public ISubRenderFrame, public CUnknown
 {
@@ -48,8 +71,7 @@ public:
 
   STDMETHODIMP SetOutputRect(RECT outputRect);
   STDMETHODIMP SetClipRect(RECT clipRect);
-  STDMETHODIMP AddBitmap(const LAVSubRect &subRect);
-  STDMETHODIMP AddBitmap(ULONGLONG id, POINT position, SIZE size, LPVOID pixels, int pitch);
+  STDMETHODIMP AddBitmap(CLAVSubRect *subRect);
 
   BOOL Empty() const { return m_NumBitmaps == 0; };
 
@@ -57,6 +79,6 @@ private:
   RECT m_outputRect;
   RECT m_clipRect;
 
-  LAVSubRect *m_Bitmaps;
+  CLAVSubRect **m_Bitmaps;
   int m_NumBitmaps;
 };
