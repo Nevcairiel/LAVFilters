@@ -370,6 +370,9 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
 void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop)
 {
   DbgLog((LOG_TRACE, 10, L"Subtitle Rect, start: %I64d, stop: %I64d", rtStart, rtStop));
+  // Skip zero-length subs
+  if (rtStart != AV_NOPTS_VALUE && rtStart == rtStop) return;
+
   int hpad = rect->x & 1;
   int vpad = rect->y & 1;
 
