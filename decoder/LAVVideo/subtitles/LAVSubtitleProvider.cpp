@@ -518,7 +518,7 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
     if (pHLI) {
   #define DHLI(var) (pHLI->var != m_pHLI->var)
       if (!m_pHLI || DHLI(StartX) || DHLI(StopX) || DHLI(StartY) || DHLI(StopY)) {
-        DbgLog((LOG_TRACE, 10, L"CLAVSubtitleProvider(): DVD HLI event. HLISS: %d, x: %d->%d, y: %d->%d", pHLI->HLISS, pHLI->StartX, pHLI->StopX, pHLI->StartY, pHLI->StopY));
+        DbgLog((LOG_TRACE, 10, L"CLAVSubtitleProvider(): DVD HLI event. HLISS: %u, x: %u->%u, y: %u->%u, StartPTM: %u, EndPTM: %u", pHLI->HLISS, pHLI->StartX, pHLI->StopX, pHLI->StartY, pHLI->StopY, pHLI->StartPTM, pHLI->EndPTM, pHLI->ColCon));
         SAFE_DELETE(m_pHLI);
         m_pHLI = new AM_PROPERTY_SPHLI(*pHLI);
         redraw = true;
