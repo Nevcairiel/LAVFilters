@@ -93,6 +93,8 @@ STDMETHODIMP CLAVSubtitleProvider::DisconnectConsumer(void)
   return S_OK;
 }
 
+#define PTS2RT(pts) (10000i64 * pts / 90)
+
 STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop)
 {
   ASSERT(m_pConsumer);
@@ -125,7 +127,7 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
 
         LAVSubRect rect = *pRect;
 
-        if (m_pHLI) {
+        if (m_pHLI && PTS2RT(m_pHLI->StartPTM) <= mid && PTS2RT(m_pHLI->EndPTM) >= mid) {
           ProcessDVDHLI(rect);
         }
         subtitleFrame->AddBitmap(rect);
