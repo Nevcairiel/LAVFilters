@@ -550,6 +550,7 @@ CLAVSubRect* CLAVSubtitleProvider::ProcessDVDHLI(CLAVSubRect *rect)
 
   // create new object
   rect = new CLAVSubRect(*rect);
+  rect->ResetRefCount();
   rect->pixels = newPixels;
   rect->pixelsPal = NULL;
 

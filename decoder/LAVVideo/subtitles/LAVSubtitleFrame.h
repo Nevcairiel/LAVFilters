@@ -39,6 +39,9 @@ public:
   STDMETHODIMP_(ULONG) AddRef() { ULONG lRef = InterlockedIncrement( &m_cRef ); return max(ULONG(lRef),1ul); }
   STDMETHODIMP_(ULONG) Release() { ULONG lRef = InterlockedDecrement( &m_cRef ); if (lRef == 0) { m_cRef++; delete this; return 0; } return max(ULONG(lRef),1ul); }
 
+  // Reset the reference count to 0, can be used after a copy-constructor
+  STDMETHODIMP ResetRefCount() { m_cRef = 0ul; return S_OK; }
+
 public:
   REFERENCE_TIME rtStart;  ///< Start Time
   REFERENCE_TIME rtStop;   ///< Stop time
