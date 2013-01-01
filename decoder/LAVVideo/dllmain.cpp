@@ -40,7 +40,6 @@
 
 // --- COM factory table and registration code --------------
 
-// Workaround: graphedit crashes when a filter exposes more than 115 input MediaTypes!
 const AMOVIESETUP_PIN sudpPinsVideoDec[] = {
 	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVVideo::sudPinTypesInCount,  CLAVVideo::sudPinTypesIn},
 	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVVideo::sudPinTypesOutCount, CLAVVideo::sudPinTypesOut}

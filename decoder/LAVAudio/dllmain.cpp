@@ -39,9 +39,8 @@
 
 // --- COM factory table and registration code --------------
 
-// Workaround: graphedit crashes when a filter exposes more than 115 input MediaTypes!
 const AMOVIESETUP_PIN sudpPinsAudioDec[] = {
-	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVAudio::sudPinTypesInCount > 115 ? 115 : CLAVAudio::sudPinTypesInCount,  CLAVAudio::sudPinTypesIn},
+	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVAudio::sudPinTypesInCount,  CLAVAudio::sudPinTypesIn},
 	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVAudio::sudPinTypesOutCount, CLAVAudio::sudPinTypesOut}
 };
 
