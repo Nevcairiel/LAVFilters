@@ -404,11 +404,11 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
       rtStop = rtStart + (REFERENCE_TIME)(200000 / m_dRate);
     m_rtStart = rtStop;
   } else {
-    double dDuration = DBL_SECOND_MULT * m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate;
-    rtDur = (REFERENCE_TIME)((dDuration + 0.5) / m_dRate);
+    double dDuration = DBL_SECOND_MULT * (double)m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate / m_dRate;
+    rtDur = (REFERENCE_TIME)(dDuration + 0.5);
     m_dStartOffset += fmod(dDuration, 1.0);
 
-    m_rtStart = rtStart + (REFERENCE_TIME)dDuration;
+    m_rtStart += (REFERENCE_TIME)dDuration;
 
     if (m_dStartOffset > 0.5) {
       m_rtStart++;
