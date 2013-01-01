@@ -54,6 +54,7 @@ HRESULT CBitstreamParser::Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, vo
   case AV_CODEC_ID_DTS:
     return ParseDTS(pBuffer, dwSize);
   case AV_CODEC_ID_AC3:
+  case AV_CODEC_ID_EAC3:
     return ParseAC3(pBuffer, dwSize, pParserContext);
   }
   return S_OK;
@@ -79,7 +80,9 @@ HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserCon
 
   m_dwBitRate    = ctx->bit_rate;
   m_dwSampleRate = ctx->sample_rate;
-  m_dwSamples    = ctx->samples;
+
+  // E-AC3 always combines 6 blocks, resulting in 1536 samples
+  m_dwSamples    = (ctx->codec_id == AV_CODEC_ID_EAC3) ? (6 * 256) : ctx->samples;
 
   return S_OK;
 }

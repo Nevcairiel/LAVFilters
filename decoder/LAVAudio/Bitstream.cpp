@@ -404,34 +404,15 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
       rtStop = rtStart + (REFERENCE_TIME)(200000 / m_dRate);
     m_rtStart = rtStop;
   } else {
-    double dDuration = 0;
-    // E-AC3 trusts the incoming timestamps until a better solution can be found
-    if (codec == AV_CODEC_ID_EAC3) {
-      if (rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
-        rtStart = rtStartInput;
-        rtDur = rtStopInput - rtStartInput;
-      } else {
-        dDuration = DBL_SECOND_MULT * dwFrameSize / wfe->nBlockAlign / wfe->nSamplesPerSec;
-      }
-    } else if (m_bsParser.m_dwBitRate <= 1 && rtStartInput != AV_NOPTS_VALUE && rtStopInput != AV_NOPTS_VALUE) {
-      rtDur = rtStopInput - rtStartInput;
-    } else {
-      // Used by DTS and AC3
-      dDuration = DBL_SECOND_MULT * m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate;
-    }
-    if (rtDur == AV_NOPTS_VALUE) {
-      rtDur = (REFERENCE_TIME)((dDuration + 0.5) / m_dRate);
-      m_dStartOffset += fmod(dDuration, 1.0);
+    double dDuration = DBL_SECOND_MULT * m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate;
+    rtDur = (REFERENCE_TIME)((dDuration + 0.5) / m_dRate);
+    m_dStartOffset += fmod(dDuration, 1.0);
 
-      m_rtStart = rtStart + (REFERENCE_TIME)dDuration;
+    m_rtStart = rtStart + (REFERENCE_TIME)dDuration;
 
-      if (m_dStartOffset > 0.5) {
-        m_rtStart++;
-        m_dStartOffset -= 1.0;
-      }
-    } else {
-      rtDur = (REFERENCE_TIME)(rtDur / m_dRate);
-      m_rtStart = rtStart + rtDur;
+    if (m_dStartOffset > 0.5) {
+      m_rtStart++;
+      m_dStartOffset -= 1.0;
     }
 
     rtStop = rtStart + rtDur;
