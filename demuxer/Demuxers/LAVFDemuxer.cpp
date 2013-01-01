@@ -644,10 +644,14 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       return E_OUTOFMEMORY;
     pPacket->bPosition = pkt.pos;
 
-    if ((m_bMatroska || m_bOgg) && stream->codec->codec_id == AV_CODEC_ID_H264) {
-      if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1 || AV_RB32(pkt.data) == 0x00000001) {
-        pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
-      } else { // No DTS for H264 in native format
+    if (stream->codec->codec_id == AV_CODEC_ID_H264) {
+      if (m_bMatroska || m_bOgg) {
+        if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1 || AV_RB32(pkt.data) == 0x00000001) {
+          pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
+        } else { // No DTS for H264 in native format
+          pkt.dts = AV_NOPTS_VALUE;
+        }
+      } else if (!m_bPMP && !m_bAVI) { // For most formats, DTS timestamps for h.264 are no fun
         pkt.dts = AV_NOPTS_VALUE;
       }
     }
@@ -664,7 +668,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     // Never use DTS for these formats
-    if (!m_bAVI && (stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO || (stream->codec->codec_id == AV_CODEC_ID_H264 && !m_bMatroska && !m_bPMP)))
+    if (!m_bAVI && (stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO))
       pkt.dts = AV_NOPTS_VALUE;
 
     if(pkt.data) {
