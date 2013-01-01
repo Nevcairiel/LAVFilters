@@ -85,6 +85,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_bMPEGPS(FALSE)
   , m_bEVO(FALSE)
   , m_bRM(FALSE)
+  , m_bPMP(FALSE)
   , m_bBluRay(FALSE)
   , m_pBluRay(NULL)
   , m_bVC1Correction(FALSE)
@@ -369,6 +370,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bMPEGPS = (_stricmp(m_pszInputFormat, "mpeg") == 0);
   m_bEVO = ((extension ? _wcsicmp(extension, L".evo") == 0 : TRUE) && _stricmp(m_pszInputFormat, "mpeg") == 0);
   m_bRM = (_stricmp(m_pszInputFormat, "rm") == 0);
+  m_bPMP = (_stricmp(m_pszInputFormat, "pmp") == 0);
 
   if (AVFORMAT_GENPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
@@ -662,7 +664,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     // Never use DTS for these formats
-    if (!m_bAVI && (stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO || (stream->codec->codec_id == AV_CODEC_ID_H264 && !m_bMatroska)))
+    if (!m_bAVI && (stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO || (stream->codec->codec_id == AV_CODEC_ID_H264 && !m_bMatroska && !m_bPMP)))
       pkt.dts = AV_NOPTS_VALUE;
 
     if(pkt.data) {
@@ -1638,7 +1640,7 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
   DWORD dwFlags = 0;
   AVStream *st = m_avFormat->streams[dwStream];
 
-  if (st->codec->codec_id == AV_CODEC_ID_H264 && (m_bAVI || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1))))
+  if (st->codec->codec_id == AV_CODEC_ID_H264 && (m_bAVI || m_bPMP || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1))))
     dwFlags |= LAV_STREAM_FLAG_H264_DTS;
 
   if (m_bMatroska && (st->codec->codec_id == AV_CODEC_ID_RV30 || st->codec->codec_id == AV_CODEC_ID_RV40))
