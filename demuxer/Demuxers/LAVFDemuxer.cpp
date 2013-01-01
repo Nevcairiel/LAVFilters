@@ -215,7 +215,9 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
 
   AVInputFormat *inputFormat = NULL;
-  if (pszFileName) {
+  if (m_pBluRay) {
+    inputFormat = av_find_input_format("mpegts");
+  } else if (pszFileName) {
     LPWSTR extension = PathFindExtensionW(pszFileName);
     for (int i = 0; i < countof(wszImageExtensions); i++) {
       if (_wcsicmp(extension, wszImageExtensions[i]) == 0) {
