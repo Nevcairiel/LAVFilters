@@ -110,9 +110,17 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_DOLBY_TRUEHD_ARCSOFT;
       } else if (avstream->codec->codec_id == AV_CODEC_ID_AAC) {
-        mtype.subtype = MEDIASUBTYPE_AAC_ADTS;
-        wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
-        mtypes.push_back(mtype);
+        wvfmt->wFormatTag = (WORD)MEDIASUBTYPE_AAC_ADTS.Data1;
+
+        CMediaType adtsMtype = mtype;
+        adtsMtype.subtype = MEDIASUBTYPE_AAC_ADTS;
+        // Clear artificially generated extradata so we don't confuse LAV Audio
+        if (m_containerFormat == "mpeg" || m_containerFormat == "mpegts") {
+          adtsMtype.cbFormat = sizeof(WAVEFORMATEX);
+          ((WAVEFORMATEX *)adtsMtype.pbFormat)->cbSize = 0;
+        }
+        mtypes.push_back(adtsMtype);
+
         mtype.subtype = MEDIASUBTYPE_AAC;
         wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
       } else if (avstream->codec->codec_id == AV_CODEC_ID_AAC_LATM) {
