@@ -52,6 +52,14 @@ private:
   CLAVVideo *m_pLAVVideo;
 };
 
+void CALLBACK CLAVVideo::StaticInit(BOOL bLoading, const CLSID *clsid)
+{
+  if (!bLoading) return;
+
+  avcodec_register_all();
+  avfilter_register_all();
+}
+
 #pragma warning(disable: 4355)
 
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
@@ -93,8 +101,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
   memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
 
-  avcodec_register_all();
-  avfilter_register_all();
+  StaticInit(TRUE, NULL);
 
   LoadSettings();
 

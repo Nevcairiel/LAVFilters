@@ -104,7 +104,7 @@ CFactoryTemplate g_Templates[] = {
     sudFilterReg.strName,
       sudFilterReg.clsID,
       CreateInstance<CLAVSplitter>,
-      NULL,
+      CLAVSplitter::StaticInit,
       &sudFilterReg
   },
   {

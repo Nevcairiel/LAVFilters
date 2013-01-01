@@ -66,7 +66,7 @@ CFactoryTemplate g_Templates[] = {
     sudFilterReg.strName,
       sudFilterReg.clsID,
       CreateInstance<CLAVVideo>,
-      NULL,
+      CLAVVideo::StaticInit,
       &sudFilterReg
   },
   // This entry is for the property page.

@@ -38,6 +38,12 @@
 
 #include "IGraphRebuildDelegate.h"
 
+void CALLBACK CLAVSplitter::StaticInit(BOOL bLoading, const CLSID *clsid)
+{
+  if (!bLoading) return;
+  CLAVFDemuxer::ffmpeg_init();
+}
+
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
   , m_rtStart(0)
@@ -59,7 +65,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   GetModuleFileName(NULL, fileName, 1024);
   m_processName = PathFindFileName (fileName);
 
-  CLAVFDemuxer::ffmpeg_init();
+  StaticInit(TRUE, NULL);
 
   m_InputFormats.clear();
 

@@ -47,6 +47,13 @@ __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 
 extern HINSTANCE g_hInst;
 
+void CALLBACK CLAVAudio::StaticInit(BOOL bLoading, const CLSID *clsid)
+{
+  if (!bLoading) return;
+
+  av_register_all();
+}
+
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
@@ -94,14 +101,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_MixingInputLayout(0)
   , m_pTrayIcon(NULL)
 {
-#ifdef DEBUG
-  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
-  av_log_set_callback(lavf_log_callback);
-#else
-  av_log_set_callback(NULL);
-#endif
-
-  av_register_all();
+  StaticInit(TRUE, NULL);
 
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -131,6 +131,9 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   InitBitstreaming();
 
 #ifdef DEBUG
+  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
+  av_log_set_callback(lavf_log_callback);
+
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   //DbgSetModuleLevel (LOG_CUSTOM2, DWORD_MAX); // Jitter statistics
@@ -139,6 +142,8 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 #if ENABLE_DEBUG_LOGFILE
   DbgSetLogFileDesktop(LAVC_AUDIO_LOG_FILE);
 #endif
+#else
+  av_log_set_callback(NULL);
 #endif
 }
 

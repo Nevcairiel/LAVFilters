@@ -65,7 +65,7 @@ CFactoryTemplate g_Templates[] = {
     sudFilterReg.strName,
       sudFilterReg.clsID,
       CreateInstance<CLAVAudio>,
-      NULL,
+      CLAVAudio::StaticInit,
       &sudFilterReg
   },
   // This entry is for the property page.
