@@ -1,5 +1,26 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.55.0 - 2013/01/xx
+General
+- All Filters now have an optional tray icon which can open the property sheet when clicked (disabled by default)
+
+LAV Splitter
+- Improved FPS detection for interlaced H.264 streams in Matroska
+- Fixed H.264 in Ogg and PMP
+- Fixed seeking in RMVB files with AAC audio
+- Improved support for AAC in MPEG-TS (especially in ISDB-T)
+
+LAV Video
+- Improved handling of raw RGB video with LAV Splitter (Video was upside-down in some cases)
+- Improved support for the Overlay Mixer renderer
+- Fixed decoding of non-mod16 video with CUVID
+- Fixed DXVA2 decoding of H.264 MBAFF content with >= 16px cropping
+- Support for fade in/out animations in DVD subtitles
+- Fixed DVD menu overlays showing too early on some discs
+
+LAV Audio
+- Fixed 6.1 to 7.1 upmixing when the standard channel layout option is turned off
+
 0.54.1 - 2012/11/27
 LAV Splitter
 - Improved seeking in MP4 files created by Windows Live Movie Maker
