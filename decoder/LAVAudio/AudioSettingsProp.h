@@ -76,6 +76,7 @@ private:
   BOOL m_bExpandMono;
   BOOL m_bExpand61;
   bool m_bSampleFormats[SampleFormat_NB];
+  BOOL m_bDither;
   BOOL m_bAudioDelay;
   int  m_iAudioDelay;
   BOOL m_TrayIcon;

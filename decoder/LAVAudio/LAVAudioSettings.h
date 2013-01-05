@@ -180,6 +180,10 @@ interface ILAVAudioSettings : public IUnknown
   // Toggle Tray Icon
   STDMETHOD(SetTrayIcon)(BOOL bEnabled) = 0;
   STDMETHOD_(BOOL,GetTrayIcon)() = 0;
+
+  // Toggle Dithering for sample format conversion
+  STDMETHOD(SetSampleConvertDithering)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetSampleConvertDithering)() = 0;
 };
 
 // LAV Audio Status Interface

@@ -91,13 +91,14 @@ BEGIN
     CONTROL         "Expand 6.1 to 7.1",IDC_EXPAND61,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,118,178,74,10
     LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,209,202,149,8,0,WS_EX_RIGHT
     GROUPBOX        "Output Formats",IDC_OUTPUT_FORMATS,207,59,151,132
-    LTEXT           "Select which output formats are available.\nThe format most suitable for the audio will be used.",IDC_LBL_OUTPUTFORMATS,212,70,139,28
-    CONTROL         "16-bit Integer",IDC_OUT_S16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,100,61,10
-    CONTROL         "24-bit Integer",IDC_OUT_S24,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,286,100,61,10
-    CONTROL         "32-bit Integer",IDC_OUT_S32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,116,61,10
-    CONTROL         "32-bit Floating-point",IDC_OUT_FP32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,132,81,10
-    CONTROL         "8-bit Integer",IDC_OUT_U8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,286,116,54,10
-    LTEXT           "Enabling all formats will allow untouched / bitexact output. Only if a format is not compatible with your hard- or software it should be disabled.",IDC_LBL_OUTNOTE,211,150,140,37
+    LTEXT           "Select which output formats are available.\nThe best format is used automatically.",IDC_LBL_OUTPUTFORMATS,213,70,140,22
+    CONTROL         "16-bit Integer",IDC_OUT_S16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,91,61,10
+    CONTROL         "24-bit Integer",IDC_OUT_S24,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,286,91,61,10
+    CONTROL         "32-bit Integer",IDC_OUT_S32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,107,61,10
+    CONTROL         "32-bit Floating-point",IDC_OUT_FP32,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,123,81,10
+    CONTROL         "8-bit Integer",IDC_OUT_U8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,286,107,54,10
+    CONTROL         "Use Dithering for 16-bit Output",IDC_OUT_S16_DITHER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,139,125,10
+    LTEXT           "Enabling all formats will allow untouched / bitexact output. Only if a format is not compatible with your hard- or software it should be disabled.",IDC_LBL_OUTNOTE,213,152,140,37
     GROUPBOX        "Audio Delay",IDC_GROUP_DELAY,207,7,151,50
     CONTROL         "Enable Audio Delay",IDC_DELAY_ENABLED,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,214,20,113,10
     LTEXT           "Delay (in ms):",IDC_STATIC,213,37,47,8

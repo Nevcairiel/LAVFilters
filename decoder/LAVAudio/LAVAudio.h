@@ -146,6 +146,8 @@ public:
   STDMETHODIMP GetMixingLevels(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel);
   STDMETHODIMP SetTrayIcon(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetTrayIcon();
+  STDMETHODIMP SetSampleConvertDithering(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetSampleConvertDithering();
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -301,6 +303,7 @@ private:
     BOOL OutputStandardLayout;
     BOOL AllowRawSPDIF;
     BOOL bSampleFormats[SampleFormat_NB];
+    BOOL SampleConvertDither;
     BOOL AudioDelayEnabled;
     int  AudioDelay;
 

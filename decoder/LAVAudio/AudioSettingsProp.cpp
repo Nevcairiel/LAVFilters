@@ -112,6 +112,9 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_U8, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetSampleFormat(SampleFormat_U8, bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUT_S16_DITHER, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetSampleConvertDithering(bFlag);
+
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_DELAY_ENABLED, BM_GETCHECK, 0, 0);
   WCHAR buffer[100];
   SendDlgItemMessage(m_Dlg, IDC_DELAY, WM_GETTEXT, 100, (LPARAM)&buffer);
@@ -182,6 +185,8 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_OUT_FP32, BM_SETCHECK, m_bSampleFormats[SampleFormat_FP32], 0);
     SendDlgItemMessage(m_Dlg, IDC_OUT_U8, BM_SETCHECK, m_bSampleFormats[SampleFormat_U8], 0);
 
+    SendDlgItemMessage(m_Dlg, IDC_OUT_S16_DITHER, BM_SETCHECK, m_bDither, 0);
+
     SendDlgItemMessage(m_Dlg, IDC_DELAY_ENABLED, BM_SETCHECK, m_bAudioDelay, 0);
     EnableWindow(GetDlgItem(m_Dlg, IDC_DELAYSPIN), m_bAudioDelay);
     EnableWindow(GetDlgItem(m_Dlg, IDC_DELAY), m_bAudioDelay);
@@ -212,6 +217,7 @@ HRESULT CLAVAudioSettingsProp::LoadData()
 
   for (unsigned i = 0; i < SampleFormat_NB; ++i)
     m_bSampleFormats[i] = m_pAudioSettings->GetSampleFormat((LAVAudioSampleFormat)i) != 0;
+  m_bDither = m_pAudioSettings->GetSampleConvertDithering();
 
   m_pAudioSettings->GetAudioDelay(&m_bAudioDelay, &m_iAudioDelay);
 
@@ -293,6 +299,10 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_OUT_U8 && HIWORD(wParam) == BN_CLICKED) {
       bool bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0) != 0;
       if (bFlag != m_bSampleFormats[SampleFormat_U8])
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_OUT_S16_DITHER && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bFlag != m_bDither)
         SetDirty();
     } else if (LOWORD(wParam) == IDC_DELAY_ENABLED && HIWORD(wParam) == BN_CLICKED) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);

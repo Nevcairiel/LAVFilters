@@ -218,6 +218,7 @@ HRESULT CLAVAudio::LoadDefaults()
   // Default all Sample Formats to enabled
   for(int i = 0; i < SampleFormat_NB; ++i)
     m_settings.bSampleFormats[i] = TRUE;
+  m_settings.SampleConvertDither = TRUE;
 
   if (!IsVistaOrNewer())
     m_settings.bSampleFormats[SampleFormat_FP32] = FALSE;
@@ -340,6 +341,9 @@ HRESULT CLAVAudio::LoadSettings()
       bFlag = reg.ReadBOOL(key.c_str(), hr);
       if (SUCCEEDED(hr)) m_settings.bSampleFormats[i] = bFlag;
     }
+
+    bFlag = reg.ReadBOOL(L"SampleConvertDither", hr);
+    if (SUCCEEDED(hr)) m_settings.SampleConvertDither = bFlag;
   }
 
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr, TRUE);
@@ -404,6 +408,7 @@ HRESULT CLAVAudio::SaveSettings()
       reg.WriteBOOL(key.c_str(), m_settings.bSampleFormats[i]);
     }
 
+    reg.WriteBOOL(L"SampleConvertDither", m_settings.SampleConvertDither);
   }
   return S_OK;
 }
@@ -787,6 +792,18 @@ STDMETHODIMP CLAVAudio::SetTrayIcon(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVAudio::GetTrayIcon()
 {
   return m_settings.TrayIcon;
+}
+
+STDMETHODIMP CLAVAudio::SetSampleConvertDithering(BOOL bEnabled)
+{
+  m_settings.SampleConvertDither = bEnabled;
+  m_bMixingSettingsChanged = TRUE;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetSampleConvertDithering()
+{
+  return m_settings.SampleConvertDither;
 }
 
 // ILAVAudioStatus
