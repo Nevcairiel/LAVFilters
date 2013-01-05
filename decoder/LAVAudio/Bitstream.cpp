@@ -113,7 +113,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
   m_avBSContext->oformat->flags |= AVFMT_NOFILE;
 
   // DTS-HD is by default off, unless explicitly asked for
-  if (m_settings.DTSHDFraming && m_settings.bBitstream[Bitstream_DTSHD]) {
+  if (m_settings.DTSHDFraming && m_settings.bBitstream[Bitstream_DTSHD] && !m_bForceDTSCore) {
     m_bDTSHD = TRUE;
     av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
   } else {
@@ -173,7 +173,7 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
 
   // Configure DTS-HD setting
   if(m_avBSContext) {
-    if (m_settings.bBitstream[Bitstream_DTSHD] && m_settings.DTSHDFraming) {
+    if (m_settings.bBitstream[Bitstream_DTSHD] && m_settings.DTSHDFraming && !m_bForceDTSCore) {
       m_bDTSHD = TRUE;
       av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
     } else {
@@ -210,7 +210,7 @@ HRESULT CLAVAudio::FreeBitstreamContext()
   return S_OK;
 }
 
-CMediaType CLAVAudio::CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate)
+CMediaType CLAVAudio::CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate, BOOL bDTSHDOverride)
 {
    CMediaType mt;
 
@@ -244,7 +244,7 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRa
      subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
      break;
    case AV_CODEC_ID_DTS:
-     if (m_settings.bBitstream[Bitstream_DTSHD] && m_bDTSHD) {
+     if (m_settings.bBitstream[Bitstream_DTSHD] && m_bDTSHD && !bDTSHDOverride) {
        wfe->nSamplesPerSec = 192000;
        wfe->nChannels      = 8;
        subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
@@ -277,9 +277,19 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRa
 
 void CLAVAudio::ActivateDTSHDMuxing()
 {
-  m_bDTSHD = TRUE;
-  av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
   DbgLog((LOG_TRACE, 20, L"::ActivateDTSHDMuxing(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
+  m_bDTSHD = TRUE;
+
+  // Check if downstream actually accepts it..
+  CMediaType &mt = CreateBitstreamMediaType(m_nCodecId, m_bsParser.m_dwSampleRate);
+  HRESULT hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+  if (hr != S_OK) {
+    DbgLog((LOG_TRACE, 20, L"-> But downstream doesn't want DTS-HD, sticking to DTS core"));
+    m_bDTSHD = FALSE;
+    m_bForceDTSCore = TRUE;
+  } else {
+    av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
+  }
 }
 
 HRESULT CLAVAudio::Bitstream(const BYTE *buffer, int buffsize, int &consumed, HRESULT *hrDeliver)
@@ -333,7 +343,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *buffer, int buffsize, int &consumed, HR
 
     if (pOut_size > 0) {
       m_bsParser.Parse(m_nCodecId, pOut, pOut_size, m_pParser->priv_data);
-      if (m_nCodecId == AV_CODEC_ID_DTS && !m_bDTSHD && m_bsParser.m_bDTSHD && m_settings.bBitstream[Bitstream_DTSHD]) {
+      if (m_nCodecId == AV_CODEC_ID_DTS && !m_bDTSHD && !m_bForceDTSCore && m_bsParser.m_bDTSHD && m_settings.bBitstream[Bitstream_DTSHD]) {
         ActivateDTSHDMuxing();
       }
 
@@ -381,13 +391,6 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
   BYTE *pDataOut = NULL;
   if(FAILED(GetDeliveryBuffer(&pOut, &pDataOut))) {
     return E_FAIL;
-  }
-
-  if(hr == S_OK) {
-    hr = m_pOutput->GetConnected()->QueryAccept(&mt);
-    DbgLog((LOG_TRACE, 1, L"Sending new Media Type (QueryAccept: %0#.8x)", hr));
-    m_pOutput->SetMediaType(&mt);
-    pOut->SetMediaType(&mt);
   }
 
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE;
@@ -455,11 +458,25 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
 
   memcpy(pDataOut, buffer, dwSize);
 
+  if(hr == S_OK) {
+    hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+    if (hr == S_FALSE && m_nCodecId == AV_CODEC_ID_DTS && m_bDTSHD) {
+      DbgLog((LOG_TRACE, 1, L"DTS-HD Media Type failed with %0#.8x, trying fallback to DTS core", hr));
+      m_bForceDTSCore = TRUE;
+      UpdateBitstreamContext();
+      goto done;
+    }
+    DbgLog((LOG_TRACE, 1, L"Sending new Media Type (QueryAccept: %0#.8x)", hr));
+    m_pOutput->SetMediaType(&mt);
+    pOut->SetMediaType(&mt);
+  }
+
   hr = m_pOutput->Deliver(pOut);
   if (FAILED(hr)) {
     DbgLog((LOG_ERROR, 10, L"::DeliverBitstream failed with code: %0#.8x", hr));
   }
 
+done:
   SafeRelease(&pOut);
   return hr;
 }

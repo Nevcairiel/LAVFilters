@@ -227,7 +227,7 @@ private:
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
   HRESULT DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
-  CMediaType CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate);
+  CMediaType CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate, BOOL bDTSHDOverride = FALSE);
   void ActivateDTSHDMuxing();
 
   HRESULT InitDTSDecoder();
@@ -330,6 +330,7 @@ private:
   AVFormatContext     *m_avBSContext;
 
   BOOL                m_bDTSHD;
+  BOOL                m_bForceDTSCore;
   CBitstreamParser    m_bsParser;
   BOOL                m_bFindDTSInPCM;
 

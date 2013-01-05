@@ -100,6 +100,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_MixingInputFormat(SampleFormat_None)
   , m_MixingInputLayout(0)
   , m_pTrayIcon(NULL)
+  , m_bForceDTSCore(FALSE)
 {
   StaticInit(TRUE, NULL);
 
@@ -966,7 +967,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   }
 
   if (m_avBSContext) {
-    *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate);
+    *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate, TRUE);
   } else {
     const int nSamplesPerSec = m_pAVCtx->sample_rate;
     int nChannels = m_pAVCtx->channels;
