@@ -927,9 +927,14 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrameCount(UINT& nKFs)
     return E_FAIL;
   }
 
+  nKFs = 0;
+
   AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-  nKFs = stream->nb_index_entries;
-  return (stream->nb_index_entries == stream->nb_frames) ? S_FALSE : S_OK;
+  for (int i = 0; i < stream->nb_index_entries; i++) {
+    if (stream->index_entries[i].flags & AVINDEX_KEYFRAME)
+      nKFs++;
+  }
+  return (nKFs == stream->nb_frames) ? S_FALSE : S_OK;
 }
 
 STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs)
@@ -945,10 +950,15 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
 
   if(*pFormat != TIME_FORMAT_MEDIA_TIME) return E_INVALIDARG;
 
+  UINT nKFsMax = nKFs;
+  nKFs = 0;
+
   AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-  nKFs = stream->nb_index_entries;
-  for(unsigned int i = 0; i < nKFs; ++i) {
-    pKFs[i] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
+  for(unsigned int i = 0; i < stream->nb_index_entries && nKFs < nKFsMax; i++) {
+    if (stream->index_entries[i].flags & AVINDEX_KEYFRAME) {
+      pKFs[nKFs] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
+      nKFs++;
+    }
   }
   return S_OK;
 }
