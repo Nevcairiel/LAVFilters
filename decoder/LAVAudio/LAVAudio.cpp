@@ -584,7 +584,8 @@ STDMETHODIMP CLAVAudio::SetDTSHDFraming(BOOL bHDFraming)
   m_settings.DTSHDFraming = bHDFraming;
   SaveSettings();
 
-  UpdateBitstreamContext();
+  if (m_nCodecId == AV_CODEC_ID_DTS)
+    UpdateBitstreamContext();
 
   return S_OK;
 }
