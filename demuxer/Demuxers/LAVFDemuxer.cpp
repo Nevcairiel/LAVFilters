@@ -40,7 +40,6 @@ extern "C" {
 
 #include "BDDemuxer.h"
 
-#define AVFORMAT_GENPTS 0
 #define AVFORMAT_OPEN_TIMEOUT 20
 
 extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
@@ -375,10 +374,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bRM = (_stricmp(m_pszInputFormat, "rm") == 0);
   m_bPMP = (_stricmp(m_pszInputFormat, "pmp") == 0);
   m_bMP4 = (_stricmp(m_pszInputFormat, "mp4") == 0);
-
-  if (AVFORMAT_GENPTS) {
-    m_avFormat->flags |= AVFMT_FLAG_GENPTS;
-  }
 
   if (pszFileName) {
     WCHAR szOut[24];
