@@ -163,6 +163,7 @@ private:
   BOOL m_bEVO;
   BOOL m_bRM;
   BOOL m_bPMP;
+  BOOL m_bMP4;
   BOOL m_bVC1Correction;
 
   BOOL m_bSubStreams;

@@ -86,6 +86,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_bEVO(FALSE)
   , m_bRM(FALSE)
   , m_bPMP(FALSE)
+  , m_bMP4(FALSE)
   , m_bBluRay(FALSE)
   , m_pBluRay(NULL)
   , m_bVC1Correction(FALSE)
@@ -373,6 +374,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bEVO = ((extension ? _wcsicmp(extension, L".evo") == 0 : TRUE) && _stricmp(m_pszInputFormat, "mpeg") == 0);
   m_bRM = (_stricmp(m_pszInputFormat, "rm") == 0);
   m_bPMP = (_stricmp(m_pszInputFormat, "pmp") == 0);
+  m_bMP4 = (_stricmp(m_pszInputFormat, "mp4") == 0);
 
   if (AVFORMAT_GENPTS) {
     m_avFormat->flags |= AVFMT_FLAG_GENPTS;
@@ -923,7 +925,7 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrameCount(UINT& nKFs)
 {
   if(m_dActiveStreams[video] < 0) { return E_NOTIMPL; }
 
-  if (!m_bMatroska && !m_bAVI) {
+  if (!m_bMatroska && !m_bAVI && !m_bMP4) {
     return E_FAIL;
   }
 
@@ -944,7 +946,7 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
 
   if(m_dActiveStreams[video] < 0) { return E_NOTIMPL; }
 
-  if (!m_bMatroska && !m_bAVI) {
+  if (!m_bMatroska && !m_bAVI && !m_bMP4) {
     return E_FAIL;
   }
 
