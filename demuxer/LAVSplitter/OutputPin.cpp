@@ -370,10 +370,6 @@ DWORD CLAVOutputPin::ThreadProc()
 {
   std::string name = "CLAVOutputPin " + std::string(CBaseDemuxer::CStreamList::ToString(m_pinType));
   SetThreadName(-1, name.c_str());
-  // Anything thats not video is low bandwidth and should have a lower priority
-  if (m_mt.majortype != MEDIATYPE_Video) {
-    SetThreadPriority(m_hThread, THREAD_PRIORITY_BELOW_NORMAL);
-  }
 
   m_hrDeliver = S_OK;
   m_fFlushing = m_fFlushed = false;
