@@ -24,6 +24,13 @@ interface __declspec(uuid("01A5BBD3-FE71-487C-A2EC-F585918A8724"))
 IKeyFrameInfo :
 public IUnknown
 {
+	// Get the number of (known) keyframes in the file
 	STDMETHOD (GetKeyFrameCount) (UINT& nKFs) = 0; // returns S_FALSE when every frame is a keyframe
+
+	// Get the times of the key frames, if available.
+	//
+	// pFormat: GUID of the time format (see http://msdn.microsoft.com/en-us/library/dd407205(v=vs.85).aspx, usually TIME_FORMAT_MEDIA_TIME)
+	// pKFs: Caller allocated memory for the timestamps of the keyframes (should be sizeof(REFERENCE_TIME) * nKFs at least!)
+	// nKF: Number of keyframes requested/returned - no more then nKFs key frames will be returned.
 	STDMETHOD (GetKeyFrames) (const GUID* pFormat, REFERENCE_TIME* pKFs, UINT& nKFs /* in, out*/) = 0;
 };
