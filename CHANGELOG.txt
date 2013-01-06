@@ -9,6 +9,7 @@ LAV Splitter
 - Fixed H.264 in Ogg and PMP
 - Fixed seeking in RMVB files with AAC audio
 - Improved support for AAC in MPEG-TS (especially in ISDB-T)
+- Fixed Key-Frame seeking for AVI and added support for MP4
 
 LAV Video
 - Improved handling of raw RGB video with LAV Splitter (Video was upside-down in some cases)
@@ -17,9 +18,12 @@ LAV Video
 - Fixed DXVA2 decoding of H.264 MBAFF content with >= 16px cropping
 - Support for fade in/out animations in DVD subtitles
 - Fixed DVD menu overlays showing too early on some discs
+- Improved playback of MPEG-1 in MKV with Haali Splitter
 
 LAV Audio
 - Fixed 6.1 to 7.1 upmixing when the standard channel layout option is turned off
+- Dithering when converting audio to 16-bit Integer
+- Fallback to DTS "Core" bitstreaming if DTS-HD fails
 
 0.54.1 - 2012/11/27
 LAV Splitter
