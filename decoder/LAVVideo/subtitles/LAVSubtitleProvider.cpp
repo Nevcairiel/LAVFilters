@@ -304,7 +304,7 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
         }
         rtSubStart += sub.start_display_time * 10000i64;
       }
-      DbgLog((LOG_TRACE, 10, L"Decoded Sub: rtStart: %I64d, rtStop: %I64d, num_rects: %u", rtSubStart, rtSubStop, sub.num_rects));
+      DbgLog((LOG_TRACE, 10, L"Decoded Sub: rtStart: %I64d, rtStop: %I64d, num_rects: %u, num_dvd_palette: %d", rtSubStart, rtSubStop, sub.num_rects, sub.num_dvd_palette));
 
       ProcessSubtitleFrame(&sub, rtSubStart, rtSubStop);
     }
