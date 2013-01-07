@@ -298,8 +298,6 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
 
     if (got_sub) {
       REFERENCE_TIME rtSubStart = rtStart, rtSubStop = AV_NOPTS_VALUE;
-      if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE && sub.num_rects && sub.rects && sub.rects[0]->flags & AV_SUBTITLE_FLAG_FORCED)
-        rtSubStart = AV_NOPTS_VALUE;
       if (rtSubStart != AV_NOPTS_VALUE) {
         if (sub.end_display_time > 0) {
           rtSubStop = rtSubStart + (sub.end_display_time * 10000i64);
@@ -321,10 +319,6 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
 {
   if (sub->num_rects > 0) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
-      if (rtStart == AV_NOPTS_VALUE && sub->rects[0]->flags & AV_SUBTITLE_FLAG_FORCED) {
-        ClearSubtitleRects();
-        m_pLAVVideo->SetInDVDMenu(true);
-      }
       if (rtStart != AV_NOPTS_VALUE) {
         CAutoLock lock(this);
         for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
