@@ -517,6 +517,7 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
         m_pHLI = new AM_PROPERTY_SPHLI(*pHLI);
         redraw = true;
       }
+      m_pLAVVideo->SetInDVDMenu(true);
     } else {
       SAFE_DELETE(m_pHLI);
     }
