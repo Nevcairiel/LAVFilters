@@ -30,8 +30,8 @@
 
 // 125fps is the highest we accept as "sane"
 #define MIN_TIME_PER_FRAME 80000
-// 10fps is the lowest that is "sane" in our definition
-#define MAX_TIME_PER_FRAME 1000000
+// 8fps is the lowest that is "sane" in our definition
+#define MAX_TIME_PER_FRAME 1250000
 
 CLAVFVideoHelper g_VideoHelper;
 
