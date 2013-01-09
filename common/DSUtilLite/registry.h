@@ -27,10 +27,10 @@ class CRegistry
 {
 public:
   CRegistry();
-  CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr, BOOL bReadOnly = FALSE);
+  CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr, BOOL bReadOnly = FALSE, BOOL b64Bit = TRUE);
   ~CRegistry();
   
-  HRESULT Open(HKEY hkeyRoot, LPCTSTR pszSubKey, BOOL bReadOnly = FALSE);
+  HRESULT Open(HKEY hkeyRoot, LPCTSTR pszSubKey, BOOL bReadOnly = FALSE, BOOL b64Bit = TRUE);
 
   std::wstring ReadString(LPCTSTR pszKey, HRESULT &hr);
   HRESULT WriteString(LPCTSTR pszKey, LPCTSTR pszValue);
