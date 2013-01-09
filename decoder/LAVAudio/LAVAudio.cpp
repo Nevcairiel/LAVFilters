@@ -2258,23 +2258,6 @@ done:
   return hr;
 }
 
-HRESULT CLAVAudio::StartStreaming()
-{
-  HRESULT hr = __super::StartStreaming();
-  if(FAILED(hr)) {
-    return hr;
-  }
-
-  m_bDiscontinuity = FALSE;
-
-  return S_OK;
-}
-
-HRESULT CLAVAudio::StopStreaming()
-{
-  return __super::StopStreaming();
-}
-
 HRESULT CLAVAudio::BreakConnect(PIN_DIRECTION dir)
 {
   if(dir == PINDIR_INPUT) {

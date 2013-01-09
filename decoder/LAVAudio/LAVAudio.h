@@ -176,8 +176,6 @@ public:
   HRESULT EndFlush();
   HRESULT NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
-  HRESULT StartStreaming();
-  HRESULT StopStreaming();
   HRESULT BreakConnect(PIN_DIRECTION Dir);
 
 public:
