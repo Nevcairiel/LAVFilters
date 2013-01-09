@@ -77,6 +77,9 @@ HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner
     // Get the filter's name and IUnknown pointer.
     FILTER_INFO FilterInfo;
     hr = pFilter->QueryFilterInfo(&FilterInfo);
+    // We don't need the graph, so don't sit on a ref to it
+    if (FilterInfo.pGraph)
+      FilterInfo.pGraph->Release();
 
     IUnknown *pFilterUnk = NULL;
     pFilter->QueryInterface<IUnknown>(&pFilterUnk);
@@ -99,8 +102,6 @@ HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner
 
     // Clean up.
     pFilterUnk->Release();
-    if (FilterInfo.pGraph)
-      FilterInfo.pGraph->Release();
     CoTaskMemFree(caGUID.pElems);
 
     hr = S_OK;
