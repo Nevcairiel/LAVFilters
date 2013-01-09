@@ -262,9 +262,11 @@ STDMETHODIMP CDecQuickSync::Init()
     WCHAR wModuleFile[1024];
     GetModuleFileName(g_hInst, wModuleFile, 1024);
     PathRemoveFileSpecW(wModuleFile);
-    SetDllDirectory(wModuleFile);
 
-    qs.quickSyncLib = LoadLibrary(TEXT(QS_DEC_DLL_NAME));
+    wcscat_s(wModuleFile, TEXT("\\"));
+    wcscat_s(wModuleFile, TEXT(QS_DEC_DLL_NAME));
+
+    qs.quickSyncLib = LoadLibrary(wModuleFile);
     if (qs.quickSyncLib == NULL) {
       DWORD dwError = GetLastError();
       DbgLog((LOG_ERROR, 10, L"-> Loading of " TEXT(QS_DEC_DLL_NAME) L" failed (%d)", dwError));
