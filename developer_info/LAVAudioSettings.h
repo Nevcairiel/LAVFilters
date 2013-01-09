@@ -73,6 +73,7 @@ typedef enum LAVBitstreamCodec {
 
 // Supported Sample Formats in LAV Audio
 typedef enum LAVAudioSampleFormat {
+  SampleFormat_None = -1,
   SampleFormat_16,
   SampleFormat_24,
   SampleFormat_32,
@@ -175,6 +176,14 @@ interface ILAVAudioSettings : public IUnknown
   // Set Mixing Levels
   STDMETHOD(SetMixingLevels)(DWORD dwCenterLevel, DWORD dwSurroundLevel, DWORD dwLFELevel) = 0;
   STDMETHOD(GetMixingLevels)(DWORD *dwCenterLevel, DWORD *dwSurroundLevel, DWORD *dwLFELevel) = 0;
+
+  // Toggle Tray Icon
+  STDMETHOD(SetTrayIcon)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetTrayIcon)() = 0;
+
+  // Toggle Dithering for sample format conversion
+  STDMETHOD(SetSampleConvertDithering)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL,GetSampleConvertDithering)() = 0;
 };
 
 // LAV Audio Status Interface

@@ -156,4 +156,10 @@ interface ILAVFSettings : public IUnknown
 
   // Get the maximum queue size, in megabytes
   STDMETHOD_(DWORD,GetMaxQueueMemSize)() = 0;
+
+  // Toggle Tray Icon
+  STDMETHOD(SetTrayIcon)(BOOL bEnabled) = 0;
+
+  // Get Tray Icon
+  STDMETHOD_(BOOL,GetTrayIcon)() = 0;
 };

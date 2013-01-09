@@ -120,6 +120,14 @@ typedef enum LAVSWDeintModes {
   SWDeintMode_YADIF
 };
 
+// Deinterlacing processing mode
+typedef enum LAVDeintMode {
+  DeintMode_Auto,
+  DeintMode_Aggressive,
+  DeintMode_Force,
+  DeintMode_Disable
+};
+
 // Type of deinterlacing to perform
 // - FramePerField re-constructs one frame from every field, resulting in 50/60 fps.
 // - FramePer2Field re-constructs one frame from every 2 fields, resulting in 25/30 fps.
@@ -229,16 +237,16 @@ interface ILAVVideoSettings : public IUnknown
   // get the deinterlacing field order of the hardware decoder
   STDMETHOD_(LAVDeintFieldOrder, GetDeintFieldOrder)() = 0;
 
-  // Set wether all frames should be deinterlaced if the stream is flagged interlaced
+  // DEPRECATED, use SetDeinterlacingMode
   STDMETHOD(SetDeintAggressive)(BOOL bAggressive) = 0;
 
-  // Get wether all frames should be deinterlaced if the stream is flagged interlaced
+  // DEPRECATED, use GetDeinterlacingMode
   STDMETHOD_(BOOL, GetDeintAggressive)() = 0;
 
-  // Set wether all frames should be deinterlaced, even ones marked as progressive
+  // DEPRECATED, use SetDeinterlacingMode
   STDMETHOD(SetDeintForce)(BOOL bForce) = 0;
 
-  // Get wether all frames should be deinterlaced, even ones marked as progressive
+  // DEPRECATED, use GetDeinterlacingMode
   STDMETHOD_(BOOL, GetDeintForce)() = 0;
 
   // Check if the specified HWAccel is supported
@@ -292,10 +300,10 @@ interface ILAVVideoSettings : public IUnknown
   // Get the software deinterlacing output
   STDMETHOD_(LAVDeintOutput, GetSWDeintOutput)() = 0;
 
-  // Set wether all content is treated as progressive, and any interlaced flags are ignored
+  // DEPRECATED, use SetDeinterlacingMode
   STDMETHOD(SetDeintTreatAsProgressive)(BOOL bEnabled) = 0;
 
-  // Get wether all content is treated as progressive, and any interlaced flags are ignored
+  // DEPRECATED, use GetDeinterlacingMode
   STDMETHOD_(BOOL, GetDeintTreatAsProgressive)() = 0;
 
   // Set the dithering mode used
@@ -323,6 +331,18 @@ interface ILAVVideoSettings : public IUnknown
   // Get the HW Accel Resolution Flags
   // flags: bitmask of LAVHWResFlag flags
   STDMETHOD_(DWORD, GetHWAccelResolutionFlags)() = 0;
+
+  // Toggle Tray Icon
+  STDMETHOD(SetTrayIcon)(BOOL bEnabled) = 0;
+
+  // Get Tray Icon
+  STDMETHOD_(BOOL,GetTrayIcon)() = 0;
+
+  // Set the Deint Mode
+  STDMETHOD(SetDeinterlacingMode)(LAVDeintMode deintMode) = 0;
+
+  // Get the Deint Mode
+  STDMETHOD_(LAVDeintMode,GetDeinterlacingMode)() = 0;
 };
 
 // LAV Video status interface
