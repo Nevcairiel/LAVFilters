@@ -1,6 +1,6 @@
 LAV DirectShow Filters Changelog
 ===================================
-0.55.0 - 2013/01/xx
+0.55.0 - 2013/01/09
 General
 - All Filters now have an optional tray icon which can open the property sheet when clicked (disabled by default)
 
@@ -18,6 +18,7 @@ LAV Video
 - Fixed DXVA2 decoding of H.264 MBAFF content with >= 16px cropping
 - Support for fade in/out animations in DVD subtitles
 - Fixed DVD menu overlays showing too early on some discs
+- Fixed forced DVD subtitles being stuck on the screen until the next subtitle line
 - Improved playback of MPEG-1 in MKV with Haali Splitter
 
 LAV Audio
