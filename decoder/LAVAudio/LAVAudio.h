@@ -187,6 +187,7 @@ public:
 
 private:
   HRESULT LoadDefaults();
+  HRESULT ReadSettings(HKEY rootKey);
   HRESULT LoadSettings();
   HRESULT SaveSettings();
 

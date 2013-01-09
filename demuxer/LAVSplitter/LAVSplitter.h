@@ -212,6 +212,7 @@ public:
 
 protected:
   STDMETHODIMP LoadDefaults();
+  STDMETHODIMP ReadSettings(HKEY rootKey);
   STDMETHODIMP LoadSettings();
   STDMETHODIMP SaveSettings();
 

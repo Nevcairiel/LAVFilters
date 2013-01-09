@@ -252,12 +252,18 @@ HRESULT CLAVAudio::LoadSettings()
   if (m_bRuntimeConfig)
     return S_FALSE;
 
+  ReadSettings(HKEY_LOCAL_MACHINE);
+  return ReadSettings(HKEY_CURRENT_USER);
+}
+
+HRESULT CLAVAudio::ReadSettings(HKEY rootKey)
+{
   HRESULT hr;
   DWORD dwVal;
   BOOL bFlag;
   BYTE *pBuf = NULL;
 
-  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY, hr, TRUE);
+  CRegistry reg = CRegistry(rootKey, LAVC_AUDIO_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
     bFlag = reg.ReadDWORD(L"TrayIcon", hr);
     if (SUCCEEDED(hr)) m_settings.TrayIcon = bFlag;
@@ -347,7 +353,7 @@ HRESULT CLAVAudio::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.SampleConvertDither = bFlag;
   }
 
-  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr, TRUE);
+  CRegistry regF = CRegistry(rootKey, LAVC_AUDIO_REGISTRY_KEY_FORMATS, hr, TRUE);
   if (SUCCEEDED(hr)) {
     for (int i = 0; i < Codec_AudioNB; ++i) {
       const codec_config_t *info = get_codec_config((LAVAudioCodec)i);

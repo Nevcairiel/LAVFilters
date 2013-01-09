@@ -191,12 +191,18 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
   if (m_bRuntimeConfig)
     return S_FALSE;
 
+  ReadSettings(HKEY_LOCAL_MACHINE);
+  return ReadSettings(HKEY_CURRENT_USER);
+}
+
+STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
+{
   HRESULT hr;
   DWORD dwVal;
   BOOL bFlag;
   std::wstring strVal;
 
-  CRegistry reg = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY, hr, TRUE);
+  CRegistry reg = CRegistry(rootKey, LAVF_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
     bFlag = reg.ReadBOOL(L"TrayIcon", hr);
     if (SUCCEEDED(hr)) m_settings.TrayIcon = bFlag;
@@ -240,7 +246,7 @@ STDMETHODIMP CLAVSplitter::LoadSettings()
     if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
   }
 
-  CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr, TRUE);
+  CRegistry regF = CRegistry(rootKey, LAVF_REGISTRY_KEY_FORMATS, hr, TRUE);
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
     std::set<FormatInfo>::iterator it;
