@@ -98,7 +98,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
       inputs->pad_idx    = 0;
       inputs->next       = NULL;
 
-      _snprintf_s(args, sizeof(args), "yadif=%d:-1:1", (m_settings.SWDeintOutput == DeintOutput_FramePerField));
+      _snprintf_s(args, sizeof(args), "yadif=mode=%s:parity=auto:deint=interlaced", (m_settings.SWDeintOutput == DeintOutput_FramePerField) ? "send_field" : "send_frame");
       if ((ret = avfilter_graph_parse(m_pFilterGraph, args, &inputs, &outputs, NULL)) < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Parsing the graph failed with code %d", ret));
         avfilter_graph_free(&m_pFilterGraph);
