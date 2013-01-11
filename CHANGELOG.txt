@@ -1,5 +1,19 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.55.1 - 2013/01/11
+General
+- Clicking the Tray Icon with a Property Page already active brings it back to the front
+
+LAV Splitter
+- Added an option to disable quality-based audio stream selection (selects the first stream matching the language preferences)
+- Removed Bitrate from audio quality criterias, because its too unreliable at this point.
+
+LAV Video
+- Fixed YADIF deinterlacing (broken after a ffmpeg update on 0.55)
+
+LAV Audio
+- Switched to Triangular Dithering for 16-bit Integer conversions
+
 0.55.0 - 2013/01/09
 General
 - All Filters now have an optional tray icon which can open the property sheet when clicked (disabled by default)
