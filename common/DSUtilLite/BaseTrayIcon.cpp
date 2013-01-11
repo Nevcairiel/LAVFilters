@@ -185,6 +185,16 @@ HRESULT CBaseTrayIcon::CreateTrayIconData()
   return S_OK;
 }
 
+static BOOL CALLBACK enumWindowCallback(HWND hwnd, LPARAM lparam)
+{
+  HWND owner = (HWND)lparam;
+  if (owner == GetWindow(hwnd, GW_OWNER)) {
+    SetForegroundWindow(hwnd);
+    return FALSE;
+  }
+  return TRUE;
+}
+
 LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   CBaseTrayIcon *icon = (CBaseTrayIcon *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
@@ -208,6 +218,8 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
             SetWindowPos(icon->m_hWnd, 0, (desktopRect.right / 2) - PROP_WIDTH_OFFSET, (desktopRect.bottom / 2) - PROP_HEIGHT_OFFSET, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
             CBaseDSPropPage::ShowPropPageDialog(icon->m_pFilter, icon->m_hWnd);
             icon->m_bPropPageOpen = FALSE;
+          } else {
+            EnumThreadWindows(GetCurrentThreadId(), enumWindowCallback, (LPARAM)icon->m_hWnd);
           }
           break;
         }
