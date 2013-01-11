@@ -526,7 +526,7 @@ HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
     av_opt_set_int(m_avrContext, "out_channel_layout", dwMixingLayout, 0);
     av_opt_set_int(m_avrContext, "out_sample_fmt", get_ff_sample_fmt(m_sfRemixFormat), 0);
 
-    av_opt_set_int(m_avrContext, "dither_method", m_settings.SampleConvertDither ? AV_RESAMPLE_DITHER_RECTANGULAR : AV_RESAMPLE_DITHER_NONE, 0);
+    av_opt_set_int(m_avrContext, "dither_method", m_settings.SampleConvertDither ? AV_RESAMPLE_DITHER_TRIANGULAR_HP : AV_RESAMPLE_DITHER_NONE, 0);
 
     // Setup mixing properties, if needed
     if (buffer->dwChannelMask != dwMixingLayout) {
