@@ -1576,11 +1576,6 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
             int new_priority = audio_codec_priority(new_stream->codec);
             if (new_priority > old_priority) {
               best = *sit;
-            } else if (new_priority == old_priority) {
-              int best_rate = old_stream->codec->bit_rate;
-              int check_rate = new_stream->codec->bit_rate;
-              if (best_rate && check_rate && check_rate > best_rate)
-                best = *sit;
             }
           }
         }
