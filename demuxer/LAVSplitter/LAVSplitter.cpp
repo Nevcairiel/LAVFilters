@@ -175,6 +175,7 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
 
   m_settings.StreamSwitchRemoveAudio = FALSE;
   m_settings.ImpairedAudio    = FALSE;
+  m_settings.PreferHighQualityAudio = TRUE;
   m_settings.QueueMaxSize     = 256;
 
   std::set<FormatInfo>::iterator it;
@@ -239,6 +240,9 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
     bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
     if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
 
+    bFlag = reg.ReadDWORD(L"PreferHighQualityAudio", hr);
+    if (SUCCEEDED(hr)) m_settings.PreferHighQualityAudio = bFlag;
+
     bFlag = reg.ReadDWORD(L"ImpairedAudio", hr);
     if (SUCCEEDED(hr)) m_settings.ImpairedAudio = bFlag;
 
@@ -283,6 +287,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"substreams", m_settings.substreams);
     reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
     reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
+    reg.WriteBOOL(L"PreferHighQualityAudio", m_settings.PreferHighQualityAudio);
     reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
     reg.WriteDWORD(L"QueueMaxSize", m_settings.QueueMaxSize);
   }
@@ -1667,6 +1672,17 @@ STDMETHODIMP CLAVSplitter::SetTrayIcon(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetTrayIcon()
 {
   return m_settings.TrayIcon;
+}
+
+STDMETHODIMP CLAVSplitter::SetPreferHighQualityAudioStreams(BOOL bEnabled)
+{
+  m_settings.PreferHighQualityAudio = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetPreferHighQualityAudioStreams()
+{
+  return m_settings.PreferHighQualityAudio;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

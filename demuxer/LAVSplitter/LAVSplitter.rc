@@ -84,9 +84,10 @@ BEGIN
     CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,181,115,10
     CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
                     "Button",BS_AUTO3STATE | WS_TABSTOP,15,195,126,10
-    CONTROL         "Enable Video Stream Parsing",IDC_VIDEOPARSING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,209,151,10
     CONTROL         "Remove Audio Decoder on Audio Stream Switch",IDC_STREAM_SWITCH_REMOVE_AUDIO,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,223,168,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,209,168,10
+    CONTROL         "Prefer Audio Stream with the Highest Quality",IDC_SELECT_AUDIO_QUALITY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,223,171,10
     CONTROL         "Prefer Audio Streams for the Hearing/Visually Impaired",IDC_IMPAIRED_AUDIO,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,237,188,10
     GROUPBOX        "Queue Settings",IDC_QUEUE_SETTINGS,214,124,179,30

@@ -162,4 +162,10 @@ interface ILAVFSettings : public IUnknown
 
   // Get Tray Icon
   STDMETHOD_(BOOL,GetTrayIcon)() = 0;
+
+  // Toggle wether higher quality audio streams are preferred
+  STDMETHOD(SetPreferHighQualityAudioStreams)(BOOL bEnabled) = 0;
+
+  // Toggle wether higher quality audio streams are preferred
+  STDMETHOD_(BOOL,GetPreferHighQualityAudioStreams)() = 0;
 };

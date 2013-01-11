@@ -166,6 +166,8 @@ public:
   STDMETHODIMP_(DWORD) GetMaxQueueMemSize();
   STDMETHODIMP SetTrayIcon(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetTrayIcon();
+  STDMETHODIMP SetPreferHighQualityAudioStreams(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetPreferHighQualityAudioStreams();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
@@ -270,6 +272,7 @@ private:
 
     BOOL StreamSwitchRemoveAudio;
     BOOL ImpairedAudio;
+    BOOL PreferHighQualityAudio;
     DWORD QueueMaxSize;
 
     std::map<std::string, BOOL> formats;

@@ -73,6 +73,7 @@ private:
 
   BOOL m_videoParsing;
   BOOL m_StreamSwitchRemoveAudio;
+  BOOL m_PreferHighQualityAudio;
   BOOL m_ImpairedAudio;
   DWORD m_QueueMaxMem;
 

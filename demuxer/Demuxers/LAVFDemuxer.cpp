@@ -1539,6 +1539,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
     }
   }
 
+  BOOL bCheckQuality = m_pSettings->GetPreferHighQualityAudioStreams();
   BOOL bImpaired = m_pSettings->GetUseAudioForHearingVisuallyImpaired();
 #define DISPO_IMPAIRED (AV_DISPOSITION_HEARING_IMPAIRED|AV_DISPOSITION_VISUAL_IMPAIRED)
 
@@ -1565,6 +1566,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
             }
             continue;
           }
+          if (!bCheckQuality)
+            continue;
+
           // First, check number of channels
           int old_num_chans = old_stream->codec->channels;
           int new_num_chans = new_stream->codec->channels;

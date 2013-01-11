@@ -38,6 +38,7 @@
 #define IDC_QUEUE_MEM                   1029
 #define IDC_QUEUE_MEM_SPIN              1030
 #define IDC_TRAYICON                    1031
+#define IDC_SELECT_AUDIO_QUALITY        1032
 
 // Next default values for new objects
 // 
@@ -45,7 +46,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1032
+#define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

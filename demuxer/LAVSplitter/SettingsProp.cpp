@@ -106,6 +106,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetStreamSwitchRemoveAudio(bFlag));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SELECT_AUDIO_QUALITY, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetPreferHighQualityAudioStreams(bFlag));
+
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetUseAudioForHearingVisuallyImpaired(bFlag));
 
@@ -213,6 +216,9 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_SETCHECK, m_StreamSwitchRemoveAudio, 0);
   addHint(IDC_STREAM_SWITCH_REMOVE_AUDIO, L"Remove the old Audio Decoder from the Playback Chain before switching the audio stream, forcing DirectShow to select a new one.\n\nThis option ensures that the preferred decoder is always used, however it does not work properly with all players.");
 
+  addHint(IDC_SELECT_AUDIO_QUALITY, L"Controls if the stream with the highest quality (matching your language preferences) should always be used.\nIf disabled, the first stream is always used.");
+  SendDlgItemMessage(m_Dlg, IDC_SELECT_AUDIO_QUALITY, BM_SETCHECK, m_PreferHighQualityAudio, 0);
+
   SendDlgItemMessage(m_Dlg, IDC_IMPAIRED_AUDIO, BM_SETCHECK, m_ImpairedAudio, 0);
 
   SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM_SPIN, UDM_SETRANGE32, 0, 2048);
@@ -251,6 +257,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
 
   m_videoParsing = m_pLAVF->GetVideoParsingEnabled();
   m_StreamSwitchRemoveAudio = m_pLAVF->GetStreamSwitchRemoveAudio();
+  m_PreferHighQualityAudio = m_pLAVF->GetPreferHighQualityAudioStreams();
   m_ImpairedAudio = m_pLAVF->GetUseAudioForHearingVisuallyImpaired();
   m_QueueMaxMem = m_pLAVF->GetMaxQueueMemSize();
 
@@ -323,6 +330,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
     } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_STREAM_SWITCH_REMOVE_AUDIO) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
       if (bFlag != m_StreamSwitchRemoveAudio) {
+        SetDirty();
+      }
+    }  else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SELECT_AUDIO_QUALITY) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SELECT_AUDIO_QUALITY, BM_GETCHECK, 0, 0);
+      if (bFlag != m_PreferHighQualityAudio) {
         SetDirty();
       }
     }  else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_IMPAIRED_AUDIO) {
