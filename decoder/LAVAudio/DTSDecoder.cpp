@@ -76,21 +76,16 @@ struct DTSDecoder {
 HRESULT CLAVAudio::InitDTSDecoder()
 {
   if (!m_hDllExtraDecoder) {
+    // Add path of LAVAudio.ax into the Dll search path
     WCHAR wModuleFile[1024];
     GetModuleFileName(g_hInst, wModuleFile, 1024);
     PathRemoveFileSpecW(wModuleFile);
+    SetDllDirectory(wModuleFile);
 
-    wcscat_s(wModuleFile, TEXT("\\"));
-    wcscat_s(wModuleFile, TEXT("dtsdecoderdll.dll"));
+    HMODULE hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
+    CheckPointer(hDll, E_FAIL);
 
-    // Try loading from the LAV directory
-    m_hDllExtraDecoder = LoadLibrary(wModuleFile);
-
-    // And if this failed, from the system directories
-    if (m_hDllExtraDecoder == NULL)
-      m_hDllExtraDecoder = LoadLibrary(TEXT("dtsdecoderdll.dll"));
-
-    CheckPointer(m_hDllExtraDecoder, E_FAIL);
+    m_hDllExtraDecoder = hDll;
   }
 
   DTSDecoder *context = new DTSDecoder();
