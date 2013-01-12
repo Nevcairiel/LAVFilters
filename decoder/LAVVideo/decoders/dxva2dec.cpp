@@ -227,7 +227,7 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
 STDMETHODIMP CDecDXVA2::FreeD3DResources()
 {
   SafeRelease(&m_pDXVADecoderService);
-  if (m_hDevice != INVALID_HANDLE_VALUE)
+  if (m_pD3DDevMngr && m_hDevice != INVALID_HANDLE_VALUE)
     m_pD3DDevMngr->CloseDeviceHandle(m_hDevice);
   m_hDevice = INVALID_HANDLE_VALUE;
   SafeRelease(&m_pD3DDevMngr);
