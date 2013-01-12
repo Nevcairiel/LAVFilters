@@ -234,8 +234,10 @@ STDMETHODIMP CDecDXVA2::FreeD3DResources()
   SafeRelease(&m_pD3DDev);
   SafeRelease(&m_pD3D);
 
-  if (dx.dxva2lib)
+  if (dx.dxva2lib) {
     FreeLibrary(dx.dxva2lib);
+    dx.dxva2lib = NULL;
+  }
 
   return S_OK;
 }
