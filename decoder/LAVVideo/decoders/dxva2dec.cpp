@@ -413,6 +413,7 @@ HRESULT CDecDXVA2::CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDi
 
   hr = pManager->OpenDeviceHandle(&m_hDevice);
   if (FAILED(hr)) {
+    m_hDevice = INVALID_HANDLE_VALUE;
     DbgLog((LOG_ERROR, 10, L"-> OpenDeviceHandle failed"));
     goto done;
   }
