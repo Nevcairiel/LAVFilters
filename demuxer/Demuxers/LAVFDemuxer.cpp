@@ -1198,7 +1198,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
   m_program = UINT_MAX;
 
-  if (m_avFormat->nb_programs) {
+  if (m_avFormat->nb_programs && !m_bBluRay) {
     // Use a scoring system to select the best available program
     // A "good" program at least has a valid video and audio stream
     // We'll try here to detect these streams and decide on the best program
