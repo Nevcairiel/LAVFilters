@@ -20,9 +20,6 @@
 #include "stdafx.h"
 #include "VideoInputPin.h"
 
-#include <dvdmedia.h>
-
-
 CVideoInputPin::CVideoInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, HRESULT* phr, LPWSTR pName)
   : CDeCSSTransformInputPin(pObjectName, pFilter, phr, pName)
   , m_pLAVVideo(pFilter)

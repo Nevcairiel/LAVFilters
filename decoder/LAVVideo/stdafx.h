@@ -38,6 +38,7 @@
 
 #include <d3d9.h>
 #include <dxva2api.h>
+#include <dvdmedia.h>
 
 #pragma warning(push)
 #pragma warning(disable:4244)
