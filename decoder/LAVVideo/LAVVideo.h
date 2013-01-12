@@ -268,6 +268,8 @@ private:
     CSynchronizedQueue<LAVFrame *> outputQueue;
   } m_MTFilterContext;
 
+  AM_SimpleRateChange  m_DVDRate;
+
   BOOL                 m_bRuntimeConfig;
   struct VideoSettings {
     BOOL TrayIcon;

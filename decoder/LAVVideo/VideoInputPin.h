@@ -31,8 +31,12 @@ public:
   STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength);
   STDMETHODIMP Get(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength, ULONG* pBytesReturned);
   STDMETHODIMP QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport);
+
+  AM_SimpleRateChange GetDVDRateChange() { CAutoLock cAutoLock(&m_csRateLock); return m_ratechange; }
 private:
   CLAVVideo *m_pLAVVideo;
+  CCritSec m_csRateLock;
 
   int m_CorrectTS;
+  AM_SimpleRateChange m_ratechange;
 };

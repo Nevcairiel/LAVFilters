@@ -101,6 +101,9 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
   memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
 
+  m_DVDRate.Rate = 10000;
+  m_DVDRate.StartTime = AV_NOPTS_VALUE;
+
   StaticInit(TRUE, NULL);
 
   LoadSettings();
@@ -1607,6 +1610,22 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     m_bSendMediaType = FALSE;
     if (pFrame->format == LAVPixFmt_DXVA2)
       bSizeChanged = TRUE;
+  }
+
+  // Handle DVD playback rate..
+  if (GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) {
+    CVideoInputPin* pPin = dynamic_cast<CVideoInputPin*>(m_pInput);
+    AM_SimpleRateChange pinRate = pPin->GetDVDRateChange();
+    if (pinRate.Rate != m_DVDRate.Rate) {
+      DbgLog((LOG_TRACE, 10, L"DVD Rate changed to: %d", pinRate.Rate));
+      m_DVDRate.Rate = pinRate.Rate;
+      m_DVDRate.StartTime = pFrame->rtStart;
+    }
+
+    if (m_DVDRate.StartTime != AV_NOPTS_VALUE && m_DVDRate.Rate != 10000) {
+       pFrame->rtStart = m_DVDRate.StartTime + (pFrame->rtStart - m_DVDRate.StartTime) * m_DVDRate.Rate / 10000;
+       pFrame->rtStop = m_DVDRate.StartTime + (pFrame->rtStop - m_DVDRate.StartTime) * m_DVDRate.Rate / 10000;
+    }
   }
 
   // Set frame timings..

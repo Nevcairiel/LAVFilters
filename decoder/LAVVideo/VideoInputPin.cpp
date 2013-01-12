@@ -25,6 +25,8 @@ CVideoInputPin::CVideoInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, HRESULT* 
   , m_pLAVVideo(pFilter)
 {
   m_CorrectTS = 0;
+  m_ratechange.StartTime = AV_NOPTS_VALUE;
+  m_ratechange.Rate = 10000;
 }
 
 // IKsPropertySet
@@ -41,9 +43,8 @@ STDMETHODIMP CVideoInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData
       if (!m_CorrectTS) {
           return E_PROP_ID_UNSUPPORTED;
       }
-      //CAutoLock cAutoLock(&m_csRateLock);
-      //m_ratechange = *p;
-      return E_PROP_ID_UNSUPPORTED;
+      CAutoLock cAutoLock(&m_csRateLock);
+      m_ratechange = *p;
     }
     break;
   case AM_RATE_UseRateVersion: {
@@ -74,20 +75,21 @@ STDMETHODIMP CVideoInputPin::Get(REFGUID PropSet, ULONG Id, LPVOID pInstanceData
   switch(Id) {
   case AM_RATE_SimpleRateChange: {
       AM_SimpleRateChange* p = (AM_SimpleRateChange*)pPropertyData;
-      UNREFERENCED_PARAMETER(p);
-      return E_PROP_ID_UNSUPPORTED;
+      CAutoLock cAutoLock(&m_csRateLock);
+      *p = m_ratechange;
+      *pBytesReturned = sizeof(AM_SimpleRateChange);
     }
     break;
   case AM_RATE_MaxFullDataRate: {
       AM_MaxFullDataRate* p = (AM_MaxFullDataRate*)pPropertyData;
-      *p = 8 * 10000;
+      *p = 2 * 10000;
       *pBytesReturned = sizeof(AM_MaxFullDataRate);
     }    
     break;
   case AM_RATE_QueryFullFrameRate: {
       AM_QueryRate* p = (AM_QueryRate*)pPropertyData;
-      p->lMaxForwardFullFrame = 8 * 10000;
-      p->lMaxReverseFullFrame = 8 * 10000;
+      p->lMaxForwardFullFrame = 2 * 10000;
+      p->lMaxReverseFullFrame = 0;
       *pBytesReturned = sizeof(AM_QueryRate);
     }
     break;
