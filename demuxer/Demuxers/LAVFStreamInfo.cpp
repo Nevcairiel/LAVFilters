@@ -66,8 +66,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
     avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
   }
 
-  if (avstream->codec->channels == 0 || avstream->codec->sample_rate == 0)
-    return E_FAIL;
+  if (avstream->codec->channels == 0 || avstream->codec->sample_rate == 0) {
+    if (avstream->codec->codec_id == AV_CODEC_ID_AAC && avstream->codec->bit_rate) {
+      if (!avstream->codec->channels) avstream->codec->channels = 2;
+      if (!avstream->codec->sample_rate) avstream->codec->sample_rate = 48000;
+    } else
+      return E_FAIL;
+  }
 
   CMediaType mtype = g_AudioHelper.initAudioType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
 
