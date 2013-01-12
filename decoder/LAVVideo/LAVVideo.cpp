@@ -1616,9 +1616,9 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) {
     CVideoInputPin* pPin = dynamic_cast<CVideoInputPin*>(m_pInput);
     AM_SimpleRateChange pinRate = pPin->GetDVDRateChange();
-    if (pinRate.Rate != m_DVDRate.Rate) {
+    if (abs(pinRate.Rate) != m_DVDRate.Rate) {
       DbgLog((LOG_TRACE, 10, L"DVD Rate changed to: %d", pinRate.Rate));
-      m_DVDRate.Rate = pinRate.Rate;
+      m_DVDRate.Rate = abs(pinRate.Rate);
       m_DVDRate.StartTime = pFrame->rtStart;
     }
 
