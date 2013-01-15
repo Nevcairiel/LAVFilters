@@ -184,9 +184,9 @@ CDecWMV9::CDecWMV9(void)
   , m_bManualReorder(FALSE)
   , m_bReorderBufferValid(FALSE)
   , m_rtReorderBuffer(AV_NOPTS_VALUE)
-  , m_vc1Profile(0)
   , m_bNeedKeyFrame(FALSE)
   , m_nCodecId(AV_CODEC_ID_NONE)
+  , m_vc1Header(NULL)
 {
   memset(&m_StreamAR, 0, sizeof(m_StreamAR));
 }
@@ -198,6 +198,7 @@ CDecWMV9::~CDecWMV9(void)
 
 STDMETHODIMP CDecWMV9::DestroyDecoder(bool bFull)
 {
+  SAFE_DELETE(m_vc1Header);
   {
     CAutoLock lock(&m_BufferCritSec);
     for (auto it = m_BufferQueue.begin(); it != m_BufferQueue.end(); it++) {
@@ -393,12 +394,11 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   m_bInterlaced = FALSE;
   memset(&m_StreamAR, 0, sizeof(m_StreamAR));
-  if (codec == AV_CODEC_ID_VC1 && extralen > 0) {
-    CVC1HeaderParser vc1hdr(extra, extralen);
-    if (vc1hdr.hdr.valid) {
-      m_vc1Profile = vc1hdr.hdr.profile;
-      m_bInterlaced = vc1hdr.hdr.interlaced;
-      m_StreamAR = vc1hdr.hdr.ar;
+  if (extralen > 0) {
+    m_vc1Header = new CVC1HeaderParser(extra, extralen, codec);
+    if (m_vc1Header->hdr.valid) {
+      m_bInterlaced = m_vc1Header->hdr.interlaced;
+      m_StreamAR = m_vc1Header->hdr.ar;
     }
   }
 
@@ -421,7 +421,7 @@ static inline const uint8_t* find_next_marker(const uint8_t *src, const uint8_t 
   return end;
 }
 
-static AVPictureType parse_picture_type(const uint8_t *buf, int buflen, int profile, int interlaced)
+static AVPictureType parse_picture_type(const uint8_t *buf, int buflen, CVC1HeaderParser *vc1Header)
 {
   AVPictureType pictype = AV_PICTURE_TYPE_NONE;
   int skipped = 0;
@@ -441,9 +441,9 @@ static AVPictureType parse_picture_type(const uint8_t *buf, int buflen, int prof
   if (framestart) {
     GetBitContext gb;
     init_get_bits(&gb, framestart, (buflen - (framestart-buf))*8);
-    if (profile == PROFILE_ADVANCED) {
+    if (vc1Header->hdr.profile == PROFILE_ADVANCED) {
       int fcm = PROGRESSIVE;
-      if (interlaced)
+      if (vc1Header->hdr.interlaced)
         fcm = decode012(&gb);
       if (fcm == ILACE_FIELD) {
         int fptype = get_bits(&gb, 3);
@@ -469,6 +469,26 @@ static AVPictureType parse_picture_type(const uint8_t *buf, int buflen, int prof
             skipped = 1;
             break;
         }
+      }
+    } else {
+      if (vc1Header->hdr.finterp)
+        skip_bits1(&gb);
+      skip_bits(&gb, 2); // framecnt
+      if (vc1Header->hdr.rangered)
+        skip_bits1(&gb);
+      int pic = get_bits1(&gb);
+      if (vc1Header->hdr.bframes) {
+        if (!pic) {
+          if (get_bits1(&gb)) {
+            pictype = AV_PICTURE_TYPE_I;
+          } else {
+            pictype = AV_PICTURE_TYPE_B;
+          }
+        } else {
+          pictype = AV_PICTURE_TYPE_P;
+        }
+      } else {
+        pictype = pic ? AV_PICTURE_TYPE_P : AV_PICTURE_TYPE_I;
       }
     }
   }
@@ -496,8 +516,8 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   if (rtStop != AV_NOPTS_VALUE)
     dwFlags |= DMO_INPUT_DATA_BUFFERF_TIMELENGTH;
 
-  if (m_bManualReorder || m_bNeedKeyFrame) {
-    AVPictureType pictype = parse_picture_type(buffer, buflen, m_vc1Profile, m_bInterlaced);
+  if (m_vc1Header && (m_bManualReorder || m_bNeedKeyFrame)) {
+    AVPictureType pictype = parse_picture_type(buffer, buflen, m_vc1Header);
     if (m_bManualReorder) {
       if (pictype == AV_PICTURE_TYPE_I || pictype == AV_PICTURE_TYPE_P) {
         if (m_bReorderBufferValid)
@@ -666,7 +686,7 @@ STDMETHODIMP CDecWMV9::Flush()
   std::queue<REFERENCE_TIME>().swap(m_timestampQueue);
   m_rtReorderBuffer = AV_NOPTS_VALUE;
   m_bReorderBufferValid = FALSE;
-  m_bNeedKeyFrame = (m_nCodecId == AV_CODEC_ID_VC1);
+  m_bNeedKeyFrame = TRUE;
 
   return __super::Flush();
 }

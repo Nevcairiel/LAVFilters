@@ -90,50 +90,56 @@ static inline int vc1_unescape_buffer(const uint8_t *src, int size, uint8_t *dst
     return dsize;
 }
 
-CVC1HeaderParser::CVC1HeaderParser(const BYTE *pData, size_t length)
+CVC1HeaderParser::CVC1HeaderParser(const BYTE *pData, size_t length, AVCodecID codec)
 {
   memset(&hdr, 0, sizeof(hdr));
-  ParseVC1Header(pData, length);
+  ParseVC1Header(pData, length, codec);
 }
 
 CVC1HeaderParser::~CVC1HeaderParser(void)
 {
 }
 
-void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, size_t length)
+void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, size_t length, AVCodecID codec)
 {
-  if (length < 16)
-    return;
-
   GetBitContext gb;
+  if (codec == AV_CODEC_ID_VC1) {
+    if (length < 16)
+      return;
 
-  const uint8_t *start = pData;
-  const uint8_t *end = start + length;
-  const uint8_t *next = NULL;
+    const uint8_t *start = pData;
+    const uint8_t *end = start + length;
+    const uint8_t *next = NULL;
 
-  int size, buf2_size;
-  uint8_t *buf2;
+    int size, buf2_size;
+    uint8_t *buf2;
 
-  buf2 = (uint8_t *)av_mallocz(length + FF_INPUT_BUFFER_PADDING_SIZE);
+    buf2 = (uint8_t *)av_mallocz(length + FF_INPUT_BUFFER_PADDING_SIZE);
 
-  start = find_next_marker(start, end);
-  next = start;
+    start = find_next_marker(start, end);
+    next = start;
 
-  for(; next < end; start = next) {
-    next = find_next_marker(start + 4, end);
-    size = (int)(next - start - 4);
-    if(size <= 0) continue;
-    buf2_size = vc1_unescape_buffer(start + 4, size, buf2);
+    for(; next < end; start = next) {
+      next = find_next_marker(start + 4, end);
+      size = (int)(next - start - 4);
+      if(size <= 0) continue;
+      buf2_size = vc1_unescape_buffer(start + 4, size, buf2);
 
-    init_get_bits(&gb, buf2, buf2_size * 8);
+      init_get_bits(&gb, buf2, buf2_size * 8);
 
-    switch(AV_RB32(start)) {
-      case VC1_CODE_SEQHDR:
-        VC1ParseSequenceHeader(&gb);
-        break;
+      switch(AV_RB32(start)) {
+        case VC1_CODE_SEQHDR:
+          VC1ParseSequenceHeader(&gb);
+          break;
+      }
     }
+    av_freep(&buf2);
+  } else if (codec == AV_CODEC_ID_WMV3) {
+    if (length < 4)
+      return;
+    init_get_bits(&gb, pData, length * 8);
+    VC1ParseSequenceHeader(&gb);
   }
-  av_freep(&buf2);
 }
 
 void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
@@ -179,5 +185,26 @@ void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
     }
 
     // TODO: add other fields
+  } else {
+    hdr.old_interlaced = get_bits1(gb); // res_y411
+    skip_bits1(gb); // res_sprite
+
+    skip_bits(gb, 3); // frmrtq_postproc
+    skip_bits(gb, 5); // bitrtq_postproc
+    skip_bits1(gb);   // loop_filter
+    skip_bits1(gb);   // res_x8
+    skip_bits1(gb);   // multires
+    skip_bits1(gb);   // rest_fasttx
+    skip_bits1(gb);   // fastuvmc
+    skip_bits1(gb);   // extended_mv
+    skip_bits(gb, 2); // dquant
+    skip_bits1(gb);   // vstransform
+    skip_bits1(gb);   // res_transtab
+    skip_bits1(gb);   // overlap
+    skip_bits1(gb);   // resync marker
+    hdr.rangered = get_bits1(gb);
+    hdr.bframes = get_bits(gb, 3);
+    skip_bits(gb, 2); // quant mode
+    hdr.finterp = get_bits1(gb);
   }
 }

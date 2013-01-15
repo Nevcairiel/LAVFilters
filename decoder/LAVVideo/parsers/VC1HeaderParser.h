@@ -24,7 +24,7 @@ struct GetBitContext;
 class CVC1HeaderParser
 {
 public:
-  CVC1HeaderParser(const BYTE *pData, size_t length);
+  CVC1HeaderParser(const BYTE *pData, size_t length, AVCodecID codec = AV_CODEC_ID_VC1);
   ~CVC1HeaderParser(void);
 
 public:
@@ -41,9 +41,14 @@ public:
     int interlaced;
 
     AVRational ar;
+
+    int old_interlaced;
+    int bframes;
+    int finterp;
+    int rangered;
   } hdr;
 
 private:
-  void ParseVC1Header(const BYTE *pData, size_t length);
+  void ParseVC1Header(const BYTE *pData, size_t length, AVCodecID codec);
   void VC1ParseSequenceHeader(GetBitContext *gb);
 };

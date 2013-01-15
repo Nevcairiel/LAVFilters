@@ -25,6 +25,8 @@
 #include <vector>
 #include <queue>
 
+class CVC1HeaderParser;
+
 typedef struct _Buffer {
   BYTE *buffer;
   size_t size;
@@ -68,7 +70,6 @@ private:
   DWORD m_pRawBufferSize;
 
   BOOL m_bInterlaced;
-  int m_vc1Profile;
   AVRational m_StreamAR;
 
   LAVPixelFormat m_OutPixFmt;
@@ -82,4 +83,6 @@ private:
   BOOL m_bReorderBufferValid;
   REFERENCE_TIME m_rtReorderBuffer;
   std::queue<REFERENCE_TIME> m_timestampQueue;
+
+  CVC1HeaderParser *m_vc1Header;
 };
