@@ -72,10 +72,12 @@ private:
   AVRational m_StreamAR;
 
   LAVPixelFormat m_OutPixFmt;
+  AVCodecID m_nCodecId;
 
   CCritSec m_BufferCritSec;
   std::vector<Buffer *> m_BufferQueue;
 
+  BOOL m_bNeedKeyFrame;
   BOOL m_bManualReorder;
   BOOL m_bReorderBufferValid;
   REFERENCE_TIME m_rtReorderBuffer;

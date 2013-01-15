@@ -185,6 +185,8 @@ CDecWMV9::CDecWMV9(void)
   , m_bReorderBufferValid(FALSE)
   , m_rtReorderBuffer(AV_NOPTS_VALUE)
   , m_vc1Profile(0)
+  , m_bNeedKeyFrame(FALSE)
+  , m_nCodecId(AV_CODEC_ID_NONE)
 {
   memset(&m_StreamAR, 0, sizeof(m_StreamAR));
 }
@@ -333,6 +335,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   /* Create input type */
 
   GUID subtype = codec == AV_CODEC_ID_VC1 ? MEDIASUBTYPE_WVC1 : MEDIASUBTYPE_WMV3;
+  m_nCodecId = codec;
 
   mtIn.SetType(&MEDIATYPE_Video);
   mtIn.SetSubtype(&subtype);
@@ -484,8 +487,6 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   }
   if (!(dwStatus & DMO_INPUT_STATUSF_ACCEPT_DATA))
     return S_FALSE;
-
-  CMediaBuffer *pInBuffer = new CMediaBufferDecode(buffer, buflen);
   
   DWORD dwFlags = 0;
   if (bSyncPoint)
@@ -495,18 +496,31 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   if (rtStop != AV_NOPTS_VALUE)
     dwFlags |= DMO_INPUT_DATA_BUFFERF_TIMELENGTH;
 
-  if (m_bManualReorder) {
+  if (m_bManualReorder || m_bNeedKeyFrame) {
     AVPictureType pictype = parse_picture_type(buffer, buflen, m_vc1Profile, m_bInterlaced);
-    if (pictype == AV_PICTURE_TYPE_I || pictype == AV_PICTURE_TYPE_P) {
-      if (m_bReorderBufferValid)
-        m_timestampQueue.push(m_rtReorderBuffer);
-      m_rtReorderBuffer = rtStart;
-      m_bReorderBufferValid = TRUE;
-    } else {
-      m_timestampQueue.push(rtStart);
+    if (m_bManualReorder) {
+      if (pictype == AV_PICTURE_TYPE_I || pictype == AV_PICTURE_TYPE_P) {
+        if (m_bReorderBufferValid)
+          m_timestampQueue.push(m_rtReorderBuffer);
+        m_rtReorderBuffer = rtStart;
+        m_bReorderBufferValid = TRUE;
+      } else {
+        m_timestampQueue.push(rtStart);
+      }
+    }
+
+    if (m_bNeedKeyFrame) {
+      if (pictype != AV_PICTURE_TYPE_I) {
+        if (m_bManualReorder)
+          m_timestampQueue.pop();
+        return S_OK;
+      } else {
+        m_bNeedKeyFrame = FALSE;
+      }
     }
   }
 
+  CMediaBuffer *pInBuffer = new CMediaBufferDecode(buffer, buflen);
   hr = m_pDMO->ProcessInput(0, pInBuffer, dwFlags, rtStart, rtStop - rtStart);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> ProcessInput failed with hr: %0x%x", hr));
@@ -652,6 +666,7 @@ STDMETHODIMP CDecWMV9::Flush()
   std::queue<REFERENCE_TIME>().swap(m_timestampQueue);
   m_rtReorderBuffer = AV_NOPTS_VALUE;
   m_bReorderBufferValid = FALSE;
+  m_bNeedKeyFrame = (m_nCodecId == AV_CODEC_ID_VC1);
 
   return __super::Flush();
 }
