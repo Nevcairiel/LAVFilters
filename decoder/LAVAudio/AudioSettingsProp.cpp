@@ -460,10 +460,16 @@ HRESULT CLAVAudioMixingProp::OnActivate()
 
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETRANGE, 0, MAKELONG(0, 10000));
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETTICFREQ, 100, 0);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETLINESIZE, 0, 100);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_CENTER, TBM_SETPAGESIZE, 0, 100);
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETRANGE, 0, MAKELONG(0, 10000));
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETTICFREQ, 100, 0);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETLINESIZE, 0, 100);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_SURROUND, TBM_SETPAGESIZE, 0, 100);
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETRANGE, 0, MAKELONG(0, 30000));
   SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETTICFREQ, 100, 0);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETLINESIZE, 0, 100);
+  SendDlgItemMessage(m_Dlg, IDC_MIX_LEVEL_LFE, TBM_SETPAGESIZE, 0, 100);
 
   addHint(IDC_UNTOUCHED_STEREO, L"With this option on, stereo sources will not be mixed. This is useful when you want to mix all surround sources to e.g. 5.1, but leave stereo untouched.");
   addHint(IDC_NORMALIZE_MATRIX, L"Normalizing the matrix will apply a global attenuation to the audio, in effect making it quieter to ensure that there is a consistent volume throughout the file, and no clipping occurs.\n\n"
