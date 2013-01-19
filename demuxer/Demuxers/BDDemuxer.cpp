@@ -407,6 +407,12 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
             avstream->codec->channels = (stream->format == BLURAY_AUDIO_FORMAT_MONO) ? 1 : (stream->format == BLURAY_AUDIO_FORMAT_STEREO) ? 2 : 6;
             avstream->codec->channel_layout = av_get_default_channel_layout(avstream->codec->channels);
             avstream->codec->sample_rate = (stream->rate == BLURAY_AUDIO_RATE_96) ? 96000 : (stream->rate == BLURAY_AUDIO_RATE_192) ? 192000 : 48000;
+            if (avstream->codec->codec_id == AV_CODEC_ID_DTS) {
+              if (stream->coding_type == BLURAY_STREAM_TYPE_AUDIO_DTSHD)
+                avstream->codec->profile = FF_PROFILE_DTS_HD_HRA;
+              else if (stream->coding_type == BLURAY_STREAM_TYPE_AUDIO_DTSHD_MASTER)
+                avstream->codec->profile = FF_PROFILE_DTS_HD_MA;
+            }
           }
         }
       }
