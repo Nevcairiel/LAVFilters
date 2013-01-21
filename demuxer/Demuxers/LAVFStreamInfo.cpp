@@ -224,7 +224,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
         if (origCodecTag == MKTAG('H','2','6','4') && (!avstream->codec->extradata_size || avstream->codec->extradata[0] != 1))
           bAnnexB = TRUE;
       } else if (m_containerFormat == "avi") {
-        if ((origCodecTag == MKTAG('A','V','C','1') || origCodecTag == MKTAG('a','v','c','1')) && avstream->codec->extradata_size && avstream->codec->extradata[0] == 1)
+        if (origCodecTag == MKTAG('A','V','C','1') || origCodecTag == MKTAG('a','v','c','1') || (avstream->codec->extradata_size && avstream->codec->extradata[0] == 1))
           bAnnexB = FALSE;
         else
           bAnnexB = TRUE;
