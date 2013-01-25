@@ -1,5 +1,20 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.55.2 - 2013/01/25
+LAV Splitter
+- Improved support for MP4-style H.264 in AVI
+- Further improvements for AAC in MPEG-TS
+- Small improvements to handling Blu-rays with odd stream configurations
+- Improved handling of Ogg Vorbis streams
+
+LAV Video
+- Basic support for playing DVDs in different playback rates
+- Fixed DXVA2 resource cleanup which may have caused a crash in some situations with DXVA2-Native
+- Fixed A/V Sync when using the WMV9 DMO decoder (especially noticable after seeking)
+
+LAV Audio
+- Improved AC3 decoding quality (thanks to madshi for the patch in ffmpeg)
+
 0.55.1 - 2013/01/11
 General
 - Clicking the Tray Icon with a Property Page already active brings it back to the front
