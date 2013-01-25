@@ -351,7 +351,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   return mp1vi;
 }
 
-MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bAnnexB)
+MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bConvertToAVC1)
 {
   int extra = 0;
   BYTE *extradata = NULL;
@@ -379,8 +379,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
   if(extra > 0)
   {
     BOOL bCopyUntouched = FALSE;
-    // Don't even go there for mpeg-ts for now, we supply annex-b
-    if(avstream->codec->codec_id == AV_CODEC_ID_H264 && !bAnnexB)
+    if(avstream->codec->codec_id == AV_CODEC_ID_H264)
     {
       if (*(char *)extradata == 1) {
         if (extradata[1])
@@ -391,9 +390,13 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
         mp2vi->cbSequenceHeader = avc_quant(extradata,
           (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
       } else {
-        // MPEG-TS AnnexB
-        mp2vi->dwFlags = 4;
-        mp2vi->cbSequenceHeader = (DWORD)avc_parse_annexb(extradata, extra, (BYTE *)(&mp2vi->dwSequenceHeader[0]));
+        // MPEG-TS gets converted for improved compat.. for now!
+        if (bConvertToAVC1) {
+          mp2vi->dwFlags = 4;
+          mp2vi->cbSequenceHeader = (DWORD)avc_parse_annexb(extradata, extra, (BYTE *)(&mp2vi->dwSequenceHeader[0]));
+        } else {
+          bCopyUntouched = TRUE;
+        }
       }
     } else if (avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);

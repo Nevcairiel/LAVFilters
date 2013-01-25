@@ -218,23 +218,11 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat, m_containerFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
-    BOOL bAnnexB = (m_containerFormat == "rawvideo" || m_containerFormat == "rtp" || m_containerFormat == "rtsp");
-    if (avstream->codec->codec_id == AV_CODEC_ID_H264) {
-      if (m_containerFormat == "ogg") {
-        if (origCodecTag == MKTAG('H','2','6','4') && (!avstream->codec->extradata_size || avstream->codec->extradata[0] != 1))
-          bAnnexB = TRUE;
-      } else if (m_containerFormat == "avi") {
-        if (origCodecTag == MKTAG('A','V','C','1') || origCodecTag == MKTAG('a','v','c','1') || (avstream->codec->extradata_size && avstream->codec->extradata[0] == 1))
-          bAnnexB = FALSE;
-        else
-          bAnnexB = TRUE;
-      }
-    }
-    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, bAnnexB);
-    if (avstream->codec->codec_id == AV_CODEC_ID_H264 && bAnnexB) {
+    BOOL bConvertToAVC1 = (m_containerFormat == "mpegts");
+    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, bConvertToAVC1);
+    if (avstream->codec->codec_id == AV_CODEC_ID_H264 && !bConvertToAVC1 && (!avstream->codec->extradata_size || avstream->codec->extradata[0] != 1)) {
       mtype.subtype = MEDIASUBTYPE_H264;
       MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
-      mp2vi->dwFlags = 0;
       mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
     }
   }
