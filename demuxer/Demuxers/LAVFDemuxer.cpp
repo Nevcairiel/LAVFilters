@@ -1286,10 +1286,10 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
       bHasPGS = true;
   }
 
-  if (duration != INT64_MIN) {
+  if ((m_bMPEGTS || m_avFormat->duration == AV_NOPTS_VALUE) && duration != INT64_MIN) {
     m_avFormat->duration = duration;
   }
-  if (start_time != INT64_MAX) {
+  if ((m_bMPEGTS || m_avFormat->start_time == AV_NOPTS_VALUE) && start_time != INT64_MAX) {
     m_avFormat->start_time = start_time;
   }
 
