@@ -1188,7 +1188,8 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 // Pin creation
 STDMETHODIMP CLAVFDemuxer::CreateStreams()
 {
-  CAutoLock lock(m_pLock);  
+  DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CreateStreams()"));
+  CAutoLock lock(m_pLock);
 
   // try to use non-blocking methods
   m_avFormat->flags |= AVFMT_FLAG_NONBLOCK;
@@ -1200,6 +1201,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   m_program = UINT_MAX;
 
   if (m_avFormat->nb_programs && !m_bBluRay) {
+    DbgLog((LOG_TRACE, 10, L" -> File has %d programs, trying to detect the correct one..", m_avFormat->nb_programs));
     // Use a scoring system to select the best available program
     // A "good" program at least has a valid video and audio stream
     // We'll try here to detect these streams and decide on the best program
@@ -1229,6 +1231,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
         // Check the score of the previously found stream
         // In addition, we always require a valid video stream (or none), a invalid one is not allowed.
+        DbgLog((LOG_TRACE, 10, L"  -> Program %d with score: %d (video), %d (audio)", i, dwVideoScore, dwAudioScore));
         if (dwVideoScore != 1 && (dwVideoScore+dwAudioScore) > dwScore) {
           dwScore = dwVideoScore+dwAudioScore;
           m_program = i;
@@ -1237,6 +1240,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
         }
       }
     }
+    DbgLog((LOG_TRACE, 10, L" -> Using Program %d", m_program));
   }
 
   // File has programs
@@ -1287,9 +1291,11 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   }
 
   if ((m_bMPEGTS || m_avFormat->duration == AV_NOPTS_VALUE) && duration != INT64_MIN) {
+    DbgLog((LOG_TRACE, 10, L" -> Changing duration to %I64d (from %I64d, diff %.3fs)", duration, m_avFormat->duration, m_avFormat->duration == AV_NOPTS_VALUE ? 0.0f : (float)(duration-m_avFormat->duration)/(float)AV_TIME_BASE));
     m_avFormat->duration = duration;
   }
   if ((m_bMPEGTS || m_avFormat->start_time == AV_NOPTS_VALUE) && start_time != INT64_MAX) {
+    DbgLog((LOG_TRACE, 10, L" -> Changing start_time to %I64d (from %I64d, diff %.3fs)", start_time, m_avFormat->start_time, m_avFormat->start_time == AV_NOPTS_VALUE ? 0.0f : (float)(start_time-m_avFormat->start_time)/(float)AV_TIME_BASE));
     m_avFormat->start_time = start_time;
   }
 
