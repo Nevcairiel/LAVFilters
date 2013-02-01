@@ -40,6 +40,8 @@ public:
   STDMETHODIMP BeginFlush();
   STDMETHODIMP EndFlush();
 
+  CMediaType& CurrentMediaType() { return m_mt; }
+
 protected:
   static int Read(void *opaque, uint8_t *buf, int buf_size);
   static int64_t Seek(void *opaque, int64_t offset, int whence);

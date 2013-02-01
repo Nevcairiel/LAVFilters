@@ -520,7 +520,12 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
     SafeRelease(&info.pFilter);
   }
 
-  if(FAILED(hr = pDemux->OpenInputStream(pContext, pszFileName))) {
+  const char *format = NULL;
+  if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_TRANSPORT) {
+    format = "mpegts";
+  }
+
+  if(FAILED(hr = pDemux->OpenInputStream(pContext, pszFileName, format))) {
     SAFE_DELETE(pDemux);
     return hr;
   }
