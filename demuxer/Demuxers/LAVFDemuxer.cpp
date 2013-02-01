@@ -205,6 +205,7 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
 
   AVIOInterruptCB cb = {avio_interrupt_cb, this};
 
+trynoformat:
   // Create the avformat_context
   m_avFormat = avformat_alloc_context();
   m_avFormat->pb = byteContext;
@@ -233,6 +234,12 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   ret = avformat_open_input(&m_avFormat, fileName, inputFormat, NULL);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): avformat_open_input failed (%d)"), ret));
+    if (format) {
+      DbgLog((LOG_ERROR, 0, TEXT(" -> trying again without specific format")));
+      format = NULL;
+      avformat_close_input(&m_avFormat);
+      goto trynoformat;
+    }
     goto done;
   }
   DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): avformat_open_input opened file of type '%S' (took %I64d seconds)"), m_avFormat->iformat->name, time(NULL) - m_timeOpening));
