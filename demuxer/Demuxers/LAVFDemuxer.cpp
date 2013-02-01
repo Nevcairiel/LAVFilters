@@ -185,7 +185,7 @@ static LPCWSTR wszImageExtensions[] = {
   L".bmp"                       // BMP
 };
 
-STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName)
+STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName, const char *format)
 {
   CAutoLock lock(m_pLock);
   HRESULT hr = S_OK;
@@ -213,8 +213,8 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
 
   AVInputFormat *inputFormat = NULL;
-  if (m_pBluRay) {
-    inputFormat = av_find_input_format("mpegts");
+  if (format) {
+    inputFormat = av_find_input_format(format);
   } else if (pszFileName) {
     LPWSTR extension = PathFindExtensionW(pszFileName);
     for (int i = 0; i < countof(wszImageExtensions); i++) {

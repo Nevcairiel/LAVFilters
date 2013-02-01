@@ -302,7 +302,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(uint32_t idx)
   m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
   m_lavfDemuxer->AddRef();
   m_lavfDemuxer->SetBluRay(this);
-  if (FAILED(hr = m_lavfDemuxer->OpenInputStream(m_pb))) {
+  if (FAILED(hr = m_lavfDemuxer->OpenInputStream(m_pb, NULL, "mpegts"))) {
     SafeRelease(&m_lavfDemuxer);
     return hr;
   }
