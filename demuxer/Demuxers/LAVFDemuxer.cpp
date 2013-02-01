@@ -82,11 +82,9 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_bAVI(FALSE)
   , m_bMPEGTS(FALSE)
   , m_bMPEGPS(FALSE)
-  , m_bEVO(FALSE)
   , m_bRM(FALSE)
   , m_bPMP(FALSE)
   , m_bMP4(FALSE)
-  , m_bBluRay(FALSE)
   , m_pBluRay(NULL)
   , m_bVC1Correction(FALSE)
   , m_bVC1SeenTimestamp(FALSE)
@@ -370,7 +368,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bAVI = (_strnicmp(m_pszInputFormat, "avi", 3) == 0);
   m_bMPEGTS = (_strnicmp(m_pszInputFormat, "mpegts", 6) == 0);
   m_bMPEGPS = (_stricmp(m_pszInputFormat, "mpeg") == 0);
-  m_bEVO = ((extension ? _wcsicmp(extension, L".evo") == 0 : TRUE) && _stricmp(m_pszInputFormat, "mpeg") == 0);
   m_bRM = (_stricmp(m_pszInputFormat, "rm") == 0);
   m_bPMP = (_stricmp(m_pszInputFormat, "pmp") == 0);
   m_bMP4 = (_stricmp(m_pszInputFormat, "mp4") == 0);
@@ -389,7 +386,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   if (m_bMPEGTS)
     m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 3) / 2;
 
-  av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_bBluRay, 0);
+  av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_pBluRay, 0);
 
   m_timeOpening = time(NULL);
   int ret = avformat_find_stream_info(m_avFormat, NULL);
@@ -401,7 +398,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_timeOpening = 0;
 
   // Check if this is a m2ts in a BD structure, and if it is, read some extra stream properties out of the CLPI files
-  if (m_bBluRay && m_pBluRay) {
+  if (m_pBluRay) {
     m_pBluRay->ProcessClipLanguages();
   } else if (pszFileName && m_bMPEGTS) {
     CheckBDM2TSCPLI(pszFileName);
@@ -1200,7 +1197,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
   m_program = UINT_MAX;
 
-  if (m_avFormat->nb_programs && !m_bBluRay) {
+  if (m_avFormat->nb_programs && !m_pBluRay) {
     DbgLog((LOG_TRACE, 10, L" -> File has %d programs, trying to detect the correct one..", m_avFormat->nb_programs));
     // Use a scoring system to select the best available program
     // A "good" program at least has a valid video and audio stream

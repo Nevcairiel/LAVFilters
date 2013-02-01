@@ -127,7 +127,7 @@ public:
   unsigned int GetNumStreams() const { return m_avFormat->nb_streams; }
 
   REFERENCE_TIME GetStartTime() const;
-  void SetBluRay(CBDDemuxer *pBluRay) { m_bBluRay = TRUE; m_pBluRay = pBluRay; }
+  void SetBluRay(CBDDemuxer *pBluRay) { m_pBluRay = pBluRay; }
 
   void AddMPEGTSStream(int pid, uint32_t stream_type);
 
@@ -160,7 +160,6 @@ private:
   BOOL m_bAVI;
   BOOL m_bMPEGTS;
   BOOL m_bMPEGPS;
-  BOOL m_bEVO;
   BOOL m_bRM;
   BOOL m_bPMP;
   BOOL m_bMP4;
@@ -184,7 +183,6 @@ private:
 
   BOOL m_bEnableTrackInfo;
 
-  BOOL m_bBluRay;
   CBDDemuxer *m_pBluRay;
 
   int m_Abort;
