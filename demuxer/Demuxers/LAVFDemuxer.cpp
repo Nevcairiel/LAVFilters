@@ -458,8 +458,7 @@ done:
 void CLAVFDemuxer::CleanupAVFormat()
 {
   if (m_avFormat) {
-    av_close_input_file(m_avFormat);
-    m_avFormat = NULL;
+    avformat_close_input(&m_avFormat);
   }
   SAFE_CO_FREE(m_stOrigParser);
 }
