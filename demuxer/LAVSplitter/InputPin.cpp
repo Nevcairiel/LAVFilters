@@ -180,6 +180,15 @@ HRESULT CLAVInputPin::GetAVIOContext(AVIOContext** ppContext)
   if (!m_pAVIOContext) {
     uint8_t *buffer = (uint8_t *)av_mallocz(READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     m_pAVIOContext = avio_alloc_context(buffer, READ_BUFFER_SIZE, 0, this, Read, NULL, Seek);
+
+    LONGLONG total = 0;
+    LONGLONG available = 0;
+    HRESULT hr = m_pAsyncReader->Length(&total, &available);
+    if (FAILED(hr) || total == 0) {
+      DbgLog((LOG_TRACE, 10, L"CLAVInputPin::GetAVIOContext(): getting file length failed, disabling seeking"));
+      m_pAVIOContext->seekable = 0;
+      m_pAVIOContext->seek = NULL;
+    }
   }
   *ppContext = m_pAVIOContext;
 
