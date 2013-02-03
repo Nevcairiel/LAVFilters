@@ -390,7 +390,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
 
   // Increase default probe sizes
   //m_avFormat->probesize            = 5 * 5000000;
-  if (m_bMPEGTS)
+  if (m_bMPEGTS || m_bMPEGPS)
     m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 2);
 
   av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_pBluRay, 0);
@@ -1293,11 +1293,11 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
       bHasPGS = true;
   }
 
-  if ((m_bMPEGTS || m_avFormat->duration == AV_NOPTS_VALUE) && duration != INT64_MIN) {
+  if ((m_bMPEGTS || m_bMPEGPS || m_avFormat->duration == AV_NOPTS_VALUE) && duration != INT64_MIN) {
     DbgLog((LOG_TRACE, 10, L" -> Changing duration to %I64d (from %I64d, diff %.3fs)", duration, m_avFormat->duration, m_avFormat->duration == AV_NOPTS_VALUE ? 0.0f : (float)(duration-m_avFormat->duration)/(float)AV_TIME_BASE));
     m_avFormat->duration = duration;
   }
-  if ((m_bMPEGTS || m_avFormat->start_time == AV_NOPTS_VALUE) && start_time != INT64_MAX) {
+  if ((m_bMPEGTS || m_bMPEGPS || m_avFormat->start_time == AV_NOPTS_VALUE) && start_time != INT64_MAX) {
     DbgLog((LOG_TRACE, 10, L" -> Changing start_time to %I64d (from %I64d, diff %.3fs)", start_time, m_avFormat->start_time, m_avFormat->start_time == AV_NOPTS_VALUE ? 0.0f : (float)(start_time-m_avFormat->start_time)/(float)AV_TIME_BASE));
     m_avFormat->start_time = start_time;
   }
