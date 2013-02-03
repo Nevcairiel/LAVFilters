@@ -60,11 +60,11 @@ void CLAVOutputPin::SetQueueSizes()
 
   if (m_mts.begin()->subtype == MEDIASUBTYPE_DOLBY_TRUEHD) {
     DbgLog((LOG_TRACE, 10, L"Increasing Audio Queue size for TrueHD"));
-    factor = 35;
+    factor = 40;
   } else if (m_mts.begin()->subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO || m_mts.begin()->subtype == MEDIASUBTYPE_BD_LPCM_AUDIO || m_mts.begin()->subtype == MEDIASUBTYPE_PCM) {
-    factor = 6;
+    factor = 8;
   } else if (m_mts.begin()->majortype == MEDIATYPE_Audio) {
-    factor = 3;
+    factor = 4;
   }
 
   m_dwQueueLow  = MIN_PACKETS_IN_QUEUE * factor;
