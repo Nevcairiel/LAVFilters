@@ -29,7 +29,7 @@
 
 // This function converts 8x2 pixels from the source into 8x2 YUY2 pixels in the destination
 template <LAVPixelFormat inputFormat, int shift, int uyvy, int dithertype> __forceinline
-static int yuv420yuy2_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, const uint16_t* &dithers, int pos)
+static int yuv420yuy2_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t line, const uint16_t* &dithers, ptrdiff_t pos)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
   xmm7 = _mm_setzero_si128 ();
@@ -161,7 +161,7 @@ static int yuv420yuy2_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU,
 }
 
 template <LAVPixelFormat inputFormat, int shift, int uyvy, int dithertype>
-static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, const uint16_t *dithers)
+static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
   const uint8_t *u = srcU;
@@ -171,8 +171,8 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
   dstStride *= 2;
 
   // Processing starts at line 1, and ends at height - 1. The first and last line have special handling
-  int line = 1;
-  const int lastLine = height - 1;
+  ptrdiff_t line = 1;
+  const ptrdiff_t lastLine = height - 1;
 
   const uint16_t *lineDither = dithers;
 
@@ -180,7 +180,7 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
 
   // Process first line
   // This needs special handling because of the chroma offset of YUV420
-  for (int i = 0; i < width; i += 8) {
+  for (ptrdiff_t i = 0; i < width; i += 8) {
     yuv420yuy2_convert_pixels<inputFormat, shift, uyvy, dithertype>(y, u, v, yuy2, 0, 0, 0, 0, lineDither, i);
   }
 
@@ -210,14 +210,14 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
   v = srcV + ((height >> 1) - 1)  * srcStrideUV;
   yuy2 = dst + (height - 1) * dstStride;
 
-  for (int i = 0; i < width; i += 8) {
+  for (ptrdiff_t i = 0; i < width; i += 8) {
     yuv420yuy2_convert_pixels<inputFormat, shift, uyvy, dithertype>(y, u, v, yuy2, 0, 0, 0, line, lineDither, i);
   }
   return 0;
 }
 
 template<int uyvy, int dithertype>
-static int __stdcall yuv420yuy2_dispatch(LAVPixelFormat inputFormat, int bpp, const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, const uint16_t *dithers)
+static int __stdcall yuv420yuy2_dispatch(LAVPixelFormat inputFormat, int bpp, const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, const uint16_t *dithers)
 {
     // Wrap the input format into template args
   switch (inputFormat) {

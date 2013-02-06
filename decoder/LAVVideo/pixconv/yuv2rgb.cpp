@@ -38,7 +38,7 @@
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
 template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype, int ycgco> __forceinline
-static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, int srcStrideY, int srcStrideUV, int dstStride, int line, RGBCoeffs *coeffs, const uint16_t* &dithers, int pos)
+static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t line, RGBCoeffs *coeffs, const uint16_t* &dithers, ptrdiff_t pos)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
   xmm7 = _mm_setzero_si128 ();
@@ -400,7 +400,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 }
 
 template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
-static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, int sliceYStart, int sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers)
+static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t sliceYStart, ptrdiff_t sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
   const uint8_t *u = srcU;
@@ -409,10 +409,10 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
 
   dstStride *= (3 + out32);
 
-  int line = sliceYStart;
-  int lastLine = sliceYEnd;
+  ptrdiff_t line = sliceYStart;
+  ptrdiff_t lastLine = sliceYEnd;
 
-  const int endx = width - 4;
+  const ptrdiff_t endx = width - 4;
 
   const uint16_t *lineDither = dithers;
 
@@ -421,7 +421,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   // 4:2:0 needs special handling for the first and the last line
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (line == 0) {
-      for (int i = 0; i < endx; i += 4) {
+      for (ptrdiff_t i = 0; i < endx; i += 4) {
         yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
       yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
@@ -447,7 +447,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
 
     rgb = dst + line * dstStride;
 
-    for (int i = 0; i < endx; i += 4) {
+    for (ptrdiff_t i = 0; i < endx; i += 4) {
       yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, i);
     }
     yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
@@ -462,7 +462,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
       v = srcV + ((height >> 1) - 1)  * srcStrideUV;
       rgb = dst + (height - 1) * dstStride;
 
-      for (int i = 0; i < endx; i += 4) {
+      for (ptrdiff_t i = 0; i < endx; i += 4) {
         yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
       yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
@@ -472,17 +472,17 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
 }
 
 template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
-inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, int srcStrideY, int srcStrideUV, int dstStride, RGBCoeffs *coeffs, const uint16_t *dithers, int threads)
+inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, RGBCoeffs *coeffs, const uint16_t *dithers, int threads)
 {
   if (threads <= 1) {
     yuv2rgb_process_lines<inputFormat, shift, out32, dithertype, ycgco>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs, dithers);
   } else {
     const int is_odd = (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12);
-    const int lines_per_thread = (height / threads)&~1;
+    const ptrdiff_t lines_per_thread = (height / threads)&~1;
 
     Concurrency::parallel_for(0, threads, [&](int i) {
-      const int starty = (i * lines_per_thread);
-      const int endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
+      const ptrdiff_t starty = (i * lines_per_thread);
+      const ptrdiff_t endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
       yuv2rgb_process_lines<inputFormat, shift, out32, dithertype, ycgco>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs, dithers);
     });
   }

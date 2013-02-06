@@ -38,10 +38,10 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
   const uint8_t *u = (const uint8_t *)src[1];
   const uint8_t *v = (const uint8_t *)src[2];
 
-  const int inStride = srcStride[0];
-  const int outStride = dstStride << 2;
+  const ptrdiff_t inStride = srcStride[0];
+  const ptrdiff_t outStride = dstStride << 2;
 
-  int line, i;
+  ptrdiff_t line, i;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6;
 
@@ -94,15 +94,15 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  const int inStride = srcStride[0] >> 1;
-  const int outStride = dstStride << 2;
+  const ptrdiff_t inStride = srcStride[0] >> 1;
+  const ptrdiff_t outStride = dstStride << 2;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 3, 8, 0);
   if (dithers == NULL)
     ditherMode = LAVDither_Ordered;
 
-  int line, i;
+  ptrdiff_t line, i;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 

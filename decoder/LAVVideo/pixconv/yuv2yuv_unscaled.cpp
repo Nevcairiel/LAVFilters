@@ -31,13 +31,13 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  const int inYStride = srcStride[0] >> 1;
-  const int inUVStride = srcStride[1] >> 1;
+  const ptrdiff_t inYStride = srcStride[0] >> 1;
+  const ptrdiff_t inUVStride = srcStride[1] >> 1;
 
-  int outLumaStride    = dstStride;
-  int outChromaStride  = dstStride;
-  int chromaWidth      = width;
-  int chromaHeight     = height;
+  ptrdiff_t outLumaStride    = dstStride;
+  ptrdiff_t outChromaStride  = dstStride;
+  ptrdiff_t chromaWidth      = width;
+  ptrdiff_t chromaHeight     = height;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
@@ -51,7 +51,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
     outChromaStride = outChromaStride >> 1;
   }
 
-  int line, i;
+  ptrdiff_t line, i;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
@@ -137,13 +137,13 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  const int inYStride = srcStride[0] >> 1;
-  const int inUVStride = srcStride[1] >> 1;
-  const int outStride = dstStride << 1;
-  const int uvHeight = (outputFormat == LAVOutPixFmt_P010 || outputFormat == LAVOutPixFmt_P016) ? (height >> 1) : height;
-  const int uvWidth = (width + 1) >> 1;
+  const ptrdiff_t inYStride = srcStride[0] >> 1;
+  const ptrdiff_t inUVStride = srcStride[1] >> 1;
+  const ptrdiff_t outStride = dstStride << 1;
+  const ptrdiff_t uvHeight = (outputFormat == LAVOutPixFmt_P010 || outputFormat == LAVOutPixFmt_P016) ? (height >> 1) : height;
+  const ptrdiff_t uvWidth = (width + 1) >> 1;
 
-  int line, i;
+  ptrdiff_t line, i;
   __m128i xmm0,xmm1,xmm2;
 
   _mm_sfence();
@@ -196,14 +196,14 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   const uint8_t *u = src[1];
   const uint8_t *v = src[2];
 
-  const int inLumaStride    = srcStride[0];
-  const int inChromaStride  = srcStride[1];
-  const int outLumaStride   = dstStride;
-  int outChromaStride = dstStride;
+  const ptrdiff_t inLumaStride    = srcStride[0];
+  const ptrdiff_t inChromaStride  = srcStride[1];
+  const ptrdiff_t outLumaStride   = dstStride;
+  ptrdiff_t outChromaStride = dstStride;
 
-  int line;
-  int chromaWidth  = width;
-  int chromaHeight = height;
+  ptrdiff_t line;
+  ptrdiff_t chromaWidth  = width;
+  ptrdiff_t chromaHeight = height;
 
   if (inputFormat == LAVPixFmt_YUV420)
     chromaHeight = chromaHeight >> 1;
@@ -261,17 +261,17 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
   const uint8_t *u = src[1];
   const uint8_t *v = src[2];
 
-  const int inLumaStride    = srcStride[0];
-  const int inChromaStride  = srcStride[1];
-  const int outStride       = dstStride;
+  const ptrdiff_t inLumaStride    = srcStride[0];
+  const ptrdiff_t inChromaStride  = srcStride[1];
+  const ptrdiff_t outStride       = dstStride;
 
-  const int chromaWidth     = (width + 1) >> 1;
-  const int chromaHeight    = height >> 1;
+  const ptrdiff_t chromaWidth     = (width + 1) >> 1;
+  const ptrdiff_t chromaHeight    = height >> 1;
 
   uint8_t *dstY = dst;
   uint8_t *dstUV = dstY + height * outStride;
 
-  int line,i;
+  ptrdiff_t line,i;
   __m128i xmm0,xmm1,xmm2,xmm3;
 
   _mm_sfence();
@@ -311,13 +311,13 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
   const uint8_t *u = src[1];
   const uint8_t *v = src[2];
 
-  const int inLumaStride    = srcStride[0];
-  const int inChromaStride  = srcStride[1];
-  const int outStride       = dstStride << 1;
+  const ptrdiff_t inLumaStride    = srcStride[0];
+  const ptrdiff_t inChromaStride  = srcStride[1];
+  const ptrdiff_t outStride       = dstStride << 1;
 
-  const int chromaWidth     = (width + 1) >> 1;
+  const ptrdiff_t chromaWidth     = (width + 1) >> 1;
 
-  int line,i;
+  ptrdiff_t line,i;
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5;
 
   _mm_sfence();
@@ -384,17 +384,17 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  const int inLumaStride    = srcStride[0] >> 1;
-  const int inChromaStride  = srcStride[1] >> 1;
-  const int outStride       = dstStride << 1;
-  const int chromaWidth     = (width + 1) >> 1;
+  const ptrdiff_t inLumaStride    = srcStride[0] >> 1;
+  const ptrdiff_t inChromaStride  = srcStride[1] >> 1;
+  const ptrdiff_t outStride       = dstStride << 1;
+  const ptrdiff_t chromaWidth     = (width + 1) >> 1;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
   if (dithers == NULL)
     ditherMode = LAVDither_Ordered;
 
-  int line,i;
+  ptrdiff_t line,i;
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
   _mm_sfence();
@@ -459,17 +459,17 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
   const uint8_t *y  = src[0];
   const uint8_t *uv = src[1];
 
-  const int inStride = srcStride[0];
-  const int outLumaStride = dstStride;
-  const int outChromaStride = dstStride >> 1;
+  const ptrdiff_t inStride = srcStride[0];
+  const ptrdiff_t outLumaStride = dstStride;
+  const ptrdiff_t outChromaStride = dstStride >> 1;
 
-  const int chromaHeight = height >> 1;
+  const ptrdiff_t chromaHeight = height >> 1;
 
   uint8_t *dstY = dst;
   uint8_t *dstV = dstY + height * outLumaStride;
   uint8_t *dstU = dstV + chromaHeight * outChromaStride;
 
-  int line, i;
+  ptrdiff_t line, i;
   __m128i xmm0,xmm1,xmm2,xmm3,xmm7;
 
   xmm7 = _mm_set1_epi16(0x00FF);
@@ -516,14 +516,14 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_nv12)
   const uint8_t *y  = src[0];
   const uint8_t *uv = src[1];
 
-  const int inStride = srcStride[0];
-  const int outStride = dstStride;
-  const int chromaHeight = (height >> 1);
+  const ptrdiff_t inStride = srcStride[0];
+  const ptrdiff_t outStride = dstStride;
+  const ptrdiff_t chromaHeight = (height >> 1);
 
   uint8_t *dstY = dst;
   uint8_t *dstUV = dstY + height * outStride;
 
-  int line;
+  ptrdiff_t line;
 
   _mm_sfence();
 

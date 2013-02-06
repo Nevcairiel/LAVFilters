@@ -30,11 +30,11 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_y410)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  int inStride = srcStride[0] >> 1;
-  int outStride = dstStride << 2;
+  ptrdiff_t inStride = srcStride[0] >> 1;
+  ptrdiff_t outStride = dstStride << 2;
   int shift = 10 - bpp;
 
-  int line, i;
+  ptrdiff_t line, i;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
 
