@@ -18,11 +18,13 @@
  */
 
 #include "stdafx.h"
+#include "DShowUtil.h"
 #include "BaseTrayIcon.h"
 #include "BaseDSPropPage.h"
 
 #include <time.h>
 #include <process.h>
+#include <Shlwapi.h>
 
 #define TRAYICON       0x1f0
 #define MSG_TRAYICON   WM_USER + 1
@@ -31,6 +33,25 @@
 // The assumed size of the propery page
 #define PROP_WIDTH_OFFSET  400
 #define PROP_HEIGHT_OFFSET 250
+
+static const WCHAR *noTrayProcesses[] = {
+  L"dllhost.exe",
+  L"explorer.exe",
+  L"ReClockHelper.dll"
+};
+
+BOOL CBaseTrayIcon::ProcessBlackList()
+{
+  WCHAR fileName[1024];
+  GetModuleFileName(NULL, fileName, 1024);
+  WCHAR *processName = PathFindFileName (fileName);
+
+  for(int i = 0; i < countof(noTrayProcesses); i++) {
+    if (_wcsicmp(processName, noTrayProcesses[i]) == 0)
+      return TRUE;
+  }
+  return FALSE;
+}
 
 CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon)
   : m_hWnd(0)

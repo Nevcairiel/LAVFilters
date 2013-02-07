@@ -148,6 +148,8 @@ CLAVVideo::~CLAVVideo()
 
 HRESULT CLAVVideo::CreateTrayIcon()
 {
+  if (CBaseTrayIcon::ProcessBlackList())
+    return S_FALSE;
   m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_VIDEO), IDI_ICON1);
   return S_OK;
 }

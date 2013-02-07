@@ -27,6 +27,8 @@ public:
   CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
   void Destroy();
 
+  static BOOL ProcessBlackList();
+
 private:
   virtual ~CBaseTrayIcon(void);
 
