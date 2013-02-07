@@ -161,10 +161,8 @@ STDMETHODIMP CLAVVideo::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
   if (pGraph && !m_pTrayIcon && m_settings.TrayIcon) {
     CreateTrayIcon();
   } else if (!pGraph && m_pTrayIcon) {
-    if (m_pTrayIcon) {
-      m_pTrayIcon->Destroy();
-      m_pTrayIcon = NULL;
-    }
+    m_pTrayIcon->Destroy();
+    m_pTrayIcon = NULL;
   }
   return hr;
 }
