@@ -387,9 +387,13 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     }
   }
 
-  BYTE extradata[1024] = {0};
-  size_t extralen;
-  getExtraData(*pmt, extradata, &extralen);
+  BYTE *extradata = NULL;
+  size_t extralen = 0;
+  getExtraData(*pmt, NULL, &extralen);
+  if (extralen > 0) {
+    extradata = (BYTE *)av_malloc(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+    getExtraData(*pmt, extradata, NULL);
+  }
 
   m_bNeedSequenceCheck = FALSE;
   m_bInterlaced = TRUE;
@@ -425,6 +429,10 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   } else {
     m_bNeedSequenceCheck = (fourCC == FourCC_H264);
   }
+
+  // Done with the extradata
+  if (extradata)
+    av_freep(&extradata);
 
   // Configure QuickSync decoder
   CQsConfig qsConfig;

@@ -630,8 +630,11 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_AVC1Converter->SetNALUSize(mp2vi->dwFlags);
   } else {
     size_t hdr_len = 0;
-    getExtraData(*pmt, m_VideoParserExInfo.raw_seqhdr_data, &hdr_len);
-    m_VideoParserExInfo.format.seqhdr_data_length = (unsigned int)hdr_len;
+    getExtraData(*pmt, NULL, &hdr_len);
+    if (hdr_len <= 1024) {
+      getExtraData(*pmt, m_VideoParserExInfo.raw_seqhdr_data, &hdr_len);
+      m_VideoParserExInfo.format.seqhdr_data_length = (unsigned int)hdr_len;
+    }
   }
 
   m_bNeedSequenceCheck = FALSE;
