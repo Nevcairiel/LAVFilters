@@ -391,7 +391,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // Process Extradata
   BYTE *extra = NULL;
   size_t extralen = 0;
-  getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), NULL, &extralen);
+  getExtraData(*pmt, NULL, &extralen);
 
   BOOL bH264avc = FALSE;
   if (extralen > 0) {
@@ -409,7 +409,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
       // Actually copy the metadata into our new buffer
       size_t actual_len;
-      getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra+6, &actual_len);
+      getExtraData(*pmt, extra+6, &actual_len);
 
       // Count the number of SPS/PPS in them and set the length
       // We'll put them all into one block and add a second block with 0 elements afterwards
@@ -439,7 +439,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is missing.."));
       } else {
         extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-        getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, NULL);
+        getExtraData(*pmt, extra, NULL);
         m_pAVCtx->pix_fmt = *(AVPixelFormat *)extra;
         extralen -= sizeof(AVPixelFormat);
         memmove(extra, extra+sizeof(AVPixelFormat), extralen);
@@ -447,7 +447,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     } else {
       // Just copy extradata for other formats
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-      getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, NULL);
+      getExtraData(*pmt, extra, NULL);
     }
     // Hack to discard invalid MP4 metadata with AnnexB style video
     if (codec == AV_CODEC_ID_H264 && !bH264avc && extra[0] == 1) {
