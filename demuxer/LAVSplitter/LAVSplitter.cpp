@@ -171,7 +171,6 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
 
   m_settings.vc1Mode          = 2;
   m_settings.substreams       = TRUE;
-  m_settings.videoParsing     = TRUE;
 
   m_settings.StreamSwitchRemoveAudio = FALSE;
   m_settings.ImpairedAudio    = FALSE;
@@ -234,9 +233,6 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
     bFlag = reg.ReadDWORD(L"substreams", hr);
     if (SUCCEEDED(hr)) m_settings.substreams = bFlag;
 
-    bFlag = reg.ReadDWORD(L"videoParsing", hr);
-    if (SUCCEEDED(hr)) m_settings.videoParsing = bFlag;
-
     bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
     if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
 
@@ -285,7 +281,6 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"PGSOnlyForced", m_settings.PGSOnlyForced);
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
     reg.WriteBOOL(L"substreams", m_settings.substreams);
-    reg.WriteBOOL(L"videoParsing", m_settings.videoParsing);
     reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
     reg.WriteBOOL(L"PreferHighQualityAudio", m_settings.PreferHighQualityAudio);
     reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
@@ -1566,13 +1561,12 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetSubstreamsEnabled()
 
 STDMETHODIMP CLAVSplitter::SetVideoParsingEnabled(BOOL bEnabled)
 {
-  m_settings.videoParsing = bEnabled;
-  return SaveSettings();
+  return E_FAIL;
 }
 
 STDMETHODIMP_(BOOL) CLAVSplitter::GetVideoParsingEnabled()
 {
-  return m_settings.videoParsing;
+  return TRUE;
 }
 
 STDMETHODIMP CLAVSplitter::SetFixBrokenHDPVR(BOOL bEnabled)

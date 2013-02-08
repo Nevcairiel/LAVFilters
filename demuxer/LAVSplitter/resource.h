@@ -22,7 +22,6 @@
 #define IDC_SUBSTREAMS                  1010
 #define IDC_DEMUXER_SETTINGS            1011
 #define IDC_SPLITTER_FOOTER             1012
-#define IDC_VIDEOPARSING                1013
 #define IDC_FORMATS                     1016
 #define IDC_LBL_INPUT                   1017
 #define IDC_CUR_INPUT                   1018

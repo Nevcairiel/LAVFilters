@@ -268,7 +268,6 @@ private:
     BOOL PGSOnlyForced;
     int vc1Mode;
     BOOL substreams;
-    BOOL videoParsing;
 
     BOOL StreamSwitchRemoveAudio;
     BOOL ImpairedAudio;

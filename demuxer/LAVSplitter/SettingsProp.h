@@ -71,7 +71,6 @@ private:
   int m_VC1Mode;
   BOOL m_substreams;
 
-  BOOL m_videoParsing;
   BOOL m_StreamSwitchRemoveAudio;
   BOOL m_PreferHighQualityAudio;
   BOOL m_ImpairedAudio;

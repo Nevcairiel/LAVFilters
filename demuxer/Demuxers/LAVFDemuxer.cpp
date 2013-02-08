@@ -558,7 +558,7 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
     if (st->codec->codec_id == AV_CODEC_ID_VC1) {
       UpdateParserFlags(st);
     } else if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-      st->need_parsing = pSettings->GetVideoParsingEnabled() ? m_stOrigParser[idx] : AVSTREAM_PARSE_NONE;
+      st->need_parsing = m_stOrigParser[idx];
     }
   }
 
