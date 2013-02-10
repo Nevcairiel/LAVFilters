@@ -109,10 +109,10 @@ interface ILAVFSettings : public IUnknown
   // Check whether substreams (AC3 in TrueHD, for example) should be shown as a seperate stream
   STDMETHOD_(BOOL,GetSubstreamsEnabled)() = 0;
 
-  // Set if the ffmpeg parsers should be used for video streams
+  // @deprecated - no longer required
   STDMETHOD(SetVideoParsingEnabled)(BOOL bEnabled) = 0;
   
-  // Query if the ffmpeg parsers are being used for video streams
+  // @deprecated - no longer required
   STDMETHOD_(BOOL,GetVideoParsingEnabled)() = 0;
 
   // Set if LAV Splitter should try to fix broken HD-PVR streams
