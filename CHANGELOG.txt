@@ -1,5 +1,16 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.55.3 - 2013/02/10
+LAV Splitter
+- Improved handling of Annex B H.264 in many containers
+- Improved support for external source filters without seeking ability (live sources)
+- Fixed duration in some MP4/MOV files
+- Fixed stream program assignment for some MPEG-TS files (resulted in some streams not visible)
+
+LAV Video
+- Added support for TSCC2
+- Fixed a crash when playing certain H.264 files with QuickSync or CUVID
+
 0.55.2 - 2013/01/25
 LAV Splitter
 - Improved support for MP4-style H.264 in AVI
