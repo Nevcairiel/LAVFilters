@@ -1754,6 +1754,12 @@ STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)
   m_bRuntimeConfig = bRuntimeConfig;
   LoadSettings();
 
+  // Tray Icon is disabled by default
+  if (m_pTrayIcon) {
+    m_pTrayIcon->Destroy();
+    m_pTrayIcon = NULL;
+  }
+
   return S_OK;
 }
 
