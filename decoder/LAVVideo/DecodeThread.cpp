@@ -472,8 +472,6 @@ STDMETHODIMP CDecodeThread::DecodeInternal(IMediaSample *pSample)
     DbgLog((LOG_TRACE, 10, L"::Receive(): Hardware decoder indicates failure, switching back to software"));
     m_bHWDecoderFailed = TRUE;
 
-    BOOL bThreadSafeBefore = m_bThreadSafe;
-
     CMediaType &mt = m_pLAVVideo->GetInputMediaType();
     hr = CreateDecoderInternal(&mt, m_Codec);
     if (FAILED(hr)) {
