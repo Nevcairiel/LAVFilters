@@ -955,7 +955,7 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
   nKFs = 0;
 
   AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-  for(unsigned int i = 0; i < stream->nb_index_entries && nKFs < nKFsMax; i++) {
+  for(int i = 0; i < stream->nb_index_entries && nKFs < nKFsMax; i++) {
     if (stream->index_entries[i].flags & AVINDEX_KEYFRAME) {
       pKFs[nKFs] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
       nKFs++;
