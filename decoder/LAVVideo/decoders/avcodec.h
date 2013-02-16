@@ -25,8 +25,6 @@
 #include <map>
 
 #define AVCODEC_MAX_THREADS 16
-#define AVCODEC_USE_DR1 0
-#define AVCODEC_DR1_DEBUG 0
 
 typedef struct {
   REFERENCE_TIME rtStart;
@@ -48,7 +46,7 @@ public:
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
   STDMETHODIMP_(BOOL) IsInterlaced();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"avcodec"; }
-  STDMETHODIMP HasThreadSafeBuffers() { return m_bDR1 ? S_OK : S_FALSE; }
+  STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
 
   // CDecBase
   STDMETHODIMP Init();
@@ -61,13 +59,6 @@ protected:
 
 private:
   STDMETHODIMP ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame);
-
-#if AVCODEC_USE_DR1
-  static int lav_get_buffer(struct AVCodecContext *c, AVFrame *pic);
-  static int lav_reget_buffer(struct AVCodecContext *c, AVFrame *pic);
-  static void lav_release_buffer(struct AVCodecContext *c, AVFrame *pic);
-  static void lav_frame_destruct(struct LAVFrame *);
-#endif
 
 protected:
   AVCodecContext       *m_pAVCtx;
@@ -108,11 +99,4 @@ private:
   BOOL                 m_bResumeAtKeyFrame;
   BOOL                 m_bWaitingForKeyFrame;
   int                  m_iInterlaced;
-
-  BOOL                 m_bDR1;
-
-#if AVCODEC_USE_DR1
-  CCritSec             m_BufferCritSec;
-  std::map<uint8_t*,int> m_Buffers;
-#endif
 };

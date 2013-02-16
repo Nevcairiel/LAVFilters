@@ -292,7 +292,6 @@ CDecAvcodec::CDecAvcodec(void)
   , m_CurrentThread(0)
   , m_bDXVA(FALSE)
   , m_bInputPadded(FALSE)
-  , m_bDR1(FALSE)
 {
 }
 
@@ -528,19 +527,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                     || codec == AV_CODEC_ID_QTRLE
                     || codec == AV_CODEC_ID_TSCC);
 
-#if AVCODEC_USE_DR1
-  if (!m_bDXVA && m_pAVCodec->capabilities & CODEC_CAP_DR1) {
-    m_bDR1                   = TRUE;
-    m_pAVCtx->opaque         = this;
-    m_pAVCtx->get_buffer     = lav_get_buffer;
-    m_pAVCtx->reget_buffer   = lav_reget_buffer;
-    m_pAVCtx->release_buffer = lav_release_buffer;
-    m_pAVCtx->thread_safe_callbacks = 1;
-  } else {
-    m_bDR1                   = FALSE;
-  }
-#endif
-
   if (FAILED(AdditionaDecoderInit())) {
     return E_FAIL;
   }
@@ -644,141 +630,6 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
 
   return S_OK;
 }
-
-#if AVCODEC_USE_DR1
-
-int CDecAvcodec::lav_get_buffer(struct AVCodecContext *c, AVFrame *pic)
-{
-  CDecAvcodec *pDec = (CDecAvcodec *)c->opaque;
-  CAutoLock lock(&pDec->m_BufferCritSec);
-  int ret = avcodec_default_get_buffer(c, pic);
-#if AVCODEC_DR1_DEBUG
-  int state = pDec->m_Buffers[pic->data[0]];
-  DbgLog((LOG_TRACE, 10, L"lav_get_buffer of: %p (state: %d)", pic->data[0], state));
-  ASSERT(state == 0);
-#endif
-  return ret;
-}
-
-static void ff_init_buffer_info(AVCodecContext *s, AVFrame *pic)
-{
-  if (s->pkt) {
-    pic->pkt_pts = s->pkt->pts;
-    pic->pkt_pos = s->pkt->pos;
-    pic->pkt_duration = s->pkt->duration;
-  } else {
-    pic->pkt_pts = AV_NOPTS_VALUE;
-    pic->pkt_pos = -1;
-    pic->pkt_duration = 0;
-  }
-  pic->reordered_opaque= s->reordered_opaque;
-  pic->sample_aspect_ratio = s->sample_aspect_ratio;
-  pic->width               = s->width;
-  pic->height              = s->height;
-  pic->format              = s->pix_fmt;
-}
-
-/* Modified copy of avcodec_default_reget_buffer to accomodate for buffers which are used for rendering */
-int CDecAvcodec::lav_reget_buffer(struct AVCodecContext *s, AVFrame *pic)
-{
-  AVFrame temp_pic;
-  int i;
-
-  ASSERT(s->codec_type == AVMEDIA_TYPE_VIDEO);
-
-  if (pic->data[0] && (pic->width != s->width || pic->height != s->height || pic->format != s->pix_fmt)) {
-    av_log(s, AV_LOG_WARNING, "Picture changed from size:%dx%d fmt:%s to size:%dx%d fmt:%s in reget buffer()\n",
-      pic->width, pic->height, av_get_pix_fmt_name((PixelFormat)pic->format), s->width, s->height, av_get_pix_fmt_name(s->pix_fmt));
-    s->release_buffer(s, pic);
-  }
-
-  ff_init_buffer_info(s, pic);
-
-  /* If no picture return a new buffer */
-  if(pic->data[0] == NULL) {
-    /* We will copy from buffer, so must be readable */
-    pic->buffer_hints |= FF_BUFFER_HINTS_READABLE;
-    return s->get_buffer(s, pic);
-  }
-
-  ASSERT(s->pix_fmt == pic->format);
-
-  /* If internal buffer type return the same buffer,
-     but only if its not referenced for rendering. */
-  if(pic->type == FF_BUFFER_TYPE_INTERNAL) {
-    CDecAvcodec *pDec = (CDecAvcodec *)s->opaque;
-    CAutoLock lock(&pDec->m_BufferCritSec);
-    if (pDec->m_Buffers[pic->data[0]] == 0)
-      return 0;
-  }
-
-  /*
-  * Not internal type and reget_buffer not overridden, emulate cr buffer
-  */
-  temp_pic = *pic;
-  for(i = 0; i < AV_NUM_DATA_POINTERS; i++)
-    pic->data[i] = pic->base[i] = NULL;
-  pic->opaque = NULL;
-  /* Allocate new frame */
-  if (s->get_buffer(s, pic))
-    return -1;
-  /* Copy image data from old buffer to new buffer */
-  av_picture_copy((AVPicture*)pic, (AVPicture*)&temp_pic, s->pix_fmt, s->width,
-    s->height);
-  s->release_buffer(s, &temp_pic); // Release old frame
-  return 0;
-}
-
-void CDecAvcodec::lav_release_buffer(struct AVCodecContext *c, AVFrame *pic)
-{
-  CDecAvcodec *pDec = (CDecAvcodec *)c->opaque;
-  CAutoLock lock(&pDec->m_BufferCritSec);
-#if AVCODEC_DR1_DEBUG
-  DbgLog((LOG_TRACE, 10, L"lav_release_buffer of: %p", pic->data[0]));
-#endif
-  int state = pDec->m_Buffers[pic->data[0]];
-  if (state == 1) {
-#if AVCODEC_DR1_DEBUG
-    DbgLog((LOG_TRACE, 10, L"-> buffer in use"));
-#endif
-    pDec->m_Buffers[pic->data[0]] = 2;
-    for (int i = 0; i < AV_NUM_DATA_POINTERS; i++) {
-      pic->data[i] = NULL;
-    }
-  } else if (!state) {
-#if AVCODEC_DR1_DEBUG
-    DbgLog((LOG_TRACE, 10, L"-> releasing buffer"));
-#endif
-    avcodec_default_release_buffer(c, pic);
-  }
-}
-
-void CDecAvcodec::lav_frame_destruct(struct LAVFrame *f)
-{
-  CDecAvcodec *pDec = (CDecAvcodec *)f->priv_data;
-  CAutoLock lock(&pDec->m_BufferCritSec);
-#if AVCODEC_DR1_DEBUG
-  DbgLog((LOG_TRACE, 10, L"lav_frame_destruct of: %p", f->data[0]));
-#endif
-  int state = pDec->m_Buffers[f->data[0]];
-  pDec->m_Buffers[f->data[0]] = 0;
-  if (state == 2) {
-#if AVCODEC_DR1_DEBUG
-    DbgLog((LOG_TRACE, 10, L"-> releasing buffer"));
-#endif
-    AVFrame pic;
-    pic.type = FF_BUFFER_TYPE_INTERNAL;
-    pic.data[0] = f->data[0];
-    avcodec_default_release_buffer(pDec->m_pAVCtx, &pic);
-  }
-#if AVCODEC_DR1_DEBUG
-  else {
-    DbgLog((LOG_TRACE, 10, L"-> buffer in use"));
-  }
-#endif
-}
-
-#endif
 
 STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
@@ -1058,16 +909,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         pOutFrame->data[i]   = m_pFrame->data[i];
         pOutFrame->stride[i] = m_pFrame->linesize[i];
       }
-#if AVCODEC_USE_DR1
-      if (m_bDR1) {
-        {
-          CAutoLock lock(&m_BufferCritSec);
-          m_Buffers[m_pFrame->data[0]] = 1;
-        }
-        pOutFrame->destruct = lav_frame_destruct;
-        pOutFrame->priv_data = this;
-      }
-#endif
     }
 
     if (bEndOfSequence)
@@ -1100,14 +941,6 @@ STDMETHODIMP CDecAvcodec::Flush()
 {
   if (m_pAVCtx) {
     avcodec_flush_buffers(m_pAVCtx);
-#if AVCODEC_DR1_DEBUG
-    if (m_bDR1) {
-      DbgLog((LOG_TRACE, 10, L"Buffers after flush: "));
-      for (auto it = m_Buffers.begin() ; it != m_Buffers.end(); it++) {
-        DbgLog((LOG_TRACE, 10, L" -> %p: %d", (*it).first, (*it).second));
-      }
-    }
-#endif
   }
 
   if (m_pParser) {
