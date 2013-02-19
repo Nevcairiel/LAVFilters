@@ -80,9 +80,14 @@ HRESULT CLAVAudio::InitDTSDecoder()
     WCHAR wModuleFile[1024];
     GetModuleFileName(g_hInst, wModuleFile, 1024);
     PathRemoveFileSpecW(wModuleFile);
-    SetDllDirectory(wModuleFile);
+    wcscat_s(wModuleFile, TEXT("\\dtsdecoderdll.dll"));
 
-    HMODULE hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
+    // Try loading from the filters directory
+    HMODULE hDll = LoadLibraryEx(wModuleFile, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+    // And try from any global directories if this failed
+    if (hDll == NULL) {
+      hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
+    }
     CheckPointer(hDll, E_FAIL);
 
     m_hDllExtraDecoder = hDll;
