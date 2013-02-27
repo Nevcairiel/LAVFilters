@@ -244,9 +244,6 @@ private:
   double m_dRate;
   BOOL m_bStopValid;
 
-  BOOL m_bMPEGTS;
-  BOOL m_bMPEGPS;
-
   // Seeking
   REFERENCE_TIME m_rtLastStart, m_rtLastStop;
   std::set<void *> m_LastSeekers;

@@ -145,6 +145,9 @@ public:
   virtual STDMETHODIMP Seek(REFERENCE_TIME rTime) = 0;
   // Get the container format
   virtual const char *GetContainerFormat() const = 0;
+  // Get Container Flags
+#define LAVFMT_TS_DISCONT 0x0001
+  virtual DWORD GetContainerFlags() { return 0; }
   // Create Stream Description
   virtual HRESULT StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const = 0;
 

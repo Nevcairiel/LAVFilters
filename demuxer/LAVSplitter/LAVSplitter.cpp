@@ -592,9 +592,6 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
 
-  m_bMPEGTS = strcmp(m_pDemuxer->GetContainerFormat(), "mpegts") == 0;
-  m_bMPEGPS = strcmp(m_pDemuxer->GetContainerFormat(), "mpeg") == 0;
-
   const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
   if (videoStream) {
     CLAVOutputPin* pPin = new CLAVOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat());
@@ -792,7 +789,7 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
 
     // Filter PTS values
     // This will try to compensate for timestamp discontinuities in the stream
-    if (m_bMPEGTS || m_bMPEGPS) {
+    if (m_pDemuxer->GetContainerFlags() & LAVFMT_TS_DISCONT) {
       if (pPin->m_rtPrev != Packet::INVALID_TIME && !pPin->IsSubtitlePin()) {
         REFERENCE_TIME rt = pPacket->rtStart + m_rtOffset;
         if(_abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {

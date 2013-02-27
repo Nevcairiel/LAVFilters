@@ -60,6 +60,7 @@ public:
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
   const char *GetContainerFormat() const;
+  virtual DWORD GetContainerFlags() { return m_bTSDiscont ? LAVFMT_TS_DISCONT : 0; }
   HRESULT StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const;
   void SettingsChanged(ILAVFSettingsInternal *pSettings);
 
@@ -163,6 +164,7 @@ private:
   BOOL m_bRM;
   BOOL m_bPMP;
   BOOL m_bMP4;
+  BOOL m_bTSDiscont;
   BOOL m_bVC1Correction;
 
   BOOL m_bSubStreams;

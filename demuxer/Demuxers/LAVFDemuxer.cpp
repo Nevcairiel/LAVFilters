@@ -85,6 +85,7 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   , m_bRM(FALSE)
   , m_bPMP(FALSE)
   , m_bMP4(FALSE)
+  , m_bTSDiscont(FALSE)
   , m_pBluRay(NULL)
   , m_bVC1Correction(FALSE)
   , m_bVC1SeenTimestamp(FALSE)
@@ -378,6 +379,8 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName)
   m_bRM = (_stricmp(m_pszInputFormat, "rm") == 0);
   m_bPMP = (_stricmp(m_pszInputFormat, "pmp") == 0);
   m_bMP4 = (_stricmp(m_pszInputFormat, "mp4") == 0);
+
+  m_bTSDiscont = m_avFormat->iformat->flags & AVFMT_TS_DISCONT;
 
   if (pszFileName) {
     WCHAR szOut[24];
@@ -1293,11 +1296,11 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
       bHasPGS = true;
   }
 
-  if ((m_bMPEGTS || m_bMPEGPS || m_avFormat->duration == AV_NOPTS_VALUE) && duration != INT64_MIN) {
+  if ((m_bTSDiscont || m_avFormat->duration == AV_NOPTS_VALUE) && duration != INT64_MIN) {
     DbgLog((LOG_TRACE, 10, L" -> Changing duration to %I64d (from %I64d, diff %.3fs)", duration, m_avFormat->duration, m_avFormat->duration == AV_NOPTS_VALUE ? 0.0f : (float)(duration-m_avFormat->duration)/(float)AV_TIME_BASE));
     m_avFormat->duration = duration;
   }
-  if ((m_bMPEGTS || m_bMPEGPS || m_avFormat->start_time == AV_NOPTS_VALUE) && start_time != INT64_MAX) {
+  if ((m_bTSDiscont || m_avFormat->start_time == AV_NOPTS_VALUE) && start_time != INT64_MAX) {
     DbgLog((LOG_TRACE, 10, L" -> Changing start_time to %I64d (from %I64d, diff %.3fs)", start_time, m_avFormat->start_time, m_avFormat->start_time == AV_NOPTS_VALUE ? 0.0f : (float)(start_time-m_avFormat->start_time)/(float)AV_TIME_BASE));
     m_avFormat->start_time = start_time;
   }
