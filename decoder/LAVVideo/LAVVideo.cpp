@@ -523,12 +523,12 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
   }
 
   BITMAPINFOHEADER *pBIH = NULL;
-  CMediaType mtOut = m_pOutput->CurrentMediaType();
-  videoFormatTypeHandler(mtOut.Format(), mtOut.FormatType(), &pBIH, NULL);
+  CMediaType &mtOut = m_pOutput->CurrentMediaType();
+  videoFormatTypeHandler(mtOut, &pBIH);
 
   long downstreamBuffers = pProperties->cBuffers;
   pProperties->cBuffers = max(pProperties->cBuffers, 2) + m_Decoder.GetBufferCount();
-  pProperties->cbBuffer = pBIH->biSizeImage;
+  pProperties->cbBuffer = pBIH ? pBIH->biSizeImage : 3110400;
   pProperties->cbAlign  = 1;
   pProperties->cbPrefix = 0;
 

@@ -480,6 +480,9 @@ void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPIN
   BITMAPINFOHEADER *bmi = NULL;
   DWORD dwAspectX = 0, dwAspectY = 0;
 
+  if (!format)
+    goto done;
+
   if (*formattype == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)format;
     rtAvg = vih->AvgTimePerFrame;
@@ -504,6 +507,7 @@ void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPIN
     ASSERT(FALSE);
   }
 
+done:
   if (pBMI) {
     *pBMI = bmi;
   }
@@ -524,6 +528,9 @@ void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *p
   WORD  nBlockAlign    = 0;
   DWORD nBytesPerSec   = 0;
 
+  if (!format)
+    goto done;
+
   if (*formattype == FORMAT_WaveFormatEx) {
     WAVEFORMATEX *wfex = (WAVEFORMATEX *)format;
     nSamples       = wfex->nSamplesPerSec;
@@ -538,6 +545,7 @@ void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *p
     nBitsPerSample = (WORD)vf2->BitsPerSample;
   }
 
+done:
   if (pnSamples)
     *pnSamples = nSamples;
   if (pnChannels)
