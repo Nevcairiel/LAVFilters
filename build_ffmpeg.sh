@@ -49,6 +49,7 @@ configure() (
     --enable-protocol=http \
     --disable-muxers \
     --enable-muxer=spdif \
+    --enable-dxva2 \
     --disable-hwaccels \
     --enable-hwaccel=h264_dxva2 \
     --enable-hwaccel=vc1_dxva2 \
