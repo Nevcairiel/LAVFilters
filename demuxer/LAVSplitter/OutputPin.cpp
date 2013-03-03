@@ -37,7 +37,7 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_newMT(NULL)
   , m_pinType(pinType)
   , m_Parser(this, container)
-  , m_rtPrev(Packet::INVALID_TIME)
+  , m_rtPrev(0)
   , m_bPacketAllocator(FALSE)
   , m_dwQueueMaxMem(256)
 {
@@ -285,7 +285,7 @@ HRESULT CLAVOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME t
 {
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 20, L"::DeliverNewSegment on %s Pin (rtStart: %I64d; rtStop: %I64d)", CBaseDemuxer::CStreamList::ToStringW(m_pinType), tStart, tStop));
-  m_rtPrev = Packet::INVALID_TIME;
+  m_rtPrev = 0;
   if(m_fFlushing) return S_FALSE;
   m_rtStart = tStart;
   if(!ThreadExists()) return S_FALSE;

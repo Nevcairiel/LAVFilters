@@ -790,7 +790,7 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
     // Filter PTS values
     // This will try to compensate for timestamp discontinuities in the stream
     if (m_pDemuxer->GetContainerFlags() & LAVFMT_TS_DISCONT) {
-      if (pPin->m_rtPrev != Packet::INVALID_TIME && !pPin->IsSubtitlePin()) {
+      if (!pPin->IsSubtitlePin()) {
         REFERENCE_TIME rt = pPacket->rtStart + m_rtOffset;
         if(_abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {
           m_rtOffset += pPin->m_rtPrev - rt;
