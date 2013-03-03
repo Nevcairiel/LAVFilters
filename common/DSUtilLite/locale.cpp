@@ -22,6 +22,10 @@
 #include "stdafx.h"
 #include "DShowUtil.h"
 
+#include <string>
+#include <regex>
+#include <algorithm>
+
 static struct {LPCSTR name, iso6392, iso6391, iso6392_2; LCID lcid;} s_isolangs[] =	// TODO : fill LCID !!!
 {
   {"Abkhazian", "abk", "ab"},
@@ -594,19 +598,30 @@ static std::string LanguageToISO6392(LPCSTR code)
       return std::string(s_isolangs[i].iso6392);
     }
   }
-  return std::string(code);
+  return std::string();
 }
 
 std::string ProbeForISO6392(LPCSTR lang)
 {
+  std::string isoLang;
   if (strlen(lang) == 2) {
-    return ISO6391To6392(lang);
+    isoLang = ISO6391To6392(lang);
   } else if (strlen(lang) == 3) {
-    return ISO6392Check(lang);
+    isoLang = ISO6392Check(lang);
   } else if (strlen(lang) > 3) {
-    return LanguageToISO6392(lang);
+    isoLang = LanguageToISO6392(lang);
+    if (isoLang.empty()) {
+      std::tr1::regex ogmRegex("\\[([[:alpha:]]{3})\\]");
+      std::tr1::cmatch res;
+      bool found = std::tr1::regex_search(lang, res, ogmRegex);
+      if (found && !res[1].str().empty()) {
+        isoLang = ISO6392Check(res[1].str().c_str());
+      }
+    }
   }
-  return std::string(lang);
+  if (isoLang.empty())
+    isoLang = std::string(lang);
+  return isoLang;
 }
 
 LCID ISO6391ToLcid(LPCSTR code)
