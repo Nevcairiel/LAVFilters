@@ -794,6 +794,7 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
         REFERENCE_TIME rt = pPacket->rtStart + m_rtOffset;
         if(_abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {
           m_rtOffset += pPin->m_rtPrev - rt;
+          m_bDiscontinuitySent.clear();
           DbgLog((LOG_TRACE, 10, L"::DeliverPacket(): MPEG-TS/PS discontinuity detected, adjusting offset to %I64d", m_rtOffset));
         }
       }
