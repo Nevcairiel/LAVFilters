@@ -27,7 +27,7 @@ static void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
 
 static void avfilter_free_lav_buffer(LAVFrame *pFrame)
 {
-  avfilter_unref_buffer((AVFilterBufferRef *)pFrame->priv_data);
+  av_frame_free((AVFrame **)&pFrame->priv_data);
 }
 
 HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LAVFrame *pFrame))
@@ -117,18 +117,21 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
     if (!m_pFilterGraph)
       goto deliver;
 
-    AVFilterBufferRef *out_picref = NULL;
-    AVFilterBufferRef *in_picref = NULL;
-
+    AVFrame *in_frame = NULL;
     // When flushing, we feed a NULL frame
     if (!bFlush) {
-      in_picref = avfilter_get_video_buffer_ref_from_arrays(pFrame->data, pFrame->stride, AV_PERM_READ, pFrame->width, pFrame->height, ff_pixfmt);
+      in_frame = av_frame_alloc();
 
-      in_picref->pts                    = pFrame->rtStart;
-      in_picref->video->interlaced      = pFrame->interlaced;
-      in_picref->video->top_field_first = pFrame->tff;
-      in_picref->buf->free              = lav_avfilter_default_free_buffer;
-      in_picref->video->sample_aspect_ratio = pFrame->aspect_ratio;
+      memcpy(in_frame->data, pFrame->data, sizeof(pFrame->data));
+      memcpy(in_frame->linesize, pFrame->stride, sizeof(pFrame->stride));
+
+      in_frame->width               = pFrame->width;
+      in_frame->height              = pFrame->height;
+      in_frame->format              = ff_pixfmt;
+      in_frame->pts                 = pFrame->rtStart;
+      in_frame->interlaced_frame    = pFrame->interlaced;
+      in_frame->top_field_first     = pFrame->tff;
+      in_frame->sample_aspect_ratio = pFrame->aspect_ratio;
 
       m_FilterPrevFrame = *pFrame;
       memset(m_FilterPrevFrame.data, 0, sizeof(m_FilterPrevFrame.data));
@@ -139,10 +142,15 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
       *pFrame = m_FilterPrevFrame;
     }
 
-    av_buffersrc_add_ref(m_pFilterBufferSrc, in_picref, 0);
+    if ((ret = av_buffersrc_write_frame(m_pFilterBufferSrc, in_frame)) < 0) {
+      av_frame_free(&in_frame);
+      goto deliver;
+    }
+
+    AVFrame *out_frame = av_frame_alloc();
     HRESULT hrDeliver = S_OK;
-    while (SUCCEEDED(hrDeliver) && (av_buffersink_get_buffer_ref(m_pFilterBufferSink, &out_picref, 0) >= 0)) {
-      if (ret >= 0 && out_picref) {
+    while (SUCCEEDED(hrDeliver) && (av_buffersink_get_frame(m_pFilterBufferSink, out_frame) >= 0)) {
+      if (ret >= 0) {
         LAVFrame *outFrame = NULL;
         AllocateFrame(&outFrame);
 
@@ -151,33 +159,32 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
           rtDuration >>= 1;
 
         // Copy most settings over
-        outFrame->format       = (out_picref->format == PIX_FMT_YUV420P) ? LAVPixFmt_YUV420 : (out_picref->format == PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
+        outFrame->format       = (out_frame->format == PIX_FMT_YUV420P) ? LAVPixFmt_YUV420 : (out_frame->format == PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
         outFrame->bpp          = pFrame->bpp;
         outFrame->ext_format   = pFrame->ext_format;
         outFrame->avgFrameDuration = pFrame->avgFrameDuration;
         outFrame->flags        = pFrame->flags;
 
-        outFrame->width        = out_picref->video->w;
-        outFrame->height       = out_picref->video->h;
-        outFrame->aspect_ratio = out_picref->video->sample_aspect_ratio;
-        outFrame->tff          = out_picref->video->top_field_first;
+        outFrame->width        = out_frame->width;
+        outFrame->height       = out_frame->height;
+        outFrame->aspect_ratio = out_frame->sample_aspect_ratio;
+        outFrame->tff          = out_frame->top_field_first;
         
-        REFERENCE_TIME pts     = av_rescale(out_picref->pts, m_pFilterBufferSink->inputs[0]->time_base.num * 10000000LL, m_pFilterBufferSink->inputs[0]->time_base.den);
+        REFERENCE_TIME pts     = av_rescale(out_frame->pts, m_pFilterBufferSink->inputs[0]->time_base.num * 10000000LL, m_pFilterBufferSink->inputs[0]->time_base.den);
         outFrame->rtStart      = pts;
         outFrame->rtStop       = pts + rtDuration;
-        memcpy(outFrame->data, out_picref->data, 4 * sizeof(uint8_t*));
-        memcpy(outFrame->stride, out_picref->linesize, 4 * sizeof(int));
+        memcpy(outFrame->data, out_frame->data, sizeof(outFrame->data));
+        memcpy(outFrame->stride, out_frame->linesize, sizeof(outFrame->stride));
 
         outFrame->destruct = avfilter_free_lav_buffer;
-        outFrame->priv_data = out_picref;
+        outFrame->priv_data = av_frame_alloc();
+        av_frame_move_ref((AVFrame *)outFrame->priv_data, out_frame);
 
         hrDeliver = (*this.*deliverFunc)(outFrame);
       }
     }
-
-    if (in_picref)
-      avfilter_unref_buffer(in_picref);
     ReleaseFrame(&pFrame);
+    av_frame_free(&out_frame);
 
     // We EOF'ed the graph, need to close it
     if (bFlush) {
