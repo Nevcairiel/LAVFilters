@@ -98,7 +98,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
   m_pParser = av_parser_init(codec);
   ASSERT(m_pParser);
 
-  m_pAVCtx = avcodec_alloc_context();
+  m_pAVCtx = avcodec_alloc_context3(avcodec_find_decoder(codec));
   CheckPointer(m_pAVCtx, E_POINTER);
 
   DbgLog((LOG_TRACE, 20, "Creating Bistreaming Context..."));
