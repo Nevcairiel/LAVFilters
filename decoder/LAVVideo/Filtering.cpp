@@ -20,9 +20,17 @@
 #include "stdafx.h"
 #include "LAVVideo.h"
 
-static void lav_avfilter_default_free_buffer(AVFilterBuffer *ptr)
+static void lav_free_lavframe(void *opaque, uint8_t *data)
 {
-  // Nothing
+  LAVFrame *frame = (LAVFrame *)opaque;
+  FreeLAVFrameBuffers(frame);
+  SAFE_CO_FREE(opaque);
+}
+
+static void lav_unref_frame(void *opaque, uint8_t *data)
+{
+  AVBufferRef *buf = (AVBufferRef *)opaque;
+  av_buffer_unref(&buf);
 }
 
 static void avfilter_free_lav_buffer(LAVFrame *pFrame)
@@ -118,6 +126,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
       goto deliver;
 
     AVFrame *in_frame = NULL;
+    BOOL refcountedFrame = (m_Decoder.HasThreadSafeBuffers() == S_OK);
     // When flushing, we feed a NULL frame
     if (!bFlush) {
       in_frame = av_frame_alloc();
@@ -132,6 +141,21 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
       in_frame->interlaced_frame    = pFrame->interlaced;
       in_frame->top_field_first     = pFrame->tff;
       in_frame->sample_aspect_ratio = pFrame->aspect_ratio;
+
+      if (refcountedFrame) {
+        AVBufferRef *pFrameBuf = av_buffer_create(NULL, 0, lav_free_lavframe, pFrame, 0);
+        const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get((AVPixelFormat)in_frame->format);
+        int planes = (in_frame->format == PIX_FMT_NV12) ? 2 : desc->nb_components;
+
+        for (int i = 0; i < planes; i++) {
+          int h_shift    = (i == 1 || i == 2) ? desc->log2_chroma_h : 0;
+          int plane_size = (in_frame->height >> h_shift) * in_frame->linesize[i];
+
+          AVBufferRef *planeRef = av_buffer_ref(pFrameBuf);
+          in_frame->buf[i] = av_buffer_create(in_frame->data[i], plane_size, lav_unref_frame, planeRef, AV_BUFFER_FLAG_READONLY);
+        }
+        av_buffer_unref(&pFrameBuf);
+      }
 
       m_FilterPrevFrame = *pFrame;
       memset(m_FilterPrevFrame.data, 0, sizeof(m_FilterPrevFrame.data));
@@ -183,7 +207,9 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
         hrDeliver = (*this.*deliverFunc)(outFrame);
       }
     }
-    ReleaseFrame(&pFrame);
+    if (!refcountedFrame)
+      ReleaseFrame(&pFrame);
+    av_frame_free(&in_frame);
     av_frame_free(&out_frame);
 
     // We EOF'ed the graph, need to close it
