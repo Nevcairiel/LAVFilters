@@ -299,7 +299,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   // Write new path
   sprintf_s(path+strlen(path), a_len-strlen(path), "\\CLIPINF\\%S.clpi", basename);
 
-  CLPI_CL *cl = clpi_parse(path, 0);
+  CLPI_CL *cl = clpi_parse(path);
   if (!cl)
     return E_FAIL;
 
