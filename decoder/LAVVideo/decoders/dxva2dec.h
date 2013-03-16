@@ -28,9 +28,9 @@ typedef HRESULT WINAPI pCreateDeviceManager9(UINT *pResetToken, IDirect3DDeviceM
 
 typedef struct {
   int index;
+  bool used;
   LPDIRECT3DSURFACE9 d3d;
   uint64_t age;
-  long ref;
   IMediaSample *sample;
 } d3d_surface_t;
 
@@ -84,8 +84,8 @@ private:
   HRESULT RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager);
   HRESULT CheckHWCompatConditions(GUID decoderGuid);
 
-  static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
-  static void release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic);
+  static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flags);
+  static void free_dxva2_buffer(void *opaque, uint8_t *data);
   d3d_surface_t *FindSurface(LPDIRECT3DSURFACE9 pSurface);
 
   STDMETHODIMP FlushDisplayQueue();

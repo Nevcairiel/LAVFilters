@@ -901,9 +901,9 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   for (int i = 0; i < m_NumSurfaces; i++) {
     m_pSurfaces[i].index = i;
     m_pSurfaces[i].d3d = ppSurfaces[i];
-    m_pSurfaces[i].ref = 0;
     m_pSurfaces[i].age = 0;
     m_pSurfaces[i].sample = NULL;
+    m_pSurfaces[i].used = false;
   }
 
   DbgLog((LOG_TRACE, 10, L"-> Successfully created %d surfaces (%dx%d)", m_NumSurfaces, m_dwSurfaceWidth, m_dwSurfaceHeight));
@@ -958,13 +958,36 @@ static enum PixelFormat get_dxva2_format(struct AVCodecContext *s, const enum Pi
   return fmt[0];
 }
 
-int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
+typedef struct SurfaceWrapper {
+  LPDIRECT3DSURFACE9 surface;
+  CDecDXVA2 *pDec;
+} SurfaceWrapper;
+
+void CDecDXVA2::free_dxva2_buffer(void *opaque, uint8_t *data)
+{
+  SurfaceWrapper *sw = (SurfaceWrapper *)opaque;
+  CDecDXVA2 *pDec = sw->pDec;
+
+  LPDIRECT3DSURFACE9 pSurface = sw->surface;
+  for (int i = 0; i < pDec->m_NumSurfaces; i++) {
+    if (pDec->m_pSurfaces[i].d3d == pSurface) {
+      IMediaSample *pSample = pDec->m_pSurfaces[i].sample;
+      pDec->m_pSurfaces[i].sample = NULL;
+      SafeRelease(&pSample);
+      pDec->m_pSurfaces[i].used = false;
+      break;
+    }
+  }
+  delete sw;
+}
+
+int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flags)
 {
   CDecDXVA2 *pDec = (CDecDXVA2 *)c->opaque;
 
   HRESULT hr = S_OK;
 
-  if (c->pix_fmt != PIX_FMT_DXVA2_VLD || (c->codec_id == AV_CODEC_ID_H264 && !H264_CHECK_PROFILE(c->profile))) {
+  if (pic->format != PIX_FMT_DXVA2_VLD || (c->codec_id == AV_CODEC_ID_H264 && !H264_CHECK_PROFILE(c->profile))) {
     DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt or unsupported profile"));
     pDec->m_bFailHWDecode = TRUE;
     return -1;
@@ -1004,8 +1027,6 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     }
   }
 
-  pic->type = FF_BUFFER_TYPE_USER;
-
   if (FAILED(pDec->m_pD3DDevMngr->TestDevice(pDec->m_hDevice))) {
     DbgLog((LOG_ERROR, 10, L"Device Lost"));
   }
@@ -1037,7 +1058,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     int old, old_unused;
     for (i = 0, old = 0, old_unused = -1; i < pDec->m_NumSurfaces; i++) {
       d3d_surface_t *surface = &pDec->m_pSurfaces[i];
-      if (!surface->ref && (old_unused == -1 || surface->age < pDec->m_pSurfaces[old_unused].age))
+      if (!surface->used && (old_unused == -1 || surface->age < pDec->m_pSurfaces[old_unused].age))
         old_unused = i;
       if (surface->age < pDec->m_pSurfaces[old].age)
         old = i;
@@ -1057,34 +1078,21 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
     return -1;
   }
 
-  pDec->m_pSurfaces[i].age = pDec->m_CurrentSurfaceAge++;
-  pDec->m_pSurfaces[i].ref = 1;
+  pDec->m_pSurfaces[i].age  = pDec->m_CurrentSurfaceAge++;
+  pDec->m_pSurfaces[i].used = true;
 
   memset(pic->data, 0, sizeof(pic->data));
   memset(pic->linesize, 0, sizeof(pic->linesize));
+  memset(pic->buf, 0, sizeof(pic->buf));
 
   pic->data[0] = pic->data[3] = (uint8_t *)pSurface;
 
+  SurfaceWrapper *surfaceWrapper = new SurfaceWrapper();
+  surfaceWrapper->pDec = pDec;
+  surfaceWrapper->surface = pSurface;
+  pic->buf[0] = av_buffer_create(NULL, 0, free_dxva2_buffer, surfaceWrapper, 0);
+
   return 0;
-}
-
-void CDecDXVA2::release_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic)
-{
-  CDecDXVA2 *pDec = (CDecDXVA2 *)c->opaque;
-
-  LPDIRECT3DSURFACE9 pSurface = (LPDIRECT3DSURFACE9)pic->data[3];
-  for (int i = 0; i < pDec->m_NumSurfaces; i++) {
-    if (pDec->m_pSurfaces[i].d3d == pSurface) {
-      pDec->m_pSurfaces[i].ref--;
-      if (pDec->m_pSurfaces[i].ref == 0) {
-        IMediaSample *pSample = pDec->m_pSurfaces[i].sample;
-        pDec->m_pSurfaces[i].sample = NULL;
-        SafeRelease(&pSample);
-      }
-    }
-  }
-
-  memset(pic->data, 0, sizeof(pic->data));
 }
 
 HRESULT CDecDXVA2::AdditionaDecoderInit()
@@ -1096,8 +1104,7 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
   m_pAVCtx->strict_std_compliance = FF_COMPLIANCE_STRICT;
   m_pAVCtx->hwaccel_context = ctx;
   m_pAVCtx->get_format      = get_dxva2_format;
-  m_pAVCtx->get_buffer      = get_dxva2_buffer;
-  m_pAVCtx->release_buffer  = release_dxva2_buffer;
+  m_pAVCtx->get_buffer2     = get_dxva2_buffer;
   m_pAVCtx->opaque          = this;
 
   m_pAVCtx->slice_flags    |= SLICE_FLAG_ALLOW_FIELD;
@@ -1133,7 +1140,7 @@ STDMETHODIMP CDecDXVA2::Flush()
     IMediaSample *pSample = s->sample;
     s->sample = NULL;
     SafeRelease(&pSample);
-    s->ref = 0;
+    s->used = false;
     //s->age = 0;
   }
 
@@ -1186,14 +1193,9 @@ HRESULT CDecDXVA2::HandleDXVA2Frame(LAVFrame *pFrame)
     LAVFrame *pQueuedFrame = m_FrameQueue[m_FrameQueuePosition];
     m_FrameQueue[m_FrameQueuePosition] = pFrame;
 
-    d3d_surface_t *s = FindSurface((LPDIRECT3DSURFACE9)pFrame->data[3]);
-    s->ref++;
-
     m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
 
     if (pQueuedFrame) {
-      s = FindSurface((LPDIRECT3DSURFACE9)pQueuedFrame->data[3]);
-      s->ref--;
       DeliverDXVA2Frame(pQueuedFrame);
     }
   }
