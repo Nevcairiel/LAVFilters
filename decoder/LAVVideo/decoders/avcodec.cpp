@@ -357,6 +357,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_pAVCtx->error_concealment     = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
   m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
   m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT;
+  m_pAVCtx->refcounted_frames     = 1;
 
   if (codec == AV_CODEC_ID_H264)
     m_pAVCtx->flags2             |= CODEC_FLAG2_SHOW_ALL;
@@ -382,7 +383,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_pAVCtx->thread_count = 1;
   }
 
-  m_pFrame = avcodec_alloc_frame();
+  m_pFrame = av_frame_alloc();
   CheckPointer(m_pFrame, E_POINTER);
 
   m_h264RandomAccess.SetAVCNALSize(0);
@@ -613,7 +614,7 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
     av_freep(&m_pAVCtx->extradata);
     av_freep(&m_pAVCtx);
   }
-  av_freep(&m_pFrame);
+  av_frame_free(&m_pFrame);
 
   av_freep(&m_pFFBuffer);
   m_nFFBufferSize = 0;
@@ -629,6 +630,12 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
   m_nCodecId = AV_CODEC_ID_NONE;
 
   return S_OK;
+}
+
+static void lav_avframe_free(LAVFrame *frame)
+{
+  ASSERT(frame->priv_data);
+  av_frame_free((AVFrame **)&frame->priv_data);
 }
 
 STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity)
@@ -793,11 +800,13 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     }
 
     if (FAILED(PostDecode())) {
+      av_frame_unref(m_pFrame);
       return E_FAIL;
     }
 
     // Decoding of this frame failed ... oh well!
     if (used_bytes < 0) {
+      av_frame_unref(m_pFrame);
       return S_OK;
     }
 
@@ -837,6 +846,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (!got_picture || !m_pFrame->data[0]) {
       if (!avpkt.size)
         bFlush = FALSE; // End flushing, no more frames
+      av_frame_unref(m_pFrame);
       continue;
     }
 
@@ -909,6 +919,10 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         pOutFrame->data[i]   = m_pFrame->data[i];
         pOutFrame->stride[i] = m_pFrame->linesize[i];
       }
+
+      pOutFrame->priv_data = av_frame_alloc();
+      av_frame_ref((AVFrame *)pOutFrame->priv_data, m_pFrame);
+      pOutFrame->destruct  = lav_avframe_free;
     }
 
     if (bEndOfSequence)
@@ -932,6 +946,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (bFlush) {
       m_CurrentThread = (m_CurrentThread + 1) % m_pAVCtx->thread_count;
     }
+    av_frame_unref(m_pFrame);
   }
 
   return S_OK;

@@ -1255,7 +1255,11 @@ __forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
     return false;
   }
 
+  // Free AVFrame based buffers again
+  FreeLAVFrameBuffers(pFrame);
+  // Allocate memory buffers
   AllocLAVFrameBuffers(pFrame, LockedRect.Pitch);
+  // Copy surface onto memory buffers
   CopyFrameNV12((BYTE *)LockedRect.pBits, pFrame->data[0], pFrame->data[1], surfaceDesc.Height, pFrame->height, LockedRect.Pitch);
 
   pSurface->UnlockRect();

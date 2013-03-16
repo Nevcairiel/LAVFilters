@@ -46,7 +46,7 @@ public:
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
   STDMETHODIMP_(BOOL) IsInterlaced();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"avcodec"; }
-  STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
+  STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
 
   // CDecBase
   STDMETHODIMP Init();
