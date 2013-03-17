@@ -88,7 +88,7 @@ private:
   static void free_dxva2_buffer(void *opaque, uint8_t *data);
   d3d_surface_t *FindSurface(LPDIRECT3DSURFACE9 pSurface);
 
-  STDMETHODIMP FlushDisplayQueue();
+  STDMETHODIMP FlushDisplayQueue(BOOL bDeliver);
 
 private:
   friend class CDXVA2SurfaceAllocator;
