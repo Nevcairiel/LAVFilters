@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include <deque>
-
 #include "StreamInfo.h"
+#include "Packet.h"
 
 #define DSHOW_TIME_BASE 10000000        // DirectShow times are in 100ns units
 #define NO_SUBTITLE_PID DWORD_MAX
@@ -30,74 +29,6 @@
 #define FORCED_SUB_STRING L"Forced Subtitles (auto)"
 
 struct ILAVFSettingsInternal;
-
-// Data Packet for queue storage
-class Packet
-{
-public:
-  static const REFERENCE_TIME INVALID_TIME = _I64_MIN;
-
-  DWORD StreamId;
-  BOOL bDiscontinuity, bSyncPoint;
-  REFERENCE_TIME rtStart, rtStop;
-  LONGLONG bPosition;
-  AM_MEDIA_TYPE* pmt;
-
-#define LAV_PACKET_PARSED           0x0001
-#define LAV_PACKET_MOV_TEXT         0x0002
-#define LAV_PACKET_FORCED_SUBTITLE  0x0004
-#define LAV_PACKET_H264_ANNEXB      0x0008
-#define LAV_PACKET_SRT              0x0010
-  DWORD dwFlags;
-
-  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = FALSE; rtStart = rtStop = INVALID_TIME; m_sSize = 0; m_sBlockSize = 0; bPosition = -1; dwFlags = 0; }
-  ~Packet() { DeleteMediaType(pmt); SAFE_CO_FREE(m_pbData); }
-
-  // Getter
-  size_t GetDataSize() const { return m_sSize; }
-  BYTE *GetData() { return m_pbData; }
-  bool IsEmpty() const { return m_sSize == 0; }
-
-  // Setter
-  void SetDataSize(size_t len) {
-    m_sSize = len;
-    if (m_sSize > m_sBlockSize || !m_pbData) {
-      BYTE *tmp = (BYTE *)CoTaskMemRealloc(m_pbData, m_sSize + FF_INPUT_BUFFER_PADDING_SIZE);
-      if (!tmp) SAFE_CO_FREE(m_pbData);
-      m_pbData = tmp;
-      m_sBlockSize = m_sSize;
-    }
-    if (m_pbData)
-      memset(m_pbData+m_sSize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
-  }
-  void SetData(const void* ptr, size_t len) { SetDataSize(len); if (m_pbData) memcpy(m_pbData, ptr, len); }
-  void Clear() { m_sSize = m_sBlockSize = 0; SAFE_CO_FREE(m_pbData); }
-
-  // Append the data of the package to our data buffer
-  void Append(Packet *ptr) {
-    AppendData(ptr->GetData(), ptr->GetDataSize());
-  }
-
-  void AppendData(const void* ptr, size_t len) {
-    size_t prevSize = m_sSize;
-    SetDataSize(m_sSize + len);
-    if (m_pbData)
-      memcpy(m_pbData+prevSize, ptr, len);
-  }
-
-  // Remove count bytes from position index
-  void RemoveHead(size_t count) {
-    count = min(count, m_sSize);
-    if (m_pbData && count > 0)
-      memmove(m_pbData, m_pbData+count, m_sSize-count);
-    SetDataSize(m_sSize - count);
-  }
-
-private:
-  size_t m_sSize;
-  size_t m_sBlockSize;
-  BYTE *m_pbData;
-};
 
 typedef struct CSubtitleSelector {
   std::string audioLanguage;
