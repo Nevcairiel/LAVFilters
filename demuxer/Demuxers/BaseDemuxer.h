@@ -38,7 +38,7 @@ public:
   static const REFERENCE_TIME INVALID_TIME = _I64_MIN;
 
   DWORD StreamId;
-  BOOL bDiscontinuity, bSyncPoint, bAppendable;
+  BOOL bDiscontinuity, bSyncPoint;
   REFERENCE_TIME rtStart, rtStop;
   LONGLONG bPosition;
   AM_MEDIA_TYPE* pmt;
@@ -50,7 +50,7 @@ public:
 #define LAV_PACKET_SRT              0x0010
   DWORD dwFlags;
 
-  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = bAppendable = FALSE; rtStart = rtStop = INVALID_TIME; m_sSize = 0; m_sBlockSize = 0; bPosition = -1; dwFlags = 0; }
+  Packet() { pmt = NULL; m_pbData = NULL; bDiscontinuity = bSyncPoint = FALSE; rtStart = rtStop = INVALID_TIME; m_sSize = 0; m_sBlockSize = 0; bPosition = -1; dwFlags = 0; }
   ~Packet() { DeleteMediaType(pmt); SAFE_CO_FREE(m_pbData); }
 
   // Getter

@@ -36,7 +36,7 @@ public:
   CPacketQueue() : m_dataSize(0) {};
 
   // Queue a new packet at the end of the list
-  void Queue(Packet *pPacket, BOOL tryAppend = TRUE);
+  void Queue(Packet *pPacket);
 
   // Get a packet from the beginning of the list
   Packet *Get();

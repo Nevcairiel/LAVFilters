@@ -187,7 +187,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
     p2->pmt = m_pPacketBuffer->pmt;
     m_pPacketBuffer->pmt = NULL;
 
-    m_queue.Queue(p2, FALSE);
+    m_queue.Queue(p2);
 
     if(pPacket->rtStart != Packet::INVALID_TIME) {
       m_pPacketBuffer->rtStart = pPacket->rtStart;

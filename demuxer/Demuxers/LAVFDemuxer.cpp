@@ -738,7 +738,6 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     pPacket->bSyncPoint = pkt.flags & AV_PKT_FLAG_KEY;
-    pPacket->bAppendable = 0; //!pPacket->bSyncPoint;
     pPacket->bDiscontinuity = (pkt.flags & AV_PKT_FLAG_CORRUPT);
 #ifdef DEBUG
     if (pkt.flags & AV_PKT_FLAG_CORRUPT)
