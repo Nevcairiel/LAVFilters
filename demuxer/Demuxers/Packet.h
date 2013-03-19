@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <deque>
-
 // Data Packet for queue storage
 class Packet
 {
@@ -30,18 +28,18 @@ public:
   Packet();
   ~Packet();
 
-  size_t GetDataSize() const { return m_sSize; }
-  BYTE *GetData() { return m_pbData; }
-  bool IsEmpty() const { return m_sSize == 0; }
+  int GetDataSize() const { return m_DataSize; }
+  BYTE *GetData() { return m_Data; }
 
-  void SetDataSize(size_t len);
-  void SetData(const void* ptr, size_t len);
+  int SetDataSize(int len);
+  int SetData(const void* ptr, int len);
+  int SetPacket(AVPacket *pkt);
 
   // Append the data of the package to our data buffer
-  void Append(Packet *ptr);
-  void AppendData(const void* ptr, size_t len);
+  int Append(Packet *ptr);
+  int AppendData(const void* ptr, int len);
   // Remove count bytes from position index
-  void RemoveHead(size_t count);
+  int RemoveHead(int count);
 
 public:
   DWORD StreamId;
@@ -58,7 +56,7 @@ public:
   DWORD dwFlags;
 
 private:
-  size_t m_sSize;
-  size_t m_sBlockSize;
-  BYTE *m_pbData;
+  int m_DataSize;
+  BYTE *m_Data;
+  AVBufferRef *m_Buf;
 };

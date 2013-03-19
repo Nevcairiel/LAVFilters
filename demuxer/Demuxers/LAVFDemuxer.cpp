@@ -678,10 +678,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       pkt.dts = AV_NOPTS_VALUE;
 
     if(pkt.data) {
-      pPacket->SetData(pkt.data, pkt.size);
-      if (!pPacket->GetData()) {
+      result = pPacket->SetPacket(&pkt);
+      if (result < 0)
         return E_OUTOFMEMORY;
-      }
     }
 
     pPacket->StreamId = (DWORD)pkt.stream_index;

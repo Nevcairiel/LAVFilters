@@ -22,61 +22,87 @@
 
 Packet::Packet()
   : pmt(NULL)
-  , m_pbData(NULL)
   , bDiscontinuity(FALSE)
   , bSyncPoint(FALSE)
   , rtStart(INVALID_TIME)
   , rtStop(INVALID_TIME)
-  , m_sSize(0)
-  , m_sBlockSize(0)
   , bPosition(-1)
   , dwFlags(0)
+  , m_DataSize(0)
+  , m_Data(NULL)
+  , m_Buf(NULL)
 {
 }
 
 Packet::~Packet()
 {
   DeleteMediaType(pmt);
-  SAFE_CO_FREE(m_pbData);
+  av_buffer_unref(&m_Buf);
 }
 
-void Packet::SetDataSize(size_t len)
+int Packet::SetDataSize(int len)
 {
-  m_sSize = len;
-  if (m_sSize > m_sBlockSize || !m_pbData) {
-    BYTE *tmp = (BYTE *)CoTaskMemRealloc(m_pbData, m_sSize + FF_INPUT_BUFFER_PADDING_SIZE);
-    if (!tmp) SAFE_CO_FREE(m_pbData);
-    m_pbData = tmp;
-    m_sBlockSize = m_sSize;
+  if (len < 0)
+    return -1;
+  if (!m_Buf || m_Buf->size < (len+FF_INPUT_BUFFER_PADDING_SIZE)) {
+    int ret = av_buffer_realloc(&m_Buf, len + FF_INPUT_BUFFER_PADDING_SIZE);
+    if (ret < 0)
+      return ret;
+    m_Data = m_Buf->data;
   }
-  if (m_pbData)
-    memset(m_pbData+m_sSize, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+  m_DataSize = len;
+
+  return 0;
 }
 
-void Packet::SetData(const void* ptr, size_t len)
+int Packet::SetData(const void* ptr, int len)
 {
-  SetDataSize(len);
-  if (m_pbData)
-    memcpy(m_pbData, ptr, len);
+  if (!ptr || len < 0)
+    return -1;
+  int ret = SetDataSize(len);
+  if (ret < 0)
+    return ret;
+
+  memcpy(m_Data, ptr, len);
+  return 0;
 }
 
-void Packet::Append(Packet *ptr)
+int Packet::SetPacket(AVPacket *pkt)
 {
-  AppendData(ptr->GetData(), ptr->GetDataSize());
+  if (pkt->buf) {
+    ASSERT(!m_Buf);
+    m_Buf = av_buffer_ref(pkt->buf);
+    if (!m_Buf)
+      return -1;
+    m_Data = m_Buf->data;
+    m_DataSize = pkt->size;
+    return 0;
+  } else {
+    return SetData(pkt->data, pkt->size);
+  }
 }
 
-void Packet::AppendData(const void* ptr, size_t len)
+int Packet::Append(Packet *ptr)
 {
-  size_t prevSize = m_sSize;
-  SetDataSize(m_sSize + len);
-  if (m_pbData)
-    memcpy(m_pbData+prevSize, ptr, len);
+  return AppendData(ptr->GetData(), ptr->GetDataSize());
 }
 
-void Packet::RemoveHead(size_t count)
+int Packet::AppendData(const void* ptr, int len)
 {
-  count = min(count, m_sSize);
-  if (m_pbData && count > 0)
-    memmove(m_pbData, m_pbData+count, m_sSize-count);
-  SetDataSize(m_sSize - count);
+  int prevSize = m_DataSize;
+  int ret = SetDataSize(m_DataSize + len);
+  if (ret < 0)
+    return ret;
+  memcpy(m_Data+prevSize, ptr, len);
+  return 0;
+}
+
+int Packet::RemoveHead(int count)
+{
+  count = min(count, m_DataSize);
+  if (!m_Data || count < 0)
+    return -1;
+  m_Data += count;
+  m_DataSize -= count;
+  return 0;
 }
