@@ -44,12 +44,18 @@ int Packet::SetDataSize(int len)
 {
   if (len < 0)
     return -1;
-  if (!m_Buf || m_Buf->size < (len+FF_INPUT_BUFFER_PADDING_SIZE)) {
+
+  // RemoveHead may have moved m_Data, make sure the data moved too.
+  if (m_Buf && m_Buf->data != m_Data)
+    memmove(m_Buf->data, m_Data, m_DataSize);
+
+  // Re-allocate the buffer, if required
+  if (!m_Buf || m_Buf->size < (len + FF_INPUT_BUFFER_PADDING_SIZE)) {
     int ret = av_buffer_realloc(&m_Buf, len + FF_INPUT_BUFFER_PADDING_SIZE);
     if (ret < 0)
       return ret;
-    m_Data = m_Buf->data;
   }
+  m_Data = m_Buf->data;
   m_DataSize = len;
 
   return 0;
