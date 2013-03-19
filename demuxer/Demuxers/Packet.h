@@ -36,7 +36,6 @@ public:
 
   void SetDataSize(size_t len);
   void SetData(const void* ptr, size_t len);
-  void Clear();
 
   // Append the data of the package to our data buffer
   void Append(Packet *ptr);

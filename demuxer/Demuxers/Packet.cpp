@@ -60,12 +60,6 @@ void Packet::SetData(const void* ptr, size_t len)
     memcpy(m_pbData, ptr, len);
 }
 
-void Packet::Clear()
-{
-  m_sSize = m_sBlockSize = 0;
-  SAFE_CO_FREE(m_pbData);
-}
-
 void Packet::Append(Packet *ptr)
 {
   AppendData(ptr->GetData(), ptr->GetDataSize());
