@@ -133,6 +133,9 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
   if (!*ppDst) return E_OUTOFMEMORY;
   **ppDst = *pSrc;
 
+  (*ppDst)->destruct  = NULL;
+  (*ppDst)->priv_data = NULL;
+
   AllocLAVFrameBuffers(*ppDst, pSrc->stride[0]);
 
   LAVPixFmtDesc desc = getPixelFormatDesc(pSrc->format);

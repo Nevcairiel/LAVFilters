@@ -1453,6 +1453,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
           m_pLastSequenceFrame->data[0] = data0;
           m_pLastSequenceFrame->data[3] = data3;
 
+          // Be careful not to accidentally copy the destructor of the original frame, that would end up being bad
+          m_pLastSequenceFrame->destruct = NULL;
+          m_pLastSequenceFrame->priv_data = NULL;
+
           IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)m_pLastSequenceFrame->data[3];
 
           IDirect3DDevice9 *pDevice = NULL;
