@@ -129,6 +129,7 @@ HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame)
 
 HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
 {
+  ASSERT(pSrc->format != LAVPixFmt_DXVA2);
   *ppDst = (LAVFrame *)CoTaskMemAlloc(sizeof(LAVFrame));
   if (!*ppDst) return E_OUTOFMEMORY;
   **ppDst = *pSrc;
