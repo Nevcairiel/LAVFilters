@@ -58,8 +58,8 @@ public:
   const stream* SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors, std::string audioLanguage) { return m_lavfDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage); }
 
   STDMETHODIMP SetTitle(uint32_t idx);
-  STDMETHODIMP GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName);
-  STDMETHODIMP GetNumTitles(uint32_t *count);
+  /*STDMETHODIMP GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName);
+  STDMETHODIMP GetNumTitles(uint32_t *count);*/
 
   // IAMExtendedSeeking
   STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);

@@ -329,7 +329,7 @@ void CBDDemuxer::ProcessClipLanguages()
   }
 }
 
-STDMETHODIMP CBDDemuxer::GetNumTitles(uint32_t *count)
+/*STDMETHODIMP CBDDemuxer::GetNumTitles(uint32_t *count)
 {
   CheckPointer(count, E_POINTER);
 
@@ -360,7 +360,7 @@ STDMETHODIMP CBDDemuxer::GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, 
   }
 
   return E_FAIL;
-}
+}*/
 
 void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
 {
