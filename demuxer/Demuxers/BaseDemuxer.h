@@ -85,11 +85,13 @@ public:
   virtual HRESULT StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const = 0;
 
   // Select the active title
-  virtual STDMETHODIMP SetTitle(uint32_t idx) { return E_NOTIMPL; }
+  virtual STDMETHODIMP SetTitle(int idx) { return E_NOTIMPL; }
+  // Query the active title
+  virtual STDMETHODIMP_(int) GetTitle() { return 0; }
   // Get Title Info
-  virtual STDMETHODIMP GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName) { return E_NOTIMPL; }
+  virtual STDMETHODIMP GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName) { return E_NOTIMPL; }
   // Title count
-  virtual STDMETHODIMP GetNumTitles(uint32_t *count) { return E_NOTIMPL; }
+  virtual STDMETHODIMP_(int) GetNumTitles() { return 0; }
   
   // Set the currently active stream of one type
   // The demuxers can use this to filter packets before returning back to the caller on GetNextPacket

@@ -270,7 +270,7 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
   return hr;
 }
 
-STDMETHODIMP CBDDemuxer::SetTitle(uint32_t idx)
+STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 {
   HRESULT hr = S_OK;
   int ret; // return values
@@ -329,16 +329,12 @@ void CBDDemuxer::ProcessClipLanguages()
   }
 }
 
-/*STDMETHODIMP CBDDemuxer::GetNumTitles(uint32_t *count)
+/*STDMETHODIMP_(int) CBDDemuxer::GetNumTitles()
 {
-  CheckPointer(count, E_POINTER);
-
-  *count = m_nTitleCount;
-
-  return S_OK;
+  return m_nTitleCount;
 }
 
-STDMETHODIMP CBDDemuxer::GetTitleInfo(uint32_t idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName)
+STDMETHODIMP CBDDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName)
 {
   if (idx >= m_nTitleCount) { return E_FAIL; }
 
