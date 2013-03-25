@@ -28,7 +28,13 @@
 #include "moreuuids.h"
 
 extern "C" {
+typedef struct CodecMime{
+  char str[32];
+  enum AVCodecID id;
+} CodecMime;
 #include "libavformat/mpegts.h"
+#include "libavformat/matroska.h"
+#include "libavutil/avstring.h"
 }
 
 #ifdef DEBUG
@@ -542,6 +548,59 @@ void CLAVFDemuxer::UpdateSubStreams()
       }
     }
   }
+}
+
+STDMETHODIMP CLAVFDemuxer::SetTitle(int idx)
+{
+  if (!m_bMatroska)
+    return E_NOTIMPL;
+  av_mkv_set_next_edition(m_avFormat, idx);
+  return S_OK;
+}
+
+STDMETHODIMP_(int) CLAVFDemuxer::GetTitle()
+{
+  if (!m_bMatroska)
+    return 0;
+  return av_mkv_get_edition(m_avFormat);
+}
+
+STDMETHODIMP CLAVFDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName)
+{
+  if (!m_bMatroska)
+    return E_NOTIMPL;
+
+  AVEdition *editions = NULL;
+  av_mkv_get_editions(m_avFormat, &editions);
+
+  AVEdition *current_edition = &editions[idx];
+
+  if (rtDuration)
+    *rtDuration = av_rescale(current_edition->duration, DSHOW_TIME_BASE, AV_TIME_BASE);
+  if (ppszName) {
+    char *title = NULL;
+    int total_seconds = current_edition->duration / AV_TIME_BASE;
+    int seconds = total_seconds % 60;
+    int minutes = total_seconds / 60 % 60;
+    int hours   = total_seconds / 3600;
+    if (current_edition->title) {
+      title = av_asprintf("E: %s [%02d:%02d:%02d]", current_edition->title, hours, minutes, seconds);
+    } else {
+      title = av_asprintf("E: Edition %d [%02d:%02d:%02d]", idx+1, hours, minutes, seconds);
+    }
+    size_t len = strlen(title);
+    *ppszName = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * (len + 1));
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, title, -1, *ppszName, len+1);
+    av_freep(&title);
+  }
+  return S_OK;
+}
+
+STDMETHODIMP_(int) CLAVFDemuxer::GetNumTitles()
+{
+  if (!m_bMatroska)
+    return 0;
+  return av_mkv_get_num_editions(m_avFormat);
 }
 
 void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)

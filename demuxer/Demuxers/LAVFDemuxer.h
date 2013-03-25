@@ -62,6 +62,12 @@ public:
   const char *GetContainerFormat() const;
   virtual DWORD GetContainerFlags() { return m_bTSDiscont ? LAVFMT_TS_DISCONT : 0; }
   HRESULT StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const;
+
+  STDMETHODIMP SetTitle(int idx);
+  STDMETHODIMP_(int) GetTitle();
+  STDMETHODIMP GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCHAR **ppszName);
+  STDMETHODIMP_(int) GetNumTitles();
+
   void SettingsChanged(ILAVFSettingsInternal *pSettings);
 
   // Select the best video stream
