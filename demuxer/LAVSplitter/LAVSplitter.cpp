@@ -1219,6 +1219,8 @@ STDMETHODIMP CLAVSplitter::Count(DWORD *pcStreams)
     *pcStreams += (DWORD)m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i)->size();
   }
 
+  *pcStreams += m_pDemuxer->GetNumTitles();
+
   return S_OK;
 }
 
@@ -1229,7 +1231,8 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
     return E_NOTIMPL;
   }
 
-  for(int i = 0, j = 0; i < CBaseDemuxer::unknown; i++) {
+  int i, j;
+  for(i = 0, j = 0; i < CBaseDemuxer::unknown; i++) {
     CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
     int cnt = (int)streams->size();
 
@@ -1254,6 +1257,19 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
     }
     j += cnt;
   }
+  int idx = (lIndex - j);
+  if (idx >= 0 && idx < m_pDemuxer->GetNumTitles()) {
+    HRESULT hr = m_pDemuxer->SetTitle(idx);
+    if (SUCCEEDED(hr)) {
+      IMediaSeeking *pSeek = NULL;
+      hr = m_pGraph->QueryInterface(&pSeek);
+      if (SUCCEEDED(hr)) {
+        LONGLONG current = 0;
+        pSeek->SetPositions(&current, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
+        SafeRelease(&pSeek);
+      }
+    }
+  }
   return S_FALSE;
 }
 
@@ -1261,7 +1277,8 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
   HRESULT hr = S_FALSE;
-  for(int i = 0, j = 0; i < CBaseDemuxer::unknown; i++) {
+  int i, j;
+  for(i = 0, j = 0; i < CBaseDemuxer::unknown; i++) {
     CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
     int cnt = (int)streams->size();
 
@@ -1306,6 +1323,20 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
       break;
     }
     j += cnt;
+  }
+
+  if (hr == S_FALSE) {
+    int idx = (lIndex - j);
+    if (idx >= 0 && idx < m_pDemuxer->GetNumTitles()) {
+      if(ppmt) *ppmt = NULL;
+      if(pdwFlags) *pdwFlags = m_pDemuxer->GetTitle() == idx ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
+      if(pdwGroup) *pdwGroup = 18;
+      if(ppObject) *ppObject = NULL;
+      if(ppUnk) *ppUnk = NULL;
+      m_pDemuxer->GetTitleInfo(idx, NULL, ppszName);
+
+      hr = S_OK;
+    }
   }
 
   return hr;
