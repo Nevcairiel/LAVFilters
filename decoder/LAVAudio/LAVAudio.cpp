@@ -2187,6 +2187,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
       DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
       m_rtStart -= rtJitterMin;
       m_faJitter.OffsetValues(-rtJitterMin);
+      m_bDiscontinuity = TRUE;
     }
 
 #ifdef DEBUG
