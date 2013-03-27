@@ -1568,11 +1568,11 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
 
   if(pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK)) {
     DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity, flushing decoder.."));
-    m_bDiscontinuity = TRUE;
     m_buff.SetSize(0);
     FlushOutput(FALSE);
     FlushDecoder();
     m_bQueueResync = TRUE;
+    m_bDiscontinuity = TRUE;
     if(FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L" -> Discontinuity without timestamp"));
     }
@@ -1586,6 +1586,9 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   if(m_bQueueResync && SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
     FlushOutput();
+    if (rtStart != m_rtStart)
+      m_bDiscontinuity = TRUE;
+
     m_rtStart = rtStart;
     m_rtStartInputCache =  AV_NOPTS_VALUE;
     m_rtBitstreamCache = AV_NOPTS_VALUE;
