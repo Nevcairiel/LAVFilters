@@ -834,6 +834,20 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
   return hr;
 }
 
+STDMETHODIMP_(CMediaType *) CLAVSplitter::GetOutputMediatype(int stream)
+{
+  CLAVOutputPin* pPin = GetOutputPin(stream, TRUE);
+  if (!pPin)
+    return NULL;
+
+  CMediaType *pmt = new CMediaType();
+  if (FAILED(pPin->ConnectionMediaType(pmt))) {
+    delete pmt;
+    return NULL;
+  }
+  return pmt;
+}
+
 // State Control
 STDMETHODIMP CLAVSplitter::Stop()
 {

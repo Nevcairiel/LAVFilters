@@ -173,6 +173,7 @@ public:
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
   STDMETHODIMP_(std::set<FormatInfo>&) GetInputFormats();
   STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
+  STDMETHODIMP_(CMediaType *) GetOutputMediatype(int stream);
 
   STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream) { if (m_pDemuxer) return m_pDemuxer->GetStreamFlags(dwStream); return 0; }
   STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { if (m_pDemuxer) return m_pDemuxer->GetPixelFormat(dwStream); return PIX_FMT_NONE; }
