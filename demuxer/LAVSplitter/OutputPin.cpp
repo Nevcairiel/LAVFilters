@@ -483,6 +483,7 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
     CAutoLock cAutoLock(m_pLock);
     m_mts.clear();
     m_mts.push_back(*(pPacket->pmt));
+    pPacket->pmt = NULL;
   }
 
   bool fTimeValid = pPacket->rtStart != Packet::INVALID_TIME;
