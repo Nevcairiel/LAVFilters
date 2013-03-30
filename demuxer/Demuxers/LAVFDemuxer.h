@@ -157,6 +157,7 @@ private:
   static int avio_interrupt_cb(void *opaque);
 
   STDMETHODIMP GetBSTRMetadata(const char *key, BSTR *pbstrValue);
+  STDMETHODIMP CreatePacketMediaType(Packet *pPacket, enum AVCodecID codec_id, BYTE *extradata, int extradata_size);
 
 private:
   AVFormatContext *m_avFormat;
