@@ -65,7 +65,9 @@ public:
   VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size, std::string container);
   VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container);
   MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size, std::string container);
-  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bAnnexB = FALSE);
+  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bConvertToAVC1 = FALSE);
+
+  HRESULT ProcessH264Extradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi, BOOL bConvertToAVC1);
 };
 
 extern CLAVFVideoHelper g_VideoHelper;

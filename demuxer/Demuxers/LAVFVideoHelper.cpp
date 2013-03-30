@@ -381,23 +381,9 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
     BOOL bCopyUntouched = FALSE;
     if(avstream->codec->codec_id == AV_CODEC_ID_H264)
     {
-      if (*(char *)extradata == 1) {
-        if (extradata[1])
-          mp2vi->dwProfile = extradata[1];
-        if (extradata[3])
-          mp2vi->dwLevel = extradata[3];
-        mp2vi->dwFlags = (extradata[4] & 3) + 1;
-        mp2vi->cbSequenceHeader = avc_quant(extradata,
-          (BYTE *)(&mp2vi->dwSequenceHeader[0]), extra);
-      } else {
-        // MPEG-TS gets converted for improved compat.. for now!
-        if (bConvertToAVC1) {
-          mp2vi->dwFlags = 4;
-          mp2vi->cbSequenceHeader = (DWORD)avc_parse_annexb(extradata, extra, (BYTE *)(&mp2vi->dwSequenceHeader[0]));
-        } else {
-          bCopyUntouched = TRUE;
-        }
-      }
+      int ret = ProcessH264Extradata(extradata, extra, mp2vi, bConvertToAVC1);
+      if (ret < 0)
+        bCopyUntouched = TRUE;
     } else if (avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);
       mp2vi->cbSequenceHeader = (DWORD)parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
@@ -417,4 +403,26 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
 
   *size = SIZE_MPEG2VIDEOINFO(mp2vi);
   return mp2vi;
+}
+
+
+HRESULT CLAVFVideoHelper::ProcessH264Extradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi, BOOL bAnnexB)
+{
+  if (*(char *)extradata == 1) {
+    if (extradata[1])
+      mp2vi->dwProfile = extradata[1];
+    if (extradata[3])
+      mp2vi->dwLevel = extradata[3];
+    mp2vi->dwFlags = (extradata[4] & 3) + 1;
+    mp2vi->cbSequenceHeader = avc_quant(extradata, (BYTE *)(&mp2vi->dwSequenceHeader[0]), extradata_size);
+  } else {
+    // MPEG-TS gets converted for improved compat.. for now!
+    if (bAnnexB) {
+      mp2vi->dwFlags = 4;
+      mp2vi->cbSequenceHeader = (DWORD)avc_parse_annexb(extradata, extradata_size, (BYTE *)(&mp2vi->dwSequenceHeader[0]));
+    } else {
+      return -1;
+    }
+  }
+  return 0;
 }
