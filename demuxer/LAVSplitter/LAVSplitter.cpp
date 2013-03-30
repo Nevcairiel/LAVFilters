@@ -840,11 +840,7 @@ STDMETHODIMP_(CMediaType *) CLAVSplitter::GetOutputMediatype(int stream)
   if (!pPin)
     return NULL;
 
-  CMediaType *pmt = new CMediaType();
-  if (FAILED(pPin->ConnectionMediaType(pmt))) {
-    delete pmt;
-    return NULL;
-  }
+  CMediaType *pmt = new CMediaType(pPin->GetActiveMediaType());
   return pmt;
 }
 

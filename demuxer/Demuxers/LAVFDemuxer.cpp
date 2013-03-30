@@ -847,11 +847,14 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
             vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + sidedata_size;
             memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), sidedata, sidedata_size);
           } else {
-            DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Unsupported PMT change"));
+            DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Unsupported PMT change on codec %S", avcodec_get_name(stream->codec->codec_id)));
             SAFE_DELETE(pmt);
           }
         }
-        pPacket->pmt = pmt;
+        if (pmt) {
+          pPacket->pmt = CreateMediaType(pmt);
+          SAFE_DELETE(pmt);
+        }
       }
     }
 

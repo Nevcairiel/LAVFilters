@@ -95,6 +95,8 @@ public:
   void SetNewMediaTypes(std::vector<CMediaType> pmts) { CAutoLock lock(&m_csMT); m_mts = pmts; SetQueueSizes(); }
   void SendMediaType(CMediaType *mt) { CAutoLock lock(&m_csMT); m_newMT = mt;}
 
+  CMediaType& GetActiveMediaType() { return m_mt; }
+
   BOOL IsVideoPin() { return m_pinType == CBaseDemuxer::video; }
   BOOL IsAudioPin() { return m_pinType == CBaseDemuxer::audio; }
   BOOL IsSubtitlePin(){ return m_pinType == CBaseDemuxer::subpic; }

@@ -481,8 +481,9 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
     pPacket->bDiscontinuity = true;
 
     CAutoLock cAutoLock(m_pLock);
+    CMediaType pmt = *(pPacket->pmt);
     m_mts.clear();
-    m_mts.push_back(*(pPacket->pmt));
+    m_mts.push_back(pmt);
     pPacket->pmt = NULL;
   }
 
