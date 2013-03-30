@@ -837,6 +837,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
           } else {
             memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), sidedata, sidedata_size);
           }
+        } else if (stream->codec->codec_id == AV_CODEC_ID_SSA) {
+          SUBTITLEINFO *sif = (SUBTITLEINFO *)pmt->ReallocFormatBuffer(sizeof(SUBTITLEINFO) + sidedata_size);
+          memcpy((BYTE *)sif + sizeof(SUBTITLEINFO), sidedata, sidedata_size);
         } else {
           if (pmt->formattype == FORMAT_VideoInfo) {
             VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)pmt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER) + sidedata_size);
