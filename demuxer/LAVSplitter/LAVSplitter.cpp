@@ -1229,7 +1229,9 @@ STDMETHODIMP CLAVSplitter::Count(DWORD *pcStreams)
     *pcStreams += (DWORD)m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i)->size();
   }
 
-  *pcStreams += m_pDemuxer->GetNumTitles();
+  int num_titles = m_pDemuxer->GetNumTitles();
+  if (num_titles > 1)
+    *pcStreams += num_titles;
 
   return S_OK;
 }
@@ -1268,7 +1270,8 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
     j += cnt;
   }
   int idx = (lIndex - j);
-  if (idx >= 0 && idx < m_pDemuxer->GetNumTitles()) {
+  int num_titles = m_pDemuxer->GetNumTitles();
+  if (num_titles > 1 && idx >= 0 && idx < num_titles) {
     HRESULT hr = m_pDemuxer->SetTitle(idx);
     if (SUCCEEDED(hr)) {
       IMediaSeeking *pSeek = NULL;
@@ -1337,7 +1340,8 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
 
   if (hr == S_FALSE) {
     int idx = (lIndex - j);
-    if (idx >= 0 && idx < m_pDemuxer->GetNumTitles()) {
+    int num_titles = m_pDemuxer->GetNumTitles();
+    if (num_titles > 1 && idx >= 0 && idx < num_titles) {
       if(ppmt) *ppmt = NULL;
       if(pdwFlags) *pdwFlags = m_pDemuxer->GetTitle() == idx ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
       if(pdwGroup) *pdwGroup = 18;
