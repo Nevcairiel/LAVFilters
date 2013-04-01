@@ -542,6 +542,8 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
 
   CMediaBuffer *pInBuffer = new CMediaBufferDecode(buffer, buflen);
   hr = m_pDMO->ProcessInput(0, pInBuffer, dwFlags, rtStart, rtStop - rtStart);
+  SafeRelease(&pInBuffer);
+
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> ProcessInput failed with hr: %0x%x", hr));
     return E_FAIL;
@@ -549,7 +551,6 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   if (S_FALSE == hr)
     return S_FALSE;
 
-  SafeRelease(&pInBuffer);
   return ProcessOutput();
 }
 
