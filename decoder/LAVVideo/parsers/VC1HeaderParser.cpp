@@ -186,6 +186,7 @@ void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
 
     // TODO: add other fields
   } else {
+    hdr.valid = 1;
     hdr.old_interlaced = get_bits1(gb); // res_y411
     skip_bits1(gb); // res_sprite
 
