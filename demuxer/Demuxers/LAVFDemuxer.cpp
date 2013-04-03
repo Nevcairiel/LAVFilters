@@ -653,55 +653,129 @@ REFERENCE_TIME CLAVFDemuxer::GetDuration() const
 #define VC1_CODE_RES0 0x00000100
 #define IS_VC1_MARKER(x) (((x) & ~0xFF) == VC1_CODE_RES0)
 
-STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID codec_id, BYTE *extradata, int extradata_size)
+STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID codec_id, BYTE *extradata, int extradata_size, BYTE *paramchange, int paramchange_size)
 {
   CMediaType *pmt = m_pSettings->GetOutputMediatype(pPacket->StreamId);
   if (pmt) {
-    if (codec_id == AV_CODEC_ID_H264) {
-      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + extradata_size);
-      int ret = g_VideoHelper.ProcessH264Extradata(extradata, extradata_size, mp2vi, FALSE);
-      if (ret < 0) {
-        mp2vi->cbSequenceHeader = extradata_size;
-        memcpy(&mp2vi->dwSequenceHeader[0], extradata, extradata_size);
+    if (extradata && extradata_size) {
+      if (codec_id == AV_CODEC_ID_H264) {
+        MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + extradata_size);
+        int ret = g_VideoHelper.ProcessH264Extradata(extradata, extradata_size, mp2vi, FALSE);
+        if (ret < 0) {
+          mp2vi->cbSequenceHeader = extradata_size;
+          memcpy(&mp2vi->dwSequenceHeader[0], extradata, extradata_size);
+        } else {
+          int mp2visize = SIZE_MPEG2VIDEOINFO(mp2vi);
+          memset((BYTE *)mp2vi+mp2visize, 0, pmt->cbFormat-mp2visize);
+        }
+      } else if (codec_id == AV_CODEC_ID_MPEG2VIDEO) {
+        MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + extradata_size);
+        CExtradataParser parser = CExtradataParser(extradata, extradata_size);
+        mp2vi->cbSequenceHeader = (DWORD)parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
+      } else if (codec_id == AV_CODEC_ID_VC1) {
+        VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)pmt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + extradata_size + 1);
+        int i = 0;
+        for (i = 0; i < (extradata_size-4); i++) {
+          uint32_t code = AV_RB32(extradata + i);
+          if (IS_VC1_MARKER(code))
+            break;
+        }
+        if (i == 0) {
+          *((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
+          memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1, extradata, extradata_size);
+        } else {
+          memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extradata_size);
+        }
+      } else if (codec_id == AV_CODEC_ID_SSA) {
+        SUBTITLEINFO *sif = (SUBTITLEINFO *)pmt->ReallocFormatBuffer(sizeof(SUBTITLEINFO) + extradata_size);
+        memcpy((BYTE *)sif + sizeof(SUBTITLEINFO), extradata, extradata_size);
       } else {
-        int mp2visize = SIZE_MPEG2VIDEOINFO(mp2vi);
-        memset((BYTE *)mp2vi+mp2visize, 0, pmt->cbFormat-mp2visize);
-      }
-    } else if (codec_id == AV_CODEC_ID_MPEG2VIDEO) {
-      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + extradata_size);
-      CExtradataParser parser = CExtradataParser(extradata, extradata_size);
-      mp2vi->cbSequenceHeader = (DWORD)parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
-    } else if (codec_id == AV_CODEC_ID_VC1) {
-      VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)pmt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + extradata_size + 1);
-      int i = 0;
-      for (i = 0; i < (extradata_size-4); i++) {
-        uint32_t code = AV_RB32(extradata + i);
-        if (IS_VC1_MARKER(code))
-          break;
-      }
-      if (i == 0) {
-        *((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2)) = 0;
-        memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2) + 1, extradata, extradata_size);
-      } else {
-        memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extradata_size);
-      }
-    } else if (codec_id == AV_CODEC_ID_SSA) {
-      SUBTITLEINFO *sif = (SUBTITLEINFO *)pmt->ReallocFormatBuffer(sizeof(SUBTITLEINFO) + extradata_size);
-      memcpy((BYTE *)sif + sizeof(SUBTITLEINFO), extradata, extradata_size);
-    } else {
-      if (pmt->formattype == FORMAT_VideoInfo) {
-        VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)pmt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER) + extradata_size);
-        vih->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extradata_size;
-        memcpy((BYTE*)vih + sizeof(VIDEOINFOHEADER), extradata, extradata_size);
-      } else if (pmt->formattype == FORMAT_VideoInfo2) {
-        VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)pmt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + extradata_size);
-        vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extradata_size;
-        memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extradata_size);
-      } else {
-        DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Unsupported PMT change on codec %S", avcodec_get_name(codec_id)));
-        SAFE_DELETE(pmt);
+        if (pmt->formattype == FORMAT_VideoInfo) {
+          VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)pmt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER) + extradata_size);
+          vih->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extradata_size;
+          memcpy((BYTE*)vih + sizeof(VIDEOINFOHEADER), extradata, extradata_size);
+        } else if (pmt->formattype == FORMAT_VideoInfo2) {
+          VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)pmt->ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + extradata_size);
+          vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extradata_size;
+          memcpy((BYTE*)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extradata_size);
+        } else if (pmt->formattype == FORMAT_WaveFormatEx) {
+          WAVEFORMATEX *wfex = (WAVEFORMATEX *)pmt->ReallocFormatBuffer(sizeof(WAVEFORMATEX) + extradata_size);
+          wfex->cbSize = extradata_size;
+          memcpy((BYTE*)wfex + sizeof(WAVEFORMATEX), extradata, extradata_size);
+        } else if (pmt->formattype == FORMAT_WaveFormatExFFMPEG) {
+          WAVEFORMATEXFFMPEG *wfex = (WAVEFORMATEXFFMPEG *)pmt->ReallocFormatBuffer(sizeof(WAVEFORMATEXFFMPEG) + extradata_size);
+          wfex->wfex.cbSize = extradata_size;
+          memcpy((BYTE*)wfex + sizeof(WAVEFORMATEXFFMPEG), extradata, extradata_size);
+        } else {
+          DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Unsupported PMT change on codec %S", avcodec_get_name(codec_id)));
+          SAFE_DELETE(pmt);
+        }
       }
     }
+    if (paramchange) {
+      uint32_t flags = AV_RL32(paramchange);
+      int channels = 0, sample_rate = 0, width = 0, height = 0, aspect_num = 0, aspect_den = 0;
+      paramchange += 4;
+      if (flags & AV_SIDE_DATA_PARAM_CHANGE_CHANNEL_COUNT) {
+        channels = AV_RL32(paramchange);
+        paramchange += 4;
+      }
+      if (flags & AV_SIDE_DATA_PARAM_CHANGE_CHANNEL_LAYOUT) {
+        paramchange += 8;
+      }
+      if (flags & AV_SIDE_DATA_PARAM_CHANGE_SAMPLE_RATE) {
+        sample_rate = AV_RL32(paramchange);
+        paramchange += 4;
+      }
+      if (flags & AV_SIDE_DATA_PARAM_CHANGE_DIMENSIONS) {
+        width  = AV_RL32(paramchange);
+        height = AV_RL32(paramchange+4);
+        paramchange += 8;
+      }
+      if (flags & AV_SIDE_DATA_PARAM_CHANGE_ASPECTRATIO) {
+        aspect_num = AV_RL32(paramchange);
+        aspect_den = AV_RL32(paramchange+4);
+        paramchange += 8;
+      }
+      if (pmt->majortype == MEDIATYPE_Video) {
+        if ((pmt->formattype == FORMAT_VideoInfo || pmt->formattype == FORMAT_MPEGVideo) && width && height) {
+          VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)pmt->pbFormat;
+          vih->bmiHeader.biWidth  = width;
+          vih->bmiHeader.biHeight = height;
+          vih->rcTarget.right  = vih->rcSource.right = width;
+          vih->rcTarget.bottom = vih->rcSource.bottom = height;
+        } else if ((pmt->formattype == FORMAT_VideoInfo2 || pmt->formattype == FORMAT_MPEG2Video) && ((width && height) || (aspect_num && aspect_den))) {
+          VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)pmt->pbFormat;
+          if (width && height) {
+            vih2->bmiHeader.biWidth  = width;
+            vih2->bmiHeader.biHeight = height;
+            vih2->rcTarget.right  = vih2->rcSource.right = width;
+            vih2->rcTarget.bottom = vih2->rcSource.bottom = height;
+          }
+          if (aspect_num && aspect_den) {
+            int num = vih2->bmiHeader.biWidth, den = vih2->bmiHeader.biHeight;
+            av_reduce(&num, &den, (int64_t)aspect_num * num, (int64_t)aspect_den * den, 255);
+            vih2->dwPictAspectRatioX = num;
+            vih2->dwPictAspectRatioY = den;
+          }
+        }
+      } else if (pmt->majortype == MEDIATYPE_Audio) {
+        if ((pmt->formattype == FORMAT_WaveFormatEx || pmt->formattype == FORMAT_WaveFormatExFFMPEG) && (channels || sample_rate)) {
+          WAVEFORMATEX *wfex = NULL;
+          if (pmt->formattype == FORMAT_WaveFormatExFFMPEG) {
+            WAVEFORMATEXFFMPEG *wfexff = (WAVEFORMATEXFFMPEG *)pmt->pbFormat;
+            wfex = &wfexff->wfex;
+          } else {
+            wfex = (WAVEFORMATEX *)pmt->pbFormat;
+          }
+          if (channels)
+            wfex->nChannels = channels;
+          if (sample_rate)
+            wfex->nSamplesPerSec = sample_rate;
+        }
+      }
+    }
+
     if (pmt) {
       pPacket->pmt = CreateMediaType(pmt);
       SAFE_DELETE(pmt);
@@ -861,10 +935,12 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     // Update extradata and send new mediatype, when required
-    int sidedata_size;
+    int sidedata_size = 0;
     uint8_t *sidedata = av_packet_get_side_data(&pkt, AV_PKT_DATA_NEW_EXTRADATA, &sidedata_size);
-    if (sidedata && sidedata_size) {
-      CreatePacketMediaType(pPacket, stream->codec->codec_id, sidedata, sidedata_size);
+    int paramchange_size = 0;
+    uint8_t *paramchange = av_packet_get_side_data(&pkt, AV_PKT_DATA_PARAM_CHANGE, &paramchange_size);
+    if ((sidedata && sidedata_size) || (paramchange && paramchange_size)) {
+      CreatePacketMediaType(pPacket, stream->codec->codec_id, sidedata, sidedata_size, paramchange, paramchange_size);
     }
 
     pPacket->bSyncPoint = pkt.flags & AV_PKT_FLAG_KEY;
