@@ -30,9 +30,9 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavcodec/get_bits.h"
 #include "libavcodec/dcadata.h"
-#include "libavcodec/dca_parser.h"
 #pragma warning( pop )
 
+extern int ff_dca_convert_bitstream(const uint8_t *src, int src_size, uint8_t *dst, int max_size);
 extern __declspec(dllimport) const uint32_t avpriv_dca_sample_rates[16];
 };
 
