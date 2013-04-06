@@ -1,5 +1,18 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.56.0 - 2013/04/10
+General
+- Major ffmpeg update, the DLLs have had their version number increased
+
+LAV Splitter
+- Support for Matroska Ordered Chaptes / Segment Linking
+- Improved support for parsing language tags from OGM files
+- Small performance improvements by avoiding copying the stream data in memory needlessly
+- Improved duration calculation for MP3 files
+
+LAV Video
+- Performance improvements for single-threaded decoders and YADIF (up to 20% in some situations)
+
 0.55.3 - 2013/02/10
 LAV Splitter
 - Improved handling of Annex B H.264 in many containers
