@@ -428,7 +428,7 @@ void CLAVAudio::ffmpeg_shutdown()
     av_freep(&m_pAVCtx->extradata);
     av_freep(&m_pAVCtx);
   }
-  av_freep(&m_pFrame);
+  av_frame_free(&m_pFrame);
 
   if (m_pParser) {
     av_parser_close(m_pParser);
@@ -1301,6 +1301,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_pAVCtx->bits_per_coded_sample = nBitsPerSample;
   m_pAVCtx->block_align           = nBlockAlign;
   m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
+  m_pAVCtx->refcounted_frames     = 1;
 
   memset(&m_raData, 0, sizeof(m_raData));
 
@@ -1346,7 +1347,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
 
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
   if (ret >= 0) {
-    m_pFrame   = avcodec_alloc_frame();
+    m_pFrame   = av_frame_alloc();
   } else {
     return VFW_E_UNSUPPORTED_AUDIO;
   }
@@ -1923,7 +1924,8 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
     }
 
     // Channel re-mapping and sample format conversion
-    if (got_frame && m_pFrame->nb_samples > 0) {
+    if (got_frame) {
+      ASSERT(m_pFrame->nb_samples > 0);
       out.wChannels = m_pAVCtx->channels;
       out.dwSamplesPerSec = m_pAVCtx->sample_rate;
       if (m_pAVCtx->channel_layout)
@@ -2048,7 +2050,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
         assert(FALSE);
         break;
       }
-
+      av_frame_unref(m_pFrame);
       hr = S_OK;
 
       m_DecodeFormat = out.sfFormat == SampleFormat_32 && out.wBitsPerSample > 0 && out.wBitsPerSample <= 24 ? (out.wBitsPerSample <= 16 ? SampleFormat_16 : SampleFormat_24) : out.sfFormat;
