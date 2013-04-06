@@ -172,6 +172,8 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.vc1Mode          = 2;
   m_settings.substreams       = TRUE;
 
+  m_settings.MatroskaExternalSegments = TRUE;
+
   m_settings.StreamSwitchRemoveAudio = FALSE;
   m_settings.ImpairedAudio    = FALSE;
   m_settings.PreferHighQualityAudio = TRUE;
@@ -233,6 +235,9 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
     bFlag = reg.ReadDWORD(L"substreams", hr);
     if (SUCCEEDED(hr)) m_settings.substreams = bFlag;
 
+    bFlag = reg.ReadDWORD(L"MatroskaExternalSegments", hr);
+    if (SUCCEEDED(hr)) m_settings.MatroskaExternalSegments = bFlag;
+
     bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
     if (SUCCEEDED(hr)) m_settings.StreamSwitchRemoveAudio = bFlag;
 
@@ -281,6 +286,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"PGSOnlyForced", m_settings.PGSOnlyForced);
     reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
     reg.WriteBOOL(L"substreams", m_settings.substreams);
+    reg.WriteBOOL(L"MatroskaExternalSegments", m_settings.MatroskaExternalSegments);
     reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
     reg.WriteBOOL(L"PreferHighQualityAudio", m_settings.PreferHighQualityAudio);
     reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
@@ -1731,6 +1737,17 @@ STDMETHODIMP CLAVSplitter::SetPreferHighQualityAudioStreams(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVSplitter::GetPreferHighQualityAudioStreams()
 {
   return m_settings.PreferHighQualityAudio;
+}
+
+STDMETHODIMP CLAVSplitter::SetLoadMatroskaExternalSegments(BOOL bEnabled)
+{
+  m_settings.MatroskaExternalSegments = bEnabled;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetLoadMatroskaExternalSegments()
+{
+  return m_settings.MatroskaExternalSegments;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

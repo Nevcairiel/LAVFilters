@@ -239,6 +239,10 @@ trynoformat:
     }
   }
 
+  // Disable loading of external mkv segments, if required
+  if (!m_pSettings->GetLoadMatroskaExternalSegments())
+    m_avFormat->flags |= AVFMT_FLAG_NOEXTERNAL;
+
   m_timeOpening = time(NULL);
   ret = avformat_open_input(&m_avFormat, fileName, inputFormat, NULL);
   if (ret < 0) {

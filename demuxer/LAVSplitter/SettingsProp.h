@@ -70,6 +70,7 @@ private:
   BOOL m_PGSOnlyForced;
   int m_VC1Mode;
   BOOL m_substreams;
+  BOOL m_MKVExternal;
 
   BOOL m_StreamSwitchRemoveAudio;
   BOOL m_PreferHighQualityAudio;

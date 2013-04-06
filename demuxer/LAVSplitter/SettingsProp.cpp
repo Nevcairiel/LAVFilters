@@ -97,6 +97,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   int vc1flag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetVC1TimestampMode(vc1flag));
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MKV_EXTERNAL, BM_GETCHECK, 0, 0);
+  CHECK_HR(hr = m_pLAVF->SetLoadMatroskaExternalSegments(bFlag));
+
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_GETCHECK, 0, 0);
   CHECK_HR(hr = m_pLAVF->SetSubstreamsEnabled(bFlag));
 
@@ -204,6 +207,8 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_SETCHECK, m_VC1Mode, 0);
   addHint(IDC_VC1TIMESTAMP, L"Checked - Frame timings will be corrected.\nUnchecked - Frame timings will be sent untouched.\nIndeterminate (Auto) - Only enabled for decoders that rely on the splitter doing the corrections.\n\nNOTE: Only for debugging, if unsure, set to \"Auto\".");
 
+  SendDlgItemMessage(m_Dlg, IDC_MKV_EXTERNAL, BM_SETCHECK, m_MKVExternal, 0);
+
   SendDlgItemMessage(m_Dlg, IDC_SUBSTREAMS, BM_SETCHECK, m_substreams, 0);
   addHint(IDC_SUBSTREAMS, L"Controls if sub-streams should be exposed as a separate stream.\nSub-streams are typically streams for backwards compatibility, for example the AC3 part of TrueHD streams on Blu-rays.");
 
@@ -248,6 +253,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_PGSOnlyForced = m_pLAVF->GetPGSOnlyForced();
   m_VC1Mode = m_pLAVF->GetVC1TimestampMode();
   m_substreams = m_pLAVF->GetSubstreamsEnabled();
+  m_MKVExternal = m_pLAVF->GetLoadMatroskaExternalSegments();
 
   m_StreamSwitchRemoveAudio = m_pLAVF->GetStreamSwitchRemoveAudio();
   m_PreferHighQualityAudio = m_pLAVF->GetPreferHighQualityAudioStreams();
@@ -308,6 +314,11 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
     } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_VC1TIMESTAMP) {
       int iFlag = (int)SendDlgItemMessage(m_Dlg, IDC_VC1TIMESTAMP, BM_GETCHECK, 0, 0);
       if (iFlag != m_VC1Mode) {
+        SetDirty();
+      }
+    }  else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_MKV_EXTERNAL) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_MKV_EXTERNAL, BM_GETCHECK, 0, 0);
+      if (bFlag != m_MKVExternal) {
         SetDirty();
       }
     } else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_SUBSTREAMS) {

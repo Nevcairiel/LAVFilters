@@ -168,6 +168,8 @@ public:
   STDMETHODIMP_(BOOL) GetTrayIcon();
   STDMETHODIMP SetPreferHighQualityAudioStreams(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetPreferHighQualityAudioStreams();
+  STDMETHODIMP SetLoadMatroskaExternalSegments(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetLoadMatroskaExternalSegments();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
@@ -266,6 +268,8 @@ private:
     BOOL PGSOnlyForced;
     int vc1Mode;
     BOOL substreams;
+
+    BOOL MatroskaExternalSegments;
 
     BOOL StreamSwitchRemoveAudio;
     BOOL ImpairedAudio;

@@ -80,22 +80,25 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,137,146,10
     CONTROL         "Deliver only Forced Subtitles",IDC_BD_ONLY_FORCED_SUBS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,150,159,10
-    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,170,199,82
+    GROUPBOX        "Demuxer Settings",IDC_DEMUXER_SETTINGS,7,170,199,70
     CONTROL         "Demux sub-streams separately",IDC_SUBSTREAMS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,181,115,10
-    CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
-                    "Button",BS_AUTO3STATE | WS_TABSTOP,15,195,126,10
     CONTROL         "Remove Audio Decoder on Audio Stream Switch",IDC_STREAM_SWITCH_REMOVE_AUDIO,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,209,168,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,195,168,10
     CONTROL         "Prefer Audio Stream with the Highest Quality",IDC_SELECT_AUDIO_QUALITY,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,223,171,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,209,171,10
     CONTROL         "Prefer Audio Streams for the Hearing/Visually Impaired",IDC_IMPAIRED_AUDIO,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,237,188,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,223,188,10
     GROUPBOX        "Queue Settings",IDC_QUEUE_SETTINGS,214,124,179,30
     LTEXT           "Maximum Queue Memory (MB):",IDC_LBL_QUEUE_MEM,220,138,102,8
     EDITTEXT        IDC_QUEUE_MEM,323,136,54,13,ES_AUTOHSCROLL,WS_EX_RIGHT
     CONTROL         "",IDC_QUEUE_MEM_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS | UDS_HOTTRACK,375,136,11,13
     CONTROL         "Enable System Tray Icon",IDC_TRAYICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,257,192,10
     LTEXT           "LAV Splitter x.xx",IDC_SPLITTER_FOOTER,285,259,108,8,0,WS_EX_RIGHT
+    GROUPBOX        "Format Settings",IDC_FMT_SETTINGS,214,160,179,42
+    CONTROL         "Enable VC-1 Timestamp Correction",IDC_VC1TIMESTAMP,
+                    "Button",BS_AUTO3STATE | WS_TABSTOP,221,172,126,10
+    CONTROL         "Load Matroska Segments from external files",IDC_MKV_EXTERNAL,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,221,186,156,10
 END
 
 IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 235, 283
