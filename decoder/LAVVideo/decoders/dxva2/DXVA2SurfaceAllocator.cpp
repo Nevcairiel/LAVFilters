@@ -147,6 +147,7 @@ HRESULT CDXVA2SurfaceAllocator::Alloc()
   if (SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Releasing old resources"));
     // Free the old resources.
+    m_pDec->Flush();
     Free();
 
     m_nSurfaceArrayCount = m_lCount;
@@ -217,9 +218,6 @@ void CDXVA2SurfaceAllocator::Free()
   CMediaSample *pSample = NULL;
 
   CAutoLock lock(this);
-
-  if (m_pDec)
-    m_pDec->Flush();
 
   do {
     pSample = m_lFree.RemoveHead();
