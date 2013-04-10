@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2012 Hendrik Leppkes
+ *      Copyright (C) 2010-2013 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -168,4 +168,10 @@ interface ILAVFSettings : public IUnknown
 
   // Toggle wether higher quality audio streams are preferred
   STDMETHOD_(BOOL,GetPreferHighQualityAudioStreams)() = 0;
+
+  // Toggle wether Matroska Linked Segments should be loaded from other files
+  STDMETHOD(SetLoadMatroskaExternalSegments)(BOOL bEnabled) = 0;
+
+  // Get wether Matroska Linked Segments should be loaded from other files
+  STDMETHOD_(BOOL,GetLoadMatroskaExternalSegments)() = 0;
 };
