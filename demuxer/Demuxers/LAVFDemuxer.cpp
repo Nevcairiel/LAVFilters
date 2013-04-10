@@ -712,7 +712,6 @@ STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID
           memcpy((BYTE*)wfex + sizeof(WAVEFORMATEXFFMPEG), extradata, extradata_size);
         } else {
           DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Unsupported PMT change on codec %S", avcodec_get_name(codec_id)));
-          SAFE_DELETE(pmt);
         }
       }
     }
