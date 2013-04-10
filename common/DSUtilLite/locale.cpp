@@ -375,6 +375,7 @@ static struct {LPCSTR name, iso6392, iso6391, iso6392_2; LCID lcid;} s_isolangs[
   {"Pohnpeian", "pon", NULL},
   {"Polish", "pol", "pl", NULL, MAKELCID( MAKELANGID(LANG_POLISH, SUBLANG_DEFAULT), SORT_DEFAULT)},
   {"Portuguese", "por", "pt", NULL, MAKELCID( MAKELANGID(LANG_PORTUGUESE, SUBLANG_DEFAULT), SORT_DEFAULT)},
+  {"Portuguese (Brazil)", "pob", "pb"},
   {"Prakrit languages", "pra", NULL},
   {"Provençal; Occitan (post 1500)", "oci", "oc"},
   {"Provençal, Old (to 1500)", "pro", NULL},
