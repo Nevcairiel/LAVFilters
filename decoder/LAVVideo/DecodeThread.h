@@ -36,7 +36,7 @@ public:
   STDMETHODIMP_(BOOL) IsInterlaced() { return m_pDecoder ? m_pDecoder->IsInterlaced() : TRUE; }
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp) { ASSERT(m_pDecoder); return m_pDecoder->GetPixelFormat(pPix, pBpp); }
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration() { ASSERT(m_pDecoder); return m_pDecoder->GetFrameDuration(); }
-  STDMETHODIMP HasThreadSafeBuffers() { return m_bThreadSafe ? S_OK : S_FALSE; }
+  STDMETHODIMP HasThreadSafeBuffers() { return m_pDecoder ? m_pDecoder->HasThreadSafeBuffers() : S_FALSE; }
 
 
   STDMETHODIMP CreateDecoder(const CMediaType *pmt, AVCodecID codec);
@@ -95,7 +95,7 @@ private:
   BOOL         m_bHWDecoder;
   BOOL         m_bHWDecoderFailed;
 
-  BOOL         m_bThreadSafe;
+  BOOL         m_bSyncToProcess;
   CAMEvent     m_evInput;
   CAMEvent     m_evDeliver;
   CAMEvent     m_evSample;

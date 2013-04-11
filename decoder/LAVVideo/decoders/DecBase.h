@@ -40,6 +40,7 @@ public:
   STDMETHODIMP PostConnect(IPin *pPin) { return S_FALSE; }
   STDMETHODIMP_(long) GetBufferCount() { return 2; }
 
+  STDMETHODIMP SyncToProcessThread() { return HasThreadSafeBuffers() == S_OK ? S_FALSE : S_OK; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
 
   STDMETHODIMP Decode(IMediaSample *pSample) {

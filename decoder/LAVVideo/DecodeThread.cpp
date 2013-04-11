@@ -29,7 +29,7 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_pDecoder(NULL)
   , m_bHWDecoder(FALSE)
   , m_bHWDecoderFailed(FALSE)
-  , m_bThreadSafe(FALSE)
+  , m_bSyncToProcess(TRUE)
   , m_Codec(AV_CODEC_ID_NONE)
   , m_evDeliver(FALSE)
   , m_evSample(FALSE)
@@ -183,7 +183,7 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   // If we don't have thread safe buffers, we need to synchronize
   // with the worker thread and deliver them when they are available
   // and then let it know that we did so
-  if (!m_bThreadSafe) {
+  if (m_bSyncToProcess) {
     while (!m_evDecodeDone.Check()) {
       m_evSample.Wait();
       if (ProcessOutput() == S_OK)
@@ -221,7 +221,7 @@ STDMETHODIMP CDecodeThread::EndOfStream()
 
   while (!m_evEOSDone.Check()) {
     m_evSample.Wait();
-    if (ProcessOutput() == S_OK && !m_bThreadSafe)
+    if (ProcessOutput() == S_OK && m_bSyncToProcess)
       m_evDeliver.Set();
   }
 
@@ -438,7 +438,7 @@ done:
   }
 
   m_Codec = codec;
-  m_bThreadSafe = m_pDecoder->HasThreadSafeBuffers() == S_OK && !(m_pLAVVideo->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD);
+  m_bSyncToProcess = m_pDecoder->SyncToProcessThread() == S_OK || (m_pLAVVideo->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD);
 
   return hr;
 }
@@ -491,7 +491,7 @@ STDMETHODIMP CDecodeThread::Deliver(LAVFrame *pFrame)
 {
   m_Output.Push(pFrame);
   m_evSample.Set();
-  if (!m_bThreadSafe) {
+  if (m_bSyncToProcess) {
     m_evDeliver.Wait();
   }
   return S_OK;

@@ -361,6 +361,11 @@ interface ILAVDecoder
    * Get wether the decoder outputs thread-safe buffers
    */
   STDMETHOD(HasThreadSafeBuffers)() PURE;
+
+  /**
+   * Get wether the decoder should sync to the main thread
+   */
+  STDMETHOD(SyncToProcessThread)() PURE;
 };
 
 /**
