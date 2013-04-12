@@ -81,9 +81,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_LAVPinInfoValid(FALSE)
   , m_bMadVR(-1)
   , m_bOverlayMixer(-1)
-  , m_bMTFiltering(FALSE)
   , m_bFlushing(FALSE)
-  , m_evFilterInput(TRUE)
   , m_pSubtitleInput(NULL)
   , m_SubtitleConsumer(NULL)
   , m_pLastSequenceFrame(NULL)
@@ -129,7 +127,6 @@ CLAVVideo::~CLAVVideo()
     m_pTrayIcon = NULL;
   }
   SAFE_DELETE(m_ControlThread);
-  CloseMTFilterThread();
 
   ReleaseLastSequenceFrame();
   m_Decoder.Close();
@@ -578,20 +575,6 @@ BOOL CLAVVideo::IsInterlaced()
   return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_Decoder.IsInterlaced() && !(m_settings.DeintMode == DeintMode_Disable);
 }
 
-void CLAVVideo::CloseMTFilterThread()
-{
-  if (m_bMTFiltering) {
-    CAMThread::CallWorker(CMD_EXIT);
-    CAMThread::Close();
-
-    LAVFrame *pFrame = NULL;
-    while(pFrame = m_MTFilterContext.inputQueue.Pop())
-      ReleaseFrame(&pFrame);
-    while(pFrame = m_MTFilterContext.outputQueue.Pop())
-      ReleaseFrame(&pFrame);
-  }
-}
-
 static const LPWSTR stream_ar_blacklist[] = {
   L".mkv", L".webm",
   L".mp4", L".mov", L".m4v",
@@ -694,8 +677,6 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 
   SAFE_CO_FREE(pszExtension);
 
-  CloseMTFilterThread();
-
   hr = m_Decoder.CreateDecoder(pmt, codec);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Decoder creation failed"));
@@ -706,13 +687,6 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   int bpp;
   m_Decoder.GetPixelFormat(&pix, &bpp);
   m_PixFmtConverter.SetInputFmt(pix, bpp);
-
-  if (SUCCEEDED(hr) && m_Decoder.HasThreadSafeBuffers() == S_OK) {
-    m_bMTFiltering = TRUE;
-    CAMThread::Create();
-  } else {
-    m_bMTFiltering = FALSE;
-  }
 
   if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12)
     m_filterPixFmt = pix;
@@ -743,7 +717,7 @@ HRESULT CLAVVideo::EndOfStream()
   CAutoLock cAutoLock(&m_csReceive);
 
   m_Decoder.EndOfStream();
-  FilteringEndOfStream();
+  Filter(GetFlushFrame());
 
   DbgLog((LOG_TRACE, 1, L"EndOfStream finished, decoder flushed"));
   return __super::EndOfStream();
@@ -790,20 +764,6 @@ HRESULT CLAVVideo::PerformFlush()
 {
   CAutoLock cAutoLock(&m_csReceive);
 
-  if (m_bMTFiltering) {
-    // Block until the worker thread is in idle-state
-    CAMThread::CallWorker(CMD_BEGIN_FLUSH);
-
-    // Release all input/output frames
-    LAVFrame *pFrame = NULL;
-    while(pFrame = m_MTFilterContext.inputQueue.Pop())
-      ReleaseFrame(&pFrame);
-    while(pFrame = m_MTFilterContext.outputQueue.Pop())
-      ReleaseFrame(&pFrame);
-
-    CAMThread::CallWorker(CMD_END_FLUSH);
-  }
-
   ReleaseLastSequenceFrame();
   m_Decoder.Flush();
 
@@ -842,7 +802,6 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
 {
   DbgLog((LOG_TRACE, 10, L"::BreakConnect"));
   if (dir == PINDIR_INPUT) {
-    CloseMTFilterThread();
     m_Decoder.Close();
 
     if (m_pFilterGraph)
@@ -1257,90 +1216,6 @@ STDMETHODIMP_(LAVFrame*) CLAVVideo::GetFlushFrame()
   return pFlushFrame;
 }
 
-HRESULT CLAVVideo::QueueFrameForMTOutput(LAVFrame *pFrame)
-{
-  m_MTFilterContext.outputQueue.Push(pFrame);
-  return S_OK;
-}
-
-DWORD CLAVVideo::ThreadProc()
-{
-  BOOL bFlushed = FALSE, bEOS = FALSE;
-  DWORD cmd;
-  LAVFrame *pFrame = NULL;
-
-  DbgLog((LOG_TRACE, 10, L"Starting MT Filtering thread"));
-
-  HANDLE hWaitEvents[2] = { GetRequestHandle(), m_evFilterInput };
-  while(1) {
-    if (!bEOS) {
-       WaitForMultipleObjects(2, hWaitEvents, FALSE, INFINITE);
-    }
-    if (CheckRequest(&cmd)) {
-      switch (cmd) {
-      case CMD_EXIT:
-        Reply(S_OK);
-        return 0;
-      case CMD_EOS:
-        if (m_MTFilterContext.inputQueue.Empty()) {
-          Filter(GetFlushFrame(), &CLAVVideo::QueueFrameForMTOutput);
-          Reply(S_OK);
-          bEOS = FALSE;
-        } else {
-          bEOS = TRUE;
-        }
-        break;
-      case CMD_BEGIN_FLUSH:
-        bFlushed = TRUE;
-        // During a flush, all remaining data is removed by the caller, so assume there isn't any
-        m_evFilterInput.Reset();
-        Reply(S_OK);
-        break;
-      case CMD_END_FLUSH:
-        bFlushed = FALSE;
-        Reply(S_OK);
-        break;
-      default:
-        ASSERT(0);
-      }
-    }
-
-    if (bFlushed)
-      continue;
-
-    {
-      CAutoLock inLock(&m_MTFilterContext.inputQueue);
-      pFrame = m_MTFilterContext.inputQueue.Pop();
-      if (!pFrame || m_MTFilterContext.inputQueue.Empty()) {
-        m_evFilterInput.Reset();
-      }
-    }
-    if (!pFrame)
-      continue;
-
-    Filter(pFrame, &CLAVVideo::QueueFrameForMTOutput);
-    pFrame = NULL;
-  }
-}
-
-STDMETHODIMP CLAVVideo::FilteringEndOfStream()
-{
-  if (m_bMTFiltering) {
-    // Tell Worker Thread to process all frames and then return
-    // This call blocks until everything is done
-    CAMThread::CallWorker(CMD_EOS);
-
-    // Deliver all frames in the output queue
-    LAVFrame *pFrame = NULL;
-    while(pFrame = m_MTFilterContext.outputQueue.Pop())
-      DeliverToRenderer(pFrame);
-  } else {
-    Filter(GetFlushFrame(), &CLAVVideo::DeliverToRenderer);
-  }
-
-  return S_OK;
-}
-
 STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 {
   // Out-of-sequence flush event to get all frames delivered,
@@ -1348,7 +1223,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   // so no need to flush the decoder here
   if (pFrame->flags & LAV_FRAME_FLAG_FLUSH) {
     DbgLog((LOG_TRACE, 10, L"Decoder triggered a flush..."));
-    FilteringEndOfStream();
+    Filter(GetFlushFrame());
 
     ReleaseFrame(&pFrame);
     return S_FALSE;
@@ -1401,20 +1276,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     || pFrame->flags & LAV_FRAME_FLAG_REDRAW) {
     return DeliverToRenderer(pFrame);
   } else {
-    if (m_bMTFiltering) {
-      // Feed new frames into queue
-      while (m_MTFilterContext.inputQueue.Size() >= LAV_MT_FILTER_QUEUE_SIZE)
-        Sleep(1);
-
-      m_MTFilterContext.inputQueue.Push(pFrame);
-      m_evFilterInput.Set();
-
-      // Take old ones out
-      while (pFrame = m_MTFilterContext.outputQueue.Pop()) {
-        DeliverToRenderer(pFrame);
-      }
-    } else
-      Filter(pFrame, &CLAVVideo::DeliverToRenderer);
+    Filter(pFrame);
   }
   return S_OK;
 }

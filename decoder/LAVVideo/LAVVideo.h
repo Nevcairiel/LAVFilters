@@ -54,7 +54,7 @@ typedef struct {
 } TimingCache;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback, protected CAMThread
+class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback
 {
 public:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
@@ -174,9 +174,6 @@ public:
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesOut[];
   const static int                      sudPinTypesOutCount;
 
-protected:
-  DWORD ThreadProc();
-
 private:
   HRESULT LoadDefaults();
   HRESULT ReadSettings(HKEY rootKey);
@@ -196,11 +193,8 @@ private:
   BOOL IsInterlaced();
 
 
-  HRESULT Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LAVFrame *pFrame));
+  HRESULT Filter(LAVFrame *pFrame);
   HRESULT DeliverToRenderer(LAVFrame *pFrame);
-  HRESULT QueueFrameForMTOutput(LAVFrame *pFrame);
-  STDMETHODIMP FilteringEndOfStream();
-  void CloseMTFilterThread();
 
   HRESULT PerformFlush();
   HRESULT ReleaseLastSequenceFrame();
@@ -259,14 +253,6 @@ private:
   CLAVSubtitleConsumer *m_SubtitleConsumer;
 
   LAVFrame             *m_pLastSequenceFrame;
-
-  BOOL                 m_bMTFiltering;
-  CAMEvent             m_evFilterInput;
-  enum {CMD_EXIT, CMD_EOS, CMD_BEGIN_FLUSH, CMD_END_FLUSH};
-  struct {
-    CSynchronizedQueue<LAVFrame *> inputQueue;
-    CSynchronizedQueue<LAVFrame *> outputQueue;
-  } m_MTFilterContext;
 
   AM_SimpleRateChange  m_DVDRate;
 

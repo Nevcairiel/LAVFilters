@@ -38,7 +38,7 @@ static void avfilter_free_lav_buffer(LAVFrame *pFrame)
   av_frame_free((AVFrame **)&pFrame->priv_data);
 }
 
-HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LAVFrame *pFrame))
+HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
 {
   int ret = 0;
   BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
@@ -204,7 +204,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
         outFrame->priv_data = av_frame_alloc();
         av_frame_move_ref((AVFrame *)outFrame->priv_data, out_frame);
 
-        hrDeliver = (*this.*deliverFunc)(outFrame);
+        hrDeliver = DeliverToRenderer(outFrame);
       }
     }
     if (!refcountedFrame)
@@ -225,6 +225,6 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame, HRESULT (CLAVVideo::*deliverFunc)(LA
   } else {
     m_filterPixFmt = LAVPixFmt_None;
     deliver:
-    return (*this.*deliverFunc)(pFrame);
+    return DeliverToRenderer(pFrame);
   }
 }
