@@ -174,38 +174,36 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     AVFrame *out_frame = av_frame_alloc();
     HRESULT hrDeliver = S_OK;
     while (SUCCEEDED(hrDeliver) && (av_buffersink_get_frame(m_pFilterBufferSink, out_frame) >= 0)) {
-      if (ret >= 0) {
-        LAVFrame *outFrame = NULL;
-        AllocateFrame(&outFrame);
+      LAVFrame *outFrame = NULL;
+      AllocateFrame(&outFrame);
 
-        REFERENCE_TIME rtDuration = pFrame->rtStop - pFrame->rtStart;
-        if (m_settings.SWDeintOutput == DeintOutput_FramePerField)
-          rtDuration >>= 1;
+      REFERENCE_TIME rtDuration = pFrame->rtStop - pFrame->rtStart;
+      if (m_settings.SWDeintOutput == DeintOutput_FramePerField)
+        rtDuration >>= 1;
 
-        // Copy most settings over
-        outFrame->format       = (out_frame->format == PIX_FMT_YUV420P) ? LAVPixFmt_YUV420 : (out_frame->format == PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
-        outFrame->bpp          = pFrame->bpp;
-        outFrame->ext_format   = pFrame->ext_format;
-        outFrame->avgFrameDuration = pFrame->avgFrameDuration;
-        outFrame->flags        = pFrame->flags;
+      // Copy most settings over
+      outFrame->format       = (out_frame->format == PIX_FMT_YUV420P) ? LAVPixFmt_YUV420 : (out_frame->format == PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
+      outFrame->bpp          = pFrame->bpp;
+      outFrame->ext_format   = pFrame->ext_format;
+      outFrame->avgFrameDuration = pFrame->avgFrameDuration;
+      outFrame->flags        = pFrame->flags;
 
-        outFrame->width        = out_frame->width;
-        outFrame->height       = out_frame->height;
-        outFrame->aspect_ratio = out_frame->sample_aspect_ratio;
-        outFrame->tff          = out_frame->top_field_first;
+      outFrame->width        = out_frame->width;
+      outFrame->height       = out_frame->height;
+      outFrame->aspect_ratio = out_frame->sample_aspect_ratio;
+      outFrame->tff          = out_frame->top_field_first;
         
-        REFERENCE_TIME pts     = av_rescale(out_frame->pts, m_pFilterBufferSink->inputs[0]->time_base.num * 10000000LL, m_pFilterBufferSink->inputs[0]->time_base.den);
-        outFrame->rtStart      = pts;
-        outFrame->rtStop       = pts + rtDuration;
-        memcpy(outFrame->data, out_frame->data, sizeof(outFrame->data));
-        memcpy(outFrame->stride, out_frame->linesize, sizeof(outFrame->stride));
+      REFERENCE_TIME pts     = av_rescale(out_frame->pts, m_pFilterBufferSink->inputs[0]->time_base.num * 10000000LL, m_pFilterBufferSink->inputs[0]->time_base.den);
+      outFrame->rtStart      = pts;
+      outFrame->rtStop       = pts + rtDuration;
+      memcpy(outFrame->data, out_frame->data, sizeof(outFrame->data));
+      memcpy(outFrame->stride, out_frame->linesize, sizeof(outFrame->stride));
 
-        outFrame->destruct = avfilter_free_lav_buffer;
-        outFrame->priv_data = av_frame_alloc();
-        av_frame_move_ref((AVFrame *)outFrame->priv_data, out_frame);
+      outFrame->destruct = avfilter_free_lav_buffer;
+      outFrame->priv_data = av_frame_alloc();
+      av_frame_move_ref((AVFrame *)outFrame->priv_data, out_frame);
 
-        hrDeliver = DeliverToRenderer(outFrame);
-      }
+      hrDeliver = DeliverToRenderer(outFrame);
     }
     if (!refcountedFrame)
       ReleaseFrame(&pFrame);
