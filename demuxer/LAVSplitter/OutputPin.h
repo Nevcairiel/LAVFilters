@@ -57,6 +57,7 @@ public:
   HRESULT Inactive();
 
   STDMETHODIMP Connect(IPin * pReceivePin, const AM_MEDIA_TYPE *pmt);
+  HRESULT CompleteConnect(IPin *pReceivePin);
 
   // IMediaSeeking
   STDMETHODIMP GetCapabilities(DWORD* pCapabilities);
@@ -94,6 +95,7 @@ public:
 
   void SetNewMediaTypes(std::vector<CMediaType> pmts) { CAutoLock lock(&m_csMT); m_mts = pmts; SetQueueSizes(); }
   void SendMediaType(CMediaType *mt) { CAutoLock lock(&m_csMT); m_newMT = mt;}
+  void SetStreamMediaType(CMediaType *mt) { CAutoLock lock(&m_csMT); m_StreamMT = *mt; }
 
   CMediaType& GetActiveMediaType() { return m_mt; }
 
@@ -130,6 +132,7 @@ private:
   CCritSec m_csMT;
   std::vector<CMediaType> m_mts;
   CPacketQueue m_queue;
+  CMediaType m_StreamMT;
 
   std::string m_containerFormat;
 

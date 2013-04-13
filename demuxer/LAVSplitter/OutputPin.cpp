@@ -253,6 +253,12 @@ STDMETHODIMP CLAVOutputPin::Connect(IPin* pReceivePin, const AM_MEDIA_TYPE* pmt)
   return hr;
 }
 
+HRESULT CLAVOutputPin::CompleteConnect(IPin *pReceivePin)
+{
+  m_StreamMT = m_mt;
+  return __super::CompleteConnect(pReceivePin);
+}
+
 HRESULT CLAVOutputPin::DeliverBeginFlush()
 {
   DbgLog((LOG_TRACE, 20, L"::DeliverBeginFlush on %s Pin", CBaseDemuxer::CStreamList::ToStringW(m_pinType)));
@@ -347,11 +353,12 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
     if(m_newMT && pPacket) {
       DbgLog((LOG_TRACE, 10, L"::QueuePacket() - Found new Media Type"));
       pPacket->pmt = CreateMediaType(m_newMT);
+      SetStreamMediaType(m_newMT);
       SAFE_DELETE(m_newMT);
     }
   }
 
-  m_Parser.Parse(m_mt.subtype, pPacket);
+  m_Parser.Parse(m_StreamMT.subtype, pPacket);
 
   return m_hrDeliver;
 }
@@ -485,6 +492,8 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
     m_mts.clear();
     m_mts.push_back(pmt);
     pPacket->pmt = NULL;
+
+    SetMediaType(&pmt);
   }
 
   bool fTimeValid = pPacket->rtStart != Packet::INVALID_TIME;
