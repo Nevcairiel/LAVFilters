@@ -1,5 +1,15 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.56.1 - 2013/04/13
+LAV Splitter
+- Fixed various crashes with ordered chapter MKVs
+- Fixed a crash when playing an MKV with a disabled subtitle track
+- Fixed switching between video streams with different codecs (ie. H264 -> MPEG2)
+
+LAV Video
+- Fixed a crash on close with DXVA2 Native
+- Re-tuned YADIF for smooth playback instead of benchmarking
+
 0.56.0 - 2013/04/10
 General
 - Major ffmpeg update, the DLLs have had their version number increased
