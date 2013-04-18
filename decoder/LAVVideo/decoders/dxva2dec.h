@@ -31,7 +31,6 @@ typedef struct {
   bool used;
   LPDIRECT3DSURFACE9 d3d;
   uint64_t age;
-  IMediaSample *sample;
 } d3d_surface_t;
 
 class CDXVA2SurfaceAllocator;

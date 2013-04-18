@@ -929,6 +929,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       pOutFrame->flags |= LAV_FRAME_FLAG_END_OF_SEQUENCE;
 
     if (pOutFrame->format == LAVPixFmt_DXVA2) {
+      pOutFrame->data[0] = m_pFrame->data[4];
       HandleDXVA2Frame(pOutFrame);
     } else {
       Deliver(pOutFrame);
