@@ -669,6 +669,9 @@ HRESULT CDecDXVA2::CheckHWCompatConditions(GUID decoderGuid)
     if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
       DbgLog((LOG_TRACE, 10, L"-> UHD/4K resolutions blacklisted on AMD/ATI GPUs"));
       return E_FAIL;
+    } else if (m_pAVCtx->codec_id == AV_CODEC_ID_WMV3 && IsAMDUVD(m_dwDeviceId)) {
+      DbgLog((LOG_TRACE, 10, L"-> AMD UVD/UVD+ is currently not compatible with WMV3"));
+      return E_FAIL;
     }
   } else if (m_dwVendorId == VEND_ID_INTEL && decoderGuid == DXVADDI_Intel_ModeH264_E) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && m_pAVCtx->refs > max_ref_frames_dpb41) {
