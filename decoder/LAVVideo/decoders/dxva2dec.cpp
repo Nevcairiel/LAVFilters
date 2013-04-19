@@ -1187,7 +1187,10 @@ STDMETHODIMP CDecDXVA2::Flush()
 
   // This solves an issue with corruption after seeks on AMD systems, see JIRA LAV-5
   if (m_dwVendorId == VEND_ID_ATI && m_nCodecId == AV_CODEC_ID_H264 && m_pDecoder) {
-    CreateDXVA2Decoder(m_NumSurfaces, m_pRawSurface);
+    if (m_bNative)
+      CreateDXVA2Decoder(m_NumSurfaces, m_pRawSurface);
+    else
+      CreateDXVA2Decoder();
   }
 
   return S_OK;
