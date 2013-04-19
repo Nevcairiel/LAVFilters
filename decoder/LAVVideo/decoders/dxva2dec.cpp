@@ -1185,6 +1185,10 @@ STDMETHODIMP CDecDXVA2::Flush()
   }
 #endif
 
+  if (m_dwVendorId == VEND_ID_ATI && m_nCodecId == AV_CODEC_ID_H264 && m_pDecoder) {
+    CreateDXVA2Decoder(m_NumSurfaces, m_pRawSurface);
+  }
+
   return S_OK;
 }
 
