@@ -1129,10 +1129,15 @@ STDMETHODIMP CDecDXVA2::Flush()
 {
   CDecAvcodec::Flush();
 
+  int used = 0;
   for (int i = 0; i < m_NumSurfaces; i++) {
     d3d_surface_t *s = &m_pSurfaces[i];
-    s->used = false;
-    //s->age = 0;
+    if (s->used) {
+      used++;
+    }
+  }
+  if (used > 0) {
+    DbgLog((LOG_TRACE, 10, L"WARNING! %d frames still in use after flush", used));
   }
 
   FlushDisplayQueue(FALSE);
