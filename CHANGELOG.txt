@@ -1,5 +1,17 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.56.2 - 2013/04/19
+LAV Splitter
+- Emit the EC_LENGTH_CHANGED event when the edition is changed, to help players update their playback duration
+
+LAV Video
+- dxva2: fixed corruption/dropped frames after seeking in interlaced MPEG-2/VC-1 streams
+- dxva2: fixed corruption after seeking in interlaced H.264 on AMD GPUs
+- dxva2: fixed decoding of H.264 on AMD UVD/UVD+ GPUs (HD 2xxx/3xxx Series)
+- dxva2: disabled wmv3 decoding on AMD UVD/UVD+ GPUs (until it can be fixed)
+- Fixed colorspace used for YUV Fraps to always be BT.709
+- Added support for MPEG-4 Video with the BLZ0 FourCC (used in older Blizzard games)
+
 0.56.1 - 2013/04/13
 LAV Splitter
 - Fixed various crashes with ordered chapter MKVs
