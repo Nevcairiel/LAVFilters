@@ -564,6 +564,12 @@ STDMETHODIMP CLAVFDemuxer::SetTitle(int idx)
   if (!m_bMatroska)
     return E_NOTIMPL;
   av_mkv_set_next_edition(m_avFormat, idx);
+
+  // Update duration
+  AVEdition *editions = NULL;
+  av_mkv_get_editions(m_avFormat, &editions);
+  m_avFormat->duration = editions[idx].duration;
+
   return S_OK;
 }
 

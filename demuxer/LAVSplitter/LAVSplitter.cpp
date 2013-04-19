@@ -1280,6 +1280,9 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
   if (num_titles > 1 && idx >= 0 && idx < num_titles) {
     HRESULT hr = m_pDemuxer->SetTitle(idx);
     if (SUCCEEDED(hr)) {
+      // Notify the player about the length change
+      NotifyEvent(EC_LENGTH_CHANGED, 0, 0);
+      // Perform a seek to the start of the new title
       IMediaSeeking *pSeek = NULL;
       hr = m_pGraph->QueryInterface(&pSeek);
       if (SUCCEEDED(hr)) {
