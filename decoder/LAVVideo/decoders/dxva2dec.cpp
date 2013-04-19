@@ -136,6 +136,42 @@ static const dxva2_mode_t *DXVA2FindMode(const GUID *guid)
   return NULL;
 }
 
+// List of PCI Device ID of ATI cards with UVD or UVD+ decoding block.
+static DWORD UVDDeviceID [] = {
+  0x94C7, // ATI Radeon HD 2350
+  0x94C1, // ATI Radeon HD 2400 XT
+  0x94CC, // ATI Radeon HD 2400 Series
+  0x958A, // ATI Radeon HD 2600 X2 Series
+  0x9588, // ATI Radeon HD 2600 XT
+  0x9405, // ATI Radeon HD 2900 GT
+  0x9400, // ATI Radeon HD 2900 XT
+  0x9611, // ATI Radeon 3100 Graphics
+  0x9610, // ATI Radeon HD 3200 Graphics
+  0x9614, // ATI Radeon HD 3300 Graphics
+  0x95C0, // ATI Radeon HD 3400 Series (and others)
+  0x95C5, // ATI Radeon HD 3400 Series (and others)
+  0x95C4, // ATI Radeon HD 3400 Series (and others)
+  0x94C3, // ATI Radeon HD 3410
+  0x9589, // ATI Radeon HD 3600 Series (and others)
+  0x9598, // ATI Radeon HD 3600 Series (and others)
+  0x9591, // ATI Radeon HD 3600 Series (and others)
+  0x9501, // ATI Radeon HD 3800 Series (and others)
+  0x9505, // ATI Radeon HD 3800 Series (and others)
+  0x9507, // ATI Radeon HD 3830
+  0x9513, // ATI Radeon HD 3850 X2
+  0x950F, // ATI Radeon HD 3850 X2
+  0x0000
+};
+
+static int IsAMDUVD(DWORD dwDeviceId)
+{
+  for (int i = 0; UVDDeviceID[i] != 0; i++) {
+    if (UVDDeviceID[i] == dwDeviceId)
+      return 1;
+  }
+  return 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // DXVA2 decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
@@ -172,6 +208,7 @@ CDecDXVA2::CDecDXVA2(void)
   , m_dwSurfaceWidth(0)
   , m_dwSurfaceHeight(0)
   , m_dwVendorId(0)
+  , m_dwDeviceId(0)
   , m_pDXVA2Allocator(NULL)
   , m_hDevice(INVALID_HANDLE_VALUE)
   , m_DisplayDelay(DXVA2_QUEUE_SURFACES)
@@ -537,6 +574,7 @@ HRESULT CDecDXVA2::InitD3D()
 
   DbgLog((LOG_TRACE, 10, L"-> Running on adapter %d, %S, vendor 0x%04X(%S), device 0x%04X", lAdapter, d3dai.Description, d3dai.VendorId, vendor, d3dai.DeviceId));
   m_dwVendorId = d3dai.VendorId;
+  m_dwDeviceId = d3dai.DeviceId;
 
   D3DPRESENT_PARAMETERS d3dpp;
   D3DDISPLAYMODE d3ddm;
@@ -612,6 +650,7 @@ HRESULT CDecDXVA2::RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager)
   }
 
   m_dwVendorId = adIdentifier.VendorId;
+  m_dwDeviceId = adIdentifier.DeviceId;
 
 done:
   SafeRelease(&pD3D);
@@ -932,8 +971,8 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
 
   if (m_dwVendorId == VEND_ID_INTEL && input == DXVADDI_Intel_ModeH264_E)
     ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_CLEARVIDEO;
-  /*else if (m_dwVendorId == VEND_ID_ATI)
-    ctx->workaround = FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG;*/
+  else if (m_dwVendorId == VEND_ID_ATI && IsAMDUVD(m_dwDeviceId))
+    ctx->workaround = FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG;
   else
     ctx->workaround = 0;
 

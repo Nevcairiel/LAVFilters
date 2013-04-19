@@ -125,5 +125,6 @@ private:
   DWORD     m_dwSurfaceWidth;
   DWORD     m_dwSurfaceHeight;
   DWORD     m_dwVendorId;
+  DWORD     m_dwDeviceId;
   int       m_DisplayDelay;
 };
