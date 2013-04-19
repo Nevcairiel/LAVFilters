@@ -1170,6 +1170,7 @@ HRESULT CDecDXVA2::PostDecode()
 STDMETHODIMP CDecDXVA2::Flush()
 {
   CDecAvcodec::Flush();
+  FlushDisplayQueue(FALSE);
 
   int used = 0;
   for (int i = 0; i < m_NumSurfaces; i++) {
@@ -1181,8 +1182,6 @@ STDMETHODIMP CDecDXVA2::Flush()
   if (used > 0) {
     DbgLog((LOG_TRACE, 10, L"WARNING! %d frames still in use after flush", used));
   }
-
-  FlushDisplayQueue(FALSE);
 
   return S_OK;
 }
