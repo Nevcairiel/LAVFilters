@@ -4889,13 +4889,10 @@ CBaseAllocator::Commit()
         return NOERROR;
     }
 
-    /* Allow GetBuffer calls */
-
-    m_bCommitted = TRUE;
-
     // is there a pending decommit ? if so, just cancel it
     if (m_bDecommitInProgress) {
         m_bDecommitInProgress = FALSE;
+        m_bCommitted = TRUE;
 
         // don't call Alloc at this point. He cannot allow SetProperties
         // between Decommit and the last free, so the buffer size cannot have
@@ -4912,6 +4909,10 @@ CBaseAllocator::Commit()
         m_bCommitted = FALSE;
         return hr;
     }
+
+    /* Allow GetBuffer calls */
+    m_bCommitted = TRUE;
+
     AddRef();
     return NOERROR;
 }
