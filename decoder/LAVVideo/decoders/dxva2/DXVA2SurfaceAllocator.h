@@ -80,6 +80,7 @@ public:
   HRESULT Alloc();
   void Free();
   STDMETHODIMP_(BOOL) DecommitInProgress() { CAutoLock cal(this); return m_bDecommitInProgress; }
+  STDMETHODIMP_(BOOL) IsCommited() { CAutoLock cal(this); return m_bCommitted; }
 
   STDMETHODIMP_(void) DecoderDestruct() { m_pDec = NULL; }
 
