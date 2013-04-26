@@ -1650,7 +1650,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
     } else if (!m_bRM || check_nb_f > 0) {
       if (checkPixels > bestPixels) {
         best = check;
-      } else if (checkPixels == bestPixels) {
+      } else if (m_bRM && checkPixels == bestPixels) {
         int best_rate = m_avFormat->streams[best->pid]->codec->bit_rate;
         int check_rate = m_avFormat->streams[check->pid]->codec->bit_rate;
         if (best_rate && check_rate && check_rate > best_rate)
