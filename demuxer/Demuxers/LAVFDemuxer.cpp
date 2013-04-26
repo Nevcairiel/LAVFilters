@@ -716,6 +716,31 @@ STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID
           WAVEFORMATEXFFMPEG *wfex = (WAVEFORMATEXFFMPEG *)pmt->ReallocFormatBuffer(sizeof(WAVEFORMATEXFFMPEG) + extradata_size);
           wfex->wfex.cbSize = extradata_size;
           memcpy((BYTE*)wfex + sizeof(WAVEFORMATEXFFMPEG), extradata, extradata_size);
+        } else if (pmt->formattype == FORMAT_VorbisFormat2) {
+          BYTE *p = extradata;
+          std::vector<int> sizes;
+          for(BYTE n = *p++; n > 0; n--) {
+            int size = 0;
+            // Xiph Lacing
+            do { size += *p; } while (*p++ == 0xFF);
+            sizes.push_back(size);
+          }
+
+          int totalsize = 0;
+          for(size_t i = 0; i < sizes.size(); i++)
+            totalsize += sizes[i];
+
+          sizes.push_back(extradata_size - (int)(p - extradata) - totalsize);
+          totalsize += sizes[sizes.size()-1];
+
+          // 3 blocks is the currently valid Vorbis format
+          if(sizes.size() == 3) {
+            VORBISFORMAT2* pvf2 = (VORBISFORMAT2*)pmt->ReallocFormatBuffer(sizeof(VORBISFORMAT2) + totalsize);
+            BYTE *p2 = (BYTE *)pvf2 + sizeof(VORBISFORMAT2);
+            for(unsigned int i = 0; i < sizes.size(); p += sizes[i], p2 += sizes[i], i++) {
+              memcpy(p2, p, pvf2->HeaderSize[i] = sizes[i]);
+            }
+          }
         } else {
           DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Unsupported PMT change on codec %S", avcodec_get_name(codec_id)));
         }
