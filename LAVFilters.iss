@@ -123,7 +123,7 @@ type
            end;
 
 const
-  NumFormatsMinusOne = 19;
+  NumFormatsMinusOne = 20;
   LavGUID = '{B98D13E7-55DB-4385-A33D-09FD1BA26338}';
   StreamGUID = '{E436EB83-524F-11CE-9F53-0020AF0BA770}';
   LavSplitterFormatsReg = 'Software\LAV\Splitter\Formats';
@@ -196,17 +196,18 @@ begin
   FR(SplitterFormats[8], 'rm', 'RealMedia (rm/rmvb)', True, ['rm', 'rmvb', '']);
   FR(SplitterFormats[9], 'wtv', 'Windows Television (wtv)', False, ['wtv', '']);
   FR(SplitterFormats[10], 'asf', 'WMV / ASF / DVR-MS', False, ['wmv', 'asf', 'dvr-ms', '']);
-  FR(SplitterFormats[11], 'bink', 'Bink', True, ['bik', '']);
+  FR(SplitterFormats[11], 'mxf', 'MXF (Material Exchange Format)', True, ['mxf', '']);
+  FR(SplitterFormats[12], 'bink', 'Bink', True, ['bik', '']);
 
-  FP(SplitterFormats[12], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
-  FP(SplitterFormats[13], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
-  FP(SplitterFormats[14], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
+  FP(SplitterFormats[13], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
+  FP(SplitterFormats[14], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
+  FP(SplitterFormats[15], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
 
-  FR(SplitterFormats[15], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
-  FR(SplitterFormats[16], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
-  FR(SplitterFormats[17], 'aac', 'AAC Audio', True, ['aac', '']);
-  FR(SplitterFormats[18], 'mp3', 'MP3 Audio', True, ['mp3', '']);
-  FR(SplitterFormats[19], 'flac', 'FLAC Audio', True, ['flac', '']);
+  FR(SplitterFormats[16], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
+  FR(SplitterFormats[17], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
+  FR(SplitterFormats[18], 'aac', 'AAC Audio', True, ['aac', '']);
+  FR(SplitterFormats[19], 'mp3', 'MP3 Audio', True, ['mp3', '']);
+  FR(SplitterFormats[20], 'flac', 'FLAC Audio', True, ['flac', '']);
 end;
 
 procedure RegisterSourceFormatGUIDs(f: Format);
