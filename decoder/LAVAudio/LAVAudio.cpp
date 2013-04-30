@@ -35,6 +35,7 @@
 #include "DeCSS/DeCSSInputPin.h"
 
 extern "C" {
+#define AVCODEC_X86_MATHOPS_H
 #include "libavformat/spdif.h"
 #include "libavcodec/flac.h"
 
