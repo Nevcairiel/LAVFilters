@@ -36,7 +36,9 @@
 
 extern "C" {
 #include "libavformat/spdif.h"
+#include "libavcodec/flac.h"
 
+extern int ff_vorbis_comment(AVFormatContext *ms, AVDictionary **m, const uint8_t *buf, int size);
 extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesize);
 __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 };
@@ -1350,6 +1352,40 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     m_pFrame   = av_frame_alloc();
   } else {
     return VFW_E_UNSUPPORTED_AUDIO;
+  }
+
+  // Parse VorbisComment entries from FLAC extradata to find the WAVEFORMATEXTENSIBLE_CHANNEL_MASK tag
+  // This tag is used to store non-standard channel layouts in FLAC files, see LAV-8 / Issue 342
+  if (codec == AV_CODEC_ID_FLAC) {
+    enum FLACExtradataFormat format;
+    uint8_t *streaminfo;
+    ret = avpriv_flac_is_extradata_valid(m_pAVCtx, &format, &streaminfo);
+    if (ret && format == FLAC_EXTRADATA_FORMAT_FULL_HEADER) {
+      AVDictionary *metadata = NULL;
+      int metadata_last = 0, metadata_type, metadata_size;
+      uint8_t *header = m_pAVCtx->extradata + 4, *end = m_pAVCtx->extradata + m_pAVCtx->extradata_size;
+      while (header + 4 < end && !metadata_last) {
+        avpriv_flac_parse_block_header(header, &metadata_last, &metadata_type, &metadata_size);
+        header += 4;
+        if (header + metadata_size > end)
+          break;
+        switch (metadata_type) {
+        case FLAC_METADATA_TYPE_VORBIS_COMMENT:
+          ff_vorbis_comment(NULL, &metadata, header, metadata_size);
+          break;
+        }
+        header += metadata_size;
+      }
+      if (metadata) {
+        AVDictionaryEntry *entry = av_dict_get(metadata, "WAVEFORMATEXTENSIBLE_CHANNEL_MASK", NULL, 0);
+        if (entry && entry->value) {
+          uint64_t channel_layout = strtol(entry->value, NULL, 0);
+          if (channel_layout && av_get_channel_layout_nb_channels(channel_layout) == m_pAVCtx->channels)
+            m_pAVCtx->channel_layout = channel_layout;
+        }
+        av_dict_free(&metadata);
+      }
+    }
   }
 
   // Set Dynamic Range Compression
