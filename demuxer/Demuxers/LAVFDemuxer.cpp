@@ -220,6 +220,9 @@ trynoformat:
   m_avFormat->pb = byteContext;
   m_avFormat->interrupt_callback = cb;
 
+  if (m_avFormat->pb)
+    m_avFormat->flags |= AVFMT_FLAG_CUSTOM_IO;
+
   LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
 
   AVInputFormat *inputFormat = NULL;
