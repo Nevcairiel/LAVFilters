@@ -194,6 +194,10 @@ static LPCWSTR wszImageExtensions[] = {
   L".bmp"                       // BMP
 };
 
+static LPCWSTR wszBlockedExtensions[] = {
+  L".ifo", L".bup"
+};
+
 STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName, const char *format)
 {
   CAutoLock lock(m_pLock);
@@ -238,6 +242,11 @@ trynoformat:
           inputFormat = av_find_input_format("image2");
         }
         break;
+      }
+    }
+    for (int i = 0; i < countof(wszBlockedExtensions); i++) {
+      if (_wcsicmp(extension, wszBlockedExtensions[i]) == 0) {
+        goto done;
       }
     }
   }
