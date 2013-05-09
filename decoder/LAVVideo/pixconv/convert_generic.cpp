@@ -34,10 +34,10 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
 
   switch (m_OutputPixFmt) {
   case LAVOutPixFmt_YV12:
-    hr = swscale_scale(inputFmt, PIX_FMT_YUV420P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    hr = swscale_scale(inputFmt, AV_PIX_FMT_YUV420P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
     break;
   case LAVOutPixFmt_NV12:
-    hr = swscale_scale(inputFmt, PIX_FMT_NV12, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
+    hr = swscale_scale(inputFmt, AV_PIX_FMT_NV12, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   case LAVOutPixFmt_YUY2:
     hr = ConvertTo422Packed(src, srcStride, dst, width, height, dstStride);
@@ -67,10 +67,10 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
     hr = ConvertToY416(src, srcStride, dst, width, height, dstStride);
     break;
   case LAVOutPixFmt_RGB32:
-    hr = swscale_scale(inputFmt, PIX_FMT_BGRA, src, srcStride, dst, width, height, dstStride * 4, lav_pixfmt_desc[m_OutputPixFmt]);
+    hr = swscale_scale(inputFmt, AV_PIX_FMT_BGRA, src, srcStride, dst, width, height, dstStride * 4, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   case LAVOutPixFmt_RGB24:
-    hr = swscale_scale(inputFmt, PIX_FMT_BGR24, src, srcStride, dst, width, height, dstStride * 3, lav_pixfmt_desc[m_OutputPixFmt]);
+    hr = swscale_scale(inputFmt, AV_PIX_FMT_BGR24, src, srcStride, dst, width, height, dstStride * 3, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   case LAVOutPixFmt_v210:
     hr = ConvertTov210(src, srcStride, dst, width, height, dstStride);
@@ -79,10 +79,10 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
     hr = ConvertTov410(src, srcStride, dst, width, height, dstStride);
     break;
   case LAVOutPixFmt_YV16:
-    hr = swscale_scale(inputFmt, PIX_FMT_YUV422P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    hr = swscale_scale(inputFmt, AV_PIX_FMT_YUV422P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
     break;
   case LAVOutPixFmt_YV24:
-    hr = swscale_scale(inputFmt, PIX_FMT_YUV444P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    hr = swscale_scale(inputFmt, AV_PIX_FMT_YUV444P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
     break;
   default:
     ASSERT(0);
@@ -189,7 +189,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
     dstStride[2] = scaleStride / 2;
     dstStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), PIX_FMT_YUV422P, SWS_FAST_BILINEAR);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P, SWS_FAST_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, dst, dstStride);
 
     y = dst[0];
@@ -286,7 +286,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
     swStride[2] = scaleStride;
     swStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), PIX_FMT_YUV444P, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P, SWS_POINT);
     sws_scale(ctx, src, srcStride, 0, height, dst, swStride);
 
     y = dst[0];
@@ -360,7 +360,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
     dstStride[2] = scaleStride / 2;
     dstStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), chromaVertical == 1 ? PIX_FMT_YUV422P16LE : PIX_FMT_YUV420P16LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), chromaVertical == 1 ? AV_PIX_FMT_YUV422P16LE : AV_PIX_FMT_YUV420P16LE, SWS_POINT);
     sws_scale(ctx, src, srcStride, 0, height, dst, dstStride);
 
     y = dst[0];
@@ -466,7 +466,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
     dstStride[2] = scaleStride * 2;
     dstStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), PIX_FMT_YUV444P10LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_POINT);
     sws_scale(ctx, src, srcStride, 0, height, dst, dstStride);
 
     y = (int16_t *)dst[0];
@@ -528,7 +528,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
     dstStride[2] = scaleStride * 2;
     dstStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), PIX_FMT_YUV444P16LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P16LE, SWS_POINT);
     sws_scale(ctx, src, srcStride, 0, height, dst, dstStride);
 
     y = (int16_t *)dst[0];
@@ -585,7 +585,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
     dstStride[2] = scaleStride;
     dstStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), PIX_FMT_YUV422P10LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P10LE, SWS_POINT);
     sws_scale(ctx, src, srcStride, 0, height, dst, dstStride);
 
     y = (int16_t *)dst[0];
@@ -679,7 +679,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const in
     dstStride[2] = scaleStride * 2;
     dstStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), PIX_FMT_YUV444P10LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_POINT);
     sws_scale(ctx, src, srcStride, 0, height, dst, dstStride);
 
     y = (int16_t *)dst[0];

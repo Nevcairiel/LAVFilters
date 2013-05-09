@@ -43,7 +43,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
   int ret = 0;
   BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
   if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable && m_settings.SWDeintMode == SWDeintMode_YADIF && ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
-    PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? PIX_FMT_YUV422P : PIX_FMT_NV12;
+    PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? AV_PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? AV_PIX_FMT_YUV422P : AV_PIX_FMT_NV12;
 
     if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight)) {
       DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing YADIF deinterlacing filter..."));
@@ -60,14 +60,14 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       char args[512];
       enum PixelFormat pix_fmts[3];
 
-      if (ff_pixfmt == PIX_FMT_NV12) {
-        pix_fmts[0] = PIX_FMT_NV12;
-        pix_fmts[1] = PIX_FMT_YUV420P;
+      if (ff_pixfmt == AV_PIX_FMT_NV12) {
+        pix_fmts[0] = AV_PIX_FMT_NV12;
+        pix_fmts[1] = AV_PIX_FMT_YUV420P;
       } else {
         pix_fmts[0] = ff_pixfmt;
-        pix_fmts[1] = PIX_FMT_NONE;
+        pix_fmts[1] = AV_PIX_FMT_NONE;
       }
-      pix_fmts[2] = PIX_FMT_NONE;
+      pix_fmts[2] = AV_PIX_FMT_NONE;
 
       AVFilter *buffersrc  = avfilter_get_by_name("buffer");
       AVFilter *buffersink = avfilter_get_by_name("buffersink");
@@ -145,7 +145,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       if (refcountedFrame) {
         AVBufferRef *pFrameBuf = av_buffer_create(NULL, 0, lav_free_lavframe, pFrame, 0);
         const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get((AVPixelFormat)in_frame->format);
-        int planes = (in_frame->format == PIX_FMT_NV12) ? 2 : desc->nb_components;
+        int planes = (in_frame->format == AV_PIX_FMT_NV12) ? 2 : desc->nb_components;
 
         for (int i = 0; i < planes; i++) {
           int h_shift    = (i == 1 || i == 2) ? desc->log2_chroma_h : 0;
@@ -182,7 +182,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
         rtDuration >>= 1;
 
       // Copy most settings over
-      outFrame->format       = (out_frame->format == PIX_FMT_YUV420P) ? LAVPixFmt_YUV420 : (out_frame->format == PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
+      outFrame->format       = (out_frame->format == AV_PIX_FMT_YUV420P) ? LAVPixFmt_YUV420 : (out_frame->format == AV_PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
       outFrame->bpp          = pFrame->bpp;
       outFrame->ext_format   = pFrame->ext_format;
       outFrame->avgFrameDuration = pFrame->avgFrameDuration;

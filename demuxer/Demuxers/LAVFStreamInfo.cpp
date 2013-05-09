@@ -235,12 +235,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     mtype.lSampleSize = pBMI->biSizeImage;
     if (!avstream->codec->codec_tag || avstream->codec->codec_tag == MKTAG('r','a','w',' ')) {
       switch (avstream->codec->pix_fmt) {
-      case PIX_FMT_BGRA:
+      case AV_PIX_FMT_BGRA:
         mtype.subtype = MEDIASUBTYPE_ARGB32;
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_RGB32;
         break;
-      case PIX_FMT_BGR24:
+      case AV_PIX_FMT_BGR24:
         mtype.subtype = MEDIASUBTYPE_RGB24;
         break;
       default:

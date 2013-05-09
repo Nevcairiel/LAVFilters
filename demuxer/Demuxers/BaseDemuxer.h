@@ -103,7 +103,7 @@ public:
   virtual void SettingsChanged(ILAVFSettingsInternal *pSettings) {};
 
   virtual STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream) { return 0; }
-  virtual STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { return PIX_FMT_NONE; }
+  virtual STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { return AV_PIX_FMT_NONE; }
   virtual STDMETHODIMP_(int) GetHasBFrames(DWORD dwStream) { return -1; }
 
 public:

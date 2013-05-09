@@ -44,36 +44,36 @@ static struct {
   LAVPixelFormat pixfmt;
   PixelFormat ffpixfmt;
 } lav_ff_pixfmt_map[] = {
-  { LAVPixFmt_YUV420, PIX_FMT_YUV420P },
-  { LAVPixFmt_YUV422, PIX_FMT_YUV422P },
-  { LAVPixFmt_YUV444, PIX_FMT_YUV444P },
-  { LAVPixFmt_NV12,   PIX_FMT_NV12    },
-  { LAVPixFmt_YUY2,   PIX_FMT_YUYV422 },
-  { LAVPixFmt_RGB24,  PIX_FMT_BGR24   },
-  { LAVPixFmt_RGB32,  PIX_FMT_BGRA    },
-  { LAVPixFmt_ARGB32, PIX_FMT_BGRA    },
-  { LAVPixFmt_RGB48,  PIX_FMT_BGR48LE },
+  { LAVPixFmt_YUV420, AV_PIX_FMT_YUV420P },
+  { LAVPixFmt_YUV422, AV_PIX_FMT_YUV422P },
+  { LAVPixFmt_YUV444, AV_PIX_FMT_YUV444P },
+  { LAVPixFmt_NV12,   AV_PIX_FMT_NV12    },
+  { LAVPixFmt_YUY2,   AV_PIX_FMT_YUYV422 },
+  { LAVPixFmt_RGB24,  AV_PIX_FMT_BGR24   },
+  { LAVPixFmt_RGB32,  AV_PIX_FMT_BGRA    },
+  { LAVPixFmt_ARGB32, AV_PIX_FMT_BGRA    },
+  { LAVPixFmt_RGB48,  AV_PIX_FMT_BGR48LE },
 };
 
 PixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
 {
-  PixelFormat fmt = PIX_FMT_NONE;
+  PixelFormat fmt = AV_PIX_FMT_NONE;
   for(int i = 0; i < countof(lav_ff_pixfmt_map); i++) {
     if (lav_ff_pixfmt_map[i].pixfmt == pixFmt) {
       fmt = lav_ff_pixfmt_map[i].ffpixfmt;
       break;
     }
   }
-  if (fmt == PIX_FMT_NONE) {
+  if (fmt == AV_PIX_FMT_NONE) {
     switch(pixFmt) {
     case LAVPixFmt_YUV420bX:
-      fmt = (bpp == 9) ? PIX_FMT_YUV420P9LE : ((bpp == 10) ? PIX_FMT_YUV420P10LE : ((bpp == 12) ? PIX_FMT_YUV420P12LE : ((bpp == 14) ? PIX_FMT_YUV420P14LE : PIX_FMT_YUV420P16LE)));
+      fmt = (bpp == 9) ? AV_PIX_FMT_YUV420P9LE : ((bpp == 10) ? AV_PIX_FMT_YUV420P10LE : ((bpp == 12) ? AV_PIX_FMT_YUV420P12LE : ((bpp == 14) ? AV_PIX_FMT_YUV420P14LE : AV_PIX_FMT_YUV420P16LE)));
       break;
     case LAVPixFmt_YUV422bX:
-      fmt = (bpp == 9) ? PIX_FMT_YUV422P9LE : ((bpp == 10) ? PIX_FMT_YUV422P10LE : ((bpp == 12) ? PIX_FMT_YUV422P12LE : ((bpp == 14) ? PIX_FMT_YUV422P14LE : PIX_FMT_YUV422P16LE)));
+      fmt = (bpp == 9) ? AV_PIX_FMT_YUV422P9LE : ((bpp == 10) ? AV_PIX_FMT_YUV422P10LE : ((bpp == 12) ? AV_PIX_FMT_YUV422P12LE : ((bpp == 14) ? AV_PIX_FMT_YUV422P14LE : AV_PIX_FMT_YUV422P16LE)));
       break;
     case LAVPixFmt_YUV444bX:
-      fmt = (bpp == 9) ? PIX_FMT_YUV444P9LE : ((bpp == 10) ? PIX_FMT_YUV444P10LE : ((bpp == 12) ? PIX_FMT_YUV444P12LE : ((bpp == 14) ? PIX_FMT_YUV444P14LE : PIX_FMT_YUV444P16LE)));
+      fmt = (bpp == 9) ? AV_PIX_FMT_YUV444P9LE : ((bpp == 10) ? AV_PIX_FMT_YUV444P10LE : ((bpp == 12) ? AV_PIX_FMT_YUV444P12LE : ((bpp == 14) ? AV_PIX_FMT_YUV444P14LE : AV_PIX_FMT_YUV444P16LE)));
       break;
     default:
       ASSERT(0);

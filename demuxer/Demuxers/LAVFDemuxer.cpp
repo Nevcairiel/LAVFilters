@@ -1928,7 +1928,7 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
 STDMETHODIMP_(int) CLAVFDemuxer::GetPixelFormat(DWORD dwStream)
 {
   if (!m_avFormat || dwStream >= m_avFormat->nb_streams)
-    return PIX_FMT_NONE;
+    return AV_PIX_FMT_NONE;
 
   return m_avFormat->streams[dwStream]->codec->pix_fmt;
 }

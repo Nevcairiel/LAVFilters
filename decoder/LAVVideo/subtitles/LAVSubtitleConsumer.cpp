@@ -209,17 +209,17 @@ static struct {
   LAVPixelFormat pixfmt;
   PixelFormat ffpixfmt;
 } lav_ff_subtitle_pixfmt_map[] = {
-  { LAVPixFmt_YUV420,   PIX_FMT_YUVA420P },
-  { LAVPixFmt_YUV420bX, PIX_FMT_YUVA420P },
-  { LAVPixFmt_YUV422,   PIX_FMT_YUVA422P },
-  { LAVPixFmt_YUV422bX, PIX_FMT_YUVA422P },
-  { LAVPixFmt_YUV444,   PIX_FMT_YUVA444P },
-  { LAVPixFmt_YUV444bX, PIX_FMT_YUVA444P },
-  { LAVPixFmt_NV12,     PIX_FMT_YUVA420P },
-  { LAVPixFmt_YUY2,     PIX_FMT_YUVA422P },
-  { LAVPixFmt_RGB24,    PIX_FMT_BGRA     },
-  { LAVPixFmt_RGB32,    PIX_FMT_BGRA     },
-  { LAVPixFmt_ARGB32,   PIX_FMT_BGRA     },
+  { LAVPixFmt_YUV420,   AV_PIX_FMT_YUVA420P },
+  { LAVPixFmt_YUV420bX, AV_PIX_FMT_YUVA420P },
+  { LAVPixFmt_YUV422,   AV_PIX_FMT_YUVA422P },
+  { LAVPixFmt_YUV422bX, AV_PIX_FMT_YUVA422P },
+  { LAVPixFmt_YUV444,   AV_PIX_FMT_YUVA444P },
+  { LAVPixFmt_YUV444bX, AV_PIX_FMT_YUVA444P },
+  { LAVPixFmt_NV12,     AV_PIX_FMT_YUVA420P },
+  { LAVPixFmt_YUY2,     AV_PIX_FMT_YUVA422P },
+  { LAVPixFmt_RGB24,    AV_PIX_FMT_BGRA     },
+  { LAVPixFmt_RGB32,    AV_PIX_FMT_BGRA     },
+  { LAVPixFmt_ARGB32,   AV_PIX_FMT_BGRA     },
 };
 
 static LAVPixFmtDesc ff_sub_pixfmt_desc[] = {
@@ -233,16 +233,16 @@ static LAVPixFmtDesc getFFSubPixelFormatDesc(PixelFormat pixFmt)
 {
   int index = 0;
   switch(pixFmt) {
-  case PIX_FMT_YUVA420P:
+  case AV_PIX_FMT_YUVA420P:
     index = 0;
     break;
-  case PIX_FMT_YUVA422P:
+  case AV_PIX_FMT_YUVA422P:
     index = 1;
     break;
-  case PIX_FMT_YUVA444P:
+  case AV_PIX_FMT_YUVA444P:
     index = 2;
     break;
-  case PIX_FMT_BGRA:
+  case AV_PIX_FMT_BGRA:
     index = 3;
     break;
   default:
@@ -253,14 +253,14 @@ static LAVPixFmtDesc getFFSubPixelFormatDesc(PixelFormat pixFmt)
 
 static PixelFormat getFFPixFmtForSubtitle(LAVPixelFormat pixFmt)
 {
-  PixelFormat fmt = PIX_FMT_NONE;
+  PixelFormat fmt = AV_PIX_FMT_NONE;
   for(int i = 0; i < countof(lav_ff_subtitle_pixfmt_map); i++) {
     if (lav_ff_subtitle_pixfmt_map[i].pixfmt == pixFmt) {
       return lav_ff_subtitle_pixfmt_map[i].ffpixfmt;
     }
   }
   ASSERT(0);
-  return PIX_FMT_NONE;
+  return AV_PIX_FMT_NONE;
 }
 
 STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
@@ -345,7 +345,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     subPosition.x = (LONG)av_rescale(subPosition.x, newSize.cx, subSize.cx);
     subPosition.y = (LONG)av_rescale(subPosition.y, newSize.cy, subSize.cy);
 
-    m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, NULL, NULL, NULL);
+    m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, AV_PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, NULL, NULL, NULL);
 
     const uint8_t *src[4] = { (const uint8_t *)rgbData, NULL, NULL, NULL };
     const int srcStride[4] = { pitch * 4, 0, 0, 0 };
@@ -361,7 +361,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
 
     // Un-pre-multiply alpha for YUV formats
     // TODO: Can we SIMD this? See ARGBUnattenuateRow_C/SSE2 in libyuv
-    if (avPixFmt != PIX_FMT_BGRA) {
+    if (avPixFmt != AV_PIX_FMT_BGRA) {
       tmpBuf = (uint8_t *)av_malloc(pitch * subSize.cy * 4);
       memcpy(tmpBuf, rgbData, pitch * subSize.cy * 4);
       for (int line = 0; line < subSize.cy; line++) {

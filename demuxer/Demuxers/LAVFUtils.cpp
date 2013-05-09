@@ -239,7 +239,7 @@ std::string lavf_get_stream_description(AVStream *pStream)
     // Codec
     buf << codec_name;
     // Pixel Format
-    if (enc->pix_fmt != PIX_FMT_NONE) {
+    if (enc->pix_fmt != AV_PIX_FMT_NONE) {
       buf << ", " << av_get_pix_fmt_name(enc->pix_fmt);
     }
     // Dimensions
