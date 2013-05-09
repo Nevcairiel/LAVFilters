@@ -390,8 +390,11 @@ void CLAVPixFmtConverter::SelectConvertFunction()
             || (m_OutputPixFmt == LAVOutPixFmt_YV24 && m_InputPixFmt == LAVPixFmt_YUV444)) {
       convert = &CLAVPixFmtConverter::convert_yuv_yv;
       m_RequiredAlignment = 0;
-    } else if (m_InputPixFmt == LAVPixFmt_RGB48 && m_OutputPixFmt == LAVOutPixFmt_RGB24) {
-      convert = &CLAVPixFmtConverter::convert_rgb48_rgb24;
+    } else if (m_InputPixFmt == LAVPixFmt_RGB48 && (m_OutputPixFmt == LAVOutPixFmt_RGB24 || m_OutputPixFmt == LAVOutPixFmt_RGB32)) {
+      if (m_OutputPixFmt == LAVOutPixFmt_RGB32)
+        convert = &CLAVPixFmtConverter::convert_rgb48_rgb<1>;
+      else
+        convert = &CLAVPixFmtConverter::convert_rgb48_rgb<0>;
     }
   // Fallbacks only to be used when SSE2 is not available
   } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {

@@ -83,11 +83,12 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
   return S_OK;
 }
 
-DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb24)
+template <int out32>
+DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
 {
   const uint16_t *rgb = (const uint16_t *)src[0];
   const ptrdiff_t inStride = srcStride[0] >> 1;
-  const ptrdiff_t outStride = dstStride * 3;
+  const ptrdiff_t outStride = dstStride * (out32 ? 4 : 3);
   ptrdiff_t line, i;
 
   int processWidth = width * 3;
@@ -99,9 +100,18 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb24)
 
   __m128i xmm0,xmm1,xmm6,xmm7;
 
+  uint8_t *rgb24buffer = NULL;
+  if (out32)
+    rgb24buffer = (uint8_t *)av_malloc(outStride + FF_INPUT_BUFFER_PADDING_SIZE);
+
   _mm_sfence();
   for (line = 0; line < height; line++) {
-    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+    __m128i *dst128 = NULL;
+    if (out32) {
+      dst128 = (__m128i *)rgb24buffer;
+    } else {
+      dst128 = (__m128i *)(dst + line * outStride);
+    }
 
     // Load dithering coefficients for this line
     if (ditherMode == LAVDither_Random) {
@@ -118,13 +128,35 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb24)
       _mm_adds_epu16(xmm1, xmm7);
       xmm0 = _mm_srli_epi16(xmm0, 8);             /* shift to 8-bit */
       xmm1 = _mm_srli_epi16(xmm1, 8);
-      
+
       xmm0 = _mm_packus_epi16(xmm0, xmm1);
       _mm_stream_si128(dst128++, xmm0);
     }
 
     rgb += inStride;
+    if (out32) {
+      uint32_t *src24 = (uint32_t *)rgb24buffer;
+      uint32_t *dst32 = (uint32_t *)(dst + line * outStride);
+      for (i = 0; i < width; i += 4) {
+        uint32_t sa = src24[0];
+        uint32_t sb = src24[1];
+        uint32_t sc = src24[2];
+
+        dst32[i+0] = sa;
+        dst32[i+1] = (sa>>24) | (sb<<8);
+        dst32[i+2] = (sb>>16) | (sc<<16);
+        dst32[i+3] = sc>>8;
+
+        src24 += 3;
+      }
+    }
   }
+
+  if (out32)
+    av_freep(&rgb24buffer);
 
   return S_OK;
 }
+
+template HRESULT CLAVPixFmtConverter::convert_rgb48_rgb<0>CONV_FUNC_PARAMS;
+template HRESULT CLAVPixFmtConverter::convert_rgb48_rgb<1>CONV_FUNC_PARAMS;
