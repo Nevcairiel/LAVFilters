@@ -167,6 +167,8 @@ typedef enum LAVOutPixFmts {
   LAVOutPixFmt_YV16,            // 4:2:2, 8-bit, planar
   LAVOutPixFmt_YV24,            // 4:4:4, 8-bit, planar
 
+  LAVOutPixFmt_RGB48,           // 48-bit RGB (16-bit per pixel, BGR)
+
   LAVOutPixFmt_NB               // Number of formats
 } LAVOutPixFmts;
 

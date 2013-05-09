@@ -41,6 +41,7 @@
 #define IDC_OUT_10BIT                   1026
 #define IDC_OUT_16BIT                   1027
 #define IDC_OUT_UYVY                    1028
+#define IDC_OUT_RGB48                   1029
 #define IDC_LBL_RGBOUT                  1030
 #define IDC_RGBOUT_AUTO                 1031
 #define IDC_RGBOUT_TV                   1032
