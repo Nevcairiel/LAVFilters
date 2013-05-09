@@ -75,7 +75,7 @@ LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt);
 /**
  * Map the LAV Pixel Format to a FFMpeg pixel format (for swscale, etc)
  */
-PixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp);
+AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp);
 
 /**
  * A Video Frame
@@ -156,7 +156,7 @@ HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame);
 typedef struct LAVPinInfo
 {
   DWORD flags;              ///< Flags that describe the video content (see ILAVPinInfo.h for valid values)
-  PixelFormat pix_fmt;      ///< The pixel format used
+  AVPixelFormat pix_fmt;    ///< The pixel format used
   int has_b_frames;
 } LAVPinInfo;
 

@@ -614,7 +614,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 
     m_LAVPinInfoValid = TRUE;
     m_LAVPinInfo.flags = pPinInfo->GetStreamFlags();
-    m_LAVPinInfo.pix_fmt = (PixelFormat)pPinInfo->GetPixelFormat();
+    m_LAVPinInfo.pix_fmt = (AVPixelFormat)pPinInfo->GetPixelFormat();
     m_LAVPinInfo.has_b_frames = pPinInfo->GetHasBFrames();
 
     SafeRelease(&pPinInfo);

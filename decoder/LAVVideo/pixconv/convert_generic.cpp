@@ -30,7 +30,7 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
 {
   HRESULT hr = S_OK;
 
-  PixelFormat inputFmt = GetFFInput();
+  AVPixelFormat inputFmt = GetFFInput();
 
   switch (m_OutputPixFmt) {
   case LAVOutPixFmt_YV12:
@@ -93,7 +93,7 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
   return S_OK;
 }
 
-inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags)
+inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, int flags)
 {
   if (!m_pSwsContext || swsWidth != width || swsHeight != height) {
     // Get context
@@ -134,7 +134,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
   return m_pSwsContext;
 }
 
-HRESULT CLAVPixFmtConverter::swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
+HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
 {
   uint8_t *dst[4];
   int     dstStride[4];

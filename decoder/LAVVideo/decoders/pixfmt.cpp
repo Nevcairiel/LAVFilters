@@ -42,7 +42,7 @@ LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt)
 
 static struct {
   LAVPixelFormat pixfmt;
-  PixelFormat ffpixfmt;
+  AVPixelFormat  ffpixfmt;
 } lav_ff_pixfmt_map[] = {
   { LAVPixFmt_YUV420, AV_PIX_FMT_YUV420P },
   { LAVPixFmt_YUV422, AV_PIX_FMT_YUV422P },
@@ -55,9 +55,9 @@ static struct {
   { LAVPixFmt_RGB48,  AV_PIX_FMT_BGR48LE },
 };
 
-PixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
+AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
 {
-  PixelFormat fmt = AV_PIX_FMT_NONE;
+  AVPixelFormat fmt = AV_PIX_FMT_NONE;
   for(int i = 0; i < countof(lav_ff_pixfmt_map); i++) {
     if (lav_ff_pixfmt_map[i].pixfmt == pixFmt) {
       fmt = lav_ff_pixfmt_map[i].ffpixfmt;

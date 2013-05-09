@@ -118,7 +118,7 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
 // This mapping table should contain all pixel formats, except hardware formats (VDPAU, XVMC, DXVA, etc)
 // A format that is not listed will be converted to YUV420
 static struct PixelFormatMapping {
-  PixelFormat    ffpixfmt;
+  AVPixelFormat  ffpixfmt;
   LAVPixelFormat lavpixfmt;
   BOOL           conversion;
   int            bpp;
@@ -284,7 +284,7 @@ static AVCodecID ff_interlace_capable[] = {
   AV_CODEC_ID_UTVIDEO
 };
 
-static struct PixelFormatMapping getPixFmtMapping(PixelFormat pixfmt) {
+static struct PixelFormatMapping getPixFmtMapping(AVPixelFormat pixfmt) {
   const PixelFormatMapping def = { pixfmt, LAVPixFmt_YUV420, TRUE, 8 };
   PixelFormatMapping result = def;
   for (int i = 0; i < countof(ff_pix_map); i++) {
@@ -1017,7 +1017,7 @@ STDMETHODIMP CDecAvcodec::EndOfStream()
 
 STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 {
-  PixelFormat pixfmt = m_pAVCtx ? m_pAVCtx->pix_fmt : AV_PIX_FMT_NONE;
+  AVPixelFormat pixfmt = m_pAVCtx ? m_pAVCtx->pix_fmt : AV_PIX_FMT_NONE;
   PixelFormatMapping mapping = getPixFmtMapping(pixfmt);
   if (pPix)
     *pPix = mapping.lavpixfmt;
@@ -1032,7 +1032,7 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   AllocLAVFrameBuffers(pOutFrame);
 
   // Map to swscale compatible format
-  PixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
+  AVPixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
   m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, NULL, NULL, NULL);

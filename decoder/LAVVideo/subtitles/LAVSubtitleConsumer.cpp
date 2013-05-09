@@ -207,7 +207,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
 
 static struct {
   LAVPixelFormat pixfmt;
-  PixelFormat ffpixfmt;
+  AVPixelFormat ffpixfmt;
 } lav_ff_subtitle_pixfmt_map[] = {
   { LAVPixFmt_YUV420,   AV_PIX_FMT_YUVA420P },
   { LAVPixFmt_YUV420bX, AV_PIX_FMT_YUVA420P },
@@ -229,7 +229,7 @@ static LAVPixFmtDesc ff_sub_pixfmt_desc[] = {
   { 4, 1, { 1 },          { 1 }          }, ///< PIX_FMT_BGRA
 };
 
-static LAVPixFmtDesc getFFSubPixelFormatDesc(PixelFormat pixFmt)
+static LAVPixFmtDesc getFFSubPixelFormatDesc(AVPixelFormat pixFmt)
 {
   int index = 0;
   switch(pixFmt) {
@@ -251,9 +251,9 @@ static LAVPixFmtDesc getFFSubPixelFormatDesc(PixelFormat pixFmt)
   return ff_sub_pixfmt_desc[index];
 }
 
-static PixelFormat getFFPixFmtForSubtitle(LAVPixelFormat pixFmt)
+static AVPixelFormat getFFPixFmtForSubtitle(LAVPixelFormat pixFmt)
 {
-  PixelFormat fmt = AV_PIX_FMT_NONE;
+  AVPixelFormat fmt = AV_PIX_FMT_NONE;
   for(int i = 0; i < countof(lav_ff_subtitle_pixfmt_map); i++) {
     if (lav_ff_subtitle_pixfmt_map[i].pixfmt == pixFmt) {
       return lav_ff_subtitle_pixfmt_map[i].ffpixfmt;
@@ -319,7 +319,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
   // If we need scaling (either scaling or pixel conversion), do it here before starting the blend process
   if (bNeedScaling) {
     uint8_t *tmpBuf = NULL;
-    const PixelFormat avPixFmt = getFFPixFmtForSubtitle(pixFmt);
+    const AVPixelFormat avPixFmt = getFFPixFmtForSubtitle(pixFmt);
 
     // Calculate scaled size
     // We must ensure that the scaled subs still fit into the video

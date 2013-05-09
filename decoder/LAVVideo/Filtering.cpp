@@ -43,7 +43,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
   int ret = 0;
   BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
   if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable && m_settings.SWDeintMode == SWDeintMode_YADIF && ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
-    PixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? AV_PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? AV_PIX_FMT_YUV422P : AV_PIX_FMT_NV12;
+    AVPixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? AV_PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? AV_PIX_FMT_YUV422P : AV_PIX_FMT_NV12;
 
     if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight)) {
       DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing YADIF deinterlacing filter..."));
@@ -58,7 +58,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       m_filterHeight = pFrame->height;
 
       char args[512];
-      enum PixelFormat pix_fmts[3];
+      enum AVPixelFormat pix_fmts[3];
 
       if (ff_pixfmt == AV_PIX_FMT_NV12) {
         pix_fmts[0] = AV_PIX_FMT_NV12;

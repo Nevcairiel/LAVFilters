@@ -98,7 +98,7 @@ public:
   BOOL IsRGBConverterActive() { return m_bRGBConverter; }
 
 private:
-  PixelFormat GetFFInput() {
+  AVPixelFormat GetFFInput() {
     return getFFPixelFormatFromLAV(m_InputPixFmt, m_InBpp);
   }
 
@@ -108,7 +108,7 @@ private:
   void SelectConvertFunction();
 
   // Helper functions for convert_generic
-  HRESULT swscale_scale(enum PixelFormat srcPix, enum PixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
+  HRESULT swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
   HRESULT ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
   HRESULT ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
   HRESULT ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride, int chromaVertical);
@@ -118,7 +118,7 @@ private:
   HRESULT ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
 
   void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; if (m_pRandomDithers) _aligned_free(m_pRandomDithers); m_pRandomDithers = NULL; };
-  SwsContext *GetSWSContext(int width, int height, enum PixelFormat srcPix, enum PixelFormat dstPix, int flags);
+  SwsContext *GetSWSContext(int width, int height, enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, int flags);
 
   void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format);
 

@@ -987,7 +987,7 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   return S_OK;
 }
 
-static enum PixelFormat get_dxva2_format(struct AVCodecContext *s, const enum PixelFormat * fmt)
+static enum AVPixelFormat get_dxva2_format(struct AVCodecContext *s, const enum AVPixelFormat * fmt)
 {
   while (*fmt != AV_PIX_FMT_NONE && *fmt != AV_PIX_FMT_DXVA2_VLD) {
     ++fmt;
