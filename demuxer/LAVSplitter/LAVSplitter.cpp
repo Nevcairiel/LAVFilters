@@ -1515,7 +1515,7 @@ STDMETHODIMP CLAVSplitter::GetPreferredLanguages(LPWSTR *ppLanguages)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSplitter::SetPreferredLanguages(LPWSTR pLanguages)
+STDMETHODIMP CLAVSplitter::SetPreferredLanguages(LPCWSTR pLanguages)
 {
   m_settings.prefAudioLangs = std::wstring(pLanguages);
   return SaveSettings();
@@ -1535,7 +1535,7 @@ STDMETHODIMP CLAVSplitter::GetPreferredSubtitleLanguages(LPWSTR *ppLanguages)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSplitter::SetPreferredSubtitleLanguages(LPWSTR pLanguages)
+STDMETHODIMP CLAVSplitter::SetPreferredSubtitleLanguages(LPCWSTR pLanguages)
 {
   m_settings.prefSubLangs = std::wstring(pLanguages);
   return SaveSettings();
@@ -1681,7 +1681,7 @@ STDMETHODIMP CLAVSplitter::GetAdvancedSubtitleConfig(LPWSTR *ppAdvancedConfig)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSplitter::SetAdvancedSubtitleConfig(LPWSTR pAdvancedConfig)
+STDMETHODIMP CLAVSplitter::SetAdvancedSubtitleConfig(LPCWSTR pAdvancedConfig)
 {
   m_settings.subtitleAdvanced = std::wstring(pAdvancedConfig);
   return SaveSettings();

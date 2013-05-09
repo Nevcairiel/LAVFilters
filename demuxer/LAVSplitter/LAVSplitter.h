@@ -135,9 +135,9 @@ public:
   // ILAVFSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
   STDMETHODIMP GetPreferredLanguages(LPWSTR *ppLanguages);
-  STDMETHODIMP SetPreferredLanguages(LPWSTR pLanguages);
+  STDMETHODIMP SetPreferredLanguages(LPCWSTR pLanguages);
   STDMETHODIMP GetPreferredSubtitleLanguages(LPWSTR *ppLanguages);
-  STDMETHODIMP SetPreferredSubtitleLanguages(LPWSTR pLanguages);
+  STDMETHODIMP SetPreferredSubtitleLanguages(LPCWSTR pLanguages);
   STDMETHODIMP_(LAVSubtitleMode) GetSubtitleMode();
   STDMETHODIMP SetSubtitleMode(LAVSubtitleMode mode);
   STDMETHODIMP_(BOOL) GetSubtitleMatchingLanguage();
@@ -159,7 +159,7 @@ public:
   STDMETHODIMP SetStreamSwitchRemoveAudio(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetStreamSwitchRemoveAudio();
   STDMETHODIMP GetAdvancedSubtitleConfig(LPWSTR *ppAdvancedConfig);
-  STDMETHODIMP SetAdvancedSubtitleConfig(LPWSTR pAdvancedConfig);
+  STDMETHODIMP SetAdvancedSubtitleConfig(LPCWSTR pAdvancedConfig);
   STDMETHODIMP SetUseAudioForHearingVisuallyImpaired(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetUseAudioForHearingVisuallyImpaired();
   STDMETHODIMP SetMaxQueueMemSize(DWORD dwMaxSize);

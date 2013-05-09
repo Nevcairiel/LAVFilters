@@ -50,7 +50,7 @@ interface ILAVFSettings : public IUnknown
 
   // Set the preferred languages as ISO 639-2 language codes, comma seperated
   // To reset to no preferred language, pass NULL or the empty string
-  STDMETHOD(SetPreferredLanguages)(LPWSTR pLanguages) = 0;
+  STDMETHOD(SetPreferredLanguages)(LPCWSTR pLanguages) = 0;
   
   // Retrieve the preferred subtitle languages as ISO 639-2 language codes, comma seperated
   // If the result is NULL, no language has been set
@@ -61,7 +61,7 @@ interface ILAVFSettings : public IUnknown
   // Set the preferred subtitle languages as ISO 639-2 language codes, comma seperated
   // To reset to no preferred language, pass NULL or the empty string
   // If no subtitle language is set, the main language preference is used.
-  STDMETHOD(SetPreferredSubtitleLanguages)(LPWSTR pLanguages) = 0;
+  STDMETHOD(SetPreferredSubtitleLanguages)(LPCWSTR pLanguages) = 0;
 
   // Get the current subtitle mode
   // See enum for possible values
@@ -143,7 +143,7 @@ interface ILAVFSettings : public IUnknown
   // Advanced Subtitle configuration. Refer to the documention for details.
   // To reset the config, pass NULL or the empty string.
   // If no subtitle language is set, the main language preference is used.
-  STDMETHOD(SetAdvancedSubtitleConfig)(LPWSTR pAdvancedConfig) = 0;
+  STDMETHOD(SetAdvancedSubtitleConfig)(LPCWSTR pAdvancedConfig) = 0;
 
   // Set if LAV Splitter should prefer audio streams for the hearing or visually impaired
   STDMETHOD(SetUseAudioForHearingVisuallyImpaired)(BOOL bEnabled) = 0;
