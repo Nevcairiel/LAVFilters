@@ -56,14 +56,14 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
     }
     for (i = 0; i < processWidth; i += 24) {
       PIXCONV_LOAD_ALIGNED(xmm0, (rgb + i));      /* load */
+      PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));
+      PIXCONV_LOAD_ALIGNED(xmm2, (rgb + i + 16));
       _mm_adds_epu16(xmm0, xmm5);                 /* apply dithering coefficients */
+      _mm_adds_epu16(xmm1, xmm6);
+      _mm_adds_epu16(xmm2, xmm7);
       xmm0 = _mm_srli_epi16(xmm0, 8);             /* shift to 8-bit */
-      PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));  /* load */
-      _mm_adds_epu16(xmm1, xmm6);                 /* apply dithering coefficients */
-      xmm1 = _mm_srli_epi16(xmm1, 8);             /* shift to 8-bit */
-      PIXCONV_LOAD_ALIGNED(xmm2, (rgb + i + 16)); /* load */
-      _mm_adds_epu16(xmm2, xmm7);                 /* apply dithering coefficients */
-      xmm2 = _mm_srli_epi16(xmm2, 8);             /* shift to 8-bit */
+      xmm1 = _mm_srli_epi16(xmm1, 8);
+      xmm2 = _mm_srli_epi16(xmm2, 8);
 
       xmm3 = _mm_shuffle_epi8(xmm0, mask);
       xmm4 = _mm_shuffle_epi8(_mm_alignr_epi8(xmm1, xmm0, 12), mask);
@@ -113,11 +113,11 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb24_ssse3)
     }
     for (i = 0; i < processWidth; i += 16) {
       PIXCONV_LOAD_ALIGNED(xmm0, (rgb + i));      /* load */
+      PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));
       _mm_adds_epu16(xmm0, xmm6);                 /* apply dithering coefficients */
+      _mm_adds_epu16(xmm1, xmm7);
       xmm0 = _mm_srli_epi16(xmm0, 8);             /* shift to 8-bit */
-      PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));  /* load */
-      _mm_adds_epu16(xmm1, xmm7);                 /* apply dithering coefficients */
-      xmm1 = _mm_srli_epi16(xmm1, 8);             /* shift to 8-bit */
+      xmm1 = _mm_srli_epi16(xmm1, 8);
       
       xmm0 = _mm_packus_epi16(xmm0, xmm1);
       _mm_stream_si128(dst128++, xmm0);
