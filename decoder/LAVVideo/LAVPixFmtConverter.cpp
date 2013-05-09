@@ -45,6 +45,7 @@
  * RGB24          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      x       -
  * RGB32          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       x
  * ARGB32         -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       x
+ * RGB48          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       -
  *
  * Every processing path has a swscale fallback (even those with a "-" above), every combination of input/output is possible, just not optimized (ugly and/or slow)
  */
@@ -96,6 +97,7 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   { LAVPixFmt_RGB24,  8,    { LAVOutPixFmt_RGB24, LAVOutPixFmt_RGB32, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
   { LAVPixFmt_RGB32,  8,    { PIXOUT_RGB_8, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
   { LAVPixFmt_ARGB32, 8,    { PIXOUT_RGB_8, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
+  { LAVPixFmt_RGB48,  8,    { PIXOUT_RGB_8, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
 
   { LAVPixFmt_DXVA2, 8,     { PIXOUT_420_8, PIXOUT_420_10, PIXOUT_420_16, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
 };

@@ -32,6 +32,7 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
   { 3, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB24
   { 4, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB32
   { 4, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_ARGB32
+  { 6, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB48
 };
 
 LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt)
@@ -51,6 +52,7 @@ static struct {
   { LAVPixFmt_RGB24,  PIX_FMT_BGR24   },
   { LAVPixFmt_RGB32,  PIX_FMT_BGRA    },
   { LAVPixFmt_ARGB32, PIX_FMT_BGRA    },
+  { LAVPixFmt_RGB48,  PIX_FMT_BGR48LE },
 };
 
 PixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)

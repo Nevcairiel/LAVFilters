@@ -50,6 +50,7 @@ typedef enum LAVPixelFormat {
   LAVPixFmt_RGB24,       ///< RGB24, in BGR order
   LAVPixFmt_RGB32,       ///< RGB32, in BGRA order (A is invalid and should be 0xFF)
   LAVPixFmt_ARGB32,      ///< ARGB32, in BGRA order
+  LAVPixFmt_RGB48,       ///< RGB48, in BGR order (16-bit per pixel)
 
   LAVPixFmt_DXVA2,       ///< DXVA2 Surface
 
