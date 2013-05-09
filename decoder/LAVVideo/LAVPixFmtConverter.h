@@ -144,7 +144,7 @@ private:
   template <int nv12> DECLARE_CONV_FUNC(convert_yuv_yv_nv12_dither_le);
 
   DECLARE_CONV_FUNC(convert_rgb48_rgb32_ssse3);
-  DECLARE_CONV_FUNC(convert_rgb48_rgb24_ssse3);
+  DECLARE_CONV_FUNC(convert_rgb48_rgb24);
 
   template <int out32> DECLARE_CONV_FUNC(convert_yuv_rgb);
   RGBCoeffs* getRGBCoeffs(int width, int height);

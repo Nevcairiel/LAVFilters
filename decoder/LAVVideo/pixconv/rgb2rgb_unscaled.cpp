@@ -83,7 +83,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
   return S_OK;
 }
 
-DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb24_ssse3)
+DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb24)
 {
   const uint16_t *rgb = (const uint16_t *)src[0];
   const ptrdiff_t inStride = srcStride[0] >> 1;
