@@ -75,11 +75,13 @@
 #define PIXCONV_LOAD_PIXEL8(reg,src) \
   reg = _mm_loadu_si128((const __m128i *)(src));     /* load (unaligned) */
 
-// Load 16 8-bit pixels into a register, using aligned memory access
+// Load 128-bit into a register, using aligned memory access
 // reg   - register to store pixels in
 // src   - memory pointer of the source
-#define PIXCONV_LOAD_PIXEL8_ALIGNED(reg,src) \
+#define PIXCONV_LOAD_ALIGNED(reg,src) \
   reg = _mm_load_si128((const __m128i *)(src));      /* load (aligned) */
+
+#define PIXCONV_LOAD_PIXEL8_ALIGNED PIXCONV_LOAD_ALIGNED
 
 // Load 4 8-bit pixels into the register
 // reg     - register to store pixels in
