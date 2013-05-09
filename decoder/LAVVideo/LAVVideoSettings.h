@@ -350,5 +350,5 @@ interface ILAVVideoSettings : public IUnknown
 interface ILAVVideoStatus : public IUnknown
 {
   // Get the name of the active decoder (can return NULL if none is active)
-  STDMETHOD_(const WCHAR *, GetActiveDecoderName)() = 0;
+  STDMETHOD_(LPCWSTR, GetActiveDecoderName)() = 0;
 };

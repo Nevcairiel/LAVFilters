@@ -25,9 +25,9 @@
 class FormatInfo {
 public:
   FormatInfo() : strName(NULL), strDescription(NULL) {}
-  FormatInfo(const char *name, const char *desc) : strName(name), strDescription(desc) {}
-  const char *strName;
-  const char *strDescription;
+  FormatInfo(LPCSTR name, LPCSTR desc) : strName(name), strDescription(desc) {}
+  LPCSTR strName;
+  LPCSTR strDescription;
 
   // Comparison operators for sorting (NULL safe)
   bool FormatInfo::operator < (const FormatInfo& rhs) const { return strName ? (rhs.strName ? _stricmp(strName, rhs.strName) < 0 : false) : true; }
@@ -45,7 +45,7 @@ interface ILAVFSettingsInternal : public ILAVFSettings
   // Query if the current filter graph requires VC1 Correction
   STDMETHOD_(BOOL,IsVC1CorrectionRequired)() = 0;
 
-  STDMETHOD_(const char*, GetInputFormat)() = 0;
+  STDMETHOD_(LPCSTR, GetInputFormat)() = 0;
   STDMETHOD_(std::set<FormatInfo>&, GetInputFormats)() = 0;
   STDMETHOD_(CMediaType *, GetOutputMediatype)(int stream) = 0;
 };

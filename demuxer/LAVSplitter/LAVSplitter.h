@@ -134,10 +134,10 @@ public:
 
   // ILAVFSettings
   STDMETHODIMP SetRuntimeConfig(BOOL bRuntimeConfig);
-  STDMETHODIMP GetPreferredLanguages(WCHAR **ppLanguages);
-  STDMETHODIMP SetPreferredLanguages(WCHAR *pLanguages);
-  STDMETHODIMP GetPreferredSubtitleLanguages(WCHAR **ppLanguages);
-  STDMETHODIMP SetPreferredSubtitleLanguages(WCHAR *pLanguages);
+  STDMETHODIMP GetPreferredLanguages(LPWSTR *ppLanguages);
+  STDMETHODIMP SetPreferredLanguages(LPWSTR pLanguages);
+  STDMETHODIMP GetPreferredSubtitleLanguages(LPWSTR *ppLanguages);
+  STDMETHODIMP SetPreferredSubtitleLanguages(LPWSTR pLanguages);
   STDMETHODIMP_(LAVSubtitleMode) GetSubtitleMode();
   STDMETHODIMP SetSubtitleMode(LAVSubtitleMode mode);
   STDMETHODIMP_(BOOL) GetSubtitleMatchingLanguage();
@@ -154,12 +154,12 @@ public:
   STDMETHODIMP_(BOOL) GetVideoParsingEnabled();
   STDMETHODIMP SetFixBrokenHDPVR(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetFixBrokenHDPVR();
-  STDMETHODIMP_(HRESULT) SetFormatEnabled(const char *strFormat, BOOL bEnabled);
-  STDMETHODIMP_(BOOL) IsFormatEnabled(const char *strFormat);
+  STDMETHODIMP_(HRESULT) SetFormatEnabled(LPCSTR strFormat, BOOL bEnabled);
+  STDMETHODIMP_(BOOL) IsFormatEnabled(LPCSTR strFormat);
   STDMETHODIMP SetStreamSwitchRemoveAudio(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetStreamSwitchRemoveAudio();
-  STDMETHODIMP GetAdvancedSubtitleConfig(WCHAR **ppAdvancedConfig);
-  STDMETHODIMP SetAdvancedSubtitleConfig(WCHAR *pAdvancedConfig);
+  STDMETHODIMP GetAdvancedSubtitleConfig(LPWSTR *ppAdvancedConfig);
+  STDMETHODIMP SetAdvancedSubtitleConfig(LPWSTR pAdvancedConfig);
   STDMETHODIMP SetUseAudioForHearingVisuallyImpaired(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetUseAudioForHearingVisuallyImpaired();
   STDMETHODIMP SetMaxQueueMemSize(DWORD dwMaxSize);
@@ -172,7 +172,7 @@ public:
   STDMETHODIMP_(BOOL) GetLoadMatroskaExternalSegments();
 
   // ILAVSplitterSettingsInternal
-  STDMETHODIMP_(const char*) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
+  STDMETHODIMP_(LPCSTR) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
   STDMETHODIMP_(std::set<FormatInfo>&) GetInputFormats();
   STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
   STDMETHODIMP_(CMediaType *) GetOutputMediatype(int stream);

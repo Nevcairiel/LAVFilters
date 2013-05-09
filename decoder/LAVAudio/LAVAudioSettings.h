@@ -195,10 +195,10 @@ interface ILAVAudioStatus : public IUnknown
   STDMETHOD_(BOOL,IsSampleFormatSupported)(LAVAudioSampleFormat sfCheck) = 0;
 
   // Get details about the current decoding format
-  STDMETHOD(GetDecodeDetails)(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
+  STDMETHOD(GetDecodeDetails)(LPCSTR *pCodec, LPCSTR *pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
   
   // Get details about the current output format
-  STDMETHOD(GetOutputDetails)(const char **pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
+  STDMETHOD(GetOutputDetails)(LPCSTR *pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
   
   // Enable Volume measurements
   STDMETHOD(EnableVolumeStats)() = 0;

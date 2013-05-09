@@ -1501,7 +1501,7 @@ HRESULT CLAVSplitter::SetRuntimeConfig(BOOL bRuntimeConfig)
 }
 
 
-STDMETHODIMP CLAVSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
+STDMETHODIMP CLAVSplitter::GetPreferredLanguages(LPWSTR *ppLanguages)
 {
   CheckPointer(ppLanguages, E_POINTER);
   size_t len = m_settings.prefAudioLangs.length() + 1;
@@ -1515,13 +1515,13 @@ STDMETHODIMP CLAVSplitter::GetPreferredLanguages(WCHAR **ppLanguages)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSplitter::SetPreferredLanguages(WCHAR *pLanguages)
+STDMETHODIMP CLAVSplitter::SetPreferredLanguages(LPWSTR pLanguages)
 {
   m_settings.prefAudioLangs = std::wstring(pLanguages);
   return SaveSettings();
 }
 
-STDMETHODIMP CLAVSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
+STDMETHODIMP CLAVSplitter::GetPreferredSubtitleLanguages(LPWSTR *ppLanguages)
 {
   CheckPointer(ppLanguages, E_POINTER);
   size_t len = m_settings.prefSubLangs.length() + 1;
@@ -1535,7 +1535,7 @@ STDMETHODIMP CLAVSplitter::GetPreferredSubtitleLanguages(WCHAR **ppLanguages)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSplitter::SetPreferredSubtitleLanguages(WCHAR *pLanguages)
+STDMETHODIMP CLAVSplitter::SetPreferredSubtitleLanguages(LPWSTR pLanguages)
 {
   m_settings.prefSubLangs = std::wstring(pLanguages);
   return SaveSettings();
@@ -1637,7 +1637,7 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetFixBrokenHDPVR()
   return TRUE;
 }
 
-STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(const char *strFormat)
+STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(LPCSTR strFormat)
 {
   std::string format(strFormat);
   if (m_settings.formats.find(format) != m_settings.formats.end()) {
@@ -1646,7 +1646,7 @@ STDMETHODIMP_(BOOL) CLAVSplitter::IsFormatEnabled(const char *strFormat)
   return FALSE;
 }
 
-STDMETHODIMP_(HRESULT) CLAVSplitter::SetFormatEnabled(const char *strFormat, BOOL bEnabled)
+STDMETHODIMP_(HRESULT) CLAVSplitter::SetFormatEnabled(LPCSTR strFormat, BOOL bEnabled)
 {
   std::string format(strFormat);
   if (m_settings.formats.find(format) != m_settings.formats.end()) {
@@ -1667,7 +1667,7 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetStreamSwitchRemoveAudio()
   return m_settings.StreamSwitchRemoveAudio;
 }
 
-STDMETHODIMP CLAVSplitter::GetAdvancedSubtitleConfig(WCHAR **ppAdvancedConfig)
+STDMETHODIMP CLAVSplitter::GetAdvancedSubtitleConfig(LPWSTR *ppAdvancedConfig)
 {
   CheckPointer(ppAdvancedConfig, E_POINTER);
   size_t len = m_settings.subtitleAdvanced.length() + 1;
@@ -1681,7 +1681,7 @@ STDMETHODIMP CLAVSplitter::GetAdvancedSubtitleConfig(WCHAR **ppAdvancedConfig)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSplitter::SetAdvancedSubtitleConfig(WCHAR *pAdvancedConfig)
+STDMETHODIMP CLAVSplitter::SetAdvancedSubtitleConfig(LPWSTR pAdvancedConfig)
 {
   m_settings.subtitleAdvanced = std::wstring(pAdvancedConfig);
   return SaveSettings();
