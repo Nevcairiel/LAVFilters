@@ -153,6 +153,9 @@
     <ClCompile Include="VideoInputPin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pixconv\rgb2rgb_unscaled.cpp">
+      <Filter>Source Files\pixconv</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
