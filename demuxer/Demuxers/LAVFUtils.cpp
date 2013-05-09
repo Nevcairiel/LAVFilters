@@ -132,6 +132,8 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
     }
   } else if (id == AV_CODEC_ID_DTS && profile) {
     codec_name << tolower(profile);
+  } else if (id == AV_CODEC_ID_JPEG2000 && profile) {
+    codec_name << tolower(profile);
   } else if (nice_name) {
     codec_name << nice_name;
     if (profile)

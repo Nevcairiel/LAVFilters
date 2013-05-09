@@ -68,6 +68,7 @@ static struct {
   { AV_CODEC_ID_FFV1,                       FF_THREAD_SLICE },
   { AV_CODEC_ID_LAGARITH,   FF_THREAD_FRAME                 },
   { AV_CODEC_ID_FRAPS,      FF_THREAD_FRAME                 },
+  { AV_CODEC_ID_JPEG2000,   FF_THREAD_FRAME                 },
 };
 
 int getThreadFlags(AVCodecID codecId)
@@ -523,6 +524,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                            || codec == AV_CODEC_ID_DIRAC
                            || codec == AV_CODEC_ID_UTVIDEO
                            || codec == AV_CODEC_ID_DNXHD
+                           || codec == AV_CODEC_ID_JPEG2000
                            || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video)
                            || bVC1IsPTS;
 
