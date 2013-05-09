@@ -39,7 +39,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
     ditherMode = LAVDither_Ordered;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
-  __m128i mask = _mm_setr_epi8(0,1,2,3,4,5,-1,-1,6,7,8,9,10,11,-1,-1);
+  __m128i mask = _mm_setr_epi8(4,5,2,3,0,1,-1,-1,10,11,8,9,6,7,-1,-1);
 
   _mm_sfence();
   for (line = 0; line < height; line++) {
@@ -86,11 +86,18 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
 template <int out32>
 DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
 {
-  const uint16_t *rgb = (const uint16_t *)src[0];
+  // Byte Swap to BGR layout
+  uint8_t *dstBS[4]    = {NULL};
+  dstBS[0] = (BYTE *)av_malloc(height * srcStride[0]);
+
+  SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_BGR48LE, SWS_POINT);
+  sws_scale(ctx, src, srcStride, 0, height, dstBS, srcStride);
+
+  // Dither to RGB24/32 with SSE2
+  const uint16_t *rgb = (const uint16_t *)dstBS[0];
   const ptrdiff_t inStride = srcStride[0] >> 1;
   const ptrdiff_t outStride = dstStride * (out32 ? 4 : 3);
   ptrdiff_t line, i;
-
   int processWidth = width * 3;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
@@ -154,6 +161,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
 
   if (out32)
     av_freep(&rgb24buffer);
+  av_freep(&dstBS[0]);
 
   return S_OK;
 }

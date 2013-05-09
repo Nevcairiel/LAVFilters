@@ -52,7 +52,7 @@ static struct {
   { LAVPixFmt_RGB24,  AV_PIX_FMT_BGR24   },
   { LAVPixFmt_RGB32,  AV_PIX_FMT_BGRA    },
   { LAVPixFmt_ARGB32, AV_PIX_FMT_BGRA    },
-  { LAVPixFmt_RGB48,  AV_PIX_FMT_BGR48LE },
+  { LAVPixFmt_RGB48,  AV_PIX_FMT_RGB48LE },
 };
 
 AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
