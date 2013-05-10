@@ -554,6 +554,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_SNOW }},                                                // Codec_Snow
   { 1, { AV_CODEC_ID_FFV1 }},                                                // Codec_FFV1
   { 2, { AV_CODEC_ID_V210, AV_CODEC_ID_V410 }, "v210/v410", "v210/v410 uncompressed"}, // Codec_v210
+  { 1, { AV_CODEC_ID_JPEG2000 }},                                            // Codec_JPEG2000
   { 1, { AV_CODEC_ID_VMNC }},                                                // Codec_VMNC
 };
 
