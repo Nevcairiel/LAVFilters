@@ -232,6 +232,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_SNOW, AV_CODEC_ID_SNOW },
   { &MEDIASUBTYPE_FFV1, AV_CODEC_ID_FFV1 },
   { &MEDIASUBTYPE_FFVH, AV_CODEC_ID_FFVHUFF },
+  { &MEDIASUBTYPE_VMNC, AV_CODEC_ID_VMNC },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, AV_CODEC_ID_BINKVIDEO  },
@@ -458,6 +459,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_SNOW },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_FFV1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_FFVH },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_VMNC },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -552,6 +554,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_SNOW }},                                                // Codec_Snow
   { 1, { AV_CODEC_ID_FFV1 }},                                                // Codec_FFV1
   { 2, { AV_CODEC_ID_V210, AV_CODEC_ID_V410 }, "v210/v410", "v210/v410 uncompressed"}, // Codec_v210
+  { 1, { AV_CODEC_ID_VMNC }},                                                // Codec_VMNC
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
