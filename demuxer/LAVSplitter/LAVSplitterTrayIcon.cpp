@@ -25,7 +25,7 @@
 
 CLAVSplitterTrayIcon::CLAVSplitterTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon)
   : CBaseTrayIcon(pFilter, wszName, resIcon)
-  , m_dwStreams(0)
+  , m_NumStreams(0)
 {
 }
 
@@ -53,8 +53,23 @@ HMENU CLAVSplitterTrayIcon::GetPopupMenu()
         continue;
       
       if (dwGroup != dwLastGroup) {
-        if (dwLastGroup != DWORD_MAX)
+        switch (dwGroup) {
+        case 0:
+          menu.AddItem(dwGroup, L"Video", FALSE, FALSE);
+          break;
+        case 1:
+          menu.AddItem(dwGroup, L"Audio", FALSE, FALSE);
+          break;
+        case 2:
+          menu.AddItem(dwGroup, L"Subtitles", FALSE, FALSE);
+          break;
+        case 18:
+          menu.AddItem(dwGroup, L"Editions", FALSE, FALSE);
+          break;
+        default:
           menu.AddSeparator();
+          break;
+        }
         dwLastGroup = dwGroup;
       }
       menu.AddItem(STREAM_CMD_OFFSET + i, pszName, dwFlags & AMSTREAMSELECTINFO_ENABLED);
@@ -62,7 +77,7 @@ HMENU CLAVSplitterTrayIcon::GetPopupMenu()
     }
     if (dwStreams)
       menu.AddSeparator();
-    m_dwStreams = dwStreams;
+    m_NumStreams = dwStreams;
     SafeRelease(&pStreamSelect);
   }
   menu.AddItem(STREAM_CMD_OFFSET - 1, L"Properties");
@@ -75,7 +90,7 @@ HRESULT CLAVSplitterTrayIcon::ProcessMenuCommand(HMENU hMenu, int cmd)
 {
   CheckPointer(m_pFilter, E_FAIL);
   DbgLog((LOG_TRACE, 10, L"Menu Command %d", cmd));
-  if (cmd >= STREAM_CMD_OFFSET && cmd < m_dwStreams + STREAM_CMD_OFFSET) {
+  if (cmd >= STREAM_CMD_OFFSET && cmd < m_NumStreams + STREAM_CMD_OFFSET) {
     IAMStreamSelect *pStreamSelect = NULL;
     if (SUCCEEDED(m_pFilter->QueryInterface(&pStreamSelect))) {
       pStreamSelect->Enable(cmd - STREAM_CMD_OFFSET, AMSTREAMSELECTENABLE_ENABLE);
