@@ -21,11 +21,15 @@
 #include "LAVSplitterTrayIcon.h"
 #include "PopupMenu.h"
 
+#include <Qnetwork.h>
+
 #define STREAM_CMD_OFFSET 100
+#define CHAPTER_CMD_OFFSET 500
 
 CLAVSplitterTrayIcon::CLAVSplitterTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon)
   : CBaseTrayIcon(pFilter, wszName, resIcon)
   , m_NumStreams(0)
+  , m_NumChapters(0)
 {
 }
 
@@ -80,6 +84,54 @@ HMENU CLAVSplitterTrayIcon::GetPopupMenu()
     m_NumStreams = dwStreams;
     SafeRelease(&pStreamSelect);
   }
+
+  // Chapters
+  IAMExtendedSeeking *pExSeeking = NULL;
+  if (SUCCEEDED(m_pFilter->QueryInterface(IID_IAMExtendedSeeking, (void **)&pExSeeking))) {
+    long count = 0, current = 0;
+    if (FAILED(pExSeeking->get_MarkerCount(&count)))
+      count = 0;
+
+    if (FAILED(pExSeeking->get_CurrentMarker(&current)))
+      current = 0;
+
+    CPopupMenu chapters;
+    for (long i = 1; i <= count; i++) {
+      BSTR bstrName = NULL;
+      if (FAILED(pExSeeking->GetMarkerName(i, &bstrName)))
+        continue;
+
+      double markerTime;
+      if (FAILED(pExSeeking->GetMarkerTime(i, &markerTime)))
+        continue;
+
+      // Create compound chapter name
+      int total_seconds = (int)(markerTime + 0.5);
+      int seconds = total_seconds % 60;
+      int minutes = total_seconds / 60 % 60;
+      int hours   = total_seconds / 3600;
+      WCHAR chapterName[512];
+      _snwprintf_s(chapterName, _TRUNCATE, L"%s\t[%02d:%02d:%02d]", bstrName, hours, minutes, seconds);
+
+      // Sanitize any tab chars in the chapter name (replace by space)
+      // More then one tab in the string messes with the popup menu rendering
+      WCHAR *nextMatch, *tabMatch = wcsstr(chapterName, L"\t");
+      while (nextMatch = wcsstr(tabMatch+1, L"\t")) {
+        *tabMatch = L' ';
+        tabMatch = nextMatch;
+      }
+
+      chapters.AddItem(CHAPTER_CMD_OFFSET + i, chapterName, i == current);
+      SysFreeString(bstrName);
+    }
+    if (count) {
+      menu.AddSubmenu(chapters.Finish(), L"Chapters");
+      menu.AddSeparator();
+    }
+    m_NumChapters = count;
+    SafeRelease(&pExSeeking);
+  }
+
   menu.AddItem(STREAM_CMD_OFFSET - 1, L"Properties");
 
   HMENU hMenu = menu.Finish();
@@ -97,6 +149,30 @@ HRESULT CLAVSplitterTrayIcon::ProcessMenuCommand(HMENU hMenu, int cmd)
       SafeRelease(&pStreamSelect);
     }
     return S_OK;
+  } else if (cmd > CHAPTER_CMD_OFFSET && cmd <= m_NumChapters + CHAPTER_CMD_OFFSET) {
+    IAMExtendedSeeking *pExSeeking = NULL;
+    if (SUCCEEDED(m_pFilter->QueryInterface(IID_IAMExtendedSeeking, (void **)&pExSeeking))) {
+      double markerTime;
+      if (FAILED(pExSeeking->GetMarkerTime(cmd - CHAPTER_CMD_OFFSET, &markerTime)))
+        goto failchapterseek;
+
+      REFERENCE_TIME rtMarkerTime = (REFERENCE_TIME)(markerTime * 10000000.0);
+
+      // Try to get the graph to seek on, its much safer than directly trying to seek on LAV
+      FILTER_INFO info;
+      if (FAILED(m_pFilter->QueryFilterInfo(&info)) || !info.pGraph)
+        goto failchapterseek;
+
+      IMediaSeeking *pSeeking = NULL;
+      if (SUCCEEDED(info.pGraph->QueryInterface(&pSeeking))) {
+        pSeeking->SetPositions(&rtMarkerTime, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
+        SafeRelease(&pSeeking);
+      }
+      SafeRelease(&info.pGraph);
+
+failchapterseek:
+      SafeRelease(&pExSeeking);
+    }
   } else if (cmd == STREAM_CMD_OFFSET - 1) {
     OpenPropPage();
   }

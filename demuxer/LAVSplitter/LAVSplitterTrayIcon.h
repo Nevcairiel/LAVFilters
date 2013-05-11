@@ -33,4 +33,5 @@ protected:
 
 private:
   int m_NumStreams;
+  int m_NumChapters;
 };
