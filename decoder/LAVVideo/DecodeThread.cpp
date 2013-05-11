@@ -30,6 +30,7 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_bHWDecoder(FALSE)
   , m_bHWDecoderFailed(FALSE)
   , m_bSyncToProcess(TRUE)
+  , m_bDecoderNeedsReInit(FALSE)
   , m_Codec(AV_CODEC_ID_NONE)
   , m_evDeliver(FALSE)
   , m_evSample(FALSE)
@@ -37,12 +38,16 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   , m_evEOSDone(TRUE)
   , m_evInput(TRUE)
   , m_NextSample(NULL)
+  , m_FailedSample(NULL)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
   m_processName = PathFindFileName (fileName);
 
   memset(&m_ThreadCallContext, 0, sizeof(m_ThreadCallContext));
+
+  m_TempSample[0] = NULL;
+  m_TempSample[1] = NULL;
 
   CAMThread::Create();
   m_evInput.Reset();
@@ -171,6 +176,18 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   while(HasSample())
     Sleep(1);
 
+  // Re-init the decoder, if requested
+  // Doing this inside the worker thread alone causes problems
+  // when switching from non-sync to sync, so ensure we're in sync.
+  if (m_bDecoderNeedsReInit) {
+    CAMThread::CallWorker(CMD_REINIT);
+    while (!m_evEOSDone.Check()) {
+      m_evSample.Wait();
+      if (ProcessOutput() == S_OK)
+        m_evDeliver.Set();
+    }
+  }
+
   m_evDeliver.Reset();
   m_evSample.Reset();
   m_evDecodeDone.Reset();
@@ -262,12 +279,13 @@ DWORD CDecodeThread::ThreadProc()
   DWORD cmd;
 
   BOOL bEOS = FALSE;
+  BOOL bReinit = FALSE;
 
   SetThreadName(-1, "LAVVideo Decode Thread");
 
   HANDLE hWaitEvents[2] = { GetRequestHandle(), m_evInput };
   while(1) {
-    if (!bEOS) {
+    if (!bEOS && !bReinit) {
       // Wait for either an input sample, or an request
       WaitForMultipleObjects(2, hWaitEvents, FALSE, INFINITE);
     }
@@ -328,8 +346,41 @@ DWORD CDecodeThread::ThreadProc()
           m_ThreadCallContext.pin = NULL;
         }
         break;
+      case CMD_REINIT:
+        {
+          CMediaType &mt = m_pLAVVideo->GetInputMediaType();
+          CreateDecoderInternal(&mt, m_Codec);
+          m_TempSample[1] = m_NextSample;
+          m_NextSample = m_FailedSample;
+          m_FailedSample = NULL;
+          bReinit = TRUE;
+          m_evEOSDone.Reset();
+          Reply(S_OK);
+          m_bDecoderNeedsReInit = FALSE;
+        }
+        break;
       default:
         ASSERT(0);
+      }
+    }
+
+    if (m_bDecoderNeedsReInit) {
+      m_evInput.Reset();
+      continue;
+    }
+
+    if (bReinit && !m_NextSample) {
+      if (m_TempSample[0]) {
+        m_NextSample = m_TempSample[0];
+        m_TempSample[0] = NULL;
+      } else if (m_TempSample[1]) {
+        m_NextSample = m_TempSample[1];
+        m_TempSample[1] = NULL;
+      } else {
+        bReinit = FALSE;
+        m_evEOSDone.Set();
+        m_evSample.Set();
+        continue;
       }
     }
 
@@ -472,15 +523,15 @@ STDMETHODIMP CDecodeThread::DecodeInternal(IMediaSample *pSample)
     DbgLog((LOG_TRACE, 10, L"::Receive(): Hardware decoder indicates failure, switching back to software"));
     m_bHWDecoderFailed = TRUE;
 
-    CMediaType &mt = m_pLAVVideo->GetInputMediaType();
-    hr = CreateDecoderInternal(&mt, m_Codec);
-    if (FAILED(hr)) {
-      DbgLog((LOG_ERROR, 10, L"-> Creating software decoder failed, this is bad."));
-      return E_FAIL;
-    }
+    // Store the failed sample for re-try in a moment
+    m_FailedSample = pSample;
+    m_FailedSample->AddRef();
 
-    DbgLog((LOG_TRACE, 10, L"-> Software decoder created, decoding frame again..."));
-    hr = m_pDecoder->Decode(pSample);
+    // Schedule a re-init when the main thread goes there the next time
+    m_bDecoderNeedsReInit = TRUE;
+
+    // Make room in the sample buffer, to ensure the main thread can get in
+    m_TempSample[0] = GetSample();
   }
 
   return S_OK;

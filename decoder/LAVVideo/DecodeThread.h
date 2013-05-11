@@ -85,7 +85,7 @@ private:
   bool CheckForEndOfSequence(IMediaSample *pSample);
 
 private:
-  enum {CMD_CREATE_DECODER, CMD_CLOSE_DECODER, CMD_FLUSH, CMD_EOS, CMD_EXIT, CMD_INIT_ALLOCATOR, CMD_POST_CONNECT};
+  enum {CMD_CREATE_DECODER, CMD_CLOSE_DECODER, CMD_FLUSH, CMD_EOS, CMD_EXIT, CMD_INIT_ALLOCATOR, CMD_POST_CONNECT, CMD_REINIT};
 
   CLAVVideo    *m_pLAVVideo;
   ILAVDecoder  *m_pDecoder;
@@ -96,6 +96,7 @@ private:
   BOOL         m_bHWDecoderFailed;
 
   BOOL         m_bSyncToProcess;
+  BOOL         m_bDecoderNeedsReInit;
   CAMEvent     m_evInput;
   CAMEvent     m_evDeliver;
   CAMEvent     m_evSample;
@@ -113,6 +114,9 @@ private:
 
   CCritSec     m_SampleCritSec;
   IMediaSample *m_NextSample;
+
+  IMediaSample *m_TempSample[2];
+  IMediaSample *m_FailedSample;
 
   std::wstring m_processName;
 };
