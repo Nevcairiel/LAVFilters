@@ -93,6 +93,7 @@ CBaseTrayIcon::~CBaseTrayIcon(void)
 
 void CBaseTrayIcon::Destroy()
 {
+  m_pFilter = NULL;
   // If the thread/window (still) exist, task it to exit and delete itself
   if (m_hWnd && m_hThread) {
     m_bDestroy = TRUE;
@@ -208,6 +209,7 @@ HRESULT CBaseTrayIcon::CreateTrayIconData()
 
 HRESULT CBaseTrayIcon::OpenPropPage()
 {
+  CheckPointer(m_pFilter, E_UNEXPECTED);
   m_bPropPageOpen = TRUE;
   RECT desktopRect;
   GetWindowRect(GetDesktopWindow(), &desktopRect);
