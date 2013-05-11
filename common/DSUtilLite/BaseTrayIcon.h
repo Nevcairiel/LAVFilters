@@ -36,6 +36,8 @@ protected:
   virtual HMENU GetPopupMenu() { return NULL; }
   virtual HRESULT ProcessMenuCommand(HMENU hMenu, int cmd) { return E_NOTIMPL; }
 
+  HRESULT OpenPropPage();
+
 private:
   HRESULT StartMessageThread();
   HRESULT RegisterWindowClass();

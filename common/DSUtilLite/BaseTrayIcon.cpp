@@ -206,6 +206,17 @@ HRESULT CBaseTrayIcon::CreateTrayIconData()
   return S_OK;
 }
 
+HRESULT CBaseTrayIcon::OpenPropPage()
+{
+  m_bPropPageOpen = TRUE;
+  RECT desktopRect;
+  GetWindowRect(GetDesktopWindow(), &desktopRect);
+  SetWindowPos(m_hWnd, 0, (desktopRect.right / 2) - PROP_WIDTH_OFFSET, (desktopRect.bottom / 2) - PROP_HEIGHT_OFFSET, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+  CBaseDSPropPage::ShowPropPageDialog(m_pFilter, m_hWnd);
+  m_bPropPageOpen = FALSE;
+  return S_OK;
+}
+
 static BOOL CALLBACK enumWindowCallback(HWND hwnd, LPARAM lparam)
 {
   HWND owner = (HWND)lparam;
@@ -233,12 +244,7 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
         switch (trayMsg) {
         case WM_LBUTTONUP:
           if (!icon->m_bPropPageOpen) {
-            icon->m_bPropPageOpen = TRUE;
-            RECT desktopRect;
-            GetWindowRect(GetDesktopWindow(), &desktopRect);
-            SetWindowPos(icon->m_hWnd, 0, (desktopRect.right / 2) - PROP_WIDTH_OFFSET, (desktopRect.bottom / 2) - PROP_HEIGHT_OFFSET, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-            CBaseDSPropPage::ShowPropPageDialog(icon->m_pFilter, icon->m_hWnd);
-            icon->m_bPropPageOpen = FALSE;
+            icon->OpenPropPage();
           } else {
             EnumThreadWindows(GetCurrentThreadId(), enumWindowCallback, (LPARAM)icon->m_hWnd);
           }
