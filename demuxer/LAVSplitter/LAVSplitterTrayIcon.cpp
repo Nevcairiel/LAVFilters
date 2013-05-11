@@ -148,7 +148,6 @@ HRESULT CLAVSplitterTrayIcon::ProcessMenuCommand(HMENU hMenu, int cmd)
       pStreamSelect->Enable(cmd - STREAM_CMD_OFFSET, AMSTREAMSELECTENABLE_ENABLE);
       SafeRelease(&pStreamSelect);
     }
-    return S_OK;
   } else if (cmd > CHAPTER_CMD_OFFSET && cmd <= m_NumChapters + CHAPTER_CMD_OFFSET) {
     IAMExtendedSeeking *pExSeeking = NULL;
     if (SUCCEEDED(m_pFilter->QueryInterface(IID_IAMExtendedSeeking, (void **)&pExSeeking))) {
@@ -175,6 +174,8 @@ failchapterseek:
     }
   } else if (cmd == STREAM_CMD_OFFSET - 1) {
     OpenPropPage();
+  } else {
+    return E_UNEXPECTED;
   }
-  return E_UNEXPECTED;
+  return S_OK;
 }
