@@ -60,6 +60,21 @@ HRESULT CPopupMenu::AddSeparator()
   return S_OK;
 }
 
+HRESULT CPopupMenu::AddSubmenu(HMENU hSubMenu, LPWSTR caption)
+{
+  if (!m_hMenu)
+    return E_UNEXPECTED;
+  MENUITEMINFO mii;
+  mii.cbSize = sizeof(mii);
+  mii.fMask = MIIM_FTYPE | MIIM_STRING | MIIM_SUBMENU;
+  mii.fType = MFT_STRING;
+  mii.hSubMenu = hSubMenu;
+  mii.dwTypeData = caption;
+  mii.cch = (UINT)wcslen(mii.dwTypeData);
+  InsertMenuItem(m_hMenu, order++, TRUE, &mii);
+  return S_OK;
+}
+
 HMENU CPopupMenu::Finish()
 {
   HMENU hMenu = m_hMenu;

@@ -27,6 +27,8 @@ public:
 
   HRESULT AddItem(UINT id, LPWSTR caption, BOOL checked = FALSE, BOOL enabled = TRUE);
   HRESULT AddSeparator();
+  HRESULT AddSubmenu(HMENU hSubMenu, LPWSTR caption);
+
   HMENU Finish();
 private:
   HMENU m_hMenu;
