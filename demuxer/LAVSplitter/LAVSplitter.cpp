@@ -129,7 +129,7 @@ STDMETHODIMP CLAVSplitter::CreateTrayIcon()
 {
   if (CBaseTrayIcon::ProcessBlackList())
     return S_FALSE;
-  m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_SPLITTER), IDI_ICON1);
+  m_pTrayIcon = new CLAVSplitterTrayIcon(this, TEXT(LAV_SPLITTER), IDI_ICON1);
   return S_OK;
 }
 
