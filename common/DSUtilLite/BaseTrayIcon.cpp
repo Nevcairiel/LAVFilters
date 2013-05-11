@@ -243,6 +243,22 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
             EnumThreadWindows(GetCurrentThreadId(), enumWindowCallback, (LPARAM)icon->m_hWnd);
           }
           break;
+        case WM_RBUTTONUP:
+        case WM_CONTEXTMENU:
+          if (icon->m_bPropPageOpen) {
+            break;
+          }
+          HMENU hMenu = icon->GetPopupMenu();
+          if (hMenu) {
+            POINT p;
+            GetCursorPos(&p);
+            SetForegroundWindow(hwnd);
+            int cmd = TrackPopupMenu(hMenu, TPM_RETURNCMD, p.x, p.y, 0, hwnd, NULL);
+            PostMessage(hwnd, WM_NULL, 0, 0);
+            icon->ProcessMenuCommand(hMenu, cmd);
+            DestroyMenu(hMenu);
+          }
+          break;
         }
       }
     }

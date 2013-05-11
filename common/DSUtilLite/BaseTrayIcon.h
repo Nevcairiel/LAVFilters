@@ -29,18 +29,25 @@ public:
 
   static BOOL ProcessBlackList();
 
-private:
+protected:
   virtual ~CBaseTrayIcon(void);
+  virtual HRESULT CreateTrayIconData();
 
+  virtual HMENU GetPopupMenu() { return NULL; }
+  virtual HRESULT ProcessMenuCommand(HMENU hMenu, int cmd) { return E_NOTIMPL; }
+
+private:
   HRESULT StartMessageThread();
   HRESULT RegisterWindowClass();
   HRESULT CreateMessageWindow();
-  HRESULT CreateTrayIconData();
 
   DWORD TrayMessageThread();
   static unsigned int WINAPI InitialThreadProc(LPVOID pv);
 
   static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+protected:
+  IBaseFilter *m_pFilter;
 
 private:
   CAMEvent m_evSetupFinished;
@@ -50,7 +57,6 @@ private:
   HWND m_hWnd;
   BOOL m_bPropPageOpen;
 
-  IBaseFilter *m_pFilter;
   const WCHAR *m_wszName;
   int m_resIcon;
   NOTIFYICONDATA m_NotifyIconData;
