@@ -76,7 +76,7 @@ configure() (
     --arch=${arch}"
 
   EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -I../thirdparty/include -idirafter../common/includes/dxva2"
-  EXTRA_LDFLAGS=""
+  EXTRA_LDFLAGS="-Wl,--nxcompat -Wl,--dynamicbase -Wl,--no-seh"
   if [ "${arch}" == "x86_64" ]; then
     OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=x86_64-w64-mingw32- --target-os=mingw32"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib64"
