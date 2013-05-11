@@ -183,8 +183,7 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
     CAMThread::CallWorker(CMD_REINIT);
     while (!m_evEOSDone.Check()) {
       m_evSample.Wait();
-      if (ProcessOutput() == S_OK)
-        m_evDeliver.Set();
+      ProcessOutput();
     }
   }
 
@@ -203,8 +202,7 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
   if (m_bSyncToProcess) {
     while (!m_evDecodeDone.Check()) {
       m_evSample.Wait();
-      if (ProcessOutput() == S_OK)
-        m_evDeliver.Set();
+      ProcessOutput();
     }
   }
 
@@ -238,8 +236,7 @@ STDMETHODIMP CDecodeThread::EndOfStream()
 
   while (!m_evEOSDone.Check()) {
     m_evSample.Wait();
-    if (ProcessOutput() == S_OK && m_bSyncToProcess)
-      m_evDeliver.Set();
+    ProcessOutput();
   }
 
   ProcessOutput();
@@ -254,6 +251,8 @@ STDMETHODIMP CDecodeThread::ProcessOutput()
     hr = S_OK;
     m_pLAVVideo->Deliver(pFrame);
   }
+  if (hr == S_OK && m_bSyncToProcess)
+    m_evDeliver.Set();
   return hr;
 }
 
