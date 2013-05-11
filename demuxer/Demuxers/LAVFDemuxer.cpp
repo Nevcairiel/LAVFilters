@@ -1128,17 +1128,22 @@ STDMETHODIMP CLAVFDemuxer::get_MarkerCount(long* pMarkerCount)
 STDMETHODIMP CLAVFDemuxer::get_CurrentMarker(long* pCurrentMarker)
 {
   CheckPointer(pCurrentMarker, E_POINTER);
+
+  *pCurrentMarker = 0;
+
   // Can the time_base change in between chapters?
   // Anyhow, we do the calculation in the loop, just to be safe
   for(unsigned int i = 0; i < m_avFormat->nb_chapters; ++i) {
     int64_t pts = ConvertRTToTimestamp(m_rtCurrent, m_avFormat->chapters[i]->time_base.num, m_avFormat->chapters[i]->time_base.den);
     // Check if the pts is in between the bounds of the chapter
-    if (pts >= m_avFormat->chapters[i]->start && pts <= m_avFormat->chapters[i]->end) {
+    if (pts >= m_avFormat->chapters[i]->start) {
       *pCurrentMarker = (i + 1);
-      return S_OK;
+      // Many files only have chapter start points and no end times
+      if (pts <= m_avFormat->chapters[i]->end)
+        return S_OK;
     }
   }
-  return E_FAIL;
+  return *pCurrentMarker > 0 ? S_OK : E_FAIL;
 }
 
 STDMETHODIMP CLAVFDemuxer::GetMarkerTime(long MarkerNum, double* pMarkerTime)
