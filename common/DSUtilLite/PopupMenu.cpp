@@ -39,7 +39,7 @@ HRESULT CPopupMenu::AddItem(UINT id, LPWSTR caption, BOOL checked, BOOL enabled)
   MENUITEMINFO mii;
   mii.cbSize = sizeof(mii);
   mii.fMask = MIIM_ID | MIIM_STATE | MIIM_FTYPE | MIIM_STRING;
-  mii.fType = MFT_STRING;
+  mii.fType = MFT_STRING | MFT_RADIOCHECK;
   mii.wID = id;
   mii.fState = (checked ? MFS_CHECKED : 0) | (!enabled ? MFS_DISABLED : 0);
   mii.dwTypeData = caption;
