@@ -1886,7 +1886,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
       if (sit->pid == NO_SUBTITLE_PID)
         continue;
       if (sit->pid == FORCED_SUBTITLE_PID) {
-        if ((it->dwFlags == 0 || it->dwFlags & SUBTITLE_FLAG_FORCED) && does_language_match(it->subtitleLanguage, audioLanguage))
+        if ((it->dwFlags == 0 || it->dwFlags & SUBTITLE_FLAG_VIRTUAL) && does_language_match(it->subtitleLanguage, audioLanguage))
           checkedStreams.push_back(&*sit);
         continue;
       }

@@ -40,6 +40,7 @@ typedef struct CSubtitleSelector {
 #define SUBTITLE_FLAG_FORCED   0x0002
 #define SUBTITLE_FLAG_NORMAL   0x0004
 #define SUBTITLE_FLAG_IMPAIRED 0x0008
+#define SUBTITLE_FLAG_VIRTUAL  0x0080
 
 // Values above 0xFF are special
 #define SUBTITLE_FLAG_PGS      0x8000

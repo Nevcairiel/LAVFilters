@@ -1460,9 +1460,9 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
       std::string flags = res[4];
       if (flags.length() > 0) {
         if (flags.find('d') != flags.npos)
-          selector.dwFlags |= SUBTITLE_FLAG_DEFAULT;
+          selector.dwFlags |= SUBTITLE_FLAG_DEFAULT | (m_settings.subtitleMode == LAVSubtitleMode_Default ? SUBTITLE_FLAG_VIRTUAL : 0);
         if (flags.find('f') != flags.npos)
-          selector.dwFlags |= SUBTITLE_FLAG_FORCED;
+          selector.dwFlags |= SUBTITLE_FLAG_FORCED | (m_settings.subtitleMode != LAVSubtitleMode_Default ? SUBTITLE_FLAG_VIRTUAL : 0);
         if (flags.find('n') != flags.npos)
           selector.dwFlags |= SUBTITLE_FLAG_NORMAL;
         if (flags.find('h') != flags.npos)
