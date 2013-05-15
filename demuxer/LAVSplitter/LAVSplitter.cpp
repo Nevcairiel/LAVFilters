@@ -1460,13 +1460,21 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
       std::string flags = res[4];
       if (flags.length() > 0) {
         if (flags.find('d') != flags.npos)
-          selector.dwFlags |= SUBTITLE_FLAG_DEFAULT | (m_settings.subtitleMode == LAVSubtitleMode_Default ? SUBTITLE_FLAG_VIRTUAL : 0);
+          selector.dwFlags |= SUBTITLE_FLAG_DEFAULT;
         if (flags.find('f') != flags.npos)
-          selector.dwFlags |= SUBTITLE_FLAG_FORCED | (m_settings.subtitleMode != LAVSubtitleMode_Default ? SUBTITLE_FLAG_VIRTUAL : 0);
+          selector.dwFlags |= SUBTITLE_FLAG_FORCED;
         if (flags.find('n') != flags.npos)
           selector.dwFlags |= SUBTITLE_FLAG_NORMAL;
         if (flags.find('h') != flags.npos)
           selector.dwFlags |= SUBTITLE_FLAG_IMPAIRED;
+
+        if (m_settings.subtitleMode == LAVSubtitleMode_Default) {
+          if (selector.subtitleLanguage == "*" && (selector.dwFlags & SUBTITLE_FLAG_DEFAULT))
+            selector.dwFlags |= SUBTITLE_FLAG_VIRTUAL;
+        } else {
+          if (selector.dwFlags & SUBTITLE_FLAG_FORCED)
+            selector.dwFlags |= SUBTITLE_FLAG_VIRTUAL;
+        }
 
         // Check for flag negation
         std::string not = res[3];
