@@ -314,7 +314,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
   DWORD dwSupport = m_pVideoSettings->CheckHWAccelSupport(hwAccel);
   BOOL bEnabled = (hwAccel != HWAccel_None) && dwSupport;
-  BOOL bHWDeint = bEnabled && (hwAccel == HWAccel_CUDA); // || hwAccel == HWAccel_QuickSync);
+  BOOL bHWDeint = bEnabled && (hwAccel == HWAccel_CUDA || hwAccel == HWAccel_QuickSync);
   BOOL bHWDeintEnabled = bHWDeint && (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ENABLE, BM_GETCHECK, 0, 0);
   BOOL bCUDAOnly = bEnabled && (hwAccel == HWAccel_CUDA);
   BOOL bDVD = bEnabled && (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
