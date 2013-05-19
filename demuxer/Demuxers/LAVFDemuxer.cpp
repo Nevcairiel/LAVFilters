@@ -54,7 +54,7 @@ extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName,
 
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
 
-void CLAVFDemuxer::ffmpeg_init()
+void CLAVFDemuxer::ffmpeg_init(bool network)
 {
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
@@ -64,7 +64,8 @@ void CLAVFDemuxer::ffmpeg_init()
 #endif
 
   av_register_all();
-  avformat_network_init();
+  if (network)
+    avformat_network_init();
 }
 
 std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
