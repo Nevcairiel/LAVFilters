@@ -265,4 +265,14 @@
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="LAVVideo.manifest">
+      <Filter>Resource Files</Filter>
+    </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\resources\LAVFilters.Dependencies.manifest">
+      <Filter>Resource Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>
