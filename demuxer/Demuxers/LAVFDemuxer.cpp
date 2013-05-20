@@ -192,7 +192,8 @@ static LPCWSTR wszImageExtensions[] = {
   L".jpeg", L".jpg", L".jps",   // JPEG
   L".gif",                      // GIF
   L".tga",                      // TGA
-  L".bmp"                       // BMP
+  L".bmp",                      // BMP
+  L".j2c",                      // JPEG2000
 };
 
 static LPCWSTR wszBlockedExtensions[] = {
