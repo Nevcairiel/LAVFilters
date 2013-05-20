@@ -73,6 +73,9 @@
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;shell32.lib;Shlwapi.lib;Comctl32.lib;strmbasd.lib;dsutild.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib;avresample-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVAudio.def</ModuleDefinitionFile>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>$(ProjectDir)\$(ProjectName).manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
@@ -91,6 +94,9 @@
       <Outputs>$(OutDir)..\$(TargetFileName)</Outputs>
       <Inputs>$(TargetDir)\$(TargetName)$(TargetExt)</Inputs>
     </CustomBuildStep>
+    <Manifest>
+      <AdditionalManifestFiles>$(ProjectDir)\$(ProjectName).manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Bitstream.cpp" />
@@ -128,6 +134,14 @@
   <ItemGroup>
     <None Include="..\..\resources\blue.ico" />
     <None Include="LAVAudio.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\resources\LAVFilters.Dependencies.manifest">
+      <Command>copy %(FullPath) $(IntermediateOutputPath)..</Command>
+      <Message>Copying Manifest file</Message>
+      <Outputs>$(IntermediateOutputPath)..\%(Filename)%(Extension);%(Outputs)</Outputs>
+    </CustomBuild>
+    <Manifest Include="LAVAudio.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

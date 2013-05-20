@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity type='win32' name='LAVFilters.Dependencies' version='1.0.0.0' />
+  <file name="avutil-lav-52.dll" />
+  <file name="avcodec-lav-55.dll" />
+  <file name="avformat-lav-55.dll" />
+  <file name="avresample-lav-1.dll" />
+  <file name="avfilter-lav-3.dll" />
+  <file name="swscale-lav-2.dll" />
+  <file name="libbluray.dll" />
+</assembly>
