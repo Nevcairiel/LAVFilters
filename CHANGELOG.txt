@@ -1,5 +1,23 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.57.0 - 2013/05/20
+LAV Splitter
+- Added a Popup Menu to the Tray Icon which allows Stream, Edition and Chapter switching
+- Improved stream selection in files with multiple video streams
+- Improved performance when opening MKVs with linked segments
+- Fixed playback of MKVs with Segment Linking and Vorbis Audio
+
+LAV Video
+- Enabled Hardware/GPU Deinterlacing when using the QuickSync decoder
+- Support for JPEG2000 DCinema streams
+- Support for RGB48 output, and high-quality dithering of RGB48 to RGB32
+- Fixed a crash with DXVA2 Native on AMD GPUs in certain situations
+- Improved detection of H.264 RGB streams, improves support with EVR
+- Adjusted performance tuning for consistent performance in both playback and transcoding (in 0.56, transcoding could be slow)
+
+LAV Audio
+- Use the FLAC channel mask from metadata, fixes playback of FLAC files with non-standard channel layouts
+
 0.56.2 - 2013/04/19
 LAV Splitter
 - Emit the EC_LENGTH_CHANGED event when the edition is changed, to help players update their playback duration
