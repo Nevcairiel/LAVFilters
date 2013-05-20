@@ -46,22 +46,22 @@ interface ILAVFSettings : public IUnknown
   // Retrieve the preferred languages as ISO 639-2 language codes, comma seperated
   // If the result is NULL, no language has been set
   // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
-  STDMETHOD(GetPreferredLanguages)(WCHAR **ppLanguages) = 0;
+  STDMETHOD(GetPreferredLanguages)(LPWSTR *ppLanguages) = 0;
 
   // Set the preferred languages as ISO 639-2 language codes, comma seperated
   // To reset to no preferred language, pass NULL or the empty string
-  STDMETHOD(SetPreferredLanguages)(WCHAR *pLanguages) = 0;
+  STDMETHOD(SetPreferredLanguages)(LPCWSTR pLanguages) = 0;
   
   // Retrieve the preferred subtitle languages as ISO 639-2 language codes, comma seperated
   // If the result is NULL, no language has been set
   // If no subtitle language is set, the main language preference is used.
   // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
-  STDMETHOD(GetPreferredSubtitleLanguages)(WCHAR **ppLanguages) = 0;
+  STDMETHOD(GetPreferredSubtitleLanguages)(LPWSTR *ppLanguages) = 0;
 
   // Set the preferred subtitle languages as ISO 639-2 language codes, comma seperated
   // To reset to no preferred language, pass NULL or the empty string
   // If no subtitle language is set, the main language preference is used.
-  STDMETHOD(SetPreferredSubtitleLanguages)(WCHAR *pLanguages) = 0;
+  STDMETHOD(SetPreferredSubtitleLanguages)(LPCWSTR pLanguages) = 0;
 
   // Get the current subtitle mode
   // See enum for possible values
@@ -124,10 +124,10 @@ interface ILAVFSettings : public IUnknown
   STDMETHOD_(BOOL,GetFixBrokenHDPVR)() = 0;
 
   // Control wether the givne format is enabled
-  STDMETHOD_(HRESULT,SetFormatEnabled)(const char *strFormat, BOOL bEnabled) = 0;
+  STDMETHOD_(HRESULT,SetFormatEnabled)(LPCSTR strFormat, BOOL bEnabled) = 0;
 
   // Check if the given format is enabled
-  STDMETHOD_(BOOL,IsFormatEnabled)(const char *strFormat) = 0;
+  STDMETHOD_(BOOL,IsFormatEnabled)(LPCSTR strFormat) = 0;
 
   // Set if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream is changed
   STDMETHOD(SetStreamSwitchRemoveAudio)(BOOL bEnabled) = 0;
@@ -138,12 +138,12 @@ interface ILAVFSettings : public IUnknown
   // Advanced Subtitle configuration. Refer to the documention for details.
   // If no advanced config exists, will be NULL.
   // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
-  STDMETHOD(GetAdvancedSubtitleConfig)(WCHAR **ppAdvancedConfig) = 0;
+  STDMETHOD(GetAdvancedSubtitleConfig)(LPWSTR *ppAdvancedConfig) = 0;
 
   // Advanced Subtitle configuration. Refer to the documention for details.
   // To reset the config, pass NULL or the empty string.
   // If no subtitle language is set, the main language preference is used.
-  STDMETHOD(SetAdvancedSubtitleConfig)(WCHAR *pAdvancedConfig) = 0;
+  STDMETHOD(SetAdvancedSubtitleConfig)(LPCWSTR pAdvancedConfig) = 0;
 
   // Set if LAV Splitter should prefer audio streams for the hearing or visually impaired
   STDMETHOD(SetUseAudioForHearingVisuallyImpaired)(BOOL bEnabled) = 0;

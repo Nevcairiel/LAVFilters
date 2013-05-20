@@ -77,6 +77,8 @@ typedef enum LAVVideoCodec {
   Codec_Snow,
   Codec_FFV1,
   Codec_v210,
+  Codec_JPEG2000,
+  Codec_VMNC,
 
   Codec_VideoNB            // Number of entrys (do not use when dynamically linking)
 };
@@ -166,6 +168,8 @@ typedef enum LAVOutPixFmts {
 
   LAVOutPixFmt_YV16,            // 4:2:2, 8-bit, planar
   LAVOutPixFmt_YV24,            // 4:4:4, 8-bit, planar
+
+  LAVOutPixFmt_RGB48,           // 48-bit RGB (16-bit per pixel, BGR)
 
   LAVOutPixFmt_NB               // Number of formats
 } LAVOutPixFmts;
@@ -350,5 +354,5 @@ interface ILAVVideoSettings : public IUnknown
 interface ILAVVideoStatus : public IUnknown
 {
   // Get the name of the active decoder (can return NULL if none is active)
-  STDMETHOD_(const WCHAR *, GetActiveDecoderName)() = 0;
+  STDMETHOD_(LPCWSTR, GetActiveDecoderName)() = 0;
 };
