@@ -18,6 +18,10 @@ make_dirs() (
   fi
 )
 
+strip_libs() {
+  x86_64-w64-mingw32-strip lib*/*-lav-*.dll
+}
+
 copy_libs() (
   cp lib*/*-lav-*.dll ../bin_${archdir}
   cp lib*/*.lib ../bin_${archdir}/lib
@@ -111,6 +115,7 @@ cat config.out
 ## Only if configure succeeded, actually build
 if [ ${CONFIGRETVAL} -eq 0 ]; then
   build &&
+  strip_libs &&
   copy_libs
 fi
 
