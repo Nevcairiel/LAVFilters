@@ -792,12 +792,11 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
   }
 
   filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
-  filter->m_bDoubleRateDeint = FALSE;
+  filter->m_bDoubleRateDeint = filter->m_bInterlaced && (filter->m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField) && (filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave) && !(filter->m_pSettings->GetDeinterlacingMode() == DeintMode_Disable);
   if (filter->m_bInterlaced && cuvidfmt->frame_rate.numerator && cuvidfmt->frame_rate.denominator) {
     double dFrameTime = 10000000.0 / ((double)cuvidfmt->frame_rate.numerator / cuvidfmt->frame_rate.denominator);
-    if (filter->m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField && filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave && !(filter->m_pSettings->GetDeinterlacingMode() == DeintMode_Disable) && (int)(dFrameTime / 10000.0) != 41) {
+    if (filter->m_bDoubleRateDeint && (int)(dFrameTime / 10000.0) == 41) {
       filter->m_bDoubleRateDeint = TRUE;
-      dFrameTime /= 2.0;
     }
     if (cuvidfmt->codec != cudaVideoCodec_MPEG4)
       filter->m_rtAvgTimePerFrame = REFERENCE_TIME(dFrameTime + 0.5);
@@ -806,6 +805,11 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
   } else {
     filter->m_rtAvgTimePerFrame = AV_NOPTS_VALUE;
   }
+
+  // Adjust frame time for double-rate deint
+  if (filter->m_bDoubleRateDeint && filter->m_rtAvgTimePerFrame != AV_NOPTS_VALUE)
+    filter->m_rtAvgTimePerFrame /= 2;
+
   filter->m_VideoFormat = *cuvidfmt;
 
   if (cuvidfmt->chroma_format != cudaVideoChromaFormat_420) {
