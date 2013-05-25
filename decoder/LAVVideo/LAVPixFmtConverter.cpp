@@ -154,9 +154,7 @@ CLAVPixFmtConverter::CLAVPixFmtConverter()
 {
   convert = &CLAVPixFmtConverter::convert_generic;
 
-  SYSTEM_INFO systemInfo;
-  GetSystemInfo(&systemInfo);
-  m_NumThreads = min(8, max(1, systemInfo.dwNumberOfProcessors / 2));
+  m_NumThreads = min(8, max(1, av_cpu_count() / 2));
 
   ZeroMemory(&m_ColorProps, sizeof(m_ColorProps));
 }
