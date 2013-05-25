@@ -174,4 +174,8 @@ interface ILAVFSettings : public IUnknown
 
   // Get whether Matroska Linked Segments should be loaded from other files
   STDMETHOD_(BOOL,GetLoadMatroskaExternalSegments)() = 0;
+
+  // Get the list of available formats
+  // Memory for the string array will be allocated, and has to be free'ed by the caller with CoTaskMemFree
+  STDMETHOD(GetFormats)(LPSTR** formats, UINT* nFormats) = 0;
 };

@@ -170,6 +170,7 @@ public:
   STDMETHODIMP_(BOOL) GetPreferHighQualityAudioStreams();
   STDMETHODIMP SetLoadMatroskaExternalSegments(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetLoadMatroskaExternalSegments();
+  STDMETHODIMP GetFormats(LPSTR** formats, UINT* nFormats);
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(LPCSTR) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }

@@ -1761,6 +1761,39 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetLoadMatroskaExternalSegments()
   return m_settings.MatroskaExternalSegments;
 }
 
+STDMETHODIMP CLAVSplitter::GetFormats(LPSTR** formats, UINT* nFormats)
+{
+  CheckPointer(formats, E_POINTER);
+  CheckPointer(nFormats, E_POINTER);
+
+  *nFormats = (UINT)m_InputFormats.size();
+
+  *formats = (LPSTR*)CoTaskMemAlloc(sizeof(LPSTR) * *nFormats);
+  CheckPointer(*formats, E_OUTOFMEMORY);
+
+  size_t i = 0;
+  for (auto it = m_InputFormats.begin(); it != m_InputFormats.end(); it++, i++) {
+    size_t len = strlen(it->strName) + 1;
+    *formats[i] = (LPSTR)CoTaskMemAlloc(sizeof(CHAR) * len);
+    if (!*formats[i]) {
+      break;
+    }
+    strcpy_s(*formats[i], len, it->strName);
+  }
+
+  if (i != *nFormats) {
+    for (size_t j = 0; j < i; j++) {
+      CoTaskMemFree(*formats[i]);
+    }
+    CoTaskMemFree(*formats);
+    *formats = NULL;
+
+    return E_OUTOFMEMORY;
+  }
+
+  return S_OK;
+}
+
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()
 {
   return m_InputFormats;
