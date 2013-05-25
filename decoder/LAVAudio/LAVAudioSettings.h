@@ -56,7 +56,7 @@ typedef enum LAVAudioCodec {
   Codec_Truespeech,
   Codec_TAK,
 
-  Codec_AudioNB            // Number of entrys (do not use when dynamically linking)
+  Codec_AudioNB            // Number of entries (do not use when dynamically linking)
 };
 
 // Bitstreaming Codecs supported in LAV Audio
@@ -67,7 +67,7 @@ typedef enum LAVBitstreamCodec {
   Bitstream_DTS,
   Bitstream_DTSHD,
 
-  Bitstream_NB        // Number of entrys (do not use when dynamically linking)
+  Bitstream_NB        // Number of entries (do not use when dynamically linking)
 };
 
 
@@ -81,7 +81,7 @@ typedef enum LAVAudioSampleFormat {
   SampleFormat_FP32,
   SampleFormat_Bitstream,
 
-  SampleFormat_NB     // Number of entrys (do not use when dynamically linking)
+  SampleFormat_NB     // Number of entries (do not use when dynamically linking)
 };
 
 typedef enum LAVAudioMixingMode {

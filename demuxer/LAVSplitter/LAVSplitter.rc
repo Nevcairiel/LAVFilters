@@ -67,7 +67,7 @@ IDD_PROPPAGE_LAVFSETTINGS DIALOGEX 0, 0, 400, 274
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    LTEXT           "Preferred Languages\nEnter your preferred languages as their 3-letter language codes, comma seperated. (Example: ""eng,ger,fre"")",IDC_LBL_PREF_LANG,7,7,386,27
+    LTEXT           "Preferred Languages\nEnter your preferred languages as their 3-letter language codes, comma separated. (Example: ""eng,ger,fre"")",IDC_LBL_PREF_LANG,7,7,386,27
     EDITTEXT        IDC_PREF_LANG,7,35,386,14,ES_AUTOHSCROLL
     LTEXT           "Audio:",IDC_LBL_PREF_LANG_AUDIO,7,25,31,8
     EDITTEXT        IDC_PREF_LANG_SUBS,7,65,386,14,ES_AUTOHSCROLL

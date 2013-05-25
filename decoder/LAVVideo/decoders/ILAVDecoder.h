@@ -332,7 +332,7 @@ interface ILAVDecoder
   STDMETHOD_(REFERENCE_TIME, GetFrameDuration)() PURE;
 
   /**
-   * Query wether the format can potentially be interlaced.
+   * Query whether the format can potentially be interlaced.
    * This function should return false if the format can 100% not be interlaced, and true if it can be interlaced (but also progressive).
    */
   STDMETHOD_(BOOL, IsInterlaced)() PURE;
@@ -359,12 +359,12 @@ interface ILAVDecoder
   STDMETHOD_(const WCHAR*, GetDecoderName)() PURE;
 
   /**
-   * Get wether the decoder outputs thread-safe buffers
+   * Get whether the decoder outputs thread-safe buffers
    */
   STDMETHOD(HasThreadSafeBuffers)() PURE;
 
   /**
-   * Get wether the decoder should sync to the main thread
+   * Get whether the decoder should sync to the main thread
    */
   STDMETHOD(SyncToProcessThread)() PURE;
 };

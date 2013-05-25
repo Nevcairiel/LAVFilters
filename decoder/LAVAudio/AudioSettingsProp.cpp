@@ -674,7 +674,7 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
   ListView_DeleteAllItems(hlv);
   ListView_SetItemCount(hlv, Codec_AudioNB);
 
-  // Create entrys for the formats
+  // Create entries for the formats
   LVITEM lvi;
   memset(&lvi, 0, sizeof(lvi));
   lvi.mask = LVIF_TEXT|LVIF_PARAM;

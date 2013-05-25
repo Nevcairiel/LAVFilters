@@ -36,7 +36,7 @@ static struct {
   { AV_CODEC_ID_DTS,    Bitstream_DTS } // DTS-HD is still DTS, and handled special below
 };
 
-// Check wether a codec is bitstreaming eligible and enabled
+// Check whether a codec is bitstreaming eligible and enabled
 BOOL CLAVAudio::IsBitstreaming(AVCodecID codec)
 {
   for(int i = 0; i < countof(lavf_bitstream_config); ++i) {

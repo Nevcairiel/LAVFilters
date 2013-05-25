@@ -137,7 +137,7 @@ void CLAVSplitterSettingsProp::UpdateSubtitleMode(LAVSubtitleMode mode)
     WCHAR *note = L"Default Mode: Subtitles matching the preferred languages, as well as \"default\" and \"forced\" subtitles will be loaded.";
     SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_NOTE, WM_SETTEXT, 0, (LPARAM)note);
   } else if (mode == LAVSubtitleMode_Advanced) {
-    WCHAR *note = L"Advanced Mode: Refer to the README or the documention on http://1f0.de for details.";
+    WCHAR *note = L"Advanced Mode: Refer to the README or the documentation on http://1f0.de for details.";
     SendDlgItemMessage(m_Dlg, IDC_SUBTITLE_NOTE, WM_SETTEXT, 0, (LPARAM)note);
   } else {
     WCHAR *empty = L"";
@@ -455,7 +455,7 @@ HRESULT CLAVSplitterFormatsProp::OnActivate()
     return E_OUTOFMEMORY;
   memset(m_bFormats, 0, sizeof(BOOL) * m_Formats.size());
 
-  // Create entrys for the formats
+  // Create entries for the formats
   LVITEM lvi;
   memset(&lvi, 0, sizeof(lvi));
   lvi.mask = LVIF_TEXT|LVIF_PARAM;

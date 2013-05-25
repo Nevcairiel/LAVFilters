@@ -27,7 +27,7 @@ extern "C" {
 };
 
 // PCM Volume Adjustment Factors, both for integer and float math
-// Entrys start at 2 channel mixing, half volume
+// entries start at 2 channel mixing, half volume
 static int pcm_volume_adjust_integer[7] = {
   362, 443, 512, 572, 627, 677, 724
 };
