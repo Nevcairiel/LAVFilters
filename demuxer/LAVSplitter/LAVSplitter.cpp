@@ -1774,16 +1774,16 @@ STDMETHODIMP CLAVSplitter::GetFormats(LPSTR** formats, UINT* nFormats)
   size_t i = 0;
   for (auto it = m_InputFormats.begin(); it != m_InputFormats.end(); it++, i++) {
     size_t len = strlen(it->strName) + 1;
-    *formats[i] = (LPSTR)CoTaskMemAlloc(sizeof(CHAR) * len);
-    if (!*formats[i]) {
+    (*formats)[i] = (LPSTR)CoTaskMemAlloc(sizeof(CHAR) * len);
+    if (!(*formats)[i]) {
       break;
     }
-    strcpy_s(*formats[i], len, it->strName);
+    strcpy_s((*formats)[i], len, it->strName);
   }
 
   if (i != *nFormats) {
     for (size_t j = 0; j < i; j++) {
-      CoTaskMemFree(*formats[i]);
+      CoTaskMemFree((*formats)[i]);
     }
     CoTaskMemFree(*formats);
     *formats = NULL;
