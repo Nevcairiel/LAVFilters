@@ -1678,6 +1678,12 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
   std::deque<stream>::iterator it;
   for ( it = streams->begin(); it != streams->end(); ++it ) {
     stream *check = &*it;
+
+    if (m_avFormat->streams[check->pid]->disposition & AV_DISPOSITION_DEFAULT) {
+      best = check;
+      break;
+    }
+
     if (!best) { best = check; continue; }
     uint64_t bestPixels = m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
     uint64_t checkPixels = m_avFormat->streams[check->pid]->codec->width * m_avFormat->streams[check->pid]->codec->height;
