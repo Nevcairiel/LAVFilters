@@ -546,7 +546,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                         || codec == AV_CODEC_ID_MPEG4;
 
   m_bNoBufferConsumption =    codec == AV_CODEC_ID_MJPEGB
-                           || codec == AV_CODEC_ID_LOCO;
+                           || codec == AV_CODEC_ID_LOCO
+                           || codec == AV_CODEC_ID_JPEG2000;
 
   m_bHasPalette = m_pAVCtx->bits_per_coded_sample <= 8 && m_pAVCtx->extradata_size && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER)
                   &&  (codec == AV_CODEC_ID_MSVIDEO1
