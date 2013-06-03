@@ -1086,18 +1086,9 @@ const char *CLAVFDemuxer::GetContainerFormat() const
   return m_pszInputFormat;
 }
 
-HRESULT CLAVFDemuxer::StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const
+HRESULT CLAVFDemuxer::StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const
 {
   if (s.pid >= (DWORD)m_avFormat->nb_streams) { return E_FAIL; }
-
-  if (plcid) {
-    const char *lang = get_stream_language(m_avFormat->streams[s.pid]);
-    if (lang) {
-      *plcid = ProbeLangForLCID(lang);
-    } else {
-      *plcid = 0;
-    }
-  }
 
   if(ppszName) {
     std::string info = s.streamInfo->codecInfo;
@@ -1419,7 +1410,13 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
   if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "language", NULL, 0)) {
     lang = dictEntry->value;
   }
-  s.language = lang ? ProbeForISO6392(lang) : "und";
+  if (lang) {
+    s.language = ProbeForISO6392(lang);
+    s.lcid     = ProbeLangForLCID(s.language.c_str());
+  } else {
+    s.language = "und";
+    s.lcid     = 0;
+  }
   s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr);
 
   if(FAILED(hr)) {
@@ -1657,6 +1654,7 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
       CMediaType mtype = forced->streamInfo->mtypes.back();
       forced->streamInfo->mtypes.pop_back();
       forced->language = audiost->language;
+      forced->lcid     = audiost->lcid;
 
       SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.Format();
       strncpy_s(subInfo->IsoLang, audiost->language.c_str(), 3);

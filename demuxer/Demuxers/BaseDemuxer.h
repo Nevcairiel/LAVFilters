@@ -56,7 +56,8 @@ public:
     CStreamInfo *streamInfo;
     DWORD pid;
     std::string language;
-    struct stream() { streamInfo = NULL; pid = 0; }
+    LCID lcid;
+    struct stream() { streamInfo = NULL; pid = 0; lcid = 0; }
     operator DWORD() const { return pid; }
     bool operator == (const struct stream& s) const { return (DWORD)*this == (DWORD)s; }
   } stream;
@@ -83,7 +84,7 @@ public:
 #define LAVFMT_TS_DISCONT 0x0001
   virtual DWORD GetContainerFlags() { return 0; }
   // Create Stream Description
-  virtual HRESULT StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const = 0;
+  virtual HRESULT StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const = 0;
 
   // Select the active title
   virtual STDMETHODIMP SetTitle(int idx) { return E_NOTIMPL; }

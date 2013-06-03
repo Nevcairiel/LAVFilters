@@ -431,9 +431,9 @@ const char *CBDDemuxer::GetContainerFormat() const
   return "mpegts";
 }
 
-HRESULT CBDDemuxer::StreamInfo(const CBaseDemuxer::stream &s, LCID *plcid, WCHAR **ppszName) const
+HRESULT CBDDemuxer::StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const
 {
-  return m_lavfDemuxer->StreamInfo(s, plcid, ppszName);
+  return m_lavfDemuxer->StreamInfo(s, ppszName);
 }
 
 /////////////////////////////////////////////////////////////////////////////

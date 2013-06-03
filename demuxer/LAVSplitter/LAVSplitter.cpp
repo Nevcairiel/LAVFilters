@@ -1327,8 +1327,7 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
         }
       } else if (s.pid == FORCED_SUBTITLE_PID) {
         if (plcid) {
-          SUBTITLEINFO *subinfo = (SUBTITLEINFO *)s.streamInfo->mtypes[0].Format();
-          *plcid = ProbeLangForLCID(subinfo->IsoLang);
+          *plcid = s.lcid;
         }
         if (ppszName) {
           WCHAR str[] = L"S: " FORCED_SUB_STRING;
@@ -1338,8 +1337,12 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
             wcsncpy_s(*ppszName, len, str, _TRUNCATE);
         }
       } else {
-        // Populate stream name and language code
-        m_pDemuxer->StreamInfo(s, plcid, ppszName);
+        if (plcid) {
+          *plcid = s.lcid;
+        }
+        if (ppszName) {
+          m_pDemuxer->StreamInfo(s, ppszName);
+        }
       }
       hr = S_OK;
       break;
