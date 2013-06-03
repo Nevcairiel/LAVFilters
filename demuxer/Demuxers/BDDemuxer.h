@@ -46,7 +46,6 @@ public:
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
   const char *GetContainerFormat() const;
-  HRESULT StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const;
 
   CStreamList *GetStreams(StreamType type) { if (m_lavfDemuxer) return m_lavfDemuxer->GetStreams(type); else return __super::GetStreams(type);  }
   HRESULT SetActiveStream(StreamType type, int pid) { if (m_lavfDemuxer) { m_lavfDemuxer->SetActiveStream(type, pid); return S_OK; } else return E_FAIL; }

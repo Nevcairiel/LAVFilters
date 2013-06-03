@@ -61,7 +61,6 @@ public:
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
   const char *GetContainerFormat() const;
   virtual DWORD GetContainerFlags() { return m_bTSDiscont ? LAVFMT_TS_DISCONT : 0; }
-  HRESULT StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const;
 
   STDMETHODIMP SetTitle(int idx);
   STDMETHODIMP_(int) GetTitle();

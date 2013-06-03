@@ -83,9 +83,6 @@ public:
   // Get Container Flags
 #define LAVFMT_TS_DISCONT 0x0001
   virtual DWORD GetContainerFlags() { return 0; }
-  // Create Stream Description
-  virtual HRESULT StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const = 0;
-
   // Select the active title
   virtual STDMETHODIMP SetTitle(int idx) { return E_NOTIMPL; }
   // Query the active title

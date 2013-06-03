@@ -1086,21 +1086,6 @@ const char *CLAVFDemuxer::GetContainerFormat() const
   return m_pszInputFormat;
 }
 
-HRESULT CLAVFDemuxer::StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const
-{
-  if (s.pid >= (DWORD)m_avFormat->nb_streams) { return E_FAIL; }
-
-  if(ppszName) {
-    std::string info = s.streamInfo->codecInfo;
-    size_t len = info.size() + 1;
-    *ppszName = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
-    if (*ppszName)
-      MultiByteToWideChar(CP_UTF8, 0, info.c_str(), -1, *ppszName, (int)len);
-  }
-
-  return S_OK;
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // IAMExtendedSeeking
 STDMETHODIMP CLAVFDemuxer::get_ExSeekCapabilities(long* pExCapabilities)

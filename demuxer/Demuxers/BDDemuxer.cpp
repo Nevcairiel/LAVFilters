@@ -431,11 +431,6 @@ const char *CBDDemuxer::GetContainerFormat() const
   return "mpegts";
 }
 
-HRESULT CBDDemuxer::StreamInfo(const CBaseDemuxer::stream &s, WCHAR **ppszName) const
-{
-  return m_lavfDemuxer->StreamInfo(s, ppszName);
-}
-
 /////////////////////////////////////////////////////////////////////////////
 // IAMExtendedSeeking
 STDMETHODIMP CBDDemuxer::get_ExSeekCapabilities(long* pExCapabilities)

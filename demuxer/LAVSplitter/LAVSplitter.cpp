@@ -1341,7 +1341,11 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
           *plcid = s.lcid;
         }
         if (ppszName) {
-          m_pDemuxer->StreamInfo(s, ppszName);
+          std::string info = s.streamInfo->codecInfo;
+          size_t len = info.size() + 1;
+          *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
+          if (*ppszName)
+            MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, info.c_str(), -1, *ppszName, (int)len);
         }
       }
       hr = S_OK;
