@@ -366,18 +366,18 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO) + extra);
   memset(subInfo, 0, mtype.FormatLength());
 
-  if (av_dict_get(avstream->metadata, "language", NULL, 0))
+  if (AVDictionaryEntry *dictEntry = av_dict_get(avstream->metadata, "language", NULL, 0))
   {
-    char *lang = av_dict_get(avstream->metadata, "language", NULL, 0)->value;
+    char *lang = dictEntry->value;
     strncpy_s(subInfo->IsoLang, 4, lang, _TRUNCATE);
   } else {
     strncpy_s(subInfo->IsoLang, 4, "und", _TRUNCATE);
   }
 
-  if (av_dict_get(avstream->metadata, "title", NULL, 0))
+  if (AVDictionaryEntry *dictEntry = av_dict_get(avstream->metadata, "title", NULL, 0))
   {
     // read metadata
-    char *title = av_dict_get(avstream->metadata, "title", NULL, 0)->value;
+    char *title = dictEntry->value;
     // convert to wchar
     MultiByteToWideChar(CP_UTF8, 0, title, -1, subInfo->TrackName, 256);
   }

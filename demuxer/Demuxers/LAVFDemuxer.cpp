@@ -1169,8 +1169,8 @@ STDMETHODIMP CLAVFDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
   if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
   // Get the title, or generate one
   OLECHAR wTitle[128];
-  if (av_dict_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
-    char *title = av_dict_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)->value;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
+    char *title = dictEntry->value;
     MultiByteToWideChar(CP_UTF8, 0, title, -1, wTitle, 128);
   } else {
     swprintf_s(wTitle, L"Chapter %d", MarkerNum);
@@ -1364,8 +1364,8 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
   BSTR trackName = NULL;
 
   const char *title = NULL;
-  if (av_dict_get(st->metadata, "title", NULL, 0)) {
-    title = av_dict_get(st->metadata, "title", NULL, 0)->value;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(st->metadata, "title", NULL, 0)) {
+    title = dictEntry->value;
   }
   if (title && title[0] != '\0') {
     trackName = ConvertCharToBSTR(title);
@@ -1416,8 +1416,8 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 
   // Extract language
   const char *lang = NULL;
-  if (av_dict_get(pStream->metadata, "language", NULL, 0)) {
-    lang = av_dict_get(pStream->metadata, "language", NULL, 0)->value;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "language", NULL, 0)) {
+    lang = dictEntry->value;
   }
   s.language = lang ? ProbeForISO6392(lang) : "und";
   s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr);
