@@ -1298,6 +1298,8 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   size_t extralen = 0;
   getExtraData((BYTE *)format, &format_type, formatlen, NULL, &extralen);
 
+  m_pAVCtx->thread_count          = 1;
+  m_pAVCtx->thread_type           = 0;
   m_pAVCtx->sample_rate           = nSamples;
   m_pAVCtx->channels              = nChannels;
   m_pAVCtx->bit_rate              = nBytesPerSec << 3;
