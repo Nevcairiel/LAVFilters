@@ -106,7 +106,7 @@ BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
   return DllEntryPoint(reinterpret_cast<HINSTANCE>(hDllHandle), dwReason, lpReserved);
 }
 
-STDAPI OpenConfiguration()
+void CALLBACK OpenConfiguration(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
   HRESULT hr = S_OK;
   CUnknown *pInstance = CreateInstance<CLAVVideo>(NULL, &hr);
@@ -117,6 +117,4 @@ STDAPI OpenConfiguration()
     CBaseDSPropPage::ShowPropPageDialog(pFilter);
   }
   delete pInstance;
-
-  return 0;
 }
