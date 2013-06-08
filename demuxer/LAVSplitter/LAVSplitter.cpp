@@ -878,6 +878,7 @@ STDMETHODIMP CLAVSplitter::Stop()
 STDMETHODIMP CLAVSplitter::Pause()
 {
   CAutoLock cAutoLock(this);
+  CheckPointer(m_pDemuxer, E_UNEXPECTED);
 
   FILTER_STATE fs = m_State;
 
