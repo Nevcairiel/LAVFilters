@@ -82,12 +82,12 @@ Source: README.txt;                    DestDir: {app};     Flags: ignoreversion 
 Source: CHANGELOG.txt;                 DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 
 [Icons]
-Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVSplitter.ax; IconIndex: 0; Tasks: icons; Components: lavsplitter32
-Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVSplitter.ax; IconIndex: 0; Tasks: icons; Components: lavsplitter64 AND NOT lavsplitter32
-Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVAudio.ax; IconIndex: 0; Tasks: icons; Components: lavaudio32
-Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVAudio.ax; IconIndex: 0; Tasks: icons; Components: lavaudio64 AND NOT lavaudio32
-Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo32
-Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo64 AND NOT lavvideo32
+Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: """{app}\x86\LAVSplitter.ax"",OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVSplitter.ax; IconIndex: 0; Tasks: icons; Components: lavsplitter32
+Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: """{app}\x64\LAVSplitter.ax"",OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVSplitter.ax; IconIndex: 0; Tasks: icons; Components: lavsplitter64 AND NOT lavsplitter32
+Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: """{app}\x86\LAVAudio.ax"",OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVAudio.ax; IconIndex: 0; Tasks: icons; Components: lavaudio32
+Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: """{app}\x64\LAVAudio.ax"",OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVAudio.ax; IconIndex: 0; Tasks: icons; Components: lavaudio64 AND NOT lavaudio32
+Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: """{app}\x86\LAVVideo.ax"",OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo32
+Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: """{app}\x64\LAVVideo.ax"",OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo64 AND NOT lavvideo32
 Name: {group}\Visit LAV Filters Home Page;       Filename: "http://1f0.de/"; Tasks: icons
 Name: {group}\Visit LAV Filters on Doom9;        Filename: "http://forum.doom9.org/showthread.php?t=156191"; Tasks: icons
 Name: {group}\Uninstall LAV Filters;             Filename: {uninstallexe}; Tasks: icons
@@ -102,12 +102,12 @@ Root: HKCU; Subkey: Software\LAV\Video\Formats;    Flags: uninsdeletekey; Compon
 Root: HKCU; Subkey: Software\LAV\Video\Output;     Flags: uninsdeletekey; Components: lavvideo32 lavvideo64
 
 [Run]
-Description: "Open LAV Splitter Configuration"; Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x86; Components: lavsplitter32; Flags: postinstall nowait unchecked
-Description: "Open LAV Splitter Configuration"; Filename: rundll32.exe; Parameters: "LAVSplitter.ax,OpenConfiguration"; WorkingDir: {app}\x64; Components: lavsplitter64 AND NOT lavsplitter32; Flags: postinstall nowait unchecked
-Description: "Open LAV Audio Configuration";    Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x86; Components: lavaudio32; Flags: postinstall nowait unchecked
-Description: "Open LAV Audio Configuration";    Filename: rundll32.exe; Parameters: "LAVAudio.ax,OpenConfiguration"; WorkingDir: {app}\x64; Components: lavaudio64 AND NOT lavaudio32; Flags: postinstall nowait unchecked
-Description: "Open LAV Video Configuration";    Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x86; Components: lavvideo32; Flags: postinstall nowait unchecked
-Description: "Open LAV Video Configuration";    Filename: rundll32.exe; Parameters: "LAVVideo.ax,OpenConfiguration"; WorkingDir: {app}\x64; Components: lavvideo64 AND NOT lavvideo32; Flags: postinstall nowait unchecked
+Description: "Open LAV Splitter Configuration"; Filename: rundll32.exe; Parameters: """{app}\x86\LAVSplitter.ax"",OpenConfiguration"; WorkingDir: {app}\x86; Components: lavsplitter32; Flags: postinstall nowait unchecked
+Description: "Open LAV Splitter Configuration"; Filename: rundll32.exe; Parameters: """{app}\x64\LAVSplitter.ax"",OpenConfiguration"; WorkingDir: {app}\x64; Components: lavsplitter64 AND NOT lavsplitter32; Flags: postinstall nowait unchecked
+Description: "Open LAV Audio Configuration";    Filename: rundll32.exe; Parameters: """{app}\x86\LAVAudio.ax"",OpenConfiguration"; WorkingDir: {app}\x86; Components: lavaudio32; Flags: postinstall nowait unchecked
+Description: "Open LAV Audio Configuration";    Filename: rundll32.exe; Parameters: """{app}\x64\LAVAudio.ax"",OpenConfiguration"; WorkingDir: {app}\x64; Components: lavaudio64 AND NOT lavaudio32; Flags: postinstall nowait unchecked
+Description: "Open LAV Video Configuration";    Filename: rundll32.exe; Parameters: """{app}\x86\LAVVideo.ax"",OpenConfiguration"; WorkingDir: {app}\x86; Components: lavvideo32; Flags: postinstall nowait unchecked
+Description: "Open LAV Video Configuration";    Filename: rundll32.exe; Parameters: """{app}\x64\LAVVideo.ax"",OpenConfiguration"; WorkingDir: {app}\x64; Components: lavvideo64 AND NOT lavvideo32; Flags: postinstall nowait unchecked
 
 [Code]
 type
