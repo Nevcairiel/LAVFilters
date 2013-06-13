@@ -538,6 +538,7 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
         return S_OK;
       } else {
         m_bNeedKeyFrame = FALSE;
+        dwFlags |= DMO_INPUT_DATA_BUFFERF_SYNCPOINT;
       }
     }
   }
