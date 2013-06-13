@@ -70,6 +70,7 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_ADPCM_MS,   &MEDIASUBTYPE_ADPCM_MS,          WAVE_FORMAT_ADPCM,      NULL },
   { AV_CODEC_ID_TRUESPEECH, &MEDIASUBTYPE_TRUESPEECH,        WAVE_FORMAT_DSPGROUP_TRUESPEECH, NULL },
   { AV_CODEC_ID_TAK,        &MEDIASUBTYPE_TAK,               NULL,                   NULL },
+  { AV_CODEC_ID_S302M,      &MEDIASUBTYPE_AES3,              NULL,                   NULL },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)

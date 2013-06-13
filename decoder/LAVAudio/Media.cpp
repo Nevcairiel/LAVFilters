@@ -79,6 +79,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_MLP,          AV_CODEC_ID_MLP      },
   { &MEDIASUBTYPE_ALAC,         AV_CODEC_ID_ALAC     },
   { &MEDIASUBTYPE_TAK,          AV_CODEC_ID_TAK      },
+  { &MEDIASUBTYPE_AES3,         AV_CODEC_ID_S302M    },
 
   // BluRay LPCM
   { &MEDIASUBTYPE_DVD_LPCM_AUDIO, AV_CODEC_ID_PCM_DVD },
@@ -192,6 +193,7 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_MLP          },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_ALAC         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_TAK          },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_AES3         },
 
   // BluRay LPCM
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_DVD_LPCM_AUDIO  },
