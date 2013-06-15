@@ -165,6 +165,25 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
   return S_OK;
 }
 
+static bool h264_is_annexb(std::string format, AVStream *avstream)
+{
+  ASSERT(avstream->codec->codec_id == AV_CODEC_ID_H264);
+  if (avstream->codec->extradata_size < 4)
+    return true;
+  if (avstream->codec->extradata[0] == 1)
+    return false;
+  if (format == "avi") {
+    BYTE *src = avstream->codec->extradata;
+    BYTE *end = avstream->codec->extradata + avstream->codec->extradata_size;
+    unsigned startcode = *(uint32_t *)src;
+    if (startcode == 0x00000001 || (startcode & 0xffffff00) == 0x00000100)
+      return true;
+    if (avstream->codec->codec_tag == MKTAG('A','V','C','1') || avstream->codec->codec_tag == MKTAG('a','v','c','1'))
+      return false;
+  }
+  return true;
+}
+
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   unsigned int origCodecTag = avstream->codec->codec_tag;
@@ -220,8 +239,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
     BOOL bConvertToAVC1 = (m_containerFormat == "mpegts");
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, bConvertToAVC1);
-    if (avstream->codec->codec_id == AV_CODEC_ID_H264 && !bConvertToAVC1 && (!avstream->codec->extradata_size || avstream->codec->extradata[0] != 1)) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
+    if (avstream->codec->codec_id == AV_CODEC_ID_H264 && !bConvertToAVC1 && h264_is_annexb(m_containerFormat, avstream)) {
       mtype.subtype = MEDIASUBTYPE_H264;
       mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
     } else {
