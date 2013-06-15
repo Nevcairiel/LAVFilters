@@ -182,7 +182,7 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\resources\LAVFilters.Dependencies.manifest">
-      <Command>copy %(FullPath) $(IntermediateOutputPath)..</Command>
+      <Command>copy "%(FullPath)" "$(IntermediateOutputPath).."</Command>
       <Message>Copying Manifest file</Message>
       <Outputs>$(IntermediateOutputPath)..\%(Filename)%(Extension);%(Outputs)</Outputs>
     </CustomBuild>
