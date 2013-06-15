@@ -433,7 +433,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
       extra[1] = (BYTE)mp2vi->dwProfile;
       extra[2] = 0;
       extra[3] = (BYTE)mp2vi->dwLevel;
-      extra[4] = (BYTE)(mp2vi->dwFlags ? mp2vi->dwFlags : 2) - 1;
+      extra[4] = (BYTE)(mp2vi->dwFlags ? mp2vi->dwFlags : 4) - 1;
 
       // Actually copy the metadata into our new buffer
       size_t actual_len;

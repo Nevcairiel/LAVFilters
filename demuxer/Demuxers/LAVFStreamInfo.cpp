@@ -221,9 +221,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     BOOL bConvertToAVC1 = (m_containerFormat == "mpegts");
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, bConvertToAVC1);
     if (avstream->codec->codec_id == AV_CODEC_ID_H264 && !bConvertToAVC1 && (!avstream->codec->extradata_size || avstream->codec->extradata[0] != 1)) {
+    MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
       mtype.subtype = MEDIASUBTYPE_H264;
-      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
       mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
+    } else {
+      if (mp2vi->dwFlags == 0)
+        mp2vi->dwFlags = 4;
     }
   }
 
