@@ -175,7 +175,7 @@ static bool h264_is_annexb(std::string format, AVStream *avstream)
   if (format == "avi") {
     BYTE *src = avstream->codec->extradata;
     BYTE *end = avstream->codec->extradata + avstream->codec->extradata_size;
-    unsigned startcode = *(uint32_t *)src;
+    unsigned startcode = AV_RB32(src);
     if (startcode == 0x00000001 || (startcode & 0xffffff00) == 0x00000100)
       return true;
     if (avstream->codec->codec_tag == MKTAG('A','V','C','1') || avstream->codec->codec_tag == MKTAG('a','v','c','1'))
