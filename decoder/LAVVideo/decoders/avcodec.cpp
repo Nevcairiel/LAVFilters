@@ -924,8 +924,10 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     pOutFrame->frame_type   = av_get_picture_type_char(m_pFrame->pict_type);
     pOutFrame->ext_format   = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
 
-    if (m_pFrame->interlaced_frame && m_iInterlaced != 1)
+    if (m_pFrame->interlaced_frame || (!m_pAVCtx->progressive_sequence && (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)))
       m_iInterlaced = 1;
+    else if (m_pAVCtx->progressive_sequence)
+      m_iInterlaced = 0;
 
     pOutFrame->interlaced   = (m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Disable);
 
