@@ -80,6 +80,7 @@ typedef enum LAVVideoCodec {
   Codec_JPEG2000,
   Codec_VMNC,
   Codec_FLIC,
+  Codec_G2M,
 
   Codec_VideoNB            // Number of entries (do not use when dynamically linking)
 };

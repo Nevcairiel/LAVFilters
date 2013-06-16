@@ -236,6 +236,9 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_FFVH, AV_CODEC_ID_FFVHUFF },
   { &MEDIASUBTYPE_VMNC, AV_CODEC_ID_VMNC },
   { &MEDIASUBTYPE_FLIC, AV_CODEC_ID_FLIC },
+  { &MEDIASUBTYPE_G2M2, AV_CODEC_ID_G2M },
+  { &MEDIASUBTYPE_G2M3, AV_CODEC_ID_G2M },
+  { &MEDIASUBTYPE_G2M4, AV_CODEC_ID_G2M },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, AV_CODEC_ID_BINKVIDEO  },
@@ -466,6 +469,9 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_FFVH },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VMNC },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_FLIC },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_G2M2 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_G2M3 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_G2M4 },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -563,6 +569,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_JPEG2000 }},                                            // Codec_JPEG2000
   { 1, { AV_CODEC_ID_VMNC }},                                                // Codec_VMNC
   { 1, { AV_CODEC_ID_FLIC }},                                                // Codec_FLIC
+  { 1, { AV_CODEC_ID_G2M }},                                                 // Codec_G2M
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
