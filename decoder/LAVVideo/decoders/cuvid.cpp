@@ -297,7 +297,7 @@ HWND CDecCuvid::GetDummyHWND()
 
     m_hwnd = CreateWindow(L"cuvidDummyHWNDClass",
       TEXT("CUVIDDummyWindow"),
-      WS_OVERLAPPEDWINDOW,
+      WS_OVERLAPPED,
       0,                   // Initial X
       0,                   // Initial Y
       0,                   // Width
