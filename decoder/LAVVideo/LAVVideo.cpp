@@ -1465,13 +1465,6 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   BOOL bSizeChanged = FALSE;
   if (m_bSendMediaType) {
     AM_MEDIA_TYPE *sendmt = CreateMediaType(&mt);
-    if (sendmt->formattype == FORMAT_VideoInfo) {
-      VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)sendmt->pbFormat;
-      SetRect(&vih->rcSource, 0, 0, 0, 0);
-    } else if (sendmt->formattype == FORMAT_VideoInfo2) {
-      VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)sendmt->pbFormat;
-      SetRect(&vih2->rcSource, 0, 0, 0, 0);
-    }
     pSampleOut->SetMediaType(sendmt);
     DeleteMediaType(sendmt);
     m_bSendMediaType = FALSE;
