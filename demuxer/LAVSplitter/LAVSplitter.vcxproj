@@ -151,7 +151,7 @@
       <Message>Copying Manifest file</Message>
       <Outputs>$(IntermediateOutputPath)..\%(Filename)%(Extension);%(Outputs)</Outputs>
     </CustomBuild>
-    <None Include="LAVSplitter.manifest" />
+    <Manifest Include="LAVSplitter.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

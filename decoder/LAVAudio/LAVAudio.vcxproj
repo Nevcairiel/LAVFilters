@@ -134,13 +134,6 @@
   <ItemGroup>
     <None Include="..\..\resources\blue.ico" />
     <None Include="LAVAudio.rc2" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\resources\LAVFilters.Dependencies.manifest">
-      <Command>copy "%(FullPath)" "$(IntermediateOutputPath).."</Command>
-      <Message>Copying Manifest file</Message>
-      <Outputs>$(IntermediateOutputPath)..\%(Filename)%(Extension);%(Outputs)</Outputs>
-    </CustomBuild>
     <Manifest Include="LAVAudio.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

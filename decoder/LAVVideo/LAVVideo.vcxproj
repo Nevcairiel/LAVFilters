@@ -179,16 +179,7 @@
   <ItemGroup>
     <None Include="..\..\resources\red.ico" />
     <None Include="LAVVideo.rc2" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\resources\LAVFilters.Dependencies.manifest">
-      <Command>copy "%(FullPath)" "$(IntermediateOutputPath).."</Command>
-      <Message>Copying Manifest file</Message>
-      <Outputs>$(IntermediateOutputPath)..\%(Filename)%(Extension);%(Outputs)</Outputs>
-    </CustomBuild>
-    <Manifest Include="LAVVideo.manifest">
-      <SubType>Designer</SubType>
-    </Manifest>
+    <Manifest Include="LAVVideo.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
