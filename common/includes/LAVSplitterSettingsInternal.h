@@ -48,4 +48,5 @@ interface ILAVFSettingsInternal : public ILAVFSettings
   STDMETHOD_(LPCSTR, GetInputFormat)() = 0;
   STDMETHOD_(std::set<FormatInfo>&, GetInputFormats)() = 0;
   STDMETHOD_(CMediaType *, GetOutputMediatype)(int stream) = 0;
+  STDMETHOD_(IFilterGraph *, GetFilterGraph)() = 0;
 };

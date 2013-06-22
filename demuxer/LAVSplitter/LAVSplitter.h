@@ -177,6 +177,7 @@ public:
   STDMETHODIMP_(std::set<FormatInfo>&) GetInputFormats();
   STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
   STDMETHODIMP_(CMediaType *) GetOutputMediatype(int stream);
+  STDMETHODIMP_(IFilterGraph *) GetFilterGraph() { if (m_pGraph) { m_pGraph->AddRef(); return m_pGraph; } return NULL; }
 
   STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream) { if (m_pDemuxer) return m_pDemuxer->GetStreamFlags(dwStream); return 0; }
   STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { if (m_pDemuxer) return m_pDemuxer->GetPixelFormat(dwStream); return AV_PIX_FMT_NONE; }
