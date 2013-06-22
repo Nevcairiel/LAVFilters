@@ -129,9 +129,9 @@
     <None Include="..\..\resources\white.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="LAVSplitter.manifest">
+    <Manifest Include="LAVSplitter.manifest">
       <Filter>Resource Files</Filter>
-    </None>
+    </Manifest>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\resources\LAVFilters.Dependencies.manifest">
