@@ -108,7 +108,7 @@ BEGIN
     CONTROL         "",IDC_FORMATS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,43,221,233
     LTEXT           "Current Input Format: ",IDC_LBL_INPUT,7,7,77,8
     LTEXT           "matroska",IDC_CUR_INPUT,85,7,117,8
-    LTEXT           "Select which formats LAV Splitter will demux.\nNote: It is recommended to configure the primary formats through the Installer!",IDC_LBL_FORMATS,7,16,221,25
+    LTEXT           "Select which formats LAV Splitter will demux.\nNote: This has no effect when the file is opened directly by LAV, and only if LAV is loaded automatically in the graph!",IDC_LBL_FORMATS,7,16,221,25
 END
 
 
