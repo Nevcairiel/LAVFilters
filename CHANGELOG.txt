@@ -1,5 +1,26 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.58.0 - 2013/06/23
+General
+- LAV Filters now includes a manifest file to control DLL loading
+- Fixed the shortcuts to the configuration dialogs created by the installer in the start menu
+
+LAV Splitter
+- Handle the "Default" flag in MKV files with multiple video streams
+- Fixed a regression in VC-1 demuxing which caused some streams to fail decoding with the WMV9 DMO decoder
+- Improved transition between ordered chapters in certain (badly formed) MKV files
+- Improved handling of AVC1 in AVI files
+- Improved accurcy of IAMStreamSelect::get_CurrentMarker
+- Several potential crash fixes and stability improvements
+
+LAV Video
+- YADIF deinterlacing is now multi-threaded, significant performance improvement on multi-core CPUs
+- Improved detection of progressive streams to ensure deinterlacing is disabled, especially when "Aggressive Deinterlacing" is used
+- Restored Fraps constant frame rate output by proper handling of repeated frames
+- Support for the new UtVideo sub-types, and fixed a regression in UtVideo decoding
+- cuvid: fix double-rate deinterlacing on certain streams without timing information
+- Updated the Intel QuickSync Decoder to 0.44
+
 0.57.0 - 2013/05/20
 LAV Splitter
 - Added a Popup Menu to the Tray Icon which allows Stream, Edition and Chapter switching
