@@ -43,22 +43,22 @@ interface ILAVFSettings : public IUnknown
   // For smooth operations, it must be called before LAV Splitter opens a file.
   STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
 
-  // Retrieve the preferred languages as ISO 639-2 language codes, comma seperated
+  // Retrieve the preferred languages as ISO 639-2 language codes, comma separated
   // If the result is NULL, no language has been set
   // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
   STDMETHOD(GetPreferredLanguages)(LPWSTR *ppLanguages) = 0;
 
-  // Set the preferred languages as ISO 639-2 language codes, comma seperated
+  // Set the preferred languages as ISO 639-2 language codes, comma separated
   // To reset to no preferred language, pass NULL or the empty string
   STDMETHOD(SetPreferredLanguages)(LPCWSTR pLanguages) = 0;
   
-  // Retrieve the preferred subtitle languages as ISO 639-2 language codes, comma seperated
+  // Retrieve the preferred subtitle languages as ISO 639-2 language codes, comma separated
   // If the result is NULL, no language has been set
   // If no subtitle language is set, the main language preference is used.
   // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
   STDMETHOD(GetPreferredSubtitleLanguages)(LPWSTR *ppLanguages) = 0;
 
-  // Set the preferred subtitle languages as ISO 639-2 language codes, comma seperated
+  // Set the preferred subtitle languages as ISO 639-2 language codes, comma separated
   // To reset to no preferred language, pass NULL or the empty string
   // If no subtitle language is set, the main language preference is used.
   STDMETHOD(SetPreferredSubtitleLanguages)(LPCWSTR pLanguages) = 0;
@@ -81,10 +81,10 @@ interface ILAVFSettings : public IUnknown
   // @deprecated - do not use anymore, deprecated and non-functional, replaced by advanced subtitle mode
   STDMETHOD(SetSubtitleMatchingLanguage)(BOOL dwMode) = 0;
 
-  // Control wether a special "Forced Subtitles" stream will be created for PGS subs
+  // Control whether a special "Forced Subtitles" stream will be created for PGS subs
   STDMETHOD_(BOOL,GetPGSForcedStream)() = 0;
 
-  // Control wether a special "Forced Subtitles" stream will be created for PGS subs
+  // Control whether a special "Forced Subtitles" stream will be created for PGS subs
   STDMETHOD(SetPGSForcedStream)(BOOL bFlag) = 0;
 
   // Get the PGS forced subs config
@@ -103,10 +103,10 @@ interface ILAVFSettings : public IUnknown
   // 0 - No Timestamp Correction, 1 - Always Timestamp Correction, 2 - Auto (Correction for Decoders that need it)
   STDMETHOD(SetVC1TimestampMode)(int iMode) = 0;
 
-  // Set whether substreams (AC3 in TrueHD, for example) should be shown as a seperate stream
+  // Set whether substreams (AC3 in TrueHD, for example) should be shown as a separate stream
   STDMETHOD(SetSubstreamsEnabled)(BOOL bSubStreams) = 0;
 
-  // Check whether substreams (AC3 in TrueHD, for example) should be shown as a seperate stream
+  // Check whether substreams (AC3 in TrueHD, for example) should be shown as a separate stream
   STDMETHOD_(BOOL,GetSubstreamsEnabled)() = 0;
 
   // @deprecated - no longer required
@@ -123,7 +123,7 @@ interface ILAVFSettings : public IUnknown
   // @deprecated - no longer required
   STDMETHOD_(BOOL,GetFixBrokenHDPVR)() = 0;
 
-  // Control wether the givne format is enabled
+  // Control whether the given format is enabled
   STDMETHOD_(HRESULT,SetFormatEnabled)(LPCSTR strFormat, BOOL bEnabled) = 0;
 
   // Check if the given format is enabled
@@ -135,12 +135,12 @@ interface ILAVFSettings : public IUnknown
   // Query if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream is changed
   STDMETHOD_(BOOL,GetStreamSwitchRemoveAudio)() = 0;
 
-  // Advanced Subtitle configuration. Refer to the documention for details.
+  // Advanced Subtitle configuration. Refer to the documentation for details.
   // If no advanced config exists, will be NULL.
   // Memory for the string will be allocated, and has to be free'ed by the caller with CoTaskMemFree
   STDMETHOD(GetAdvancedSubtitleConfig)(LPWSTR *ppAdvancedConfig) = 0;
 
-  // Advanced Subtitle configuration. Refer to the documention for details.
+  // Advanced Subtitle configuration. Refer to the documentation for details.
   // To reset the config, pass NULL or the empty string.
   // If no subtitle language is set, the main language preference is used.
   STDMETHOD(SetAdvancedSubtitleConfig)(LPCWSTR pAdvancedConfig) = 0;
@@ -163,15 +163,19 @@ interface ILAVFSettings : public IUnknown
   // Get Tray Icon
   STDMETHOD_(BOOL,GetTrayIcon)() = 0;
 
-  // Toggle wether higher quality audio streams are preferred
+  // Toggle whether higher quality audio streams are preferred
   STDMETHOD(SetPreferHighQualityAudioStreams)(BOOL bEnabled) = 0;
 
-  // Toggle wether higher quality audio streams are preferred
+  // Toggle whether higher quality audio streams are preferred
   STDMETHOD_(BOOL,GetPreferHighQualityAudioStreams)() = 0;
 
-  // Toggle wether Matroska Linked Segments should be loaded from other files
+  // Toggle whether Matroska Linked Segments should be loaded from other files
   STDMETHOD(SetLoadMatroskaExternalSegments)(BOOL bEnabled) = 0;
 
-  // Get wether Matroska Linked Segments should be loaded from other files
+  // Get whether Matroska Linked Segments should be loaded from other files
   STDMETHOD_(BOOL,GetLoadMatroskaExternalSegments)() = 0;
+
+  // Get the list of available formats
+  // Memory for the string array will be allocated, and has to be free'ed by the caller with CoTaskMemFree
+  STDMETHOD(GetFormats)(LPSTR** formats, UINT* nFormats) = 0;
 };

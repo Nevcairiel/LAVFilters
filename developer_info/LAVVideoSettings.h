@@ -79,8 +79,10 @@ typedef enum LAVVideoCodec {
   Codec_v210,
   Codec_JPEG2000,
   Codec_VMNC,
+  Codec_FLIC,
+  Codec_G2M,
 
-  Codec_VideoNB            // Number of entrys (do not use when dynamically linking)
+  Codec_VideoNB            // Number of entries (do not use when dynamically linking)
 };
 
 // Codecs with hardware acceleration
@@ -208,14 +210,14 @@ interface ILAVVideoSettings : public IUnknown
   // >1 = Multi-Threading with the specified number of threads
   STDMETHOD_(DWORD,GetNumThreads)() = 0;
 
-  // Set wether the aspect ratio encoded in the stream should be forwarded to the renderer,
+  // Set whether the aspect ratio encoded in the stream should be forwarded to the renderer,
   // or the aspect ratio specified by the source filter should be kept.
   // 0 = AR from the source filter
   // 1 = AR from the Stream
   // 2 = AR from stream if source is not reliable
   STDMETHOD(SetStreamAR)(DWORD bStreamAR) = 0;
 
-  // Get wether the aspect ratio encoded in the stream should be forwarded to the renderer,
+  // Get whether the aspect ratio encoded in the stream should be forwarded to the renderer,
   // or the aspect ratio specified by the source filter should be kept.
   // 0 = AR from the source filter
   // 1 = AR from the Stream
@@ -284,11 +286,11 @@ interface ILAVVideoSettings : public IUnknown
   // Get the deinterlacing output for the hardware decoder
   STDMETHOD_(LAVDeintOutput, GetHWAccelDeintOutput)() = 0;
 
-  // Set wether the hardware decoder should force high-quality deinterlacing
+  // Set whether the hardware decoder should force high-quality deinterlacing
   // Note: this option is not supported on all decoder implementations and/or all operating systems
   STDMETHOD(SetHWAccelDeintHQ)(BOOL bHQ) = 0;
 
-  // Get wether the hardware decoder should force high-quality deinterlacing
+  // Get whether the hardware decoder should force high-quality deinterlacing
   // Note: this option is not supported on all decoder implementations and/or all operating systems
   STDMETHOD_(BOOL, GetHWAccelDeintHQ)() = 0;
 
