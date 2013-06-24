@@ -42,7 +42,7 @@ configure() (
     --enable-shared \
     --enable-gpl \
     --enable-version3 \
-    --enable-w32threads \
+    --enable-pthreads \
     --enable-runtime-cpudetect \
     --enable-demuxers \
     --disable-demuxer=matroska \
@@ -83,7 +83,7 @@ configure() (
     --build-suffix=-lav \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -I../thirdparty/include -idirafter../common/includes/dxva2"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -I../thirdparty/include -idirafter../common/includes/dxva2 -DPTW32_STATIC_LIB"
   EXTRA_LDFLAGS="-Wl,--nxcompat -Wl,--dynamicbase"
   if [ "${arch}" == "x86_64" ]; then
     OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=x86_64-w64-mingw32- --target-os=mingw32"
