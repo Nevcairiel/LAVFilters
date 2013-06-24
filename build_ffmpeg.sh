@@ -19,7 +19,11 @@ make_dirs() (
 )
 
 strip_libs() {
-  x86_64-w64-mingw32-strip lib*/*-lav-*.dll
+  if [ "${arch}" == "x86_64" ]; then
+    x86_64-w64-mingw32-strip lib*/*-lav-*.dll
+  else
+    strip lib*/*-lav-*.dll
+  fi
 }
 
 copy_libs() (
