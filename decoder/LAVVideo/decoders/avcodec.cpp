@@ -92,6 +92,9 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
 
   fillDXVAExtFormat(fmt, -1, ctx->color_primaries, ctx->colorspace, ctx->color_trc);
 
+  if (frame->format == AV_PIX_FMT_XYZ12LE || frame->format == AV_PIX_FMT_XYZ12BE)
+    fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT709;
+
   // Chroma location
   switch(ctx->chroma_sample_location) {
   case AVCHROMA_LOC_LEFT:
