@@ -408,19 +408,25 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
   m_bTSDiscont = m_avFormat->iformat->flags & AVFMT_TS_DISCONT;
 
+  WCHAR szProt[24] = L"file";
   if (pszFileName) {
-    WCHAR szOut[24];
     DWORD dwNumChars = 24;
-    hr = UrlGetPart(pszFileName, szOut, &dwNumChars, URL_PART_SCHEME, 0);
-    if (SUCCEEDED(hr) && dwNumChars && (_wcsicmp(szOut, L"file") != 0)) {
+    hr = UrlGetPart(pszFileName, szProt, &dwNumChars, URL_PART_SCHEME, 0);
+    if (SUCCEEDED(hr) && dwNumChars && (_wcsicmp(szProt, L"file") != 0)) {
       m_avFormat->flags |= AVFMT_FLAG_NETWORK;
+      DbgLog((LOG_TRACE, 10, TEXT("::InitAVFormat(): detected network protocol: %s"), szProt));
     }
   }
 
-  // Increase default probe sizes
-  //m_avFormat->probesize            = 5 * 5000000;
-  if (m_bMPEGTS || m_bMPEGPS)
-    m_avFormat->max_analyze_duration = (m_avFormat->max_analyze_duration * 2);
+  // TODO: make both durations below configurable
+  // decrease analyze duration for network streams
+  if (m_avFormat->flags & AVFMT_FLAG_NETWORK) {
+    m_avFormat->max_analyze_duration = 1000000;
+  } else {
+    // And increase it for mpeg-ts/ps files
+    if (m_bMPEGTS || m_bMPEGPS)
+      m_avFormat->max_analyze_duration = 10000000;
+  }
 
   av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_pBluRay, 0);
 
