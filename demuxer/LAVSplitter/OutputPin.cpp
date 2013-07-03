@@ -58,10 +58,13 @@ void CLAVOutputPin::SetQueueSizes()
 {
   int factor = 1;
 
+  // Normalize common audio codecs to reach a base line of 20ms
   if (m_mts.begin()->subtype == MEDIASUBTYPE_DOLBY_TRUEHD) {
     DbgLog((LOG_TRACE, 10, L"Increasing Audio Queue size for TrueHD"));
-    factor = 10;
+    factor = 30;
   } else if (m_mts.begin()->subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO || m_mts.begin()->subtype == MEDIASUBTYPE_BD_LPCM_AUDIO || m_mts.begin()->subtype == MEDIASUBTYPE_PCM) {
+    factor = 4;
+  } else if (m_mts.begin()->subtype == MEDIASUBTYPE_DTS || m_mts.begin()->subtype == MEDIASUBTYPE_WAVE_DTS) {
     factor = 2;
   }
 
