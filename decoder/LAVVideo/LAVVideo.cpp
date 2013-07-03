@@ -885,6 +885,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
   HRESULT hr = S_FALSE;
   BOOL bNeedReconnect = FALSE;
+  int timeout = 100;
 
   DWORD dwAspectX = 0, dwAspectY = 0;
   RECT rcTargetOld = {0};
@@ -1033,6 +1034,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       m_bSendMediaType = TRUE;
       m_pOutput->SetMediaType(&mt);
     } else {
+receiveconnection:
       hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
       if(SUCCEEDED(hr)) {
         IMediaSample *pOut = NULL;
@@ -1059,6 +1061,18 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
           }
           pOut->Release();
         }
+      } else if (hr == VFW_E_BUFFERS_OUTSTANDING && timeout != -1) {
+        if (timeout > 0) {
+          DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, retrying in 10ms.."));
+          Sleep(10);
+          timeout -= 10;
+        } else {
+          DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, timeout reached, flushing.."));
+          m_pOutput->DeliverBeginFlush();
+          m_pOutput->DeliverEndFlush();
+          timeout = -1;
+        }
+        goto receiveconnection;
       } else if (hrQA == S_OK) {
         DbgLog((LOG_TRACE, 10, L"-> Downstream accepts new format, but cannot reconnect dynamically..."));
         if (pBIH->biSizeImage > oldSizeImage) {
