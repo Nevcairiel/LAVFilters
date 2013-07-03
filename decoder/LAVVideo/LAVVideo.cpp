@@ -1032,61 +1032,64 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     if (bDXVA) {
       m_bSendMediaType = TRUE;
       m_pOutput->SetMediaType(&mt);
-    } else if(SUCCEEDED(hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt))) {
-      IMediaSample *pOut = NULL;
-      if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0))) {
-        AM_MEDIA_TYPE *pmt = NULL;
-        if(SUCCEEDED(pOut->GetMediaType(&pmt)) && pmt) {
-          CMediaType newmt = *pmt;
-          m_pOutput->SetMediaType(&newmt);
-#ifdef DEBUG
-          videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
-          DbgLog((LOG_TRACE, 10, L"-> New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
-#endif
-          DeleteMediaType(pmt);
-        } else { // No Stride Request? We're ok with that, too!
-          // The overlay mixer doesn't ask for a stride, but it needs one anyway
-          // It'll provide a buffer just in the right size, so we can calculate this here.
-          if (m_bOverlayMixer) {
-            long size = pOut->GetSize();
-            pBIH->biWidth = size / abs(pBIH->biHeight) * 8 / pBIH->biBitCount;
-          }
-          DbgLog((LOG_TRACE, 10, L"-> We did not get a stride request, using width %d for stride", pBIH->biWidth));
-          m_bSendMediaType = TRUE;
-          m_pOutput->SetMediaType(&mt);
-        }
-        pOut->Release();
-      }
-    } else if (hrQA == S_OK) {
-      DbgLog((LOG_TRACE, 10, L"-> Downstream accepts new format, but cannot reconnect dynamically..."));
-      if (pBIH->biSizeImage > oldSizeImage) {
-        DbgLog((LOG_TRACE, 10, L"-> But, we need a bigger buffer, try to adapt allocator manually"));
-        IMemInputPin *pMemPin = NULL;
-        if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
-          IMemAllocator *pMemAllocator = NULL;
-          if (SUCCEEDED(hr = pMemPin->GetAllocator(&pMemAllocator)) && pMemAllocator) {
-            ALLOCATOR_PROPERTIES props, actual;
-            hr = pMemAllocator->GetProperties(&props);
-            hr = pMemAllocator->Decommit();
-            props.cbBuffer = pBIH->biSizeImage;
-            hr = pMemAllocator->SetProperties(&props, &actual);
-            hr = pMemAllocator->Commit();
-            SafeRelease(&pMemAllocator);
-          }
-        }
-        SafeRelease(&pMemPin);
-      } else {
-        // Check if there was a stride before..
-        if (rcTargetOld.right && biWidthOld > rcTargetOld.right && biWidthOld > pBIH->biWidth) {
-          // If we had a stride before, the filter is apparently stride aware
-          // Try to make it easier by keeping the old stride around
-          pBIH->biWidth = biWidthOld;
-        }
-      }
-      m_pOutput->SetMediaType(&mt);
-      m_bSendMediaType = TRUE;
     } else {
-      DbgLog((LOG_TRACE, 10, L"-> Receive Connection failed (hr: %x); QueryAccept: %x", hr, hrQA));
+      hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
+      if(SUCCEEDED(hr)) {
+        IMediaSample *pOut = NULL;
+        if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0))) {
+          AM_MEDIA_TYPE *pmt = NULL;
+          if(SUCCEEDED(pOut->GetMediaType(&pmt)) && pmt) {
+            CMediaType newmt = *pmt;
+            m_pOutput->SetMediaType(&newmt);
+  #ifdef DEBUG
+            videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
+            DbgLog((LOG_TRACE, 10, L"-> New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
+  #endif
+            DeleteMediaType(pmt);
+          } else { // No Stride Request? We're ok with that, too!
+            // The overlay mixer doesn't ask for a stride, but it needs one anyway
+            // It'll provide a buffer just in the right size, so we can calculate this here.
+            if (m_bOverlayMixer) {
+              long size = pOut->GetSize();
+              pBIH->biWidth = size / abs(pBIH->biHeight) * 8 / pBIH->biBitCount;
+            }
+            DbgLog((LOG_TRACE, 10, L"-> We did not get a stride request, using width %d for stride", pBIH->biWidth));
+            m_bSendMediaType = TRUE;
+            m_pOutput->SetMediaType(&mt);
+          }
+          pOut->Release();
+        }
+      } else if (hrQA == S_OK) {
+        DbgLog((LOG_TRACE, 10, L"-> Downstream accepts new format, but cannot reconnect dynamically..."));
+        if (pBIH->biSizeImage > oldSizeImage) {
+          DbgLog((LOG_TRACE, 10, L"-> But, we need a bigger buffer, try to adapt allocator manually"));
+          IMemInputPin *pMemPin = NULL;
+          if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
+            IMemAllocator *pMemAllocator = NULL;
+            if (SUCCEEDED(hr = pMemPin->GetAllocator(&pMemAllocator)) && pMemAllocator) {
+              ALLOCATOR_PROPERTIES props, actual;
+              hr = pMemAllocator->GetProperties(&props);
+              hr = pMemAllocator->Decommit();
+              props.cbBuffer = pBIH->biSizeImage;
+              hr = pMemAllocator->SetProperties(&props, &actual);
+              hr = pMemAllocator->Commit();
+              SafeRelease(&pMemAllocator);
+            }
+          }
+          SafeRelease(&pMemPin);
+        } else {
+          // Check if there was a stride before..
+          if (rcTargetOld.right && biWidthOld > rcTargetOld.right && biWidthOld > pBIH->biWidth) {
+            // If we had a stride before, the filter is apparently stride aware
+            // Try to make it easier by keeping the old stride around
+            pBIH->biWidth = biWidthOld;
+          }
+        }
+        m_pOutput->SetMediaType(&mt);
+        m_bSendMediaType = TRUE;
+      } else {
+        DbgLog((LOG_TRACE, 10, L"-> Receive Connection failed (hr: %x); QueryAccept: %x", hr, hrQA));
+      }
     }
     if (bNeedReconnect && !bDXVA)
       NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
