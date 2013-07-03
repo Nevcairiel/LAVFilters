@@ -171,6 +171,8 @@ public:
   STDMETHODIMP SetLoadMatroskaExternalSegments(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetLoadMatroskaExternalSegments();
   STDMETHODIMP GetFormats(LPSTR** formats, UINT* nFormats);
+  STDMETHODIMP SetNetworkStreamAnalysisDuration(DWORD dwDuration);
+  STDMETHODIMP_(DWORD) GetNetworkStreamAnalysisDuration();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(LPCSTR) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
@@ -277,6 +279,7 @@ private:
     BOOL ImpairedAudio;
     BOOL PreferHighQualityAudio;
     DWORD QueueMaxSize;
+    DWORD NetworkAnalysisDuration;
 
     std::map<std::string, BOOL> formats;
   } m_settings;

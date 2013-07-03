@@ -178,6 +178,7 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.ImpairedAudio    = FALSE;
   m_settings.PreferHighQualityAudio = TRUE;
   m_settings.QueueMaxSize     = 256;
+  m_settings.NetworkAnalysisDuration = 1000;
 
   std::set<FormatInfo>::iterator it;
   for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
@@ -249,6 +250,9 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
 
     dwVal = reg.ReadDWORD(L"QueueMaxSize", hr);
     if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
+
+    dwVal = reg.ReadDWORD(L"NetworkAnalysisDuration", hr);
+    if (SUCCEEDED(hr)) m_settings.NetworkAnalysisDuration = dwVal;
   }
 
   CRegistry regF = CRegistry(rootKey, LAVF_REGISTRY_KEY_FORMATS, hr, TRUE);
@@ -291,6 +295,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"PreferHighQualityAudio", m_settings.PreferHighQualityAudio);
     reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
     reg.WriteDWORD(L"QueueMaxSize", m_settings.QueueMaxSize);
+    reg.WriteDWORD(L"NetworkAnalysisDuration", m_settings.NetworkAnalysisDuration);
   }
 
   CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
@@ -1800,6 +1805,17 @@ STDMETHODIMP CLAVSplitter::GetFormats(LPSTR** formats, UINT* nFormats)
   }
 
   return S_OK;
+}
+
+STDMETHODIMP CLAVSplitter::SetNetworkStreamAnalysisDuration(DWORD dwDuration)
+{
+  m_settings.NetworkAnalysisDuration = dwDuration;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVSplitter::GetNetworkStreamAnalysisDuration()
+{
+  return m_settings.NetworkAnalysisDuration;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

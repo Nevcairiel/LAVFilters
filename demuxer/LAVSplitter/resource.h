@@ -40,6 +40,10 @@
 #define IDC_SELECT_AUDIO_QUALITY        1032
 #define IDC_FMT_SETTINGS                1033
 #define IDC_MKV_EXTERNAL                1034
+#define IDC_NETWORK_SETTINGS            1035
+#define IDC_LBL_STREAM_BUFFER           1036
+#define IDC_STREAM_ANADUR               1037
+#define IDC_STREAM_ANADUR_SPIN          1038
 
 // Next default values for new objects
 // 
@@ -47,7 +51,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
