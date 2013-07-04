@@ -239,6 +239,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   //{ &MEDIASUBTYPE_G2M2, AV_CODEC_ID_G2M },
   //{ &MEDIASUBTYPE_G2M3, AV_CODEC_ID_G2M },
   { &MEDIASUBTYPE_G2M4, AV_CODEC_ID_G2M },
+  { &MEDIASUBTYPE_icod, AV_CODEC_ID_AIC },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, AV_CODEC_ID_BINKVIDEO  },
@@ -472,6 +473,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   //{ &MEDIATYPE_Video, &MEDIASUBTYPE_G2M2 },
   //{ &MEDIATYPE_Video, &MEDIASUBTYPE_G2M3 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_G2M4 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_icod },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -570,6 +572,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_VMNC }},                                                // Codec_VMNC
   { 1, { AV_CODEC_ID_FLIC }},                                                // Codec_FLIC
   { 1, { AV_CODEC_ID_G2M }},                                                 // Codec_G2M
+  { 1, { AV_CODEC_ID_AIC }, "icod", "Apple Intermediate Codec (ICOD)"},      // Codec_ICOD
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
