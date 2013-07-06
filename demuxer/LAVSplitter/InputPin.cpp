@@ -188,6 +188,7 @@ HRESULT CLAVInputPin::GetAVIOContext(AVIOContext** ppContext)
       DbgLog((LOG_TRACE, 10, L"CLAVInputPin::GetAVIOContext(): getting file length failed, disabling seeking"));
       m_pAVIOContext->seekable = 0;
       m_pAVIOContext->seek = NULL;
+      m_pAVIOContext->buffer_size = READ_BUFFER_SIZE / 4;
     }
   }
   *ppContext = m_pAVIOContext;
