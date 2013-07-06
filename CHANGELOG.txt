@@ -10,7 +10,7 @@ LAV Splitter
 - Fixed a regression in VC-1 demuxing which caused some streams to fail decoding with the WMV9 DMO decoder
 - Improved transition between ordered chapters in certain (badly formed) MKV files
 - Improved handling of AVC1 in AVI files
-- Improved accurcy of IAMStreamSelect::get_CurrentMarker
+- Improved accuracy of IAMStreamSelect::get_CurrentMarker
 - Several potential crash fixes and stability improvements
 
 LAV Video
