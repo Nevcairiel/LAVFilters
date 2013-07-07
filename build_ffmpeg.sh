@@ -51,6 +51,7 @@ configure() (
     --enable-filter=scale \
     --disable-protocols \
     --enable-protocol=file \
+    --enable-protocol=pipe \
     --enable-protocol=mmsh \
     --enable-protocol=mmst \
     --enable-protocol=rtp \
