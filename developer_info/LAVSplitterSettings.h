@@ -178,4 +178,10 @@ interface ILAVFSettings : public IUnknown
   // Get the list of available formats
   // Memory for the string array will be allocated, and has to be free'ed by the caller with CoTaskMemFree
   STDMETHOD(GetFormats)(LPSTR** formats, UINT* nFormats) = 0;
+
+  // Set the duration (in ms) of analysis for network streams (to find the streams and codec parameters)
+  STDMETHOD(SetNetworkStreamAnalysisDuration)(DWORD dwDuration) = 0;
+
+  // Get the duration (in ms) of analysis for network streams (to find the streams and codec parameters)
+  STDMETHOD_(DWORD, GetNetworkStreamAnalysisDuration)() = 0;
 };
