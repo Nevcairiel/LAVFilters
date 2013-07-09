@@ -1,5 +1,21 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.58.1 - 2013/07/09
+LAV Splitter
+- Improved UDP network streaming
+- Added a new option to configure the stream analysis duration of network streams
+- Reduced subtitle delay on certain Blu-ray titles
+- Improved detection of DTS-in-WAV
+- Improved I/O behaviour for sequential reading from optical media
+
+LAV Video
+- Fixed dynamic reconnection on parameter changes (Aspect Ratio, etc) with VMR-9
+- Support for Apple Intermediate Codec (ICOD)
+- dxva2: added a check for AMD UVD/UVD+ GPUs to ensure the H.264 Level 4.1 DPB restrictions are met
+
+LAV Audio
+- Fixed a regression decoding certain Ogg Vorbis streams
+
 0.58.0 - 2013/06/23
 General
 - LAV Filters now includes a manifest file to control DLL loading
