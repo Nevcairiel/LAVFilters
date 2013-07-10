@@ -849,6 +849,8 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     return hr;
   }
 
+  CheckPointer(*ppOut, E_UNEXPECTED);
+
   AM_MEDIA_TYPE* pmt = NULL;
   if(SUCCEEDED((*ppOut)->GetMediaType(&pmt)) && pmt) {
 #ifdef DEBUG
@@ -1038,7 +1040,7 @@ receiveconnection:
       hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
       if(SUCCEEDED(hr)) {
         IMediaSample *pOut = NULL;
-        if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0))) {
+        if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0)) && pOut) {
           AM_MEDIA_TYPE *pmt = NULL;
           if(SUCCEEDED(pOut->GetMediaType(&pmt)) && pmt) {
             CMediaType newmt = *pmt;
