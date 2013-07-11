@@ -1122,6 +1122,7 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
 
   HRESULT hr = S_OK;
   int i = 0;
+  int timeout = 100;
 
   DWORD dwAspectX, dwAspectY;
   REFERENCE_TIME rtAvg;
@@ -1132,12 +1133,25 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
     m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, m_Decoder.IsInterlaced(), bVIH1);
     //hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+receiveconnection:
     hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
     if (hr == S_OK) {
       DbgLog((LOG_TRACE, 10, L"::NegotiatePixelFormat(): Filter accepted format with index %d", i));
       m_pOutput->SetMediaType(&mt);
       hr = S_OK;
       goto done;
+    } else if (hr == VFW_E_BUFFERS_OUTSTANDING && timeout != -1) {
+        if (timeout > 0) {
+            DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, retrying in 10ms.."));
+            Sleep(10);
+            timeout -= 10;
+        } else {
+            DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, timeout reached, flushing.."));
+            m_pOutput->DeliverBeginFlush();
+            m_pOutput->DeliverEndFlush();
+            timeout = -1;
+        }
+        goto receiveconnection;
     }
   }
 
