@@ -425,8 +425,10 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     m_avFormat->max_analyze_duration = max(m_pSettings->GetNetworkStreamAnalysisDuration() * 1000, 200000);
   } else {
     // And increase it for mpeg-ts/ps files
-    if (m_bMPEGTS || m_bMPEGPS)
+    if (m_bMPEGTS || m_bMPEGPS) {
       m_avFormat->max_analyze_duration = 10000000;
+      m_avFormat->probesize = 75000000;
+    }
   }
 
   av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_pBluRay, 0);
