@@ -62,7 +62,10 @@ HRESULT CBitstreamParser::Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, vo
 
 HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
 {
-  parse_dts_header((DTSParserContext *)m_pParserContext, &m_DTSHeader, pBuffer, (unsigned)dwSize);
+  int ret = parse_dts_header((DTSParserContext *)m_pParserContext, &m_DTSHeader, pBuffer, (unsigned)dwSize);
+  if (ret < 0)
+    return E_FAIL;
+
   m_bDTSHD = m_bDTSHD || m_DTSHeader.IsHD;
 
   m_dwBlocks      = m_DTSHeader.Blocks;

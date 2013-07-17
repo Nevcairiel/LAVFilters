@@ -294,6 +294,7 @@ void CLAVAudio::ActivateDTSHDMuxing()
 
 HRESULT CLAVAudio::Bitstream(const BYTE *buffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
+  HRESULT hr = S_OK;
   int ret = 0;
   BOOL bFlush = (buffer == NULL);
 
@@ -342,7 +343,11 @@ HRESULT CLAVAudio::Bitstream(const BYTE *buffer, int buffsize, int &consumed, HR
     }
 
     if (pOut_size > 0) {
-      m_bsParser.Parse(m_nCodecId, pOut, pOut_size, m_pParser->priv_data);
+      hr = m_bsParser.Parse(m_nCodecId, pOut, pOut_size, m_pParser->priv_data);
+      if (FAILED(hr)) {
+        continue;
+      }
+
       if (m_nCodecId == AV_CODEC_ID_DTS && !m_bDTSHD && !m_bForceDTSCore && m_bsParser.m_bDTSHD && m_settings.bBitstream[Bitstream_DTSHD]) {
         ActivateDTSHDMuxing();
       }
