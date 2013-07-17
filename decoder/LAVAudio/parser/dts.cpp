@@ -265,6 +265,10 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
     skip_bits1(gb);                                     /* SUMF (Front Sum/Difference Flag) */
     skip_bits1(gb);                                     /* SUMS (Surround Sum/Difference Flag) */
     skip_bits(gb, 4);                                   /* Dialog Normalization Parameter or Unspecified (dependent on encoder version) */
+
+    // Check some basic validity
+    if (uSize < pHeader->FrameSize)
+      return -1;
   } else {
     pHeader->HasCore = 0;
   }
