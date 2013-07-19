@@ -109,7 +109,9 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
   }
 
   // Color Range, 0-255 or 16-235
-  BOOL ffFullRange = (ctx->color_range == AVCOL_RANGE_JPEG) || frame->format == AV_PIX_FMT_YUVJ420P || frame->format == AV_PIX_FMT_YUVJ422P || frame->format == AV_PIX_FMT_YUVJ444P || frame->format == AV_PIX_FMT_YUVJ440P;
+  BOOL ffFullRange = (ctx->color_range == AVCOL_RANGE_JPEG)
+                     || frame->format == AV_PIX_FMT_YUVJ420P || frame->format == AV_PIX_FMT_YUVJ422P || frame->format == AV_PIX_FMT_YUVJ444P
+                     || frame->format == AV_PIX_FMT_YUVJ440P || frame->format == AV_PIX_FMT_YUVJ411P;
   fmt.NominalRange = ffFullRange ? DXVA2_NominalRange_0_255 : (ctx->color_range == AVCOL_RANGE_MPEG) ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_Unknown;
 
   return fmt;
@@ -269,6 +271,8 @@ static struct PixelFormatMapping {
   { AV_PIX_FMT_GBRAP,     LAVPixFmt_ARGB32, TRUE },
   { AV_PIX_FMT_GBRAP16BE, LAVPixFmt_RGB48,  TRUE },
   { AV_PIX_FMT_GBRAP16LE, LAVPixFmt_RGB48,  TRUE },
+
+  { AV_PIX_FMT_YUVJ411P,  LAVPixFmt_YUV422, TRUE },
 
   { AV_PIX_FMT_DXVA2_VLD, LAVPixFmt_DXVA2, FALSE },
 };
