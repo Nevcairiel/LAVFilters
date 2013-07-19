@@ -298,6 +298,7 @@ static struct PixelFormatMapping getPixFmtMapping(AVPixelFormat pixfmt) {
   for (int i = 0; i < countof(ff_pix_map); i++) {
     if (ff_pix_map[i].ffpixfmt == pixfmt) {
       result = ff_pix_map[i];
+      break;
     }
   }
   if (result.lavpixfmt != LAVPixFmt_YUV420bX && result.lavpixfmt != LAVPixFmt_YUV422bX && result.lavpixfmt != LAVPixFmt_YUV444bX)
