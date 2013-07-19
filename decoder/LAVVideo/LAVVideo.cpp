@@ -961,6 +961,10 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dwAspectX = num;
     dwAspectY = den;
 
+    // Disallow switching to non-interlaced mediatype for most renderers, as it causes dropped frames without real advantages
+    if (!m_bMadVR && vih2->dwInterlaceFlags)
+      dwInterlacedFlags = vih2->dwInterlaceFlags;
+
     bNeedReconnect = (vih2->rcTarget.right != width || vih2->rcTarget.bottom != height || vih2->dwPictAspectRatioX != num || vih2->dwPictAspectRatioY != den || abs(vih2->AvgTimePerFrame - avgFrameDuration) > 10 || (m_bDXVAExtFormatSupport && vih2->dwControlFlags != dxvaExtFlags.value) || (vih2->dwInterlaceFlags != dwInterlacedFlags));
   }
 
