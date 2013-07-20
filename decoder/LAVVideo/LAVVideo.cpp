@@ -1141,17 +1141,17 @@ receiveconnection:
       hr = S_OK;
       goto done;
     } else if (hr == VFW_E_BUFFERS_OUTSTANDING && timeout != -1) {
-        if (timeout > 0) {
-            DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, retrying in 10ms.."));
-            Sleep(10);
-            timeout -= 10;
-        } else {
-            DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, timeout reached, flushing.."));
-            m_pOutput->DeliverBeginFlush();
-            m_pOutput->DeliverEndFlush();
-            timeout = -1;
-        }
-        goto receiveconnection;
+      if (timeout > 0) {
+        DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, retrying in 10ms.."));
+        Sleep(10);
+        timeout -= 10;
+      } else {
+        DbgLog((LOG_TRACE, 10, L"-> Buffers outstanding, timeout reached, flushing.."));
+        m_pOutput->DeliverBeginFlush();
+        m_pOutput->DeliverEndFlush();
+        timeout = -1;
+      }
+      goto receiveconnection;
     }
   }
 
