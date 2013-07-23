@@ -557,8 +557,6 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
   // Close, just in case we're being re-used
   Close();
 
-  m_bPlaybackStarted = FALSE;
-
   m_fileName = std::wstring(pszFileName);
 
   HRESULT hr = S_OK;
@@ -606,6 +604,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
 
   m_rtStart = m_rtNewStart = m_rtCurrent = 0;
   m_rtStop = m_rtNewStop = m_pDemuxer->GetDuration();
+  m_bPlaybackStarted = FALSE;
 
   const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
   if (videoStream) {
