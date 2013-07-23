@@ -552,6 +552,10 @@ STDMETHODIMP CLAVSplitter::BreakInputConnection()
 STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt)
 {
   CheckPointer(pszFileName, E_POINTER);
+  if (m_State != State_Stopped) return E_UNEXPECTED;
+
+  // Close, just in case we're being re-used
+  Close();
 
   m_bPlaybackStarted = FALSE;
 
