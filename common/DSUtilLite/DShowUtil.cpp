@@ -187,15 +187,22 @@ std::wstring WStringFromGUID(const GUID& guid)
 
 BSTR ConvertCharToBSTR(const char *sz)
 {
-  if (!sz)
+  bool acp = false;
+  if (!sz || strlen(sz) == 0)
     return NULL;
 
-  size_t len = MultiByteToWideChar(CP_UTF8, 0, sz, -1, NULL, 0);
+  int len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, sz, -1, NULL, 0);
+  if (len == 0) {
+    acp = true;
+    len = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, sz, -1, NULL, 0);
+    if (len == 0)
+      return NULL;
+  }
 
   WCHAR *wide = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
   if (!wide)
     return NULL;
-  MultiByteToWideChar(CP_UTF8, 0, sz, -1, wide, (int)len);
+  MultiByteToWideChar(acp ? CP_ACP : CP_UTF8, MB_ERR_INVALID_CHARS, sz, -1, wide, len);
 
   BSTR bstr = SysAllocString(wide);
   CoTaskMemFree(wide);
