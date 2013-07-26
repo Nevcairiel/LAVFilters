@@ -1,5 +1,15 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.58.2 - 2013/07/26
+LAV Splitter
+- Fixed demuxing of WavPack from MKV
+
+LAV Video
+- Fixed a crash when YADIF was being used on a single- or dual-core CPU
+
+LAV Audio
+- Fixed decoding of DTS streams with a frame size change mid-stream
+
 0.58.1 - 2013/07/09
 LAV Splitter
 - Improved UDP network streaming
