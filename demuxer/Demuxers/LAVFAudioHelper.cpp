@@ -74,6 +74,7 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_PCM_S16BE,  &MEDIASUBTYPE_PCM_TWOS,          NULL,                   NULL },
   { AV_CODEC_ID_PCM_S24BE,  &MEDIASUBTYPE_PCM_IN24,          NULL,                   NULL },
   { AV_CODEC_ID_PCM_S32BE,  &MEDIASUBTYPE_PCM_IN32,          NULL,                   NULL },
+  { AV_CODEC_ID_QDM2,       &MEDIASUBTYPE_QDM2,              WAVE_FORMAT_QDESIGN_MUSIC, NULL },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)
