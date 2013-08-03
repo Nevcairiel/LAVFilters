@@ -424,6 +424,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     // require at least 0.2 seconds
     m_avFormat->max_analyze_duration = max(m_pSettings->GetNetworkStreamAnalysisDuration() * 1000, 200000);
   } else {
+    m_avFormat->max_analyze_duration = 7500000;
     // And increase it for mpeg-ts/ps files
     if (m_bMPEGTS || m_bMPEGPS) {
       m_avFormat->max_analyze_duration = 10000000;
