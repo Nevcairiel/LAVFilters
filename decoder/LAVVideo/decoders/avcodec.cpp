@@ -366,7 +366,13 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
   CheckPointer(m_pAVCtx, E_POINTER);
 
-  if(codec == AV_CODEC_ID_MPEG1VIDEO || codec == AV_CODEC_ID_MPEG2VIDEO || pmt->subtype == FOURCCMap(MKTAG('H','2','6','4')) || pmt->subtype == FOURCCMap(MKTAG('h','2','6','4'))) {
+  if(    codec == AV_CODEC_ID_MPEG1VIDEO
+      || codec == AV_CODEC_ID_MPEG2VIDEO
+      || pmt->subtype == MEDIASUBTYPE_H264
+      || pmt->subtype == MEDIASUBTYPE_h264
+      || pmt->subtype == MEDIASUBTYPE_X264
+      || pmt->subtype == MEDIASUBTYPE_x264
+      || pmt->subtype == MEDIASUBTYPE_H264_bis) {
     m_pParser = av_parser_init(codec);
   }
 
