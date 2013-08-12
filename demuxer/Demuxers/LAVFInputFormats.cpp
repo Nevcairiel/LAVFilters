@@ -34,8 +34,10 @@ struct lavf_iformat_map
   // Shorten these formats
   { "matroska,webm",           "matroska", NULL },
   { "mov,mp4,m4a,3gp,3g2,mj2", "mp4",      "MPEG-4/QuickTime format" },
+  { "yuv4mpegpipe",            "y4m",      "YUV4MPEG" },
 
   // Raw Video formats (grouped into "rawvideo")
+  { "dirac", RAW_VIDEO, RAW_VIDEO_DESC },
   { "dnxhd", RAW_VIDEO, RAW_VIDEO_DESC },
   { "h261",  RAW_VIDEO, RAW_VIDEO_DESC },
   { "h263",  RAW_VIDEO, RAW_VIDEO_DESC },
@@ -45,7 +47,6 @@ struct lavf_iformat_map
   { "vc1",   RAW_VIDEO, RAW_VIDEO_DESC },
 
   // Raw Audio Formats (grouped into "rawaudio")
-  { "dirac", RAW_AUDIO, RAW_AUDIO_DESC },
   { "f32be", RAW_AUDIO, RAW_AUDIO_DESC },
   { "f32le", RAW_AUDIO, RAW_AUDIO_DESC },
   { "f64be", RAW_AUDIO, RAW_AUDIO_DESC },
@@ -70,17 +71,12 @@ struct lavf_iformat_map
   { "image2pipe", "image2", "Image Files" },
 
   // Disabled Formats
-  { "applehttp", NULL, NULL },
-  { "ass", NULL, NULL },
   { "ffm", NULL, NULL },
   { "ffmetadata", NULL, NULL },
-  { "microdvd", NULL, NULL },
   { "mpegtsraw", NULL, NULL },
   { "spdif", NULL, NULL },
-  { "srt", NULL, NULL },
   { "tty", NULL, NULL },
   { "vc1test", NULL, NULL },
-  { "yuv4mpegpipe", NULL, NULL },
 };
 
 void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription)
