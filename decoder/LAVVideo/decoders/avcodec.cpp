@@ -553,6 +553,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_bWaitingForKeyFrame = TRUE;
   m_bResumeAtKeyFrame =    codec == AV_CODEC_ID_MPEG2VIDEO
                         || codec == AV_CODEC_ID_VC1
+                        || codec == AV_CODEC_ID_WMV3
                         || codec == AV_CODEC_ID_RV30
                         || codec == AV_CODEC_ID_RV40
                         || codec == AV_CODEC_ID_VP3
