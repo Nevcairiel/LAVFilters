@@ -427,7 +427,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     m_avFormat->max_analyze_duration = 7500000;
     // And increase it for mpeg-ts/ps files
     if (m_bMPEGTS || m_bMPEGPS) {
-      m_avFormat->max_analyze_duration = 10000000;
+      m_avFormat->max_analyze_duration = 15000000;
       m_avFormat->probesize = 75000000;
     }
   }
