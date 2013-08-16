@@ -608,7 +608,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
 
   const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
   if (videoStream) {
-    CLAVOutputPin* pPin = new CLAVOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat());
+    CLAVOutputPin* pPin = new CLAVOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat(), 0, true);
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(videoStream->pid);
       m_pPins.push_back(pPin);
@@ -621,7 +621,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   std::list<std::string> audioLangs = GetPreferredAudioLanguageList();
   const CBaseDemuxer::stream *audioStream = m_pDemuxer->SelectAudioStream(audioLangs);
   if (audioStream) {
-    CLAVOutputPin* pPin = new CLAVOutputPin(audioStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::audio), this, this, &hr, CBaseDemuxer::audio, m_pDemuxer->GetContainerFormat());
+    CLAVOutputPin* pPin = new CLAVOutputPin(audioStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::audio), this, this, &hr, CBaseDemuxer::audio, m_pDemuxer->GetContainerFormat(), 0, m_pPins.empty());
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(audioStream->pid);
       m_pPins.push_back(pPin);
@@ -636,7 +636,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   std::list<CSubtitleSelector> subtitleSelectors = GetSubtitleSelectors();
   const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage);
   if (subtitleStream && !bNoSubtitles) {
-    CLAVOutputPin* pPin = new CLAVOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
+    CLAVOutputPin* pPin = new CLAVOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat(), 0, m_pPins.empty());
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(subtitleStream->pid);
       m_pPins.push_back(pPin);
@@ -806,7 +806,7 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
     if (m_pDemuxer->GetContainerFlags() & LAVFMT_TS_DISCONT) {
       if (!pPin->IsSubtitlePin()) {
         REFERENCE_TIME rt = pPacket->rtStart + m_rtOffset;
-        if(_abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {
+        if(pPin->m_rtPrev != AV_NOPTS_VALUE && _abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {
           m_rtOffset += pPin->m_rtPrev - rt;
           m_bDiscontinuitySent.clear();
           DbgLog((LOG_TRACE, 10, L"::DeliverPacket(): MPEG-TS/PS discontinuity detected, adjusting offset to %I64d", m_rtOffset));
