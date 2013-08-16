@@ -39,7 +39,7 @@ class CLAVOutputPin
   , protected CAMThread
 {
 public:
-  CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "", int nBuffers = 0, bool bFirst = false);
+  CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "", bool bFirst = false);
   virtual ~CLAVOutputPin();
 
   DECLARE_IUNKNOWN;

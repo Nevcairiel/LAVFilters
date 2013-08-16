@@ -28,7 +28,7 @@
 
 #include "PacketAllocator.h"
 
-CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, int nBuffers, bool bFirst)
+CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, bool bFirst)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
@@ -40,9 +40,9 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_bPacketAllocator(FALSE)
   , m_dwQueueMaxMem(256)
   , m_bFirstPin(bFirst)
+  , m_nBuffers(1)
 {
   m_mts = mts;
-  m_nBuffers = max(nBuffers, 1);
   m_rtPrev = m_bFirstPin ? 0 : AV_NOPTS_VALUE;
 
   SetQueueSizes();
