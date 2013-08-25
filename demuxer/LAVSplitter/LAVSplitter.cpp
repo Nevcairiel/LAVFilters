@@ -503,6 +503,7 @@ CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId, BOOL bActiveOnly)
 STDMETHODIMP CLAVSplitter::CompleteInputConnection()
 {
   HRESULT hr = S_OK;
+  BOOL bFileInput = FALSE;
 
   SAFE_DELETE(m_pDemuxer);
   CLAVFDemuxer *pDemux = new CLAVFDemuxer(this, this);
@@ -523,6 +524,10 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
       pSource->GetCurFile(&pszFileName, NULL);
       SafeRelease(&pSource);
     }
+    CLSID inputCLSID;
+    if (SUCCEEDED(info.pFilter->GetClassID(&inputCLSID))) {
+      bFileInput = (inputCLSID == CLSID_AsyncReader);
+    }
     SafeRelease(&info.pFilter);
   }
 
@@ -531,7 +536,7 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
     format = "mpegts";
   }
 
-  if(FAILED(hr = pDemux->OpenInputStream(pContext, pszFileName, format))) {
+  if(FAILED(hr = pDemux->OpenInputStream(pContext, pszFileName, format, FALSE, bFileInput))) {
     SAFE_DELETE(pDemux);
     return hr;
   }

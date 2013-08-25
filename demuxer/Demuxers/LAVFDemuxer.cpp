@@ -200,7 +200,7 @@ static LPCWSTR wszBlockedExtensions[] = {
   L".ifo", L".bup"
 };
 
-STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName, const char *format, BOOL bForce)
+STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName, const char *format, BOOL bForce, BOOL bFileSource)
 {
   CAutoLock lock(m_pLock);
   HRESULT hr = S_OK;
@@ -246,9 +246,12 @@ trynoformat:
         break;
       }
     }
-    for (int i = 0; i < countof(wszBlockedExtensions); i++) {
-      if (_wcsicmp(extension, wszBlockedExtensions[i]) == 0) {
-        goto done;
+
+    if (byteContext == NULL || bFileSource) {
+      for (int i = 0; i < countof(wszBlockedExtensions); i++) {
+        if (_wcsicmp(extension, wszBlockedExtensions[i]) == 0) {
+          goto done;
+        }
       }
     }
   }

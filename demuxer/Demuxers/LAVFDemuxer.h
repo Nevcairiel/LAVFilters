@@ -125,7 +125,7 @@ public:
   STDMETHODIMP get_MoreInfoBannerURL(BSTR *pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
   STDMETHODIMP get_MoreInfoText(BSTR *pbstrMoreInfoText) { return E_NOTIMPL; }
 
-  STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = NULL, const char *format = NULL, BOOL bForce = FALSE);
+  STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = NULL, const char *format = NULL, BOOL bForce = FALSE, BOOL bFileSource = FALSE);
   STDMETHODIMP SeekByte(int64_t pos, int flags);
 
   AVStream* GetAVStreamByPID(int pid);
