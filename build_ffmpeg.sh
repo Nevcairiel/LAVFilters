@@ -1,12 +1,24 @@
 #!/bin/sh
 
-if [ "${1}" == "x64" ]; then
-  arch=x86_64
-  archdir=x64
-else
-  arch=x86
-  archdir=Win32
-fi
+arch=x86
+archdir=Win32
+clean_build=true
+
+for opt in "$@"
+do
+    case "$opt" in
+    x64 | amd64)
+            arch=x86_64
+            archdir=x64
+            ;;
+    quick)
+            clean_build=false
+            ;;
+    *)
+            echo "Unknown Option $opt"
+            exit 1
+    esac
+done
 
 make_dirs() (
   if [ ! -d bin_${archdir}/lib ]; then
@@ -108,17 +120,19 @@ make_dirs
 
 cd ffmpeg
 
-clean
+if $clean_build ; then
+    clean
 
-## run configure, redirect to file because of a msys bug
-configure > config.out 2>&1
-CONFIGRETVAL=$?
+    ## run configure, redirect to file because of a msys bug
+    configure > config.out 2>&1
+    CONFIGRETVAL=$?
 
-## show configure output
-cat config.out
+    ## show configure output
+    cat config.out
+fi
 
 ## Only if configure succeeded, actually build
-if [ ${CONFIGRETVAL} -eq 0 ]; then
+if ! $clean_build || [ ${CONFIGRETVAL} -eq 0 ]; then
   build &&
   strip_libs &&
   copy_libs
