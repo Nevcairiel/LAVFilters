@@ -168,6 +168,8 @@ int64_t CLAVInputPin::Seek(void *opaque,  int64_t offset, int whence)
 
   if (pin->m_llPos > available)
     pin->m_llPos = available;
+  else if (pin->m_llPos < 0)
+    pin->m_llPos = 0;
 
   return pin->m_llPos;
 }
