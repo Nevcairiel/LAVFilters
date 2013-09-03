@@ -7,6 +7,8 @@ clean_build=true
 for opt in "$@"
 do
     case "$opt" in
+    x86)
+            ;;
     x64 | amd64)
             arch=x86_64
             archdir=x64
