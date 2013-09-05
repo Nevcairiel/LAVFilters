@@ -579,7 +579,6 @@ BOOL CLAVVideo::IsInterlaced()
 static const LPWSTR stream_ar_blacklist[] = {
   L".mkv", L".webm",
   L".mp4", L".mov", L".m4v",
-  L".avi", L".divx"
 };
 
 HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
