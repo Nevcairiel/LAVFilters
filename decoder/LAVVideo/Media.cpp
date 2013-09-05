@@ -249,6 +249,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_BIKB, AV_CODEC_ID_BINKVIDEO  },
   { &MEDIASUBTYPE_SMK2, AV_CODEC_ID_SMACKVIDEO },
   { &MEDIASUBTYPE_SMK4, AV_CODEC_ID_SMACKVIDEO },
+  { &MEDIASUBTYPE_THPV, AV_CODEC_ID_THP },
 
   // Image Formats
   { &MEDIASUBTYPE_PNG,  AV_CODEC_ID_PNG   },
@@ -486,6 +487,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKB },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_SMK2 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_SMK4 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_THPV },
 
   // Image Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_PNG  },
@@ -579,6 +581,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_FLIC }},                                                // Codec_FLIC
   { 1, { AV_CODEC_ID_G2M }},                                                 // Codec_G2M
   { 1, { AV_CODEC_ID_AIC }, "icod", "Apple Intermediate Codec (ICOD)"},      // Codec_ICOD
+  { 1, { AV_CODEC_ID_THP }},                                                 // Codec_THP
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
