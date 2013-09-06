@@ -1005,7 +1005,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     pPacket->bSyncPoint = pkt.flags & AV_PKT_FLAG_KEY;
-    pPacket->bDiscontinuity = (pkt.flags & AV_PKT_FLAG_CORRUPT);
+    pPacket->bDiscontinuity = !m_pBluRay && (pkt.flags & AV_PKT_FLAG_CORRUPT);
 #ifdef DEBUG
     if (pkt.flags & AV_PKT_FLAG_CORRUPT)
       DbgLog((LOG_TRACE, 10, L"::GetNextPacket() - Signaling Discontinuinty because of corrupt package"));

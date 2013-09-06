@@ -81,7 +81,8 @@ public:
   // Get the container format
   virtual const char *GetContainerFormat() const = 0;
   // Get Container Flags
-#define LAVFMT_TS_DISCONT 0x0001
+#define LAVFMT_TS_DISCONT               0x0001
+#define LAVFMT_TS_DISCONT_NO_DOWNSTREAM 0x0002
   virtual DWORD GetContainerFlags() { return 0; }
   // Select the active title
   virtual STDMETHODIMP SetTitle(int idx) { return E_NOTIMPL; }
