@@ -69,8 +69,6 @@
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;shell32.lib;version.lib;Shlwapi.lib;strmbasd.lib;dsutild.lib;demuxersd.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
@@ -84,8 +82,6 @@
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;shell32.lib;version.lib;Shlwapi.lib;strmbase.lib;dsutil.lib;demuxers.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
