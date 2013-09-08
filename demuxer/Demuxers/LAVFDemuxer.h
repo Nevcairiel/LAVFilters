@@ -27,6 +27,7 @@
 #include "BaseDemuxer.h"
 #include "IKeyFrameInfo.h"
 #include "ITrackInfo.h"
+#include "DSMResourceBag.h"
 #include "FontInstaller.h"
 
 #define SUBMODE_FORCED_PGS_ONLY 0xFF
@@ -35,7 +36,8 @@ class FormatInfo;
 class CBDDemuxer;
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
-class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo, public IAMMediaContent, public IPropertyBag
+class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo, public IAMMediaContent, public IPropertyBag,
+                     public IDSMResourceBagImpl
 {
 public:
   CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings);
