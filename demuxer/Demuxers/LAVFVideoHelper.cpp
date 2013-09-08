@@ -273,14 +273,6 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   } else if (rc.den > 0 && rc.num > 0) {
     av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, 255);
   } else {
-    if (avstream->codec->codec_id == AV_CODEC_ID_RV40) {
-      AVDictionaryEntry *w = av_dict_get(avstream->metadata, "rm_width", NULL, 0);
-      AVDictionaryEntry *h = av_dict_get(avstream->metadata, "rm_height", NULL, 0);
-      if (w && h) {
-        num = atoi(w->value);
-        den = atoi(h->value);
-      }
-    }
     av_reduce(&num, &den, num, den, num);
   }
   vih2->dwPictAspectRatioX = num;
