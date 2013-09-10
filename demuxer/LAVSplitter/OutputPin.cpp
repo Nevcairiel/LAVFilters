@@ -41,8 +41,8 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_dwQueueMaxMem(256)
   , m_bFirstPin(bFirst)
   , m_nBuffers(1)
+  , m_mts(mts)
 {
-  m_mts = mts;
   m_rtPrev = m_bFirstPin ? 0 : AV_NOPTS_VALUE;
 
   SetQueueSizes();

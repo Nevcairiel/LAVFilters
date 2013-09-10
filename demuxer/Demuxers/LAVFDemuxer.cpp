@@ -1453,7 +1453,6 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     // Normally this should be caught while creating the stream info already.
     delete s.streamInfo;
     return E_FAIL;
-    break;
   }
   return S_OK;
 }

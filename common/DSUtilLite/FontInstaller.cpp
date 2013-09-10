@@ -47,7 +47,7 @@ void CFontInstaller::UninstallFonts()
     for(it = m_fonts.begin(); it != m_fonts.end(); ++it) {
       pRemoveFontMemResourceEx(*it);
     }
-    m_fonts.empty();
+    m_fonts.clear();
 	}
 }
 
