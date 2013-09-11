@@ -195,6 +195,8 @@ BYTE *CRegistry::ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr)
 
   if (lRet != ERROR_SUCCESS) {
     hr = E_FAIL;
+    CoTaskMemFree(result);
+    result = NULL;
   }
 
   return result;
