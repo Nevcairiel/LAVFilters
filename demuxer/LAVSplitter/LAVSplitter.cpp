@@ -506,7 +506,6 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
   BOOL bFileInput = FALSE;
 
   SAFE_DELETE(m_pDemuxer);
-  CLAVFDemuxer *pDemux = new CLAVFDemuxer(this, this);
 
   AVIOContext *pContext = NULL;
 
@@ -536,6 +535,7 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
     format = "mpegts";
   }
 
+  CLAVFDemuxer *pDemux = new CLAVFDemuxer(this, this);
   if(FAILED(hr = pDemux->OpenInputStream(pContext, pszFileName, format, FALSE, bFileInput))) {
     SAFE_DELETE(pDemux);
     return hr;
