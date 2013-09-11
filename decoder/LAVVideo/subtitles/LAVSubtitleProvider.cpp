@@ -562,7 +562,7 @@ CLAVSubRect* CLAVSubtitleProvider::ProcessDVDHLI(CLAVSubRect *rect)
       if (x+rect->position.x < m_pHLI->StartX || x+rect->position.x > m_pHLI->StopX)
         continue;
       uint8_t idx = pixelsPal[x];
-      uint8_t alpha;
+      uint8_t alpha = 0;
       switch (idx) {
       case 0:
         idx = m_pHLI->ColCon.backcol;
