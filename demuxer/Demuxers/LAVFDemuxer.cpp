@@ -938,8 +938,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
     if(pkt.data) {
       result = pPacket->SetPacket(&pkt);
-      if (result < 0)
+      if (result < 0) {
+        SAFE_DELETE(pPacket);
         return E_OUTOFMEMORY;
+      }
     }
 
     pPacket->StreamId = (DWORD)pkt.stream_index;
