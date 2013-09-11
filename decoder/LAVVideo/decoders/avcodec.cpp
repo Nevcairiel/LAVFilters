@@ -492,7 +492,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
       getExtraData(*pmt, extra, NULL);
     }
     // Hack to discard invalid MP4 metadata with AnnexB style video
-    if (codec == AV_CODEC_ID_H264 && !bH264avc && extra[0] == 1) {
+    if (codec == AV_CODEC_ID_H264 && !bH264avc && extra && extra[0] == 1) {
       av_freep(&extra);
       extralen = 0;
     }
