@@ -386,7 +386,6 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
   HRESULT hr = S_OK;
 
   CMediaType mt = CreateBitstreamMediaType(codec, m_bsParser.m_dwSampleRate);
-  WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();
 
   if(FAILED(hr = ReconnectOutput(dwSize, mt))) {
     return hr;

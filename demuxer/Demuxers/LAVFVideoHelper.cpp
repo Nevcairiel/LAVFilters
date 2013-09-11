@@ -139,8 +139,6 @@ size_t avc_parse_annexb(BYTE *extra, int extrasize, BYTE *dst)
   CH264Nalu Nalu;
   Nalu.SetBuffer(extra, extrasize, 0);
   while (Nalu.ReadNext()) {
-    const BYTE *data = Nalu.GetDataBuffer();
-
     if (Nalu.GetType() == NALU_TYPE_SPS || Nalu.GetType() == NALU_TYPE_PPS) {
       size_t len = Nalu.GetDataLength();
       AV_WB16(dst+dstSize, (uint16_t)len);
