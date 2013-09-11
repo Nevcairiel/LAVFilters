@@ -23,6 +23,7 @@
 #include "libavutil/intreadwrite.h"
 
 CAVC1AnnexBConverter::CAVC1AnnexBConverter(void)
+  : m_NaluSize(0)
 {
 }
 

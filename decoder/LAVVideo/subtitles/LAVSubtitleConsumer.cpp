@@ -43,6 +43,7 @@ CLAVSubtitleConsumer::CLAVSubtitleConsumer(CLAVVideo *pLAVVideo)
   , m_pSwsContext(NULL)
   , m_PixFmt(LAVPixFmt_None)
   , m_pLAVVideo(pLAVVideo)
+  , blend(NULL)
 {
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);

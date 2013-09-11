@@ -23,6 +23,8 @@
 #include "FontInstaller.h"
 
 CFontInstaller::CFontInstaller()
+  : pAddFontMemResourceEx(NULL)
+  , pRemoveFontMemResourceEx(NULL)
 {
 	if(HMODULE hGdi = GetModuleHandle(_T("gdi32.dll"))) {
 		pAddFontMemResourceEx = (HANDLE (WINAPI *)(PVOID,DWORD,PVOID,DWORD*))GetProcAddress(hGdi, "AddFontMemResourceEx");
