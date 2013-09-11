@@ -1846,7 +1846,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
     pDataBuffer = buffer;
   }
 
-  if (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r') || m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r')) {
+  if (!bFlush && (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r') || m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r'))) {
     int w = m_raData.audio_framesize;
     int h = m_raData.sub_packet_h;
     int sps = m_raData.sub_packet_size;
@@ -1881,7 +1881,7 @@ HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed
     }
   }
 #ifdef DEBUG
-  else if (m_raData.deint_id) {
+  else if (!bFlush && m_raData.deint_id) {
     const char *deint = (const char *)&m_raData.deint_id;
     DbgLog((LOG_TRACE, 10, L"::Decode(): Unsupported deinterleaving algorithm '%c%c%c%c'", deint[3], deint[2], deint[1], deint[0]));
   }
