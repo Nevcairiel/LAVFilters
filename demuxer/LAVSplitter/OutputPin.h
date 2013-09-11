@@ -136,7 +136,6 @@ private:
 
   std::string m_containerFormat;
 
-  REFERENCE_TIME m_rtStart;
   bool m_bFirstPin;
 
   // Flush control

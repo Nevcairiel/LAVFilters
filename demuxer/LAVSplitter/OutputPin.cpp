@@ -32,6 +32,7 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_hrDeliver(S_OK)
   , m_fFlushing(false)
+  , m_fFlushed(false)
   , m_eEndFlush(TRUE)
   , m_containerFormat(container)
   , m_newMT(NULL)
@@ -42,6 +43,7 @@ CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseF
   , m_bFirstPin(bFirst)
   , m_nBuffers(1)
   , m_mts(mts)
+  , m_streamId(0)
 {
   m_rtPrev = m_bFirstPin ? 0 : AV_NOPTS_VALUE;
 
@@ -299,7 +301,6 @@ HRESULT CLAVOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME t
   DbgLog((LOG_TRACE, 20, L"::DeliverNewSegment on %s Pin (rtStart: %I64d; rtStop: %I64d)", CBaseDemuxer::CStreamList::ToStringW(m_pinType), tStart, tStop));
   m_rtPrev = m_bFirstPin ? 0 : AV_NOPTS_VALUE;
   if(m_fFlushing) return S_FALSE;
-  m_rtStart = tStart;
   if(!ThreadExists()) return S_FALSE;
 
   hr = __super::DeliverNewSegment(tStart, tStop, dRate);
