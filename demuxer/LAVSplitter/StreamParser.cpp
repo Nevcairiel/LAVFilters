@@ -39,7 +39,7 @@ extern "C" {
 //#define DEBUG_PGS_PARSER
 
 CStreamParser::CStreamParser(CLAVOutputPin *pPin, const char *szContainer)
-  : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_bPGSDropState(FALSE)
+  : m_pPin(pPin), m_strContainer(szContainer), m_pPacketBuffer(NULL), m_gSubtype(GUID_NULL), m_bPGSDropState(FALSE), m_bHasAccessUnitDelimiters(false)
 {
 
 }
