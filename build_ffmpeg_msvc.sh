@@ -80,7 +80,7 @@ configure() (
     --build-suffix=-lav \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -d2Zi+"
 
   sh configure --toolchain=msvc --enable-debug --extra-cflags="${EXTRA_CFLAGS}" ${OPTIONS}
 )
