@@ -1225,15 +1225,6 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     }
   }
 
-  if (codec == AV_CODEC_ID_PCM_DVD) {
-    if (format_type == FORMAT_WaveFormatEx) {
-      WAVEFORMATEX *wfein = (WAVEFORMATEX *)format;
-      if (wfein->wBitsPerSample == 16) {
-        codec = AV_CODEC_ID_PCM_S16BE;
-      }
-    }
-  }
-
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
   std::wstring processName = PathFindFileName(fileName);

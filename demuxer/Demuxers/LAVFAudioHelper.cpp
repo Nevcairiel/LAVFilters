@@ -106,10 +106,6 @@ CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &code
     // Qt PCM
     if (codecTag == MKTAG('f', 'l', '6', '4')) mediaType.subtype = MEDIASUBTYPE_PCM_FL64_le;
     break;
-  case AV_CODEC_ID_PCM_S16BE:
-    if (container == "mpeg")
-       mediaType.subtype = MEDIASUBTYPE_DVD_LPCM_AUDIO;
-    break;
   }
   return mediaType;
 }
