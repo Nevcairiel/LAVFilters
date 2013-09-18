@@ -458,6 +458,28 @@ void CLAVAudio::CreateBDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX_HDMV_LP
   pBuf[3] = get_lpcm_bit_per_sample_index(wfex_lpcm->wBitsPerSample) << 6;
 }
 
+static BYTE get_dvdlpcm_sample_rate_index(int sample_rate)
+{
+  switch(sample_rate) {
+  case 48000:
+    return 0;
+  case 96000:
+    return 1;
+  case 44100:
+    return 2;
+  case 32000:
+    return 3;
+  }
+  return 0;
+}
+
+void CLAVAudio::CreateDVDLPCMHeader(BYTE * const pBuf, const WAVEFORMATEX * const wfex) const
+{
+  pBuf[0] = 0;
+  pBuf[1] = (((wfex->wBitsPerSample - 16) / 4) << 6) | (get_dvdlpcm_sample_rate_index(wfex->nSamplesPerSec) << 4) | ((wfex->nChannels - 1) & 7);
+  pBuf[2] = 0;
+}
+
 HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen)
 {
   const uint8_t *fmt = extra+4;

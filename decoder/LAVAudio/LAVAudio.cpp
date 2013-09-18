@@ -1639,6 +1639,11 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     BYTE *buf = m_buff.Ptr() + bufflen;
     CreateBDLPCMHeader(buf, (WAVEFORMATEX_HDMV_LPCM *)inMt.pbFormat);
     bufflen = m_buff.GetCount();
+  } else if (inMt.subtype == MEDIASUBTYPE_DVD_LPCM_AUDIO && inMt.formattype == FORMAT_WaveFormatEx) {
+    m_buff.SetSize(bufflen + 3);
+    BYTE *buf = m_buff.Ptr() + bufflen;
+    CreateDVDLPCMHeader(buf, (WAVEFORMATEX *)inMt.pbFormat);
+    bufflen = m_buff.GetCount();
   }
 
   m_buff.SetSize(bufflen + len);

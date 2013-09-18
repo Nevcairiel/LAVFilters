@@ -66,6 +66,9 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
   } else if (m_gSubtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
     pPacket->RemoveHead(4);
     Queue(pPacket);
+  } else if (m_gSubtype == MEDIASUBTYPE_DVD_LPCM_AUDIO) {
+    pPacket->RemoveHead(3);
+    Queue(pPacket);
   } else if (pPacket->dwFlags & LAV_PACKET_MOV_TEXT) {
     ParseMOVText(pPacket);
   } else if (m_strContainer == "avi" && m_gSubtype == MEDIASUBTYPE_ASS) {

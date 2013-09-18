@@ -210,6 +210,7 @@ private:
   HRESULT Deliver(BufferDetails &buffer);
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
+  void CreateDVDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX *wfex) const;
   HRESULT ParseRealAudioHeader(const BYTE *extra, const size_t extralen);
 
   void UpdateVolumeStats(const BufferDetails &buffer);
