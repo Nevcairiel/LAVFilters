@@ -44,6 +44,8 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
     return bd_get_title_size(bd);
   } else
     return -1;
+  if (pos < 0)
+    pos = 0;
   return bd_seek(bd, pos);
 }
 
