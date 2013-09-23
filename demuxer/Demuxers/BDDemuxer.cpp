@@ -48,9 +48,12 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
     pos = 0;
   int64_t achieved = bd_seek(bd, pos);
   if (pos > achieved) {
-    offset = (int)(pos - achieved);
-    uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(offset);
-    bd_read(bd, dump_buffer, offset);
+    offset = pos - achieved;
+    uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(6144);
+    while (offset > 0) {
+      bd_read(bd, dump_buffer, min(offset, 6144));
+      offset -= 6144;
+    }
     CoTaskMemFree(dump_buffer);
     achieved = bd_tell(bd);
   }
