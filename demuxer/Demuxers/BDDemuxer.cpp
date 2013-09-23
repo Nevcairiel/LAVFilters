@@ -46,7 +46,15 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
     return -1;
   if (pos < 0)
     pos = 0;
-  return bd_seek(bd, pos);
+  int64_t achieved = bd_seek(bd, pos);
+  if (pos > achieved) {
+    offset = (int)(pos - achieved);
+    uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(offset);
+    bd_read(bd, dump_buffer, offset);
+    CoTaskMemFree(dump_buffer);
+    achieved = bd_tell(bd);
+  }
+  return achieved;
 }
 
 static inline REFERENCE_TIME Convert90KhzToDSTime(int64_t timestamp)
