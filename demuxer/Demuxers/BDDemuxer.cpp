@@ -49,6 +49,7 @@ int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
   int64_t achieved = bd_seek(bd, pos);
   if (pos > achieved) {
     offset = pos - achieved;
+    DbgLog((LOG_TRACE, 10, L"BD Seek to %I64d, achieved %I64d, correcting target by %I64d", pos, achieved, offset));
     uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(6144);
     while (offset > 0) {
       bd_read(bd, dump_buffer, min(offset, 6144));
