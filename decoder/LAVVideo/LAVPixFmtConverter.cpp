@@ -283,7 +283,6 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
 
   if (guid == MEDIASUBTYPE_RGB32 || guid == MEDIASUBTYPE_RGB24) {
     pBIH->biCompression = BI_RGB;
-    pBIH->biHeight = -pBIH->biHeight;
   }
 
   // Correct size for v210
