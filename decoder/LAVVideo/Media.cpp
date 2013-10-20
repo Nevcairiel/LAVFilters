@@ -42,6 +42,10 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_CCV1, AV_CODEC_ID_H264 }, // Used by Haali Splitter
   { &MEDIASUBTYPE_H264_bis, AV_CODEC_ID_H264}, // MainConcept specific
 
+  // HEVC
+  { &MEDIASUBTYPE_HEVC, AV_CODEC_ID_HEVC },
+  { &MEDIASUBTYPE_HVC1, AV_CODEC_ID_HEVC },
+
   // MPEG1/2
   { &MEDIASUBTYPE_MPEG1Payload, AV_CODEC_ID_MPEG1VIDEO },
   { &MEDIASUBTYPE_MPEG1Video,   AV_CODEC_ID_MPEG1VIDEO },
@@ -275,6 +279,10 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_avc1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_CCV1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_H264_bis },
+
+  // HEVC
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_HEVC },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_HVC1 },
 
   // MPEG1/2
   { &MEDIATYPE_Video, &MEDIASUBTYPE_MPEG1Payload },
@@ -582,6 +590,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_G2M }},                                                 // Codec_G2M
   { 1, { AV_CODEC_ID_AIC }, "icod", "Apple Intermediate Codec (ICOD)"},      // Codec_ICOD
   { 1, { AV_CODEC_ID_THP }},                                                 // Codec_THP
+  { 1, { AV_CODEC_ID_HEVC }},                                                // Codec_HEVC
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)

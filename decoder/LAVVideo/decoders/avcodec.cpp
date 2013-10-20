@@ -51,6 +51,7 @@ static struct {
   int     threadFlags;
 } ff_thread_codecs[] = {
   { AV_CODEC_ID_H264,       FF_THREAD_FRAME|FF_THREAD_SLICE },
+  { AV_CODEC_ID_HEVC,       FF_THREAD_FRAME                 },
   { AV_CODEC_ID_MPEG1VIDEO,                 FF_THREAD_SLICE },
   { AV_CODEC_ID_MPEG2VIDEO,                 FF_THREAD_SLICE },
   { AV_CODEC_ID_DVVIDEO,                    FF_THREAD_SLICE },
@@ -372,7 +373,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
       || pmt->subtype == MEDIASUBTYPE_h264
       || pmt->subtype == MEDIASUBTYPE_X264
       || pmt->subtype == MEDIASUBTYPE_x264
-      || pmt->subtype == MEDIASUBTYPE_H264_bis) {
+      || pmt->subtype == MEDIASUBTYPE_H264_bis
+      || pmt->subtype == MEDIASUBTYPE_HEVC) {
     m_pParser = av_parser_init(codec);
   }
 
@@ -526,6 +528,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
   // VC-1 is also a special case. Its required for splitters that deliver PTS timestamps (see bVC1IsPTS above)
   m_bFFReordering        =  ( codec == AV_CODEC_ID_H264 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_H264_AVI))
+                           || codec == AV_CODEC_ID_HEVC
                            || codec == AV_CODEC_ID_VP8
                            || codec == AV_CODEC_ID_VP3
                            || codec == AV_CODEC_ID_THEORA
