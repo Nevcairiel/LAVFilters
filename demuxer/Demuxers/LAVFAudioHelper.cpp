@@ -134,7 +134,7 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
       if ( wvfmt->wBitsPerSample == 0 ) {
         DbgOutString(L"BitsPerSample is 0, no good!");
       }
-      wvfmt->nBlockAlign = (WORD)((wvfmt->nChannels * av_get_bits_per_sample_fmt(avstream->codec->sample_fmt)) / 8);
+      wvfmt->nBlockAlign = (WORD)(wvfmt->nChannels * av_get_bytes_per_sample(avstream->codec->sample_fmt));
     }
   }
   if (!wvfmt->nAvgBytesPerSec)
@@ -233,7 +233,7 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
   if (avstream->codec->sample_fmt == AV_SAMPLE_FMT_S32 && avstream->codec->bits_per_raw_sample > 0) {
     wfe->wBitsPerSample = avstream->codec->bits_per_raw_sample > 24 ? 32 : (avstream->codec->bits_per_raw_sample > 16 ? 24 : 16);
   } else {
-    wfe->wBitsPerSample = av_get_bits_per_sample_fmt(avstream->codec->sample_fmt);
+    wfe->wBitsPerSample = av_get_bytes_per_sample(avstream->codec->sample_fmt) << 3;
   }
   wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
   wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;

@@ -122,7 +122,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
   }
   av_opt_set_int(m_avBSContext->priv_data, "dtshd_fallback_time", -1, 0);
 
-  AVStream *st = av_new_stream(m_avBSContext, 0);
+  AVStream *st = avformat_new_stream(m_avBSContext, 0);
   if (!st) {
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of output stream failed"));
     goto fail;
