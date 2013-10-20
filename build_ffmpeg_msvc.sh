@@ -77,6 +77,7 @@ configure() (
     --disable-ffserver \
     --disable-ffmpeg \
     --disable-ffprobe \
+    --disable-doc \
     --build-suffix=-lav \
     --arch=${arch}"
 
