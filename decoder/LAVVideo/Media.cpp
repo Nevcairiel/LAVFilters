@@ -70,8 +70,9 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_WMV3, AV_CODEC_ID_WMV3 },
   { &MEDIASUBTYPE_wmv3, AV_CODEC_ID_WMV3 },
 
-  // VP8
+  // VP8/9
   { &MEDIASUBTYPE_VP80, AV_CODEC_ID_VP8 },
+  { &MEDIASUBTYPE_VP90, AV_CODEC_ID_VP9 },
 
   // MPEG4 ASP
   { &MEDIASUBTYPE_XVID, AV_CODEC_ID_MPEG4 },
@@ -312,8 +313,9 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_WMV3 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_wmv3 },
 
-  // VP8
+  // VP8/9
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP80 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_VP90 },
 
   // MPEG4 ASP
   { &MEDIATYPE_Video, &MEDIASUBTYPE_XVID },
@@ -591,6 +593,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_AIC }, "icod", "Apple Intermediate Codec (ICOD)"},      // Codec_ICOD
   { 1, { AV_CODEC_ID_THP }},                                                 // Codec_THP
   { 1, { AV_CODEC_ID_HEVC }},                                                // Codec_HEVC
+  { 1, { AV_CODEC_ID_VP9 }},                                                 // Codec_VP9
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)

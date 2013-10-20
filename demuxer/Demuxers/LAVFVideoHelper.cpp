@@ -53,6 +53,8 @@ static FormatMapping video_map[] = {
   { AV_CODEC_ID_BMP,        &MEDIASUBTYPE_BMP,          MKTAG('B','M','P',' '), NULL },
   { AV_CODEC_ID_GIF,        &MEDIASUBTYPE_GIF,          MKTAG('G','I','F',' '), NULL },
   { AV_CODEC_ID_TARGA,      &MEDIASUBTYPE_TGA,          MKTAG('T','G','A',' '), NULL },
+  { AV_CODEC_ID_VP8,        &MEDIASUBTYPE_VP80,         MKTAG('V','P','8','0'), &FORMAT_VideoInfo2 },
+  { AV_CODEC_ID_VP9,        &MEDIASUBTYPE_VP90,         MKTAG('V','P','9','0'), &FORMAT_VideoInfo2 },
 };
 
 CMediaType CLAVFVideoHelper::initVideoType(AVCodecID codecId, unsigned int &codecTag, std::string container)
