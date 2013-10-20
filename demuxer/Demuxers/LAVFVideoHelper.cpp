@@ -40,6 +40,7 @@ static FormatMapping video_map[] = {
   { AV_CODEC_ID_H263,       &MEDIASUBTYPE_H263,         NULL,                   NULL },
   { AV_CODEC_ID_H263I,      &MEDIASUBTYPE_I263,         NULL,                   NULL },
   { AV_CODEC_ID_H264,       &MEDIASUBTYPE_AVC1,         NULL,                   &FORMAT_MPEG2Video },
+  { AV_CODEC_ID_HEVC,       &MEDIASUBTYPE_HEVC,         NULL,                   &FORMAT_MPEG2Video },
   { AV_CODEC_ID_MPEG1VIDEO, &MEDIASUBTYPE_MPEG1Payload, NULL,                   &FORMAT_MPEGVideo  },
   { AV_CODEC_ID_MPEG2VIDEO, &MEDIASUBTYPE_MPEG2_VIDEO,  NULL,                   &FORMAT_MPEG2Video },
   { AV_CODEC_ID_RV10,       &MEDIASUBTYPE_RV10,         MKTAG('R','V','1','0'), &FORMAT_VideoInfo2 },
@@ -374,6 +375,10 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
       int ret = ProcessH264Extradata(extradata, extra, mp2vi, bConvertToAVC1);
       if (ret < 0)
         bCopyUntouched = TRUE;
+    } else if (avstream->codec->codec_id == AV_CODEC_ID_HEVC) {
+      int ret = ProcessHEVCExtradata(extradata, extra, mp2vi);
+      if (ret < 0)
+        bCopyUntouched = TRUE;
     } else if (avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);
       mp2vi->cbSequenceHeader = (DWORD)parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
@@ -415,4 +420,12 @@ HRESULT CLAVFVideoHelper::ProcessH264Extradata(BYTE *extradata, int extradata_si
     }
   }
   return 0;
+}
+
+HRESULT CLAVFVideoHelper::ProcessHEVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi)
+{
+  if (extradata[0] || extradata[1] || extradata[2] > 1 && extradata_size > 25) {
+    mp2vi->dwFlags = (extradata[21] & 3) + 1;
+  }
+  return -1;
 }

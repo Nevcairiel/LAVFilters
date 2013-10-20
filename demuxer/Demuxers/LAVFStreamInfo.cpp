@@ -183,6 +183,22 @@ static bool h264_is_annexb(std::string format, AVStream *avstream)
   return true;
 }
 
+static bool hevc_is_annexb(std::string format, AVStream *avstream)
+{
+  ASSERT(avstream->codec->codec_id == AV_CODEC_ID_HEVC);
+  if (avstream->codec->extradata_size < 25)
+    return true;
+  if (avstream->codec->extradata[0] || avstream->codec->extradata[1] || avstream->codec->extradata[2] > 1)
+    return false;
+  /*if (format == "avi") {
+    BYTE *src = avstream->codec->extradata;
+    unsigned startcode = AV_RB32(src);
+    if (startcode == 0x00000001 || (startcode & 0xffffff00) == 0x00000100)
+      return true;
+  }*/
+  return true;
+}
+
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   unsigned int origCodecTag = avstream->codec->codec_tag;
@@ -246,6 +262,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
         mtype.subtype = MEDIASUBTYPE_AVC1;
         if (mp2vi->dwFlags == 0)
           mp2vi->dwFlags = 4;
+      }
+      mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
+    } else if (avstream->codec->codec_id == AV_CODEC_ID_HEVC) {
+      if (hevc_is_annexb(m_containerFormat, avstream)) {
+        mtype.subtype = MEDIASUBTYPE_HEVC;
+      } else {
+        mtype.subtype = MEDIASUBTYPE_HVC1;
       }
       mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
     }
