@@ -65,6 +65,14 @@ public:
     return hr;
   }
 
+  HRESULT Clear()
+  {
+    free(m_pArray);
+    m_pArray = NULL;
+    m_count = m_allocated = 0;
+    return S_OK;
+  }
+
   // SetSize: Changes the count, and grows the array if needed.
   HRESULT SetSize(DWORD count)
   {

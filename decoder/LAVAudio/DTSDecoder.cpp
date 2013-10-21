@@ -286,25 +286,14 @@ int CLAVAudio::SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int
   return nPCMLen;
 };
 
-HRESULT CLAVAudio::DecodeDTS(const BYTE * const buffer, int buffsize, int &consumed, HRESULT *hrDeliver)
+HRESULT CLAVAudio::DecodeDTS(const BYTE * pDataBuffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   HRESULT hr = S_FALSE;
   int nPCMLength	= 0;
 
-  BOOL bFlush = (buffer == NULL);
+  BOOL bFlush = (pDataBuffer == NULL);
 
   BufferDetails out;
-
-  // Copy data onto our properly padded data buffer (to avoid overreads)
-  const uint8_t *pDataBuffer = NULL;
-  if (!m_bInputPadded) {
-    if (!bFlush) {
-      COPY_TO_BUFFER(buffer, buffsize);
-    }
-    pDataBuffer = m_pFFBuffer;
-  } else {
-    pDataBuffer = buffer;
-  }
 
   consumed = 0;
   while (buffsize > 0) {

@@ -68,8 +68,6 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_rtStart(0)
   , m_dStartOffset(0.0)
   , m_DecodeFormat(SampleFormat_16)
-  , m_pFFBuffer(NULL)
-  , m_nFFBufferSize(0)
   , m_bRuntimeConfig(FALSE)
   , m_bVolumeStats(FALSE)
   , m_pParser(NULL)
@@ -93,7 +91,6 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_dwOverrideMixer(0)
   , m_bNeedSyncpoint(FALSE)
   , m_dRate(1.0)
-  , m_bInputPadded(FALSE)
   , m_avrContext(NULL)
   , m_bAVResampleFailed(FALSE)
   , m_bMixingSettingsChanged(FALSE)
@@ -158,7 +155,6 @@ CLAVAudio::~CLAVAudio()
     m_pTrayIcon = NULL;
   }
   ffmpeg_shutdown();
-  av_freep(&m_pFFBuffer);
 
   ShutdownBitstreaming();
 
@@ -1229,7 +1225,6 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   GetModuleFileName(NULL, fileName, 1024);
   std::wstring processName = PathFindFileName(fileName);
 
-  m_bInputPadded = FilterInGraphSafe(m_pInput, CLSID_LAVSplitter) || FilterInGraphSafe(m_pInput, CLSID_LAVSplitterSource);
   m_bHasVideo =  _wcsicmp(processName.c_str(), L"dllhost.exe") == 0
               || _wcsicmp(processName.c_str(), L"explorer.exe") == 0
               || _wcsicmp(processName.c_str(), L"ReClockHelper.dll") == 0
@@ -1512,7 +1507,7 @@ HRESULT CLAVAudio::EndFlush()
 {
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::EndFlush()"));
   CAutoLock cAutoLock(&m_csReceive);
-  m_buff.SetSize(0);
+  m_buff.Clear();
   FlushOutput(FALSE);
 
   FlushDecoder();
@@ -1573,7 +1568,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
     pmt = NULL;
-    m_buff.SetSize(0);
+    m_buff.Clear();
 
     m_bQueueResync = TRUE;
   }
@@ -1599,7 +1594,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
 
   if(pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK)) {
     DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity, flushing decoder.."));
-    m_buff.SetSize(0);
+    m_buff.Clear();
     FlushOutput(FALSE);
     FlushDecoder();
     m_bQueueResync = TRUE;
@@ -1646,9 +1641,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     bufflen = m_buff.GetCount();
   }
 
-  m_buff.SetSize(bufflen + len);
-  memcpy(m_buff.Ptr() + bufflen, pDataIn, len);
-  len += bufflen;
+  m_buff.Allocate(bufflen + len + FF_INPUT_BUFFER_PADDING_SIZE);
+  m_buff.Append(pDataIn, len);
 
   hr = ProcessBuffer();
 
@@ -1730,7 +1724,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
         if (spdif_buffer_size+BURST_HEADER_SIZE > buffer_size) {
           DbgLog((LOG_ERROR, 10, L"::ProcessBuffer(): SPDIF sample is too small (%d required, %d present)", spdif_buffer_size+BURST_HEADER_SIZE, buffer_size));
-          m_buff.SetSize(0);
+          m_buff.Clear();
           m_bQueueResync = TRUE;
           return S_FALSE;
         }
@@ -1754,7 +1748,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     hr2 = Bitstream(p, buffer_size, consumed, &hr);
     if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Invalid sample when bitstreaming!"));
-      m_buff.SetSize(0);
+      m_buff.Clear();
       m_bQueueResync = TRUE;
       return S_FALSE;
     } else if (FAILED(hr)) {
@@ -1773,7 +1767,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     // FAILED - throw away the data
     if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
-      m_buff.SetSize(0);
+      m_buff.Clear();
       m_bQueueResync = TRUE;
       return S_FALSE;
     } else if (FAILED(hr)) {
@@ -1793,10 +1787,13 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
   // Remove the consumed data from the buffer
   p += consumed;
-  memmove(base, p, end - p);
-  end = base + (end - p);
-  p = base;
-  m_buff.SetSize((DWORD)(end - p));
+  if (p == end) {
+    m_buff.Clear();
+  } else {
+    DWORD remaining = (DWORD)(end - p);
+    memmove(base, p, remaining);
+    m_buff.SetSize(remaining);
+  }
 
   return hr;
 }
@@ -1818,29 +1815,18 @@ static DWORD get_lav_channel_layout(uint64_t layout)
   return (DWORD)layout;
 }
 
-HRESULT CLAVAudio::Decode(const BYTE * const buffer, int buffsize, int &consumed, HRESULT *hrDeliver)
+HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   int got_frame	= 0;
   BYTE *tmpProcessBuf = NULL;
   HRESULT hr = S_FALSE;
 
-  BOOL bFlush = (buffer == NULL);
+  BOOL bFlush = (pDataBuffer == NULL);
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
 
   BufferDetails out;
-
-  // Copy data onto our properly padded data buffer (to avoid overreads)
-  const uint8_t *pDataBuffer = NULL;
-  if (!m_bInputPadded) {
-    if (!bFlush) {
-      COPY_TO_BUFFER(buffer, buffsize);
-    }
-    pDataBuffer = m_pFFBuffer;
-  } else {
-    pDataBuffer = buffer;
-  }
 
   if (!bFlush && (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r') || m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r'))) {
     int w = m_raData.audio_framesize;

@@ -77,20 +77,6 @@ struct BufferDetails {
   }
 };
 
-// Copy the given data into our buffer, including padding, so broken decoders do not overread and crash
-#define COPY_TO_BUFFER(data, size) { \
-  if (size > m_nFFBufferSize || !m_pFFBuffer) { \
-    m_nFFBufferSize = size; \
-    m_pFFBuffer = (BYTE*)av_realloc_f(m_pFFBuffer, m_nFFBufferSize + FF_INPUT_BUFFER_PADDING_SIZE, 1); \
-    if (!m_pFFBuffer) { \
-      m_nFFBufferSize = 0; \
-      return E_FAIL; \
-    } \
-  }\
-  memcpy(m_pFFBuffer, data, size); \
-  memset(m_pFFBuffer+size, 0, FF_INPUT_BUFFER_PADDING_SIZE); \
-}
-
 struct DTSDecoder;
 
 [uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
@@ -255,9 +241,6 @@ private:
 
   AVFrame              *m_pFrame;        // AVFrame used for decoding
 
-  BYTE                 *m_pFFBuffer;     // FFMPEG processing buffer (padded)
-	int                  m_nFFBufferSize;  // Size of the FFMPEG processing buffer
-
   BOOL                 m_bDiscontinuity; // Discontinuity
   REFERENCE_TIME       m_rtStart;        // Start time
   double               m_dStartOffset;   // Start time offset (extra precision)
@@ -279,7 +262,6 @@ private:
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 
-  BOOL                 m_bInputPadded;
   BOOL                 m_bHasVideo;
 
   AVAudioResampleContext *m_avrContext;
