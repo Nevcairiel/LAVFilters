@@ -61,7 +61,6 @@ CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int res
   , m_resIcon(resIcon)
   , m_bPropPageOpen(FALSE)
   , m_evSetupFinished(TRUE)
-  , m_bDestroy(FALSE)
 {
   memset(&m_NotifyIconData, 0, sizeof(m_NotifyIconData));
   m_evSetupFinished.Reset();
@@ -70,37 +69,10 @@ CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int res
 
 CBaseTrayIcon::~CBaseTrayIcon(void)
 {
-  // remove tray icon
-  if (m_NotifyIconData.uID)
-    Shell_NotifyIcon(NIM_DELETE, &m_NotifyIconData);
-
-  // Free icon resources
-  if (m_NotifyIconData.hIcon) {
-    DestroyIcon(m_NotifyIconData.hIcon);
-    m_NotifyIconData.hIcon = NULL;
-  }
-
-  // We do not destroy the window here, because it should already
-  // be destroyed by the MSG_QUIT send by the ::Destroy method
-
-  // The thread should either be deleting itself or already be shutdown at this point.
-  if (m_hThread)
-    CloseHandle(m_hThread);
-
-  // Unregister the window class we used
-  UnregisterClass(L"LAVTrayIconClass", g_hInst);
-}
-
-void CBaseTrayIcon::Destroy()
-{
   m_pFilter = NULL;
-  // If the thread/window (still) exist, task it to exit and delete itself
-  if (m_hWnd && m_hThread) {
-    m_bDestroy = TRUE;
+  if (m_hWnd) {
     SendMessage(m_hWnd, MSG_QUIT, 0, 0);
-  } else {
-    // Otherwise, just delete it
-    delete this;
+    WaitForSingleObject(m_hThread, INFINITE);
   }
 }
 
@@ -127,9 +99,6 @@ unsigned int WINAPI CBaseTrayIcon::InitialThreadProc(LPVOID pv)
   if (SUCCEEDED(hrCo))
     CoUninitialize();
 
-  if (pTrayIcon->m_bDestroy)
-    delete pTrayIcon;
-
   return ret;
 }
 
@@ -145,12 +114,10 @@ DWORD CBaseTrayIcon::TrayMessageThread()
   }
 
   // And the Window we use for messages
-  if (!m_hWnd) {
-    hr = CreateMessageWindow();
-    if (FAILED(hr)) {
-      DbgLog((LOG_TRACE, 10, L"CBaseTrayIcon::ThreadProc(): Failed to create message window"));
-      return 1;
-    }
+  hr = CreateMessageWindow();
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"CBaseTrayIcon::ThreadProc(): Failed to create message window"));
+    return 1;
   }
   ASSERT(m_hWnd);
 
@@ -167,19 +134,27 @@ DWORD CBaseTrayIcon::TrayMessageThread()
   }
 
   Shell_NotifyIcon(NIM_DELETE, &m_NotifyIconData);
+  // Free icon resources
+  if (m_NotifyIconData.hIcon) {
+    DestroyIcon(m_NotifyIconData.hIcon);
+    m_NotifyIconData.hIcon = NULL;
+  }
+
+  // Unregister the window class we used
+  UnregisterClass(m_wszClassName, g_hInst);
 
   return 0;
 }
 
 HRESULT CBaseTrayIcon::RegisterWindowClass()
 {
-  static const WCHAR* wszClassName = L"LAVTrayIconClass";
+  swprintf_s(m_wszClassName, countof(m_wszClassName), L"LAVTrayIconClass%d", GetCurrentThreadId());
 
   WNDCLASSEX wx = {};
   wx.cbSize = sizeof(WNDCLASSEX);
   wx.lpfnWndProc = WindowProc;
   wx.hInstance = g_hInst;
-  wx.lpszClassName = wszClassName;
+  wx.lpszClassName = m_wszClassName;
   ATOM wndClass = RegisterClassEx(&wx);
 
   return wndClass == NULL ? E_FAIL : S_OK;
@@ -187,7 +162,7 @@ HRESULT CBaseTrayIcon::RegisterWindowClass()
 
 HRESULT CBaseTrayIcon::CreateMessageWindow()
 {
-  m_hWnd = CreateWindowEx(0, L"LAVTrayIconClass", L"LAV Tray Message Window", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+  m_hWnd = CreateWindowEx(0, m_wszClassName, L"LAV Tray Message Window", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
   SetWindowLongPtr(m_hWnd, GWLP_USERDATA, LONG_PTR(this));
   return m_hWnd == NULL ? E_FAIL : S_OK;
 }
@@ -234,6 +209,7 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
   CBaseTrayIcon *icon = (CBaseTrayIcon *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
   switch(uMsg) {
   case WM_DESTROY:
+    Shell_NotifyIcon(NIM_DELETE, &icon->m_NotifyIconData);
     PostQuitMessage(0);
     break;
   case MSG_QUIT:

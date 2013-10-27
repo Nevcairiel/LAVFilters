@@ -150,10 +150,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVAudio::~CLAVAudio()
 {
-  if (m_pTrayIcon) {
-    m_pTrayIcon->Destroy();
-    m_pTrayIcon = NULL;
-  }
+  SAFE_DELETE(m_pTrayIcon);
   ffmpeg_shutdown();
 
   ShutdownBitstreaming();
@@ -183,8 +180,7 @@ STDMETHODIMP CLAVAudio::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
   if (pGraph && !m_pTrayIcon && m_settings.TrayIcon) {
     CreateTrayIcon();
   } else if (!pGraph && m_pTrayIcon) {
-    m_pTrayIcon->Destroy();
-    m_pTrayIcon = NULL;
+    SAFE_DELETE(m_pTrayIcon);
   }
   return hr;
 }
@@ -524,10 +520,7 @@ HRESULT CLAVAudio::SetRuntimeConfig(BOOL bRuntimeConfig)
   LoadSettings();
 
   // Tray Icon is disabled by default
-  if (m_pTrayIcon) {
-    m_pTrayIcon->Destroy();
-    m_pTrayIcon = NULL;
-  }
+  SAFE_DELETE(m_pTrayIcon);
 
   return S_OK;
 }
@@ -792,10 +785,7 @@ STDMETHODIMP CLAVAudio::SetTrayIcon(BOOL bEnabled)
 {
   m_settings.TrayIcon = bEnabled;
   if (!bEnabled && m_pTrayIcon) {
-    if (m_pTrayIcon) {
-      m_pTrayIcon->Destroy();
-      m_pTrayIcon = NULL;
-    }
+    SAFE_DELETE(m_pTrayIcon);
   } else if (bEnabled && m_pGraph && !m_pTrayIcon) {
     CreateTrayIcon();
   }

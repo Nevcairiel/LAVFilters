@@ -25,12 +25,11 @@ class CBaseTrayIcon
 {
 public:
   CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
-  void Destroy();
+  virtual ~CBaseTrayIcon(void);
 
   static BOOL ProcessBlackList();
 
 protected:
-  virtual ~CBaseTrayIcon(void);
   virtual HRESULT CreateTrayIconData();
 
   virtual HMENU GetPopupMenu() { return NULL; }
@@ -53,12 +52,12 @@ protected:
 
 private:
   CAMEvent m_evSetupFinished;
-  BOOL m_bDestroy;
 
   HANDLE m_hThread;
   HWND m_hWnd;
   BOOL m_bPropPageOpen;
 
+  WCHAR m_wszClassName[64];
   const WCHAR *m_wszName;
   int m_resIcon;
   NOTIFYICONDATA m_NotifyIconData;

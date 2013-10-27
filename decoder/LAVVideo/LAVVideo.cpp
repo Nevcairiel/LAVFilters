@@ -122,10 +122,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
 CLAVVideo::~CLAVVideo()
 {
-  if (m_pTrayIcon) {
-    m_pTrayIcon->Destroy();
-    m_pTrayIcon = NULL;
-  }
+  SAFE_DELETE(m_pTrayIcon);
   SAFE_DELETE(m_ControlThread);
 
   ReleaseLastSequenceFrame();
@@ -158,8 +155,7 @@ STDMETHODIMP CLAVVideo::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
   if (pGraph && !m_pTrayIcon && m_settings.TrayIcon) {
     CreateTrayIcon();
   } else if (!pGraph && m_pTrayIcon) {
-    m_pTrayIcon->Destroy();
-    m_pTrayIcon = NULL;
+    SAFE_DELETE(m_pTrayIcon);
   }
   return hr;
 }
@@ -1651,10 +1647,7 @@ STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)
   LoadSettings();
 
   // Tray Icon is disabled by default
-  if (m_pTrayIcon) {
-    m_pTrayIcon->Destroy();
-    m_pTrayIcon = NULL;
-  }
+  SAFE_DELETE(m_pTrayIcon);
 
   return S_OK;
 }
@@ -1942,10 +1935,7 @@ STDMETHODIMP CLAVVideo::SetTrayIcon(BOOL bEnabled)
 {
   m_settings.TrayIcon = bEnabled;
   if (!bEnabled && m_pTrayIcon) {
-    if (m_pTrayIcon) {
-      m_pTrayIcon->Destroy();
-      m_pTrayIcon = NULL;
-    }
+    SAFE_DELETE(m_pTrayIcon);
   } else if (bEnabled && m_pGraph && !m_pTrayIcon) {
     CreateTrayIcon();
   }
