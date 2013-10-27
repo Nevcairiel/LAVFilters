@@ -3,4 +3,7 @@
   <PropertyGroup Label="Configuration" Condition="'$(VisualStudioVersion)' == '11.0'">
     <PlatformToolset>v110_xp</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(VisualStudioVersion)' == '12.0'">
+    <PlatformToolset>v120_xp</PlatformToolset>
+  </PropertyGroup>
 </Project>
