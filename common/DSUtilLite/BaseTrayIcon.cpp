@@ -74,6 +74,7 @@ CBaseTrayIcon::~CBaseTrayIcon(void)
     SendMessage(m_hWnd, MSG_QUIT, 0, 0);
     WaitForSingleObject(m_hThread, INFINITE);
   }
+  CloseHandle(m_hThread);
 }
 
 HRESULT CBaseTrayIcon::StartMessageThread()
