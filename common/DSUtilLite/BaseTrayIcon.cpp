@@ -118,6 +118,8 @@ DWORD CBaseTrayIcon::TrayMessageThread()
   hr = CreateMessageWindow();
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"CBaseTrayIcon::ThreadProc(): Failed to create message window"));
+    m_evSetupFinished.Set();
+    UnregisterClass(m_wszClassName, g_hInst);
     return 1;
   }
   ASSERT(m_hWnd);
