@@ -1934,9 +1934,9 @@ STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelResolutionFlags()
 STDMETHODIMP CLAVVideo::SetTrayIcon(BOOL bEnabled)
 {
   m_settings.TrayIcon = bEnabled;
-  if (!bEnabled && m_pTrayIcon) {
-    SAFE_DELETE(m_pTrayIcon);
-  } else if (bEnabled && m_pGraph && !m_pTrayIcon) {
+  // The tray icon is created if not yet done so, however its not removed on the fly
+  // Removing the icon on the fly can cause deadlocks if the config is changed from the icons thread
+  if (bEnabled && m_pGraph && !m_pTrayIcon) {
     CreateTrayIcon();
   }
   return SaveSettings();
