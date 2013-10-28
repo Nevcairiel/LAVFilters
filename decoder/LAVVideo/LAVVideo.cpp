@@ -142,6 +142,9 @@ CLAVVideo::~CLAVVideo()
 
 HRESULT CLAVVideo::CreateTrayIcon()
 {
+  CAutoLock cObjectLock(m_pLock);
+  if (m_pTrayIcon)
+    return E_UNEXPECTED;
   if (CBaseTrayIcon::ProcessBlackList())
     return S_FALSE;
   m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_VIDEO), IDI_ICON1);

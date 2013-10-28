@@ -167,6 +167,9 @@ CLAVAudio::~CLAVAudio()
 
 STDMETHODIMP CLAVAudio::CreateTrayIcon()
 {
+  CAutoLock cObjectLock(m_pLock);
+  if (m_pTrayIcon)
+    return E_UNEXPECTED;
   if (CBaseTrayIcon::ProcessBlackList())
     return S_FALSE;
   m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_AUDIO), IDI_ICON1);

@@ -124,6 +124,9 @@ STDMETHODIMP CLAVSplitter::Close()
 
 STDMETHODIMP CLAVSplitter::CreateTrayIcon()
 {
+  CAutoLock cObjectLock(m_pLock);
+  if (m_pTrayIcon)
+    return E_UNEXPECTED;
   if (CBaseTrayIcon::ProcessBlackList())
     return S_FALSE;
   m_pTrayIcon = new CLAVSplitterTrayIcon(this, TEXT(LAV_SPLITTER), IDI_ICON1);
