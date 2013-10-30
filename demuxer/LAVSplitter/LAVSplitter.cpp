@@ -148,11 +148,6 @@ STDMETHODIMP CLAVSplitter::JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName)
 // Default overrides for input formats
 static BOOL get_iformat_default(std::string name)
 {
-  // Raw video formats lack timestamps..
-  if (name == "rawvideo") {
-    return FALSE;
-  }
-
   return TRUE;
 }
 
