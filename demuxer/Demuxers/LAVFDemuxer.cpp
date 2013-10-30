@@ -1940,6 +1940,9 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
   DWORD dwFlags = 0;
   AVStream *st = m_avFormat->streams[dwStream];
 
+  if (strcmp(m_pszInputFormat, "rawvideo") == 0)
+    dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
+
   if (st->codec->codec_id == AV_CODEC_ID_H264 && (m_bAVI || m_bPMP || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1))))
     dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
 
