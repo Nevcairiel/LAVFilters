@@ -206,8 +206,7 @@ interface ILAVVideoCallback
    */
   STDMETHOD_(DWORD, GetDecodeFlags)() PURE;
 #define LAV_VIDEO_DEC_FLAG_STREAMAR_BLACKLIST     0x00000001
-#define LAV_VIDEO_DEC_FLAG_VC1_DTS                0x00000002
-#define LAV_VIDEO_DEC_FLAG_H264_AVI               0x00000004
+#define LAV_VIDEO_DEC_FLAG_ONLY_DTS               0x00000002
 #define LAV_VIDEO_DEC_FLAG_LAVSPLITTER            0x00000008
 #define LAV_VIDEO_DEC_FLAG_DVD                    0x00000010
 #define LAV_VIDEO_DEC_FLAG_NO_MT                  0x00000020

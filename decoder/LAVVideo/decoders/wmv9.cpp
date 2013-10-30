@@ -404,7 +404,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     }
   }
 
-  m_bManualReorder = (codec == AV_CODEC_ID_VC1) && !(m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_VC1_DTS);
+  m_bManualReorder = (codec == AV_CODEC_ID_VC1) && !(m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_ONLY_DTS);
 
   return S_OK;
 }

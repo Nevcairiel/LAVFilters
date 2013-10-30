@@ -522,12 +522,13 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_bInputPadded = dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER;
 
   // Setup codec-specific timing logic
-  BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_VC1_DTS));
+  BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS));
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
   // VC-1 is also a special case. Its required for splitters that deliver PTS timestamps (see bVC1IsPTS above)
-  m_bFFReordering        =  ( codec == AV_CODEC_ID_H264 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_H264_AVI))
+  m_bFFReordering        = !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS) && (
+                              codec == AV_CODEC_ID_H264
                            || codec == AV_CODEC_ID_HEVC
                            || codec == AV_CODEC_ID_VP8
                            || codec == AV_CODEC_ID_VP3
@@ -540,8 +541,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                            || codec == AV_CODEC_ID_UTVIDEO
                            || codec == AV_CODEC_ID_DNXHD
                            || codec == AV_CODEC_ID_JPEG2000
+                           || codec == AV_CODEC_ID_VC1
                            || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video)
-                           || bVC1IsPTS;
+                          );
 
   // Stop time is unreliable, drop it and calculate it
   m_bCalculateStopTime   = (codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_DIRAC || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video) || bVC1IsPTS);

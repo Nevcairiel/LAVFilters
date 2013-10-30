@@ -589,9 +589,8 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
-  m_bUseTimestampQueue = (cudaCodec == cudaVideoCodec_H264 && m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_H264_AVI)
-                      || (cudaCodec == cudaVideoCodec_MPEG4 && pmt->formattype != FORMAT_MPEG2Video)
-                      || (cudaCodec == cudaVideoCodec_VC1 && m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_VC1_DTS);
+  m_bUseTimestampQueue = (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_ONLY_DTS)
+                      || (cudaCodec == cudaVideoCodec_MPEG4 && pmt->formattype != FORMAT_MPEG2Video);
   m_bWaitForKeyframe = m_bUseTimestampQueue;
   m_bInterlaced = TRUE;
   m_bFormatIncompatible = FALSE;
