@@ -651,7 +651,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
                 || FilterInGraph(PINDIR_INPUT, CLSID_MPBDReader)
                 || bSageVC1Hack);
 
-  BOOL bH264IsAVI   = (codec == AV_CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_H264_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
+  BOOL bH264IsAVI   = (codec == AV_CODEC_ID_H264 && ((m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_ONLY_DTS)) || (!m_LAVPinInfoValid && pszExtension && _wcsicmp(pszExtension, L".avi") == 0)));
   BOOL bLAVSplitter = FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitterSource) || FilterInGraph(PINDIR_INPUT, CLSID_LAVSplitter);
   BOOL bDVDPlayback = (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES);
   BOOL bTheoraMPCHCOgg = (codec == AV_CODEC_ID_THEORA || codec == AV_CODEC_ID_VP3) && (FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSplitter) || FilterInGraph(PINDIR_INPUT, CLSID_MPCHCOggSource));
