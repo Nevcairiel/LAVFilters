@@ -559,3 +559,4 @@ STDMETHODIMP_(CMediaType&) CDecodeThread::GetOutputMediaType() { return m_pLAVVi
 STDMETHODIMP CDecodeThread::DVDStripPacket(BYTE*& p, long& len) { return m_pLAVVideo->DVDStripPacket(p, len); }
 STDMETHODIMP_(LAVFrame*) CDecodeThread::GetFlushFrame() { return m_pLAVVideo->GetFlushFrame(); }
 STDMETHODIMP CDecodeThread::ReleaseAllDXVAResources() { return m_pLAVVideo->ReleaseAllDXVAResources(); }
+STDMETHODIMP_(DWORD) CDecodeThread::GetGPUDeviceIndex() { return m_pLAVVideo->GetGPUDeviceIndex(); }

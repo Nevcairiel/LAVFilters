@@ -447,6 +447,11 @@ STDMETHODIMP CDecCuvid::Init()
   int best_device = GetMaxGflopsGraphicsDeviceId();
   int device = best_device;
 
+  DWORD dwDeviceIndex = m_pCallback->GetGPUDeviceIndex();
+  if (dwDeviceIndex != DWORD_MAX) {
+    best_device = (int)dwDeviceIndex;
+  }
+
   m_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
   if (!m_pD3D) {
     DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9"));
@@ -513,6 +518,13 @@ STDMETHODIMP CDecCuvid::Init()
   }
 
   cuStatus = CUDA_SUCCESS;
+
+  if (dwDeviceIndex != DWORD_MAX && device != best_device) {
+    DbgLog((LOG_ERROR, 10, L"-> No D3D Device found matching the requested device"));
+    SafeRelease(&m_pD3DDevice);
+    if (m_cudaContext)
+      cuda.cuCtxDestroy(m_cudaContext);
+  }
 
   if (!m_pD3DDevice) {
     DbgLog((LOG_TRACE, 10, L"-> No D3D device available, building non-D3D context on device %d", best_device));

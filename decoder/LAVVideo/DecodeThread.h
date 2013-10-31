@@ -65,6 +65,7 @@ public:
   STDMETHODIMP DVDStripPacket(BYTE*& p, long& len);
   STDMETHODIMP_(LAVFrame*) GetFlushFrame();
   STDMETHODIMP ReleaseAllDXVAResources();
+  STDMETHODIMP_(DWORD) GetGPUDeviceIndex();
 
 protected:
   DWORD ThreadProc();

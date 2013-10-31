@@ -353,6 +353,12 @@ interface ILAVVideoSettings : public IUnknown
 
   // Get the Deint Mode
   STDMETHOD_(LAVDeintMode,GetDeinterlacingMode)() = 0;
+
+  // Set the index of the GPU to be used for hardware decoding
+  // Only supported for CUVID and DXVA2 copy-back. If the device is not valid, it'll fallback to auto-detection
+  // Must be called before an input is connected to LAV Video, and the setting is non-persistent
+  // NOTE: For CUVID, the index defines the index of the CUDA capable device, while for DXVA2, the list includes all D3D9 devices
+  STDMETHOD(SetGPUDeviceIndex)(DWORD dwDevice) = 0;
 };
 
 // LAV Video status interface

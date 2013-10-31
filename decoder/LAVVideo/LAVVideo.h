@@ -127,6 +127,8 @@ public:
   STDMETHODIMP SetDeinterlacingMode(LAVDeintMode deintMode);
   STDMETHODIMP_(LAVDeintMode) GetDeinterlacingMode();
 
+  STDMETHODIMP SetGPUDeviceIndex(DWORD dwDevice);
+
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
 
@@ -166,6 +168,7 @@ public:
   STDMETHODIMP DVDStripPacket(BYTE*& p, long& len) { static_cast<CDeCSSTransformInputPin*>(m_pInput)->StripPacket(p, len); return S_OK; }
   STDMETHODIMP_(LAVFrame*) GetFlushFrame();
   STDMETHODIMP ReleaseAllDXVAResources() { ReleaseLastSequenceFrame(); return S_OK; }
+  STDMETHODIMP_(DWORD) GetGPUDeviceIndex() { return m_dwGPUDeviceIndex; }
 
 public:
   // Pin Configuration
@@ -278,6 +281,8 @@ private:
     DWORD DitherMode;
     BOOL bDVDVideo;
   } m_settings;
+
+  DWORD m_dwGPUDeviceIndex;
 
   CBaseTrayIcon *m_pTrayIcon;
 

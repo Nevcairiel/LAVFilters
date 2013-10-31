@@ -563,10 +563,25 @@ HRESULT CDecDXVA2::InitD3D()
     return E_FAIL;
   }
 
-  int lAdapter = D3DADAPTER_DEFAULT;
+  UINT lAdapter = D3DADAPTER_DEFAULT;
 
+  DWORD dwDeviceIndex = m_pCallback->GetGPUDeviceIndex();
+  if (dwDeviceIndex != DWORD_MAX) {
+    lAdapter = (UINT)dwDeviceIndex;
+  }
+
+retry_default:
   D3DADAPTER_IDENTIFIER9 d3dai = {0};
-  m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dai);
+  hr = m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dai);
+  if (FAILED(hr)) {
+    // retry if the adapter is invalid
+    if (lAdapter != D3DADAPTER_DEFAULT) {
+      lAdapter = D3DADAPTER_DEFAULT;
+      goto retry_default;
+    }
+    DbgLog((LOG_TRACE, 10, L"-> Querying of adapter identifier failed with hr: %X", hr));
+    return E_FAIL;
+  }
 
   const char *vendor = "Unknown";
   for (int i = 0; vendors[i].id != 0; i++) {

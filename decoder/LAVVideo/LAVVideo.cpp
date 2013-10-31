@@ -88,6 +88,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bInDVDMenu(FALSE)
   , m_ControlThread(NULL)
   , m_pTrayIcon(NULL)
+  , m_dwGPUDeviceIndex(DWORD_MAX)
 {
   *phr = S_OK;
   m_pInput = new CVideoInputPin(TEXT("CVideoInputPin"), this, phr, L"Input");
@@ -1961,6 +1962,12 @@ STDMETHODIMP CLAVVideo::SetDeinterlacingMode(LAVDeintMode deintMode)
 STDMETHODIMP_(LAVDeintMode) CLAVVideo::GetDeinterlacingMode()
 {
   return m_settings.DeintMode;
+}
+
+STDMETHODIMP CLAVVideo::SetGPUDeviceIndex(DWORD dwDevice)
+{
+  m_dwGPUDeviceIndex = dwDevice;
+  return S_OK;
 }
 
 CLAVControlThread::CLAVControlThread(CLAVVideo *pLAVVideo)

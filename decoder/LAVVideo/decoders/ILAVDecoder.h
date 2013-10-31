@@ -250,6 +250,11 @@ interface ILAVVideoCallback
    * Ask the decoder to release all DXVA resources
    */
   STDMETHOD(ReleaseAllDXVAResources)() PURE;
+
+  /**
+   * Get the index of the GPU device to be used for HW decoding, DWORD_MAX if not set
+   */
+  STDMETHOD_(DWORD, GetGPUDeviceIndex)() PURE;
 };
 
 /**
