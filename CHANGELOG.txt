@@ -1,5 +1,20 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.59.0 - 2013/11/03
+LAV Splitter
+- Support for demuxing H.265/HEVC and VP9
+- Improvements for H.264 in AVI or as raw video streams
+- Improved stream detection in files which start with a few seconds audio before the video
+- Improved timestamp handling when demuxing seamless branching Blu-rays, fixes a few hicups/freezes mid-stream
+
+LAV Video
+- Support for decoding H.265/HEVC and VP9
+- Accept H.264 from the MainConcept demuxer
+- Added support for DV Video from Canopus cameras
+
+LAV Audio
+- Fixed playback issues on a few DTS and DTS-HD tracks
+
 0.58.2 - 2013/07/26
 LAV Splitter
 - Fixed demuxing of WavPack from MKV
