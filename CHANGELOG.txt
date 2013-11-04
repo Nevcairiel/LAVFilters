@@ -1,5 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.59.1 - 2013/11/04
+LAV Splitter
+- Fixed a regression when demuxing AAC audio from MP4/MOV files
+
 0.59.0 - 2013/11/03
 LAV Splitter
 - Support for demuxing H.265/HEVC and VP9
