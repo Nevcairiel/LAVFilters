@@ -80,9 +80,6 @@
     <ClInclude Include="..\..\common\includes\moreuuids.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\stdint.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\includes\version.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
