@@ -66,9 +66,6 @@
     <ClCompile Include="VideoSettingsProp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H264RandomAccess.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="parsers\VC1HeaderParser.cpp">
       <Filter>Source Files\parsers</Filter>
     </ClCompile>
@@ -179,9 +176,6 @@
     <ClInclude Include="LAVVideoSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H264RandomAccess.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="parsers\VC1HeaderParser.h">
       <Filter>Header Files\parsers</Filter>
     </ClInclude>
@@ -269,10 +263,5 @@
     <Manifest Include="LAVVideo.manifest">
       <Filter>Resource Files</Filter>
     </Manifest>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="..\..\resources\LAVFilters.Dependencies.manifest">
-      <Filter>Resource Files</Filter>
-    </CustomBuild>
   </ItemGroup>
 </Project>

@@ -105,7 +105,6 @@
     <ClCompile Include="DecodeThread.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Filtering.cpp" />
-    <ClCompile Include="H264RandomAccess.cpp" />
     <ClCompile Include="LAVPixFmtConverter.cpp" />
     <ClCompile Include="LAVVideo.cpp" />
     <ClCompile Include="Media.cpp" />
@@ -145,7 +144,6 @@
     <ClInclude Include="decoders\quicksync.h" />
     <ClInclude Include="decoders\wmv9.h" />
     <ClInclude Include="DecodeThread.h" />
-    <ClInclude Include="H264RandomAccess.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
     <ClInclude Include="LAVVideoSettings.h" />

@@ -20,7 +20,6 @@
 #pragma once
 
 #include "DecBase.h"
-#include "H264RandomAccess.h"
 
 #include <map>
 
@@ -76,8 +75,6 @@ private:
   int                  m_nFFBufferSize2;
 
   SwsContext           *m_pSwsContext;
-
-  CH264RandomAccess    m_h264RandomAccess;
 
   BOOL                 m_bNoBufferConsumption;
   BOOL                 m_bHasPalette;

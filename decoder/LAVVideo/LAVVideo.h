@@ -25,7 +25,6 @@
 
 #include "LAVPixFmtConverter.h"
 #include "LAVVideoSettings.h"
-#include "H264RandomAccess.h"
 #include "FloatingAverage.h"
 
 #include "ISpecifyPropertyPages2.h"
