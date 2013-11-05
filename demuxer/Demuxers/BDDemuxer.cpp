@@ -22,14 +22,16 @@
 
 #define BD_READ_BUFFER_SIZE (6144 * 20)
 
-int BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size)
+int CBDDemuxer::BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size)
 {
-  return bd_read((BLURAY *)opaque, buf, buf_size);
+  CBDDemuxer *demux = (CBDDemuxer *)opaque;
+  return bd_read(demux->m_pBD, buf, buf_size);
 }
 
-int64_t BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
+int64_t CBDDemuxer::BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
 {
-  BLURAY *bd = (BLURAY *)opaque;
+  CBDDemuxer *demux = (CBDDemuxer *)opaque;
+  BLURAY *bd = demux->m_pBD;
 
   int64_t pos = 0;
   if (whence == SEEK_SET) {
@@ -308,7 +310,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   }
 
   uint8_t *buffer = (uint8_t *)av_mallocz(BD_READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-  m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, m_pBD, BDByteStreamRead, NULL, BDByteStreamSeek);
+  m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, this, BDByteStreamRead, NULL, BDByteStreamSeek);
 
   SafeRelease(&m_lavfDemuxer);
   SAFE_CO_FREE(m_rtOffset);
