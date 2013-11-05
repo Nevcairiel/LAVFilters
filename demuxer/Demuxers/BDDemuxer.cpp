@@ -256,7 +256,7 @@ void CBDDemuxer::ProcessBDEvents()
       int ret = bd_get_clip_infos(m_pBD, event.param, &clip_start, &clip_in, &bytepos, NULL);
       if (ret) {
         m_rtNewOffset = Convert90KhzToDSTime(clip_start - clip_in) + m_lavfDemuxer->GetStartTime();
-        m_bNewOffsetPos = bytepos;
+        m_bNewOffsetPos = bytepos-4;
         DbgLog((LOG_TRACE, 10, L"New clip! offset: %I64d bytepos: %I64u", m_rtNewOffset, bytepos));
       }
     }
