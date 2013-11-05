@@ -107,6 +107,7 @@ CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettingsInternal *pSettings)
   , m_rtNewOffset(0)
   , m_bNewOffsetPos(0)
   , m_nTitleCount(0)
+  , m_EndOfStreamPacketFlushProtection(FALSE)
 {
 #ifdef DEBUG
   bd_set_debug_mask(DBG_FILE|DBG_BLURAY|DBG_DIR|DBG_NAV|DBG_CRIT);
@@ -261,6 +262,9 @@ void CBDDemuxer::ProcessBDEvents()
         m_bNewOffsetPos = bytepos-4;
         DbgLog((LOG_TRACE, 10, L"New clip! offset: %I64d bytepos: %I64u", m_rtNewOffset, bytepos));
       }
+      m_EndOfStreamPacketFlushProtection = FALSE;
+    } else if (event.event == BD_EVENT_END_OF_TITLE) {
+      m_EndOfStreamPacketFlushProtection = TRUE;
     }
   }
 }
@@ -282,6 +286,15 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
     //DbgLog((LOG_TRACE, 10, L"Frame: stream: %d, start: %I64d, corrected: %I64d, bytepos: %I64d", pPacket->StreamId, pPacket->rtStart, pPacket->rtStart + rtOffset, pPacket->bPosition));
     pPacket->rtStart += rtOffset;
     pPacket->rtStop += rtOffset;
+  }
+
+  if (hr == S_OK && m_EndOfStreamPacketFlushProtection && pPacket && pPacket->bPosition != -1) {
+    if (pPacket->bPosition < m_bNewOffsetPos) {
+      DbgLog((LOG_TRACE, 10, L"Dropping packet from a pervious segment (pos %I64d, segment started at %I64d) at EOS, from stream %d", pPacket->bPosition, m_bNewOffsetPos, pPacket->StreamId));
+      SAFE_DELETE(*ppPacket);
+      *ppPacket = NULL;
+      return S_FALSE;
+    }
   }
   return hr;
 }
@@ -437,6 +450,7 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
   int64_t prev = bd_tell(m_pBD);
 
   int64_t target = bd_find_seek_point(m_pBD, ConvertDSTimeTo90Khz(rTime));
+  m_EndOfStreamPacketFlushProtection = FALSE;
 
   DbgLog((LOG_TRACE, 1, "Seek Request: %I64u (time); %I64u (byte), %I64u (prev byte)", rTime, target, prev));
   return m_lavfDemuxer->SeekByte(target + 4, AVSEEK_FLAG_BACKWARD);

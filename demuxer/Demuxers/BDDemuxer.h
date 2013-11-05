@@ -92,4 +92,6 @@ private:
   REFERENCE_TIME *m_rtOffset;
   REFERENCE_TIME m_rtNewOffset;
   int64_t       m_bNewOffsetPos;
+
+  BOOL m_EndOfStreamPacketFlushProtection;
 };
