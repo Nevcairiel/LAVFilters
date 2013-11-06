@@ -95,17 +95,19 @@ HRESULT CLAVAudio::InitDTSDecoder()
       DWORD dwVersionSize = GetFileVersionInfoSize(wModuleFile, NULL);
       if (dwVersionSize > 0) {
         void *versionInfo = CoTaskMemAlloc(dwVersionSize);
-        GetFileVersionInfo(wModuleFile, 0, dwVersionSize, versionInfo);
-        VS_FIXEDFILEINFO *info;
-        unsigned cbInfo;
-        BOOL bInfoPresent = VerQueryValue(versionInfo, TEXT("\\"), (LPVOID*)&info, &cbInfo);
-        if (bInfoPresent) {
-          bInfoPresent = bInfoPresent;
-          uint64_t version = info->dwFileVersionMS;
-          version <<= 32;
-          version += info->dwFileVersionLS;
-          if (version && version < 0x0001000100000000i64)
-            bIncompatibleDecoder = TRUE;
+        BOOL bVersionInfoPresent = GetFileVersionInfo(wModuleFile, 0, dwVersionSize, versionInfo);
+        if (bVersionInfoPresent) {
+          VS_FIXEDFILEINFO *info;
+          unsigned cbInfo;
+          BOOL bInfoPresent = VerQueryValue(versionInfo, TEXT("\\"), (LPVOID*)&info, &cbInfo);
+          if (bInfoPresent) {
+            bInfoPresent = bInfoPresent;
+            uint64_t version = info->dwFileVersionMS;
+            version <<= 32;
+            version += info->dwFileVersionLS;
+            if (version && version < 0x0001000100000000i64)
+              bIncompatibleDecoder = TRUE;
+          }
         }
         CoTaskMemFree(versionInfo);
       }
