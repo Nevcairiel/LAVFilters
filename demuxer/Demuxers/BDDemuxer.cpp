@@ -338,6 +338,12 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 
   m_lavfDemuxer->SeekByte(0, 0);
 
+  // Process any events that occured during opening
+  ProcessBDEvents();
+
+  // Reset EOS protection
+  m_EndOfStreamPacketFlushProtection = FALSE;
+
   // space for storing stream offsets
   m_rtOffset = (REFERENCE_TIME *)CoTaskMemAlloc(sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
   if (!m_rtOffset)
