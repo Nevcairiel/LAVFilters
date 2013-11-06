@@ -265,6 +265,8 @@ void CBDDemuxer::ProcessBDEvents()
       m_EndOfStreamPacketFlushProtection = FALSE;
     } else if (event.event == BD_EVENT_END_OF_TITLE) {
       m_EndOfStreamPacketFlushProtection = TRUE;
+    } else if (event.event == BD_EVENT_SEEK) {
+      m_EndOfStreamPacketFlushProtection = FALSE;
     }
   }
 }
