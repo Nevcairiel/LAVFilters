@@ -292,7 +292,7 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
 
   if (hr == S_OK && m_EndOfStreamPacketFlushProtection && pPacket && pPacket->bPosition != -1) {
     if (pPacket->bPosition < m_bNewOffsetPos) {
-      DbgLog((LOG_TRACE, 10, L"Dropping packet from a pervious segment (pos %I64d, segment started at %I64d) at EOS, from stream %d", pPacket->bPosition, m_bNewOffsetPos, pPacket->StreamId));
+      DbgLog((LOG_TRACE, 10, L"Dropping packet from a previous segment (pos %I64d, segment started at %I64d) at EOS, from stream %d", pPacket->bPosition, m_bNewOffsetPos, pPacket->StreamId));
       SAFE_DELETE(*ppPacket);
       *ppPacket = NULL;
       return S_FALSE;
