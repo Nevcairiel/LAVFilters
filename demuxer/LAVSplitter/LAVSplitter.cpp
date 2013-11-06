@@ -705,6 +705,8 @@ DWORD CLAVSplitter::ThreadProc()
       return 0;
     }
 
+    m_csPlaybackInit.Lock();
+
     m_rtStart = m_rtNewStart;
     m_rtStop = m_rtNewStop;
 
@@ -730,6 +732,7 @@ DWORD CLAVSplitter::ThreadProc()
     m_bDiscontinuitySent.clear();
 
     m_bPlaybackStarted = TRUE;
+    m_csPlaybackInit.Unlock();
 
     HRESULT hr = S_OK;
     while(SUCCEEDED(hr) && !CheckRequest(&cmd)) {
@@ -862,6 +865,7 @@ STDMETHODIMP_(CMediaType *) CLAVSplitter::GetOutputMediatype(int stream)
 STDMETHODIMP CLAVSplitter::Stop()
 {
   CAutoLock cAutoLock(this);
+  CAutoLock cPlaybackLock(&m_csPlaybackInit);
 
   // Ask network operations to exit
   if (m_pDemuxer)

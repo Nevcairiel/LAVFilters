@@ -232,6 +232,7 @@ protected:
 
 private:
   CCritSec m_csPins;
+  CCritSec m_csPlaybackInit;
   std::vector<CLAVOutputPin *> m_pPins;
   std::vector<CLAVOutputPin *> m_pActivePins;
   std::vector<CLAVOutputPin *> m_pRetiredPins;
