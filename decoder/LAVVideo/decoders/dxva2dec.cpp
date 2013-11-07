@@ -222,8 +222,6 @@ CDecDXVA2::CDecDXVA2(void)
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
   ZeroMemory(&m_pSurfaces, sizeof(m_pSurfaces));
   ZeroMemory(&m_FrameQueue, sizeof(m_FrameQueue));
-
-  m_bDXVA = TRUE;
 }
 
 CDecDXVA2::~CDecDXVA2(void)

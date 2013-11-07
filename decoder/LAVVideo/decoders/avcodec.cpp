@@ -329,7 +329,6 @@ CDecAvcodec::CDecAvcodec(void)
   , m_nBFramePos(0)
   , m_iInterlaced(-1)
   , m_CurrentThread(0)
-  , m_bDXVA(FALSE)
   , m_bInputPadded(FALSE)
 {
 }
