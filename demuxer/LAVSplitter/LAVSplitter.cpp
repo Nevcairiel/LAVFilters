@@ -1061,9 +1061,6 @@ STDMETHODIMP CLAVSplitter::SetPositionsInternal(void *caller, LONGLONG* pCurrent
     DeliverBeginFlush();
     CallWorker(CMD_SEEK);
     DeliverEndFlush();
-
-    // Wait for the seek to finish
-    m_ePlaybackInit.Wait();
   }
   DbgLog((LOG_TRACE, 20, " -> Seek finished", m_rtNewStart));
 
