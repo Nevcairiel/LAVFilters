@@ -246,10 +246,6 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
   }
 
   if (!bNoAVCodec) {
-    if (m_pAVCtx) {
-      av_freep(&m_pAVCtx->hwaccel_context);
-    }
-
     CDecAvcodec::DestroyDecoder();
   }
 

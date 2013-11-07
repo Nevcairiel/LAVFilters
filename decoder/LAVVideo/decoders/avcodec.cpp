@@ -660,6 +660,7 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
 
   if (m_pAVCtx) {
     avcodec_close(m_pAVCtx);
+    av_freep(&m_pAVCtx->hwaccel_context);
     av_freep(&m_pAVCtx->extradata);
     av_freep(&m_pAVCtx);
   }
