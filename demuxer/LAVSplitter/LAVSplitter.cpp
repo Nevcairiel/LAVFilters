@@ -60,6 +60,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bStopValid(FALSE)
   , m_rtOffset(0)
   , m_pTrayIcon(NULL)
+  , m_ePlaybackInit(TRUE)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
@@ -705,7 +706,7 @@ DWORD CLAVSplitter::ThreadProc()
       return 0;
     }
 
-    m_csPlaybackInit.Lock();
+    m_ePlaybackInit.Reset();
 
     m_rtStart = m_rtNewStart;
     m_rtStop = m_rtNewStop;
@@ -732,7 +733,7 @@ DWORD CLAVSplitter::ThreadProc()
     m_bDiscontinuitySent.clear();
 
     m_bPlaybackStarted = TRUE;
-    m_csPlaybackInit.Unlock();
+    m_ePlaybackInit.Set();
 
     HRESULT hr = S_OK;
     while(SUCCEEDED(hr) && !CheckRequest(&cmd)) {
@@ -865,7 +866,9 @@ STDMETHODIMP_(CMediaType *) CLAVSplitter::GetOutputMediatype(int stream)
 STDMETHODIMP CLAVSplitter::Stop()
 {
   CAutoLock cAutoLock(this);
-  CAutoLock cPlaybackLock(&m_csPlaybackInit);
+
+  // Wait for playback to finish initializing
+  m_ePlaybackInit.Wait();
 
   // Ask network operations to exit
   if (m_pDemuxer)
