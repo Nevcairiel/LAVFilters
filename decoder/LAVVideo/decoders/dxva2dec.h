@@ -20,6 +20,7 @@
 #pragma once
 #include "DecBase.h"
 #include "avcodec.h"
+#include "libavcodec/dxva2.h"
 
 #define DXVA2_MAX_SURFACES 64
 #define DXVA2_QUEUE_SURFACES 4
@@ -83,6 +84,7 @@ private:
   HRESULT DXVA2NotifyEVR();
   HRESULT RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager);
   HRESULT CheckHWCompatConditions(GUID decoderGuid);
+  HRESULT FillHWContext(dxva_context *ctx);
 
   static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flags);
   static void free_dxva2_buffer(void *opaque, uint8_t *data);
@@ -127,5 +129,6 @@ private:
   DWORD     m_dwSurfaceHeight;
   DWORD     m_dwVendorId;
   DWORD     m_dwDeviceId;
+  GUID      m_guidDecoderDevice;
   int       m_DisplayDelay;
 };

@@ -216,6 +216,7 @@ CDecDXVA2::CDecDXVA2(void)
   , m_pDXVA2Allocator(NULL)
   , m_hDevice(INVALID_HANDLE_VALUE)
   , m_DisplayDelay(DXVA2_QUEUE_SURFACES)
+  , m_guidDecoderDevice(GUID_NULL)
 {
   ZeroMemory(&dx, sizeof(dx));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -990,25 +991,32 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
     return E_FAIL;
   }
   m_pDecoder = decoder;
+  m_guidDecoderDevice = input;
 
   /* fill hwaccel_context */
-  dxva_context *ctx = (dxva_context *)m_pAVCtx->hwaccel_context;
-  ctx->cfg           = &m_DXVAVideoDecoderConfig;
-  ctx->decoder       = m_pDecoder;
-  ctx->surface       = m_pRawSurface;
-  ctx->surface_count = m_NumSurfaces;
-
-  if (m_dwVendorId == VEND_ID_INTEL && input == DXVADDI_Intel_ModeH264_E)
-    ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_CLEARVIDEO;
-  else if (m_dwVendorId == VEND_ID_ATI && IsAMDUVD(m_dwDeviceId))
-    ctx->workaround = FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG;
-  else
-    ctx->workaround = 0;
+  FillHWContext((dxva_context *)m_pAVCtx->hwaccel_context);
 
   memset(m_pRawSurface, 0, sizeof(m_pRawSurface));
   for (int i = 0; i < m_NumSurfaces; i++) {
     m_pRawSurface[i] = m_pSurfaces[i].d3d;
   }
+
+  return S_OK;
+}
+
+HRESULT CDecDXVA2::FillHWContext(dxva_context *ctx)
+{
+  ctx->cfg           = &m_DXVAVideoDecoderConfig;
+  ctx->decoder       = m_pDecoder;
+  ctx->surface       = m_pRawSurface;
+  ctx->surface_count = m_NumSurfaces;
+
+  if (m_dwVendorId == VEND_ID_INTEL && m_guidDecoderDevice == DXVADDI_Intel_ModeH264_E)
+    ctx->workaround = FF_DXVA2_WORKAROUND_INTEL_CLEARVIDEO;
+  else if (m_dwVendorId == VEND_ID_ATI && IsAMDUVD(m_dwDeviceId))
+    ctx->workaround = FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG;
+  else
+    ctx->workaround = 0;
 
   return S_OK;
 }
@@ -1159,8 +1167,12 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flag
 
 HRESULT CDecDXVA2::AdditionaDecoderInit()
 {
-  /* Create ffmpeg dxva_context, but keep it empty. When this is called, we don't have the data yet */
+  /* Create ffmpeg dxva_context, but only fill it if we have a decoder already. */
   dxva_context *ctx = (dxva_context *)av_mallocz(sizeof(dxva_context));
+
+  if (m_pDecoder) {
+    FillHWContext(ctx);
+  }
 
   m_pAVCtx->thread_count    = 1;
   m_pAVCtx->strict_std_compliance = FF_COMPLIANCE_STRICT;
