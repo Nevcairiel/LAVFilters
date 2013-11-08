@@ -252,11 +252,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat, m_containerFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
-    BOOL bConvertToAVC1 = (m_containerFormat == "mpegts");
-    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, bConvertToAVC1);
+    mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, FALSE);
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
     if (avstream->codec->codec_id == AV_CODEC_ID_H264) {
-      if (!bConvertToAVC1 && h264_is_annexb(m_containerFormat, avstream)) {
+      if (h264_is_annexb(m_containerFormat, avstream)) {
         mtype.subtype = MEDIASUBTYPE_H264;
       } else {
         mtype.subtype = MEDIASUBTYPE_AVC1;
@@ -264,6 +263,17 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
           mp2vi->dwFlags = 4;
       }
       mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
+
+      // Create a second AVC1 compat type for mpegts
+      // This should only ever be used by "legacy" decoders
+      if (mtype.subtype == MEDIASUBTYPE_H264 && m_containerFormat == "mpegts") {
+        mtypes.push_back(mtype);
+        mtype.ResetFormatBuffer();
+        mtype.subtype = MEDIASUBTYPE_AVC1;
+        mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, TRUE);
+        MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
+        mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
+      }
     } else if (avstream->codec->codec_id == AV_CODEC_ID_HEVC) {
       if (hevc_is_annexb(m_containerFormat, avstream)) {
         mtype.subtype = MEDIASUBTYPE_HEVC;
