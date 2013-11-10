@@ -87,6 +87,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_DecodeLayoutSanified(0)
   , m_bChannelMappingRequired(FALSE)
   , m_bFindDTSInPCM(FALSE)
+  , m_bBitStreamingSettingsChanged(FALSE)
   , m_FallbackFormat(SampleFormat_None)
   , m_dwOverrideMixer(0)
   , m_bNeedSyncpoint(FALSE)
@@ -577,7 +578,7 @@ HRESULT CLAVAudio::SetBitstreamConfig(LAVBitstreamCodec bsCodec, BOOL bEnabled)
 
   SaveSettings();
 
-  UpdateBitstreamContext();
+  m_bBitStreamingSettingsChanged = TRUE;
 
   return S_OK;
 }
@@ -593,7 +594,7 @@ STDMETHODIMP CLAVAudio::SetDTSHDFraming(BOOL bHDFraming)
   SaveSettings();
 
   if (m_nCodecId == AV_CODEC_ID_DTS)
-    UpdateBitstreamContext();
+    m_bBitStreamingSettingsChanged = TRUE;
 
   return S_OK;
 }
@@ -1564,6 +1565,11 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_buff.Clear();
 
     m_bQueueResync = TRUE;
+  }
+
+  if (m_bBitStreamingSettingsChanged) {
+    m_bBitStreamingSettingsChanged = FALSE;
+    UpdateBitstreamContext();
   }
 
   if (!m_pAVCtx) {
