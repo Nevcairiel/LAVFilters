@@ -315,6 +315,7 @@ private:
   BOOL                m_bForceDTSCore;
   CBitstreamParser    m_bsParser;
   BOOL                m_bFindDTSInPCM;
+  BOOL                m_bBitStreamingSettingsChanged;
 
   FloatingAverage<REFERENCE_TIME> m_faJitter;
   REFERENCE_TIME      m_JitterLimit;
