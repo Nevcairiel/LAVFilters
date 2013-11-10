@@ -299,6 +299,21 @@ STDMETHODIMP CDecWMV9::Init()
   return S_OK;
 }
 
+static GUID VerifySubtype(AVCodecID codec, GUID subtype)
+{
+  if (codec == AV_CODEC_ID_WMV3) {
+    return MEDIASUBTYPE_WMV3;
+  } else {
+    if ( subtype == MEDIASUBTYPE_WVC1
+      || subtype == MEDIASUBTYPE_wvc1
+      || subtype == MEDIASUBTYPE_WMVA
+      || subtype == MEDIASUBTYPE_wmva) {
+        return subtype;
+    }
+    return MEDIASUBTYPE_WVC1;
+  }
+}
+
 STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
@@ -337,7 +352,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   /* Create input type */
 
-  GUID subtype = codec == AV_CODEC_ID_VC1 ? MEDIASUBTYPE_WVC1 : MEDIASUBTYPE_WMV3;
+  GUID subtype = VerifySubtype(codec, pmt->subtype);
   m_nCodecId = codec;
 
   mtIn.SetType(&MEDIATYPE_Video);
