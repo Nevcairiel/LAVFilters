@@ -91,6 +91,7 @@ private:
   d3d_surface_t *FindSurface(LPDIRECT3DSURFACE9 pSurface);
 
   STDMETHODIMP FlushDisplayQueue(BOOL bDeliver);
+  STDMETHODIMP FlushFromAllocator();
 
 private:
   friend class CDXVA2SurfaceAllocator;

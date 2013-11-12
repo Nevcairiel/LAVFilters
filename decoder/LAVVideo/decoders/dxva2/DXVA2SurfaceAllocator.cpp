@@ -147,7 +147,7 @@ HRESULT CDXVA2SurfaceAllocator::Alloc()
   if (SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Releasing old resources"));
     // Free the old resources.
-    m_pDec->Flush();
+    m_pDec->FlushFromAllocator();
     Free();
 
     m_nSurfaceArrayCount = m_lCount;

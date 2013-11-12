@@ -1199,6 +1199,15 @@ HRESULT CDecDXVA2::PostDecode()
   return S_OK;
 }
 
+STDMETHODIMP CDecDXVA2::FlushFromAllocator()
+{
+  if (m_pAVCtx)
+    avcodec_flush_buffers(m_pAVCtx);
+  FlushDisplayQueue(FALSE);
+
+  return S_OK;
+}
+
 STDMETHODIMP CDecDXVA2::Flush()
 {
   CDecAvcodec::Flush();
