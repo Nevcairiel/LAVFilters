@@ -232,7 +232,7 @@ private:
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
 
-  DWORD                m_bDXVAExtFormatSupport;
+  BOOL                 m_bDXVAExtFormatSupport;
   DWORD                m_bMadVR;
   DWORD                m_bOverlayMixer;
   DWORD                m_dwDecodeFlags;

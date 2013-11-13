@@ -70,7 +70,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bRuntimeConfig(FALSE)
   , m_bForceInputAR(FALSE)
   , m_bSendMediaType(FALSE)
-  , m_bDXVAExtFormatSupport(-1)
+  , m_bDXVAExtFormatSupport(TRUE)
   , m_dwDecodeFlags(0)
   , m_pFilterGraph(NULL)
   , m_pFilterBufferSrc(NULL)
@@ -870,11 +870,11 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     DbgLog((LOG_TRACE, 10, L"-> Width changed from %d to %d (target: %d)", pBMIOld->biWidth, pBMINew->biWidth, rcTarget.right));
 #endif
 
-    if (pmt->formattype == FORMAT_VideoInfo2 && outMt.formattype == FORMAT_VideoInfo2) {
+    if (pmt->formattype == FORMAT_VideoInfo2 && outMt.formattype == FORMAT_VideoInfo2 && m_bDXVAExtFormatSupport) {
       VIDEOINFOHEADER2 *vih2Current = (VIDEOINFOHEADER2 *)outMt.pbFormat;
       VIDEOINFOHEADER2 *vih2New = (VIDEOINFOHEADER2 *)pmt->pbFormat;
       if (vih2Current->dwControlFlags && vih2Current->dwControlFlags != vih2New->dwControlFlags) {
-        m_bDXVAExtFormatSupport = 0;
+        m_bDXVAExtFormatSupport = FALSE;
         DbgLog((LOG_TRACE, 10, L"-> Disabled DXVA2ExtFormat Support, because renderer changed our value."));
       }
     }
@@ -1062,7 +1062,7 @@ receiveconnection:
             if (newmt.formattype == FORMAT_VideoInfo2 && mt.formattype == FORMAT_VideoInfo2 && m_bDXVAExtFormatSupport) {
               VIDEOINFOHEADER2 *vih2New = (VIDEOINFOHEADER2 *)newmt.pbFormat;
               if (dxvaExtFlags.value && dxvaExtFlags.value != vih2New->dwControlFlags) {
-                m_bDXVAExtFormatSupport = 0;
+                m_bDXVAExtFormatSupport = FALSE;
                 DbgLog((LOG_TRACE, 10, L"-> Disabled DXVA2ExtFormat Support, because renderer changed our value."));
               }
             }
