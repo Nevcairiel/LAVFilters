@@ -854,10 +854,10 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
 
   AM_MEDIA_TYPE* pmt = NULL;
   if(SUCCEEDED((*ppOut)->GetMediaType(&pmt)) && pmt) {
+    CMediaType &outMt = m_pOutput->CurrentMediaType();
 #ifdef DEBUG
     BITMAPINFOHEADER *pBMINew = NULL, *pBMIOld = NULL;
     videoFormatTypeHandler(pmt->pbFormat, &pmt->formattype, &pBMINew);
-    CMediaType &outMt = m_pOutput->CurrentMediaType();
     videoFormatTypeHandler(outMt.pbFormat, &outMt.formattype, &pBMIOld);
 
     RECT rcTarget = {0};
@@ -869,6 +869,15 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     DbgLog((LOG_TRACE, 10, L"::GetDeliveryBuffer(): Sample contains new media type from downstream filter.."));
     DbgLog((LOG_TRACE, 10, L"-> Width changed from %d to %d (target: %d)", pBMIOld->biWidth, pBMINew->biWidth, rcTarget.right));
 #endif
+
+    if (pmt->formattype == FORMAT_VideoInfo2 && outMt.formattype == FORMAT_VideoInfo2) {
+      VIDEOINFOHEADER2 *vih2Current = (VIDEOINFOHEADER2 *)outMt.pbFormat;
+      VIDEOINFOHEADER2 *vih2New = (VIDEOINFOHEADER2 *)pmt->pbFormat;
+      if (vih2Current->dwControlFlags && vih2Current->dwControlFlags != vih2New->dwControlFlags) {
+        m_bDXVAExtFormatSupport = 0;
+        DbgLog((LOG_TRACE, 10, L"-> Disabled DXVA2ExtFormat Support, because renderer changed our value."));
+      }
+    }
 
     CMediaType mt = *pmt;
     m_pOutput->SetMediaType(&mt);
@@ -911,10 +920,6 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
   if (m_bOverlayMixer == -1)
     m_bOverlayMixer = !m_bMadVR && FilterInGraph(PINDIR_OUTPUT, CLSID_OverlayMixer);
-
-  // Only madVR really knows how to deal with these flags, disable them for everyone else
-  if (m_bDXVAExtFormatSupport == -1)
-    m_bDXVAExtFormatSupport = m_bMadVR;
 
   // Determine Interlaced flags
   // - madVR handles the flags properly, so properly indicate forced deint, adaptive deint and progressive
@@ -1054,6 +1059,13 @@ receiveconnection:
             videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
             DbgLog((LOG_TRACE, 10, L"-> New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
   #endif
+            if (newmt.formattype == FORMAT_VideoInfo2 && mt.formattype == FORMAT_VideoInfo2 && m_bDXVAExtFormatSupport) {
+              VIDEOINFOHEADER2 *vih2New = (VIDEOINFOHEADER2 *)newmt.pbFormat;
+              if (dxvaExtFlags.value && dxvaExtFlags.value != vih2New->dwControlFlags) {
+                m_bDXVAExtFormatSupport = 0;
+                DbgLog((LOG_TRACE, 10, L"-> Disabled DXVA2ExtFormat Support, because renderer changed our value."));
+              }
+            }
             DeleteMediaType(pmt);
           } else { // No Stride Request? We're ok with that, too!
             // The overlay mixer doesn't ask for a stride, but it needs one anyway
