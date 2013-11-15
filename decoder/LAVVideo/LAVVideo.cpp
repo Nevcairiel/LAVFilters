@@ -910,7 +910,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
   }
 
-  if ((dxvaExtFlags.value & ~0xff) != 0)
+  // HACK: 1280 is the value when only chroma location is set to MPEG2, do not bother to send this information, as its the same for basically every clip.
+  if ((dxvaExtFlags.value & ~0xff) != 0 && (dxvaExtFlags.value & ~0xff) != 1280)
     dxvaExtFlags.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
   else
     dxvaExtFlags.value = 0;
