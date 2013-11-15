@@ -407,13 +407,14 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   }
 }
 
-HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
+HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride, int planeHeight) {
   uint8_t *out = dst;
   int outStride = dstStride, i;
+  planeHeight = max(height, planeHeight);
   // Check if we have proper pixel alignment and the dst memory is actually aligned
   if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
     outStride = FFALIGN(dstStride, m_RequiredAlignment);
-    size_t requiredSize = (outStride * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
+    size_t requiredSize = (outStride * planeHeight * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
     if (requiredSize > m_nAlignedBufferSize) {
       DbgLog((LOG_TRACE, 10, L"::Convert(): Conversion requires a bigger stride (need: %d, have: %d), allocating buffer...", outStride, dstStride));
       av_freep(&m_pAlignedBuffer);
@@ -431,13 +432,13 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   dstStrideArray[0] = byteStride;
 
   for (i = 1; i < lav_pixfmt_desc[m_OutputPixFmt].planes; ++i) {
-    dstArray[i] = dstArray[i-1] + dstStrideArray[i-1] * (height / lav_pixfmt_desc[m_OutputPixFmt].planeHeight[i-1]);
+    dstArray[i] = dstArray[i-1] + dstStrideArray[i-1] * (planeHeight / lav_pixfmt_desc[m_OutputPixFmt].planeHeight[i-1]);
     dstStrideArray[i] = byteStride / lav_pixfmt_desc[m_OutputPixFmt].planeWidth[i];
   }
 
   HRESULT hr = (this->*convert)(pFrame->data, pFrame->stride, dstArray, dstStrideArray, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
   if (out != dst) {
-    ChangeStride(out, outStride, dst, dstStride, width, height, m_OutputPixFmt);
+    ChangeStride(out, outStride, dst, dstStride, width, height, planeHeight, m_OutputPixFmt);
   }
   return hr;
 }
@@ -466,7 +467,7 @@ DECLARE_CONV_FUNC_IMPL(plane_copy)
   return S_OK;
 }
 
-void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format)
+void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, int planeHeight, LAVOutPixFmts format)
 {
   LAVOutPixFmtDesc desc = lav_pixfmt_desc[format];
 
@@ -481,17 +482,20 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
     src += srcStrideBytes;
     dst += dstStrideBytes;
   }
+  dst += (planeHeight - height) * dstStrideBytes;
 
   for (int plane = 1; plane < desc.planes; ++plane) {
-    const int planeWidth     = widthBytes     / desc.planeWidth[plane];
-    const int planeHeight    = height         / desc.planeHeight[plane];
-    const int srcPlaneStride = srcStrideBytes / desc.planeWidth[plane];
-    const int dstPlaneStride = dstStrideBytes / desc.planeWidth[plane];
-    for (line = 0; line < planeHeight; ++line) {
+    const int planeWidth        = widthBytes     / desc.planeWidth[plane];
+    const int activePlaneHeight = height         / desc.planeHeight[plane];
+    const int totalPlaneHeight  = planeHeight    / desc.planeHeight[plane];
+    const int srcPlaneStride    = srcStrideBytes / desc.planeWidth[plane];
+    const int dstPlaneStride    = dstStrideBytes / desc.planeWidth[plane];
+    for (line = 0; line < activePlaneHeight; ++line) {
       memcpy(dst, src, planeWidth);
       src += srcPlaneStride;
       dst += dstPlaneStride;
     }
+    dst += (totalPlaneHeight - activePlaneHeight) * dstPlaneStride;
   }
 }
 

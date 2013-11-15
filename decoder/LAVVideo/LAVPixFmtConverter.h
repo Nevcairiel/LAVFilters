@@ -73,7 +73,7 @@ public:
   void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bInterlaced = TRUE, BOOL bVIH1 = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
-  HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride);
+  HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride, int planeHeight);
 
   BOOL IsRGBConverterActive() { return m_bRGBConverter; }
 
@@ -100,7 +100,7 @@ private:
   void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; if (m_pRandomDithers) _aligned_free(m_pRandomDithers); m_pRandomDithers = NULL; };
   SwsContext *GetSWSContext(int width, int height, enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, int flags);
 
-  void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, LAVOutPixFmts format);
+  void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, int planeHeight, LAVOutPixFmts format);
 
   typedef HRESULT (CLAVPixFmtConverter::*ConverterFn) CONV_FUNC_PARAMS;
 

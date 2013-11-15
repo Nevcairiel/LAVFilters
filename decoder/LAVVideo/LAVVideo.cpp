@@ -1471,7 +1471,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&start);
   #endif
-    m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth);
+    m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
   #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
     QueryPerformanceCounter(&end);
     double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
