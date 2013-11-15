@@ -407,8 +407,6 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   const uint8_t *v = srcV;
   uint8_t *rgb = dst;
 
-  dstStride *= (3 + out32);
-
   ptrdiff_t line = sliceYStart;
   ptrdiff_t lastLine = sliceYEnd;
 
@@ -577,15 +575,15 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0) : NULL;
   if (ditherMode == LAVDither_Random && dithers != NULL) {
     if (m_ColorProps.VideoTransferMatrix == 7) {
-      yuv2rgb_dispatch<out32, 1, 1>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
+      yuv2rgb_dispatch<out32, 1, 1>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
     } else {
-      yuv2rgb_dispatch<out32, 1, 0>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
+      yuv2rgb_dispatch<out32, 1, 0>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
     }
   } else {
     if (m_ColorProps.VideoTransferMatrix == 7) {
-      yuv2rgb_dispatch<out32, 0, 1>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+      yuv2rgb_dispatch<out32, 0, 1>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
     } else {
-      yuv2rgb_dispatch<out32, 0, 0>(src, srcStride, dst, dstStride, width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+      yuv2rgb_dispatch<out32, 0, 0>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
     }
   }
 

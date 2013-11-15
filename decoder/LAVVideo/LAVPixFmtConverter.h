@@ -22,7 +22,7 @@
 #include "LAVVideoSettings.h"
 #include "decoders/ILAVDecoder.h"
 
-#define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, LAVPixelFormat inputFormat, int bpp, LAVOutPixFmts outputFormat)
+#define CONV_FUNC_PARAMS (const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[4], int dstStride[4], int width, int height, LAVPixelFormat inputFormat, int bpp, LAVOutPixFmts outputFormat)
 
 #define DECLARE_CONV_FUNC(name) \
   HRESULT name CONV_FUNC_PARAMS
@@ -73,27 +73,7 @@ public:
   void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bInterlaced = TRUE, BOOL bVIH1 = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
-  inline HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
-    uint8_t *out = dst;
-    int outStride = dstStride;
-    // Check if we have proper pixel alignment and the dst memory is actually aligned
-    if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
-      outStride = FFALIGN(dstStride, m_RequiredAlignment);
-      size_t requiredSize = (outStride * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
-      if (requiredSize > m_nAlignedBufferSize) {
-        DbgLog((LOG_TRACE, 10, L"::Convert(): Conversion requires a bigger stride (need: %d, have: %d), allocating buffer...", outStride, dstStride));
-        av_freep(&m_pAlignedBuffer);
-        m_nAlignedBufferSize = requiredSize;
-        m_pAlignedBuffer = (uint8_t *)av_malloc(m_nAlignedBufferSize+FF_INPUT_BUFFER_PADDING_SIZE);
-      }
-      out = m_pAlignedBuffer;
-    }
-    HRESULT hr = (this->*convert)(pFrame->data, pFrame->stride, out, outStride, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
-    if (out != dst) {
-      ChangeStride(out, outStride, dst, dstStride, width, height, m_OutputPixFmt);
-    }
-    return hr;
-  }
+  HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride);
 
   BOOL IsRGBConverterActive() { return m_bRGBConverter; }
 
@@ -108,14 +88,14 @@ private:
   void SelectConvertFunction();
 
   // Helper functions for convert_generic
-  HRESULT swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], BYTE *pOut, int width, int height, int stride, LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
-  HRESULT ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
-  HRESULT ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
-  HRESULT ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride, int chromaVertical);
-  HRESULT ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
-  HRESULT ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
-  HRESULT ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
-  HRESULT ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int width, int height, int dstStride);
+  HRESULT swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], uint8_t* dst[], int width, int height, int dstStride[], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
+  HRESULT ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
+  HRESULT ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
+  HRESULT ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4], int chromaVertical);
+  HRESULT ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
+  HRESULT ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
+  HRESULT ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
+  HRESULT ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
 
   void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; if (m_pRandomDithers) _aligned_free(m_pRandomDithers); m_pRandomDithers = NULL; };
   SwsContext *GetSWSContext(int width, int height, enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, int flags);

@@ -28,7 +28,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
 {
   const uint16_t *rgb = (const uint16_t *)src[0];
   const ptrdiff_t inStride = srcStride[0] >> 1;
-  const ptrdiff_t outStride = dstStride * 4;
+  const ptrdiff_t outStride = dstStride[0];
   ptrdiff_t line, i;
 
   int processWidth = width * 3;
@@ -43,7 +43,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
 
   _mm_sfence();
   for (line = 0; line < height; line++) {
-    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+    __m128i *dst128 = (__m128i *)(dst[0] + line * outStride);
 
     // Load dithering coefficients for this line
     if (ditherMode == LAVDither_Random) {
@@ -96,7 +96,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
   // Dither to RGB24/32 with SSE2
   const uint16_t *rgb = (const uint16_t *)dstBS[0];
   const ptrdiff_t inStride = srcStride[0] >> 1;
-  const ptrdiff_t outStride = dstStride * (out32 ? 4 : 3);
+  const ptrdiff_t outStride = dstStride[0];
   ptrdiff_t line, i;
   int processWidth = width * 3;
 
@@ -117,7 +117,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
     if (out32) {
       dst128 = (__m128i *)rgb24buffer;
     } else {
-      dst128 = (__m128i *)(dst + line * outStride);
+      dst128 = (__m128i *)(dst[0] + line * outStride);
     }
 
     // Load dithering coefficients for this line
@@ -143,7 +143,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
     rgb += inStride;
     if (out32) {
       uint32_t *src24 = (uint32_t *)rgb24buffer;
-      uint32_t *dst32 = (uint32_t *)(dst + line * outStride);
+      uint32_t *dst32 = (uint32_t *)(dst[0] + line * outStride);
       for (i = 0; i < width; i += 4) {
         uint32_t sa = src24[0];
         uint32_t sb = src24[1];

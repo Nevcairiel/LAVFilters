@@ -31,13 +31,14 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  const ptrdiff_t inYStride = srcStride[0] >> 1;
-  const ptrdiff_t inUVStride = srcStride[1] >> 1;
+  const ptrdiff_t inYStride   = srcStride[0] >> 1;
+  const ptrdiff_t inUVStride  = srcStride[1] >> 1;
 
-  ptrdiff_t outLumaStride    = dstStride;
-  ptrdiff_t outChromaStride  = dstStride;
-  ptrdiff_t chromaWidth      = width;
-  ptrdiff_t chromaHeight     = height;
+  const ptrdiff_t outYStride  = dstStride[0];
+  const ptrdiff_t outUVStride = dstStride[1];
+
+  ptrdiff_t chromaWidth       = width;
+  ptrdiff_t chromaHeight      = height;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
@@ -46,18 +47,12 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 
   if (inputFormat == LAVPixFmt_YUV420bX)
     chromaHeight = chromaHeight >> 1;
-  if (inputFormat == LAVPixFmt_YUV420bX || inputFormat == LAVPixFmt_YUV422bX) {
+  if (inputFormat == LAVPixFmt_YUV420bX || inputFormat == LAVPixFmt_YUV422bX)
     chromaWidth = (chromaWidth + 1) >> 1;
-    outChromaStride = outChromaStride >> 1;
-  }
 
   ptrdiff_t line, i;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
-
-  uint8_t *dstY = dst;
-  uint8_t *dstV = dstY + outLumaStride * height;
-  uint8_t *dstU = dstV + outChromaStride * chromaHeight;
 
   _mm_sfence();
 
@@ -74,7 +69,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
       xmm4 = xmm5 = xmm6 = xmm7;
     }
 
-    __m128i *dst128Y = (__m128i *)(dstY + line * outLumaStride);
+    __m128i *dst128Y = (__m128i *)(dst[0] + line * outYStride);
 
     for (i = 0; i < width; i+=32) {
       // Load pixels into registers, and apply dithering
@@ -92,9 +87,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 
     // Process U/V for chromaHeight lines
     if (line < chromaHeight) {
-      __m128i *dst128UV = (__m128i *)(dstV + line * outLumaStride);
-      __m128i *dst128U = (__m128i *)(dstU + line * outChromaStride);
-      __m128i *dst128V = (__m128i *)(dstV + line * outChromaStride);
+      __m128i *dst128UV = (__m128i *)(dst[1] + line * outUVStride);
+      __m128i *dst128U = (__m128i *)(dst[2] + line * outUVStride);
+      __m128i *dst128V = (__m128i *)(dst[1] + line * outUVStride);
 
        for (i = 0; i < chromaWidth; i+=16) {
         PIXCONV_LOAD_PIXEL16_DITHER(xmm0, xmm4, (u+i+0), bpp);  /* U0U0U0U0 */
@@ -137,11 +132,12 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
   const uint16_t *u = (const uint16_t *)src[1];
   const uint16_t *v = (const uint16_t *)src[2];
 
-  const ptrdiff_t inYStride = srcStride[0] >> 1;
-  const ptrdiff_t inUVStride = srcStride[1] >> 1;
-  const ptrdiff_t outStride = dstStride << 1;
-  const ptrdiff_t uvHeight = (outputFormat == LAVOutPixFmt_P010 || outputFormat == LAVOutPixFmt_P016) ? (height >> 1) : height;
-  const ptrdiff_t uvWidth = (width + 1) >> 1;
+  const ptrdiff_t inYStride   = srcStride[0] >> 1;
+  const ptrdiff_t inUVStride  = srcStride[1] >> 1;
+  const ptrdiff_t outYStride  = dstStride[0];
+  const ptrdiff_t outUVStride = dstStride[1];
+  const ptrdiff_t uvHeight    = (outputFormat == LAVOutPixFmt_P010 || outputFormat == LAVOutPixFmt_P016) ? (height >> 1) : height;
+  const ptrdiff_t uvWidth     = (width + 1) >> 1;
 
   ptrdiff_t line, i;
   __m128i xmm0,xmm1,xmm2;
@@ -150,7 +146,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
 
   // Process Y
   for (line = 0; line < height; ++line) {
-    __m128i *dst128Y = (__m128i *)(dst + line * outStride);
+    __m128i *dst128Y = (__m128i *)(dst[0] + line * outYStride);
 
     for (i = 0; i < width; i+=16) {
       // Load 8 pixels into register
@@ -164,11 +160,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_px1x_le)
     y += inYStride;
   }
 
-  BYTE *dstUV = dst + (height * outStride);
-
   // Process UV
   for (line = 0; line < uvHeight; ++line) {
-    __m128i *dst128UV = (__m128i *)(dstUV + line * outStride);
+    __m128i *dst128UV = (__m128i *)(dst[1] + line * outUVStride);
 
     for (i = 0; i < uvWidth; i+=8) {
       // Load 8 pixels into register
@@ -198,23 +192,18 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
 
   const ptrdiff_t inLumaStride    = srcStride[0];
   const ptrdiff_t inChromaStride  = srcStride[1];
-  const ptrdiff_t outLumaStride   = dstStride;
-  ptrdiff_t outChromaStride = dstStride;
+
+  const ptrdiff_t outLumaStride   = dstStride[0];
+  const ptrdiff_t outChromaStride = dstStride[1];
 
   ptrdiff_t line;
-  ptrdiff_t chromaWidth  = width;
-  ptrdiff_t chromaHeight = height;
+  ptrdiff_t chromaWidth       = width;
+  ptrdiff_t chromaHeight      = height;
 
   if (inputFormat == LAVPixFmt_YUV420)
     chromaHeight = chromaHeight >> 1;
-  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_YUV422) {
+  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_YUV422)
     chromaWidth = (chromaWidth + 1) >> 1;
-    outChromaStride = outChromaStride >> 1;
-  }
-
-  uint8_t *dstY = dst;
-  uint8_t *dstV = dstY + height * outLumaStride;
-  uint8_t *dstU = dstV + chromaHeight * outChromaStride;
 
   // Copy planes
 
@@ -223,12 +212,12 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   // Y
   if ((outLumaStride % 16) == 0 && ((intptr_t)dst % 16u) == 0) {
     for(line = 0; line < height; ++line) {
-      PIXCONV_MEMCPY_ALIGNED(dstY + outLumaStride * line, y, width);
+      PIXCONV_MEMCPY_ALIGNED(dst[0] + outLumaStride * line, y, width);
       y += inLumaStride;
     }
   } else {
     for(line = 0; line < height; ++line) {
-      memcpy(dstY + outLumaStride * line, y, width);
+      memcpy(dst[0] + outLumaStride * line, y, width);
       y += inLumaStride;
     }
   }
@@ -237,16 +226,16 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   if ((outChromaStride % 16) == 0 && ((intptr_t)dst % 16u) == 0) {
     for(line = 0; line < chromaHeight; ++line) {
       PIXCONV_MEMCPY_ALIGNED_TWO(
-        dstU + outChromaStride * line, u,
-        dstV + outChromaStride * line, v,
+        dst[2] + outChromaStride * line, u,
+        dst[1] + outChromaStride * line, v,
         chromaWidth);
       u += inChromaStride;
       v += inChromaStride;
     }
   } else {
     for(line = 0; line < chromaHeight; ++line) {
-      memcpy(dstU + outChromaStride * line, u, chromaWidth);
-      memcpy(dstV + outChromaStride * line, v, chromaWidth);
+      memcpy(dst[2] + outChromaStride * line, u, chromaWidth);
+      memcpy(dst[1] + outChromaStride * line, v, chromaWidth);
       u += inChromaStride;
       v += inChromaStride;
     }
@@ -263,13 +252,12 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
 
   const ptrdiff_t inLumaStride    = srcStride[0];
   const ptrdiff_t inChromaStride  = srcStride[1];
-  const ptrdiff_t outStride       = dstStride;
+
+  const ptrdiff_t outLumaStride   = dstStride[0];
+  const ptrdiff_t outChromaStride = dstStride[1];
 
   const ptrdiff_t chromaWidth     = (width + 1) >> 1;
   const ptrdiff_t chromaHeight    = height >> 1;
-
-  uint8_t *dstY = dst;
-  uint8_t *dstUV = dstY + height * outStride;
 
   ptrdiff_t line,i;
   __m128i xmm0,xmm1,xmm2,xmm3;
@@ -278,13 +266,13 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
 
   // Y
   for(line = 0; line < height; ++line) {
-    PIXCONV_MEMCPY_ALIGNED32(dstY + outStride * line, y, width);
+    PIXCONV_MEMCPY_ALIGNED32(dst[0] + outLumaStride * line, y, width);
     y += inLumaStride;
   }
 
   // U/V
   for(line = 0; line < chromaHeight; ++line) {
-    __m128i *dst128UV = (__m128i *)(dstUV + line * outStride);
+    __m128i *dst128UV = (__m128i *)(dst[1] + line * outChromaStride);
 
     for (i = 0; i < chromaWidth; i+=16) {
       PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (v+i));  /* VVVV */
@@ -313,7 +301,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
 
   const ptrdiff_t inLumaStride    = srcStride[0];
   const ptrdiff_t inChromaStride  = srcStride[1];
-  const ptrdiff_t outStride       = dstStride << 1;
+
+  const ptrdiff_t outStride       = dstStride[0];
 
   const ptrdiff_t chromaWidth     = (width + 1) >> 1;
 
@@ -323,7 +312,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
   _mm_sfence();
 
   for (line = 0;  line < height; ++line) {
-    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+    __m128i *dst128 = (__m128i *)(dst[0] + line * outStride);
 
     for (i = 0; i < chromaWidth; i+=16) {
       // Load pixels
@@ -386,7 +375,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
 
   const ptrdiff_t inLumaStride    = srcStride[0] >> 1;
   const ptrdiff_t inChromaStride  = srcStride[1] >> 1;
-  const ptrdiff_t outStride       = dstStride << 1;
+  const ptrdiff_t outStride       = dstStride[0];
   const ptrdiff_t chromaWidth     = (width + 1) >> 1;
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
@@ -400,7 +389,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
   _mm_sfence();
 
   for (line = 0;  line < height; ++line) {
-    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+    __m128i *dst128 = (__m128i *)(dst[0] + line * outStride);
 
     // Load dithering coefficients for this line
     if (ditherMode == LAVDither_Random) {
@@ -459,15 +448,11 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
   const uint8_t *y  = src[0];
   const uint8_t *uv = src[1];
 
-  const ptrdiff_t inStride = srcStride[0];
-  const ptrdiff_t outLumaStride = dstStride;
-  const ptrdiff_t outChromaStride = dstStride >> 1;
-
-  const ptrdiff_t chromaHeight = height >> 1;
-
-  uint8_t *dstY = dst;
-  uint8_t *dstV = dstY + height * outLumaStride;
-  uint8_t *dstU = dstV + chromaHeight * outChromaStride;
+  const ptrdiff_t inLumaStride    = srcStride[0];
+  const ptrdiff_t inChromaStride  = srcStride[1];
+  const ptrdiff_t outLumaStride   = dstStride[0];
+  const ptrdiff_t outChromaStride = dstStride[1];
+  const ptrdiff_t chromaHeight    = height >> 1;
 
   ptrdiff_t line, i;
   __m128i xmm0,xmm1,xmm2,xmm3,xmm7;
@@ -478,13 +463,13 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
 
   // Copy the y
   for (line = 0; line < height; line++) {
-    PIXCONV_MEMCPY_ALIGNED(dstY + outLumaStride * line, y, width);
-    y += inStride;
+    PIXCONV_MEMCPY_ALIGNED(dst[0] + outLumaStride * line, y, width);
+    y += inLumaStride;
   }
 
   for (line = 0; line < chromaHeight; line++) {
-    __m128i *dstV128 = (__m128i *)(dstV + outChromaStride * line);
-    __m128i *dstU128 = (__m128i *)(dstU + outChromaStride * line);
+    __m128i *dstV128 = (__m128i *)(dst[1] + outChromaStride * line);
+    __m128i *dstU128 = (__m128i *)(dst[2] + outChromaStride * line);
 
     for (i = 0; i < width; i+=32) {
       PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, uv+i+0);
@@ -505,7 +490,7 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
       _mm_stream_si128(dstU128++, xmm0);
       _mm_stream_si128(dstV128++, xmm2);
     }
-    uv += inStride;
+    uv += inChromaStride;
   }
 
   return S_OK;
@@ -516,39 +501,38 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_nv12)
   const uint8_t *y  = src[0];
   const uint8_t *uv = src[1];
 
-  const ptrdiff_t inStride = srcStride[0];
-  const ptrdiff_t outStride = dstStride;
-  const ptrdiff_t chromaHeight = (height >> 1);
-
-  uint8_t *dstY = dst;
-  uint8_t *dstUV = dstY + height * outStride;
+  const ptrdiff_t inLumaStride    = srcStride[0];
+  const ptrdiff_t inChromaStride  = srcStride[1];
+  const ptrdiff_t outLumaStride   = dstStride[0];
+  const ptrdiff_t outChromaStride = dstStride[1];
+  const ptrdiff_t chromaHeight    = height >> 1;
 
   ptrdiff_t line;
 
   _mm_sfence();
 
   // Use SSE2 copy when the stride is aligned
-  if ((outStride % 16) == 0) {
+  if ((dstStride[0] % 16) == 0) {
     // Copy the data
     for (line = 0; line < height; line++) {
-      PIXCONV_MEMCPY_ALIGNED(dstY + outStride * line, y, width);
-      y += inStride;
+      PIXCONV_MEMCPY_ALIGNED(dst[0] + outLumaStride * line, y, width);
+      y += inLumaStride;
     }
 
     for (line = 0; line < chromaHeight; line++) {
-      PIXCONV_MEMCPY_ALIGNED(dstUV + outStride * line, uv, width);
-      uv += inStride;
+      PIXCONV_MEMCPY_ALIGNED(dst[1] + outChromaStride * line, uv, width);
+      uv += inChromaStride;
     }
   } else {
     // Copy the data
     for (line = 0; line < height; line++) {
-      memcpy(dstY + outStride * line, y, width);
-      y += inStride;
+      memcpy(dst[0] + outLumaStride * line, y, width);
+      y += inLumaStride;
     }
 
     for (line = 0; line < chromaHeight; line++) {
-      memcpy(dstUV + outStride * line, uv, width);
-      uv += inStride;
+      memcpy(dst[1] + outChromaStride * line, uv, width);
+      uv += inChromaStride;
     }
   }
 

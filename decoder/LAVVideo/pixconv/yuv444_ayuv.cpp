@@ -39,7 +39,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
   const uint8_t *v = (const uint8_t *)src[2];
 
   const ptrdiff_t inStride = srcStride[0];
-  const ptrdiff_t outStride = dstStride << 2;
+  const ptrdiff_t outStride = dstStride[0];
 
   ptrdiff_t line, i;
 
@@ -50,7 +50,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv)
   _mm_sfence();
 
   for (line = 0; line < height; ++line) {
-    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+    __m128i *dst128 = (__m128i *)(dst[0] + line * outStride);
 
     for (i = 0; i < width; i+=16) {
       // Load pixels into registers
@@ -95,7 +95,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
   const uint16_t *v = (const uint16_t *)src[2];
 
   const ptrdiff_t inStride = srcStride[0] >> 1;
-  const ptrdiff_t outStride = dstStride << 2;
+  const ptrdiff_t outStride = dstStride[0];
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 3, 8, 0);
@@ -121,7 +121,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
       xmm4 = xmm5 = xmm6;
     }
 
-    __m128i *dst128 = (__m128i *)(dst + line * outStride);
+    __m128i *dst128 = (__m128i *)(dst[0] + line * outStride);
 
     for (i = 0; i < width; i+=8) {
       // Load pixels into registers, and apply dithering

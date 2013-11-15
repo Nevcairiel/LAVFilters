@@ -168,8 +168,6 @@ static int __stdcall yuv420yuy2_process_lines(const uint8_t *srcY, const uint8_t
   const uint8_t *v = srcV;
   uint8_t *yuy2 = dst;
 
-  dstStride *= 2;
-
   // Processing starts at line 1, and ends at height - 1. The first and last line have special handling
   ptrdiff_t line = 1;
   const ptrdiff_t lastLine = height - 1;
@@ -253,9 +251,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_yuy2)
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 2, bpp - 8 + 2, 0) : NULL;
   if (ditherMode == LAVDither_Random && dithers != NULL) {
-    yuv420yuy2_dispatch<uyvy, 1>(inputFormat, bpp, src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, dithers);
+    yuv420yuy2_dispatch<uyvy, 1>(inputFormat, bpp, src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], dithers);
   } else {
-    yuv420yuy2_dispatch<uyvy, 0>(inputFormat, bpp, src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, NULL);
+    yuv420yuy2_dispatch<uyvy, 0>(inputFormat, bpp, src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], NULL);
   }
 
   return S_OK;

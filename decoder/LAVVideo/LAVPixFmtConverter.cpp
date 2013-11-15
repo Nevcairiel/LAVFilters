@@ -407,6 +407,41 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   }
 }
 
+HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride) {
+  uint8_t *out = dst;
+  int outStride = dstStride, i;
+  // Check if we have proper pixel alignment and the dst memory is actually aligned
+  if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
+    outStride = FFALIGN(dstStride, m_RequiredAlignment);
+    size_t requiredSize = (outStride * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) << 3;
+    if (requiredSize > m_nAlignedBufferSize) {
+      DbgLog((LOG_TRACE, 10, L"::Convert(): Conversion requires a bigger stride (need: %d, have: %d), allocating buffer...", outStride, dstStride));
+      av_freep(&m_pAlignedBuffer);
+      m_nAlignedBufferSize = requiredSize;
+      m_pAlignedBuffer = (uint8_t *)av_malloc(m_nAlignedBufferSize+FF_INPUT_BUFFER_PADDING_SIZE);
+    }
+    out = m_pAlignedBuffer;
+  }
+
+  uint8_t *dstArray[4] = {0};
+  int dstStrideArray[4] = {0};
+  int byteStride = outStride * lav_pixfmt_desc[m_OutputPixFmt].codedbytes;
+
+  dstArray[0] = out;
+  dstStrideArray[0] = byteStride;
+
+  for (i = 1; i < lav_pixfmt_desc[m_OutputPixFmt].planes; ++i) {
+    dstArray[i] = dstArray[i-1] + dstStrideArray[i-1] * (height / lav_pixfmt_desc[m_OutputPixFmt].planeHeight[i-1]);
+    dstStrideArray[i] = byteStride / lav_pixfmt_desc[m_OutputPixFmt].planeWidth[i];
+  }
+
+  HRESULT hr = (this->*convert)(pFrame->data, pFrame->stride, dstArray, dstStrideArray, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
+  if (out != dst) {
+    ChangeStride(out, outStride, dst, dstStride, width, height, m_OutputPixFmt);
+  }
+  return hr;
+}
+
 DECLARE_CONV_FUNC_IMPL(plane_copy)
 {
   LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
@@ -414,18 +449,17 @@ DECLARE_CONV_FUNC_IMPL(plane_copy)
   int plane, line;
 
   const int widthBytes = width * desc.codedbytes;
-  const int dstStrideBytes = dstStride * desc.codedbytes;
   const int planes = max(desc.planes, 1);
 
   for (plane = 0; plane < planes; plane++) {
-    const int planeWidth     = widthBytes     / desc.planeWidth[plane];
-    const int planeHeight    = height         / desc.planeHeight[plane];
-    const int dstPlaneStride = dstStrideBytes / desc.planeWidth[plane];
+    const int planeWidth     = widthBytes / desc.planeWidth[plane];
+    const int planeHeight    = height     / desc.planeHeight[plane];
     const uint8_t *srcBuf = src[plane];
+    uint8_t *dstBuf = dst[plane];
     for (line = 0; line < planeHeight; ++line) {
-      memcpy(dst, srcBuf, planeWidth);
+      memcpy(dstBuf, srcBuf, planeWidth);
       srcBuf += srcStride[plane];
-      dst += dstPlaneStride;
+      dstBuf += dstStride[plane];
     }
   }
 
