@@ -683,6 +683,8 @@ static void lav_avframe_free(LAVFrame *frame)
 
 STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
+  CheckPointer(m_pAVCtx, E_UNEXPECTED);
+
   int     got_picture = 0;
   int     used_bytes  = 0;
   BOOL    bParserFrame = FALSE;
