@@ -919,8 +919,11 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   if (m_bMadVR == -1)
     m_bMadVR = FilterInGraph(PINDIR_OUTPUT, CLSID_madVR);
 
-  if (m_bOverlayMixer == -1)
+  if (m_bOverlayMixer == -1) {
     m_bOverlayMixer = !m_bMadVR && FilterInGraph(PINDIR_OUTPUT, CLSID_OverlayMixer);
+    if (m_bOverlayMixer)
+      m_bDXVAExtFormatSupport = 0;
+  }
 
   // Determine Interlaced flags
   // - madVR handles the flags properly, so properly indicate forced deint, adaptive deint and progressive
