@@ -88,7 +88,6 @@ configure() (
     --disable-bsfs                  \
     --disable-devices               \
     --disable-programs              \
-    --disable-doc                   \
     --disable-debug                 \
     --build-suffix=-lav             \
     --arch=${arch}"
