@@ -75,9 +75,10 @@ configure() (
     --build-suffix=-lav             \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -d2Zi+"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -d2Zi+ -MDd"
+  EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt"
 
-  sh configure --toolchain=msvc --enable-debug --extra-cflags="${EXTRA_CFLAGS}" ${OPTIONS}
+  sh configure --toolchain=msvc --enable-debug --extra-cflags="${EXTRA_CFLAGS}" --extra-ldflags="${EXTRA_LDFLAGS}" ${OPTIONS}
 )
 
 build() (
