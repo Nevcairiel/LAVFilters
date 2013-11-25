@@ -694,9 +694,12 @@ HRESULT CDecDXVA2::CheckHWCompatConditions(GUID decoderGuid)
         return E_FAIL;
       }
     }
-  } else if (m_dwVendorId == VEND_ID_INTEL && decoderGuid == DXVADDI_Intel_ModeH264_E) {
-    if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && m_pAVCtx->refs > max_ref_frames_dpb41) {
+  } else if (m_dwVendorId == VEND_ID_INTEL) {
+    if (decoderGuid == DXVADDI_Intel_ModeH264_E && m_pAVCtx->codec_id == AV_CODEC_ID_H264 && m_pAVCtx->refs > max_ref_frames_dpb41) {
       DbgLog((LOG_TRACE, 10, L"-> Too many reference frames for Intel H.264 decoder implementation"));
+      return E_FAIL;
+    } else if (m_pAVCtx->codec_id == AV_CODEC_ID_VC1 || m_pAVCtx->codec_id == AV_CODEC_ID_WMV3) {
+      DbgLog((LOG_TRACE, 10, L"-> Intels VC-1/WMV3 implementation is still incomplete"));
       return E_FAIL;
     }
   }
