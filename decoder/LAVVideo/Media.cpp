@@ -62,6 +62,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_wvc1, AV_CODEC_ID_VC1 },
   { &MEDIASUBTYPE_WMVA, AV_CODEC_ID_VC1 },
   { &MEDIASUBTYPE_wmva, AV_CODEC_ID_VC1 },
+  { &MEDIASUBTYPE_WVP2, AV_CODEC_ID_VC1IMAGE },
+  { &MEDIASUBTYPE_wvp2, AV_CODEC_ID_VC1IMAGE },
 
   // WMV
   { &MEDIASUBTYPE_WMV1, AV_CODEC_ID_WMV1 },
@@ -70,6 +72,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_wmv2, AV_CODEC_ID_WMV2 },
   { &MEDIASUBTYPE_WMV3, AV_CODEC_ID_WMV3 },
   { &MEDIASUBTYPE_wmv3, AV_CODEC_ID_WMV3 },
+  { &MEDIASUBTYPE_WMVP, AV_CODEC_ID_WMV3IMAGE },
+  { &MEDIASUBTYPE_wmvp, AV_CODEC_ID_WMV3IMAGE },
 
   // VP8/9
   { &MEDIASUBTYPE_VP80, AV_CODEC_ID_VP8 },
@@ -308,6 +312,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_wvc1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_WMVA },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_wmva },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_WVP2 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_wvp2 },
 
   // WMV
   { &MEDIATYPE_Video, &MEDIASUBTYPE_WMV1 },
@@ -316,6 +322,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_wmv2 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_WMV3 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_wmv3 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_WMVP },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_wmvp },
 
   // VP8/9
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP80 },
@@ -547,13 +555,13 @@ AVCodecID FindCodecId(const CMediaType *mt)
 // Also, the order is used for storage in the Registry
 static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_H264 }},                                                // Codec_H264
-  { 1, { AV_CODEC_ID_VC1 }},                                                 // Codec_VC1
+  { 2, { AV_CODEC_ID_VC1, AV_CODEC_ID_VC1IMAGE }},                           // Codec_VC1
   { 1, { AV_CODEC_ID_MPEG1VIDEO }, "mpeg1"},                                 // Codec_MPEG1
   { 1, { AV_CODEC_ID_MPEG2VIDEO }, "mpeg2"},                                 // Codec_MPEG2
   { 1, { AV_CODEC_ID_MPEG4 }},                                               // Codec_MPEG4
   { 3, { AV_CODEC_ID_MSMPEG4V1, AV_CODEC_ID_MSMPEG4V2, AV_CODEC_ID_MSMPEG4V3 }, "msmpeg4", "MS-MPEG-4 (DIVX3)" },   // Codec_MSMPEG4
   { 1, { AV_CODEC_ID_VP8 }},                                                 // Codec_VP8
-  { 1, { AV_CODEC_ID_WMV3 }},                                                // Codec_WMV3
+  { 2, { AV_CODEC_ID_WMV3, AV_CODEC_ID_WMV3IMAGE }},                         // Codec_WMV3
   { 2, { AV_CODEC_ID_WMV1, AV_CODEC_ID_WMV2 }, "wmv12", "Windows Media Video 7/8" },  // Codec_WMV12
   { 3, { AV_CODEC_ID_MJPEG, AV_CODEC_ID_MJPEGB, AV_CODEC_ID_AMV }},                // Codec_MJPEG
   { 2, { AV_CODEC_ID_THEORA, AV_CODEC_ID_VP3 }},                                // Codec_Theora
