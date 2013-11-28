@@ -1,0 +1,31 @@
+opencore-amr:
+
+32-bit:
+./configure --enable-static --disable-shared --disable-amrnb-encoder
+make
+
+64-bit:
+./configure --host=x86_64-w64-mingw32 --enable-static --disable-shared --disable-amrnb-encoder
+make
+
+----------------------------------------------
+Opus:
+Opus fails at building a static library on windows, the OPUS_EXPORT define fixes it
+
+32-bit:
+CFLAGS="-O2 -DOPUS_EXPORT=''" ./configure --enable-static --disable-shared
+make
+
+64-bit:
+CFLAGS="-O2 -DOPUS_EXPORT=''" ./configure --host=x86_64-w64-mingw32 --enable-static --disable-shared
+make
+
+----------------------------------------------
+Speex:
+
+32-bit:
+./configure --enable-sse --enable-static --disable-shared
+make
+
+64-bit:
+./configure --host=x86_64-w64-mingw32 --enable-sse --enable-static --disable-shared
