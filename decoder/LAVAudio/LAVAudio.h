@@ -303,6 +303,7 @@ private:
   FloatingAverage<float> m_faVolume[8];     // Floating Average for volume (8 channels)
 
   BOOL                m_bQueueResync;
+  BOOL                m_bResyncTimestamp;
   BOOL                m_bNeedSyncpoint;
   BufferDetails       m_OutputQueue;
 

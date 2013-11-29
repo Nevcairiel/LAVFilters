@@ -72,6 +72,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   , m_bVolumeStats(FALSE)
   , m_pParser(NULL)
   , m_bQueueResync(FALSE)
+  , m_bResyncTimestamp(FALSE)
   , m_avioBitstream(NULL)
   , m_avBSContext(NULL)
   , m_bDTSHD(FALSE)
@@ -1616,11 +1617,12 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     if (m_rtStart != AV_NOPTS_VALUE && rtStart != m_rtStart)
       m_bDiscontinuity = TRUE;
 
-    m_rtStart = AV_NOPTS_VALUE;
+    m_rtStart = rtStart;
     m_rtStartInputCache =  AV_NOPTS_VALUE;
     m_rtBitstreamCache = AV_NOPTS_VALUE;
     m_dStartOffset = 0.0;
     m_bQueueResync = FALSE;
+    m_bResyncTimestamp = TRUE;
   }
 
   m_rtStartInput = SUCCEEDED(hr) ? rtStart : AV_NOPTS_VALUE;
@@ -2193,8 +2195,10 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
     return E_FAIL;
   }
 
-  if (m_rtStart == AV_NOPTS_VALUE)
+  if (m_bResyncTimestamp && buffer.rtStart != AV_NOPTS_VALUE) {
     m_rtStart = buffer.rtStart;
+    m_bResyncTimestamp = FALSE;
+  }
 
   // Length of the current sample
   double dDuration = (double)buffer.nSamples / buffer.dwSamplesPerSec * DBL_SECOND_MULT / m_dRate;

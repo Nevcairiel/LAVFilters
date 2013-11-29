@@ -386,8 +386,10 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
     return E_FAIL;
   }
 
-  if (m_rtStart == AV_NOPTS_VALUE)
+  if (m_bResyncTimestamp && rtStartInput != AV_NOPTS_VALUE) {
     m_rtStart = rtStartInput;
+    m_bResyncTimestamp = FALSE;
+  }
 
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE;
   // TrueHD timings
