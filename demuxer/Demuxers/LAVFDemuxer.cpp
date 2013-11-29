@@ -437,8 +437,11 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
   av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_pBluRay, 0);
 
+  // TODO: AVFMT_FLAG_KEEP_SIDE_DATA should be ON for all formats
   if (m_bMatroska)
     m_avFormat->flags |= AVFMT_FLAG_KEEP_SIDE_DATA;
+  else
+    m_avFormat->flags &= ~AVFMT_FLAG_KEEP_SIDE_DATA;
 
   m_timeOpening = time(NULL);
   int ret = avformat_find_stream_info(m_avFormat, NULL);
