@@ -1287,6 +1287,8 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_pAVCtx->block_align           = nBlockAlign;
   m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
   m_pAVCtx->refcounted_frames     = 1;
+  m_pAVCtx->pkt_timebase.num      = 1;
+  m_pAVCtx->pkt_timebase.den      = 10000000;
 
   memset(&m_raData, 0, sizeof(m_raData));
 
@@ -1611,10 +1613,10 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   if(m_bQueueResync && SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"Resync Request; old: %I64d; new: %I64d; buffer: %d", m_rtStart, rtStart, m_buff.GetCount()));
     FlushOutput();
-    if (rtStart != m_rtStart)
+    if (m_rtStart != AV_NOPTS_VALUE && rtStart != m_rtStart)
       m_bDiscontinuity = TRUE;
 
-    m_rtStart = rtStart;
+    m_rtStart = AV_NOPTS_VALUE;
     m_rtStartInputCache =  AV_NOPTS_VALUE;
     m_rtBitstreamCache = AV_NOPTS_VALUE;
     m_dStartOffset = 0.0;
@@ -1903,6 +1905,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
       if (pOut_size > 0) {
         avpkt.data = pOut;
         avpkt.size = pOut_size;
+        avpkt.dts  = m_rtStartInputCache;
 
         int ret2 = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
         if (ret2 < 0) {
@@ -1912,7 +1915,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
         }
 
         // Send current input time to the delivery function
-        out.rtStart = m_rtStartInputCache;
+        out.rtStart = m_pFrame->pkt_dts;
         m_rtStartInputCache = AV_NOPTS_VALUE;
         m_bUpdateTimeCache = TRUE;
 
@@ -1925,6 +1928,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
     } else {
       avpkt.data = (uint8_t *)pDataBuffer;
       avpkt.size = buffsize;
+      avpkt.dts  = m_rtStartInput;
 
       int used_bytes = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
 
@@ -1939,7 +1943,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
       consumed += used_bytes;
 
       // Send current input time to the delivery function
-      out.rtStart = m_rtStartInput;
+      out.rtStart = m_pFrame->pkt_dts;
       m_rtStartInput = AV_NOPTS_VALUE;
     }
 
@@ -2188,6 +2192,9 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
   if(FAILED(GetDeliveryBuffer(&pOut, &pDataOut))) {
     return E_FAIL;
   }
+
+  if (m_rtStart == AV_NOPTS_VALUE)
+    m_rtStart = buffer.rtStart;
 
   // Length of the current sample
   double dDuration = (double)buffer.nSamples / buffer.dwSamplesPerSec * DBL_SECOND_MULT / m_dRate;

@@ -386,6 +386,9 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
     return E_FAIL;
   }
 
+  if (m_rtStart == AV_NOPTS_VALUE)
+    m_rtStart = rtStartInput;
+
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE;
   // TrueHD timings
   // Since the SPDIF muxer takes 24 frames and puts them into one IEC61937 frame, we use the cached timestamp from before.
