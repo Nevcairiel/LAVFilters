@@ -287,7 +287,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePer2Field), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePerField), 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_SETCHECK, m_HWDeintHQ, 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_SETCHECK, IsVistaOrNewer() ? m_HWDeintHQ : 0, 0);
 
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_SETCHECK, m_SWDeint, 0);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_FILM, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePer2Field), 0);
@@ -334,7 +334,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_HWDEINT_MODE), bHWDeintEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_FILM), bHWDeintEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_VIDEO), bHWDeintEnabled);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bCUDAOnly && bHWDeintEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bCUDAOnly && bHWDeintEnabled && IsVistaOrNewer());
 
   WCHAR hwAccelEmpty[] = L"";
   WCHAR hwAccelUnavailable[] = L"Not available";
