@@ -72,6 +72,7 @@ configure() (
     --disable-devices               \
     --disable-programs              \
     --enable-debug                  \
+    --disable-doc                   \
     --build-suffix=-lav             \
     --arch=${arch}"
 
