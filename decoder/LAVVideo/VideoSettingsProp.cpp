@@ -235,7 +235,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   addHint(IDC_HWDEINT_OUT_FILM, L"Deinterlace in \"Film\" Mode.\nFor every pair of interlaced fields, one frame will be created, resulting in 25/30 fps.");
   addHint(IDC_HWDEINT_OUT_VIDEO, L"Deinterlace in \"Video\" Mode. (Recommended)\nFor every interlaced field, one frame will be created, resulting in 50/60 fps.");
 
-  addHint(IDC_HWDEINT_HQ, L"Instruct the decoder to use the maximum quality possible.\nThis will cost performance, it is however required for the best deinterlacing quality.\n\nNOTE: This option has no effect on Windows XP.");
+  addHint(IDC_HWDEINT_HQ, L"Instruct the decoder to use the maximum quality possible.\nThis will cost performance, it is however required for the best deinterlacing quality.");
 
   addHint(IDC_DITHER_ORDERED, L"Ordered Dithering uses a static pattern, resulting in very smooth and regular pattern. However, in some cases the regular pattern can be visible and distracting.");
   addHint(IDC_DITHER_RANDOM, L"Random Dithering uses random noise to dither the video frames. This has the advantage of not creating any visible pattern, at the downside of increasing the noise floor slightly.");
