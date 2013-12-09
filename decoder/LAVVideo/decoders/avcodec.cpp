@@ -470,25 +470,17 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // Setup codec-specific timing logic
   BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS));
 
+  if (codec == AV_CODEC_ID_MPEG4 && pmt->formattype != FORMAT_MPEG2Video)
+    dwDecFlags |= LAV_VIDEO_DEC_FLAG_ONLY_DTS;
+
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
-  // VC-1 is also a special case. Its required for splitters that deliver PTS timestamps (see bVC1IsPTS above)
   m_bFFReordering        = !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS) && (
-                              codec == AV_CODEC_ID_H264
-                           || codec == AV_CODEC_ID_HEVC
-                           || codec == AV_CODEC_ID_VP8
-                           || codec == AV_CODEC_ID_VP3
-                           || codec == AV_CODEC_ID_THEORA
-                           || codec == AV_CODEC_ID_HUFFYUV
-                           || codec == AV_CODEC_ID_FFVHUFF
+                            (m_pAVCodec->capabilities & CODEC_CAP_FRAME_THREADS) // Covers most modern codecs, others listed above
                            || codec == AV_CODEC_ID_MPEG2VIDEO
                            || codec == AV_CODEC_ID_MPEG1VIDEO
                            || codec == AV_CODEC_ID_DIRAC
-                           || codec == AV_CODEC_ID_UTVIDEO
-                           || codec == AV_CODEC_ID_DNXHD
-                           || codec == AV_CODEC_ID_JPEG2000
                            || codec == AV_CODEC_ID_VC1
-                           || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video)
                           );
 
   // Stop time is unreliable, drop it and calculate it
