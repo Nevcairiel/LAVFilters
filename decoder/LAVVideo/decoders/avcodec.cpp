@@ -631,7 +631,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
   int     got_picture = 0;
   int     used_bytes  = 0;
-  BOOL    bParserFrame = FALSE;
   BOOL    bFlush = (buffer == NULL);
   BOOL    bEndOfSequence = FALSE;
 
@@ -743,8 +742,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         // The value was used once, don't use it for multiple frames, that ends up in weird timings
         rtStartIn = AV_NOPTS_VALUE;
       }
-
-       bParserFrame = (pOut_size > 0);
 
       if (pOut_size > 0 || bFlush) {
 
