@@ -44,45 +44,6 @@ ILAVDecoder *CreateDecoderAVCodec() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Multi-threaded decoding configuration
-////////////////////////////////////////////////////////////////////////////////
-static struct {
-  AVCodecID codecId;
-  int     threadFlags;
-} ff_thread_codecs[] = {
-  { AV_CODEC_ID_H264,       FF_THREAD_FRAME|FF_THREAD_SLICE },
-  { AV_CODEC_ID_HEVC,       FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_MPEG1VIDEO,                 FF_THREAD_SLICE },
-  { AV_CODEC_ID_MPEG2VIDEO,                 FF_THREAD_SLICE },
-  { AV_CODEC_ID_DVVIDEO,                    FF_THREAD_SLICE },
-  { AV_CODEC_ID_VP8,        FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_VP3,        FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_THEORA,     FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_HUFFYUV,    FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_FFVHUFF,    FF_THREAD_FRAME                 },
-  //{ AV_CODEC_ID_MPEG4,      FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_PRORES,                     FF_THREAD_SLICE },
-  { AV_CODEC_ID_UTVIDEO,    FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_RV30,       FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_RV40,       FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_DNXHD,      FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_FFV1,                       FF_THREAD_SLICE },
-  { AV_CODEC_ID_LAGARITH,   FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_FRAPS,      FF_THREAD_FRAME                 },
-  { AV_CODEC_ID_JPEG2000,   FF_THREAD_FRAME                 },
-};
-
-int getThreadFlags(AVCodecID codecId)
-{
-  for(int i = 0; i < countof(ff_thread_codecs); ++i) {
-    if (ff_thread_codecs[i].codecId == codecId) {
-      return ff_thread_codecs[i].threadFlags;
-    }
-  }
-  return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Create DXVA2 Extended Flags from a AVFrame and AVCodecContext
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -405,21 +366,14 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_pAVCtx->refcounted_frames     = 1;
 
   // Setup threading
-  int thread_type = getThreadFlags(codec);
-  if (thread_type) {
-    // Thread Count. 0 = auto detect
-    int thread_count = m_pSettings->GetNumThreads();
-    if (thread_count == 0) {
-      thread_count = av_cpu_count() * 3 / 2;
-    }
-
-    m_pAVCtx->thread_count = max(1, min(thread_count, AVCODEC_MAX_THREADS));
-    m_pAVCtx->thread_type = thread_type;
-  } else {
-    m_pAVCtx->thread_count = 1;
+  // Thread Count. 0 = auto detect
+  int thread_count = m_pSettings->GetNumThreads();
+  if (thread_count == 0) {
+    thread_count = av_cpu_count() * 3 / 2;
   }
+  m_pAVCtx->thread_count = max(1, min(thread_count, AVCODEC_MAX_THREADS));
 
-  if (dwDecFlags & LAV_VIDEO_DEC_FLAG_NO_MT) {
+  if (dwDecFlags & LAV_VIDEO_DEC_FLAG_NO_MT || codec == AV_CODEC_ID_MPEG4) {
     m_pAVCtx->thread_count = 1;
   }
 
