@@ -76,7 +76,6 @@ private:
 
   SwsContext           *m_pSwsContext;
 
-  BOOL                 m_bNoBufferConsumption;
   BOOL                 m_bHasPalette;
 
   // Timing settings

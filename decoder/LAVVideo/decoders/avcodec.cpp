@@ -505,10 +505,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                         || codec == AV_CODEC_ID_THEORA
                         || codec == AV_CODEC_ID_MPEG4;
 
-  m_bNoBufferConsumption =    codec == AV_CODEC_ID_MJPEGB
-                           || codec == AV_CODEC_ID_LOCO
-                           || codec == AV_CODEC_ID_JPEG2000;
-
   m_bHasPalette = m_pAVCtx->bits_per_coded_sample <= 8 && m_pAVCtx->extradata_size && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER)
                   &&  (codec == AV_CODEC_ID_MSVIDEO1
                     || codec == AV_CODEC_ID_MSRLE
@@ -724,6 +720,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       if (used_bytes == 0 && pOut_size == 0 && !bFlush) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
         break;
+      } else if (used_bytes > 0) {
+        buflen -= used_bytes;
+        pDataBuffer += used_bytes;
       }
 
       // Update start time cache
@@ -785,6 +784,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       }
     } else {
       used_bytes = avcodec_decode_video2 (m_pAVCtx, m_pFrame, &got_picture, &avpkt);
+      buflen = 0;
     }
 
     if (FAILED(PostDecode())) {
@@ -796,16 +796,6 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (used_bytes < 0) {
       av_frame_unref(m_pFrame);
       return S_OK;
-    }
-
-    // When Frame Threading, we won't know how much data has been consumed, so it by default eats everything.
-    // In addition, if no data got consumed, and no picture was extracted, the frame probably isn't all that useufl.
-    // The MJPEB decoder is somewhat buggy and doesn't let us know how much data was consumed really...
-    if ((!m_pParser && (m_pAVCtx->active_thread_type & FF_THREAD_FRAME || (!got_picture && used_bytes == 0))) || m_bNoBufferConsumption || bFlush) {
-      buflen = 0;
-    } else {
-      buflen -= used_bytes;
-      pDataBuffer += used_bytes;
     }
 
     // Judge frame usability
