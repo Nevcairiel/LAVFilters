@@ -197,7 +197,7 @@ begin
   FS(SplitterFormats[7], '{D2855FA9-61A7-4db0-B979-71F297C17A04}', ['0,4,,4F676753', ''], True);
   FR(SplitterFormats[8], 'rm', 'RealMedia (rm/rmvb)', True, ['rm', 'rmvb', '']);
   FR(SplitterFormats[9], 'wtv', 'Windows Television (wtv)', False, ['wtv', '']);
-  FR(SplitterFormats[10], 'asf', 'WMV / ASF / DVR-MS', False, ['wmv', 'asf', 'dvr-ms', '']);
+  FR(SplitterFormats[10], 'asf', 'WMV / ASF / DVR-MS', True, ['wmv', 'asf', 'dvr-ms', '']);
   FR(SplitterFormats[11], 'mxf', 'MXF (Material Exchange Format)', True, ['mxf', '']);
   FR(SplitterFormats[12], 'bink', 'Bink', True, ['bik', '']);
 
