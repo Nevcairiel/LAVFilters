@@ -249,19 +249,19 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
 
     // Validate the Aspect Ratio - an AR of 0 crashes VMR-9
     if (dwAspectX == 0 || dwAspectY == 0) {
-      int dwX = 0;
-      int dwY = 0;
-      av_reduce(&dwX, &dwY, biWidth, biHeight, max(biWidth, biHeight));
-
-      dwAspectX = dwX;
-      dwAspectY = dwY;
+      dwAspectX = biWidth;
+      dwAspectY = biHeight;
     }
+
+    // Always reduce the AR to the smalles fraction
+    int dwX = 0, dwY = 0;
+    av_reduce(&dwX, &dwY, dwAspectX, dwAspectY, max(dwAspectX, dwAspectY));
 
     vih2->rcSource.right = vih2->rcTarget.right = biWidth;
     vih2->rcSource.bottom = vih2->rcTarget.bottom = biHeight;
     vih2->AvgTimePerFrame = rtAvgTime;
-    vih2->dwPictAspectRatioX = dwAspectX;
-    vih2->dwPictAspectRatioY = dwAspectY;
+    vih2->dwPictAspectRatioX = dwX;
+    vih2->dwPictAspectRatioY = dwY;
 
     if (bInterlaced)
       vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;
