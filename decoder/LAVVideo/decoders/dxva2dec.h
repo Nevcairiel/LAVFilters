@@ -132,4 +132,6 @@ private:
   DWORD     m_dwDeviceId;
   GUID      m_guidDecoderDevice;
   int       m_DisplayDelay;
+
+  CMediaType m_MediaType;
 };
