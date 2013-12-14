@@ -3,7 +3,7 @@ LAV Filters - ffmpeg based DirectShow Splitter and Decoders
 LAV Filters are a set of DirectShow filters based on the libavformat and libavcodec libraries
 from the ffmpeg project, which will allow you to play virtually any format in a DirectShow player.
 
-The filters are still under Development, so not every feature is finished, or every format supported.
+The filters are still under development, so not every feature is finished, or every format supported.
 
 Install
 =============================
@@ -34,12 +34,12 @@ LAV Splitter offers different ways to pre-select streams when opening a file.
 The selection of video streams is not configurable, and LAV Splitter will quite simply
 pick the one with the best quality.
 
-Audio Stream selection offers some flexibility, specifically you can configure your preferred languages.
+Audio stream selection offers some flexibility, specifically you can configure your preferred languages.
 The language configuration is straight forward. Just enter a list of 3-letter language codes (ISO 639-2),
 separated by comma or space.
 For example: "eng ger fre". This would try to select a stream matching one of these languages,
-in the order you specified them. First check if an english track is present, and only if not,
-go to german, and after that, go to french.
+in the order you specified them. First check if an English track is present, and only if not,
+go to German, and after that, go to French.
 
 If multiple audio tracks match one language, the choice is based on the quality. The primary attribute here
 is the number of channels, and after that the codec used. PCM and lossless codecs have a higher priority
@@ -111,7 +111,7 @@ media compatibility:
 http://git.1f0.de/gitweb?p=ffmpeg.git;a=summary
 
 libbluray is compiled with the MSVC project files, however a specially modified
-version of libbluray is requires. Similar to ffmpeg, just place the full tree
+version of libbluray is required. Similar to ffmpeg, just place the full tree
 inside the "libbluray" directory in the main directory.
 
 You can get the modified version here:
