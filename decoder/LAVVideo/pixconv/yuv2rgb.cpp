@@ -409,6 +409,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
 
   ptrdiff_t line = sliceYStart;
   ptrdiff_t lastLine = sliceYEnd;
+  bool lastLineInOddHeight = false;
 
   const ptrdiff_t endx = width - 4;
 
@@ -428,6 +429,9 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
     }
     if (lastLine == height)
       lastLine--;
+  } else if (lastLine == height && (lastLine & 1)) {
+    lastLine--;
+    lastLineInOddHeight = true;
   }
 
   for (; line < lastLine; line += 2) {
@@ -451,7 +455,7 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
     yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
   }
 
-  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
+  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || lastLineInOddHeight) {
     if (sliceYEnd == height) {
       if (dithertype == LAVDither_Random)
         lineDither = dithers + ((height - 2) * 24 * DITHER_STEPS);
