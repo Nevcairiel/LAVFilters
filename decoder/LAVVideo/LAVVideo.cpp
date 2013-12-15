@@ -1420,7 +1420,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
       pFrame->ext_format.NominalRange = m_settings.RGBRange == 1 ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_0_255;
     else if (pFrame->ext_format.NominalRange == DXVA2_NominalRange_Unknown)
       pFrame->ext_format.NominalRange = DXVA2_NominalRange_16_235;
-  } else if (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24) {
+  } else if (m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB32 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB24 || m_PixFmtConverter.GetOutputPixFmt() == LAVOutPixFmt_RGB48) {
     pFrame->ext_format.NominalRange = DXVA2_NominalRange_0_255;
   }
 
