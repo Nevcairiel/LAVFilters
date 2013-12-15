@@ -180,7 +180,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
     tmpStride[2] = scaleStride / 2;
     tmpStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P, SWS_FAST_BILINEAR);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P, SWS_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = tmp[0];
@@ -275,7 +275,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
     tmpStride[2] = scaleStride;
     tmpStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P, SWS_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = tmp[0];
@@ -346,7 +346,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
     tmpStride[2] = scaleStride / 2;
     tmpStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), chromaVertical == 1 ? AV_PIX_FMT_YUV422P16LE : AV_PIX_FMT_YUV420P16LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), chromaVertical == 1 ? AV_PIX_FMT_YUV422P16LE : AV_PIX_FMT_YUV420P16LE, SWS_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = tmp[0];
@@ -452,7 +452,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
     tmpStride[2] = scaleStride * 2;
     tmpStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
@@ -511,7 +511,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
     tmpStride[2] = scaleStride * 2;
     tmpStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P16LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P16LE, SWS_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
@@ -565,7 +565,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
     tmpStride[2] = scaleStride;
     tmpStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P10LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P10LE, SWS_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
@@ -659,7 +659,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const in
     tmpStride[2] = scaleStride * 2;
     tmpStride[3] = 0;
 
-    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_POINT);
+    SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_BILINEAR);
     sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
