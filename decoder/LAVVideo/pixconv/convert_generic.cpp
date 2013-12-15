@@ -85,7 +85,7 @@ DECLARE_CONV_FUNC_IMPL(convert_generic)
     hr = swscale_scale(inputFmt, AV_PIX_FMT_YUV444P, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
     break;
   case LAVOutPixFmt_RGB48:
-    hr = swscale_scale(inputFmt, AV_PIX_FMT_RGB48LE, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt], true);
+    hr = swscale_scale(inputFmt, AV_PIX_FMT_RGB48LE, src, srcStride, dst, width, height, dstStride, lav_pixfmt_desc[m_OutputPixFmt]);
     break;
   default:
     ASSERT(0);
