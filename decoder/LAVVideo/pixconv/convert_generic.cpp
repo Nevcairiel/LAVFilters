@@ -584,6 +584,10 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   // Calculate v210 stride
   int outStride = (((dstStride[0] >> 2) + 47) / 48) * 128;
 
+  // Align width to an even number for processing
+  // This may read into the source stride, but otherwise the algorithm won't work.
+  width = FFALIGN(width, 2);
+
   BYTE *pdst = dst[0];
   int32_t *p = (int32_t *)pdst;
   int w;
