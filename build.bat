@@ -1,6 +1,6 @@
 @ECHO OFF
 
-call "%VS110COMNTOOLS%vsvars32.bat"
+call "%VS120COMNTOOLS%vsvars32.bat"
 
 sh build_ffmpeg.sh x86
 devenv LAVFilters.sln /Rebuild "Release|Win32"
