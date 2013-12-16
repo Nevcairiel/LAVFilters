@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2012
+# Visual Studio 2013
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVSplitter", "demuxer\LAVSplitter\LAVSplitter.vcxproj", "{F475F86F-3F7F-4B1D-82A6-078339F599FD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0A058024-41F4-4509-97D2-803A1806CE86} = {0A058024-41F4-4509-97D2-803A1806CE86}
