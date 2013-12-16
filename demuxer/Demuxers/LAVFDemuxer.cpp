@@ -37,6 +37,8 @@ typedef struct CodecMime{
 #include "libavformat/mpegts.h"
 #include "libavformat/matroska.h"
 #include "libavutil/avstring.h"
+
+AVChapter *avpriv_new_chapter(AVFormatContext *s, int id, AVRational time_base, int64_t start, int64_t end, const char *title);
 }
 
 #ifdef DEBUG
@@ -47,6 +49,7 @@ extern "C" {
 #endif
 
 #include "BDDemuxer.h"
+#include "CueSheet.h"
 
 #define AVFORMAT_OPEN_TIMEOUT 20
 
@@ -499,6 +502,27 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
         m_pFontInstaller = new CFontInstaller();
       }
       m_pFontInstaller->InstallFont(st->codec->extradata, st->codec->extradata_size);
+    }
+  }
+
+  if (AVDictionaryEntry *cue = av_dict_get(m_avFormat->metadata, "CUESHEET", nullptr, 0)) {
+    CCueSheet cueSheet;
+    if (SUCCEEDED(cueSheet.Parse(cue->value))) {
+      // Metadata
+      if (!cueSheet.m_Title.empty() && !av_dict_get(m_avFormat->metadata, "title", nullptr, 0))
+        av_dict_set(&m_avFormat->metadata, "title", cueSheet.m_Title.c_str(), 0);
+      if (!cueSheet.m_Performer.empty() && !av_dict_get(m_avFormat->metadata, "artist", nullptr, 0))
+        av_dict_set(&m_avFormat->metadata, "artist", cueSheet.m_Performer.c_str(), 0);
+      // Free old chapters
+      while (m_avFormat->nb_chapters--) {
+        av_dict_free(&m_avFormat->chapters[m_avFormat->nb_chapters]->metadata);
+        av_freep(&m_avFormat->chapters[m_avFormat->nb_chapters]);
+      }
+      av_freep(&m_avFormat->chapters);
+      m_avFormat->nb_chapters = 0;
+      for (CCueSheet::Track track : cueSheet.m_Tracks) {
+        avpriv_new_chapter(m_avFormat, track.index, AVRational{1, DSHOW_TIME_BASE}, track.Time, track.Time, track.Title.c_str());
+      }
     }
   }
 
