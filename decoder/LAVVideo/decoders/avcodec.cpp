@@ -275,22 +275,6 @@ static struct PixelFormatMapping getPixFmtMapping(AVPixelFormat pixfmt) {
 
 CDecAvcodec::CDecAvcodec(void)
   : CDecBase()
-  , m_pAVCodec(NULL)
-  , m_pAVCtx(NULL)
-  , m_pParser(NULL)
-  , m_pFrame(NULL)
-  , m_pFFBuffer(NULL), m_nFFBufferSize(0)
-  , m_pFFBuffer2(NULL), m_nFFBufferSize2(0)
-  , m_pSwsContext(NULL)
-  , m_nCodecId(AV_CODEC_ID_NONE)
-  , m_rtStartCache(AV_NOPTS_VALUE)
-  , m_bResumeAtKeyFrame(FALSE)
-  , m_bWaitingForKeyFrame(FALSE)
-  , m_bBFrameDelay(TRUE)
-  , m_nBFramePos(0)
-  , m_iInterlaced(-1)
-  , m_CurrentThread(0)
-  , m_bInputPadded(FALSE)
 {
 }
 

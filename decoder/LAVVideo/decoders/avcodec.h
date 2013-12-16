@@ -61,38 +61,38 @@ private:
   STDMETHODIMP ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame);
 
 protected:
-  AVCodecContext       *m_pAVCtx;
-  AVFrame              *m_pFrame;
-  AVCodecID            m_nCodecId;
+  AVCodecContext       *m_pAVCtx   = nullptr;
+  AVFrame              *m_pFrame   = nullptr;
+  AVCodecID             m_nCodecId = AV_CODEC_ID_NONE;
 
 private:
-  AVCodec              *m_pAVCodec;
-  AVCodecParserContext *m_pParser;
+  AVCodec              *m_pAVCodec   = nullptr;
+  AVCodecParserContext *m_pParser    = nullptr;
 
-  BYTE                 *m_pFFBuffer;
-  BYTE                 *m_pFFBuffer2;
-  int                  m_nFFBufferSize;
-  int                  m_nFFBufferSize2;
+  BYTE                 *m_pFFBuffer     = nullptr;
+  int                  m_nFFBufferSize  = 0;
+  BYTE                 *m_pFFBuffer2    = nullptr;
+  int                  m_nFFBufferSize2 = 0;
 
-  SwsContext           *m_pSwsContext;
+  SwsContext           *m_pSwsContext   = nullptr;
 
-  BOOL                 m_bHasPalette;
+  BOOL                 m_bHasPalette    = FALSE;
 
   // Timing settings
-  BOOL                 m_bFFReordering;
-  BOOL                 m_bCalculateStopTime;
-  BOOL                 m_bRVDropBFrameTimings;
-  BOOL                 m_bInputPadded;
+  BOOL                 m_bFFReordering        = FALSE;
+  BOOL                 m_bCalculateStopTime   = FALSE;
+  BOOL                 m_bRVDropBFrameTimings = FALSE;
+  BOOL                 m_bInputPadded         = FALSE;
 
-  BOOL                 m_bBFrameDelay;
+  BOOL                 m_bBFrameDelay         = TRUE;
   TimingCache          m_tcBFrameDelay[2];
-  int                  m_nBFramePos;
+  int                  m_nBFramePos           = 0;
 
   TimingCache          m_tcThreadBuffer[AVCODEC_MAX_THREADS];
-  int                  m_CurrentThread;
+  int                  m_CurrentThread        = 0;
 
-  REFERENCE_TIME       m_rtStartCache;
-  BOOL                 m_bResumeAtKeyFrame;
-  BOOL                 m_bWaitingForKeyFrame;
-  int                  m_iInterlaced;
+  REFERENCE_TIME       m_rtStartCache         = AV_NOPTS_VALUE;
+  BOOL                 m_bResumeAtKeyFrame    = FALSE;
+  BOOL                 m_bWaitingForKeyFrame  = FALSE;
+  int                  m_iInterlaced          = -1;
 };

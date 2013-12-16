@@ -37,5 +37,5 @@ private:
   HWND createHintWindow(HWND parent, int timePop = 1700, int timeInit = 70, int timeReshow = 7);
 
 private:
-  HWND m_hHint;
+  HWND m_hHint = 0;
 };

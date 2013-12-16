@@ -64,7 +64,7 @@ private:
   }
 
 private:
-  ILAVAudioSettings *m_pAudioSettings;
+  ILAVAudioSettings *m_pAudioSettings = nullptr;
 
   BOOL m_bDRCEnabled;
   int m_iDRCLevel;
@@ -107,7 +107,7 @@ private:
   }
 
 private:
-  ILAVAudioSettings *m_pAudioSettings;
+  ILAVAudioSettings *m_pAudioSettings = nullptr;
 
   BOOL  m_bMixing;
   DWORD m_dwSpeakerLayout;
@@ -143,7 +143,7 @@ private:
   }
 
 private:
-  ILAVAudioSettings *m_pAudioSettings;
+  ILAVAudioSettings *m_pAudioSettings = nullptr;
 
   bool m_bFormats[Codec_AudioNB];
 };
@@ -165,6 +165,6 @@ private:
   void UpdateVolumeDisplay();
 
 private:
-  ILAVAudioStatus *m_pAudioStatus;
+  ILAVAudioStatus *m_pAudioStatus = nullptr;
   int m_nChannels;
 };

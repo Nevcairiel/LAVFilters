@@ -29,7 +29,6 @@
 
 CDXVA2Sample::CDXVA2Sample(CDXVA2SurfaceAllocator *pAlloc, HRESULT *phr)
   : CMediaSample(NAME("CDXVA2Sample"), (CBaseAllocator*)pAlloc, phr, NULL, 0)
-  , m_dwSurfaceId(0), m_pSurface(NULL)
 {
 }
 
@@ -105,8 +104,6 @@ STDMETHODIMP_(int) CDXVA2Sample::GetDXSurfaceId()
 CDXVA2SurfaceAllocator::CDXVA2SurfaceAllocator(CDecDXVA2 *m_pDXVA2Dec, HRESULT* phr)
   : CBaseAllocator(NAME("CDXVA2SurfaceAllocator"), NULL, phr)
   , m_pDec(m_pDXVA2Dec)
-  , m_ppRTSurfaceArray(NULL)
-  , m_nSurfaceArrayCount(0)
 {
 }
 

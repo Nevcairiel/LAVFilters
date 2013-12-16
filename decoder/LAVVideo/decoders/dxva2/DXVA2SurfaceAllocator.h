@@ -58,8 +58,8 @@ private:
   // Sets the pointer to the Direct3D surface.
   void SetSurface(DWORD surfaceId, IDirect3DSurface9 *pSurf);
 
-  IDirect3DSurface9 *m_pSurface;
-  DWORD             m_dwSurfaceId;
+  IDirect3DSurface9 *m_pSurface   = nullptr;
+  DWORD             m_dwSurfaceId = 0;
 };
 
 interface __declspec(uuid("23F80BD8-2654-4F74-B7CC-621868D0A850"))
@@ -85,8 +85,8 @@ public:
   STDMETHODIMP_(void) DecoderDestruct() { m_pDec = NULL; }
 
 private:
-  CDecDXVA2 *m_pDec;
+  CDecDXVA2 *m_pDec = nullptr;
 
-  IDirect3DSurface9     **m_ppRTSurfaceArray;
-  UINT                  m_nSurfaceArrayCount;
+  IDirect3DSurface9 **m_ppRTSurfaceArray   = nullptr;
+  UINT                m_nSurfaceArrayCount = 0;
 };

@@ -24,9 +24,6 @@ CVideoInputPin::CVideoInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, HRESULT* 
   : CDeCSSTransformInputPin(pObjectName, pFilter, phr, pName)
   , m_pLAVVideo(pFilter)
 {
-  m_CorrectTS = 0;
-  m_ratechange.StartTime = AV_NOPTS_VALUE;
-  m_ratechange.Rate = 10000;
 }
 
 // IKsPropertySet

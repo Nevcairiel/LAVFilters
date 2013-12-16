@@ -26,25 +26,10 @@
 
 CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   : m_pLAVVideo(pLAVVideo)
-  , m_pDecoder(NULL)
-  , m_bHWDecoder(FALSE)
-  , m_bHWDecoderFailed(FALSE)
-  , m_bSyncToProcess(TRUE)
-  , m_bDecoderNeedsReInit(FALSE)
-  , m_Codec(AV_CODEC_ID_NONE)
-  , m_evDeliver(FALSE)
-  , m_evSample(FALSE)
-  , m_evDecodeDone(TRUE)
-  , m_evEOSDone(TRUE)
-  , m_evInput(TRUE)
-  , m_NextSample(NULL)
-  , m_FailedSample(NULL)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);
   m_processName = PathFindFileName (fileName);
-
-  memset(&m_ThreadCallContext, 0, sizeof(m_ThreadCallContext));
 
   m_TempSample[0] = NULL;
   m_TempSample[1] = NULL;

@@ -26,7 +26,7 @@
 
 
 CLAVInputPin::CLAVInputPin(TCHAR *pName, CLAVSplitter *pFilter, CCritSec *pLock, HRESULT *phr)
-  : CBasePin(pName, pFilter, pLock, phr, L"Input", PINDIR_INPUT), m_pAsyncReader(NULL), m_pAVIOContext(NULL), m_llPos(NULL)
+  : CBasePin(pName, pFilter, pLock, phr, L"Input", PINDIR_INPUT)
 {
 }
 

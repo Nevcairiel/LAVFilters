@@ -26,7 +26,7 @@
 #include "resource.h"
 
 CLAVAudioSettingsProp::CLAVAudioSettingsProp(LPUNKNOWN pUnk, HRESULT* phr)
-  : CBaseDSPropPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS), m_pAudioSettings(NULL), m_bDRCEnabled(FALSE), m_iDRCLevel(100)
+  : CBaseDSPropPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS)
 {
 }
 
@@ -349,7 +349,7 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
 // Mixer Configurations
 
 CLAVAudioMixingProp::CLAVAudioMixingProp(LPUNKNOWN pUnk, HRESULT* phr)
-  : CBaseDSPropPage(NAME("LAVCAudioMixing"), pUnk, IDD_PROPPAGE_AUDIO_MIXING, IDS_MIXER), m_pAudioSettings(NULL)
+  : CBaseDSPropPage(NAME("LAVCAudioMixing"), pUnk, IDD_PROPPAGE_AUDIO_MIXING, IDS_MIXER)
 {
 }
 
@@ -604,7 +604,7 @@ INT_PTR CLAVAudioMixingProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPara
 // Format Configurations
 
 CLAVAudioFormatsProp::CLAVAudioFormatsProp(LPUNKNOWN pUnk, HRESULT* phr)
-  : CBaseDSPropPage(NAME("LAVCAudioFormats"), pUnk, IDD_PROPPAGE_FORMATS, IDS_FORMATS), m_pAudioSettings(NULL)
+  : CBaseDSPropPage(NAME("LAVCAudioFormats"), pUnk, IDD_PROPPAGE_FORMATS, IDS_FORMATS)
 {
 }
 

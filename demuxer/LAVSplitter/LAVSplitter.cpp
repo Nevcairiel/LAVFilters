@@ -46,21 +46,6 @@ void CALLBACK CLAVSplitter::StaticInit(BOOL bLoading, const CLSID *clsid)
 
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
-  , m_rtStart(0)
-  , m_rtStop(0)
-  , m_dRate(1.0)
-  , m_rtLastStart(_I64_MIN)
-  , m_rtLastStop(_I64_MIN)
-  , m_rtCurrent(0)
-  , m_bPlaybackStarted(FALSE)
-  , m_pDemuxer(NULL)
-  , m_bRuntimeConfig(FALSE)
-  , m_pSite(NULL)
-  , m_bFakeASFReader(FALSE)
-  , m_bStopValid(FALSE)
-  , m_rtOffset(0)
-  , m_pTrayIcon(NULL)
-  , m_ePlaybackInit(TRUE)
 {
   WCHAR fileName[1024];
   GetModuleFileName(NULL, fileName, 1024);

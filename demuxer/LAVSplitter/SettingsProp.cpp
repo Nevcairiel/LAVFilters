@@ -31,10 +31,6 @@
 
 CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
-  , m_pLAVF(NULL)
-  , m_pszPrefLang(NULL)
-  , m_pszPrefSubLang(NULL)
-  , m_pszAdvSubConfig(NULL)
 {
 }
 
@@ -397,7 +393,6 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
 
 CLAVSplitterFormatsProp::CLAVSplitterFormatsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_FORMATS, IDS_INPUT_FORMATS)
-  , m_pLAVF(NULL), m_bFormats(NULL)
 {
 }
 

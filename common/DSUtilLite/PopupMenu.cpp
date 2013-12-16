@@ -21,7 +21,6 @@
 #include "PopupMenu.h"
 
 CPopupMenu::CPopupMenu(void)
-  : order(0)
 {
   m_hMenu = CreatePopupMenu();
 }

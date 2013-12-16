@@ -137,20 +137,6 @@ static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, B
 }
 
 CLAVPixFmtConverter::CLAVPixFmtConverter()
-  : m_pSettings(NULL)
-  , m_InputPixFmt(LAVPixFmt_None)
-  , m_OutputPixFmt(LAVOutPixFmt_YV12)
-  , m_pSwsContext(NULL)
-  , swsWidth(0), swsHeight(0)
-  , m_RequiredAlignment(0)
-  , m_nAlignedBufferSize(0)
-  , m_pAlignedBuffer(NULL)
-  , m_rgbCoeffs(NULL)
-  , m_bRGBConverter(FALSE)
-  , m_pRandomDithers(NULL)
-  , m_ditherWidth(0)
-  , m_ditherHeight(0)
-  , m_ditherBits(0)
 {
   convert = &CLAVPixFmtConverter::convert_generic;
 

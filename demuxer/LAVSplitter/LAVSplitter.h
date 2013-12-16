@@ -240,25 +240,30 @@ private:
   std::wstring m_fileName;
   std::wstring m_processName;
 
-  CBaseDemuxer *m_pDemuxer;
+  CBaseDemuxer *m_pDemuxer = nullptr;
 
-  BOOL m_bPlaybackStarted;
-  BOOL m_bFakeASFReader;
+  BOOL m_bPlaybackStarted = FALSE;
+  BOOL m_bFakeASFReader   = FALSE;
 
   // Times
-  REFERENCE_TIME m_rtStart, m_rtStop, m_rtCurrent, m_rtNewStart, m_rtNewStop;
-  REFERENCE_TIME m_rtOffset;
-  double m_dRate;
-  BOOL m_bStopValid;
+  REFERENCE_TIME m_rtStart    = 0;
+  REFERENCE_TIME m_rtStop     = 0;
+  REFERENCE_TIME m_rtCurrent  = 0;
+  REFERENCE_TIME m_rtNewStart = 0;
+  REFERENCE_TIME m_rtNewStop  = 0;
+  REFERENCE_TIME m_rtOffset   = 0;
+  double m_dRate              = 1.0;
+  BOOL m_bStopValid           = FALSE;
 
   // Seeking
-  REFERENCE_TIME m_rtLastStart, m_rtLastStop;
+  REFERENCE_TIME m_rtLastStart = _I64_MIN;
+  REFERENCE_TIME m_rtLastStop  = _I64_MIN;
   std::set<void *> m_LastSeekers;
 
-  CAMEvent m_ePlaybackInit;
+  CAMEvent m_ePlaybackInit{TRUE};
 
   // flushing
-  bool m_fFlushing;
+  bool m_fFlushing      = FALSE;
   CAMEvent m_eEndFlush;
 
   std::set<FormatInfo> m_InputFormats;
@@ -286,11 +291,10 @@ private:
     std::map<std::string, BOOL> formats;
   } m_settings;
 
-  BOOL m_bRuntimeConfig;
+  BOOL m_bRuntimeConfig = FALSE;
 
-  IUnknown *m_pSite;
-
-  CBaseTrayIcon *m_pTrayIcon;
+  IUnknown      *m_pSite     = nullptr;
+  CBaseTrayIcon *m_pTrayIcon = nullptr;
 };
 
 [uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]

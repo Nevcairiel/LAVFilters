@@ -198,25 +198,6 @@ static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int
 
 CDecDXVA2::CDecDXVA2(void)
   : CDecAvcodec()
-  , m_bNative(FALSE)
-  , m_pD3D(NULL)
-  , m_pD3DDev(NULL)
-  , m_pD3DDevMngr(NULL)
-  , m_pD3DResetToken(0)
-  , m_pDXVADecoderService(NULL)
-  , m_pDecoder(NULL)
-  , m_NumSurfaces(0)
-  , m_CurrentSurfaceAge(1)
-  , m_FrameQueuePosition(0)
-  , m_bFailHWDecode(FALSE)
-  , m_dwSurfaceWidth(0)
-  , m_dwSurfaceHeight(0)
-  , m_dwVendorId(0)
-  , m_dwDeviceId(0)
-  , m_pDXVA2Allocator(NULL)
-  , m_hDevice(INVALID_HANDLE_VALUE)
-  , m_DisplayDelay(DXVA2_QUEUE_SURFACES)
-  , m_guidDecoderDevice(GUID_NULL)
 {
   ZeroMemory(&dx, sizeof(dx));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));

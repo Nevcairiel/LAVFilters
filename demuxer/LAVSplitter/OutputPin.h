@@ -117,7 +117,7 @@ public:
 
   void SetQueueSizes();
 
-  REFERENCE_TIME m_rtPrev;
+  REFERENCE_TIME m_rtPrev = AV_NOPTS_VALUE;
 
 protected:
   virtual HRESULT DeliverPacket(Packet *pPacket);
@@ -136,24 +136,25 @@ private:
 
   std::string m_containerFormat;
 
-  bool m_bFirstPin;
+  bool m_bFirstPin = false;
 
   // Flush control
-  bool m_fFlushing, m_fFlushed;
-  CAMEvent m_eEndFlush;
+  bool m_fFlushing = false;
+  bool m_fFlushed  = false;
+  CAMEvent m_eEndFlush{TRUE};
 
-  HRESULT m_hrDeliver;
+  HRESULT m_hrDeliver = S_OK;
 
-  int m_nBuffers;
-  DWORD m_dwQueueLow;
-  DWORD m_dwQueueHigh;
-  DWORD m_dwQueueMaxMem;
+  int m_nBuffers        = 1;
+  DWORD m_dwQueueLow    = MIN_PACKETS_IN_QUEUE;
+  DWORD m_dwQueueHigh   = MAX_PACKETS_IN_QUEUE;
+  DWORD m_dwQueueMaxMem = 256;
 
-  DWORD m_streamId;
-  CMediaType *m_newMT;
+  DWORD m_streamId      = 0;
+  CMediaType *m_newMT   = nullptr;
 
   CBaseDemuxer::StreamType m_pinType;
 
   CStreamParser m_Parser;
-  BOOL m_bPacketAllocator;
+  BOOL m_bPacketAllocator = FALSE;
 };

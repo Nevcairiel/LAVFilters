@@ -22,7 +22,7 @@
 #include "BaseDSPropPage.h"
 
 CBaseDSPropPage::CBaseDSPropPage(LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, int DialogId, int TitleId)
-  : CBasePropertyPage(pName, pUnk, DialogId, TitleId), m_hHint(0)
+  : CBasePropertyPage(pName, pUnk, DialogId, TitleId)
 {
 }
 

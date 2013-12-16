@@ -58,12 +58,12 @@ private:
   }
 
 private:
-  ILAVFSettingsInternal *m_pLAVF;
+  ILAVFSettingsInternal *m_pLAVF = nullptr;
 
   // Settings
-  WCHAR *m_pszPrefLang;
-  WCHAR *m_pszPrefSubLang;
-  WCHAR *m_pszAdvSubConfig;
+  WCHAR *m_pszPrefLang     = nullptr;
+  WCHAR *m_pszPrefSubLang  = nullptr;
+  WCHAR *m_pszAdvSubConfig = nullptr;
 
   LAVSubtitleMode m_subtitleMode;
   BOOL m_PGSForcedStream;
@@ -110,10 +110,10 @@ private:
   }
 
 private:
-  ILAVFSettingsInternal *m_pLAVF;
+  ILAVFSettingsInternal *m_pLAVF = nullptr;
 
   std::set<FormatInfo> m_Formats;
-  BOOL *m_bFormats;
+  BOOL *m_bFormats = nullptr;
 
   WCHAR stringBuffer[256];
 };

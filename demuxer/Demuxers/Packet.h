@@ -42,21 +42,25 @@ public:
   int RemoveHead(int count);
 
 public:
-  DWORD StreamId;
-  BOOL bDiscontinuity, bSyncPoint;
-  REFERENCE_TIME rtStart, rtStop;
-  LONGLONG bPosition;
-  AM_MEDIA_TYPE* pmt;
+  DWORD StreamId         = 0;
+  BOOL  bDiscontinuity   = FALSE;
+  BOOL  bSyncPoint       = FALSE;
+  LONGLONG bPosition     = -1;
+
+  REFERENCE_TIME rtStart = INVALID_TIME;
+  REFERENCE_TIME rtStop  = INVALID_TIME;
+
+  AM_MEDIA_TYPE *pmt     = nullptr;
 
 #define LAV_PACKET_PARSED           0x0001
 #define LAV_PACKET_MOV_TEXT         0x0002
 #define LAV_PACKET_FORCED_SUBTITLE  0x0004
 #define LAV_PACKET_H264_ANNEXB      0x0008
 #define LAV_PACKET_SRT              0x0010
-  DWORD dwFlags;
+  DWORD dwFlags          = 0;
 
 private:
-  int m_DataSize;
-  BYTE *m_Data;
-  AVBufferRef *m_Buf;
+  int          m_DataSize = 0;
+  BYTE        *m_Data     = nullptr;
+  AVBufferRef *m_Buf      = nullptr;
 };

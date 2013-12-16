@@ -60,8 +60,8 @@ public:
   void BitByteAlign();
 
 private:
-  GetBitContext *m_gbCtx;
+  GetBitContext *m_gbCtx = nullptr;
 
-  const BYTE *m_pData;
-  const BYTE *m_pEnd;
+  const BYTE *m_pData    = nullptr;
+  const BYTE *m_pEnd     = nullptr;
 };

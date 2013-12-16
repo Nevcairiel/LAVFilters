@@ -48,12 +48,11 @@ bool CreateRegistryKey(HKEY hKeyRoot, LPCTSTR pszSubKey)
   return false;
 }
 
-CRegistry::CRegistry() : m_key(NULL)
+CRegistry::CRegistry()
 {
 }
 
 CRegistry::CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr, BOOL bReadOnly, BOOL b64Bit)
-  : m_key(NULL)
 {
   hr = Open(hkeyRoot, pszSubKey, bReadOnly, b64Bit);
 }

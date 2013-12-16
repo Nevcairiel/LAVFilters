@@ -65,30 +65,6 @@ void CALLBACK CLAVVideo::StaticInit(BOOL bLoading, const CLSID *clsid)
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("LAV Video Decoder"), 0, __uuidof(CLAVVideo))
   , m_Decoder(this)
-  , m_rtPrevStart(0)
-  , m_rtPrevStop(0)
-  , m_bRuntimeConfig(FALSE)
-  , m_bForceInputAR(FALSE)
-  , m_bSendMediaType(FALSE)
-  , m_bDXVAExtFormatSupport(TRUE)
-  , m_dwDecodeFlags(0)
-  , m_pFilterGraph(NULL)
-  , m_pFilterBufferSrc(NULL)
-  , m_pFilterBufferSink(NULL)
-  , m_filterPixFmt(LAVPixFmt_None)
-  , m_filterWidth(0), m_filterHeight(0)
-  , m_hrDeliver(S_OK)
-  , m_LAVPinInfoValid(FALSE)
-  , m_bMadVR(-1)
-  , m_bOverlayMixer(-1)
-  , m_bFlushing(FALSE)
-  , m_pSubtitleInput(NULL)
-  , m_SubtitleConsumer(NULL)
-  , m_pLastSequenceFrame(NULL)
-  , m_bInDVDMenu(FALSE)
-  , m_ControlThread(NULL)
-  , m_pTrayIcon(NULL)
-  , m_dwGPUDeviceIndex(DWORD_MAX)
 {
   *phr = S_OK;
   m_pInput = new CVideoInputPin(TEXT("CVideoInputPin"), this, phr, L"Input");
@@ -99,9 +75,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
   memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
-
-  m_DVDRate.Rate = 10000;
-  m_DVDRate.StartTime = AV_NOPTS_VALUE;
 
   StaticInit(TRUE, NULL);
 

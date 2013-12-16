@@ -117,57 +117,57 @@ private:
     CUMETHOD(cuvidUnmapVideoFrame);
   } cuda;
 
-  IDirect3D9             *m_pD3D;
-  IDirect3DDevice9       *m_pD3DDevice;
+  IDirect3D9             *m_pD3D       = nullptr;
+  IDirect3DDevice9       *m_pD3DDevice = nullptr;
 
-  CUcontext              m_cudaContext;
-  CUvideoctxlock         m_cudaCtxLock;
+  CUcontext              m_cudaContext = 0;
+  CUvideoctxlock         m_cudaCtxLock = 0;
 
-  CUvideoparser          m_hParser;
+  CUvideoparser          m_hParser     = 0;
   CUVIDEOFORMATEX        m_VideoParserExInfo;
 
-  CUvideodecoder         m_hDecoder;
+  CUvideodecoder         m_hDecoder    = 0;
   CUVIDDECODECREATEINFO  m_VideoDecoderInfo;
 
   CUVIDEOFORMAT          m_VideoFormat;
 
   CUVIDPARSERDISPINFO    m_DisplayQueue[DISPLAY_DELAY];
-  int                    m_DisplayPos;
+  int                    m_DisplayPos = 0;
 
   CUVIDPICPARAMS         m_PicParams[MAX_PIC_INDEX];
 
-  CUstream               m_hStream;
+  CUstream               m_hStream = 0;
 
-  BOOL                   m_bVDPAULevelC;
+  BOOL                   m_bVDPAULevelC = FALSE;
 
-  BOOL                   m_bForceSequenceUpdate;
-  BOOL                   m_bInterlaced;
-  BOOL                   m_bDoubleRateDeint;
-  BOOL                   m_bFlushing;
-  REFERENCE_TIME         m_rtAvgTimePerFrame;
-  REFERENCE_TIME         m_rtPrevDiff;
-  BOOL                   m_bWaitForKeyframe;
-  int                    m_iFullRange;
+  BOOL                   m_bForceSequenceUpdate = FALSE;
+  BOOL                   m_bInterlaced          = FALSE;
+  BOOL                   m_bDoubleRateDeint     = FALSE;
+  BOOL                   m_bFlushing            = FALSE;
+  REFERENCE_TIME         m_rtAvgTimePerFrame    = AV_NOPTS_VALUE;
+  REFERENCE_TIME         m_rtPrevDiff           = AV_NOPTS_VALUE;
+  BOOL                   m_bWaitForKeyframe     = FALSE;
+  int                    m_iFullRange           = -1;
 
   DXVA2_ExtendedFormat   m_DXVAExtendedFormat;
 
-  BYTE                   *m_pbRawNV12;
-  int                    m_cRawNV12;
+  BYTE                   *m_pbRawNV12 = nullptr;
+  int                    m_cRawNV12   = 0;
 
-  CAVC1AnnexBConverter   *m_AVC1Converter;
+  CAVC1AnnexBConverter   *m_AVC1Converter = nullptr;
 
-  BOOL                   m_bFormatIncompatible;
-  BOOL                   m_bNeedSequenceCheck;
+  BOOL                   m_bFormatIncompatible = FALSE;
+  BOOL                   m_bNeedSequenceCheck  = FALSE;
 
-  BOOL                   m_bUseTimestampQueue;
+  BOOL                   m_bUseTimestampQueue  = FALSE;
   std::queue<REFERENCE_TIME> m_timestampQueue;
 
-  int                    m_nSoftTelecine;
-  BOOL                   m_bTFF;
-  BOOL                   m_bARPresent;
-  BOOL                   m_bEndOfSequence;
+  int                    m_nSoftTelecine  = 0;
+  BOOL                   m_bTFF           = TRUE;
+  BOOL                   m_bARPresent     = TRUE;
+  BOOL                   m_bEndOfSequence = FALSE;
 
-  HWND                   m_hwnd;
+  HWND                   m_hwnd           = 0;
 
-  int                    m_DisplayDelay;
+  int                    m_DisplayDelay   = DISPLAY_DELAY;
 };

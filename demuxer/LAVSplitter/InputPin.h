@@ -46,10 +46,9 @@ protected:
   static int Read(void *opaque, uint8_t *buf, int buf_size);
   static int64_t Seek(void *opaque, int64_t offset, int whence);
 
-  LONGLONG m_llPos;
+  LONGLONG m_llPos = 0;
 
 private:
-  IAsyncReader *m_pAsyncReader;
-
-  AVIOContext *m_pAVIOContext;
+  IAsyncReader *m_pAsyncReader = nullptr;
+  AVIOContext *m_pAVIOContext  = nullptr;
 };

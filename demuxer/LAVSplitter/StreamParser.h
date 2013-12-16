@@ -46,18 +46,17 @@ private:
   HRESULT Queue(Packet *pPacket) const;
 
 private:
-  CLAVOutputPin * const m_pPin;
+  CLAVOutputPin * const m_pPin = nullptr;
   std::string m_strContainer;
 
-  GUID m_gSubtype;
+  GUID m_gSubtype = GUID_NULL;
 
-  Packet *m_pPacketBuffer;
+  Packet *m_pPacketBuffer = nullptr;
 
-  BOOL m_bPGSDropState;
+  BOOL m_bPGSDropState = FALSE;
   GrowableArray<BYTE> m_pgsBuffer;
 
   CPacketQueue m_queue;
 
-  bool m_bHasAccessUnitDelimiters;
+  bool m_bHasAccessUnitDelimiters = false;
 };
-

@@ -47,5 +47,5 @@ public:
   HRESULT DeleteKey(LPCTSTR pszKey);
 
 private:
-  HKEY *m_key;
+  HKEY *m_key = nullptr;
 };

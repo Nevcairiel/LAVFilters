@@ -218,47 +218,47 @@ private:
   friend class CLAVSubtitleConsumer;
 
   CDecodeThread        m_Decoder;
-  CAMThread            *m_ControlThread;
+  CAMThread            *m_ControlThread = nullptr;
 
-  REFERENCE_TIME       m_rtPrevStart;
-  REFERENCE_TIME       m_rtPrevStop;
+  REFERENCE_TIME       m_rtPrevStart = 0;
+  REFERENCE_TIME       m_rtPrevStop  = 0;
 
-  BOOL                 m_bForceInputAR;
-  BOOL                 m_bSendMediaType;
-  BOOL                 m_bFlushing;
+  BOOL                 m_bForceInputAR  = FALSE;
+  BOOL                 m_bSendMediaType = FALSE;
+  BOOL                 m_bFlushing      = FALSE;
 
-  HRESULT              m_hrDeliver;
+  HRESULT              m_hrDeliver      = S_OK;
 
   CLAVPixFmtConverter  m_PixFmtConverter;
   std::wstring         m_strExtension;
 
-  BOOL                 m_bDXVAExtFormatSupport;
-  DWORD                m_bMadVR;
-  DWORD                m_bOverlayMixer;
-  DWORD                m_dwDecodeFlags;
+  BOOL                 m_bDXVAExtFormatSupport = TRUE;
+  DWORD                m_bMadVR                = -1;
+  DWORD                m_bOverlayMixer         = -1;
+  DWORD                m_dwDecodeFlags         = 0;
 
-  BOOL                 m_bInDVDMenu;
+  BOOL                 m_bInDVDMenu            = FALSE;
 
-  AVFilterGraph        *m_pFilterGraph;
-  AVFilterContext      *m_pFilterBufferSrc;
-  AVFilterContext      *m_pFilterBufferSink;
+  AVFilterGraph        *m_pFilterGraph         = nullptr;
+  AVFilterContext      *m_pFilterBufferSrc     = nullptr;
+  AVFilterContext      *m_pFilterBufferSink    = nullptr;
 
-  LAVPixelFormat       m_filterPixFmt;
-  int                  m_filterWidth;
-  int                  m_filterHeight;
+  LAVPixelFormat       m_filterPixFmt          = LAVPixFmt_None;
+  int                  m_filterWidth           = 0;
+  int                  m_filterHeight          = 0;
   LAVFrame             m_FilterPrevFrame;
 
-  BOOL                 m_LAVPinInfoValid;
+  BOOL                 m_LAVPinInfoValid       = FALSE;
   LAVPinInfo           m_LAVPinInfo;
 
-  CLAVVideoSubtitleInputPin *m_pSubtitleInput;
-  CLAVSubtitleConsumer *m_SubtitleConsumer;
+  CLAVVideoSubtitleInputPin *m_pSubtitleInput  = nullptr;
+  CLAVSubtitleConsumer *m_SubtitleConsumer     = nullptr;
 
-  LAVFrame             *m_pLastSequenceFrame;
+  LAVFrame             *m_pLastSequenceFrame   = nullptr;
 
-  AM_SimpleRateChange  m_DVDRate;
+  AM_SimpleRateChange  m_DVDRate = AM_SimpleRateChange{AV_NOPTS_VALUE, 10000};
 
-  BOOL                 m_bRuntimeConfig;
+  BOOL                 m_bRuntimeConfig = FALSE;
   struct VideoSettings {
     BOOL TrayIcon;
     DWORD StreamAR;
@@ -281,9 +281,9 @@ private:
     BOOL bDVDVideo;
   } m_settings;
 
-  DWORD m_dwGPUDeviceIndex;
+  DWORD m_dwGPUDeviceIndex = DWORD_MAX;
 
-  CBaseTrayIcon *m_pTrayIcon;
+  CBaseTrayIcon *m_pTrayIcon = nullptr;
 
 #ifdef DEBUG
   FloatingAverage<double> m_pixFmtTimingAvg;

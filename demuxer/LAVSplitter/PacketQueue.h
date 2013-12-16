@@ -33,7 +33,7 @@ class Packet;
 class CPacketQueue : public CCritSec
 {
 public:
-  CPacketQueue() : m_dataSize(0) {};
+  CPacketQueue() {};
 
   // Queue a new packet at the end of the list
   void Queue(Packet *pPacket);
@@ -57,10 +57,10 @@ public:
 private:
   // The actual storage class
   std::deque<Packet *> m_queue;
-  size_t m_dataSize;
+  size_t m_dataSize = 0;
 
 #ifdef DEBUG
-  bool m_bWarnedFull;
-  bool m_bWarnedExtreme;
+  bool m_bWarnedFull    = false;
+  bool m_bWarnedExtreme = false;
 #endif
 };

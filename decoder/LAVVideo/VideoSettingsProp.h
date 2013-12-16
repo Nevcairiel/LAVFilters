@@ -58,8 +58,8 @@ private:
   }
 
 private:
-  ILAVVideoSettings *m_pVideoSettings;
-  ILAVVideoStatus   *m_pVideoStatus;
+  ILAVVideoSettings *m_pVideoSettings = nullptr;
+  ILAVVideoStatus   *m_pVideoStatus   = nullptr;
 
   DWORD m_dwNumThreads;
   DWORD m_StreamAR;
@@ -108,7 +108,7 @@ private:
   }
 
 private:
-  ILAVVideoSettings *m_pVideoSettings;
+  ILAVVideoSettings *m_pVideoSettings = nullptr;
 
   BOOL m_bFormats[Codec_VideoNB];
   BOOL m_bWMVDMO;

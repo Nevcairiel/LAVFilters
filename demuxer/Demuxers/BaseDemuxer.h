@@ -124,7 +124,7 @@ protected:
   void CreatePGSForcedSubtitleStream();
 
 public:
-  // Get the StreamList of the correponding type
+  // Get the StreamList of the corresponding type
   virtual CStreamList *GetStreams(StreamType type) { return &m_streams[type]; }
 
   
@@ -138,7 +138,7 @@ public:
   virtual const stream* SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors, std::string audioLanguage) = 0;
 
 protected:
-  CCritSec *m_pLock;
+  CCritSec *m_pLock = nullptr;
   CStreamList m_streams[unknown];
   int m_dActiveStreams[unknown];
 };

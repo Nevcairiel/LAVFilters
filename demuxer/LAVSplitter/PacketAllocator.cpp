@@ -25,7 +25,6 @@
 
 CMediaPacketSample::CMediaPacketSample(LPCTSTR pName, CBaseAllocator *pAllocator, HRESULT *phr)
   : CMediaSample(pName, pAllocator, phr)
-  , m_pPacket(NULL)
 {
 }
 
@@ -89,7 +88,6 @@ STDMETHODIMP CMediaPacketSample::SetPacket(Packet *pPacket)
 
 CPacketAllocator::CPacketAllocator(LPCTSTR pName, LPUNKNOWN pUnk, HRESULT *phr)
   : CBaseAllocator(pName, pUnk, phr, TRUE, TRUE)
-  , m_bAllocated(FALSE)
 {
 }
 

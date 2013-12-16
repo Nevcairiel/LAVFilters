@@ -32,6 +32,6 @@ protected:
   HRESULT ProcessMenuCommand(HMENU hMenu, int cmd);
 
 private:
-  int m_NumStreams;
-  int m_NumChapters;
+  int m_NumStreams  = 0;
+  int m_NumChapters = 0;
 };

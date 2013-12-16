@@ -80,18 +80,18 @@ private:
   static int64_t CBDDemuxer::BDByteStreamSeek(void *opaque,  int64_t offset, int whence);
 
 private:
-  BLURAY *m_pBD;
-  AVIOContext *m_pb;
+  BLURAY      *m_pBD                      = nullptr;
+  AVIOContext *m_pb                       = nullptr;
 
-  ILAVFSettingsInternal *m_pSettings;
-  CLAVFDemuxer *m_lavfDemuxer;
+  ILAVFSettingsInternal *m_pSettings      = nullptr;
+  CLAVFDemuxer          *m_lavfDemuxer    = nullptr;
 
-  BLURAY_TITLE_INFO *m_pTitle;
-  uint32_t          m_nTitleCount;
+  BLURAY_TITLE_INFO *m_pTitle             = nullptr;
+  uint32_t           m_nTitleCount        = 0;
 
-  REFERENCE_TIME *m_rtOffset;
-  REFERENCE_TIME m_rtNewOffset;
-  int64_t       m_bNewOffsetPos;
+  REFERENCE_TIME *m_rtOffset              = nullptr;
+  REFERENCE_TIME  m_rtNewOffset           = 0;
+  int64_t         m_bNewOffsetPos         = 0;
 
-  BOOL m_EndOfStreamPacketFlushProtection;
+  BOOL m_EndOfStreamPacketFlushProtection = FALSE;
 };

@@ -25,8 +25,8 @@
 
 class CFontInstaller
 {
-	HANDLE (WINAPI *pAddFontMemResourceEx)(PVOID,DWORD,PVOID,DWORD*);
-	BOOL (WINAPI *pRemoveFontMemResourceEx)(HANDLE);
+	HANDLE (WINAPI *pAddFontMemResourceEx)(PVOID,DWORD,PVOID,DWORD*) = nullptr;
+	BOOL (WINAPI *pRemoveFontMemResourceEx)(HANDLE)                  = nullptr;
 
 	std::vector<HANDLE> m_fonts;
 	bool InstallFontMemory(const void* pData, UINT len);

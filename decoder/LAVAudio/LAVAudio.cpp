@@ -60,49 +60,6 @@ void CALLBACK CLAVAudio::StaticInit(BOOL bLoading, const CLSID *clsid)
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
-  , m_nCodecId(AV_CODEC_ID_NONE)
-  , m_pAVCodec(NULL)
-  , m_pAVCtx(NULL)
-  , m_pFrame(NULL)
-  , m_bDiscontinuity(FALSE)
-  , m_rtStart(0)
-  , m_dStartOffset(0.0)
-  , m_DecodeFormat(SampleFormat_16)
-  , m_bRuntimeConfig(FALSE)
-  , m_bVolumeStats(FALSE)
-  , m_pParser(NULL)
-  , m_bQueueResync(FALSE)
-  , m_bResyncTimestamp(FALSE)
-  , m_avioBitstream(NULL)
-  , m_avBSContext(NULL)
-  , m_bDTSHD(FALSE)
-  , m_bUpdateTimeCache(TRUE)
-  , m_rtStartInputCache(AV_NOPTS_VALUE)
-  , m_rtStopInputCache(AV_NOPTS_VALUE)
-  , m_rtBitstreamCache(AV_NOPTS_VALUE)
-  , m_faJitter(50)
-  , m_JitterLimit(MAX_JITTER_DESYNC)
-  , m_hDllExtraDecoder(NULL)
-  , m_pDTSDecoderContext(NULL)
-  , m_DecodeLayout(0)
-  , m_DecodeLayoutSanified(0)
-  , m_bChannelMappingRequired(FALSE)
-  , m_bFindDTSInPCM(FALSE)
-  , m_bBitStreamingSettingsChanged(FALSE)
-  , m_FallbackFormat(SampleFormat_None)
-  , m_dwOverrideMixer(0)
-  , m_bNeedSyncpoint(FALSE)
-  , m_dRate(1.0)
-  , m_avrContext(NULL)
-  , m_bAVResampleFailed(FALSE)
-  , m_bMixingSettingsChanged(FALSE)
-  , m_fMixingClipThreshold(1.0f)
-  , m_bHasVideo(TRUE)
-  , m_dwRemixLayout(0)
-  , m_MixingInputFormat(SampleFormat_None)
-  , m_MixingInputLayout(0)
-  , m_pTrayIcon(NULL)
-  , m_bForceDTSCore(FALSE)
 {
   StaticInit(TRUE, NULL);
 
@@ -1392,7 +1349,6 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_FallbackFormat = SampleFormat_None;
   m_dwOverrideMixer = 0;
   m_bMixingSettingsChanged = TRUE;
-  m_fMixingClipThreshold = 1.0f;
 
   return S_OK;
 }

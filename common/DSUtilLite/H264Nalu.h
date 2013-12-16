@@ -24,6 +24,7 @@
 
 typedef enum
 {
+  NALU_TYPE_UNKNOWN  = 0,
   NALU_TYPE_SLICE    = 1,
   NALU_TYPE_DPA      = 2,
   NALU_TYPE_DPB      = 3,
@@ -42,18 +43,18 @@ typedef enum
 class CH264Nalu
 {
 private :
-  int        forbidden_bit;      //! should be always FALSE
-  int        nal_reference_idc;  //! NALU_PRIORITY_xxxx
-  NALU_TYPE  nal_unit_type;      //! NALU_TYPE_xxxx
+  int        forbidden_bit      = 0;                 //! should be always FALSE
+  int        nal_reference_idc  = 0;                 //! NALU_PRIORITY_xxxx
+  NALU_TYPE  nal_unit_type      = NALU_TYPE_UNKNOWN; //! NALU_TYPE_xxxx
 
-  size_t     m_nNALStartPos;     //! NALU start (including startcode / size)
-  size_t     m_nNALDataPos;      //! Useful part
+  size_t     m_nNALStartPos     = 0;                 //! NALU start (including startcode / size)
+  size_t     m_nNALDataPos      = 0;                 //! Useful part
 
-  const BYTE *m_pBuffer;
-  size_t     m_nCurPos;
-  size_t     m_nNextRTP;
-  size_t     m_nSize;
-  int        m_nNALSize;
+  const BYTE *m_pBuffer         = nullptr;
+  size_t     m_nCurPos          = 0;
+  size_t     m_nNextRTP         = 0;
+  size_t     m_nSize            = 0;
+  int        m_nNALSize         = 0;
 
   bool      MoveToNextAnnexBStartcode();
   bool      MoveToNextRTPStartcode();

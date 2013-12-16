@@ -21,16 +21,6 @@
 #include "Packet.h"
 
 Packet::Packet()
-  : pmt(NULL)
-  , bDiscontinuity(FALSE)
-  , bSyncPoint(FALSE)
-  , rtStart(INVALID_TIME)
-  , rtStop(INVALID_TIME)
-  , bPosition(-1)
-  , dwFlags(0)
-  , m_DataSize(0)
-  , m_Data(NULL)
-  , m_Buf(NULL)
 {
 }
 

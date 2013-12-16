@@ -177,18 +177,7 @@ private:
 
 CDecWMV9::CDecWMV9(void)
   : CDecBase()
-  , m_pDMO(NULL)
-  , m_pRawBufferSize(0)
-  , m_bInterlaced(TRUE)
-  , m_OutPixFmt(LAVPixFmt_None)
-  , m_bManualReorder(FALSE)
-  , m_bReorderBufferValid(FALSE)
-  , m_rtReorderBuffer(AV_NOPTS_VALUE)
-  , m_bNeedKeyFrame(FALSE)
-  , m_nCodecId(AV_CODEC_ID_NONE)
-  , m_vc1Header(NULL)
 {
-  memset(&m_StreamAR, 0, sizeof(m_StreamAR));
 }
 
 CDecWMV9::~CDecWMV9(void)

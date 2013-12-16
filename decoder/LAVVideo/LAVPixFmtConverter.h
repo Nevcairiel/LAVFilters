@@ -131,31 +131,32 @@ private:
   const uint16_t* GetRandomDitherCoeffs(int height, int coeffs, int bits, int line);
 
 private:
-  LAVPixelFormat  m_InputPixFmt;
-  LAVOutPixFmts   m_OutputPixFmt;
-  int             m_InBpp;
+  LAVPixelFormat  m_InputPixFmt  = LAVPixFmt_None;
+  LAVOutPixFmts   m_OutputPixFmt = LAVOutPixFmt_YV12;
+  int             m_InBpp        = 0;
 
-  int swsWidth, swsHeight;
-  int swsOutputRange;
+  int swsWidth       = 0;
+  int swsHeight      = 0;
+  int swsOutputRange = 0;
 
   DXVA2_ExtendedFormat m_ColorProps;
 
-  unsigned m_RequiredAlignment;
+  unsigned m_RequiredAlignment  = 0;
 
-  SwsContext *m_pSwsContext;
+  SwsContext *m_pSwsContext     = nullptr;
 
-  size_t   m_nAlignedBufferSize;
-  uint8_t *m_pAlignedBuffer;
+  size_t   m_nAlignedBufferSize = 0;
+  uint8_t *m_pAlignedBuffer     = nullptr;
 
-  int m_NumThreads;
+  int m_NumThreads              = 1;
 
-  ILAVVideoSettings *m_pSettings;
+  ILAVVideoSettings *m_pSettings = nullptr;
 
-  RGBCoeffs *m_rgbCoeffs;
-  BOOL m_bRGBConverter;
+  RGBCoeffs *m_rgbCoeffs = nullptr;
+  BOOL m_bRGBConverter   = FALSE;
 
-  uint16_t *m_pRandomDithers;
-  int m_ditherWidth;
-  int m_ditherHeight;
-  int m_ditherBits;
+  uint16_t *m_pRandomDithers = nullptr;
+  int m_ditherWidth  = 0;
+  int m_ditherHeight = 0;
+  int m_ditherBits   = 0;
 };

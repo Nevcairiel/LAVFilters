@@ -41,13 +41,13 @@ public:
   STDMETHODIMP SetPacket(Packet *pPacket);
 
 protected:
-  Packet *m_pPacket;
+  Packet *m_pPacket = nullptr;
 };
 
 class CPacketAllocator : public CBaseAllocator
 {
 protected:
-  BOOL m_bAllocated;
+  BOOL m_bAllocated = FALSE;
 
   // override to free the memory when decommit completes
   // - we actually do nothing, and save the memory until deletion.

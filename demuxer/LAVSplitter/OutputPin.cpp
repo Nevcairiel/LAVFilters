@@ -30,20 +30,11 @@
 
 CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, bool bFirst)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
-  , m_hrDeliver(S_OK)
-  , m_fFlushing(false)
-  , m_fFlushed(false)
-  , m_eEndFlush(TRUE)
   , m_containerFormat(container)
-  , m_newMT(NULL)
   , m_pinType(pinType)
   , m_Parser(this, container)
-  , m_bPacketAllocator(FALSE)
-  , m_dwQueueMaxMem(256)
   , m_bFirstPin(bFirst)
-  , m_nBuffers(1)
   , m_mts(mts)
-  , m_streamId(0)
 {
   m_rtPrev = m_bFirstPin ? 0 : AV_NOPTS_VALUE;
 

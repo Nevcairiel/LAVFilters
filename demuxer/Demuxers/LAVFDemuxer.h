@@ -159,40 +159,38 @@ private:
   STDMETHODIMP CreatePacketMediaType(Packet *pPacket, enum AVCodecID codec_id, BYTE *extradata, int extradata_size, BYTE *paramchange, int paramchange_size);
 
 private:
-  AVFormatContext *m_avFormat;
-  const char *m_pszInputFormat;
+  AVFormatContext *m_avFormat        = nullptr;
+  const char      *m_pszInputFormat  = nullptr;
 
-  BOOL m_bMatroska;
-  BOOL m_bOgg;
-  BOOL m_bAVI;
-  BOOL m_bMPEGTS;
-  BOOL m_bMPEGPS;
-  BOOL m_bRM;
-  BOOL m_bPMP;
-  BOOL m_bMP4;
-  BOOL m_bTSDiscont;
-  BOOL m_bVC1Correction;
+  BOOL m_bMatroska                   = FALSE;
+  BOOL m_bOgg                        = FALSE;
+  BOOL m_bAVI                        = FALSE;
+  BOOL m_bMPEGTS                     = FALSE;
+  BOOL m_bMPEGPS                     = FALSE;
+  BOOL m_bRM                         = FALSE;
+  BOOL m_bPMP                        = FALSE;
+  BOOL m_bMP4                        = FALSE;
 
-  BOOL m_bSubStreams;
+  BOOL m_bTSDiscont                  = FALSE;
+  BOOL m_bSubStreams                 = FALSE;
+  BOOL m_bVC1Correction              = FALSE;
+  BOOL m_bVC1SeenTimestamp           = FALSE;
+  BOOL m_bPGSNoParsing               = FALSE;
 
-  BOOL m_bVC1SeenTimestamp;
+  int m_ForcedSubStream              = -1;
+  unsigned int m_program             = 0;
 
-  BOOL m_bPGSNoParsing;
-  int m_ForcedSubStream;
+  REFERENCE_TIME m_rtCurrent         = 0;
 
-  unsigned int m_program;
+  AVStreamParseType *m_stOrigParser  = nullptr;
 
-  REFERENCE_TIME m_rtCurrent;
+  CFontInstaller *m_pFontInstaller   = nullptr;
+  ILAVFSettingsInternal *m_pSettings = nullptr;
 
-  enum AVStreamParseType *m_stOrigParser;
+  BOOL m_bEnableTrackInfo            = FALSE;
 
-  CFontInstaller *m_pFontInstaller;
-  ILAVFSettingsInternal *m_pSettings;
+  CBDDemuxer *m_pBluRay              = nullptr;
 
-  BOOL m_bEnableTrackInfo;
-
-  CBDDemuxer *m_pBluRay;
-
-  int m_Abort;
-  time_t m_timeOpening;
+  int m_Abort                        = 0;
+  time_t m_timeOpening               = 0;
 };

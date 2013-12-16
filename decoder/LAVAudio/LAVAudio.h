@@ -58,18 +58,18 @@
 struct WAVEFORMATEX_HDMV_LPCM;
 
 struct BufferDetails {
-  GrowableArray<BYTE>   *bBuffer;         // PCM Buffer
-  LAVAudioSampleFormat  sfFormat;         // Sample Format
-  WORD                  wBitsPerSample;   // Bits per sample
-  DWORD                 dwSamplesPerSec;  // Samples per second
-  unsigned              nSamples;         // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
-  WORD                  wChannels;        // Number of channels
-  DWORD                 dwChannelMask;    // channel mask
-  REFERENCE_TIME        rtStart;          // Start Time of the buffer
-  BOOL                  bPlanar;          // Planar (not used)
+  GrowableArray<BYTE>   *bBuffer        = nullptr;         // PCM Buffer
+  LAVAudioSampleFormat  sfFormat        = SampleFormat_16; // Sample Format
+  WORD                  wBitsPerSample  = 0;               // Bits per sample
+  DWORD                 dwSamplesPerSec = 0;               // Samples per second
+  unsigned              nSamples        = 0;               // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
+  WORD                  wChannels       = 0;               // Number of channels
+  DWORD                 dwChannelMask   = 0;               // channel mask
+  REFERENCE_TIME        rtStart         = AV_NOPTS_VALUE;  // Start Time of the buffer
+  BOOL                  bPlanar         = FALSE;           // Planar (not used)
 
 
-  BufferDetails() : bBuffer(NULL), sfFormat(SampleFormat_16), wBitsPerSample(0), dwSamplesPerSec(0), wChannels(0), dwChannelMask(0), nSamples(0), rtStart(AV_NOPTS_VALUE), bPlanar(FALSE) {
+  BufferDetails() {
     bBuffer = new GrowableArray<BYTE>();
   };
   ~BufferDetails() {
@@ -234,42 +234,39 @@ private:
   HRESULT PerformAVRProcessing(BufferDetails *buffer);
 
 private:
-  AVCodecID            m_nCodecId;       // FFMPEG Codec Id
-  AVCodec              *m_pAVCodec;      // AVCodec reference
-  AVCodecContext       *m_pAVCtx;        // AVCodecContext reference
-  AVCodecParserContext *m_pParser;       // AVCodecParserContext reference
+  AVCodecID             m_nCodecId = AV_CODEC_ID_NONE;
+  AVCodec              *m_pAVCodec = nullptr;
+  AVCodecContext       *m_pAVCtx   = nullptr;
+  AVCodecParserContext *m_pParser  = nullptr;
+  AVFrame              *m_pFrame   = nullptr;
 
-  AVFrame              *m_pFrame;        // AVFrame used for decoding
+  BOOL                 m_bDiscontinuity = FALSE;
+  REFERENCE_TIME       m_rtStart        = 0;
+  double               m_dStartOffset   = 0.0;
+  double               m_dRate          = 1.0;
 
-  BOOL                 m_bDiscontinuity; // Discontinuity
-  REFERENCE_TIME       m_rtStart;        // Start time
-  double               m_dStartOffset;   // Start time offset (extra precision)
-  double               m_dRate;
+  REFERENCE_TIME       m_rtStartInput      = AV_NOPTS_VALUE;   // rtStart of the current input package
+  REFERENCE_TIME       m_rtStopInput       = AV_NOPTS_VALUE;   // rtStop of the current input package
+  REFERENCE_TIME       m_rtStartInputCache = AV_NOPTS_VALUE;   // rtStart of the last input package
+  REFERENCE_TIME       m_rtStopInputCache  = AV_NOPTS_VALUE;   // rtStop of the last input package
+  REFERENCE_TIME       m_rtBitstreamCache  = AV_NOPTS_VALUE;   // Bitstreaming time cache
+  BOOL                 m_bUpdateTimeCache  = TRUE;
 
-  REFERENCE_TIME       m_rtStartInput;   // rtStart of the last input package
-  REFERENCE_TIME       m_rtStopInput;    // rtStop of the last input package
-
-  BOOL                 m_bUpdateTimeCache;
-  REFERENCE_TIME       m_rtStartInputCache;   // rtStart of the last input package
-  REFERENCE_TIME       m_rtStopInputCache;    // rtStop of the last input package
-  REFERENCE_TIME       m_rtBitstreamCache;    // Bitstreaming time cache
-
-  GrowableArray<BYTE>  m_buff;           // Input Buffer
-  LAVAudioSampleFormat m_DecodeFormat;   // Decode Format
-  LAVAudioSampleFormat m_MixingInputFormat;
-  LAVAudioSampleFormat m_FallbackFormat;
-  DWORD                m_dwOverrideMixer;
+  GrowableArray<BYTE>  m_buff;                                 // Input Buffer
+  LAVAudioSampleFormat m_DecodeFormat      = SampleFormat_16;
+  LAVAudioSampleFormat m_MixingInputFormat = SampleFormat_None;
+  LAVAudioSampleFormat m_FallbackFormat    = SampleFormat_None;
+  DWORD                m_dwOverrideMixer   = 0;
 
   BOOL                 m_bSampleSupport[SampleFormat_NB];
 
-  BOOL                 m_bHasVideo;
+  BOOL                 m_bHasVideo              = TRUE;
 
-  AVAudioResampleContext *m_avrContext;
-  LAVAudioSampleFormat m_sfRemixFormat;
-  DWORD                m_dwRemixLayout;
-  BOOL                 m_bAVResampleFailed;
-  BOOL                 m_bMixingSettingsChanged;
-  float                m_fMixingClipThreshold;
+  AVAudioResampleContext *m_avrContext          = nullptr;
+  LAVAudioSampleFormat m_sfRemixFormat          = SampleFormat_None;
+  DWORD                m_dwRemixLayout          = 0;
+  BOOL                 m_bAVResampleFailed      = FALSE;
+  BOOL                 m_bMixingSettingsChanged = FALSE;
 
   // Settings
   struct AudioSettings {
@@ -297,44 +294,42 @@ private:
     DWORD MixingSurroundLevel;
     DWORD MixingLFELevel;
   } m_settings;
-  BOOL                m_bRuntimeConfig;
+  BOOL                m_bRuntimeConfig = FALSE;
 
-  BOOL                m_bVolumeStats;    // Volume Stats gathering enabled
-  FloatingAverage<float> m_faVolume[8];     // Floating Average for volume (8 channels)
+  BOOL                m_bVolumeStats   = FALSE;    // Volume Stats gathering enabled
+  FloatingAverage<float> m_faVolume[8];            // Floating Average for volume (8 channels)
 
-  BOOL                m_bQueueResync;
-  BOOL                m_bResyncTimestamp;
-  BOOL                m_bNeedSyncpoint;
+  BOOL                m_bQueueResync     = FALSE;
+  BOOL                m_bResyncTimestamp = FALSE;
+  BOOL                m_bNeedSyncpoint   = FALSE;
   BufferDetails       m_OutputQueue;
 
-  AVIOContext *m_avioBitstream;
+  AVIOContext        *m_avioBitstream = nullptr;
+  AVFormatContext    *m_avBSContext   = nullptr;
   GrowableArray<BYTE> m_bsOutput;
+  BOOL                m_bBitStreamingSettingsChanged = FALSE;
 
-  AVFormatContext     *m_avBSContext;
-
-  BOOL                m_bDTSHD;
-  BOOL                m_bForceDTSCore;
+  BOOL                m_bDTSHD                       = FALSE;
+  BOOL                m_bForceDTSCore                = FALSE;
   CBitstreamParser    m_bsParser;
-  BOOL                m_bFindDTSInPCM;
-  BOOL                m_bBitStreamingSettingsChanged;
+  BOOL                m_bFindDTSInPCM                = FALSE;
 
-  FloatingAverage<REFERENCE_TIME> m_faJitter;
-  REFERENCE_TIME      m_JitterLimit;
+  FloatingAverage<REFERENCE_TIME> m_faJitter{50};
+  REFERENCE_TIME      m_JitterLimit = MAX_JITTER_DESYNC;
 
-  HMODULE             m_hDllExtraDecoder;
+  HMODULE             m_hDllExtraDecoder    = nullptr;
+  DTSDecoder          *m_pDTSDecoderContext = nullptr;
+  unsigned            m_DTSBitDepth         = 0;
+  unsigned            m_DTSDecodeChannels   = 0;
 
-  DTSDecoder          *m_pDTSDecoderContext;
-  unsigned            m_DTSBitDepth;
-  unsigned            m_DTSDecodeChannels;
-
-  DWORD               m_DecodeLayout;
-  DWORD               m_DecodeLayoutSanified;
-  DWORD               m_MixingInputLayout;
-  BOOL                m_bChannelMappingRequired;
+  DWORD               m_DecodeLayout            = 0;
+  DWORD               m_DecodeLayoutSanified    = 0;
+  DWORD               m_MixingInputLayout       = 0;
+  BOOL                m_bChannelMappingRequired = FALSE;
 
   ExtendedChannelMap  m_ChannelMap;
-  int                 m_ChannelMapOutputChannels;
-  DWORD               m_ChannelMapOutputLayout;
+  int                 m_ChannelMapOutputChannels = 0;
+  DWORD               m_ChannelMapOutputLayout   = 0;
 
   struct {
     int flavor;
@@ -345,5 +340,5 @@ private:
     unsigned int deint_id;
   } m_raData;
 
-  CBaseTrayIcon *m_pTrayIcon;
+  CBaseTrayIcon *m_pTrayIcon = nullptr;
 };

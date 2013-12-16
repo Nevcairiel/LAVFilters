@@ -36,10 +36,10 @@ template <class T>
 class GrowableArray
 {
 public:
-  GrowableArray() : m_count(0), m_allocated(0), m_pArray(NULL)
+  GrowableArray()
   {
-
   }
+
   virtual ~GrowableArray()
   {
     free(m_pArray);
@@ -128,7 +128,7 @@ protected:
   GrowableArray& operator=(const GrowableArray& r);
   GrowableArray(const GrowableArray &r);
 
-  T       *m_pArray;
-  DWORD   m_count;        // Nominal count.
-  DWORD   m_allocated;    // Actual allocation size.
+  T       *m_pArray    = nullptr;
+  DWORD   m_count      = 0;        // Nominal count.
+  DWORD   m_allocated  = 0;        // Actual allocation size.
 };

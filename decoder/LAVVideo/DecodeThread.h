@@ -88,36 +88,36 @@ private:
 private:
   enum {CMD_CREATE_DECODER, CMD_CLOSE_DECODER, CMD_FLUSH, CMD_EOS, CMD_EXIT, CMD_INIT_ALLOCATOR, CMD_POST_CONNECT, CMD_REINIT};
 
-  CLAVVideo    *m_pLAVVideo;
-  ILAVDecoder  *m_pDecoder;
+  CLAVVideo    *m_pLAVVideo = nullptr;
+  ILAVDecoder  *m_pDecoder  = nullptr;
 
-  AVCodecID    m_Codec;
+  AVCodecID    m_Codec      = AV_CODEC_ID_NONE;
 
-  BOOL         m_bHWDecoder;
-  BOOL         m_bHWDecoderFailed;
+  BOOL         m_bHWDecoder = FALSE;
+  BOOL         m_bHWDecoderFailed = FALSE;
 
-  BOOL         m_bSyncToProcess;
-  BOOL         m_bDecoderNeedsReInit;
-  CAMEvent     m_evInput;
-  CAMEvent     m_evDeliver;
-  CAMEvent     m_evSample;
-  CAMEvent     m_evDecodeDone;
-  CAMEvent     m_evEOSDone;
+  BOOL         m_bSyncToProcess      = TRUE;
+  BOOL         m_bDecoderNeedsReInit = FALSE;
+  CAMEvent     m_evInput{TRUE};
+  CAMEvent     m_evDeliver{FALSE};
+  CAMEvent     m_evSample{FALSE};
+  CAMEvent     m_evDecodeDone{TRUE};
+  CAMEvent     m_evEOSDone{TRUE};
 
   CCritSec     m_ThreadCritSec;
   struct {
-    const CMediaType *pmt;
-    AVCodecID codec;
-    IMemAllocator **allocator;
-    IPin *pin;
+    const CMediaType *pmt     = nullptr;
+    AVCodecID codec           = AV_CODEC_ID_NONE;
+    IMemAllocator **allocator = nullptr;
+    IPin *pin                 = nullptr;
   } m_ThreadCallContext;
   CSynchronizedQueue<LAVFrame *> m_Output;
 
   CCritSec     m_SampleCritSec;
-  IMediaSample *m_NextSample;
+  IMediaSample *m_NextSample  = nullptr;
 
   IMediaSample *m_TempSample[2];
-  IMediaSample *m_FailedSample;
+  IMediaSample *m_FailedSample =  nullptr;
 
   std::wstring m_processName;
 };

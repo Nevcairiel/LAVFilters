@@ -36,17 +36,16 @@ private:
   HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
 
 public:
-  DWORD m_dwSampleRate;
-  DWORD m_dwBlocks;
-  DWORD m_dwFrameSize;
-  DWORD m_dwBitRate;
-  DWORD m_dwSamples;
+  DWORD m_dwSampleRate = 0;
+  DWORD m_dwBlocks     = 0;
+  DWORD m_dwFrameSize  = 0;
+  DWORD m_dwBitRate    = 0;
+  DWORD m_dwSamples    = 0;
 
-  BOOL m_bDTSHD;
+  BOOL m_bDTSHD        = FALSE;
   DTSHeader m_DTSHeader;
 
 private:
-  GetBitContext *m_gb;
-
-  void *m_pParserContext;
+  GetBitContext *m_gb    = nullptr;
+  void *m_pParserContext = nullptr;
 };

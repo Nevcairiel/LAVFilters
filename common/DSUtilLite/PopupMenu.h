@@ -31,6 +31,6 @@ public:
 
   HMENU Finish();
 private:
-  HMENU m_hMenu;
-  int order;
+  HMENU m_hMenu = 0;
+  int   order   = 0;
 };

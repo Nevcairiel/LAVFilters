@@ -19,12 +19,12 @@
 
 #pragma once
 
-typedef struct sFormatMapping {
+struct FormatMapping {
   AVCodecID codec;
   const GUID *subtype;
   unsigned codecTag;
   const GUID *format;
-} FormatMapping;
+};
 
 const char *get_stream_language(const AVStream *pStream);
 std::string get_codec_name(AVCodecContext *pCodecCtx);

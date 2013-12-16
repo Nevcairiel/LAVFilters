@@ -74,7 +74,6 @@ class CQSMediaSample : public IMediaSample
 public:
   CQSMediaSample(BYTE *pBuffer, long len)
     : m_pBuffer(pBuffer), m_lLen(len), m_lActualLen(len)
-    , m_rtStart(AV_NOPTS_VALUE), m_rtStop(AV_NOPTS_VALUE), m_bSyncPoint(FALSE), m_bDiscontinuity(FALSE), m_cRef(1)
   {}
 
   // IUnknown
@@ -142,22 +141,22 @@ public:
   STDMETHODIMP SetMediaTime(LONGLONG *pTimeStart, LONGLONG *pTimeEnd) { return E_NOTIMPL; }
 
 private:
-  BYTE *m_pBuffer;
-  long  m_lLen;
-  long  m_lActualLen;
-  REFERENCE_TIME m_rtStart;
-  REFERENCE_TIME m_rtStop;
+  BYTE *m_pBuffer          = nullptr;
+  long  m_lLen             = 0;
+  long  m_lActualLen       = 0;
+  REFERENCE_TIME m_rtStart = AV_NOPTS_VALUE;
+  REFERENCE_TIME m_rtStop  = AV_NOPTS_VALUE;
 
-  BOOL m_bSyncPoint;
-  BOOL m_bDiscontinuity;
+  BOOL m_bSyncPoint        = FALSE;
+  BOOL m_bDiscontinuity    = FALSE;
 
-  ULONG m_cRef;
+  ULONG m_cRef             = 1;
 };
 
 class CIDirect3DDeviceManager9Proxy : public IDirect3DDeviceManager9
 {
 public:
-  CIDirect3DDeviceManager9Proxy(IPin *pPin) : m_pPin(pPin), m_D3DManager(NULL), m_cRef(1) {}
+  CIDirect3DDeviceManager9Proxy(IPin *pPin) : m_pPin(pPin) {}
   ~CIDirect3DDeviceManager9Proxy() { SafeRelease(&m_D3DManager); }
 
 #define CREATE_DEVICE \
@@ -203,9 +202,9 @@ done:
   }
 
 private:
-  IDirect3DDeviceManager9 *m_D3DManager;
-  IPin *m_pPin;
-  ULONG m_cRef;
+  IDirect3DDeviceManager9 *m_D3DManager = nullptr;
+  IPin *m_pPin                          = nullptr;
+  ULONG m_cRef                          = 1;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -214,14 +213,6 @@ private:
 
 CDecQuickSync::CDecQuickSync(void)
   : CDecBase()
-  , m_bInterlaced(TRUE)
-  , m_pDecoder(NULL)
-  , m_bAVC1(FALSE)
-  , m_nAVCNalSize(0)
-  , m_bUseTimestampQueue(FALSE)
-  , m_pD3DDevMngr(NULL)
-  , m_bDI(false)
-  , m_bEndOfSequence(FALSE)
 {
   ZeroMemory(&qs, sizeof(qs));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
@@ -465,8 +456,8 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   qsConfig.vpp = 0;
   
   m_bDI                                        = m_pSettings->GetHWAccelDeintMode() == HWDeintMode_Hardware && !m_pSettings->GetDeintTreatAsProgressive();
-  qsConfig.bEnableVideoProcessing              = m_bDI;
-  qsConfig.bVppEnableDeinterlacing             = m_bDI;
+  qsConfig.bEnableVideoProcessing              = m_bDI ? true : false;
+  qsConfig.bVppEnableDeinterlacing             = m_bDI ? true : false;
   qsConfig.bVppEnableFullRateDI                = m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField;
   qsConfig.bVppEnableDITimeStampsInterpolation = true;
   qsConfig.bVppEnableForcedDeinterlacing       = m_bDI && ((m_bInterlaced && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) || m_pSettings->GetDeinterlacingMode() == DeintMode_Force);

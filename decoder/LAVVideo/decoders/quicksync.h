@@ -67,21 +67,21 @@ private:
     pcheck *check;
   } qs;
 
-  IQuickSyncDecoder *m_pDecoder;
+  IQuickSyncDecoder *m_pDecoder = nullptr;
 
-  BOOL m_bNeedSequenceCheck;
-  BOOL m_bInterlaced;
-  bool m_bDI;
-  BOOL m_bAVC1;
-  int  m_nAVCNalSize;
-  BOOL m_bEndOfSequence;
+  BOOL m_bNeedSequenceCheck = FALSE;
+  BOOL m_bInterlaced        = TRUE;
+  BOOL m_bDI                = FALSE;
+  BOOL m_bAVC1              = FALSE;
+  int  m_nAVCNalSize        = 0;
+  BOOL m_bEndOfSequence     = FALSE;
 
   BOOL                   m_bUseTimestampQueue;
   std::queue<REFERENCE_TIME> m_timestampQueue;
 
   DXVA2_ExtendedFormat m_DXVAExtendedFormat;
 
-  FOURCC m_Codec;
+  FOURCC m_Codec = 0;
 
-  IDirect3DDeviceManager9 *m_pD3DDevMngr;
+  IDirect3DDeviceManager9 *m_pD3DDevMngr = nullptr;
 };

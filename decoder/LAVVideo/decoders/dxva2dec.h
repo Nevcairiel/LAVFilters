@@ -95,43 +95,43 @@ private:
 
 private:
   friend class CDXVA2SurfaceAllocator;
-  BOOL m_bNative;
-  CDXVA2SurfaceAllocator *m_pDXVA2Allocator;
+  BOOL m_bNative = FALSE;
+  CDXVA2SurfaceAllocator *m_pDXVA2Allocator = nullptr;
 
   struct {
     HMODULE dxva2lib;
     pCreateDeviceManager9 *createDeviceManager;
   } dx;
 
-  IDirect3D9              *m_pD3D;
-  IDirect3DDevice9        *m_pD3DDev;
-  IDirect3DDeviceManager9 *m_pD3DDevMngr;
-  UINT                    m_pD3DResetToken;
-  HANDLE                  m_hDevice;
+  IDirect3D9              *m_pD3D          = nullptr;
+  IDirect3DDevice9        *m_pD3DDev       = nullptr;
+  IDirect3DDeviceManager9 *m_pD3DDevMngr   = nullptr;
+  UINT                    m_pD3DResetToken = 0;
+  HANDLE                  m_hDevice        = INVALID_HANDLE_VALUE;
 
-  IDirectXVideoDecoderService *m_pDXVADecoderService;
-  IDirectXVideoDecoder        *m_pDecoder;
+  IDirectXVideoDecoderService *m_pDXVADecoderService = nullptr;
+  IDirectXVideoDecoder        *m_pDecoder            = nullptr;
   DXVA2_ConfigPictureDecode   m_DXVAVideoDecoderConfig;
 
-  int                m_NumSurfaces;
+  int                m_NumSurfaces       = 0;
   d3d_surface_t      m_pSurfaces[DXVA2_MAX_SURFACES];
-  uint64_t           m_CurrentSurfaceAge;
+  uint64_t           m_CurrentSurfaceAge = 1;
 
   LPDIRECT3DSURFACE9 m_pRawSurface[DXVA2_MAX_SURFACES];
 
-  BOOL m_bFailHWDecode;
+  BOOL m_bFailHWDecode = FALSE;
 
   DXVA2_ExtendedFormat m_DXVAExtendedFormat;
 
   LAVFrame* m_FrameQueue[DXVA2_QUEUE_SURFACES];
-  int       m_FrameQueuePosition;
+  int       m_FrameQueuePosition = 0;
 
-  DWORD     m_dwSurfaceWidth;
-  DWORD     m_dwSurfaceHeight;
-  DWORD     m_dwVendorId;
-  DWORD     m_dwDeviceId;
-  GUID      m_guidDecoderDevice;
-  int       m_DisplayDelay;
+  DWORD     m_dwSurfaceWidth    = 0;
+  DWORD     m_dwSurfaceHeight   = 0;
+  DWORD     m_dwVendorId        = 0;
+  DWORD     m_dwDeviceId        = 0;
+  GUID      m_guidDecoderDevice = GUID_NULL;
+  int       m_DisplayDelay      = DXVA2_QUEUE_SURFACES;
 
   CMediaType m_MediaType;
 };

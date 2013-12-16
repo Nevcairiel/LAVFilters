@@ -28,6 +28,6 @@ public:
   HRESULT InitAllocator(IMemAllocator **ppAlloc);
 
 private:
-  CLAVVideo *m_pFilter;
+  CLAVVideo *m_pFilter = nullptr;
 };
 

@@ -98,16 +98,7 @@ static void bd_log(const char *log) {
 
 CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettingsInternal *pSettings)
   : CBaseDemuxer(L"bluray demuxer", pLock)
-  , m_lavfDemuxer(NULL)
-  , m_pb(NULL)
-  , m_pBD(NULL)
-  , m_pTitle(NULL)
   , m_pSettings(pSettings)
-  , m_rtOffset(NULL)
-  , m_rtNewOffset(0)
-  , m_bNewOffsetPos(0)
-  , m_nTitleCount(0)
-  , m_EndOfStreamPacketFlushProtection(FALSE)
 {
 #ifdef DEBUG
   bd_set_debug_mask(DBG_FILE|DBG_BLURAY|DBG_DIR|DBG_NAV|DBG_CRIT);

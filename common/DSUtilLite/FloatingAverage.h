@@ -26,7 +26,7 @@ template <class T>
 class FloatingAverage
 {
 public:
-  FloatingAverage(unsigned int iNumSamples = 10) : m_NumSamples(0), m_CurrentSample(0), m_Samples(NULL), m_NumSamplesAlloc(0) {
+  FloatingAverage(unsigned int iNumSamples = 10) {
     SetNumSamples(iNumSamples);
   }
 
@@ -106,8 +106,8 @@ public:
   }
 
 private:
-  T *m_Samples;
-  unsigned int m_NumSamples;
-  unsigned int m_NumSamplesAlloc;
-  unsigned int m_CurrentSample;
+  T *m_Samples                   = nullptr;
+  unsigned int m_NumSamples      = 0;
+  unsigned int m_NumSamplesAlloc = 0;
+  unsigned int m_CurrentSample   = 0;
 };

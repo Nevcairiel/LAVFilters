@@ -51,14 +51,15 @@ protected:
   IBaseFilter *m_pFilter;
 
 private:
-  CAMEvent m_evSetupFinished;
+  CAMEvent m_evSetupFinished{TRUE};
 
-  HANDLE m_hThread;
-  HWND m_hWnd;
-  BOOL m_bPropPageOpen;
+  HANDLE m_hThread       = 0;
+  HWND   m_hWnd          = 0;
+  BOOL   m_bPropPageOpen = FALSE;
 
   WCHAR m_wszClassName[64];
-  const WCHAR *m_wszName;
-  int m_resIcon;
+  const WCHAR *m_wszName = NULL;
+  int m_resIcon          = 0;
+
   NOTIFYICONDATA m_NotifyIconData;
 };

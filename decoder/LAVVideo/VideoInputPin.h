@@ -34,9 +34,9 @@ public:
 
   AM_SimpleRateChange GetDVDRateChange() { CAutoLock cAutoLock(&m_csRateLock); return m_ratechange; }
 private:
-  CLAVVideo *m_pLAVVideo;
+  CLAVVideo *m_pLAVVideo = nullptr;
   CCritSec m_csRateLock;
 
-  int m_CorrectTS;
-  AM_SimpleRateChange m_ratechange;
+  int m_CorrectTS = 0;
+  AM_SimpleRateChange m_ratechange = AM_SimpleRateChange{AV_NOPTS_VALUE, 10000};
 };

@@ -25,7 +25,7 @@
 class CDecBase : public ILAVDecoder
 {
 public:
-  CDecBase(void) : m_pSettings(NULL), m_pCallback(NULL), m_rtTimestampBuffer(0), m_MpegParserState((uint32_t)-1) {}
+  CDecBase(void) {}
   virtual ~CDecBase(void) {}
 
   STDMETHOD(Init)() PURE;
@@ -95,10 +95,10 @@ protected:
   }
 
 protected:
-  ILAVVideoSettings *m_pSettings;
-  ILAVVideoCallback *m_pCallback;
+  ILAVVideoSettings *m_pSettings = nullptr;
+  ILAVVideoCallback *m_pCallback = nullptr;
 
-  REFERENCE_TIME m_rtTimestampBuffer;
+  REFERENCE_TIME m_rtTimestampBuffer = AV_NOPTS_VALUE;
 
-  uint32_t m_MpegParserState;
+  uint32_t m_MpegParserState     = (uint32_t)-1;
 };

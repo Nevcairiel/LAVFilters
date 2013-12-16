@@ -28,8 +28,6 @@
 
 CLAVSplitterTrayIcon::CLAVSplitterTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon)
   : CBaseTrayIcon(pFilter, wszName, resIcon)
-  , m_NumStreams(0)
-  , m_NumChapters(0)
 {
 }
 

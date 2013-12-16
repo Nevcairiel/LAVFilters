@@ -54,13 +54,9 @@ BOOL CBaseTrayIcon::ProcessBlackList()
 }
 
 CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon)
-  : m_hWnd(0)
-  , m_hThread(0)
-  , m_pFilter(pFilter)
+  : m_pFilter(pFilter)
   , m_wszName(wszName)
   , m_resIcon(resIcon)
-  , m_bPropPageOpen(FALSE)
-  , m_evSetupFinished(TRUE)
 {
   memset(&m_NotifyIconData, 0, sizeof(m_NotifyIconData));
   m_evSetupFinished.Reset();

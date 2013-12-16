@@ -29,5 +29,5 @@ public:
   HRESULT Convert(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size);
 
 private:
-  int m_NaluSize;
+  int m_NaluSize = 0;
 };

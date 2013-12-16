@@ -28,9 +28,9 @@
 class CVC1HeaderParser;
 
 typedef struct _Buffer {
-  BYTE *buffer;
-  size_t size;
-  bool used;
+  BYTE *buffer = nullptr;
+  size_t size  = 0;
+  bool used    = false;
 } Buffer;
 
 class CDecWMV9 : public CDecBase
@@ -63,26 +63,26 @@ private:
   void ReleaseBuffer(BYTE *buffer);
 
 private:
-  IMediaObject *m_pDMO;
+  IMediaObject *m_pDMO = nullptr;
   CMediaType mtIn;
   CMediaType mtOut;
 
-  DWORD m_pRawBufferSize;
+  DWORD m_pRawBufferSize = 0;
 
-  BOOL m_bInterlaced;
-  AVRational m_StreamAR;
+  BOOL m_bInterlaced     = TRUE;
+  AVRational m_StreamAR = AVRational{0, 0};
 
-  LAVPixelFormat m_OutPixFmt;
-  AVCodecID m_nCodecId;
+  LAVPixelFormat m_OutPixFmt = LAVPixFmt_None;
+  AVCodecID m_nCodecId       = AV_CODEC_ID_NONE;
 
   CCritSec m_BufferCritSec;
   std::vector<Buffer *> m_BufferQueue;
 
-  BOOL m_bNeedKeyFrame;
-  BOOL m_bManualReorder;
-  BOOL m_bReorderBufferValid;
-  REFERENCE_TIME m_rtReorderBuffer;
+  BOOL m_bNeedKeyFrame             = FALSE;
+  BOOL m_bManualReorder            = FALSE;
+  BOOL m_bReorderBufferValid       = FALSE;
+  REFERENCE_TIME m_rtReorderBuffer = AV_NOPTS_VALUE;
   std::queue<REFERENCE_TIME> m_timestampQueue;
 
-  CVC1HeaderParser *m_vc1Header;
+  CVC1HeaderParser *m_vc1Header = nullptr;
 };
