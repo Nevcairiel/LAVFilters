@@ -94,9 +94,8 @@ CLAVSplitter::~CLAVSplitter()
   Close();
 
   // delete old pins
-  std::vector<CLAVOutputPin *>::iterator it;
-  for(it = m_pRetiredPins.begin(); it != m_pRetiredPins.end(); ++it) {
-    delete (*it);
+  for(CLAVOutputPin *pPin : m_pRetiredPins) {
+    delete pPin;
   }
   m_pRetiredPins.clear();
 
@@ -175,9 +174,8 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.QueueMaxSize     = 256;
   m_settings.NetworkAnalysisDuration = 1000;
 
-  std::set<FormatInfo>::iterator it;
-  for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
-    m_settings.formats[std::string(it->strName)] = get_iformat_default(it->strName);
+  for (FormatInfo fmt : m_InputFormats) {
+    m_settings.formats[std::string(fmt.strName)] = get_iformat_default(fmt.strName);
   }
 
   return S_OK;
@@ -253,11 +251,10 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
   CRegistry regF = CRegistry(rootKey, LAVF_REGISTRY_KEY_FORMATS, hr, TRUE);
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
-    std::set<FormatInfo>::iterator it;
-    for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
-      MultiByteToWideChar(CP_UTF8, 0, it->strName, -1, wBuffer, 80);
+    for (FormatInfo fmt : m_InputFormats) {
+      MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
       bFlag = regF.ReadBOOL(wBuffer, hr);
-      if (SUCCEEDED(hr)) m_settings.formats[std::string(it->strName)] = bFlag;
+      if (SUCCEEDED(hr)) m_settings.formats[std::string(fmt.strName)] = bFlag;
     }
   }
 
@@ -297,10 +294,9 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
-    std::set<FormatInfo>::iterator it;
-    for (it = m_InputFormats.begin(); it != m_InputFormats.end(); ++it) {
-      MultiByteToWideChar(CP_UTF8, 0, it->strName, -1, wBuffer, 80);
-      regF.WriteBOOL(wBuffer, m_settings.formats[std::string(it->strName)]);
+    for (FormatInfo fmt : m_InputFormats) {
+      MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
+      regF.WriteBOOL(wBuffer, m_settings.formats[std::string(fmt.strName)]);
     }
   }
 
@@ -484,12 +480,10 @@ CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId, BOOL bActiveOnly)
 {
   CAutoLock lock(&m_csPins);
 
-  std::vector<CLAVOutputPin *> &vec = bActiveOnly ? m_pActivePins : m_pPins;
-
-  std::vector<CLAVOutputPin *>::iterator it;
-  for(it = vec.begin(); it != vec.end(); ++it) {
-    if ((*it)->GetStreamId() == streamId) {
-      return *it;
+  auto &vec = bActiveOnly ? m_pActivePins : m_pPins;
+  for(CLAVOutputPin *pPin : vec) {
+    if (pPin->GetStreamId() == streamId) {
+      return pPin;
     }
   }
   return NULL;
@@ -661,11 +655,10 @@ STDMETHODIMP CLAVSplitter::DeleteOutputs()
 
   CAutoLock pinLock(&m_csPins);
   // Release pins
-  std::vector<CLAVOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
-    if(IPin* pPinTo = (*it)->GetConnected()) pPinTo->Disconnect();
-    (*it)->Disconnect();
-    m_pRetiredPins.push_back(*it);
+  for(CLAVOutputPin *pPin : m_pPins) {
+    if(IPin* pPinTo = pPin->GetConnected()) pPinTo->Disconnect();
+    pPin->Disconnect();
+    m_pRetiredPins.push_back(pPin);
   }
   m_pPins.clear();
 
@@ -676,9 +669,8 @@ bool CLAVSplitter::IsAnyPinDrying()
 {
   // MPC changes thread priority here
   // TODO: Investigate if that is needed
-  std::vector<CLAVOutputPin *>::iterator it;
-  for(it = m_pActivePins.begin(); it != m_pActivePins.end(); ++it) {
-    if((*it)->IsConnected() && !(*it)->IsDiscontinuous() && (*it)->QueueCount() < (*it)->GetQueueLowLimit()) {
+  for(CLAVOutputPin *pPin : m_pActivePins) {
+    if(pPin->IsConnected() && !pPin->IsDiscontinuous() && pPin->QueueCount() < pPin->GetQueueLowLimit()) {
       return true;
     }
   }
@@ -935,18 +927,16 @@ void CLAVSplitter::DeliverBeginFlush()
   m_fFlushing = true;
 
   // flush all pins
-  std::vector<CLAVOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
-    (*it)->DeliverBeginFlush();
+  for(CLAVOutputPin *pPin : m_pPins) {
+    pPin->DeliverBeginFlush();
   }
 }
 
 void CLAVSplitter::DeliverEndFlush()
 {
   // flush all pins
-  std::vector<CLAVOutputPin *>::iterator it;
-  for(it = m_pPins.begin(); it != m_pPins.end(); ++it) {
-    (*it)->DeliverEndFlush();
+  for(CLAVOutputPin *pPin : m_pPins) {
+    pPin->DeliverEndFlush();
   }
 
   m_fFlushing = false;
@@ -1435,9 +1425,8 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
       bNoLanguage = true;
     }
 
-    std::list<std::string>::iterator it;
-    for (it = langList.begin(); it != langList.end(); it++) {
-      std::string token = "*:" + *it;
+    for (std::string lang : langList) {
+      std::string token = "*:" + lang;
       if (m_settings.subtitleMode == LAVSubtitleMode_ForcedOnly || bNoLanguage) {
         tokenList.push_back(token + "|f");
         if (m_settings.subtitleMode == LAVSubtitleMode_Default)
@@ -1469,10 +1458,9 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   tokenList.push_back("*:off");
 
   std::tr1::regex advRegex("(?:(\\*|[[:alpha:]]+):)?(\\*|[[:alpha:]]+)(?:\\|(!?)([fdnh]+))?");
-  std::list<std::string>::iterator it;
-  for (it = tokenList.begin(); it != tokenList.end(); it++) {
+  for (std::string token : tokenList) {
     std::tr1::cmatch res;
-    bool found = std::tr1::regex_search(it->c_str(), res, advRegex);
+    bool found = std::tr1::regex_search(token.c_str(), res, advRegex);
     if (found) {
       CSubtitleSelector selector;
       selector.audioLanguage = res[1].str().empty() ? "*" : ProbeForISO6392(res[1].str().c_str());
@@ -1506,9 +1494,9 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
         }
       }
       selectorList.push_back(selector);
-      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x)", it->c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags));
+      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x)", token.c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags));
     } else {
-      DbgLog((LOG_ERROR, 10, L"::GetSubtitleSelectors(): Selector string \"%S\" could not be parsed", it->c_str()));
+      DbgLog((LOG_ERROR, 10, L"::GetSubtitleSelectors(): Selector string \"%S\" could not be parsed", token.c_str()));
     }
   }
 
