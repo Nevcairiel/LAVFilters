@@ -139,7 +139,7 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
   (*ppDst)->destruct  = NULL;
   (*ppDst)->priv_data = NULL;
 
-  AllocLAVFrameBuffers(*ppDst, pSrc->stride[0]);
+  AllocLAVFrameBuffers(*ppDst);
 
   LAVPixFmtDesc desc = getPixelFormatDesc(pSrc->format);
   for (int plane = 0; plane < desc.planes; plane++) {

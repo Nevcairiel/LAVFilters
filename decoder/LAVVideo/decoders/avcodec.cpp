@@ -880,6 +880,17 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       pOutFrame->priv_data = av_frame_alloc();
       av_frame_ref((AVFrame *)pOutFrame->priv_data, m_pFrame);
       pOutFrame->destruct  = lav_avframe_free;
+
+      // Check alignment on rawvideo, which can be off depending on the source file
+      if (m_nCodecId == AV_CODEC_ID_RAWVIDEO) {
+        for (int i = 0; i < 4; i++) {
+          if ((intptr_t)pOutFrame->data[i] % 16u || pOutFrame->stride[i] % 16u) {
+            // copy the frame, its not aligned properly and would crash later
+            CopyLAVFrameInPlace(pOutFrame);
+            break;
+          }
+        }
+      }
     }
 
     if (bEndOfSequence)
