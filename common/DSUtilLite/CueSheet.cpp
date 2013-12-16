@@ -76,9 +76,12 @@ static string GetCueParam(string line)
 
 static REFERENCE_TIME ParseCueIndex(string line)
 {
-  int index, m, s, f;
-  sscanf_s(line.c_str(), " INDEX %d %d:%d:%d", &index, &m, &s, &f);
-  return (m * 60i64 + s) * 10000000i64 + (f * 10000000i64 / 75);
+  int index, m, s, f, ret;
+  ret = sscanf_s(line.c_str(), " INDEX %d %d:%d:%d", &index, &m, &s, &f);
+  if (ret == 4)
+    return (m * 60i64 + s) * 10000000i64 + (f * 10000000i64 / 75);
+  else
+    return 0;
 }
 
 CCueSheet::CCueSheet()
