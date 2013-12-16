@@ -100,7 +100,9 @@ In future versions you'll be able to choose the title from within the player, as
 
 Compiling
 =============================
-Compiling is pretty straight forward using VC++2010 (included project files).
+Compiling is pretty straight forward using VC++2013 (included project files).
+Older versions of Visual Studio are not supported.
+
 It does, however, require that you build your own ffmpeg and libbluray.
 You need to place the full ffmpeg package in a directory called "ffmpeg" in the 
 main source directory (the directory this file was in). There are scripts to 
