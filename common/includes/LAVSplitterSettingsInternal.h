@@ -24,10 +24,10 @@
 
 class FormatInfo {
 public:
-  FormatInfo() : strName(nullptr), strDescription(nullptr) {}
+  FormatInfo() {}
   FormatInfo(LPCSTR name, LPCSTR desc) : strName(name), strDescription(desc) {}
-  LPCSTR strName;
-  LPCSTR strDescription;
+  LPCSTR strName        = nullptr;
+  LPCSTR strDescription = nullptr;
 
   // Comparison operators for sorting (NULL safe)
   bool FormatInfo::operator < (const FormatInfo& rhs) const { return strName ? (rhs.strName ? _stricmp(strName, rhs.strName) < 0 : false) : true; }
