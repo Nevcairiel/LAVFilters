@@ -41,8 +41,8 @@
 // --- COM factory table and registration code --------------
 
 const AMOVIESETUP_PIN sudpPinsVideoDec[] = {
-	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVVideo::sudPinTypesInCount,  CLAVVideo::sudPinTypesIn},
-	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVVideo::sudPinTypesOutCount, CLAVVideo::sudPinTypesOut}
+	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVVideo::sudPinTypesInCount,  CLAVVideo::sudPinTypesIn},
+	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVVideo::sudPinTypesOutCount, CLAVVideo::sudPinTypesOut}
 };
 
 const AMOVIESETUP_FILTER sudFilterReg =
@@ -73,13 +73,13 @@ CFactoryTemplate g_Templates[] = {
     L"LAV Video Properties",
     &CLSID_LAVVideoSettingsProp,
     CreateInstance<CLAVVideoSettingsProp>,
-    NULL, NULL
+    nullptr, nullptr
   },
   {
     L"LAV Video Format Settings",
     &CLSID_LAVVideoFormatsProp,
     CreateInstance<CLAVVideoFormatsProp>,
-    NULL, NULL
+    nullptr, nullptr
   }
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
@@ -109,8 +109,8 @@ BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
 void CALLBACK OpenConfiguration(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
   HRESULT hr = S_OK;
-  CUnknown *pInstance = CreateInstance<CLAVVideo>(NULL, &hr);
-  IBaseFilter *pFilter = NULL;
+  CUnknown *pInstance = CreateInstance<CLAVVideo>(nullptr, &hr);
+  IBaseFilter *pFilter = nullptr;
   pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
   if (pFilter) {
     pFilter->AddRef();

@@ -23,7 +23,7 @@
 #include "moreuuids.h"
 
 CBaseDemuxer::CBaseDemuxer(LPCTSTR pName, CCritSec *pLock)
-  : CUnknown(pName, NULL), m_pLock(pLock)
+  : CUnknown(pName, nullptr), m_pLock(pLock)
 {
   for(int i = 0; i < unknown; ++i) {
     m_dActiveStreams[i] = -1;
@@ -94,7 +94,7 @@ CBaseDemuxer::stream* CBaseDemuxer::CStreamList::FindStream(DWORD pid)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void CBaseDemuxer::CStreamList::Clear()

@@ -37,11 +37,11 @@ CLAVAudioSettingsProp::~CLAVAudioSettingsProp()
 
 HRESULT CLAVAudioSettingsProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL)
+  if (pUnk == nullptr)
   {
     return E_POINTER;
   }
-  ASSERT(m_pAudioSettings == NULL);
+  ASSERT(m_pAudioSettings == nullptr);
   return pUnk->QueryInterface(&m_pAudioSettings);
 }
 
@@ -54,7 +54,7 @@ HRESULT CLAVAudioSettingsProp::OnDisconnect()
 
 HRESULT CLAVAudioSettingsProp::OnApplyChanges()
 {
-  ASSERT(m_pAudioSettings != NULL);
+  ASSERT(m_pAudioSettings != nullptr);
   HRESULT hr = S_OK;
   BOOL bFlag;
 
@@ -139,7 +139,7 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pAudioSettings != NULL);
+  ASSERT(m_pAudioSettings != nullptr);
 
   const WCHAR *version = TEXT(LAV_AUDIO) L" " TEXT(LAV_VERSION_STR);
   SendDlgItemMessage(m_Dlg, IDC_LAVAUDIO_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
@@ -360,11 +360,11 @@ CLAVAudioMixingProp::~CLAVAudioMixingProp()
 
 HRESULT CLAVAudioMixingProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL)
+  if (pUnk == nullptr)
   {
     return E_POINTER;
   }
-  ASSERT(m_pAudioSettings == NULL);
+  ASSERT(m_pAudioSettings == nullptr);
   return pUnk->QueryInterface(&m_pAudioSettings);
 }
 
@@ -393,7 +393,7 @@ static DWORD get_speaker_index(DWORD dwLayout) {
 
 HRESULT CLAVAudioMixingProp::OnApplyChanges()
 {
-  ASSERT(m_pAudioSettings != NULL);
+  ASSERT(m_pAudioSettings != nullptr);
   HRESULT hr = S_OK;
   DWORD dwVal = 0;
   BOOL bVal = FALSE;
@@ -441,7 +441,7 @@ HRESULT CLAVAudioMixingProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pAudioSettings != NULL);
+  ASSERT(m_pAudioSettings != nullptr);
 
   WCHAR spkMono[] = L"Mono";
   WCHAR spkStereo[] = L"Stereo";
@@ -615,11 +615,11 @@ CLAVAudioFormatsProp::~CLAVAudioFormatsProp()
 
 HRESULT CLAVAudioFormatsProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL)
+  if (pUnk == nullptr)
   {
     return E_POINTER;
   }
-  ASSERT(m_pAudioSettings == NULL);
+  ASSERT(m_pAudioSettings == nullptr);
   return pUnk->QueryInterface(&m_pAudioSettings);
 }
 
@@ -632,7 +632,7 @@ HRESULT CLAVAudioFormatsProp::OnDisconnect()
 
 HRESULT CLAVAudioFormatsProp::OnApplyChanges()
 {
-  ASSERT(m_pAudioSettings != NULL);
+  ASSERT(m_pAudioSettings != nullptr);
   HRESULT hr = S_OK;
 
   HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
@@ -659,7 +659,7 @@ HRESULT CLAVAudioFormatsProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pAudioSettings != NULL);
+  ASSERT(m_pAudioSettings != nullptr);
 
   // Setup ListView control for format configuration
   HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
@@ -746,7 +746,7 @@ static int iddVolumeDescs[MAX_CHANNELS] = {IDC_VOLUME1_DESC, IDC_VOLUME2_DESC, I
 
 
 CLAVAudioStatusProp::CLAVAudioStatusProp(LPUNKNOWN pUnk, HRESULT* phr)
-  : CBaseDSPropPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(NULL), m_nChannels(0)
+  : CBaseDSPropPage(NAME("LAVCAudioStatusProp"), pUnk, IDD_PROPPAGE_STATUS, IDS_STATUS), m_pAudioStatus(nullptr), m_nChannels(0)
 {
 }
 
@@ -757,11 +757,11 @@ CLAVAudioStatusProp::~CLAVAudioStatusProp()
 
 HRESULT CLAVAudioStatusProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL)
+  if (pUnk == nullptr)
   {
     return E_POINTER;
   }
-  ASSERT(m_pAudioStatus == NULL);
+  ASSERT(m_pAudioStatus == nullptr);
   return pUnk->QueryInterface(&m_pAudioStatus);
 }
 
@@ -781,12 +781,12 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pAudioStatus != NULL);
+  ASSERT(m_pAudioStatus != nullptr);
 
   m_nChannels = 0;
 
-  const char *codec = NULL;
-  const char *decodeFormat = NULL;
+  const char *codec = nullptr;
+  const char *decodeFormat = nullptr;
   int nDecodeChannels = 0;
   int nDecodeSampleRate = 0;
   DWORD dwDecodeChannelMask;
@@ -812,7 +812,7 @@ HRESULT CLAVAudioStatusProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_INT32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_32), 0);
   SendDlgItemMessage(m_Dlg, IDC_FP32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_FP32), 0);
 
-  const char *outputFormat = NULL;
+  const char *outputFormat = nullptr;
   int nOutputChannels = 0;
   int nOutputSampleRate = 0;
   DWORD dwOutputChannelMask = 0;
@@ -840,7 +840,7 @@ HRESULT CLAVAudioStatusProp::OnActivate()
     }
   }
 
-  SetTimer(m_Dlg, 1, 250, NULL);
+  SetTimer(m_Dlg, 1, 250, nullptr);
   m_pAudioStatus->EnableVolumeStats();
 
   WCHAR chBuffer[5];

@@ -37,7 +37,7 @@ public:
     CAutoLock lock(this);
     
     if (m_queue.empty())
-      return NULL;
+      return nullptr;
     
     T item = m_queue.front();
     m_queue.pop_front();

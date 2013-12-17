@@ -43,7 +43,7 @@ static const WCHAR *noTrayProcesses[] = {
 BOOL CBaseTrayIcon::ProcessBlackList()
 {
   WCHAR fileName[1024];
-  GetModuleFileName(NULL, fileName, 1024);
+  GetModuleFileName(nullptr, fileName, 1024);
   WCHAR *processName = PathFindFileName (fileName);
 
   for(int i = 0; i < countof(noTrayProcesses); i++) {
@@ -65,7 +65,7 @@ CBaseTrayIcon::CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int res
 
 CBaseTrayIcon::~CBaseTrayIcon(void)
 {
-  m_pFilter = NULL;
+  m_pFilter = nullptr;
   if (m_hWnd) {
     SendMessage(m_hWnd, MSG_QUIT, 0, 0);
     WaitForSingleObject(m_hThread, INFINITE);
@@ -75,12 +75,12 @@ CBaseTrayIcon::~CBaseTrayIcon(void)
 
 HRESULT CBaseTrayIcon::StartMessageThread()
 {
-  m_hThread = (HANDLE)_beginthreadex(NULL,                         /* Security */
+  m_hThread = (HANDLE)_beginthreadex(nullptr,                      /* Security */
                                      0,                            /* Stack Size */
                                      InitialThreadProc,            /* Thread process */
                                      (LPVOID)this,                 /* Arguments */
                                      0,                            /* 0 = Start Immediately */
-                                     NULL                          /* Thread Address */
+                                     nullptr                       /* Thread Address */
                                      );
   m_evSetupFinished.Wait();
   return S_OK;
@@ -88,7 +88,7 @@ HRESULT CBaseTrayIcon::StartMessageThread()
 
 unsigned int WINAPI CBaseTrayIcon::InitialThreadProc(LPVOID pv)
 {
-  HRESULT hrCo = CoInitialize(NULL);
+  HRESULT hrCo = CoInitialize(nullptr);
 
   CBaseTrayIcon *pTrayIcon = (CBaseTrayIcon *) pv;
   unsigned int ret = pTrayIcon->TrayMessageThread();
@@ -127,7 +127,7 @@ DWORD CBaseTrayIcon::TrayMessageThread()
   m_evSetupFinished.Set();
 
   // Message loop
-  while (GetMessage(&msg, NULL, 0, 0) > 0) {
+  while (GetMessage(&msg, nullptr, 0, 0) > 0) {
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
@@ -136,7 +136,7 @@ DWORD CBaseTrayIcon::TrayMessageThread()
   // Free icon resources
   if (m_NotifyIconData.hIcon) {
     DestroyIcon(m_NotifyIconData.hIcon);
-    m_NotifyIconData.hIcon = NULL;
+    m_NotifyIconData.hIcon = nullptr;
   }
 
   // Unregister the window class we used
@@ -156,14 +156,14 @@ HRESULT CBaseTrayIcon::RegisterWindowClass()
   wx.lpszClassName = m_wszClassName;
   ATOM wndClass = RegisterClassEx(&wx);
 
-  return wndClass == NULL ? E_FAIL : S_OK;
+  return !wndClass ? E_FAIL : S_OK;
 }
 
 HRESULT CBaseTrayIcon::CreateMessageWindow()
 {
-  m_hWnd = CreateWindowEx(0, m_wszClassName, L"LAV Tray Message Window", 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+  m_hWnd = CreateWindowEx(0, m_wszClassName, L"LAV Tray Message Window", 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr, nullptr, nullptr);
   SetWindowLongPtr(m_hWnd, GWLP_USERDATA, LONG_PTR(this));
-  return m_hWnd == NULL ? E_FAIL : S_OK;
+  return m_hWnd == nullptr ? E_FAIL : S_OK;
 }
 
 HRESULT CBaseTrayIcon::CreateTrayIconData()
@@ -236,7 +236,7 @@ LRESULT CALLBACK CBaseTrayIcon::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, 
             POINT p;
             GetCursorPos(&p);
             SetForegroundWindow(hwnd);
-            int cmd = TrackPopupMenu(hMenu, TPM_RETURNCMD, p.x, p.y, 0, hwnd, NULL);
+            int cmd = TrackPopupMenu(hMenu, TPM_RETURNCMD, p.x, p.y, 0, hwnd, nullptr);
             PostMessage(hwnd, WM_NULL, 0, 0);
             icon->ProcessMenuCommand(hMenu, cmd);
             DestroyMenu(hMenu);

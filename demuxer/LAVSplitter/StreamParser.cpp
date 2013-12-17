@@ -102,7 +102,7 @@ HRESULT CStreamParser::Queue(Packet *pPacket) const
 
 static Packet *InitPacket(Packet *pSource)
 {
-  Packet *pNew = NULL;
+  Packet *pNew = nullptr;
 
   pNew = new Packet();
   pNew->StreamId = pSource->StreamId;
@@ -119,7 +119,7 @@ static Packet *InitPacket(Packet *pSource)
   pSource->rtStop = Packet::INVALID_TIME;
 
   pNew->pmt = pSource->pmt;
-  pSource->pmt = NULL;
+  pSource->pmt = nullptr;
 
   return pNew;
 }
@@ -154,7 +154,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
     CH264Nalu Nalu;
     Nalu.SetBuffer(start, (int)size, 0);
 
-    Packet *p2 = NULL;
+    Packet *p2 = nullptr;
 
     while (Nalu.ReadNext()) {
       Packet *p3 = new Packet();
@@ -188,7 +188,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
     m_pPacketBuffer->rtStop = Packet::INVALID_TIME;
 
     p2->pmt = m_pPacketBuffer->pmt;
-    m_pPacketBuffer->pmt = NULL;
+    m_pPacketBuffer->pmt = nullptr;
 
     m_queue.Queue(p2);
 
@@ -210,7 +210,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
     }
 
     m_pPacketBuffer->pmt = pPacket->pmt;
-    pPacket->pmt = NULL;
+    pPacket->pmt = nullptr;
 
     start = next;
   }
@@ -222,7 +222,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
   SAFE_DELETE(pPacket);
 
   do {
-    pPacket = NULL;
+    pPacket = nullptr;
 
     REFERENCE_TIME rtStart = Packet::INVALID_TIME, rtStop = rtStart = Packet::INVALID_TIME;
 
@@ -257,7 +257,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
 
     if (pPacket) {
       Packet *p = m_queue.Get();
-      Packet *p2 = NULL;
+      Packet *p2 = nullptr;
       while ((p2 = m_queue.Get()) != pPacket) {
         p->Append(p2);
         SAFE_DELETE(p2);
@@ -267,7 +267,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
 
       Queue(p);
     }
-  } while (pPacket != NULL);
+  } while (pPacket != nullptr);
 
   return S_OK;
 }
@@ -405,7 +405,7 @@ HRESULT CStreamParser::ParseRawSSA(Packet *pPacket)
     memcpy(buffer+i, start, size-i);
 
     Packet *p = new Packet();
-    p->pmt            = pPacket->pmt; pPacket->pmt = NULL;
+    p->pmt            = pPacket->pmt; pPacket->pmt = nullptr;
     p->bDiscontinuity = pPacket->bDiscontinuity;
     p->bSyncPoint     = pPacket->bSyncPoint;
     p->StreamId       = pPacket->StreamId;
@@ -457,7 +457,7 @@ static const char *read_srt_ts(const char *buf, int *ts_start, int *ts_end, int 
             return buf;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 HRESULT CStreamParser::ParseSRT(Packet *pPacket)
@@ -486,7 +486,7 @@ HRESULT CStreamParser::ParseSRT(Packet *pPacket)
       int size = ptr - linestart;
 
       Packet *p = new Packet();
-      p->pmt            = pPacket->pmt; pPacket->pmt = NULL;
+      p->pmt            = pPacket->pmt; pPacket->pmt = nullptr;
       p->bDiscontinuity = pPacket->bDiscontinuity;
       p->bSyncPoint     = pPacket->bSyncPoint;
       p->StreamId       = pPacket->StreamId;

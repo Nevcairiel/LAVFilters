@@ -36,14 +36,14 @@ static const SubRenderOption options[] = {
 
 CLAVSubtitleConsumer::CLAVSubtitleConsumer(CLAVVideo *pLAVVideo)
   : CSubRenderOptionsImpl(::options, &context)
-  , CUnknown(L"CLAVSubtitleConsumer", NULL)
-  , m_pProvider(NULL)
-  , m_SubtitleFrame(NULL)
+  , CUnknown(L"CLAVSubtitleConsumer", nullptr)
+  , m_pProvider(nullptr)
+  , m_SubtitleFrame(nullptr)
   , m_evFrame(FALSE)
-  , m_pSwsContext(NULL)
+  , m_pSwsContext(nullptr)
   , m_PixFmt(LAVPixFmt_None)
   , m_pLAVVideo(pLAVVideo)
-  , blend(NULL)
+  , blend(nullptr)
 {
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
@@ -71,14 +71,14 @@ STDMETHODIMP CLAVSubtitleConsumer::Disconnect(void)
   SafeRelease(&m_pProvider);
   if (m_pSwsContext) {
     sws_freeContext(m_pSwsContext);
-    m_pSwsContext = NULL;
+    m_pSwsContext = nullptr;
   }
   return S_OK;
 }
 
 STDMETHODIMP CLAVSubtitleConsumer::DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, ISubRenderFrame *subtitleFrame)
 {
-  ASSERT(m_SubtitleFrame == NULL);
+  ASSERT(m_SubtitleFrame == nullptr);
   m_SubtitleFrame = subtitleFrame;
   m_evFrame.Set();
 
@@ -95,12 +95,12 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
 {
   CheckPointer(m_pProvider, E_FAIL);
   HRESULT hr = S_OK;
-  LPDIRECT3DSURFACE9 pSurface = NULL;
+  LPDIRECT3DSURFACE9 pSurface = nullptr;
 
   // Wait for the requested frame
   m_evFrame.Wait();
 
-  if (m_SubtitleFrame != NULL) {
+  if (m_SubtitleFrame != nullptr) {
     int count = 0;
     if (FAILED(m_SubtitleFrame->GetBitmapCount(&count))) {
       count = 0;
@@ -128,12 +128,12 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
         } else {
           IMediaSample *pNewSample = (IMediaSample *)pFrame->data[0];
           pSurface = (LPDIRECT3DSURFACE9)pFrame->data[3];
-          IDirect3DDevice9 *pDevice = NULL;
+          IDirect3DDevice9 *pDevice = nullptr;
           if (SUCCEEDED(hr = pSurface->GetDevice(&pDevice))) {
-            hr = pDevice->StretchRect(pOrigSurface, NULL, pSurface, NULL, D3DTEXF_NONE);
+            hr = pDevice->StretchRect(pOrigSurface, nullptr, pSurface, nullptr, D3DTEXF_NONE);
             if (SUCCEEDED(hr)) {
               pFrame->flags |= LAV_FRAME_FLAG_BUFFER_MODIFY|LAV_FRAME_FLAG_DXVA_NOADDREF;
-              pOrigSurface = NULL;
+              pOrigSurface = nullptr;
 
               // Release the surface, we only want to hold a ref on the media buffer
               pSurface->Release();
@@ -155,7 +155,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
       pSurface->GetDesc(&surfaceDesc);
 
       D3DLOCKED_RECT LockedRect;
-      hr = pSurface->LockRect(&LockedRect, NULL, 0);
+      hr = pSurface->LockRect(&LockedRect, nullptr, 0);
       if (FAILED(hr)) {
         DbgLog((LOG_TRACE, 10, L"pSurface->LockRect failed (hr: %X)", hr));
         SafeRelease(&m_SubtitleFrame);
@@ -286,7 +286,7 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
     break;
   default:
     DbgLog((LOG_ERROR, 10, L"ProcessSubtitleBitmap(): No Blend function available"));
-    blend = NULL;
+    blend = nullptr;
   }
 
   return S_OK;
@@ -314,12 +314,12 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     SelectBlendFunction();
   }
 
-  BYTE *subData[4] = { NULL, NULL, NULL, NULL };
+  BYTE *subData[4] = { nullptr, nullptr, nullptr, nullptr };
   int subStride[4] = { 0, 0, 0, 0 };
 
   // If we need scaling (either scaling or pixel conversion), do it here before starting the blend process
   if (bNeedScaling) {
-    uint8_t *tmpBuf = NULL;
+    uint8_t *tmpBuf = nullptr;
     const AVPixelFormat avPixFmt = getFFPixFmtForSubtitle(pixFmt);
 
     // Calculate scaled size
@@ -346,9 +346,9 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     subPosition.x = (LONG)av_rescale(subPosition.x, newSize.cx, subSize.cx);
     subPosition.y = (LONG)av_rescale(subPosition.y, newSize.cy, subSize.cy);
 
-    m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, AV_PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, NULL, NULL, NULL);
+    m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, AV_PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, nullptr, nullptr, nullptr);
 
-    const uint8_t *src[4] = { (const uint8_t *)rgbData, NULL, NULL, NULL };
+    const uint8_t *src[4] = { (const uint8_t *)rgbData, nullptr, nullptr, nullptr };
     const int srcStride[4] = { pitch * 4, 0, 0, 0 };
 
     const LAVPixFmtDesc desc = getFFSubPixelFormatDesc(avPixFmt);

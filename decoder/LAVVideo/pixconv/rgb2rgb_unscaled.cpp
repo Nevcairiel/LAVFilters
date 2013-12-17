@@ -35,7 +35,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
-  if (dithers == NULL)
+  if (dithers == nullptr)
     ditherMode = LAVDither_Ordered;
 
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -87,7 +87,7 @@ template <int out32>
 DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
 {
   // Byte Swap to BGR layout
-  uint8_t *dstBS[4]    = {NULL};
+  uint8_t *dstBS[4]    = {nullptr};
   dstBS[0] = (BYTE *)av_malloc(height * srcStride[0]);
 
   SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_BGR48LE, SWS_POINT);
@@ -102,18 +102,18 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 2, 8, 0);
-  if (dithers == NULL)
+  if (dithers == nullptr)
     ditherMode = LAVDither_Ordered;
 
   __m128i xmm0,xmm1,xmm6,xmm7;
 
-  uint8_t *rgb24buffer = NULL;
+  uint8_t *rgb24buffer = nullptr;
   if (out32)
     rgb24buffer = (uint8_t *)av_malloc(outStride + FF_INPUT_BUFFER_PADDING_SIZE);
 
   _mm_sfence();
   for (line = 0; line < height; line++) {
-    __m128i *dst128 = NULL;
+    __m128i *dst128 = nullptr;
     if (out32) {
       dst128 = (__m128i *)rgb24buffer;
     } else {

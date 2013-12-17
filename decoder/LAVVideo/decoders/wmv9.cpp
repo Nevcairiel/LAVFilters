@@ -126,7 +126,7 @@ public:
     CheckPointer(pdwBufferPropertySize, E_POINTER);
     if (guidBufferProperty == WM_SampleExtensionGUID_ContentType) {
       DWORD dwReqSize = WM_SampleExtension_ContentType_Size;
-      if (pvBufferProperty != NULL && *pdwBufferPropertySize >= dwReqSize)
+      if (pvBufferProperty != nullptr && *pdwBufferPropertySize >= dwReqSize)
         *((uint8_t*)pvBufferProperty) = m_ContentType;
 
       *pdwBufferPropertySize = dwReqSize;
@@ -156,7 +156,7 @@ class CMediaBufferDecode : public CMediaBuffer
 {
 public:
   CMediaBufferDecode(const BYTE *pData, DWORD dwLength) 
-    : CMediaBuffer(NULL, 0, false)
+    : CMediaBuffer(nullptr, 0, false)
   {
     m_pBuffer = (BYTE *)av_malloc(dwLength + FF_INPUT_BUFFER_PADDING_SIZE);
     memcpy(m_pBuffer, pData, dwLength);
@@ -207,7 +207,7 @@ BYTE *CDecWMV9::GetBuffer(size_t size)
 {
   CAutoLock lock(&m_BufferCritSec);
 
-  Buffer *buffer = NULL;
+  Buffer *buffer = nullptr;
   for (auto it = m_BufferQueue.begin(); it != m_BufferQueue.end(); it++) {
     if (!(*it)->used) {
       buffer = *it;
@@ -236,7 +236,7 @@ BYTE *CDecWMV9::GetBuffer(size_t size)
 void CDecWMV9::ReleaseBuffer(BYTE *buffer)
 {
   CAutoLock lock(&m_BufferCritSec);
-  Buffer *b = NULL;
+  Buffer *b = nullptr;
   for (auto it = m_BufferQueue.begin(); it != m_BufferQueue.end(); it++) {
     if ((*it)->buffer == buffer) {
       b = *it;
@@ -268,14 +268,14 @@ STDMETHODIMP CDecWMV9::Init()
     }
   }
 
-  hr = CoCreateInstance(CLSID_CWMVDecMediaObject, NULL, CLSCTX_INPROC_SERVER, IID_IMediaObject, (void **)&m_pDMO);
+  hr = CoCreateInstance(CLSID_CWMVDecMediaObject, nullptr, CLSCTX_INPROC_SERVER, IID_IMediaObject, (void **)&m_pDMO);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Failed to create DMO object"));
     return hr;
   }
 
   // Force decoder deinterlacing to off
-  IPropertyBag *pProp = NULL;
+  IPropertyBag *pProp = nullptr;
   hr = m_pDMO->QueryInterface(&pProp);
   if (SUCCEEDED(hr)) {
     VARIANT var = {0};
@@ -310,14 +310,14 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   DestroyDecoder(false);
 
-  BITMAPINFOHEADER *pBMI = NULL;
+  BITMAPINFOHEADER *pBMI = nullptr;
   REFERENCE_TIME rtAvg = 0;
   DWORD dwARX = 0, dwARY = 0;
   videoFormatTypeHandler(*pmt, &pBMI, &rtAvg, &dwARX, &dwARY);
   
   size_t extralen = 0;
-  BYTE *extra = NULL;
-  getExtraData(*pmt, NULL, &extralen);
+  BYTE *extra = nullptr;
+  getExtraData(*pmt, nullptr, &extralen);
   if (extralen > 0) {
     extra = (BYTE *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
     getExtraData(*pmt, extra, &extralen);
@@ -433,7 +433,7 @@ static AVPictureType parse_picture_type(const uint8_t *buf, int buflen, CVC1Head
   int skipped = 0;
   const BYTE *framestart = buf;
   if (IS_MARKER(AV_RB32(buf))) {
-    framestart = NULL;
+    framestart = nullptr;
     const BYTE *start, *end, *next;
     next = buf;
     for (start = buf, end = buf + buflen; next < end; start = next) {
@@ -600,10 +600,10 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
     return S_FALSE;
   }
 
-  LAVFrame *pFrame = NULL;
+  LAVFrame *pFrame = nullptr;
   AllocateFrame(&pFrame);
 
-  BITMAPINFOHEADER *pBMI = NULL;
+  BITMAPINFOHEADER *pBMI = nullptr;
   videoFormatTypeHandler(mtOut, &pBMI);
   pFrame->width     = pBMI->biWidth;
   pFrame->height    = pBMI->biHeight;

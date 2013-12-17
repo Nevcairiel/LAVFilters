@@ -82,7 +82,7 @@ public:
   STDMETHODIMP_(BOOL) DecommitInProgress() { CAutoLock cal(this); return m_bDecommitInProgress; }
   STDMETHODIMP_(BOOL) IsCommited() { CAutoLock cal(this); return m_bCommitted; }
 
-  STDMETHODIMP_(void) DecoderDestruct() { m_pDec = NULL; }
+  STDMETHODIMP_(void) DecoderDestruct() { m_pDec = nullptr; }
 
 private:
   CDecDXVA2 *m_pDec = nullptr;

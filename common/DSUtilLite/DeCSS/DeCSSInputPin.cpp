@@ -47,13 +47,13 @@ void CDeCSSPinHelper::Decrypt(IMediaSample* pSample)
 {
   long len = pSample->GetActualDataLength();
 
-  BYTE* p = NULL;
+  BYTE* p = nullptr;
   if(SUCCEEDED(pSample->GetPointer(&p)) && len > 0) {
     if(m_mt.majortype == MEDIATYPE_DVD_ENCRYPTED_PACK && len == 2048 && (p[0x14]&0x30)) {
       CSSdescramble(p, m_TitleKey);
       p[0x14] &= ~0x30;
 
-      IMediaSample2 *pMS2 = NULL;
+      IMediaSample2 *pMS2 = nullptr;
       if(SUCCEEDED(pSample->QueryInterface(&pMS2)) && pMS2) {
         AM_SAMPLE2_PROPERTIES props;
         memset(&props, 0, sizeof(props));

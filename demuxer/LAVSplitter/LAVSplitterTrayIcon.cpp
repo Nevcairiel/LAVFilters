@@ -38,11 +38,11 @@ CLAVSplitterTrayIcon::~CLAVSplitterTrayIcon(void)
 
 HMENU CLAVSplitterTrayIcon::GetPopupMenu()
 {
-  CheckPointer(m_pFilter, NULL);
+  CheckPointer(m_pFilter, nullptr);
   HRESULT hr = S_OK;
   CPopupMenu menu;
 
-  IAMStreamSelect *pStreamSelect = NULL;
+  IAMStreamSelect *pStreamSelect = nullptr;
   if (SUCCEEDED(m_pFilter->QueryInterface(&pStreamSelect))) {
     DWORD dwStreams = 0;
     if (FAILED(pStreamSelect->Count(&dwStreams)))
@@ -50,8 +50,8 @@ HMENU CLAVSplitterTrayIcon::GetPopupMenu()
     DWORD dwLastGroup = DWORD_MAX;
     for (DWORD i = 0; i < dwStreams; i++) {
       DWORD dwFlags = 0, dwGroup = 0;
-      LPWSTR pszName = NULL;
-      if (FAILED(pStreamSelect->Info(i, NULL, &dwFlags, NULL, &dwGroup, &pszName, NULL, NULL)))
+      LPWSTR pszName = nullptr;
+      if (FAILED(pStreamSelect->Info(i, nullptr, &dwFlags, nullptr, &dwGroup, &pszName, nullptr, nullptr)))
         continue;
       
       if (dwGroup != dwLastGroup) {
@@ -84,7 +84,7 @@ HMENU CLAVSplitterTrayIcon::GetPopupMenu()
   }
 
   // Chapters
-  IAMExtendedSeeking *pExSeeking = NULL;
+  IAMExtendedSeeking *pExSeeking = nullptr;
   if (SUCCEEDED(m_pFilter->QueryInterface(IID_IAMExtendedSeeking, (void **)&pExSeeking))) {
     long count = 0, current = 0;
     if (FAILED(pExSeeking->get_MarkerCount(&count)))
@@ -95,7 +95,7 @@ HMENU CLAVSplitterTrayIcon::GetPopupMenu()
 
     CPopupMenu chapters;
     for (long i = 1; i <= count; i++) {
-      BSTR bstrName = NULL;
+      BSTR bstrName = nullptr;
       if (FAILED(pExSeeking->GetMarkerName(i, &bstrName)))
         continue;
 
@@ -141,13 +141,13 @@ HRESULT CLAVSplitterTrayIcon::ProcessMenuCommand(HMENU hMenu, int cmd)
   CheckPointer(m_pFilter, E_FAIL);
   DbgLog((LOG_TRACE, 10, L"Menu Command %d", cmd));
   if (cmd >= STREAM_CMD_OFFSET && cmd < m_NumStreams + STREAM_CMD_OFFSET) {
-    IAMStreamSelect *pStreamSelect = NULL;
+    IAMStreamSelect *pStreamSelect = nullptr;
     if (SUCCEEDED(m_pFilter->QueryInterface(&pStreamSelect))) {
       pStreamSelect->Enable(cmd - STREAM_CMD_OFFSET, AMSTREAMSELECTENABLE_ENABLE);
       SafeRelease(&pStreamSelect);
     }
   } else if (cmd > CHAPTER_CMD_OFFSET && cmd <= m_NumChapters + CHAPTER_CMD_OFFSET) {
-    IAMExtendedSeeking *pExSeeking = NULL;
+    IAMExtendedSeeking *pExSeeking = nullptr;
     if (SUCCEEDED(m_pFilter->QueryInterface(IID_IAMExtendedSeeking, (void **)&pExSeeking))) {
       double markerTime;
       if (FAILED(pExSeeking->GetMarkerTime(cmd - CHAPTER_CMD_OFFSET, &markerTime)))
@@ -160,9 +160,9 @@ HRESULT CLAVSplitterTrayIcon::ProcessMenuCommand(HMENU hMenu, int cmd)
       if (FAILED(m_pFilter->QueryFilterInfo(&info)) || !info.pGraph)
         goto failchapterseek;
 
-      IMediaSeeking *pSeeking = NULL;
+      IMediaSeeking *pSeeking = nullptr;
       if (SUCCEEDED(info.pGraph->QueryInterface(&pSeeking))) {
-        pSeeking->SetPositions(&rtMarkerTime, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
+        pSeeking->SetPositions(&rtMarkerTime, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
         SafeRelease(&pSeeking);
       }
       SafeRelease(&info.pGraph);

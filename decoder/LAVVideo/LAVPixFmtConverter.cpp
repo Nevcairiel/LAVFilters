@@ -133,7 +133,7 @@ static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, B
   }
   if (bFallbackToDefault)
     return &lav_pixfmt_map[0];
-  return NULL;
+  return nullptr;
 }
 
 CLAVPixFmtConverter::CLAVPixFmtConverter()
@@ -215,7 +215,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   mt->SetType(&MEDIATYPE_Video);
   mt->SetSubtype(&guid);
 
-  BITMAPINFOHEADER *pBIH = NULL;
+  BITMAPINFOHEADER *pBIH = nullptr;
   if (bVIH1) {
     mt->SetFormatType(&FORMAT_VideoInfo);
 
@@ -305,7 +305,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
 {
   m_RequiredAlignment = 16;
   m_bRGBConverter = FALSE;
-  convert = NULL;
+  convert = nullptr;
 
   int cpu = av_get_cpu_flags();
   if (m_OutputPixFmt == LAVOutPixFmt_v210 || m_OutputPixFmt == LAVOutPixFmt_v410) {
@@ -395,7 +395,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     m_RequiredAlignment = 0;
   }
 
-  if (convert == NULL) {
+  if (convert == nullptr) {
     convert = &CLAVPixFmtConverter::convert_generic;
   }
 }
@@ -495,13 +495,13 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
 const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int height, int coeffs, int bits, int line)
 {
   if (m_pSettings->GetDitherMode() != LAVDither_Random)
-    return NULL;
+    return nullptr;
 
   int totalWidth = 8 * coeffs;
   if (!m_pRandomDithers || totalWidth > m_ditherWidth || height > m_ditherHeight || bits != m_ditherBits) {
     if (m_pRandomDithers)
       _aligned_free(m_pRandomDithers);
-    m_pRandomDithers = NULL;
+    m_pRandomDithers = nullptr;
     m_ditherWidth = totalWidth;
     m_ditherHeight = height;
     m_ditherBits = bits;
@@ -515,7 +515,7 @@ const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int height, int coeff
 #endif
 
     // Seed random number generator
-    time_t seed = time(NULL);
+    time_t seed = time(nullptr);
     seed >>= 1;
     srand_sse((unsigned int)seed);
 

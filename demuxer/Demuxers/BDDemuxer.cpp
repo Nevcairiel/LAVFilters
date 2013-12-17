@@ -111,12 +111,12 @@ CBDDemuxer::~CBDDemuxer(void)
 {
   if (m_pTitle) {
     bd_free_title_info(m_pTitle);
-    m_pTitle = NULL;
+    m_pTitle = nullptr;
   }
 
   if (m_pBD) {
     bd_close(m_pBD);
-    m_pBD = NULL;
+    m_pBD = nullptr;
   }
 
   if (m_pb) {
@@ -132,7 +132,7 @@ STDMETHODIMP CBDDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
-  *ppv = NULL;
+  *ppv = nullptr;
 
   if (m_lavfDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo))) {
     return m_lavfDemuxer->QueryInterface(riid, ppv);
@@ -154,7 +154,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
 
   // Convert the filename from wchar to char for libbluray
   char fileName[4096];
-  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
+  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
 
   int iPlaylist = -1;
 
@@ -177,7 +177,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
       return E_FAIL;
     }
     // Open BluRay
-    BLURAY *bd = bd_open(bd_path, NULL);
+    BLURAY *bd = bd_open(bd_path, nullptr);
     if(!bd) {
       return E_FAIL;
     }
@@ -247,7 +247,7 @@ void CBDDemuxer::ProcessBDEvents()
   while(bd_get_event(m_pBD, &event)) {
     if (event.event == BD_EVENT_PLAYITEM) {
       uint64_t clip_start, clip_in, bytepos;
-      int ret = bd_get_clip_infos(m_pBD, event.param, &clip_start, &clip_in, &bytepos, NULL);
+      int ret = bd_get_clip_infos(m_pBD, event.param, &clip_start, &clip_in, &bytepos, nullptr);
       if (ret) {
         m_rtNewOffset = Convert90KhzToDSTime(clip_start - clip_in) + m_lavfDemuxer->GetStartTime();
         m_bNewOffsetPos = bytepos-4;
@@ -285,7 +285,7 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
     if (pPacket->bPosition < m_bNewOffsetPos) {
       DbgLog((LOG_TRACE, 10, L"Dropping packet from a previous segment (pos %I64d, segment started at %I64d) at EOS, from stream %d", pPacket->bPosition, m_bNewOffsetPos, pPacket->StreamId));
       SAFE_DELETE(*ppPacket);
-      *ppPacket = NULL;
+      *ppPacket = nullptr;
       return S_FALSE;
     }
   }
@@ -301,7 +301,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   }
 
   // Init Event Queue
-  bd_get_event(m_pBD, NULL);
+  bd_get_event(m_pBD, nullptr);
 
   // Select title
   m_pTitle = bd_get_title_info(m_pBD, idx, 0);
@@ -316,7 +316,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   }
 
   uint8_t *buffer = (uint8_t *)av_mallocz(BD_READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-  m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, this, BDByteStreamRead, NULL, BDByteStreamSeek);
+  m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, this, BDByteStreamRead, nullptr, BDByteStreamSeek);
 
   SafeRelease(&m_lavfDemuxer);
   SAFE_CO_FREE(m_rtOffset);
@@ -324,7 +324,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
   m_lavfDemuxer->AddRef();
   m_lavfDemuxer->SetBluRay(this);
-  if (FAILED(hr = m_lavfDemuxer->OpenInputStream(m_pb, NULL, "mpegts", TRUE))) {
+  if (FAILED(hr = m_lavfDemuxer->OpenInputStream(m_pb, nullptr, "mpegts", TRUE))) {
     SafeRelease(&m_lavfDemuxer);
     return hr;
   }

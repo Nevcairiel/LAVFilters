@@ -65,7 +65,7 @@ struct DTSDecoder {
   void *dtsContext;
   BYTE *dtsPCMBuffer;
 
-  DTSDecoder() : pDtsOpen(NULL), pDtsClose(NULL), pDtsReset(NULL), pDtsSetParam(NULL), pDtsDecode(NULL), dtsContext(NULL), dtsPCMBuffer(NULL) {}
+  DTSDecoder() : pDtsOpen(nullptr), pDtsClose(nullptr), pDtsReset(nullptr), pDtsSetParam(nullptr), pDtsDecode(nullptr), dtsContext(nullptr), dtsPCMBuffer(nullptr) {}
   ~DTSDecoder() {
     if (pDtsClose && dtsContext) {
       pDtsClose(dtsContext);
@@ -83,16 +83,16 @@ HRESULT CLAVAudio::InitDTSDecoder()
     wcscat_s(wModuleFile, TEXT("\\dtsdecoderdll.dll"));
 
     // Try loading from the filters directory
-    HMODULE hDll = LoadLibraryEx(wModuleFile, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+    HMODULE hDll = LoadLibraryEx(wModuleFile, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
     // And try from any global directories if this failed
-    if (hDll == NULL) {
+    if (hDll == nullptr) {
       hDll = LoadLibrary(TEXT("dtsdecoderdll.dll"));
     }
     CheckPointer(hDll, E_FAIL);
 
     BOOL bIncompatibleDecoder = FALSE;
     if (GetModuleFileName(hDll, wModuleFile, 1024) > 0) {
-      DWORD dwVersionSize = GetFileVersionInfoSize(wModuleFile, NULL);
+      DWORD dwVersionSize = GetFileVersionInfoSize(wModuleFile, nullptr);
       if (dwVersionSize > 0) {
         void *versionInfo = CoTaskMemAlloc(dwVersionSize);
         BOOL bVersionInfoPresent = GetFileVersionInfo(wModuleFile, 0, dwVersionSize, versionInfo);
@@ -116,7 +116,7 @@ HRESULT CLAVAudio::InitDTSDecoder()
 
     if (bIncompatibleDecoder) {
       FreeLibrary(hDll);
-      hDll = NULL;
+      hDll = nullptr;
       return E_FAIL;
     }
 
@@ -156,7 +156,7 @@ HRESULT CLAVAudio::InitDTSDecoder()
 fail:
   SAFE_DELETE(context);
   FreeLibrary(m_hDllExtraDecoder);
-  m_hDllExtraDecoder = NULL;
+  m_hDllExtraDecoder = nullptr;
   return E_FAIL;
 }
 
@@ -321,7 +321,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * pDataBuffer, int buffsize, int &consum
   HRESULT hr = S_FALSE;
   int nPCMLength	= 0;
 
-  BOOL bFlush = (pDataBuffer == NULL);
+  BOOL bFlush = (pDataBuffer == nullptr);
 
   BufferDetails out;
 
@@ -332,7 +332,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * pDataBuffer, int buffsize, int &consum
 
     ASSERT(m_pParser);
 
-    BYTE *pOut = NULL;
+    BYTE *pOut = nullptr;
     int pOut_size = 0;
     int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, pDataBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
     if (used_bytes < 0) {
@@ -359,7 +359,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * pDataBuffer, int buffsize, int &consum
 
     if (pOut && pOut_size > 0) {
       // Parse DTS headers
-      m_bsParser.Parse(AV_CODEC_ID_DTS, pOut, pOut_size, NULL);
+      m_bsParser.Parse(AV_CODEC_ID_DTS, pOut, pOut_size, nullptr);
       unsigned decode_channels = dts_determine_decode_channels(m_bsParser.m_DTSHeader);
 
       // Init Decoder with new Parameters, if required

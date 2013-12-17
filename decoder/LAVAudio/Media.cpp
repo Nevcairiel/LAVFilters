@@ -285,7 +285,7 @@ const char *find_codec_override(AVCodecID codec)
     if (ffmpeg_codec_overrides[i].codec == codec)
       return ffmpeg_codec_overrides[i].override;
   }
-  return NULL;
+  return nullptr;
 }
 
 // Default Channel to Speaker Map

@@ -44,10 +44,10 @@ CLAVSplitterSettingsProp::~CLAVSplitterSettingsProp(void)
 
 HRESULT CLAVSplitterSettingsProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL) {
+  if (pUnk == nullptr) {
     return E_POINTER;
   }
-  ASSERT(m_pLAVF == NULL);
+  ASSERT(m_pLAVF == nullptr);
   return pUnk->QueryInterface(&m_pLAVF);
 }
 
@@ -59,7 +59,7 @@ HRESULT CLAVSplitterSettingsProp::OnDisconnect()
 
 HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
 {
-  ASSERT(m_pLAVF != NULL);
+  ASSERT(m_pLAVF != nullptr);
   HRESULT hr = S_OK;
   DWORD dwVal;
   BOOL bFlag;
@@ -167,7 +167,7 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pLAVF != NULL);
+  ASSERT(m_pLAVF != nullptr);
 
   const WCHAR *version = TEXT(LAV_SPLITTER) L" " TEXT(LAV_VERSION_STR);
   SendDlgItemMessage(m_Dlg, IDC_SPLITTER_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
@@ -288,7 +288,7 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
         SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
 
         int dirty = 0;
-        WCHAR *source = NULL;
+        WCHAR *source = nullptr;
         if(LOWORD(wParam) == IDC_PREF_LANG) {
           source = m_pszPrefLang;
         } else {
@@ -404,10 +404,10 @@ CLAVSplitterFormatsProp::~CLAVSplitterFormatsProp(void)
 
 HRESULT CLAVSplitterFormatsProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL) {
+  if (pUnk == nullptr) {
     return E_POINTER;
   }
-  ASSERT(m_pLAVF == NULL);
+  ASSERT(m_pLAVF == nullptr);
   return pUnk->QueryInterface(&m_pLAVF);
 }
 
@@ -420,7 +420,7 @@ HRESULT CLAVSplitterFormatsProp::OnDisconnect()
 HRESULT CLAVSplitterFormatsProp::OnApplyChanges()
 {
   HRESULT hr = S_OK;
-  ASSERT(m_pLAVF != NULL);
+  ASSERT(m_pLAVF != nullptr);
 
   HWND hlv = GetDlgItem(m_Dlg, IDC_FORMATS);
 
@@ -446,7 +446,7 @@ HRESULT CLAVSplitterFormatsProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pLAVF != NULL);
+  ASSERT(m_pLAVF != nullptr);
 
   memset(stringBuffer, 0, sizeof(stringBuffer));
 

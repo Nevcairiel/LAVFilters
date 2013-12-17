@@ -32,7 +32,7 @@ public:
 protected:
   virtual HRESULT CreateTrayIconData();
 
-  virtual HMENU GetPopupMenu() { return NULL; }
+  virtual HMENU GetPopupMenu() { return nullptr; }
   virtual HRESULT ProcessMenuCommand(HMENU hMenu, int cmd) { return E_NOTIMPL; }
 
   HRESULT OpenPropPage();
@@ -58,7 +58,7 @@ private:
   BOOL   m_bPropPageOpen = FALSE;
 
   WCHAR m_wszClassName[64];
-  const WCHAR *m_wszName = NULL;
+  const WCHAR *m_wszName = nullptr;
   int m_resIcon          = 0;
 
   NOTIFYICONDATA m_NotifyIconData;

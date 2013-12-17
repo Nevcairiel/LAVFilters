@@ -23,8 +23,8 @@
 #include "FontInstaller.h"
 
 CFontInstaller::CFontInstaller()
-  : pAddFontMemResourceEx(NULL)
-  , pRemoveFontMemResourceEx(NULL)
+  : pAddFontMemResourceEx(nullptr)
+  , pRemoveFontMemResourceEx(nullptr)
 {
 	if(HMODULE hGdi = GetModuleHandle(_T("gdi32.dll"))) {
 		pAddFontMemResourceEx = (HANDLE (WINAPI *)(PVOID,DWORD,PVOID,DWORD*))GetProcAddress(hGdi, "AddFontMemResourceEx");
@@ -60,7 +60,7 @@ bool CFontInstaller::InstallFontMemory(const void* pData, UINT len)
 	}
 
 	DWORD nFonts = 0;
-	HANDLE hFont = pAddFontMemResourceEx((PVOID)pData, len, NULL, &nFonts);
+	HANDLE hFont = pAddFontMemResourceEx((PVOID)pData, len, nullptr, &nFonts);
 	if(hFont && nFonts > 0) {
 		m_fonts.push_back(hFont);
 	}

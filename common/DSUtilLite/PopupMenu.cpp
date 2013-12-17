@@ -77,6 +77,6 @@ HRESULT CPopupMenu::AddSubmenu(HMENU hSubMenu, LPWSTR caption)
 HMENU CPopupMenu::Finish()
 {
   HMENU hMenu = m_hMenu;
-  m_hMenu = NULL;
+  m_hMenu = nullptr;
   return hMenu;
 }

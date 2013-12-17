@@ -40,8 +40,8 @@
 // --- COM factory table and registration code --------------
 
 const AMOVIESETUP_PIN sudpPinsAudioDec[] = {
-	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVAudio::sudPinTypesInCount,  CLAVAudio::sudPinTypesIn},
-	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, NULL, CLAVAudio::sudPinTypesOutCount, CLAVAudio::sudPinTypesOut}
+	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVAudio::sudPinTypesInCount,  CLAVAudio::sudPinTypesIn},
+	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVAudio::sudPinTypesOutCount, CLAVAudio::sudPinTypesOut}
 };
 
 const AMOVIESETUP_FILTER sudFilterReg =
@@ -72,25 +72,25 @@ CFactoryTemplate g_Templates[] = {
       L"LAV Audio Properties",
       &CLSID_LAVAudioSettingsProp,
       CreateInstance<CLAVAudioSettingsProp>,
-      NULL, NULL
+      nullptr, nullptr
   },
   { 
       L"LAV Audio Mixer",
       &CLSID_LAVAudioMixingProp,
       CreateInstance<CLAVAudioMixingProp>,
-      NULL, NULL
+      nullptr, nullptr
   },
   {
     L"LAV Audio Format Settings",
       &CLSID_LAVAudioFormatsProp,
       CreateInstance<CLAVAudioFormatsProp>,
-      NULL, NULL
+      nullptr, nullptr
   },
   {
       L"LAV Audio Status",
       &CLSID_LAVAudioStatusProp,
       CreateInstance<CLAVAudioStatusProp>,
-      NULL, NULL
+      nullptr, nullptr
   }
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
@@ -120,8 +120,8 @@ BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
 void CALLBACK OpenConfiguration(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
   HRESULT hr = S_OK;
-  CUnknown *pInstance = CreateInstance<CLAVAudio>(NULL, &hr);
-  IBaseFilter *pFilter = NULL;
+  CUnknown *pInstance = CreateInstance<CLAVAudio>(nullptr, &hr);
+  IBaseFilter *pFilter = nullptr;
   pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
   if (pFilter) {
     pFilter->AddRef();

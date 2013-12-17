@@ -32,7 +32,7 @@ struct lavf_iformat_map
   const char *new_description;
 } lavf_input_formats[] = {
   // Shorten these formats
-  { "matroska,webm",           "matroska", NULL },
+  { "matroska,webm",           "matroska", nullptr },
   { "mov,mp4,m4a,3gp,3g2,mj2", "mp4",      "MPEG-4/QuickTime format" },
   { "yuv4mpegpipe",            "y4m",      "YUV4MPEG" },
 
@@ -72,12 +72,12 @@ struct lavf_iformat_map
   { "image2pipe", "image2", "Image Files" },
 
   // Disabled Formats
-  { "ffm", NULL, NULL },
-  { "ffmetadata", NULL, NULL },
-  { "mpegtsraw", NULL, NULL },
-  { "spdif", NULL, NULL },
-  { "tty", NULL, NULL },
-  { "vc1test", NULL, NULL },
+  { "ffm", nullptr, nullptr },
+  { "ffmetadata", nullptr, nullptr },
+  { "mpegtsraw", nullptr, nullptr },
+  { "spdif", nullptr, nullptr },
+  { "tty", nullptr, nullptr },
+  { "vc1test", nullptr, nullptr },
 };
 
 void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription)

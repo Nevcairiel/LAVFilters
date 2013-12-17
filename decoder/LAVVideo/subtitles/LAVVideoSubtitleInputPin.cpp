@@ -40,8 +40,8 @@ CLAVVideoSubtitleInputPin::CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CLAVVid
   : CBaseInputPin(pObjectName, pFilter, pcsFilter, phr, pName)
   , m_pLAVVideo(pFilter)
   , CDeCSSPinHelper()
-  , m_pProvider(NULL)
-  , m_pConsumer(NULL)
+  , m_pProvider(nullptr)
+  , m_pConsumer(nullptr)
 {
 }
 
@@ -139,7 +139,7 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Receive(IMediaSample* pSample)
   hr = CBaseInputPin::Receive(pSample);
   if (hr == S_OK) {
     long len = pSample->GetActualDataLength();
-    BYTE *pBuffer = NULL;
+    BYTE *pBuffer = nullptr;
     if (FAILED(hr = pSample->GetPointer(&pBuffer))) {
       DbgLog((LOG_TRACE, 10, L"CLAVVideoSubtitleInputPin::Receive() GetPointer failed"));
       return S_OK;
@@ -186,7 +186,7 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::Set(REFGUID PropSet, ULONG Id, LPVOID pI
         }
       } else {
         if (m_pProvider) {
-          m_pProvider->SetDVDHLI(NULL);
+          m_pProvider->SetDVDHLI(nullptr);
         }
       }
     }

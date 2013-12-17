@@ -287,8 +287,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   }
 
   if (avstream->codec->codec_id == AV_CODEC_ID_RAWVIDEO) {
-    BITMAPINFOHEADER *pBMI = NULL;
-    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
+    BITMAPINFOHEADER *pBMI = nullptr;
+    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, nullptr, nullptr, nullptr);
     mtype.bFixedSizeSamples = TRUE;
     mtype.bTemporalCompression = FALSE;
     mtype.lSampleSize = pBMI->biSizeImage;
@@ -335,14 +335,14 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       memmove(mtype.pbFormat + hdrsize + sizeof(avstream->codec->pix_fmt), mtype.pbFormat + hdrsize, extrasize);
     }
     *(int *)(mtype.pbFormat + hdrsize) = avstream->codec->pix_fmt;
-    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
+    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, nullptr, nullptr, nullptr);
     pBMI->biSize = sizeof(BITMAPINFOHEADER) + sizeof(avstream->codec->pix_fmt) + extrasize;
     mtypes.push_back(mtype);
   }
 
   if (avstream->codec->codec_id == AV_CODEC_ID_MJPEG) {
-    BITMAPINFOHEADER *pBMI = NULL;
-    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, NULL, NULL, NULL);
+    BITMAPINFOHEADER *pBMI = nullptr;
+    videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, nullptr, nullptr, nullptr);
 
     DWORD fourCC = MKTAG('M','J','P','G');
 
@@ -425,7 +425,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO) + extra);
   memset(subInfo, 0, mtype.FormatLength());
 
-  if (AVDictionaryEntry *dictEntry = av_dict_get(avstream->metadata, "language", NULL, 0))
+  if (AVDictionaryEntry *dictEntry = av_dict_get(avstream->metadata, "language", nullptr, 0))
   {
     char *lang = dictEntry->value;
     strncpy_s(subInfo->IsoLang, 4, lang, _TRUNCATE);
@@ -433,7 +433,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
     strncpy_s(subInfo->IsoLang, 4, "und", _TRUNCATE);
   }
 
-  if (AVDictionaryEntry *dictEntry = av_dict_get(avstream->metadata, "title", NULL, 0))
+  if (AVDictionaryEntry *dictEntry = av_dict_get(avstream->metadata, "title", nullptr, 0))
   {
     // read metadata
     char *title = dictEntry->value;
@@ -444,7 +444,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   subInfo->dwOffset = sizeof(SUBTITLEINFO);
 
   // Find first video stream
-  AVStream *vidStream = NULL;
+  AVStream *vidStream = nullptr;
   for (unsigned i = 0; i < avctx->nb_streams; i++) {
     if (avctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       vidStream = avctx->streams[i];

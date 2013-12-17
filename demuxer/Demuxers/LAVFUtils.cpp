@@ -51,14 +51,14 @@ static int get_bit_rate(AVCodecContext *ctx)
 
 const char *get_stream_language(const AVStream *pStream)
 {
-  char *lang = NULL;
-  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "language", NULL, 0)) {
+  char *lang = nullptr;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "language", nullptr, 0)) {
     lang = dictEntry->value;
   }
   // Don't bother with undetermined languages (fallback value in some containers)
   if(lang && strncmp(lang, "und", 3))
     return lang;
-  return NULL;
+  return nullptr;
 }
 
 struct s_id_map {
@@ -101,11 +101,11 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
 
   // Grab the codec
   AVCodec *p = avcodec_find_decoder(id);
-  const char *profile = p ? av_get_profile_name(p, pCodecCtx->profile) : NULL;
+  const char *profile = p ? av_get_profile_name(p, pCodecCtx->profile) : nullptr;
 
   std::ostringstream codec_name;
 
-  const char *nice_name = NULL;
+  const char *nice_name = nullptr;
   for (int i = 0; i < countof(nice_codec_names); ++i)
   {
     if (nice_codec_names[i].id == id) {
@@ -210,18 +210,18 @@ std::string lavf_get_stream_description(AVStream *pStream)
     }
   }
 
-  char *title = NULL;
-  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "title", NULL, 0)) {
+  char *title = nullptr;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "title", nullptr, 0)) {
     title = dictEntry->value;
-  } else if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "handler_name", NULL, 0)) {
+  } else if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "handler_name", nullptr, 0)) {
     title = dictEntry->value;
     if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "VideoHandler") == 0|| strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
-      title = NULL;
+      title = nullptr;
   }
 
   // Empty titles are rather useless
   if (title && strlen(title) == 0)
-    title = NULL;
+    title = nullptr;
 
   int bitrate = get_bit_rate(enc);
 

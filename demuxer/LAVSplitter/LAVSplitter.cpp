@@ -48,7 +48,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
 {
   WCHAR fileName[1024];
-  GetModuleFileName(NULL, fileName, 1024);
+  GetModuleFileName(nullptr, fileName, 1024);
   m_processName = PathFindFileName (fileName);
 
   CLAVFDemuxer::ffmpeg_init(true);
@@ -295,7 +295,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
-  *ppv = NULL;
+  *ppv = nullptr;
 
   if (m_pDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo) || riid == IID_IAMExtendedSeeking || riid == IID_IAMMediaContent)) {
     return m_pDemuxer->QueryInterface(riid, ppv);
@@ -319,7 +319,7 @@ STDMETHODIMP CLAVSplitter::GetPages(CAUUID *pPages)
   CheckPointer(pPages, E_POINTER);
   pPages->cElems = 2;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
-  if (pPages->pElems == NULL) {
+  if (pPages->pElems == nullptr) {
     return E_OUTOFMEMORY;
   }
   pPages->pElems[0] = CLSID_LAVSplitterSettingsProp;
@@ -332,13 +332,13 @@ STDMETHODIMP CLAVSplitter::CreatePage(const GUID& guid, IPropertyPage** ppPage)
   CheckPointer(ppPage, E_POINTER);
   HRESULT hr = S_OK;
 
-  if (*ppPage != NULL)
+  if (*ppPage != nullptr)
     return E_INVALIDARG;
 
   if (guid == CLSID_LAVSplitterSettingsProp)
-    *ppPage = new CLAVSplitterSettingsProp(NULL, &hr);
+    *ppPage = new CLAVSplitterSettingsProp(nullptr, &hr);
   else if (guid == CLSID_LAVSplitterFormatsProp)
-    *ppPage = new CLAVSplitterFormatsProp(NULL, &hr);
+    *ppPage = new CLAVSplitterFormatsProp(nullptr, &hr);
 
   if (SUCCEEDED(hr) && *ppPage) {
     (*ppPage)->AddRef();
@@ -367,12 +367,12 @@ STDMETHODIMP CLAVSplitter::SetSite(IUnknown *pUnkSite)
 STDMETHODIMP CLAVSplitter::GetSite(REFIID riid, void **ppvSite)
 {
   CheckPointer(ppvSite, E_POINTER);
-  *ppvSite = NULL;
+  *ppvSite = nullptr;
   if (!m_pSite) {
     return E_FAIL;
   }
 
-  IUnknown *pSite = NULL;
+  IUnknown *pSite = nullptr;
   HRESULT hr = m_pSite->QueryInterface(riid, (void **)&pSite);
   if (SUCCEEDED(hr) && pSite) {
     pSite->AddRef();
@@ -437,7 +437,7 @@ CBasePin *CLAVSplitter::GetPin(int n)
 {
   CAutoLock lock(&m_csPins);
 
-  if (n < 0 ||n >= GetPinCount()) return NULL;
+  if (n < 0 ||n >= GetPinCount()) return nullptr;
 
   if (m_pInput) {
     if(n == 0)
@@ -471,7 +471,7 @@ CLAVOutputPin *CLAVSplitter::GetOutputPin(DWORD streamId, BOOL bActiveOnly)
       return pPin;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 STDMETHODIMP CLAVSplitter::CompleteInputConnection()
@@ -481,20 +481,20 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
 
   SAFE_DELETE(m_pDemuxer);
 
-  AVIOContext *pContext = NULL;
+  AVIOContext *pContext = nullptr;
 
   if (FAILED(hr = m_pInput->GetAVIOContext(&pContext))) {
     return hr;
   }
 
-  LPOLESTR pszFileName = NULL;
+  LPOLESTR pszFileName = nullptr;
 
   PIN_INFO info;
   hr = m_pInput->GetConnected()->QueryPinInfo(&info);
   if (SUCCEEDED(hr) && info.pFilter) {
-    IFileSourceFilter *pSource = NULL;
+    IFileSourceFilter *pSource = nullptr;
     if (SUCCEEDED(info.pFilter->QueryInterface(&pSource)) && pSource) {
-      pSource->GetCurFile(&pszFileName, NULL);
+      pSource->GetCurFile(&pszFileName, nullptr);
       SafeRelease(&pSource);
     }
     CLSID inputCLSID;
@@ -504,7 +504,7 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
     SafeRelease(&info.pFilter);
   }
 
-  const char *format = NULL;
+  const char *format = nullptr;
   if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_TRANSPORT) {
     format = "mpegts";
   }
@@ -833,7 +833,7 @@ STDMETHODIMP_(CMediaType *) CLAVSplitter::GetOutputMediatype(int stream)
 {
   CLAVOutputPin* pPin = GetOutputPin(stream, TRUE);
   if (!pPin)
-    return NULL;
+    return nullptr;
 
   CMediaType *pmt = new CMediaType(pPin->GetActiveMediaType());
   return pmt;
@@ -1096,7 +1096,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
   if (pPin && pPin->IsConnected()) {
     HRESULT hr = S_OK;
 
-    IMediaControl *pControl = NULL;
+    IMediaControl *pControl = nullptr;
     hr = m_pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
 
     FILTER_STATE oldState;
@@ -1118,7 +1118,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
 
     // IGraphRebuildDelegate support
     // Query our Site for the appropriate interface, and if its present, delegate graph building there
-    IGraphRebuildDelegate *pDelegate = NULL;
+    IGraphRebuildDelegate *pDelegate = nullptr;
     if (SUCCEEDED(GetSite(IID_IGraphRebuildDelegate, (void **)&pDelegate)) && pDelegate) {
       hr = pDelegate->RebuildPin(m_pGraph, pPin);
       if (hr == S_FALSE) {
@@ -1166,7 +1166,7 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
         DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IFilterGraph::RemoveFilter - %s (hr %x)", WStringFromGUID(guidFilter).c_str(), hr));
   #endif
         // Use IGraphBuilder to rebuild the graph
-        IGraphBuilder *pGraphBuilder = NULL;
+        IGraphBuilder *pGraphBuilder = nullptr;
         if(SUCCEEDED(hr = m_pGraph->QueryInterface(__uuidof(IGraphBuilder), (void **)&pGraphBuilder))) {
           // Instruct the GraphBuilder to connect us again
           hr = pGraphBuilder->Render(pPin);
@@ -1274,11 +1274,11 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
       // Notify the player about the length change
       NotifyEvent(EC_LENGTH_CHANGED, 0, 0);
       // Perform a seek to the start of the new title
-      IMediaSeeking *pSeek = NULL;
+      IMediaSeeking *pSeek = nullptr;
       hr = m_pGraph->QueryInterface(&pSeek);
       if (SUCCEEDED(hr)) {
         LONGLONG current = 0;
-        pSeek->SetPositions(&current, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
+        pSeek->SetPositions(&current, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
         SafeRelease(&pSeek);
       }
     }
@@ -1303,8 +1303,8 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
       if(ppmt) *ppmt = CreateMediaType(&s.streamInfo->mtypes[0]);
       if(pdwFlags) *pdwFlags = GetOutputPin(s) ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
       if(pdwGroup) *pdwGroup = i;
-      if(ppObject) *ppObject = NULL;
-      if(ppUnk) *ppUnk = NULL;
+      if(ppObject) *ppObject = nullptr;
+      if(ppUnk) *ppUnk = nullptr;
 
       // Special case for the "no subtitles" pin
       if(s.pid == NO_SUBTITLE_PID) {
@@ -1349,12 +1349,12 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
     int idx = (lIndex - j);
     int num_titles = m_pDemuxer->GetNumTitles();
     if (num_titles > 1 && idx >= 0 && idx < num_titles) {
-      if(ppmt) *ppmt = NULL;
+      if(ppmt) *ppmt = nullptr;
       if(pdwFlags) *pdwFlags = m_pDemuxer->GetTitle() == idx ? (AMSTREAMSELECTINFO_ENABLED|AMSTREAMSELECTINFO_EXCLUSIVE) : 0;
       if(pdwGroup) *pdwGroup = 18;
-      if(ppObject) *ppObject = NULL;
-      if(ppUnk) *ppUnk = NULL;
-      m_pDemuxer->GetTitleInfo(idx, NULL, ppszName);
+      if(ppObject) *ppObject = nullptr;
+      if(ppUnk) *ppUnk = nullptr;
+      m_pDemuxer->GetTitleInfo(idx, nullptr, ppszName);
 
       hr = S_OK;
     }
@@ -1373,7 +1373,7 @@ std::list<std::string> CLAVSplitter::GetPreferredAudioLanguageList()
   char *buffer = (char *)CoTaskMemAlloc(bufSize);
   if (!buffer)
     return list;
-  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, nullptr, nullptr);
 
   split(std::string(buffer), std::string(",; "), list);
   CoTaskMemFree(buffer);
@@ -1397,7 +1397,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     if (!buffer)
       return selectorList;
     ZeroMemory(buffer, bufSize);
-    WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, (int)bufSize, nullptr, nullptr);
 
     std::list<std::string> langList;
     split(std::string(buffer), separators, langList);
@@ -1433,7 +1433,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     if (!buffer)
       return selectorList;
     ZeroMemory(buffer, bufSize);
-    WideCharToMultiByte(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1, buffer, (int)bufSize, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1, buffer, (int)bufSize, nullptr, nullptr);
 
     split(std::string(buffer), separators, tokenList);
     SAFE_CO_FREE(buffer);
@@ -1511,7 +1511,7 @@ STDMETHODIMP CLAVSplitter::GetPreferredLanguages(LPWSTR *ppLanguages)
     if (*ppLanguages)
       wcsncpy_s(*ppLanguages, len,  m_settings.prefAudioLangs.c_str(), _TRUNCATE);
   } else {
-    *ppLanguages = NULL;
+    *ppLanguages = nullptr;
   }
   return S_OK;
 }
@@ -1531,7 +1531,7 @@ STDMETHODIMP CLAVSplitter::GetPreferredSubtitleLanguages(LPWSTR *ppLanguages)
     if (*ppLanguages)
       wcsncpy_s(*ppLanguages, len,  m_settings.prefSubLangs.c_str(), _TRUNCATE);
   } else {
-    *ppLanguages = NULL;
+    *ppLanguages = nullptr;
   }
   return S_OK;
 }
@@ -1677,7 +1677,7 @@ STDMETHODIMP CLAVSplitter::GetAdvancedSubtitleConfig(LPWSTR *ppAdvancedConfig)
     if (*ppAdvancedConfig)
       wcsncpy_s(*ppAdvancedConfig, len,  m_settings.subtitleAdvanced.c_str(), _TRUNCATE);
   } else {
-    *ppAdvancedConfig = NULL;
+    *ppAdvancedConfig = nullptr;
   }
   return S_OK;
 }
@@ -1776,7 +1776,7 @@ STDMETHODIMP CLAVSplitter::GetFormats(LPSTR** formats, UINT* nFormats)
       CoTaskMemFree((*formats)[i]);
     }
     CoTaskMemFree(*formats);
-    *formats = NULL;
+    *formats = nullptr;
 
     return E_OUTOFMEMORY;
   }
@@ -1815,7 +1815,7 @@ STDMETHODIMP CLAVSplitterSource::NonDelegatingQueryInterface(REFIID riid, void**
 {
   CheckPointer(ppv, E_POINTER);
 
-  *ppv = NULL;
+  *ppv = nullptr;
 
   return
     QI(IFileSourceFilter)

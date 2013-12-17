@@ -36,11 +36,11 @@ CLAVVideoSettingsProp::~CLAVVideoSettingsProp()
 
 HRESULT CLAVVideoSettingsProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL)
+  if (pUnk == nullptr)
   {
     return E_POINTER;
   }
-  ASSERT(m_pVideoSettings == NULL);
+  ASSERT(m_pVideoSettings == nullptr);
   HRESULT hr = pUnk->QueryInterface(&m_pVideoSettings);
   if (FAILED(hr))
     return hr;
@@ -59,8 +59,8 @@ HRESULT CLAVVideoSettingsProp::OnDisconnect()
 
 HRESULT CLAVVideoSettingsProp::OnApplyChanges()
 {
-  ASSERT(m_pVideoSettings != NULL);
-  ASSERT(m_pVideoStatus != NULL);
+  ASSERT(m_pVideoSettings != nullptr);
+  ASSERT(m_pVideoStatus != nullptr);
   HRESULT hr = S_OK;
   BOOL bFlag;
   DWORD dwVal;
@@ -173,7 +173,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pVideoSettings != NULL);
+  ASSERT(m_pVideoSettings != nullptr);
 
   const WCHAR *version = TEXT(LAV_VIDEO) L" " TEXT(LAV_VERSION_STR);
   SendDlgItemMessage(m_Dlg, IDC_LAVVIDEO_FOOTER, WM_SETTEXT, 0, (LPARAM)version);
@@ -639,11 +639,11 @@ CLAVVideoFormatsProp::~CLAVVideoFormatsProp()
 
 HRESULT CLAVVideoFormatsProp::OnConnect(IUnknown *pUnk)
 {
-  if (pUnk == NULL)
+  if (pUnk == nullptr)
   {
     return E_POINTER;
   }
-  ASSERT(m_pVideoSettings == NULL);
+  ASSERT(m_pVideoSettings == nullptr);
   return pUnk->QueryInterface(&m_pVideoSettings);
 }
 
@@ -656,7 +656,7 @@ HRESULT CLAVVideoFormatsProp::OnDisconnect()
 
 HRESULT CLAVVideoFormatsProp::OnApplyChanges()
 {
-  ASSERT(m_pVideoSettings != NULL);
+  ASSERT(m_pVideoSettings != nullptr);
   HRESULT hr = S_OK;
 
   HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
@@ -689,7 +689,7 @@ HRESULT CLAVVideoFormatsProp::OnActivate()
   {
     return E_FAIL;
   }
-  ASSERT(m_pVideoSettings != NULL);
+  ASSERT(m_pVideoSettings != nullptr);
 
   // Setup ListView control for format configuration
   HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);

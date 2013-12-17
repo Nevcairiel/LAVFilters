@@ -118,7 +118,7 @@ CDecCuvid::~CDecCuvid(void)
   DestroyDecoder(true);
   DestroyWindow(m_hwnd);
   m_hwnd = 0;
-  UnregisterClass(L"cuvidDummyHWNDClass", NULL);
+  UnregisterClass(L"cuvidDummyHWNDClass", nullptr);
 }
 
 STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
@@ -144,7 +144,7 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 
   if (m_pbRawNV12) {
     cuda.cuMemFreeHost(m_pbRawNV12);
-    m_pbRawNV12 = NULL;
+    m_pbRawNV12 = nullptr;
     m_cRawNV12 = 0;
   }
 
@@ -171,7 +171,7 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 
 #define GET_PROC_EX(name, lib)                         \
   cuda.name = (t##name *)GetProcAddress(lib, #name); \
-  if (cuda.name == NULL) {                           \
+  if (cuda.name == nullptr) {                           \
     DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"%s\"", TEXT(#name))); \
     return E_FAIL; \
   }
@@ -184,7 +184,7 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
 {
   // Load CUDA functions
   cuda.cudaLib = LoadLibrary(L"nvcuda.dll");
-  if (cuda.cudaLib == NULL) {
+  if (cuda.cudaLib == nullptr) {
     DbgLog((LOG_TRACE, 10, L"-> Loading nvcuda.dll failed"));
     return E_FAIL;
   }
@@ -210,7 +210,7 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
 
   // Load CUVID function
   cuda.cuvidLib = LoadLibrary(L"nvcuvid.dll");
-  if (cuda.cuvidLib == NULL) {
+  if (cuda.cuvidLib == nullptr) {
     DbgLog((LOG_TRACE, 10, L"-> Loading nvcuvid.dll failed"));
     return E_FAIL;
   }
@@ -261,11 +261,11 @@ HWND CDecCuvid::GetDummyHWND()
     wndclass.lpfnWndProc = DefWindowProc;
     wndclass.cbClsExtra = 0;
     wndclass.cbWndExtra = 0;
-    wndclass.hInstance = NULL;
-    wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wndclass.hInstance = nullptr;
+    wndclass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+    wndclass.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wndclass.hbrBackground = (HBRUSH) GetStockObject (WHITE_BRUSH);
-    wndclass.lpszMenuName = NULL;
+    wndclass.lpszMenuName = nullptr;
     wndclass.lpszClassName = L"cuvidDummyHWNDClass";
 
     if (!RegisterClass(&wndclass)) {
@@ -280,10 +280,10 @@ HWND CDecCuvid::GetDummyHWND()
       0,                   // Initial Y
       0,                   // Width
       0,                   // Height
-      NULL,
-      NULL,
-      NULL,
-      NULL);
+      nullptr,
+      nullptr,
+      nullptr,
+      nullptr);
   }
   return m_hwnd;
 }
@@ -459,7 +459,7 @@ STDMETHODIMP CDecCuvid::Init()
     d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
     d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
 
-    IDirect3DDevice9 *pDev = NULL;
+    IDirect3DDevice9 *pDev = nullptr;
     CUcontext cudaCtx = 0;
     hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &pDev);
     if (SUCCEEDED(hr)) {
@@ -517,7 +517,7 @@ STDMETHODIMP CDecCuvid::Init()
 
   if (cuStatus == CUDA_SUCCESS) {
     // Switch to a floating context
-    CUcontext curr_ctx = NULL;
+    CUcontext curr_ctx = nullptr;
     cuStatus = cuda.cuCtxPopCurrent(&curr_ctx);
     if (cuStatus != CUDA_SUCCESS) {
       DbgLog((LOG_ERROR, 10, L"-> Storing context on the stack failed with error %d", cuStatus));
@@ -607,7 +607,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_AVC1Converter = new CAVC1AnnexBConverter();
     m_AVC1Converter->SetNALUSize(2);
 
-    BYTE *annexBextra = NULL;
+    BYTE *annexBextra = nullptr;
     int size = 0;
     m_AVC1Converter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
     if (annexBextra && size) {
@@ -619,7 +619,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_AVC1Converter->SetNALUSize(mp2vi->dwFlags);
   } else {
     size_t hdr_len = 0;
-    getExtraData(*pmt, NULL, &hdr_len);
+    getExtraData(*pmt, nullptr, &hdr_len);
     if (hdr_len <= 1024) {
       getExtraData(*pmt, m_VideoParserExInfo.raw_seqhdr_data, &hdr_len);
       m_VideoParserExInfo.format.seqhdr_data_length = (unsigned int)hdr_len;
@@ -670,7 +670,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     }
   }
 
-  BITMAPINFOHEADER *bmi = NULL;
+  BITMAPINFOHEADER *bmi = nullptr;
   videoFormatTypeHandler(pmt->Format(), pmt->FormatType(), &bmi);
 
   {
@@ -959,7 +959,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   if(!m_pbRawNV12 || size > m_cRawNV12) {
     if (m_pbRawNV12) {
       cuda.cuMemFreeHost(m_pbRawNV12);
-      m_pbRawNV12 = NULL;
+      m_pbRawNV12 = nullptr;
       m_cRawNV12 = 0;
     }
     cuStatus = cuda.cuMemAllocHost((void **)&m_pbRawNV12, size);
@@ -997,7 +997,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
 
 
   // Setup the LAVFrame
-  LAVFrame *pFrame = NULL;
+  LAVFrame *pFrame = nullptr;
   AllocateFrame(&pFrame);
 
   if (m_rtAvgTimePerFrame != AV_NOPTS_VALUE) {
@@ -1097,7 +1097,7 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   CUVIDSOURCEDATAPACKET pCuvidPacket;
   ZeroMemory(&pCuvidPacket, sizeof(pCuvidPacket));
 
-  BYTE *pBuffer = NULL;
+  BYTE *pBuffer = nullptr;
   if (m_AVC1Converter) {
     int size = 0;
     hr = m_AVC1Converter->Convert(&pBuffer, &size, buffer, buflen);

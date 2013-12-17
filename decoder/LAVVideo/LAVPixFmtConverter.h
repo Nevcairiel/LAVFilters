@@ -99,7 +99,7 @@ private:
   HRESULT ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
   HRESULT ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst[4], int width, int height, int dstStride[4]);
 
-  void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = NULL; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = NULL; if (m_pRandomDithers) _aligned_free(m_pRandomDithers); m_pRandomDithers = NULL; };
+  void DestroySWScale() { if (m_pSwsContext) sws_freeContext(m_pSwsContext); m_pSwsContext = nullptr; if (m_rgbCoeffs) _aligned_free(m_rgbCoeffs); m_rgbCoeffs = nullptr; if (m_pRandomDithers) _aligned_free(m_pRandomDithers); m_pRandomDithers = nullptr; };
   SwsContext *GetSWSContext(int width, int height, enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, int flags);
 
   void ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, int planeHeight, LAVOutPixFmts format);

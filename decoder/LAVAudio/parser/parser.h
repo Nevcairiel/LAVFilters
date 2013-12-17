@@ -29,5 +29,5 @@ static inline const uint8_t *find_marker32_position(const uint8_t *pBuffer, size
     }
   }
 
-  return NULL;
+  return nullptr;
 }

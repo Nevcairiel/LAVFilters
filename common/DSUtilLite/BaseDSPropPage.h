@@ -25,7 +25,7 @@ public:
   CBaseDSPropPage(LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, int DialogId, int TitleId);
 
 public:
-  static HRESULT ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner = NULL);
+  static HRESULT ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner = nullptr);
 
 protected:
   // Convenience function to add a new column to a list view control

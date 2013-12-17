@@ -42,7 +42,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv_nv12_dither_le)
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
-  if (dithers == NULL)
+  if (dithers == nullptr)
     ditherMode = LAVDither_Ordered;
 
   if (inputFormat == LAVPixFmt_YUV420bX)
@@ -380,7 +380,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy_dither_le)
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
-  if (dithers == NULL)
+  if (dithers == nullptr)
     ditherMode = LAVDither_Ordered;
 
   ptrdiff_t line,i;

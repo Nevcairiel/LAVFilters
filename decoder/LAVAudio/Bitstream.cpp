@@ -55,7 +55,7 @@ HRESULT CLAVAudio::InitBitstreaming()
     return E_OUTOFMEMORY;
   
   // Create AVIO context
-  m_avioBitstream = avio_alloc_context(buffer, LAV_BITSTREAM_BUFFER_SIZE, 1, this, NULL, BSWriteBuffer, NULL);
+  m_avioBitstream = avio_alloc_context(buffer, LAV_BITSTREAM_BUFFER_SIZE, 1, this, nullptr, BSWriteBuffer, nullptr);
   if(!m_avioBitstream) {
     SAFE_CO_FREE(buffer);
     return E_FAIL;
@@ -103,7 +103,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
 
   DbgLog((LOG_TRACE, 20, "Creating Bistreaming Context..."));
 
-  ret = avformat_alloc_output_context2(&m_avBSContext, NULL, "spdif", NULL);
+  ret = avformat_alloc_output_context2(&m_avBSContext, nullptr, "spdif", nullptr);
   if (ret < 0 || !m_avBSContext) {
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of avformat spdif muxer failed (ret: %d)", ret));
     goto fail;
@@ -132,7 +132,7 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
   m_pAVCtx->channels    = st->codec->channels    = wfe->nChannels;
   m_pAVCtx->sample_rate = st->codec->sample_rate = wfe->nSamplesPerSec;
 
-  ret = avformat_write_header(m_avBSContext, NULL);
+  ret = avformat_write_header(m_avBSContext, nullptr);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- av_write_header returned an error code (%d)", -ret));
     goto fail;
@@ -191,11 +191,11 @@ HRESULT CLAVAudio::FreeBitstreamContext()
     av_write_trailer(m_avBSContext); // For the SPDIF muxer that frees the buffers
     avformat_free_context(m_avBSContext);
   }
-  m_avBSContext = NULL;
+  m_avBSContext = nullptr;
 
   if (m_pParser)
     av_parser_close(m_pParser);
-  m_pParser = NULL;
+  m_pParser = nullptr;
 
   if (m_pAVCtx) {
     if (m_pAVCtx->codec)
@@ -296,7 +296,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
 {
   HRESULT hr = S_OK;
   int ret = 0;
-  BOOL bFlush = (pDataBuffer == NULL);
+  BOOL bFlush = (pDataBuffer == nullptr);
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -306,7 +306,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
   while (buffsize > 0) {
     if (bFlush) buffsize = 0;
 
-    BYTE *pOut = NULL;
+    BYTE *pOut = nullptr;
     int pOut_size = 0;
     int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, pDataBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
     if (used_bytes < 0) {
@@ -381,7 +381,7 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
   }
 
   IMediaSample *pOut;
-  BYTE *pDataOut = NULL;
+  BYTE *pDataOut = nullptr;
   if(FAILED(GetDeliveryBuffer(&pOut, &pDataOut))) {
     return E_FAIL;
   }
@@ -446,7 +446,7 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
   }
 
   pOut->SetTime(&rtStart, &rtStop);
-  pOut->SetMediaTime(NULL, NULL);
+  pOut->SetMediaTime(nullptr, nullptr);
 
   pOut->SetPreroll(FALSE);
   pOut->SetDiscontinuity(m_bDiscontinuity);

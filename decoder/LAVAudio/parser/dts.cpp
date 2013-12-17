@@ -64,7 +64,7 @@ int close_dts_parser(DTSParserContext **pContext)
 
   delete (*pContext)->gb;
   free(*pContext);
-  *pContext = NULL;
+  *pContext = nullptr;
 
   return 0;
 }
@@ -277,7 +277,7 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
     return 0;
 
   // DTS-HD parsing
-  const uint8_t *pHD = NULL;
+  const uint8_t *pHD = nullptr;
   if (pHeader->HasCore) { // If we have a core, only search after the normal buffer
     if (uSize > (pHeader->FrameSize + 4)) { // at least 4 bytes extra, could probably insert a minimal size of a HD header, but so what
       pHD = find_marker32_position(pBuffer + pHeader->FrameSize, uSize - pHeader->FrameSize, DCA_HD_MARKER);

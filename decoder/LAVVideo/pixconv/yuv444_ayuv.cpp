@@ -99,7 +99,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv444_ayuv_dither_le)
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = GetRandomDitherCoeffs(height, 3, 8, 0);
-  if (dithers == NULL)
+  if (dithers == nullptr)
     ditherMode = LAVDither_Ordered;
 
   ptrdiff_t line, i;

@@ -37,15 +37,15 @@ static const SubRenderOption options[] = {
 
 CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsumer *pConsumer)
   : CSubRenderOptionsImpl(::options, &context)
-  , CUnknown(L"CLAVSubtitleProvider", NULL)
+  , CUnknown(L"CLAVSubtitleProvider", nullptr)
   , m_pLAVVideo(pLAVVideo)
   , m_pConsumer(pConsumer)
-  , m_pAVCodec(NULL)
-  , m_pAVCtx(NULL)
-  , m_pParser(NULL)
+  , m_pAVCodec(nullptr)
+  , m_pAVCtx(nullptr)
+  , m_pParser(nullptr)
   , m_rtStartCache(AV_NOPTS_VALUE)
   , m_SubPicId(0)
-  , m_pHLI(NULL)
+  , m_pHLI(nullptr)
   , m_bComposit(TRUE)
 {
   avcodec_register_all();
@@ -70,7 +70,7 @@ CLAVSubtitleProvider::~CLAVSubtitleProvider(void)
 void CLAVSubtitleProvider::CloseDecoder()
 {
   CAutoLock lock(this);
-  m_pAVCodec = NULL;
+  m_pAVCodec = nullptr;
   if (m_pAVCtx) {
     if (m_pAVCtx->extradata)
       av_freep(&m_pAVCtx->extradata);
@@ -79,7 +79,7 @@ void CLAVSubtitleProvider::CloseDecoder()
   }
   if (m_pParser) {
     av_parser_close(m_pParser);
-    m_pParser = NULL;
+    m_pParser = nullptr;
   }
 }
 
@@ -163,12 +163,12 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
   m_pParser = av_parser_init(codecId);
 
   size_t extralen = 0;
-  getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), NULL, &extralen);
+  getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), nullptr, &extralen);
 
   if (extralen > 0) {
     // Just copy extradata
     BYTE *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-    getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, NULL);
+    getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, nullptr);
 
     m_pAVCtx->extradata = extra;
     m_pAVCtx->extradata_size = extralen;
@@ -178,13 +178,13 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
     // Not much info in here
   } else {
     // Try video info
-    BITMAPINFOHEADER *bmi = NULL;
-    videoFormatTypeHandler(*pmt, &bmi, NULL, NULL, NULL);
+    BITMAPINFOHEADER *bmi = nullptr;
+    videoFormatTypeHandler(*pmt, &bmi, nullptr, nullptr, nullptr);
     m_pAVCtx->width = bmi->biWidth;
     m_pAVCtx->height = bmi->biHeight;
   }
 
-  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
+  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, nullptr);
   if (ret < 0) {
     DbgLog((LOG_TRACE, 10, L"CLAVSubtitleProvider::InitDecoder(): avocdec_open2 failed with %d", ret));
     CloseDecoder();
@@ -249,7 +249,7 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
     int used_bytes = 0;
     int got_sub = 0;
     if (m_pParser) {
-      uint8_t *pOut = NULL;
+      uint8_t *pOut = nullptr;
       int pOut_size = 0;
       used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, buf, buflen, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
       if (used_bytes == 0 && pOut_size == 0) {
@@ -547,7 +547,7 @@ CLAVSubRect* CLAVSubtitleProvider::ProcessDVDHLI(CLAVSubRect *rect)
   rect = new CLAVSubRect(*rect);
   rect->ResetRefCount();
   rect->pixels = newPixels;
-  rect->pixelsPal = NULL;
+  rect->pixelsPal = nullptr;
 
   // Need to assign a new Id since we're modifying it here..
   rect->id = m_SubPicId++;

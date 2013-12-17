@@ -24,7 +24,7 @@
 
 class FormatInfo {
 public:
-  FormatInfo() : strName(NULL), strDescription(NULL) {}
+  FormatInfo() : strName(nullptr), strDescription(nullptr) {}
   FormatInfo(LPCSTR name, LPCSTR desc) : strName(name), strDescription(desc) {}
   LPCSTR strName;
   LPCSTR strDescription;

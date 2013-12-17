@@ -57,9 +57,9 @@ const AMOVIESETUP_PIN sudOutputPins[] =
       FALSE,              // zero instances allowed?
       TRUE,               // many instances allowed?
       &CLSID_NULL,        // connects to filter (for bridge pins)
-      NULL,               // connects to pin (for bridge pins)
+      nullptr,            // connects to pin (for bridge pins)
       0,                  // count of registered media types
-      NULL                // list of registered media types
+      nullptr             // list of registered media types
   },
   {
     L"Input",             // pin name
@@ -68,7 +68,7 @@ const AMOVIESETUP_PIN sudOutputPins[] =
       FALSE,              // zero instances allowed?
       FALSE,              // many instances allowed?
       &CLSID_NULL,        // connects to filter (for bridge pins)
-      NULL,               // connects to pin (for bridge pins)
+      nullptr,            // connects to pin (for bridge pins)
       1,                  // count of registered media types
       &sudMediaTypes[0]   // list of registered media types
   }
@@ -111,7 +111,7 @@ CFactoryTemplate g_Templates[] = {
     sudFilterRegSource.strName,
       sudFilterRegSource.clsID,
       CreateInstance<CLAVSplitterSource>,
-      NULL,
+      nullptr,
       &sudFilterRegSource
   },
   // This entry is for the property page.
@@ -119,13 +119,13 @@ CFactoryTemplate g_Templates[] = {
       L"LAV Splitter Properties",
       &CLSID_LAVSplitterSettingsProp,
       CreateInstance<CLAVSplitterSettingsProp>,
-      NULL, NULL
+      nullptr, nullptr
   },
   {
       L"LAV Splitter Input Formats",
       &CLSID_LAVSplitterFormatsProp,
       CreateInstance<CLAVSplitterFormatsProp>,
-      NULL, NULL
+      nullptr, nullptr
   }
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
@@ -141,7 +141,7 @@ STDAPI DllRegisterServer()
   chkbytes.push_back(L"0,4,,4D4F424A"); // MOBJ (MovieObject.bdmv)
   chkbytes.push_back(L"0,4,,4D504C53"); // MPLS
   RegisterSourceFilter(__uuidof(CLAVSplitterSource),
-    MEDIASUBTYPE_LAVBluRay, chkbytes, NULL);
+    MEDIASUBTYPE_LAVBluRay, chkbytes, nullptr);
 
   // base classes will handle registration using the factory template table
   return AMovieDllRegisterServer2(true);
@@ -167,8 +167,8 @@ BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
 void CALLBACK OpenConfiguration(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
   HRESULT hr = S_OK;
-  CUnknown *pInstance = CreateInstance<CLAVSplitter>(NULL, &hr);
-  IBaseFilter *pFilter = NULL;
+  CUnknown *pInstance = CreateInstance<CLAVSplitter>(nullptr, &hr);
+  IBaseFilter *pFilter = nullptr;
   pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
   if (pFilter) {
     pFilter->AddRef();

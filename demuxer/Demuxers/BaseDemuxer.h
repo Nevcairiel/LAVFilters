@@ -57,7 +57,7 @@ public:
     DWORD pid;
     std::string language;
     LCID lcid;
-    struct stream() { streamInfo = NULL; pid = 0; lcid = 0; }
+    struct stream() { streamInfo = nullptr; pid = 0; lcid = 0; }
     operator DWORD() const { return pid; }
     bool operator == (const struct stream& s) const { return (DWORD)*this == (DWORD)s; }
   } stream;

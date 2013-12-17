@@ -33,7 +33,7 @@ template <class T> void SafeRelease(T **ppT)
   if (*ppT)
   {
     (*ppT)->Release();
-    *ppT = NULL;
+    *ppT = nullptr;
   }
 }
 
@@ -54,12 +54,12 @@ extern void DbgCloseLogFile();
 // Deletes an array allocated with new [].
 
 #ifndef SAFE_ARRAY_DELETE
-#define SAFE_ARRAY_DELETE(x) if (x) { delete [] x; x = NULL; }
+#define SAFE_ARRAY_DELETE(x) if (x) { delete [] x; x = nullptr; }
 #endif
 
 // some common macros
-#define SAFE_DELETE(pPtr) { delete pPtr; pPtr = NULL; }
-#define SAFE_CO_FREE(pPtr) { CoTaskMemFree(pPtr); pPtr = NULL; }
+#define SAFE_DELETE(pPtr) { delete pPtr; pPtr = nullptr; }
+#define SAFE_CO_FREE(pPtr) { CoTaskMemFree(pPtr); pPtr = nullptr; }
 #define CHECK_HR(hr) if (FAILED(hr)) { goto done; }
 #define QI(i) (riid == __uuidof(i)) ? GetInterface((i*)this, ppv) :
 #define QI2(i) (riid == IID_##i) ? GetInterface((i*)this, ppv) :
@@ -71,7 +71,7 @@ static CUnknown* WINAPI CreateInstance(LPUNKNOWN lpunk, HRESULT* phr)
 {
   *phr = S_OK;
   CUnknown *punk = new T(lpunk, phr);
-  if(punk == NULL) {
+  if(punk == nullptr) {
     *phr = E_OUTOFMEMORY;
   }
   return punk;
@@ -119,8 +119,8 @@ BSTR ConvertCharToBSTR(const char *sz);
 
 unsigned int lav_xiphlacing(unsigned char *s, unsigned int v);
 
-void videoFormatTypeHandler(const AM_MEDIA_TYPE &mt, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
-void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = NULL, REFERENCE_TIME *prtAvgTime = NULL, DWORD *pDwAspectX = NULL, DWORD *pDwAspectY = NULL);
+void videoFormatTypeHandler(const AM_MEDIA_TYPE &mt, BITMAPINFOHEADER **pBMI = nullptr, REFERENCE_TIME *prtAvgTime = nullptr, DWORD *pDwAspectX = nullptr, DWORD *pDwAspectY = nullptr);
+void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPINFOHEADER **pBMI = nullptr, REFERENCE_TIME *prtAvgTime = nullptr, DWORD *pDwAspectX = nullptr, DWORD *pDwAspectY = nullptr);
 void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *pnSamples, WORD *pnChannels, WORD *pnBitsPerSample, WORD *pnBlockAlign, DWORD *pnBytesPerSec);
 void getExtraData(const AM_MEDIA_TYPE &mt, BYTE *extra, size_t *extralen);
 void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, size_t *extralen);

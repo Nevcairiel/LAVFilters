@@ -35,7 +35,7 @@ CLAVInputPin::~CLAVInputPin(void)
   if (m_pAVIOContext) {
     av_free(m_pAVIOContext->buffer);
     av_free(m_pAVIOContext);
-    m_pAVIOContext = NULL;
+    m_pAVIOContext = nullptr;
   }
 }
 
@@ -60,8 +60,8 @@ HRESULT CLAVInputPin::CheckConnect(IPin* pPin)
     return hr;
   }
 
-  IAsyncReader *pReader = NULL;
-  if (FAILED(hr = pPin->QueryInterface(&pReader)) || pReader == NULL) {
+  IAsyncReader *pReader = nullptr;
+  if (FAILED(hr = pPin->QueryInterface(&pReader)) || pReader == nullptr) {
     return E_FAIL;
   }
 
@@ -87,7 +87,7 @@ HRESULT CLAVInputPin::BreakConnect()
   if (m_pAVIOContext) {
     av_free(m_pAVIOContext->buffer);
     av_free(m_pAVIOContext);
-    m_pAVIOContext = NULL;
+    m_pAVIOContext = nullptr;
   }
 
   return S_OK;
@@ -102,7 +102,7 @@ HRESULT CLAVInputPin::CompleteConnect(IPin* pPin)
   }
 
   CheckPointer(pPin, E_POINTER);
-  if (FAILED(hr = pPin->QueryInterface(&m_pAsyncReader)) || m_pAsyncReader == NULL) {
+  if (FAILED(hr = pPin->QueryInterface(&m_pAsyncReader)) || m_pAsyncReader == nullptr) {
     return E_FAIL;
   }
 
@@ -181,7 +181,7 @@ HRESULT CLAVInputPin::GetAVIOContext(AVIOContext** ppContext)
 
   if (!m_pAVIOContext) {
     uint8_t *buffer = (uint8_t *)av_mallocz(READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
-    m_pAVIOContext = avio_alloc_context(buffer, READ_BUFFER_SIZE, 0, this, Read, NULL, Seek);
+    m_pAVIOContext = avio_alloc_context(buffer, READ_BUFFER_SIZE, 0, this, Read, nullptr, Seek);
 
     LONGLONG total = 0;
     LONGLONG available = 0;
@@ -189,7 +189,7 @@ HRESULT CLAVInputPin::GetAVIOContext(AVIOContext** ppContext)
     if (FAILED(hr) || total == 0) {
       DbgLog((LOG_TRACE, 10, L"CLAVInputPin::GetAVIOContext(): getting file length failed, disabling seeking"));
       m_pAVIOContext->seekable = 0;
-      m_pAVIOContext->seek = NULL;
+      m_pAVIOContext->seek = nullptr;
       m_pAVIOContext->buffer_size = READ_BUFFER_SIZE / 4;
     }
   }

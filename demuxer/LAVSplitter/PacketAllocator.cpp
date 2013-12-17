@@ -60,15 +60,15 @@ STDMETHODIMP_(ULONG) CMediaPacketSample::Release()
   if (lRef == 0) {
     /* Free all resources */
     if (m_dwFlags & Sample_TypeChanged) {
-      SetMediaType(NULL);
+      SetMediaType(nullptr);
     }
-    ASSERT(m_pMediaType == NULL);
+    ASSERT(m_pMediaType == nullptr);
     m_dwFlags = 0;
     m_dwTypeSpecificFlags = 0;
     m_dwStreamId = AM_STREAM_MEDIA;
     
     SAFE_DELETE(m_pPacket);
-    SetPointer(NULL, 0);
+    SetPointer(nullptr, 0);
 
     /* This may cause us to be deleted */
     // Our refcount is reliably 0 thus no-one will mess with us
@@ -218,7 +218,7 @@ HRESULT CPacketAllocator::Alloc(void)
 
   m_bAllocated = TRUE;
 
-  CMediaPacketSample *pSample = NULL;
+  CMediaPacketSample *pSample = nullptr;
 
   ASSERT(m_lAllocated == 0);
 
@@ -230,7 +230,7 @@ HRESULT CPacketAllocator::Alloc(void)
     pSample = new CMediaPacketSample(NAME("LAV Package media sample"), this, &hr);
 
     ASSERT(SUCCEEDED(hr));
-    if (pSample == NULL) {
+    if (pSample == nullptr) {
       return E_OUTOFMEMORY;
     }
 
@@ -269,7 +269,7 @@ void CPacketAllocator::ReallyFree(void)
   CMediaSample *pSample;
   for (;;) {
     pSample = m_lFree.RemoveHead();
-    if (pSample != NULL) {
+    if (pSample != nullptr) {
       delete pSample;
     } else {
       break;

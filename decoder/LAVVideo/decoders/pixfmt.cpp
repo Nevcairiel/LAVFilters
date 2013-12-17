@@ -121,8 +121,8 @@ HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame)
 
   if (pFrame->destruct) {
     pFrame->destruct(pFrame);
-    pFrame->destruct = NULL;
-    pFrame->priv_data = NULL;
+    pFrame->destruct = nullptr;
+    pFrame->priv_data = nullptr;
   }
   memset(pFrame->data, 0, sizeof(pFrame->data));
   memset(pFrame->stride, 0, sizeof(pFrame->stride));
@@ -136,8 +136,8 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
   if (!*ppDst) return E_OUTOFMEMORY;
   **ppDst = *pSrc;
 
-  (*ppDst)->destruct  = NULL;
-  (*ppDst)->priv_data = NULL;
+  (*ppDst)->destruct  = nullptr;
+  (*ppDst)->priv_data = nullptr;
 
   AllocLAVFrameBuffers(*ppDst);
 
@@ -160,7 +160,7 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
 
 HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame)
 {
-  LAVFrame *tmpFrame = NULL;
+  LAVFrame *tmpFrame = nullptr;
   CopyLAVFrame(pFrame, &tmpFrame);
   FreeLAVFrameBuffers(pFrame);
   *pFrame = *tmpFrame;

@@ -54,7 +54,7 @@ public:
       T *pNew = (T *)realloc(m_pArray, sizeof(T) * alloc);
       if (!pNew) {
         free(m_pArray);
-        m_pArray = NULL;
+        m_pArray = nullptr;
         m_allocated = 0;
         return E_OUTOFMEMORY;
       }
@@ -68,7 +68,7 @@ public:
   HRESULT Clear()
   {
     free(m_pArray);
-    m_pArray = NULL;
+    m_pArray = nullptr;
     m_count = m_allocated = 0;
     return S_OK;
   }

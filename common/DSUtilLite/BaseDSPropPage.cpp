@@ -28,10 +28,10 @@ CBaseDSPropPage::CBaseDSPropPage(LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, int 
 
 HWND CBaseDSPropPage::createHintWindow(HWND parent,int timePop,int timeInit,int timeReshow)
 {
-  HWND hhint = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL,
+  HWND hhint = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, nullptr,
     WS_POPUP|TTS_NOPREFIX|TTS_ALWAYSTIP,
     CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
-    parent, NULL, NULL, NULL);
+    parent, nullptr, nullptr, nullptr);
   SetWindowPos(hhint,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
   SendMessage(hhint,TTM_SETDELAYTIME,TTDT_AUTOPOP,MAKELONG(timePop,0));
   SendMessage(hhint,TTM_SETDELAYTIME,TTDT_INITIAL,MAKELONG(timeInit,0));
@@ -68,10 +68,10 @@ void CBaseDSPropPage::ListView_AddCol(HWND hlv, int &ncol, int w, const wchar_t 
 HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner)
 {
   CheckPointer(pFilter, E_INVALIDARG);
-  CoInitialize(NULL);
+  CoInitialize(nullptr);
 
   // Get PropertyPages interface
-  ISpecifyPropertyPages *pProp = NULL;
+  ISpecifyPropertyPages *pProp = nullptr;
   HRESULT hr = pFilter->QueryInterface<ISpecifyPropertyPages>(&pProp);
   if (SUCCEEDED(hr) && pProp) {
     // Get the filter's name and IUnknown pointer.
@@ -81,7 +81,7 @@ HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner
     if (FilterInfo.pGraph)
       FilterInfo.pGraph->Release();
 
-    IUnknown *pFilterUnk = NULL;
+    IUnknown *pFilterUnk = nullptr;
     pFilter->QueryInterface<IUnknown>(&pFilterUnk);
 
     // Show the page.
@@ -97,7 +97,7 @@ HRESULT CBaseDSPropPage::ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner
         caGUID.cElems,          // Number of property pages
         caGUID.pElems,          // Array of property page CLSIDs
         0,                      // Locale identifier
-        0, NULL                 // Reserved
+        0, nullptr              // Reserved
     );
 
     // Clean up.

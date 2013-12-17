@@ -175,11 +175,11 @@ public:
   STDMETHODIMP_(DWORD) GetNetworkStreamAnalysisDuration();
 
   // ILAVSplitterSettingsInternal
-  STDMETHODIMP_(LPCSTR) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return NULL; }
+  STDMETHODIMP_(LPCSTR) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return nullptr; }
   STDMETHODIMP_(std::set<FormatInfo>&) GetInputFormats();
   STDMETHODIMP_(BOOL) IsVC1CorrectionRequired();
   STDMETHODIMP_(CMediaType *) GetOutputMediatype(int stream);
-  STDMETHODIMP_(IFilterGraph *) GetFilterGraph() { if (m_pGraph) { m_pGraph->AddRef(); return m_pGraph; } return NULL; }
+  STDMETHODIMP_(IFilterGraph *) GetFilterGraph() { if (m_pGraph) { m_pGraph->AddRef(); return m_pGraph; } return nullptr; }
 
   STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream) { if (m_pDemuxer) return m_pDemuxer->GetStreamFlags(dwStream); return 0; }
   STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { if (m_pDemuxer) return m_pDemuxer->GetPixelFormat(dwStream); return AV_PIX_FMT_NONE; }

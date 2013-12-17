@@ -96,7 +96,7 @@ STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 HRESULT CLAVOutputPin::DecideAllocator(IMemInputPin * pPin, IMemAllocator **ppAlloc)
 {
   HRESULT hr = NOERROR;
-  *ppAlloc = NULL;
+  *ppAlloc = nullptr;
 
   // get downstream prop request
   // the derived class may modify this in DecideBufferSize, but
@@ -114,7 +114,7 @@ HRESULT CLAVOutputPin::DecideAllocator(IMemInputPin * pPin, IMemAllocator **ppAl
     prop.cbAlign = 1;
   }
 
-  *ppAlloc = new CPacketAllocator(NAME("CPacketAllocator"), NULL, &hr);
+  *ppAlloc = new CPacketAllocator(NAME("CPacketAllocator"), nullptr, &hr);
   (*ppAlloc)->AddRef();
   if (SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"Trying to use our CPacketAllocator"));
@@ -132,7 +132,7 @@ HRESULT CLAVOutputPin::DecideAllocator(IMemInputPin * pPin, IMemAllocator **ppAl
 
   if (*ppAlloc) {
     (*ppAlloc)->Release();
-    *ppAlloc = NULL;
+    *ppAlloc = nullptr;
   }
 
   m_bPacketAllocator = FALSE;
@@ -153,7 +153,7 @@ HRESULT CLAVOutputPin::DecideAllocator(IMemInputPin * pPin, IMemAllocator **ppAl
   /* If the GetAllocator failed we may not have an interface */
   if (*ppAlloc) {
     (*ppAlloc)->Release();
-    *ppAlloc = NULL;
+    *ppAlloc = nullptr;
   }
   return hr;
 }
@@ -323,7 +323,7 @@ size_t CLAVOutputPin::QueueCount()
 
 HRESULT CLAVOutputPin::QueueEndOfStream()
 {
-  return QueuePacket(NULL); // NULL means EndOfStream
+  return QueuePacket(nullptr); // nullptr means EndOfStream
 }
 
 HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
@@ -394,7 +394,7 @@ DWORD CLAVOutputPin::ThreadProc()
 
     size_t cnt = 0;
     do {
-      Packet *pPacket = NULL;
+      Packet *pPacket = nullptr;
 
       // Get a packet from the queue (scoped for lock)
       {
@@ -404,7 +404,7 @@ DWORD CLAVOutputPin::ThreadProc()
         }
       }
 
-      // We need to check cnt instead of pPacket, since it can be NULL for EndOfStream
+      // We need to check cnt instead of pPacket, since it can be nullptr for EndOfStream
       if(m_hrDeliver == S_OK && cnt > 0) {
         ASSERT(!m_fFlushing);
         m_fFlushed = false;
@@ -439,7 +439,7 @@ DWORD CLAVOutputPin::ThreadProc()
 HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
 {
   HRESULT hr = S_OK;
-  IMediaSample *pSample = NULL;
+  IMediaSample *pSample = nullptr;
 
   long nBytes = (long)pPacket->GetDataSize();
 
@@ -447,10 +447,10 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
     goto done;
   }
 
-  CHECK_HR(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0));
+  CHECK_HR(hr = GetDeliveryBuffer(&pSample, nullptr, nullptr, 0));
 
   if (m_bPacketAllocator) {
-    ILAVMediaSample *pLAVSample = NULL;
+    ILAVMediaSample *pLAVSample = nullptr;
     CHECK_HR(hr = pSample->QueryInterface(&pLAVSample));
     CHECK_HR(hr = pLAVSample->SetPacket(pPacket));
     SafeRelease(&pLAVSample);
@@ -470,11 +470,11 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
       CHECK_HR(hr = m_pAllocator->Decommit());
       CHECK_HR(hr = m_pAllocator->SetProperties(&props, &actual));
       CHECK_HR(hr = m_pAllocator->Commit());
-      CHECK_HR(hr = GetDeliveryBuffer(&pSample, NULL, NULL, 0));
+      CHECK_HR(hr = GetDeliveryBuffer(&pSample, nullptr, nullptr, 0));
     }
 
     // Fill the sample
-    BYTE* pData = NULL;
+    BYTE* pData = nullptr;
     if(FAILED(hr = pSample->GetPointer(&pData)) || !pData) goto done;
 
     memcpy(pData, pPacket->GetData(), nBytes);
@@ -489,7 +489,7 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
     CMediaType pmt = *(pPacket->pmt);
     m_mts.clear();
     m_mts.push_back(pmt);
-    pPacket->pmt = NULL;
+    pPacket->pmt = nullptr;
 
     SetMediaType(&pmt);
   }
@@ -497,8 +497,8 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   bool fTimeValid = pPacket->rtStart != Packet::INVALID_TIME;
 
   CHECK_HR(hr = pSample->SetActualDataLength(nBytes));
-  CHECK_HR(hr = pSample->SetTime(fTimeValid ? &pPacket->rtStart : NULL, fTimeValid ? &pPacket->rtStop : NULL));
-  CHECK_HR(hr = pSample->SetMediaTime(NULL, NULL));
+  CHECK_HR(hr = pSample->SetTime(fTimeValid ? &pPacket->rtStart : nullptr, fTimeValid ? &pPacket->rtStop : nullptr));
+  CHECK_HR(hr = pSample->SetMediaTime(nullptr, nullptr));
   CHECK_HR(hr = pSample->SetDiscontinuity(pPacket->bDiscontinuity));
   CHECK_HR(hr = pSample->SetSyncPoint(pPacket->bSyncPoint));
   CHECK_HR(hr = pSample->SetPreroll(fTimeValid && pPacket->rtStart < 0));

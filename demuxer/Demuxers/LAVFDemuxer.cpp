@@ -63,7 +63,7 @@ void CLAVFDemuxer::ffmpeg_init(bool network)
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
   av_log_set_callback(lavf_log_callback);
 #else
-  av_log_set_callback(NULL);
+  av_log_set_callback(nullptr);
 #endif
 
   av_register_all();
@@ -74,7 +74,7 @@ void CLAVFDemuxer::ffmpeg_init(bool network)
 std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
 {
   std::set<FormatInfo> formats;
-  AVInputFormat *f = NULL;
+  AVInputFormat *f = nullptr;
   while (f = av_iformat_next(f)) {
     FormatInfo format;
     lavf_get_iformat_infos(f, &format.strName, &format.strDescription);
@@ -92,14 +92,14 @@ CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   m_pSettings = settings;
 
   WCHAR fileName[1024];
-  GetModuleFileName(NULL, fileName, 1024);
+  GetModuleFileName(nullptr, fileName, 1024);
   const WCHAR *file = PathFindFileName (fileName);
 
   if (_wcsicmp(file, L"zplayer.exe") == 0) {
     m_bEnableTrackInfo = FALSE;
 
     // TrackInfo is only properly handled in ZoomPlayer 8.0.0.74 and above
-    DWORD dwVersionSize = GetFileVersionInfoSize(fileName, NULL);
+    DWORD dwVersionSize = GetFileVersionInfoSize(fileName, nullptr);
     if (dwVersionSize > 0) {
       void *versionInfo = CoTaskMemAlloc(dwVersionSize);
       if (!versionInfo)
@@ -131,7 +131,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
-  *ppv = NULL;
+  *ppv = nullptr;
 
   return
     QI(IKeyFrameInfo)
@@ -145,7 +145,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 // Demuxer Functions
 STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
 {
-  return OpenInputStream(NULL, pszFileName, NULL, TRUE);
+  return OpenInputStream(nullptr, pszFileName, nullptr, TRUE);
 }
 
 STDMETHODIMP CLAVFDemuxer::AbortOpening(int mode)
@@ -159,7 +159,7 @@ int CLAVFDemuxer::avio_interrupt_cb(void *opaque)
   CLAVFDemuxer *demux = (CLAVFDemuxer *)opaque;
 
   // Check for file opening timeout
-  time_t now = time(NULL);
+  time_t now = time(nullptr);
   if (demux->m_timeOpening && now > (demux->m_timeOpening + AVFORMAT_OPEN_TIMEOUT))
     return 1;
 
@@ -190,7 +190,7 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   // Convert the filename from wchar to char for avformat
   char fileName[4100] = {0};
   if (pszFileName) {
-    ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, NULL, NULL);
+    ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
   }
 
   if (_strnicmp("mms:", fileName, 4) == 0) {
@@ -209,9 +209,9 @@ trynoformat:
   if (m_avFormat->pb)
     m_avFormat->flags |= AVFMT_FLAG_CUSTOM_IO;
 
-  LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
+  LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : nullptr;
 
-  AVInputFormat *inputFormat = NULL;
+  AVInputFormat *inputFormat = nullptr;
   if (format) {
     inputFormat = av_find_input_format(format);
   } else if (pszFileName) {
@@ -227,7 +227,7 @@ trynoformat:
       }
     }
 
-    if (byteContext == NULL || bFileSource) {
+    if (byteContext == nullptr || bFileSource) {
       for (int i = 0; i < countof(wszBlockedExtensions); i++) {
         if (_wcsicmp(extension, wszBlockedExtensions[i]) == 0) {
           goto done;
@@ -240,19 +240,19 @@ trynoformat:
   if (!m_pSettings->GetLoadMatroskaExternalSegments())
     m_avFormat->flags |= AVFMT_FLAG_NOEXTERNAL;
 
-  m_timeOpening = time(NULL);
-  ret = avformat_open_input(&m_avFormat, fileName, inputFormat, NULL);
+  m_timeOpening = time(nullptr);
+  ret = avformat_open_input(&m_avFormat, fileName, inputFormat, nullptr);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): avformat_open_input failed (%d)"), ret));
     if (format) {
       DbgLog((LOG_ERROR, 0, TEXT(" -> trying again without specific format")));
-      format = NULL;
+      format = nullptr;
       avformat_close_input(&m_avFormat);
       goto trynoformat;
     }
     goto done;
   }
-  DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): avformat_open_input opened file of type '%S' (took %I64d seconds)"), m_avFormat->iformat->name, time(NULL) - m_timeOpening));
+  DbgLog((LOG_TRACE, 10, TEXT("::OpenInputStream(): avformat_open_input opened file of type '%S' (took %I64d seconds)"), m_avFormat->iformat->name, time(nullptr) - m_timeOpening));
   m_timeOpening = 0;
 
   CHECK_HR(hr = InitAVFormat(pszFileName, bForce));
@@ -292,13 +292,13 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   basename[5] = 0;
 
   // Convert to UTF-8 path
-  size_t a_len = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, NULL, 0, NULL, NULL);
+  size_t a_len = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, nullptr, 0, nullptr, nullptr);
   a_len += 2;// one extra char because CLIPINF is 7 chars and STREAM is 6, and one for the terminating-zero
 
   char *path = (char *)CoTaskMemAlloc(a_len * sizeof(char));
   if (!path)
     return E_OUTOFMEMORY;
-  WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, path, (int)a_len, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, path, (int)a_len, nullptr, nullptr);
 
   // Remove file name itself
   PathRemoveFileSpecA(path);
@@ -326,7 +326,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   }
   // Free the clip
   clpi_free(cl);
-  cl = NULL;
+  cl = nullptr;
 
   return S_OK;
 }
@@ -367,8 +367,8 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 {
   HRESULT hr = S_OK;
 
-  const char *format = NULL;
-  lavf_get_iformat_infos(m_avFormat->iformat, &format, NULL);
+  const char *format = nullptr;
+  lavf_get_iformat_infos(m_avFormat->iformat, &format, nullptr);
   if (!bForce && (!format || !m_pSettings->IsFormatEnabled(format))) {
     DbgLog((LOG_TRACE, 20, L"::InitAVFormat() - format of type '%S' disabled, failing", format ? format : m_avFormat->iformat->name));
     return E_FAIL;
@@ -378,7 +378,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
   m_bVC1SeenTimestamp = FALSE;
 
-  LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : NULL;
+  LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : nullptr;
 
   m_bMatroska = (_strnicmp(m_pszInputFormat, "matroska", 8) == 0);
   m_bOgg = (_strnicmp(m_pszInputFormat, "ogg", 3) == 0);
@@ -423,13 +423,13 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
   else
     m_avFormat->flags &= ~AVFMT_FLAG_KEEP_SIDE_DATA;
 
-  m_timeOpening = time(NULL);
-  int ret = avformat_find_stream_info(m_avFormat, NULL);
+  m_timeOpening = time(nullptr);
+  int ret = avformat_find_stream_info(m_avFormat, nullptr);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::InitAVFormat(): av_find_stream_info failed (%d)"), ret));
     goto done;
   }
-  DbgLog((LOG_TRACE, 10, TEXT("::InitAVFormat(): avformat_find_stream_info finished, took %I64d seconds"), time(NULL) - m_timeOpening));
+  DbgLog((LOG_TRACE, 10, TEXT("::InitAVFormat(): avformat_find_stream_info finished, took %I64d seconds"), time(nullptr) - m_timeOpening));
   m_timeOpening = 0;
 
   // Check if this is a m2ts in a BD structure, and if it is, read some extra stream properties out of the CLPI files
@@ -463,7 +463,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     UpdateParserFlags(st);
 
 #ifdef DEBUG
-    AVProgram *streamProg = av_find_program_from_stream(m_avFormat, NULL, idx);
+    AVProgram *streamProg = av_find_program_from_stream(m_avFormat, nullptr, idx);
     DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - program: %d, codec: %S; parsing: %S;", idx, st->id, streamProg ? streamProg->pmt_pid : -1, avcodec_get_name(st->codec->codec_id), lavf_get_parsing_string(st->need_parsing)));
 #endif
     m_stOrigParser[idx] = st->need_parsing;
@@ -521,14 +521,14 @@ void CLAVFDemuxer::CleanupAVFormat()
 
 AVStream* CLAVFDemuxer::GetAVStreamByPID(int pid)
 {
-  if (!m_avFormat) return NULL;
+  if (!m_avFormat) return nullptr;
 
   for (unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     if (m_avFormat->streams[idx]->id == pid && !(m_avFormat->streams[idx]->disposition & LAVF_DISPOSITION_SUB_STREAM))
       return m_avFormat->streams[idx];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
@@ -573,7 +573,7 @@ void CLAVFDemuxer::UpdateSubStreams()
     // Find and flag the AC-3 substream
     if (m_bMPEGTS && st->codec->codec_id == AV_CODEC_ID_TRUEHD) {
       int id = st->id;
-      AVStream *sub_st = NULL;
+      AVStream *sub_st = nullptr;
 
       for (unsigned int i = 0; i < m_avFormat->nb_streams; ++i) {
         AVStream *sst = m_avFormat->streams[i];
@@ -597,7 +597,7 @@ STDMETHODIMP CLAVFDemuxer::SetTitle(int idx)
   av_mkv_set_next_edition(m_avFormat, idx);
 
   // Update duration
-  AVEdition *editions = NULL;
+  AVEdition *editions = nullptr;
   av_mkv_get_editions(m_avFormat, &editions);
   m_avFormat->duration = editions[idx].duration;
 
@@ -616,7 +616,7 @@ STDMETHODIMP CLAVFDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCH
   if (!m_bMatroska)
     return E_NOTIMPL;
 
-  AVEdition *editions = NULL;
+  AVEdition *editions = nullptr;
   av_mkv_get_editions(m_avFormat, &editions);
 
   AVEdition *current_edition = &editions[idx];
@@ -624,7 +624,7 @@ STDMETHODIMP CLAVFDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCH
   if (rtDuration)
     *rtDuration = av_rescale(current_edition->duration, DSHOW_TIME_BASE, AV_TIME_BASE);
   if (ppszName) {
-    char *title = NULL;
+    char *title = nullptr;
     int total_seconds = current_edition->duration / AV_TIME_BASE;
     int seconds = total_seconds % 60;
     int minutes = total_seconds / 60 % 60;
@@ -826,7 +826,7 @@ STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID
         }
       } else if (pmt->majortype == MEDIATYPE_Audio) {
         if ((pmt->formattype == FORMAT_WaveFormatEx || pmt->formattype == FORMAT_WaveFormatExFFMPEG) && (channels || sample_rate)) {
-          WAVEFORMATEX *wfex = NULL;
+          WAVEFORMATEX *wfex = nullptr;
           if (pmt->formattype == FORMAT_WaveFormatExFFMPEG) {
             WAVEFORMATEXFFMPEG *wfexff = (WAVEFORMATEXFFMPEG *)pmt->pbFormat;
             wfex = &wfexff->wfex;
@@ -858,7 +858,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
   // Read packet
   AVPacket pkt;
-  Packet *pPacket = NULL;
+  Packet *pPacket = nullptr;
 
   // assume we are not eof
   if(m_avFormat->pb) {
@@ -1131,7 +1131,7 @@ STDMETHODIMP CLAVFDemuxer::get_CurrentMarker(long* pCurrentMarker)
   REFERENCE_TIME rtCurrent = m_rtCurrent;
   IFilterGraph *pGraph = m_pSettings->GetFilterGraph();
   if (pGraph) {
-    IMediaSeeking *pSeeking = NULL;
+    IMediaSeeking *pSeeking = nullptr;
     if (SUCCEEDED(pGraph->QueryInterface(&pSeeking))) {
       if (FAILED(pSeeking->GetCurrentPosition(&rtCurrent))) {
         DbgLog((LOG_TRACE, 10, L"get_CurrentMarker: Obtaining current playback position failed"));
@@ -1178,7 +1178,7 @@ STDMETHODIMP CLAVFDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
   if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
   // Get the title, or generate one
   OLECHAR wTitle[128];
-  if (AVDictionaryEntry *dictEntry = av_dict_get(m_avFormat->chapters[index]->metadata, "title", NULL, 0)) {
+  if (AVDictionaryEntry *dictEntry = av_dict_get(m_avFormat->chapters[index]->metadata, "title", nullptr, 0)) {
     char *title = dictEntry->value;
     MultiByteToWideChar(CP_UTF8, 0, title, -1, wTitle, 128);
   } else {
@@ -1255,7 +1255,7 @@ const CBaseDemuxer::stream* CLAVFDemuxer::GetStreamFromTotalIdx(size_t index) co
       index -= count_a;
       type = subpic;
       if (index >= count_s)
-        return NULL;
+        return nullptr;
     }
   }
 
@@ -1362,7 +1362,7 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackExtendedInfo(UINT aTrackIdx, void* pSt
 STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
 {
   if(!m_avFormat)
-    return NULL;
+    return nullptr;
 
   int id = GetStreamIdxFromTotalIdx(aTrackIdx);
   if (id < 0 || (unsigned)id >= m_avFormat->nb_streams)
@@ -1370,10 +1370,10 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
 
   const AVStream *st = m_avFormat->streams[id];
 
-  BSTR trackName = NULL;
+  BSTR trackName = nullptr;
 
-  const char *title = NULL;
-  if (AVDictionaryEntry *dictEntry = av_dict_get(st->metadata, "title", NULL, 0)) {
+  const char *title = nullptr;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(st->metadata, "title", nullptr, 0)) {
     title = dictEntry->value;
   }
   if (title && title[0] != '\0') {
@@ -1386,7 +1386,7 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
 STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackCodecName(UINT aTrackIdx)
 {
   if(!m_avFormat)
-    return NULL;
+    return nullptr;
 
   int id = GetStreamIdxFromTotalIdx(aTrackIdx);
   if (id < 0 || (unsigned)id >= m_avFormat->nb_streams)
@@ -1394,7 +1394,7 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackCodecName(UINT aTrackIdx)
 
   const AVStream *st = m_avFormat->streams[id];
 
-  BSTR codecName = NULL;
+  BSTR codecName = nullptr;
 
   std::string codec = get_codec_name(st->codec);
   if (!codec.empty()) {
@@ -1424,8 +1424,8 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
   s.pid = streamId;
 
   // Extract language
-  const char *lang = NULL;
-  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "language", NULL, 0)) {
+  const char *lang = nullptr;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "language", nullptr, 0)) {
     lang = dictEntry->value;
   }
   if (lang) {
@@ -1687,7 +1687,7 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
 // Select the best video stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 {
-  const stream *best = NULL;
+  const stream *best = nullptr;
   CStreamList *streams = GetStreams(video);
 
   std::deque<stream>::iterator it;
@@ -1787,7 +1787,7 @@ static int audio_codec_priority(AVCodecContext *codec)
 // Select the best audio stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::string> prefLanguages)
 {
-  const stream *best = NULL;
+  const stream *best = nullptr;
   CStreamList *streams = GetStreams(audio);
 
   std::deque<stream*> checkedStreams;
@@ -1890,7 +1890,7 @@ static inline bool does_language_match(std::string selector, std::string selecte
 // Select the best subtitle stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors, std::string audioLanguage)
 {
-  const stream *best = NULL;
+  const stream *best = nullptr;
   CStreamList *streams = GetStreams(subpic);
 
   std::deque<stream*> checkedStreams;
@@ -1980,12 +1980,12 @@ STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue)
   if (!m_avFormat)
     return VFW_E_NOT_FOUND;
 
-  AVDictionaryEntry *entry = av_dict_get(m_avFormat->metadata, key, NULL, 0);
+  AVDictionaryEntry *entry = av_dict_get(m_avFormat->metadata, key, nullptr, 0);
   if (!entry || !entry->value || entry->value[0] == '\0')
     return VFW_E_NOT_FOUND;
 
   *pbstrValue = ConvertCharToBSTR(entry->value);
-  if (*pbstrValue == NULL)
+  if (*pbstrValue == nullptr)
     return E_OUTOFMEMORY;
 
   return S_OK;

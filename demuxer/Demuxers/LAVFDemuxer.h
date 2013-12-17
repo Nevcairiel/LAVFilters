@@ -104,11 +104,11 @@ public:
   // Get an extended information struct relative to the track type
   STDMETHODIMP_(BOOL) GetTrackExtendedInfo(UINT aTrackIdx, void* pStructureToFill);
 
-  STDMETHODIMP_(BSTR) GetTrackCodecID(UINT aTrackIdx) { return NULL; }
+  STDMETHODIMP_(BSTR) GetTrackCodecID(UINT aTrackIdx) { return nullptr; }
   STDMETHODIMP_(BSTR) GetTrackName(UINT aTrackIdx);
   STDMETHODIMP_(BSTR) GetTrackCodecName(UINT aTrackIdx);
-  STDMETHODIMP_(BSTR) GetTrackCodecInfoURL(UINT aTrackIdx) { return NULL; }
-  STDMETHODIMP_(BSTR) GetTrackCodecDownloadURL(UINT aTrackIdx) { return NULL; }
+  STDMETHODIMP_(BSTR) GetTrackCodecInfoURL(UINT aTrackIdx) { return nullptr; }
+  STDMETHODIMP_(BSTR) GetTrackCodecDownloadURL(UINT aTrackIdx) { return nullptr; }
 
   // IAMMediaContent
   STDMETHODIMP get_AuthorName(BSTR *pbstrAuthorName) { return GetBSTRMetadata("artist", pbstrAuthorName); }
@@ -125,7 +125,7 @@ public:
   STDMETHODIMP get_MoreInfoBannerURL(BSTR *pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
   STDMETHODIMP get_MoreInfoText(BSTR *pbstrMoreInfoText) { return E_NOTIMPL; }
 
-  STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = NULL, const char *format = NULL, BOOL bForce = FALSE, BOOL bFileSource = FALSE);
+  STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = nullptr, const char *format = nullptr, BOOL bForce = FALSE, BOOL bFileSource = FALSE);
   STDMETHODIMP SeekByte(int64_t pos, int flags);
 
   AVStream* GetAVStreamByPID(int pid);

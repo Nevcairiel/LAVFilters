@@ -723,7 +723,7 @@ const uint8_t* CheckForEndOfSequence(AVCodecID codec, const uint8_t *buf, long l
         }
       }
     }
-    return NULL;
+    return nullptr;
   }
-  return NULL;
+  return nullptr;
 }

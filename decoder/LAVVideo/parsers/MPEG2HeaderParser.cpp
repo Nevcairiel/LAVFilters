@@ -62,7 +62,7 @@ void CMPEG2HeaderParser::ParseMPEG2Header(const BYTE *pData, size_t length)
 
   const uint8_t *start = pData;
   const uint8_t *end = start + length;
-  const uint8_t *next = NULL;
+  const uint8_t *next = nullptr;
 
   int size;
 

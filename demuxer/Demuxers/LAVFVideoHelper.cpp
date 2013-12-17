@@ -37,22 +37,22 @@ CLAVFVideoHelper g_VideoHelper;
 
 // Map codec ids to media subtypes
 static FormatMapping video_map[] = {
-  { AV_CODEC_ID_H263,       &MEDIASUBTYPE_H263,         NULL,                   NULL },
-  { AV_CODEC_ID_H263I,      &MEDIASUBTYPE_I263,         NULL,                   NULL },
-  { AV_CODEC_ID_H264,       &MEDIASUBTYPE_AVC1,         NULL,                   &FORMAT_MPEG2Video },
-  { AV_CODEC_ID_HEVC,       &MEDIASUBTYPE_HEVC,         NULL,                   &FORMAT_MPEG2Video },
-  { AV_CODEC_ID_MPEG1VIDEO, &MEDIASUBTYPE_MPEG1Payload, NULL,                   &FORMAT_MPEGVideo  },
-  { AV_CODEC_ID_MPEG2VIDEO, &MEDIASUBTYPE_MPEG2_VIDEO,  NULL,                   &FORMAT_MPEG2Video },
+  { AV_CODEC_ID_H263,       &MEDIASUBTYPE_H263,         0,                      nullptr },
+  { AV_CODEC_ID_H263I,      &MEDIASUBTYPE_I263,         0,                      nullptr },
+  { AV_CODEC_ID_H264,       &MEDIASUBTYPE_AVC1,         0,                      &FORMAT_MPEG2Video },
+  { AV_CODEC_ID_HEVC,       &MEDIASUBTYPE_HEVC,         0,                      &FORMAT_MPEG2Video },
+  { AV_CODEC_ID_MPEG1VIDEO, &MEDIASUBTYPE_MPEG1Payload, 0,                      &FORMAT_MPEGVideo  },
+  { AV_CODEC_ID_MPEG2VIDEO, &MEDIASUBTYPE_MPEG2_VIDEO,  0,                      &FORMAT_MPEG2Video },
   { AV_CODEC_ID_RV10,       &MEDIASUBTYPE_RV10,         MKTAG('R','V','1','0'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_RV20,       &MEDIASUBTYPE_RV20,         MKTAG('R','V','2','0'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_RV30,       &MEDIASUBTYPE_RV30,         MKTAG('R','V','3','0'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_RV40,       &MEDIASUBTYPE_RV40,         MKTAG('R','V','4','0'), &FORMAT_VideoInfo2 },
-  { AV_CODEC_ID_AMV,        &MEDIASUBTYPE_AMVV,         MKTAG('A','M','V','V'), NULL },
-  { AV_CODEC_ID_TIFF,       &MEDIASUBTYPE_TIFF,         MKTAG('T','I','F','F'), NULL },
-  { AV_CODEC_ID_PNG,        &MEDIASUBTYPE_PNG,          MKTAG('P','N','G',' '), NULL },
-  { AV_CODEC_ID_BMP,        &MEDIASUBTYPE_BMP,          MKTAG('B','M','P',' '), NULL },
-  { AV_CODEC_ID_GIF,        &MEDIASUBTYPE_GIF,          MKTAG('G','I','F',' '), NULL },
-  { AV_CODEC_ID_TARGA,      &MEDIASUBTYPE_TGA,          MKTAG('T','G','A',' '), NULL },
+  { AV_CODEC_ID_AMV,        &MEDIASUBTYPE_AMVV,         MKTAG('A','M','V','V'), nullptr },
+  { AV_CODEC_ID_TIFF,       &MEDIASUBTYPE_TIFF,         MKTAG('T','I','F','F'), nullptr },
+  { AV_CODEC_ID_PNG,        &MEDIASUBTYPE_PNG,          MKTAG('P','N','G',' '), nullptr },
+  { AV_CODEC_ID_BMP,        &MEDIASUBTYPE_BMP,          MKTAG('B','M','P',' '), nullptr },
+  { AV_CODEC_ID_GIF,        &MEDIASUBTYPE_GIF,          MKTAG('G','I','F',' '), nullptr },
+  { AV_CODEC_ID_TARGA,      &MEDIASUBTYPE_TGA,          MKTAG('T','G','A',' '), nullptr },
   { AV_CODEC_ID_VP8,        &MEDIASUBTYPE_VP80,         MKTAG('V','P','8','0'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_VP9,        &MEDIASUBTYPE_VP90,         MKTAG('V','P','9','0'), &FORMAT_VideoInfo2 },
 };
@@ -156,7 +156,7 @@ size_t avc_parse_annexb(BYTE *extra, int extrasize, BYTE *dst)
 VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size, std::string container)
 {
   VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
-  if (!pvi) return NULL;
+  if (!pvi) return nullptr;
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
   // Get the frame rate
   REFERENCE_TIME r_avg = 0, avg_avg = 0, tb_avg = 0;
@@ -225,7 +225,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
 VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *size, std::string container)
 {
   int extra = 0;
-  BYTE *extradata = NULL;
+  BYTE *extradata = nullptr;
   BOOL bZeroPad = FALSE;
   if (avstream->codec->codec_id == AV_CODEC_ID_VC1 && avstream->codec->extradata_size) {
     int i = 0;
@@ -243,7 +243,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size, container);
-  if (!vih) return NULL;
+  if (!vih) return nullptr;
 
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
@@ -256,7 +256,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   }
 
   VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)CoTaskMemAlloc(sizeof(VIDEOINFOHEADER2) + extra); 
-  if (!vih2) return NULL;
+  if (!vih2) return nullptr;
   memset(vih2, 0, sizeof(VIDEOINFOHEADER2));
 
   vih2->rcSource = vih->rcSource;
@@ -308,11 +308,11 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG *size, std::string container)
 {
   int extra = 0;
-  BYTE *extradata = NULL;
+  BYTE *extradata = nullptr;
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size, container);
-  if (!vih) return NULL;
+  if (!vih) return nullptr;
 
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
@@ -320,7 +320,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   }
 
   MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG1VIDEOINFO) + extra);
-  if (!mp1vi) return NULL;
+  if (!mp1vi) return nullptr;
   memset(mp1vi, 0, sizeof(MPEG1VIDEOINFO));
 
   // The MPEG1VI is a thin wrapper around a VIH, so its easy!
@@ -347,11 +347,11 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
 MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bConvertToAVC1)
 {
   int extra = 0;
-  BYTE *extradata = NULL;
+  BYTE *extradata = nullptr;
 
   // Create a VIH that we'll convert
   VIDEOINFOHEADER2 *vih2 = CreateVIH2(avstream, size, container);
-  if (!vih2) return NULL;
+  if (!vih2) return nullptr;
 
   if(avstream->codec->extradata_size > 0) {
     extra = avstream->codec->extradata_size;
@@ -359,7 +359,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
   }
 
   MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG2VIDEOINFO) + max(extra - 4, 0));
-  if (!mp2vi) return NULL;
+  if (!mp2vi) return nullptr;
   memset(mp2vi, 0, sizeof(MPEG2VIDEOINFO));
   memcpy(&mp2vi->hdr, vih2, sizeof(VIDEOINFOHEADER2));
   mp2vi->hdr.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);

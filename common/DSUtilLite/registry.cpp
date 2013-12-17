@@ -29,18 +29,18 @@ bool CreateRegistryKey(HKEY hKeyRoot, LPCTSTR pszSubKey)
     hKeyRoot,
     pszSubKey,
     0,
-    NULL,
+    nullptr,
     REG_OPTION_NON_VOLATILE,
     KEY_WRITE,
-    NULL,
+    nullptr,
     &hKey,
-    NULL
+    nullptr
     );
 
   if(lRet == ERROR_SUCCESS)
   {
     RegCloseKey(hKey);
-    hKey = (HKEY)NULL;
+    hKey = (HKEY)nullptr;
     return true;
   }
 
@@ -68,7 +68,7 @@ HRESULT CRegistry::Open(HKEY hkeyRoot, LPCTSTR pszSubKey, BOOL bReadOnly, BOOL b
 {
   LONG lRet;
   
-  if (m_key != NULL) { return E_UNEXPECTED; }
+  if (m_key != nullptr) { return E_UNEXPECTED; }
   
   m_key = new HKEY();
   REGSAM sam = bReadOnly ? KEY_READ : KEY_READ|KEY_WRITE;
@@ -76,7 +76,7 @@ HRESULT CRegistry::Open(HKEY hkeyRoot, LPCTSTR pszSubKey, BOOL bReadOnly, BOOL b
   lRet = RegOpenKeyEx(hkeyRoot, pszSubKey, 0, sam, m_key);
   if (lRet != ERROR_SUCCESS) {
     delete m_key;
-    m_key = NULL;
+    m_key = nullptr;
     return E_FAIL;
   }
   return S_OK;
@@ -90,16 +90,16 @@ std::wstring CRegistry::ReadString(LPCTSTR pszKey, HRESULT &hr)
 
   hr = S_OK;
 
-  if (m_key == NULL) { hr = E_UNEXPECTED;  return result; }
+  if (m_key == nullptr) { hr = E_UNEXPECTED;  return result; }
 
-  lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, NULL, &dwSize);
+  lRet = RegQueryValueEx(*m_key, pszKey, nullptr, nullptr, nullptr, &dwSize);
 
   if (lRet == ERROR_SUCCESS) {
     // Alloc Buffer to fit the data
     WCHAR *buffer = (WCHAR *)CoTaskMemAlloc(dwSize);
     if (!buffer) { hr = E_OUTOFMEMORY; return result; }
     memset(buffer, 0, dwSize);
-    lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, (LPBYTE)buffer, &dwSize);
+    lRet = RegQueryValueEx(*m_key, pszKey, nullptr, nullptr, (LPBYTE)buffer, &dwSize);
     result = std::wstring(buffer);
     CoTaskMemFree(buffer);
   }
@@ -118,7 +118,7 @@ HRESULT CRegistry::WriteString(LPCTSTR pszKey, const LPCTSTR pszValue)
 
   hr = S_OK;
 
-  if (m_key == NULL) { return E_UNEXPECTED; }
+  if (m_key == nullptr) { return E_UNEXPECTED; }
 
   lRet = RegSetValueEx(*m_key, pszKey, 0, REG_SZ, (const BYTE *)pszValue, (DWORD)((wcslen(pszValue) + 1) * sizeof(WCHAR)));
   if (lRet != ERROR_SUCCESS) {
@@ -135,9 +135,9 @@ DWORD CRegistry::ReadDWORD(LPCTSTR pszKey, HRESULT &hr)
 
   hr = S_OK;
 
-  if (m_key == NULL) { hr = E_UNEXPECTED; return 0; }
+  if (m_key == nullptr) { hr = E_UNEXPECTED; return 0; }
 
-  lRet = RegQueryValueEx(*m_key, pszKey, 0, NULL, (LPBYTE)&dwVal, &dwSize);
+  lRet = RegQueryValueEx(*m_key, pszKey, 0, nullptr, (LPBYTE)&dwVal, &dwSize);
 
   if (lRet != ERROR_SUCCESS) {
     hr = E_FAIL;
@@ -153,7 +153,7 @@ HRESULT CRegistry::WriteDWORD(LPCTSTR pszKey, DWORD dwValue)
 
   hr = S_OK;
 
-  if (m_key == NULL) { return E_UNEXPECTED; }
+  if (m_key == nullptr) { return E_UNEXPECTED; }
 
   lRet = RegSetValueEx(*m_key, pszKey, 0, REG_DWORD, (const BYTE *)&dwValue, sizeof(dwValue));
   if (lRet != ERROR_SUCCESS) {
@@ -176,26 +176,26 @@ HRESULT CRegistry::WriteBOOL(LPCTSTR pszKey, BOOL bValue)
 BYTE *CRegistry::ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr)
 {
   LONG lRet;
-  BYTE *result = NULL;
+  BYTE *result = nullptr;
 
   hr = S_OK;
 
-  if (m_key == NULL) { hr = E_UNEXPECTED;  return result; }
+  if (m_key == nullptr) { hr = E_UNEXPECTED;  return result; }
 
-  lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, NULL, &dwSize);
+  lRet = RegQueryValueEx(*m_key, pszKey, nullptr, nullptr, nullptr, &dwSize);
 
   if (lRet == ERROR_SUCCESS) {
     // Alloc Buffer to fit the data
     result = (BYTE *)CoTaskMemAlloc(dwSize);
     if (!result) { hr = E_OUTOFMEMORY; return result; }
     memset(result, 0, dwSize);
-    lRet = RegQueryValueEx(*m_key, pszKey, NULL, NULL, (LPBYTE)result, &dwSize);
+    lRet = RegQueryValueEx(*m_key, pszKey, nullptr, nullptr, (LPBYTE)result, &dwSize);
   }
 
   if (lRet != ERROR_SUCCESS) {
     hr = E_FAIL;
     CoTaskMemFree(result);
-    result = NULL;
+    result = nullptr;
   }
 
   return result;
@@ -208,7 +208,7 @@ HRESULT CRegistry::WriteBinary(LPCTSTR pszKey, const BYTE *pbValue, int iLen)
 
   hr = S_OK;
 
-  if (m_key == NULL) { return E_UNEXPECTED; }
+  if (m_key == nullptr) { return E_UNEXPECTED; }
 
   lRet = RegSetValueEx(*m_key, pszKey, 0, REG_BINARY, (const BYTE *)pbValue, iLen);
   if (lRet != ERROR_SUCCESS) {
@@ -221,7 +221,7 @@ HRESULT CRegistry::DeleteKey(LPCTSTR pszKey)
 {
   LONG lRet;
 
-  if (m_key == NULL) { return E_UNEXPECTED; }
+  if (m_key == nullptr) { return E_UNEXPECTED; }
   lRet = RegDeleteValue(*m_key, pszKey);
   if (lRet != ERROR_SUCCESS) {
     return E_FAIL;

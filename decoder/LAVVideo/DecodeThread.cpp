@@ -28,11 +28,11 @@ CDecodeThread::CDecodeThread(CLAVVideo *pLAVVideo)
   : m_pLAVVideo(pLAVVideo)
 {
   WCHAR fileName[1024];
-  GetModuleFileName(NULL, fileName, 1024);
+  GetModuleFileName(nullptr, fileName, 1024);
   m_processName = PathFindFileName (fileName);
 
-  m_TempSample[0] = NULL;
-  m_TempSample[1] = NULL;
+  m_TempSample[0] = nullptr;
+  m_TempSample[1] = nullptr;
 
   CAMThread::Create();
   m_evInput.Reset();
@@ -112,13 +112,13 @@ STDMETHODIMP CDecodeThread::Close()
 bool CDecodeThread::HasSample()
 {
   CAutoLock lock(&m_SampleCritSec);
-  return m_NextSample != NULL;
+  return m_NextSample != nullptr;
 }
 
 void CDecodeThread::PutSample(IMediaSample *pSample)
 {
   CAutoLock lock(&m_SampleCritSec);
-  ASSERT(m_NextSample == NULL);
+  ASSERT(m_NextSample == nullptr);
   // Provide Sample to worker thread
   m_NextSample = pSample;
 
@@ -132,7 +132,7 @@ IMediaSample* CDecodeThread::GetSample()
 
   // Take the sample out of the buffer
   IMediaSample *pSample = m_NextSample;
-  m_NextSample = NULL;
+  m_NextSample = nullptr;
 
   // Reset input event (no more input)
   m_evInput.Reset();
@@ -282,7 +282,7 @@ DWORD CDecodeThread::ThreadProc()
           hr = CreateDecoderInternal(m_ThreadCallContext.pmt, m_ThreadCallContext.codec);
           Reply(hr);
 
-          m_ThreadCallContext.pmt = NULL;
+          m_ThreadCallContext.pmt = nullptr;
         }
         break;
       case CMD_CLOSE_DECODER:
@@ -318,7 +318,7 @@ DWORD CDecodeThread::ThreadProc()
           hr = m_pDecoder->InitAllocator(m_ThreadCallContext.allocator);
           Reply(hr);
 
-          m_ThreadCallContext.allocator = NULL;
+          m_ThreadCallContext.allocator = nullptr;
         }
         break;
       case CMD_POST_CONNECT:
@@ -327,7 +327,7 @@ DWORD CDecodeThread::ThreadProc()
           hr = PostConnectInternal(m_ThreadCallContext.pin);
           Reply(hr);
 
-          m_ThreadCallContext.pin = NULL;
+          m_ThreadCallContext.pin = nullptr;
         }
         break;
       case CMD_REINIT:
@@ -336,7 +336,7 @@ DWORD CDecodeThread::ThreadProc()
           CreateDecoderInternal(&mt, m_Codec);
           m_TempSample[1] = m_NextSample;
           m_NextSample = m_FailedSample;
-          m_FailedSample = NULL;
+          m_FailedSample = nullptr;
           bReinit = TRUE;
           m_evEOSDone.Reset();
           Reply(S_OK);
@@ -356,10 +356,10 @@ DWORD CDecodeThread::ThreadProc()
     if (bReinit && !m_NextSample) {
       if (m_TempSample[0]) {
         m_NextSample = m_TempSample[0];
-        m_TempSample[0] = NULL;
+        m_TempSample[0] = nullptr;
       } else if (m_TempSample[1]) {
         m_NextSample = m_TempSample[1];
-        m_TempSample[1] = NULL;
+        m_TempSample[1] = nullptr;
       } else {
         bReinit = FALSE;
         m_evEOSDone.Set();
@@ -414,7 +414,7 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodec
   BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
   DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
 
-  BITMAPINFOHEADER *pBMI = NULL;
+  BITMAPINFOHEADER *pBMI = nullptr;
   videoFormatTypeHandler(*pmt, &pBMI);
 
   // Try reusing the current HW decoder

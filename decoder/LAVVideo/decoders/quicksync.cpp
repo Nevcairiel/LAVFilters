@@ -180,7 +180,7 @@ private:
   HRESULT STDMETHODCALLTYPE CreateDeviceManager() {
     DbgLog((LOG_TRACE, 10, L"CIDirect3DDeviceManager9Proxy::CreateDeviceManager()"));
     HRESULT hr = S_OK;
-    IMFGetService *pGetService = NULL;
+    IMFGetService *pGetService = nullptr;
     hr = m_pPin->QueryInterface(__uuidof(IMFGetService), (void**)&pGetService);
     if (FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L"-> IMFGetService not available"));
@@ -188,7 +188,7 @@ private:
     }
 
     // Get the Direct3D device manager.
-    IDirect3DDeviceManager9 *pDevMgr = NULL;
+    IDirect3DDeviceManager9 *pDevMgr = nullptr;
     hr = pGetService->GetService(MR_VIDEO_ACCELERATION_SERVICE, __uuidof(IDirect3DDeviceManager9), (void**)&pDevMgr);
     if (FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L"-> D3D Device Manager not available"));
@@ -227,7 +227,7 @@ STDMETHODIMP CDecQuickSync::DestroyDecoder(bool bFull)
 {
   if (m_pDecoder) {
     qs.destroy(m_pDecoder);
-    m_pDecoder = NULL;
+    m_pDecoder = nullptr;
   }
 
   if (bFull) {
@@ -256,24 +256,24 @@ STDMETHODIMP CDecQuickSync::Init()
     wcscat_s(wModuleFile, TEXT("\\")TEXT(QS_DEC_DLL_NAME));
 
     qs.quickSyncLib = LoadLibrary(wModuleFile);
-    if (qs.quickSyncLib == NULL) {
+    if (qs.quickSyncLib == nullptr) {
       DWORD dwError = GetLastError();
       DbgLog((LOG_ERROR, 10, L"-> Loading of " TEXT(QS_DEC_DLL_NAME) L" failed (%d)", dwError));
       return E_FAIL;
     }
 
     qs.create = (pcreateQuickSync *)GetProcAddress(qs.quickSyncLib, "createQuickSync");
-    if (qs.create == NULL) {
+    if (qs.create == nullptr) {
       DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"createQuickSync\""));
       return E_FAIL;
     }
     qs.destroy = (pdestroyQuickSync *)GetProcAddress(qs.quickSyncLib, "destroyQuickSync");
-    if (qs.destroy == NULL) {
+    if (qs.destroy == nullptr) {
       DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"destroyQuickSync\""));
       return E_FAIL;
     }
     qs.check = (pcheck *)GetProcAddress(qs.quickSyncLib, "check");
-    if (qs.check == NULL) {
+    if (qs.check == nullptr) {
       DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"check\""));
       return E_FAIL;
     }
@@ -378,12 +378,12 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     }
   }
 
-  BYTE *extradata = NULL;
+  BYTE *extradata = nullptr;
   size_t extralen = 0;
-  getExtraData(*pmt, NULL, &extralen);
+  getExtraData(*pmt, nullptr, &extralen);
   if (extralen > 0) {
     extradata = (BYTE *)av_malloc(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-    getExtraData(*pmt, extradata, NULL);
+    getExtraData(*pmt, extradata, nullptr);
   }
 
   m_bNeedSequenceCheck = FALSE;
@@ -475,8 +475,8 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // This ensures that we only ever send valid and supported data to the decoder,
   // so with this we try to circumvent the checks in the QuickSync decoder
   mt.SetType(&MEDIATYPE_Video);
-  MPEG2VIDEOINFO *mp2vi = (*mt.FormatType() == FORMAT_MPEG2Video) ? (MPEG2VIDEOINFO *)mt.Format() : NULL;
-  BITMAPINFOHEADER *bmi = NULL;
+  MPEG2VIDEOINFO *mp2vi = (*mt.FormatType() == FORMAT_MPEG2Video) ? (MPEG2VIDEOINFO *)mt.Format() : nullptr;
+  BITMAPINFOHEADER *bmi = nullptr;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &bmi);
   switch (fourCC) {
   case FourCC_MPG2:
@@ -609,7 +609,7 @@ HRESULT CDecQuickSync::QS_DeliverSurfaceCallback(void* obj, QsFrameData* data)
 STDMETHODIMP CDecQuickSync::HandleFrame(QsFrameData *data)
 {
   // Setup the LAVFrame
-  LAVFrame *pFrame = NULL;
+  LAVFrame *pFrame = nullptr;
   AllocateFrame(&pFrame);
 
   pFrame->format = LAVPixFmt_NV12;
@@ -681,7 +681,7 @@ STDMETHODIMP_(REFERENCE_TIME) CDecQuickSync::GetFrameDuration()
 {
   CMediaType &mt = m_pCallback->GetInputMediaType();
   REFERENCE_TIME rtDuration = 0;
-  videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &rtDuration, NULL, NULL);
+  videoFormatTypeHandler(mt.Format(), mt.FormatType(), nullptr, &rtDuration, nullptr, nullptr);
   return (m_bInterlaced && m_bDI && m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField) ? rtDuration / 2 : rtDuration;
 }
 

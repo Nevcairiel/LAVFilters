@@ -61,7 +61,7 @@ void CALLBACK CLAVAudio::StaticInit(BOOL bLoading, const CLSID *clsid)
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
 {
-  StaticInit(TRUE, NULL);
+  StaticInit(TRUE, nullptr);
 
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
@@ -103,7 +103,7 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   DbgSetLogFileDesktop(LAVC_AUDIO_LOG_FILE);
 #endif
 #else
-  av_log_set_callback(NULL);
+  av_log_set_callback(nullptr);
 #endif
 }
 
@@ -116,7 +116,7 @@ CLAVAudio::~CLAVAudio()
 
   if (m_hDllExtraDecoder) {
     FreeLibrary(m_hDllExtraDecoder);
-    m_hDllExtraDecoder = NULL;
+    m_hDllExtraDecoder = nullptr;
   }
 
 #if defined(DEBUG) && ENABLE_DEBUG_LOGFILE
@@ -218,7 +218,7 @@ HRESULT CLAVAudio::ReadSettings(HKEY rootKey)
   HRESULT hr;
   DWORD dwVal;
   BOOL bFlag;
-  BYTE *pBuf = NULL;
+  BYTE *pBuf = nullptr;
 
   CRegistry reg = CRegistry(rootKey, LAVC_AUDIO_REGISTRY_KEY, hr, TRUE);
   if (SUCCEEDED(hr)) {
@@ -379,7 +379,7 @@ HRESULT CLAVAudio::SaveSettings()
 
 void CLAVAudio::ffmpeg_shutdown()
 {
-  m_pAVCodec	= NULL;
+  m_pAVCodec	= nullptr;
   if (m_pAVCtx) {
     avcodec_close(m_pAVCtx);
     av_freep(&m_pAVCtx->extradata);
@@ -389,7 +389,7 @@ void CLAVAudio::ffmpeg_shutdown()
 
   if (m_pParser) {
     av_parser_close(m_pParser);
-    m_pParser = NULL;
+    m_pParser = nullptr;
   }
 
   if (m_avrContext) {
@@ -409,7 +409,7 @@ STDMETHODIMP CLAVAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
-  *ppv = NULL;
+  *ppv = nullptr;
 
   return 
     QI(ISpecifyPropertyPages)
@@ -426,7 +426,7 @@ STDMETHODIMP CLAVAudio::GetPages(CAUUID *pPages)
   BOOL bShowStatusPage = m_pInput && m_pInput->IsConnected();
   pPages->cElems = bShowStatusPage ? 4 : 3;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
-  if (pPages->pElems == NULL) {
+  if (pPages->pElems == nullptr) {
     return E_OUTOFMEMORY;
   }
   pPages->pElems[0] = CLSID_LAVAudioSettingsProp;
@@ -442,17 +442,17 @@ STDMETHODIMP CLAVAudio::CreatePage(const GUID& guid, IPropertyPage** ppPage)
   CheckPointer(ppPage, E_POINTER);
   HRESULT hr = S_OK;
 
-  if (*ppPage != NULL)
+  if (*ppPage != nullptr)
     return E_INVALIDARG;
 
   if (guid == CLSID_LAVAudioSettingsProp)
-    *ppPage = new CLAVAudioSettingsProp(NULL, &hr);
+    *ppPage = new CLAVAudioSettingsProp(nullptr, &hr);
   else if (guid == CLSID_LAVAudioMixingProp)
-    *ppPage = new CLAVAudioMixingProp(NULL, &hr);
+    *ppPage = new CLAVAudioMixingProp(nullptr, &hr);
   else if (guid == CLSID_LAVAudioFormatsProp)
-    *ppPage = new CLAVAudioFormatsProp(NULL, &hr);
+    *ppPage = new CLAVAudioFormatsProp(nullptr, &hr);
   else if (guid == CLSID_LAVAudioStatusProp)
-    *ppPage = new CLAVAudioStatusProp(NULL, &hr);
+    *ppPage = new CLAVAudioStatusProp(nullptr, &hr);
 
   if (SUCCEEDED(hr) && *ppPage) {
     (*ppPage)->AddRef();
@@ -806,7 +806,7 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
     if (pCodec) {
       if (m_pDTSDecoderContext) {
         static const char *DTSProfiles[] = {
-          "dts", NULL, "dts-es", "dts 96/24", NULL, "dts-hd hra", "dts-hd ma", "dts express"
+          "dts", nullptr, "dts-es", "dts 96/24", nullptr, "dts-hd hra", "dts-hd ma", "dts express"
         };
 
         int index = 0, profile = m_pAVCtx->profile;
@@ -970,8 +970,8 @@ HRESULT CLAVAudio::ReconnectOutput(long cbBuffer, CMediaType& mt)
 {
   HRESULT hr = S_FALSE;
 
-  IMemInputPin *pPin = NULL;
-  IMemAllocator *pAllocator = NULL;
+  IMemInputPin *pPin = nullptr;
+  IMemAllocator *pAllocator = nullptr;
 
   CHECK_HR(hr = m_pOutput->GetConnected()->QueryInterface(&pPin));
 
@@ -1174,7 +1174,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   }
 
   WCHAR fileName[1024];
-  GetModuleFileName(NULL, fileName, 1024);
+  GetModuleFileName(nullptr, fileName, 1024);
   std::wstring processName = PathFindFileName(fileName);
 
   m_bHasVideo =  _wcsicmp(processName.c_str(), L"dllhost.exe") == 0
@@ -1187,7 +1187,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
 
   // If the codec is bitstreaming, and enabled for it, go there now
   if (IsBitstreaming(codec)) {
-    WAVEFORMATEX *wfe = (format_type == FORMAT_WaveFormatEx) ? (WAVEFORMATEX *)format : NULL;
+    WAVEFORMATEX *wfe = (format_type == FORMAT_WaveFormatEx) ? (WAVEFORMATEX *)format : nullptr;
     if(SUCCEEDED(CreateBitstreamContext(codec, wfe))) {
       return S_OK;
     }
@@ -1197,7 +1197,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     InitDTSDecoder();
   }
 
-  m_pAVCodec = NULL;
+  m_pAVCodec = nullptr;
 
   // Try codec overrides
   const char *codec_override = find_codec_override(codec);
@@ -1234,7 +1234,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   audioFormatTypeHandler((BYTE *)format, &format_type, &nSamples, &nChannels, &nBitsPerSample, &nBlockAlign, &nBytesPerSec);
 
   size_t extralen = 0;
-  getExtraData((BYTE *)format, &format_type, formatlen, NULL, &extralen);
+  getExtraData((BYTE *)format, &format_type, formatlen, nullptr, &extralen);
 
   m_pAVCtx->thread_count          = 1;
   m_pAVCtx->thread_type           = 0;
@@ -1253,7 +1253,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   if (bTrustExtraData && extralen) {
     if (codec == AV_CODEC_ID_COOK || codec == AV_CODEC_ID_ATRAC3 || codec == AV_CODEC_ID_SIPR) {
       uint8_t *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-      getExtraData((BYTE *)format, &format_type, formatlen, extra, NULL);
+      getExtraData((BYTE *)format, &format_type, formatlen, extra, nullptr);
 
       if (extra[0] == '.' && extra[1] == 'r' && extra[2] == 'a' && extra[3] == 0xfd) {
         HRESULT hr = ParseRealAudioHeader(extra, extralen);
@@ -1284,13 +1284,13 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     } else {
       m_pAVCtx->extradata_size      = (int)extralen;
       m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
-      getExtraData((BYTE *)format, &format_type, formatlen, m_pAVCtx->extradata, NULL);
+      getExtraData((BYTE *)format, &format_type, formatlen, m_pAVCtx->extradata, nullptr);
     }
   }
 
   m_nCodecId = codec;
 
-  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
+  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, nullptr);
   if (ret >= 0) {
     m_pFrame   = av_frame_alloc();
   } else {
@@ -1304,7 +1304,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     uint8_t *streaminfo;
     ret = avpriv_flac_is_extradata_valid(m_pAVCtx, &format, &streaminfo);
     if (ret && format == FLAC_EXTRADATA_FORMAT_FULL_HEADER) {
-      AVDictionary *metadata = NULL;
+      AVDictionary *metadata = nullptr;
       int metadata_last = 0, metadata_type, metadata_size;
       uint8_t *header = m_pAVCtx->extradata + 4, *end = m_pAVCtx->extradata + m_pAVCtx->extradata_size;
       while (header + 4 < end && !metadata_last) {
@@ -1314,15 +1314,15 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
           break;
         switch (metadata_type) {
         case FLAC_METADATA_TYPE_VORBIS_COMMENT:
-          ff_vorbis_comment(NULL, &metadata, header, metadata_size);
+          ff_vorbis_comment(nullptr, &metadata, header, metadata_size);
           break;
         }
         header += metadata_size;
       }
       if (metadata) {
-        AVDictionaryEntry *entry = av_dict_get(metadata, "WAVEFORMATEXTENSIBLE_CHANNEL_MASK", NULL, 0);
+        AVDictionaryEntry *entry = av_dict_get(metadata, "WAVEFORMATEXTENSIBLE_CHANNEL_MASK", nullptr, 0);
         if (entry && entry->value) {
-          uint64_t channel_layout = strtol(entry->value, NULL, 0);
+          uint64_t channel_layout = strtol(entry->value, nullptr, 0);
           if (channel_layout && av_get_channel_layout_nb_channels(channel_layout) == m_pAVCtx->channels)
             m_pAVCtx->channel_layout = channel_layout;
         }
@@ -1520,7 +1520,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     CMediaType mt(*pmt);
     m_pInput->SetMediaType(&mt);
     DeleteMediaType(pmt);
-    pmt = NULL;
+    pmt = nullptr;
     m_buff.Clear();
 
     m_bQueueResync = TRUE;
@@ -1535,7 +1535,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     return E_FAIL;
   }
 
-  BYTE *pDataIn = NULL;
+  BYTE *pDataIn = nullptr;
   if(FAILED(hr = pIn->GetPointer(&pDataIn))) {
     return hr;
   }
@@ -1697,7 +1697,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     }
   } else {
     if (!m_bFindDTSInPCM) {
-      p = NULL;
+      p = nullptr;
       buffer_size = -1;
     }
   }
@@ -1777,10 +1777,10 @@ static DWORD get_lav_channel_layout(uint64_t layout)
 HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   int got_frame	= 0;
-  BYTE *tmpProcessBuf = NULL;
+  BYTE *tmpProcessBuf = nullptr;
   HRESULT hr = S_FALSE;
 
-  BOOL bFlush = (pDataBuffer == NULL);
+  BOOL bFlush = (pDataBuffer == nullptr);
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -1834,7 +1834,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
     if (bFlush) buffsize = 0;
 
     if (m_pParser) {
-      BYTE *pOut = NULL;
+      BYTE *pOut = nullptr;
       int pOut_size = 0;
       int used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, pDataBuffer, buffsize, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
       if (used_bytes < 0) {
@@ -2059,18 +2059,18 @@ HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample** pSample, BYTE** pData)
 {
   HRESULT hr;
 
-  *pData = NULL;
-  if(FAILED(hr = m_pOutput->GetDeliveryBuffer(pSample, NULL, NULL, 0))
+  *pData = nullptr;
+  if(FAILED(hr = m_pOutput->GetDeliveryBuffer(pSample, nullptr, nullptr, 0))
     || FAILED(hr = (*pSample)->GetPointer(pData))) {
       return hr;
   }
 
-  AM_MEDIA_TYPE* pmt = NULL;
+  AM_MEDIA_TYPE* pmt = nullptr;
   if(SUCCEEDED((*pSample)->GetMediaType(&pmt)) && pmt) {
     CMediaType mt = *pmt;
     m_pOutput->SetMediaType(&mt);
     DeleteMediaType(pmt);
-    pmt = NULL;
+    pmt = nullptr;
   }
 
   return S_OK;
@@ -2146,7 +2146,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
   }
 
   IMediaSample *pOut;
-  BYTE *pDataOut = NULL;
+  BYTE *pDataOut = nullptr;
   if(FAILED(GetDeliveryBuffer(&pOut, &pDataOut))) {
     return E_FAIL;
   }
@@ -2243,7 +2243,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
   }
 
   pOut->SetTime(&rtStart, &rtStop);
-  pOut->SetMediaTime(NULL, NULL);
+  pOut->SetMediaTime(nullptr, nullptr);
 
   pOut->SetPreroll(FALSE);
   pOut->SetDiscontinuity(m_bDiscontinuity);

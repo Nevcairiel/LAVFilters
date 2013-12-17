@@ -76,7 +76,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
   memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
 
-  StaticInit(TRUE, NULL);
+  StaticInit(TRUE, nullptr);
 
   LoadSettings();
 
@@ -104,8 +104,8 @@ CLAVVideo::~CLAVVideo()
 
   if (m_pFilterGraph)
     avfilter_graph_free(&m_pFilterGraph);
-  m_pFilterBufferSrc = NULL;
-  m_pFilterBufferSink = NULL;
+  m_pFilterBufferSrc = nullptr;
+  m_pFilterBufferSink = nullptr;
 
   if (m_SubtitleConsumer)
     m_SubtitleConsumer->DisconnectProvider();
@@ -375,7 +375,7 @@ STDMETHODIMP CLAVVideo::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
-  *ppv = NULL;
+  *ppv = nullptr;
 
   return
     QI(ISpecifyPropertyPages)
@@ -391,7 +391,7 @@ STDMETHODIMP CLAVVideo::GetPages(CAUUID *pPages)
   CheckPointer(pPages, E_POINTER);
   pPages->cElems = 2;
   pPages->pElems = (GUID *)CoTaskMemAlloc(sizeof(GUID) * pPages->cElems);
-  if (pPages->pElems == NULL) {
+  if (pPages->pElems == nullptr) {
     return E_OUTOFMEMORY;
   }
   pPages->pElems[0] = CLSID_LAVVideoSettingsProp;
@@ -404,13 +404,13 @@ STDMETHODIMP CLAVVideo::CreatePage(const GUID& guid, IPropertyPage** ppPage)
   CheckPointer(ppPage, E_POINTER);
   HRESULT hr = S_OK;
 
-  if (*ppPage != NULL)
+  if (*ppPage != nullptr)
     return E_INVALIDARG;
 
   if (guid == CLSID_LAVVideoSettingsProp)
-    *ppPage = new CLAVVideoSettingsProp(NULL, &hr);
+    *ppPage = new CLAVVideoSettingsProp(nullptr, &hr);
   else if (guid == CLSID_LAVVideoFormatsProp)
-    *ppPage = new CLAVVideoFormatsProp(NULL, &hr);
+    *ppPage = new CLAVVideoFormatsProp(nullptr, &hr);
 
   if (SUCCEEDED(hr) && *ppPage) {
     (*ppPage)->AddRef();
@@ -426,10 +426,10 @@ STDMETHODIMP_(LPWSTR) CLAVVideo::GetFileExtension()
   if (m_strExtension.empty()) {
     m_strExtension = L"";
 
-    IFileSourceFilter *pSource = NULL;
+    IFileSourceFilter *pSource = nullptr;
     if (SUCCEEDED(FindIntefaceInGraph(m_pInput, IID_IFileSourceFilter, (void **)&pSource))) {
-      LPOLESTR pwszFile = NULL;
-      if (SUCCEEDED(pSource->GetCurFile(&pwszFile, NULL)) && pwszFile) {
+      LPOLESTR pwszFile = nullptr;
+      if (SUCCEEDED(pSource->GetCurFile(&pwszFile, nullptr)) && pwszFile) {
         LPWSTR pwszExtension = PathFindExtensionW(pwszFile);
         m_strExtension = std::wstring(pwszExtension);
         CoTaskMemFree(pwszFile);
@@ -441,7 +441,7 @@ STDMETHODIMP_(LPWSTR) CLAVVideo::GetFileExtension()
   size_t len = m_strExtension.size() + 1;
   LPWSTR pszExtension = (LPWSTR)CoTaskMemAlloc(sizeof(WCHAR) * len);
   if (!pszExtension)
-    return NULL;
+    return nullptr;
 
   wcscpy_s(pszExtension, len, m_strExtension.c_str());
   return pszExtension;
@@ -493,7 +493,7 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
     return E_UNEXPECTED;
   }
 
-  BITMAPINFOHEADER *pBIH = NULL;
+  BITMAPINFOHEADER *pBIH = nullptr;
   CMediaType &mtOut = m_pOutput->CurrentMediaType();
   videoFormatTypeHandler(mtOut, &pBIH);
 
@@ -534,7 +534,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
 
   CMediaType &mtIn = m_pInput->CurrentMediaType();
 
-  BITMAPINFOHEADER *pBIH = NULL;
+  BITMAPINFOHEADER *pBIH = nullptr;
   REFERENCE_TIME rtAvgTime;
   DWORD dwAspectX = 0, dwAspectY = 0;
   videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
@@ -580,7 +580,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     }
   }
 
-  ILAVPinInfo *pPinInfo = NULL;
+  ILAVPinInfo *pPinInfo = nullptr;
   hr = FindPinIntefaceInGraph(m_pInput, IID_ILAVPinInfo, (void **)&pPinInfo);
   if (SUCCEEDED(hr)) {
     memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
@@ -799,7 +799,7 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
       m_SubtitleConsumer->AddRef();
       m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
 
-      BITMAPINFOHEADER *pBIH = NULL;
+      BITMAPINFOHEADER *pBIH = nullptr;
       videoFormatTypeHandler(m_pInput->CurrentMediaType(), &pBIH);
       if (pBIH) {
         m_SubtitleConsumer->SetVideoSize(pBIH->biWidth, pBIH->biHeight);
@@ -819,17 +819,17 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     return hr;
   }
 
-  if(FAILED(hr = m_pOutput->GetDeliveryBuffer(ppOut, NULL, NULL, 0))) {
+  if(FAILED(hr = m_pOutput->GetDeliveryBuffer(ppOut, nullptr, nullptr, 0))) {
     return hr;
   }
 
   CheckPointer(*ppOut, E_UNEXPECTED);
 
-  AM_MEDIA_TYPE* pmt = NULL;
+  AM_MEDIA_TYPE* pmt = nullptr;
   if(SUCCEEDED((*ppOut)->GetMediaType(&pmt)) && pmt) {
     CMediaType &outMt = m_pOutput->CurrentMediaType();
 #ifdef DEBUG
-    BITMAPINFOHEADER *pBMINew = NULL, *pBMIOld = NULL;
+    BITMAPINFOHEADER *pBMINew = nullptr, *pBMIOld = nullptr;
     videoFormatTypeHandler(pmt->pbFormat, &pmt->formattype, &pBMINew);
     videoFormatTypeHandler(outMt.pbFormat, &outMt.formattype, &pBMIOld);
 
@@ -864,7 +864,7 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     CMediaType mt = *pmt;
     m_pOutput->SetMediaType(&mt);
     DeleteMediaType(pmt);
-    pmt = NULL;
+    pmt = nullptr;
   }
 
   (*ppOut)->SetDiscontinuity(FALSE);
@@ -936,7 +936,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
       avgFrameDuration = vih2->AvgTimePerFrame;
 
     DWORD dwARX, dwARY;
-    videoFormatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), NULL, NULL, &dwARX, &dwARY);
+    videoFormatTypeHandler(m_pInput->CurrentMediaType().Format(), m_pInput->CurrentMediaType().FormatType(), nullptr, nullptr, &dwARX, &dwARY);
 
     int num = ar.num, den = ar.den;
     BOOL bStreamAR = (m_settings.StreamAR == 1) || (m_settings.StreamAR == 2 && (!(m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_STREAMAR_BLACKLIST) || !(dwARX && dwARY)));
@@ -961,14 +961,14 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   }
 
   if (!bNeedReconnect && bDXVA) {
-    BITMAPINFOHEADER *pBMI = NULL;
+    BITMAPINFOHEADER *pBMI = nullptr;
     videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBMI);
     bNeedReconnect = (pBMI->biCompression != mmioFOURCC('d','x','v','a'));
   }
 
   if (bNeedReconnect) {
     DbgLog((LOG_TRACE, 10, L"::ReconnectOutput(): Performing reconnect"));
-    BITMAPINFOHEADER *pBIH = NULL;
+    BITMAPINFOHEADER *pBIH = nullptr;
     if (mt.formattype == FORMAT_VideoInfo) {
       VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
 
@@ -1034,9 +1034,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 receiveconnection:
       hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
       if(SUCCEEDED(hr)) {
-        IMediaSample *pOut = NULL;
-        if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, NULL, NULL, 0)) && pOut) {
-          AM_MEDIA_TYPE *pmt = NULL;
+        IMediaSample *pOut = nullptr;
+        if (SUCCEEDED(hr = m_pOutput->GetDeliveryBuffer(&pOut, nullptr, nullptr, 0)) && pOut) {
+          AM_MEDIA_TYPE *pmt = nullptr;
           if(SUCCEEDED(pOut->GetMediaType(&pmt)) && pmt) {
             CMediaType newmt = *pmt;
             videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
@@ -1089,9 +1089,9 @@ receiveconnection:
         DbgLog((LOG_TRACE, 10, L"-> Downstream accepts new format, but cannot reconnect dynamically..."));
         if (pBIH->biSizeImage > oldSizeImage) {
           DbgLog((LOG_TRACE, 10, L"-> But, we need a bigger buffer, try to adapt allocator manually"));
-          IMemInputPin *pMemPin = NULL;
+          IMemInputPin *pMemPin = nullptr;
           if (SUCCEEDED(hr = m_pOutput->GetConnected()->QueryInterface<IMemInputPin>(&pMemPin)) && pMemPin) {
-            IMemAllocator *pMemAllocator = NULL;
+            IMemAllocator *pMemAllocator = nullptr;
             if (SUCCEEDED(hr = pMemPin->GetAllocator(&pMemAllocator)) && pMemAllocator) {
               ALLOCATOR_PROPERTIES props, actual;
               hr = pMemAllocator->GetProperties(&props);
@@ -1137,7 +1137,7 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
   DWORD dwAspectX, dwAspectY;
   REFERENCE_TIME rtAvg;
   BOOL bVIH1 = (outMt.formattype == FORMAT_VideoInfo);
-  videoFormatTypeHandler(outMt.Format(), outMt.FormatType(), NULL, &rtAvg, &dwAspectX, &dwAspectY);
+  videoFormatTypeHandler(outMt.Format(), outMt.FormatType(), nullptr, &rtAvg, &dwAspectX, &dwAspectY);
 
   CMediaType mt;
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
@@ -1183,7 +1183,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
     return m_pOutput->Deliver(pIn);
   }
 
-  AM_MEDIA_TYPE *pmt = NULL;
+  AM_MEDIA_TYPE *pmt = nullptr;
   if (SUCCEEDED(pIn->GetMediaType(&pmt)) && pmt) {
     CMediaType mt = *pmt;
     DeleteMediaType(pmt);
@@ -1252,7 +1252,7 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
 
 STDMETHODIMP_(LAVFrame*) CLAVVideo::GetFlushFrame()
 {
-  LAVFrame *pFlushFrame = NULL;
+  LAVFrame *pFlushFrame = nullptr;
   AllocateFrame(&pFlushFrame);
   pFlushFrame->flags |= LAV_FRAME_FLAG_FLUSH;
   pFlushFrame->rtStart = INT64_MAX;
@@ -1287,7 +1287,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
     REFERENCE_TIME duration = 0;
 
     CMediaType &mt = m_pOutput->CurrentMediaType();
-    videoFormatTypeHandler(mt.Format(), mt.FormatType(), NULL, &duration, NULL, NULL);
+    videoFormatTypeHandler(mt.Format(), mt.FormatType(), nullptr, &duration, nullptr, nullptr);
 
     REFERENCE_TIME decoderDuration = m_Decoder.GetFrameDuration();
     if (pFrame->avgFrameDuration && pFrame->avgFrameDuration != AV_NOPTS_VALUE) {
@@ -1360,15 +1360,15 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
           m_pLastSequenceFrame->data[3] = data3;
 
           // Be careful not to accidentally copy the destructor of the original frame, that would end up being bad
-          m_pLastSequenceFrame->destruct = NULL;
-          m_pLastSequenceFrame->priv_data = NULL;
+          m_pLastSequenceFrame->destruct = nullptr;
+          m_pLastSequenceFrame->priv_data = nullptr;
 
           IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)m_pLastSequenceFrame->data[3];
 
-          IDirect3DDevice9 *pDevice = NULL;
+          IDirect3DDevice9 *pDevice = nullptr;
           hr = pSurface->GetDevice(&pDevice);
           if (SUCCEEDED(hr)) {
-            hr = pDevice->StretchRect((IDirect3DSurface9 *)pFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
+            hr = pDevice->StretchRect((IDirect3DSurface9 *)pFrame->data[3], nullptr, pSurface, nullptr, D3DTEXF_NONE);
             if (FAILED(hr)) {
               DbgLog((LOG_TRACE, 10, L"::Decode(): Copying DXVA2 surface failed"));
             }
@@ -1424,8 +1424,8 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   }
 
   // Grab a media sample, and start assembling the data for it.
-  IMediaSample *pSampleOut = NULL;
-  BYTE         *pDataOut   = NULL;
+  IMediaSample *pSampleOut = nullptr;
+  BYTE         *pDataOut   = nullptr;
 
   REFERENCE_TIME avgDuration = pFrame->avgFrameDuration;
   if (avgDuration == 0)
@@ -1447,7 +1447,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   }
 
   CMediaType& mt = m_pOutput->CurrentMediaType();
-  BITMAPINFOHEADER *pBIH = NULL;
+  BITMAPINFOHEADER *pBIH = nullptr;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
   if (pFrame->format != LAVPixFmt_DXVA2) {
@@ -1536,7 +1536,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
   // Set frame timings..
   pSampleOut->SetTime(&pFrame->rtStart, &pFrame->rtStop);
-  pSampleOut->SetMediaTime(NULL, NULL);
+  pSampleOut->SetMediaTime(nullptr, nullptr);
 
   // And frame flags..
   SetFrameFlags(pSampleOut, pFrame);
@@ -1562,13 +1562,13 @@ HRESULT CLAVVideo::GetD3DBuffer(LAVFrame *pFrame)
 {
   CheckPointer(pFrame, E_POINTER);
 
-  IMediaSample *pSample = NULL;
-  HRESULT hr = m_pOutput->GetDeliveryBuffer(&pSample, NULL, NULL, 0);
+  IMediaSample *pSample = nullptr;
+  HRESULT hr = m_pOutput->GetDeliveryBuffer(&pSample, nullptr, nullptr, 0);
   if (SUCCEEDED(hr)) {
-    IMFGetService *pService = NULL;
+    IMFGetService *pService = nullptr;
     hr = pSample->QueryInterface(&pService);
     if (SUCCEEDED(hr)) {
-      IDirect3DSurface9 *pSurface = NULL;
+      IDirect3DSurface9 *pSurface = nullptr;
       hr = pService->GetService(MR_BUFFER_SERVICE, __uuidof(IDirect3DSurface9), (LPVOID *)&pSurface);
       if (SUCCEEDED(hr)) {
         pFrame->data[0] = (BYTE *)pSample;
@@ -1591,7 +1591,7 @@ HRESULT CLAVVideo::RedrawStillImage()
 
     DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redrawing still image"));
 
-    LAVFrame *pFrame = NULL;
+    LAVFrame *pFrame = nullptr;
 
     if (m_pLastSequenceFrame->format == LAVPixFmt_DXVA2) {
       AllocateFrame(&pFrame);
@@ -1603,9 +1603,9 @@ HRESULT CLAVVideo::RedrawStillImage()
 
         pSample->SetTime(&m_pLastSequenceFrame->rtStart, &m_pLastSequenceFrame->rtStop);
 
-        IDirect3DDevice9 *pDevice = NULL;
+        IDirect3DDevice9 *pDevice = nullptr;
         if (SUCCEEDED(pSurface->GetDevice(&pDevice))) {
-          hr = pDevice->StretchRect((IDirect3DSurface9 *)m_pLastSequenceFrame->data[3], NULL, pSurface, NULL, D3DTEXF_NONE);
+          hr = pDevice->StretchRect((IDirect3DSurface9 *)m_pLastSequenceFrame->data[3], nullptr, pSurface, nullptr, D3DTEXF_NONE);
           if (SUCCEEDED(hr)) {
             pFrame->flags |= LAV_FRAME_FLAG_REDRAW|LAV_FRAME_FLAG_BUFFER_MODIFY;
             hr = Deliver(pFrame);
@@ -1618,7 +1618,7 @@ HRESULT CLAVVideo::RedrawStillImage()
       }
       return hr;
     } else {
-      LAVFrame *pFrame = NULL;
+      LAVFrame *pFrame = nullptr;
       CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
       pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
       return Deliver(pFrame);
@@ -1632,7 +1632,7 @@ HRESULT CLAVVideo::RedrawStillImage()
 HRESULT CLAVVideo::SetFrameFlags(IMediaSample* pMS, LAVFrame *pFrame)
 {
   HRESULT hr = S_OK;
-  IMediaSample2 *pMS2 = NULL;
+  IMediaSample2 *pMS2 = nullptr;
   if (SUCCEEDED(hr = pMS->QueryInterface(&pMS2))) {
     AM_SAMPLE2_PROPERTIES props;
     if(SUCCEEDED(pMS2->GetProperties(sizeof(props), (BYTE*)&props))) {
@@ -1780,7 +1780,7 @@ STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
     return 2;
 
   HRESULT hr = E_FAIL;
-  ILAVDecoder *pDecoder = NULL;
+  ILAVDecoder *pDecoder = nullptr;
   switch(hwAccel) {
   case HWAccel_CUDA:
     pDecoder = CreateDecoderCUVID();

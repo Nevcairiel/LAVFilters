@@ -249,11 +249,11 @@ template<int uyvy>
 DECLARE_CONV_FUNC_IMPL(convert_yuv420_yuy2)
 {
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
-  const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 2, bpp - 8 + 2, 0) : NULL;
-  if (ditherMode == LAVDither_Random && dithers != NULL) {
+  const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 2, bpp - 8 + 2, 0) : nullptr;
+  if (ditherMode == LAVDither_Random && dithers != nullptr) {
     yuv420yuy2_dispatch<uyvy, 1>(inputFormat, bpp, src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], dithers);
   } else {
-    yuv420yuy2_dispatch<uyvy, 0>(inputFormat, bpp, src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], NULL);
+    yuv420yuy2_dispatch<uyvy, 0>(inputFormat, bpp, src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], nullptr);
   }
 
   return S_OK;

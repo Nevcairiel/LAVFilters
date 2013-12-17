@@ -290,7 +290,7 @@ STDMETHODIMP CDecAvcodec::Init()
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
   av_log_set_callback(lavf_log_callback);
 #else
-  av_log_set_callback(NULL);
+  av_log_set_callback(nullptr);
 #endif
 
   avcodec_register_all();
@@ -302,7 +302,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   DestroyDecoder();
   DbgLog((LOG_TRACE, 10, L"Initializing ffmpeg for codec %S", avcodec_get_name(codec)));
 
-  BITMAPINFOHEADER *pBMI = NULL;
+  BITMAPINFOHEADER *pBMI = nullptr;
   videoFormatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI);
 
   m_pAVCodec = avcodec_find_decoder(codec);
@@ -365,9 +365,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   CheckPointer(m_pFrame, E_POINTER);
 
   // Process Extradata
-  BYTE *extra = NULL;
+  BYTE *extra = nullptr;
   size_t extralen = 0;
-  getExtraData(*pmt, NULL, &extralen);
+  getExtraData(*pmt, nullptr, &extralen);
 
   BOOL bH264avc = FALSE;
   if (extralen > 0) {
@@ -414,7 +414,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is missing.."));
       } else {
         extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-        getExtraData(*pmt, extra, NULL);
+        getExtraData(*pmt, extra, nullptr);
         m_pAVCtx->pix_fmt = *(AVPixelFormat *)extra;
         extralen -= sizeof(AVPixelFormat);
         memmove(extra, extra+sizeof(AVPixelFormat), extralen);
@@ -422,7 +422,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     } else {
       // Just copy extradata for other formats
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-      getExtraData(*pmt, extra, NULL);
+      getExtraData(*pmt, extra, nullptr);
     }
     // Hack to discard invalid MP4 metadata with AnnexB style video
     if (codec == AV_CODEC_ID_H264 && !bH264avc && extra && extra[0] == 1) {
@@ -511,7 +511,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   }
 
   // Open the decoder
-  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, NULL);
+  int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, nullptr);
   if (ret >= 0) {
     DbgLog((LOG_TRACE, 10, L"-> ffmpeg codec opened successfully (ret: %d)", ret));
     m_nCodecId = codec;
@@ -572,11 +572,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 STDMETHODIMP CDecAvcodec::DestroyDecoder()
 {
   DbgLog((LOG_TRACE, 10, L"Shutting down ffmpeg..."));
-  m_pAVCodec	= NULL;
+  m_pAVCodec	= nullptr;
 
   if (m_pParser) {
     av_parser_close(m_pParser);
-    m_pParser = NULL;
+    m_pParser = nullptr;
   }
 
   if (m_pAVCtx) {
@@ -595,7 +595,7 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
 
   if (m_pSwsContext) {
     sws_freeContext(m_pSwsContext);
-    m_pSwsContext = NULL;
+    m_pSwsContext = nullptr;
   }
 
   m_nCodecId = AV_CODEC_ID_NONE;
@@ -615,7 +615,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
   int     got_picture = 0;
   int     used_bytes  = 0;
-  BOOL    bFlush = (buffer == NULL);
+  BOOL    bFlush = (buffer == nullptr);
   BOOL    bEndOfSequence = FALSE;
 
   AVPacket avpkt;
@@ -634,7 +634,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     m_nBFramePos = !m_nBFramePos;
   }
 
-  uint8_t *pDataBuffer = NULL;
+  uint8_t *pDataBuffer = nullptr;
   if (!bFlush && buflen > 0) {
     if (!m_bInputPadded && (!(m_pAVCtx->active_thread_type & FF_THREAD_FRAME) || m_pParser)) {
       // Copy bitstream into temporary buffer to ensure overread protection
@@ -688,14 +688,14 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
           pal[i] = 0xFF<<24 | AV_RL32(pal_src+4*i);
       }
     } else {
-      avpkt.data = NULL;
+      avpkt.data = nullptr;
       avpkt.size = 0;
     }
 
     // Parse the data if a parser is present
     // This is mandatory for MPEG-1/2
     if (m_pParser) {
-      BYTE *pOut = NULL;
+      BYTE *pOut = nullptr;
       int pOut_size = 0;
 
       used_bytes = av_parser_parse2(m_pParser, m_pAVCtx, &pOut, &pOut_size, avpkt.data, avpkt.size, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
@@ -751,7 +751,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
             bEndOfSequence = TRUE;
           }
         } else {
-          avpkt.data = NULL;
+          avpkt.data = nullptr;
           avpkt.size = 0;
         }
 
@@ -833,7 +833,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // All required values collected, deliver the frame
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    LAVFrame *pOutFrame = NULL;
+    LAVFrame *pOutFrame = nullptr;
     AllocateFrame(&pOutFrame);
 
     AVRational display_aspect_ratio;
@@ -949,7 +949,7 @@ STDMETHODIMP CDecAvcodec::Flush()
 
 STDMETHODIMP CDecAvcodec::EndOfStream()
 {
-  Decode(NULL, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, FALSE, FALSE);
+  Decode(nullptr, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, FALSE, FALSE);
   return S_OK;
 }
 
@@ -973,7 +973,7 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   AVPixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
-  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, NULL, NULL, NULL);
+  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
 
   // Perform conversion
   sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);

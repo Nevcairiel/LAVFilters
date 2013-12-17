@@ -576,8 +576,8 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   RGBCoeffs *coeffs = getRGBCoeffs(width, height);
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
-  const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0) : NULL;
-  if (ditherMode == LAVDither_Random && dithers != NULL) {
+  const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0) : nullptr;
+  if (ditherMode == LAVDither_Random && dithers != nullptr) {
     if (m_ColorProps.VideoTransferMatrix == 7) {
       yuv2rgb_dispatch<out32, 1, 1>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
     } else {
@@ -585,9 +585,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
     }
   } else {
     if (m_ColorProps.VideoTransferMatrix == 7) {
-      yuv2rgb_dispatch<out32, 0, 1>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+      yuv2rgb_dispatch<out32, 0, 1>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, nullptr);
     } else {
-      yuv2rgb_dispatch<out32, 0, 0>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, NULL);
+      yuv2rgb_dispatch<out32, 0, 0>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, nullptr);
     }
   }
 

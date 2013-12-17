@@ -109,7 +109,7 @@ void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, size_t length, AVCodecI
 
     const uint8_t *start = pData;
     const uint8_t *end = start + length;
-    const uint8_t *next = NULL;
+    const uint8_t *next = nullptr;
 
     int size, buf2_size;
     uint8_t *buf2;

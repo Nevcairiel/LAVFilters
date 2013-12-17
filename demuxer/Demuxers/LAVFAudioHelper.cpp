@@ -31,50 +31,50 @@ CLAVFAudioHelper g_AudioHelper;
 
 // Map codec ids to media subtypes
 static FormatMapping audio_map[] = {
-  { AV_CODEC_ID_AC3,        &MEDIASUBTYPE_DOLBY_AC3,         WAVE_FORMAT_DOLBY_AC3,  NULL },
-  { AV_CODEC_ID_AAC,        &MEDIASUBTYPE_AAC,               WAVE_FORMAT_AAC,        NULL },
-  { AV_CODEC_ID_AAC_LATM,   &MEDIASUBTYPE_LATM_AAC,          WAVE_FORMAT_LATM_AAC,   NULL },
-  { AV_CODEC_ID_DTS,        &MEDIASUBTYPE_WAVE_DTS,          NULL,                   NULL },
-  { AV_CODEC_ID_EAC3,       &MEDIASUBTYPE_DOLBY_DDPLUS,      NULL,                   NULL },
-  { AV_CODEC_ID_TRUEHD,     &MEDIASUBTYPE_DOLBY_TRUEHD,      NULL,                   NULL },
-  { AV_CODEC_ID_MLP,        &MEDIASUBTYPE_MLP,               WAVE_FORMAT_MLP,        NULL },
-  { AV_CODEC_ID_VORBIS,     &MEDIASUBTYPE_Vorbis2,           NULL,                   &FORMAT_VorbisFormat2 },
-  { AV_CODEC_ID_MP1,        &MEDIASUBTYPE_MPEG1AudioPayload, WAVE_FORMAT_MPEG,       NULL },
-  { AV_CODEC_ID_MP2,        &MEDIASUBTYPE_MPEG2_AUDIO,       WAVE_FORMAT_MPEG,       NULL },
-  { AV_CODEC_ID_MP3,        &MEDIASUBTYPE_MP3,               WAVE_FORMAT_MPEGLAYER3, NULL },
-  { AV_CODEC_ID_PCM_BLURAY, &MEDIASUBTYPE_BD_LPCM_AUDIO,     NULL,                   NULL },
-  { AV_CODEC_ID_PCM_DVD,    &MEDIASUBTYPE_DVD_LPCM_AUDIO,    NULL,                   NULL },
-  { AV_CODEC_ID_PCM_S16LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
-  { AV_CODEC_ID_PCM_S24LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
-  { AV_CODEC_ID_PCM_S32LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        NULL },
-  { AV_CODEC_ID_PCM_F32LE,  &MEDIASUBTYPE_IEEE_FLOAT,        WAVE_FORMAT_IEEE_FLOAT, NULL },
-  { AV_CODEC_ID_WMAV1,      &MEDIASUBTYPE_MSAUDIO1,          WAVE_FORMAT_MSAUDIO1,   NULL },
-  { AV_CODEC_ID_WMAV2,      &MEDIASUBTYPE_WMAUDIO2,          WAVE_FORMAT_WMAUDIO2,   NULL },
-  { AV_CODEC_ID_WMAPRO,     &MEDIASUBTYPE_WMAUDIO3,          WAVE_FORMAT_WMAUDIO3,   NULL },
-  { AV_CODEC_ID_ADPCM_IMA_AMV, &MEDIASUBTYPE_IMA_AMV,        NULL,                   NULL },
-  { AV_CODEC_ID_FLAC,       &MEDIASUBTYPE_FLAC_FRAMED,       WAVE_FORMAT_FLAC,       NULL },
-  { AV_CODEC_ID_COOK,       &MEDIASUBTYPE_COOK,              WAVE_FORMAT_COOK,       NULL },
-  { AV_CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       NULL },
-  { AV_CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       NULL },
-  { AV_CODEC_ID_SIPR,       &MEDIASUBTYPE_SIPR,              WAVE_FORMAT_SIPR,       NULL },
-  { AV_CODEC_ID_RA_288,     &MEDIASUBTYPE_28_8,              WAVE_FORMAT_28_8,       NULL },
-  { AV_CODEC_ID_RA_144,     &MEDIASUBTYPE_14_4,              WAVE_FORMAT_14_4,       NULL },
-  { AV_CODEC_ID_RALF,       &MEDIASUBTYPE_RALF,              WAVE_FORMAT_RALF,       NULL },
-  { AV_CODEC_ID_ALAC,       &MEDIASUBTYPE_ALAC,              NULL,                   NULL },
-  { AV_CODEC_ID_MP4ALS,     &MEDIASUBTYPE_ALS,               NULL,                   NULL },
-  { AV_CODEC_ID_OPUS,       &MEDIASUBTYPE_OPUS,              NULL,                   NULL },
-  { AV_CODEC_ID_NELLYMOSER, &MEDIASUBTYPE_NELLYMOSER,        NULL,                   NULL },
-  { AV_CODEC_ID_PCM_ALAW,   &MEDIASUBTYPE_ALAW,              WAVE_FORMAT_ALAW,       NULL },
-  { AV_CODEC_ID_PCM_MULAW,  &MEDIASUBTYPE_MULAW,             WAVE_FORMAT_MULAW,      NULL },
-  { AV_CODEC_ID_GSM_MS,     &MEDIASUBTYPE_MSGSM610,          WAVE_FORMAT_GSM610,     NULL },
-  { AV_CODEC_ID_ADPCM_MS,   &MEDIASUBTYPE_ADPCM_MS,          WAVE_FORMAT_ADPCM,      NULL },
-  { AV_CODEC_ID_TRUESPEECH, &MEDIASUBTYPE_TRUESPEECH,        WAVE_FORMAT_DSPGROUP_TRUESPEECH, NULL },
-  { AV_CODEC_ID_TAK,        &MEDIASUBTYPE_TAK,               NULL,                   NULL },
-  { AV_CODEC_ID_S302M,      &MEDIASUBTYPE_AES3,              NULL,                   NULL },
-  { AV_CODEC_ID_PCM_S16BE,  &MEDIASUBTYPE_PCM_TWOS,          NULL,                   NULL },
-  { AV_CODEC_ID_PCM_S24BE,  &MEDIASUBTYPE_PCM_IN24,          NULL,                   NULL },
-  { AV_CODEC_ID_PCM_S32BE,  &MEDIASUBTYPE_PCM_IN32,          NULL,                   NULL },
-  { AV_CODEC_ID_QDM2,       &MEDIASUBTYPE_QDM2,              WAVE_FORMAT_QDESIGN_MUSIC, NULL },
+  { AV_CODEC_ID_AC3,        &MEDIASUBTYPE_DOLBY_AC3,         WAVE_FORMAT_DOLBY_AC3,  nullptr },
+  { AV_CODEC_ID_AAC,        &MEDIASUBTYPE_AAC,               WAVE_FORMAT_AAC,        nullptr },
+  { AV_CODEC_ID_AAC_LATM,   &MEDIASUBTYPE_LATM_AAC,          WAVE_FORMAT_LATM_AAC,   nullptr },
+  { AV_CODEC_ID_DTS,        &MEDIASUBTYPE_WAVE_DTS,          0,                      nullptr },
+  { AV_CODEC_ID_EAC3,       &MEDIASUBTYPE_DOLBY_DDPLUS,      0,                      nullptr },
+  { AV_CODEC_ID_TRUEHD,     &MEDIASUBTYPE_DOLBY_TRUEHD,      0,                      nullptr },
+  { AV_CODEC_ID_MLP,        &MEDIASUBTYPE_MLP,               WAVE_FORMAT_MLP,        nullptr },
+  { AV_CODEC_ID_VORBIS,     &MEDIASUBTYPE_Vorbis2,           0,                      &FORMAT_VorbisFormat2 },
+  { AV_CODEC_ID_MP1,        &MEDIASUBTYPE_MPEG1AudioPayload, WAVE_FORMAT_MPEG,       nullptr },
+  { AV_CODEC_ID_MP2,        &MEDIASUBTYPE_MPEG2_AUDIO,       WAVE_FORMAT_MPEG,       nullptr },
+  { AV_CODEC_ID_MP3,        &MEDIASUBTYPE_MP3,               WAVE_FORMAT_MPEGLAYER3, nullptr },
+  { AV_CODEC_ID_PCM_BLURAY, &MEDIASUBTYPE_BD_LPCM_AUDIO,     0,                      nullptr },
+  { AV_CODEC_ID_PCM_DVD,    &MEDIASUBTYPE_DVD_LPCM_AUDIO,    0,                      nullptr },
+  { AV_CODEC_ID_PCM_S16LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        nullptr },
+  { AV_CODEC_ID_PCM_S24LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        nullptr },
+  { AV_CODEC_ID_PCM_S32LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        nullptr },
+  { AV_CODEC_ID_PCM_F32LE,  &MEDIASUBTYPE_IEEE_FLOAT,        WAVE_FORMAT_IEEE_FLOAT, nullptr },
+  { AV_CODEC_ID_WMAV1,      &MEDIASUBTYPE_MSAUDIO1,          WAVE_FORMAT_MSAUDIO1,   nullptr },
+  { AV_CODEC_ID_WMAV2,      &MEDIASUBTYPE_WMAUDIO2,          WAVE_FORMAT_WMAUDIO2,   nullptr },
+  { AV_CODEC_ID_WMAPRO,     &MEDIASUBTYPE_WMAUDIO3,          WAVE_FORMAT_WMAUDIO3,   nullptr },
+  { AV_CODEC_ID_ADPCM_IMA_AMV, &MEDIASUBTYPE_IMA_AMV,        0,                      nullptr },
+  { AV_CODEC_ID_FLAC,       &MEDIASUBTYPE_FLAC_FRAMED,       WAVE_FORMAT_FLAC,       nullptr },
+  { AV_CODEC_ID_COOK,       &MEDIASUBTYPE_COOK,              WAVE_FORMAT_COOK,       nullptr },
+  { AV_CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
+  { AV_CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
+  { AV_CODEC_ID_SIPR,       &MEDIASUBTYPE_SIPR,              WAVE_FORMAT_SIPR,       nullptr },
+  { AV_CODEC_ID_RA_288,     &MEDIASUBTYPE_28_8,              WAVE_FORMAT_28_8,       nullptr },
+  { AV_CODEC_ID_RA_144,     &MEDIASUBTYPE_14_4,              WAVE_FORMAT_14_4,       nullptr },
+  { AV_CODEC_ID_RALF,       &MEDIASUBTYPE_RALF,              WAVE_FORMAT_RALF,       nullptr },
+  { AV_CODEC_ID_ALAC,       &MEDIASUBTYPE_ALAC,              0,                      nullptr },
+  { AV_CODEC_ID_MP4ALS,     &MEDIASUBTYPE_ALS,               0,                      nullptr },
+  { AV_CODEC_ID_OPUS,       &MEDIASUBTYPE_OPUS,              0,                      nullptr },
+  { AV_CODEC_ID_NELLYMOSER, &MEDIASUBTYPE_NELLYMOSER,        0,                      nullptr },
+  { AV_CODEC_ID_PCM_ALAW,   &MEDIASUBTYPE_ALAW,              WAVE_FORMAT_ALAW,       nullptr },
+  { AV_CODEC_ID_PCM_MULAW,  &MEDIASUBTYPE_MULAW,             WAVE_FORMAT_MULAW,      nullptr },
+  { AV_CODEC_ID_GSM_MS,     &MEDIASUBTYPE_MSGSM610,          WAVE_FORMAT_GSM610,     nullptr },
+  { AV_CODEC_ID_ADPCM_MS,   &MEDIASUBTYPE_ADPCM_MS,          WAVE_FORMAT_ADPCM,      nullptr },
+  { AV_CODEC_ID_TRUESPEECH, &MEDIASUBTYPE_TRUESPEECH,        WAVE_FORMAT_DSPGROUP_TRUESPEECH, nullptr },
+  { AV_CODEC_ID_TAK,        &MEDIASUBTYPE_TAK,               0,                      nullptr },
+  { AV_CODEC_ID_S302M,      &MEDIASUBTYPE_AES3,              0,                      nullptr },
+  { AV_CODEC_ID_PCM_S16BE,  &MEDIASUBTYPE_PCM_TWOS,          0,                      nullptr },
+  { AV_CODEC_ID_PCM_S24BE,  &MEDIASUBTYPE_PCM_IN24,          0,                      nullptr },
+  { AV_CODEC_ID_PCM_S32BE,  &MEDIASUBTYPE_PCM_IN32,          0,                      nullptr },
+  { AV_CODEC_ID_QDM2,       &MEDIASUBTYPE_QDM2,              WAVE_FORMAT_QDESIGN_MUSIC, nullptr },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)
@@ -113,7 +113,7 @@ CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &code
 WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *size) {
   WAVEFORMATEX *wvfmt = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEX) + avstream->codec->extradata_size);
   if (!wvfmt)
-    return NULL;
+    return nullptr;
   memset(wvfmt, 0, sizeof(WAVEFORMATEX));
 
   wvfmt->wFormatTag = avstream->codec->codec_tag;
@@ -152,12 +152,12 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
 WAVEFORMATEXFFMPEG *CLAVFAudioHelper::CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size) {
   WAVEFORMATEX *wvfmt = CreateWVFMTEX(avstream, size);
   if (!wvfmt)
-    return NULL;
+    return nullptr;
 
   const size_t diff_size = sizeof(WAVEFORMATEXFFMPEG) - sizeof(WAVEFORMATEX);
   WAVEFORMATEXFFMPEG *wfex_ff = (WAVEFORMATEXFFMPEG *)CoTaskMemAlloc(diff_size + *size);
   if (!wfex_ff)
-    return NULL;
+    return nullptr;
   memset(wfex_ff, 0, sizeof(WAVEFORMATEXFFMPEG));
   memcpy(&wfex_ff->wfex, wvfmt, *size);
 
@@ -223,7 +223,7 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
 {
   WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)CoTaskMemAlloc(sizeof(WAVEFORMATEXTENSIBLE));
   if (!wfex)
-    return NULL;
+    return nullptr;
   memset(wfex, 0, sizeof(*wfex));
 
   WAVEFORMATEX *wfe = &wfex->Format;
@@ -271,11 +271,11 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
 MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULONG *size) {
   WAVEFORMATEX *wvfmt = CreateWVFMTEX(avstream, size);
   if (!wvfmt)
-    return NULL;
+    return nullptr;
 
   MPEG1WAVEFORMAT *mpwvfmt = (MPEG1WAVEFORMAT *)CoTaskMemAlloc(sizeof(MPEG1WAVEFORMAT));
   if (!mpwvfmt)
-    return NULL;
+    return nullptr;
   memset(mpwvfmt, 0, sizeof(MPEG1WAVEFORMAT));
   memcpy(&mpwvfmt->wfx, wvfmt, sizeof(WAVEFORMATEX));
 
@@ -302,7 +302,7 @@ MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULON
 VORBISFORMAT *CLAVFAudioHelper::CreateVorbis(const AVStream *avstream, ULONG *size) {
   VORBISFORMAT *vfmt = (VORBISFORMAT *)CoTaskMemAlloc(sizeof(VORBISFORMAT));
   if (!vfmt)
-    return NULL;
+    return nullptr;
   memset(vfmt, 0, sizeof(VORBISFORMAT));
 
   vfmt->nChannels = avstream->codec->channels;
@@ -337,7 +337,7 @@ VORBISFORMAT2 *CLAVFAudioHelper::CreateVorbis2(const AVStream *avstream, ULONG *
   if(sizes.size() == 3) {
     VORBISFORMAT2* pvf2 = (VORBISFORMAT2*)CoTaskMemAlloc(sizeof(VORBISFORMAT2) + totalsize);
     if (!pvf2)
-      return NULL;
+      return nullptr;
     memset(pvf2, 0, sizeof(VORBISFORMAT2));
     
     pvf2->Channels = avstream->codec->channels;
@@ -353,5 +353,5 @@ VORBISFORMAT2 *CLAVFAudioHelper::CreateVorbis2(const AVStream *avstream, ULONG *
     return pvf2;
   }
   *size = 0;
-  return NULL;
+  return nullptr;
 }

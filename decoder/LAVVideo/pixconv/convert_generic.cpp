@@ -103,13 +103,13 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
     m_pSwsContext = sws_getCachedContext(m_pSwsContext,
                                  width, height, srcPix,
                                  width, height, dstPix,
-                                 flags|SWS_PRINT_INFO, NULL, NULL, NULL);
+                                 flags|SWS_PRINT_INFO, nullptr, nullptr, nullptr);
 
-    int *inv_tbl = NULL, *tbl = NULL;
+    int *inv_tbl = nullptr, *tbl = nullptr;
     int srcRange, dstRange, brightness, contrast, saturation;
     int ret = sws_getColorspaceDetails(m_pSwsContext, &inv_tbl, &srcRange, &tbl, &dstRange, &brightness, &contrast, &saturation);
     if (ret >= 0) {
-      const int *rgbTbl = NULL;
+      const int *rgbTbl = nullptr;
       if (m_ColorProps.VideoTransferMatrix != DXVA2_VideoTransferMatrix_Unknown) {
         int colorspace = SWS_CS_ITU709;
         switch (m_ColorProps.VideoTransferMatrix) {
@@ -156,15 +156,15 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPix
 
 HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
 {
-  const BYTE *y = NULL;
-  const BYTE *u = NULL;
-  const BYTE *v = NULL;
+  const BYTE *y = nullptr;
+  const BYTE *u = nullptr;
+  const BYTE *v = nullptr;
   int line, i;
   int sourceStride = 0;
-  BYTE *pTmpBuffer = NULL;
+  BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV422) {
-    uint8_t *tmp[4] = {NULL};
+    uint8_t *tmp[4] = {nullptr};
     int     tmpStride[4] = {0};
     int scaleStride = FFALIGN(width, 32);
 
@@ -173,7 +173,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride);
     tmp[2] = tmp[1] + (height * scaleStride / 2);
-    tmp[3] = NULL;
+    tmp[3] = nullptr;
 
     tmpStride[0] = scaleStride;
     tmpStride[1] = scaleStride / 2;
@@ -252,15 +252,15 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
 
 HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
 {
-  const BYTE *y = NULL;
-  const BYTE *u = NULL;
-  const BYTE *v = NULL;
+  const BYTE *y = nullptr;
+  const BYTE *u = nullptr;
+  const BYTE *v = nullptr;
   int line, i = 0;
   int sourceStride = 0;
-  BYTE *pTmpBuffer = NULL;
+  BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444) {
-    uint8_t *tmp[4] = {NULL};
+    uint8_t *tmp[4] = {nullptr};
     int     tmpStride[4] = {0};
     int scaleStride = FFALIGN(width, 32);
 
@@ -269,7 +269,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride);
     tmp[2] = tmp[1] + (height * scaleStride);
-    tmp[3] = NULL;
+    tmp[3] = nullptr;
     tmpStride[0] = scaleStride;
     tmpStride[1] = scaleStride;
     tmpStride[2] = scaleStride;
@@ -320,18 +320,18 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
 
 HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[], int chromaVertical)
 {
-  const BYTE *y = NULL;
-  const BYTE *u = NULL;
-  const BYTE *v = NULL;
+  const BYTE *y = nullptr;
+  const BYTE *u = nullptr;
+  const BYTE *v = nullptr;
   int line, i = 0;
   int sourceStride = 0;
 
   int shift = 0;
 
-  BYTE *pTmpBuffer = NULL;
+  BYTE *pTmpBuffer = nullptr;
 
   if ((chromaVertical == 1 && m_InputPixFmt != LAVPixFmt_YUV422bX) || (chromaVertical == 2 && m_InputPixFmt != LAVPixFmt_YUV420bX)) {
-    uint8_t *tmp[4] = {NULL};
+    uint8_t *tmp[4] = {nullptr};
     int     tmpStride[4] = {0};
     int scaleStride = FFALIGN(width, 32) * 2;
 
@@ -340,7 +340,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride);
     tmp[2] = tmp[1] + ((height / chromaVertical) * (scaleStride / 2));
-    tmp[3] = NULL;
+    tmp[3] = nullptr;
     tmpStride[0] = scaleStride;
     tmpStride[1] = scaleStride / 2;
     tmpStride[2] = scaleStride / 2;
@@ -428,16 +428,16 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
 
 HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
 {
-  const int16_t *y = NULL;
-  const int16_t *u = NULL;
-  const int16_t *v = NULL;
+  const int16_t *y = nullptr;
+  const int16_t *u = nullptr;
+  const int16_t *v = nullptr;
   int sourceStride = 0;
   bool b9Bit = false;
 
-  BYTE *pTmpBuffer = NULL;
+  BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444bX || m_InBpp > 10) {
-    uint8_t *tmp[4] = {NULL};
+    uint8_t *tmp[4] = {nullptr};
     int     tmpStride[4] = {0};
     int scaleStride = FFALIGN(width, 32);
 
@@ -446,7 +446,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);
     tmp[2] = tmp[1] + (height * scaleStride * 2);
-    tmp[3] = NULL;
+    tmp[3] = nullptr;
     tmpStride[0] = scaleStride * 2;
     tmpStride[1] = scaleStride * 2;
     tmpStride[2] = scaleStride * 2;
@@ -488,15 +488,15 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
 
 HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
 {
-  const int16_t *y = NULL;
-  const int16_t *u = NULL;
-  const int16_t *v = NULL;
+  const int16_t *y = nullptr;
+  const int16_t *u = nullptr;
+  const int16_t *v = nullptr;
   int sourceStride = 0;
 
-  BYTE *pTmpBuffer = NULL;
+  BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444bX || m_InBpp != 16) {
-    uint8_t *tmp[4] = {NULL};
+    uint8_t *tmp[4] = {nullptr};
     int     tmpStride[4] = {0};
     int scaleStride = FFALIGN(width, 32);
 
@@ -505,7 +505,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);
     tmp[2] = tmp[1] + (height * scaleStride * 2);
-    tmp[3] = NULL;
+    tmp[3] = nullptr;
     tmpStride[0] = scaleStride * 2;
     tmpStride[1] = scaleStride * 2;
     tmpStride[2] = scaleStride * 2;
@@ -541,16 +541,16 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
 
 HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
 {
-  const int16_t *y = NULL;
-  const int16_t *u = NULL;
-  const int16_t *v = NULL;
+  const int16_t *y = nullptr;
+  const int16_t *u = nullptr;
+  const int16_t *v = nullptr;
   int srcyStride = 0;
   int srcuvStride = 0;
 
-  BYTE *pTmpBuffer = NULL;
+  BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV422bX || m_InBpp != 10) {
-    uint8_t *tmp[4] = {NULL};
+    uint8_t *tmp[4] = {nullptr};
     int     tmpStride[4] = {0};
     int scaleStride = FFALIGN(width, 32);
 
@@ -559,7 +559,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);
     tmp[2] = tmp[1] + (height * scaleStride * 2);
-    tmp[3] = NULL;
+    tmp[3] = nullptr;
     tmpStride[0] = scaleStride * 2;
     tmpStride[1] = scaleStride;
     tmpStride[2] = scaleStride;
@@ -639,16 +639,16 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
 
 HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
 {
-  const int16_t *y = NULL;
-  const int16_t *u = NULL;
-  const int16_t *v = NULL;
+  const int16_t *y = nullptr;
+  const int16_t *u = nullptr;
+  const int16_t *v = nullptr;
   int sourceStride = 0;
   bool b9Bit = false;
 
-  BYTE *pTmpBuffer = NULL;
+  BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444bX || m_InBpp > 10) {
-    uint8_t *tmp[4] = {NULL};
+    uint8_t *tmp[4] = {nullptr};
     int     tmpStride[4] = {0};
     int scaleStride = FFALIGN(width, 32);
 
@@ -657,7 +657,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const in
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);
     tmp[2] = tmp[1] + (height * scaleStride * 2);
-    tmp[3] = NULL;
+    tmp[3] = nullptr;
     tmpStride[0] = scaleStride * 2;
     tmpStride[1] = scaleStride * 2;
     tmpStride[2] = scaleStride * 2;

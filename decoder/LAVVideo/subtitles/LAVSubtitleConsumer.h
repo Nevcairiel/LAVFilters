@@ -63,7 +63,7 @@ public:
 
   STDMETHODIMP DisconnectProvider() { if (m_pProvider) return m_pProvider->Disconnect(); SafeRelease(&m_pProvider); return S_OK; }
 
-  BOOL HasProvider() const { return m_pProvider != NULL; }
+  BOOL HasProvider() const { return m_pProvider != nullptr; }
 
   void SetVideoSize(LONG w, LONG h) { context.originalVideoSize.cx = w; context.originalVideoSize.cy = h; }
 

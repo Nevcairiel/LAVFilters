@@ -24,18 +24,18 @@ static const SubRenderOption* sropt_next(const SubRenderOption *options, const S
 {
   if (!last && options[0].name) return options;
   if (last && last[1].name) return ++last;
-  return NULL;
+  return nullptr;
 }
 
 static const SubRenderOption* sropt_find_option(const SubRenderOption* options, LPCSTR name, int flags)
 {
-  const SubRenderOption *o = NULL;
+  const SubRenderOption *o = nullptr;
   while (o = sropt_next(options, o)) {
     if (!_stricmp(o->name, name) && !(o->flags & flags)) {
       return o;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 #define GET_OPT_AND_VALIDATE(t)                                    \
@@ -105,7 +105,7 @@ STDMETHODIMP CSubRenderOptionsImpl::GetString(LPCSTR field, LPWSTR *value, int *
 
   const LPWSTR string = *(LPWSTR*)(((uint8_t*)context) + o->offset);
   if (!string) {
-    *value = NULL;
+    *value = nullptr;
     *chars = 0;
     return S_OK;
   }

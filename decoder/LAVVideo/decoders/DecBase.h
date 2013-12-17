@@ -47,7 +47,7 @@ public:
     HRESULT hr;
 
     // Retrieve buffer
-    BYTE *pData = NULL;
+    BYTE *pData = nullptr;
     if (FAILED(hr = pSample->GetPointer(&pData))) {
       return hr;
     }
