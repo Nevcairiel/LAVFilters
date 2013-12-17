@@ -30,17 +30,12 @@ CBaseDemuxer::CBaseDemuxer(LPCTSTR pName, CCritSec *pLock)
   }
 }
 
-void CBaseDemuxer::CreateNoSubtitleStream()
+void CBaseDemuxer::CreateNoSubtitleStream(CMediaType& mtype)
 {
   stream s;
   s.pid = NO_SUBTITLE_PID;
   s.streamInfo = new CStreamInfo();
   s.language = "und";
-  // Create the media type
-  CMediaType mtype;
-  mtype.majortype = MEDIATYPE_Text;
-  mtype.subtype = MEDIASUBTYPE_NULL;
-  mtype.formattype = MEDIASUBTYPE_NULL;
   s.streamInfo->mtypes.push_back(mtype);
   // Append it to the list
   m_streams[subpic].push_back(s);

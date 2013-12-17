@@ -120,7 +120,7 @@ public:
 
 protected:
   CBaseDemuxer(LPCTSTR pName, CCritSec *pLock);
-  void CreateNoSubtitleStream();
+  void CreateNoSubtitleStream(CMediaType& mtype);
   void CreatePGSForcedSubtitleStream();
 
 public:
