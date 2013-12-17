@@ -852,6 +852,15 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
       }
     }
 
+    // Check image size
+    DWORD lSampleSize = m_PixFmtConverter.GetImageSize(pBMINew->biWidth, abs(pBMINew->biHeight));
+    if (lSampleSize != pBMINew->biSizeImage) {
+      DbgLog((LOG_TRACE, 10, L"-> biSizeImage does not match our calculated sample size, correcting"));
+      pBMINew->biSizeImage = lSampleSize;
+      pmt->lSampleSize = lSampleSize;
+      m_bSendMediaType = TRUE;
+    }
+
     CMediaType mt = *pmt;
     m_pOutput->SetMediaType(&mt);
     DeleteMediaType(pmt);
@@ -1008,14 +1017,13 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     biWidthOld = pBIH->biWidth;
     pBIH->biWidth = width;
     pBIH->biHeight = pBIH->biHeight < 0 ? -height : height;
-    pBIH->biSizeImage = width * height * pBIH->biBitCount >> 3;
+    pBIH->biSizeImage = m_PixFmtConverter.GetImageSize(width, height);
 
     if (bDXVA)
       pBIH->biCompression = mmioFOURCC('d','x','v','a');
 
     if (mt.subtype == FOURCCMap('012v')) {
       pBIH->biWidth = FFALIGN(width, 48);
-      pBIH->biSizeImage = (pBIH->biWidth / 48) * 128 * height;
     }
 
     HRESULT hrQA = m_pOutput->GetConnected()->QueryAccept(&mt);
@@ -1031,11 +1039,19 @@ receiveconnection:
           AM_MEDIA_TYPE *pmt = NULL;
           if(SUCCEEDED(pOut->GetMediaType(&pmt)) && pmt) {
             CMediaType newmt = *pmt;
-            m_pOutput->SetMediaType(&newmt);
-  #ifdef DEBUG
             videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
             DbgLog((LOG_TRACE, 10, L"-> New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
-  #endif
+            // Check image size
+            DWORD lSampleSize = m_PixFmtConverter.GetImageSize(pBIH->biWidth, abs(pBIH->biHeight));
+            if (lSampleSize != pBIH->biSizeImage) {
+              DbgLog((LOG_TRACE, 10, L"-> biSizeImage does not match our calculated sample size, correcting"));
+              pBIH->biSizeImage = lSampleSize;
+              newmt.SetSampleSize(lSampleSize);
+              m_bSendMediaType = TRUE;
+            }
+            // Store media type
+            m_pOutput->SetMediaType(&newmt);
+            m_bSendMediaType = TRUE;
             if (newmt.formattype == FORMAT_VideoInfo2 && mt.formattype == FORMAT_VideoInfo2 && m_bDXVAExtFormatSupport) {
               VIDEOINFOHEADER2 *vih2New = (VIDEOINFOHEADER2 *)newmt.pbFormat;
               if (dxvaExtFlags.value && dxvaExtFlags.value != vih2New->dwControlFlags) {
@@ -1435,7 +1451,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
   if (pFrame->format != LAVPixFmt_DXVA2) {
-    long required = pBIH->biSizeImage;
+    long required = m_PixFmtConverter.GetImageSize(pBIH->biWidth, abs(pBIH->biHeight));
 
     long lSampleSize = pSampleOut->GetSize();
     if (lSampleSize < required) {
@@ -1444,6 +1460,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
       ReleaseFrame(&pFrame);
       return E_FAIL;
     }
+    pSampleOut->SetActualDataLength(required);
 
   #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
     LARGE_INTEGER frequency, start, end;

@@ -260,7 +260,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   pBIH->biHeight = biHeight;
   pBIH->biBitCount = lav_pixfmt_desc[pixFmt].bpp;
   pBIH->biPlanes = lav_pixfmt_desc[pixFmt].planes;
-  pBIH->biSizeImage = (biWidth * biHeight * pBIH->biBitCount) >> 3;
+  pBIH->biSizeImage = GetImageSize(biWidth, abs(biHeight));
   pBIH->biCompression = guid.Data1;
 
   if (!pBIH->biPlanes) {
@@ -271,16 +271,23 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
     pBIH->biCompression = BI_RGB;
   }
 
-  // Correct size for v210
+  // Correct implied stride for v210
   if (guid == FOURCCMap('012v')) {
     pBIH->biWidth = FFALIGN(biWidth, 48);
-    pBIH->biSizeImage = (pBIH->biWidth / 48) * 128 * biHeight;
   }
 
   mt->SetSampleSize(pBIH->biSizeImage);
   mt->SetTemporalCompression(0);
 }
 
+DWORD CLAVPixFmtConverter::GetImageSize(int width, int height)
+{
+  if (m_OutputPixFmt ==  LAVOutPixFmt_v210)
+    return ((width + 47) / 48) * 128 * height;
+  else {
+    return (width * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) >> 3;
+  }
+}
 
 BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
 {

@@ -77,6 +77,8 @@ public:
 
   BOOL IsRGBConverterActive() { return m_bRGBConverter; }
 
+  DWORD GetImageSize(int width, int height);
+
 private:
   AVPixelFormat GetFFInput() {
     return getFFPixelFormatFromLAV(m_InputPixFmt, m_InBpp);
