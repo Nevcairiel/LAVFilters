@@ -828,9 +828,10 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
   AM_MEDIA_TYPE* pmt = nullptr;
   if(SUCCEEDED((*ppOut)->GetMediaType(&pmt)) && pmt) {
     CMediaType &outMt = m_pOutput->CurrentMediaType();
-#ifdef DEBUG
-    BITMAPINFOHEADER *pBMINew = nullptr, *pBMIOld = nullptr;
+    BITMAPINFOHEADER *pBMINew = nullptr;
     videoFormatTypeHandler(pmt->pbFormat, &pmt->formattype, &pBMINew);
+#ifdef DEBUG
+    BITMAPINFOHEADER *pBMIOld = nullptr;
     videoFormatTypeHandler(outMt.pbFormat, &outMt.formattype, &pBMIOld);
 
     RECT rcTarget = {0};
