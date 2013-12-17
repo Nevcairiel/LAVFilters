@@ -70,19 +70,19 @@ private:
 
 private:
   LAVSubtitleProviderContext context;
-  CLAVVideo *m_pLAVVideo;
+  CLAVVideo *m_pLAVVideo            = nullptr;
 
-  ISubRenderConsumer *m_pConsumer;
+  ISubRenderConsumer *m_pConsumer   = nullptr;
 
-  const AVCodec        *m_pAVCodec;
-  AVCodecContext       *m_pAVCtx;
-  AVCodecParserContext *m_pParser;
+  const AVCodec        *m_pAVCodec  = nullptr;
+  AVCodecContext       *m_pAVCtx    = nullptr;
+  AVCodecParserContext *m_pParser   = nullptr;
 
-  REFERENCE_TIME        m_rtStartCache;
-  ULONGLONG             m_SubPicId;
-  BOOL                  m_bComposit;
+  REFERENCE_TIME        m_rtStartCache = AV_NOPTS_VALUE;
+  ULONGLONG             m_SubPicId     = 0;
+  BOOL                  m_bComposit    = TRUE;
 
   std::list<CLAVSubRect *> m_SubFrames;
 
-  struct _AM_PROPERTY_SPHLI *m_pHLI;
+  struct _AM_PROPERTY_SPHLI *m_pHLI = nullptr;
 };

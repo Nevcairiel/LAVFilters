@@ -72,20 +72,20 @@ private:
 
   STDMETHODIMP SelectBlendFunction();
   typedef HRESULT (CLAVSubtitleConsumer::*BlendFn) BLEND_FUNC_PARAMS;
-  BlendFn blend;
+  BlendFn blend = nullptr;
 
   DECLARE_BLEND_FUNC(blend_rgb_c);
   template <class pixT, int nv12> DECLARE_BLEND_FUNC(blend_yuv_c);
 
 private:
-  ISubRenderProvider *m_pProvider;
-  ISubRenderFrame    *m_SubtitleFrame;
-  CAMEvent           m_evFrame;
+  ISubRenderProvider *m_pProvider     = nullptr;
+  ISubRenderFrame    *m_SubtitleFrame = nullptr;
+  CAMEvent           m_evFrame{FALSE};
 
-  SwsContext         *m_pSwsContext;
-  LAVPixelFormat     m_PixFmt;
+  SwsContext         *m_pSwsContext   = nullptr;
+  LAVPixelFormat     m_PixFmt         = LAVPixFmt_None;
 
   LAVSubtitleConsumerContext context;
 
-  CLAVVideo          *m_pLAVVideo;
+  CLAVVideo          *m_pLAVVideo     = nullptr;
 };

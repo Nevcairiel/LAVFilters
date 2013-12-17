@@ -22,7 +22,7 @@
 class CLAVSubRect : public IUnknown
 {
 public:
-  CLAVSubRect() : m_cRef(0), rtStart(AV_NOPTS_VALUE), rtStop(AV_NOPTS_VALUE), id(0), pixels(nullptr), pixelsPal(nullptr), pitch(0), forced(false), freePixels(false) { memset(&position, 0, sizeof(position)); memset(&size, 0, sizeof(size));}
+  CLAVSubRect() { memset(&position, 0, sizeof(position)); memset(&size, 0, sizeof(size));}
   ~CLAVSubRect() { SAFE_CO_FREE(pixels); SAFE_CO_FREE(pixelsPal); }
 
   // IUnknown
@@ -43,20 +43,20 @@ public:
   STDMETHODIMP ResetRefCount() { m_cRef = 0ul; return S_OK; }
 
 public:
-  REFERENCE_TIME rtStart;  ///< Start Time
-  REFERENCE_TIME rtStop;   ///< Stop time
-  ULONGLONG id;            ///< Unique Identifier (same ID = same subtitle)
-  POINT position;          ///< Position (relative to outputRect)
-  SIZE size;               ///< Size
-  LPVOID pixels;           ///< Pixel Data
-  LPVOID pixelsPal;        ///< Pixel Data (in paletted form, required by dvd HLI)
-  int pitch;               ///< Pitch of the subtitle lines
-  bool forced;             ///< Forced/Menu
+  REFERENCE_TIME rtStart = AV_NOPTS_VALUE;  ///< Start Time
+  REFERENCE_TIME rtStop  = AV_NOPTS_VALUE;  ///< Stop time
+  ULONGLONG id           = 0;               ///< Unique Identifier (same ID = same subtitle)
+  POINT position;                           ///< Position (relative to outputRect)
+  SIZE size;                                ///< Size
+  LPVOID pixels          = nullptr;         ///< Pixel Data
+  LPVOID pixelsPal       = nullptr;         ///< Pixel Data (in paletted form, required by dvd HLI)
+  int pitch              = 0;               ///< Pitch of the subtitle lines
+  bool forced            = false;           ///< Forced/Menu
 
-  bool freePixels;         ///< If true, pixel data is free'ed upon destroy
+  bool freePixels        = false;           ///< If true, pixel data is free'ed upon destroy
 
 private:
-  ULONG m_cRef;
+  ULONG m_cRef = 0;
 };
 
 class CLAVSubtitleFrame : public ISubRenderFrame, public CUnknown
@@ -82,6 +82,6 @@ private:
   RECT m_outputRect;
   RECT m_clipRect;
 
-  CLAVSubRect **m_Bitmaps;
-  int m_NumBitmaps;
+  CLAVSubRect **m_Bitmaps = nullptr;
+  int m_NumBitmaps        = 0;
 };

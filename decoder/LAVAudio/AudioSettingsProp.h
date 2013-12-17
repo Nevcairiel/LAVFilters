@@ -166,5 +166,5 @@ private:
 
 private:
   ILAVAudioStatus *m_pAudioStatus = nullptr;
-  int m_nChannels;
+  int m_nChannels = 0;
 };

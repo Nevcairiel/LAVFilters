@@ -37,13 +37,7 @@ static const SubRenderOption options[] = {
 CLAVSubtitleConsumer::CLAVSubtitleConsumer(CLAVVideo *pLAVVideo)
   : CSubRenderOptionsImpl(::options, &context)
   , CUnknown(L"CLAVSubtitleConsumer", nullptr)
-  , m_pProvider(nullptr)
-  , m_SubtitleFrame(nullptr)
-  , m_evFrame(FALSE)
-  , m_pSwsContext(nullptr)
-  , m_PixFmt(LAVPixFmt_None)
   , m_pLAVVideo(pLAVVideo)
-  , blend(nullptr)
 {
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);

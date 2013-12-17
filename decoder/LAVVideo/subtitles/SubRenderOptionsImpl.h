@@ -82,8 +82,8 @@ public:
   virtual STDMETHODIMP OnSubOptionSet(LPCSTR field) { return E_NOTIMPL; }
 
 private:
-  const SubRenderOption *options;
-  void *context;
+  const SubRenderOption *options = nullptr;
+  void *context                  = nullptr;
 };
 
 #define DECLARE_ISUBRENDEROPTIONS                                                                                                         \

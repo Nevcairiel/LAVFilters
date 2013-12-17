@@ -40,13 +40,6 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
   , CUnknown(L"CLAVSubtitleProvider", nullptr)
   , m_pLAVVideo(pLAVVideo)
   , m_pConsumer(pConsumer)
-  , m_pAVCodec(nullptr)
-  , m_pAVCtx(nullptr)
-  , m_pParser(nullptr)
-  , m_rtStartCache(AV_NOPTS_VALUE)
-  , m_SubPicId(0)
-  , m_pHLI(nullptr)
-  , m_bComposit(TRUE)
 {
   avcodec_register_all();
 

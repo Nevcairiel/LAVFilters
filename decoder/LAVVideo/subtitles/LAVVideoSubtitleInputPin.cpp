@@ -40,8 +40,6 @@ CLAVVideoSubtitleInputPin::CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CLAVVid
   : CBaseInputPin(pObjectName, pFilter, pcsFilter, phr, pName)
   , m_pLAVVideo(pFilter)
   , CDeCSSPinHelper()
-  , m_pProvider(nullptr)
-  , m_pConsumer(nullptr)
 {
 }
 

@@ -23,8 +23,6 @@
 
 CLAVSubtitleFrame::CLAVSubtitleFrame(void)
   : CUnknown(L"CLAVSubtitleFrame", nullptr)
-  , m_Bitmaps(nullptr)
-  , m_NumBitmaps(0)
 {
   ZeroMemory(&m_outputRect, sizeof(m_outputRect));
   ZeroMemory(&m_clipRect, sizeof(m_clipRect));

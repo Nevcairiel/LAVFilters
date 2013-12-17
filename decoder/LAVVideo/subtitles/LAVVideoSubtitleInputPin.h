@@ -54,7 +54,7 @@ public:
 protected:
   CCritSec m_csReceive;
 
-  ISubRenderConsumer   *m_pConsumer;
-  CLAVSubtitleProvider *m_pProvider;
-  CLAVVideo            *m_pLAVVideo;
+  ISubRenderConsumer   *m_pConsumer = nullptr;
+  CLAVSubtitleProvider *m_pProvider = nullptr;
+  CLAVVideo            *m_pLAVVideo = nullptr;
 };
