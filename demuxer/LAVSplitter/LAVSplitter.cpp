@@ -159,7 +159,7 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.QueueMaxSize     = 256;
   m_settings.NetworkAnalysisDuration = 1000;
 
-  for (FormatInfo fmt : m_InputFormats) {
+  for (const FormatInfo& fmt : m_InputFormats) {
     m_settings.formats[std::string(fmt.strName)] = get_iformat_default(fmt.strName);
   }
 
@@ -236,7 +236,7 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
   CRegistry regF = CRegistry(rootKey, LAVF_REGISTRY_KEY_FORMATS, hr, TRUE);
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
-    for (FormatInfo fmt : m_InputFormats) {
+    for (const FormatInfo& fmt : m_InputFormats) {
       MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
       bFlag = regF.ReadBOOL(wBuffer, hr);
       if (SUCCEEDED(hr)) m_settings.formats[std::string(fmt.strName)] = bFlag;
@@ -279,7 +279,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
   CRegistry regF = CRegistry(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS, hr);
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
-    for (FormatInfo fmt : m_InputFormats) {
+    for (const FormatInfo& fmt : m_InputFormats) {
       MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
       regF.WriteBOOL(wBuffer, m_settings.formats[std::string(fmt.strName)]);
     }
@@ -1410,7 +1410,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
       bNoLanguage = true;
     }
 
-    for (std::string lang : langList) {
+    for (const std::string& lang : langList) {
       std::string token = "*:" + lang;
       if (m_settings.subtitleMode == LAVSubtitleMode_ForcedOnly || bNoLanguage) {
         tokenList.push_back(token + "|f");
@@ -1443,7 +1443,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   tokenList.push_back("*:off");
 
   std::tr1::regex advRegex("(?:(\\*|[[:alpha:]]+):)?(\\*|[[:alpha:]]+)(?:\\|(!?)([fdnh]+))?");
-  for (std::string token : tokenList) {
+  for (const std::string& token : tokenList) {
     std::tr1::cmatch res;
     bool found = std::tr1::regex_search(token.c_str(), res, advRegex);
     if (found) {
