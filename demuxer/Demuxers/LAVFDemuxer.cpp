@@ -1407,19 +1407,42 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackCodecName(UINT aTrackIdx)
 
 /////////////////////////////////////////////////////////////////////////////
 // IPropertyBag
+
+static struct {
+  const char *original;
+  const char *map;
+  bool bVideoStream;
+} mappedPropertys[] = {
+  { "rotation", "rotate", true },
+  { "rotate",   nullptr,  true },
+};
+
 STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog)
 {
   CheckPointer(pszPropName, E_INVALIDARG);
   CheckPointer(pVar, E_INVALIDARG);
+  int stream = -1;
 
   // Verify type
   if (pVar->vt != VT_EMPTY && pVar->vt != VT_BSTR)
     return E_FAIL;
 
-  // TODO: Do we need to map property names here?
+  ATL::CW2A propNameConv(pszPropName);
+  const char *propName = propNameConv;
+
+  // Map property names
+  for (int i = 0; i < countof(mappedPropertys); i++) {
+    if (_stricmp(propName, mappedPropertys[i].original) == 0) {
+      if (mappedPropertys[i].map)
+        propName = mappedPropertys[i].map;
+      if (mappedPropertys[i].bVideoStream && !m_streams[video].empty())
+        stream = m_streams[video][0].pid;
+      break;
+    }
+  }
 
   pVar->vt = VT_BSTR;
-  return GetBSTRMetadata(ATL::CW2A(pszPropName), &pVar->bstrVal);
+  return GetBSTRMetadata(propName, &pVar->bstrVal, stream);
 }
 
 STDMETHODIMP CLAVFDemuxer::Write(LPCOLESTR pszPropName, VARIANT *pVar)
@@ -1998,12 +2021,15 @@ STDMETHODIMP_(int) CLAVFDemuxer::GetHasBFrames(DWORD dwStream)
   return m_avFormat->streams[dwStream]->codec->has_b_frames;
 }
 
-STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue)
+STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue, int stream)
 {
   if (!m_avFormat)
     return VFW_E_NOT_FOUND;
 
-  AVDictionaryEntry *entry = av_dict_get(m_avFormat->metadata, key, nullptr, 0);
+  if (stream >= (int)m_avFormat->nb_streams)
+    return E_INVALIDARG;
+
+  AVDictionaryEntry *entry = av_dict_get(stream >= 0 ? m_avFormat->streams[stream]->metadata : m_avFormat->metadata, key, nullptr, 0);
   if (!entry || !entry->value || entry->value[0] == '\0')
     return VFW_E_NOT_FOUND;
 
