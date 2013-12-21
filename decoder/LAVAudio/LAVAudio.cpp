@@ -1666,8 +1666,13 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
       }
 
       if (m_bFindDTSInPCM) {
+        if (m_rtStartInputCache == AV_NOPTS_VALUE)
+          m_rtStartInputCache = m_rtStartInput;
         return S_FALSE;
       }
+
+      m_rtStartInput = m_rtStartInputCache;
+      m_rtStartInputCache = AV_NOPTS_VALUE;
     }
 
     if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF) {
