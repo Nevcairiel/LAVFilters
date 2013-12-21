@@ -90,6 +90,7 @@ STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   return 
     QI(IMediaSeeking)
     QI(ILAVPinInfo)
+    QI(IBitRateInfo)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -294,6 +295,7 @@ HRESULT CLAVOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME t
   if(m_fFlushing) return S_FALSE;
   if(!ThreadExists()) return S_FALSE;
 
+  m_BitRate.rtLastDeliverTime = Packet::INVALID_TIME;
   hr = __super::DeliverNewSegment(tStart, tStop, dRate);
   if (hr != S_OK)
     return hr;
@@ -495,6 +497,36 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   }
 
   bool fTimeValid = pPacket->rtStart != Packet::INVALID_TIME;
+
+  // IBitRateInfo
+  m_BitRate.nBytesSinceLastDeliverTime += nBytes;
+
+  if (fTimeValid) {
+    if (m_BitRate.rtLastDeliverTime == Packet::INVALID_TIME) {
+      m_BitRate.rtLastDeliverTime = pPacket->rtStart;
+      m_BitRate.nBytesSinceLastDeliverTime = 0;
+    }
+
+    if (m_BitRate.rtLastDeliverTime + 10000000 < pPacket->rtStart) {
+      REFERENCE_TIME rtDiff = pPacket->rtStart - m_BitRate.rtLastDeliverTime;
+
+      double dSecs, dBits;
+
+      dSecs = rtDiff / 10000000.0;
+      dBits = 8.0 * m_BitRate.nBytesSinceLastDeliverTime;
+      m_BitRate.nCurrentBitRate = (DWORD)(dBits / dSecs);
+
+      m_BitRate.rtTotalTimeDelivered += rtDiff;
+      m_BitRate.nTotalBytesDelivered += m_BitRate.nBytesSinceLastDeliverTime;
+
+      dSecs = m_BitRate.rtTotalTimeDelivered / 10000000.0;
+      dBits = 8.0 * m_BitRate.nTotalBytesDelivered;
+      m_BitRate.nAverageBitRate = (DWORD)(dBits / dSecs);
+
+      m_BitRate.rtLastDeliverTime = pPacket->rtStart;
+      m_BitRate.nBytesSinceLastDeliverTime = 0;
+    }
+  }
 
   CHECK_HR(hr = pSample->SetActualDataLength(nBytes));
   CHECK_HR(hr = pSample->SetTime(fTimeValid ? &pPacket->rtStart : nullptr, fTimeValid ? &pPacket->rtStop : nullptr));
