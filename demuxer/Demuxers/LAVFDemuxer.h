@@ -33,7 +33,7 @@ class FormatInfo;
 class CBDDemuxer;
 
 #define FFMPEG_FILE_BUFFER_SIZE   32768 // default reading size for ffmpeg
-class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo, public IAMMediaContent
+class CLAVFDemuxer : public CBaseDemuxer, public IAMExtendedSeeking, public IKeyFrameInfo, public ITrackInfo, public IAMMediaContent, public IPropertyBag
 {
 public:
   CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings);
@@ -124,6 +124,10 @@ public:
   STDMETHODIMP get_MoreInfoBannerImage(BSTR *pbstrMoreInfoBannerImage) { return E_NOTIMPL; }
   STDMETHODIMP get_MoreInfoBannerURL(BSTR *pbstrMoreInfoBannerURL) { return E_NOTIMPL; }
   STDMETHODIMP get_MoreInfoText(BSTR *pbstrMoreInfoText) { return E_NOTIMPL; }
+
+  // IPropertyBag
+  STDMETHODIMP Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog);
+  STDMETHODIMP Write(LPCOLESTR pszPropName, VARIANT *pVar);
 
   STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = nullptr, const char *format = nullptr, BOOL bForce = FALSE, BOOL bFileSource = FALSE);
   STDMETHODIMP SeekByte(int64_t pos, int flags);

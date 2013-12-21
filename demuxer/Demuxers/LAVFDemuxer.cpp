@@ -138,6 +138,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     m_bEnableTrackInfo && QI(ITrackInfo)
     QI2(IAMExtendedSeeking)
     QI2(IAMMediaContent)
+    QI(IPropertyBag)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -1402,6 +1403,28 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackCodecName(UINT aTrackIdx)
   }
 
   return codecName;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// IPropertyBag
+STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog)
+{
+  CheckPointer(pszPropName, E_INVALIDARG);
+  CheckPointer(pVar, E_INVALIDARG);
+
+  // Verify type
+  if (pVar->vt != VT_EMPTY && pVar->vt != VT_BSTR)
+    return E_FAIL;
+
+  // TODO: Do we need to map property names here?
+
+  pVar->vt = VT_BSTR;
+  return GetBSTRMetadata(ATL::CW2A(pszPropName), &pVar->bstrVal);
+}
+
+STDMETHODIMP CLAVFDemuxer::Write(LPCOLESTR pszPropName, VARIANT *pVar)
+{
+  return E_NOTIMPL;
 }
 
 /////////////////////////////////////////////////////////////////////////////
