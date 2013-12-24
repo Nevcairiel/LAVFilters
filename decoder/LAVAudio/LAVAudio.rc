@@ -73,7 +73,7 @@ BEGIN
     CONTROL         "",IDC_DRC_LEVEL,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,50,30,100,12
     LTEXT           "Level: ",IDC_LBL_DRC_LEVEL,15,30,28,8
     LTEXT           "100%",IDC_DRC_LEVEL_TEXT,150,30,20,8,0,WS_EX_RIGHT
-    GROUPBOX        "Bitstreaming (S/PDIF,HDMI)",IDC_BITSTREAMING,7,50,196,88
+    GROUPBOX        "Bitstreaming (S/PDIF, HDMI)",IDC_BITSTREAMING,7,50,196,88
     LTEXT           "Formats",IDC_BS_FORMATS,12,60,122,8
     CONTROL         "Dolby Digital (AC-3)",IDC_BS_AC3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,72,79,10
     CONTROL         "Dolby Digital Plus (E-AC3)",IDC_BS_EAC3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,86,97,10
