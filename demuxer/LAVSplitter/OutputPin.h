@@ -31,10 +31,12 @@
 
 #include "LAVSplitter.h"
 #include "ILAVPinInfo.h"
+#include "IBitRateInfo.h"
 
 class CLAVOutputPin
   : public CBaseOutputPin
   , public ILAVPinInfo
+  , public IBitRateInfo
   , IMediaSeeking
   , protected CAMThread
 {
@@ -83,6 +85,10 @@ public:
   STDMETHODIMP_(int) GetPixelFormat();
   STDMETHODIMP_(int) GetVersion() { return 1; }
   STDMETHODIMP_(int) GetHasBFrames();
+
+  // IBitRateInfo
+  STDMETHODIMP_(DWORD) GetCurrentBitRate() { return m_BitRate.nCurrentBitRate; }
+  STDMETHODIMP_(DWORD) GetAverageBitRate() { return m_BitRate.nAverageBitRate; }
 
   size_t QueueCount();
   HRESULT QueuePacket(Packet *pPacket);
@@ -157,4 +163,14 @@ private:
 
   CStreamParser m_Parser;
   BOOL m_bPacketAllocator = FALSE;
+
+  // IBitRateInfo
+  struct BitRateInfo {
+    UINT64 nTotalBytesDelivered         = 0;
+    REFERENCE_TIME rtTotalTimeDelivered = 0;
+    UINT64 nBytesSinceLastDeliverTime   = 0;
+    REFERENCE_TIME rtLastDeliverTime    = Packet::INVALID_TIME;
+    DWORD nCurrentBitRate               = 0;
+    DWORD nAverageBitRate               = 0;
+  } m_BitRate;
 };
