@@ -90,10 +90,10 @@ static const dxva2_mode_t dxva2_modes[] = {
   { "Windows Media Video 9 post processing",                                        &DXVA2_ModeWMV9_A,                      0 },
 
   /* VC-1 */
-  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       AV_CODEC_ID_VC1 },
-  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       AV_CODEC_ID_WMV3 },
   { "VC-1 variable-length decoder (2010)",                                          &DXVA2_ModeVC1_D2010,                   AV_CODEC_ID_VC1 },
   { "VC-1 variable-length decoder (2010)",                                          &DXVA2_ModeVC1_D2010,                   AV_CODEC_ID_WMV3 },
+  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       AV_CODEC_ID_VC1 },
+  { "VC-1 variable-length decoder",                                                 &DXVA2_ModeVC1_D,                       AV_CODEC_ID_WMV3 },
 
   { "VC-1 inverse discrete cosine transform",                                       &DXVA2_ModeVC1_C,                       0 },
   { "VC-1 motion compensation",                                                     &DXVA2_ModeVC1_B,                       0 },
