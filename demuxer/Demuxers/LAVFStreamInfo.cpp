@@ -223,6 +223,14 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     mtype.formattype = FORMAT_VideoInfo;
   }
 
+  // Native MPEG4 in Matroska needs a special formattype
+  if (m_containerFormat == "matroska" && avstream->codec->codec_id == AV_CODEC_ID_MPEG4) {
+    if (AVDictionaryEntry *mkvCodecId = av_dict_get(avstream->metadata, "mkv-codec-id", nullptr, 0)) {
+      if (strcmp(mkvCodecId->value, "V_MS/VFW/FOURCC") != 0)
+        mtype.formattype = FORMAT_MPEG2Video;
+    }
+  }
+
   // If we need aspect info, we switch to VIH2
   AVRational r = avstream->sample_aspect_ratio;
   AVRational rc = avstream->codec->sample_aspect_ratio;
