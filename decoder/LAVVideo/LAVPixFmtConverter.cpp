@@ -260,7 +260,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   pBIH->biHeight = biHeight;
   pBIH->biBitCount = lav_pixfmt_desc[pixFmt].bpp;
   pBIH->biPlanes = lav_pixfmt_desc[pixFmt].planes;
-  pBIH->biSizeImage = GetImageSize(biWidth, abs(biHeight));
+  pBIH->biSizeImage = GetImageSize(biWidth, abs(biHeight), pixFmt);
   pBIH->biCompression = guid.Data1;
 
   if (!pBIH->biPlanes) {
@@ -280,12 +280,21 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   mt->SetTemporalCompression(0);
 }
 
-DWORD CLAVPixFmtConverter::GetImageSize(int width, int height)
+DWORD CLAVPixFmtConverter::GetImageSize(int width, int height, LAVOutPixFmts pixFmt)
 {
-  if (m_OutputPixFmt ==  LAVOutPixFmt_v210)
+  if (pixFmt == LAVOutPixFmt_None)
+    pixFmt = m_OutputPixFmt;
+
+  if (pixFmt == LAVOutPixFmt_None) {
+    ASSERT(0);
+    // Safe value that should work for all pixel formats, just in case this happens
+    return width * height * 16;
+  }
+
+  if (pixFmt == LAVOutPixFmt_v210)
     return ((width + 47) / 48) * 128 * height;
   else {
-    return (width * height * lav_pixfmt_desc[m_OutputPixFmt].bpp) >> 3;
+    return (width * height * lav_pixfmt_desc[pixFmt].bpp) >> 3;
   }
 }
 
