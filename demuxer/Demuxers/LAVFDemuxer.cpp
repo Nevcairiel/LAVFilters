@@ -1719,7 +1719,9 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
   selector.audioLanguage = "*";
   selector.subtitleLanguage = audiost->language;
   selector.dwFlags = SUBTITLE_FLAG_PGS;
+  selectors.push_back(selector);
 
+  selector.subtitleLanguage = "*";
   selectors.push_back(selector);
 
   const stream *subst = SelectSubtitleStream(selectors, audiost->language);
