@@ -541,6 +541,21 @@ HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
 
   hr = __super::SetActiveStream(type, pid);
 
+  // Usually selecting an audio stream would set the forced substream (since it uses the audio stream language)
+  // but in case there is no audio stream, do a fallback selection of any PGS stream here.
+  if (type == subpic && pid == FORCED_SUBTITLE_PID && m_ForcedSubStream == -1) {
+    std::list<CSubtitleSelector> selectors;
+    CSubtitleSelector selector;
+    selector.audioLanguage = "*";
+    selector.subtitleLanguage = "*";
+    selector.dwFlags = SUBTITLE_FLAG_PGS;
+    selectors.push_back(selector);
+
+    const stream *subst = SelectSubtitleStream(selectors, "");
+    if (subst)
+      m_ForcedSubStream = subst->pid;
+  }
+
   for(unsigned int idx = 0; idx < m_avFormat->nb_streams; ++idx) {
     AVStream *st = m_avFormat->streams[idx];
     if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
