@@ -1,5 +1,27 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.60.0 - 2014/01/12
+LAV Splitter
+- Improved playback of a few Blu-ray discs, avoids a hiccup at clip change
+- Support for reading embedded Cue Sheets from audio files as chapters
+- Added support for reporting the stream bitrate through IBitrateInfo (for MPC-HC et al.)
+- Additional metadata from the source file is exported through IPropertyBag (including "ROTATION" for video orientation information)
+- Fixed demuxing of MKV files with huge SSA/ASS format blocks (> 1MB)
+- Fixed playback of certain MPEG4 ASP streams in MKV to be smooth
+
+LAV Video
+- Added support for VC-1/WMV3 DXVA2 decoding on recent Intel GPUs (Ivy Bridge/Haswell, needs recent drivers)
+- Fixed a crash when stopping playback or seeking on AMD when using DXVA2 Native
+- Fixed playback of WMVA videos in software mode
+- Fixed a few issues with output of odd-height videos when converting to various pixel formats
+- Fixed a few corner cases when reporting the video range to madVR
+- Fixed a crash when playing raw video files with unaligned width (non mod16)
+
+LAV Audio
+- The version of the DTS DLL decoder is now checked, and versions before 1.1.0.0 are blocked (since they do not work)
+- Fixed an issue with DTS parsing which could result in occasional audio stutter
+- Improved support for Opus audio pre-skip
+
 0.59.1 - 2013/11/04
 LAV Splitter
 - Fixed a regression when demuxing AAC audio from MP4/MOV files
