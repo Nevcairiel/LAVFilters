@@ -60,7 +60,7 @@ BEGIN
             VALUE "FileDescription", "LAV Video Decoder - DirectShow Video Decoder"
             VALUE "FileVersion", LAV_VERSION_STR
             VALUE "InternalName", "LAVVideo.ax"
-            VALUE "LegalCopyright", "Copyright (C) 2010-2013 Hendrik Leppkes"
+            VALUE "LegalCopyright", "Copyright (C) 2010-2014 Hendrik Leppkes"
             VALUE "OriginalFilename", "LAVVideo.ax"
             VALUE "ProductName", "LAV Video Decoder"
             VALUE "ProductVersion", LAV_VERSION_STR

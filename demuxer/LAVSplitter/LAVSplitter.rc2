@@ -60,7 +60,7 @@ BEGIN
             VALUE "FileDescription", "LAV Splitter - DirectShow Media Splitter"
             VALUE "FileVersion", LAV_VERSION_STR
             VALUE "InternalName", "LAVSplitter.ax"
-            VALUE "LegalCopyright", "Copyright (C) 2010-2013 Hendrik Leppkes"
+            VALUE "LegalCopyright", "Copyright (C) 2010-2014 Hendrik Leppkes"
             VALUE "OriginalFilename", "LAVSplitter.ax"
             VALUE "ProductName", "LAV Splitter"
             VALUE "ProductVersion", LAV_VERSION_STR
