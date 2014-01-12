@@ -30,12 +30,22 @@ CBaseDemuxer::CBaseDemuxer(LPCTSTR pName, CCritSec *pLock)
   }
 }
 
-void CBaseDemuxer::CreateNoSubtitleStream(CMediaType& mtype)
+void CBaseDemuxer::CreateNoSubtitleStream()
 {
   stream s;
   s.pid = NO_SUBTITLE_PID;
   s.streamInfo = new CStreamInfo();
   s.language = "und";
+  // Create the media type
+  CMediaType mtype;
+  mtype.majortype = MEDIATYPE_Subtitle;
+  mtype.subtype = MEDIASUBTYPE_UTF8;
+  mtype.formattype = FORMAT_SubtitleInfo;
+  SUBTITLEINFO *subInfo = (SUBTITLEINFO *)mtype.AllocFormatBuffer(sizeof(SUBTITLEINFO));
+  memset(subInfo, 0, mtype.FormatLength());
+  wcscpy_s(subInfo->TrackName, NO_SUB_STRING);
+  strcpy_s(subInfo->IsoLang, "und");
+  subInfo->dwOffset = sizeof(SUBTITLEINFO);
   s.streamInfo->mtypes.push_back(mtype);
   // Append it to the list
   m_streams[subpic].push_back(s);

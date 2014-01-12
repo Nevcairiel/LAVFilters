@@ -1310,7 +1310,7 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
       if(s.pid == NO_SUBTITLE_PID) {
         if (plcid) *plcid = LCID_NOSUBTITLES;
         if (ppszName) {
-          WCHAR str[] = L"S: No subtitles";
+          WCHAR str[] = L"S: " NO_SUB_STRING;
           size_t len = wcslen(str) + 1;
           *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
           if (*ppszName)

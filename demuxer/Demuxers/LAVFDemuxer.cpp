@@ -1644,7 +1644,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
   // Create fake subtitle pin
   if(!m_streams[subpic].empty()) {
-    CreateNoSubtitleStream(m_streams[subpic].front().streamInfo->mtypes.front());
+    CreateNoSubtitleStream();
   }
   return S_OK;
 }

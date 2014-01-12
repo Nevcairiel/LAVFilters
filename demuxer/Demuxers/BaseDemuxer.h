@@ -28,6 +28,7 @@
 #define NO_SUBTITLE_PID DWORD_MAX
 #define FORCED_SUBTITLE_PID (NO_SUBTITLE_PID - 1)
 
+#define NO_SUB_STRING L"No subtitles"
 #define FORCED_SUB_STRING L"Forced Subtitles (auto)"
 
 struct ILAVFSettingsInternal;
@@ -120,7 +121,7 @@ public:
 
 protected:
   CBaseDemuxer(LPCTSTR pName, CCritSec *pLock);
-  void CreateNoSubtitleStream(CMediaType& mtype);
+  void CreateNoSubtitleStream();
   void CreatePGSForcedSubtitleStream();
 
 public:
