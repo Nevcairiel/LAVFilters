@@ -1456,8 +1456,14 @@ STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog 
     }
   }
 
-  pVar->vt = VT_BSTR;
-  return GetBSTRMetadata(propName, &pVar->bstrVal, stream);
+  BSTR bstrValue = nullptr;
+  HRESULT hr = GetBSTRMetadata(propName, &bstrValue, stream);
+  if (SUCCEEDED(hr)) {
+    VariantClear(pVar);
+    pVar->vt = VT_BSTR;
+    pVar->bstrVal = bstrValue;
+  }
+  return hr;
 }
 
 STDMETHODIMP CLAVFDemuxer::Write(LPCOLESTR pszPropName, VARIANT *pVar)
