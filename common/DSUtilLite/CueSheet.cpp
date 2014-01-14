@@ -120,6 +120,10 @@ HRESULT CCueSheet::Parse(string cueSheet)
       break;
     case ParserState::FILE:
     case ParserState::TRACK:
+      if (word == "FILE") {
+        DbgLog((LOG_TRACE, 10, L"CCueSheet::Parse(): Multiple FILE segments not supported."));
+        return E_FAIL;
+      }
       if (word == "TRACK") {
         state = ParserState::TRACK;
         trackCount++;
@@ -135,9 +139,6 @@ HRESULT CCueSheet::Parse(string cueSheet)
         } else if (word == "PERFORMER") {
           m_Tracks.back().Performer = GetCueParam(line);
         }
-      } else if (word == "FILE") {
-        DbgLog((LOG_TRACE, 10, L"CCueSheet::Parse(): Multiple FILE segments not supported."));
-        return E_FAIL;
       }
       break;
     }
