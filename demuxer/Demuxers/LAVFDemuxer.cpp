@@ -499,7 +499,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
       av_freep(&m_avFormat->chapters);
       m_avFormat->nb_chapters = 0;
       for (CCueSheet::Track track : cueSheet.m_Tracks) {
-        avpriv_new_chapter(m_avFormat, track.index, AVRational{1, DSHOW_TIME_BASE}, track.Time, track.Time, track.Title.c_str());
+        avpriv_new_chapter(m_avFormat, track.index, AVRational{1, DSHOW_TIME_BASE}, track.Time, track.Time, cueSheet.FormatTrack(track).c_str());
       }
     }
   }

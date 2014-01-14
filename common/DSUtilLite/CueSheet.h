@@ -33,12 +33,16 @@ public:
 public:
   struct Track {
     int index;
+    std::string Id;
     std::string Title;
     REFERENCE_TIME Time;
+    std::string Performer;
   };
 
   std::string m_Performer;
   std::string m_Title;
   std::list<Track> m_Tracks;
+
+  std::string FormatTrack(Track & track);
 };
 

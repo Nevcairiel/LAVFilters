@@ -56,7 +56,7 @@ static void str_replace(string &s, const string &search, const string &replace)
   }
 }
 
-static string GetCueParam(string line)
+static string GetCueParam(string line, bool firstWord = false)
 {
   const string delims(" \t\n\r\"'");
   string::size_type idx;
@@ -71,6 +71,10 @@ static string GetCueParam(string line)
   param = param.substr(0, param.find_last_not_of(delims) + 1);
   // replace escaped quotes
   str_replace(param, "\\\"", "\"");
+
+  if (firstWord) {
+    param = param.substr(0, param.find_first_of(delims));
+  }
   return param;
 }
 
@@ -119,13 +123,17 @@ HRESULT CCueSheet::Parse(string cueSheet)
       if (word == "TRACK") {
         state = ParserState::TRACK;
         trackCount++;
-        Track track{trackCount-1, "Title " + to_string(trackCount), 0};
+
+        string id = GetCueParam(line, true);
+        Track track{trackCount-1, id, "Title " + id, 0, ""};
         m_Tracks.push_back(track);
       } else if (state == ParserState::TRACK) {
         if (word == "TITLE") {
           m_Tracks.back().Title = GetCueParam(line);
         } else if (word == "INDEX") {
           m_Tracks.back().Time = ParseCueIndex(line);
+        } else if (word == "PERFORMER") {
+          m_Tracks.back().Performer = GetCueParam(line);
         }
       } else if (word == "FILE") {
         DbgLog((LOG_TRACE, 10, L"CCueSheet::Parse(): Multiple FILE segments not supported."));
@@ -136,4 +144,13 @@ HRESULT CCueSheet::Parse(string cueSheet)
   }
 
   return S_OK;
+}
+
+std::string CCueSheet::FormatTrack(Track & track)
+{
+  string trackFormat = track.Id + ". ";
+  if (!track.Performer.empty())
+    trackFormat += track.Performer + " - ";
+  trackFormat += track.Title;
+  return trackFormat;
 }
