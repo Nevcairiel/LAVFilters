@@ -1,5 +1,11 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.60.1 - 2014/01/14
+LAV Splitter
+- Fixed a crash when opening MPEG-2 files with Stereo3D Metadata
+- Improved the format of the chapter names created from embedded cue sheets
+- Fixed an incompatibility in the IPropertyBag metadata interface with a few players
+
 0.60.0 - 2014/01/12
 LAV Splitter
 - Improved playback of a few Blu-ray discs, avoids a hiccup at clip change
