@@ -45,6 +45,7 @@ public:
   REFERENCE_TIME GetDuration() const;
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
+  STDMETHODIMP Reset() { return E_NOTIMPL; }
   const char *GetContainerFormat() const;
   virtual DWORD GetContainerFlags() { return LAVFMT_TS_DISCONT|LAVFMT_TS_DISCONT_NO_DOWNSTREAM; }
 

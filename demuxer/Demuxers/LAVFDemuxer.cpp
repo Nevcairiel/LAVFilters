@@ -1116,6 +1116,11 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
   return S_OK;
 }
 
+STDMETHODIMP CLAVFDemuxer::Reset()
+{
+  return SeekByte(0, AVSEEK_FLAG_ANY);
+}
+
 const char *CLAVFDemuxer::GetContainerFormat() const
 {
   return m_pszInputFormat;

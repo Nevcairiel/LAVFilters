@@ -79,6 +79,8 @@ public:
   virtual STDMETHODIMP GetNextPacket(Packet **ppPacket) = 0;
   // Seek to the given position
   virtual STDMETHODIMP Seek(REFERENCE_TIME rTime) = 0;
+  // Reset the demuxer, start reading at position 0
+  virtual STDMETHODIMP Reset() = 0;
   // Get the container format
   virtual const char *GetContainerFormat() const = 0;
   // Get Container Flags

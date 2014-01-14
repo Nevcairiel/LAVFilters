@@ -113,6 +113,9 @@
     <ClInclude Include="LAVSplitterTrayIcon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\includes\IStreamSourceControl.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVSplitter.rc">

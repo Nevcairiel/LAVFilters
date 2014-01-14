@@ -83,6 +83,7 @@ HRESULT CLAVInputPin::BreakConnect()
   }
 
   SafeRelease(&m_pAsyncReader);
+  SafeRelease(&m_pStreamControl);
 
   if (m_pAVIOContext) {
     av_free(m_pAVIOContext->buffer);
@@ -107,6 +108,16 @@ HRESULT CLAVInputPin::CompleteConnect(IPin* pPin)
   }
 
   m_llPos = 0;
+
+  if (FAILED(pPin->QueryInterface(&m_pStreamControl))) {
+    PIN_INFO pinInfo = {0};
+    if (SUCCEEDED(pPin->QueryPinInfo(&pinInfo)) && pinInfo.pFilter) {
+      if (FAILED(pinInfo.pFilter->QueryInterface(&m_pStreamControl)))
+        m_pStreamControl = nullptr;
+      SafeRelease(&(pinInfo.pFilter));
+    } else
+      m_pStreamControl = nullptr;
+  }
 
   if(FAILED(hr = (static_cast<CLAVSplitter *>(m_pFilter))->CompleteInputConnection())) {
     return hr;

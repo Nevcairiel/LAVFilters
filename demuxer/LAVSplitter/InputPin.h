@@ -19,9 +19,11 @@
 
 #pragma once
 
+#include "IStreamSourceControl.h"
+
 class CLAVSplitter;
 
-class CLAVInputPin : public CBasePin, public CCritSec
+class CLAVInputPin : public CBasePin, public CCritSec, public IStreamSourceControl
 {
 public:
   CLAVInputPin(TCHAR* pName, CLAVSplitter *pFilter, CCritSec* pLock, HRESULT* phr);
@@ -42,6 +44,10 @@ public:
 
   CMediaType& CurrentMediaType() { return m_mt; }
 
+  // IStreamSourceControl
+  STDMETHODIMP GetStreamDuration(REFERENCE_TIME *prtDuration) { CheckPointer(m_pStreamControl, E_NOTIMPL); return m_pStreamControl->GetStreamDuration(prtDuration); }
+  STDMETHODIMP SeekStream(REFERENCE_TIME rtPosition) { CheckPointer(m_pStreamControl, E_NOTIMPL); return m_pStreamControl->SeekStream(rtPosition); }
+
 protected:
   static int Read(void *opaque, uint8_t *buf, int buf_size);
   static int64_t Seek(void *opaque, int64_t offset, int whence);
@@ -51,4 +57,6 @@ protected:
 private:
   IAsyncReader *m_pAsyncReader = nullptr;
   AVIOContext *m_pAVIOContext  = nullptr;
+
+  IStreamSourceControl *m_pStreamControl = nullptr;
 };

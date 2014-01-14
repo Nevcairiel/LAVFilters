@@ -59,6 +59,7 @@ public:
   REFERENCE_TIME GetDuration() const;
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
+  STDMETHODIMP Reset();
   const char *GetContainerFormat() const;
   virtual DWORD GetContainerFlags() { return m_bTSDiscont ? LAVFMT_TS_DISCONT : 0; }
 

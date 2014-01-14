@@ -115,6 +115,7 @@
     <ClInclude Include="..\..\common\includes\ILAVPinInfo.h" />
     <ClInclude Include="..\..\common\includes\inttypes.h" />
     <ClInclude Include="..\..\common\includes\ISpecifyPropertyPages2.h" />
+    <ClInclude Include="..\..\common\includes\IStreamSourceControl.h" />
     <ClInclude Include="..\..\common\includes\ITrackInfo.h" />
     <ClInclude Include="..\..\common\includes\LAVSplitterSettings.h" />
     <ClInclude Include="..\..\common\includes\LAVSplitterSettingsInternal.h" />
