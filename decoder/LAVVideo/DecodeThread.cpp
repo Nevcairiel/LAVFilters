@@ -67,11 +67,8 @@ STDMETHODIMP CDecodeThread::InitAllocator(IMemAllocator **ppAlloc)
 {
   CAutoLock decoderLock(this);
 
-  if (!CAMThread::ThreadExists())
+  if (!CAMThread::ThreadExists() || !m_pDecoder)
     return E_UNEXPECTED;
-
-  if (!m_pDecoder)
-    return S_FALSE;
 
   HRESULT hr = S_OK;
   {
@@ -87,7 +84,7 @@ STDMETHODIMP CDecodeThread::PostConnect(IPin *pPin)
   CAutoLock decoderLock(this);
   HRESULT hr = S_OK;
 
-  if (!CAMThread::ThreadExists())
+  if (!CAMThread::ThreadExists() || !m_pDecoder)
     return E_UNEXPECTED;
 
   {
@@ -154,7 +151,7 @@ STDMETHODIMP CDecodeThread::Decode(IMediaSample *pSample)
 {
   CAutoLock decoderLock(this);
 
-  if (!CAMThread::ThreadExists())
+  if (!CAMThread::ThreadExists() || !m_pDecoder)
     return E_UNEXPECTED;
 
   // Wait until the queue is empty
@@ -200,7 +197,7 @@ STDMETHODIMP CDecodeThread::Flush()
 {
   CAutoLock decoderLock(this);
 
-  if (!CAMThread::ThreadExists())
+  if (!CAMThread::ThreadExists() || !m_pDecoder)
     return E_UNEXPECTED;
 
   CAMThread::CallWorker(CMD_FLUSH);
@@ -211,7 +208,7 @@ STDMETHODIMP CDecodeThread::EndOfStream()
 {
   CAutoLock decoderLock(this);
 
-  if (!CAMThread::ThreadExists())
+  if (!CAMThread::ThreadExists() || !m_pDecoder)
     return E_UNEXPECTED;
 
   m_evDeliver.Reset();
