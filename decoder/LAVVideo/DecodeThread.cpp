@@ -465,11 +465,14 @@ softwaredec:
   }
 
 done:
-  if (FAILED(hr) && m_bHWDecoder) {
-    DbgLog((LOG_TRACE, 10, L"-> Hardware decoder failed to initialize, re-trying with software..."));
-    m_bHWDecoderFailed = TRUE;
+  if (FAILED(hr)) {
     SAFE_DELETE(m_pDecoder);
-    goto softwaredec;
+    if (m_bHWDecoder) {
+      DbgLog((LOG_TRACE, 10, L"-> Hardware decoder failed to initialize, re-trying with software..."));
+      m_bHWDecoderFailed = TRUE;
+      goto softwaredec;
+    }
+    return hr;
   }
 
   m_Codec = codec;
