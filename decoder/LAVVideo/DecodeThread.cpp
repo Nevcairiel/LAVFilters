@@ -407,6 +407,7 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodec
 {
   DbgLog((LOG_TRACE, 10, L"CDecodeThread::CreateDecoderInternal(): Creating new decoder for codec %S", avcodec_get_name(codec)));
   HRESULT hr = S_OK;
+  BOOL bWMV9 = FALSE;
 
   BOOL bHWDecBlackList = _wcsicmp(m_processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(m_processName.c_str(), L"explorer.exe") == 0 || _wcsicmp(m_processName.c_str(), L"ReClockHelper.dll") == 0;
   DbgLog((LOG_TRACE, 10, L"-> Process is %s, blacklist: %d", m_processName.c_str(), bHWDecBlackList));
@@ -442,9 +443,10 @@ softwaredec:
   if (!m_pDecoder) {
     DbgLog((LOG_TRACE, 10, L"-> No HW Codec, using Software"));
     m_bHWDecoder = FALSE;
-    if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3))
+    if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3) && !m_bWMV9Failed) {
       m_pDecoder = CreateDecoderWMV9();
-    else
+      bWMV9 = TRUE;
+    } else
       m_pDecoder = CreateDecoderAVCodec();
   }
   DbgLog((LOG_TRACE, 10, L"-> Created Codec '%s'", m_pDecoder->GetDecoderName()));
@@ -467,6 +469,12 @@ done:
     if (m_bHWDecoder) {
       DbgLog((LOG_TRACE, 10, L"-> Hardware decoder failed to initialize, re-trying with software..."));
       m_bHWDecoderFailed = TRUE;
+      goto softwaredec;
+    }
+    if (bWMV9) {
+      DbgLog((LOG_TRACE, 10, L"-> WMV9 DMO decoder failed, trying avcodec instead..."));
+      m_bWMV9Failed = TRUE;
+      bWMV9 = FALSE;
       goto softwaredec;
     }
     return hr;

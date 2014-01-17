@@ -96,6 +96,8 @@ private:
   BOOL         m_bHWDecoder = FALSE;
   BOOL         m_bHWDecoderFailed = FALSE;
 
+  BOOL         m_bWMV9Failed = FALSE;
+
   BOOL         m_bSyncToProcess      = TRUE;
   BOOL         m_bDecoderNeedsReInit = FALSE;
   CAMEvent     m_evInput{TRUE};
