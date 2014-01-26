@@ -1297,10 +1297,9 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
   int idx = (lIndex - j);
   int num_titles = m_pDemuxer->GetNumTitles();
   if (num_titles > 1 && idx >= 0 && idx < num_titles) {
+    DbgLog((LOG_TRACE, 10, L"Setting title to %d", idx));
     HRESULT hr = m_pDemuxer->SetTitle(idx);
     if (SUCCEEDED(hr)) {
-      // Notify the player about the length change
-      NotifyEvent(EC_LENGTH_CHANGED, 0, 0);
       // Perform a seek to the start of the new title
       IMediaSeeking *pSeek = nullptr;
       hr = m_pGraph->QueryInterface(&pSeek);
@@ -1309,6 +1308,9 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
         pSeek->SetPositions(&current, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
         SafeRelease(&pSeek);
       }
+      // Notify the player about the length change
+      DbgLog((LOG_TRACE, 10, L"Title change complete, signaling player"));
+      NotifyEvent(EC_LENGTH_CHANGED, 0, 0);
     }
   }
   return S_FALSE;
