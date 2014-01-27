@@ -108,7 +108,6 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
 
   // RealMedia Audio
   { &MEDIASUBTYPE_COOK,         AV_CODEC_ID_COOK     },
-  { &MEDIASUBTYPE_ATRC,         AV_CODEC_ID_ATRAC3   },
   { &MEDIASUBTYPE_RAAC,         AV_CODEC_ID_AAC      },
   { &MEDIASUBTYPE_RACP,         AV_CODEC_ID_AAC      },
   { &MEDIASUBTYPE_SIPR,         AV_CODEC_ID_SIPR     },
@@ -130,6 +129,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_TRUESPEECH,   AV_CODEC_ID_TRUESPEECH },
   { &MEDIASUBTYPE_QDM2,         AV_CODEC_ID_QDM2     },
   { &MEDIASUBTYPE_VOXWARE_RT29, AV_CODEC_ID_METASOUND },
+  { &MEDIASUBTYPE_ATRAC3,       AV_CODEC_ID_ATRAC3   },
+  { &MEDIASUBTYPE_ATRC,         AV_CODEC_ID_ATRAC3   },
 
   // Special LAVFSplitter interface
   { &MEDIASUBTYPE_FFMPEG_AUDIO, AV_CODEC_ID_NONE     },
@@ -224,7 +225,6 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
 
   // RealMedia Audio
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_COOK         },
-  { &MEDIATYPE_Audio, &MEDIASUBTYPE_ATRC         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_RAAC         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_RACP         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_SIPR         },
@@ -246,6 +246,8 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_TRUESPEECH   },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_QDM2,        },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_VOXWARE_RT29 },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_ATRAC3       },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_ATRC         },
 
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
@@ -672,7 +674,7 @@ static codec_config_t m_codec_config[] = {
   { 2, { AV_CODEC_ID_WMAV2, AV_CODEC_ID_WMAV1 }, "wma", "Windows Media Audio 1/2"}, // CC_WMA2
   { 1, { AV_CODEC_ID_WMAPRO }},                       // CC_WMAPRO
   { 1, { AV_CODEC_ID_COOK }},                         // CC_COOK
-  { 5, { AV_CODEC_ID_SIPR, AV_CODEC_ID_ATRAC3, AV_CODEC_ID_RA_144, AV_CODEC_ID_RA_288, AV_CODEC_ID_RALF }, "realaudio", "Real Audio (ATRAC, SIPR, RALF, 14.4 28.8)" }, // CC_REAL
+  { 4, { AV_CODEC_ID_SIPR, AV_CODEC_ID_RA_144, AV_CODEC_ID_RA_288, AV_CODEC_ID_RALF }, "realaudio", "Real Audio (SIPR, RALF, 14.4 28.8)" }, // CC_REAL
   { 1, { AV_CODEC_ID_WMALOSSLESS }},                  // CC_WMALL
   { 1, { AV_CODEC_ID_ALAC }},                         // CC_ALAC
   { 1, { AV_CODEC_ID_OPUS }, "opus", "Opus Audio Codec"}, // CC_OPUS
@@ -681,6 +683,7 @@ static codec_config_t m_codec_config[] = {
   { 4, { AV_CODEC_ID_PCM_ALAW, AV_CODEC_ID_PCM_MULAW, AV_CODEC_ID_GSM_MS, AV_CODEC_ID_ADPCM_MS }, "mspcm", "Microsoft PCM (A-Law, muLaw, MS-GSM, MS ADPCM)" }, // CC_MSPCM
   { 1, { AV_CODEC_ID_TRUESPEECH }},                   // CC_Truespeech
   { 1, { AV_CODEC_ID_TAK }},                          // CC_TAK
+  { 2, { AV_CODEC_ID_ATRAC1, AV_CODEC_ID_ATRAC3 }, "atrac", "ATRAC (Adaptive TRansform Acoustic Coding)"}, // CC_ATRAC
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec)

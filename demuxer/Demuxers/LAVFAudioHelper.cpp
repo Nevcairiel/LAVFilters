@@ -54,8 +54,6 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_ADPCM_IMA_AMV, &MEDIASUBTYPE_IMA_AMV,        0,                      nullptr },
   { AV_CODEC_ID_FLAC,       &MEDIASUBTYPE_FLAC_FRAMED,       WAVE_FORMAT_FLAC,       nullptr },
   { AV_CODEC_ID_COOK,       &MEDIASUBTYPE_COOK,              WAVE_FORMAT_COOK,       nullptr },
-  { AV_CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
-  { AV_CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
   { AV_CODEC_ID_SIPR,       &MEDIASUBTYPE_SIPR,              WAVE_FORMAT_SIPR,       nullptr },
   { AV_CODEC_ID_RA_288,     &MEDIASUBTYPE_28_8,              WAVE_FORMAT_28_8,       nullptr },
   { AV_CODEC_ID_RA_144,     &MEDIASUBTYPE_14_4,              WAVE_FORMAT_14_4,       nullptr },
@@ -75,6 +73,8 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_PCM_S24BE,  &MEDIASUBTYPE_PCM_IN24,          0,                      nullptr },
   { AV_CODEC_ID_PCM_S32BE,  &MEDIASUBTYPE_PCM_IN32,          0,                      nullptr },
   { AV_CODEC_ID_QDM2,       &MEDIASUBTYPE_QDM2,              WAVE_FORMAT_QDESIGN_MUSIC, nullptr },
+  { AV_CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
+  { AV_CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)
