@@ -255,6 +255,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   //{ &MEDIASUBTYPE_G2M3, AV_CODEC_ID_G2M },
   { &MEDIASUBTYPE_G2M4, AV_CODEC_ID_G2M },
   { &MEDIASUBTYPE_icod, AV_CODEC_ID_AIC },
+  { &MEDIASUBTYPE_DUCK, AV_CODEC_ID_TRUEMOTION1 },
+  { &MEDIASUBTYPE_TM20, AV_CODEC_ID_TRUEMOTION2 },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, AV_CODEC_ID_BINKVIDEO  },
@@ -505,6 +507,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   //{ &MEDIATYPE_Video, &MEDIASUBTYPE_G2M3 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_G2M4 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_icod },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_DUCK },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_TM20 },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -608,6 +612,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_THP }},                                                 // Codec_THP
   { 1, { AV_CODEC_ID_HEVC }},                                                // Codec_HEVC
   { 1, { AV_CODEC_ID_VP9 }},                                                 // Codec_VP9
+  { 2, { AV_CODEC_ID_TRUEMOTION1, AV_CODEC_ID_TRUEMOTION2 }, "truemotion", "Duck TrueMotion 1/2"}, // Codec_TrueMotion
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
