@@ -112,6 +112,11 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
         mtype.subtype = MEDIASUBTYPE_DOLBY_DDPLUS_ARCSOFT;
       } else if (avstream->codec->codec_id == AV_CODEC_ID_DTS) {
         wvfmt->wFormatTag = WAVE_FORMAT_DTS2;
+        if (avstream->codec->profile >= FF_PROFILE_DTS_HD_HRA) {
+          mtype.subtype = MEDIASUBTYPE_DTS_HD;
+          mtypes.push_back(mtype);
+        }
+        mtype.subtype = MEDIASUBTYPE_WAVE_DTS;
       } else if (avstream->codec->codec_id == AV_CODEC_ID_TRUEHD) {
         //wvfmt->wFormatTag = (WORD)WAVE_FORMAT_TRUEHD;
         mtypes.push_back(mtype);
