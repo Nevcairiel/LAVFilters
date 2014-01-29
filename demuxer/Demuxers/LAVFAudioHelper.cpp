@@ -75,6 +75,7 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_QDM2,       &MEDIASUBTYPE_QDM2,              WAVE_FORMAT_QDESIGN_MUSIC, nullptr },
   { AV_CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
   { AV_CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
+  { AV_CODEC_ID_ATRAC3P,    &MEDIASUBTYPE_ATRAC3P,           WAVE_FORMAT_ATRAC3P,    nullptr },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)
