@@ -5,7 +5,7 @@
   <file name="avcodec-lav-55.dll" />
   <file name="avformat-lav-55.dll" />
   <file name="avresample-lav-1.dll" />
-  <file name="avfilter-lav-3.dll" />
+  <file name="avfilter-lav-4.dll" />
   <file name="swscale-lav-2.dll" />
   <file name="libbluray.dll" />
 </assembly>
