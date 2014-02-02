@@ -345,7 +345,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_pAVCtx->coded_height          = abs(pBMI->biHeight);
   m_pAVCtx->bits_per_coded_sample = pBMI->biBitCount;
   m_pAVCtx->error_concealment     = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
-  m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
+  m_pAVCtx->err_recognition       = 0;
   m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT;
   m_pAVCtx->refcounted_frames     = 1;
 

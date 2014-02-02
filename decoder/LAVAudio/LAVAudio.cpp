@@ -1243,7 +1243,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_pAVCtx->bit_rate              = nBytesPerSec << 3;
   m_pAVCtx->bits_per_coded_sample = nBitsPerSample;
   m_pAVCtx->block_align           = nBlockAlign;
-  m_pAVCtx->err_recognition       = AV_EF_CAREFUL;
+  m_pAVCtx->err_recognition       = 0;
   m_pAVCtx->refcounted_frames     = 1;
   m_pAVCtx->pkt_timebase.num      = 1;
   m_pAVCtx->pkt_timebase.den      = 10000000;
