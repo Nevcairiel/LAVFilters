@@ -192,7 +192,7 @@ private:
   CFontInstaller *m_pFontInstaller   = nullptr;
   ILAVFSettingsInternal *m_pSettings = nullptr;
 
-  BOOL m_bEnableTrackInfo            = FALSE;
+  BOOL m_bEnableTrackInfo            = TRUE;
 
   CBDDemuxer *m_pBluRay              = nullptr;
 
