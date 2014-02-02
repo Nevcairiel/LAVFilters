@@ -651,6 +651,11 @@ RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
       Kg = 0.590;
       Kb = 0.110;
       break;
+    case 4: // BT.2020
+      Kr = 0.2627;
+      Kg = 0.6780;
+      Kb = 0.0593;
+      break;
     default:
       DbgLog((LOG_TRACE, 10, L"::getRGBCoeffs(): Unknown color space: %d - defaulting to BT709", matrix));
     case DXVA2_VideoTransferMatrix_BT709:
