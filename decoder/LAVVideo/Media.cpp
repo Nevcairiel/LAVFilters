@@ -674,6 +674,9 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   case AVCOL_PRI_SMPTE240M:
     fmt.VideoPrimaries = DXVA2_VideoPrimaries_SMPTE240M;
     break;
+  case AVCOL_PRI_BT2020:
+    fmt.VideoPrimaries = (DXVA2_VideoPrimaries)9;
+    break;
   }
 
   // Color Space / Transfer Matrix
@@ -681,15 +684,20 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   case AVCOL_SPC_BT709:
     fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT709;
     break;
-  case AVCOL_SPC_FCC:
-    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)6;
-    break;
   case AVCOL_SPC_BT470BG:
   case AVCOL_SPC_SMPTE170M:
     fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
     break;
   case AVCOL_SPC_SMPTE240M:
     fmt.VideoTransferMatrix = DXVA2_VideoTransferMatrix_SMPTE240M;
+    break;
+  // Custom values, not official standard, but understood by madVR
+  case AVCOL_SPC_BT2020_CL:
+  case AVCOL_SPC_BT2020_NCL:
+    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)4;
+    break;
+  case AVCOL_SPC_FCC:
+    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)6;
     break;
   case AVCOL_SPC_YCGCO:
     fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)7;

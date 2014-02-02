@@ -886,13 +886,6 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   RECT rcTargetOld = {0};
   LONG biWidthOld = 0;
 
-  // Remove custom matrix settings
-  if (dxvaExtFlags.VideoTransferMatrix == 6) {
-    dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
-  } else if (dxvaExtFlags.VideoTransferMatrix > DXVA2_VideoTransferMatrix_SMPTE240M) {
-    dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
-  }
-
   // HACK: 1280 is the value when only chroma location is set to MPEG2, do not bother to send this information, as its the same for basically every clip.
   if ((dxvaExtFlags.value & ~0xff) != 0 && (dxvaExtFlags.value & ~0xff) != 1280)
     dxvaExtFlags.SampleFormat = AMCONTROL_USED | AMCONTROL_COLORINFO_PRESENT;
@@ -923,6 +916,16 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     }
   } else if (!m_bOverlayMixer) {
     dwInterlacedFlags = bInterlaced ? AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave : 0;
+  }
+
+  // Remove custom matrix settings, which are not understood upstream
+  if (dxvaExtFlags.VideoTransferMatrix == 6) {
+    dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
+  } else if (dxvaExtFlags.VideoTransferMatrix > DXVA2_VideoTransferMatrix_SMPTE240M && !m_bMadVR) {
+    dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
+  }
+  if (dxvaExtFlags.VideoPrimaries > DXVA2_VideoPrimaries_SMPTE_C && !m_bMadVR) {
+    dxvaExtFlags.VideoPrimaries = DXVA2_VideoPrimaries_Unknown;
   }
 
   if (mt.formattype  == FORMAT_VideoInfo) {
