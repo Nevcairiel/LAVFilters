@@ -1115,6 +1115,11 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
   if (TrackNumSrc == TrackNumDst) return S_OK;
 
+  // WMP/WMC like to always enable the first track, overwriting any initial stream choice
+  // So instead block it from doing anything here.
+  if (!m_bPlaybackStarted && (m_processName == L"wmplayer.exe" || m_processName == L"ehshell.exe"))
+    return S_OK;
+
   CLAVOutputPin* pPin = GetOutputPin(TrackNumSrc);
 
   DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - Switching %s Stream %d to %d", CBaseDemuxer::CStreamList::ToStringW(pPin->GetPinType()), TrackNumSrc, TrackNumDst));
