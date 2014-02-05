@@ -420,8 +420,11 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
     if (requiredSize > m_nAlignedBufferSize) {
       DbgLog((LOG_TRACE, 10, L"::Convert(): Conversion requires a bigger stride (need: %d, have: %d), allocating buffer...", outStride, dstStride));
       av_freep(&m_pAlignedBuffer);
+      m_pAlignedBuffer = (uint8_t *)av_malloc(requiredSize+FF_INPUT_BUFFER_PADDING_SIZE);
+      if (!m_pAlignedBuffer) {
+        return E_FAIL;
+      }
       m_nAlignedBufferSize = requiredSize;
-      m_pAlignedBuffer = (uint8_t *)av_malloc(m_nAlignedBufferSize+FF_INPUT_BUFFER_PADDING_SIZE);
     }
     out = m_pAlignedBuffer;
   }
