@@ -430,7 +430,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   // Timestamp correction is only used for VC-1 codecs which send PTS
   // because this is not handled properly by the API (it expects DTS)
-  qsConfig.bTimeStampCorrection = (codec == AV_CODEC_ID_VC1 && !(m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_ONLY_DTS));
+  qsConfig.bTimeStampCorrection = 1; //(codec == AV_CODEC_ID_VC1 && !(m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_ONLY_DTS));
 
   // Configure number of buffers (dependant on ref_frames)
   // MPEG2 and VC1 always use "low latency" mode
