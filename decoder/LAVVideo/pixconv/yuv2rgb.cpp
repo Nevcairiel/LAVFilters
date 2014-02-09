@@ -506,6 +506,10 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
     ditherMode = LAVDither_Ordered;
   }
 
+  // Map the bX formats to their normal counter part, the shift parameter controls this now
+  if (inputFormat == LAVPixFmt_YUV420bX || inputFormat == LAVPixFmt_YUV422bX || inputFormat == LAVPixFmt_YUV444bX)
+    inputFormat = (LAVPixelFormat)(inputFormat - 1);
+
   YUVRGBConversionFunc convFn = m_RGBConvFuncs[out32][ditherMode][bYCgCo][inputFormat][shift];
   if (convFn == nullptr) {
     ASSERT(0);
@@ -536,6 +540,7 @@ template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1>CONV_FUNC_PARAMS;
   CONV_FUNC_INT(1, LAVDither_Random,  1, format, shift)
 
 #define CONV_FUNCX(format)   \
+  CONV_FUNC(format, 0)       \
   CONV_FUNC(format, 1)       \
   CONV_FUNC(format, 2)       \
   /* CONV_FUNC(format, 3) */ \
@@ -549,14 +554,11 @@ void CLAVPixFmtConverter::InitRGBConvDispatcher()
 {
   ZeroMemory(&m_RGBConvFuncs, sizeof(m_RGBConvFuncs));
 
-  CONV_FUNC(LAVPixFmt_YUV420, 0);
   CONV_FUNC(LAVPixFmt_NV12,   0);
-  CONV_FUNC(LAVPixFmt_YUV422, 0);
-  CONV_FUNC(LAVPixFmt_YUV444, 0);
 
-  CONV_FUNCX(LAVPixFmt_YUV420bX);
-  CONV_FUNCX(LAVPixFmt_YUV422bX);
-  CONV_FUNCX(LAVPixFmt_YUV444bX);
+  CONV_FUNCX(LAVPixFmt_YUV420);
+  CONV_FUNCX(LAVPixFmt_YUV422);
+  CONV_FUNCX(LAVPixFmt_YUV444);
 }
 
 RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
