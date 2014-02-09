@@ -485,105 +485,35 @@ inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8
   return 0;
 }
 
-template <int out32, int dithertype, int ycgco>
-inline int yuv2rgb_dispatch(const uint8_t* const src[4], const int srcStride[4], uint8_t *dst, int dstStride, int width, int height, LAVPixelFormat inputFormat, int bpp, int numThreads, RGBCoeffs *coeffs, const uint16_t *dithers)
-{
-  // Wrap the input format into template args
-  switch (inputFormat) {
-  case LAVPixFmt_YUV420:
-    return yuv2rgb_convert<LAVPixFmt_YUV420, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-  case LAVPixFmt_NV12:
-    return yuv2rgb_convert<LAVPixFmt_NV12, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers,  numThreads);
-  case LAVPixFmt_YUV420bX:
-    if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 11)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 3, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 12)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 4, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 13)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 5, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 14)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 6, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 15)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 7, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 16)
-      return yuv2rgb_convert<LAVPixFmt_YUV420, 8, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else
-      ASSERT(0);
-    break;
-  case LAVPixFmt_YUV422:
-    return yuv2rgb_convert<LAVPixFmt_YUV422, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-  case LAVPixFmt_YUV422bX:
-    if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 11)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 3, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 12)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 4, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 13)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 5, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 14)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 6, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 15)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 7, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 16)
-      return yuv2rgb_convert<LAVPixFmt_YUV422, 8, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else
-      ASSERT(0);
-    break;
-  case LAVPixFmt_YUV444:
-    return yuv2rgb_convert<LAVPixFmt_YUV444, 0, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-  case LAVPixFmt_YUV444bX:
-    if (bpp == 9)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 1, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else if (bpp == 10)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 2, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 11)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 3, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 12)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 4, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 13)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 5, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 14)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 6, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    /*else if (bpp == 15)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 7, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);*/
-    else if (bpp == 16)
-      return yuv2rgb_convert<LAVPixFmt_YUV444, 8, out32, dithertype, ycgco>(src[0], src[1], src[2], dst, width, height, srcStride[0], srcStride[1], dstStride, coeffs, dithers, numThreads);
-    else
-      ASSERT(0);
-    break;
-  default:
-    ASSERT(0);
-  }
-  return 0;
-  }
-
 template <int out32>
 DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
   RGBCoeffs *coeffs = getRGBCoeffs(width, height);
 
+  if (!m_bRGBConvInit) {
+    m_bRGBConvInit = TRUE;
+    InitRGBConvDispatcher();
+  }
+
+  BOOL bYCgCo = (m_ColorProps.VideoTransferMatrix == 7);
+  int shift = max(bpp - 8, 0);
+
+  ASSERT(shift >= 0 && shift <= 8);
+
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0) : nullptr;
-  if (ditherMode == LAVDither_Random && dithers != nullptr) {
-    if (m_ColorProps.VideoTransferMatrix == 7) {
-      yuv2rgb_dispatch<out32, 1, 1>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
-    } else {
-      yuv2rgb_dispatch<out32, 1, 0>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, dithers);
-    }
-  } else {
-    if (m_ColorProps.VideoTransferMatrix == 7) {
-      yuv2rgb_dispatch<out32, 0, 1>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, nullptr);
-    } else {
-      yuv2rgb_dispatch<out32, 0, 0>(src, srcStride, dst[0], dstStride[0], width, height, inputFormat, bpp, m_NumThreads, coeffs, nullptr);
-    }
+  if (ditherMode == LAVDither_Random && dithers == nullptr) {
+    ditherMode = LAVDither_Ordered;
   }
+
+  YUVRGBConversionFunc convFn = m_RGBConvFuncs[out32][ditherMode][bYCgCo][inputFormat][shift];
+  if (convFn == nullptr) {
+    ASSERT(0);
+    return E_FAIL;
+  }
+
+  // run conversion
+  convFn(src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], coeffs, dithers, m_NumThreads);
 
   return S_OK;
 }
@@ -591,6 +521,43 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 // Force creation of these two variants
 template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0>CONV_FUNC_PARAMS;
 template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1>CONV_FUNC_PARAMS;
+
+#define CONV_FUNC_INT(out32, dither, ycgco, format, shift) \
+  m_RGBConvFuncs[out32][dither][ycgco][format][shift] = yuv2rgb_convert<format, shift, out32, dither, ycgco>;
+
+#define CONV_FUNC(format, shift)                          \
+  CONV_FUNC_INT(0, LAVDither_Ordered, 0, format, shift)   \
+  CONV_FUNC_INT(1, LAVDither_Ordered, 0, format, shift)   \
+  CONV_FUNC_INT(0, LAVDither_Random,  0, format, shift)   \
+  CONV_FUNC_INT(1, LAVDither_Random,  0, format, shift)   \
+  CONV_FUNC_INT(0, LAVDither_Ordered, 1, format, shift)   \
+  CONV_FUNC_INT(1, LAVDither_Ordered, 1, format, shift)   \
+  CONV_FUNC_INT(0, LAVDither_Random,  1, format, shift)   \
+  CONV_FUNC_INT(1, LAVDither_Random,  1, format, shift)
+
+#define CONV_FUNCX(format)   \
+  CONV_FUNC(format, 1)       \
+  CONV_FUNC(format, 2)       \
+  /* CONV_FUNC(format, 3) */ \
+  CONV_FUNC(format, 4)       \
+  /* CONV_FUNC(format, 5) */ \
+  CONV_FUNC(format, 6)       \
+  /* CONV_FUNC(format, 7) */ \
+  CONV_FUNC(format, 8)
+
+void CLAVPixFmtConverter::InitRGBConvDispatcher()
+{
+  ZeroMemory(&m_RGBConvFuncs, sizeof(m_RGBConvFuncs));
+
+  CONV_FUNC(LAVPixFmt_YUV420, 0);
+  CONV_FUNC(LAVPixFmt_NV12,   0);
+  CONV_FUNC(LAVPixFmt_YUV422, 0);
+  CONV_FUNC(LAVPixFmt_YUV444, 0);
+
+  CONV_FUNCX(LAVPixFmt_YUV420bX);
+  CONV_FUNCX(LAVPixFmt_YUV422bX);
+  CONV_FUNCX(LAVPixFmt_YUV444bX);
+}
 
 RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
 {

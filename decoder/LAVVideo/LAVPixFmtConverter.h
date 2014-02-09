@@ -50,6 +50,8 @@ typedef struct _RGBCoeffs {
   __m128i cB_Cb;
 } RGBCoeffs;
 
+typedef int (*YUVRGBConversionFunc)(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, RGBCoeffs *coeffs, const uint16_t *dithers, int threads);
+
 extern LAVOutPixFmtDesc lav_pixfmt_desc[];
 
 class CLAVPixFmtConverter
@@ -130,6 +132,8 @@ private:
 
   template <int out32> DECLARE_CONV_FUNC(convert_yuv_rgb);
   RGBCoeffs* getRGBCoeffs(int width, int height);
+  void InitRGBConvDispatcher();
+
   const uint16_t* GetRandomDitherCoeffs(int height, int coeffs, int bits, int line);
 
 private:
@@ -156,6 +160,10 @@ private:
 
   RGBCoeffs *m_rgbCoeffs = nullptr;
   BOOL m_bRGBConverter   = FALSE;
+  BOOL m_bRGBConvInit    = FALSE;
+
+  // [out32][dithermode][ycgco][format][shift]
+  YUVRGBConversionFunc m_RGBConvFuncs[2][2][2][LAVPixFmt_NB][9];
 
   uint16_t *m_pRandomDithers = nullptr;
   int m_ditherWidth  = 0;
