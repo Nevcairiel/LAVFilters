@@ -538,7 +538,7 @@ HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
       int out_ch = av_get_channel_layout_nb_channels(dwMixingLayout);
       double *matrix_dbl = (double *)av_mallocz(in_ch * out_ch * sizeof(*matrix_dbl));
 
-      const double center_mix_level = (double)m_settings.MixingCenterLevel / 10000.0 / M_SQRT1_2;
+      const double center_mix_level = (double)m_settings.MixingCenterLevel / 10000.0;
       const double surround_mix_level = (double)m_settings.MixingSurroundLevel / 10000.0;
       const double lfe_mix_level = (double)m_settings.MixingLFELevel / 10000.0 / (dwMixingLayout == AV_CH_LAYOUT_MONO ? 1.0 : M_SQRT1_2);
       ret = avresample_build_matrix(buffer->dwChannelMask, dwMixingLayout, center_mix_level, surround_mix_level, lfe_mix_level, bNormalize, matrix_dbl, in_ch, (AVMatrixEncoding)m_settings.MixingMode);
