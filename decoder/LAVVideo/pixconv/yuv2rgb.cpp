@@ -32,7 +32,7 @@
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
 template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype, int ycgco> __forceinline
-static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t line, RGBCoeffs *coeffs, const uint16_t* &dithers, ptrdiff_t pos)
+static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t line, const RGBCoeffs *coeffs, const uint16_t* &dithers, ptrdiff_t pos)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
   xmm7 = _mm_setzero_si128 ();
@@ -394,7 +394,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 }
 
 template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
-static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t sliceYStart, ptrdiff_t sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers)
+static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t sliceYStart, ptrdiff_t sliceYEnd, const RGBCoeffs *coeffs, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
   const uint8_t *u = srcU;
@@ -470,7 +470,7 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
 template <int out32>
 DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
-  RGBCoeffs *coeffs = getRGBCoeffs(width, height);
+  const RGBCoeffs *coeffs = getRGBCoeffs(width, height);
 
   if (!m_bRGBConvInit) {
     m_bRGBConvInit = TRUE;
@@ -554,7 +554,7 @@ void CLAVPixFmtConverter::InitRGBConvDispatcher()
   CONV_FUNCX(LAVPixFmt_YUV444);
 }
 
-RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
+const RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
 {
   if (!m_rgbCoeffs || width != swsWidth || height != swsHeight) {
     swsWidth = width;
