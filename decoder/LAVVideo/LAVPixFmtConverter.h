@@ -50,7 +50,7 @@ typedef struct _RGBCoeffs {
   __m128i cB_Cb;
 } RGBCoeffs;
 
-typedef int (*YUVRGBConversionFunc)(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, RGBCoeffs *coeffs, const uint16_t *dithers, int threads);
+typedef int (__stdcall *YUVRGBConversionFunc)(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t sliceYStart, ptrdiff_t sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers);
 
 extern LAVOutPixFmtDesc lav_pixfmt_desc[];
 

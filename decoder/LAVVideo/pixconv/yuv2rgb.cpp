@@ -394,7 +394,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 }
 
 template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
-static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t sliceYStart, ptrdiff_t sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers)
+static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t sliceYStart, ptrdiff_t sliceYEnd, RGBCoeffs *coeffs, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
   const uint8_t *u = srcU;
@@ -467,24 +467,6 @@ static int __stdcall yuv2rgb_process_lines(const uint8_t *srcY, const uint8_t *s
   return 0;
 }
 
-template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
-inline int yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, RGBCoeffs *coeffs, const uint16_t *dithers, int threads)
-{
-  if (threads <= 1) {
-    yuv2rgb_process_lines<inputFormat, shift, out32, dithertype, ycgco>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, 0, height, coeffs, dithers);
-  } else {
-    const int is_odd = (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12);
-    const ptrdiff_t lines_per_thread = (height / threads)&~1;
-
-    Concurrency::parallel_for(0, threads, [&](int i) {
-      const ptrdiff_t starty = (i * lines_per_thread);
-      const ptrdiff_t endy = (i == (threads-1)) ? height : starty + lines_per_thread + is_odd;
-      yuv2rgb_process_lines<inputFormat, shift, out32, dithertype, ycgco>(srcY, srcU, srcV, dst, width, height, srcStrideY, srcStrideUV, dstStride, starty + (i ? is_odd : 0), endy, coeffs, dithers);
-    });
-  }
-  return 0;
-}
-
 template <int out32>
 DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
@@ -516,8 +498,19 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
     return E_FAIL;
   }
 
-  // run conversion
-  convFn(src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], coeffs, dithers, m_NumThreads);
+  // run conversion, threaded
+  if (m_NumThreads <= 1) {
+    convFn(src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], 0, height, coeffs, dithers);
+  } else {
+    const int is_odd = (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12);
+    const ptrdiff_t lines_per_thread = (height / m_NumThreads)&~1;
+
+    Concurrency::parallel_for(0, m_NumThreads, [&](int i) {
+      const ptrdiff_t starty = (i * lines_per_thread);
+      const ptrdiff_t endy = (i == (m_NumThreads - 1)) ? height : starty + lines_per_thread + is_odd;
+      convFn(src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], starty + (i ? is_odd : 0), endy, coeffs, dithers);
+    });
+  }
 
   return S_OK;
 }
