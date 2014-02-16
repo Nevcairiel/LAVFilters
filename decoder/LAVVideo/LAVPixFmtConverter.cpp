@@ -321,7 +321,8 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     // We assume that every filter that understands v210 will also properly handle it
     m_RequiredAlignment = 0;
   } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
-    || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) || (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48)) {
+    || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) || (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48)
+    || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
     convert = &CLAVPixFmtConverter::plane_copy;
     m_RequiredAlignment = 0;
   } else if (m_InputPixFmt == LAVPixFmt_RGB48 && m_OutputPixFmt == LAVOutPixFmt_RGB32 && (cpu & AV_CPU_FLAG_SSSE3)) {
@@ -384,9 +385,6 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       }
 
       m_RequiredAlignment = 8; // Pixel alignment of 8 guarantees a byte alignment of 16
-    } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
-      convert = &CLAVPixFmtConverter::convert_nv12_nv12;
-      m_RequiredAlignment = 0;
     } else if ((m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_YUV420)
             || (m_OutputPixFmt == LAVOutPixFmt_YV16 && m_InputPixFmt == LAVPixFmt_YUV422)
             || (m_OutputPixFmt == LAVOutPixFmt_YV24 && m_InputPixFmt == LAVPixFmt_YUV444)) {
@@ -398,10 +396,6 @@ void CLAVPixFmtConverter::SelectConvertFunction()
       else
         convert = &CLAVPixFmtConverter::convert_rgb48_rgb<0>;
     }
-  // Fallbacks only to be used when SSE2 is not available
-  } else if ((m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
-    convert = &CLAVPixFmtConverter::plane_copy;
-    m_RequiredAlignment = 0;
   }
 
   if (convert == nullptr) {
