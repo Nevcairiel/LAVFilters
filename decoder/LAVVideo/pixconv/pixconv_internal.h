@@ -21,5 +21,6 @@
 
 #include "LAVPixFmtConverter.h"
 #include <emmintrin.h>
+#include "timer.h"
 
 extern DECLARE_ALIGNED(16, const uint16_t, dither_8x8_256)[8][8];

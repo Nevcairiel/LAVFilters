@@ -88,6 +88,7 @@
     <ClInclude Include="registry.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SynchronizedQueue.h" />
+    <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseDSPropPage.cpp" />
