@@ -137,7 +137,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
   return m_pSwsContext;
 }
 
-HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], uint8_t* dst[], int width, int height, int dstStride[], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
+HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], uint8_t* dst[], int width, int height, const int dstStride[], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
 {
   int ret;
 
@@ -154,7 +154,7 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPix
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
@@ -250,7 +250,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
@@ -318,7 +318,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[], int chromaVertical)
+HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[], int chromaVertical)
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
@@ -426,7 +426,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
     out += dstStride; \
   }
 
-HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
@@ -486,7 +486,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
@@ -539,7 +539,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
@@ -637,7 +637,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
