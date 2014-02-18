@@ -452,7 +452,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_bInputPadded = dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER;
 
   // Setup codec-specific timing logic
-  BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS));
 
   // MPEG-4 with VideoInfo/2 is from AVI, and only DTS
   if (codec == AV_CODEC_ID_MPEG4 && pmt->formattype != FORMAT_MPEG2Video)
@@ -473,7 +472,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                           );
 
   // Stop time is unreliable, drop it and calculate it
-  m_bCalculateStopTime   = (codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_DIRAC || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video) || bVC1IsPTS);
+  m_bCalculateStopTime   = (codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_DIRAC || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video) || (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS)));
 
   // Real Video content has some odd timestamps
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
