@@ -454,6 +454,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // Setup codec-specific timing logic
   BOOL bVC1IsPTS = (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS));
 
+  // MPEG-4 with VideoInfo/2 is from AVI, and only DTS
   if (codec == AV_CODEC_ID_MPEG4 && pmt->formattype != FORMAT_MPEG2Video)
     dwDecFlags |= LAV_VIDEO_DEC_FLAG_ONLY_DTS;
 
