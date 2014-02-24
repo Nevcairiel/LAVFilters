@@ -360,11 +360,9 @@ void CLAVPixFmtConverter::SelectConvertFunction()
              || m_InputPixFmt == LAVPixFmt_YUV422 || m_InputPixFmt == LAVPixFmt_YUV422bX
              || m_InputPixFmt == LAVPixFmt_YUV444 || m_InputPixFmt == LAVPixFmt_YUV444bX
              || m_InputPixFmt == LAVPixFmt_NV12)) {
+      convert = &CLAVPixFmtConverter::convert_yuv_rgb;
       if (m_OutputPixFmt == LAVOutPixFmt_RGB32) {
-        convert = &CLAVPixFmtConverter::convert_yuv_rgb<1>;
         m_RequiredAlignment = 4;
-      } else {
-        convert = &CLAVPixFmtConverter::convert_yuv_rgb<0>;
       }
       m_bRGBConverter = TRUE;
     } else if (m_OutputPixFmt == LAVOutPixFmt_YV12 && m_InputPixFmt == LAVPixFmt_NV12) {

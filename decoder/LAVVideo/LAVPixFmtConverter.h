@@ -129,7 +129,7 @@ private:
   DECLARE_CONV_FUNC(convert_rgb48_rgb32_ssse3);
   template <int out32> DECLARE_CONV_FUNC(convert_rgb48_rgb);
 
-  template <int out32> DECLARE_CONV_FUNC(convert_yuv_rgb);
+  DECLARE_CONV_FUNC(convert_yuv_rgb);
   const RGBCoeffs* getRGBCoeffs(int width, int height);
   void InitRGBConvDispatcher();
 

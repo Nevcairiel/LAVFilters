@@ -31,7 +31,7 @@
 #define DITHER_STEPS 3
 
 // This function converts 4x2 pixels from the source into 4x2 RGB pixels in the destination
-template <LAVPixelFormat inputFormat, int shift, int out32, int right_edge, int dithertype, int ycgco> __forceinline
+template <LAVPixelFormat inputFormat, int shift, int outFmt, int right_edge, int dithertype, int ycgco> __forceinline
 static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, const uint8_t* &srcV, uint8_t* &dst, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t line, const RGBCoeffs *coeffs, const uint16_t* &dithers, ptrdiff_t pos)
 {
   __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
@@ -352,7 +352,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
 
   // TODO: RGB limiting
 
-  if (out32) {
+  if (outFmt == 1) {
     _mm_stream_si128((__m128i *)(dst), xmm1);
     _mm_stream_si128((__m128i *)(dst + dstStride), xmm2);
     dst += 16;
@@ -393,7 +393,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   return 0;
 }
 
-template <LAVPixelFormat inputFormat, int shift, int out32, int dithertype, int ycgco>
+template <LAVPixelFormat inputFormat, int shift, int outFmt, int dithertype, int ycgco>
 static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, const uint8_t *srcV, uint8_t *dst, int width, int height, ptrdiff_t srcStrideY, ptrdiff_t srcStrideUV, ptrdiff_t dstStride, ptrdiff_t sliceYStart, ptrdiff_t sliceYEnd, const RGBCoeffs *coeffs, const uint16_t *dithers)
 {
   const uint8_t *y = srcY;
@@ -415,9 +415,9 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
     if (line == 0) {
       for (ptrdiff_t i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
+        yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
+      yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
 
       line = 1;
     }
@@ -444,9 +444,9 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
     rgb = dst + line * dstStride;
 
     for (ptrdiff_t i = 0; i < endx; i += 4) {
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, i);
+      yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 0, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, i);
     }
-    yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
+    yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 1, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
   }
 
   if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || lastLineInOddHeight) {
@@ -459,15 +459,14 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
       rgb = dst + (height - 1) * dstStride;
 
       for (ptrdiff_t i = 0; i < endx; i += 4) {
-        yuv2rgb_convert_pixels<inputFormat, shift, out32, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
+        yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
       }
-      yuv2rgb_convert_pixels<inputFormat, shift, out32, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
+      yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 1, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, 0);
     }
   }
   return 0;
 }
 
-template <int out32>
 DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
   const RGBCoeffs *coeffs = getRGBCoeffs(width, height);
@@ -479,8 +478,19 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 
   BOOL bYCgCo = (m_ColorProps.VideoTransferMatrix == 7);
   int shift = max(bpp - 8, 0);
-
   ASSERT(shift >= 0 && shift <= 8);
+
+  int outFmt = -1;
+  switch (outputFormat) {
+  case LAVOutPixFmt_RGB24:
+    outFmt = 0;
+    break;
+  case LAVOutPixFmt_RGB32:
+    outFmt = 1;
+    break;
+  default:
+    ASSERT(0);
+  }
 
   LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
   const uint16_t *dithers = (ditherMode == LAVDither_Random) ? GetRandomDitherCoeffs(height, DITHER_STEPS * 3, 4, 0) : nullptr;
@@ -492,7 +502,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   if (inputFormat == LAVPixFmt_YUV420bX || inputFormat == LAVPixFmt_YUV422bX || inputFormat == LAVPixFmt_YUV444bX)
     inputFormat = (LAVPixelFormat)(inputFormat - 1);
 
-  YUVRGBConversionFunc convFn = m_RGBConvFuncs[out32][ditherMode][bYCgCo][inputFormat][shift];
+  YUVRGBConversionFunc convFn = m_RGBConvFuncs[outFmt][ditherMode][bYCgCo][inputFormat][shift];
   if (convFn == nullptr) {
     ASSERT(0);
     return E_FAIL;
@@ -515,22 +525,18 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   return S_OK;
 }
 
-// Force creation of these two variants
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<0>CONV_FUNC_PARAMS;
-template HRESULT CLAVPixFmtConverter::convert_yuv_rgb<1>CONV_FUNC_PARAMS;
-
-#define CONV_FUNC_INT(out32, dither, ycgco, format, shift) \
+#define CONV_FUNC_INT2(out32, dither, ycgco, format, shift) \
   m_RGBConvFuncs[out32][dither][ycgco][format][shift] = yuv2rgb_convert<format, shift, out32, dither, ycgco>;
 
-#define CONV_FUNC(format, shift)                          \
-  CONV_FUNC_INT(0, LAVDither_Ordered, 0, format, shift)   \
-  CONV_FUNC_INT(1, LAVDither_Ordered, 0, format, shift)   \
-  CONV_FUNC_INT(0, LAVDither_Random,  0, format, shift)   \
-  CONV_FUNC_INT(1, LAVDither_Random,  0, format, shift)   \
-  CONV_FUNC_INT(0, LAVDither_Ordered, 1, format, shift)   \
-  CONV_FUNC_INT(1, LAVDither_Ordered, 1, format, shift)   \
-  CONV_FUNC_INT(0, LAVDither_Random,  1, format, shift)   \
-  CONV_FUNC_INT(1, LAVDither_Random,  1, format, shift)
+#define CONV_FUNC_INT(dither, ycgco, format, shift)  \
+  CONV_FUNC_INT2(0, dither, ycgco, format, shift)    \
+  CONV_FUNC_INT2(1, dither, ycgco, format, shift)    \
+
+#define CONV_FUNC(format, shift)                     \
+  CONV_FUNC_INT(LAVDither_Ordered, 0, format, shift) \
+  CONV_FUNC_INT(LAVDither_Random,  0, format, shift) \
+  CONV_FUNC_INT(LAVDither_Ordered, 1, format, shift) \
+  CONV_FUNC_INT(LAVDither_Random,  1, format, shift) \
 
 #define CONV_FUNCX(format)   \
   CONV_FUNC(format, 0)       \
