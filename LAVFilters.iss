@@ -201,15 +201,17 @@ begin
   FR(SplitterFormats[11], 'mxf', 'MXF (Material Exchange Format)', True, ['mxf', '']);
   FR(SplitterFormats[12], 'bink', 'Bink', True, ['bik', '']);
 
-  FP(SplitterFormats[13], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
-  FP(SplitterFormats[14], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
-  FP(SplitterFormats[15], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
+  FP(SplitterFormats[13], 'avisynth', 'AviSynth scripts', True, ['avs', '']);
 
-  FR(SplitterFormats[16], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
-  FR(SplitterFormats[17], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
-  FR(SplitterFormats[18], 'aac', 'AAC Audio', True, ['aac', '']);
-  FR(SplitterFormats[19], 'mp3', 'MP3 Audio', True, ['mp3', '']);
-  FR(SplitterFormats[20], 'flac', 'FLAC Audio', True, ['flac', '']);
+  FP(SplitterFormats[14], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
+  FP(SplitterFormats[15], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
+  FP(SplitterFormats[16], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
+
+  FR(SplitterFormats[17], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
+  FR(SplitterFormats[18], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
+  FR(SplitterFormats[19], 'aac', 'AAC Audio', True, ['aac', '']);
+  FR(SplitterFormats[20], 'mp3', 'MP3 Audio', True, ['mp3', '']);
+  FR(SplitterFormats[21], 'flac', 'FLAC Audio', True, ['flac', '']);
 end;
 
 procedure RegisterSourceFormatGUIDs(f: Format);
