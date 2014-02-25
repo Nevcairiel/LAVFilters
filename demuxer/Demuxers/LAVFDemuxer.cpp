@@ -241,8 +241,13 @@ trynoformat:
   if (!m_pSettings->GetLoadMatroskaExternalSegments())
     m_avFormat->flags |= AVFMT_FLAG_NOEXTERNAL;
 
+  // demuxer/protocol options
+  AVDictionary *options = nullptr;
+  av_dict_set(&options, "icy", "1", 0); // request ICY metadata
+
   m_timeOpening = time(nullptr);
-  ret = avformat_open_input(&m_avFormat, fileName, inputFormat, nullptr);
+  ret = avformat_open_input(&m_avFormat, fileName, inputFormat, &options);
+  av_dict_free(&options);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 0, TEXT("::OpenInputStream(): avformat_open_input failed (%d)"), ret));
     if (format) {
