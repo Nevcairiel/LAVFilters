@@ -876,14 +876,16 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (map.conversion) {
       ConvertPixFmt(m_pFrame, pOutFrame);
     } else {
+      AVFrame *pFrameRef = av_frame_alloc();
+      av_frame_ref(pFrameRef, m_pFrame);
+
       for (int i = 0; i < 4; i++) {
-        pOutFrame->data[i]   = m_pFrame->data[i];
-        pOutFrame->stride[i] = m_pFrame->linesize[i];
+        pOutFrame->data[i]   = pFrameRef->data[i];
+        pOutFrame->stride[i] = pFrameRef->linesize[i];
       }
 
-      pOutFrame->priv_data = av_frame_alloc();
-      av_frame_ref((AVFrame *)pOutFrame->priv_data, m_pFrame);
-      pOutFrame->destruct  = lav_avframe_free;
+      pOutFrame->priv_data = pFrameRef;
+      pOutFrame->destruct = lav_avframe_free;
 
       // Check alignment on rawvideo, which can be off depending on the source file
       if (m_nCodecId == AV_CODEC_ID_RAWVIDEO) {
