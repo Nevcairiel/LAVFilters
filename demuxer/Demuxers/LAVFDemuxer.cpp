@@ -445,6 +445,30 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     CheckBDM2TSCPLI(pszFileName);
   }
 
+  char *icy_headers = nullptr;
+  if (av_opt_get(m_avFormat, "icy_metadata_headers", AV_OPT_SEARCH_CHILDREN, (uint8_t **)&icy_headers) >= 0 && icy_headers && strlen(icy_headers) > 0) {
+    std::string icyHeaders(icy_headers);
+    std::stringstream icyHeaderStream(icyHeaders);
+
+    std::string line;
+    while (std::getline(icyHeaderStream, line)) {
+      int seperatorIdx = line.find_first_of(":");
+      std::string token = line.substr(0, seperatorIdx);
+      std::string value = line.substr(seperatorIdx + 1);
+      if (_stricmp(token.c_str(), "icy-name") == 0) {
+        // not entirely correct, but this way it gets exported through IAMMediaContent
+        av_dict_set(&m_avFormat->metadata, "artist", value.c_str(), 0);
+      } else if (_stricmp(token.c_str(), "icy-description") == 0) {
+        av_dict_set(&m_avFormat->metadata, "comment", value.c_str(), 0);
+      } else if (_stricmp(token.c_str(), "icy-genre") == 0) {
+        av_dict_set(&m_avFormat->metadata, "genre", value.c_str(), 0);
+      }
+    }
+
+    ParseICYMetadataPacket();
+  }
+  av_freep(&icy_headers);
+
   SAFE_CO_FREE(m_stOrigParser);
   m_stOrigParser = (enum AVStreamParseType *)CoTaskMemAlloc(m_avFormat->nb_streams * sizeof(enum AVStreamParseType));
   if (!m_stOrigParser)
@@ -870,6 +894,34 @@ STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID
   return S_OK;
 }
 
+STDMETHODIMP CLAVFDemuxer::ParseICYMetadataPacket()
+{
+  char *icy_data = nullptr;
+  if (av_opt_get(m_avFormat, "icy_metadata_packet", AV_OPT_SEARCH_CHILDREN, (uint8_t **)&icy_data) >= 0 && icy_data && strlen(icy_data) > 0) {
+    std::string icyData(icy_data);
+    size_t idx = icyData.find("StreamTitle");
+    if (idx != std::string::npos) {
+      // strip StreamTitle token and =
+      std::string value = icyData.substr(idx + 12);
+      idx = value.find_first_of(";");
+      if (idx != std::string::npos)
+        value = value.substr(0, idx);
+      if (value[0] == '\'' || value[0] == '"')
+        value = value.substr(1);
+      if (value[value.length() - 1] == '\'' || value[value.length() - 1] == '"')
+        value = value.substr(0, value.length() - 1);
+      if (value.length() > 0) {
+        av_dict_set(&m_avFormat->metadata, "title", value.c_str(), 0);
+      }
+    }
+    // clear value, and only read again when its send again
+    av_opt_set(m_avFormat, "icy_metadata_packet", "", AV_OPT_SEARCH_CHILDREN);
+  }
+  av_freep(&icy_data);
+
+  return S_OK;
+}
+
 STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 {
   CheckPointer(ppPacket, E_POINTER);
@@ -1050,6 +1102,8 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
   if (!pPacket) {
     return E_FAIL;
   }
+
+  ParseICYMetadataPacket();
 
   *ppPacket = pPacket;
   return S_OK;
