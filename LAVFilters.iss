@@ -201,7 +201,7 @@ begin
   FR(SplitterFormats[11], 'mxf', 'MXF (Material Exchange Format)', True, ['mxf', '']);
   FR(SplitterFormats[12], 'bink', 'Bink', True, ['bik', '']);
 
-  FP(SplitterFormats[13], 'avisynth', 'AviSynth scripts', True, ['avs', '']);
+  FR(SplitterFormats[13], 'avisynth', 'AviSynth scripts', True, ['avs', '']);
 
   FP(SplitterFormats[14], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
   FP(SplitterFormats[15], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
