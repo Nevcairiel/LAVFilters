@@ -24,7 +24,7 @@
 
 #define DXVA2_MAX_SURFACES 64
 #define DXVA2_QUEUE_SURFACES 4
-#define DXVA2_SURFACE_ALIGN 16
+#define DXVA2_SURFACE_ALIGN 32
 
 typedef HRESULT WINAPI pCreateDeviceManager9(UINT *pResetToken, IDirect3DDeviceManager9 **);
 
