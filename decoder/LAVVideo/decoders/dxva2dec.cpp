@@ -961,12 +961,27 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
     }
   }
 
+  if (m_NumSurfaces <= 0) {
+    DbgLog((LOG_TRACE, 10, L"-> No surfaces? No good!"));
+    return E_FAIL;
+  }
+
+  // get the device, for ColorFill() to init the surfaces in black
+  IDirect3DDevice9 *pDev = nullptr;
+  ppSurfaces[0]->GetDevice(&pDev);
+
   for (int i = 0; i < m_NumSurfaces; i++) {
     m_pSurfaces[i].index = i;
     m_pSurfaces[i].d3d = ppSurfaces[i];
     m_pSurfaces[i].age = 0;
     m_pSurfaces[i].used = false;
+
+    // fill the surface in black, to avoid the "green screen" in case the first frame fails to decode.
+    if (pDev) pDev->ColorFill(ppSurfaces[i], NULL, D3DCOLOR_XYUV(0, 128, 128));
   }
+
+  // and done with the device
+  SafeRelease(&pDev);
 
   DbgLog((LOG_TRACE, 10, L"-> Successfully created %d surfaces (%dx%d)", m_NumSurfaces, m_dwSurfaceWidth, m_dwSurfaceHeight));
 
