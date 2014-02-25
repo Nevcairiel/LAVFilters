@@ -409,7 +409,7 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
     outStride = FFALIGN(dstStride, m_RequiredAlignment);
     size_t requiredSize = (outStride * planeHeight * lav_pixfmt_desc[m_OutputPixFmt].bpp) >> 3;
-    if (requiredSize > m_nAlignedBufferSize) {
+    if (requiredSize > m_nAlignedBufferSize || !m_pAlignedBuffer) {
       DbgLog((LOG_TRACE, 10, L"::Convert(): Conversion requires a bigger stride (need: %d, have: %d), allocating buffer...", outStride, dstStride));
       av_freep(&m_pAlignedBuffer);
       m_pAlignedBuffer = (uint8_t *)av_malloc(requiredSize+FF_INPUT_BUFFER_PADDING_SIZE);
