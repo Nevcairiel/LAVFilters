@@ -223,7 +223,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
     memset(vih, 0, sizeof(VIDEOINFOHEADER));
 
     vih->rcSource.right = vih->rcTarget.right = biWidth;
-    vih->rcSource.bottom = vih->rcTarget.bottom = biHeight;
+    vih->rcSource.bottom = vih->rcTarget.bottom = abs(biHeight);
     vih->AvgTimePerFrame = rtAvgTime;
 
     pBIH = &vih->bmiHeader;
@@ -236,7 +236,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
     // Validate the Aspect Ratio - an AR of 0 crashes VMR-9
     if (dwAspectX == 0 || dwAspectY == 0) {
       dwAspectX = biWidth;
-      dwAspectY = biHeight;
+      dwAspectY = abs(biHeight);
     }
 
     // Always reduce the AR to the smalles fraction
@@ -244,7 +244,7 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
     av_reduce(&dwX, &dwY, dwAspectX, dwAspectY, max(dwAspectX, dwAspectY));
 
     vih2->rcSource.right = vih2->rcTarget.right = biWidth;
-    vih2->rcSource.bottom = vih2->rcTarget.bottom = biHeight;
+    vih2->rcSource.bottom = vih2->rcTarget.bottom = abs(biHeight);
     vih2->AvgTimePerFrame = rtAvgTime;
     vih2->dwPictAspectRatioX = dwX;
     vih2->dwPictAspectRatioY = dwY;
