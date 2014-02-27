@@ -125,7 +125,7 @@ type
            end;
 
 const
-  NumFormatsMinusOne = 20;
+  NumFormatsMinusOne = 21;
   LavGUID = '{B98D13E7-55DB-4385-A33D-09FD1BA26338}';
   StreamGUID = '{E436EB83-524F-11CE-9F53-0020AF0BA770}';
   LavSplitterFormatsReg = 'Software\LAV\Splitter\Formats';
