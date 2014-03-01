@@ -94,6 +94,8 @@ private:
   STDMETHODIMP FlushDisplayQueue(BOOL bDeliver);
   STDMETHODIMP FlushFromAllocator();
 
+  DWORD GetAlignedDimension(DWORD dim);
+
 private:
   friend class CDXVA2SurfaceAllocator;
   BOOL m_bNative = FALSE;

@@ -309,6 +309,12 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
   }
 
   if (m_bNative) {
+    if (!m_pDecoder) {
+      // If this is the first call, re-align surfaces, as the requirements may only be known now
+      m_dwSurfaceWidth = GetAlignedDimension(m_pAVCtx->coded_width);
+      m_dwSurfaceHeight = GetAlignedDimension(m_pAVCtx->coded_height);
+    }
+
     CMediaType mt = m_pCallback->GetOutputMediaType();
     if (mt.subtype != MEDIASUBTYPE_NV12) {
       DbgLog((LOG_ERROR, 10, L"-> Connection is not NV12"));
@@ -799,6 +805,11 @@ STDMETHODIMP CDecDXVA2::Init()
   return S_OK;
 }
 
+DWORD CDecDXVA2::GetAlignedDimension(DWORD dim)
+{
+  return FFALIGN(dim, DXVA2_SURFACE_ALIGN);
+}
+
 #define H264_CHECK_PROFILE(profile) \
   (((profile) & ~FF_PROFILE_H264_CONSTRAINED) <= FF_PROFILE_H264_HIGH)
 
@@ -860,8 +871,8 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
-  m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, DXVA2_SURFACE_ALIGN);
-  m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, DXVA2_SURFACE_ALIGN);
+  m_dwSurfaceWidth = GetAlignedDimension(m_pAVCtx->coded_width);
+  m_dwSurfaceHeight = GetAlignedDimension(m_pAVCtx->coded_height);
 
   if (FAILED(CheckHWCompatConditions(input))) {
     return E_FAIL;
@@ -943,8 +954,8 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   FindVideoServiceConversion(m_pAVCtx->codec_id, &input, &output);
 
   if (!nSurfaces) {
-    m_dwSurfaceWidth = FFALIGN(m_pAVCtx->coded_width, DXVA2_SURFACE_ALIGN);
-    m_dwSurfaceHeight = FFALIGN(m_pAVCtx->coded_height, DXVA2_SURFACE_ALIGN);
+    m_dwSurfaceWidth = GetAlignedDimension(m_pAVCtx->coded_width);
+    m_dwSurfaceHeight = GetAlignedDimension(m_pAVCtx->coded_height);
 
     m_NumSurfaces = GetBufferCount();
     hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, m_NumSurfaces - 1, output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, nullptr);
@@ -1077,7 +1088,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flag
     return -1;
   }
 
-  if (!pDec->m_pDecoder || FFALIGN(c->coded_width, DXVA2_SURFACE_ALIGN) != pDec->m_dwSurfaceWidth || FFALIGN(c->coded_height, DXVA2_SURFACE_ALIGN) != pDec->m_dwSurfaceHeight) {
+  if (!pDec->m_pDecoder || pDec->GetAlignedDimension(c->coded_width) != pDec->m_dwSurfaceWidth || pDec->GetAlignedDimension(c->coded_height) != pDec->m_dwSurfaceHeight) {
     DbgLog((LOG_TRACE, 10, L"No DXVA2 Decoder or image dimensions changed -> Re-Allocating resources"));
     if (!pDec->m_pDecoder && pDec->m_bNative && !pDec->m_pDXVA2Allocator) {
       ASSERT(0);
@@ -1085,8 +1096,8 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flag
     } else if (pDec->m_bNative) {
       avcodec_flush_buffers(c);
 
-      pDec->m_dwSurfaceWidth = FFALIGN(c->coded_width, DXVA2_SURFACE_ALIGN);
-      pDec->m_dwSurfaceHeight = FFALIGN(c->coded_height, DXVA2_SURFACE_ALIGN);
+      pDec->m_dwSurfaceWidth = pDec->GetAlignedDimension(c->coded_width);
+      pDec->m_dwSurfaceHeight = pDec->GetAlignedDimension(c->coded_height);
 
       // Re-Commit the allocator (creates surfaces and new decoder)
       hr = pDec->m_pDXVA2Allocator->Decommit();
