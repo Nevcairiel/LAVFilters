@@ -126,3 +126,4 @@ void getExtraData(const AM_MEDIA_TYPE &mt, BYTE *extra, size_t *extralen);
 void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, size_t *extralen);
 
 BOOL IsVistaOrNewer();
+void __cdecl debugprintf(LPCWSTR format, ...);

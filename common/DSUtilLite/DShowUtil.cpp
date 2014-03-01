@@ -638,3 +638,25 @@ BOOL IsVistaOrNewer()
 
   return (os.dwMajorVersion >= 6);
 }
+
+void __cdecl debugprintf(LPCWSTR format, ...)
+{
+  WCHAR    buf[4096], *p = buf;
+  va_list args;
+  int     n;
+
+  va_start(args, format);
+  n = _vsnwprintf_s(p, 4096, 4096 - 3, format, args); // buf-3 is room for CR/LF/NUL
+  va_end(args);
+
+  p += (n < 0) ? (4096 - 3) : n;
+
+  while (p > buf  &&  isspace(p[-1]))
+    *--p = L'\0';
+
+  *p++ = L'\r';
+  *p++ = L'\n';
+  *p = L'\0';
+
+  OutputDebugString(buf);
+}

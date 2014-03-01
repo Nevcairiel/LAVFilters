@@ -37,8 +37,8 @@
     } else                                                            \
       tskip_count++;                                                  \
     if (((tcount + tskip_count) & (tcount + tskip_count - 1)) == 0) { \
-      DbgLog((LOG_TRACE, 10,                                          \
+      debugprintf(                                                    \
               L"%I64u decicycles in %S, %d runs, %d skips",           \
-              tsum * 10 / tcount, id, tcount, tskip_count));          \
+              tsum * 10 / tcount, id, tcount, tskip_count);           \
     }                                                                 \
   }
