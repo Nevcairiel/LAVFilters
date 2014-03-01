@@ -807,7 +807,13 @@ STDMETHODIMP CDecDXVA2::Init()
 
 DWORD CDecDXVA2::GetAlignedDimension(DWORD dim)
 {
-  return FFALIGN(dim, DXVA2_SURFACE_ALIGN);
+  int align = DXVA2_SURFACE_BASE_ALIGN;
+
+  // MPEG-2 needs higher alignment on Intel cards, and it doesn't seem to harm anything to do it for all cards.
+  if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)
+    align <<= 1;
+
+  return FFALIGN(dim, align);
 }
 
 #define H264_CHECK_PROFILE(profile) \
