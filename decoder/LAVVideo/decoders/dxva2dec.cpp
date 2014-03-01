@@ -180,20 +180,20 @@ static int IsAMDUVD(DWORD dwDeviceId)
 // DXVA2 decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-static void (*CopyFrameNV12)(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int srcLines, int dstLines, int pitch) = nullptr;
+static void (*CopyFrameNV12)(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch) = nullptr;
 
-static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int srcLines, int dstLines, int pitch)
+static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
 {
-  const int size = dstLines * pitch;
+  const int size = imageHeight * pitch;
   memcpy(pY, pSourceData, size);
-  memcpy(pUV, pSourceData + (srcLines * pitch), size >> 1);
+  memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
 }
 
-static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int srcLines, int dstLines, int pitch)
+static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
 {
-  const int size = dstLines * pitch;
+  const int size = imageHeight * pitch;
   gpu_memcpy(pY, pSourceData, size);
-  gpu_memcpy(pUV, pSourceData + (srcLines * pitch), size >> 1);
+  gpu_memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
 }
 
 CDecDXVA2::CDecDXVA2(void)
