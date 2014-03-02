@@ -1,5 +1,33 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.61.0 - 2014/03/04
+LAV Splitter
+- NEW: Support for "demuxing" AviSynth scripts (requires AviSynth, 2.6 recommended)
+- NEW: Support for reading ICY stream metadata from ShoutCast streams
+- Fixed: The duration of DVB MPEG-TS files is being detected more reliably
+- Fixed: The ITrackInfo interface was not available in the last few versions
+- Fixed: The duration of certain Ogg Vorbis streams was wrong
+- Changed: DTS-HD audio tracks are now exposed using the official DTS-HD media type, in addition to the old DTS type
+- Workaround: Block WMP/WMC from always overwriting the initial track selection
+
+LAV Video
+- NEW: Support for Duck TrueMotion 1/2
+- NEW: Support for BT.2020 in YCbCr -> RGB conversions
+- Fixed: Format conversion could cause out of memory errors when converting high-resolution videos
+- Fixed: The decoder could crash if DXVA2 decoding failed and the software decoder is unavailable
+- Fixed: Reduced binary bloat caused by the YCbCr -> RGB converter, reducing binary size to nearly half
+- Fixed: Playback of RV30/RV40 was not smooth in 0.60
+- Fixed: Video corruption when using DXVA2 on Intel GPUs when decoding certain VC-1 or MPEG-2 clips
+- Fixed: Decoding WMV3 Complex profile automatically falls back to software, since hardware decoding is unsupported.
+- Faster: DXVA2 Copy-Back decoding on Intel GPUs is significantly faster
+- Changed: If the wmv9dmo decoder is unavailable, the FFmpeg decoder is automatically used instead
+- Changed: Updated QuickSync decoder to the latest version, fixes a few timestamp issues.
+- Changed: Relaxed the resolution checks for H.264 decoding on AMD GPUs, allowing files with 2K resolutions to be decoded (ie. 2048x1280, etc.)
+
+LAV Audio
+- NEW: Support for ATRAC3+
+- Fixed: Decoding AC3 audio could produce glitches in playback due to too aggressive error checking.
+
 0.60.1 - 2014/01/14
 LAV Splitter
 - Fixed a crash when opening MPEG-2 files with Stereo3D Metadata
