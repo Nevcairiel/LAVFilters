@@ -847,6 +847,10 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   m_DisplayDelay = DXVA2_QUEUE_SURFACES;
 
+  // Intel GPUs don't like the display and performance goes way down, so disable it.
+  if (m_dwVendorId == VEND_ID_INTEL)
+    m_DisplayDelay = 0;
+
   // Reduce display delay for DVD decoding for lower decode latency
   if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD)
     m_DisplayDelay /= 2;
@@ -1313,7 +1317,7 @@ HRESULT CDecDXVA2::HandleDXVA2Frame(LAVFrame *pFrame)
     Deliver(pFrame);
     return S_OK;
   }
-  if (m_bNative) {
+  if (m_bNative || m_DisplayDelay == 0) {
     DeliverDXVA2Frame(pFrame);
   } else {
     LAVFrame *pQueuedFrame = m_FrameQueue[m_FrameQueuePosition];
