@@ -33,6 +33,8 @@
 
 #include "gpu_memcpy_sse4.h"
 
+#include <ppl.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,11 +191,33 @@ static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV,
   memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
 }
 
+static void CopyFrameNV12_fallback_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
+{
+  const int halfSize = (imageHeight * pitch) >> 1;
+  Concurrency::parallel_for(0, 3, [&](int i) {
+    if (i < 2)
+      memcpy(pY + (halfSize * i), pSourceData + (halfSize * i), halfSize);
+    else
+      memcpy(pUV, pSourceData + (surfaceHeight * pitch), halfSize);
+  });
+}
+
 static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
 {
   const int size = imageHeight * pitch;
   gpu_memcpy(pY, pSourceData, size);
   gpu_memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
+}
+
+static void CopyFrameNV12_SSE4_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
+{
+  const int halfSize = (imageHeight * pitch) >> 1;
+  Concurrency::parallel_for(0, 3, [&](int i) {
+    if (i < 2)
+      gpu_memcpy(pY + (halfSize * i), pSourceData + (halfSize * i), halfSize);
+    else
+      gpu_memcpy(pUV, pSourceData + (surfaceHeight * pitch), halfSize);
+  });
 }
 
 CDecDXVA2::CDecDXVA2(void)
@@ -790,10 +814,16 @@ STDMETHODIMP CDecDXVA2::Init()
       int cpu_flags = av_get_cpu_flags();
       if (cpu_flags & AV_CPU_FLAG_SSE4) {
         DbgLog((LOG_TRACE, 10, L"-> Using SSE4 frame copy"));
-        CopyFrameNV12 = CopyFrameNV12_SSE4;
+        if (m_dwVendorId == VEND_ID_INTEL)
+          CopyFrameNV12 = CopyFrameNV12_SSE4_MT;
+        else
+          CopyFrameNV12 = CopyFrameNV12_SSE4;
       } else {
         DbgLog((LOG_TRACE, 10, L"-> Using fallback frame copy"));
-        CopyFrameNV12 = CopyFrameNV12_fallback;
+        if (m_dwVendorId == VEND_ID_INTEL)
+          CopyFrameNV12 = CopyFrameNV12_fallback_MT;
+        else
+          CopyFrameNV12 = CopyFrameNV12_fallback;
       }
     }
   }
