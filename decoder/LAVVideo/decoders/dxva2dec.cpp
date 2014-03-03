@@ -695,7 +695,7 @@ HRESULT CDecDXVA2::CheckHWCompatConditions(GUID decoderGuid)
   int height_mbs = m_dwSurfaceHeight / 16;
   int max_ref_frames_dpb41 = min(11, 32768 / (width_mbs * height_mbs));
   if (m_dwVendorId == VEND_ID_ATI) {
-    if (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200) {
+    if ((width_mbs * height_mbs) > 16384) {
       DbgLog((LOG_TRACE, 10, L"-> UHD/4K resolutions blacklisted on AMD/ATI GPUs"));
       return E_FAIL;
     } else if (IsAMDUVD(m_dwDeviceId)) {
