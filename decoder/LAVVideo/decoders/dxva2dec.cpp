@@ -702,6 +702,9 @@ HRESULT CDecDXVA2::CheckHWCompatConditions(GUID decoderGuid)
       if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && m_pAVCtx->refs > max_ref_frames_dpb41) {
         DbgLog((LOG_TRACE, 10, L"-> Too many reference frames for AMD UVD/UVD+ H.264 decoder"));
         return E_FAIL;
+      } else if ((m_pAVCtx->codec_id == AV_CODEC_ID_VC1 || m_pAVCtx->codec_id == AV_CODEC_ID_MPEG2VIDEO) && (m_dwSurfaceWidth > 1920 || m_dwSurfaceHeight > 1200)) {
+        DbgLog((LOG_TRACE, 10, L"-> VC-1 Resolutions above FullHD are not supported by the UVD/UVD+ decoder"));
+        return E_FAIL;
       } else if (m_pAVCtx->codec_id == AV_CODEC_ID_WMV3) {
         DbgLog((LOG_TRACE, 10, L"-> AMD UVD/UVD+ is currently not compatible with WMV3"));
         return E_FAIL;
