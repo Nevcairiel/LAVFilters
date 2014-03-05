@@ -917,7 +917,7 @@ STDMETHODIMP CDecCuvid::Display(CUVIDPARSERDISPINFO *cuviddisp)
         m_bTFF = cuviddisp->top_field_first;
     }
 
-    cuviddisp->progressive_frame = (cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive && m_VideoFormat.codec != cudaVideoCodec_VC1) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Force));
+    cuviddisp->progressive_frame = (cuviddisp->progressive_frame && !(m_bInterlaced && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive && m_VideoFormat.codec != cudaVideoCodec_VC1 && !m_nSoftTelecine) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Force));
   }
 
   LAVDeintFieldOrder fo        = m_pSettings->GetDeintFieldOrder();

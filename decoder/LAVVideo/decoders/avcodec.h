@@ -95,4 +95,5 @@ private:
   BOOL                 m_bResumeAtKeyFrame    = FALSE;
   BOOL                 m_bWaitingForKeyFrame  = FALSE;
   int                  m_iInterlaced          = -1;
+  int                  m_nSoftTelecine        = 0;
 };

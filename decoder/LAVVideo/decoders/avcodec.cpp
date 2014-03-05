@@ -858,7 +858,15 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     else if (m_pAVCtx->progressive_sequence)
       m_iInterlaced = 0;
 
-    pOutFrame->interlaced   = (m_pFrame->interlaced_frame || (m_iInterlaced == 1 && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Disable);
+    if ((m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO) && m_pFrame->repeat_pict)
+      m_nSoftTelecine = 2;
+    else if (m_nSoftTelecine > 0)
+      m_nSoftTelecine--;
+
+    // Don't apply aggressive deinterlacing to content that looks soft-telecined, as it would destroy the content
+    bool bAggressiveFlag    = (m_iInterlaced == 1 && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) && !m_nSoftTelecine;
+
+    pOutFrame->interlaced   = (m_pFrame->interlaced_frame || bAggressiveFlag || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && !(m_pSettings->GetDeinterlacingMode() == DeintMode_Disable);
 
     LAVDeintFieldOrder fo   = m_pSettings->GetDeintFieldOrder();
     pOutFrame->tff          = (fo == DeintFieldOrder_Auto) ? m_pFrame->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
@@ -941,6 +949,7 @@ STDMETHODIMP CDecAvcodec::Flush()
   m_CurrentThread = 0;
   m_rtStartCache = AV_NOPTS_VALUE;
   m_bWaitingForKeyFrame = TRUE;
+  m_nSoftTelecine = 0;
 
   m_nBFramePos = 0;
   m_tcBFrameDelay[0].rtStart = m_tcBFrameDelay[0].rtStop = AV_NOPTS_VALUE;

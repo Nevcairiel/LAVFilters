@@ -1,5 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
+
+LAV Video
+- Fixed: Aggressive Deinterlacing is no longer applied to soft-telecined content, which caused severe playback issues.
+
 0.61.0 - 2014/03/04
 LAV Splitter
 - NEW: Support for "demuxing" AviSynth scripts (requires AviSynth, 2.6 recommended)
