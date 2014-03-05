@@ -1,6 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+LAV Splitter
+- NEW: Support for opening "icyx://" stream URLs
+
 LAV Video
 - Fixed: Aggressive Deinterlacing is no longer applied to soft-telecined content, which caused severe playback issues.
 

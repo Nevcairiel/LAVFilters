@@ -199,6 +199,11 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
     memcpy(fileName, "mmsh", 4);
   }
 
+  // replace "icyx" protocol by http
+  if (_strnicmp("icyx:", fileName, 5) == 0) {
+    memcpy(fileName, "http", 4);
+  }
+
   AVIOInterruptCB cb = {avio_interrupt_cb, this};
 
 trynoformat:
