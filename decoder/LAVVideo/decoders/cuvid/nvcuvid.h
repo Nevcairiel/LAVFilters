@@ -60,7 +60,7 @@ typedef long long CUvideotimestamp;
 typedef enum {
     cudaVideoState_Error   = -1,    // Error state (invalid source)
     cudaVideoState_Stopped = 0,     // Source is stopped (or reached end-of-stream)
-    cudaVideoState_Started = 1,     // Source is running and delivering data
+    cudaVideoState_Started = 1      // Source is running and delivering data
 } cudaVideoState;
 
 // Audio compression
@@ -69,7 +69,7 @@ typedef enum {
     cudaAudioCodec_MPEG2,           // MPEG-2 Audio
     cudaAudioCodec_MP3,             // MPEG-1 Layer III Audio
     cudaAudioCodec_AC3,             // Dolby Digital (AC3) Audio
-    cudaAudioCodec_LPCM,            // PCM Audio
+    cudaAudioCodec_LPCM             // PCM Audio
 } cudaAudioCodec;
 
 
@@ -135,7 +135,7 @@ typedef struct
 typedef enum {
     CUVID_PKT_ENDOFSTREAM   = 0x01,   // Set when this is the last packet for this stream
     CUVID_PKT_TIMESTAMP     = 0x02,   // Timestamp is valid
-    CUVID_PKT_DISCONTINUITY = 0x04,   // Set when a discontinuity has to be signalled
+    CUVID_PKT_DISCONTINUITY = 0x04    // Set when a discontinuity has to be signalled
 } CUvideopacketflags;
 
 typedef struct _CUVIDSOURCEDATAPACKET
@@ -160,7 +160,7 @@ typedef struct _CUVIDSOURCEPARAMS
 } CUVIDSOURCEPARAMS;
 
 typedef enum {
-    CUVID_FMT_EXTFORMATINFO = 0x100,    // Return extended format structure (CUVIDEOFORMATEX)
+    CUVID_FMT_EXTFORMATINFO = 0x100     // Return extended format structure (CUVIDEOFORMATEX)
 } CUvideosourceformat_flags;
 
 #if !defined(__APPLE__)

@@ -68,31 +68,31 @@ typedef enum cudaVideoCodec_enum {
     cudaVideoCodec_YV12   = (('Y'<<24)|('V'<<16)|('1'<<8)|('2')),   // Y,V,U (4:2:0)
     cudaVideoCodec_NV12   = (('N'<<24)|('V'<<16)|('1'<<8)|('2')),   // Y,UV  (4:2:0)
     cudaVideoCodec_YUYV   = (('Y'<<24)|('U'<<16)|('Y'<<8)|('V')),   // YUYV/YUY2 (4:2:2)
-    cudaVideoCodec_UYVY   = (('U'<<24)|('Y'<<16)|('V'<<8)|('Y')),   // UYVY (4:2:2)
+    cudaVideoCodec_UYVY   = (('U'<<24)|('Y'<<16)|('V'<<8)|('Y'))    // UYVY (4:2:2)
 } cudaVideoCodec;
 
 typedef enum cudaVideoSurfaceFormat_enum {
-    cudaVideoSurfaceFormat_NV12=0,  // NV12 (currently the only supported output format)
+    cudaVideoSurfaceFormat_NV12=0   // NV12 (currently the only supported output format)
 } cudaVideoSurfaceFormat;
 
 typedef enum cudaVideoDeinterlaceMode_enum {
     cudaVideoDeinterlaceMode_Weave=0,   // Weave both fields (no deinterlacing)
     cudaVideoDeinterlaceMode_Bob,       // Drop one field
-    cudaVideoDeinterlaceMode_Adaptive,  // Adaptive deinterlacing
+    cudaVideoDeinterlaceMode_Adaptive   // Adaptive deinterlacing
 } cudaVideoDeinterlaceMode;
 
 typedef enum cudaVideoChromaFormat_enum {
     cudaVideoChromaFormat_Monochrome=0,
     cudaVideoChromaFormat_420,
     cudaVideoChromaFormat_422,
-    cudaVideoChromaFormat_444,
+    cudaVideoChromaFormat_444
 } cudaVideoChromaFormat;
 
 typedef enum cudaVideoCreateFlags_enum {
     cudaVideoCreate_Default = 0x00,     // Default operation mode: use dedicated video engines
     cudaVideoCreate_PreferCUDA = 0x01,  // Use a CUDA-based decoder if faster than dedicated engines (requires a valid vidLock object for multi-threading)
     cudaVideoCreate_PreferDXVA = 0x02,  // Go through DXVA internally if possible (requires D3D9 interop)
-    cudaVideoCreate_PreferCUVID = 0x04, // Use dedicated video engines directly
+    cudaVideoCreate_PreferCUVID = 0x04  // Use dedicated video engines directly
 } cudaVideoCreateFlags;
 
 
