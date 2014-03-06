@@ -3,6 +3,7 @@ LAV DirectShow Filters Changelog
 
 LAV Splitter
 - NEW: Support for opening "icyx://" stream URLs
+- Fixed: Opening of some Blu-ray discs would take several minutes and could hang the player.
 
 LAV Video
 - Fixed: Aggressive Deinterlacing is no longer applied to soft-telecined content, which caused severe playback issues.

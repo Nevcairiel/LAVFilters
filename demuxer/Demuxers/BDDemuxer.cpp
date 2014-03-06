@@ -54,8 +54,13 @@ int64_t CBDDemuxer::BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
     DbgLog((LOG_TRACE, 10, L"BD Seek to %I64d, achieved %I64d, correcting target by %I64d", pos, achieved, offset));
     uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(6144);
     while (offset > 0) {
-      bd_read(bd, dump_buffer, min(offset, 6144));
-      offset -= 6144;
+      int to_read  = min(offset, 6144);
+      int did_read = bd_read(bd, dump_buffer, to_read);
+      offset -= did_read;
+      if (did_read < to_read) {
+        DbgLog((LOG_TRACE, 10, L"Reached EOF with %I64d offset remaining", offset));
+        break;
+      }
     }
     CoTaskMemFree(dump_buffer);
     achieved = bd_tell(bd);
