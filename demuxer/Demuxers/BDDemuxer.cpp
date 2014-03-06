@@ -103,6 +103,8 @@ CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettingsInternal *pSettings)
 #ifdef DEBUG
   bd_set_debug_mask(DBG_FILE|DBG_BLURAY|DBG_DIR|DBG_NAV|DBG_CRIT);
   bd_set_debug_handler(&bd_log);
+#else
+  bd_set_debug_mask(0);
 #endif
 }
 
