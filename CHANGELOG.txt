@@ -1,6 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+General:
+- LAV Filters requires a CPU with support for SSE2
+
 0.61.1 - 2014/03/07
 LAV Splitter
 - NEW: Support for opening "icyx://" stream URLs
