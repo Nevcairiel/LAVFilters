@@ -240,9 +240,8 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
     xmm0 = _mm_add_epi16(xmm0, coeffs->rgb_add);                /* Y*cy + 16 (in case of range compression) */
 
-    xmm2 = coeffs->CbCr_center;                                 /* move CbCr to proper range */
-    xmm1 = _mm_subs_epi16(xmm1, xmm2);
-    xmm3 = _mm_subs_epi16(xmm3, xmm2);
+    xmm1 = _mm_subs_epi16(xmm1, coeffs->CbCr_center);           /* move CbCr to proper range */
+    xmm3 = _mm_subs_epi16(xmm3, coeffs->CbCr_center);
 
     xmm6 = xmm1;
     xmm4 = xmm3;
