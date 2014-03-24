@@ -1924,6 +1924,14 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
       DWORD dwPCMSize = out.nSamples * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
       DWORD dwPCMSizeAligned = FFALIGN(out.nSamples, 32) * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
 
+      if (m_pFrame->decode_error_flags & FF_DECODE_ERROR_INVALID_BITSTREAM) {
+        if (m_DecodeLayout != out.dwChannelMask) {
+          DbgLog((LOG_TRACE, 50, L"::Decode() - Corrupted audio frame with channel layout change, dropping."));
+          av_frame_unref(m_pFrame);
+          continue;
+        }
+      }
+
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
         out.bBuffer->Allocate(dwPCMSizeAligned);
