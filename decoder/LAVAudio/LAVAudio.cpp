@@ -2223,17 +2223,24 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
           WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)wfeCurrent;
           dwChannelMask = wfex->dwChannelMask;
         } else {
-          dwChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
+          dwChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
         }
-        mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, dwChannelMask, buffer.wBitsPerSample);
-        hr = m_pOutput->GetConnected()->QueryAccept(&mt);
-        if (hr == S_OK) {
-          DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%x", dwChannelMask));
-          m_dwOverrideMixer = dwChannelMask;
-          m_FallbackFormat = SampleFormat_16;
-          m_bMixingSettingsChanged = TRUE;
-          // Mix to the new layout
-          PerformAVRProcessing(&buffer);
+        if (buffer.wChannels != wfeCurrent->nChannels || buffer.dwChannelMask != dwChannelMask) {
+          mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, wChannels, dwChannelMask, buffer.wBitsPerSample);
+          hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+          if (hr != S_OK) {
+            mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, dwChannelMask, 16);
+            hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+            if (hr == S_OK)
+              m_FallbackFormat = SampleFormat_16;
+          }
+          if (hr == S_OK) {
+            DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%x", dwChannelMask));
+            m_dwOverrideMixer = dwChannelMask;
+            m_bMixingSettingsChanged = TRUE;
+            // Mix to the new layout
+            PerformAVRProcessing(&buffer);
+          }
         }
       }
     }
