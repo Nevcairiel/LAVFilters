@@ -370,30 +370,31 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   getExtraData(*pmt, nullptr, &extralen);
 
   BOOL bH264avc = FALSE;
-  if (extralen > 0) {
-    DbgLog((LOG_TRACE, 10, L"-> Processing extradata of %d bytes", extralen));
+  if (pmt->formattype == FORMAT_MPEG2Video && (m_pAVCtx->codec_tag == MAKEFOURCC('a','v','c','1') || m_pAVCtx->codec_tag == MAKEFOURCC('A','V','C','1') || m_pAVCtx->codec_tag == MAKEFOURCC('C','C','V','1'))) {
     // Reconstruct AVC1 extradata format
-    if (pmt->formattype == FORMAT_MPEG2Video && (m_pAVCtx->codec_tag == MAKEFOURCC('a','v','c','1') || m_pAVCtx->codec_tag == MAKEFOURCC('A','V','C','1') || m_pAVCtx->codec_tag == MAKEFOURCC('C','C','V','1'))) {
-      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
-      extralen += 7;
-      extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-      extra[0] = 1;
-      extra[1] = (BYTE)mp2vi->dwProfile;
-      extra[2] = 0;
-      extra[3] = (BYTE)mp2vi->dwLevel;
-      extra[4] = (BYTE)(mp2vi->dwFlags ? mp2vi->dwFlags : 4) - 1;
+    DbgLog((LOG_TRACE, 10, L"-> Processing AVC1 extradata of %d bytes", extralen));
+    MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
+    extralen += 7;
+    extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+    extra[0] = 1;
+    extra[1] = (BYTE)mp2vi->dwProfile;
+    extra[2] = 0;
+    extra[3] = (BYTE)mp2vi->dwLevel;
+    extra[4] = (BYTE)(mp2vi->dwFlags ? mp2vi->dwFlags : 4) - 1;
 
+    // only process extradata if available
+    uint8_t ps_count = 0;
+    if (extralen > 7) {
       // Actually copy the metadata into our new buffer
       size_t actual_len;
-      getExtraData(*pmt, extra+6, &actual_len);
+      getExtraData(*pmt, extra + 6, &actual_len);
 
       // Count the number of SPS/PPS in them and set the length
       // We'll put them all into one block and add a second block with 0 elements afterwards
       // The parsing logic does not care what type they are, it just expects 2 blocks.
-      BYTE *p = extra+6, *end = extra+6+actual_len;
+      BYTE *p = extra + 6, *end = extra + 6 + actual_len;
       BOOL bSPS = FALSE, bPPS = FALSE;
-      int count = 0;
-      while (p+1 < end) {
+      while (p + 1 < end) {
         unsigned len = (((unsigned)p[0] << 8) | p[1]) + 2;
         if (p + len > end) {
           break;
@@ -402,14 +403,19 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
           bSPS = TRUE;
         if ((p[2] & 0x1F) == 8)
           bPPS = TRUE;
-        count++;
+        ps_count++;
         p += len;
       }
-      extra[5] = count;
-      extra[extralen-1] = 0;
+    }
+    extra[5] = ps_count;
+    extra[extralen - 1] = 0;
 
-      bH264avc = TRUE;
-    } else if (pmt->subtype == MEDIASUBTYPE_LAV_RAWVIDEO) {
+    bH264avc = TRUE;
+    m_pAVCtx->extradata = extra;
+    m_pAVCtx->extradata_size = (int)extralen;
+  } else if (extralen > 0) {
+    DbgLog((LOG_TRACE, 10, L"-> Processing extradata of %d bytes", extralen));
+    if (pmt->subtype == MEDIASUBTYPE_LAV_RAWVIDEO) {
       if (extralen < sizeof(m_pAVCtx->pix_fmt)) {
         DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is missing.."));
       } else {
