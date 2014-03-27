@@ -1924,6 +1924,14 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
       DWORD dwPCMSize = out.nSamples * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
       DWORD dwPCMSizeAligned = FFALIGN(out.nSamples, 32) * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
 
+      if (m_pFrame->decode_error_flags & FF_DECODE_ERROR_INVALID_BITSTREAM) {
+        if (m_DecodeLayout != out.dwChannelMask) {
+          DbgLog((LOG_TRACE, 50, L"::Decode() - Corrupted audio frame with channel layout change, dropping."));
+          av_frame_unref(m_pFrame);
+          continue;
+        }
+      }
+
       switch (m_pAVCtx->sample_fmt) {
       case AV_SAMPLE_FMT_U8:
         out.bBuffer->Allocate(dwPCMSizeAligned);
@@ -2223,17 +2231,24 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
           WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)wfeCurrent;
           dwChannelMask = wfex->dwChannelMask;
         } else {
-          dwChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
+          dwChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
         }
-        mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, dwChannelMask, buffer.wBitsPerSample);
-        hr = m_pOutput->GetConnected()->QueryAccept(&mt);
-        if (hr == S_OK) {
-          DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%x", dwChannelMask));
-          m_dwOverrideMixer = dwChannelMask;
-          m_FallbackFormat = SampleFormat_16;
-          m_bMixingSettingsChanged = TRUE;
-          // Mix to the new layout
-          PerformAVRProcessing(&buffer);
+        if (buffer.wChannels != wfeCurrent->nChannels || buffer.dwChannelMask != dwChannelMask) {
+          mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, wChannels, dwChannelMask, buffer.wBitsPerSample);
+          hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+          if (hr != S_OK) {
+            mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, dwChannelMask, 16);
+            hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+            if (hr == S_OK)
+              m_FallbackFormat = SampleFormat_16;
+          }
+          if (hr == S_OK) {
+            DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%x", dwChannelMask));
+            m_dwOverrideMixer = dwChannelMask;
+            m_bMixingSettingsChanged = TRUE;
+            // Mix to the new layout
+            PerformAVRProcessing(&buffer);
+          }
         }
       }
     }
