@@ -214,6 +214,41 @@ begin
   FR(SplitterFormats[21], 'flac', 'FLAC Audio', True, ['flac', '']);
 end;
 
+procedure RegWriteStringWithBackup(const RootKey: Integer; const SubKeyName, ValueName, Data: String);
+var
+  OldValue: String;
+begin
+  if RegQueryStringValue(RootKey, SubKeyName, ValueName, OldValue) then begin
+    if CompareText(OldValue, Data) <> 0 then begin
+      RegWriteStringValue(RootKey, SubKeyName, ValueName + '.LAV', OldValue);
+    end
+  end;
+  RegWriteStringValue(RootKey, SubKeyName, ValueName, Data);
+end;
+
+function RegRestoreBackup(const RootKey: Integer; const SubKeyName, ValueName, CheckValue: String; const DeleteMode: Integer) : Boolean;
+var
+  CurrentValue: String;
+  BackupValue: String;
+begin
+  Result := False;
+  if RegQueryStringValue(RootKey, SubKeyName, ValueName, CurrentValue) then begin
+    if CompareText(CurrentValue, CheckValue) = 0 then begin
+      if RegQueryStringValue(RootKey, SubKeyName, ValueName + '.LAV', BackupValue) then begin
+        RegWriteStringValue(RootKey, SubKeyName, ValueName, BackupValue);
+        Result := True;
+      end else begin
+        if DeleteMode = 1 then begin
+          RegDeleteValue(RootKey, SubKeyName, ValueName);
+          RegDeleteKeyIfEmpty(RootKey, SubKeyName);
+        end else if DeleteMode = 2 then
+          RegDeleteKeyIncludingSubkeys(RootKey, SubKeyName);
+      end
+    end
+  end;
+  RegDeleteValue(RootKey, SubKeyName, ValueName + '.LAV');
+end;
+
 procedure RegisterSourceFormatGUIDs(f: Format);
 var
   i: Integer;
@@ -227,9 +262,9 @@ begin
       else
         source := LavGUID;
       if IsComponentSelected('lavsplitter32') then
-        RegWriteStringValue(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
+        RegWriteStringWithBackup(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
       if IsComponentSelected('lavsplitter64') then
-        RegWriteStringValue(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
+        RegWriteStringWithBackup(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
     end;
 
   while Length(f.chkbytes[i]) > 0 do
@@ -245,21 +280,22 @@ end;
 
 procedure UnregisterSourceFormatGUIDs(f: Format);
 var
-  source: String;
+  SourceGuid: String;
+  DelMode: Integer;
 begin
-  if not f.asyncSource then
-    begin
-      if RegQueryStringValue(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source) then begin
-        if CompareText(source, LavGUID) = 0 then
-          RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype);
-      end;
-      if IsWin64 then begin
-        if RegQueryStringValue(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source) then begin
-          if CompareText(source, LavGUID) = 0 then
-            RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype);
-        end;
-      end;
+  if Length(f.subtype) > 0 then
+  begin
+    if f.asyncSource then begin
+      SourceGuid := '{e436ebb5-524f-11ce-9f53-0020af0ba770}';
+      DelMode := 0;
+    end else begin
+      SourceGuid := LavGUID;
+      DelMode := 2;
     end;
+    RegRestoreBackup(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', SourceGuid, DelMode);
+    if IsWin64 then
+      RegRestoreBackup(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', SourceGuid, DelMode);
+  end;
 end;
 
 procedure RegisterSourceFormatExtensions(f: Format);
@@ -270,20 +306,20 @@ begin
   while Length(f.extensions[i]) > 0 do
     begin
       if f.protocol then begin
-        RegWriteStringValue(HKCR, f.extensions[i], 'Source Filter', LavGUID);
+        RegWriteStringWithBackup(HKCR, f.extensions[i], 'Source Filter', LavGUID);
       end else begin
         if IsComponentSelected('lavsplitter32') then begin
-          RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
-          RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
+          RegWriteStringWithBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
+          RegWriteStringWithBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
           if Length(f.subtype) > 0 then
-            RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
+            RegWriteStringWithBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
         end;
         if IsComponentSelected('lavsplitter64') then begin
-          RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
-          RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
+          RegWriteStringWithBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
+          RegWriteStringWithBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
           if Length(f.subtype) > 0 then
-            RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
-        end;
+            RegWriteStringWithBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
+        end
       end;
 
       i := i+1;
@@ -298,24 +334,19 @@ begin
   i := 0;
   while Length(f.extensions[i]) > 0 do
     begin
-      if f.protocol then begin
-        if RegQueryStringValue(HKCR, f.extensions[i], 'Source Filter', source) then begin
-          if CompareText(source, LavGUID) = 0 then begin
-            RegDeleteValue(HKCR, f.extensions[i], 'Source Filter');
-            RegDeleteKeyIfEmpty(HKCR, f.extensions[i]);
-          end;
-        end;
-      end else begin
-        if RegQueryStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
-          if CompareText(source, LavGUID) = 0 then
-            RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\Extensions\.' + f.extensions[i]);
-        end;
+      if f.protocol then
+        RegRestoreBackup(HKCR, f.extensions[i], 'Source Filter', LavGUID, 1)
+      else begin
+        RegRestoreBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID, 2);
+        RegRestoreBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID, 0);
+        if Length(f.subtype) > 0 then
+          RegRestoreBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype, 0);
         if IsWin64 then begin
-          if RegQueryStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
-            if CompareText(source, LavGUID) = 0 then
-              RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\Extensions\.' + f.extensions[i]);
-          end;
-        end;
+          RegRestoreBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID, 2);
+          RegRestoreBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID, 0);
+          if Length(f.subtype) > 0 then
+            RegRestoreBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype, 0)
+        end
       end;
 
       i := i+1;
