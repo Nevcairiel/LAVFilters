@@ -1089,12 +1089,27 @@ HRESULT CDecDXVA2::FillHWContext(dxva_context *ctx)
   return S_OK;
 }
 
-static enum AVPixelFormat get_dxva2_format(struct AVCodecContext *s, const enum AVPixelFormat * fmt)
+enum AVPixelFormat CDecDXVA2::get_dxva2_format(struct AVCodecContext *c, const enum AVPixelFormat * pix_fmts)
 {
-  while (*fmt != AV_PIX_FMT_NONE && *fmt != AV_PIX_FMT_DXVA2_VLD) {
-    ++fmt;
+  CDecDXVA2 *pDec = (CDecDXVA2 *)c->opaque;
+  const enum AVPixelFormat *p;
+  for (p = pix_fmts; *p != -1; p++) {
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(*p);
+
+    if (!(desc->flags & AV_PIX_FMT_FLAG_HWACCEL))
+      break;
+
+    if (*p == AV_PIX_FMT_DXVA2_VLD) {
+      HRESULT hr = pDec->ReInitDXVA2Decoder(c);
+      if (FAILED(hr)) {
+        pDec->m_bFailHWDecode = TRUE;
+        continue;
+      } else {
+        break;
+      }
+    }
   }
-  return fmt[0];
+  return *p;
 }
 
 typedef struct SurfaceWrapper {
@@ -1120,6 +1135,47 @@ void CDecDXVA2::free_dxva2_buffer(void *opaque, uint8_t *data)
   delete sw;
 }
 
+HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
+{
+  HRESULT hr = S_OK;
+
+  // Don't allow decoder creation during first init
+  if (m_bInInit)
+    return S_FALSE;
+
+  if (!m_pDecoder || GetAlignedDimension(c->coded_width) != m_dwSurfaceWidth || GetAlignedDimension(c->coded_height) != m_dwSurfaceHeight) {
+    DbgLog((LOG_TRACE, 10, L"No DXVA2 Decoder or image dimensions changed -> Re-Allocating resources"));
+    if (!m_pDecoder && m_bNative && !m_pDXVA2Allocator) {
+      ASSERT(0);
+      hr = E_FAIL;
+    } else if (m_bNative) {
+      avcodec_flush_buffers(c);
+
+      m_dwSurfaceWidth  = GetAlignedDimension(c->coded_width);
+      m_dwSurfaceHeight = GetAlignedDimension(c->coded_height);
+
+      // Re-Commit the allocator (creates surfaces and new decoder)
+      hr = m_pDXVA2Allocator->Decommit();
+      if (m_pDXVA2Allocator->DecommitInProgress()) {
+        DbgLog((LOG_TRACE, 10, L"WARNING! DXVA2 Allocator is still busy, trying to flush downstream"));
+        m_pCallback->ReleaseAllDXVAResources();
+        m_pCallback->GetOutputPin()->GetConnected()->BeginFlush();
+        m_pCallback->GetOutputPin()->GetConnected()->EndFlush();
+        if (m_pDXVA2Allocator->DecommitInProgress()) {
+          DbgLog((LOG_TRACE, 10, L"WARNING! Flush had no effect, decommit of the allocator still not complete"));
+        } else {
+          DbgLog((LOG_TRACE, 10, L"Flush was successfull, decommit completed!"));
+        }
+      }
+      hr = m_pDXVA2Allocator->Commit();
+    } else if (!m_bNative) {
+      hr = CreateDXVA2Decoder();
+    }
+  }
+
+  return hr;
+}
+
 int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flags)
 {
   CDecDXVA2 *pDec = (CDecDXVA2 *)c->opaque;
@@ -1133,38 +1189,10 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flag
     return -1;
   }
 
-  if (!pDec->m_pDecoder || pDec->GetAlignedDimension(c->coded_width) != pDec->m_dwSurfaceWidth || pDec->GetAlignedDimension(c->coded_height) != pDec->m_dwSurfaceHeight) {
-    DbgLog((LOG_TRACE, 10, L"No DXVA2 Decoder or image dimensions changed -> Re-Allocating resources"));
-    if (!pDec->m_pDecoder && pDec->m_bNative && !pDec->m_pDXVA2Allocator) {
-      ASSERT(0);
-      hr = E_FAIL;
-    } else if (pDec->m_bNative) {
-      avcodec_flush_buffers(c);
-
-      pDec->m_dwSurfaceWidth = pDec->GetAlignedDimension(c->coded_width);
-      pDec->m_dwSurfaceHeight = pDec->GetAlignedDimension(c->coded_height);
-
-      // Re-Commit the allocator (creates surfaces and new decoder)
-      hr = pDec->m_pDXVA2Allocator->Decommit();
-      if (pDec->m_pDXVA2Allocator->DecommitInProgress()) {
-        DbgLog((LOG_TRACE, 10, L"WARNING! DXVA2 Allocator is still busy, trying to flush downstream"));
-        pDec->m_pCallback->ReleaseAllDXVAResources();
-        pDec->m_pCallback->GetOutputPin()->GetConnected()->BeginFlush();
-        pDec->m_pCallback->GetOutputPin()->GetConnected()->EndFlush();
-        if (pDec->m_pDXVA2Allocator->DecommitInProgress()) {
-          DbgLog((LOG_TRACE, 10, L"WARNING! Flush had no effect, decommit of the allocator still not complete"));
-        } else {
-          DbgLog((LOG_TRACE, 10, L"Flush was successfull, decommit completed!"));
-        }
-      }
-      hr = pDec->m_pDXVA2Allocator->Commit();
-    } else if (!pDec->m_bNative) {
-      hr = pDec->CreateDXVA2Decoder();
-    }
-    if (FAILED(hr)) {
-      pDec->m_bFailHWDecode = TRUE;
-      return -1;
-    }
+  hr = pDec->ReInitDXVA2Decoder(c);
+  if (FAILED(hr)) {
+    pDec->m_bFailHWDecode = TRUE;
+    return -1;
   }
 
   if (FAILED(pDec->m_pD3DDevMngr->TestDevice(pDec->m_hDevice))) {

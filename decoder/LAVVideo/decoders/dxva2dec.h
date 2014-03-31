@@ -87,6 +87,9 @@ private:
   HRESULT CheckHWCompatConditions(GUID decoderGuid);
   HRESULT FillHWContext(dxva_context *ctx);
 
+  HRESULT ReInitDXVA2Decoder(AVCodecContext *c);
+
+  static enum AVPixelFormat get_dxva2_format(struct AVCodecContext *s, const enum AVPixelFormat * pix_fmts);
   static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flags);
   static void free_dxva2_buffer(void *opaque, uint8_t *data);
 

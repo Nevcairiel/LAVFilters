@@ -521,7 +521,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   }
 
   // Open the decoder
+  m_bInInit = TRUE;
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, nullptr);
+  m_bInInit = FALSE;
   if (ret >= 0) {
     DbgLog((LOG_TRACE, 10, L"-> ffmpeg codec opened successfully (ret: %d)", ret));
     m_nCodecId = codec;
