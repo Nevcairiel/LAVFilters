@@ -240,7 +240,9 @@ CDecDXVA2::~CDecDXVA2(void)
 
 STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
 {
-  SafeRelease(&m_pDecoder);
+  for (int i = 0; i < DXVA2_QUEUE_SURFACES; i++) {
+    ReleaseFrame(&m_FrameQueue[i]);
+  }
 
   m_pCallback->ReleaseAllDXVAResources();
   for (int i = 0; i < m_NumSurfaces; i++) {
@@ -248,9 +250,7 @@ STDMETHODIMP CDecDXVA2::DestroyDecoder(bool bFull, bool bNoAVCodec)
   }
   m_NumSurfaces = 0;
 
-  for (int i = 0; i < DXVA2_QUEUE_SURFACES; i++) {
-    SAFE_CO_FREE(m_FrameQueue[i]);
-  }
+  SafeRelease(&m_pDecoder);
 
   if (!bNoAVCodec) {
     CDecAvcodec::DestroyDecoder();
