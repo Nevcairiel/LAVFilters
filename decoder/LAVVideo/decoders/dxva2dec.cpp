@@ -1115,6 +1115,7 @@ void CDecDXVA2::free_dxva2_buffer(void *opaque, uint8_t *data)
       break;
     }
   }
+  SafeRelease(&pSurface);
   SafeRelease(&sw->sample);
   delete sw;
 }
@@ -1226,8 +1227,10 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flag
 
   SurfaceWrapper *surfaceWrapper = new SurfaceWrapper();
   surfaceWrapper->pDec = pDec;
-  surfaceWrapper->surface = pSurface;
   surfaceWrapper->sample = pSample;
+  surfaceWrapper->surface = pSurface;
+  surfaceWrapper->surface->AddRef();
+
   pic->buf[0] = av_buffer_create(nullptr, 0, free_dxva2_buffer, surfaceWrapper, 0);
 
   return 0;
