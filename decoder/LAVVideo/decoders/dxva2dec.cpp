@@ -1257,16 +1257,6 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
   return S_OK;
 }
 
-__forceinline d3d_surface_t *CDecDXVA2::FindSurface(LPDIRECT3DSURFACE9 pSurface)
-{
-  for (int i = 0; i < m_NumSurfaces; i++) {
-    if (m_pSurfaces[i].d3d == pSurface)
-      return &m_pSurfaces[i];
-  }
-  ASSERT(0);
-  return nullptr;
-}
-
 HRESULT CDecDXVA2::PostDecode()
 {
   if (m_bFailHWDecode) {

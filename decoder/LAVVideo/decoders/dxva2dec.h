@@ -89,7 +89,6 @@ private:
 
   static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flags);
   static void free_dxva2_buffer(void *opaque, uint8_t *data);
-  d3d_surface_t *FindSurface(LPDIRECT3DSURFACE9 pSurface);
 
   STDMETHODIMP FlushDisplayQueue(BOOL bDeliver);
   STDMETHODIMP FlushFromAllocator();
