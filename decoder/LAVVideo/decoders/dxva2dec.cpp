@@ -1116,6 +1116,7 @@ typedef struct SurfaceWrapper {
   LPDIRECT3DSURFACE9 surface;
   IMediaSample *sample;
   CDecDXVA2 *pDec;
+  IDirectXVideoDecoder *pDXDecoder;
 } SurfaceWrapper;
 
 void CDecDXVA2::free_dxva2_buffer(void *opaque, uint8_t *data)
@@ -1131,6 +1132,7 @@ void CDecDXVA2::free_dxva2_buffer(void *opaque, uint8_t *data)
     }
   }
   SafeRelease(&pSurface);
+  SafeRelease(&sw->pDXDecoder);
   SafeRelease(&sw->sample);
   delete sw;
 }
@@ -1258,6 +1260,8 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flag
   surfaceWrapper->sample = pSample;
   surfaceWrapper->surface = pSurface;
   surfaceWrapper->surface->AddRef();
+  surfaceWrapper->pDXDecoder = pDec->m_pDecoder;
+  surfaceWrapper->pDXDecoder->AddRef();
 
   pic->buf[0] = av_buffer_create(nullptr, 0, free_dxva2_buffer, surfaceWrapper, 0);
 
