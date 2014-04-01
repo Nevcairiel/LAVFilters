@@ -1171,6 +1171,8 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
       }
       hr = m_pDXVA2Allocator->Commit();
     } else if (!m_bNative) {
+      if (SyncToProcessThread() == S_FALSE)
+        FlushDisplayQueue(TRUE);
       hr = CreateDXVA2Decoder();
     }
   }
