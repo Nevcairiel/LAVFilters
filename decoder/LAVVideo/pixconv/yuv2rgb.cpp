@@ -453,8 +453,13 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
       if (dithertype == LAVDither_Random)
         lineDither = dithers + ((height - 2) * 24 * DITHER_STEPS);
       y = srcY + (height - 1) * srcStrideY;
-      u = srcU + ((height >> 1) - 1)  * srcStrideUV;
-      v = srcV + ((height >> 1) - 1)  * srcStrideUV;
+      if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
+        u = srcU + ((height >> 1) - 1)  * srcStrideUV;
+        v = srcV + ((height >> 1) - 1)  * srcStrideUV;
+      } else {
+        u = srcU + (height - 1)  * srcStrideUV;
+        v = srcV + (height - 1)  * srcStrideUV;
+      }
       rgb = dst + (height - 1) * dstStride;
 
       for (ptrdiff_t i = 0; i < endx; i += 4) {
