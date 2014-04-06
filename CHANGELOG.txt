@@ -1,6 +1,24 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.61.2 - 2014/04/xx
+General
+- Installer: The installer does now backup DirectShow registry settings before overwriting them, allowing uninstall to restore them
+
+LAV Splitter
+- NEW: Support for ProRes in MKV
+- Fixed: Opening AviSynth scripts with LAV Splitter which used DirectShowSource to load LAV Splitter again caused a deadlock
+- Fixed: Cue Sheets with directives with empty parameters could cause a crash
+
+LAV Video
+- Fixed: AVC1 video streams without SPS/PPS in the configuration record did not decode properly
+- Fixed: Decoding H.264 streams with a resolution change using the DXVA2 Copy-Back decoder could crash
+- Fixed: YUV->RGB conversion produced the wrong output for the last line of odd-height 4:2:2 or 4:4:4 files
+
+LAV Audio
+- Fixed: Decoding AC3 audio with corrupted audio frames could cause unnecessary format changes to occur and disrupt playback
+- Fixed: Decoding DTS audio on a CPU without SSE2 support could crash on some streams
+
 0.61.1 - 2014/03/07
 LAV Splitter
 - NEW: Support for opening "icyx://" stream URLs
