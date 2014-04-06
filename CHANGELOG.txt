@@ -16,6 +16,7 @@ LAV Video
 - Fixed: YUV->RGB conversion produced the wrong output for the last line of odd-height 4:2:2 or 4:4:4 files
 
 LAV Audio
+- Changed: LAV Audio offers more alternate output configurations to the audio renderer if the audio renderer refuses our preferred format.
 - Fixed: Decoding AC3 audio with corrupted audio frames could cause unnecessary format changes to occur and disrupt playback
 - Fixed: Decoding DTS audio on a CPU without SSE2 support could crash on some streams
 
