@@ -185,6 +185,11 @@ interface ILAVAudioSettings : public IUnknown
   // Toggle Dithering for sample format conversion
   STDMETHOD(SetSampleConvertDithering)(BOOL bEnabled) = 0;
   STDMETHOD_(BOOL,GetSampleConvertDithering)() = 0;
+
+  // Suppress sample format changes. This will allow channel count to increase, but not to reduce, instead adding empty channels
+  // This option is NOT persistent
+  STDMETHOD(SetSuppressFormatChanges)(BOOL bEnabled) = 0;
+  STDMETHOD_(BOOL, GetSuppressFormatChanges)() = 0;
 };
 
 // LAV Audio Status Interface

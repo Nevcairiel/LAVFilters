@@ -613,6 +613,24 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
     }
   }
 
+  if (m_settings.SuppressFormatChanges) {
+    if (!m_SuppressLayout) {
+      m_SuppressLayout = buffer->dwChannelMask;
+    } else {
+      if (buffer->dwChannelMask != m_SuppressLayout && buffer->wChannels <= av_get_channel_layout_nb_channels(m_SuppressLayout)) {
+        // only warn once
+        if (m_dwOverrideMixer != m_SuppressLayout) {
+          DbgLog((LOG_TRACE, 10, L"Channel Format change suppressed, from 0x%x to 0x%x", m_SuppressLayout, buffer->dwChannelMask));
+          m_dwOverrideMixer = m_SuppressLayout;
+        }
+      } else if (buffer->wChannels > av_get_channel_layout_nb_channels(m_SuppressLayout)) {
+        DbgLog((LOG_TRACE, 10, L"Channel count increased, allowing change from 0x%x to 0x%x", m_SuppressLayout, buffer->dwChannelMask));
+        m_dwOverrideMixer = 0;
+        m_SuppressLayout = buffer->dwChannelMask;
+      }
+    }
+  }
+
   DWORD dwMixingLayout = m_dwOverrideMixer ? m_dwOverrideMixer : m_settings.MixingLayout;
   BOOL bMixing = (m_settings.MixingEnabled || m_dwOverrideMixer) && buffer->dwChannelMask != dwMixingLayout;
   LAVAudioSampleFormat outputFormat = GetBestAvailableSampleFormat(buffer->sfFormat);

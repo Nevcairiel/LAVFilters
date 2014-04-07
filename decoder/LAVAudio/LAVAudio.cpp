@@ -192,6 +192,8 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.MixingSurroundLevel = 7071;
   m_settings.MixingLFELevel      = 0;
 
+  m_settings.SuppressFormatChanges = FALSE;
+
   return S_OK;
 }
 
@@ -769,6 +771,17 @@ STDMETHODIMP CLAVAudio::SetSampleConvertDithering(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVAudio::GetSampleConvertDithering()
 {
   return m_settings.SampleConvertDither;
+}
+
+STDMETHODIMP CLAVAudio::SetSuppressFormatChanges(BOOL bEnabled)
+{
+  m_settings.SuppressFormatChanges = bEnabled;
+  return S_OK;
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetSuppressFormatChanges()
+{
+  return m_settings.SuppressFormatChanges;
 }
 
 // ILAVAudioStatus
@@ -1349,6 +1362,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_FallbackFormat = SampleFormat_None;
   m_dwOverrideMixer = 0;
   m_bMixingSettingsChanged = TRUE;
+  m_SuppressLayout = 0;
 
   return S_OK;
 }
@@ -1468,6 +1482,7 @@ HRESULT CLAVAudio::EndFlush()
   m_bsOutput.SetSize(0);
 
   m_bQueueResync = TRUE;
+  m_SuppressLayout = 0;
 
   return __super::EndFlush();
 }
@@ -1479,6 +1494,7 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
   m_rtStart = 0;
   m_bQueueResync = TRUE;
   m_bNeedSyncpoint = (m_raData.deint_id != 0);
+  m_SuppressLayout = 0;
   if (dRate > 0.0)
     m_dRate = dRate;
   else

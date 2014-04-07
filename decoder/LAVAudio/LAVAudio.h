@@ -134,6 +134,8 @@ public:
   STDMETHODIMP_(BOOL) GetTrayIcon();
   STDMETHODIMP SetSampleConvertDithering(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetSampleConvertDithering();
+  STDMETHODIMP SetSuppressFormatChanges(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetSuppressFormatChanges();
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -293,6 +295,8 @@ private:
     DWORD MixingCenterLevel;
     DWORD MixingSurroundLevel;
     DWORD MixingLFELevel;
+
+    BOOL SuppressFormatChanges;
   } m_settings;
   BOOL                m_bRuntimeConfig = FALSE;
 
@@ -326,6 +330,8 @@ private:
   DWORD               m_DecodeLayoutSanified    = 0;
   DWORD               m_MixingInputLayout       = 0;
   BOOL                m_bChannelMappingRequired = FALSE;
+
+  DWORD               m_SuppressLayout          = 0;
 
   ExtendedChannelMap  m_ChannelMap;
   int                 m_ChannelMapOutputChannels = 0;
