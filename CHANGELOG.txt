@@ -1,13 +1,14 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.61.2 - 2014/04/xx
+0.61.2 - 2014/04/08
 General
 - Installer: The installer does now backup DirectShow registry settings before overwriting them, allowing uninstall to restore them
 
 LAV Splitter
 - NEW: Support for ProRes in MKV
 - Fixed: Opening AviSynth scripts with LAV Splitter which used DirectShowSource to load LAV Splitter again caused a deadlock
+- Fixed: Audio-only AviSynth scripts did not show a duration.
 - Fixed: Cue Sheets with directives with empty parameters could cause a crash
 
 LAV Video
