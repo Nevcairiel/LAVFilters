@@ -916,7 +916,7 @@ HRESULT CLAVAudio::CheckInputType(const CMediaType *mtIn)
 
   if (m_settings.AllowRawSPDIF) {
     if (mtIn->majortype == MEDIATYPE_Audio && mtIn->formattype == FORMAT_WaveFormatEx &&
-       (mtIn->subtype == MEDIASUBTYPE_PCM || mtIn->subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF)) {
+       (mtIn->subtype == MEDIASUBTYPE_PCM || mtIn->subtype == MEDIASUBTYPE_IEEE_FLOAT || mtIn->subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF)) {
         return S_OK;
     }
   }
@@ -1405,6 +1405,8 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
             codec = AV_CODEC_ID_PCM_S32LE;
             break;
           }
+        } else if (pmt->formattype == FORMAT_WaveFormatEx && pmt->subtype == MEDIASUBTYPE_IEEE_FLOAT) {
+          codec = AV_CODEC_ID_PCM_F32LE;
         } else if (pmt->subtype == MEDIASUBTYPE_DOLBY_AC3_SPDIF) {
           codec = AV_CODEC_ID_AC3;
         }
