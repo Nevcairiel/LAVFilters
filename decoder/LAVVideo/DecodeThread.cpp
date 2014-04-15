@@ -444,7 +444,10 @@ softwaredec:
     DbgLog((LOG_TRACE, 10, L"-> No HW Codec, using Software"));
     m_bHWDecoder = FALSE;
     if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3) && !m_bWMV9Failed) {
-      m_pDecoder = CreateDecoderWMV9();
+      if (IsWindows7OrNewer())
+        m_pDecoder = CreateDecoderWMV9MFT();
+      else
+        m_pDecoder = CreateDecoderWMV9();
       bWMV9 = TRUE;
     } else
       m_pDecoder = CreateDecoderAVCodec();

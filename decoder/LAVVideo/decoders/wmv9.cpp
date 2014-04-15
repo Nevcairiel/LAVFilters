@@ -20,7 +20,6 @@
 #include "stdafx.h"
 #include "wmv9.h"
 
-#include "moreuuids.h"
 #include <wmsdk.h>
 #include <wmcodecdsp.h>
 

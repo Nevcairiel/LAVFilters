@@ -380,6 +380,7 @@ interface ILAVDecoder
  */
 ILAVDecoder *CreateDecoderAVCodec();
 ILAVDecoder *CreateDecoderWMV9();
+ILAVDecoder *CreateDecoderWMV9MFT();
 ILAVDecoder *CreateDecoderCUVID();
 ILAVDecoder *CreateDecoderQuickSync();
 ILAVDecoder *CreateDecoderDXVA2();

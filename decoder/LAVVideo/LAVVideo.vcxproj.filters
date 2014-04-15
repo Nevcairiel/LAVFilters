@@ -153,6 +153,9 @@
     <ClCompile Include="pixconv\rgb2rgb_unscaled.cpp">
       <Filter>Source Files\pixconv</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\wmv9mft.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -244,6 +247,9 @@
     </ClInclude>
     <ClInclude Include="VideoInputPin.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\wmv9mft.h">
+      <Filter>Header Files\decoders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
