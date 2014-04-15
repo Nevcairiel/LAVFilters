@@ -26,6 +26,7 @@
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
+#include "libavcodec/unary.h"
 extern __declspec(dllimport) const AVRational ff_vc1_pixel_aspect[16];
 };
 #pragma warning( pop )
@@ -52,6 +53,12 @@ enum Profile {
   PROFILE_ADVANCED
 };
 //@}
+
+enum FrameCodingMode {
+  PROGRESSIVE = 0,    ///<  in the bitstream is reported as 00b
+  ILACE_FRAME,        ///<  in the bitstream is reported as 10b
+  ILACE_FIELD         ///<  in the bitstream is reported as 11b
+};
 
 #define IS_MARKER(x) (((x) & ~0xFF) == VC1_CODE_RES0)
 
@@ -208,4 +215,78 @@ void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
     skip_bits(gb, 2); // quant mode
     hdr.finterp = get_bits1(gb);
   }
+}
+
+AVPictureType CVC1HeaderParser::ParseVC1PictureType(const uint8_t *buf, int buflen)
+{
+  AVPictureType pictype = AV_PICTURE_TYPE_NONE;
+  int skipped = 0;
+  const BYTE *framestart = buf;
+  if (IS_MARKER(AV_RB32(buf))) {
+    framestart = nullptr;
+    const BYTE *start, *end, *next;
+    next = buf;
+    for (start = buf, end = buf + buflen; next < end; start = next) {
+      if (AV_RB32(start) == VC1_CODE_FRAME) {
+        framestart = start + 4;
+        break;
+      }
+      next = find_next_marker(start + 4, end);
+    }
+  }
+  if (framestart) {
+    GetBitContext gb;
+    init_get_bits(&gb, framestart, (buflen - (framestart - buf)) * 8);
+    if (hdr.profile == PROFILE_ADVANCED) {
+      int fcm = PROGRESSIVE;
+      if (hdr.interlaced)
+        fcm = decode012(&gb);
+      if (fcm == ILACE_FIELD) {
+        int fptype = get_bits(&gb, 3);
+        pictype = (fptype & 2) ? AV_PICTURE_TYPE_P : AV_PICTURE_TYPE_I;
+        if (fptype & 4) // B-picture
+          pictype = (fptype & 2) ? AV_PICTURE_TYPE_BI : AV_PICTURE_TYPE_B;
+      } else {
+        switch (get_unary(&gb, 0, 4)) {
+        case 0:
+          pictype = AV_PICTURE_TYPE_P;
+          break;
+        case 1:
+          pictype = AV_PICTURE_TYPE_B;
+          break;
+        case 2:
+          pictype = AV_PICTURE_TYPE_I;
+          break;
+        case 3:
+          pictype = AV_PICTURE_TYPE_BI;
+          break;
+        case 4:
+          pictype = AV_PICTURE_TYPE_P; // skipped pic
+          skipped = 1;
+          break;
+        }
+      }
+    } else {
+      if (hdr.finterp)
+        skip_bits1(&gb);
+      skip_bits(&gb, 2); // framecnt
+      if (hdr.rangered)
+        skip_bits1(&gb);
+      int pic = get_bits1(&gb);
+      if (hdr.bframes) {
+        if (!pic) {
+          if (get_bits1(&gb)) {
+            pictype = AV_PICTURE_TYPE_I;
+          } else {
+            pictype = AV_PICTURE_TYPE_B;
+          }
+        } else {
+          pictype = AV_PICTURE_TYPE_P;
+        }
+      } else {
+        pictype = pic ? AV_PICTURE_TYPE_P : AV_PICTURE_TYPE_I;
+      }
+    }
+  }
+  return pictype;
 }

@@ -27,6 +27,8 @@ public:
   CVC1HeaderParser(const BYTE *pData, size_t length, AVCodecID codec = AV_CODEC_ID_VC1);
   ~CVC1HeaderParser(void);
 
+  AVPictureType ParseVC1PictureType(const uint8_t *buf, int buflen);
+
 public:
   struct {
     int valid;
