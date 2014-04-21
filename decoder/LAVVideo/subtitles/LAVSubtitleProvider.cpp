@@ -465,7 +465,7 @@ typedef struct DVDSubContext
 } DVDSubContext;
 
 #define MAX_NEG_CROP 1024
-extern "C" __declspec(dllimport) uint8_t ff_cropTbl[256 + 2 * MAX_NEG_CROP];
+extern "C" __declspec(dllimport) uint8_t ff_crop_tab[256 + 2 * MAX_NEG_CROP];
 
 STDMETHODIMP CLAVSubtitleProvider::SetDVDPalette(AM_PROPERTY_SPPAL *pPal)
 {
@@ -481,7 +481,7 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDPalette(AM_PROPERTY_SPPAL *pPal)
   uint8_t r,g,b;
   int i, y, cb, cr;
   int r_add, g_add, b_add;
-  uint8_t *cm = ff_cropTbl + MAX_NEG_CROP;
+  uint8_t *cm = ff_crop_tab + MAX_NEG_CROP;
   for (i = 0; i < 16; i++) {
     y  = pPal->sppal[i].Y;
     cb = pPal->sppal[i].V;
