@@ -75,7 +75,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_WMVP, AV_CODEC_ID_WMV3IMAGE },
   { &MEDIASUBTYPE_wmvp, AV_CODEC_ID_WMV3IMAGE },
 
-  // VP8/9
+  // VP7/8/9
+  { &MEDIASUBTYPE_VP70, AV_CODEC_ID_VP7 },
   { &MEDIASUBTYPE_VP80, AV_CODEC_ID_VP8 },
   { &MEDIASUBTYPE_VP90, AV_CODEC_ID_VP9 },
 
@@ -327,7 +328,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_WMVP },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_wmvp },
 
-  // VP8/9
+  // VP7/8/9
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_VP70 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP80 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP90 },
 
@@ -613,6 +615,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_HEVC }},                                                // Codec_HEVC
   { 1, { AV_CODEC_ID_VP9 }},                                                 // Codec_VP9
   { 2, { AV_CODEC_ID_TRUEMOTION1, AV_CODEC_ID_TRUEMOTION2 }, "truemotion", "Duck TrueMotion 1/2"}, // Codec_TrueMotion
+  { 1, { AV_CODEC_ID_VP7 }},                                                 // Codec_VP7
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)

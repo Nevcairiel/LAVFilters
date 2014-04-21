@@ -4,6 +4,7 @@ LAV DirectShow Filters Changelog
 0.62.0 - 2014/xx/xx
 LAV Video
 - NEW: Implemented a WMV9 MFT decoder to replace the old DMO decoder for VC-1/WMV3 on Windows 7 and above
+- NEW: Support for VP7 video
 
 0.61.2 - 2014/04/08
 General

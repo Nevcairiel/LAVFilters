@@ -86,6 +86,7 @@ typedef enum LAVVideoCodec {
   Codec_HEVC,
   Codec_VP9,
   Codec_TrueMotion,
+  Codec_VP7,
 
   Codec_VideoNB            // Number of entries (do not use when dynamically linking)
 };
