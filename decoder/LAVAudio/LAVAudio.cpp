@@ -970,6 +970,11 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
       }
     }
 
+	if (nChannels == 7 && m_settings.Expand61) {
+		nChannels = 8;
+		dwChannelMask = get_channel_mask(nChannels);
+	}
+
     if (iPosition == 1)
       lav_sample_fmt = SampleFormat_16;
 
