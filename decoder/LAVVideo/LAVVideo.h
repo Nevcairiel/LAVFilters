@@ -45,8 +45,6 @@
 #define DEBUG_FRAME_TIMINGS 0
 #define DEBUG_PIXELCONV_TIMINGS 0
 
-#define LAV_MT_FILTER_QUEUE_SIZE 4
-
 typedef struct {
   REFERENCE_TIME rtStart;
   REFERENCE_TIME rtStop;
