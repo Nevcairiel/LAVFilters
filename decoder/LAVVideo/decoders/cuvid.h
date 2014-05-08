@@ -76,8 +76,6 @@ private:
 
   STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen);
 
-  HWND GetDummyHWND();
-
   int GetMaxGflopsGraphicsDeviceId();
 
 private:
@@ -166,8 +164,6 @@ private:
   BOOL                   m_bTFF           = TRUE;
   BOOL                   m_bARPresent     = TRUE;
   BOOL                   m_bEndOfSequence = FALSE;
-
-  HWND                   m_hwnd           = 0;
 
   int                    m_DisplayDelay   = DISPLAY_DELAY;
 };
