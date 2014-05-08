@@ -161,6 +161,8 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 
     FreeLibrary(cuda.cudaLib);
     FreeLibrary(cuda.cuvidLib);
+
+    ZeroMemory(&cuda, sizeof(cuda));
   }
 
   return S_OK;
