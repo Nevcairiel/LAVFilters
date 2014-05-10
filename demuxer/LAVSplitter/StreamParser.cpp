@@ -288,7 +288,7 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 
   m_pgsBuffer.SetSize(0);
 
-  while((buf + 3) < buf_end) {
+  while((buf + 3) <= buf_end) {
     const uint8_t *segment_start = buf;
     const size_t segment_buf_len = buf_end - buf;
     segment_type   = AV_RB8(buf);
