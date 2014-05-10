@@ -967,6 +967,12 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
         lav_sample_fmt = SampleFormat_FP32;
         dwChannelMask = m_settings.MixingLayout;
         nChannels = av_get_channel_layout_nb_channels(dwChannelMask);
+      } else if (nChannels == 7 && m_settings.Expand61) {
+        nChannels = 8;
+        dwChannelMask = get_channel_mask(nChannels);
+      } else if (nChannels == 1 && m_settings.ExpandMono) {
+        nChannels = 2;
+        dwChannelMask = get_channel_mask(nChannels);
       }
     }
 
