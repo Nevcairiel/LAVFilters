@@ -96,7 +96,7 @@ static void bd_log(const char *log) {
   if (log[len-1] == '\n') {
     len--;
   }
-  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, log, (int)len, line, 4096);
+  SafeMultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, log, (int)len, line, 4096);
   DbgLog((LOG_TRACE, 40, L"[BD] %s", line));
 }
 #endif
@@ -161,7 +161,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
 
   // Convert the filename from wchar to char for libbluray
   char fileName[4096];
-  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
+  ret = SafeWideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
 
   int iPlaylist = -1;
 

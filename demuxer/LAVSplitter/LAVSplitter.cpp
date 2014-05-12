@@ -237,7 +237,7 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
     for (const FormatInfo& fmt : m_InputFormats) {
-      MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
+      SafeMultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
       bFlag = regF.ReadBOOL(wBuffer, hr);
       if (SUCCEEDED(hr)) m_settings.formats[std::string(fmt.strName)] = bFlag;
     }
@@ -280,7 +280,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
     for (const FormatInfo& fmt : m_InputFormats) {
-      MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
+      SafeMultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
       regF.WriteBOOL(wBuffer, m_settings.formats[std::string(fmt.strName)]);
     }
   }
@@ -1368,10 +1368,7 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
         }
         if (ppszName) {
           std::string info = s.streamInfo->codecInfo;
-          size_t len = info.size() + 1;
-          *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
-          if (*ppszName)
-            MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, info.c_str(), -1, *ppszName, (int)len);
+          *ppszName = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, info.c_str(), -1);
         }
       }
       hr = S_OK;
@@ -1403,15 +1400,12 @@ std::list<std::string> CLAVSplitter::GetPreferredAudioLanguageList()
 {
   std::list<std::string> list;
 
-  // Convert to multi-byte ascii
-  int bufSize = (int)(sizeof(WCHAR) * (m_settings.prefAudioLangs.length() + 1));
-  char *buffer = (char *)CoTaskMemAlloc(bufSize);
+  char *buffer = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1);
   if (!buffer)
     return list;
-  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, nullptr, nullptr);
 
   split(std::string(buffer), std::string(",; "), list);
-  CoTaskMemFree(buffer);
+  SAFE_CO_FREE(buffer);
 
   return list;
 }
@@ -1426,13 +1420,10 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   if (m_settings.subtitleMode == LAVSubtitleMode_NoSubs) {
     // Do nothing
   } else if (m_settings.subtitleMode == LAVSubtitleMode_Default || m_settings.subtitleMode == LAVSubtitleMode_ForcedOnly) {
-    // Convert to multi-byte ascii
-    size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
-    char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    // Convert to wide-char to utf8
+    char *buffer = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1);
     if (!buffer)
       return selectorList;
-    ZeroMemory(buffer, bufSize);
-    WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, (int)bufSize, nullptr, nullptr);
 
     std::list<std::string> langList;
     split(std::string(buffer), separators, langList);
@@ -1462,13 +1453,10 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     if (m_settings.subtitleMode == LAVSubtitleMode_Default)
       tokenList.push_back("*:*|d");
   } else if (m_settings.subtitleMode == LAVSubtitleMode_Advanced) {
-    // Convert to multi-byte ascii
-    size_t bufSize = sizeof(WCHAR) * (m_settings.subtitleAdvanced.length() + 1);
-    char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    // Convert to wide-char to utf8
+    char *buffer = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1);
     if (!buffer)
       return selectorList;
-    ZeroMemory(buffer, bufSize);
-    WideCharToMultiByte(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1, buffer, (int)bufSize, nullptr, nullptr);
 
     split(std::string(buffer), separators, tokenList);
     SAFE_CO_FREE(buffer);

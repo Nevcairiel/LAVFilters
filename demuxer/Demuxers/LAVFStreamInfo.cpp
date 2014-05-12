@@ -451,7 +451,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
     // read metadata
     char *title = dictEntry->value;
     // convert to wchar
-    MultiByteToWideChar(CP_UTF8, 0, title, -1, subInfo->TrackName, 256);
+    SafeMultiByteToWideChar(CP_UTF8, 0, title, -1, subInfo->TrackName, 256);
   }
 
   subInfo->dwOffset = sizeof(SUBTITLEINFO);

@@ -191,7 +191,7 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   // Convert the filename from wchar to char for avformat
   char fileName[4100] = {0};
   if (pszFileName) {
-    ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
+    ret = SafeWideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
   }
 
   if (_strnicmp("mms:", fileName, 4) == 0) {
@@ -684,9 +684,7 @@ STDMETHODIMP CLAVFDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCH
     } else {
       title = av_asprintf("E: Edition %d [%02d:%02d:%02d]", idx+1, hours, minutes, seconds);
     }
-    size_t len = strlen(title);
-    *ppszName = (WCHAR *)CoTaskMemAlloc(sizeof(WCHAR) * (len + 1));
-    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, title, -1, *ppszName, len+1);
+    *ppszName = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, title, -1);
     av_freep(&title);
   }
   return S_OK;
@@ -1265,7 +1263,7 @@ STDMETHODIMP CLAVFDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
   OLECHAR wTitle[128];
   if (AVDictionaryEntry *dictEntry = av_dict_get(m_avFormat->chapters[index]->metadata, "title", nullptr, 0)) {
     char *title = dictEntry->value;
-    MultiByteToWideChar(CP_UTF8, 0, title, -1, wTitle, 128);
+    SafeMultiByteToWideChar(CP_UTF8, 0, title, -1, wTitle, 128);
   } else {
     swprintf_s(wTitle, L"Chapter %d", MarkerNum);
   }
