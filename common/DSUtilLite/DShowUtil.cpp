@@ -185,6 +185,48 @@ std::wstring WStringFromGUID(const GUID& guid)
   return std::wstring(StringFromGUID2(guid, buff, 127) > 0 ? buff : null);
 }
 
+int SafeMultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
+{
+  int len = MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
+  if (len == cchWideChar) {
+    lpWideCharStr[len - 1] = 0;
+  }
+  return len;
+}
+
+int SafeWideCharToMultiByte(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar)
+{
+  int len = WideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
+  if (len == cbMultiByte) {
+    lpMultiByteStr[len - 1] = 0;
+  }
+  return len;
+}
+
+LPWSTR CoTaskGetWideCharFromMultiByte(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte)
+{
+  int len = MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, nullptr, 0);
+  if (len) {
+    LPWSTR pszWideString = (LPWSTR)CoTaskMemAlloc(len * sizeof(WCHAR));
+    MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, pszWideString, len);
+
+    return pszWideString;
+  }
+  return NULL;
+}
+
+LPSTR CoTaskGetMultiByteFromWideChar(UINT CodePage, DWORD dwFlags, LPCWSTR lpMultiByteStr, int cbMultiByte)
+{
+  int len = WideCharToMultiByte(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, nullptr, 0, nullptr, nullptr);
+  if (len) {
+    LPSTR pszMBString = (LPSTR)CoTaskMemAlloc(len * sizeof(char));
+    WideCharToMultiByte(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, pszMBString, len, nullptr, nullptr);
+
+    return pszMBString;
+  }
+  return NULL;
+}
+
 BSTR ConvertCharToBSTR(const char *sz)
 {
   bool acp = false;

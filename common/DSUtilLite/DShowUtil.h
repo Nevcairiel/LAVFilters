@@ -117,6 +117,11 @@ extern BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType);
 std::wstring WStringFromGUID(const GUID& guid);
 BSTR ConvertCharToBSTR(const char *sz);
 
+int SafeMultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+int SafeWideCharToMultiByte(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
+LPWSTR CoTaskGetWideCharFromMultiByte(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte);
+LPSTR CoTaskGetMultiByteFromWideChar(UINT CodePage, DWORD dwFlags, LPCWSTR lpMultiByteStr, int cbMultiByte);
+
 unsigned int lav_xiphlacing(unsigned char *s, unsigned int v);
 
 void videoFormatTypeHandler(const AM_MEDIA_TYPE &mt, BITMAPINFOHEADER **pBMI = nullptr, REFERENCE_TIME *prtAvgTime = nullptr, DWORD *pDwAspectX = nullptr, DWORD *pDwAspectY = nullptr);
