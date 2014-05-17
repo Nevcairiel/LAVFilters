@@ -188,8 +188,12 @@ std::wstring WStringFromGUID(const GUID& guid)
 int SafeMultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
 {
   int len = MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
-  if (len == cchWideChar) {
-    lpWideCharStr[len - 1] = 0;
+  if (cchWideChar) {
+    if (len == cchWideChar || (len == 0 && GetLastError() == ERROR_INSUFFICIENT_BUFFER)) {
+      lpWideCharStr[cchWideChar - 1] = 0;
+    } else if (len == 0) {
+      lpWideCharStr[0] = 0;
+    }
   }
   return len;
 }
@@ -197,8 +201,12 @@ int SafeMultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr,
 int SafeWideCharToMultiByte(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar)
 {
   int len = WideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
-  if (len == cbMultiByte) {
-    lpMultiByteStr[len - 1] = 0;
+  if (cbMultiByte) {
+    if (len == cbMultiByte || (len == 0 && GetLastError() == ERROR_INSUFFICIENT_BUFFER)) {
+      lpMultiByteStr[cbMultiByte - 1] = 0;
+    } else if (len == 0) {
+      lpMultiByteStr[0] = 0;
+    }
   }
   return len;
 }
