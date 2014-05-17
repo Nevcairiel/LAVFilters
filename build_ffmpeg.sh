@@ -58,6 +58,8 @@ configure() (
     --enable-version3               \
     --enable-w32threads             \
     --disable-demuxer=matroska      \
+    --disable-decoder=opus          \
+    --disable-parser=opus           \
     --disable-filters               \
     --enable-filter=yadif           \
     --enable-filter=scale           \
