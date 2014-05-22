@@ -19,6 +19,7 @@
 
 #include "stdafx.h"
 #include "LAVPixFmtConverter.h"
+#include "pixconv/pixconv_sse2_templates.h"
 #include "Media.h"
 
 #include "decoders/ILAVDecoder.h"
@@ -321,10 +322,14 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     // We assume that every filter that understands v210 will also properly handle it
     m_RequiredAlignment = 0;
   } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
-    || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) || (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48)
-    || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
-    convert = &CLAVPixFmtConverter::plane_copy;
-    m_RequiredAlignment = 0;
+            || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) || (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48)
+            || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
+      if (!IsWindows7OrNewer() && (cpu & AV_CPU_FLAG_SSE2)) {
+        convert = &CLAVPixFmtConverter::plane_copy_sse2;
+      } else {
+        convert = &CLAVPixFmtConverter::plane_copy;
+        m_RequiredAlignment = 0;
+      }
   } else if (m_InputPixFmt == LAVPixFmt_RGB48 && m_OutputPixFmt == LAVOutPixFmt_RGB32 && (cpu & AV_CPU_FLAG_SSSE3)) {
     convert = &CLAVPixFmtConverter::convert_rgb48_rgb32_ssse3;
   } else if (cpu & AV_CPU_FLAG_SSE2) {
@@ -462,6 +467,39 @@ DECLARE_CONV_FUNC_IMPL(plane_copy)
   }
 
   return S_OK;
+}
+
+DECLARE_CONV_FUNC_IMPL(plane_copy_sse2)
+{
+    LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
+
+    int plane, line;
+
+    const int widthBytes = width * desc.codedbytes;
+    const int planes = max(desc.planes, 1);
+
+    for (plane = 0; plane < planes; plane++) {
+        const int planeWidth = widthBytes / desc.planeWidth[plane];
+        const int planeHeight = height / desc.planeHeight[plane];
+        const uint8_t *srcBuf = src[plane];
+        uint8_t *dstBuf = dst[plane];
+
+        if ((srcStride[plane] % 16) == 0 && (dstStride[plane] % 16) == 0) {
+          for (line = 0; line < planeHeight; ++line) {
+            PIXCONV_MEMCPY_ALIGNED(dstBuf, srcBuf, planeWidth);
+            srcBuf += srcStride[plane];
+            dstBuf += dstStride[plane];
+          }
+        } else {
+          for (line = 0; line < planeHeight; ++line) {
+            memcpy(dstBuf, srcBuf, planeWidth);
+            srcBuf += srcStride[plane];
+            dstBuf += dstStride[plane];
+          }
+        }
+    }
+
+    return S_OK;
 }
 
 void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, int planeHeight, LAVOutPixFmts format)
