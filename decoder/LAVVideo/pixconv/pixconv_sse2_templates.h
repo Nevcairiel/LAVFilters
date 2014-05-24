@@ -83,6 +83,10 @@
 
 #define PIXCONV_LOAD_PIXEL8_ALIGNED PIXCONV_LOAD_ALIGNED
 
+// Put 128-bit into memory, using streaming write
+#define PIXCONV_PUT_STREAM(dst,reg) \
+  _mm_stream_si128((__m128i *)(dst), reg);           /* streaming write */
+
 // Load 4 8-bit pixels into the register
 // reg     - register to store pixels in
 // src     - source memory
@@ -99,49 +103,65 @@
 // dst - memory destination
 // src - memory source
 // len - size in bytes
-#define PIXCONV_MEMCPY_ALIGNED(dst,src,len)     \
-  {                                             \
-    __m128i reg;                                \
-    __m128i *dst128 =  (__m128i *)(dst);        \
-    for (int i = 0; i < len; i+=16) {           \
-      PIXCONV_LOAD_PIXEL8_ALIGNED(reg,(src)+i); \
-      _mm_stream_si128(dst128++, reg);          \
-    }                                           \
-  }
-
-// SSE2 Aligned memcpy (for 32-bit aligned data)
-// dst - memory destination
-// src - memory source
-// len - size in bytes
-#define PIXCONV_MEMCPY_ALIGNED32(dst,src,len)    \
+#define PIXCONV_MEMCPY_ALIGNED(dst,src,len)      \
   {                                              \
-    __m128i reg1,reg2;                           \
-    __m128i *dst128 =  (__m128i *)(dst);         \
-    for (int i = 0; i < len; i+=32) {            \
-      PIXCONV_LOAD_PIXEL8_ALIGNED(reg1,(src)+i); \
-      PIXCONV_LOAD_PIXEL8_ALIGNED(reg2,(src)+i+16); \
-      _mm_stream_si128(dst128++, reg1);          \
-      _mm_stream_si128(dst128++, reg2);          \
+    const uint8_t * const srcLinePtr = (src);    \
+          uint8_t * const dstLinePtr = (dst);    \
+    __m128i r1, r2, r3, r4;                      \
+    ptrdiff_t i;                                 \
+    for (i = 0; i < (len - 63); i += 64) {       \
+      PIXCONV_LOAD_ALIGNED(r1, srcLinePtr+i+ 0)  \
+      PIXCONV_LOAD_ALIGNED(r2, srcLinePtr+i+16); \
+      PIXCONV_LOAD_ALIGNED(r3, srcLinePtr+i+32); \
+      PIXCONV_LOAD_ALIGNED(r4, srcLinePtr+i+48); \
+      PIXCONV_PUT_STREAM(dstLinePtr+i+ 0, r1);   \
+      PIXCONV_PUT_STREAM(dstLinePtr+i+16, r2);   \
+      PIXCONV_PUT_STREAM(dstLinePtr+i+32, r3);   \
+      PIXCONV_PUT_STREAM(dstLinePtr+i+48, r4);   \
+    }                                            \
+    for (; i < len; i += 16) {                   \
+      PIXCONV_LOAD_ALIGNED(r1, srcLinePtr+i);    \
+      PIXCONV_PUT_STREAM(dstLinePtr+i, r1);      \
     }                                            \
   }
 
 // SSE2 Aligned memcpy
 // Copys the same size from two source into two destinations at the same time
-// Can be useful to copy U/V planes in one go
 // dst1 - memory destination
 // src1 - memory source
 // dst2 - memory destination
 // src2 - memory source
 // len  - size in bytes
-#define PIXCONV_MEMCPY_ALIGNED_TWO(dst1,src1,dst2,src2,len)     \
+#define PIXCONV_MEMCPY_ALIGNED_TWO(dst1,src1,dst2,src2,len) \
   {                                               \
-    __m128i reg1,reg2;                            \
-    __m128i *dst128_1 =  (__m128i *)(dst1);       \
-    __m128i *dst128_2 =  (__m128i *)(dst2);       \
-    for (int i = 0; i < len; i+=16) {             \
-      PIXCONV_LOAD_PIXEL8_ALIGNED(reg1,(src1)+i); \
-      PIXCONV_LOAD_PIXEL8_ALIGNED(reg2,(src2)+i); \
-      _mm_stream_si128(dst128_1++, reg1);         \
-      _mm_stream_si128(dst128_2++, reg2);         \
+    const uint8_t * const src1LinePtr = (src1);   \
+    const uint8_t * const src2LinePtr = (src2);   \
+          uint8_t * const dst1LinePtr = (dst1);   \
+          uint8_t * const dst2LinePtr = (dst2);   \
+    __m128i r1, r2, r3, r4, r5, r6, r7, r8;       \
+    ptrdiff_t i;                                  \
+    for (i = 0; i < (len - 63); i += 64) {        \
+      PIXCONV_LOAD_ALIGNED(r1, src1LinePtr+i+ 0); \
+      PIXCONV_LOAD_ALIGNED(r2, src1LinePtr+i+16); \
+      PIXCONV_LOAD_ALIGNED(r3, src1LinePtr+i+32); \
+      PIXCONV_LOAD_ALIGNED(r4, src1LinePtr+i+48); \
+      PIXCONV_LOAD_ALIGNED(r5, src2LinePtr+i+ 0); \
+      PIXCONV_LOAD_ALIGNED(r6, src2LinePtr+i+16); \
+      PIXCONV_LOAD_ALIGNED(r7, src2LinePtr+i+32); \
+      PIXCONV_LOAD_ALIGNED(r8, src2LinePtr+i+48); \
+      PIXCONV_PUT_STREAM(dst1LinePtr+i+ 0, r1);   \
+      PIXCONV_PUT_STREAM(dst1LinePtr+i+16, r2);   \
+      PIXCONV_PUT_STREAM(dst1LinePtr+i+32, r3);   \
+      PIXCONV_PUT_STREAM(dst1LinePtr+i+48, r4);   \
+      PIXCONV_PUT_STREAM(dst2LinePtr+i+ 0, r5);   \
+      PIXCONV_PUT_STREAM(dst2LinePtr+i+16, r6);   \
+      PIXCONV_PUT_STREAM(dst2LinePtr+i+32, r7);   \
+      PIXCONV_PUT_STREAM(dst2LinePtr+i+48, r8);   \
+    }                                             \
+    for (; i < len; i += 16) {                    \
+      PIXCONV_LOAD_ALIGNED(r1, src1LinePtr+i);    \
+      PIXCONV_LOAD_ALIGNED(r2, src2LinePtr+i);    \
+      PIXCONV_PUT_STREAM(dst1LinePtr+i, r1);      \
+      PIXCONV_PUT_STREAM(dst2LinePtr+i, r2);      \
     }                                             \
   }

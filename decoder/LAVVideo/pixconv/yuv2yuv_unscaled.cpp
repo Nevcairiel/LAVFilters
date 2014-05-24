@@ -199,14 +199,28 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_yv)
   _mm_sfence();
 
   // Y
-  for (line = 0; line < height; ++line) {
-    memcpy(dst[0] + outLumaStride * line, y + inLumaStride * line, width);
+  if ((outLumaStride % 16) == 0 && ((intptr_t)dst[0] % 16u) == 0) {
+    for (line = 0; line < height; ++line) {
+      PIXCONV_MEMCPY_ALIGNED(dst[0] + outLumaStride * line, y + inLumaStride * line, width);
+    }
+  } else {
+    for (line = 0; line < height; ++line) {
+      memcpy(dst[0] + outLumaStride * line, y + inLumaStride * line, width);
+    }
   }
 
   // U/V
-  for(line = 0; line < chromaHeight; ++line) {
-    memcpy(dst[2] + outChromaStride * line, u + inChromaStride * line, chromaWidth);
-    memcpy(dst[1] + outChromaStride * line, v + inChromaStride * line, chromaWidth);
+  if ((outChromaStride % 16) == 0 && ((intptr_t)dst[1] % 16u) == 0) {
+    for(line = 0; line < chromaHeight; ++line) {
+      PIXCONV_MEMCPY_ALIGNED_TWO(dst[2] + outChromaStride * line, u + inChromaStride * line,
+                                 dst[1] + outChromaStride * line, v + inChromaStride * line,
+                                 chromaWidth);
+    }
+  } else {
+    for (line = 0; line < chromaHeight; ++line) {
+      memcpy(dst[2] + outChromaStride * line, u + inChromaStride * line, chromaWidth);
+      memcpy(dst[1] + outChromaStride * line, v + inChromaStride * line, chromaWidth);
+    }
   }
 
   return S_OK;
@@ -230,7 +244,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
 
   // Y
   for(line = 0; line < height; ++line) {
-    memcpy(dst[0] + outLumaStride * line, src[0] + inLumaStride * line, width);
+    PIXCONV_MEMCPY_ALIGNED(dst[0] + outLumaStride * line, src[0] + inLumaStride * line, width);
   }
 
   // U/V
@@ -414,7 +428,7 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
 
   // Copy the y
   for (line = 0; line < height; line++) {
-    memcpy(dst[0] + outLumaStride * line, src[0] + inLumaStride * line, width);
+    PIXCONV_MEMCPY_ALIGNED(dst[0] + outLumaStride * line, src[0] + inLumaStride * line, width);
   }
 
   for (line = 0; line < chromaHeight; line++) {
