@@ -38,6 +38,22 @@
   reg = _mm_load_si128((const __m128i *)(src));  /* load (aligned) */  \
   reg = _mm_slli_epi16(reg, 16-bpp);             /* shift to 16-bit */
 
+
+// Load 2x8 16-bit pixels into registers, using aligned memory access
+// reg1   - register to store pixels in
+// reg2   - register to store pixels in
+// src1   - memory pointer of the source
+// src2   - memory pointer of the source
+// bpp   - bit depth of the pixels
+#define PIXCONV_LOAD_PIXEL16X2(reg1,reg2,src1,src2,bpp) \
+  {                                                     \
+    const __m128i shift = _mm_cvtsi32_si128(16 - bpp);  \
+    reg1 = _mm_load_si128((const __m128i *)(src1));     \
+    reg2 = _mm_load_si128((const __m128i *)(src2));     \
+    reg1 = _mm_sll_epi16(reg1, shift);                  \
+    reg2 = _mm_sll_epi16(reg2, shift);                  \
+  }
+
 // Load 8 16-bit pixels into a register, and dither them to 8 bit
 // The 8-bit pixels will be in the high-bytes of the 8 16-bit parts
 // NOTE: the low-bytes are clobbered, and not empty.
