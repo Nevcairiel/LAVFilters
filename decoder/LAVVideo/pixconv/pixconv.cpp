@@ -38,20 +38,21 @@ DECLARE_CONV_FUNC_IMPL(plane_copy)
 {
   LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
 
-  int plane, line;
-
   const int widthBytes = width * desc.codedbytes;
   const int planes = max(desc.planes, 1);
+
+  ptrdiff_t line, plane;
 
   for (plane = 0; plane < planes; plane++) {
     const int planeWidth = widthBytes / desc.planeWidth[plane];
     const int planeHeight = height / desc.planeHeight[plane];
-    const uint8_t *srcBuf = src[plane];
-    uint8_t *dstBuf = dst[plane];
+    const ptrdiff_t srcPlaneStride = srcStride[plane];
+    const ptrdiff_t dstPlaneStride = dstStride[plane];
+    const uint8_t * const srcBuf = src[plane];
+          uint8_t * const dstBuf = dst[plane];
+
     for (line = 0; line < planeHeight; ++line) {
-      memcpy(dstBuf, srcBuf, planeWidth);
-      srcBuf += srcStride[plane];
-      dstBuf += dstStride[plane];
+      memcpy(dstBuf + line * dstPlaneStride, srcBuf + line * srcPlaneStride, planeWidth);
     }
   }
 
