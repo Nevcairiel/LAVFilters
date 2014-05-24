@@ -323,7 +323,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
     || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) || (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48)
     || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
-    convert = &CLAVPixFmtConverter::plane_copy;
+    if (cpu & AV_CPU_FLAG_SSE2)
+      convert = &CLAVPixFmtConverter::plane_copy_sse2;
+    else
+      convert = &CLAVPixFmtConverter::plane_copy;
     m_RequiredAlignment = 0;
   } else if (m_InputPixFmt == LAVPixFmt_RGB48 && m_OutputPixFmt == LAVOutPixFmt_RGB32 && (cpu & AV_CPU_FLAG_SSSE3)) {
     convert = &CLAVPixFmtConverter::convert_rgb48_rgb32_ssse3;
