@@ -440,30 +440,6 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   return hr;
 }
 
-DECLARE_CONV_FUNC_IMPL(plane_copy)
-{
-  LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
-
-  int plane, line;
-
-  const int widthBytes = width * desc.codedbytes;
-  const int planes = max(desc.planes, 1);
-
-  for (plane = 0; plane < planes; plane++) {
-    const int planeWidth     = widthBytes / desc.planeWidth[plane];
-    const int planeHeight    = height     / desc.planeHeight[plane];
-    const uint8_t *srcBuf = src[plane];
-    uint8_t *dstBuf = dst[plane];
-    for (line = 0; line < planeHeight; ++line) {
-      memcpy(dstBuf, srcBuf, planeWidth);
-      srcBuf += srcStride[plane];
-      dstBuf += dstStride[plane];
-    }
-  }
-
-  return S_OK;
-}
-
 void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, int planeHeight, LAVOutPixFmts format)
 {
   LAVOutPixFmtDesc desc = lav_pixfmt_desc[format];

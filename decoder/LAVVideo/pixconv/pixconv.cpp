@@ -32,3 +32,27 @@ DECLARE_ALIGNED(16, const uint16_t, dither_8x8_256)[8][8] = {
   {  40, 232,  24, 216,  36, 228,  20, 212 },
   { 168, 104, 152,  88, 164, 100, 148,  84 }
 };
+
+DECLARE_CONV_FUNC_IMPL(plane_copy)
+{
+  LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
+
+  int plane, line;
+
+  const int widthBytes = width * desc.codedbytes;
+  const int planes = max(desc.planes, 1);
+
+  for (plane = 0; plane < planes; plane++) {
+    const int planeWidth = widthBytes / desc.planeWidth[plane];
+    const int planeHeight = height / desc.planeHeight[plane];
+    const uint8_t *srcBuf = src[plane];
+    uint8_t *dstBuf = dst[plane];
+    for (line = 0; line < planeHeight; ++line) {
+      memcpy(dstBuf, srcBuf, planeWidth);
+      srcBuf += srcStride[plane];
+      dstBuf += dstStride[plane];
+    }
+  }
+
+  return S_OK;
+}
