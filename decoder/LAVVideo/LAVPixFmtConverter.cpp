@@ -421,8 +421,8 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   }
 
   uint8_t *dstArray[4] = {0};
-  int dstStrideArray[4] = {0};
-  int byteStride = outStride * lav_pixfmt_desc[m_OutputPixFmt].codedbytes;
+  ptrdiff_t dstStrideArray[4] = {0};
+  ptrdiff_t byteStride = outStride * lav_pixfmt_desc[m_OutputPixFmt].codedbytes;
 
   dstArray[0] = out;
   dstStrideArray[0] = byteStride;

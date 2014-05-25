@@ -137,7 +137,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
   return m_pSwsContext;
 }
 
-HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], uint8_t* dst[], int width, int height, const int dstStride[], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
+HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
 {
   int ret;
 
@@ -149,12 +149,18 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPix
     dst[1] = dst[2];
     dst[2] = tmp;
   }
-  ret = sws_scale(ctx, src, srcStride, 0, height, dst, dstStride);
+
+  // sws needs int stride, not ptrdiff
+  int stride[4];
+  for (int i = 0; i < 4; i++)
+    stride[i] = (int)dstStride[i];
+
+  ret = sws_scale(ctx, src, srcStride, 0, height, dst, stride);
 
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
@@ -250,7 +256,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
@@ -318,7 +324,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[], int chromaVertical)
+HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[], int chromaVertical)
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
@@ -426,7 +432,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
     out += dstStride; \
   }
 
-HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
@@ -486,7 +492,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
@@ -539,7 +545,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
@@ -582,7 +588,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   }
 
   // Calculate v210 stride
-  int outStride = (((dstStride[0] >> 2) + 47) / 48) * 128;
+  ptrdiff_t outStride = (((dstStride[0] >> 2) + 47) / 48) * 128;
 
   // Align width to an even number for processing
   // This may read into the source stride, but otherwise the algorithm won't work.
@@ -637,7 +643,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const int dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
