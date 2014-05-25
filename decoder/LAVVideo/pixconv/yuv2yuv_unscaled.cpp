@@ -319,9 +319,9 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv422_yuy2_uyvy)
       }
 
       PIXCONV_PUT_STREAM(d + (i << 2) + 0, xmm3);
-      PIXCONV_PUT_STREAM(d + (i << 2) + 8, xmm4);
-      PIXCONV_PUT_STREAM(d + (i << 2) + 16, xmm5);
-      PIXCONV_PUT_STREAM(d + (i << 2) + 24, xmm2);
+      PIXCONV_PUT_STREAM(d + (i << 2) + 16, xmm4);
+      PIXCONV_PUT_STREAM(d + (i << 2) + 32, xmm5);
+      PIXCONV_PUT_STREAM(d + (i << 2) + 48, xmm2);
     }
   }
 
