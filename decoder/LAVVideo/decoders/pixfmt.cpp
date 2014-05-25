@@ -91,7 +91,7 @@ static void free_buffers(struct LAVFrame *pFrame)
   memset(pFrame->data, 0, sizeof(pFrame->data));
 }
 
-HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
+HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
 {
   LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
 
@@ -105,7 +105,7 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
   memset(pFrame->data, 0, sizeof(pFrame->data));
   memset(pFrame->stride, 0, sizeof(pFrame->stride));
   for (int plane = 0; plane < desc.planes; plane++) {
-    int planeStride = stride / desc.planeWidth[plane];
+    ptrdiff_t planeStride = stride / desc.planeWidth[plane];
     size_t size = planeStride * (pFrame->height / desc.planeHeight[plane]);
     pFrame->data[plane]   = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
     pFrame->stride[plane] = planeStride;

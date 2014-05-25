@@ -362,7 +362,7 @@ STDMETHODIMP CDecWMV9MFT::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   return ProcessOutput();
 }
 
-static inline void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int height)
+static inline void memcpy_plane(BYTE *dst, const BYTE *src, ptrdiff_t width, ptrdiff_t stride, int height)
 {
   for (int i = 0; i < height; i++) {
     memcpy(dst, src, width);

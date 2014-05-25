@@ -137,7 +137,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
   return m_pSwsContext;
 }
 
-HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const int srcStride[], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
+HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[], const ptrdiff_t srcStride[], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12)
 {
   int ret;
 
@@ -150,29 +150,24 @@ HRESULT CLAVPixFmtConverter::swscale_scale(enum AVPixelFormat srcPix, enum AVPix
     dst[2] = tmp;
   }
 
-  // sws needs int stride, not ptrdiff
-  int stride[4];
-  for (int i = 0; i < 4; i++)
-    stride[i] = (int)dstStride[i];
-
-  ret = sws_scale(ctx, src, srcStride, 0, height, dst, stride);
+  ret = sws_scale2(ctx, src, srcStride, 0, height, dst, dstStride);
 
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
   const BYTE *v = nullptr;
-  int line, i;
-  int sourceStride = 0;
+  ptrdiff_t line, i;
+  ptrdiff_t sourceStride = 0;
   BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV422) {
-    uint8_t *tmp[4] = {nullptr};
-    int     tmpStride[4] = {0};
-    int scaleStride = FFALIGN(width, 32);
+    uint8_t  *tmp[4] = {nullptr};
+    ptrdiff_t tmpStride[4] = {0};
+    ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 2);
 
@@ -187,7 +182,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
     tmpStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P, SWS_BILINEAR);
-    sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
+    sws_scale2(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = tmp[0];
     u = tmp[1];
@@ -205,7 +200,7 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
 
   uint8_t *out = dst[0];
   int halfwidth = width >> 1;
-  int halfstride = sourceStride >> 1;
+  ptrdiff_t halfstride = sourceStride >> 1;
 
   if (m_OutputPixFmt == LAVOutPixFmt_YUY2) {
     for (line = 0; line < height; ++line) {
@@ -256,19 +251,19 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
   const BYTE *v = nullptr;
-  int line, i = 0;
-  int sourceStride = 0;
+  ptrdiff_t line, i = 0;
+  ptrdiff_t sourceStride = 0;
   BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444) {
-    uint8_t *tmp[4] = {nullptr};
-    int     tmpStride[4] = {0};
-    int scaleStride = FFALIGN(width, 32);
+    uint8_t  *tmp[4] = {nullptr};
+    ptrdiff_t tmpStride[4] = {0};
+    ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 3);
 
@@ -282,7 +277,7 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
     tmpStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P, SWS_BILINEAR);
-    sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
+    sws_scale2(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = tmp[0];
     u = tmp[1];
@@ -324,22 +319,22 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[], int chromaVertical)
+HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[], int chromaVertical)
 {
   const BYTE *y = nullptr;
   const BYTE *u = nullptr;
   const BYTE *v = nullptr;
-  int line, i = 0;
-  int sourceStride = 0;
+  ptrdiff_t line, i = 0;
+  ptrdiff_t sourceStride = 0;
 
   int shift = 0;
 
   BYTE *pTmpBuffer = nullptr;
 
   if ((chromaVertical == 1 && m_InputPixFmt != LAVPixFmt_YUV422bX) || (chromaVertical == 2 && m_InputPixFmt != LAVPixFmt_YUV420bX)) {
-    uint8_t *tmp[4] = {nullptr};
-    int     tmpStride[4] = {0};
-    int scaleStride = FFALIGN(width, 32) * 2;
+    uint8_t  *tmp[4] = {nullptr};
+    ptrdiff_t tmpStride[4] = {0};
+    ptrdiff_t scaleStride = FFALIGN(width, 32) * 2;
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 2);
 
@@ -353,7 +348,7 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
     tmpStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), chromaVertical == 1 ? AV_PIX_FMT_YUV422P16LE : AV_PIX_FMT_YUV420P16LE, SWS_BILINEAR);
-    sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
+    sws_scale2(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = tmp[0];
     u = tmp[1];
@@ -432,20 +427,20 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const in
     out += dstStride; \
   }
 
-HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
   const int16_t *v = nullptr;
-  int sourceStride = 0;
+  ptrdiff_t sourceStride = 0;
   bool b9Bit = false;
 
   BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444bX || m_InBpp > 10) {
-    uint8_t *tmp[4] = {nullptr};
-    int     tmpStride[4] = {0};
-    int scaleStride = FFALIGN(width, 32);
+    uint8_t  *tmp[4] = {nullptr};
+    ptrdiff_t tmpStride[4] = {0};
+    ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
 
@@ -459,7 +454,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
     tmpStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_BILINEAR);
-    sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
+    sws_scale2(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
     u = (int16_t *)tmp[1];
@@ -492,19 +487,19 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
   const int16_t *v = nullptr;
-  int sourceStride = 0;
+  ptrdiff_t sourceStride = 0;
 
   BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444bX || m_InBpp != 16) {
-    uint8_t *tmp[4] = {nullptr};
-    int     tmpStride[4] = {0};
-    int scaleStride = FFALIGN(width, 32);
+    uint8_t  *tmp[4] = {nullptr};
+    ptrdiff_t tmpStride[4] = {0};
+    ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
 
@@ -518,7 +513,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
     tmpStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P16LE, SWS_BILINEAR);
-    sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
+    sws_scale2(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
     u = (int16_t *)tmp[1];
@@ -545,20 +540,20 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
   const int16_t *v = nullptr;
-  int srcyStride = 0;
-  int srcuvStride = 0;
+  ptrdiff_t srcyStride = 0;
+  ptrdiff_t srcuvStride = 0;
 
   BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV422bX || m_InBpp != 10) {
-    uint8_t *tmp[4] = {nullptr};
-    int     tmpStride[4] = {0};
-    int scaleStride = FFALIGN(width, 32);
+    uint8_t  *tmp[4] = {nullptr};
+    ptrdiff_t tmpStride[4] = {0};
+    ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
 
@@ -572,7 +567,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
     tmpStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV422P10LE, SWS_BILINEAR);
-    sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
+    sws_scale2(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
     u = (int16_t *)tmp[1];
@@ -643,20 +638,20 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const in
   return S_OK;
 }
 
-HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const int srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
+HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[], int width, int height, const ptrdiff_t dstStride[])
 {
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
   const int16_t *v = nullptr;
-  int sourceStride = 0;
+  ptrdiff_t sourceStride = 0;
   bool b9Bit = false;
 
   BYTE *pTmpBuffer = nullptr;
 
   if (m_InputPixFmt != LAVPixFmt_YUV444bX || m_InBpp > 10) {
-    uint8_t *tmp[4] = {nullptr};
-    int     tmpStride[4] = {0};
-    int scaleStride = FFALIGN(width, 32);
+    uint8_t  *tmp[4] = {nullptr};
+    ptrdiff_t tmpStride[4] = {0};
+    ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
 
@@ -670,7 +665,7 @@ HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const in
     tmpStride[3] = 0;
 
     SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_YUV444P10LE, SWS_BILINEAR);
-    sws_scale(ctx, src, srcStride, 0, height, tmp, tmpStride);
+    sws_scale2(ctx, src, srcStride, 0, height, tmp, tmpStride);
 
     y = (int16_t *)tmp[0];
     u = (int16_t *)tmp[1];

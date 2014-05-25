@@ -441,7 +441,7 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   return ProcessOutput();
 }
 
-static void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int height)
+static void memcpy_plane(BYTE *dst, const BYTE *src, ptrdiff_t width, ptrdiff_t stride, int height)
 {
   for (int i = 0; i < height; i++) {
     memcpy(dst, src, width);

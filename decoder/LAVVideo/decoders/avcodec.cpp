@@ -998,8 +998,12 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   // Get a context
   m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
 
+  ptrdiff_t linesize[4];
+  for (int i = 0; i < 4; i++)
+    linesize[i] = pFrame->linesize[i];
+
   // Perform conversion
-  sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
+  sws_scale2(m_pSwsContext, pFrame->data, linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
 
   return S_OK;
 }

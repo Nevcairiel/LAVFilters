@@ -94,7 +94,7 @@ typedef struct LAVFrame {
   int height;                       ///< height of the frame (in pixel)
 
   BYTE *data[4];                    ///< pointer to the picture planes
-  int stride[4];                    ///< stride of the planes (in bytes)
+  ptrdiff_t stride[4];                    ///< stride of the planes (in bytes)
 
   LAVPixelFormat format;            ///< pixel format of the frame
   int bpp;                          ///< bits per pixel, only meaningful for YUV420bX, YUV422bX or YUV444bX
@@ -134,7 +134,7 @@ typedef struct LAVFrame {
  * @param stride stride to use (in pixel). If 0, a stride will be computed to fill usual alignment rules
  * @return HRESULT
  */
-HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride = 0);
+HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride = 0);
 
 /**
  * Destruct a LAV Frame, freeing its data pointers

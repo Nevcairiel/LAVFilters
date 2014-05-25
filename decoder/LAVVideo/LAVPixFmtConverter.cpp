@@ -400,9 +400,9 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   }
 }
 
-HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride, int planeHeight) {
+HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight) {
   uint8_t *out = dst;
-  int outStride = dstStride, i;
+  ptrdiff_t outStride = dstStride, i;
   planeHeight = max(height, planeHeight);
   // Check if we have proper pixel alignment and the dst memory is actually aligned
   if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
@@ -439,16 +439,16 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   return hr;
 }
 
-void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, int planeHeight, LAVOutPixFmts format)
+void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, ptrdiff_t srcStride, uint8_t *dst, ptrdiff_t dstStride, int width, int height, int planeHeight, LAVOutPixFmts format)
 {
   LAVOutPixFmtDesc desc = lav_pixfmt_desc[format];
 
   int line = 0;
 
   // Copy first plane
-  const int widthBytes = width * desc.codedbytes;
-  const int srcStrideBytes = srcStride * desc.codedbytes;
-  const int dstStrideBytes = dstStride * desc.codedbytes;
+  const size_t widthBytes = width * desc.codedbytes;
+  const ptrdiff_t srcStrideBytes = srcStride * desc.codedbytes;
+  const ptrdiff_t dstStrideBytes = dstStride * desc.codedbytes;
   for (line = 0; line < height; ++line) {
     memcpy(dst, src, widthBytes);
     src += srcStrideBytes;
@@ -457,11 +457,11 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
   dst += (planeHeight - height) * dstStrideBytes;
 
   for (int plane = 1; plane < desc.planes; ++plane) {
-    const int planeWidth        = widthBytes     / desc.planeWidth[plane];
+    const size_t planeWidth        = widthBytes     / desc.planeWidth[plane];
     const int activePlaneHeight = height         / desc.planeHeight[plane];
     const int totalPlaneHeight  = planeHeight    / desc.planeHeight[plane];
-    const int srcPlaneStride    = srcStrideBytes / desc.planeWidth[plane];
-    const int dstPlaneStride    = dstStrideBytes / desc.planeWidth[plane];
+    const ptrdiff_t srcPlaneStride    = srcStrideBytes / desc.planeWidth[plane];
+    const ptrdiff_t dstPlaneStride    = dstStrideBytes / desc.planeWidth[plane];
     for (line = 0; line < activePlaneHeight; ++line) {
       memcpy(dst, src, planeWidth);
       src += srcPlaneStride;
