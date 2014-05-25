@@ -259,13 +259,9 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   pBIH->biWidth = biWidth;
   pBIH->biHeight = biHeight;
   pBIH->biBitCount = lav_pixfmt_desc[pixFmt].bpp;
-  pBIH->biPlanes = lav_pixfmt_desc[pixFmt].planes;
+  pBIH->biPlanes = 1;
   pBIH->biSizeImage = GetImageSize(biWidth, abs(biHeight), pixFmt);
   pBIH->biCompression = guid.Data1;
-
-  if (!pBIH->biPlanes) {
-    pBIH->biPlanes = 1;
-  }
 
   if (guid == MEDIASUBTYPE_RGB32 || guid == MEDIASUBTYPE_RGB24) {
     pBIH->biCompression = BI_RGB;

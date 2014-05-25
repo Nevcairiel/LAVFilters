@@ -328,7 +328,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   mp1vi->hdr.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 
   mp1vi->dwStartTimeCode = 0; // is this not 0 anywhere..?
-  mp1vi->hdr.bmiHeader.biPlanes = 0;
+  mp1vi->hdr.bmiHeader.biPlanes = 1;
   mp1vi->hdr.bmiHeader.biCompression = 0;
 
   // copy extradata over
@@ -384,7 +384,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
     } else if (avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);
       mp2vi->cbSequenceHeader = (DWORD)parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
-      mp2vi->hdr.bmiHeader.biPlanes = 0;
+      mp2vi->hdr.bmiHeader.biPlanes = 1;
       mp2vi->hdr.bmiHeader.biCompression = 0;
     } else {
       bCopyUntouched = TRUE;
