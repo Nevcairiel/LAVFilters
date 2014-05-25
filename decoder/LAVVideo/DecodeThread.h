@@ -56,7 +56,6 @@ public:
   STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);
   STDMETHODIMP Deliver(LAVFrame *pFrame);
   STDMETHODIMP_(LPWSTR) GetFileExtension();
-  STDMETHODIMP_(BOOL) FilterInGraph(PIN_DIRECTION dir, const GUID &clsid);
   STDMETHODIMP_(DWORD) GetDecodeFlags();
   STDMETHODIMP_(CMediaType&) GetInputMediaType();
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info);

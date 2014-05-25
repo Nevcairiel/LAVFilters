@@ -546,7 +546,6 @@ STDMETHODIMP CDecodeThread::Deliver(LAVFrame *pFrame)
 STDMETHODIMP CDecodeThread::AllocateFrame(LAVFrame **ppFrame) { return m_pLAVVideo->AllocateFrame(ppFrame); }
 STDMETHODIMP CDecodeThread::ReleaseFrame(LAVFrame **ppFrame) { return m_pLAVVideo->ReleaseFrame(ppFrame); }
 STDMETHODIMP_(LPWSTR) CDecodeThread::GetFileExtension() { return m_pLAVVideo->GetFileExtension(); }
-STDMETHODIMP_(BOOL) CDecodeThread::FilterInGraph(PIN_DIRECTION dir, const GUID &clsid) { return m_pLAVVideo->FilterInGraph(dir, clsid); }
 STDMETHODIMP_(DWORD) CDecodeThread::GetDecodeFlags() { return m_pLAVVideo->GetDecodeFlags(); }
 STDMETHODIMP_(CMediaType&) CDecodeThread::GetInputMediaType() { return m_pLAVVideo->GetInputMediaType(); }
 STDMETHODIMP CDecodeThread::GetLAVPinInfo(LAVPinInfo &info) { return m_pLAVVideo->GetLAVPinInfo(info); }
