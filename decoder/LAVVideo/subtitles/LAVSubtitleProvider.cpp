@@ -26,6 +26,7 @@
 #include "LAVVideo.h"
 
 #define FAST_DIV255(x) ((((x) + 128) * 257) >> 16)
+#define SUBTITLE_PTS_TIMEOUT (AV_NOPTS_VALUE + 1)
 
 #define OFFSET(x) offsetof(LAVSubtitleProviderContext, x)
 static const SubRenderOption options[] = {
@@ -313,12 +314,14 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
 {
   if (sub->num_rects > 0) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
-      if (rtStart != AV_NOPTS_VALUE) {
-        CAutoLock lock(this);
-        for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
-          if ((*it)->rtStop == AV_NOPTS_VALUE) {
-            (*it)->rtStop = rtStart-1;
-          }
+      // DVD subs have the limitation that only one subtitle can be shown at a given time,
+      // so we need to timeout unlimited subs when a new one appears, as well as limit the duration of timed subs
+      // to prevent overlapping subtitles
+      REFERENCE_TIME rtSubTimeout = (rtStart != AV_NOPTS_VALUE) ? rtStart - 1 : SUBTITLE_PTS_TIMEOUT;
+      CAutoLock lock(this);
+      for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
+        if ((*it)->rtStop == AV_NOPTS_VALUE || (rtStart != AV_NOPTS_VALUE && (*it)->rtStop > rtStart)) {
+          (*it)->rtStop = rtSubTimeout;
         }
       }
     }
