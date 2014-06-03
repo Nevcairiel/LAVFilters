@@ -320,7 +320,7 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
       REFERENCE_TIME rtSubTimeout = (rtStart != AV_NOPTS_VALUE) ? rtStart - 1 : SUBTITLE_PTS_TIMEOUT;
       CAutoLock lock(this);
       for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
-        if ((*it)->rtStop == AV_NOPTS_VALUE || (rtStart != AV_NOPTS_VALUE && (*it)->rtStop > rtStart)) {
+        if ((*it)->rtStop == AV_NOPTS_VALUE || rtStart == AV_NOPTS_VALUE || (*it)->rtStop > rtStart) {
           (*it)->rtStop = rtSubTimeout;
         }
       }
