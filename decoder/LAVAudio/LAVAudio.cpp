@@ -39,7 +39,7 @@ extern "C" {
 #include "libavformat/spdif.h"
 #include "libavcodec/flac.h"
 
-extern int ff_vorbis_comment(AVFormatContext *ms, AVDictionary **m, const uint8_t *buf, int size);
+extern int ff_vorbis_comment(AVFormatContext *ms, AVDictionary **m, const uint8_t *buf, int size, int parse_picture);
 extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesize);
 __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 };
@@ -1333,7 +1333,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
           break;
         switch (metadata_type) {
         case FLAC_METADATA_TYPE_VORBIS_COMMENT:
-          ff_vorbis_comment(nullptr, &metadata, header, metadata_size);
+          ff_vorbis_comment(nullptr, &metadata, header, metadata_size, 0);
           break;
         }
         header += metadata_size;
