@@ -1097,8 +1097,8 @@ HRESULT CLAVAudio::CheckTransform(const CMediaType* mtIn, const CMediaType* mtOu
     || mtOut->formattype != FORMAT_WaveFormatEx) {
     return VFW_E_TYPE_NOT_ACCEPTED;
   } else {
-    // Check for valid pcm settings
-    if (!m_avBSContext && m_pAVCtx) {
+    // Check for valid pcm settings, but only when output type is changing
+    if (!m_avBSContext && m_pAVCtx && *mtOut != m_pOutput->CurrentMediaType()) {
       WAVEFORMATEX *wfex = (WAVEFORMATEX *)mtOut->pbFormat;
       if (wfex->nSamplesPerSec != m_pAVCtx->sample_rate) {
         return VFW_E_TYPE_NOT_ACCEPTED;
