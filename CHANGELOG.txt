@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.62.0 - 2014/06/11
+0.62.0 - 2014/06/12
 LAV Splitter
 - Fixed: The filtered Forced Subtitles stream did not properly send all related subtitle data in some cases
 
