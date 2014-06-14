@@ -236,7 +236,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
   const ptrdiff_t chromaHeight    = height >> 1;
 
   ptrdiff_t line,i;
-  __m128i xmm0,xmm1,xmm2,xmm3;
+  __m128i xmm0,xmm1,xmm2,xmm3,xmm4;
 
   _mm_sfence();
 
@@ -251,15 +251,35 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv420_nv12)
     const uint8_t * const v = src[2] + line * inChromaStride;
           uint8_t * const d = dst[1] + line * outChromaStride;
 
-    for (i = 0; i < chromaWidth; i+=16) {
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, v+i);  /* VVVV */
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, u+i);  /* UUUU */
+    for (i = 0; i < (chromaWidth - 31); i += 32) {
+        PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, v + i);
+        PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, u + i);
+        PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, v + i + 16);
+        PIXCONV_LOAD_PIXEL8_ALIGNED(xmm3, u + i + 16);
 
-      xmm2 = _mm_unpacklo_epi8(xmm1, xmm0);      /* UVUV */
-      xmm3 = _mm_unpackhi_epi8(xmm1, xmm0);      /* UVUV */
+        xmm4 = xmm0;
+        xmm0 = _mm_unpacklo_epi8(xmm1, xmm0);
+        xmm4 = _mm_unpackhi_epi8(xmm1, xmm4);
 
-      PIXCONV_PUT_STREAM(d + (i << 1) +  0, xmm2);
-      PIXCONV_PUT_STREAM(d + (i << 1) + 16, xmm3);
+        xmm1 = xmm2;
+        xmm2 = _mm_unpacklo_epi8(xmm3, xmm2);
+        xmm1 = _mm_unpackhi_epi8(xmm3, xmm1);
+
+        PIXCONV_PUT_STREAM(d + (i << 1) + 0, xmm0);
+        PIXCONV_PUT_STREAM(d + (i << 1) + 16, xmm4);
+        PIXCONV_PUT_STREAM(d + (i << 1) + 32, xmm2);
+        PIXCONV_PUT_STREAM(d + (i << 1) + 48, xmm1);
+    }
+    for (; i < chromaWidth; i += 16) {
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, v + i);
+      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, u + i);
+
+      xmm2 = xmm0;
+      xmm0 = _mm_unpacklo_epi8(xmm1, xmm0);
+      xmm2 = _mm_unpackhi_epi8(xmm1, xmm2);
+
+      PIXCONV_PUT_STREAM(d + (i << 1) +  0, xmm0);
+      PIXCONV_PUT_STREAM(d + (i << 1) + 16, xmm2);
     }
   }
 
