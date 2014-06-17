@@ -675,7 +675,7 @@ STDMETHODIMP CLAVFDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCH
     *rtDuration = av_rescale(current_edition->duration, DSHOW_TIME_BASE, AV_TIME_BASE);
   if (ppszName) {
     char *title = nullptr;
-    int total_seconds = current_edition->duration / AV_TIME_BASE;
+    int total_seconds = (int)(current_edition->duration / AV_TIME_BASE);
     int seconds = total_seconds % 60;
     int minutes = total_seconds / 60 % 60;
     int hours   = total_seconds / 3600;
