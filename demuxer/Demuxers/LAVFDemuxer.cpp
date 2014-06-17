@@ -1260,14 +1260,14 @@ STDMETHODIMP CLAVFDemuxer::GetMarkerName(long MarkerNum, BSTR* pbstrMarkerName)
   unsigned int index = MarkerNum - 1;
   if(index >= m_avFormat->nb_chapters) { return E_FAIL; }
   // Get the title, or generate one
-  OLECHAR wTitle[128];
   if (AVDictionaryEntry *dictEntry = av_dict_get(m_avFormat->chapters[index]->metadata, "title", nullptr, 0)) {
-    char *title = dictEntry->value;
-    SafeMultiByteToWideChar(CP_UTF8, 0, title, -1, wTitle, 128);
+    *pbstrMarkerName = ConvertCharToBSTR(dictEntry->value);
   } else {
+    OLECHAR wTitle[128];
     swprintf_s(wTitle, L"Chapter %d", MarkerNum);
+    *pbstrMarkerName = SysAllocString(wTitle);
   }
-  *pbstrMarkerName = SysAllocString(wTitle);
+
   return S_OK;
 }
 
