@@ -24,7 +24,7 @@
 
 #include "../decoders/ILAVDecoder.h"
 
-#define BLEND_FUNC_PARAMS (BYTE* video[4], int videoStride[4], RECT vidRect, BYTE* subData[4], int subStride[4], POINT position, SIZE size, LAVPixelFormat pixFmt, int bpp)
+#define BLEND_FUNC_PARAMS (BYTE* video[4], ptrdiff_t videoStride[4], RECT vidRect, BYTE* subData[4], int subStride[4], POINT position, SIZE size, LAVPixelFormat pixFmt, int bpp)
 
 #define DECLARE_BLEND_FUNC(name) \
   HRESULT name BLEND_FUNC_PARAMS
@@ -68,7 +68,7 @@ public:
   void SetVideoSize(LONG w, LONG h) { context.originalVideoSize.cx = w; context.originalVideoSize.cy = h; }
 
 private:
-  STDMETHODIMP ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], int videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch);
+  STDMETHODIMP ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], ptrdiff_t videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch);
 
   STDMETHODIMP SelectBlendFunction();
   typedef HRESULT (CLAVSubtitleConsumer::*BlendFn) BLEND_FUNC_PARAMS;

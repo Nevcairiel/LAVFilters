@@ -106,7 +106,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
     }
 
     BYTE *data[4] = {0};
-    int stride[4] = {0};
+    ptrdiff_t stride[4] = {0};
     LAVPixelFormat format = pFrame->format;
     int bpp = pFrame->bpp;
 
@@ -286,7 +286,7 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
   return S_OK;
 }
 
-STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], int videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch)
+STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], ptrdiff_t videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch)
 {
   if (subRect.left != 0 || subRect.top != 0) {
     DbgLog((LOG_ERROR, 10, L"ProcessSubtitleBitmap(): Left/Top in SubRect non-zero"));
