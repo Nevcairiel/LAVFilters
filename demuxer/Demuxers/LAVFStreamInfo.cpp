@@ -374,32 +374,19 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
 #include "libavformat/isom.h"
 
-static std::string CreateVOBSubHeaderFromMP4(int vidW, int vidH, MOVStreamContext *context, const BYTE *buffer, int buf_size)
+static std::string CreateVOBSubHeaderFromMP4(int vidW, int vidH, MOVStreamContext *context, const char *buffer, int buf_size)
 {
   std::ostringstream header;
-  if (buf_size >= 16*4) {
+  if (buf_size >= 9 + 16 * 6 + 15 * 2) {
     int w = context && context->width ? context->width : vidW;
     int h = context && context->height ? context->height : vidH;
 
     header << "# VobSub index file, v7 (do not modify this line!)\n";
-    header << "size: " << w << "x" << h << "\n";
-    header << "palette: ";
-
-    const BYTE *pal = buffer;
-    char rgb[7];
-    for(int i = 0; i < 16*4; i += 4) {
-      BYTE y = (pal[i+1]-16)*255/219;
-      BYTE u = pal[i+2];
-      BYTE v = pal[i+3];
-      BYTE r = (BYTE)min(max(1.0*y + 1.4022*(v-128), 0), 255);
-      BYTE g = (BYTE)min(max(1.0*y - 0.3456*(u-128) - 0.7145*(v-128), 0), 255);
-      BYTE b = (BYTE)min(max(1.0*y + 1.7710*(u-128), 0) , 255);
-      sprintf_s(rgb, "%02x%02x%02x", r, g, b);
-      if (i)
-        header << ",";
-      header << rgb;
+    // ffmpeg might provide us with the size already
+    if (strncmp(buffer, "size:", 5) != 0) {
+      header << "size: " << w << "x" << h << "\n";
     }
-    header << "\n";
+    header.write(buffer, buf_size);
   }
   return header.str();
 }
@@ -467,7 +454,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
 
   // Extradata
   if (m_containerFormat == "mp4" && avstream->codec->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
-    std::string strVobSubHeader = CreateVOBSubHeaderFromMP4(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576, (MOVStreamContext *)avstream->priv_data, avstream->codec->extradata, extra);
+    std::string strVobSubHeader = CreateVOBSubHeaderFromMP4(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576, (MOVStreamContext *)avstream->priv_data, (char*)avstream->codec->extradata, extra);
     size_t len = strVobSubHeader.length();
     mtype.ReallocFormatBuffer((ULONG)(sizeof(SUBTITLEINFO) + len));
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
