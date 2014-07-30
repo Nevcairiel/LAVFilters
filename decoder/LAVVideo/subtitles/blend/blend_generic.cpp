@@ -30,9 +30,9 @@ DECLARE_BLEND_FUNC_IMPL(blend_rgb_c)
   const BYTE *subIn = subData[0];
 
   const ptrdiff_t outStride = videoStride[0];
-  const int inStride = subStride[0];
+  const ptrdiff_t inStride = subStride[0];
 
-  const int dstep = (pixFmt == LAVPixFmt_RGB24) ? 3 : 4;
+  const ptrdiff_t dstep = (pixFmt == LAVPixFmt_RGB24) ? 3 : 4;
 
   for (int y = 0; y < size.cy; y++) {
     BYTE *dstLine = rgbOut + ((y + position.y) * outStride) + (position.x * dstep);
@@ -77,8 +77,8 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
 
   const ptrdiff_t outStride = videoStride[0];
   const ptrdiff_t outStrideUV = videoStride[1];
-  const int inStride = subStride[0];
-  const int inStrideUV = subStride[1];
+  const ptrdiff_t inStride = subStride[0];
+  const ptrdiff_t inStrideUV = subStride[1];
 
   int line, col;
   int w = size.cx, h = size.cy;
@@ -125,7 +125,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
     pixT *dstV = (pixT *)(v + (line + yPos) * outStrideUV) + xPos;
     const BYTE *srcV = subV + line * inStrideUV;
 
-    const BYTE *srcA = subA + (line * inStride * (1 << hsub));
+    const BYTE *srcA = subA + (line * inStride * (ptrdiff_t)(1 << hsub));
     for (col = 0; col < w; col++) {
       // Average Alpha
       int alpha;
