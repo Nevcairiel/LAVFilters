@@ -20,6 +20,7 @@
 #include "stdafx.h"
 #include "LAVSubtitleConsumer.h"
 #include "LAVVideo.h"
+#include "Media.h"
 
 #define OFFSET(x) offsetof(LAVSubtitleConsumerContext, x)
 static const SubRenderOption options[] = {
@@ -286,7 +287,7 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
   return S_OK;
 }
 
-STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], ptrdiff_t videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch)
+STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], ptrdiff_t videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, ptrdiff_t pitch)
 {
   if (subRect.left != 0 || subRect.top != 0) {
     DbgLog((LOG_ERROR, 10, L"ProcessSubtitleBitmap(): Left/Top in SubRect non-zero"));
@@ -309,7 +310,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
   }
 
   BYTE *subData[4] = { nullptr, nullptr, nullptr, nullptr };
-  int subStride[4] = { 0, 0, 0, 0 };
+  ptrdiff_t subStride[4] = { 0, 0, 0, 0 };
 
   // If we need scaling (either scaling or pixel conversion), do it here before starting the blend process
   if (bNeedScaling) {
@@ -343,10 +344,10 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, AV_PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, nullptr, nullptr, nullptr);
 
     const uint8_t *src[4] = { (const uint8_t *)rgbData, nullptr, nullptr, nullptr };
-    const int srcStride[4] = { pitch * 4, 0, 0, 0 };
+    const ptrdiff_t srcStride[4] = { pitch * 4, 0, 0, 0 };
 
     const LAVPixFmtDesc desc = getFFSubPixelFormatDesc(avPixFmt);
-    const int stride = FFALIGN(newSize.cx, 64) * desc.codedbytes;
+    const ptrdiff_t stride = FFALIGN(newSize.cx, 64) * desc.codedbytes;
 
     for (int plane = 0; plane < desc.planes; plane++) {
       subStride[plane]  = stride / desc.planeWidth[plane];
@@ -373,7 +374,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
       src[0] = tmpBuf;
     }
 
-    int ret = sws_scale(m_pSwsContext, src, srcStride, 0, subSize.cy, subData, subStride);
+    int ret = sws_scale2(m_pSwsContext, src, srcStride, 0, subSize.cy, subData, subStride);
     subSize = newSize;
 
     if (tmpBuf)
