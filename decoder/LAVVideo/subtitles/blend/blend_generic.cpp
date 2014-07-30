@@ -29,7 +29,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_rgb_c)
   BYTE *rgbOut = video[0];
   const BYTE *subIn = subData[0];
 
-  const int outStride = videoStride[0];
+  const ptrdiff_t outStride = videoStride[0];
   const int inStride = subStride[0];
 
   const int dstep = (pixFmt == LAVPixFmt_RGB24) ? 3 : 4;
@@ -75,8 +75,8 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
   const BYTE *subV = subData[2];
   const BYTE *subA = subData[3];
 
-  const int outStride = videoStride[0];
-  const int outStrideUV = videoStride[1];
+  const ptrdiff_t outStride = videoStride[0];
+  const ptrdiff_t outStrideUV = videoStride[1];
   const int inStride = subStride[0];
   const int inStrideUV = subStride[1];
 
