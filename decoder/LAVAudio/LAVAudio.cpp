@@ -950,21 +950,18 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     DWORD dwChannelMask = get_channel_mask(nChannels);
 
     AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_NONE);
-    if (sample_fmt == AV_SAMPLE_FMT_NONE) {
-      if (m_pAVCtx->bits_per_coded_sample > 16)
-        sample_fmt = AV_SAMPLE_FMT_S32;
-      else
-        sample_fmt = AV_SAMPLE_FMT_S16;
-    }
+    if (sample_fmt == AV_SAMPLE_FMT_NONE)
+      sample_fmt = AV_SAMPLE_FMT_S32; // this gets mapped to S16/S24/S32 in get_lav_sample_fmt based on the bits per sample
 
     // Prefer bits_per_raw_sample if set, but if not, try to do a better guess with bits per coded sample
-    const int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
+    int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
     LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, bits);
 
     if (m_settings.MixingEnabled) {
       if (nChannels != av_get_channel_layout_nb_channels(m_settings.MixingLayout)
         && (nChannels > 2 || !(m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO))) {
         lav_sample_fmt = SampleFormat_FP32;
+        bits = 32;
         dwChannelMask = m_settings.MixingLayout;
         nChannels = av_get_channel_layout_nb_channels(dwChannelMask);
       } else if (nChannels == 7 && m_settings.Expand61) {
@@ -976,11 +973,13 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
       }
     }
 
-    if (iPosition == 1)
+    if (iPosition == 1) {
       lav_sample_fmt = SampleFormat_16;
+      bits = 16;
+    }
 
     lav_sample_fmt = GetBestAvailableSampleFormat(lav_sample_fmt, TRUE);
-    *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, m_pAVCtx->bits_per_raw_sample);
+    *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, bits);
   }
   return S_OK;
 }
