@@ -193,7 +193,7 @@ static bool h264_is_annexb(std::string format, AVStream *avstream)
 static bool hevc_is_annexb(std::string format, AVStream *avstream)
 {
   ASSERT(avstream->codec->codec_id == AV_CODEC_ID_HEVC);
-  if (avstream->codec->extradata_size < 25)
+  if (avstream->codec->extradata_size < 23)
     return true;
   if (avstream->codec->extradata[0] || avstream->codec->extradata[1] || avstream->codec->extradata[2] > 1)
     return false;
