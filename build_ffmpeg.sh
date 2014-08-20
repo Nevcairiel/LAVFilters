@@ -70,6 +70,7 @@ configure() (
     --enable-protocol=mmst          \
     --enable-protocol=rtp           \
     --enable-protocol=http          \
+    --enable-protocol=crypto        \
     --disable-muxers                \
     --enable-muxer=spdif            \
     --disable-hwaccels              \
