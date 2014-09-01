@@ -2047,14 +2047,15 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
     for (sit = streams->begin(); sit != streams->end(); sit++) {
       if (sit->pid == NO_SUBTITLE_PID)
         continue;
+
+      if (!it->subtitleTrackName.empty() && sit->trackName.find(it->subtitleTrackName) == std::string::npos)
+        continue;
+
       if (sit->pid == FORCED_SUBTITLE_PID) {
         if ((it->dwFlags == 0 || it->dwFlags & SUBTITLE_FLAG_VIRTUAL) && does_language_match(it->subtitleLanguage, audioLanguage))
           checkedStreams.push_back(&*sit);
         continue;
       }
-
-      if (!it->subtitleTrackName.empty() && sit->trackName.find(it->subtitleTrackName) == std::string::npos)
-        continue;
 
       if (it->dwFlags == 0
         || ((it->dwFlags & SUBTITLE_FLAG_DEFAULT) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT))
