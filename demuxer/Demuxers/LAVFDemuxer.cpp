@@ -1569,6 +1569,9 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     s.language = "und";
     s.lcid     = 0;
   }
+  const char * title = lavf_get_stream_title(pStream);
+  if (title)
+    s.trackName = title;
   s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr);
 
   if(FAILED(hr)) {
@@ -2049,6 +2052,9 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
           checkedStreams.push_back(&*sit);
         continue;
       }
+
+      if (!it->subtitleTrackName.empty() && sit->trackName.find(it->subtitleTrackName) == std::string::npos)
+        continue;
 
       if (it->dwFlags == 0
         || ((it->dwFlags & SUBTITLE_FLAG_DEFAULT) && (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT))

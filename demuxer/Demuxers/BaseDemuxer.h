@@ -36,6 +36,7 @@ struct ILAVFSettingsInternal;
 typedef struct CSubtitleSelector {
   std::string audioLanguage;
   std::string subtitleLanguage;
+  std::string subtitleTrackName;
 
 #define SUBTITLE_FLAG_DEFAULT  0x0001
 #define SUBTITLE_FLAG_FORCED   0x0002
@@ -57,6 +58,7 @@ public:
     CStreamInfo *streamInfo;
     DWORD pid;
     std::string language;
+    std::string trackName;
     LCID lcid;
     struct stream() { streamInfo = nullptr; pid = 0; lcid = 0; }
     operator DWORD() const { return pid; }

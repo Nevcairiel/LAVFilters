@@ -1465,7 +1465,12 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   // Add the "off" termination element
   tokenList.push_back("*:off");
 
-  std::tr1::regex advRegex("(?:(\\*|[[:alpha:]]+):)?(\\*|[[:alpha:]]+)(?:\\|(!?)([fdnh]+))?");
+  std::tr1::regex advRegex(
+                            "(?:(\\*|[[:alpha:]]+):)?"        // audio language
+                            "(\\*|[[:alpha:]]+)"              // subtitle language
+                            "(?:\\|(!?)([fdnh]+))?"           // flags
+                            "(?:@([^" + separators + "]+))?"  // subtitle track name substring
+                          );
   for (const std::string& token : tokenList) {
     std::tr1::cmatch res;
     bool found = std::tr1::regex_search(token.c_str(), res, advRegex);
@@ -1501,8 +1506,11 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
           selector.dwFlags = (~selector.dwFlags) & 0xFF;
         }
       }
+
+      selector.subtitleTrackName = res[5];
+
       selectorList.push_back(selector);
-      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x)", token.c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags));
+      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x, match: %S)", token.c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags, selector.subtitleTrackName.c_str()));
     } else {
       DbgLog((LOG_ERROR, 10, L"::GetSubtitleSelectors(): Selector string \"%S\" could not be parsed", token.c_str()));
     }
