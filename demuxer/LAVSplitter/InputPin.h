@@ -59,4 +59,6 @@ private:
   AVIOContext *m_pAVIOContext  = nullptr;
 
   IStreamSourceControl *m_pStreamControl = nullptr;
+
+  BOOL m_bURLSource = false;
 };

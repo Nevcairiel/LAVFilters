@@ -108,15 +108,23 @@ HRESULT CLAVInputPin::CompleteConnect(IPin* pPin)
   }
 
   m_llPos = 0;
+  m_bURLSource = false;
 
-  if (FAILED(pPin->QueryInterface(&m_pStreamControl))) {
-    PIN_INFO pinInfo = {0};
-    if (SUCCEEDED(pPin->QueryPinInfo(&pinInfo)) && pinInfo.pFilter) {
+  if (FAILED(pPin->QueryInterface(&m_pStreamControl)))
+    m_pStreamControl = nullptr;
+
+  PIN_INFO pinInfo = {0};
+  if (SUCCEEDED(pPin->QueryPinInfo(&pinInfo)) && pinInfo.pFilter) {
+    CLSID clsidFilter = GUID_NULL;
+    if (SUCCEEDED(pinInfo.pFilter->GetClassID(&clsidFilter))) {
+      m_bURLSource = (clsidFilter == CLSID_URLReader);
+    }
+
+    if (m_pStreamControl == nullptr)
       if (FAILED(pinInfo.pFilter->QueryInterface(&m_pStreamControl)))
         m_pStreamControl = nullptr;
-      SafeRelease(&(pinInfo.pFilter));
-    } else
-      m_pStreamControl = nullptr;
+
+    SafeRelease(&(pinInfo.pFilter));
   }
 
   if(FAILED(hr = (static_cast<CLAVSplitter *>(m_pFilter))->CompleteInputConnection())) {
@@ -131,8 +139,13 @@ int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
   CLAVInputPin *pin = static_cast<CLAVInputPin *>(opaque);
   CAutoLock lock(pin);
 
+  // The URL source doesn't properly signal EOF in all cases, so make sure no stale data is in the buffer
+  if (pin->m_bURLSource)
+    memset(buf, 0, buf_size);
+
   HRESULT hr = pin->m_pAsyncReader->SyncRead(pin->m_llPos, buf_size, buf);
   if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"Read failed at pos: %I64d, hr: 0x%X", pin->m_llPos, hr));
     return -1;
   }
   if (hr == S_FALSE) {
