@@ -1,6 +1,18 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.63.0 - xxxx/xx/xx
+LAV Splitter
+- NEW: Support for playing AES encrypted HLS streams
+- Fixed: Improved timestamp handling of badly muxed/corrupted H.264 streams
+- Fixed: 4K ProRes streams in MKV didn't play reliably
+- Fixed: Some HEVC streams in MKV/MP4 didn't play properly
+- Fixed: VobSubs in MP4 didn't properly export their color palette
+
+LAV Video
+- Faster: HEVC decoding is up to 100% faster
+- Fixed: DVD subtitle rendering could crash in 64-bit builds
+
 0.62.0 - 2014/06/12
 LAV Splitter
 - Fixed: The filtered Forced Subtitles stream did not properly send all related subtitle data in some cases
