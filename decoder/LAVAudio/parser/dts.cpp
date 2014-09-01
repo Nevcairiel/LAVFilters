@@ -32,7 +32,7 @@ extern "C" {
 #include "libavcodec/dcadata.h"
 #pragma warning( pop )
 
-extern int ff_dca_convert_bitstream(const uint8_t *src, int src_size, uint8_t *dst, int max_size);
+extern int avpriv_dca_convert_bitstream(const uint8_t *src, int src_size, uint8_t *dst, int max_size);
 extern __declspec(dllimport) const uint32_t avpriv_dca_sample_rates[16];
 };
 
@@ -223,7 +223,7 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   unsigned ExtDescriptor = 0, ExtCoding = 0;
 
   uint8_t dts_buffer[32 + FF_INPUT_BUFFER_PADDING_SIZE] = {0};
-  int ret = ff_dca_convert_bitstream(pBuffer, uSize, dts_buffer, 32);
+  int ret = avpriv_dca_convert_bitstream(pBuffer, uSize, dts_buffer, 32);
 
   bool is16be = (AV_RB32(pBuffer) == DCA_MARKER_RAW_BE);
 

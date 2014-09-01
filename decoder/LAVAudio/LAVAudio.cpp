@@ -1326,7 +1326,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
       int metadata_last = 0, metadata_type, metadata_size;
       uint8_t *header = m_pAVCtx->extradata + 4, *end = m_pAVCtx->extradata + m_pAVCtx->extradata_size;
       while (header + 4 < end && !metadata_last) {
-        avpriv_flac_parse_block_header(header, &metadata_last, &metadata_type, &metadata_size);
+        flac_parse_block_header(header, &metadata_last, &metadata_type, &metadata_size);
         header += 4;
         if (header + metadata_size > end)
           break;
