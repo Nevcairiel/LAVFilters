@@ -204,6 +204,25 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
     memcpy(fileName, "http", 4);
   }
 
+  const char * rtsp_transport = nullptr;
+  // check for rtsp transport protocol options
+  if (_strnicmp("rtsp", fileName, 4) == 0) {
+    if (_strnicmp("rtspu:", fileName, 6) == 0) {
+      rtsp_transport = "udp";
+    } else if (_strnicmp("rtspm:", fileName, 6) == 0) {
+      rtsp_transport = "udp_multicast";
+    } else if (_strnicmp("rtspt:", fileName, 6) == 0) {
+      rtsp_transport = "tcp";
+    } else if (_strnicmp("rtsph:", fileName, 6) == 0) {
+      rtsp_transport = "http";
+    }
+
+    // replace "rtsp[u|m|t|h]" protocol by rtsp
+    if (rtsp_transport != nullptr) {
+      memmove(fileName + 4, fileName + 5, strlen(fileName) - 4);
+    }
+  }
+
   AVIOInterruptCB cb = {avio_interrupt_cb, this};
 
 trynoformat:
@@ -249,6 +268,10 @@ trynoformat:
   // demuxer/protocol options
   AVDictionary *options = nullptr;
   av_dict_set(&options, "icy", "1", 0); // request ICY metadata
+
+  if (rtsp_transport != nullptr) {
+    av_dict_set(&options, "rtsp_transport", rtsp_transport, 0);
+  }
 
   m_timeOpening = time(nullptr);
   ret = avformat_open_input(&m_avFormat, fileName, inputFormat, &options);

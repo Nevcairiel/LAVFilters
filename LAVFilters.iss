@@ -203,7 +203,7 @@ begin
 
   FR(SplitterFormats[13], 'avisynth', 'AviSynth scripts', True, ['avs', '']);
 
-  FP(SplitterFormats[14], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
+  FP(SplitterFormats[14], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', 'rtspu', 'rtspm', 'rtspt', 'rtsph', '']);
   FP(SplitterFormats[15], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
   FP(SplitterFormats[16], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
 
