@@ -4,10 +4,13 @@ LAV DirectShow Filters Changelog
 0.63.0 - xxxx/xx/xx
 LAV Splitter
 - NEW: Support for playing AES encrypted HLS streams
+- NEW: Advanced Subtitle selection allows selecting subtitles by a string match on the stream title
 - Fixed: Improved timestamp handling of badly muxed/corrupted H.264 streams
 - Fixed: 4K ProRes streams in MKV didn't play reliably
 - Fixed: Some HEVC streams in MKV/MP4 didn't play properly
 - Fixed: VobSubs in MP4 didn't properly export their color palette
+- Fixed: Streaming MP3s through the Microsoft URL filter could result in the last audio frame to be partially repeated
+- Fixed: The duration of MP3 files would be wrong if it contained long IDv3 tags
 
 LAV Video
 - Faster: HEVC decoding is up to 100% faster
