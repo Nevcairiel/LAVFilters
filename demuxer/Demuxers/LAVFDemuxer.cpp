@@ -2079,6 +2079,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
   return best;
 }
 
+#include "libavformat/isom.h"
+
 STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
 {
   if (!m_avFormat || dwStream >= m_avFormat->nb_streams)
@@ -2090,7 +2092,7 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
   if (strcmp(m_pszInputFormat, "rawvideo") == 0)
     dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
 
-  if (st->codec->codec_id == AV_CODEC_ID_H264 && (m_bAVI || m_bPMP || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1))))
+  if (st->codec->codec_id == AV_CODEC_ID_H264 && (m_bAVI || m_bPMP || (m_bMatroska && (!st->codec->extradata_size || st->codec->extradata[0] != 1)) || (m_bMP4 && st->priv_data && ((MOVStreamContext *)st->priv_data)->ctts_count == 0)))
     dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
 
   if (st->codec->codec_id == AV_CODEC_ID_HEVC && m_bAVI)
