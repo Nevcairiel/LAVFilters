@@ -171,7 +171,6 @@ static LPCWSTR wszImageExtensions[] = {
   L".png", L".mng", L".pns",    // PNG
   L".tif", L".tiff",            // TIFF
   L".jpeg", L".jpg", L".jps",   // JPEG
-  L".gif",                      // GIF
   L".tga",                      // TGA
   L".bmp",                      // BMP
   L".j2c",                      // JPEG2000
