@@ -1529,6 +1529,8 @@ HRESULT CLAVAudio::FlushDecoder()
     ffmpeg_init(m_nCodecId, mt.Format(), *mt.FormatType(), mt.FormatLength());
   }
 
+  m_bJustFlushed = TRUE;
+
   return S_OK;
 }
 
@@ -1579,7 +1581,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   REFERENCE_TIME rtStart = _I64_MIN, rtStop = _I64_MIN;
   hr = pIn->GetTime(&rtStart, &rtStop);
 
-  if(pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK)) {
+  if((pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK)) && !m_bJustFlushed) {
     DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity, flushing decoder.."));
     m_buff.Clear();
     FlushOutput(FALSE);
@@ -1609,6 +1611,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     m_bQueueResync = FALSE;
     m_bResyncTimestamp = TRUE;
   }
+
+  m_bJustFlushed = FALSE;
 
   m_rtStartInput = SUCCEEDED(hr) ? rtStart : AV_NOPTS_VALUE;
   m_rtStopInput = SUCCEEDED(hr) ? rtStop : AV_NOPTS_VALUE;
