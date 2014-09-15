@@ -1523,6 +1523,12 @@ HRESULT CLAVAudio::FlushDecoder()
 
   FlushDTSDecoder();
 
+  // Re-init the AAC decoder to help avoid a loss of audio problem after seeking
+  if (m_nCodecId == AV_CODEC_ID_AAC) {
+    CMediaType mt = m_pInput->CurrentMediaType();
+    ffmpeg_init(m_nCodecId, mt.Format(), *mt.FormatType(), mt.FormatLength());
+  }
+
   return S_OK;
 }
 
