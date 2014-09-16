@@ -322,6 +322,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   BOOL bHWDeintEnabled = bHWDeint && (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ENABLE, BM_GETCHECK, 0, 0);
   BOOL bCUDAOnly = bEnabled && (hwAccel == HWAccel_CUDA);
   BOOL bDVD = bEnabled && (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
+  BOOL bHEVC = bEnabled && (hwAccel != HWAccel_QuickSync);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
@@ -329,7 +330,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG2_DVD), bDVD);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bCUDAOnly);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_HEVC), bCUDAOnly);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_HEVC), bHEVC);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_SD), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_HD), bEnabled);

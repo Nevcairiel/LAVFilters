@@ -120,7 +120,7 @@ static const dxva2_mode_t dxva2_modes[] = {
   { "H.264 SVC variable-length decoder, constrained high progressive",              &DXVA_ModeH264_VLD_SVC_Restricted_Scalable_High_Progressive, 0 },
 
   /* HEVC / H.265 */
-  { "HEVC / H.265 variable-length decoder, main",                                   &DXVA_ModeHEVC_VLD_Main,                0},
+  { "HEVC / H.265 variable-length decoder, main",                                   &DXVA_ModeHEVC_VLD_Main,                AV_CODEC_ID_HEVC },
   { "HEVC / H.265 variable-length decoder, main10",                                 &DXVA_ModeHEVC_VLD_Main10,              0},
 
   /* Intel specific modes (only useful on older GPUs) */
@@ -845,12 +845,17 @@ DWORD CDecDXVA2::GetAlignedDimension(DWORD dim)
   // MPEG-2 needs higher alignment on Intel cards, and it doesn't seem to harm anything to do it for all cards.
   if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)
     align <<= 1;
+  else if (m_nCodecId == AV_CODEC_ID_HEVC)
+    align = 128;
 
   return FFALIGN(dim, align);
 }
 
 #define H264_CHECK_PROFILE(profile) \
   (((profile) & ~FF_PROFILE_H264_CONSTRAINED) <= FF_PROFILE_H264_HIGH)
+
+#define HEVC_CHECK_PROFILE(profile) \
+  ((profile) <= FF_PROFILE_HEVC_MAIN)
 
 STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
@@ -910,7 +915,8 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   if (((codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUVJ420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != AV_PIX_FMT_NONE)
     || (codec == AV_CODEC_ID_H264 && m_pAVCtx->profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(m_pAVCtx->profile))
-    || ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && m_pAVCtx->profile == FF_PROFILE_VC1_COMPLEX)) {
+    || ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && m_pAVCtx->profile == FF_PROFILE_VC1_COMPLEX)
+    || (codec == AV_CODEC_ID_HEVC && !HEVC_CHECK_PROFILE(m_pAVCtx->profile))) {
     DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
     return E_FAIL;
   }
@@ -1187,7 +1193,7 @@ int CDecDXVA2::get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flag
 
   HRESULT hr = S_OK;
 
-  if (pic->format != AV_PIX_FMT_DXVA2_VLD || (c->codec_id == AV_CODEC_ID_H264 && !H264_CHECK_PROFILE(c->profile))) {
+  if (pic->format != AV_PIX_FMT_DXVA2_VLD || (c->codec_id == AV_CODEC_ID_H264 && !H264_CHECK_PROFILE(c->profile)) || (c->codec_id == AV_CODEC_ID_HEVC && !HEVC_CHECK_PROFILE(c->profile))) {
     DbgLog((LOG_ERROR, 10, L"DXVA2 buffer request, but not dxva2 pixfmt or unsupported profile"));
     pDec->m_bFailHWDecode = TRUE;
     return -1;
