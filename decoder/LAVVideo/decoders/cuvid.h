@@ -30,7 +30,7 @@
 #include "cuvid/nvcuvid.h"
 #include "cuvid/cuda_dynlink.h"
 
-#include "parsers/AVC1AnnexBConverter.h"
+#include "parsers/AnnexBConverter.h"
 
 #include <queue>
 
@@ -152,7 +152,7 @@ private:
   BYTE                   *m_pbRawNV12 = nullptr;
   int                    m_cRawNV12   = 0;
 
-  CAVC1AnnexBConverter   *m_AVC1Converter = nullptr;
+  CAnnexBConverter       *m_AnnexBConverter = nullptr;
 
   BOOL                   m_bFormatIncompatible = FALSE;
   BOOL                   m_bNeedSequenceCheck  = FALSE;

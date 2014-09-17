@@ -19,11 +19,11 @@
 
 #pragma once
 
-class CAVC1AnnexBConverter
+class CAnnexBConverter
 {
 public:
-  CAVC1AnnexBConverter(void);
-  ~CAVC1AnnexBConverter(void);
+  CAnnexBConverter(void);
+  ~CAnnexBConverter(void);
 
   HRESULT SetNALUSize(int nalusize) { m_NaluSize = nalusize; return S_OK; }
   HRESULT Convert(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size);

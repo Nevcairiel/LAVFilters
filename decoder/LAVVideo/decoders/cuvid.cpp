@@ -120,8 +120,8 @@ CDecCuvid::~CDecCuvid(void)
 
 STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 {
-  if (m_AVC1Converter) {
-    SAFE_DELETE(m_AVC1Converter);
+  if (m_AnnexBConverter) {
+    SAFE_DELETE(m_AnnexBConverter);
   }
 
   if (m_hDecoder) {
@@ -561,19 +561,19 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1)) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
-    m_AVC1Converter = new CAVC1AnnexBConverter();
-    m_AVC1Converter->SetNALUSize(2);
+    m_AnnexBConverter = new CAnnexBConverter();
+    m_AnnexBConverter->SetNALUSize(2);
 
     BYTE *annexBextra = nullptr;
     int size = 0;
-    m_AVC1Converter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    m_AnnexBConverter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
     if (annexBextra && size) {
       memcpy(m_VideoParserExInfo.raw_seqhdr_data, annexBextra, size);
       m_VideoParserExInfo.format.seqhdr_data_length = size;
       av_freep(&annexBextra);
     }
 
-    m_AVC1Converter->SetNALUSize(mp2vi->dwFlags);
+    m_AnnexBConverter->SetNALUSize(mp2vi->dwFlags);
   } else {
     size_t hdr_len = 0;
     getExtraData(*pmt, nullptr, &hdr_len);
@@ -1055,9 +1055,9 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
   ZeroMemory(&pCuvidPacket, sizeof(pCuvidPacket));
 
   BYTE *pBuffer = nullptr;
-  if (m_AVC1Converter) {
+  if (m_AnnexBConverter) {
     int size = 0;
-    hr = m_AVC1Converter->Convert(&pBuffer, &size, buffer, buflen);
+    hr = m_AnnexBConverter->Convert(&pBuffer, &size, buffer, buflen);
     if (SUCCEEDED(hr)) {
       pCuvidPacket.payload      = pBuffer;
       pCuvidPacket.payload_size = size;

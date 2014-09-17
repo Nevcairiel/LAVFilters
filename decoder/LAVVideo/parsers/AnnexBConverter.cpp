@@ -18,15 +18,15 @@
  */
 
 #include "stdafx.h"
-#include "AVC1AnnexBConverter.h"
+#include "AnnexBConverter.h"
 
 #include "libavutil/intreadwrite.h"
 
-CAVC1AnnexBConverter::CAVC1AnnexBConverter(void)
+CAnnexBConverter::CAnnexBConverter(void)
 {
 }
 
-CAVC1AnnexBConverter::~CAVC1AnnexBConverter(void)
+CAnnexBConverter::~CAnnexBConverter(void)
 {
 }
 
@@ -51,7 +51,7 @@ static HRESULT alloc_and_copy(uint8_t **poutbuf, int *poutbuf_size, const uint8_
   return S_OK;
 }
 
-HRESULT CAVC1AnnexBConverter::Convert(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size)
+HRESULT CAnnexBConverter::Convert(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size)
 {
   int32_t nal_size;
   const uint8_t *buf_end = buf + buf_size;
