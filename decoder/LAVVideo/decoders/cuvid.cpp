@@ -49,6 +49,7 @@ static struct {
   { AV_CODEC_ID_VC1,        cudaVideoCodec_VC1   },
   { AV_CODEC_ID_H264,       cudaVideoCodec_H264  },
   { AV_CODEC_ID_MPEG4,      cudaVideoCodec_MPEG4 },
+  { AV_CODEC_ID_HEVC,       cudaVideoCodec_HEVC  },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -559,7 +560,8 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   memset(&m_VideoParserExInfo, 0, sizeof(CUVIDEOFORMATEX));
 
-  if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1)) {
+  // Handle AnnexB conversion for H.264 and HEVC
+  if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1 || pmt->subtype == MEDIASUBTYPE_HVC1)) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
     m_AnnexBConverter = new CAnnexBConverter();
     m_AnnexBConverter->SetNALUSize(2);
@@ -649,7 +651,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
-  BOOL bDXVAMode = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && IsVistaOrNewer());
+  BOOL bDXVAMode = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && IsVistaOrNewer()) || (codec == cudaVideoCodec_HEVC);
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   CUVIDDECODECREATEINFO *dci = &m_VideoDecoderInfo;
