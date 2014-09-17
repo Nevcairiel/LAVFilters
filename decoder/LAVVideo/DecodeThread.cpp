@@ -396,7 +396,8 @@ DWORD CDecodeThread::ThreadProc()
    ((codec == AV_CODEC_ID_H264 && m_pLAVVideo->GetHWAccelCodec(HWCodec_H264))                                                       \
 || ((codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3) && m_pLAVVideo->GetHWAccelCodec(HWCodec_VC1))                           \
 || ((codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_MPEG1VIDEO) && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2) && (!(GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) || m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2DVD)))            \
-|| (codec == AV_CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)))
+|| (codec == AV_CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)) \
+|| (codec == AV_CODEC_ID_HEVC && m_pLAVVideo->GetHWAccelCodec(HWCodec_HEVC)))
 
 #define HWRESOLUTION_ENABLED \
   ((pBMI->biHeight <= 576 && pBMI->biWidth <= 1024 && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_SD)     \
