@@ -122,6 +122,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2_DVD, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelCodec(HWCodec_MPEG2DVD, bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_HEVC, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelCodec(HWCodec_HEVC, bFlag);
+
   DWORD dwHWResFlags = 0;
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWRES_SD, BM_GETCHECK, 0, 0);
   if (bFlag) dwHWResFlags |= LAVHWResFlag_SD;
@@ -277,6 +280,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG4, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG4], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2_DVD, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2DVD], 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_HEVC, BM_SETCHECK, m_HWAccelCodecs[HWCodec_HEVC], 0);
 
     SendDlgItemMessage(m_Dlg, IDC_HWRES_SD, BM_SETCHECK, !!(m_HWRes & LAVHWResFlag_SD), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWRES_HD, BM_SETCHECK, !!(m_HWRes & LAVHWResFlag_HD), 0);
@@ -325,6 +329,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG2_DVD), bDVD);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bCUDAOnly);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_HEVC), bCUDAOnly);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_SD), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_HD), bEnabled);
@@ -549,6 +554,11 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_HWACCEL_MPEG2_DVD && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_HWAccelCodecs[HWCodec_MPEG2DVD]) {
+        SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_HWACCEL_HEVC && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWAccelCodecs[HWCodec_HEVC]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_HWDEINT_ENABLE && HIWORD(wParam) == BN_CLICKED) {
