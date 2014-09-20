@@ -568,7 +568,18 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
     BYTE *annexBextra = nullptr;
     int size = 0;
-    m_AnnexBConverter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+
+    if (cudaCodec == cudaVideoCodec_H264) {
+      m_AnnexBConverter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    } else if (cudaCodec == cudaVideoCodec_HEVC && mp2vi->cbSequenceHeader >= 23) {
+      BYTE * bHEVCHeader = (BYTE *)mp2vi->dwSequenceHeader;
+      int nal_len_size = (bHEVCHeader[21] & 3) + 1;
+      if (nal_len_size != mp2vi->dwFlags) {
+        DbgLog((LOG_ERROR, 10, L"hvcC nal length size doesn't match media type"));
+      }
+      m_AnnexBConverter->ConvertHEVCExtradata(&annexBextra, &size,  (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    }
+
     if (annexBextra && size) {
       memcpy(m_VideoParserExInfo.raw_seqhdr_data, annexBextra, size);
       m_VideoParserExInfo.format.seqhdr_data_length = size;
