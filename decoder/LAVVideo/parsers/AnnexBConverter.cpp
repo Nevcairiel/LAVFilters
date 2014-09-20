@@ -111,7 +111,7 @@ HRESULT CAnnexBConverter::ConvertHEVCExtradata(BYTE **poutbuf, int *poutbuf_size
       if (remaining_size < 2) break;
       int len = AV_RB16(buf) + 2;
       if (remaining_size < len) break;
-      alloc_and_copy(poutbuf, poutbuf_size, buf, len);
+      alloc_and_copy(poutbuf, poutbuf_size, buf + 2, len - 2);
       buf += len; remaining_size -= len;
     }
   }
