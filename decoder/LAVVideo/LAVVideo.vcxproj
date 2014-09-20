@@ -111,6 +111,7 @@
     <ClCompile Include="Media.cpp" />
     <ClCompile Include="parsers\AnnexBConverter.cpp" />
     <ClCompile Include="parsers\H264SequenceParser.cpp" />
+    <ClCompile Include="parsers\HEVCSequenceParser.cpp" />
     <ClCompile Include="parsers\MPEG2HeaderParser.cpp" />
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
     <ClCompile Include="pixconv\convert_generic.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="Media.h" />
     <ClInclude Include="parsers\AnnexBConverter.h" />
     <ClInclude Include="parsers\H264SequenceParser.h" />
+    <ClInclude Include="parsers\HEVCSequenceParser.h" />
     <ClInclude Include="parsers\MPEG2HeaderParser.h" />
     <ClInclude Include="parsers\VC1HeaderParser.h" />
     <ClInclude Include="pixconv\pixconv_internal.h" />

@@ -156,6 +156,9 @@
     <ClCompile Include="parsers\AnnexBConverter.cpp">
       <Filter>Source Files\parsers</Filter>
     </ClCompile>
+    <ClCompile Include="parsers\HEVCSequenceParser.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -249,6 +252,9 @@
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
     <ClInclude Include="parsers\AnnexBConverter.h">
+      <Filter>Header Files\parsers</Filter>
+    </ClInclude>
+    <ClInclude Include="parsers\HEVCSequenceParser.h">
       <Filter>Header Files\parsers</Filter>
     </ClInclude>
   </ItemGroup>

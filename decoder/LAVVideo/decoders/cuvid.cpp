@@ -25,6 +25,7 @@
 #include "parsers/H264SequenceParser.h"
 #include "parsers/MPEG2HeaderParser.h"
 #include "parsers/VC1HeaderParser.h"
+#include "parsers/HEVCSequenceParser.h"
 
 #include "Media.h"
 
@@ -618,6 +619,15 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     } else if (cudaCodec == cudaVideoCodec_VC1) {
       CVC1HeaderParser vc1Parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
       m_bInterlaced = vc1Parser.hdr.interlaced;
+    } else if (cudaCodec == cudaVideoCodec_HEVC) {
+      CHEVCSequenceParser hevcParser;
+      hevcParser.ParseNALs(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length, 0);
+      if (hevcParser.sps.valid) {
+        if (hevcParser.sps.profile > FF_PROFILE_HEVC_MAIN) {
+          DbgLog((LOG_TRACE, 10, L"  -> SPS indicates incompatible codec profile (profile: %d)", hevcParser.sps.profile));
+          return VFW_E_UNSUPPORTED_VIDEO;
+        }
+      }
     }
   } else {
     m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264);
