@@ -174,6 +174,7 @@ HRESULT CLAVVideo::LoadDefaults()
     m_settings.bHWFormats[i] = TRUE;
 
   m_settings.bHWFormats[HWCodec_MPEG4] = FALSE;
+  m_settings.bHWFormats[HWCodec_HEVC] = FALSE;
 
   m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD;
 
