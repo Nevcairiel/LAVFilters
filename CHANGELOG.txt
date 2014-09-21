@@ -5,16 +5,23 @@ LAV DirectShow Filters Changelog
 LAV Splitter
 - NEW: Support for playing AES encrypted HLS streams
 - NEW: Advanced Subtitle selection allows selecting subtitles by a string match on the stream title
+- NEW: Support for rtspu, rtspm, rtspt and rtsph URLs to force the RTSP transport protocol
+- NEW: Animated GIF image support
 - Fixed: Improved timestamp handling of badly muxed/corrupted H.264 streams
 - Fixed: 4K ProRes streams in MKV didn't play reliably
 - Fixed: Some HEVC streams in MKV/MP4 didn't play properly
 - Fixed: VobSubs in MP4 didn't properly export their color palette
 - Fixed: Streaming MP3s through the Microsoft URL filter could result in the last audio frame to be partially repeated
 - Fixed: The duration of MP3 files would be wrong if it contained long IDv3 tags
+- Fixed: TrueHD streams with an Dolby Atmos sub-stream were not demuxed properly
 
 LAV Video
+- NEW: Experimental support for CUVID and DXVA2 HEVC acceleration
 - Faster: HEVC decoding is up to 100% faster
 - Fixed: DVD subtitle rendering could crash in 64-bit builds
+
+LAV Audio
+- Fixed: TrueHD streams with an Dolby Atmos sub-stream did not decode
 
 0.62.0 - 2014/06/12
 LAV Splitter
