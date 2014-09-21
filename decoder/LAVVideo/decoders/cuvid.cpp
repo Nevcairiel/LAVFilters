@@ -270,6 +270,10 @@ static int _ConvertSMVer2CoresDrvApi(int major, int minor)
     { 0x20,  32 },
     { 0x21,  48 },
     { 0x30, 192 },
+    { 0x32, 192 },
+    { 0x35, 192 },
+    { 0x37, 192 },
+    { 0x50, 128 },
     {   -1,  -1 }
   };
 
