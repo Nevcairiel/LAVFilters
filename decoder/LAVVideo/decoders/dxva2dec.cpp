@@ -1102,7 +1102,7 @@ enum AVPixelFormat CDecDXVA2::get_dxva2_format(struct AVCodecContext *c, const e
   for (p = pix_fmts; *p != -1; p++) {
     const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(*p);
 
-    if (!(desc->flags & AV_PIX_FMT_FLAG_HWACCEL))
+    if (!desc || !(desc->flags & AV_PIX_FMT_FLAG_HWACCEL))
       break;
 
     if (*p == AV_PIX_FMT_DXVA2_VLD) {
