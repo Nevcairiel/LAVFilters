@@ -1511,6 +1511,9 @@ HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 
 HRESULT CLAVAudio::FlushDecoder()
 {
+  if (m_bJustFlushed)
+    return S_OK;
+
   if(m_pParser) {
     av_parser_close(m_pParser);
     m_pParser = av_parser_init(m_nCodecId);
@@ -1581,7 +1584,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   REFERENCE_TIME rtStart = _I64_MIN, rtStop = _I64_MIN;
   hr = pIn->GetTime(&rtStart, &rtStop);
 
-  if((pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK)) && !m_bJustFlushed) {
+  if((pIn->IsDiscontinuity() == S_OK || (m_bNeedSyncpoint && pIn->IsSyncPoint() == S_OK))) {
     DbgLog((LOG_ERROR, 10, L"::Receive(): Discontinuity, flushing decoder.."));
     m_buff.Clear();
     FlushOutput(FALSE);
