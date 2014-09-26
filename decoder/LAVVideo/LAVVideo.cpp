@@ -849,6 +849,15 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     DbgLog((LOG_TRACE, 10, L"-> Width changed from %d to %d (target: %d)", pBMIOld->biWidth, pBMINew->biWidth, rcTarget.right));
 #endif
 
+    if (pBMINew->biWidth < width) {
+      DbgLog((LOG_TRACE, 10, L" -> Renderer is trying to shrink the output window, failing!"));
+      (*ppOut)->Release();
+      (*ppOut) = nullptr;
+      DeleteMediaType(pmt);
+      return E_FAIL;
+    }
+
+
     if (pmt->formattype == FORMAT_VideoInfo2 && outMt.formattype == FORMAT_VideoInfo2 && m_bDXVAExtFormatSupport) {
       VIDEOINFOHEADER2 *vih2Current = (VIDEOINFOHEADER2 *)outMt.pbFormat;
       VIDEOINFOHEADER2 *vih2New = (VIDEOINFOHEADER2 *)pmt->pbFormat;
