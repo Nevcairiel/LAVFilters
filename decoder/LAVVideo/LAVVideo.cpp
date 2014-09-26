@@ -1050,6 +1050,12 @@ receiveconnection:
             CMediaType newmt = *pmt;
             videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
             DbgLog((LOG_TRACE, 10, L"-> New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
+            if (pBIH->biWidth < width) {
+              DbgLog((LOG_ERROR, 10, L"-> Renderer requests width smaller than image width, failing.."));
+              DeleteMediaType(pmt);
+              pOut->Release();
+              return E_FAIL;
+            }
             // Check image size
             DWORD lSampleSize = m_PixFmtConverter.GetImageSize(pBIH->biWidth, abs(pBIH->biHeight));
             if (lSampleSize != pBIH->biSizeImage) {
