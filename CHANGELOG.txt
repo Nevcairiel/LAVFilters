@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.63.0 - xxxx/xx/xx
+0.63.0 - 2014/10/03
 LAV Splitter
 - NEW: Support for playing AES encrypted HLS streams
 - NEW: Advanced Subtitle selection allows selecting subtitles by a string match on the stream title
