@@ -1286,7 +1286,8 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
   }
 
   m_pAVCtx->thread_count    = 1;
-  m_pAVCtx->strict_std_compliance = FF_COMPLIANCE_STRICT;
+  if (!m_bDTSOnly)
+    m_pAVCtx->strict_std_compliance = FF_COMPLIANCE_STRICT;
   m_pAVCtx->hwaccel_context = ctx;
   m_pAVCtx->get_format      = get_dxva2_format;
   m_pAVCtx->get_buffer2     = get_dxva2_buffer;
