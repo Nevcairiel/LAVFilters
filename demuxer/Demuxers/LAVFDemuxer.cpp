@@ -438,13 +438,13 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
   // decrease analyze duration for network streams
   if (m_avFormat->flags & AVFMT_FLAG_NETWORK || (m_avFormat->flags & AVFMT_FLAG_CUSTOM_IO && !m_avFormat->pb->seekable)) {
     // require at least 0.2 seconds
-    m_avFormat->max_analyze_duration2 = max(m_pSettings->GetNetworkStreamAnalysisDuration() * 1000, 200000);
+    av_opt_set_int(m_avFormat, "analyzeduration", max(m_pSettings->GetNetworkStreamAnalysisDuration() * 1000, 200000), 0);
   } else {
-    m_avFormat->max_analyze_duration2 = 7500000;
+    av_opt_set_int(m_avFormat, "analyzeduration", 7500000, 0);
     // And increase it for mpeg-ts/ps files
     if (m_bMPEGTS || m_bMPEGPS) {
-      m_avFormat->max_analyze_duration2 = 15000000;
-      m_avFormat->probesize = 75000000;
+      av_opt_set_int(m_avFormat, "analyzeduration", 15000000, 0);
+      av_opt_set_int(m_avFormat, "probesize", 75000000, 0);
     }
   }
 
