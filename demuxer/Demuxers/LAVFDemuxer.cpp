@@ -180,6 +180,23 @@ static LPCWSTR wszBlockedExtensions[] = {
   L".ifo", L".bup"
 };
 
+static std::pair<const char*, const char*> rtmpParametersTranslate[] = {
+  std::make_pair("app", "rtmp_app"),
+  std::make_pair("buffer", "rtmp_buffer"),
+  std::make_pair("conn", "rtmp_conn"),
+  std::make_pair("flashVer", "rtmp_flashver"),
+  std::make_pair("rtmp_flush_interval", "rtmp_flush_interval"),
+  std::make_pair("live", "rtmp_live"),
+  std::make_pair("pageUrl", "rtmp_pageurl"),
+  std::make_pair("playpath", "rtmp_playpath"),
+  std::make_pair("subscribe", "rtmp_subscribe"),
+  std::make_pair("swfHash", "rtmp_swfhash"),
+  std::make_pair("swfSize", "rtmp_swfsize"),
+  std::make_pair("swfUrl", "rtmp_swfurl"),
+  std::make_pair("swfVfy", "rtmp_swfverify"),
+  std::make_pair("tcUrl", "rtmp_tcurl")
+};
+
 STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName, const char *format, BOOL bForce, BOOL bFileSource)
 {
   CAutoLock lock(m_pLock);
@@ -203,6 +220,7 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
     memcpy(fileName, "http", 4);
   }
 
+  char       * rtmp_prameters = nullptr;
   const char * rtsp_transport = nullptr;
   // check for rtsp transport protocol options
   if (_strnicmp("rtsp", fileName, 4) == 0) {
@@ -219,6 +237,11 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
     // replace "rtsp[u|m|t|h]" protocol by rtsp
     if (rtsp_transport != nullptr) {
       memmove(fileName + 4, fileName + 5, strlen(fileName) - 4);
+    }
+  } else if (_strnicmp("rtmp", fileName, 4) == 0) {
+    rtmp_prameters = strchr(fileName, ' ');
+    if (rtmp_prameters) {
+      *rtmp_prameters = '\0'; // Trim not supported part form fileName
     }
   }
 
@@ -270,6 +293,44 @@ trynoformat:
 
   if (rtsp_transport != nullptr) {
     av_dict_set(&options, "rtsp_transport", rtsp_transport, 0);
+  }
+
+  if (rtmp_prameters != nullptr) {
+    char  buff[4100];
+    char* next_token = nullptr;
+    bool  bSwfVerify = false;
+
+    strcpy_s(buff, rtmp_prameters + 1);
+    const char* token = strtok_s(buff, " ", &next_token);
+    while (token) {
+      for (size_t i = 0; i < _countof(rtmpParametersTranslate); i++) {
+        const size_t len = strlen(rtmpParametersTranslate[i].first);
+        if (_strnicmp(token, rtmpParametersTranslate[i].first, len) == 0) {
+          if (strlen(token) > len + 1 && token[len] == '=') {
+            if (_strnicmp("swfVfy", rtmpParametersTranslate[i].first, len) == 0) {
+              bSwfVerify = token[len + 1] == '1';
+              continue;
+            } else if (_strnicmp("live", rtmpParametersTranslate[i].first, len) == 0) {
+              if (token[len + 1] == '1') {
+                av_dict_set(&options, rtmpParametersTranslate[i].second, "live", 0);
+              } else if (token[len + 1] == '0') {
+                av_dict_set(&options, rtmpParametersTranslate[i].second, "recorded", 0);
+              }
+              continue;
+            }
+            av_dict_set(&options, rtmpParametersTranslate[i].second, token + len + 1, 0);
+          }
+        }
+      }
+      token = strtok_s(nullptr, " ", &next_token);
+    }
+
+    if (bSwfVerify) {
+      const AVDictionaryEntry* swfUrlEntry = av_dict_get(options, "rtmp_swfurl", nullptr, 0);
+      if (swfUrlEntry) {
+        av_dict_set(&options, "rtmp_swfverify", swfUrlEntry->value, 0);
+      }
+    }
   }
 
   m_timeOpening = time(nullptr);

@@ -71,6 +71,8 @@ configure() (
     --enable-protocol=rtp           \
     --enable-protocol=http          \
     --enable-protocol=crypto        \
+    --enable-protocol=rtmp          \
+    --enable-protocol=rtmpt         \
     --disable-muxers                \
     --enable-muxer=spdif            \
     --disable-hwaccels              \
