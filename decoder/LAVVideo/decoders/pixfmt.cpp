@@ -102,11 +102,13 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
 
   stride *= desc.codedbytes;
 
+  int alignedHeight = FFALIGN(pFrame->height, 2);
+
   memset(pFrame->data, 0, sizeof(pFrame->data));
   memset(pFrame->stride, 0, sizeof(pFrame->stride));
   for (int plane = 0; plane < desc.planes; plane++) {
     ptrdiff_t planeStride = stride / desc.planeWidth[plane];
-    size_t size = planeStride * (pFrame->height / desc.planeHeight[plane]);
+    size_t size = planeStride * (alignedHeight / desc.planeHeight[plane]);
     pFrame->data[plane]   = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
     pFrame->stride[plane] = planeStride;
   }
