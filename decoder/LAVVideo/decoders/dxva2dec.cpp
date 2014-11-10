@@ -691,6 +691,9 @@ done:
 
 HRESULT CDecDXVA2::CheckHWCompatConditions(GUID decoderGuid)
 {
+  if (m_dwSurfaceWidth == 0 || m_dwSurfaceHeight == 0)
+    return E_UNEXPECTED;
+
   int width_mbs = m_dwSurfaceWidth / 16;
   int height_mbs = m_dwSurfaceHeight / 16;
   int max_ref_frames_dpb41 = min(11, 32768 / (width_mbs * height_mbs));
