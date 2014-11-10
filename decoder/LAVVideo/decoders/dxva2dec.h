@@ -97,6 +97,8 @@ private:
   STDMETHODIMP FlushFromAllocator();
 
   DWORD GetAlignedDimension(DWORD dim);
+  DWORD GetWidth() const { return m_pAVCtx->coded_width > 0 ? m_pAVCtx->coded_width : m_pAVCtx->width; }
+  DWORD GetHeight() const { return m_pAVCtx->coded_height > 0 ? m_pAVCtx->coded_height : m_pAVCtx->height; }
 
 private:
   friend class CDXVA2SurfaceAllocator;

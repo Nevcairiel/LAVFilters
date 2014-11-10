@@ -335,8 +335,8 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
   if (m_bNative) {
     if (!m_pDecoder) {
       // If this is the first call, re-align surfaces, as the requirements may only be known now
-      m_dwSurfaceWidth = GetAlignedDimension(m_pAVCtx->coded_width);
-      m_dwSurfaceHeight = GetAlignedDimension(m_pAVCtx->coded_height);
+      m_dwSurfaceWidth = GetAlignedDimension(GetWidth());
+      m_dwSurfaceHeight = GetAlignedDimension(GetHeight());
     }
 
     CMediaType mt = m_pCallback->GetOutputMediaType();
@@ -760,8 +760,8 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
 
     DXVA2_VideoDesc desc;
     ZeroMemory(&desc, sizeof(desc));
-    desc.SampleWidth = m_pAVCtx->coded_width;
-    desc.SampleHeight = m_pAVCtx->coded_height;
+    desc.SampleWidth = GetWidth();
+    desc.SampleHeight = GetHeight();
     desc.Format = output;
 
     DXVA2_ConfigPictureDecode config;
@@ -921,8 +921,8 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     return E_FAIL;
   }
 
-  m_dwSurfaceWidth = GetAlignedDimension(m_pAVCtx->coded_width);
-  m_dwSurfaceHeight = GetAlignedDimension(m_pAVCtx->coded_height);
+  m_dwSurfaceWidth = GetAlignedDimension(GetWidth());
+  m_dwSurfaceHeight = GetAlignedDimension(GetHeight());
 
   if (FAILED(CheckHWCompatConditions(input))) {
     return E_FAIL;
@@ -1004,8 +1004,8 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   FindVideoServiceConversion(m_pAVCtx->codec_id, &input, &output);
 
   if (!nSurfaces) {
-    m_dwSurfaceWidth = GetAlignedDimension(m_pAVCtx->coded_width);
-    m_dwSurfaceHeight = GetAlignedDimension(m_pAVCtx->coded_height);
+    m_dwSurfaceWidth = GetAlignedDimension(GetWidth());
+    m_dwSurfaceHeight = GetAlignedDimension(GetHeight());
 
     m_NumSurfaces = GetBufferCount();
     hr = m_pDXVADecoderService->CreateSurface(m_dwSurfaceWidth, m_dwSurfaceHeight, m_NumSurfaces - 1, output, D3DPOOL_DEFAULT, 0, DXVA2_VideoDecoderRenderTarget, pSurfaces, nullptr);
@@ -1048,8 +1048,8 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
 
   DXVA2_VideoDesc desc;
   ZeroMemory(&desc, sizeof(desc));
-  desc.SampleWidth = m_pAVCtx->coded_width;
-  desc.SampleHeight = m_pAVCtx->coded_height;
+  desc.SampleWidth = GetWidth();
+  desc.SampleHeight = GetHeight();
   desc.Format = output;
 
   hr = FindDecoderConfiguration(input, &desc, &m_DXVAVideoDecoderConfig);
@@ -1151,7 +1151,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
   if (m_bInInit)
     return S_FALSE;
 
-  if (!m_pDecoder || GetAlignedDimension(c->coded_width) != m_dwSurfaceWidth || GetAlignedDimension(c->coded_height) != m_dwSurfaceHeight) {
+  if (!m_pDecoder || GetAlignedDimension(GetWidth()) != m_dwSurfaceWidth || GetAlignedDimension(GetHeight()) != m_dwSurfaceHeight) {
     DbgLog((LOG_TRACE, 10, L"No DXVA2 Decoder or image dimensions changed -> Re-Allocating resources"));
     if (!m_pDecoder && m_bNative && !m_pDXVA2Allocator) {
       ASSERT(0);
@@ -1159,8 +1159,8 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
     } else if (m_bNative) {
       avcodec_flush_buffers(c);
 
-      m_dwSurfaceWidth  = GetAlignedDimension(c->coded_width);
-      m_dwSurfaceHeight = GetAlignedDimension(c->coded_height);
+      m_dwSurfaceWidth  = GetAlignedDimension(GetWidth());
+      m_dwSurfaceHeight = GetAlignedDimension(GetHeight());
 
       // Re-Commit the allocator (creates surfaces and new decoder)
       hr = m_pDXVA2Allocator->Decommit();
