@@ -187,7 +187,7 @@ void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
         hdr.ar.num = w;
         hdr.ar.den = h;
       } else {
-        av_reduce(&hdr.ar.num, &hdr.ar.den, hdr.height * w, hdr.width * h, 1 << 30);
+        av_reduce(&hdr.ar.num, &hdr.ar.den, (int64_t)hdr.height * w, (int64_t)hdr.width * h, INT_MAX);
       }
     }
 

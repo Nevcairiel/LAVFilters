@@ -496,7 +496,7 @@ STDMETHODIMP CDecWMV9MFT::ProcessOutput()
   MFGetAttributeRatio(pMTOut, MF_MT_PIXEL_ASPECT_RATIO, (UINT32*)&pixel_aspect_ratio.num, (UINT32*)&pixel_aspect_ratio.den);
 
   AVRational display_aspect_ratio = {0, 0};
-  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, (int64_t)pixel_aspect_ratio.num * pFrame->width, (int64_t)pixel_aspect_ratio.den * pFrame->height, 1 << 30);
+  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, (int64_t)pixel_aspect_ratio.num * pFrame->width, (int64_t)pixel_aspect_ratio.den * pFrame->height, INT_MAX);
 
   pFrame->interlaced = MFGetAttributeUINT32(OutputBuffer.pSample, MFSampleExtension_Interlaced,       FALSE);
   pFrame->repeat     = MFGetAttributeUINT32(OutputBuffer.pSample, MFSampleExtension_RepeatFirstField, FALSE);
