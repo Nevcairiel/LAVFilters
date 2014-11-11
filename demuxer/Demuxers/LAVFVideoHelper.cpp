@@ -270,9 +270,9 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   AVRational rc = avstream->codec->sample_aspect_ratio;
   int num = vih->bmiHeader.biWidth, den = vih->bmiHeader.biHeight;
   if (r.den > 0 && r.num > 0) {
-    av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, 255);
+    av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, INT_MAX);
   } else if (rc.den > 0 && rc.num > 0) {
-    av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, 255);
+    av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, INT_MAX);
   } else {
     av_reduce(&num, &den, num, den, num);
   }

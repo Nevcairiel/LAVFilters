@@ -889,7 +889,7 @@ STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID
           }
           if (aspect_num && aspect_den) {
             int num = vih2->bmiHeader.biWidth, den = vih2->bmiHeader.biHeight;
-            av_reduce(&num, &den, (int64_t)aspect_num * num, (int64_t)aspect_den * den, 255);
+            av_reduce(&num, &den, (int64_t)aspect_num * num, (int64_t)aspect_den * den, INT_MAX);
             vih2->dwPictAspectRatioX = num;
             vih2->dwPictAspectRatioY = den;
           }

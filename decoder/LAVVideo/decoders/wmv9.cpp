@@ -493,7 +493,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   AVRational display_aspect_ratio;
   int64_t num = (int64_t)m_StreamAR.num * pBMI->biWidth;
   int64_t den = (int64_t)m_StreamAR.den * pBMI->biHeight;
-  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
+  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, INT_MAX);
 
   BYTE contentType = 0;
   DWORD dwPropSize = 1;
