@@ -125,7 +125,7 @@ type
            end;
 
 const
-  NumFormatsMinusOne = 21;
+  NumFormatsMinusOne = 22;
   LavGUID = '{B98D13E7-55DB-4385-A33D-09FD1BA26338}';
   StreamGUID = '{E436EB83-524F-11CE-9F53-0020AF0BA770}';
   LavSplitterFormatsReg = 'Software\LAV\Splitter\Formats';
@@ -203,15 +203,16 @@ begin
 
   FR(SplitterFormats[13], 'avisynth', 'AviSynth scripts', True, ['avs', '']);
 
-  FP(SplitterFormats[14], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', 'rtspu', 'rtspm', 'rtspt', 'rtsph', '']);
-  FP(SplitterFormats[15], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
-  FP(SplitterFormats[16], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
+  FP(SplitterFormats[14], 'rtmp', 'RTMP Streaming Protocol', False, ['rtmp', 'rtmpt', '']);
+  FP(SplitterFormats[15], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', 'rtspu', 'rtspm', 'rtspt', 'rtsph', '']);
+  FP(SplitterFormats[16], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
+  FP(SplitterFormats[17], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
 
-  FR(SplitterFormats[17], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
-  FR(SplitterFormats[18], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
-  FR(SplitterFormats[19], 'aac', 'AAC Audio', True, ['aac', '']);
-  FR(SplitterFormats[20], 'mp3', 'MP3 Audio', True, ['mp3', '']);
-  FR(SplitterFormats[21], 'flac', 'FLAC Audio', True, ['flac', '']);
+  FR(SplitterFormats[18], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
+  FR(SplitterFormats[19], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
+  FR(SplitterFormats[20], 'aac', 'AAC Audio', True, ['aac', '']);
+  FR(SplitterFormats[21], 'mp3', 'MP3 Audio', True, ['mp3', '']);
+  FR(SplitterFormats[22], 'flac', 'FLAC Audio', True, ['flac', '']);
 end;
 
 procedure RegWriteStringWithBackup(const RootKey: Integer; const SubKeyName, ValueName, Data: String);
