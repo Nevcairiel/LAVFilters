@@ -1312,7 +1312,7 @@ HRESULT CDecDXVA2::PostDecode()
 
 STDMETHODIMP CDecDXVA2::FlushFromAllocator()
 {
-  if (m_pAVCtx)
+  if (m_pAVCtx && avcodec_is_open(m_pAVCtx))
     avcodec_flush_buffers(m_pAVCtx);
   FlushDisplayQueue(FALSE);
 
