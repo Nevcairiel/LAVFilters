@@ -463,9 +463,13 @@ typedef struct DVDSubContext
   AVClass *avclass;
   uint32_t palette[16];
   char    *palette_str;
+  char    *ifo_str;
   int      has_palette;
   uint8_t  colormap[4];
   uint8_t  alpha[256];
+  uint8_t *buf;
+  int      buf_size;
+  int      forced_subs_only;
 } DVDSubContext;
 
 #define MAX_NEG_CROP 1024
