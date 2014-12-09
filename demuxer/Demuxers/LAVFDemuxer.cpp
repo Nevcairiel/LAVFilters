@@ -1952,55 +1952,40 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 static int audio_codec_priority(AVCodecContext *codec)
 {
   int priority = 0;
-  switch(codec->codec_id) {
-  case AV_CODEC_ID_FLAC:
-  case AV_CODEC_ID_TRUEHD:
-  case AV_CODEC_ID_MLP:
-  case AV_CODEC_ID_TTA:
-  case AV_CODEC_ID_MP4ALS:
-  // All the PCM codecs
-  case AV_CODEC_ID_PCM_S16LE:
-  case AV_CODEC_ID_PCM_S16BE:
-  case AV_CODEC_ID_PCM_U16LE:
-  case AV_CODEC_ID_PCM_U16BE:
-  case AV_CODEC_ID_PCM_S32LE:
-  case AV_CODEC_ID_PCM_S32BE:
-  case AV_CODEC_ID_PCM_U32LE:
-  case AV_CODEC_ID_PCM_U32BE:
-  case AV_CODEC_ID_PCM_S24LE:
-  case AV_CODEC_ID_PCM_S24BE:
-  case AV_CODEC_ID_PCM_U24LE:
-  case AV_CODEC_ID_PCM_U24BE:
-  case AV_CODEC_ID_PCM_F32BE:
-  case AV_CODEC_ID_PCM_F32LE:
-  case AV_CODEC_ID_PCM_F64BE:
-  case AV_CODEC_ID_PCM_F64LE:
-  case AV_CODEC_ID_PCM_DVD:
-  case AV_CODEC_ID_PCM_BLURAY:
-    priority = 10;
-    break;
-  case AV_CODEC_ID_WAVPACK:
-  case AV_CODEC_ID_EAC3:
-    priority = 8;
-    break;
-  case AV_CODEC_ID_DTS:
-    priority = 7;
-    if (codec->profile >= FF_PROFILE_DTS_HD_HRA) {
-      priority += 2;
-    } else if (codec->profile >= FF_PROFILE_DTS_ES) {
-      priority += 1;
-    }
-    break;
-  case AV_CODEC_ID_AC3:
-  case AV_CODEC_ID_AAC:
-  case AV_CODEC_ID_AAC_LATM:
-    priority = 5;
-    break;
-  }
 
-  // WAVE_FORMAT_EXTENSIBLE is multi-channel PCM, which doesn't have a proper tag otherwise
-  if(codec->codec_tag == WAVE_FORMAT_EXTENSIBLE) {
+  // lossless codecs have highest priority
+  if (codec->codec_descriptor && ((codec->codec_descriptor->props & (AV_CODEC_PROP_LOSSLESS|AV_CODEC_PROP_LOSSY)) == AV_CODEC_PROP_LOSSLESS)) {
     priority = 10;
+  } else if (codec->codec_descriptor && (codec->codec_descriptor->props & AV_CODEC_PROP_LOSSLESS)) {
+    priority = 8;
+
+    if (codec->codec_id == AV_CODEC_ID_DTS) {
+      priority = 7;
+      if (codec->profile >= FF_PROFILE_DTS_HD_HRA) {
+        priority += 2;
+      } else if (codec->profile >= FF_PROFILE_DTS_ES) {
+        priority += 1;
+      }
+    }
+  } else {
+    switch(codec->codec_id) {
+    case AV_CODEC_ID_EAC3:
+      priority = 7;
+      break;
+    case AV_CODEC_ID_AC3:
+    case AV_CODEC_ID_AAC:
+    case AV_CODEC_ID_AAC_LATM:
+      priority = 5;
+      break;
+    case AV_CODEC_ID_MP3:
+      priority = 3;
+      break;
+    }
+
+    // WAVE_FORMAT_EXTENSIBLE is multi-channel PCM, which doesn't have a proper tag otherwise
+    if(codec->codec_tag == WAVE_FORMAT_EXTENSIBLE) {
+      priority = 10;
+    }
   }
 
   return priority;
