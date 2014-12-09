@@ -479,6 +479,10 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
   HRESULT hr = S_OK;
   BOOL bFileInput = FALSE;
 
+  // Check if blacklisted
+  if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVF_REGISTRY_KEY L"\\Blacklist"))
+    return E_FAIL;
+
   SAFE_DELETE(m_pDemuxer);
 
   AVIOContext *pContext = nullptr;
@@ -532,6 +536,10 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
 {
   CheckPointer(pszFileName, E_POINTER);
   if (m_State != State_Stopped) return E_UNEXPECTED;
+
+  // Check if blacklisted
+  if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVF_REGISTRY_KEY L"\\Blacklist"))
+    return E_FAIL;
 
   // Close, just in case we're being re-used
   Close();

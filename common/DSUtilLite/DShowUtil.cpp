@@ -23,6 +23,8 @@
 #include <dvdmedia.h>
 #include "moreuuids.h"
 
+#include "registry.h"
+
 //
 // Usage: SetThreadName (-1, "MainThread");
 //
@@ -720,4 +722,29 @@ void __cdecl debugprintf(LPCWSTR format, ...)
   *p = L'\0';
 
   OutputDebugString(buf);
+}
+
+BOOL CheckApplicationBlackList(LPCTSTR subkey)
+{
+  HRESULT hr;
+  DWORD dwVal;
+  WCHAR fileName[1024];
+  GetModuleFileName(NULL, fileName, 1024);
+  WCHAR *processName = PathFindFileName(fileName);
+
+  // Check local machine path
+  CRegistry regLM = CRegistry(HKEY_LOCAL_MACHINE, subkey, hr, TRUE);
+  if (SUCCEEDED(hr)) {
+    dwVal = regLM.ReadDWORD(processName, hr);
+    return SUCCEEDED(hr) && dwVal;
+  }
+
+  // Check current user path
+  CRegistry regCU = CRegistry(HKEY_CURRENT_USER, subkey, hr, TRUE);
+  if (SUCCEEDED(hr)) {
+    dwVal = regCU.ReadDWORD(processName, hr);
+    return SUCCEEDED(hr) && dwVal;
+  }
+
+  return FALSE;
 }

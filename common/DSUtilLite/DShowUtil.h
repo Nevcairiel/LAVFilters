@@ -89,6 +89,8 @@ extern void UnRegisterSourceFilter(const GUID& subtype);
 extern void RegisterProtocolSourceFilter(const CLSID& clsid, LPCWSTR protocol);
 extern void UnRegisterProtocolSourceFilter(LPCWSTR protocol);
 
+extern BOOL CheckApplicationBlackList(LPCTSTR subkey);
+
 // Locale
 extern std::string ISO6391ToLanguage(LPCSTR code);
 extern std::string ISO6392ToLanguage(LPCSTR code);

@@ -770,6 +770,9 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 HRESULT CLAVVideo::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 {
   if (dir == PINDIR_INPUT) {
+    if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVC_VIDEO_REGISTRY_KEY L"\\Blacklist"))
+      return E_FAIL;
+
     if (FilterInGraphSafe(pPin, CLSID_LAVVideo, TRUE)) {
       DbgLog((LOG_TRACE, 10, L"CLAVVideo::CheckConnect(): LAVVideo is already in this graph branch, aborting."));
       return E_FAIL;

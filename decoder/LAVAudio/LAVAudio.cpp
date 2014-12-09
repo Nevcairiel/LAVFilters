@@ -1432,6 +1432,9 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 {
   DbgLog((LOG_TRACE, 5, L"CheckConnect -- %S", dir == PINDIR_INPUT ? "in" : "out"));
   if (dir == PINDIR_INPUT) {
+    if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVC_AUDIO_REGISTRY_KEY L"\\Blacklist"))
+      return E_FAIL;
+
     // TODO: Check if the upstream source filter is LAVFSplitter, and store that somewhere
     // Validate that this is called before any media type negotiation
   } else if (dir == PINDIR_OUTPUT) {
