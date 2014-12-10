@@ -20,6 +20,8 @@
 #include "stdafx.h"
 #include "DShowUtil.h"
 
+#include <Shlwapi.h>
+
 #include <dvdmedia.h>
 #include "moreuuids.h"
 
