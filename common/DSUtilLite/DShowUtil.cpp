@@ -38,6 +38,8 @@ typedef struct tagTHREADNAME_INFO
    DWORD dwFlags; // reserved for future use, must be zero
 } THREADNAME_INFO;
 
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
 void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName)
 {
    THREADNAME_INFO info;
@@ -48,9 +50,9 @@ void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName)
 
    __try
    {
-      RaiseException( 0x406D1388, 0, sizeof(info)/sizeof(DWORD), (ULONG_PTR*)&info );
+      RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
    }
-   __except(EXCEPTION_CONTINUE_EXECUTION)
+   __except(EXCEPTION_EXECUTE_HANDLER)
    {
    }
 }
