@@ -1922,8 +1922,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
     }
 
     if (!best) { best = check; continue; }
-    uint64_t bestPixels = m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
-    uint64_t checkPixels = m_avFormat->streams[check->pid]->codec->width * m_avFormat->streams[check->pid]->codec->height;
+    uint64_t bestPixels = (uint64_t)m_avFormat->streams[best->pid]->codec->width * m_avFormat->streams[best->pid]->codec->height;
+    uint64_t checkPixels = (uint64_t)m_avFormat->streams[check->pid]->codec->width * m_avFormat->streams[check->pid]->codec->height;
 
     if (m_avFormat->streams[best->pid]->codec->codec_id == AV_CODEC_ID_NONE && m_avFormat->streams[check->pid]->codec->codec_id != AV_CODEC_ID_NONE) {
       best = check;
