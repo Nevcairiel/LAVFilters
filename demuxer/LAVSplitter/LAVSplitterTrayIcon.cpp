@@ -95,12 +95,12 @@ HMENU CLAVSplitterTrayIcon::GetPopupMenu()
 
     CPopupMenu chapters;
     for (long i = 1; i <= count; i++) {
-      BSTR bstrName = nullptr;
-      if (FAILED(pExSeeking->GetMarkerName(i, &bstrName)))
-        continue;
-
       double markerTime;
       if (FAILED(pExSeeking->GetMarkerTime(i, &markerTime)))
+        continue;
+
+      BSTR bstrName = nullptr;
+      if (FAILED(pExSeeking->GetMarkerName(i, &bstrName)))
         continue;
 
       // Create compound chapter name
