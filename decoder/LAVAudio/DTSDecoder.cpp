@@ -406,6 +406,7 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * pDataBuffer, int buffsize, int &consum
       // TODO: get rid of these
       m_pAVCtx->sample_rate = HDSampleRate;
       m_pAVCtx->profile     = profile;
+      m_pAVCtx->bits_per_raw_sample = bitdepth;
 
       // Send current input time to the delivery function
       out.rtStart = m_rtStartInputCache;

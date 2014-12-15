@@ -955,7 +955,13 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 
     // Prefer bits_per_raw_sample if set, but if not, try to do a better guess with bits per coded sample
     int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
-    LAVAudioSampleFormat lav_sample_fmt = m_pDTSDecoderContext ? SampleFormat_24 : get_lav_sample_fmt(sample_fmt, bits);
+
+    LAVAudioSampleFormat lav_sample_fmt;
+    if (m_pDTSDecoderContext) {
+      bits = m_DTSBitDepth;
+      lav_sample_fmt = (m_DTSBitDepth == 24) ? SampleFormat_24 : SampleFormat_16;
+    } else
+      lav_sample_fmt = get_lav_sample_fmt(sample_fmt, bits);
 
     if (m_settings.MixingEnabled) {
       if (nChannels != av_get_channel_layout_nb_channels(m_settings.MixingLayout)
