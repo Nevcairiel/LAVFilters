@@ -467,6 +467,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   if (codec == AV_CODEC_ID_RV10 || codec == AV_CODEC_ID_RV20 || codec == AV_CODEC_ID_RV30 || codec == AV_CODEC_ID_RV40)
     dwDecFlags |= LAV_VIDEO_DEC_FLAG_ONLY_DTS;
 
+  // H.264 without B frames should use reordering for proper delay handling
+  if (codec == AV_CODEC_ID_H264 && bLAVInfoValid && lavPinInfo.has_b_frames == 0) {
+    dwDecFlags &= ~LAV_VIDEO_DEC_FLAG_ONLY_DTS;
+  }
+
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
   m_bFFReordering        = !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS) && (
