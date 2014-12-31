@@ -27,6 +27,7 @@ extern "C" {
 #pragma warning( disable : 4018 )
 #pragma warning( disable : 4244 )
 #pragma warning( disable : 4305 )
+#define FF_API_PIX_FMT 0
 #include "libavcodec/avcodec.h"
 #include "libavcodec/get_bits.h"
 #include "libavcodec/dcadata.h"
