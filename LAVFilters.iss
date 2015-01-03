@@ -4,6 +4,16 @@
 #define ISPP_INCLUDED
 #include "common\includes\version.h"
 
+#if LAV_VERSION_BUILD > 0
+    #define LAV_VERSION_STRING str(LAV_VERSION_MAJOR) + "." + str(LAV_VERSION_MINOR) + "." + str(LAV_VERSION_REVISION) + "-" + str(LAV_VERSION_BUILD)
+#else
+    #if LAV_VERSION_REVISION > 0
+        #define LAV_VERSION_STRING str(LAV_VERSION_MAJOR) + "." + str(LAV_VERSION_MINOR) + "." + str(LAV_VERSION_REVISION)
+    #else
+        #define LAV_VERSION_STRING str(LAV_VERSION_MAJOR) + "." + str(LAV_VERSION_MINOR)
+    #endif
+#endif
+
 [Setup]
 AllowCancelDuringInstall  = no
 AllowNoIcons              = yes
@@ -12,12 +22,12 @@ AppId                     = lavfilters
 AppName                   = LAV Filters
 AppPublisher              = Hendrik Leppkes
 AppPublisherURL           = http://1f0.de/
-AppVerName                = LAV Filters {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
-AppVersion                = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
-VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}.0
+AppVerName                = LAV Filters {#=LAV_VERSION_STRING}
+AppVersion                = {#=LAV_VERSION_STRING}
+VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}.{#=LAV_VERSION_BUILD}
 VersionInfoCompany        = 1f0.de
 VersionInfoCopyright      = GPLv2
-OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
+OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_STRING}
 OutputDir                 = .
 Compression               = lzma2/ultra
 SolidCompression          = yes

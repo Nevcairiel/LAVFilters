@@ -7,3 +7,4 @@
 
 /ipch
 /bin_*
+/common/includes/version_rev.h
