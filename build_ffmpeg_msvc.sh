@@ -87,7 +87,7 @@ configure() (
 )
 
 build() (
-  make -j8
+  make -j$(($NUMBER_OF_PROCESSORS+1))
 )
 
 echo Building ffmpeg in MSVC Debug config...

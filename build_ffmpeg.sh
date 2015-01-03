@@ -111,7 +111,7 @@ configure() (
 )
 
 build() (
-  make -j8
+  make -j$(($NUMBER_OF_PROCESSORS+1))
 )
 
 echo Building ffmpeg in GCC ${arch} Release config...
