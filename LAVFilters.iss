@@ -29,7 +29,7 @@ VersionInfoCompany        = 1f0.de
 VersionInfoCopyright      = GPLv2
 OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_STRING}
 OutputDir                 = .
-Compression               = lzma2/ultra
+Compression               = lzma2/ultra64
 SolidCompression          = yes
 MinVersion                = 0,5.01SP2
 PrivilegesRequired        = admin
