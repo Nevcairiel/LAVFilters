@@ -982,9 +982,10 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     if (iPosition == 1) {
       lav_sample_fmt = SampleFormat_16;
       bits = 16;
+    } else {
+      lav_sample_fmt = GetBestAvailableSampleFormat(lav_sample_fmt, &bits, TRUE);
     }
 
-    lav_sample_fmt = GetBestAvailableSampleFormat(lav_sample_fmt, TRUE);
     *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, bits);
   }
   return S_OK;

@@ -714,7 +714,7 @@ static LAVAudioSampleFormat sampleFormatMapping[5][5] = {
   { SampleFormat_FP32, SampleFormat_24, SampleFormat_32, SampleFormat_16, SampleFormat_U8 },  // SampleFormat_FP32
 };
 
-LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback)
+LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, int *bits, BOOL bNoFallback)
 {
   ASSERT(inFormat >= 0 && inFormat < SampleFormat_Bitstream);
 
@@ -728,6 +728,9 @@ LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleForma
       break;
     }
   }
+
+  if (bits && outFormat != inFormat)
+    *bits = get_byte_per_sample(outFormat) << 3;
 
   return outFormat;
 }

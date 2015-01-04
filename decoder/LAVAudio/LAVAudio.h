@@ -229,7 +229,7 @@ private:
   HRESULT Create61Conformity(DWORD dwLayout);
   HRESULT Create71Conformity(DWORD dwLayout);
 
-  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback = FALSE);
+  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, int *bits = NULL, BOOL bNoFallback = FALSE);
   HRESULT Truncate32Buffer(BufferDetails *buffer);
   HRESULT PadTo32(BufferDetails *buffer);
 
