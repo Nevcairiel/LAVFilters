@@ -806,12 +806,6 @@ HRESULT CLAVAudioStatusProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_INPUT_FORMAT, WM_SETTEXT, 0, (LPARAM)buffer);
   }
 
-  SendDlgItemMessage(m_Dlg, IDC_INT8, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_U8), 0);
-  SendDlgItemMessage(m_Dlg, IDC_INT16, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_16), 0);
-  SendDlgItemMessage(m_Dlg, IDC_INT24, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_24), 0);
-  SendDlgItemMessage(m_Dlg, IDC_INT32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_32), 0);
-  SendDlgItemMessage(m_Dlg, IDC_FP32, BM_SETCHECK, m_pAudioStatus->IsSampleFormatSupported(SampleFormat_FP32), 0);
-
   const char *outputFormat = nullptr;
   int nOutputChannels = 0;
   int nOutputSampleRate = 0;

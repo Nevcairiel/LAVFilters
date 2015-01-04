@@ -80,12 +80,6 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
     return;
   }
 
-  m_bSampleSupport[SampleFormat_U8] = TRUE;
-  m_bSampleSupport[SampleFormat_16] = TRUE;
-  m_bSampleSupport[SampleFormat_24] = TRUE;
-  m_bSampleSupport[SampleFormat_32] = TRUE;
-  m_bSampleSupport[SampleFormat_FP32] = TRUE;
-
   LoadSettings();
 
   InitBitstreaming();
@@ -787,10 +781,7 @@ STDMETHODIMP_(BOOL) CLAVAudio::GetSuppressFormatChanges()
 // ILAVAudioStatus
 BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
 {
-  if(!m_pOutput || m_pOutput->IsConnected() == FALSE) {
-    return FALSE;
-  }
-  return m_bSampleSupport[sfCheck];
+  return FALSE;
 }
 
 HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask)
@@ -1444,26 +1435,6 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 
     // TODO: Check if the upstream source filter is LAVFSplitter, and store that somewhere
     // Validate that this is called before any media type negotiation
-  } else if (dir == PINDIR_OUTPUT) {
-    CMediaType check_mt;
-    const int nChannels = m_pAVCtx ? m_pAVCtx->channels : 2;
-    const int nSamplesPerSec = m_pAVCtx ? m_pAVCtx->sample_rate : 48000;
-    const DWORD dwChannelMask = get_channel_mask(nChannels);
-
-    check_mt = CreateMediaType(SampleFormat_FP32, nSamplesPerSec, nChannels, dwChannelMask);
-    m_bSampleSupport[SampleFormat_FP32] = pPin->QueryAccept(&check_mt) == S_OK;
-
-    check_mt = CreateMediaType(SampleFormat_32, nSamplesPerSec, nChannels, dwChannelMask);
-    m_bSampleSupport[SampleFormat_32] = pPin->QueryAccept(&check_mt) == S_OK;
-
-    check_mt = CreateMediaType(SampleFormat_24, nSamplesPerSec, nChannels, dwChannelMask);
-    m_bSampleSupport[SampleFormat_24] = pPin->QueryAccept(&check_mt) == S_OK;
-
-    check_mt = CreateMediaType(SampleFormat_16, nSamplesPerSec, nChannels, dwChannelMask);
-    m_bSampleSupport[SampleFormat_16] = pPin->QueryAccept(&check_mt) == S_OK;
-
-    check_mt = CreateMediaType(SampleFormat_U8, nSamplesPerSec, nChannels, dwChannelMask);
-    m_bSampleSupport[SampleFormat_U8] = pPin->QueryAccept(&check_mt) == S_OK;
   }
   return __super::CheckConnect(dir, pPin);
 }
