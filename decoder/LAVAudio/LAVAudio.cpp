@@ -2159,6 +2159,7 @@ HRESULT CLAVAudio::FlushOutput(BOOL bDeliver)
   // Clear Queue
   m_OutputQueue.nSamples = 0;
   m_OutputQueue.bBuffer->SetSize(0);
+  m_OutputQueue.rtStart = AV_NOPTS_VALUE;
 
   return hr;
 }
