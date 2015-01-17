@@ -407,7 +407,7 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
       }
       if (avstream) {
         if (stream->lang[0] != 0)
-          av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, 0);
+          av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, AV_DICT_DONT_OVERWRITE);
         if (avstream->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
           if (avstream->codec->width == 0 || avstream->codec->height == 0) {
             switch(stream->format) {
