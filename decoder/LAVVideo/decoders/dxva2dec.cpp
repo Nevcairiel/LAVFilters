@@ -1051,8 +1051,8 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
 
   DXVA2_VideoDesc desc;
   ZeroMemory(&desc, sizeof(desc));
-  desc.SampleWidth = m_pAVCtx->coded_width;
-  desc.SampleHeight = m_pAVCtx->coded_height;
+  desc.SampleWidth = m_dwSurfaceWidth;
+  desc.SampleHeight = m_dwSurfaceHeight;
   desc.Format = output;
 
   hr = FindDecoderConfiguration(input, &desc, &m_DXVAVideoDecoderConfig);
