@@ -34,6 +34,9 @@
 
 #include "DeCSS/DeCSSInputPin.h"
 
+#pragma warning( push )
+#pragma warning( disable : 4018 )
+#pragma warning( disable : 4101 )
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavformat/spdif.h"
@@ -43,6 +46,7 @@ extern int ff_vorbis_comment(AVFormatContext *ms, AVDictionary **m, const uint8_
 extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesize);
 __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 };
+#pragma warning( pop )
 
 #ifdef DEBUG
 #include "lavf_log.h"
