@@ -357,9 +357,16 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 void CBDDemuxer::ProcessClipLanguages()
 {
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
+  int64_t max_clip_duration = 0;
   for (uint32_t i = 0; i < m_pTitle->clip_count; ++i) {
+    int64_t clip_duration = (m_pTitle->clips[i].out_time - m_pTitle->clips[i].in_time);
+    bool overwrite_info = false;
+    if (clip_duration > max_clip_duration) {
+      overwrite_info = true;
+      max_clip_duration = clip_duration;
+    }
     CLPI_CL *clpi = bd_get_clpi(m_pBD, i);
-    ProcessClipInfo(clpi);
+    ProcessClipInfo(clpi, overwrite_info);
     bd_free_clpi(clpi);
   }
 }
@@ -393,7 +400,7 @@ STDMETHODIMP CBDDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCHAR
   return E_FAIL;
 }*/
 
-void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
+void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
 {
   if (!clpi) { return; }
   for (int k = 0; k < clpi->program.num_prog; k++) {
@@ -407,7 +414,7 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
       }
       if (avstream) {
         if (stream->lang[0] != 0)
-          av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, AV_DICT_DONT_OVERWRITE);
+          av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, overwrite ? 0 : AV_DICT_DONT_OVERWRITE);
         if (avstream->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
           if (avstream->codec->width == 0 || avstream->codec->height == 0) {
             switch(stream->format) {

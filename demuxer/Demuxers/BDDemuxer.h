@@ -74,7 +74,7 @@ public:
   void ProcessClipLanguages();
 
 private:
-  void ProcessClipInfo(struct clpi_cl *clpi);
+  void ProcessClipInfo(struct clpi_cl *clpi, bool overwrite);
   void ProcessBDEvents();
 
   static int BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size);
