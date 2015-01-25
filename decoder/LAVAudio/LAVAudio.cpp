@@ -37,6 +37,7 @@
 #pragma warning( push )
 #pragma warning( disable : 4018 )
 #pragma warning( disable : 4101 )
+#pragma warning( disable : 4244 )
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavformat/spdif.h"

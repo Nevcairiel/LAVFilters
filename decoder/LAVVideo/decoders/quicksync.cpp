@@ -537,11 +537,11 @@ STDMETHODIMP CDecQuickSync::Decode(const BYTE *buffer, int buflen, REFERENCE_TIM
     // If we found a EOS marker, but its not at the end of the packet, then split the packet
     // to be able to individually decode the frame before the EOS, and then decode the remainder
     if (eosmarker && eosmarker != end) {
-      Decode(buffer, (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+      Decode(buffer, (int)(eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
 
       rtStart = rtStop = AV_NOPTS_VALUE;
       buffer = eosmarker;
-      buflen = end - eosmarker;
+      buflen = (int)(end - eosmarker);
     } else if (eosmarker) {
       m_bEndOfSequence = TRUE;
     }

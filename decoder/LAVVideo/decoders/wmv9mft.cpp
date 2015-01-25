@@ -199,7 +199,7 @@ STDMETHODIMP CDecWMV9MFT::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   MF.AverageTimePerFrameToFrameRate(rtAvg, &rateNum, &rateDen);
   MFSetAttributeRatio(pMTIn, MF_MT_FRAME_RATE, rateNum, rateDen);
   
-  pMTIn->SetBlob(MF_MT_USER_DATA, extra, extralen);
+  pMTIn->SetBlob(MF_MT_USER_DATA, extra, (UINT32)extralen);
   av_freep(&extra);
 
   hr = m_pMFT->SetInputType(0, pMTIn, 0);
@@ -371,7 +371,7 @@ static inline void memcpy_plane(BYTE *dst, const BYTE *src, ptrdiff_t width, ptr
   }
 }
 
-IMFMediaBuffer * CDecWMV9MFT::GetBuffer(size_t sRequiredSize)
+IMFMediaBuffer * CDecWMV9MFT::GetBuffer(DWORD dwRequiredSize)
 {
   CAutoLock lock(&m_BufferCritSec);
   HRESULT hr;
@@ -385,19 +385,19 @@ IMFMediaBuffer * CDecWMV9MFT::GetBuffer(size_t sRequiredSize)
   }
   if (buffer) {
     // Validate Size
-    if (buffer->size < sRequiredSize || !buffer->pBuffer) {
+    if (buffer->size < dwRequiredSize || !buffer->pBuffer) {
       SafeRelease(&buffer->pBuffer);
-      hr = MF.CreateAlignedMemoryBuffer(sRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
+      hr = MF.CreateAlignedMemoryBuffer(dwRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
       if (FAILED(hr)) return nullptr;
-      buffer->size = sRequiredSize;
+      buffer->size = dwRequiredSize;
     }
   } else {
     // Create a new buffer
     DbgLog((LOG_TRACE, 10, L"Allocating new buffer for WMV9 MFT"));
     buffer = new Buffer();
-    hr = MF.CreateAlignedMemoryBuffer(sRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
+    hr = MF.CreateAlignedMemoryBuffer(dwRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
     if (FAILED(hr)) { delete buffer; return nullptr; }
-    buffer->size = sRequiredSize;
+    buffer->size = dwRequiredSize;
     m_BufferQueue.push_back(buffer);
   }
   buffer->used = 1;

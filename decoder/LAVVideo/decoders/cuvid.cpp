@@ -1115,11 +1115,11 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
       // If we found a EOS marker, but its not at the end of the packet, then split the packet
       // to be able to individually decode the frame before the EOS, and then decode the remainder
       if (eosmarker && eosmarker != end) {
-        Decode(buffer, (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+        Decode(buffer, (int)(eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
 
         rtStart = rtStop = AV_NOPTS_VALUE;
         pCuvidPacket.payload      = eosmarker;
-        pCuvidPacket.payload_size = end - eosmarker;
+        pCuvidPacket.payload_size = (int)(end - eosmarker);
       } else if (eosmarker) {
         m_bEndOfSequence = TRUE;
       }

@@ -143,7 +143,7 @@ void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, size_t length, AVCodecI
   } else if (codec == AV_CODEC_ID_WMV3) {
     if (length < 4)
       return;
-    init_get_bits(&gb, pData, length * 8);
+    init_get_bits8(&gb, pData, (int)length);
     VC1ParseSequenceHeader(&gb);
   }
 }
@@ -235,7 +235,7 @@ AVPictureType CVC1HeaderParser::ParseVC1PictureType(const uint8_t *buf, int bufl
   }
   if (framestart) {
     GetBitContext gb;
-    init_get_bits(&gb, framestart, (buflen - (framestart - buf)) * 8);
+    init_get_bits8(&gb, framestart, (int)(buflen - (framestart - buf)));
     if (hdr.profile == PROFILE_ADVANCED) {
       int fcm = PROGRESSIVE;
       if (hdr.interlaced)

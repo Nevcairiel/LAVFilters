@@ -540,7 +540,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
     std::string line;
     while (std::getline(icyHeaderStream, line)) {
-      int seperatorIdx = line.find_first_of(":");
+      size_t seperatorIdx = line.find_first_of(":");
       std::string token = line.substr(0, seperatorIdx);
       std::string value = line.substr(seperatorIdx + 1);
       if (_stricmp(token.c_str(), "icy-name") == 0) {

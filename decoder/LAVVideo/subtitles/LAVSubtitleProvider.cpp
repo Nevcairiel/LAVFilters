@@ -166,7 +166,7 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
     getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, nullptr);
 
     m_pAVCtx->extradata = extra;
-    m_pAVCtx->extradata_size = extralen;
+    m_pAVCtx->extradata_size = (int)extralen;
   }
 
   if (pmt->formattype == FORMAT_SubtitleInfo) {

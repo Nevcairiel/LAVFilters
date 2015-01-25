@@ -343,13 +343,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       ASSERT(0);
     }
     extrasize = mtype.cbFormat - hdrsize;
-    mtype.ReallocFormatBuffer(hdrsize + extrasize + sizeof(avstream->codec->pix_fmt));
+    mtype.ReallocFormatBuffer((ULONG)(hdrsize + extrasize + sizeof(avstream->codec->pix_fmt)));
     if (extrasize) {
       memmove(mtype.pbFormat + hdrsize + sizeof(avstream->codec->pix_fmt), mtype.pbFormat + hdrsize, extrasize);
     }
     *(int *)(mtype.pbFormat + hdrsize) = avstream->codec->pix_fmt;
     videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, nullptr, nullptr, nullptr);
-    pBMI->biSize = sizeof(BITMAPINFOHEADER) + sizeof(avstream->codec->pix_fmt) + extrasize;
+    pBMI->biSize = (DWORD)(sizeof(BITMAPINFOHEADER) + sizeof(avstream->codec->pix_fmt) + extrasize);
     mtypes.push_back(mtype);
   }
 
