@@ -527,7 +527,7 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen
     if (version == 5)
       fmt++;
 
-    size_t ra_extralen = min((extra + extralen) - (fmt+4), AV_RB32(fmt));
+    size_t ra_extralen = min((size_t)((extra + extralen) - (fmt+4)), AV_RB32(fmt));
     if (ra_extralen > 0)  {
       m_pAVCtx->extradata_size = (int)ra_extralen;
       m_pAVCtx->extradata      = (uint8_t *)av_mallocz(ra_extralen + FF_INPUT_BUFFER_PADDING_SIZE);
