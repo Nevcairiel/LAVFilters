@@ -30,7 +30,7 @@ Packet::~Packet()
   av_buffer_unref(&m_Buf);
 }
 
-int Packet::SetDataSize(int len)
+int Packet::SetDataSize(size_t len)
 {
   if (len < 0)
     return -1;
@@ -40,8 +40,8 @@ int Packet::SetDataSize(int len)
     memmove(m_Buf->data, m_Data, m_DataSize);
 
   // Re-allocate the buffer, if required
-  if (!m_Buf || m_Buf->size < (len + FF_INPUT_BUFFER_PADDING_SIZE)) {
-    int ret = av_buffer_realloc(&m_Buf, len + FF_INPUT_BUFFER_PADDING_SIZE);
+  if (!m_Buf || (size_t)m_Buf->size < (len + FF_INPUT_BUFFER_PADDING_SIZE)) {
+    int ret = av_buffer_realloc(&m_Buf, (int)len + FF_INPUT_BUFFER_PADDING_SIZE);
     if (ret < 0)
       return ret;
   }
@@ -51,7 +51,7 @@ int Packet::SetDataSize(int len)
   return 0;
 }
 
-int Packet::SetData(const void* ptr, int len)
+int Packet::SetData(const void* ptr, size_t len)
 {
   if (!ptr || len < 0)
     return -1;
@@ -83,9 +83,9 @@ int Packet::Append(Packet *ptr)
   return AppendData(ptr->GetData(), ptr->GetDataSize());
 }
 
-int Packet::AppendData(const void* ptr, int len)
+int Packet::AppendData(const void* ptr, size_t len)
 {
-  int prevSize = m_DataSize;
+  size_t prevSize = m_DataSize;
   int ret = SetDataSize(m_DataSize + len);
   if (ret < 0)
     return ret;
@@ -93,7 +93,7 @@ int Packet::AppendData(const void* ptr, int len)
   return 0;
 }
 
-int Packet::RemoveHead(int count)
+int Packet::RemoveHead(size_t count)
 {
   count = min(count, m_DataSize);
   if (!m_Data || count < 0)

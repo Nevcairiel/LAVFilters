@@ -482,7 +482,7 @@ HRESULT CStreamParser::ParseSRT(Packet *pPacket)
             break;
         }
       }
-      int size = ptr - linestart;
+      size_t size = ptr - linestart;
 
       Packet *p = new Packet();
       p->pmt            = pPacket->pmt; pPacket->pmt = nullptr;
