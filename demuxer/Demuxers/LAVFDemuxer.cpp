@@ -592,7 +592,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
     UpdateSubStreams();
 
-    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT && (st->codec->codec_id == AV_CODEC_ID_TTF || st->codec->codec_id == AV_CODEC_ID_OTF)) {
+    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT
+        && (st->codec->codec_id == AV_CODEC_ID_TTF || st->codec->codec_id == AV_CODEC_ID_OTF
+            || (st->codec->extradata_size >= 4 && !strncmp((char*)st->codec->extradata, "ttcf", 4))) {
       if (!m_pFontInstaller) {
         m_pFontInstaller = new CFontInstaller();
       }
