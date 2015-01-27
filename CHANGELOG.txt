@@ -1,6 +1,20 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.64.0 - 2015/xx/xx
+General
+- NEW: Individual LAV Filters can now be blacklisted through the registry by creating a key with the executable name in HKCU\Software\LAV\<Filter>\Blacklist
+
+LAV Splitter
+- NEW: Support for RTMP using rtmpdump-style parameter syntax
+- NEW: Support for Opus-in-TS
+- Fixed: The language reported for audio/subtitle streams on some Blu-rays could be wrong
+
+LAV Video
+- Fixed: H.264 streams with only DTS timestamps would play out of sync with DXVA2
+- Fixed: DXVA2 could crash on some MPEG-2 streams
+- Fixed: Improved compatibility with a few HEVC streams when using DXVA2
+
 0.63.0 - 2014/10/03
 LAV Splitter
 - NEW: Support for playing AES encrypted HLS streams
