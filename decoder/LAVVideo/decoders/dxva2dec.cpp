@@ -182,18 +182,18 @@ static int IsAMDUVD(DWORD dwDeviceId)
 // DXVA2 decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-static void (*CopyFrameNV12)(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch) = nullptr;
+static void (*CopyFrameNV12)(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight, size_t imageHeight, size_t pitch) = nullptr;
 
-static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
+static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight, size_t imageHeight, size_t pitch)
 {
-  const int size = imageHeight * pitch;
+  const size_t size = imageHeight * pitch;
   memcpy(pY, pSourceData, size);
   memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
 }
 
-static void CopyFrameNV12_fallback_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
+static void CopyFrameNV12_fallback_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight, size_t imageHeight, size_t pitch)
 {
-  const int halfSize = (imageHeight * pitch) >> 1;
+  const size_t halfSize = (imageHeight * pitch) >> 1;
   Concurrency::parallel_for(0, 3, [&](int i) {
     if (i < 2)
       memcpy(pY + (halfSize * i), pSourceData + (halfSize * i), halfSize);
@@ -202,16 +202,16 @@ static void CopyFrameNV12_fallback_MT(const BYTE *pSourceData, BYTE *pY, BYTE *p
   });
 }
 
-static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
+static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight, size_t imageHeight, size_t pitch)
 {
-  const int size = imageHeight * pitch;
+  const size_t size = imageHeight * pitch;
   gpu_memcpy(pY, pSourceData, size);
   gpu_memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
 }
 
-static void CopyFrameNV12_SSE4_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, int surfaceHeight, int imageHeight, int pitch)
+static void CopyFrameNV12_SSE4_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight, size_t imageHeight, size_t pitch)
 {
-  const int halfSize = (imageHeight * pitch) >> 1;
+  const size_t halfSize = (imageHeight * pitch) >> 1;
   Concurrency::parallel_for(0, 3, [&](int i) {
     if (i < 2)
       gpu_memcpy(pY + (halfSize * i), pSourceData + (halfSize * i), halfSize);
