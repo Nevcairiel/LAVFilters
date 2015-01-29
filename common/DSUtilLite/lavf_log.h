@@ -39,7 +39,7 @@ inline void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
     DbgLog((LOG_CUSTOM1, level, L"    Last message repeated %d times", count));
     count=0;
   }
-  int len = strnlen_s(line, LOG_BUF_LEN);
+  size_t len = strnlen_s(line, LOG_BUF_LEN);
   if (len > 0 && line[len - 1] == '\n') {
     line[len - 1] = 0;
   }
