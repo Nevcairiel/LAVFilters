@@ -192,6 +192,9 @@ private:
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
   BOOL IsInterlaced();
 
+  HRESULT CheckDirectMode();
+  HRESULT DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode = true);
+
 
   HRESULT Filter(LAVFrame *pFrame);
   HRESULT DeliverToRenderer(LAVFrame *pFrame);

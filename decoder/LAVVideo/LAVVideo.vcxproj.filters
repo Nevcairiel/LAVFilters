@@ -159,6 +159,9 @@
     <ClCompile Include="parsers\HEVCSequenceParser.cpp">
       <Filter>Source Files\parsers</Filter>
     </ClCompile>
+    <ClCompile Include="pixconv\convert_direct.cpp">
+      <Filter>Source Files\pixconv</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

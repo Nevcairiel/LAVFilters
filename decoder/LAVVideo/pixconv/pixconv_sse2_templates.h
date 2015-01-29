@@ -97,6 +97,12 @@
 #define PIXCONV_LOAD_ALIGNED(reg,src) \
   reg = _mm_load_si128((const __m128i *)(src));      /* load (aligned) */
 
+// Load 128-bit into a register, using streaming  memory access
+// reg   - register to store pixels in
+// src   - memory pointer of the source
+#define PIXCONV_STREAM_LOAD(reg,src) \
+  reg = _mm_stream_load_si128((__m128i *)(src));      /* load (streaming) */
+
 #define PIXCONV_LOAD_PIXEL8_ALIGNED PIXCONV_LOAD_ALIGNED
 
 // Put 128-bit into memory, using streaming write

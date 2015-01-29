@@ -675,6 +675,25 @@ done:
   return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
 
+HRESULT CLAVVideo::CheckDirectMode()
+{
+  LAVPixelFormat pix;
+  int bpp;
+  m_Decoder.GetPixelFormat(&pix, &bpp);
+
+  BOOL bDirect = (pix == LAVPixFmt_NV12);
+  if (m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)
+    bDirect = FALSE;
+  else if (m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
+    bDirect = FALSE;
+  else if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider())
+    bDirect = FALSE;
+
+  m_Decoder.SetDirectOutput(bDirect);
+
+  return S_OK;
+}
+
 HRESULT CLAVVideo::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
@@ -799,6 +818,9 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
     hr = m_Decoder.PostConnect(pReceivePin);
+    if (SUCCEEDED(hr)) {
+      CheckDirectMode();
+    }
   } else if (dir == PINDIR_INPUT) {
     if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_VIDEO && !m_pSubtitleInput && (m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_DVD)) {
       m_pSubtitleInput = new CLAVVideoSubtitleInputPin(TEXT("CLAVVideoSubtitleInputPin"), this, &m_csFilter, &hr, L"Subtitle Input");
@@ -1277,6 +1299,46 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
   return S_OK;
 }
 
+HRESULT CLAVVideo::DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode)
+{
+  if (!pFrame->direct)
+    return S_FALSE;
+
+  ASSERT(pFrame->direct_lock && pFrame->direct_unlock);
+
+  LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
+
+  LAVFrame tmpFrame     = *pFrame;
+  pFrame->destruct      = nullptr;
+  pFrame->priv_data     = nullptr;
+  pFrame->direct        = false;
+  pFrame->direct_lock   = nullptr;
+  pFrame->direct_unlock = nullptr;
+  memset(pFrame->data, 0, sizeof(pFrame->data));
+
+  LAVDirectBuffer buffer;
+  if (tmpFrame.direct_lock(&tmpFrame, &buffer)) {
+    AllocLAVFrameBuffers(pFrame, buffer.stride[0] / desc.codedbytes);
+
+    // use slow copy, this should only be used extremely rarely
+    memcpy(pFrame->data[0], buffer.data[0], pFrame->height * buffer.stride[0]);
+    for (int i = 1; i < desc.planes; i++)
+      memcpy(pFrame->data[i], buffer.data[i], (pFrame->height / desc.planeHeight[i]) * buffer.stride[i]);
+
+    tmpFrame.direct_unlock(&tmpFrame);
+  } else {
+    // fallack, alloc anyway so nothing blows up
+    AllocLAVFrameBuffers(pFrame);
+  }
+
+  FreeLAVFrameBuffers(&tmpFrame);
+
+  if (bDisableDirectMode)
+    m_Decoder.SetDirectOutput(false);
+
+  return S_OK;
+}
+
 STDMETHODIMP_(LAVFrame*) CLAVVideo::GetFlushFrame()
 {
   LAVFrame *pFlushFrame = nullptr;
@@ -1367,6 +1429,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     if (pFrame->format != LAVPixFmt_DXVA2) {
       ReleaseFrame(&m_pLastSequenceFrame);
       if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
+        if (pFrame->direct) DeDirectFrame(pFrame, false);
         CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
       }
     } else {
@@ -1446,8 +1509,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
     m_SubtitleConsumer->SetVideoSize(width, height);
     m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
-    if (!bRGBOut)
+    if (!bRGBOut) {
+      if (pFrame->direct) DeDirectFrame(pFrame, true);
       m_SubtitleConsumer->ProcessFrame(pFrame);
+    }
   }
 
   // Grab a media sample, and start assembling the data for it.
@@ -1494,7 +1559,16 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&start);
   #endif
-    m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+
+    if (pFrame->direct && !m_PixFmtConverter.IsDirectModeSupported((uintptr_t)pDataOut, pBIH->biWidth)) {
+      DeDirectFrame(pFrame, true);
+    }
+
+    if (pFrame->direct)
+      m_PixFmtConverter.ConvertDirect(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+    else
+      m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+
   #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
     QueryPerformanceCounter(&end);
     double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;

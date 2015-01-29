@@ -139,6 +139,7 @@ static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, B
 CLAVPixFmtConverter::CLAVPixFmtConverter()
 {
   convert = &CLAVPixFmtConverter::convert_generic;
+  convert_direct = nullptr;
 
   m_NumThreads = min(8, max(1, av_cpu_count() / 2));
 
@@ -398,6 +399,27 @@ void CLAVPixFmtConverter::SelectConvertFunction()
   if (convert == nullptr) {
     convert = &CLAVPixFmtConverter::convert_generic;
   }
+
+  SelectConvertFunctionDirect();
+}
+
+void CLAVPixFmtConverter::SelectConvertFunctionDirect()
+{
+  convert_direct = nullptr;
+  m_bDirectMode = FALSE;
+
+  int cpu = av_get_cpu_flags();
+  if (m_InputPixFmt == LAVPixFmt_NV12 && m_OutputPixFmt == LAVOutPixFmt_NV12) {
+    if (cpu & AV_CPU_FLAG_SSE4)
+      convert_direct = &CLAVPixFmtConverter::plane_copy_direct_sse4;
+    else if (cpu & AV_CPU_FLAG_SSE2)
+      convert_direct = &CLAVPixFmtConverter::plane_copy_sse2;
+    else
+      convert_direct = &CLAVPixFmtConverter::plane_copy;
+  }
+
+  if (convert_direct != nullptr)
+    m_bDirectMode = true;
 }
 
 HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight) {
@@ -436,6 +458,39 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   if (out != dst) {
     ChangeStride(out, outStride, dst, dstStride, width, height, planeHeight, m_OutputPixFmt);
   }
+  return hr;
+}
+
+BOOL CLAVPixFmtConverter::IsDirectModeSupported(uintptr_t dst, ptrdiff_t stride) {
+  if (FFALIGN(stride, 16) != stride || (dst % 16u))
+    return false;
+  return m_bDirectMode;
+}
+
+HRESULT CLAVPixFmtConverter::ConvertDirect(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight)
+{
+  HRESULT hr = S_OK;
+  planeHeight = max(height, planeHeight);
+  ASSERT(pFrame->direct && pFrame->direct_lock && pFrame->direct_unlock);
+
+  LAVDirectBuffer buffer;
+  if (pFrame->direct_lock(pFrame, &buffer)) {
+    uint8_t *dstArray[4] = { 0 };
+    ptrdiff_t dstStrideArray[4] = { 0 };
+    ptrdiff_t byteStride = dstStride * lav_pixfmt_desc[m_OutputPixFmt].codedbytes;
+
+    dstArray[0] = dst;
+    dstStrideArray[0] = byteStride;
+
+    for (int i = 1; i < lav_pixfmt_desc[m_OutputPixFmt].planes; ++i) {
+      dstArray[i] = dstArray[i - 1] + dstStrideArray[i - 1] * (planeHeight / lav_pixfmt_desc[m_OutputPixFmt].planeHeight[i - 1]);
+      dstStrideArray[i] = byteStride / lav_pixfmt_desc[m_OutputPixFmt].planeWidth[i];
+    }
+
+    hr = (this->*convert_direct)(buffer.data, buffer.stride, dstArray, dstStrideArray, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
+    pFrame->direct_unlock(pFrame);
+  }
+
   return hr;
 }
 

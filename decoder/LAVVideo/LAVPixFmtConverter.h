@@ -76,8 +76,10 @@ public:
   BOOL IsAllowedSubtype(const GUID *guid);
 
   HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight);
+  HRESULT ConvertDirect(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight);
 
   BOOL IsRGBConverterActive() { return m_bRGBConverter; }
+  BOOL IsDirectModeSupported(uintptr_t dst, ptrdiff_t stride);
 
   DWORD GetImageSize(int width, int height, LAVOutPixFmts pixFmt = LAVOutPixFmt_None);
 
@@ -90,6 +92,7 @@ private:
   LAVOutPixFmts GetFilteredFormat(int index);
 
   void SelectConvertFunction();
+  void SelectConvertFunctionDirect();
 
   // Helper functions for convert_generic
   HRESULT swscale_scale(enum AVPixelFormat srcPix, enum AVPixelFormat dstPix, const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[4], int width, int height, const ptrdiff_t dstStride[4], LAVOutPixFmtDesc pixFmtDesc, bool swapPlanes12 = false);
@@ -110,6 +113,7 @@ private:
 
   // Conversion function pointer
   ConverterFn convert;
+  ConverterFn convert_direct;
 
   // Pixel Implementations
   DECLARE_CONV_FUNC(convert_generic);
@@ -130,6 +134,8 @@ private:
   DECLARE_CONV_FUNC(convert_rgb48_rgb32_ssse3);
   template <int out32> DECLARE_CONV_FUNC(convert_rgb48_rgb);
 
+  DECLARE_CONV_FUNC(plane_copy_direct_sse4);
+
   DECLARE_CONV_FUNC(convert_yuv_rgb);
   const RGBCoeffs* getRGBCoeffs(int width, int height);
   void InitRGBConvDispatcher();
@@ -140,6 +146,8 @@ private:
   LAVPixelFormat  m_InputPixFmt  = LAVPixFmt_None;
   LAVOutPixFmts   m_OutputPixFmt = LAVOutPixFmt_YV12;
   int             m_InBpp        = 0;
+
+  BOOL m_bDirectMode = false;
 
   int swsWidth       = 0;
   int swsHeight      = 0;

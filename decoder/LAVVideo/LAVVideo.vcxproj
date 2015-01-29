@@ -114,6 +114,7 @@
     <ClCompile Include="parsers\HEVCSequenceParser.cpp" />
     <ClCompile Include="parsers\MPEG2HeaderParser.cpp" />
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
+    <ClCompile Include="pixconv\convert_direct.cpp" />
     <ClCompile Include="pixconv\convert_generic.cpp" />
     <ClCompile Include="pixconv\interleave.cpp" />
     <ClCompile Include="pixconv\pixconv.cpp" />

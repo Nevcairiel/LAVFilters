@@ -37,6 +37,7 @@ public:
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp) { ASSERT(m_pDecoder); return m_pDecoder->GetPixelFormat(pPix, pBpp); }
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration() { ASSERT(m_pDecoder); return m_pDecoder->GetFrameDuration(); }
   STDMETHODIMP HasThreadSafeBuffers() { return m_pDecoder ? m_pDecoder->HasThreadSafeBuffers() : S_FALSE; }
+  STDMETHODIMP SetDirectOutput(BOOL bDirect) { return m_pDecoder ? m_pDecoder->SetDirectOutput(bDirect) : S_FALSE; }
 
 
   STDMETHODIMP CreateDecoder(const CMediaType *pmt, AVCodecID codec);

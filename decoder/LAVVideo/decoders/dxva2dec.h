@@ -52,9 +52,10 @@ public:
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
   STDMETHODIMP_(long) GetBufferCount();
-  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bNative ? L"dxva2n" : L"dxva2cb"; }
+  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bNative ? L"dxva2n" : (m_bDirect ? L"dxva2cb direct" : L"dxva2cb"); }
   STDMETHODIMP HasThreadSafeBuffers() { return m_bNative ? S_FALSE : S_OK; }
-  STDMETHODIMP SyncToProcessThread() { return HasThreadSafeBuffers() == S_OK ? S_FALSE : S_OK; }
+  STDMETHODIMP SyncToProcessThread() { return S_OK; }
+  STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
 
   // CDecBase
   STDMETHODIMP Init();
@@ -68,6 +69,7 @@ protected:
   HRESULT DeliverDXVA2Frame(LAVFrame *pFrame);
 
   bool CopyFrame(LAVFrame *pFrame);
+  bool DeliverDirect(LAVFrame *pFrame);
 
 private:
   HRESULT InitD3D();
@@ -101,6 +103,7 @@ private:
 private:
   friend class CDXVA2SurfaceAllocator;
   BOOL m_bNative = FALSE;
+  BOOL m_bDirect = FALSE;
   CDXVA2SurfaceAllocator *m_pDXVA2Allocator = nullptr;
 
   struct {

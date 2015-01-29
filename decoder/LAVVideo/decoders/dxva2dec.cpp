@@ -1180,8 +1180,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
       }
       hr = m_pDXVA2Allocator->Commit();
     } else if (!m_bNative) {
-      if (SyncToProcessThread() == S_FALSE)
-        FlushDisplayQueue(TRUE);
+      FlushDisplayQueue(TRUE);
       hr = CreateDXVA2Decoder();
     }
   }
@@ -1414,10 +1413,14 @@ HRESULT CDecDXVA2::DeliverDXVA2Frame(LAVFrame *pFrame)
     pFrame->format = LAVPixFmt_DXVA2;
     Deliver(pFrame);
   } else {
-    if (CopyFrame(pFrame))
-      Deliver(pFrame);
-    else
-      ReleaseFrame(&pFrame);
+    if (m_bDirect) {
+      DeliverDirect(pFrame);
+    } else {
+      if (CopyFrame(pFrame))
+        Deliver(pFrame);
+      else
+        ReleaseFrame(&pFrame);
+    }
   }
 
   return S_OK;
@@ -1467,6 +1470,54 @@ __forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
 
   // Free AVFrame based buffers, now that we're done
   FreeLAVFrameBuffers(&tmpFrame);
+
+  return true;
+}
+
+
+static bool direct_lock(LAVFrame * pFrame, LAVDirectBuffer *pBuffer)
+{
+  ASSERT(pFrame && pBuffer);
+
+  HRESULT hr;
+  LPDIRECT3DSURFACE9 pSurface = (LPDIRECT3DSURFACE9)pFrame->data[3];
+
+  D3DSURFACE_DESC surfaceDesc;
+  pSurface->GetDesc(&surfaceDesc);
+
+  D3DLOCKED_RECT LockedRect;
+  hr = pSurface->LockRect(&LockedRect, nullptr, D3DLOCK_READONLY);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"pSurface->LockRect failed (hr: %X)", hr));
+    return false;
+  }
+
+  memset(pBuffer, 0, sizeof(*pBuffer));
+
+  pBuffer->data[0]   = (BYTE *)LockedRect.pBits;
+  pBuffer->data[1]   = pBuffer->data[0] + surfaceDesc.Height * LockedRect.Pitch;
+
+  pBuffer->stride[0] = LockedRect.Pitch;
+  pBuffer->stride[1] = LockedRect.Pitch;
+  return true;
+}
+
+static void direct_unlock(LAVFrame * pFrame)
+{
+  ASSERT(pFrame);
+  LPDIRECT3DSURFACE9 pSurface = (LPDIRECT3DSURFACE9)pFrame->data[3];
+  pSurface->UnlockRect();
+}
+
+
+bool CDecDXVA2::DeliverDirect(LAVFrame *pFrame)
+{
+  pFrame->format        = LAVPixFmt_NV12;
+  pFrame->direct        = true;
+  pFrame->direct_lock   = direct_lock;
+  pFrame->direct_unlock = direct_unlock;
+
+  Deliver(pFrame);
 
   return true;
 }

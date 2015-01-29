@@ -128,6 +128,9 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     if (!m_pFilterGraph)
       goto deliver;
 
+    if (pFrame->direct)
+      DeDirectFrame(pFrame, true);
+
     AVFrame *in_frame = nullptr;
     BOOL refcountedFrame = (m_Decoder.HasThreadSafeBuffers() == S_OK);
     // When flushing, we feed a NULL frame

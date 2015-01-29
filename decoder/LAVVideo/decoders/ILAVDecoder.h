@@ -77,6 +77,11 @@ LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt);
  */
 AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp);
 
+typedef struct LAVDirectBuffer {
+  BYTE *data[4];                    ///< pointer to the picture planes
+  ptrdiff_t stride[4];              ///< stride of the planes (in bytes)
+} LAVDirectBuffer;
+
 /**
  * A Video Frame
  *
@@ -122,6 +127,10 @@ typedef struct LAVFrame {
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);
   void *priv_data;                  ///< private data from the decoder (mostly for destruct)
+
+  bool direct;
+  bool (*direct_lock)(struct LAVFrame *, struct LAVDirectBuffer *);
+  void (*direct_unlock)(struct LAVFrame *);
 } LAVFrame;
 
 /**
@@ -371,6 +380,11 @@ interface ILAVDecoder
    * Get whether the decoder should sync to the main thread
    */
   STDMETHOD(SyncToProcessThread)() PURE;
+
+  /**
+   * Toggle direct frame output mode for hardware decoders
+   */
+  STDMETHOD(SetDirectOutput)(BOOL bDirect) PURE;
 };
 
 /**
