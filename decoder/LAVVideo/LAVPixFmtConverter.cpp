@@ -41,6 +41,7 @@
  * YUV444         -       -       -       -       -       x       x       -       -       -       -       -       -       -       -      x       x
  * YUV444bX       -       -       -       -       -       x       x       -       -       -       x       -       -       -       x      x       x
  * NV12           x       x       -       x       x       -       -       -       -       -       -       -       -       -       -      x       x
+ * P010           -       -       -       -       -       -       -       x       -       -       -       -       x       -       -      x       x
  * YUY2           -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       -
  * RGB24          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      x       -
  * RGB32          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       x
@@ -78,6 +79,7 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   // 4:2:0
   { LAVPixFmt_YUV420, 8,    { PIXOUT_420_8, PIXOUT_420_10, PIXOUT_420_16, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
   { LAVPixFmt_NV12,   8,    { PIXOUT_420_8, PIXOUT_420_10, PIXOUT_420_16, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
+  { LAVPixFmt_P010,   10,   { PIXOUT_420_10, PIXOUT_420_16, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
 
   { LAVPixFmt_YUV420bX, 10, { PIXOUT_420_10, PIXOUT_420_16, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
   { LAVPixFmt_YUV420bX, 16, { PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
@@ -319,7 +321,8 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     m_RequiredAlignment = 0;
   } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
     || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) || (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48)
-    || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
+    || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)
+    || ((m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016) && m_InputPixFmt == LAVPixFmt_P010)) {
     if (cpu & AV_CPU_FLAG_SSE2)
       convert = &CLAVPixFmtConverter::plane_copy_sse2;
     else
@@ -359,7 +362,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
             && (m_InputPixFmt == LAVPixFmt_YUV420 || m_InputPixFmt == LAVPixFmt_YUV420bX
              || m_InputPixFmt == LAVPixFmt_YUV422 || m_InputPixFmt == LAVPixFmt_YUV422bX
              || m_InputPixFmt == LAVPixFmt_YUV444 || m_InputPixFmt == LAVPixFmt_YUV444bX
-             || m_InputPixFmt == LAVPixFmt_NV12)) {
+             || m_InputPixFmt == LAVPixFmt_NV12   || m_InputPixFmt == LAVPixFmt_P010)) {
       convert = &CLAVPixFmtConverter::convert_yuv_rgb;
       if (m_OutputPixFmt == LAVOutPixFmt_RGB32) {
         m_RequiredAlignment = 4;

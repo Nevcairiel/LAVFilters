@@ -29,6 +29,7 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
   { 2, 3, { 1, 1, 1 }, { 1, 1, 1 } },       ///< LAVPixFmt_YUV444bX
   { 1, 2, { 1, 1 },    { 1, 2 }    },       ///< LAVPixFmt_NV12
   { 2, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_YUY2
+  { 2, 2, { 1, 1 },    { 1, 2 }    },       ///< LAVPixFmt_P010
   { 3, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB24
   { 4, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB32
   { 4, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_ARGB32
@@ -49,6 +50,7 @@ static struct {
   { LAVPixFmt_YUV444, AV_PIX_FMT_YUV444P },
   { LAVPixFmt_NV12,   AV_PIX_FMT_NV12    },
   { LAVPixFmt_YUY2,   AV_PIX_FMT_YUYV422 },
+  { LAVPixFmt_P010,   AV_PIX_FMT_P010    },
   { LAVPixFmt_RGB24,  AV_PIX_FMT_BGR24   },
   { LAVPixFmt_RGB32,  AV_PIX_FMT_BGRA    },
   { LAVPixFmt_ARGB32, AV_PIX_FMT_BGRA    },

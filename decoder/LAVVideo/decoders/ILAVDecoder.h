@@ -45,6 +45,7 @@ typedef enum LAVPixelFormat {
   /* packed/half-packed YUV */
   LAVPixFmt_NV12,        ///< YUV 4:2:0, U/V interleaved
   LAVPixFmt_YUY2,        ///< YUV 4:2:2, packed, YUYV order
+  LAVPixFmt_P010,        ///< YUV 4:2:0, 10-bit, U/V interleaved
 
   /* RGB */
   LAVPixFmt_RGB24,       ///< RGB24, in BGR order

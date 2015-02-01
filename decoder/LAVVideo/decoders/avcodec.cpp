@@ -236,6 +236,8 @@ static struct PixelFormatMapping {
 
   { AV_PIX_FMT_YUVJ411P,  LAVPixFmt_YUV422, TRUE },
 
+  { AV_PIX_FMT_P010LE, LAVPixFmt_P010, FALSE, 10 },
+
   { AV_PIX_FMT_DXVA2_VLD, LAVPixFmt_DXVA2, FALSE },
 };
 
