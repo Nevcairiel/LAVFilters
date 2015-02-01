@@ -79,7 +79,7 @@ private:
 
   HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
   HRESULT CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
-  HRESULT FindVideoServiceConversion(AVCodecID codec, GUID *input, D3DFORMAT *output);
+  HRESULT FindVideoServiceConversion(AVCodecID codec, bool bHighBitdepth, GUID *input, D3DFORMAT *output);
   HRESULT FindDecoderConfiguration(const GUID &input, const DXVA2_VideoDesc *pDesc, DXVA2_ConfigPictureDecode *pConfig);
 
   HRESULT CreateDXVA2Decoder(int nSurfaces = 0, IDirect3DSurface9 **ppSurfaces = nullptr);
@@ -134,8 +134,10 @@ private:
   LAVFrame* m_FrameQueue[DXVA2_QUEUE_SURFACES];
   int       m_FrameQueuePosition = 0;
 
+  AVPixelFormat m_DecoderPixelFormat = AV_PIX_FMT_NONE;
   DWORD     m_dwSurfaceWidth    = 0;
   DWORD     m_dwSurfaceHeight   = 0;
+  D3DFORMAT m_eSurfaceFormat    = D3DFMT_UNKNOWN;
   DWORD     m_dwVendorId        = 0;
   DWORD     m_dwDeviceId        = 0;
   GUID      m_guidDecoderDevice = GUID_NULL;
