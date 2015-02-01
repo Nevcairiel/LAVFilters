@@ -174,4 +174,4 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
 
 template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint8_t,1>BLEND_FUNC_PARAMS;
 template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint8_t,0>BLEND_FUNC_PARAMS;
-template HRESULT CLAVSubtitleConsumer::blend_yuv_c<int16_t,0>BLEND_FUNC_PARAMS;
+template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint16_t,0>BLEND_FUNC_PARAMS;

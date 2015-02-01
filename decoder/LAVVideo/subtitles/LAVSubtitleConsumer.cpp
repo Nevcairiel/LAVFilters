@@ -277,7 +277,7 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
   case LAVPixFmt_YUV420bX:
   case LAVPixFmt_YUV422bX:
   case LAVPixFmt_YUV444bX:
-    blend = &CLAVSubtitleConsumer::blend_yuv_c<int16_t,0>;
+    blend = &CLAVSubtitleConsumer::blend_yuv_c<uint16_t,0>;
     break;
   default:
     DbgLog((LOG_ERROR, 10, L"ProcessSubtitleBitmap(): No Blend function available"));
