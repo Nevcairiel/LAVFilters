@@ -681,10 +681,12 @@ HRESULT CLAVVideo::CheckDirectMode()
   int bpp;
   m_Decoder.GetPixelFormat(&pix, &bpp);
 
-  BOOL bDirect = (pix == LAVPixFmt_NV12);
+  BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P010);
   if (m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)
     bDirect = FALSE;
-  else if (m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
+  else if (pix == LAVPixFmt_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
+    bDirect = FALSE;
+  else if (pix == LAVPixFmt_P010 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P010 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P016)
     bDirect = FALSE;
   else if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider())
     bDirect = FALSE;

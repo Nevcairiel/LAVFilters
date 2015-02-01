@@ -412,7 +412,8 @@ void CLAVPixFmtConverter::SelectConvertFunctionDirect()
   m_bDirectMode = FALSE;
 
   int cpu = av_get_cpu_flags();
-  if (m_InputPixFmt == LAVPixFmt_NV12 && m_OutputPixFmt == LAVOutPixFmt_NV12) {
+  if ((m_InputPixFmt == LAVPixFmt_NV12 && m_OutputPixFmt == LAVOutPixFmt_NV12)
+   || (m_InputPixFmt == LAVPixFmt_P010 && (m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016))) {
     if (cpu & AV_CPU_FLAG_SSE4)
       convert_direct = &CLAVPixFmtConverter::plane_copy_direct_sse4;
     else if (cpu & AV_CPU_FLAG_SSE2)
