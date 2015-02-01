@@ -212,6 +212,7 @@ static struct {
   { LAVPixFmt_YUV444,   AV_PIX_FMT_YUVA444P },
   { LAVPixFmt_YUV444bX, AV_PIX_FMT_YUVA444P },
   { LAVPixFmt_NV12,     AV_PIX_FMT_YUVA420P },
+  { LAVPixFmt_P010,     AV_PIX_FMT_YUVA420P },
   { LAVPixFmt_YUY2,     AV_PIX_FMT_YUVA422P },
   { LAVPixFmt_RGB24,    AV_PIX_FMT_BGRA     },
   { LAVPixFmt_RGB32,    AV_PIX_FMT_BGRA     },
@@ -269,6 +270,9 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
   case LAVPixFmt_NV12:
     blend = &CLAVSubtitleConsumer::blend_yuv_c<uint8_t,1>;
     break;
+  case LAVPixFmt_P010:
+    blend = &CLAVSubtitleConsumer::blend_yuv_c<uint16_t, 1>;
+    break;
   case LAVPixFmt_YUV420:
   case LAVPixFmt_YUV422:
   case LAVPixFmt_YUV444:
@@ -308,6 +312,10 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     m_PixFmt = pixFmt;
     SelectBlendFunction();
   }
+
+  // P010 is handled like its 16 bpp to compensate for having the data in the high bits
+  if (pixFmt == LAVPixFmt_P010)
+    bpp = 16;
 
   BYTE *subData[4] = { nullptr, nullptr, nullptr, nullptr };
   ptrdiff_t subStride[4] = { 0, 0, 0, 0 };

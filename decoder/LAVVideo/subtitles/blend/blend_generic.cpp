@@ -64,7 +64,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_rgb_c)
 template <class pixT, int nv12>
 DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
 {
-  ASSERT(pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_NV12 || pixFmt == LAVPixFmt_YUV422 || pixFmt == LAVPixFmt_YUV444 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_YUV422bX || pixFmt == LAVPixFmt_YUV444bX);
+  ASSERT(pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_NV12 || pixFmt == LAVPixFmt_YUV422 || pixFmt == LAVPixFmt_YUV444 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_YUV422bX || pixFmt == LAVPixFmt_YUV444bX || pixFmt == LAVPixFmt_P010);
 
   BYTE *y = video[0];
   BYTE *u = video[1];
@@ -175,3 +175,4 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
 template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint8_t,1>BLEND_FUNC_PARAMS;
 template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint8_t,0>BLEND_FUNC_PARAMS;
 template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint16_t,0>BLEND_FUNC_PARAMS;
+template HRESULT CLAVSubtitleConsumer::blend_yuv_c<uint16_t,1>BLEND_FUNC_PARAMS;
