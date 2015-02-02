@@ -126,6 +126,7 @@ private:
   DECLARE_CONV_FUNC(convert_yuv420_nv12);
   DECLARE_CONV_FUNC(convert_yuv_yv);
   DECLARE_CONV_FUNC(convert_nv12_yv12);
+  DECLARE_CONV_FUNC(convert_p010_nv12_sse2);
   template <int uyvy> DECLARE_CONV_FUNC(convert_yuv420_yuy2);
   template <int uyvy> DECLARE_CONV_FUNC(convert_yuv422_yuy2_uyvy);
   template <int uyvy> DECLARE_CONV_FUNC(convert_yuv422_yuy2_uyvy_dither_le);
@@ -135,6 +136,7 @@ private:
   template <int out32> DECLARE_CONV_FUNC(convert_rgb48_rgb);
 
   DECLARE_CONV_FUNC(plane_copy_direct_sse4);
+  DECLARE_CONV_FUNC(convert_p010_nv12_direct_sse4);
 
   DECLARE_CONV_FUNC(convert_yuv_rgb);
   const RGBCoeffs* getRGBCoeffs(int width, int height);

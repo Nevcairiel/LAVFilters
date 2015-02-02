@@ -473,3 +473,81 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12)
 
   return S_OK;
 }
+
+DECLARE_CONV_FUNC_IMPL(convert_p010_nv12_sse2)
+{
+  const ptrdiff_t inStride = srcStride[0];
+  const ptrdiff_t outStride = dstStride[0];
+  const ptrdiff_t chromaHeight = (height >> 1);
+
+  const ptrdiff_t byteWidth = width << 1;
+
+  LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
+  const uint16_t *dithers = GetRandomDitherCoeffs(height, 2, 8, 0);
+  if (dithers == nullptr)
+    ditherMode = LAVDither_Ordered;
+
+  __m128i xmm0, xmm1, xmm2, xmm3;
+
+  _mm_sfence();
+
+  ptrdiff_t line, i;
+
+  for (line = 0; line < height; line++) {
+    // Load dithering coefficients for this line
+    if (ditherMode == LAVDither_Random) {
+      xmm2 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 0));
+      xmm3 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 8));
+    } else {
+      PIXCONV_LOAD_DITHER_COEFFS(xmm2, line, 8, dithers);
+      xmm3 = xmm2;
+    }
+
+    const uint8_t *y = (src[0] + line * inStride);
+    uint8_t *dy = (dst[0] + line * outStride);
+
+    for (i = 0; i < byteWidth; i += 32) {
+      PIXCONV_LOAD_ALIGNED(xmm0, y + i + 0);
+      PIXCONV_LOAD_ALIGNED(xmm1, y + i + 16);
+
+      // apply dithering coeffs
+      xmm0 = _mm_adds_epu16(xmm0, xmm2);
+      xmm1 = _mm_adds_epu16(xmm1, xmm3);
+
+      // shift and pack to 8-bit
+      xmm0 = _mm_packus_epi16(_mm_srli_epi16(xmm0, 8), _mm_srli_epi16(xmm1, 8));
+
+      PIXCONV_PUT_STREAM(dy + (i >> 1), xmm0);
+    }
+  }
+
+  for (line = 0; line < chromaHeight; line++) {
+    // Load dithering coefficients for this line
+    if (ditherMode == LAVDither_Random) {
+      xmm2 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 0));
+      xmm3 = _mm_load_si128((const __m128i *)(dithers + (line << 4) + 8));
+    } else {
+      PIXCONV_LOAD_DITHER_COEFFS(xmm2, line, 8, dithers);
+      xmm3 = xmm2;
+    }
+
+    const uint8_t *uv = (src[1] + line * inStride);
+    uint8_t *duv = (dst[1] + line * outStride);
+
+    for (i = 0 ; i < byteWidth; i += 32) {
+      PIXCONV_LOAD_ALIGNED(xmm0, uv + i + 0);
+      PIXCONV_LOAD_ALIGNED(xmm1, uv + i + 16);
+
+      // apply dithering coeffs
+      xmm0 = _mm_adds_epu16(xmm0, xmm2);
+      xmm1 = _mm_adds_epu16(xmm1, xmm3);
+
+      // shift and pack to 8-bit
+      xmm0 = _mm_packus_epi16(_mm_srli_epi16(xmm0, 8), _mm_srli_epi16(xmm1, 8));
+
+      PIXCONV_PUT_STREAM(duv + (i >> 1), xmm0);
+    }
+  }
+
+  return S_OK;
+}

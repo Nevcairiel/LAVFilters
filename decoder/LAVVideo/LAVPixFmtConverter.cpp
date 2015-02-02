@@ -41,7 +41,7 @@
  * YUV444         -       -       -       -       -       x       x       -       -       -       -       -       -       -       -      x       x
  * YUV444bX       -       -       -       -       -       x       x       -       -       -       x       -       -       -       x      x       x
  * NV12           x       x       -       x       x       -       -       -       -       -       -       -       -       -       -      x       x
- * P010           -       -       -       -       -       -       -       x       -       -       -       -       x       -       -      x       x
+ * P010           -       x       -       -       -       -       -       x       -       -       -       -       x       -       -      x       x
  * YUY2           -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       -
  * RGB24          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      x       -
  * RGB32          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       x
@@ -396,6 +396,8 @@ void CLAVPixFmtConverter::SelectConvertFunction()
         convert = &CLAVPixFmtConverter::convert_rgb48_rgb<1>;
       else
         convert = &CLAVPixFmtConverter::convert_rgb48_rgb<0>;
+    } else if (m_InputPixFmt == LAVPixFmt_P010 && m_OutputPixFmt == LAVOutPixFmt_NV12) {
+      convert = &CLAVPixFmtConverter::convert_p010_nv12_sse2;
     }
   }
 
@@ -420,6 +422,11 @@ void CLAVPixFmtConverter::SelectConvertFunctionDirect()
       convert_direct = &CLAVPixFmtConverter::plane_copy_sse2;
     else
       convert_direct = &CLAVPixFmtConverter::plane_copy;
+  } else if (m_InputPixFmt == LAVPixFmt_P010 && m_OutputPixFmt == LAVOutPixFmt_NV12) {
+    if (cpu & AV_CPU_FLAG_SSE4)
+      convert_direct = &CLAVPixFmtConverter::convert_p010_nv12_direct_sse4;
+    else if (cpu & AV_CPU_FLAG_SSE2)
+      convert_direct = &CLAVPixFmtConverter::convert_p010_nv12_sse2;
   }
 
   if (convert_direct != nullptr)
