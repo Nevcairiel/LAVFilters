@@ -186,7 +186,7 @@ end;
 
 procedure InitFormats();
 begin
-  FR(SplitterFormats[0], 'matroska', 'Matroska/WebM', True, ['mkv','mka', 'mks', 'webm', '']);
+  FR(SplitterFormats[0], 'matroska', 'Matroska/WebM', True, ['mkv','mka', 'mks', 'mk3d', 'webm', '']);
   FS(SplitterFormats[0], '{1AC0BEBD-4D2B-45ad-BCEB-F2C41C5E3788}', ['0,4,,1A45DFA3', ''], True);
   FR(SplitterFormats[1], 'avi', 'AVI', True, ['avi','divx', 'vp6', 'amv', '']);
   FS(SplitterFormats[1], '{e436eb88-524f-11ce-9f53-0020af0ba770}', ['0,4,,52494646,8,4,,41564920', '0,4,,52494646,8,4,,41564958', '0,4,,52494646,8,4,,414D5620', ''], True);
