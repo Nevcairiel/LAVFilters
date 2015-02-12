@@ -37,7 +37,8 @@ IF EXIST includes\version_rev.h (
 )
 SET NEWVER=#define LAV_VERSION_BUILD %nbCOMMIT_PART%
 IF NOT "%NEWVER%" == "%OLDVER%" (
-    ECHO %NEWVER%> includes\version_rev.h
+    :: swapped order to avoid trailing newlines
+    > includes\version_rev.h ECHO %NEWVER%
 )
 GOTO :END
 
