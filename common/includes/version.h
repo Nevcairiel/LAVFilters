@@ -3,7 +3,7 @@
 #include "version_rev.h"
 
 #define LAV_VERSION_MAJOR     0
-#define LAV_VERSION_MINOR    63
+#define LAV_VERSION_MINOR    64
 #define LAV_VERSION_REVISION  0
 
 #define LAV_AUDIO "LAV Audio Decoder"

@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.64.0 - 2015/xx/xx
+0.64.0 - 2015/02/13
 General
 - NEW: Individual LAV Filters can now be blacklisted through the registry by creating a key with the executable name in HKCU\Software\LAV\<Filter>\Blacklist
 
@@ -11,6 +11,8 @@ LAV Splitter
 - Fixed: The language reported for audio/subtitle streams on some Blu-rays could be wrong
 
 LAV Video
+- NEW: HEVC Main10 decoding in DXVA2 Copy-Back mode
+- Faster: DXVA2 Copy-Back in direct output mode uses up to 50% less CPU and performance is improved accordingly
 - Fixed: H.264 streams with only DTS timestamps would play out of sync with DXVA2
 - Fixed: DXVA2 could crash on some MPEG-2 streams
 - Fixed: Improved compatibility with a few HEVC streams when using DXVA2
