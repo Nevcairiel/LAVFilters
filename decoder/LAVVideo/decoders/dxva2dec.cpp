@@ -340,8 +340,10 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
     }
 
     CMediaType mt = m_pCallback->GetOutputMediaType();
-    if (mt.subtype != MEDIASUBTYPE_NV12) {
-      DbgLog((LOG_ERROR, 10, L"-> Connection is not NV12"));
+    if ( (m_eSurfaceFormat == FOURCC_NV12 && mt.subtype != MEDIASUBTYPE_NV12)
+      || (m_eSurfaceFormat == FOURCC_P010 && mt.subtype != MEDIASUBTYPE_P010)
+      || (m_eSurfaceFormat == FOURCC_P016 && mt.subtype != MEDIASUBTYPE_P016)) {
+      DbgLog((LOG_ERROR, 10, L"-> Connection is not the appropriate pixel format for DXVA2 Native"));
       hr = E_FAIL;
       goto done;
     }
@@ -927,13 +929,18 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // If we don't have one yet, it may be handed to us later, and compat is checked at that point
   GUID input = GUID_NULL;
   D3DFORMAT output = D3DFMT_UNKNOWN;
+  bool bHighBitdepth = (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10));
   if (m_pDXVADecoderService) {
-    bool bHighBitdepth = (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10));
     hr = FindVideoServiceConversion(codec, bHighBitdepth, &input, &output);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> No decoder device available that can decode codec '%S' to a matching output", avcodec_get_name(codec)));
       return E_FAIL;
     }
+  } else {
+    if (bHighBitdepth)
+      output = (D3DFORMAT)FOURCC_P010;
+    else
+      output = (D3DFORMAT)FOURCC_NV12;
   }
 
   if (((codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUVJ420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != AV_PIX_FMT_NONE)
@@ -1439,7 +1446,7 @@ HRESULT CDecDXVA2::DeliverDXVA2Frame(LAVFrame *pFrame)
       return S_FALSE;
     }
 
-    pFrame->format = LAVPixFmt_DXVA2;
+    GetPixelFormat(&pFrame->format, &pFrame->bpp);
     Deliver(pFrame);
   } else {
     if (m_bDirect) {
@@ -1465,7 +1472,7 @@ STDMETHODIMP CDecDXVA2::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
       *pPix = (m_eSurfaceFormat == FOURCC_P010 || m_eSurfaceFormat == FOURCC_P016) ? LAVPixFmt_P010 : LAVPixFmt_NV12;
   }
   if (pBpp)
-    *pBpp = (m_eSurfaceFormat == FOURCC_P010 || m_eSurfaceFormat == FOURCC_P016) ? 10 : 8;
+    *pBpp = (m_eSurfaceFormat == FOURCC_P016) ? 16 : ((m_eSurfaceFormat == FOURCC_P010) ? 10 : 8);
   return S_OK;
 }
 
