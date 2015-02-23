@@ -504,7 +504,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     av_opt_set_int(m_avFormat, "analyzeduration", 7500000, 0);
     // And increase it for mpeg-ts/ps files
     if (m_bMPEGTS || m_bMPEGPS) {
-      av_opt_set_int(m_avFormat, "analyzeduration", 15000000, 0);
+      av_opt_set_int(m_avFormat, "analyzeduration", 30000000, 0);
       av_opt_set_int(m_avFormat, "probesize", 75000000, 0);
     }
   }
