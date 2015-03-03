@@ -791,7 +791,7 @@ BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
 
 HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask)
 {
-  if(!m_pInput || m_pInput->IsConnected() == FALSE) {
+  if(!m_pInput || m_pInput->IsConnected() == FALSE || !m_pAVCtx) {
     return E_UNEXPECTED;
   }
   if (m_avBSContext) {
@@ -818,7 +818,7 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
           "dts", nullptr, "dts-es", "dts 96/24", nullptr, "dts-hd hra", "dts-hd ma", "dts express"
         };
 
-        int index = 0, profile = m_pAVCtx->profile;
+        int index = 0, profile = m_pAVCtx ? m_pAVCtx->profile : FF_PROFILE_UNKNOWN;
         if (profile != FF_PROFILE_UNKNOWN)
           while(profile >>= 1) index++;
         if (index > 7) index = 0;
