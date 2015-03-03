@@ -24,10 +24,9 @@
 
 #include <Shlwapi.h>
 
-#pragma warning( push )
-#pragma warning( disable : 4305 )
-#include "libavcodec/dcadata.h"
-#pragma warning( pop )
+static const uint8_t dca_channels[16] = {
+  1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 6, 6, 6, 7, 8, 8
+};
 
 /** Taken from ffmpeg libavcodec/dca.c */
 static const int64_t dca_core_channel_layout[] = {
