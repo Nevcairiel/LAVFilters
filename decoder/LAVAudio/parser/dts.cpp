@@ -244,8 +244,7 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
     pHeader->ChannelLayout    = get_bits(gb, 6);        /* Channel configuration */
     unsigned sample_index     = get_bits(gb, 4);        /* Sample frequency index */
     pHeader->SampleRate       = avpriv_dca_sample_rates[sample_index];
-    unsigned bitrate_index    = get_bits(gb, 5);        /* Bitrate index */
-    pHeader->Bitrate          = dca_bit_rates[bitrate_index];
+    skip_bits(gb, 5);                                   /* Bitrate index */
     skip_bits1(gb);                                     /* Down mix */
     skip_bits1(gb);                                     /* Dynamic range */
     skip_bits1(gb);                                     /* Time stamp */

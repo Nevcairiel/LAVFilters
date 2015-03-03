@@ -44,7 +44,6 @@ struct DTSHeader {
   unsigned FrameSize;
   unsigned ChannelLayout;
   unsigned SampleRate;
-  unsigned Bitrate;
   unsigned LFE;
 
   // Extensions

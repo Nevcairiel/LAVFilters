@@ -39,7 +39,6 @@ public:
   DWORD m_dwSampleRate = 0;
   DWORD m_dwBlocks     = 0;
   DWORD m_dwFrameSize  = 0;
-  DWORD m_dwBitRate    = 0;
   DWORD m_dwSamples    = 0;
 
   BOOL m_bDTSHD        = FALSE;
