@@ -30,7 +30,6 @@ extern "C" {
 #define FF_API_PIX_FMT 0
 #include "libavcodec/avcodec.h"
 #include "libavcodec/get_bits.h"
-#include "libavcodec/dcadata.h"
 #pragma warning( pop )
 
 extern int avpriv_dca_convert_bitstream(const uint8_t *src, int src_size, uint8_t *dst, int max_size);
