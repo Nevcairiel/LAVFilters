@@ -12,6 +12,7 @@ do
     x64 | amd64)
             arch=x86_64
             archdir=x64
+            cross_prefix=x86_64-w64-mingw32-
             ;;
     quick)
             clean_build=false
@@ -32,19 +33,15 @@ make_dirs() (
   fi
 )
 
-strip_libs() {
-  if [ "${arch}" == "x86_64" ]; then
-    x86_64-w64-mingw32-strip lib*/*-lav-*.dll
-  else
-    strip lib*/*-lav-*.dll
-  fi
-}
-
 copy_libs() (
+  # install -s --strip-program=${cross_prefix}strip lib*/*-lav-*.dll ../bin_${archdir}
   cp lib*/*-lav-*.dll ../bin_${archdir}
-  cp lib*/*.lib ../bin_${archdir}/lib
+  ${cross_prefix}strip ../bin_${archdir}/*-lav-*.dll
+  cp -u lib*/*.lib ../bin_${archdir}/lib
+
   cp lib*/*-lav-*.dll ../bin_${archdir}d
-  cp lib*/*.lib ../bin_${archdir}d/lib
+  ${cross_prefix}strip ../bin_${archdir}d/*-lav-*.dll
+  cp -u lib*/*.lib ../bin_${archdir}d/lib
 )
 
 clean() (
@@ -101,7 +98,7 @@ configure() (
   EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -I../thirdparty/include"
   EXTRA_LDFLAGS=""
   if [ "${arch}" == "x86_64" ]; then
-    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=x86_64-w64-mingw32- --target-os=mingw32"
+    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib64"
   else
     OPTIONS="${OPTIONS} --cpu=i686"
@@ -136,7 +133,6 @@ fi
 ## Only if configure succeeded, actually build
 if ! $clean_build || [ ${CONFIGRETVAL} -eq 0 ]; then
   build &&
-  strip_libs &&
   copy_libs
 fi
 
