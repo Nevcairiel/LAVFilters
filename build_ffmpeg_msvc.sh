@@ -29,9 +29,9 @@ make_dirs() (
 )
 
 copy_libs() (
-  cp lib*/*-lav-*.dll ../bin_${archdir}d
-  cp lib*/*-lav-*.pdb ../bin_${archdir}d
-  cp lib*/*.lib ../bin_${archdir}d/lib
+  cp -u lib*/*-lav-*.dll ../bin_${archdir}d
+  cp -u lib*/*-lav-*.pdb ../bin_${archdir}d
+  cp -u lib*/*.lib ../bin_${archdir}d/lib
 )
 
 clean() (
