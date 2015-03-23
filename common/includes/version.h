@@ -36,10 +36,4 @@
 
 #define LAV_VERSION_STR MAKE_STR(LAV_VERSION)
 
-#ifdef LAV_DEBUG_RELEASE
-#define ENABLE_DEBUG_LOGFILE 1
-#else
-#define ENABLE_DEBUG_LOGFILE 0
-#endif
-
 #endif
