@@ -24,8 +24,6 @@
 #include <atlbase.h>
 #include <atlconv.h>
 
-#include "version.h"
-
 #include "streams.h"
 
 #pragma warning(push)

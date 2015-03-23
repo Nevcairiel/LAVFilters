@@ -25,6 +25,7 @@
 #include "SettingsProp.h"
 
 #include "DShowUtil.h"
+#include "version.h"
 
 
 #define LANG_BUFFER_SIZE 256

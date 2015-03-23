@@ -24,6 +24,7 @@
 #include <Commctrl.h>
 
 #include "resource.h"
+#include "version.h"
 
 CLAVAudioSettingsProp::CLAVAudioSettingsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVCAudioProp"), pUnk, IDD_PROPPAGE_AUDIO_SETTINGS, IDS_SETTINGS)

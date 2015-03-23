@@ -20,7 +20,6 @@
 #pragma once
 
 #include "common_defines.h"
-#include "version.h"
 
 #include <Windows.h>
 #include <Objbase.h>

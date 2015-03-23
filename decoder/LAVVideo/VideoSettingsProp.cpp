@@ -24,6 +24,7 @@
 #include <Commctrl.h>
 
 #include "resource.h"
+#include "version.h"
 
 CLAVVideoSettingsProp::CLAVVideoSettingsProp(LPUNKNOWN pUnk, HRESULT* phr)
   : CBaseDSPropPage(NAME("LAVVideoProp"), pUnk, IDD_PROPPAGE_VIDEO_SETTINGS, IDS_SETTINGS)

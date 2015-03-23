@@ -21,6 +21,7 @@
 #include "LAVSubtitleConsumer.h"
 #include "LAVVideo.h"
 #include "Media.h"
+#include "version.h"
 
 #define OFFSET(x) offsetof(LAVSubtitleConsumerContext, x)
 static const SubRenderOption options[] = {

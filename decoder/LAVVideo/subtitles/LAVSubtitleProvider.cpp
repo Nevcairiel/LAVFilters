@@ -25,6 +25,8 @@
 
 #include "LAVVideo.h"
 
+#include "version.h"
+
 #define FAST_DIV255(x) ((((x) + 128) * 257) >> 16)
 #define SUBTITLE_PTS_TIMEOUT (AV_NOPTS_VALUE + 1)
 
