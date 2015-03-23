@@ -490,10 +490,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // LAV Splitter does them allright with RV30/RV40, everything else screws them up
   m_bRVDropBFrameTimings = (codec == AV_CODEC_ID_RV10 || codec == AV_CODEC_ID_RV20 || ((codec == AV_CODEC_ID_RV30 || codec == AV_CODEC_ID_RV40) && (!(dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER) || (bLAVInfoValid && (lavPinInfo.flags & LAV_STREAM_FLAG_RV34_MKV)))));
 
-  m_bDTSOnly = (dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS);
-
   // Enable B-Frame delay handling
-  m_bBFrameDelay = !m_bFFReordering && !m_bRVDropBFrameTimings && !m_bDTSOnly;
+  m_bBFrameDelay = !m_bFFReordering && !m_bRVDropBFrameTimings;
 
   m_bWaitingForKeyFrame = TRUE;
   m_bResumeAtKeyFrame =    codec == AV_CODEC_ID_MPEG2VIDEO

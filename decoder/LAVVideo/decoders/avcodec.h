@@ -65,7 +65,6 @@ protected:
   AVFrame              *m_pFrame   = nullptr;
   AVCodecID             m_nCodecId = AV_CODEC_ID_NONE;
   BOOL                  m_bInInit  = FALSE;
-  BOOL                  m_bDTSOnly = FALSE;
 
 private:
   AVCodec              *m_pAVCodec   = nullptr;
