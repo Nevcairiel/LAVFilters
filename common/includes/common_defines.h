@@ -19,43 +19,15 @@
 
 #pragma once
 
-#include "common_defines.h"
+// Set minimal target OS (XP SP2+)
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0502
+#ifdef WINVER
+#undef WINVER
+#endif
+#define WINVER _WIN32_WINNT
 
-#include <atlbase.h>
-#include <atlconv.h>
-
-#include "version.h"
-
-#include "streams.h"
-
-#pragma warning(push)
-#pragma warning(disable:4244)
-extern "C" {
-#define __STDC_CONSTANT_MACROS
-#define FF_API_PIX_FMT 0
-#include "libavformat/avformat.h"
-#include "libavutil/intreadwrite.h"
-#include "libavutil/pixdesc.h"
-#include "libavutil/opt.h"
-
-#include "libbluray/bluray.h"
-}
-#pragma warning(pop)
-
-#define AVFORMAT_INTERNAL_H
-typedef struct AVCodecTag {
-    enum AVCodecID id;
-    unsigned int tag;
-} AVCodecTag;
-
-#include "libbluray/bdnav/clpi_parse.h"
-
-#include "util/log_control.h"
-
-#include "DShowUtil.h"
-#include <MMReg.h>
-
-#include <Shlwapi.h>
-
-
-// TODO: reference additional headers your program requires here
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
