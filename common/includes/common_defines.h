@@ -31,3 +31,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
+
+#define LAV_AUDIO "LAV Audio Decoder"
+#define LAV_VIDEO "LAV Video Decoder"
+#define LAV_SPLITTER "LAV Splitter"

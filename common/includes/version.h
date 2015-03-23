@@ -6,10 +6,6 @@
 #define LAV_VERSION_MINOR    64
 #define LAV_VERSION_REVISION  0
 
-#define LAV_AUDIO "LAV Audio Decoder"
-#define LAV_VIDEO "LAV Video Decoder"
-#define LAV_SPLITTER "LAV Splitter"
-
 /////////////////////////////////////////////////////////
 #ifndef ISPP_INCLUDED
 
