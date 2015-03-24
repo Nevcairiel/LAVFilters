@@ -1002,7 +1002,7 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   AVPixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
-  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
+  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_FULL_CHR_H_INT | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
 
   ptrdiff_t linesize[4];
   for (int i = 0; i < 4; i++)
