@@ -315,6 +315,10 @@ int CLAVAudio::SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int
   return nPCMLen;
 };
 
+static const int DTSProfiles[] = {
+  FF_PROFILE_DTS, FF_PROFILE_UNKNOWN, FF_PROFILE_DTS_ES, FF_PROFILE_DTS_96_24, FF_PROFILE_UNKNOWN, FF_PROFILE_DTS_HD_HRA, FF_PROFILE_DTS_HD_MA, FF_PROFILE_DTS_EXPRESS
+};
+
 HRESULT CLAVAudio::DecodeDTS(const BYTE * pDataBuffer, int buffsize, int &consumed, HRESULT *hrDeliver)
 {
   HRESULT hr = S_FALSE;
@@ -397,14 +401,18 @@ HRESULT CLAVAudio::DecodeDTS(const BYTE * pDataBuffer, int buffsize, int &consum
       out.dwChannelMask    = get_channel_mask(channels); // TODO
       out.wBitsPerSample   = bitdepth;
 
-      // DTS Express
-      if (profile == 0 && !m_bsParser.m_DTSHeader.HasCore) {
-        profile = 1 << 7;
-      }
+      int profile_index = 0;
+      while(profile >>= 1) profile_index++;
+
+      if (profile_index > 7)
+        m_pAVCtx->profile =  FF_PROFILE_UNKNOWN;
+      else if (profile == 0 && !m_bsParser.m_DTSHeader.HasCore)
+        m_pAVCtx->profile = FF_PROFILE_DTS_EXPRESS;
+      else
+        m_pAVCtx->profile = DTSProfiles[profile_index];
 
       // TODO: get rid of these
       m_pAVCtx->sample_rate = HDSampleRate;
-      m_pAVCtx->profile     = profile;
       m_pAVCtx->bits_per_raw_sample = bitdepth;
 
       // Send current input time to the delivery function

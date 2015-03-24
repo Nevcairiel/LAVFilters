@@ -813,19 +813,19 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
     }
   } else {
     if (pCodec) {
-      if (m_pDTSDecoderContext) {
-        static const char *DTSProfiles[] = {
-          "dts", nullptr, "dts-es", "dts 96/24", nullptr, "dts-hd hra", "dts-hd ma", "dts express"
-        };
-
-        int index = 0, profile = m_pAVCtx ? m_pAVCtx->profile : FF_PROFILE_UNKNOWN;
-        if (profile != FF_PROFILE_UNKNOWN)
-          while(profile >>= 1) index++;
-        if (index > 7) index = 0;
-
-        *pCodec = DTSProfiles[index] ? DTSProfiles[index] : "dts";
-      } else if (m_pAVCodec) {
-        *pCodec = m_pAVCodec->name;
+      if (m_pAVCodec) {
+        if (m_nCodecId == AV_CODEC_ID_DTS && m_pAVCtx && m_pAVCtx->profile != FF_PROFILE_UNKNOWN) {
+          static const char *DTSProfiles[] = {
+            nullptr, nullptr, "dts", "dts-es", "dts 96/24", "dts-hd hra", "dts-hd ma", "dts express"
+          };
+          int index = m_pAVCtx->profile / 10;
+          if (index >= 0 && index < countof(DTSProfiles) && DTSProfiles[index])
+            *pCodec = DTSProfiles[index];
+          else
+            *pCodec = "dts";
+        }
+        else
+          *pCodec = m_pAVCodec->name;
       }
     }
     if (pnChannels) {
