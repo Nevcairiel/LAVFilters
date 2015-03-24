@@ -78,6 +78,7 @@ private:
   AVCodecContext       *m_pAVCtx    = nullptr;
   AVCodecParserContext *m_pParser   = nullptr;
 
+  REFERENCE_TIME        m_rtLastFrame  = 0;
   REFERENCE_TIME        m_rtStartCache = AV_NOPTS_VALUE;
   ULONGLONG             m_SubPicId     = 0;
   BOOL                  m_bComposit    = TRUE;

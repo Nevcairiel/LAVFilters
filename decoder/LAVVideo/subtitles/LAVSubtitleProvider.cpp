@@ -128,6 +128,8 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
         subtitleFrame->AddBitmap(pRect);
       }
     }
+
+    m_rtLastFrame = start;
   }
 
   if (subtitleFrame->Empty()) {
@@ -197,6 +199,7 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   ClearSubtitleRects();
   SAFE_DELETE(m_pHLI);
 
+  m_rtLastFrame = 0;
   m_pLAVVideo->SetInDVDMenu(false);
 
   return S_OK;
@@ -308,15 +311,22 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
   DbgLog((LOG_TRACE, 10, L"Decoded Sub: rtStart: %I64d, start_display_time: %d, end_display_time: %d, num_rects: %u, num_dvd_palette: %d", rtStart, sub->start_display_time, sub->end_display_time, sub->num_rects, sub->num_dvd_palette));
   if (sub->num_rects > 0) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
+      CAutoLock lock(this);
+
       // DVD subs have the limitation that only one subtitle can be shown at a given time,
       // so we need to timeout unlimited subs when a new one appears, as well as limit the duration of timed subs
       // to prevent overlapping subtitles
       REFERENCE_TIME rtSubTimeout = (rtStart != AV_NOPTS_VALUE) ? rtStart - 1 : SUBTITLE_PTS_TIMEOUT;
-      CAutoLock lock(this);
       for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
         if ((*it)->rtStop == AV_NOPTS_VALUE || rtStart == AV_NOPTS_VALUE || (*it)->rtStop > rtStart) {
           (*it)->rtStop = rtSubTimeout;
         }
+      }
+
+      // Override subtitle timestamps if we have a timeout, and are not in a menu
+      if (rtStart == AV_NOPTS_VALUE && sub->end_display_time > 0 && !(sub->rects[0]->flags & AV_SUBTITLE_FLAG_FORCED)) {
+        DbgLog((LOG_TRACE, 10, L" -> Overriding subtitle timestamp to %I64d", m_rtLastFrame));
+        rtStart = m_rtLastFrame;
       }
     }
 
