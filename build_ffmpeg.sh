@@ -3,6 +3,7 @@
 arch=x86
 archdir=Win32
 clean_build=true
+cross_prefix=
 
 for opt in "$@"
 do
