@@ -294,16 +294,7 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
     }
 
     if (got_sub) {
-      REFERENCE_TIME rtSubStart = rtStart, rtSubStop = AV_NOPTS_VALUE;
-      if (rtSubStart != AV_NOPTS_VALUE) {
-        if (sub.end_display_time > 0) {
-          rtSubStop = rtSubStart + (sub.end_display_time * 10000i64);
-        }
-        rtSubStart += sub.start_display_time * 10000i64;
-      }
-      DbgLog((LOG_TRACE, 10, L"Decoded Sub: rtStart: %I64d, rtStop: %I64d, num_rects: %u, num_dvd_palette: %d", rtSubStart, rtSubStop, sub.num_rects, sub.num_dvd_palette));
-
-      ProcessSubtitleFrame(&sub, rtSubStart, rtSubStop);
+      ProcessSubtitleFrame(&sub, rtStart);
     }
 
     avsubtitle_free(&sub);
@@ -312,8 +303,9 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
   return S_OK;
 }
 
-void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop)
+void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart)
 {
+  DbgLog((LOG_TRACE, 10, L"Decoded Sub: rtStart: %I64d, start_display_time: %d, end_display_time: %d, num_rects: %u, num_dvd_palette: %d", rtStart, sub->start_display_time, sub->end_display_time, sub->num_rects, sub->num_dvd_palette));
   if (sub->num_rects > 0) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
       // DVD subs have the limitation that only one subtitle can be shown at a given time,
@@ -327,6 +319,15 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
         }
       }
     }
+
+    REFERENCE_TIME rtStop = AV_NOPTS_VALUE;
+    if (rtStart != AV_NOPTS_VALUE) {
+      if (sub->end_display_time > 0) {
+        rtStop = rtStart + (sub->end_display_time * 10000i64);
+      }
+      rtStart += sub->start_display_time * 10000i64;
+    }
+
     for (unsigned i = 0; i < sub->num_rects; i++) {
       if (sub->num_dvd_palette > 1 && rtStart != AV_NOPTS_VALUE) {
         REFERENCE_TIME rtStartRect = rtStart - (sub->start_display_time * 10000i64);
