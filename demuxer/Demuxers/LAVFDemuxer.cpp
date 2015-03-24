@@ -1229,8 +1229,10 @@ retry:
         seekStreamId = m_dActiveStreams[audio];
         goto retry;
       }
-      if (seek_pts == 0)
+      if (seek_pts == 0) {
+        DbgLog((LOG_ERROR, 1, L" -> attempting byte seek to position 0"));
         return SeekByte(0, AVSEEK_FLAG_BACKWARD);
+      }
     }
   }
 
