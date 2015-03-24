@@ -199,7 +199,7 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   ClearSubtitleRects();
   SAFE_DELETE(m_pHLI);
 
-  m_rtLastFrame = 0;
+  m_rtLastFrame = AV_NOPTS_VALUE;
   m_pLAVVideo->SetInDVDMenu(false);
 
   return S_OK;
