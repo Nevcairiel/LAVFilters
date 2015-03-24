@@ -79,6 +79,8 @@ configure() (
     --enable-hwaccel=vc1_dxva2      \
     --enable-hwaccel=wmv3_dxva2     \
     --enable-hwaccel=mpeg2_dxva2    \
+    --disable-decoder=dca           \
+    --enable-libdcadec              \
     --enable-libspeex               \
     --enable-libopencore-amrnb      \
     --enable-libopencore-amrwb      \
