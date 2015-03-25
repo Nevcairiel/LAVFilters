@@ -85,6 +85,9 @@
 
 /** Output native DTS channel layout, not WAVEFORMATEX layout */
 #define DCADEC_FLAG_NATIVE_LAYOUT       0x80
+
+/** Don't conceal errors */
+#define DCADEC_FLAG_STRICT              0x100
 /**@}*/
 
 /**@{*/
@@ -132,9 +135,10 @@ struct dcadec_exss_info {
 };
 
 /**
- * Parse DTS packet. Caller must have already established byte stream
- * synchronization. Packet must start with a valid 32-bit sync word.
- * EXSS frame must be aligned on 4-byte boundary if present in the packet.
+ * Parse DTS packet. Packet data must be already converted into 16-bit
+ * big-endian format. Caller must have already established byte stream
+ * synchronization. Packet must start with a valid 32-bit sync word. EXSS frame
+ * must be aligned on 4-byte boundary if present in the packet.
  *
  * @param dca   Pointer to decoder context.
  *
