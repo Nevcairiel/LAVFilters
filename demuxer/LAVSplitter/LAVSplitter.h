@@ -251,7 +251,7 @@ private:
   REFERENCE_TIME m_rtCurrent  = 0;
   REFERENCE_TIME m_rtNewStart = 0;
   REFERENCE_TIME m_rtNewStop  = 0;
-  REFERENCE_TIME m_rtOffset   = 0;
+  REFERENCE_TIME m_rtOffset   = AV_NOPTS_VALUE;
   double m_dRate              = 1.0;
   BOOL m_bStopValid           = FALSE;
 
