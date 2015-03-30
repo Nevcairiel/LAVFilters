@@ -300,7 +300,7 @@ HRESULT CLAVAudio::Create51Conformity(DWORD dwLayout)
   }
   m_bChannelMappingRequired = TRUE;
   m_ChannelMapOutputChannels = 6;
-  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1_BACK;
+  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1;
   return S_OK;
 }
 
@@ -403,9 +403,9 @@ static DWORD sanitize_mask(DWORD mask, AVCodecID codec)
       newmask = AV_CH_LAYOUT_5POINT0|AV_CH_BACK_CENTER;
   }
 
-  // Prefer the 5.1 BACK mask
-  if (mask == AV_CH_LAYOUT_5POINT1)
-    newmask = AV_CH_LAYOUT_5POINT1_BACK;
+  // Prefer the 5.1 SIDE mask
+  if (mask == AV_CH_LAYOUT_5POINT1_BACK)
+    newmask = AV_CH_LAYOUT_5POINT1;
 
   return newmask;
 }
