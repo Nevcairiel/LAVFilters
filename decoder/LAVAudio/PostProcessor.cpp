@@ -394,7 +394,7 @@ static DWORD sanitize_mask(DWORD mask, AVCodecID codec)
   DWORD newmask = mask;
   // A lot of codecs set 6.1/6.0 wrong..
   // Only these codecs we can trust to properly set BL/BR + BC layouts
-  if (codec != AV_CODEC_ID_DTS) {
+  if (codec != AV_CODEC_ID_DTS && codec != AV_CODEC_ID_FLAC) {
     // 6.1
     if (mask == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER))
       newmask = AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER;
