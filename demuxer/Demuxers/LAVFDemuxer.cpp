@@ -139,6 +139,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI2(IAMExtendedSeeking)
     QI2(IAMMediaContent)
     QI(IPropertyBag)
+    QI(IDSMResourceBag)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -592,11 +593,30 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
     UpdateSubStreams();
 
-    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT && (st->codec->codec_id == AV_CODEC_ID_TTF || st->codec->codec_id == AV_CODEC_ID_OTF)) {
-      if (!m_pFontInstaller) {
-        m_pFontInstaller = new CFontInstaller();
+    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT) {
+      if (st->codec->codec_id == AV_CODEC_ID_TTF || st->codec->codec_id == AV_CODEC_ID_OTF) {
+        if (!m_pFontInstaller) {
+          m_pFontInstaller = new CFontInstaller();
+        }
+        m_pFontInstaller->InstallFont(st->codec->extradata, st->codec->extradata_size);
       }
-      m_pFontInstaller->InstallFont(st->codec->extradata, st->codec->extradata_size);
+
+      const AVDictionaryEntry* attachFilename = av_dict_get(st->metadata, "filename", NULL, 0);
+      const AVDictionaryEntry* attachMimeType = av_dict_get(st->metadata, "mimetype", NULL, 0);
+      if (attachFilename && attachMimeType) {
+          size_t len = strlen(attachFilename->value);
+          LPWSTR filename = new WCHAR[len + 1];
+          MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, attachFilename->value, -1, filename, len+1);
+
+          len = strlen(attachMimeType->value);
+          LPWSTR mimetype = new WCHAR[len + 1];
+          MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, attachMimeType->value, -1, mimetype, len+1);
+
+          ResAppend(filename, L"", mimetype, st->codec->extradata, (DWORD)st->codec->extradata_size);
+
+          delete [] filename;
+          delete [] mimetype;
+      }
     }
   }
 

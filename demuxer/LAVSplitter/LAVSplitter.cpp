@@ -297,7 +297,8 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   *ppv = nullptr;
 
-  if (m_pDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo) || riid == IID_IAMExtendedSeeking || riid == IID_IAMMediaContent || riid == IID_IPropertyBag)) {
+  if (m_pDemuxer
+        && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo) || riid == IID_IAMExtendedSeeking || riid == IID_IAMMediaContent || riid == IID_IPropertyBag || riid == __uuidof(IDSMResourceBag)) {
     return m_pDemuxer->QueryInterface(riid, ppv);
   }
 
