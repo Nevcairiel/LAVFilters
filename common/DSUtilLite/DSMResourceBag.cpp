@@ -134,6 +134,8 @@ STDMETHODIMP CDSMResourceBag::ResRemoveAt(DWORD iIndex)
 
 STDMETHODIMP CDSMResourceBag::ResRemoveAll(DWORD_PTR tag)
 {
+  CAutoLock lock(&m_csResources);
+
   if (tag) {
     for (auto crit = m_resources.cend() - 1; crit >= m_resources.begin(); --crit) {
       if (crit->tag == tag) {
