@@ -635,6 +635,10 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
         chFilename = L"EmbeddedCover.bmp";
         chMime = L"image/bmp";
         break;
+      case AV_CODEC_ID_TIFF:
+        chFilename = L"EmbeddedCover.tiff";
+        chMime = L"image/tiff";
+        break;
       default:
         DbgLog((LOG_ERROR, 10, L" -> Unknown embedded cover type"));
         break;
