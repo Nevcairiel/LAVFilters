@@ -458,6 +458,19 @@ void CLAVFDemuxer::UpdateParserFlags(AVStream *st) {
   }
 }
 
+static struct sCoverMimeTypes
+{
+  AVCodecID codec;
+  LPCWSTR mime;
+  LPCWSTR ext;
+} CoverMimeTypes[] =  {
+  { AV_CODEC_ID_MJPEG, L"image/jpeg", L".jpg"},
+  { AV_CODEC_ID_PNG,   L"image/png",  L".png"},
+  { AV_CODEC_ID_GIF,   L"image/gif",  L".gif"},
+  { AV_CODEC_ID_BMP,   L"image/bmp",  L".bmp"},
+  { AV_CODEC_ID_TIFF,  L"image/tiff", L".tiff"},
+};
+
 STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 {
   HRESULT hr = S_OK;
@@ -613,40 +626,46 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
         SAFE_CO_FREE(chFilename);
         SAFE_CO_FREE(chMimetype);
+      } else {
+        DbgLog((LOG_TRACE, 10, L" -> Unknown attachment, missing filename or mimetype"));
       }
     } else if (st->disposition & AV_DISPOSITION_ATTACHED_PIC && st->attached_pic.data && st->attached_pic.size > 0) {
-      LPCWSTR chFilename = nullptr;
-      LPCWSTR chMime = nullptr;
+      LPWSTR chFilename = nullptr;
+      LPWSTR chMimeType = nullptr;
 
-      switch(st->codec->codec_id) {
-      case AV_CODEC_ID_MJPEG:
-        chFilename = L"EmbeddedCover.jpg";
-        chMime = L"image/jpeg";
-        break;
-      case AV_CODEC_ID_PNG:
-        chFilename = L"EmbeddedCover.png";
-        chMime = L"image/png";
-        break;
-      case AV_CODEC_ID_GIF:
-        chFilename = L"EmbeddedCover.gif";
-        chMime = L"image/gif";
-        break;
-      case AV_CODEC_ID_BMP:
-        chFilename = L"EmbeddedCover.bmp";
-        chMime = L"image/bmp";
-        break;
-      case AV_CODEC_ID_TIFF:
-        chFilename = L"EmbeddedCover.tiff";
-        chMime = L"image/tiff";
-        break;
-      default:
-        DbgLog((LOG_ERROR, 10, L" -> Unknown embedded cover type"));
-        break;
+      // gather a filename
+      const AVDictionaryEntry* attachFilename = av_dict_get(st->metadata, "filename", nullptr, 0);
+      if (attachFilename)
+        chFilename = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachFilename->value, -1);
+
+      // gather a mimetype
+      const AVDictionaryEntry* attachMimeType = av_dict_get(st->metadata, "mimetype", nullptr, 0);
+      if (attachMimeType)
+        chMimeType = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachMimeType->value, -1);
+
+      for (int c = 0; c < countof(CoverMimeTypes); c++)
+      {
+        if (CoverMimeTypes[c].codec == st->codec->codec_id) {
+          if (chFilename == nullptr)  {
+            size_t size = wcslen(CoverMimeTypes[c].ext) + 15;
+            chFilename = (LPWSTR)CoTaskMemAlloc(size * sizeof(wchar_t));
+            wcscpy_s(chFilename, size, L"EmbeddedCover");
+            wcscat_s(chFilename, size, CoverMimeTypes[c].ext);
+          }
+          if (chMimeType == nullptr) {
+            size_t size = wcslen(CoverMimeTypes[c].mime) + 1;
+            chMimeType = (LPWSTR)CoTaskMemAlloc(size * sizeof(wchar_t));
+            wcscpy_s(chMimeType, size, CoverMimeTypes[c].mime);
+          }
+        }
       }
 
       // Export embedded cover-art through IDSMResourceBag interface
-      if (chFilename && chMime)
-        ResAppend(chFilename, nullptr, chMime, st->attached_pic.data, (DWORD)st->attached_pic.size);
+      if (chFilename && chMimeType) {
+        ResAppend(chFilename, nullptr, chMimeType, st->attached_pic.data, (DWORD)st->attached_pic.size);
+      } else {
+        DbgLog((LOG_TRACE, 10, L" -> Unknown attachment, missing filename or mimetype"));
+      }
     }
   }
 
