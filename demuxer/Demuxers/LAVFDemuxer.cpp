@@ -139,6 +139,7 @@ STDMETHODIMP CLAVFDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI2(IAMExtendedSeeking)
     QI2(IAMMediaContent)
     QI(IPropertyBag)
+    QI(IDSMResourceBag)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -592,11 +593,56 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
     UpdateSubStreams();
 
-    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT && (st->codec->codec_id == AV_CODEC_ID_TTF || st->codec->codec_id == AV_CODEC_ID_OTF)) {
-      if (!m_pFontInstaller) {
-        m_pFontInstaller = new CFontInstaller();
+    if (st->codec->codec_type == AVMEDIA_TYPE_ATTACHMENT) {
+      if (st->codec->codec_id == AV_CODEC_ID_TTF || st->codec->codec_id == AV_CODEC_ID_OTF) {
+        if (!m_pFontInstaller) {
+          m_pFontInstaller = new CFontInstaller();
+        }
+        m_pFontInstaller->InstallFont(st->codec->extradata, st->codec->extradata_size);
       }
-      m_pFontInstaller->InstallFont(st->codec->extradata, st->codec->extradata_size);
+
+      const AVDictionaryEntry* attachFilename = av_dict_get(st->metadata, "filename", nullptr, 0);
+      const AVDictionaryEntry* attachMimeType = av_dict_get(st->metadata, "mimetype", nullptr, 0);
+
+      if (attachFilename && attachMimeType) {
+        LPWSTR chFilename = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachFilename->value, -1);
+        LPWSTR chMimetype = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachMimeType->value, -1);
+
+        if (chFilename && chMimetype)
+          ResAppend(chFilename, nullptr, chMimetype, st->codec->extradata, (DWORD)st->codec->extradata_size);
+
+        SAFE_CO_FREE(chFilename);
+        SAFE_CO_FREE(chMimetype);
+      }
+    } else if (st->disposition & AV_DISPOSITION_ATTACHED_PIC && st->attached_pic.data && st->attached_pic.size > 0) {
+      LPCWSTR chFilename = nullptr;
+      LPCWSTR chMime = nullptr;
+
+      switch(st->codec->codec_id) {
+      case AV_CODEC_ID_MJPEG:
+        chFilename = L"EmbeddedCover.jpg";
+        chMime = L"image/jpeg";
+        break;
+      case AV_CODEC_ID_PNG:
+        chFilename = L"EmbeddedCover.png";
+        chMime = L"image/png";
+        break;
+      case AV_CODEC_ID_GIF:
+        chFilename = L"EmbeddedCover.gif";
+        chMime = L"image/gif";
+        break;
+      case AV_CODEC_ID_BMP:
+        chFilename = L"EmbeddedCover.bmp";
+        chMime = L"image/bmp";
+        break;
+      default:
+        DbgLog((LOG_ERROR, 10, L" -> Unknown embedded cover type"));
+        break;
+      }
+
+      // Export embedded cover-art through IDSMResourceBag interface
+      if (chFilename && chMime)
+        ResAppend(chFilename, nullptr, chMime, st->attached_pic.data, (DWORD)st->attached_pic.size);
     }
   }
 

@@ -111,6 +111,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\common\includes\common_defines.h" />
     <ClInclude Include="..\..\common\includes\IBufferInfo.h" />
+    <ClInclude Include="..\..\common\includes\IDSMResourceBag.h" />
     <ClInclude Include="..\..\common\includes\IGraphRebuildDelegate.h" />
     <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h" />
     <ClInclude Include="..\..\common\includes\ILAVPinInfo.h" />
