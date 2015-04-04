@@ -137,10 +137,12 @@ STDMETHODIMP CDSMResourceBag::ResRemoveAll(DWORD_PTR tag)
   CAutoLock lock(&m_csResources);
 
   if (tag) {
-    for (auto crit = m_resources.cend() - 1; crit >= m_resources.begin(); --crit) {
-      if (crit->tag == tag) {
-        m_resources.erase(crit);
-      }
+    auto crit = m_resources.begin();
+    while (crit != m_resources.end()) {
+      if (crit->tag == tag)
+        crit = m_resources.erase(crit);
+      else
+        ++crit;
     }
   } else {
     m_resources.clear();
