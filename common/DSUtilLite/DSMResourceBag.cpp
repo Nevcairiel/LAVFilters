@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DSMResourceBag.h"
 
+#include <algorithm>
 
 CDSMResource::CDSMResource()
   : mime(L"application/octet-stream")
@@ -137,13 +138,7 @@ STDMETHODIMP CDSMResourceBag::ResRemoveAll(DWORD_PTR tag)
   CAutoLock lock(&m_csResources);
 
   if (tag) {
-    auto crit = m_resources.begin();
-    while (crit != m_resources.end()) {
-      if (crit->tag == tag)
-        crit = m_resources.erase(crit);
-      else
-        ++crit;
-    }
+    m_resources.erase(std::remove_if(m_resources.begin(), m_resources.end(), [&](const CDSMResource &r) { return r.tag == tag; }), m_resources.end());
   } else {
     m_resources.clear();
   }
