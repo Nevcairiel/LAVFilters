@@ -43,7 +43,7 @@ CDSMResourceBag::~CDSMResourceBag()
 STDMETHODIMP_(DWORD) CDSMResourceBag::ResGetCount()
 {
   CAutoLock lock(&m_csResources);
-  return m_resources.size();
+  return (DWORD)m_resources.size();
 }
 
 STDMETHODIMP CDSMResourceBag::ResGet(DWORD iIndex, BSTR * ppName, BSTR * ppDesc, BSTR * ppMime, BYTE** ppData, DWORD * pDataLen, DWORD_PTR * pTag)
