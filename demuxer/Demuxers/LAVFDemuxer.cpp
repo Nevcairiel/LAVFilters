@@ -657,6 +657,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
             chMimeType = (LPWSTR)CoTaskMemAlloc(size * sizeof(wchar_t));
             wcscpy_s(chMimeType, size, CoverMimeTypes[c].mime);
           }
+          break;
         }
       }
 
