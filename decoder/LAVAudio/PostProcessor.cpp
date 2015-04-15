@@ -389,25 +389,13 @@ HRESULT CLAVAudio::Create71Conformity(DWORD dwLayout)
   return S_OK;
 }
 
-static DWORD sanitize_mask(DWORD mask, AVCodecID codec)
+static inline DWORD sanitize_mask(DWORD mask, AVCodecID codec)
 {
-  DWORD newmask = mask;
-  // A lot of codecs set 6.1/6.0 wrong..
-  // Only these codecs we can trust to properly set BL/BR + BC layouts
-  if (codec != AV_CODEC_ID_DTS && codec != AV_CODEC_ID_FLAC) {
-    // 6.1
-    if (mask == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER))
-      newmask = AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER;
-    // 6.0
-    if (mask == (AV_CH_LAYOUT_5POINT0_BACK|AV_CH_BACK_CENTER))
-      newmask = AV_CH_LAYOUT_5POINT0|AV_CH_BACK_CENTER;
-  }
-
   // Prefer the 5.1 SIDE mask
   if (mask == AV_CH_LAYOUT_5POINT1_BACK)
-    newmask = AV_CH_LAYOUT_5POINT1;
+    mask = AV_CH_LAYOUT_5POINT1;
 
-  return newmask;
+  return mask;
 }
 
 HRESULT CLAVAudio::PadTo32(BufferDetails *buffer)
