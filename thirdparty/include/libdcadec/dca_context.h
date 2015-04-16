@@ -77,13 +77,13 @@
 /* Use FIR filter for floating point DTS core LFE channel interpolation */
 #define DCADEC_FLAG_CORE_LFE_FIR        0x10
 
-/** Extract embedded 2.0 downmix (NOT YET IMPLEMENTED) */
+/** Extract embedded 2.0 downmix */
 #define DCADEC_FLAG_KEEP_DMIX_2CH       0x20
 
-/** Extract embedded 5.1 downmix (NOT YET IMPLEMENTED) */
+/** Extract embedded 5.1 downmix */
 #define DCADEC_FLAG_KEEP_DMIX_6CH       0x40
 
-/** Output native DTS channel layout, not WAVEFORMATEX layout */
+/** Output native DTS channel layout, not WAVEFORMATEXTENSIBLE layout */
 #define DCADEC_FLAG_NATIVE_LAYOUT       0x80
 
 /** Don't conceal errors */
@@ -192,8 +192,9 @@ DCADEC_API void dcadec_context_free_exss_info(struct dcadec_exss_info *info);
 
 /**
  * Filter the parsed packet and return per-channel PCM data. All parameters
- * except decoder context are optional and can be NULL. This function should
- * be called exactly once after successfull call to dcadec_context_parse().
+ * except decoder context are optional and can be NULL. This function should be
+ * called at least once after each successfull call to dcadec_context_parse().
+ * Multiple calls per packet are allowed and return the same data.
  *
  * @param dca       Pointer to decoder context.
  *
@@ -203,9 +204,9 @@ DCADEC_API void dcadec_context_free_exss_info(struct dcadec_exss_info *info);
  *                  Returned array is tightly packed, there are no gaps for
  *                  missing channels. Use channel_mask to determine total number
  *                  of channels and size of returned array. By default channels
- *                  are ordered according to WAVEFORMATEX specification, but if
- *                  DCADEC_FLAG_NATIVE_LAYOUT flag was set when creating decoder
- *                  context, returned channels are in native DTS order.
+ *                  are ordered according to WAVEFORMATEXTENSIBLE specification,
+ *                  but if DCADEC_FLAG_NATIVE_LAYOUT flag was set when creating
+ *                  decoder context, returned channels are in native DTS order.
  *
  * @param nsamples  Filled with number of PCM samples in each returned plane.
  *
@@ -232,7 +233,9 @@ DCADEC_API int dcadec_context_filter(struct dcadec_context *dca, int ***samples,
                                      int *profile);
 
 /**
- * Clear all inter-frame history of the decoder.
+ * Clear all inter-frame history of the decoder. Call this before parsing
+ * packets out of sequence, e.g. after seeking to the arbitrary position within
+ * the DTS stream.
  *
  * @param dca   Pointer to decoder context.
  */
