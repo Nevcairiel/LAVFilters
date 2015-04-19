@@ -5,6 +5,8 @@ archdir=Win32
 clean_build=true
 cross_prefix=
 
+export PKG_CONFIG_PATH=$(pwd)/thirdparty/build/lib/pkgconfig/
+
 for opt in "$@"
 do
     case "$opt" in
@@ -114,9 +116,24 @@ build() (
   make -j$NUMBER_OF_PROCESSORS
 )
 
-echo Building ffmpeg in GCC ${arch} Release config...
+build_dcadec() (
+  cd thirdparty/dcadec
+  if $clean_build ; then
+    make CONFIG_WINDOWS=1 clean
+  fi
+  make -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_NDEBUG=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$WORKINGDIR/thirdparty/build install
+)
 
 make_dirs
+
+echo Building dcadec
+echo
+
+build_dcadec
+
+echo
+echo Building ffmpeg in GCC ${arch} Release config...
+echo
 
 cd ffmpeg
 

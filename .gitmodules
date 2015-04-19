@@ -7,3 +7,6 @@
 [submodule "qsdecoder"]
 	path = qsdecoder
 	url = git://git.1f0.de/qsdecoder.git
+[submodule "thirdparty/dcadec"]
+	path = thirdparty/dcadec
+	url = https://github.com/foo86/dcadec.git
