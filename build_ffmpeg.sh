@@ -102,7 +102,7 @@ configure() (
   EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -I../thirdparty/include"
   EXTRA_LDFLAGS=""
   if [ "${arch}" == "x86_64" ]; then
-    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32"
+    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32 --pkg-config=pkg-config"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib64"
   else
     OPTIONS="${OPTIONS} --cpu=i686"
