@@ -5,7 +5,8 @@ archdir=Win32
 clean_build=true
 cross_prefix=
 
-export PKG_CONFIG_PATH=$(pwd)/thirdparty/build/lib/pkgconfig/
+WORKINGDIR=$(pwd)
+export PKG_CONFIG_PATH=${WORKINGDIR}/thirdparty/build/lib/pkgconfig/
 
 for opt in "$@"
 do
@@ -121,7 +122,7 @@ build_dcadec() (
   if $clean_build ; then
     make CONFIG_WINDOWS=1 clean
   fi
-  make -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_NDEBUG=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$WORKINGDIR/thirdparty/build install
+  make -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_NDEBUG=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=${WORKINGDIR}/thirdparty/build install
 )
 
 make_dirs
