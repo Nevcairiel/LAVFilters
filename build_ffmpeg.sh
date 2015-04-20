@@ -5,9 +5,6 @@ archdir=Win32
 clean_build=true
 cross_prefix=
 
-WORKINGDIR=$(pwd)
-export PKG_CONFIG_PATH=${WORKINGDIR}/thirdparty/build/lib/pkgconfig/
-
 for opt in "$@"
 do
     case "$opt" in
@@ -26,6 +23,9 @@ do
             exit 1
     esac
 done
+
+THIRDPARTYPREFIX=$(pwd)/bin_${archdir}/thirdparty
+export PKG_CONFIG_PATH=${THIRDPARTYPREFIX}/lib/pkgconfig/
 
 make_dirs() (
   if [ ! -d bin_${archdir}/lib ]; then
@@ -122,7 +122,7 @@ build_dcadec() (
   if $clean_build ; then
     make CONFIG_WINDOWS=1 clean
   fi
-  make -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_NDEBUG=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=${WORKINGDIR}/thirdparty/build install
+  make -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_NDEBUG=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=${THIRDPARTYPREFIX} install
 )
 
 make_dirs
