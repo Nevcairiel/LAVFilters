@@ -663,7 +663,7 @@ static codec_config_t m_codec_config[] = {
   { 2, { AV_CODEC_ID_AAC, AV_CODEC_ID_AAC_LATM }},       // CC_AAC
   { 1, { AV_CODEC_ID_AC3 }},                          // CC_AC3
   { 1, { AV_CODEC_ID_EAC3 }},                         // CC_EAC3
-  { 1, { AV_CODEC_ID_DTS }},                          // CC_DTS
+  { 1, { AV_CODEC_ID_DTS }, "dts", "DTS Coherent Acoustics (DTS, DTS-HD)"},                          // CC_DTS
   { 2, { AV_CODEC_ID_MP2, AV_CODEC_ID_MP1 }},            // CC_MP2
   { 1, { AV_CODEC_ID_MP3 }},                          // CC_MP3
   { 2, { AV_CODEC_ID_TRUEHD, AV_CODEC_ID_MLP }},         // CC_TRUEHD
