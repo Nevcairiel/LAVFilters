@@ -1,6 +1,23 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.65.0 - 2015/04/21
+LAV Splitter
+- NEW: Support for MKV subtitle Cues to show subtitles immediately after a seek
+- NEW: Attachments and embedded cover art images are exported through the IDSMResourceBag interface
+- Fixed: Improved demuxing of HEVC in MPEG-TS and increased the reliability of the SPS/PPS/VPS extraction
+- Fixed: Demuxing Blu-rays/MPEG-TS where the first stream was not a video stream could result in broken timestamps
+- Fixed: Seeking in MKVs which are currently being written is more reliable
+
+LAV Video
+- Fixed: Improved HEVC DXVA2 decoding on a few samples
+- Fixed: Playback of VFR MPEG-4 in AVI had wrong timestamps in 0.64
+- Fixed: Improved handling of DVD subtitles without timestamps
+
+LAV Audio:
+- NEW: Native DTS-HD decoding using libdcadec
+- Changed: 5.1 audio prefers the speaker mask with side channels, to match recent specifications
+
 0.64.0 - 2015/02/13
 General
 - NEW: Individual LAV Filters can now be blacklisted through the registry by creating a key with the executable name in HKCU\Software\LAV\<Filter>\Blacklist
