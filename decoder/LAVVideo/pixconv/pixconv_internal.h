@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -22,5 +22,6 @@
 #include "LAVPixFmtConverter.h"
 #include <emmintrin.h>
 #include "timer.h"
+#include "Media.h"
 
 extern DECLARE_ALIGNED(16, const uint16_t, dither_8x8_256)[8][8];

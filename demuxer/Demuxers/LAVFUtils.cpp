@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -194,6 +194,20 @@ static bool show_sample_fmt(AVCodecID codec_id) {
   return false;
 }
 
+const char * lavf_get_stream_title(AVStream * pStream)
+{
+  char *title = nullptr;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "title", nullptr, 0)) {
+    title = dictEntry->value;
+  } else if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "handler_name", nullptr, 0)) {
+    title = dictEntry->value;
+    if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "VideoHandler") == 0 || strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
+      title = nullptr;
+  }
+
+  return title;
+}
+
 std::string lavf_get_stream_description(AVStream *pStream)
 {
   AVCodecContext *enc = pStream->codec;
@@ -210,14 +224,7 @@ std::string lavf_get_stream_description(AVStream *pStream)
     }
   }
 
-  char *title = nullptr;
-  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "title", nullptr, 0)) {
-    title = dictEntry->value;
-  } else if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "handler_name", nullptr, 0)) {
-    title = dictEntry->value;
-    if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "VideoHandler") == 0|| strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
-      title = nullptr;
-  }
+  const char * title = lavf_get_stream_title(pStream);
 
   // Empty titles are rather useless
   if (title && strlen(title) == 0)

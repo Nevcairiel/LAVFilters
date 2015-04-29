@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,8 @@
 #include "stdafx.h"
 #include "LAVSubtitleConsumer.h"
 #include "LAVVideo.h"
+#include "Media.h"
+#include "version.h"
 
 #define OFFSET(x) offsetof(LAVSubtitleConsumerContext, x)
 static const SubRenderOption options[] = {
@@ -106,7 +108,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
     }
 
     BYTE *data[4] = {0};
-    int stride[4] = {0};
+    ptrdiff_t stride[4] = {0};
     LAVPixelFormat format = pFrame->format;
     int bpp = pFrame->bpp;
 
@@ -211,6 +213,7 @@ static struct {
   { LAVPixFmt_YUV444,   AV_PIX_FMT_YUVA444P },
   { LAVPixFmt_YUV444bX, AV_PIX_FMT_YUVA444P },
   { LAVPixFmt_NV12,     AV_PIX_FMT_YUVA420P },
+  { LAVPixFmt_P010,     AV_PIX_FMT_YUVA420P },
   { LAVPixFmt_YUY2,     AV_PIX_FMT_YUVA422P },
   { LAVPixFmt_RGB24,    AV_PIX_FMT_BGRA     },
   { LAVPixFmt_RGB32,    AV_PIX_FMT_BGRA     },
@@ -268,6 +271,9 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
   case LAVPixFmt_NV12:
     blend = &CLAVSubtitleConsumer::blend_yuv_c<uint8_t,1>;
     break;
+  case LAVPixFmt_P010:
+    blend = &CLAVSubtitleConsumer::blend_yuv_c<uint16_t, 1>;
+    break;
   case LAVPixFmt_YUV420:
   case LAVPixFmt_YUV422:
   case LAVPixFmt_YUV444:
@@ -276,7 +282,7 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
   case LAVPixFmt_YUV420bX:
   case LAVPixFmt_YUV422bX:
   case LAVPixFmt_YUV444bX:
-    blend = &CLAVSubtitleConsumer::blend_yuv_c<int16_t,0>;
+    blend = &CLAVSubtitleConsumer::blend_yuv_c<uint16_t,0>;
     break;
   default:
     DbgLog((LOG_ERROR, 10, L"ProcessSubtitleBitmap(): No Blend function available"));
@@ -286,7 +292,7 @@ STDMETHODIMP CLAVSubtitleConsumer::SelectBlendFunction()
   return S_OK;
 }
 
-STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], int videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch)
+STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], ptrdiff_t videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, ptrdiff_t pitch)
 {
   if (subRect.left != 0 || subRect.top != 0) {
     DbgLog((LOG_ERROR, 10, L"ProcessSubtitleBitmap(): Left/Top in SubRect non-zero"));
@@ -308,8 +314,12 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     SelectBlendFunction();
   }
 
+  // P010 is handled like its 16 bpp to compensate for having the data in the high bits
+  if (pixFmt == LAVPixFmt_P010)
+    bpp = 16;
+
   BYTE *subData[4] = { nullptr, nullptr, nullptr, nullptr };
-  int subStride[4] = { 0, 0, 0, 0 };
+  ptrdiff_t subStride[4] = { 0, 0, 0, 0 };
 
   // If we need scaling (either scaling or pixel conversion), do it here before starting the blend process
   if (bNeedScaling) {
@@ -343,10 +353,10 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, AV_PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, nullptr, nullptr, nullptr);
 
     const uint8_t *src[4] = { (const uint8_t *)rgbData, nullptr, nullptr, nullptr };
-    const int srcStride[4] = { pitch * 4, 0, 0, 0 };
+    const ptrdiff_t srcStride[4] = { pitch * 4, 0, 0, 0 };
 
     const LAVPixFmtDesc desc = getFFSubPixelFormatDesc(avPixFmt);
-    const int stride = FFALIGN(newSize.cx, 64) * desc.codedbytes;
+    const ptrdiff_t stride = FFALIGN(newSize.cx, 64) * desc.codedbytes;
 
     for (int plane = 0; plane < desc.planes; plane++) {
       subStride[plane]  = stride / desc.planeWidth[plane];
@@ -373,7 +383,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
       src[0] = tmpBuf;
     }
 
-    int ret = sws_scale(m_pSwsContext, src, srcStride, 0, subSize.cy, subData, subStride);
+    int ret = sws_scale2(m_pSwsContext, src, srcStride, 0, subSize.cy, subData, subStride);
     subSize = newSize;
 
     if (tmpBuf)

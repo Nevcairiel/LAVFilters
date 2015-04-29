@@ -1,5 +1,5 @@
 /*
- * Copyright 1993-2011 NVIDIA Corporation.  All rights reserved.
+ * Copyright 1993-2014 NVIDIA Corporation.  All rights reserved.
  *
  * NOTICE TO LICENSEE:
  *
@@ -62,7 +62,7 @@
         #error "Unsupported value of CUDA_FORCE_API_VERSION"
     #endif
 #else
-    #define __CUDA_API_VERSION 6000
+    #define __CUDA_API_VERSION 6050
 #endif /* CUDA_FORCE_API_VERSION */
 
 #if defined(__CUDA_API_VERSION_INTERNAL) || __CUDA_API_VERSION >= 3020
@@ -118,6 +118,15 @@
 #if defined(__CUDA_API_VERSION_INTERNAL) || __CUDA_API_VERSION >= 4010
     #define cuTexRefSetAddress2D                cuTexRefSetAddress2D_v3
 #endif /* __CUDA_API_VERSION_INTERNAL || __CUDA_API_VERSION >= 4010 */
+#if defined(__CUDA_API_VERSION_INTERNAL) || __CUDA_API_VERSION >= 6050
+    #define cuLinkCreate                        cuLinkCreate_v2
+    #define cuLinkAddData                       cuLinkAddData_v2
+    #define cuLinkAddFile                       cuLinkAddFile_v2
+#endif /* __CUDA_API_VERSION_INTERNAL || __CUDA_API_VERSION >= 6050 */
+#if defined(__CUDA_API_VERSION_INTERNAL) || __CUDA_API_VERSION >= 6050
+    #define cuMemHostRegister                   cuMemHostRegister_v2
+    #define cuGraphicsResourceSetMapFlags       cuGraphicsResourceSetMapFlags_v2
+#endif /* __CUDA_API_VERSION_INTERNAL || __CUDA_API_VERSION >= 6050 */
 
 #if !defined(__CUDA_API_VERSION_INTERNAL)
 #if defined(__CUDA_API_VERSION) && __CUDA_API_VERSION >= 3020 && __CUDA_API_VERSION < 4010
@@ -146,7 +155,7 @@
 /**
  * CUDA API version number
  */
-#define CUDA_VERSION 6000
+#define CUDA_VERSION 6050
 
 #ifdef __cplusplus
 extern "C" {
@@ -157,7 +166,7 @@ extern "C" {
  */
 #if __CUDA_API_VERSION >= 3020
 
-#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64)
+#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64) || defined(__aarch64__)
 typedef unsigned long long CUdeviceptr;
 #else
 typedef unsigned int CUdeviceptr;
@@ -614,7 +623,8 @@ typedef enum CUjit_option_enum
 
     /**
      * Specifies choice of fallback strategy if matching cubin is not found.
-     * Choice is based on supplied ::CUjit_fallback.\n
+     * Choice is based on supplied ::CUjit_fallback.  This option cannot be
+     * used with cuLink* APIs as the linker requires exact matches.\n
      * Option type: unsigned int for enumerated type ::CUjit_fallback\n
      * Applies to: compiler only
      */
@@ -668,6 +678,7 @@ typedef enum CUjit_target_enum
     CU_TARGET_COMPUTE_30 = 30,       /**< Compute device class 3.0 */
     CU_TARGET_COMPUTE_32 = 32,       /**< Compute device class 3.2 */
     CU_TARGET_COMPUTE_35 = 35,       /**< Compute device class 3.5 */
+    CU_TARGET_COMPUTE_37 = 37,       /**< Compute device class 3.7 */
     CU_TARGET_COMPUTE_50 = 50       /**< Compute device class 5.0 */
 } CUjit_target;
 
@@ -971,6 +982,11 @@ typedef enum cudaError_enum {
     CUDA_ERROR_INVALID_PTX                    = 218,
 
     /**
+     * This indicates an error with OpenGL or DirectX context.
+     */
+    CUDA_ERROR_INVALID_GRAPHICS_CONTEXT       = 219,
+
+    /**
      * This indicates that the device kernel source is invalid.
      */
     CUDA_ERROR_INVALID_SOURCE                 = 300,
@@ -1192,6 +1208,14 @@ typedef enum cudaError_enum {
  * \param userData User parameter provided at registration.
  */
 typedef void (CUDA_CB *CUstreamCallback)(CUstream hStream, CUresult status, void *userData);
+
+/**
+ * Block size to per-block dynamic shared memory mapping for a certain
+ * kernel \param blockSize Block size of the kernel.
+ *
+ * \return The dynamic shared memory needed by a block.
+ */
+typedef size_t (CUDA_CB *CUoccupancyB2DSize)(int blockSize);
 
 /**
  * If set, host memory is portable between CUDA contexts.
@@ -3846,9 +3870,16 @@ CUresult CUDAAPI cuMemHostGetFlags(unsigned int *pFlags, void *p);
  * storage is created in 'zero-copy' or system memory. All GPUs will reference
  * the data at reduced bandwidth over the PCIe bus. In these circumstances,
  * use of the environment variable, CUDA_VISIBLE_DEVICES, is recommended to
- * restrict CUDA to only use those GPUs that have peer-to-peer support. This
- * environment variable is described in the CUDA programming guide under the
- * "CUDA environment variables" section.
+ * restrict CUDA to only use those GPUs that have peer-to-peer support.
+ * Alternatively, users can also set CUDA_MANAGED_FORCE_DEVICE_ALLOC to a
+ * non-zero value to force the driver to always use device memory for physical storage.
+ * When this environment variable is set to a non-zero value, all contexts created in
+ * that process on devices that support managed memory have to be peer-to-peer compatible
+ * with each other. Context creation will fail if a context is created on a device that
+ * supports managed memory and is not peer-to-peer compatible with any of the other
+ * managed memory supporting devices on which contexts were previously created, even if
+ * those contexts have been destroyed. These environment variables are described
+ * in the CUDA programming guide under the "CUDA environment variables" section.
  *
  * \param dptr     - Returned device pointer
  * \param bytesize - Requested allocation size in bytes
@@ -4229,7 +4260,6 @@ CUresult CUDAAPI cuMemHostUnregister(void *p);
  * Note that this function infers the type of the transfer (host to host, host to
  *   device, device to device, or device to host) from the pointer values.  This
  *   function is only allowed in contexts which support unified addressing.
- * Note that this function is synchronous.
  *
  * \param dst - Destination unified virtual address space pointer
  * \param src - Source unified virtual address space pointer
@@ -4242,6 +4272,7 @@ CUresult CUDAAPI cuMemHostUnregister(void *p);
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4264,11 +4295,6 @@ CUresult CUDAAPI cuMemcpy(CUdeviceptr dst, CUdeviceptr src, size_t ByteCount);
  * and \p dstContext is the destination context.  \p srcDevice is the base
  * device pointer of the source memory and \p srcContext is the source pointer.
  * \p ByteCount specifies the number of bytes to copy.
-
- * Note that this function is asynchronous with respect to the host, but
- * serialized with respect all pending and future asynchronous work in to the
- * current context, \p srcContext, and \p dstContext (use ::cuMemcpyPeerAsync
- * to avoid this synchronization).
  *
  * \param dstDevice  - Destination device pointer
  * \param dstContext - Destination context
@@ -4283,6 +4309,7 @@ CUresult CUDAAPI cuMemcpy(CUdeviceptr dst, CUdeviceptr src, size_t ByteCount);
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuMemcpyDtoD, ::cuMemcpy3DPeer, ::cuMemcpyDtoDAsync, ::cuMemcpyPeerAsync,
  * ::cuMemcpy3DPeerAsync
@@ -4297,8 +4324,7 @@ CUresult CUDAAPI cuMemcpyPeer(CUdeviceptr dstDevice, CUcontext dstContext, CUdev
  *
  * Copies from host memory to device memory. \p dstDevice and \p srcHost are
  * the base addresses of the destination and source, respectively. \p ByteCount
- * specifies the number of bytes to copy. Note that this function is
- * synchronous.
+ * specifies the number of bytes to copy.
  *
  * \param dstDevice - Destination device pointer
  * \param srcHost   - Source host pointer
@@ -4311,6 +4337,7 @@ CUresult CUDAAPI cuMemcpyPeer(CUdeviceptr dstDevice, CUcontext dstContext, CUdev
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4330,8 +4357,7 @@ CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void *srcHost, size_t
  *
  * Copies from device to host memory. \p dstHost and \p srcDevice specify the
  * base pointers of the destination and source, respectively. \p ByteCount
- * specifies the number of bytes to copy. Note that this function is
- * synchronous.
+ * specifies the number of bytes to copy.
  *
  * \param dstHost   - Destination host pointer
  * \param srcDevice - Source device pointer
@@ -4344,6 +4370,7 @@ CUresult CUDAAPI cuMemcpyHtoD(CUdeviceptr dstDevice, const void *srcHost, size_t
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4363,8 +4390,7 @@ CUresult CUDAAPI cuMemcpyDtoH(void *dstHost, CUdeviceptr srcDevice, size_t ByteC
  *
  * Copies from device memory to device memory. \p dstDevice and \p srcDevice
  * are the base pointers of the destination and source, respectively.
- * \p ByteCount specifies the number of bytes to copy. Note that this function
- * is asynchronous.
+ * \p ByteCount specifies the number of bytes to copy.
  *
  * \param dstDevice - Destination device pointer
  * \param srcDevice - Source device pointer
@@ -4377,6 +4403,7 @@ CUresult CUDAAPI cuMemcpyDtoH(void *dstHost, CUdeviceptr srcDevice, size_t ByteC
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4411,6 +4438,7 @@ CUresult CUDAAPI cuMemcpyDtoD(CUdeviceptr dstDevice, CUdeviceptr srcDevice, size
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4447,6 +4475,7 @@ CUresult CUDAAPI cuMemcpyDtoA(CUarray dstArray, size_t dstOffset, CUdeviceptr sr
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4481,6 +4510,7 @@ CUresult CUDAAPI cuMemcpyAtoD(CUdeviceptr dstDevice, CUarray srcArray, size_t sr
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4515,6 +4545,7 @@ CUresult CUDAAPI cuMemcpyHtoA(CUarray dstArray, size_t dstOffset, const void *sr
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4553,6 +4584,7 @@ CUresult CUDAAPI cuMemcpyAtoH(void *dstHost, CUarray srcArray, size_t srcOffset,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4713,6 +4745,7 @@ CUresult CUDAAPI cuMemcpyAtoA(CUarray dstArray, size_t dstOffset, CUarray srcArr
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \nore_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -4871,6 +4904,7 @@ CUresult CUDAAPI cuMemcpy2D(const CUDA_MEMCPY2D *pCopy);
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5038,6 +5072,7 @@ CUresult CUDAAPI cuMemcpy2DUnaligned(const CUDA_MEMCPY2D *pCopy);
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5061,13 +5096,6 @@ CUresult CUDAAPI cuMemcpy3D(const CUDA_MEMCPY3D *pCopy);
  * \p pCopy.  See the definition of the ::CUDA_MEMCPY3D_PEER structure
  * for documentation of its parameters.
  *
- * Note that this function is synchronous with respect to the host only if
- * the source or destination memory is of type ::CU_MEMORYTYPE_HOST.
- * Note also that this copy is serialized with respect all pending and future
- * asynchronous work in to the current context, the copy's source context,
- * and the copy's destination context (use ::cuMemcpy3DPeerAsync to avoid
- * this synchronization).
- *
  * \param pCopy - Parameters for the memory copy
  *
  * \return
@@ -5077,6 +5105,7 @@ CUresult CUDAAPI cuMemcpy3D(const CUDA_MEMCPY3D *pCopy);
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_sync
  *
  * \sa ::cuMemcpyDtoD, ::cuMemcpyPeer, ::cuMemcpyDtoDAsync, ::cuMemcpyPeerAsync,
  * ::cuMemcpy3DPeerAsync
@@ -5092,8 +5121,6 @@ CUresult CUDAAPI cuMemcpy3DPeer(const CUDA_MEMCPY3D_PEER *pCopy);
  * Note that this function infers the type of the transfer (host to host, host to
  *   device, device to device, or device to host) from the pointer values.  This
  *   function is only allowed in contexts which support unified addressing.
- * Note that this function is asynchronous and can optionally be associated to
- *   a stream by passing a non-zero \p hStream argument
  *
  * \param dst       - Destination unified virtual address space pointer
  * \param src       - Source unified virtual address space pointer
@@ -5106,8 +5133,9 @@ CUresult CUDAAPI cuMemcpy3DPeer(const CUDA_MEMCPY3D_PEER *pCopy);
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5131,8 +5159,7 @@ CUresult CUDAAPI cuMemcpyAsync(CUdeviceptr dst, CUdeviceptr src, size_t ByteCoun
  * context. \p dstDevice is the base device pointer of the destination memory
  * and \p dstContext is the destination context.  \p srcDevice is the base
  * device pointer of the source memory and \p srcContext is the source pointer.
- * \p ByteCount specifies the number of bytes to copy.  Note that this function
- * is asynchronous with respect to the host and all work on other devices.
+ * \p ByteCount specifies the number of bytes to copy.
  *
  * \param dstDevice  - Destination device pointer
  * \param dstContext - Destination context
@@ -5147,8 +5174,9 @@ CUresult CUDAAPI cuMemcpyAsync(CUdeviceptr dst, CUdeviceptr src, size_t ByteCoun
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuMemcpyDtoD, ::cuMemcpyPeer, ::cuMemcpy3DPeer, ::cuMemcpyDtoDAsync,
  * ::cuMemcpy3DPeerAsync
@@ -5164,11 +5192,6 @@ CUresult CUDAAPI cuMemcpyPeerAsync(CUdeviceptr dstDevice, CUcontext dstContext, 
  * the base addresses of the destination and source, respectively. \p ByteCount
  * specifies the number of bytes to copy.
  *
- * ::cuMemcpyHtoDAsync() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p hStream argument. It only works on
- * page-locked memory and returns an error if a pointer to pageable memory is
- * passed as input.
- *
  * \param dstDevice - Destination device pointer
  * \param srcHost   - Source host pointer
  * \param ByteCount - Size of memory copy in bytes
@@ -5180,8 +5203,9 @@ CUresult CUDAAPI cuMemcpyPeerAsync(CUdeviceptr dstDevice, CUcontext dstContext, 
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5205,11 +5229,6 @@ CUresult CUDAAPI cuMemcpyHtoDAsync(CUdeviceptr dstDevice, const void *srcHost, s
  * base pointers of the destination and source, respectively. \p ByteCount
  * specifies the number of bytes to copy.
  *
- * ::cuMemcpyDtoHAsync() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p hStream argument. It only works on
- * page-locked memory and returns an error if a pointer to pageable memory is
- * passed as input.
- *
  * \param dstHost   - Destination host pointer
  * \param srcDevice - Source device pointer
  * \param ByteCount - Size of memory copy in bytes
@@ -5221,8 +5240,9 @@ CUresult CUDAAPI cuMemcpyHtoDAsync(CUdeviceptr dstDevice, const void *srcHost, s
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5244,9 +5264,7 @@ CUresult CUDAAPI cuMemcpyDtoHAsync(void *dstHost, CUdeviceptr srcDevice, size_t 
  *
  * Copies from device memory to device memory. \p dstDevice and \p srcDevice
  * are the base pointers of the destination and source, respectively.
- * \p ByteCount specifies the number of bytes to copy. Note that this function
- * is asynchronous and can optionally be associated to a stream by passing a
- * non-zero \p hStream argument
+ * \p ByteCount specifies the number of bytes to copy.
  *
  * \param dstDevice - Destination device pointer
  * \param srcDevice - Source device pointer
@@ -5259,8 +5277,9 @@ CUresult CUDAAPI cuMemcpyDtoHAsync(void *dstHost, CUdeviceptr srcDevice, size_t 
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5285,11 +5304,6 @@ CUresult CUDAAPI cuMemcpyDtoDAsync(CUdeviceptr dstDevice, CUdeviceptr srcDevice,
  * destination data. \p srcHost specifies the base address of the source.
  * \p ByteCount specifies the number of bytes to copy.
  *
- * ::cuMemcpyHtoAAsync() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p hStream argument. It only works on
- * page-locked memory and returns an error if a pointer to pageable memory is
- * passed as input.
- *
  * \param dstArray  - Destination array
  * \param dstOffset - Offset in bytes of destination array
  * \param srcHost   - Source host pointer
@@ -5302,8 +5316,9 @@ CUresult CUDAAPI cuMemcpyDtoDAsync(CUdeviceptr dstDevice, CUdeviceptr srcDevice,
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5328,11 +5343,6 @@ CUresult CUDAAPI cuMemcpyHtoAAsync(CUarray dstArray, size_t dstOffset, const voi
  * array handle and starting offset in bytes of the source data.
  * \p ByteCount specifies the number of bytes to copy.
  *
- * ::cuMemcpyAtoHAsync() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p stream argument. It only works on
- * page-locked host memory and returns an error if a pointer to pageable
- * memory is passed as input.
- *
  * \param dstHost   - Destination pointer
  * \param srcArray  - Source array
  * \param srcOffset - Offset in bytes of source array
@@ -5345,8 +5355,9 @@ CUresult CUDAAPI cuMemcpyHtoAAsync(CUarray dstArray, size_t dstOffset, const voi
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5494,19 +5505,11 @@ CUresult CUDAAPI cuMemcpyAtoHAsync(void *dstHost, CUarray srcArray, size_t srcOf
  *   ::srcY, and ::dstHeight must be greater than or equal to ::Height + ::dstY.
  *
  * \par
- * ::cuMemcpy2D() returns an error if any pitch is greater than the maximum
+ * ::cuMemcpy2DAsync() returns an error if any pitch is greater than the maximum
  * allowed (::CU_DEVICE_ATTRIBUTE_MAX_PITCH). ::cuMemAllocPitch() passes back
  * pitches that always work with ::cuMemcpy2D(). On intra-device memory copies
  * (device to device, CUDA array to device, CUDA array to CUDA array),
- * ::cuMemcpy2D() may fail for pitches not computed by ::cuMemAllocPitch().
- * ::cuMemcpy2DUnaligned() does not have this restriction, but may run
- * significantly slower in the cases where ::cuMemcpy2D() would have returned
- * an error code.
- *
- * ::cuMemcpy2DAsync() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p hStream argument. It only works on
- * page-locked host memory and returns an error if a pointer to pageable
- * memory is passed as input.
+ * ::cuMemcpy2DAsync() may fail for pitches not computed by ::cuMemAllocPitch().
  *
  * \param pCopy   - Parameters for the memory copy
  * \param hStream - Stream identifier
@@ -5517,8 +5520,9 @@ CUresult CUDAAPI cuMemcpyAtoHAsync(void *dstHost, CUarray srcArray, size_t srcOf
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5673,13 +5677,8 @@ CUresult CUDAAPI cuMemcpy2DAsync(const CUDA_MEMCPY2D *pCopy, CUstream hStream);
  *   ::srcY, and ::dstHeight must be greater than or equal to ::Height + ::dstY.
  *
  * \par
- * ::cuMemcpy3D() returns an error if any pitch is greater than the maximum
+ * ::cuMemcpy3DAsync() returns an error if any pitch is greater than the maximum
  * allowed (::CU_DEVICE_ATTRIBUTE_MAX_PITCH).
- *
- * ::cuMemcpy3DAsync() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p hStream argument. It only works on
- * page-locked host memory and returns an error if a pointer to pageable
- * memory is passed as input.
  *
  * The ::srcLOD and ::dstLOD members of the ::CUDA_MEMCPY3D structure must be
  * set to 0.
@@ -5693,8 +5692,9 @@ CUresult CUDAAPI cuMemcpy2DAsync(const CUDA_MEMCPY2D *pCopy, CUstream hStream);
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5729,8 +5729,9 @@ CUresult CUDAAPI cuMemcpy3DAsync(const CUDA_MEMCPY3D *pCopy, CUstream hStream);
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_async
+ * \note_null_stream
  *
  * \sa ::cuMemcpyDtoD, ::cuMemcpyPeer, ::cuMemcpyDtoDAsync, ::cuMemcpyPeerAsync,
  * ::cuMemcpy3DPeerAsync
@@ -5745,9 +5746,6 @@ CUresult CUDAAPI cuMemcpy3DPeerAsync(const CUDA_MEMCPY3D_PEER *pCopy, CUstream h
  * Sets the memory range of \p N 8-bit values to the specified value
  * \p uc.
  *
- * Note that this function is asynchronous with respect to the host unless
- * \p dstDevice refers to pinned host memory.
- *
  * \param dstDevice - Destination device pointer
  * \param uc        - Value to set
  * \param N         - Number of elements
@@ -5759,6 +5757,7 @@ CUresult CUDAAPI cuMemcpy3DPeerAsync(const CUDA_MEMCPY3D_PEER *pCopy, CUstream h
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_memset
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5781,9 +5780,6 @@ CUresult CUDAAPI cuMemsetD8(CUdeviceptr dstDevice, unsigned char uc, size_t N);
  * Sets the memory range of \p N 16-bit values to the specified value
  * \p us. The \p dstDevice pointer must be two byte aligned.
  *
- * Note that this function is asynchronous with respect to the host unless
- * \p dstDevice refers to pinned host memory.
- *
  * \param dstDevice - Destination device pointer
  * \param us        - Value to set
  * \param N         - Number of elements
@@ -5795,6 +5791,7 @@ CUresult CUDAAPI cuMemsetD8(CUdeviceptr dstDevice, unsigned char uc, size_t N);
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_memset
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5817,9 +5814,6 @@ CUresult CUDAAPI cuMemsetD16(CUdeviceptr dstDevice, unsigned short us, size_t N)
  * Sets the memory range of \p N 32-bit values to the specified value
  * \p ui. The \p dstDevice pointer must be four byte aligned.
  *
- * Note that this function is asynchronous with respect to the host unless
- * \p dstDevice refers to pinned host memory.
- *
  * \param dstDevice - Destination device pointer
  * \param ui        - Value to set
  * \param N         - Number of elements
@@ -5831,6 +5825,7 @@ CUresult CUDAAPI cuMemsetD16(CUdeviceptr dstDevice, unsigned short us, size_t N)
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_memset
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5856,9 +5851,6 @@ CUresult CUDAAPI cuMemsetD32(CUdeviceptr dstDevice, unsigned int ui, size_t N);
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
  *
- * Note that this function is asynchronous with respect to the host unless
- * \p dstDevice refers to pinned host memory.
- *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
  * \param uc        - Value to set
@@ -5872,6 +5864,7 @@ CUresult CUDAAPI cuMemsetD32(CUdeviceptr dstDevice, unsigned int ui, size_t N);
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_memset
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5898,9 +5891,6 @@ CUresult CUDAAPI cuMemsetD2D8(CUdeviceptr dstDevice, size_t dstPitch, unsigned c
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
  *
- * Note that this function is asynchronous with respect to the host unless
- * \p dstDevice refers to pinned host memory.
- *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
  * \param us        - Value to set
@@ -5914,6 +5904,7 @@ CUresult CUDAAPI cuMemsetD2D8(CUdeviceptr dstDevice, size_t dstPitch, unsigned c
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_memset
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5940,9 +5931,6 @@ CUresult CUDAAPI cuMemsetD2D16(CUdeviceptr dstDevice, size_t dstPitch, unsigned 
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
  *
- * Note that this function is asynchronous with respect to the host unless
- * \p dstDevice refers to pinned host memory.
- *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
  * \param ui        - Value to set
@@ -5956,6 +5944,7 @@ CUresult CUDAAPI cuMemsetD2D16(CUdeviceptr dstDevice, size_t dstPitch, unsigned 
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
  * \notefnerr
+ * \note_memset
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -5978,9 +5967,6 @@ CUresult CUDAAPI cuMemsetD2D32(CUdeviceptr dstDevice, size_t dstPitch, unsigned 
  * Sets the memory range of \p N 8-bit values to the specified value
  * \p uc.
  *
- * ::cuMemsetD8Async() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p stream argument.
- *
  * \param dstDevice - Destination device pointer
  * \param uc        - Value to set
  * \param N         - Number of elements
@@ -5992,8 +5978,9 @@ CUresult CUDAAPI cuMemsetD2D32(CUdeviceptr dstDevice, size_t dstPitch, unsigned 
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_memset
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -6016,9 +6003,6 @@ CUresult CUDAAPI cuMemsetD8Async(CUdeviceptr dstDevice, unsigned char uc, size_t
  * Sets the memory range of \p N 16-bit values to the specified value
  * \p us. The \p dstDevice pointer must be two byte aligned.
  *
- * ::cuMemsetD16Async() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p stream argument.
- *
  * \param dstDevice - Destination device pointer
  * \param us        - Value to set
  * \param N         - Number of elements
@@ -6030,8 +6014,9 @@ CUresult CUDAAPI cuMemsetD8Async(CUdeviceptr dstDevice, unsigned char uc, size_t
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_memset
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -6054,9 +6039,6 @@ CUresult CUDAAPI cuMemsetD16Async(CUdeviceptr dstDevice, unsigned short us, size
  * Sets the memory range of \p N 32-bit values to the specified value
  * \p ui. The \p dstDevice pointer must be four byte aligned.
  *
- * ::cuMemsetD32Async() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p stream argument.
- *
  * \param dstDevice - Destination device pointer
  * \param ui        - Value to set
  * \param N         - Number of elements
@@ -6068,8 +6050,9 @@ CUresult CUDAAPI cuMemsetD16Async(CUdeviceptr dstDevice, unsigned short us, size
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_memset
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -6094,9 +6077,6 @@ CUresult CUDAAPI cuMemsetD32Async(CUdeviceptr dstDevice, unsigned int ui, size_t
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
  *
- * ::cuMemsetD2D8Async() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p stream argument.
- *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
  * \param uc        - Value to set
@@ -6110,8 +6090,9 @@ CUresult CUDAAPI cuMemsetD32Async(CUdeviceptr dstDevice, unsigned int ui, size_t
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_memset
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -6138,9 +6119,6 @@ CUresult CUDAAPI cuMemsetD2D8Async(CUdeviceptr dstDevice, size_t dstPitch, unsig
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
  *
- * ::cuMemsetD2D16Async() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p stream argument.
- *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
  * \param us        - Value to set
@@ -6154,8 +6132,9 @@ CUresult CUDAAPI cuMemsetD2D8Async(CUdeviceptr dstDevice, size_t dstPitch, unsig
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_memset
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -6182,9 +6161,6 @@ CUresult CUDAAPI cuMemsetD2D16Async(CUdeviceptr dstDevice, size_t dstPitch, unsi
  * fastest when the pitch is one that has been passed back by
  * ::cuMemAllocPitch().
  *
- * ::cuMemsetD2D32Async() is asynchronous and can optionally be associated to a
- * stream by passing a non-zero \p stream argument.
- *
  * \param dstDevice - Destination device pointer
  * \param dstPitch  - Pitch of destination device pointer
  * \param ui        - Value to set
@@ -6198,8 +6174,9 @@ CUresult CUDAAPI cuMemsetD2D16Async(CUdeviceptr dstDevice, size_t dstPitch, unsi
  * ::CUDA_ERROR_NOT_INITIALIZED,
  * ::CUDA_ERROR_INVALID_CONTEXT,
  * ::CUDA_ERROR_INVALID_VALUE
- * \note_null_stream
  * \notefnerr
+ * \note_memset
+ * \note_null_stream
  *
  * \sa ::cuArray3DCreate, ::cuArray3DGetDescriptor, ::cuArrayCreate,
  * ::cuArrayDestroy, ::cuArrayGetDescriptor, ::cuMemAlloc, ::cuMemAllocHost,
@@ -7895,9 +7872,6 @@ CUresult CUDAAPI cuFuncSetSharedMemConfig(CUfunction hfunc, CUsharedconfig confi
  * \p sharedMemBytes sets the amount of dynamic shared memory that will be
  * available to each thread block.
  *
- * ::cuLaunchKernel() can optionally be associated to a stream by passing a
- * non-zero \p hStream argument.
- *
  * Kernel parameters to \p f can be specified in one of two ways:
  *
  * 1) Kernel parameters can be specified via \p kernelParams.  If \p f
@@ -8313,9 +8287,6 @@ CUresult CUDAAPI cuLaunchGrid(CUfunction f, int grid_width, int grid_height);
  * blocks. Each block contains the number of threads specified by a previous
  * call to ::cuFuncSetBlockShape().
  *
- * ::cuLaunchGridAsync() can optionally be associated to a stream by passing a
- * non-zero \p hStream argument.
- *
  * \param f           - Kernel to launch
  * \param grid_width  - Width of grid in blocks
  * \param grid_height - Height of grid in blocks
@@ -8380,6 +8351,95 @@ CUresult CUDAAPI cuLaunchGridAsync(CUfunction f, int grid_width, int grid_height
 CUresult CUDAAPI cuParamSetTexRef(CUfunction hfunc, int texunit, CUtexref hTexRef);
 /** @} */ /* END CUDA_EXEC_DEPRECATED */
 
+
+#if __CUDA_API_VERSION >= 6050
+/**
+ * \defgroup CUDA_OCCUPANCY Occupancy
+ *
+ * ___MANBRIEF___ occupancy calculation functions of the low-level CUDA driver
+ * API (___CURRENT_FILE___) ___ENDMANBRIEF___
+ *
+ * This section describes the occupancy calculation functions of the low-level CUDA
+ * driver application programming interface.
+ *
+ * @{
+ */
+
+/**
+ * \brief Returns occupancy of a function
+ *
+ * Returns in \p *numBlocks the number of the maximum active blocks per
+ * streaming multiprocessor.
+ *
+ * \param numBlocks       - Returned occupancy
+ * \param func            - Kernel for which occupancy is calulated
+ * \param blockSize       - Block size the kernel is intended to be launched with
+ * \param dynamicSMemSize - Per-block dynamic shared memory usage intended, in bytes
+ *
+ * \return
+ * ::CUDA_SUCCESS,
+ * ::CUDA_ERROR_DEINITIALIZED,
+ * ::CUDA_ERROR_NOT_INITIALIZED,
+ * ::CUDA_ERROR_INVALID_CONTEXT,
+ * ::CUDA_ERROR_INVALID_VALUE,
+ * ::CUDA_ERROR_UNKNOWN
+ * \notefnerr
+ *
+ */
+CUresult CUDAAPI cuOccupancyMaxActiveBlocksPerMultiprocessor(int *numBlocks, CUfunction func, int blockSize, size_t dynamicSMemSize);
+
+/**
+ * \brief Suggest a launch configuration with reasonable occupancy
+ *
+ * Returns in \p *blockSize a reasonable block size that can achieve
+ * the maximum occupancy (or, the maximum number of active warps with
+ * the fewest blocks per multiprocessor), and in \p *minGridSize the
+ * minimum grid size to achieve the maximum occupancy.
+ *
+ * If \p blockSizeLimit is 0, the configurator will use the maximum
+ * block size permitted by the device / function instead.
+ *
+ * If per-block dynamic shared memory allocation is not needed, the
+ * user should leave both \p blockSizeToDynamicSMemSize and \p
+ * dynamicSMemSize as 0.
+ *
+ * If per-block dynamic shared memory allocation is needed, then if
+ * the dynamic shared memory size is constant regardless of block
+ * size, the size should be passed through \p dynamicSMemSize, and \p
+ * blockSizeToDynamicSMemSize should be NULL.
+ *
+ * Otherwise, if the per-block dynamic shared memory size varies with
+ * different block sizes, the user needs to provide a unary function
+ * through \p blockSizeToDynamicSMemSize that computes the dynamic
+ * shared memory needed by \p func for any given block size. \p
+ * dynamicSMemSize is ignored. An example signature is:
+ *
+ * \code
+ *    // Take block size, returns dynamic shared memory needed
+ *    size_t blockToSmem(int blockSize);
+ * \endcode
+ *
+ * \param minGridSize - Returned minimum grid size needed to achieve the maximum occupancy
+ * \param blockSize   - Returned maximum block size that can achieve the maximum occupancy
+ * \param func        - Kernel for which launch configuration is calulated
+ * \param blockSizeToDynamicSMemSize - A function that calculates how much per-block dynamic shared memory \p func uses based on the block size
+ * \param dynamicSMemSize - Dynamic shared memory usage intended, in bytes
+ * \param blockSizeLimit  - The maximum block size \p func is designed to handle
+ *
+ * \return
+ * ::CUDA_SUCCESS,
+ * ::CUDA_ERROR_DEINITIALIZED,
+ * ::CUDA_ERROR_NOT_INITIALIZED,
+ * ::CUDA_ERROR_INVALID_CONTEXT,
+ * ::CUDA_ERROR_INVALID_VALUE,
+ * ::CUDA_ERROR_UNKNOWN
+ * \notefnerr
+ *
+ */
+CUresult CUDAAPI cuOccupancyMaxPotentialBlockSize(int *minGridSize, int *blockSize, CUfunction func, CUoccupancyB2DSize blockSizeToDynamicSMemSize, size_t dynamicSMemSize, int blockSizeLimit);
+
+/** @} */ /* END CUDA_OCCUPANCY */
+#endif /* __CUDA_API_VERSION >= 6050 */
 
 /**
  * \defgroup CUDA_TEXREF Texture Reference Management
@@ -9946,6 +10006,11 @@ CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const CUuuid *pExp
  * CUDA API versioning support
  */
 #if defined(__CUDA_API_VERSION_INTERNAL)
+    #undef cuMemHostRegister
+    #undef cuGraphicsResourceSetMapFlags
+    #undef cuLinkCreate
+    #undef cuLinkAddData
+    #undef cuLinkAddFile
     #undef cuDeviceTotalMem
     #undef cuCtxCreate
     #undef cuModuleGetGlobal
@@ -9994,6 +10059,22 @@ CUresult CUDAAPI cuGetExportTable(const void **ppExportTable, const CUuuid *pExp
     #undef cuStreamDestroy
     #undef cuEventDestroy
 #endif /* __CUDA_API_VERSION_INTERNAL */
+
+#if defined(__CUDA_API_VERSION_INTERNAL) || (__CUDA_API_VERSION >= 4000 && __CUDA_API_VERSION < 6050)
+CUresult CUDAAPI cuMemHostRegister(void *p, size_t bytesize, unsigned int Flags);
+#endif /* defined(__CUDA_API_VERSION_INTERNAL) || (__CUDA_API_VERSION >= 4000 && __CUDA_API_VERSION < 6050) */
+
+#if defined(__CUDA_API_VERSION_INTERNAL) || __CUDA_API_VERSION < 6050
+CUresult CUDAAPI cuGraphicsResourceSetMapFlags(CUgraphicsResource resource, unsigned int flags);
+#endif /* defined(__CUDA_API_VERSION_INTERNAL) || __CUDA_API_VERSION < 6050 */
+
+#if defined(__CUDA_API_VERSION_INTERNAL) || (__CUDA_API_VERSION >= 5050 && __CUDA_API_VERSION < 6050)
+CUresult CUDAAPI cuLinkCreate(unsigned int numOptions, CUjit_option *options, void **optionValues, CUlinkState *stateOut);
+CUresult CUDAAPI cuLinkAddData(CUlinkState state, CUjitInputType type, void *data, size_t size, const char *name,
+    unsigned int numOptions, CUjit_option *options, void **optionValues);
+CUresult CUDAAPI cuLinkAddFile(CUlinkState state, CUjitInputType type, const char *path,
+    unsigned int numOptions, CUjit_option *options, void **optionValues);
+#endif /* __CUDA_API_VERSION_INTERNAL || (__CUDA_API_VERSION >= 5050 && __CUDA_API_VERSION < 6050) */
 
 #if defined(__CUDA_API_VERSION_INTERNAL) || (__CUDA_API_VERSION >= 3020 && __CUDA_API_VERSION < 4010)
 CUresult CUDAAPI cuTexRefSetAddress2D_v2(CUtexref hTexRef, const CUDA_ARRAY_DESCRIPTOR *desc, CUdeviceptr dptr, size_t Pitch);

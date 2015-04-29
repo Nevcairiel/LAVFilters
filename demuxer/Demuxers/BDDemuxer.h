@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -74,7 +74,7 @@ public:
   void ProcessClipLanguages();
 
 private:
-  void ProcessClipInfo(struct clpi_cl *clpi);
+  void ProcessClipInfo(struct clpi_cl *clpi, bool overwrite);
   void ProcessBDEvents();
 
   static int BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size);

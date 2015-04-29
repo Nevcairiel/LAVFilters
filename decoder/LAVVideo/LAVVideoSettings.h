@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -98,8 +98,9 @@ typedef enum LAVVideoHWCodec {
   HWCodec_MPEG2 = Codec_MPEG2,
   HWCodec_MPEG4 = Codec_MPEG4,
   HWCodec_MPEG2DVD,
+  HWCodec_HEVC,
 
-  HWCodec_NB    = HWCodec_MPEG2DVD + 1
+  HWCodec_NB    = HWCodec_HEVC + 1
 };
 
 // Flags for HW Resolution support

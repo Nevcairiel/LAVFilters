@@ -12,12 +12,6 @@
 #define IDI_ICON1                       104
 #define IDS_MIXER                       105
 #define IDC_INPUT_STATUS                1013
-#define IDC_SUP_SAMPLE_FORMATS          1020
-#define IDC_INT16                       1021
-#define IDC_INT24                       1022
-#define IDC_INT32                       1023
-#define IDC_FP32                        1024
-#define IDC_INT8                        1025
 #define IDC_OUTPUT_STATUS               1026
 #define IDC_DRC                         1034
 #define IDC_DRC_LEVEL                   1035

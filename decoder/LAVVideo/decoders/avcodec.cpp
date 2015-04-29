@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -236,6 +236,8 @@ static struct PixelFormatMapping {
 
   { AV_PIX_FMT_YUVJ411P,  LAVPixFmt_YUV422, TRUE },
 
+  { AV_PIX_FMT_P010LE, LAVPixFmt_P010, FALSE, 10 },
+
   { AV_PIX_FMT_DXVA2_VLD, LAVPixFmt_DXVA2, FALSE },
 };
 
@@ -344,9 +346,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_pAVCtx->coded_width           = pBMI->biWidth;
   m_pAVCtx->coded_height          = abs(pBMI->biHeight);
   m_pAVCtx->bits_per_coded_sample = pBMI->biBitCount;
-  m_pAVCtx->error_concealment     = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
   m_pAVCtx->err_recognition       = 0;
-  m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT;
+  m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT | FF_BUG_X264_LOSSLESS;
   m_pAVCtx->refcounted_frames     = 1;
 
   // Setup threading
@@ -466,6 +467,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // RealVideo is only DTS
   if (codec == AV_CODEC_ID_RV10 || codec == AV_CODEC_ID_RV20 || codec == AV_CODEC_ID_RV30 || codec == AV_CODEC_ID_RV40)
     dwDecFlags |= LAV_VIDEO_DEC_FLAG_ONLY_DTS;
+
+  // H.264 without B frames should use reordering for proper delay handling
+  if (codec == AV_CODEC_ID_H264 && bLAVInfoValid && lavPinInfo.has_b_frames == 0) {
+    dwDecFlags &= ~LAV_VIDEO_DEC_FLAG_ONLY_DTS;
+  }
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
@@ -851,7 +857,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     AVRational display_aspect_ratio;
     int64_t num = (int64_t)m_pFrame->sample_aspect_ratio.num * m_pFrame->width;
     int64_t den = (int64_t)m_pFrame->sample_aspect_ratio.den * m_pFrame->height;
-    av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
+    av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, INT_MAX);
 
     pOutFrame->width        = m_pFrame->width;
     pOutFrame->height       = m_pFrame->height;
@@ -945,7 +951,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
 STDMETHODIMP CDecAvcodec::Flush()
 {
-  if (m_pAVCtx) {
+  if (m_pAVCtx && avcodec_is_open(m_pAVCtx)) {
     avcodec_flush_buffers(m_pAVCtx);
   }
 
@@ -996,10 +1002,14 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   AVPixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
-  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
+  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_FULL_CHR_H_INT | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
+
+  ptrdiff_t linesize[4];
+  for (int i = 0; i < 4; i++)
+    linesize[i] = pFrame->linesize[i];
 
   // Perform conversion
-  sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
+  sws_scale2(m_pSwsContext, pFrame->data, linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
 
   return S_OK;
 }

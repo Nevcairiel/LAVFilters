@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -199,7 +199,7 @@ STDMETHODIMP CDecWMV9MFT::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   MF.AverageTimePerFrameToFrameRate(rtAvg, &rateNum, &rateDen);
   MFSetAttributeRatio(pMTIn, MF_MT_FRAME_RATE, rateNum, rateDen);
   
-  pMTIn->SetBlob(MF_MT_USER_DATA, extra, extralen);
+  pMTIn->SetBlob(MF_MT_USER_DATA, extra, (UINT32)extralen);
   av_freep(&extra);
 
   hr = m_pMFT->SetInputType(0, pMTIn, 0);
@@ -362,7 +362,7 @@ STDMETHODIMP CDecWMV9MFT::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   return ProcessOutput();
 }
 
-static inline void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int height)
+static inline void memcpy_plane(BYTE *dst, const BYTE *src, ptrdiff_t width, ptrdiff_t stride, int height)
 {
   for (int i = 0; i < height; i++) {
     memcpy(dst, src, width);
@@ -371,7 +371,7 @@ static inline void memcpy_plane(BYTE *dst, const BYTE *src, int width, int strid
   }
 }
 
-IMFMediaBuffer * CDecWMV9MFT::GetBuffer(size_t sRequiredSize)
+IMFMediaBuffer * CDecWMV9MFT::GetBuffer(DWORD dwRequiredSize)
 {
   CAutoLock lock(&m_BufferCritSec);
   HRESULT hr;
@@ -385,19 +385,19 @@ IMFMediaBuffer * CDecWMV9MFT::GetBuffer(size_t sRequiredSize)
   }
   if (buffer) {
     // Validate Size
-    if (buffer->size < sRequiredSize || !buffer->pBuffer) {
+    if (buffer->size < dwRequiredSize || !buffer->pBuffer) {
       SafeRelease(&buffer->pBuffer);
-      hr = MF.CreateAlignedMemoryBuffer(sRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
+      hr = MF.CreateAlignedMemoryBuffer(dwRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
       if (FAILED(hr)) return nullptr;
-      buffer->size = sRequiredSize;
+      buffer->size = dwRequiredSize;
     }
   } else {
     // Create a new buffer
     DbgLog((LOG_TRACE, 10, L"Allocating new buffer for WMV9 MFT"));
     buffer = new Buffer();
-    hr = MF.CreateAlignedMemoryBuffer(sRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
+    hr = MF.CreateAlignedMemoryBuffer(dwRequiredSize, MF_32_BYTE_ALIGNMENT, &buffer->pBuffer);
     if (FAILED(hr)) { delete buffer; return nullptr; }
-    buffer->size = sRequiredSize;
+    buffer->size = dwRequiredSize;
     m_BufferQueue.push_back(buffer);
   }
   buffer->used = 1;
@@ -496,7 +496,7 @@ STDMETHODIMP CDecWMV9MFT::ProcessOutput()
   MFGetAttributeRatio(pMTOut, MF_MT_PIXEL_ASPECT_RATIO, (UINT32*)&pixel_aspect_ratio.num, (UINT32*)&pixel_aspect_ratio.den);
 
   AVRational display_aspect_ratio = {0, 0};
-  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, (int64_t)pixel_aspect_ratio.num * pFrame->width, (int64_t)pixel_aspect_ratio.den * pFrame->height, 1 << 30);
+  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, (int64_t)pixel_aspect_ratio.num * pFrame->width, (int64_t)pixel_aspect_ratio.den * pFrame->height, INT_MAX);
 
   pFrame->interlaced = MFGetAttributeUINT32(OutputBuffer.pSample, MFSampleExtension_Interlaced,       FALSE);
   pFrame->repeat     = MFGetAttributeUINT32(OutputBuffer.pSample, MFSampleExtension_RepeatFirstField, FALSE);

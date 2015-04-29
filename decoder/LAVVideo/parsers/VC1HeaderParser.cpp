@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,8 +21,7 @@
 #include "VC1HeaderParser.h"
 
 #pragma warning( push )
-#pragma warning( disable : 4018 )
-#pragma warning( disable : 4244 )
+#pragma warning( disable : 4101 )
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
@@ -144,7 +143,7 @@ void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, size_t length, AVCodecI
   } else if (codec == AV_CODEC_ID_WMV3) {
     if (length < 4)
       return;
-    init_get_bits(&gb, pData, length * 8);
+    init_get_bits8(&gb, pData, (int)length);
     VC1ParseSequenceHeader(&gb);
   }
 }
@@ -187,7 +186,7 @@ void CVC1HeaderParser::VC1ParseSequenceHeader(GetBitContext *gb)
         hdr.ar.num = w;
         hdr.ar.den = h;
       } else {
-        av_reduce(&hdr.ar.num, &hdr.ar.den, hdr.height * w, hdr.width * h, 1 << 30);
+        av_reduce(&hdr.ar.num, &hdr.ar.den, (int64_t)hdr.height * w, (int64_t)hdr.width * h, INT_MAX);
       }
     }
 
@@ -236,7 +235,7 @@ AVPictureType CVC1HeaderParser::ParseVC1PictureType(const uint8_t *buf, int bufl
   }
   if (framestart) {
     GetBitContext gb;
-    init_get_bits(&gb, framestart, (buflen - (framestart - buf)) * 8);
+    init_get_bits8(&gb, framestart, (int)(buflen - (framestart - buf)));
     if (hdr.profile == PROFILE_ADVANCED) {
       int fcm = PROGRESSIVE;
       if (hdr.interlaced)

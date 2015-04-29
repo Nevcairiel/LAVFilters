@@ -109,10 +109,12 @@
     <ClCompile Include="LAVPixFmtConverter.cpp" />
     <ClCompile Include="LAVVideo.cpp" />
     <ClCompile Include="Media.cpp" />
-    <ClCompile Include="parsers\AVC1AnnexBConverter.cpp" />
+    <ClCompile Include="parsers\AnnexBConverter.cpp" />
     <ClCompile Include="parsers\H264SequenceParser.cpp" />
+    <ClCompile Include="parsers\HEVCSequenceParser.cpp" />
     <ClCompile Include="parsers\MPEG2HeaderParser.cpp" />
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
+    <ClCompile Include="pixconv\convert_direct.cpp" />
     <ClCompile Include="pixconv\convert_generic.cpp" />
     <ClCompile Include="pixconv\interleave.cpp" />
     <ClCompile Include="pixconv\pixconv.cpp" />
@@ -150,8 +152,9 @@
     <ClInclude Include="LAVVideo.h" />
     <ClInclude Include="LAVVideoSettings.h" />
     <ClInclude Include="Media.h" />
-    <ClInclude Include="parsers\AVC1AnnexBConverter.h" />
+    <ClInclude Include="parsers\AnnexBConverter.h" />
     <ClInclude Include="parsers\H264SequenceParser.h" />
+    <ClInclude Include="parsers\HEVCSequenceParser.h" />
     <ClInclude Include="parsers\MPEG2HeaderParser.h" />
     <ClInclude Include="parsers\VC1HeaderParser.h" />
     <ClInclude Include="pixconv\pixconv_internal.h" />

@@ -86,6 +86,7 @@ typedef enum LAVVideoCodec {
   Codec_HEVC,
   Codec_VP9,
   Codec_TrueMotion,
+  Codec_VP7,
 
   Codec_VideoNB            // Number of entries (do not use when dynamically linking)
 };
@@ -97,8 +98,9 @@ typedef enum LAVVideoHWCodec {
   HWCodec_MPEG2 = Codec_MPEG2,
   HWCodec_MPEG4 = Codec_MPEG4,
   HWCodec_MPEG2DVD,
+  HWCodec_HEVC,
 
-  HWCodec_NB    = HWCodec_MPEG2DVD + 1
+  HWCodec_NB    = HWCodec_HEVC + 1
 };
 
 // Flags for HW Resolution support

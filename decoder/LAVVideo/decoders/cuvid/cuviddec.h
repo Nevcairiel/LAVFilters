@@ -62,6 +62,7 @@ typedef enum cudaVideoCodec_enum {
     cudaVideoCodec_JPEG,
     cudaVideoCodec_H264_SVC,
     cudaVideoCodec_H264_MVC,
+    cudaVideoCodec_HEVC,
     cudaVideoCodec_NumCodecs,
     // Uncompressed YUV
     cudaVideoCodec_YUV420 = (('I'<<24)|('Y'<<16)|('U'<<8)|('V')),   // Y,U,V (4:2:0)
@@ -372,6 +373,112 @@ typedef struct _CUVIDJPEGPICPARAMS
     int Reserved;
 } CUVIDJPEGPICPARAMS;
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// HEVC Picture Parameters
+//
+
+typedef struct _CUVIDHEVCPICPARAMS
+{
+    // sps
+    int pic_width_in_luma_samples;
+    int pic_height_in_luma_samples;
+    unsigned char log2_min_luma_coding_block_size_minus3;
+    unsigned char log2_diff_max_min_luma_coding_block_size;
+    unsigned char log2_min_transform_block_size_minus2;
+    unsigned char log2_diff_max_min_transform_block_size;
+    unsigned char pcm_enabled_flag;
+    unsigned char log2_min_pcm_luma_coding_block_size_minus3;
+    unsigned char log2_diff_max_min_pcm_luma_coding_block_size;
+    unsigned char pcm_sample_bit_depth_luma_minus1;
+
+    unsigned char pcm_sample_bit_depth_chroma_minus1;
+    unsigned char pcm_loop_filter_disabled_flag;
+    unsigned char strong_intra_smoothing_enabled_flag;
+    unsigned char max_transform_hierarchy_depth_intra;
+    unsigned char max_transform_hierarchy_depth_inter;
+    unsigned char amp_enabled_flag;
+    unsigned char separate_colour_plane_flag;
+    unsigned char log2_max_pic_order_cnt_lsb_minus4;
+
+    unsigned char num_short_term_ref_pic_sets;
+    unsigned char long_term_ref_pics_present_flag;
+    unsigned char num_long_term_ref_pics_sps;
+    unsigned char sps_temporal_mvp_enabled_flag;
+    unsigned char sample_adaptive_offset_enabled_flag;
+    unsigned char scaling_list_enable_flag;
+    unsigned char IrapPicFlag;
+    unsigned char IdrPicFlag;
+    unsigned char reserved1[16];
+
+    // pps
+    unsigned char dependent_slice_segments_enabled_flag;
+    unsigned char slice_segment_header_extension_present_flag;
+    unsigned char sign_data_hiding_enabled_flag;
+    unsigned char cu_qp_delta_enabled_flag;
+    unsigned char diff_cu_qp_delta_depth;
+    signed char init_qp_minus26;
+    signed char pps_cb_qp_offset;
+    signed char pps_cr_qp_offset;
+
+    unsigned char constrained_intra_pred_flag;
+    unsigned char weighted_pred_flag;
+    unsigned char weighted_bipred_flag;
+    unsigned char transform_skip_enabled_flag;
+    unsigned char transquant_bypass_enabled_flag;
+    unsigned char entropy_coding_sync_enabled_flag;
+    unsigned char log2_parallel_merge_level_minus2;
+    unsigned char num_extra_slice_header_bits;
+
+    unsigned char loop_filter_across_tiles_enabled_flag;
+    unsigned char loop_filter_across_slices_enabled_flag;
+    unsigned char output_flag_present_flag;
+    unsigned char num_ref_idx_l0_default_active_minus1;
+    unsigned char num_ref_idx_l1_default_active_minus1;
+    unsigned char lists_modification_present_flag;
+    unsigned char cabac_init_present_flag;
+    unsigned char pps_slice_chroma_qp_offsets_present_flag;
+
+    unsigned char deblocking_filter_override_enabled_flag;
+    unsigned char pps_deblocking_filter_disabled_flag;
+    signed char pps_beta_offset_div2;
+    signed char pps_tc_offset_div2;
+    unsigned char tiles_enabled_flag;
+    unsigned char uniform_spacing_flag;
+    unsigned char num_tile_columns_minus1;
+    unsigned char num_tile_rows_minus1;
+
+    unsigned short column_width_minus1[21];
+    unsigned short row_height_minus1[19];
+    unsigned int reserved3[16];
+
+    // RefPicSets
+    int NumBitsForShortTermRPSInSlice;
+    int NumDeltaPocsOfRefRpsIdx;
+    int NumPocTotalCurr;
+    int NumPocStCurrBefore;
+    int NumPocStCurrAfter;
+    int NumPocLtCurr;
+    int CurrPicOrderCntVal;
+    int RefPicIdx[16];                  // [refpic] Indices of valid reference pictures (-1 if unused for reference)
+    int PicOrderCntVal[16];             // [refpic]
+    unsigned char IsLongTerm[16];       // [refpic] 0=not a long-term reference, 1=long-term reference
+    unsigned char RefPicSetStCurrBefore[8]; // [0..NumPocStCurrBefore-1] -> refpic (0..15)
+    unsigned char RefPicSetStCurrAfter[8];  // [0..NumPocStCurrAfter-1] -> refpic (0..15)
+    unsigned char RefPicSetLtCurr[8];       // [0..NumPocLtCurr-1] -> refpic (0..15)
+    unsigned int reserved4[16];
+
+    // scaling lists (diag order)
+    unsigned char ScalingList4x4[6][16];       // [matrixId][i]
+    unsigned char ScalingList8x8[6][64];       // [matrixId][i]
+    unsigned char ScalingList16x16[6][64];     // [matrixId][i]
+    unsigned char ScalingList32x32[2][64];     // [matrixId][i]
+    unsigned char ScalingListDCCoeff16x16[6];  // [matrixId]
+    unsigned char ScalingListDCCoeff32x32[2];  // [matrixId]
+} CUVIDHEVCPICPARAMS;
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Picture Parameters for Decoding
@@ -400,6 +507,7 @@ typedef struct _CUVIDPICPARAMS
         CUVIDVC1PICPARAMS vc1;
         CUVIDMPEG4PICPARAMS mpeg4;
         CUVIDJPEGPICPARAMS jpeg;
+        CUVIDHEVCPICPARAMS hevc;
         unsigned int CodecReserved[1024];
     } CodecSpecific;
 } CUVIDPICPARAMS;

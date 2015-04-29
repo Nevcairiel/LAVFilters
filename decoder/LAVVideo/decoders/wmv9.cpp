@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -441,7 +441,7 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   return ProcessOutput();
 }
 
-static void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int height)
+static void memcpy_plane(BYTE *dst, const BYTE *src, ptrdiff_t width, ptrdiff_t stride, int height)
 {
   for (int i = 0; i < height; i++) {
     memcpy(dst, src, width);
@@ -493,7 +493,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   AVRational display_aspect_ratio;
   int64_t num = (int64_t)m_StreamAR.num * pBMI->biWidth;
   int64_t den = (int64_t)m_StreamAR.den * pBMI->biHeight;
-  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
+  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, INT_MAX);
 
   BYTE contentType = 0;
   DWORD dwPropSize = 1;

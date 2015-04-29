@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -37,6 +37,7 @@ public:
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp) { ASSERT(m_pDecoder); return m_pDecoder->GetPixelFormat(pPix, pBpp); }
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration() { ASSERT(m_pDecoder); return m_pDecoder->GetFrameDuration(); }
   STDMETHODIMP HasThreadSafeBuffers() { return m_pDecoder ? m_pDecoder->HasThreadSafeBuffers() : S_FALSE; }
+  STDMETHODIMP SetDirectOutput(BOOL bDirect) { return m_pDecoder ? m_pDecoder->SetDirectOutput(bDirect) : S_FALSE; }
 
 
   STDMETHODIMP CreateDecoder(const CMediaType *pmt, AVCodecID codec);
@@ -56,7 +57,6 @@ public:
   STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);
   STDMETHODIMP Deliver(LAVFrame *pFrame);
   STDMETHODIMP_(LPWSTR) GetFileExtension();
-  STDMETHODIMP_(BOOL) FilterInGraph(PIN_DIRECTION dir, const GUID &clsid);
   STDMETHODIMP_(DWORD) GetDecodeFlags();
   STDMETHODIMP_(CMediaType&) GetInputMediaType();
   STDMETHODIMP GetLAVPinInfo(LAVPinInfo &info);

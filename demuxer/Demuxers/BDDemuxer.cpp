@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -54,7 +54,7 @@ int64_t CBDDemuxer::BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
     DbgLog((LOG_TRACE, 10, L"BD Seek to %I64d, achieved %I64d, correcting target by %I64d", pos, achieved, offset));
     uint8_t *dump_buffer = (uint8_t *)CoTaskMemAlloc(6144);
     while (offset > 0) {
-      int to_read  = min(offset, 6144);
+      int to_read  = (int)min(offset, 6144);
       int did_read = bd_read(bd, dump_buffer, to_read);
       offset -= did_read;
       if (did_read < to_read) {
@@ -96,7 +96,7 @@ static void bd_log(const char *log) {
   if (log[len-1] == '\n') {
     len--;
   }
-  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, log, (int)len, line, 4096);
+  SafeMultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, log, (int)len, line, 4096);
   DbgLog((LOG_TRACE, 40, L"[BD] %s", line));
 }
 #endif
@@ -161,7 +161,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
 
   // Convert the filename from wchar to char for libbluray
   char fileName[4096];
-  ret = WideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
+  ret = SafeWideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
 
   int iPlaylist = -1;
 
@@ -357,9 +357,16 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 void CBDDemuxer::ProcessClipLanguages()
 {
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
+  int64_t max_clip_duration = 0;
   for (uint32_t i = 0; i < m_pTitle->clip_count; ++i) {
+    int64_t clip_duration = (m_pTitle->clips[i].out_time - m_pTitle->clips[i].in_time);
+    bool overwrite_info = false;
+    if (clip_duration > max_clip_duration) {
+      overwrite_info = true;
+      max_clip_duration = clip_duration;
+    }
     CLPI_CL *clpi = bd_get_clpi(m_pBD, i);
-    ProcessClipInfo(clpi);
+    ProcessClipInfo(clpi, overwrite_info);
     bd_free_clpi(clpi);
   }
 }
@@ -393,7 +400,7 @@ STDMETHODIMP CBDDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCHAR
   return E_FAIL;
 }*/
 
-void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
+void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
 {
   if (!clpi) { return; }
   for (int k = 0; k < clpi->program.num_prog; k++) {
@@ -407,7 +414,7 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi)
       }
       if (avstream) {
         if (stream->lang[0] != 0)
-          av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, 0);
+          av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, overwrite ? 0 : AV_DICT_DONT_OVERWRITE);
         if (avstream->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
           if (avstream->codec->width == 0 || avstream->codec->height == 0) {
             switch(stream->format) {

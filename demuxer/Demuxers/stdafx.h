@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,13 +19,10 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#define VC_EXTRALEAN
+#include "common_defines.h"
 
 #include <atlbase.h>
 #include <atlconv.h>
-
-#include "version.h"
 
 #include "streams.h"
 

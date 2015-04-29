@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -28,16 +28,13 @@
 
 #include "PacketAllocator.h"
 
-CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container, bool bFirst)
+CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_containerFormat(container)
   , m_pinType(pinType)
   , m_Parser(this, container)
-  , m_bFirstPin(bFirst)
   , m_mts(mts)
 {
-  m_rtPrev = m_bFirstPin ? 0 : AV_NOPTS_VALUE;
-
   SetQueueSizes();
 }
 
@@ -291,7 +288,7 @@ HRESULT CLAVOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME t
 {
   HRESULT hr = S_OK;
   DbgLog((LOG_TRACE, 20, L"::DeliverNewSegment on %s Pin (rtStart: %I64d; rtStop: %I64d)", CBaseDemuxer::CStreamList::ToStringW(m_pinType), tStart, tStop));
-  m_rtPrev = m_bFirstPin ? 0 : AV_NOPTS_VALUE;
+  m_rtPrev = AV_NOPTS_VALUE;
   if(m_fFlushing) return S_FALSE;
   if(!ThreadExists()) return S_FALSE;
 

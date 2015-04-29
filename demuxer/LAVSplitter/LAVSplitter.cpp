@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -66,7 +66,7 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
 
-#if ENABLE_DEBUG_LOGFILE
+#ifdef LAV_DEBUG_RELEASE
   DbgSetLogFileDesktop(LAVF_LOG_FILE);
 #endif
 #endif
@@ -86,7 +86,7 @@ CLAVSplitter::~CLAVSplitter()
 
   SafeRelease(&m_pSite);
 
-#if defined(DEBUG) && ENABLE_DEBUG_LOGFILE
+#if defined(DEBUG) && defined(LAV_DEBUG_RELEASE)
   DbgCloseLogFile();
 #endif
 }
@@ -237,7 +237,7 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
     for (const FormatInfo& fmt : m_InputFormats) {
-      MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
+      SafeMultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
       bFlag = regF.ReadBOOL(wBuffer, hr);
       if (SUCCEEDED(hr)) m_settings.formats[std::string(fmt.strName)] = bFlag;
     }
@@ -280,7 +280,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
   if (SUCCEEDED(hr)) {
     WCHAR wBuffer[80];
     for (const FormatInfo& fmt : m_InputFormats) {
-      MultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
+      SafeMultiByteToWideChar(CP_UTF8, 0, fmt.strName, -1, wBuffer, 80);
       regF.WriteBOOL(wBuffer, m_settings.formats[std::string(fmt.strName)]);
     }
   }
@@ -297,7 +297,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   *ppv = nullptr;
 
-  if (m_pDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo) || riid == IID_IAMExtendedSeeking || riid == IID_IAMMediaContent || riid == IID_IPropertyBag)) {
+  if (m_pDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo) || riid == IID_IAMExtendedSeeking || riid == IID_IAMMediaContent || riid == IID_IPropertyBag || riid == __uuidof(IDSMResourceBag))) {
     return m_pDemuxer->QueryInterface(riid, ppv);
   }
 
@@ -479,6 +479,10 @@ STDMETHODIMP CLAVSplitter::CompleteInputConnection()
   HRESULT hr = S_OK;
   BOOL bFileInput = FALSE;
 
+  // Check if blacklisted
+  if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVF_REGISTRY_KEY L"\\Blacklist"))
+    return E_FAIL;
+
   SAFE_DELETE(m_pDemuxer);
 
   AVIOContext *pContext = nullptr;
@@ -532,6 +536,10 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE * pmt
 {
   CheckPointer(pszFileName, E_POINTER);
   if (m_State != State_Stopped) return E_UNEXPECTED;
+
+  // Check if blacklisted
+  if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVF_REGISTRY_KEY L"\\Blacklist"))
+    return E_FAIL;
 
   // Close, just in case we're being re-used
   Close();
@@ -587,7 +595,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
 
   const CBaseDemuxer::stream *videoStream = m_pDemuxer->SelectVideoStream();
   if (videoStream) {
-    CLAVOutputPin* pPin = new CLAVOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat(), true);
+    CLAVOutputPin* pPin = new CLAVOutputPin(videoStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video), this, this, &hr, CBaseDemuxer::video, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(videoStream->pid);
       m_pPins.push_back(pPin);
@@ -600,7 +608,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   std::list<std::string> audioLangs = GetPreferredAudioLanguageList();
   const CBaseDemuxer::stream *audioStream = m_pDemuxer->SelectAudioStream(audioLangs);
   if (audioStream) {
-    CLAVOutputPin* pPin = new CLAVOutputPin(audioStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::audio), this, this, &hr, CBaseDemuxer::audio, m_pDemuxer->GetContainerFormat(), m_pPins.empty());
+    CLAVOutputPin* pPin = new CLAVOutputPin(audioStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::audio), this, this, &hr, CBaseDemuxer::audio, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(audioStream->pid);
       m_pPins.push_back(pPin);
@@ -615,7 +623,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
   std::list<CSubtitleSelector> subtitleSelectors = GetSubtitleSelectors();
   const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage);
   if (subtitleStream && !bNoSubtitles) {
-    CLAVOutputPin* pPin = new CLAVOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat(), m_pPins.empty());
+    CLAVOutputPin* pPin = new CLAVOutputPin(subtitleStream->streamInfo->mtypes, CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::subpic), this, this, &hr, CBaseDemuxer::subpic, m_pDemuxer->GetContainerFormat());
     if(SUCCEEDED(hr)) {
       pPin->SetStreamId(subtitleStream->pid);
       m_pPins.push_back(pPin);
@@ -713,7 +721,7 @@ DWORD CLAVSplitter::ThreadProc()
         m_pActivePins.push_back(*pinIter);
       }
     }
-    m_rtOffset = 0;
+    m_rtOffset = AV_NOPTS_VALUE;
 
     m_bDiscontinuitySent.clear();
 
@@ -793,12 +801,19 @@ HRESULT CLAVSplitter::DeliverPacket(Packet *pPacket)
     // This will try to compensate for timestamp discontinuities in the stream
     if (m_pDemuxer->GetContainerFlags() & LAVFMT_TS_DISCONT) {
       if (!pPin->IsSubtitlePin()) {
+        // Initialize on the first stream coming in
+        if (pPin->m_rtPrev == AV_NOPTS_VALUE && m_rtOffset == AV_NOPTS_VALUE) {
+          pPin->m_rtPrev = 0;
+          m_rtOffset = 0;
+        }
+
         REFERENCE_TIME rt = pPacket->rtStart + m_rtOffset;
+
         if(pPin->m_rtPrev != AV_NOPTS_VALUE && _abs64(rt - pPin->m_rtPrev) > MAX_PTS_SHIFT) {
           m_rtOffset += pPin->m_rtPrev - rt;
           if (!(m_pDemuxer->GetContainerFlags() & LAVFMT_TS_DISCONT_NO_DOWNSTREAM))
             m_bDiscontinuitySent.clear();
-          DbgLog((LOG_TRACE, 10, L"::DeliverPacket(): MPEG-TS/PS discontinuity detected, adjusting offset to %I64d", m_rtOffset));
+          DbgLog((LOG_TRACE, 10, L"::DeliverPacket(): MPEG-TS/PS discontinuity detected, adjusting offset to %I64d (stream: %d, prev: %I64d, now: %I64d)", m_rtOffset, pPacket->StreamId, pPin->m_rtPrev, rt));
         }
       }
       pPacket->rtStart += m_rtOffset;
@@ -1368,10 +1383,7 @@ STDMETHODIMP CLAVSplitter::Info(long lIndex, AM_MEDIA_TYPE **ppmt, DWORD *pdwFla
         }
         if (ppszName) {
           std::string info = s.streamInfo->codecInfo;
-          size_t len = info.size() + 1;
-          *ppszName = (WCHAR*)CoTaskMemAlloc(len * sizeof(WCHAR));
-          if (*ppszName)
-            MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, info.c_str(), -1, *ppszName, (int)len);
+          *ppszName = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, info.c_str(), -1);
         }
       }
       hr = S_OK;
@@ -1403,15 +1415,12 @@ std::list<std::string> CLAVSplitter::GetPreferredAudioLanguageList()
 {
   std::list<std::string> list;
 
-  // Convert to multi-byte ascii
-  int bufSize = (int)(sizeof(WCHAR) * (m_settings.prefAudioLangs.length() + 1));
-  char *buffer = (char *)CoTaskMemAlloc(bufSize);
+  char *buffer = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1);
   if (!buffer)
     return list;
-  WideCharToMultiByte(CP_UTF8, 0, m_settings.prefAudioLangs.c_str(), -1, buffer, bufSize, nullptr, nullptr);
 
   split(std::string(buffer), std::string(",; "), list);
-  CoTaskMemFree(buffer);
+  SAFE_CO_FREE(buffer);
 
   return list;
 }
@@ -1426,13 +1435,10 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   if (m_settings.subtitleMode == LAVSubtitleMode_NoSubs) {
     // Do nothing
   } else if (m_settings.subtitleMode == LAVSubtitleMode_Default || m_settings.subtitleMode == LAVSubtitleMode_ForcedOnly) {
-    // Convert to multi-byte ascii
-    size_t bufSize = sizeof(WCHAR) * (m_settings.prefSubLangs.length() + 1);
-    char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    // Convert to wide-char to utf8
+    char *buffer = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1);
     if (!buffer)
       return selectorList;
-    ZeroMemory(buffer, bufSize);
-    WideCharToMultiByte(CP_UTF8, 0, m_settings.prefSubLangs.c_str(), -1, buffer, (int)bufSize, nullptr, nullptr);
 
     std::list<std::string> langList;
     split(std::string(buffer), separators, langList);
@@ -1462,13 +1468,10 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
     if (m_settings.subtitleMode == LAVSubtitleMode_Default)
       tokenList.push_back("*:*|d");
   } else if (m_settings.subtitleMode == LAVSubtitleMode_Advanced) {
-    // Convert to multi-byte ascii
-    size_t bufSize = sizeof(WCHAR) * (m_settings.subtitleAdvanced.length() + 1);
-    char *buffer = (char *)CoTaskMemAlloc(bufSize);
+    // Convert to wide-char to utf8
+    char *buffer = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1);
     if (!buffer)
       return selectorList;
-    ZeroMemory(buffer, bufSize);
-    WideCharToMultiByte(CP_UTF8, 0, m_settings.subtitleAdvanced.c_str(), -1, buffer, (int)bufSize, nullptr, nullptr);
 
     split(std::string(buffer), separators, tokenList);
     SAFE_CO_FREE(buffer);
@@ -1477,7 +1480,12 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
   // Add the "off" termination element
   tokenList.push_back("*:off");
 
-  std::tr1::regex advRegex("(?:(\\*|[[:alpha:]]+):)?(\\*|[[:alpha:]]+)(?:\\|(!?)([fdnh]+))?");
+  std::tr1::regex advRegex(
+                            "(?:(\\*|[[:alpha:]]+):)?"        // audio language
+                            "(\\*|[[:alpha:]]+)"              // subtitle language
+                            "(?:\\|(!?)([fdnh]+))?"           // flags
+                            "(?:@([^" + separators + "]+))?"  // subtitle track name substring
+                          );
   for (const std::string& token : tokenList) {
     std::tr1::cmatch res;
     bool found = std::tr1::regex_search(token.c_str(), res, advRegex);
@@ -1513,8 +1521,11 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
           selector.dwFlags = (~selector.dwFlags) & 0xFF;
         }
       }
+
+      selector.subtitleTrackName = res[5];
+
       selectorList.push_back(selector);
-      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x)", token.c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags));
+      DbgLog((LOG_TRACE, 10, L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x, match: %S)", token.c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags, selector.subtitleTrackName.c_str()));
     } else {
       DbgLog((LOG_ERROR, 10, L"::GetSubtitleSelectors(): Selector string \"%S\" could not be parsed", token.c_str()));
     }

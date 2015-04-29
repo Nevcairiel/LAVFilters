@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -23,12 +23,10 @@
 #include "ByteParser.h"
 
 #pragma warning( push )
-#pragma warning( disable : 4018 )
+#pragma warning( disable : 4101 )
 #pragma warning( disable : 4244 )
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
-#define __STDC_CONSTANT_MACROS
-
 #include "libavcodec/get_bits.h"
 };
 #pragma warning( pop )

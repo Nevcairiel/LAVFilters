@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -61,7 +61,7 @@ public:
 private:
   void CloseDecoder();
 
-  void ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
+  void ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart);
   void ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
   void AddSubtitleRect(CLAVSubRect *rect);
   CLAVSubRect* ProcessDVDHLI(CLAVSubRect *rect);
@@ -78,6 +78,7 @@ private:
   AVCodecContext       *m_pAVCtx    = nullptr;
   AVCodecParserContext *m_pParser   = nullptr;
 
+  REFERENCE_TIME        m_rtLastFrame  = AV_NOPTS_VALUE;
   REFERENCE_TIME        m_rtStartCache = AV_NOPTS_VALUE;
   ULONGLONG             m_SubPicId     = 0;
   BOOL                  m_bComposit    = TRUE;

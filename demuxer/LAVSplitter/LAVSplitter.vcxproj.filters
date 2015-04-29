@@ -71,9 +71,6 @@
     <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\inttypes.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\includes\LAVSplitterSettings.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
@@ -114,6 +111,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\includes\IStreamSourceControl.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\includes\common_defines.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\includes\IDSMResourceBag.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>

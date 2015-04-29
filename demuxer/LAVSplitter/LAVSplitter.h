@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -251,7 +251,7 @@ private:
   REFERENCE_TIME m_rtCurrent  = 0;
   REFERENCE_TIME m_rtNewStart = 0;
   REFERENCE_TIME m_rtNewStop  = 0;
-  REFERENCE_TIME m_rtOffset   = 0;
+  REFERENCE_TIME m_rtOffset   = AV_NOPTS_VALUE;
   double m_dRate              = 1.0;
   BOOL m_bStopValid           = FALSE;
 

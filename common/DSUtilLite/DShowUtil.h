@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -89,6 +89,8 @@ extern void UnRegisterSourceFilter(const GUID& subtype);
 extern void RegisterProtocolSourceFilter(const CLSID& clsid, LPCWSTR protocol);
 extern void UnRegisterProtocolSourceFilter(LPCWSTR protocol);
 
+extern BOOL CheckApplicationBlackList(LPCTSTR subkey);
+
 // Locale
 extern std::string ISO6391ToLanguage(LPCSTR code);
 extern std::string ISO6392ToLanguage(LPCSTR code);
@@ -116,6 +118,11 @@ extern BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType);
 
 std::wstring WStringFromGUID(const GUID& guid);
 BSTR ConvertCharToBSTR(const char *sz);
+
+int SafeMultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+int SafeWideCharToMultiByte(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
+LPWSTR CoTaskGetWideCharFromMultiByte(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte);
+LPSTR CoTaskGetMultiByteFromWideChar(UINT CodePage, DWORD dwFlags, LPCWSTR lpMultiByteStr, int cbMultiByte);
 
 unsigned int lav_xiphlacing(unsigned char *s, unsigned int v);
 

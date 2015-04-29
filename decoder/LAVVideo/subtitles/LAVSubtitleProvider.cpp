@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,10 @@
 
 #include "LAVVideo.h"
 
+#include "version.h"
+
 #define FAST_DIV255(x) ((((x) + 128) * 257) >> 16)
+#define SUBTITLE_PTS_TIMEOUT (AV_NOPTS_VALUE + 1)
 
 #define OFFSET(x) offsetof(LAVSubtitleProviderContext, x)
 static const SubRenderOption options[] = {
@@ -115,7 +118,8 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
     CAutoLock lock(this);
     for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
       CLAVSubRect *pRect = *it;
-      if ((pRect->rtStart == AV_NOPTS_VALUE) || ((pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop > mid) && pRect->rtStart <= mid)
+      if ((pRect->rtStart == AV_NOPTS_VALUE || pRect->rtStart <= mid)
+        && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop > mid)
         && (m_bComposit || pRect->forced)) {
 
         if (m_pHLI && PTS2RT(m_pHLI->StartPTM) <= mid && PTS2RT(m_pHLI->EndPTM) >= mid) {
@@ -124,6 +128,8 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
         subtitleFrame->AddBitmap(pRect);
       }
     }
+
+    m_rtLastFrame = start;
   }
 
   if (subtitleFrame->Empty()) {
@@ -164,7 +170,7 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
     getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, nullptr);
 
     m_pAVCtx->extradata = extra;
-    m_pAVCtx->extradata_size = extralen;
+    m_pAVCtx->extradata_size = (int)extralen;
   }
 
   if (pmt->formattype == FORMAT_SubtitleInfo) {
@@ -193,6 +199,7 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   ClearSubtitleRects();
   SAFE_DELETE(m_pHLI);
 
+  m_rtLastFrame = AV_NOPTS_VALUE;
   m_pLAVVideo->SetInDVDMenu(false);
 
   return S_OK;
@@ -290,16 +297,7 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
     }
 
     if (got_sub) {
-      REFERENCE_TIME rtSubStart = rtStart, rtSubStop = AV_NOPTS_VALUE;
-      if (rtSubStart != AV_NOPTS_VALUE) {
-        if (sub.end_display_time > 0) {
-          rtSubStop = rtSubStart + (sub.end_display_time * 10000i64);
-        }
-        rtSubStart += sub.start_display_time * 10000i64;
-      }
-      DbgLog((LOG_TRACE, 10, L"Decoded Sub: rtStart: %I64d, rtStop: %I64d, num_rects: %u, num_dvd_palette: %d", rtSubStart, rtSubStop, sub.num_rects, sub.num_dvd_palette));
-
-      ProcessSubtitleFrame(&sub, rtSubStart, rtSubStop);
+      ProcessSubtitleFrame(&sub, rtStart);
     }
 
     avsubtitle_free(&sub);
@@ -308,21 +306,40 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
   return S_OK;
 }
 
-void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop)
+void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart)
 {
+  DbgLog((LOG_TRACE, 10, L"Decoded Sub: rtStart: %I64d, start_display_time: %d, end_display_time: %d, num_rects: %u, num_dvd_palette: %d", rtStart, sub->start_display_time, sub->end_display_time, sub->num_rects, sub->num_dvd_palette));
   if (sub->num_rects > 0) {
     if (m_pAVCtx->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
-      if (rtStart != AV_NOPTS_VALUE) {
-        CAutoLock lock(this);
-        for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
-          if ((*it)->rtStop == AV_NOPTS_VALUE) {
-            (*it)->rtStop = rtStart-1;
-          }
+      CAutoLock lock(this);
+
+      // DVD subs have the limitation that only one subtitle can be shown at a given time,
+      // so we need to timeout unlimited subs when a new one appears, as well as limit the duration of timed subs
+      // to prevent overlapping subtitles
+      REFERENCE_TIME rtSubTimeout = (rtStart != AV_NOPTS_VALUE) ? rtStart - 1 : SUBTITLE_PTS_TIMEOUT;
+      for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
+        if ((*it)->rtStop == AV_NOPTS_VALUE || rtStart == AV_NOPTS_VALUE || (*it)->rtStop > rtStart) {
+          (*it)->rtStop = rtSubTimeout;
         }
       }
+
+      // Override subtitle timestamps if we have a timeout, and are not in a menu
+      if (rtStart == AV_NOPTS_VALUE && sub->end_display_time > 0 && !(sub->rects[0]->flags & AV_SUBTITLE_FLAG_FORCED)) {
+        DbgLog((LOG_TRACE, 10, L" -> Overriding subtitle timestamp to %I64d", m_rtLastFrame));
+        rtStart = m_rtLastFrame;
+      }
     }
+
+    REFERENCE_TIME rtStop = AV_NOPTS_VALUE;
+    if (rtStart != AV_NOPTS_VALUE) {
+      if (sub->end_display_time > 0) {
+        rtStop = rtStart + (sub->end_display_time * 10000i64);
+      }
+      rtStart += sub->start_display_time * 10000i64;
+    }
+
     for (unsigned i = 0; i < sub->num_rects; i++) {
-      if (sub->num_dvd_palette > 1) {
+      if (sub->num_dvd_palette > 1 && rtStart != AV_NOPTS_VALUE) {
         REFERENCE_TIME rtStartRect = rtStart - (sub->start_display_time * 10000i64);
         REFERENCE_TIME rtStopRect = rtStart;
         for (unsigned k = 0; k < sub->num_dvd_palette; k++) {
@@ -459,9 +476,13 @@ typedef struct DVDSubContext
   AVClass *avclass;
   uint32_t palette[16];
   char    *palette_str;
+  char    *ifo_str;
   int      has_palette;
   uint8_t  colormap[4];
   uint8_t  alpha[256];
+  uint8_t *buf;
+  int      buf_size;
+  int      forced_subs_only;
 } DVDSubContext;
 
 #define MAX_NEG_CROP 1024

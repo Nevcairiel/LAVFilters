@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -527,7 +527,7 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen
     if (version == 5)
       fmt++;
 
-    size_t ra_extralen = min((extra + extralen) - (fmt+4), AV_RB32(fmt));
+    size_t ra_extralen = min((size_t)((extra + extralen) - (fmt+4)), AV_RB32(fmt));
     if (ra_extralen > 0)  {
       m_pAVCtx->extradata_size = (int)ra_extralen;
       m_pAVCtx->extradata      = (uint8_t *)av_mallocz(ra_extralen + FF_INPUT_BUFFER_PADDING_SIZE);
@@ -663,7 +663,7 @@ static codec_config_t m_codec_config[] = {
   { 2, { AV_CODEC_ID_AAC, AV_CODEC_ID_AAC_LATM }},       // CC_AAC
   { 1, { AV_CODEC_ID_AC3 }},                          // CC_AC3
   { 1, { AV_CODEC_ID_EAC3 }},                         // CC_EAC3
-  { 1, { AV_CODEC_ID_DTS }},                          // CC_DTS
+  { 1, { AV_CODEC_ID_DTS }, "dts", "DTS Coherent Acoustics (DTS, DTS-HD)"},                          // CC_DTS
   { 2, { AV_CODEC_ID_MP2, AV_CODEC_ID_MP1 }},            // CC_MP2
   { 1, { AV_CODEC_ID_MP3 }},                          // CC_MP3
   { 2, { AV_CODEC_ID_TRUEHD, AV_CODEC_ID_MLP }},         // CC_TRUEHD
@@ -714,7 +714,7 @@ static LAVAudioSampleFormat sampleFormatMapping[5][5] = {
   { SampleFormat_FP32, SampleFormat_24, SampleFormat_32, SampleFormat_16, SampleFormat_U8 },  // SampleFormat_FP32
 };
 
-LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback)
+LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, int *bits, BOOL bNoFallback)
 {
   ASSERT(inFormat >= 0 && inFormat < SampleFormat_Bitstream);
 
@@ -728,6 +728,9 @@ LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleForma
       break;
     }
   }
+
+  if (bits && outFormat != inFormat)
+    *bits = get_byte_per_sample(outFormat) << 3;
 
   return outFormat;
 }

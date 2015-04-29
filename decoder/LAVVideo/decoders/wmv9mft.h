@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@ class CVC1HeaderParser;
 
 typedef struct _Buffer {
   IMFMediaBuffer *pBuffer = nullptr;
-  size_t size             = 0;
+  DWORD size              = 0;
   bool used               = false;
 } Buffer;
 
@@ -79,7 +79,7 @@ private:
 
   static void wmv9_buffer_destruct(LAVFrame *pFrame);
 
-  IMFMediaBuffer *GetBuffer(size_t sRequiredSize);
+  IMFMediaBuffer *GetBuffer(DWORD dwRequiredSize);
   void ReleaseBuffer(IMFMediaBuffer *pBuffer);
 
 private:

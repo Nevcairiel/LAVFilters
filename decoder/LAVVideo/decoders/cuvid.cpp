@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include "parsers/H264SequenceParser.h"
 #include "parsers/MPEG2HeaderParser.h"
 #include "parsers/VC1HeaderParser.h"
+#include "parsers/HEVCSequenceParser.h"
 
 #include "Media.h"
 
@@ -49,6 +50,7 @@ static struct {
   { AV_CODEC_ID_VC1,        cudaVideoCodec_VC1   },
   { AV_CODEC_ID_H264,       cudaVideoCodec_H264  },
   { AV_CODEC_ID_MPEG4,      cudaVideoCodec_MPEG4 },
+  { AV_CODEC_ID_HEVC,       cudaVideoCodec_HEVC  },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,8 +122,8 @@ CDecCuvid::~CDecCuvid(void)
 
 STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 {
-  if (m_AVC1Converter) {
-    SAFE_DELETE(m_AVC1Converter);
+  if (m_AnnexBConverter) {
+    SAFE_DELETE(m_AnnexBConverter);
   }
 
   if (m_hDecoder) {
@@ -268,6 +270,11 @@ static int _ConvertSMVer2CoresDrvApi(int major, int minor)
     { 0x20,  32 },
     { 0x21,  48 },
     { 0x30, 192 },
+    { 0x32, 192 },
+    { 0x35, 192 },
+    { 0x37, 192 },
+    { 0x50, 128 },
+    { 0x52, 128 },
     {   -1,  -1 }
   };
 
@@ -559,21 +566,33 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   memset(&m_VideoParserExInfo, 0, sizeof(CUVIDEOFORMATEX));
 
-  if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1)) {
+  // Handle AnnexB conversion for H.264 and HEVC
+  if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1 || pmt->subtype == MEDIASUBTYPE_HVC1)) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
-    m_AVC1Converter = new CAVC1AnnexBConverter();
-    m_AVC1Converter->SetNALUSize(2);
+    m_AnnexBConverter = new CAnnexBConverter();
+    m_AnnexBConverter->SetNALUSize(2);
 
     BYTE *annexBextra = nullptr;
     int size = 0;
-    m_AVC1Converter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+
+    if (cudaCodec == cudaVideoCodec_H264) {
+      m_AnnexBConverter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    } else if (cudaCodec == cudaVideoCodec_HEVC && mp2vi->cbSequenceHeader >= 23) {
+      BYTE * bHEVCHeader = (BYTE *)mp2vi->dwSequenceHeader;
+      int nal_len_size = (bHEVCHeader[21] & 3) + 1;
+      if (nal_len_size != mp2vi->dwFlags) {
+        DbgLog((LOG_ERROR, 10, L"hvcC nal length size doesn't match media type"));
+      }
+      m_AnnexBConverter->ConvertHEVCExtradata(&annexBextra, &size,  (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    }
+
     if (annexBextra && size) {
       memcpy(m_VideoParserExInfo.raw_seqhdr_data, annexBextra, size);
       m_VideoParserExInfo.format.seqhdr_data_length = size;
       av_freep(&annexBextra);
     }
 
-    m_AVC1Converter->SetNALUSize(mp2vi->dwFlags);
+    m_AnnexBConverter->SetNALUSize(mp2vi->dwFlags);
   } else {
     size_t hdr_len = 0;
     getExtraData(*pmt, nullptr, &hdr_len);
@@ -605,9 +624,16 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     } else if (cudaCodec == cudaVideoCodec_VC1) {
       CVC1HeaderParser vc1Parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
       m_bInterlaced = vc1Parser.hdr.interlaced;
+    } else if (cudaCodec == cudaVideoCodec_HEVC) {
+      hr = CheckHEVCSequence(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
+      if (FAILED(hr)) {
+        return VFW_E_UNSUPPORTED_VIDEO;
+      } else if (hr == S_FALSE) {
+        m_bNeedSequenceCheck = TRUE;
+      }
     }
   } else {
-    m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264);
+    m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264 || cudaCodec == cudaVideoCodec_HEVC);
   }
 
   oVideoParserParameters.pExtVideoInfo = &m_VideoParserExInfo;
@@ -649,7 +675,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
-  BOOL bDXVAMode = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && IsVistaOrNewer());
+  BOOL bDXVAMode = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && IsVistaOrNewer()) || (codec == cudaVideoCodec_HEVC);
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   CUVIDDECODECREATEINFO *dci = &m_VideoDecoderInfo;
@@ -1046,18 +1072,35 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   return S_FALSE;
 }
 
+STDMETHODIMP CDecCuvid::CheckHEVCSequence(const BYTE *buffer, int buflen)
+{
+  DbgLog((LOG_TRACE, 10, L"CDecCuvid::CheckHEVCSequence(): Checking HEVC frame for SPS"));
+  CHEVCSequenceParser hevcParser;
+  hevcParser.ParseNALs(buffer, buflen, 0);
+  if (hevcParser.sps.valid) {
+    DbgLog((LOG_TRACE, 10, L"-> SPS found"));
+    if (hevcParser.sps.profile > FF_PROFILE_HEVC_MAIN) {
+      DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d)", hevcParser.sps.profile));
+      return E_FAIL;
+    }
+    DbgLog((LOG_TRACE, 10, L"-> Video seems compatible with CUVID"));
+    return S_OK;
+  }
+  return S_FALSE;
+}
+
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   CUresult result;
-  HRESULT hr;
+  HRESULT hr = S_OK;
 
   CUVIDSOURCEDATAPACKET pCuvidPacket;
   ZeroMemory(&pCuvidPacket, sizeof(pCuvidPacket));
 
   BYTE *pBuffer = nullptr;
-  if (m_AVC1Converter) {
+  if (m_AnnexBConverter) {
     int size = 0;
-    hr = m_AVC1Converter->Convert(&pBuffer, &size, buffer, buflen);
+    hr = m_AnnexBConverter->Convert(&pBuffer, &size, buffer, buflen);
     if (SUCCEEDED(hr)) {
       pCuvidPacket.payload      = pBuffer;
       pCuvidPacket.payload_size = size;
@@ -1072,19 +1115,23 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
       // If we found a EOS marker, but its not at the end of the packet, then split the packet
       // to be able to individually decode the frame before the EOS, and then decode the remainder
       if (eosmarker && eosmarker != end) {
-        Decode(buffer, (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+        Decode(buffer, (int)(eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
 
         rtStart = rtStop = AV_NOPTS_VALUE;
         pCuvidPacket.payload      = eosmarker;
-        pCuvidPacket.payload_size = end - eosmarker;
+        pCuvidPacket.payload_size = (int)(end - eosmarker);
       } else if (eosmarker) {
         m_bEndOfSequence = TRUE;
       }
     }
   }
 
-  if (m_bNeedSequenceCheck && m_VideoDecoderInfo.CodecType == cudaVideoCodec_H264) {
-    hr = CheckH264Sequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+  if (m_bNeedSequenceCheck) {
+    if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_H264) {
+      hr = CheckH264Sequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+    } else if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_HEVC) {
+      hr = CheckHEVCSequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+    }
     if (FAILED(hr)) {
       m_bFormatIncompatible = TRUE;
     } else if (hr == S_OK) {

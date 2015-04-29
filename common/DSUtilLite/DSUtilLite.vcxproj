@@ -62,15 +62,22 @@
     <ClCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>"$(SolutionDir)common\genversion.bat"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>"$(SolutionDir)common\genversion.bat"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BaseDSPropPage.h" />
     <ClInclude Include="CueSheet.h" />
+    <ClInclude Include="DSMResourceBag.h" />
     <ClInclude Include="PopupMenu.h" />
     <ClInclude Include="BaseTrayIcon.h" />
     <ClInclude Include="ByteParser.h" />
@@ -93,6 +100,7 @@
   <ItemGroup>
     <ClCompile Include="BaseDSPropPage.cpp" />
     <ClCompile Include="CueSheet.cpp" />
+    <ClCompile Include="DSMResourceBag.cpp" />
     <ClCompile Include="PopupMenu.cpp" />
     <ClCompile Include="BaseTrayIcon.cpp" />
     <ClCompile Include="ByteParser.cpp" />

@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -103,4 +103,14 @@ bool CH264Nalu::ReadNext()
   nal_unit_type     = (NALU_TYPE) (m_pBuffer[m_nNALDataPos] & 0x1f);
 
   return true;
+}
+
+bool CH265Nalu::ReadNext()
+{
+  if (CH264Nalu::ReadNext()) {
+    nal_unit_type = (NALU_TYPE) ((m_pBuffer[m_nNALDataPos] >> 1) & 0x3F);
+    return true;
+  }
+
+  return false;
 }

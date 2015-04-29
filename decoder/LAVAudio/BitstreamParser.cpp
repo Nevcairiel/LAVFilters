@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -41,7 +41,6 @@ void CBitstreamParser::Reset()
   m_dwBlocks     = 0;
   m_dwFrameSize  = 0;
   m_dwSampleRate = 0;
-  m_dwBitRate    = 0;
   m_dwSamples    = 0;
   m_bDTSHD       = FALSE;
   memset(&m_DTSHeader, 0, sizeof(m_DTSHeader));
@@ -70,7 +69,6 @@ HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
 
   m_dwBlocks      = m_DTSHeader.Blocks;
   m_dwSampleRate  = m_DTSHeader.SampleRate;
-  m_dwBitRate     = m_DTSHeader.Bitrate;
   m_dwFrameSize   = m_DTSHeader.FrameSize;
   m_dwSamples     = m_DTSHeader.SamplesPerBlock * m_dwBlocks;
 
@@ -81,7 +79,6 @@ HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserCon
 {
   AACAC3ParseContext *ctx = (AACAC3ParseContext *)pParserContext;
 
-  m_dwBitRate    = ctx->bit_rate;
   m_dwSampleRate = ctx->sample_rate;
 
   // E-AC3 always combines 6 blocks, resulting in 1536 samples

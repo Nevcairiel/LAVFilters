@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -229,7 +229,7 @@ private:
   HRESULT Create61Conformity(DWORD dwLayout);
   HRESULT Create71Conformity(DWORD dwLayout);
 
-  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback = FALSE);
+  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, int *bits = NULL, BOOL bNoFallback = FALSE);
   HRESULT Truncate32Buffer(BufferDetails *buffer);
   HRESULT PadTo32(BufferDetails *buffer);
 
@@ -259,8 +259,6 @@ private:
   LAVAudioSampleFormat m_MixingInputFormat = SampleFormat_None;
   LAVAudioSampleFormat m_FallbackFormat    = SampleFormat_None;
   DWORD                m_dwOverrideMixer   = 0;
-
-  BOOL                 m_bSampleSupport[SampleFormat_NB];
 
   BOOL                 m_bHasVideo              = TRUE;
 
@@ -306,6 +304,7 @@ private:
   BOOL                m_bQueueResync     = FALSE;
   BOOL                m_bResyncTimestamp = FALSE;
   BOOL                m_bNeedSyncpoint   = FALSE;
+  BOOL                m_bJustFlushed     = TRUE;
   BufferDetails       m_OutputQueue;
 
   AVIOContext        *m_avioBitstream = nullptr;

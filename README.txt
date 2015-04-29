@@ -121,6 +121,6 @@ http://git.1f0.de/gitweb?p=libbluray.git;a=summary
 
 Feedback
 =============================
-Google Code Project: http://code.google.com/p/lavfilters/
+GitHub Project: https://github.com/Nevcairiel/LAVFilters
 Doom9: http://forum.doom9.org/showthread.php?t=156191
 You can, additionally, reach me on IRC in the MPC-HC channel on freenode (#mpc-hc)

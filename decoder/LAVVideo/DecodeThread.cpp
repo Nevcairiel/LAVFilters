@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -396,7 +396,8 @@ DWORD CDecodeThread::ThreadProc()
    ((codec == AV_CODEC_ID_H264 && m_pLAVVideo->GetHWAccelCodec(HWCodec_H264))                                                       \
 || ((codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3) && m_pLAVVideo->GetHWAccelCodec(HWCodec_VC1))                           \
 || ((codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_MPEG1VIDEO) && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2) && (!(GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) || m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2DVD)))            \
-|| (codec == AV_CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)))
+|| (codec == AV_CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)) \
+|| (codec == AV_CODEC_ID_HEVC && m_pLAVVideo->GetHWAccelCodec(HWCodec_HEVC)))
 
 #define HWRESOLUTION_ENABLED \
   ((pBMI->biHeight <= 576 && pBMI->biWidth <= 1024 && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_SD)     \
@@ -546,7 +547,6 @@ STDMETHODIMP CDecodeThread::Deliver(LAVFrame *pFrame)
 STDMETHODIMP CDecodeThread::AllocateFrame(LAVFrame **ppFrame) { return m_pLAVVideo->AllocateFrame(ppFrame); }
 STDMETHODIMP CDecodeThread::ReleaseFrame(LAVFrame **ppFrame) { return m_pLAVVideo->ReleaseFrame(ppFrame); }
 STDMETHODIMP_(LPWSTR) CDecodeThread::GetFileExtension() { return m_pLAVVideo->GetFileExtension(); }
-STDMETHODIMP_(BOOL) CDecodeThread::FilterInGraph(PIN_DIRECTION dir, const GUID &clsid) { return m_pLAVVideo->FilterInGraph(dir, clsid); }
 STDMETHODIMP_(DWORD) CDecodeThread::GetDecodeFlags() { return m_pLAVVideo->GetDecodeFlags(); }
 STDMETHODIMP_(CMediaType&) CDecodeThread::GetInputMediaType() { return m_pLAVVideo->GetInputMediaType(); }
 STDMETHODIMP CDecodeThread::GetLAVPinInfo(LAVPinInfo &info) { return m_pLAVVideo->GetLAVPinInfo(info); }

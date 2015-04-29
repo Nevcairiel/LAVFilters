@@ -3,6 +3,7 @@
 arch=x86
 archdir=Win32
 clean_build=true
+cross_prefix=
 
 for opt in "$@"
 do
@@ -12,6 +13,7 @@ do
     x64 | amd64)
             arch=x86_64
             archdir=x64
+            cross_prefix=x86_64-w64-mingw32-
             ;;
     quick)
             clean_build=false
@@ -21,6 +23,9 @@ do
             exit 1
     esac
 done
+
+THIRDPARTYPREFIX=$(pwd)/bin_${archdir}/thirdparty
+export PKG_CONFIG_PATH=${THIRDPARTYPREFIX}/lib/pkgconfig/
 
 make_dirs() (
   if [ ! -d bin_${archdir}/lib ]; then
@@ -32,19 +37,15 @@ make_dirs() (
   fi
 )
 
-strip_libs() {
-  if [ "${arch}" == "x86_64" ]; then
-    x86_64-w64-mingw32-strip lib*/*-lav-*.dll
-  else
-    strip lib*/*-lav-*.dll
-  fi
-}
-
 copy_libs() (
+  # install -s --strip-program=${cross_prefix}strip lib*/*-lav-*.dll ../bin_${archdir}
   cp lib*/*-lav-*.dll ../bin_${archdir}
-  cp lib*/*.lib ../bin_${archdir}/lib
+  ${cross_prefix}strip ../bin_${archdir}/*-lav-*.dll
+  cp -u lib*/*.lib ../bin_${archdir}/lib
+
   cp lib*/*-lav-*.dll ../bin_${archdir}d
-  cp lib*/*.lib ../bin_${archdir}d/lib
+  ${cross_prefix}strip ../bin_${archdir}d/*-lav-*.dll
+  cp -u lib*/*.lib ../bin_${archdir}d/lib
 )
 
 clean() (
@@ -56,7 +57,7 @@ configure() (
     --enable-shared                 \
     --disable-static                \
     --enable-version3               \
-    --enable-pthreads               \
+    --enable-w32threads             \
     --disable-demuxer=matroska      \
     --disable-filters               \
     --enable-filter=yadif           \
@@ -68,17 +69,22 @@ configure() (
     --enable-protocol=mmst          \
     --enable-protocol=rtp           \
     --enable-protocol=http          \
+    --enable-protocol=crypto        \
+    --enable-protocol=rtmp          \
+    --enable-protocol=rtmpt         \
     --disable-muxers                \
     --enable-muxer=spdif            \
     --disable-hwaccels              \
     --enable-hwaccel=h264_dxva2     \
+    --enable-hwaccel=hevc_dxva2     \
     --enable-hwaccel=vc1_dxva2      \
     --enable-hwaccel=wmv3_dxva2     \
     --enable-hwaccel=mpeg2_dxva2    \
+    --disable-decoder=dca           \
+    --enable-libdcadec              \
     --enable-libspeex               \
     --enable-libopencore-amrnb      \
     --enable-libopencore-amrwb      \
-    --enable-libopus                \
     --enable-avresample             \
     --enable-avisynth               \
     --disable-avdevice              \
@@ -93,10 +99,10 @@ configure() (
     --build-suffix=-lav             \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -I../thirdparty/include -DPTW32_STATIC_LIB"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -I../thirdparty/include"
   EXTRA_LDFLAGS=""
   if [ "${arch}" == "x86_64" ]; then
-    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=x86_64-w64-mingw32- --target-os=mingw32"
+    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32 --pkg-config=pkg-config"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib64"
   else
     OPTIONS="${OPTIONS} --cpu=i686"
@@ -108,12 +114,27 @@ configure() (
 )
 
 build() (
-  make -j8
+  make -j$NUMBER_OF_PROCESSORS
 )
 
-echo Building ffmpeg in GCC ${arch} Release config...
+build_dcadec() (
+  cd thirdparty/dcadec
+  if $clean_build ; then
+    make CONFIG_WINDOWS=1 clean
+  fi
+  make -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_NDEBUG=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=${THIRDPARTYPREFIX} install
+)
 
 make_dirs
+
+echo Building dcadec
+echo
+
+build_dcadec
+
+echo
+echo Building ffmpeg in GCC ${arch} Release config...
+echo
 
 cd ffmpeg
 
@@ -131,7 +152,6 @@ fi
 ## Only if configure succeeded, actually build
 if ! $clean_build || [ ${CONFIGRETVAL} -eq 0 ]; then
   build &&
-  strip_libs &&
   copy_libs
 fi
 

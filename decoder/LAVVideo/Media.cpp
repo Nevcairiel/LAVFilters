@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -742,4 +742,16 @@ const uint8_t* CheckForEndOfSequence(AVCodecID codec, const uint8_t *buf, long l
     return nullptr;
   }
   return nullptr;
+}
+
+int sws_scale2(struct SwsContext *c, const uint8_t *const srcSlice[], const ptrdiff_t srcStride[], int srcSliceY, int srcSliceH, uint8_t *const dst[], const ptrdiff_t dstStride[])
+{
+  int srcStride2[4];
+  int dstStride2[4];
+
+  for (int i = 0; i < 4; i++) {
+    srcStride2[i] = (int)srcStride[i];
+    dstStride2[i] = (int)dstStride[i];
+  }
+  return sws_scale(c, srcSlice, srcStride2, srcSliceY, srcSliceH, dst, dstStride2);
 }

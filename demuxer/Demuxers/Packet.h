@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -28,18 +28,18 @@ public:
   Packet();
   ~Packet();
 
-  int GetDataSize() const { return m_DataSize; }
+  size_t GetDataSize() const { return m_DataSize; }
   BYTE *GetData() { return m_Data; }
 
-  int SetDataSize(int len);
-  int SetData(const void* ptr, int len);
+  int SetDataSize(size_t len);
+  int SetData(const void* ptr, size_t len);
   int SetPacket(AVPacket *pkt);
 
   // Append the data of the package to our data buffer
   int Append(Packet *ptr);
-  int AppendData(const void* ptr, int len);
+  int AppendData(const void* ptr, size_t len);
   // Remove count bytes from position index
-  int RemoveHead(int count);
+  int RemoveHead(size_t count);
 
 public:
   DWORD StreamId         = 0;
@@ -60,7 +60,7 @@ public:
   DWORD dwFlags          = 0;
 
 private:
-  int          m_DataSize = 0;
+  size_t       m_DataSize = 0;
   BYTE        *m_Data     = nullptr;
   AVBufferRef *m_Buf      = nullptr;
 };

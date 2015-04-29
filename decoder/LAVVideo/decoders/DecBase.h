@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -42,6 +42,8 @@ public:
 
   STDMETHODIMP SyncToProcessThread() { return HasThreadSafeBuffers() == S_OK ? S_FALSE : S_OK; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
+
+  STDMETHODIMP SetDirectOutput(BOOL bDirect) { return S_FALSE; }
 
   STDMETHODIMP Decode(IMediaSample *pSample) {
     HRESULT hr;

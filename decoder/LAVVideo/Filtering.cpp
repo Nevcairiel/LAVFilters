@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -128,14 +128,19 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     if (!m_pFilterGraph)
       goto deliver;
 
+    if (pFrame->direct)
+      DeDirectFrame(pFrame, true);
+
     AVFrame *in_frame = nullptr;
     BOOL refcountedFrame = (m_Decoder.HasThreadSafeBuffers() == S_OK);
     // When flushing, we feed a NULL frame
     if (!bFlush) {
       in_frame = av_frame_alloc();
 
-      memcpy(in_frame->data, pFrame->data, sizeof(pFrame->data));
-      memcpy(in_frame->linesize, pFrame->stride, sizeof(pFrame->stride));
+      for (int i = 0; i < 4; i++) {
+        in_frame->data[i] = pFrame->data[i];
+        in_frame->linesize[i] = (int)pFrame->stride[i];
+      }
 
       in_frame->width               = pFrame->width;
       in_frame->height              = pFrame->height;
@@ -199,8 +204,11 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       REFERENCE_TIME pts     = av_rescale(out_frame->pts, m_pFilterBufferSink->inputs[0]->time_base.num * 10000000LL, m_pFilterBufferSink->inputs[0]->time_base.den);
       outFrame->rtStart      = pts;
       outFrame->rtStop       = pts + rtDuration;
-      memcpy(outFrame->data, out_frame->data, sizeof(outFrame->data));
-      memcpy(outFrame->stride, out_frame->linesize, sizeof(outFrame->stride));
+
+      for (int i = 0; i < 4; i++) {
+        outFrame->data[i] = out_frame->data[i];
+        outFrame->stride[i] = out_frame->linesize[i];
+      }
 
       outFrame->destruct = avfilter_free_lav_buffer;
       outFrame->priv_data = av_frame_alloc();
