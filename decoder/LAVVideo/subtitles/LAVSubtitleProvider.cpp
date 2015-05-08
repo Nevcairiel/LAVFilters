@@ -480,7 +480,7 @@ typedef struct DVDSubContext
   int      has_palette;
   uint8_t  colormap[4];
   uint8_t  alpha[256];
-  uint8_t *buf;
+  uint8_t  buf[0x10000];
   int      buf_size;
   int      forced_subs_only;
 } DVDSubContext;
