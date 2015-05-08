@@ -24,8 +24,9 @@ do
     esac
 done
 
+BASEDIR=$(pwd)
 THIRDPARTYPREFIX=$(pwd)/bin_${archdir}/thirdparty
-export PKG_CONFIG_PATH=${THIRDPARTYPREFIX}/lib/pkgconfig/
+export PKG_CONFIG_PATH="${THIRDPARTYPREFIX}/lib/pkgconfig/"
 
 make_dirs() (
   if [ ! -d bin_${archdir}/lib ]; then
@@ -118,11 +119,14 @@ build() (
 )
 
 build_dcadec() (
-  cd thirdparty/dcadec
+  mkdir -p "${THIRDPARTYPREFIX}/dcadec"
+  cd "${THIRDPARTYPREFIX}/dcadec"
   if $clean_build ; then
-    make CONFIG_WINDOWS=1 clean
+    make -f "${BASEDIR}/thirdparty/dcadec/Makefile" CONFIG_WINDOWS=1 clean
   fi
-  make -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_NDEBUG=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=${THIRDPARTYPREFIX} install
+  make -f "${BASEDIR}/thirdparty/dcadec/Makefile" -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_SMALL=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX="${THIRDPARTYPREFIX}" install-lib
+
+  cd "${BASEDIR}"
 )
 
 make_dirs
