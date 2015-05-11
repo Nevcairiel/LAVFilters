@@ -27,7 +27,7 @@ typedef enum TrackType {
 	TypeLogo     = 0x10,
 	TypeSubtitle = 0x11,
 	TypeControl  = 0x20
-};
+} TrackType;
 
 #pragma pack(push, 1)
 
