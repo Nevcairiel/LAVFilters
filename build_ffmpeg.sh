@@ -27,7 +27,7 @@ done
 THIRDPARTY_PREFIX="$(pwd)/bin_${archdir}/thirdparty"
 DCADEC_SOURCE_PATH="$(pwd)/thirdparty/dcadec"
 DCADEC_BUILD_PATH="${THIRDPARTY_PREFIX}/dcadec"
-export PKG_CONFIG_PATH="${THIRDPARTY_PREFIX}/lib/pkgconfig/"
+export PKG_CONFIG_PATH="${DCADEC_BUILD_PATH}"
 
 make_dirs() (
   mkdir -p bin_${archdir}/lib
@@ -120,7 +120,8 @@ build_dcadec() (
   if $clean_build ; then
     make -f "${DCADEC_SOURCE_PATH}/Makefile" CONFIG_WINDOWS=1 clean
   fi
-  make -f "${DCADEC_SOURCE_PATH}/Makefile" -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_SMALL=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX="${THIRDPARTY_PREFIX}" install-lib
+  make -f "${DCADEC_SOURCE_PATH}/Makefile" -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_SMALL=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar lib
+  make -f "${DCADEC_SOURCE_PATH}/Makefile" PREFIX="${THIRDPARTY_PREFIX}" LIBDIR="${DCADEC_BUILD_PATH}/libdcadec" INCLUDEDIR="${DCADEC_SOURCE_PATH}" dcadec.pc
   cd -
 )
 
