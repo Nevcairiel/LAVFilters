@@ -23,9 +23,7 @@ do
 done
 
 make_dirs() (
-  if [ ! -d bin_${archdir}d/lib ]; then
-    mkdir -p bin_${archdir}d/lib
-  fi
+  mkdir -p bin_${archdir}d/lib
 )
 
 copy_libs() (
@@ -112,5 +110,3 @@ if ! $clean_build || [ ${CONFIGRETVAL} -eq 0 ]; then
   build &&
   copy_libs
 fi
-
-cd ..
