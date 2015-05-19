@@ -25,17 +25,12 @@ do
 done
 
 BASEDIR=$(pwd)
-THIRDPARTYPREFIX=$(pwd)/bin_${archdir}/thirdparty
+THIRDPARTYPREFIX=${BASEDIR}/bin_${archdir}/thirdparty
 export PKG_CONFIG_PATH="${THIRDPARTYPREFIX}/lib/pkgconfig/"
 
 make_dirs() (
-  if [ ! -d bin_${archdir}/lib ]; then
-    mkdir -p bin_${archdir}/lib
-  fi
-
-  if [ ! -d bin_${archdir}d/lib ]; then
-    mkdir -p bin_${archdir}d/lib
-  fi
+  mkdir -p bin_${archdir}/lib
+  mkdir -p bin_${archdir}d/lib
 )
 
 copy_libs() (
