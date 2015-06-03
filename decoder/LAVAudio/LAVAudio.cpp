@@ -2071,7 +2071,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
         break;
       case AV_SAMPLE_FMT_DBLP:
         {
-          out.bBuffer->Allocate(dwPCMSizeAligned);
+          out.bBuffer->Allocate(dwPCMSizeAligned / 2);
           out.bBuffer->SetSize(dwPCMSize / 2);
           float *pOut = (float *)(out.bBuffer->Ptr());
 
