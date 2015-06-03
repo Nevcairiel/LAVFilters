@@ -1430,6 +1430,9 @@ HRESULT CLAVAudio::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
     if (FAILED(hr)) {
       return hr;
     }
+
+    m_bDVDPlayback = (pmt->majortype == MEDIATYPE_DVD_ENCRYPTED_PACK || pmt->majortype == MEDIATYPE_MPEG2_PACK || pmt->majortype == MEDIATYPE_MPEG2_PES);
+
   }
   return __super::SetMediaType(dir, pmt);
 }
@@ -1460,9 +1463,28 @@ HRESULT CLAVAudio::EndOfStream()
   return __super::EndOfStream();
 }
 
+HRESULT CLAVAudio::PerformFlush()
+{
+  CAutoLock cAutoLock(&m_csReceive);
+
+  m_buff.Clear();
+  FlushOutput(FALSE);
+  FlushDecoder();
+
+  m_bsOutput.SetSize(0);
+
+  m_rtStart = 0;
+  m_bQueueResync = TRUE;
+  m_bNeedSyncpoint = (m_raData.deint_id != 0);
+  m_SuppressLayout = 0;
+
+  return S_OK;
+}
+
 HRESULT CLAVAudio::BeginFlush()
 {
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::BeginFlush()"));
+  m_bFlushing = TRUE;
   return __super::BeginFlush();
 }
 
@@ -1470,27 +1492,22 @@ HRESULT CLAVAudio::EndFlush()
 {
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::EndFlush()"));
   CAutoLock cAutoLock(&m_csReceive);
-  m_buff.Clear();
-  FlushOutput(FALSE);
 
-  FlushDecoder();
+  if (m_bDVDPlayback)
+    PerformFlush();
 
-  m_bsOutput.SetSize(0);
-
-  m_bQueueResync = TRUE;
-  m_SuppressLayout = 0;
-
-  return __super::EndFlush();
+  HRESULT hr = __super::EndFlush();
+  m_bFlushing = FALSE;
+  return hr;
 }
 
 HRESULT CLAVAudio::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::NewSegment() tStart: %I64d, tStop: %I64d, dRate: %.2f", tStart, tStop, dRate));
   CAutoLock cAutoLock(&m_csReceive);
-  m_rtStart = 0;
-  m_bQueueResync = TRUE;
-  m_bNeedSyncpoint = (m_raData.deint_id != 0);
-  m_SuppressLayout = 0;
+
+  PerformFlush();
+
   if (dRate > 0.0)
     m_dRate = dRate;
   else
@@ -2175,6 +2192,9 @@ HRESULT CLAVAudio::FlushOutput(BOOL bDeliver)
 HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
 {
   HRESULT hr = S_OK;
+
+  if (m_bFlushing)
+    return S_FALSE;
 
   CMediaType mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask, buffer.wBitsPerSample);
   WAVEFORMATEX* wfe = (WAVEFORMATEX*)mt.Format();

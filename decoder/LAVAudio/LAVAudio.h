@@ -195,6 +195,7 @@ private:
   HRESULT FlushOutput(BOOL bDeliver = TRUE);
   HRESULT FlushDecoder();
 
+  HRESULT PerformFlush();
   HRESULT Deliver(BufferDetails &buffer);
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
@@ -242,6 +243,7 @@ private:
   AVCodecParserContext *m_pParser  = nullptr;
   AVFrame              *m_pFrame   = nullptr;
 
+  BOOL                 m_bFlushing      = FALSE;
   BOOL                 m_bDiscontinuity = FALSE;
   REFERENCE_TIME       m_rtStart        = 0;
   double               m_dStartOffset   = 0.0;
@@ -316,6 +318,7 @@ private:
   BOOL                m_bForceDTSCore                = FALSE;
   CBitstreamParser    m_bsParser;
   BOOL                m_bFindDTSInPCM                = FALSE;
+  BOOL                m_bDVDPlayback                 = FALSE;
 
   FloatingAverage<REFERENCE_TIME> m_faJitter{50};
   REFERENCE_TIME      m_JitterLimit = MAX_JITTER_DESYNC;

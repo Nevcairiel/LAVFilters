@@ -374,6 +374,9 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
 {
   HRESULT hr = S_OK;
 
+  if (m_bFlushing)
+    return S_FALSE;
+
   CMediaType mt = CreateBitstreamMediaType(codec, m_bsParser.m_dwSampleRate);
 
   if(FAILED(hr = ReconnectOutput(dwSize, mt))) {
