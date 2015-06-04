@@ -58,9 +58,9 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
       PIXCONV_LOAD_ALIGNED(xmm0, (rgb + i));      /* load */
       PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));
       PIXCONV_LOAD_ALIGNED(xmm2, (rgb + i + 16));
-      _mm_adds_epu16(xmm0, xmm5);                 /* apply dithering coefficients */
-      _mm_adds_epu16(xmm1, xmm6);
-      _mm_adds_epu16(xmm2, xmm7);
+      xmm0 = _mm_adds_epu16(xmm0, xmm5);          /* apply dithering coefficients */
+      xmm1 = _mm_adds_epu16(xmm1, xmm6);
+      xmm2 = _mm_adds_epu16(xmm2, xmm7);
       xmm0 = _mm_srli_epi16(xmm0, 8);             /* shift to 8-bit */
       xmm1 = _mm_srli_epi16(xmm1, 8);
       xmm2 = _mm_srli_epi16(xmm2, 8);
@@ -131,8 +131,8 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
     for (i = 0; i < processWidth; i += 16) {
       PIXCONV_LOAD_ALIGNED(xmm0, (rgb + i));      /* load */
       PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));
-      _mm_adds_epu16(xmm0, xmm6);                 /* apply dithering coefficients */
-      _mm_adds_epu16(xmm1, xmm7);
+      xmm0 = _mm_adds_epu16(xmm0, xmm6);          /* apply dithering coefficients */
+      xmm1 = _mm_adds_epu16(xmm1, xmm7);
       xmm0 = _mm_srli_epi16(xmm0, 8);             /* shift to 8-bit */
       xmm1 = _mm_srli_epi16(xmm1, 8);
 
