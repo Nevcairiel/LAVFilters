@@ -262,7 +262,7 @@ private:
   LAVAudioSampleFormat m_FallbackFormat    = SampleFormat_None;
   DWORD                m_dwOverrideMixer   = 0;
 
-  BOOL                 m_bHasVideo              = TRUE;
+  int                  m_bHasVideo              = -1;
 
   AVAudioResampleContext *m_avrContext          = nullptr;
   LAVAudioSampleFormat m_sfRemixFormat          = SampleFormat_None;

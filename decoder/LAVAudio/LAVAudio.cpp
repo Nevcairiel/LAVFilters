@@ -1201,12 +1201,14 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   GetModuleFileName(nullptr, fileName, 1024);
   std::wstring processName = PathFindFileName(fileName);
 
-  m_bHasVideo =  _wcsicmp(processName.c_str(), L"dllhost.exe") == 0
-              || _wcsicmp(processName.c_str(), L"explorer.exe") == 0
-              || _wcsicmp(processName.c_str(), L"ReClockHelper.dll") == 0
-              || _wcsicmp(processName.c_str(), L"dvbviewer.exe") == 0
-              || HasSourceWithType(m_pInput, MEDIATYPE_Video)
-              || m_pInput->CurrentMediaType().majortype != MEDIATYPE_Audio;
+  if (m_bHasVideo == -1) {
+    m_bHasVideo =  _wcsicmp(processName.c_str(), L"dllhost.exe") == 0
+                || _wcsicmp(processName.c_str(), L"explorer.exe") == 0
+                || _wcsicmp(processName.c_str(), L"ReClockHelper.dll") == 0
+                || _wcsicmp(processName.c_str(), L"dvbviewer.exe") == 0
+                || HasSourceWithType(m_pInput, MEDIATYPE_Video)
+                || m_pInput->CurrentMediaType().majortype != MEDIATYPE_Audio;
+  }
   DbgLog((LOG_TRACE, 10, L"-> Do we have video? %d", m_bHasVideo));
 
   // If the codec is bitstreaming, and enabled for it, go there now
@@ -2333,6 +2335,7 @@ HRESULT CLAVAudio::BreakConnect(PIN_DIRECTION dir)
 {
   if(dir == PINDIR_INPUT) {
     ffmpeg_shutdown();
+    m_bHasVideo = -1;
   }
   return __super::BreakConnect(dir);
 }
