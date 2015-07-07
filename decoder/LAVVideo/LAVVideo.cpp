@@ -972,6 +972,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   if (dxvaExtFlags.VideoPrimaries > DXVA2_VideoPrimaries_SMPTE_C && !m_bMadVR) {
     dxvaExtFlags.VideoPrimaries = DXVA2_VideoPrimaries_Unknown;
   }
+  if (dxvaExtFlags.VideoTransferFunction > MFVideoTransFunc_Log_316 && !m_bMadVR) {
+    dxvaExtFlags.VideoTransferFunction = DXVA2_VideoTransFunc_Unknown;
+  }
 
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
