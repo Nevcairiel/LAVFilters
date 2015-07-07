@@ -22,6 +22,7 @@
 #include "Media.h"
 
 #include <MMReg.h>
+#include <Mfidl.h>
 
 #include "moreuuids.h"
 
@@ -710,6 +711,9 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   // Color Transfer Function
   switch(transfer) {
   case AVCOL_TRC_BT709:
+  case AVCOL_TRC_SMPTE170M:
+  case AVCOL_TRC_BT2020_10:
+  case AVCOL_TRC_BT2020_12:
     fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
     break;
   case AVCOL_TRC_GAMMA22:
@@ -720,6 +724,12 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
     break;
   case AVCOL_TRC_SMPTE240M:
     fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
+    break;
+  case AVCOL_TRC_LOG:
+    fmt.VideoTransferFunction = MFVideoTransFunc_Log_100;
+    break;
+  case AVCOL_TRC_LOG_SQRT:
+    fmt.VideoTransferFunction = MFVideoTransFunc_Log_316;
     break;
   }
 }
