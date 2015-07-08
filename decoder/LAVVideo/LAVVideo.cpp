@@ -1692,6 +1692,17 @@ HRESULT CLAVVideo::GetD3DBuffer(LAVFrame *pFrame)
 
 HRESULT CLAVVideo::RedrawStillImage()
 {
+  IMediaControl *pMC = nullptr;
+  if (m_pGraph->QueryInterface(&pMC) == S_OK && pMC) {
+    OAFilterState state = State_Stopped;
+    pMC->GetState(0, &state);
+    SafeRelease(&pMC);
+    if (state != State_Running) {
+      DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redraw ignored, graph is not running."));
+      return S_FALSE;
+    }
+  }
+
   if (m_pLastSequenceFrame) {
     CAutoLock lock(&m_csReceive);
     // Since a delivery call can clear the stored sequence frame, we need a second check here
