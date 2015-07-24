@@ -399,7 +399,7 @@ HRESULT CStreamParser::ParseRawSSA(Packet *pPacket)
     size -= start - data;
     // ASS packages with layer
     sscanf_s(data, "Dialogue: %d,", &layer);
-    i = _snprintf_s(buffer, sizeof(buffer), "%I64d,%d,", 0, layer);
+    i = _snprintf_s(buffer, sizeof(buffer), "%d,%d,", 0, layer);
     size = FFMIN(i+size, sizeof(buffer));
     memcpy(buffer+i, start, size-i);
 
