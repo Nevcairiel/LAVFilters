@@ -1082,7 +1082,7 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   for (int i = 0; i < m_NumSurfaces; i++) {
     m_pSurfaces[i].index = i;
     m_pSurfaces[i].d3d = ppSurfaces[i];
-    m_pSurfaces[i].age = 0;
+    m_pSurfaces[i].age = UINT64_MAX;
     m_pSurfaces[i].used = false;
 
     // fill the surface in black, to avoid the "green screen" in case the first frame fails to decode.
