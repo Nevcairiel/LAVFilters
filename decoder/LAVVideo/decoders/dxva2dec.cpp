@@ -963,7 +963,24 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
 STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
 {
-  long buffers = 16 + 4;
+  long buffers = 0;
+
+  // Native decoding should use 16 buffers to enable seamless codec changes
+  if (m_bNative)
+    buffers = 16;
+  else {
+    // Buffers based on max ref frames
+    if (m_nCodecId == AV_CODEC_ID_H264)
+      buffers = 16;
+    else if (m_nCodecId == AV_CODEC_ID_HEVC)
+      buffers = 8;
+    else
+      buffers = 2;
+  }
+
+  // 4 extra buffers for handling and safety
+  buffers += 4;
+
   if (!m_bNative) {
     buffers += m_DisplayDelay;
   }
