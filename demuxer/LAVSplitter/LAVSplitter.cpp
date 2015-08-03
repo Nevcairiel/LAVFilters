@@ -62,6 +62,8 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
 
   m_pInput = new CLAVInputPin(NAME("LAV Input Pin"), this, this, phr);
 
+  m_ePlaybackInit.Set();
+
 #ifdef DEBUG
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
@@ -688,6 +690,7 @@ DWORD CLAVSplitter::ThreadProc()
     if(cmd == CMD_EXIT)
     {
       Reply(S_OK);
+      m_ePlaybackInit.Set();
       return 0;
     }
 
@@ -911,6 +914,7 @@ STDMETHODIMP CLAVSplitter::Pause()
     m_pDemuxer->SettingsChanged(static_cast<ILAVFSettingsInternal *>(this));
 
     // Create demuxing thread
+    m_ePlaybackInit.Reset();
     Create();
   }
 
