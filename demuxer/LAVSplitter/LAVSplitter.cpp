@@ -914,7 +914,8 @@ STDMETHODIMP CLAVSplitter::Pause()
     m_pDemuxer->SettingsChanged(static_cast<ILAVFSettingsInternal *>(this));
 
     // Create demuxing thread
-    m_ePlaybackInit.Reset();
+    if (!ThreadExists())
+      m_ePlaybackInit.Reset();
     Create();
   }
 
