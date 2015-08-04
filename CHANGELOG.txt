@@ -1,6 +1,21 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.66.0 - 2015/xx/xx
+LAV Splitter
+- Changed: Switched ASF/WMV demuxing to a new demuxer from Libav
+- Fixed: Improved seeking with MPEG-TS files which contain teletext streams
+
+LAV Video
+- Changed: 4K Video Decoding on AMD graphics card is now enabled (needs recent drivers to work properly)
+- Changed: DXVA2-CB decoding uses less memory on NVIDIA graphics cards
+- Fixed: H264 DXVA2 decoding failed when no SPS/PPS was available in the media type
+- Fixed: Conversion of RGB48 to RGB32/24 did not properly use dithering
+- Fixed: Improved handling of a few DVD menu quirks
+
+LAV Audio
+- Changed: 5.1 audio favors the "Side" 5.1 layout, which conforms to modern surround standards
+
 0.65.0 - 2015/04/21
 LAV Splitter
 - NEW: Support for MKV subtitle Cues to show subtitles immediately after a seek
