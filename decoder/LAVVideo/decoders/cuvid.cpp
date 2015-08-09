@@ -399,6 +399,7 @@ STDMETHODIMP CDecCuvid::Init()
     best_device = (int)dwDeviceIndex;
   }
 
+select_device:
   m_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
   if (!m_pD3D) {
     DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9"));
@@ -481,6 +482,13 @@ STDMETHODIMP CDecCuvid::Init()
       m_bVDPAULevelC = (major >= 2);
       DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor));
     }
+  }
+
+  if (cuStatus == CUDA_ERROR_INVALID_DEVICE && dwDeviceIndex != DWORD_MAX) {
+    DbgLog((LOG_TRACE, 10, L"-> Specific device was requested, but no match was found, re-trying automatic selection"));
+    dwDeviceIndex = DWORD_MAX;
+    best_device = GetMaxGflopsGraphicsDeviceId();
+    goto select_device;
   }
 
   if (cuStatus == CUDA_SUCCESS) {
