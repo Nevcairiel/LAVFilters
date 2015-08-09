@@ -475,10 +475,12 @@ STDMETHODIMP CDecCuvid::Init()
     SafeRelease(&m_pD3D);
     cuStatus = cuda.cuCtxCreate(&m_cudaContext, CU_CTX_SCHED_BLOCKING_SYNC, best_device);
 
-    int major, minor;
-    cuda.cuDeviceComputeCapability(&major, &minor, best_device);
-    m_bVDPAULevelC = (major >= 2);
-    DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor));
+    if (cuStatus == CUDA_SUCCESS) {
+      int major, minor;
+      cuda.cuDeviceComputeCapability(&major, &minor, best_device);
+      m_bVDPAULevelC = (major >= 2);
+      DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor));
+    }
   }
 
   if (cuStatus == CUDA_SUCCESS) {
