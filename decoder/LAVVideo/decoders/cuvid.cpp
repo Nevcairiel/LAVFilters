@@ -464,8 +464,10 @@ STDMETHODIMP CDecCuvid::Init()
   if (dwDeviceIndex != DWORD_MAX && device != best_device) {
     DbgLog((LOG_ERROR, 10, L"-> No D3D Device found matching the requested device"));
     SafeRelease(&m_pD3DDevice);
-    if (m_cudaContext)
+    if (m_cudaContext) {
       cuda.cuCtxDestroy(m_cudaContext);
+      m_cudaContext = 0;
+    }
   }
 
   if (!m_pD3DDevice) {
