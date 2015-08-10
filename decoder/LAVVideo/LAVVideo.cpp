@@ -823,6 +823,24 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   DbgLog((LOG_TRACE, 10, L"::CompleteConnect"));
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
+    if (m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P010 || m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P016) {
+      BOOL bEVR = false;
+
+      // Check if we're connecting to EVR
+      IBaseFilter *pFilter = GetFilterFromPin(pReceivePin);
+      if (pFilter != nullptr) {
+        CLSID guid;
+        if (SUCCEEDED(pFilter->GetClassID(&guid))) {
+          DbgLog((LOG_TRACE, 10, L"-> Connecting P010/P016 to %s", WStringFromGUID(guid).c_str()));
+          bEVR = (guid == CLSID_EnhancedVideoRenderer);
+        }
+        SafeRelease(&pFilter);
+      }
+
+      if (bEVR)
+        return VFW_E_TYPE_NOT_ACCEPTED;
+    }
+
     hr = m_Decoder.PostConnect(pReceivePin);
     if (SUCCEEDED(hr)) {
       CheckDirectMode();
