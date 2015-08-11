@@ -553,11 +553,6 @@ HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, bool bHighBitdept
        SAFE_CO_FREE(out_list);
        SAFE_CO_FREE(input_list);
 
-       if (m_bNative && bHighBitdepth) {
-         DbgLog((LOG_TRACE, 10, L"-> 10-bit decoding disabled in native mode"));
-         return E_FAIL;
-       }
-
        return S_OK;
      }
 
@@ -876,7 +871,7 @@ DWORD CDecDXVA2::GetAlignedDimension(DWORD dim)
   (((profile) & ~FF_PROFILE_H264_CONSTRAINED) <= FF_PROFILE_H264_HIGH)
 
 #define HEVC_CHECK_PROFILE(dec, profile) \
-  ((dec->m_bNative && (profile) <= FF_PROFILE_HEVC_MAIN) || (!dec->m_bNative && (profile) <= FF_PROFILE_HEVC_MAIN_10))
+  ((profile) <= FF_PROFILE_HEVC_MAIN_10)
 
 STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {

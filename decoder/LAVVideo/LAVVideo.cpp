@@ -823,26 +823,32 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   DbgLog((LOG_TRACE, 10, L"::CompleteConnect"));
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
+    BOOL bFailNonDXVA = false;
     if (m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P010 || m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P016) {
-      BOOL bEVR = false;
-
       // Check if we're connecting to EVR
       IBaseFilter *pFilter = GetFilterFromPin(pReceivePin);
       if (pFilter != nullptr) {
         CLSID guid;
         if (SUCCEEDED(pFilter->GetClassID(&guid))) {
           DbgLog((LOG_TRACE, 10, L"-> Connecting P010/P016 to %s", WStringFromGUID(guid).c_str()));
-          bEVR = (guid == CLSID_EnhancedVideoRenderer);
+          bFailNonDXVA = (guid == CLSID_EnhancedVideoRenderer);
         }
         SafeRelease(&pFilter);
       }
-
-      if (bEVR)
-        return VFW_E_TYPE_NOT_ACCEPTED;
     }
 
     hr = m_Decoder.PostConnect(pReceivePin);
     if (SUCCEEDED(hr)) {
+      if (bFailNonDXVA) {
+        LAVPixelFormat fmt;
+        m_Decoder.GetPixelFormat(&fmt, nullptr);
+
+        if (fmt != LAVPixFmt_DXVA2) {
+          DbgLog((LOG_TRACE, 10, L"-> Non-DXVA2 Connection rejected on this renderer and subtype"));
+          return VFW_E_TYPE_NOT_ACCEPTED;
+        }
+      }
+
       CheckDirectMode();
     }
   } else if (dir == PINDIR_INPUT) {
