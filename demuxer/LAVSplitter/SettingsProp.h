@@ -76,6 +76,7 @@ private:
   BOOL m_PreferHighQualityAudio;
   BOOL m_ImpairedAudio;
   DWORD m_QueueMaxMem;
+  DWORD m_QueueMaxPackets;
   DWORD m_NetworkAnalysisDuration;
 
   BOOL m_TrayIcon;

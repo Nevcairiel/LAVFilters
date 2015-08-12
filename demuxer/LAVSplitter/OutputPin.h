@@ -151,7 +151,7 @@ private:
 
   int m_nBuffers        = 1;
   DWORD m_dwQueueLow    = MIN_PACKETS_IN_QUEUE;
-  DWORD m_dwQueueHigh   = MAX_PACKETS_IN_QUEUE;
+  DWORD m_dwQueueHigh   = 350;
   DWORD m_dwQueueMaxMem = 256;
 
   DWORD m_streamId      = 0;

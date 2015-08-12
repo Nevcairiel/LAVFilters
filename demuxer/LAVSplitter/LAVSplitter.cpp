@@ -158,7 +158,8 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
   m_settings.StreamSwitchRemoveAudio = FALSE;
   m_settings.ImpairedAudio    = FALSE;
   m_settings.PreferHighQualityAudio = TRUE;
-  m_settings.QueueMaxSize     = 256;
+  m_settings.QueueMaxPackets  = 350;
+  m_settings.QueueMaxMemSize  = 256;
   m_settings.NetworkAnalysisDuration = 1000;
 
   for (const FormatInfo& fmt : m_InputFormats) {
@@ -229,10 +230,13 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
     if (SUCCEEDED(hr)) m_settings.ImpairedAudio = bFlag;
 
     dwVal = reg.ReadDWORD(L"QueueMaxSize", hr);
-    if (SUCCEEDED(hr)) m_settings.QueueMaxSize = dwVal;
+    if (SUCCEEDED(hr)) m_settings.QueueMaxMemSize = dwVal;
 
     dwVal = reg.ReadDWORD(L"NetworkAnalysisDuration", hr);
     if (SUCCEEDED(hr)) m_settings.NetworkAnalysisDuration = dwVal;
+
+    dwVal = reg.ReadDWORD(L"QueueMaxPackets", hr);
+    if (SUCCEEDED(hr)) m_settings.QueueMaxPackets = dwVal;
   }
 
   CRegistry regF = CRegistry(rootKey, LAVF_REGISTRY_KEY_FORMATS, hr, TRUE);
@@ -273,8 +277,9 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
     reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
     reg.WriteBOOL(L"PreferHighQualityAudio", m_settings.PreferHighQualityAudio);
     reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
-    reg.WriteDWORD(L"QueueMaxSize", m_settings.QueueMaxSize);
+    reg.WriteDWORD(L"QueueMaxSize", m_settings.QueueMaxMemSize);
     reg.WriteDWORD(L"NetworkAnalysisDuration", m_settings.NetworkAnalysisDuration);
+    reg.WriteDWORD(L"QueueMaxPackets", m_settings.QueueMaxPackets);
   }
 
   CreateRegistryKey(HKEY_CURRENT_USER, LAVF_REGISTRY_KEY_FORMATS);
@@ -1752,7 +1757,7 @@ STDMETHODIMP_(BOOL) CLAVSplitter::GetUseAudioForHearingVisuallyImpaired()
 
 STDMETHODIMP CLAVSplitter::SetMaxQueueMemSize(DWORD dwMaxSize)
 {
-  m_settings.QueueMaxSize = dwMaxSize;
+  m_settings.QueueMaxMemSize = dwMaxSize;
   for(auto it = m_pPins.begin(); it != m_pPins.end(); it++) {
     (*it)->SetQueueSizes();
   }
@@ -1761,7 +1766,7 @@ STDMETHODIMP CLAVSplitter::SetMaxQueueMemSize(DWORD dwMaxSize)
 
 STDMETHODIMP_(DWORD) CLAVSplitter::GetMaxQueueMemSize()
 {
-  return m_settings.QueueMaxSize;
+  return m_settings.QueueMaxMemSize;
 }
 
 STDMETHODIMP CLAVSplitter::SetTrayIcon(BOOL bEnabled)
@@ -1844,6 +1849,20 @@ STDMETHODIMP CLAVSplitter::SetNetworkStreamAnalysisDuration(DWORD dwDuration)
 STDMETHODIMP_(DWORD) CLAVSplitter::GetNetworkStreamAnalysisDuration()
 {
   return m_settings.NetworkAnalysisDuration;
+}
+
+STDMETHODIMP CLAVSplitter::SetMaxQueueSize(DWORD dwMaxSize)
+{
+  m_settings.QueueMaxPackets = dwMaxSize;
+  for (auto it = m_pPins.begin(); it != m_pPins.end(); it++) {
+    (*it)->SetQueueSizes();
+  }
+  return SaveSettings();
+}
+
+STDMETHODIMP_(DWORD) CLAVSplitter::GetMaxQueueSize()
+{
+  return m_settings.QueueMaxPackets;
 }
 
 STDMETHODIMP_(std::set<FormatInfo>&) CLAVSplitter::GetInputFormats()

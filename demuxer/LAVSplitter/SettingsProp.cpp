@@ -113,6 +113,10 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
   int maxMem = _wtoi(buffer);
   CHECK_HR(hr = m_pLAVF->SetMaxQueueMemSize(maxMem));
 
+  SendDlgItemMessage(m_Dlg, IDC_QUEUE_PACKETS, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
+  int maxPackets = _wtoi(buffer);
+  CHECK_HR(hr = m_pLAVF->SetMaxQueueSize(maxPackets));
+
   SendDlgItemMessage(m_Dlg, IDC_STREAM_ANADUR, WM_GETTEXT, LANG_BUFFER_SIZE, (LPARAM)&buffer);
   int duration = _wtoi(buffer);
   CHECK_HR(hr = m_pLAVF->SetNetworkStreamAnalysisDuration(duration));
@@ -230,6 +234,14 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   swprintf_s(stringBuffer, L"%d", m_QueueMaxMem);
   SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM, WM_SETTEXT, 0, (LPARAM)stringBuffer);
 
+  SendDlgItemMessage(m_Dlg, IDC_QUEUE_PACKETS_SPIN, UDM_SETRANGE32, 100, 100000);
+
+  addHint(IDC_QUEUE_PACKETS, L"Set the maximum numbers of packets to buffer in the frame queue.\nNote that the frame queue will never exceed the memory limited set above.");
+  addHint(IDC_QUEUE_PACKETS_SPIN, L"Set the maximum numbers of packets to buffer in the frame queue.\nNote that the frame queue will never exceed the memory limited set above.");
+
+  swprintf_s(stringBuffer, L"%d", m_QueueMaxPackets);
+  SendDlgItemMessage(m_Dlg, IDC_QUEUE_PACKETS, WM_SETTEXT, 0, (LPARAM)stringBuffer);
+
   SendDlgItemMessage(m_Dlg, IDC_STREAM_ANADUR_SPIN, UDM_SETRANGE32, 200, 10000);
 
   addHint(IDC_STREAM_ANADUR, L"Set the duration (in milliseconds) a network stream is analyzed for before playback starts.\nA longer duration ensures the stream parameters are properly detected, however it will delay playback start.\n\nDefault: 1000 (1 second)");
@@ -268,6 +280,7 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
   m_PreferHighQualityAudio = m_pLAVF->GetPreferHighQualityAudioStreams();
   m_ImpairedAudio = m_pLAVF->GetUseAudioForHearingVisuallyImpaired();
   m_QueueMaxMem = m_pLAVF->GetMaxQueueMemSize();
+  m_QueueMaxPackets = m_pLAVF->GetMaxQueueSize();
   m_NetworkAnalysisDuration = m_pLAVF->GetNetworkStreamAnalysisDuration();
 
   m_TrayIcon = m_pLAVF->GetTrayIcon();
@@ -368,6 +381,20 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
         if (wcslen(buffer) != len)
           SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM, WM_SETTEXT, 0, (LPARAM)buffer);
         if (maxMem != m_QueueMaxMem)
+          SetDirty();
+      }
+    } else if (LOWORD(wParam) == IDC_QUEUE_PACKETS && HIWORD(wParam) == EN_CHANGE) {
+      WCHAR buffer[100];
+      SendDlgItemMessage(m_Dlg, LOWORD(wParam), WM_GETTEXT, 100, (LPARAM)&buffer);
+      int maxMem = _wtoi(buffer);
+      size_t len = wcslen(buffer);
+      if (maxMem == 0 && (buffer[0] != L'0' || len > 1)) {
+        SendDlgItemMessage(m_Dlg, LOWORD(wParam), EM_UNDO, 0, 0);
+      } else {
+        swprintf_s(buffer, L"%d", maxMem);
+        if (wcslen(buffer) != len)
+          SendDlgItemMessage(m_Dlg, IDC_QUEUE_PACKETS, WM_SETTEXT, 0, (LPARAM)buffer);
+        if (maxMem != m_QueueMaxPackets)
           SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_STREAM_ANADUR && HIWORD(wParam) == EN_CHANGE) {

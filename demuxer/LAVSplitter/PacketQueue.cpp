@@ -29,18 +29,6 @@ void CPacketQueue::Queue(Packet *pPacket)
     m_dataSize += pPacket->GetDataSize();
 
   m_queue.push_back(pPacket);
-
-#ifdef DEBUG
-  if (m_queue.size() > MAX_PACKETS_IN_QUEUE && !m_bWarnedFull) {
-    DbgLog((LOG_TRACE, 20, L"CPacketQueue::Queue() - Queue is Full (%d elements)", m_queue.size()));
-    m_bWarnedFull = true;
-  } else if (m_queue.size() > 10*MAX_PACKETS_IN_QUEUE && !m_bWarnedExtreme) {
-    DbgLog((LOG_TRACE, 20, L"CPacketQueue::Queue() - Queue is Extremely Full (%d elements)", m_queue.size()));
-    m_bWarnedExtreme = true;
-  } else if (m_queue.size() < MAX_PACKETS_IN_QUEUE/2) {
-    m_bWarnedFull = m_bWarnedExtreme = false;
-  }
-#endif
 }
 
 // Get a packet from the beginning of the list

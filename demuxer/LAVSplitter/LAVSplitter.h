@@ -173,6 +173,8 @@ public:
   STDMETHODIMP GetFormats(LPSTR** formats, UINT* nFormats);
   STDMETHODIMP SetNetworkStreamAnalysisDuration(DWORD dwDuration);
   STDMETHODIMP_(DWORD) GetNetworkStreamAnalysisDuration();
+  STDMETHODIMP SetMaxQueueSize(DWORD dwMaxSize);
+  STDMETHODIMP_(DWORD) GetMaxQueueSize();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(LPCSTR) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return nullptr; }
@@ -285,7 +287,8 @@ private:
     BOOL StreamSwitchRemoveAudio;
     BOOL ImpairedAudio;
     BOOL PreferHighQualityAudio;
-    DWORD QueueMaxSize;
+    DWORD QueueMaxPackets;
+    DWORD QueueMaxMemSize;
     DWORD NetworkAnalysisDuration;
 
     std::map<std::string, BOOL> formats;

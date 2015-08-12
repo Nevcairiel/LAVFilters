@@ -22,10 +22,6 @@
 #include <deque>
 
 #define MIN_PACKETS_IN_QUEUE 50           // Below this is considered "drying pin"
-#define MAX_PACKETS_IN_QUEUE 350
-
-// 192MB maximum for a single queue
-#define MAX_QUEUE_SIZE       (192 * 1024 * 1024)
 
 class Packet;
 

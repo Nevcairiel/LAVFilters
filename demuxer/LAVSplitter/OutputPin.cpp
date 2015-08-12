@@ -64,7 +64,7 @@ void CLAVOutputPin::SetQueueSizes()
   }
 
   m_dwQueueLow  = MIN_PACKETS_IN_QUEUE * factor;
-  m_dwQueueHigh = MAX_PACKETS_IN_QUEUE * factor;
+  m_dwQueueHigh = (static_cast<CLAVSplitter*>(m_pFilter))->GetMaxQueueSize() * factor;
 
   m_dwQueueMaxMem = (static_cast<CLAVSplitter*>(m_pFilter))->GetMaxQueueMemSize() * 1024 * 1024;
   if (!m_dwQueueMaxMem) {

@@ -184,4 +184,10 @@ interface ILAVFSettings : public IUnknown
 
   // Get the duration (in ms) of analysis for network streams (to find the streams and codec parameters)
   STDMETHOD_(DWORD, GetNetworkStreamAnalysisDuration)() = 0;
+
+  // Set the maximum queue size, in number of packets
+  STDMETHOD(SetMaxQueueSize)(DWORD dwMaxSize) = 0;
+
+  // Get the maximum queue size, in number of packets
+  STDMETHOD_(DWORD, GetMaxQueueSize)() = 0;
 };
