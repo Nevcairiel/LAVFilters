@@ -831,7 +831,7 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
         CLSID guid;
         if (SUCCEEDED(pFilter->GetClassID(&guid))) {
           DbgLog((LOG_TRACE, 10, L"-> Connecting P010/P016 to %s", WStringFromGUID(guid).c_str()));
-          bFailNonDXVA = (guid == CLSID_EnhancedVideoRenderer);
+          bFailNonDXVA = (guid == CLSID_EnhancedVideoRenderer || guid == CLSID_VideoMixingRenderer9 || guid == CLSID_VideoMixingRenderer);
         }
         SafeRelease(&pFilter);
       }
