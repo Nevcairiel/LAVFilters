@@ -630,6 +630,16 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
     }
   }
 
+  // Check if current output uses back layout, and keep it active in that case
+  if (buffer->dwChannelMask == AV_CH_LAYOUT_5POINT1) {
+    WAVEFORMATEX * wfe = (WAVEFORMATEX *)m_pOutput->CurrentMediaType().Format();
+    if (wfe->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
+      WAVEFORMATEXTENSIBLE * wfex  = (WAVEFORMATEXTENSIBLE *)wfe;
+      if (wfex->dwChannelMask == AV_CH_LAYOUT_5POINT1_BACK)
+        buffer->dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+    }
+  }
+
   // Mono -> Stereo expansion
   if (buffer->wChannels == 1 && m_settings.ExpandMono) {
     ExtendedChannelMap map = {{0,-2}, {0, -2}};

@@ -935,13 +935,10 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     return E_INVALIDARG;
   }
 
-  int maxIndex = m_avBSContext ? 0 : 1;
-
-  if(iPosition > maxIndex) {
-    return VFW_S_NO_MORE_ITEMS;
-  }
-
   if (m_avBSContext) {
+    if (iPosition > 0)
+      return VFW_S_NO_MORE_ITEMS;
+
     *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate, TRUE);
   } else {
     const int nSamplesPerSec = m_pAVCtx->sample_rate;
@@ -978,7 +975,12 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
       }
     }
 
-    if (iPosition == 1) {
+    if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && iPosition > 1 && iPosition < 4)
+      dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+    else if (iPosition > 1)
+      return VFW_S_NO_MORE_ITEMS;
+
+    if (iPosition % 2) {
       lav_sample_fmt = SampleFormat_16;
       bits = 16;
     } else {
@@ -2252,6 +2254,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
   }
 
   if(hr == S_OK) {
+  retry_qa:
     hr = m_pOutput->GetConnected()->QueryAccept(&mt);
     DbgLog((LOG_TRACE, 1, L"Sending new Media Type (QueryAccept: %0#.8x)", hr));
     if (hr != S_OK) {
@@ -2263,6 +2266,13 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
           m_FallbackFormat = SampleFormat_16;
           PerformAVRProcessing(&buffer);
         }
+      }
+      // Try 5.1 back fallback format
+      if (buffer.dwChannelMask == AV_CH_LAYOUT_5POINT1) {
+        DbgLog((LOG_TRACE, 1, L"-> Trying to fallback to 5.1 back"));
+        buffer.dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+        mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask, buffer.wBitsPerSample);
+        goto retry_qa;
       }
       // If a 16-bit fallback isn't enough, try to retain current channel layout as well
       if (hr != S_OK) {
