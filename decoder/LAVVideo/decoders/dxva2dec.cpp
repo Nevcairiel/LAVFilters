@@ -965,10 +965,8 @@ STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
     buffers = 16;
   else {
     // Buffers based on max ref frames
-    if (m_nCodecId == AV_CODEC_ID_H264)
+    if (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_HEVC)
       buffers = 16;
-    else if (m_nCodecId == AV_CODEC_ID_HEVC)
-      buffers = 8;
     else
       buffers = 2;
   }
