@@ -3,7 +3,7 @@
 #include "version_rev.h"
 
 #define LAV_VERSION_MAJOR     0
-#define LAV_VERSION_MINOR    65
+#define LAV_VERSION_MINOR    66
 #define LAV_VERSION_REVISION  0
 
 /////////////////////////////////////////////////////////
