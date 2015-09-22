@@ -190,6 +190,10 @@ interface ILAVAudioSettings : public IUnknown
   // This option is NOT persistent
   STDMETHOD(SetSuppressFormatChanges)(BOOL bEnabled) = 0;
   STDMETHOD_(BOOL, GetSuppressFormatChanges)() = 0;
+
+  // Use 5.1 legacy layout (using back channels instead of side)
+  STDMETHOD_(BOOL, GetOutput51LegacyLayout)() = 0;
+  STDMETHOD(SetOutput51LegacyLayout)(BOOL b51Legacy) = 0;
 };
 
 // LAV Audio Status Interface

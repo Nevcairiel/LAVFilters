@@ -136,6 +136,8 @@ public:
   STDMETHODIMP_(BOOL) GetSampleConvertDithering();
   STDMETHODIMP SetSuppressFormatChanges(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetSuppressFormatChanges();
+  STDMETHODIMP SetOutput51LegacyLayout(BOOL b51Legacy);
+  STDMETHODIMP_(BOOL) GetOutput51LegacyLayout();
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -282,6 +284,7 @@ private:
     BOOL ExpandMono;
     BOOL Expand61;
     BOOL OutputStandardLayout;
+    BOOL Output51Legacy;
     BOOL AllowRawSPDIF;
     BOOL bSampleFormats[SampleFormat_NB];
     BOOL SampleConvertDither;

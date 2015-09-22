@@ -73,6 +73,7 @@ private:
   BOOL m_bDTSHDFraming;
   BOOL m_bAutoAVSync;
   BOOL m_bOutputStdLayout;
+  BOOL m_bOutput51Legacy;
   BOOL m_bExpandMono;
   BOOL m_bExpand61;
   bool m_bSampleFormats[SampleFormat_NB];

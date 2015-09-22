@@ -91,6 +91,9 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetOutputStandardLayout(bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_OUTPUT51_LEGACY, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetOutput51LegacyLayout(bFlag);
+
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetExpandMono(bFlag);
 
@@ -175,6 +178,9 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_STANDARD_CH_LAYOUT, BM_SETCHECK, m_bOutputStdLayout, 0);
     addHint(IDC_STANDARD_CH_LAYOUT, L"Converts all channel layouts to one of the \"standard\" layouts (5.1/6.1/7.1) by adding silent channels. This is required for sending the PCM over HDMI if not using another downstream mixer, for example when using WASAPI.");
 
+    SendDlgItemMessage(m_Dlg, IDC_OUTPUT51_LEGACY, BM_SETCHECK, m_bOutput51Legacy, 0);
+    addHint(IDC_OUTPUT51_LEGACY, L"Use the legacy 5.1 channel layout which uses back channels instead of side channels, required for some audio devices and/or software.");
+
     SendDlgItemMessage(m_Dlg, IDC_EXPAND_MONO, BM_SETCHECK, m_bExpandMono, 0);
     addHint(IDC_EXPAND_MONO, L"Plays Mono Audio in both Left/Right Front channels, instead of the center.");
     SendDlgItemMessage(m_Dlg, IDC_EXPAND61, BM_SETCHECK, m_bExpand61, 0);
@@ -213,6 +219,7 @@ HRESULT CLAVAudioSettingsProp::LoadData()
   m_bDTSHDFraming = m_pAudioSettings->GetDTSHDFraming();
   m_bAutoAVSync = m_pAudioSettings->GetAutoAVSync();
   m_bOutputStdLayout = m_pAudioSettings->GetOutputStandardLayout();
+  m_bOutput51Legacy = m_pAudioSettings->GetOutput51LegacyLayout();
   m_bExpandMono = m_pAudioSettings->GetExpandMono();
   m_bExpand61 = m_pAudioSettings->GetExpand61();
 
@@ -272,6 +279,10 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_STANDARD_CH_LAYOUT && HIWORD(wParam) == BN_CLICKED) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bOutputStdLayout)
+        SetDirty();
+    } else if (LOWORD(wParam) == IDC_OUTPUT51_LEGACY && HIWORD(wParam) == BN_CLICKED) {
+      BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bFlag != m_bOutput51Legacy)
         SetDirty();
     } else if (LOWORD(wParam) == IDC_EXPAND_MONO && HIWORD(wParam) == BN_CLICKED) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);

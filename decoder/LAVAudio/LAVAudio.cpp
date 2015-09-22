@@ -170,6 +170,7 @@ HRESULT CLAVAudio::LoadDefaults()
   m_settings.ExpandMono           = FALSE;
   m_settings.Expand61             = FALSE;
   m_settings.OutputStandardLayout = TRUE;
+  m_settings.Output51Legacy       = FALSE;
   m_settings.AllowRawSPDIF        = FALSE;
 
   // Default all Sample Formats to enabled
@@ -261,6 +262,9 @@ HRESULT CLAVAudio::ReadSettings(HKEY rootKey)
     bFlag = reg.ReadBOOL(L"OutputStandardLayout", hr);
     if (SUCCEEDED(hr)) m_settings.OutputStandardLayout = bFlag;
 
+    bFlag = reg.ReadBOOL(L"Output51Legacy", hr);
+    if (SUCCEEDED(hr)) m_settings.Output51Legacy = bFlag;
+
     bFlag = reg.ReadBOOL(L"Mixing", hr);
     if (SUCCEEDED(hr)) m_settings.MixingEnabled = bFlag;
 
@@ -344,6 +348,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBOOL(L"ExpandMono", m_settings.ExpandMono);
     reg.WriteBOOL(L"Expand61", m_settings.Expand61);
     reg.WriteBOOL(L"OutputStandardLayout", m_settings.OutputStandardLayout);
+    reg.WriteBOOL(L"Output51Legacy", m_settings.Output51Legacy);
     reg.WriteBOOL(L"AudioDelayEnabled", m_settings.AudioDelayEnabled);
     reg.WriteDWORD(L"AudioDelay", m_settings.AudioDelay);
 
@@ -786,6 +791,17 @@ STDMETHODIMP_(BOOL) CLAVAudio::GetSuppressFormatChanges()
   return m_settings.SuppressFormatChanges;
 }
 
+STDMETHODIMP CLAVAudio::SetOutput51LegacyLayout(BOOL b51Legacy)
+{
+  m_settings.Output51Legacy = b51Legacy;
+  return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVAudio::GetOutput51LegacyLayout()
+{
+  return m_settings.Output51Legacy;
+}
+
 // ILAVAudioStatus
 BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
 {
@@ -974,6 +990,10 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
         dwChannelMask = get_channel_mask(nChannels);
       }
     }
+
+    // map to legacy 5.1 if user requested
+    if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && m_settings.Output51Legacy)
+      dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
 
     if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && iPosition > 1 && iPosition < 4)
       dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;

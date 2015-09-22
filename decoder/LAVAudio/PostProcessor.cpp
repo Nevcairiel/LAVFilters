@@ -389,15 +389,6 @@ HRESULT CLAVAudio::Create71Conformity(DWORD dwLayout)
   return S_OK;
 }
 
-static inline DWORD sanitize_mask(DWORD mask, AVCodecID codec)
-{
-  // Prefer the 5.1 SIDE mask
-  if (mask == AV_CH_LAYOUT_5POINT1_BACK)
-    mask = AV_CH_LAYOUT_5POINT1;
-
-  return mask;
-}
-
 HRESULT CLAVAudio::PadTo32(BufferDetails *buffer)
 {
   ASSERT(buffer->sfFormat == SampleFormat_24);
@@ -580,8 +571,6 @@ setuperr:
 
 HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
 {
-  buffer->dwChannelMask = sanitize_mask(buffer->dwChannelMask, m_nCodecId);
-
   int layout_channels = av_get_channel_layout_nb_channels(buffer->dwChannelMask);
 
   // Validate channel mask
@@ -629,6 +618,12 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
       buffer->dwChannelMask = m_ChannelMapOutputLayout;
     }
   }
+
+  // Map to the requested 5.1 layout
+  if (m_settings.Output51Legacy && buffer->dwChannelMask == AV_CH_LAYOUT_5POINT1)
+    buffer->dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+  else if (!m_settings.Output51Legacy && buffer->dwChannelMask == AV_CH_LAYOUT_5POINT1_BACK)
+    buffer->dwChannelMask = AV_CH_LAYOUT_5POINT1;
 
   // Check if current output uses back layout, and keep it active in that case
   if (buffer->dwChannelMask == AV_CH_LAYOUT_5POINT1) {
