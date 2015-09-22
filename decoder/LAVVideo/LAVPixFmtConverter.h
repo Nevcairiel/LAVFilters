@@ -157,7 +157,7 @@ private:
 
   DXVA2_ExtendedFormat m_ColorProps;
 
-  unsigned m_RequiredAlignment  = 0;
+  ptrdiff_t m_RequiredAlignment  = 0;
 
   SwsContext *m_pSwsContext     = nullptr;
 

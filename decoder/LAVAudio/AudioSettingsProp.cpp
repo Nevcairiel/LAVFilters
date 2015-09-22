@@ -349,7 +349,7 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       SetDirty();
     }
     WCHAR buffer[10];
-    _snwprintf_s(buffer, _TRUNCATE, L"%d%%", lValue);
+    _snwprintf_s(buffer, _TRUNCATE, L"%d%%", (int)lValue);
     SendDlgItemMessage(m_Dlg, IDC_DRC_LEVEL_TEXT, WM_SETTEXT, 0, (LPARAM)buffer);
     break;
   }
