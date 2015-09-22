@@ -26,9 +26,9 @@ extern "C" {
 
 #include <sstream>
 
-static int get_bit_rate(AVCodecContext *ctx)
+static int64_t get_bit_rate(AVCodecContext *ctx)
 {
-  int bit_rate;
+  int64_t bit_rate;
   int bits_per_sample;
 
   switch(ctx->codec_type) {
@@ -230,7 +230,7 @@ std::string lavf_get_stream_description(AVStream *pStream)
   if (title && strlen(title) == 0)
     title = nullptr;
 
-  int bitrate = get_bit_rate(enc);
+  int64_t bitrate = get_bit_rate(enc);
 
   std::ostringstream buf;
   switch(enc->codec_type) {

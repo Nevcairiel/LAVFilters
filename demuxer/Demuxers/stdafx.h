@@ -30,7 +30,6 @@
 #pragma warning(disable:4244)
 extern "C" {
 #define __STDC_CONSTANT_MACROS
-#define FF_API_PIX_FMT 0
 #include "libavformat/avformat.h"
 #include "libavutil/intreadwrite.h"
 #include "libavutil/pixdesc.h"

@@ -186,7 +186,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   }
 
   pvi->dwBitErrorRate = 0;
-  pvi->dwBitRate = avstream->codec->bit_rate;
+  pvi->dwBitRate = (DWORD)avstream->codec->bit_rate;
   RECT empty_tagrect = {0,0,0,0};
   pvi->rcSource = empty_tagrect;//Some codecs like wmv are setting that value to the video current value
   pvi->rcTarget = empty_tagrect;

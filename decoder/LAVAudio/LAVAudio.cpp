@@ -1350,7 +1350,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   if (codec == AV_CODEC_ID_FLAC) {
     enum FLACExtradataFormat format;
     uint8_t *streaminfo;
-    ret = avpriv_flac_is_extradata_valid(m_pAVCtx, &format, &streaminfo);
+    ret = ff_flac_is_extradata_valid(m_pAVCtx, &format, &streaminfo);
     if (ret && format == FLAC_EXTRADATA_FORMAT_FULL_HEADER) {
       AVDictionary *metadata = nullptr;
       int metadata_last = 0, metadata_type, metadata_size;

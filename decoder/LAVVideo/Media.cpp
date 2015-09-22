@@ -732,7 +732,7 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
     fmt.VideoTransferFunction = MFVideoTransFunc_Log_316;
     break;
   // Custom values, not official standard, but understood by madVR
-  case AVCOL_TRC_SMPTE2084:
+  case AVCOL_TRC_SMPTEST2084:
     fmt.VideoTransferFunction = 16;
     break;
   }
