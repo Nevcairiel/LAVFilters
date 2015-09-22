@@ -254,14 +254,14 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
 };
-const int CLAVAudio::sudPinTypesInCount = countof(CLAVAudio::sudPinTypesIn);
+const UINT CLAVAudio::sudPinTypesInCount = countof(CLAVAudio::sudPinTypesIn);
 
 // Define Output Media Types
 const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesOut[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_PCM        },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_IEEE_FLOAT },
 };
-const int CLAVAudio::sudPinTypesOutCount = countof(CLAVAudio::sudPinTypesOut);
+const UINT CLAVAudio::sudPinTypesOutCount = countof(CLAVAudio::sudPinTypesOut);
 
 // Crawl the lavc_audio_codecs array for the proper codec
 AVCodecID FindCodecId(const CMediaType *mt)

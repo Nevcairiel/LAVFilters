@@ -922,7 +922,7 @@ HRESULT CLAVAudio::GetChannelVolumeAverage(WORD nChannel, float *pfDb)
 // CTransformFilter
 HRESULT CLAVAudio::CheckInputType(const CMediaType *mtIn)
 {
-  for(int i = 0; i < sudPinTypesInCount; i++) {
+  for(UINT i = 0; i < sudPinTypesInCount; i++) {
     if(*sudPinTypesIn[i].clsMajorType == mtIn->majortype
       && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && (mtIn->formattype == FORMAT_WaveFormatEx || mtIn->formattype == FORMAT_WaveFormatExFFMPEG || mtIn->formattype == FORMAT_VorbisFormat2)) {
         return S_OK;

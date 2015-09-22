@@ -532,7 +532,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_v410 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_LAV_RAWVIDEO },
 };
-const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
+const UINT CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
 
 // Define Output Media Types
 const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesOut[] = {
@@ -543,7 +543,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesOut[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 },
 };
-const int CLAVVideo::sudPinTypesOutCount = countof(CLAVVideo::sudPinTypesOut);
+const UINT CLAVVideo::sudPinTypesOutCount = countof(CLAVVideo::sudPinTypesOut);
 
 // Crawl the lavc_video_codecs array for the proper codec
 AVCodecID FindCodecId(const CMediaType *mt)

@@ -474,7 +474,7 @@ CBasePin* CLAVVideo::GetPin(int n)
 
 HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 {
-  for(int i = 0; i < sudPinTypesInCount; i++) {
+  for(UINT i = 0; i < sudPinTypesInCount; i++) {
     if(*sudPinTypesIn[i].clsMajorType == mtIn->majortype
       && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && (mtIn->formattype == FORMAT_VideoInfo || mtIn->formattype == FORMAT_VideoInfo2 || mtIn->formattype == FORMAT_MPEGVideo || mtIn->formattype == FORMAT_MPEG2Video)) {
         return S_OK;

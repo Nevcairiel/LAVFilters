@@ -170,9 +170,9 @@ public:
 public:
   // Pin Configuration
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesIn[];
-  const static int                      sudPinTypesInCount;
+  const static UINT                     sudPinTypesInCount;
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesOut[];
-  const static int                      sudPinTypesOutCount;
+  const static UINT                     sudPinTypesOutCount;
 
 private:
   HRESULT LoadDefaults();
