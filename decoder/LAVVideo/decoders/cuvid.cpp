@@ -293,7 +293,8 @@ int CDecCuvid::GetMaxGflopsGraphicsDeviceId()
 {
   CUdevice current_device = 0, max_perf_device = 0;
   int device_count     = 0, sm_per_multiproc = 0;
-  int max_compute_perf = 0, best_SM_arch     = 0;
+  int best_SM_arch     = 0;
+  int64_t max_compute_perf = 0;
   int major = 0, minor = 0, multiProcessorCount, clockRate;
   int bTCC = 0, version;
   char deviceName[256];
@@ -346,7 +347,7 @@ int CDecCuvid::GetMaxGflopsGraphicsDeviceId()
     // If this is a Tesla based GPU and SM 2.0, and TCC is disabled, this is a contendor
     if (!bTCC) // Is this GPU running the TCC driver?  If so we pass on this
     {
-      int compute_perf = multiProcessorCount * sm_per_multiproc * clockRate;
+      int64_t compute_perf = int64_t(multiProcessorCount * sm_per_multiproc) * clockRate;
       if(compute_perf > max_compute_perf) {
         // If we find GPU with SM major > 2, search only these
         if (best_SM_arch > 2) {
@@ -363,7 +364,7 @@ int CDecCuvid::GetMaxGflopsGraphicsDeviceId()
 
 #ifdef DEBUG
       cuda.cuDeviceGetName(deviceName, 256, current_device);
-      DbgLog((LOG_TRACE, 10, L"CUDA Device: %S, Compute: %d.%d, CUDA Cores: %d, Clock: %d MHz", deviceName, major, minor, multiProcessorCount * sm_per_multiproc, clockRate / 1000));
+      DbgLog((LOG_TRACE, 10, L"CUDA Device (%d): %S, Compute: %d.%d, CUDA Cores: %d, Clock: %d MHz", current_device, deviceName, major, minor, multiProcessorCount * sm_per_multiproc, clockRate / 1000));
 #endif
     }
     ++current_device;
