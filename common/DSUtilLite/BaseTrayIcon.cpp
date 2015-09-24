@@ -184,12 +184,26 @@ HRESULT CBaseTrayIcon::CreateTrayIconData()
 HRESULT CBaseTrayIcon::OpenPropPage()
 {
   CheckPointer(m_pFilter, E_UNEXPECTED);
+  HRESULT hr = E_UNEXPECTED;
+
   m_bPropPageOpen = TRUE;
-  RECT desktopRect;
-  GetWindowRect(GetDesktopWindow(), &desktopRect);
-  SetWindowPos(m_hWnd, 0, (desktopRect.right / 2) - PROP_WIDTH_OFFSET, (desktopRect.bottom / 2) - PROP_HEIGHT_OFFSET, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-  CBaseDSPropPage::ShowPropPageDialog(m_pFilter, m_hWnd);
+  if (!m_fpCustomOpenPropPage) {
+    RECT desktopRect;
+    GetWindowRect(GetDesktopWindow(), &desktopRect);
+    SetWindowPos(m_hWnd, 0, (desktopRect.right / 2) - PROP_WIDTH_OFFSET, (desktopRect.bottom / 2) - PROP_HEIGHT_OFFSET, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+    CBaseDSPropPage::ShowPropPageDialog(m_pFilter, m_hWnd);
+    hr = S_OK;
+  } else {
+    hr = m_fpCustomOpenPropPage(m_pFilter);
+  }
   m_bPropPageOpen = FALSE;
+
+  return hr;
+}
+
+HRESULT CBaseTrayIcon::SetCustomOpenPropPage(HRESULT (*fpCustomOpenPropPage)(IUnknown* pFilter))
+{
+  m_fpCustomOpenPropPage = fpCustomOpenPropPage;
   return S_OK;
 }
 

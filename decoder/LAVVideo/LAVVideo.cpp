@@ -55,6 +55,7 @@ void CALLBACK CLAVVideo::StaticInit(BOOL bLoading, const CLSID *clsid)
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("LAV Video Decoder"), 0, __uuidof(CLAVVideo))
   , m_Decoder(this)
+  , m_fpPropPageCallback(NULL)
 {
   *phr = S_OK;
   m_pInput = new CVideoInputPin(TEXT("CVideoInputPin"), this, phr, L"Input");
@@ -114,6 +115,7 @@ HRESULT CLAVVideo::CreateTrayIcon()
   if (CBaseTrayIcon::ProcessBlackList())
     return S_FALSE;
   m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_VIDEO), IDI_ICON1);
+  m_pTrayIcon->SetCustomOpenPropPage(m_fpPropPageCallback);
   return S_OK;
 }
 
@@ -410,6 +412,7 @@ STDMETHODIMP CLAVVideo::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(ISpecifyPropertyPages2)
     QI(IPropertyBag)
     QI2(ILAVVideoSettings)
+    QI2(ILAVVideoSettingsDSPlayerCustom)
     QI2(ILAVVideoStatus)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
@@ -2409,6 +2412,14 @@ STDMETHODIMP CLAVVideo::SetGPUDeviceIndex(DWORD dwDevice)
 {
   m_dwGPUDeviceIndex = dwDevice;
   return S_OK;
+}
+// ILAVVideoSettingsDSPlayerCustom
+STDMETHODIMP CLAVVideo::SetPropertyPageCallback(HRESULT (*fpPropPageCallback)(IUnknown* pFilter))
+{
+  m_fpPropPageCallback = fpPropPageCallback;
+  if (m_pTrayIcon)
+    m_pTrayIcon->SetCustomOpenPropPage(fpPropPageCallback);
+  return S_OK;  
 }
 
 STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelNumDevices(LAVHWAccel hwAccel)

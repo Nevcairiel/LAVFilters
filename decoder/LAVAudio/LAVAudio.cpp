@@ -134,6 +134,7 @@ STDMETHODIMP CLAVAudio::CreateTrayIcon()
   if (CBaseTrayIcon::ProcessBlackList())
     return S_FALSE;
   m_pTrayIcon = new CBaseTrayIcon(this, TEXT(LAV_AUDIO), IDI_ICON1);
+  m_pTrayIcon->SetCustomOpenPropPage(m_fpPropPageCallback);
   return S_OK;
 }
 
@@ -424,6 +425,7 @@ STDMETHODIMP CLAVAudio::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(ISpecifyPropertyPages)
     QI(ISpecifyPropertyPages2)
     QI2(ILAVAudioSettings)
+    QI2(ILAVAudioSettingsDSPlayerCustom)
     QI2(ILAVAudioStatus)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
@@ -789,6 +791,15 @@ STDMETHODIMP CLAVAudio::SetSuppressFormatChanges(BOOL bEnabled)
 STDMETHODIMP_(BOOL) CLAVAudio::GetSuppressFormatChanges()
 {
   return m_settings.SuppressFormatChanges;
+}
+
+// ILAVAudioSettingsDSPlayerCustom
+STDMETHODIMP CLAVAudio::SetPropertyPageCallback(HRESULT (*fpPropPageCallback)(IUnknown* pFilter))
+{
+  m_fpPropPageCallback = fpPropPageCallback;
+  if (m_pTrayIcon)
+    m_pTrayIcon->SetCustomOpenPropPage(fpPropPageCallback);
+  return S_OK;  
 }
 
 STDMETHODIMP CLAVAudio::SetOutput51LegacyLayout(BOOL b51Legacy)

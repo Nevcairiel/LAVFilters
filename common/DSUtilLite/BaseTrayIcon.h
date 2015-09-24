@@ -28,6 +28,7 @@ public:
   virtual ~CBaseTrayIcon(void);
 
   static BOOL ProcessBlackList();
+  HRESULT SetCustomOpenPropPage(HRESULT (*fpCustomOpenPropPage)(IUnknown* pFilter));
 
 protected:
   virtual HRESULT CreateTrayIconData();
@@ -56,6 +57,7 @@ private:
   HANDLE m_hThread       = 0;
   HWND   m_hWnd          = 0;
   BOOL   m_bPropPageOpen = FALSE;
+  HRESULT (*m_fpCustomOpenPropPage)(IUnknown* pFilter) = nullptr;
 
   WCHAR m_wszClassName[64];
   const WCHAR *m_wszName = nullptr;
