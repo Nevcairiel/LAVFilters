@@ -1,6 +1,6 @@
 @ECHO OFF
 
-call "%VS120COMNTOOLS%vsvars32.bat"
+call "%VS140COMNTOOLS%vsvars32.bat"
 
 sh build_ffmpeg.sh x86 || EXIT /B 1
 MSBuild.exe LAVFilters.sln /nologo /m /t:Rebuild /property:Configuration=Release;Platform=Win32
