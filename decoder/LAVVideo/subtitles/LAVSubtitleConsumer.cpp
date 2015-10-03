@@ -72,7 +72,7 @@ STDMETHODIMP CLAVSubtitleConsumer::Disconnect(void)
   return S_OK;
 }
 
-STDMETHODIMP CLAVSubtitleConsumer::DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, ISubRenderFrame *subtitleFrame)
+STDMETHODIMP CLAVSubtitleConsumer::DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context, ISubRenderFrame *subtitleFrame)
 {
   ASSERT(m_SubtitleFrame == nullptr);
   m_SubtitleFrame = subtitleFrame;
@@ -84,7 +84,7 @@ STDMETHODIMP CLAVSubtitleConsumer::DeliverFrame(REFERENCE_TIME start, REFERENCE_
 STDMETHODIMP CLAVSubtitleConsumer::RequestFrame(REFERENCE_TIME rtStart, REFERENCE_TIME rtStop)
 {
   CheckPointer(m_pProvider, E_FAIL);
-  return m_pProvider->RequestFrame(rtStart, rtStop);
+  return m_pProvider->RequestFrame(rtStart, rtStop, nullptr);
 }
 
 STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)

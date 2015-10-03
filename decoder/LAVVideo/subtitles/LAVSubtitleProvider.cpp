@@ -34,6 +34,7 @@
 static const SubRenderOption options[] = {
   { "name",           OFFSET(name),            SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "version",        OFFSET(version),         SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
+  { "yuvMatrix",      OFFSET(yuvMatrix),       SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "combineBitmaps", OFFSET(combineBitmaps),  SROPT_TYPE_BOOL,   0                   },
   { 0 }
 };
@@ -50,6 +51,7 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
   context.version = TEXT(LAV_VERSION_STR);
+  context.yuvMatrix = _T("None");
   AddRef();
 
   m_pConsumer->AddRef();
@@ -91,7 +93,7 @@ STDMETHODIMP CLAVSubtitleProvider::DisconnectConsumer(void)
 
 #define PTS2RT(pts) (10000i64 * pts / 90)
 
-STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop)
+STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context)
 {
   ASSERT(m_pConsumer);
 
@@ -137,7 +139,7 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   }
 
   // Deliver Frame
-  m_pConsumer->DeliverFrame(start, stop, subtitleFrame);
+  m_pConsumer->DeliverFrame(start, stop, context, subtitleFrame);
 
   TimeoutSubtitleRects(stop);
 

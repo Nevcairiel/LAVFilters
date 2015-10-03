@@ -27,6 +27,7 @@ class CLAVVideo;
 typedef struct LAVSubtitleProviderContext {
   LPWSTR name;                    ///< name of the Provider
   LPWSTR version;                 ///< Version of the Provider
+  LPWSTR yuvMatrix;               ///< YUV Matrix
 
   bool combineBitmaps;            ///< Control if the provider combines all bitmaps into one
 } LAVSubtitleProviderContext;
@@ -43,7 +44,7 @@ public:
   DECLARE_ISUBRENDEROPTIONS;
 
   // ISubRenderProvider
-  STDMETHODIMP RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop);
+  STDMETHODIMP RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context);
   STDMETHODIMP Disconnect(void);
 
   // CLAVSubtitleProvider public

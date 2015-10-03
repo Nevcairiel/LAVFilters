@@ -55,7 +55,7 @@ public:
   STDMETHODIMP GetMerit(ULONG *merit) { CheckPointer(merit, E_POINTER); *merit = 0x00010000; return S_OK; }
   STDMETHODIMP Connect(ISubRenderProvider *subtitleRenderer);
   STDMETHODIMP Disconnect(void);
-  STDMETHODIMP DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, ISubRenderFrame *subtitleFrame);
+  STDMETHODIMP DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context, ISubRenderFrame *subtitleFrame);
 
   // LAV Internal methods
   STDMETHODIMP RequestFrame(REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
