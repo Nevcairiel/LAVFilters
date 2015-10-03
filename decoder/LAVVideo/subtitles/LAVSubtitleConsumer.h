@@ -36,9 +36,6 @@ typedef struct LAVSubtitleConsumerContext {
   LPWSTR name;                    ///< name of the Consumer
   LPWSTR version;                 ///< Version of the Consumer
   SIZE   originalVideoSize;       ///< Size of the video
-
-  bool   redraw;
-  bool   menu;
 } LAVSubtitleConsumerContext;
 
 class CLAVVideo;
