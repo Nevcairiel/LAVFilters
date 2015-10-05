@@ -1,6 +1,10 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.67.0 - xxxx/xx/xx
+LAV Splitter
+- NEW: Support for HTTPS URLs
+
 0.66.0 - 2015/09/22
 LAV Splitter
 - NEW: Added options to increase the queue size for increased buffering
