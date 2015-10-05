@@ -59,16 +59,7 @@ configure() (
     --disable-filters               \
     --enable-filter=yadif           \
     --enable-filter=scale           \
-    --disable-protocols             \
-    --enable-protocol=file          \
-    --enable-protocol=pipe          \
-    --enable-protocol=mmsh          \
-    --enable-protocol=mmst          \
-    --enable-protocol=rtp           \
-    --enable-protocol=http          \
-    --enable-protocol=crypto        \
-    --enable-protocol=rtmp          \
-    --enable-protocol=rtmpt         \
+    --disable-protocol=async,cache,concat,httpproxy,icecast,md5,subfile \
     --disable-muxers                \
     --enable-muxer=spdif            \
     --disable-hwaccels              \
