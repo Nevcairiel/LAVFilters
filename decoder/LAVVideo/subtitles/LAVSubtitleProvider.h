@@ -30,6 +30,7 @@ typedef struct LAVSubtitleProviderContext {
   LPWSTR yuvMatrix;               ///< YUV Matrix
 
   bool combineBitmaps;            ///< Control if the provider combines all bitmaps into one
+  bool inDVDMenu;
 } LAVSubtitleProviderContext;
 
 struct _AM_PROPERTY_SPPAL;
