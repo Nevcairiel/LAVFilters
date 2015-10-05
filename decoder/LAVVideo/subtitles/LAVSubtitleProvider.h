@@ -48,6 +48,7 @@ public:
   STDMETHODIMP Disconnect(void);
 
   // CLAVSubtitleProvider public
+  STDMETHODIMP SetConsumer(ISubRenderConsumer *pConsumer);
   STDMETHODIMP DisconnectConsumer(void);
 
   STDMETHODIMP InitDecoder(const CMediaType *pmt, AVCodecID codecId);
@@ -73,7 +74,8 @@ private:
   LAVSubtitleProviderContext context;
   CLAVVideo *m_pLAVVideo            = nullptr;
 
-  ISubRenderConsumer *m_pConsumer   = nullptr;
+  ISubRenderConsumer  *m_pConsumer  = nullptr;
+  ISubRenderConsumer2 *m_pConsumer2 = nullptr;
 
   const AVCodec        *m_pAVCodec  = nullptr;
   AVCodecContext       *m_pAVCtx    = nullptr;

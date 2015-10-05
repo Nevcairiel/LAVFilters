@@ -43,19 +43,17 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
   : CSubRenderOptionsImpl(::options, &context)
   , CUnknown(L"CLAVSubtitleProvider", nullptr)
   , m_pLAVVideo(pLAVVideo)
-  , m_pConsumer(pConsumer)
 {
   avcodec_register_all();
 
-  ASSERT(m_pConsumer);
+  ASSERT(pConsumer);
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
   context.version = TEXT(LAV_VERSION_STR);
-  context.yuvMatrix = _T("None");
+  context.yuvMatrix = _T("PC.601");
   AddRef();
 
-  m_pConsumer->AddRef();
-  m_pConsumer->Connect(this);
+  SetConsumer(pConsumer);
 }
 
 CLAVSubtitleProvider::~CLAVSubtitleProvider(void)
@@ -81,12 +79,31 @@ void CLAVSubtitleProvider::CloseDecoder()
   }
 }
 
+STDMETHODIMP CLAVSubtitleProvider::SetConsumer(ISubRenderConsumer *pConsumer)
+{
+  CAutoLock lock(this);
+  if (m_pConsumer)
+    DisconnectConsumer();
+
+  CheckPointer(pConsumer, E_FAIL);
+
+  m_pConsumer = pConsumer;
+  m_pConsumer->AddRef();
+  m_pConsumer->Connect(this);
+
+  if (FAILED(m_pConsumer->QueryInterface(&m_pConsumer2)))
+    m_pConsumer2 = nullptr;
+
+  return S_OK;
+}
+
 STDMETHODIMP CLAVSubtitleProvider::DisconnectConsumer(void)
 {
   CAutoLock lock(this);
   CheckPointer(m_pConsumer, S_FALSE);
   m_pConsumer->Disconnect();
   SafeRelease(&m_pConsumer);
+  SafeRelease(&m_pConsumer2);
 
   return S_OK;
 }
@@ -539,8 +556,8 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
     }
   }
 
-  if (redraw)
-    m_pLAVVideo->ControlCmd(CLAVVideo::CNTRL_REDRAW);
+  if (redraw && m_pConsumer2)
+    m_pConsumer2->Clear();
 
   return S_OK;
 }

@@ -40,19 +40,22 @@ typedef struct LAVSubtitleConsumerContext {
 
 class CLAVVideo;
 
-class CLAVSubtitleConsumer : public ISubRenderConsumer, public CSubRenderOptionsImpl, public CUnknown
+class CLAVSubtitleConsumer : public ISubRenderConsumer2, public CSubRenderOptionsImpl, public CUnknown
 {
 public:
   CLAVSubtitleConsumer(CLAVVideo *pLAVVideo);
   virtual ~CLAVSubtitleConsumer(void);
   DECLARE_IUNKNOWN;
+  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
   DECLARE_ISUBRENDEROPTIONS;
 
-  // ISubRenderConsumer
+  // ISubRenderConsumer2
   STDMETHODIMP GetMerit(ULONG *merit) { CheckPointer(merit, E_POINTER); *merit = 0x00010000; return S_OK; }
   STDMETHODIMP Connect(ISubRenderProvider *subtitleRenderer);
   STDMETHODIMP Disconnect(void);
   STDMETHODIMP DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context, ISubRenderFrame *subtitleFrame);
+  STDMETHODIMP Clear(REFERENCE_TIME clearNewerThan = 0);
 
   // LAV Internal methods
   STDMETHODIMP RequestFrame(REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);

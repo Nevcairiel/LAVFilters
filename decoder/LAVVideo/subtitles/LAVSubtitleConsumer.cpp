@@ -52,6 +52,18 @@ CLAVSubtitleConsumer::~CLAVSubtitleConsumer(void)
   Disconnect();
 }
 
+STDMETHODIMP CLAVSubtitleConsumer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+{
+  CheckPointer(ppv, E_POINTER);
+
+  *ppv = nullptr;
+
+  return
+    QI(ISubRenderConsumer)
+    QI(ISubRenderConsumer2)
+    __super::NonDelegatingQueryInterface(riid, ppv);
+}
+
 STDMETHODIMP CLAVSubtitleConsumer::Connect(ISubRenderProvider *subtitleRenderer)
 {
   SafeRelease(&m_pProvider);
@@ -75,6 +87,12 @@ STDMETHODIMP CLAVSubtitleConsumer::DeliverFrame(REFERENCE_TIME start, REFERENCE_
   m_SubtitleFrame = subtitleFrame;
   m_evFrame.Set();
 
+  return S_OK;
+}
+
+STDMETHODIMP CLAVSubtitleConsumer::Clear(REFERENCE_TIME clearNewerThan)
+{
+  m_pLAVVideo->ControlCmd(CLAVVideo::CNTRL_REDRAW);
   return S_OK;
 }
 
