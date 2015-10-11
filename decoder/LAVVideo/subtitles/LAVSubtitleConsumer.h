@@ -61,7 +61,7 @@ public:
   STDMETHODIMP RequestFrame(REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
   STDMETHODIMP ProcessFrame(LAVFrame *pFrame);
 
-  STDMETHODIMP DisconnectProvider() { if (m_pProvider) return m_pProvider->Disconnect(); SafeRelease(&m_pProvider); return S_OK; }
+  STDMETHODIMP DisconnectProvider() { if (m_pProvider) m_pProvider->Disconnect(); SafeRelease(&m_pProvider); return S_OK; }
 
   BOOL HasProvider() const { return m_pProvider != nullptr; }
 
