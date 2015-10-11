@@ -84,6 +84,8 @@ STDMETHODIMP CLAVSubtitleConsumer::Disconnect(void)
 STDMETHODIMP CLAVSubtitleConsumer::DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context, ISubRenderFrame *subtitleFrame)
 {
   ASSERT(m_SubtitleFrame == nullptr);
+  if (subtitleFrame)
+    subtitleFrame->AddRef();
   m_SubtitleFrame = subtitleFrame;
   m_evFrame.Set();
 

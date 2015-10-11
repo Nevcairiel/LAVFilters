@@ -153,11 +153,12 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   }
 
   if (subtitleFrame->Empty()) {
-    SAFE_DELETE(subtitleFrame);
+    SafeRelease(&subtitleFrame);
   }
 
   // Deliver Frame
   m_pConsumer->DeliverFrame(start, stop, context, subtitleFrame);
+  SafeRelease(&subtitleFrame);
 
   TimeoutSubtitleRects(stop);
 
