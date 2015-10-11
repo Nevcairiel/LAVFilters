@@ -102,7 +102,7 @@ STDMETHODIMP CLAVSubtitleFrame::GetBitmap(int index, ULONGLONG *id, POINT *posit
   *position = m_Bitmaps[index]->position;
   *size     = m_Bitmaps[index]->size;
   *pixels   = m_Bitmaps[index]->pixels;
-  *pitch    = m_Bitmaps[index]->pitch;
+  *pitch    = m_Bitmaps[index]->pitch * 4;
 
   return S_OK;
 }

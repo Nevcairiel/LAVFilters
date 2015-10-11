@@ -370,7 +370,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     m_pSwsContext = sws_getCachedContext(m_pSwsContext, subSize.cx, subSize.cy, AV_PIX_FMT_BGRA, newSize.cx, newSize.cy, avPixFmt, SWS_BILINEAR|SWS_FULL_CHR_H_INP, nullptr, nullptr, nullptr);
 
     const uint8_t *src[4] = { (const uint8_t *)rgbData, nullptr, nullptr, nullptr };
-    const ptrdiff_t srcStride[4] = { pitch * 4, 0, 0, 0 };
+    const ptrdiff_t srcStride[4] = { pitch, 0, 0, 0 };
 
     const LAVPixFmtDesc desc = getFFSubPixelFormatDesc(avPixFmt);
     const ptrdiff_t stride = FFALIGN(newSize.cx, 64) * desc.codedbytes;
@@ -384,10 +384,10 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
     // Un-pre-multiply alpha for YUV formats
     // TODO: Can we SIMD this? See ARGBUnattenuateRow_C/SSE2 in libyuv
     if (avPixFmt != AV_PIX_FMT_BGRA) {
-      tmpBuf = (uint8_t *)av_malloc(pitch * subSize.cy * 4);
-      memcpy(tmpBuf, rgbData, pitch * subSize.cy * 4);
+      tmpBuf = (uint8_t *)av_malloc(pitch * subSize.cy);
+      memcpy(tmpBuf, rgbData, pitch * subSize.cy);
       for (int line = 0; line < subSize.cy; line++) {
-        uint8_t *p = tmpBuf + line * pitch * 4;
+        uint8_t *p = tmpBuf + line * pitch;
         for (int col = 0; col < subSize.cx; col++) {
           if (p[3] != 0 && p[3] != 255) {
             p[0] = av_clip_uint8(p[0] * 255 / p[3]);
@@ -407,7 +407,7 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
       av_free(tmpBuf);
   } else {
     subData[0] = (BYTE *)rgbData;
-    subStride[0] = pitch * 4;
+    subStride[0] = pitch;
   }
 
   ASSERT((subPosition.x + subSize.cx) <= videoRect.right);
