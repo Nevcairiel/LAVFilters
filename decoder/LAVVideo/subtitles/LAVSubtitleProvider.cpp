@@ -35,7 +35,8 @@ static const SubRenderOption options[] = {
   { "name",           OFFSET(name),            SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "version",        OFFSET(version),         SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "yuvMatrix",      OFFSET(yuvMatrix),       SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
-  { "inDVDMenu",      OFFSET(inDVDMenu),       SROPT_TYPE_BOOL,   SROPT_FLAG_READONLY },
+  { "isBitmap",       OFFSET(isBitmap),        SROPT_TYPE_BOOL,   SROPT_FLAG_READONLY },
+  { "isMovable",      OFFSET(isMovable),       SROPT_TYPE_BOOL,   SROPT_FLAG_READONLY },
   { "combineBitmaps", OFFSET(combineBitmaps),  SROPT_TYPE_BOOL,   0                   },
   { 0 }
 };
@@ -52,6 +53,8 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
   context.name = TEXT(LAV_VIDEO);
   context.version = TEXT(LAV_VERSION_STR);
   context.yuvMatrix = _T("PC.601");
+  context.isBitmap = true;
+  context.isMovable = true;
   AddRef();
 
   SetConsumer(pConsumer);
@@ -221,7 +224,7 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   SAFE_DELETE(m_pHLI);
 
   m_rtLastFrame = AV_NOPTS_VALUE;
-  context.inDVDMenu = false;
+  context.isMovable = true;
   m_pLAVVideo->SetInDVDMenu(false);
 
   return S_OK;
@@ -553,7 +556,7 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
         m_pHLI = new AM_PROPERTY_SPHLI(*pHLI);
         redraw = true;
       }
-      context.inDVDMenu = true;
+      context.isMovable = false;
       m_pLAVVideo->SetInDVDMenu(true);
     } else {
       SAFE_DELETE(m_pHLI);
