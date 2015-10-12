@@ -146,6 +146,8 @@ public:
   HRESULT BreakConnect(PIN_DIRECTION dir);
   HRESULT CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin);
 
+  HRESULT StartStreaming();
+
   int GetPinCount();
   CBasePin* GetPin(int n);
 

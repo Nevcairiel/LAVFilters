@@ -869,6 +869,56 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   return hr;
 }
 
+HRESULT CLAVVideo::StartStreaming()
+{
+  CAutoLock cAutoLock(&m_csReceive);
+
+  if (m_pSubtitleInput) {
+    bool bFoundConsumer = false;
+    ISubRenderConsumer *pSubConsumer = nullptr;
+    if (SUCCEEDED(FindIntefaceInGraph(m_pOutput, __uuidof(ISubRenderConsumer), (void **)&pSubConsumer))) {
+      int nc = 0;
+      LPWSTR strName = nullptr, strVersion = nullptr;
+      pSubConsumer->GetString("name", &strName, &nc);
+      pSubConsumer->GetString("version", &strVersion, &nc);
+      DbgLog((LOG_TRACE, 10, L"CLAVVideo::StartStreaming():: Found ISubRenderConsumer (%s %s)", strName, strVersion));
+
+      // only support madVR for now, and only recent versions (anything before 0.89.10 crashes)
+      if (strName && strVersion && wcscmp(strName, L"madVR") == 0) {
+        int major, minor, build, rev;
+        if (swscanf_s(strVersion, L"%d.%d.%d.%d", &major, &minor, &build, &rev) == 4) {
+          if (major > 0 || (major == 0 && (minor > 89 || (minor == 89 && build >= 10))))
+            bFoundConsumer = true;
+        }
+      }
+
+      if (bFoundConsumer) {
+        m_pSubtitleInput->SetSubtitleConsumer(pSubConsumer);
+        SafeRelease(&m_SubtitleConsumer);
+      }
+
+      SafeRelease(&pSubConsumer);
+    }
+
+    if (bFoundConsumer == false) {
+      if (m_SubtitleConsumer == nullptr) {
+        m_SubtitleConsumer = new CLAVSubtitleConsumer(this);
+        m_SubtitleConsumer->AddRef();
+
+        BITMAPINFOHEADER *pBIH = nullptr;
+        videoFormatTypeHandler(m_pInput->CurrentMediaType(), &pBIH);
+        if (pBIH) {
+          m_SubtitleConsumer->SetVideoSize(pBIH->biWidth, pBIH->biHeight);
+        }
+      }
+
+      m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
+    }
+  }
+
+  return S_OK;
+}
+
 HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration)
 {
   CheckPointer(ppOut, E_POINTER);
