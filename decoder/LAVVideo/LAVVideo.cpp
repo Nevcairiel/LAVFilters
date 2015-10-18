@@ -180,7 +180,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.bHWFormats[HWCodec_MPEG4] = FALSE;
   m_settings.bHWFormats[HWCodec_HEVC] = FALSE;
 
-  m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD;
+  m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD|LAVHWResFlag_UHD;
 
   m_settings.HWDeintMode = HWDeintMode_Weave;
   m_settings.HWDeintOutput = DeintOutput_FramePerField;
