@@ -1773,20 +1773,27 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     // A "good" program at least has a valid video and audio stream
     // We'll try here to detect these streams and decide on the best program
     // Every present stream gets one point, if it appears to be valid, it gets 4
+    // Every present video stream has also video resolution score: width x height.
     // Valid video streams have a width and height, valid audio streams have a channel count.
-    // If one program was found with both streams valid, we'll stop looking.
-    DWORD dwScore = 0; // Stream found: 1, stream valid: 4
+    // We search for "good" program with highest score. 
+    DWORD dwScore = 0;                          // Stream found: 1, stream valid: 4
+    DWORD dwVideoResolutionProgramScore = 0;    // Score = width x height
     for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i) {
       if(m_avFormat->programs[i]->nb_stream_indexes > 0) {
         DWORD dwVideoScore = 0;
+        DWORD dwVideoResolutionScore = 0;
         DWORD dwAudioScore = 0;
         for(unsigned k = 0; k < m_avFormat->programs[i]->nb_stream_indexes; ++k) {
           unsigned streamIdx = m_avFormat->programs[i]->stream_index[k];
           AVStream *st = m_avFormat->streams[streamIdx];
-          if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO && dwVideoScore < 4) {
-            if (st->codec->width != 0 && st->codec->height != 0)
+          if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+            if (st->codec->width != 0 && st->codec->height != 0) {
               dwVideoScore = 4;
-            else
+              DWORD dwResolutionScore = st->codec->width * st->codec->height;
+              if (dwResolutionScore > dwVideoResolutionScore)
+                dwVideoResolutionScore = dwResolutionScore;
+            }
+            else if (dwVideoScore == 0)
               dwVideoScore = 1;
           } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO && dwAudioScore < 4) {
             if (st->codec->channels != 0)
@@ -1795,15 +1802,15 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
               dwAudioScore = 1;
           }
         }
-
+        
         // Check the score of the previously found stream
         // In addition, we always require a valid video stream (or none), a invalid one is not allowed.
-        DbgLog((LOG_TRACE, 10, L"  -> Program %d with score: %d (video), %d (audio)", i, dwVideoScore, dwAudioScore));
-        if (dwVideoScore != 1 && (dwVideoScore+dwAudioScore) > dwScore) {
-          dwScore = dwVideoScore+dwAudioScore;
+        DbgLog((LOG_TRACE, 10, L"  -> Program %d with score: %d (video), %d (video resolution), %d (audio)", i, dwVideoScore, dwVideoResolutionScore, dwAudioScore));
+        DWORD dwVideoAndAudioScore = dwVideoScore + dwAudioScore;
+        if (dwVideoScore != 1 && (dwVideoAndAudioScore > dwScore || (dwVideoAndAudioScore == dwScore && dwVideoResolutionScore > dwVideoResolutionProgramScore))) {
+          dwScore = dwVideoAndAudioScore;
+          dwVideoResolutionProgramScore = dwVideoResolutionScore;
           m_program = i;
-          if (dwScore == 8)
-            break;
         }
       }
     }
