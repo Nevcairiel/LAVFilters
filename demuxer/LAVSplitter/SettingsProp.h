@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -76,6 +76,7 @@ private:
   BOOL m_PreferHighQualityAudio;
   BOOL m_ImpairedAudio;
   DWORD m_QueueMaxMem;
+  DWORD m_QueueMaxPackets;
   DWORD m_NetworkAnalysisDuration;
 
   BOOL m_TrayIcon;

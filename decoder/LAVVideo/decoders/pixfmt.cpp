@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -29,6 +29,7 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
   { 2, 3, { 1, 1, 1 }, { 1, 1, 1 } },       ///< LAVPixFmt_YUV444bX
   { 1, 2, { 1, 1 },    { 1, 2 }    },       ///< LAVPixFmt_NV12
   { 2, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_YUY2
+  { 2, 2, { 1, 1 },    { 1, 2 }    },       ///< LAVPixFmt_P010
   { 3, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB24
   { 4, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB32
   { 4, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_ARGB32
@@ -49,6 +50,7 @@ static struct {
   { LAVPixFmt_YUV444, AV_PIX_FMT_YUV444P },
   { LAVPixFmt_NV12,   AV_PIX_FMT_NV12    },
   { LAVPixFmt_YUY2,   AV_PIX_FMT_YUYV422 },
+  { LAVPixFmt_P010,   AV_PIX_FMT_P010    },
   { LAVPixFmt_RGB24,  AV_PIX_FMT_BGR24   },
   { LAVPixFmt_RGB32,  AV_PIX_FMT_BGRA    },
   { LAVPixFmt_ARGB32, AV_PIX_FMT_BGRA    },
@@ -91,7 +93,7 @@ static void free_buffers(struct LAVFrame *pFrame)
   memset(pFrame->data, 0, sizeof(pFrame->data));
 }
 
-HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
+HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
 {
   LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
 
@@ -102,10 +104,13 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride)
 
   stride *= desc.codedbytes;
 
+  int alignedHeight = FFALIGN(pFrame->height, 2);
+
   memset(pFrame->data, 0, sizeof(pFrame->data));
+  memset(pFrame->stride, 0, sizeof(pFrame->stride));
   for (int plane = 0; plane < desc.planes; plane++) {
-    int planeStride = stride / desc.planeWidth[plane];
-    size_t size = planeStride * (pFrame->height / desc.planeHeight[plane]);
+    ptrdiff_t planeStride = stride / desc.planeWidth[plane];
+    size_t size = planeStride * (alignedHeight / desc.planeHeight[plane]);
     pFrame->data[plane]   = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
     pFrame->stride[plane] = planeStride;
   }

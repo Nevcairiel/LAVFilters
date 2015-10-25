@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
@@ -99,9 +99,6 @@
     <ClCompile Include="decoders\cuvid.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
-    <ClCompile Include="parsers\AVC1AnnexBConverter.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
     <ClCompile Include="parsers\H264SequenceParser.cpp">
       <Filter>Source Files\parsers</Filter>
     </ClCompile>
@@ -153,6 +150,18 @@
     <ClCompile Include="pixconv\rgb2rgb_unscaled.cpp">
       <Filter>Source Files\pixconv</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\wmv9mft.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
+    <ClCompile Include="parsers\AnnexBConverter.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="parsers\HEVCSequenceParser.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="pixconv\convert_direct.cpp">
+      <Filter>Source Files\pixconv</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -200,9 +209,6 @@
     <ClInclude Include="decoders\cuvid.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
-    <ClInclude Include="parsers\AVC1AnnexBConverter.h">
-      <Filter>Header Files\parsers</Filter>
-    </ClInclude>
     <ClInclude Include="parsers\H264SequenceParser.h">
       <Filter>Header Files\parsers</Filter>
     </ClInclude>
@@ -244,6 +250,15 @@
     </ClInclude>
     <ClInclude Include="VideoInputPin.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\wmv9mft.h">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="parsers\AnnexBConverter.h">
+      <Filter>Header Files\parsers</Filter>
+    </ClInclude>
+    <ClInclude Include="parsers\HEVCSequenceParser.h">
+      <Filter>Header Files\parsers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

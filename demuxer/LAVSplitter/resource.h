@@ -44,6 +44,9 @@
 #define IDC_LBL_STREAM_BUFFER           1036
 #define IDC_STREAM_ANADUR               1037
 #define IDC_STREAM_ANADUR_SPIN          1038
+#define IDC_LBL_QUEUE_PACKETS           1039
+#define IDC_QUEUE_PACKETS               1040
+#define IDC_QUEUE_PACKETS_SPIN          1041
 
 // Next default values for new objects
 // 
@@ -51,7 +54,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1042
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -76,6 +76,10 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_ATRAC1,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
   { AV_CODEC_ID_ATRAC3,     &MEDIASUBTYPE_ATRC,              WAVE_FORMAT_ATRC,       nullptr },
   { AV_CODEC_ID_ATRAC3P,    &MEDIASUBTYPE_ATRAC3P,           WAVE_FORMAT_ATRAC3P,    nullptr },
+  { AV_CODEC_ID_DSD_LSBF,   &MEDIASUBTYPE_DSDL,              0,                      nullptr },
+  { AV_CODEC_ID_DSD_MSBF,   &MEDIASUBTYPE_DSDM,              0,                      nullptr },
+  { AV_CODEC_ID_DSD_LSBF_PLANAR, &MEDIASUBTYPE_DSD1,         0,                      nullptr },
+  { AV_CODEC_ID_DSD_MSBF_PLANAR, &MEDIASUBTYPE_DSD8,         0,                      nullptr },
 };
 
 CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)
@@ -121,7 +125,7 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
 
   wvfmt->nChannels = avstream->codec->channels ? avstream->codec->channels : 2;
   wvfmt->nSamplesPerSec = avstream->codec->sample_rate ? avstream->codec->sample_rate : 48000;
-  wvfmt->nAvgBytesPerSec = avstream->codec->bit_rate / 8;
+  wvfmt->nAvgBytesPerSec = (DWORD)(avstream->codec->bit_rate / 8);
 
   if(avstream->codec->codec_id == AV_CODEC_ID_AAC || avstream->codec->codec_id == AV_CODEC_ID_AAC_LATM) {
     wvfmt->wBitsPerSample = 0;
@@ -280,7 +284,7 @@ MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULON
   memset(mpwvfmt, 0, sizeof(MPEG1WAVEFORMAT));
   memcpy(&mpwvfmt->wfx, wvfmt, sizeof(WAVEFORMATEX));
 
-  mpwvfmt->dwHeadBitrate = avstream->codec->bit_rate;
+  mpwvfmt->dwHeadBitrate = (DWORD)avstream->codec->bit_rate;
   mpwvfmt->fwHeadMode = avstream->codec->channels == 1 ? ACM_MPEG_SINGLECHANNEL : ACM_MPEG_DUALCHANNEL;
   mpwvfmt->fwHeadLayer = (avstream->codec->codec_id == AV_CODEC_ID_MP1) ? ACM_MPEG_LAYER1 : ACM_MPEG_LAYER2;
 
@@ -288,9 +292,9 @@ MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULON
     avstream->codec->sample_rate = 48000;
   }
   mpwvfmt->wfx.wFormatTag = WAVE_FORMAT_MPEG;
-  mpwvfmt->wfx.nBlockAlign = (avstream->codec->codec_id == AV_CODEC_ID_MP1)
+  mpwvfmt->wfx.nBlockAlign = WORD((avstream->codec->codec_id == AV_CODEC_ID_MP1)
         ? (12 * avstream->codec->bit_rate / avstream->codec->sample_rate) * 4
-        : 144 * avstream->codec->bit_rate / avstream->codec->sample_rate;
+        : 144 * avstream->codec->bit_rate / avstream->codec->sample_rate);
 
   mpwvfmt->wfx.cbSize = sizeof(MPEG1WAVEFORMAT) - sizeof(WAVEFORMATEX);
 
@@ -308,7 +312,7 @@ VORBISFORMAT *CLAVFAudioHelper::CreateVorbis(const AVStream *avstream, ULONG *si
 
   vfmt->nChannels = avstream->codec->channels;
   vfmt->nSamplesPerSec = avstream->codec->sample_rate;
-  vfmt->nAvgBitsPerSec = avstream->codec->bit_rate;
+  vfmt->nAvgBitsPerSec = (DWORD)avstream->codec->bit_rate;
   vfmt->nMinBitsPerSec = vfmt->nMaxBitsPerSec = (DWORD)-1;
 
   *size = sizeof(VORBISFORMAT);

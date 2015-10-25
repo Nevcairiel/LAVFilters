@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -20,8 +20,12 @@
 #include "stdafx.h"
 #include "DShowUtil.h"
 
+#include <Shlwapi.h>
+
 #include <dvdmedia.h>
 #include "moreuuids.h"
+
+#include "registry.h"
 
 //
 // Usage: SetThreadName (-1, "MainThread");
@@ -34,6 +38,8 @@ typedef struct tagTHREADNAME_INFO
    DWORD dwFlags; // reserved for future use, must be zero
 } THREADNAME_INFO;
 
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
 void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName)
 {
    THREADNAME_INFO info;
@@ -44,9 +50,9 @@ void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName)
 
    __try
    {
-      RaiseException( 0x406D1388, 0, sizeof(info)/sizeof(DWORD), (ULONG_PTR*)&info );
+      RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
    }
-   __except(EXCEPTION_CONTINUE_EXECUTION)
+   __except(EXCEPTION_EXECUTE_HANDLER)
    {
    }
 }
@@ -183,6 +189,56 @@ std::wstring WStringFromGUID(const GUID& guid)
   WCHAR null[128] = {0}, buff[128];
   StringFromGUID2(GUID_NULL, null, 127);
   return std::wstring(StringFromGUID2(guid, buff, 127) > 0 ? buff : null);
+}
+
+int SafeMultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
+{
+  int len = MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
+  if (cchWideChar) {
+    if (len == cchWideChar || (len == 0 && GetLastError() == ERROR_INSUFFICIENT_BUFFER)) {
+      lpWideCharStr[cchWideChar - 1] = 0;
+    } else if (len == 0) {
+      lpWideCharStr[0] = 0;
+    }
+  }
+  return len;
+}
+
+int SafeWideCharToMultiByte(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar)
+{
+  int len = WideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
+  if (cbMultiByte) {
+    if (len == cbMultiByte || (len == 0 && GetLastError() == ERROR_INSUFFICIENT_BUFFER)) {
+      lpMultiByteStr[cbMultiByte - 1] = 0;
+    } else if (len == 0) {
+      lpMultiByteStr[0] = 0;
+    }
+  }
+  return len;
+}
+
+LPWSTR CoTaskGetWideCharFromMultiByte(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte)
+{
+  int len = MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, nullptr, 0);
+  if (len) {
+    LPWSTR pszWideString = (LPWSTR)CoTaskMemAlloc(len * sizeof(WCHAR));
+    MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, pszWideString, len);
+
+    return pszWideString;
+  }
+  return NULL;
+}
+
+LPSTR CoTaskGetMultiByteFromWideChar(UINT CodePage, DWORD dwFlags, LPCWSTR lpMultiByteStr, int cbMultiByte)
+{
+  int len = WideCharToMultiByte(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, nullptr, 0, nullptr, nullptr);
+  if (len) {
+    LPSTR pszMBString = (LPSTR)CoTaskMemAlloc(len * sizeof(char));
+    WideCharToMultiByte(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, pszMBString, len, nullptr, nullptr);
+
+    return pszMBString;
+  }
+  return NULL;
 }
 
 BSTR ConvertCharToBSTR(const char *sz)
@@ -639,6 +695,17 @@ BOOL IsVistaOrNewer()
   return (os.dwMajorVersion >= 6);
 }
 
+BOOL IsWindows7OrNewer()
+{
+  // Query OS version info
+  OSVERSIONINFO os;
+  ZeroMemory(&os, sizeof(os));
+  os.dwOSVersionInfoSize = sizeof(os);
+  GetVersionEx(&os);
+
+  return (os.dwMajorVersion == 6 && os.dwMinorVersion >= 1) || (os.dwMajorVersion > 6);
+}
+
 void __cdecl debugprintf(LPCWSTR format, ...)
 {
   WCHAR    buf[4096], *p = buf;
@@ -659,4 +726,29 @@ void __cdecl debugprintf(LPCWSTR format, ...)
   *p = L'\0';
 
   OutputDebugString(buf);
+}
+
+BOOL CheckApplicationBlackList(LPCTSTR subkey)
+{
+  HRESULT hr;
+  DWORD dwVal;
+  WCHAR fileName[1024];
+  GetModuleFileName(NULL, fileName, 1024);
+  WCHAR *processName = PathFindFileName(fileName);
+
+  // Check local machine path
+  CRegistry regLM = CRegistry(HKEY_LOCAL_MACHINE, subkey, hr, TRUE);
+  if (SUCCEEDED(hr)) {
+    dwVal = regLM.ReadDWORD(processName, hr);
+    return SUCCEEDED(hr) && dwVal;
+  }
+
+  // Check current user path
+  CRegistry regCU = CRegistry(HKEY_CURRENT_USER, subkey, hr, TRUE);
+  if (SUCCEEDED(hr)) {
+    dwVal = regCU.ReadDWORD(processName, hr);
+    return SUCCEEDED(hr) && dwVal;
+  }
+
+  return FALSE;
 }

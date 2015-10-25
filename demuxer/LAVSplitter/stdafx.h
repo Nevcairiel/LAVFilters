@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,13 +21,10 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
-
 // Support for Version 6.0 styles
 #pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
-#include "version.h"
+#include "common_defines.h"
 
 // include headers
 #include <Windows.h>
@@ -37,7 +34,6 @@
 #pragma warning(disable:4244)
 extern "C" {
 #define __STDC_CONSTANT_MACROS
-#define FF_API_PIX_FMT 0
 #include "libavformat/avformat.h"
 #include "libbluray/bluray.h"
 #include "libavutil/intreadwrite.h"

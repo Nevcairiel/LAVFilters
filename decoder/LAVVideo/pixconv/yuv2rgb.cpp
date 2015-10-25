@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -38,7 +38,11 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   xmm7 = _mm_setzero_si128 ();
 
   // Shift > 0 is for 9/10 bit formats
-  if (shift > 0) {
+  if (inputFormat == LAVPixFmt_P010) {
+    // Load 2 32-bit macro pixels from each line, which contain 4 UV at 16-bit each samples
+    PIXCONV_LOAD_PIXEL8(xmm0, srcU);
+    PIXCONV_LOAD_PIXEL8(xmm2, srcU+srcStrideUV);
+  } else if (shift > 0) {
     // Load 4 U/V values from line 0/1 into registers
     PIXCONV_LOAD_4PIXEL16(xmm1, srcU);
     PIXCONV_LOAD_4PIXEL16(xmm3, srcU+srcStrideUV);
@@ -74,8 +78,11 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
   // xmm0/xmm2 contain 4 interleaved U/V samples from two lines each in the 16bit parts, still in their native bitdepth
 
   // Chroma upsampling required
-  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_YUV422) {
-    if (shift > 0 || inputFormat == LAVPixFmt_NV12) {
+  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_YUV422 || inputFormat == LAVPixFmt_P010) {
+    if (inputFormat == LAVPixFmt_P010) {
+      srcU += 8;
+      srcV += 8;
+    } else if (shift > 0 || inputFormat == LAVPixFmt_NV12) {
       srcU += 4;
       srcV += 4;
     } else {
@@ -103,7 +110,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     }
 
     // 4:2:0 - upsample to 4:2:2 using 75:25
-    if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
+    if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_P010) {
       // Too high bitdepth, shift down to 14-bit
       if (shift >= 7) {
         xmm0 = _mm_srli_epi16(xmm0, shift-6);
@@ -166,7 +173,7 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     // Shift the result to 12 bit
     // For 10-bit input, we need to shift one bit off, or we exceed the allowed processing depth
     // For 8-bit, we need to add one bit
-    if (inputFormat == LAVPixFmt_YUV420 && shift > 1) {
+    if ((inputFormat == LAVPixFmt_YUV420 && shift > 1) || inputFormat == LAVPixFmt_P010) {
       if (shift >= 5) {
         xmm1 = _mm_srli_epi16(xmm1, 4);
         xmm3 = _mm_srli_epi16(xmm3, 4);
@@ -240,9 +247,8 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     xmm0 = _mm_mulhi_epi16(xmm0, coeffs->cy);                   /* Y*cy (result is 28 bits, with 12 high-bits packed into the result) */
     xmm0 = _mm_add_epi16(xmm0, coeffs->rgb_add);                /* Y*cy + 16 (in case of range compression) */
 
-    xmm2 = coeffs->CbCr_center;                                 /* move CbCr to proper range */
-    xmm1 = _mm_subs_epi16(xmm1, xmm2);
-    xmm3 = _mm_subs_epi16(xmm3, xmm2);
+    xmm1 = _mm_subs_epi16(xmm1, coeffs->CbCr_center);           /* move CbCr to proper range */
+    xmm3 = _mm_subs_epi16(xmm3, coeffs->CbCr_center);
 
     xmm6 = xmm1;
     xmm4 = xmm3;
@@ -412,7 +418,7 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
   _mm_sfence();
 
   // 4:2:0 needs special handling for the first and the last line
-  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
+  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_P010) {
     if (line == 0) {
       for (ptrdiff_t i = 0; i < endx; i += 4) {
         yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 0, dithertype, ycgco>(y, u, v, rgb, 0, 0, 0, line, coeffs, lineDither, i);
@@ -433,7 +439,7 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
       lineDither = dithers + (line * 24 * DITHER_STEPS);
     y = srcY + line * srcStrideY;
 
-    if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12) {
+    if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_P010) {
       u = srcU + (line >> 1) * srcStrideUV;
       v = srcV + (line >> 1) * srcStrideUV;
     } else {
@@ -449,13 +455,18 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
     yuv2rgb_convert_pixels<inputFormat, shift, outFmt, 1, dithertype, ycgco>(y, u, v, rgb, srcStrideY, srcStrideUV, dstStride, line, coeffs, lineDither, 0);
   }
 
-  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || lastLineInOddHeight) {
+  if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_P010 || lastLineInOddHeight) {
     if (sliceYEnd == height) {
       if (dithertype == LAVDither_Random)
         lineDither = dithers + ((height - 2) * 24 * DITHER_STEPS);
       y = srcY + (height - 1) * srcStrideY;
-      u = srcU + ((height >> 1) - 1)  * srcStrideUV;
-      v = srcV + ((height >> 1) - 1)  * srcStrideUV;
+      if (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_P010) {
+        u = srcU + ((height >> 1) - 1)  * srcStrideUV;
+        v = srcV + ((height >> 1) - 1)  * srcStrideUV;
+      } else {
+        u = srcU + (height - 1)  * srcStrideUV;
+        v = srcV + (height - 1)  * srcStrideUV;
+      }
       rgb = dst + (height - 1) * dstStride;
 
       for (ptrdiff_t i = 0; i < endx; i += 4) {
@@ -502,6 +513,10 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   if (inputFormat == LAVPixFmt_YUV420bX || inputFormat == LAVPixFmt_YUV422bX || inputFormat == LAVPixFmt_YUV444bX)
     inputFormat = (LAVPixelFormat)(inputFormat - 1);
 
+  // P010 has the data in the high bits, so set shift appropriately
+  if (inputFormat == LAVPixFmt_P010)
+    shift = 8;
+
   YUVRGBConversionFunc convFn = m_RGBConvFuncs[outFmt][ditherMode][bYCgCo][inputFormat][shift];
   if (convFn == nullptr) {
     ASSERT(0);
@@ -512,7 +527,7 @@ DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
   if (m_NumThreads <= 1) {
     convFn(src[0], src[1], src[2], dst[0], width, height, srcStride[0], srcStride[1], dstStride[0], 0, height, coeffs, dithers);
   } else {
-    const int is_odd = (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12);
+    const int is_odd = (inputFormat == LAVPixFmt_YUV420 || inputFormat == LAVPixFmt_NV12 || inputFormat == LAVPixFmt_P010);
     const ptrdiff_t lines_per_thread = (height / m_NumThreads)&~1;
 
     Concurrency::parallel_for(0, m_NumThreads, [&](int i) {
@@ -554,6 +569,7 @@ void CLAVPixFmtConverter::InitRGBConvDispatcher()
   ZeroMemory(&m_RGBConvFuncs, sizeof(m_RGBConvFuncs));
 
   CONV_FUNC(LAVPixFmt_NV12,   0);
+  CONV_FUNC(LAVPixFmt_P010,   8);
 
   CONV_FUNCX(LAVPixFmt_YUV420);
   CONV_FUNCX(LAVPixFmt_YUV422);

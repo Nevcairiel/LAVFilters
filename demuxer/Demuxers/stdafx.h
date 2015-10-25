@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,13 +19,10 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#define VC_EXTRALEAN
+#include "common_defines.h"
 
 #include <atlbase.h>
 #include <atlconv.h>
-
-#include "version.h"
 
 #include "streams.h"
 
@@ -33,13 +30,13 @@
 #pragma warning(disable:4244)
 extern "C" {
 #define __STDC_CONSTANT_MACROS
-#define FF_API_PIX_FMT 0
 #include "libavformat/avformat.h"
 #include "libavutil/intreadwrite.h"
 #include "libavutil/pixdesc.h"
 #include "libavutil/opt.h"
 
 #include "libbluray/bluray.h"
+#include "libbluray/bdnav/clpi_parse.h"
 }
 #pragma warning(pop)
 
@@ -48,8 +45,6 @@ typedef struct AVCodecTag {
     enum AVCodecID id;
     unsigned int tag;
 } AVCodecTag;
-
-#include "libbluray/bdnav/clpi_parse.h"
 
 #include "util/log_control.h"
 

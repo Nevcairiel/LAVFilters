@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 
 #include "../decoders/ILAVDecoder.h"
 
-#define BLEND_FUNC_PARAMS (BYTE* video[4], int videoStride[4], RECT vidRect, BYTE* subData[4], int subStride[4], POINT position, SIZE size, LAVPixelFormat pixFmt, int bpp)
+#define BLEND_FUNC_PARAMS (BYTE* video[4], ptrdiff_t videoStride[4], RECT vidRect, BYTE* subData[4], ptrdiff_t subStride[4], POINT position, SIZE size, LAVPixelFormat pixFmt, int bpp)
 
 #define DECLARE_BLEND_FUNC(name) \
   HRESULT name BLEND_FUNC_PARAMS
@@ -36,39 +36,39 @@ typedef struct LAVSubtitleConsumerContext {
   LPWSTR name;                    ///< name of the Consumer
   LPWSTR version;                 ///< Version of the Consumer
   SIZE   originalVideoSize;       ///< Size of the video
-
-  bool   redraw;
-  bool   menu;
 } LAVSubtitleConsumerContext;
 
 class CLAVVideo;
 
-class CLAVSubtitleConsumer : public ISubRenderConsumer, public CSubRenderOptionsImpl, public CUnknown
+class CLAVSubtitleConsumer : public ISubRenderConsumer2, public CSubRenderOptionsImpl, public CUnknown
 {
 public:
   CLAVSubtitleConsumer(CLAVVideo *pLAVVideo);
   virtual ~CLAVSubtitleConsumer(void);
   DECLARE_IUNKNOWN;
+  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
   DECLARE_ISUBRENDEROPTIONS;
 
-  // ISubRenderConsumer
+  // ISubRenderConsumer2
   STDMETHODIMP GetMerit(ULONG *merit) { CheckPointer(merit, E_POINTER); *merit = 0x00010000; return S_OK; }
   STDMETHODIMP Connect(ISubRenderProvider *subtitleRenderer);
   STDMETHODIMP Disconnect(void);
-  STDMETHODIMP DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, ISubRenderFrame *subtitleFrame);
+  STDMETHODIMP DeliverFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context, ISubRenderFrame *subtitleFrame);
+  STDMETHODIMP Clear(REFERENCE_TIME clearNewerThan = 0);
 
   // LAV Internal methods
   STDMETHODIMP RequestFrame(REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
   STDMETHODIMP ProcessFrame(LAVFrame *pFrame);
 
-  STDMETHODIMP DisconnectProvider() { if (m_pProvider) return m_pProvider->Disconnect(); SafeRelease(&m_pProvider); return S_OK; }
+  STDMETHODIMP DisconnectProvider() { if (m_pProvider) m_pProvider->Disconnect(); SafeRelease(&m_pProvider); return S_OK; }
 
   BOOL HasProvider() const { return m_pProvider != nullptr; }
 
   void SetVideoSize(LONG w, LONG h) { context.originalVideoSize.cx = w; context.originalVideoSize.cy = h; }
 
 private:
-  STDMETHODIMP ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], int videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, int pitch);
+  STDMETHODIMP ProcessSubtitleBitmap(LAVPixelFormat pixFmt, int bpp, RECT videoRect, BYTE *videoData[4], ptrdiff_t videoStride[4], RECT subRect, POINT subPosition, SIZE subSize, const uint8_t *rgbData, ptrdiff_t pitch);
 
   STDMETHODIMP SelectBlendFunction();
   typedef HRESULT (CLAVSubtitleConsumer::*BlendFn) BLEND_FUNC_PARAMS;

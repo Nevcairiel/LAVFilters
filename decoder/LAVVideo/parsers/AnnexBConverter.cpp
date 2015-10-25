@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -18,15 +18,15 @@
  */
 
 #include "stdafx.h"
-#include "AVC1AnnexBConverter.h"
+#include "AnnexBConverter.h"
 
 #include "libavutil/intreadwrite.h"
 
-CAVC1AnnexBConverter::CAVC1AnnexBConverter(void)
+CAnnexBConverter::CAnnexBConverter(void)
 {
 }
 
-CAVC1AnnexBConverter::~CAVC1AnnexBConverter(void)
+CAnnexBConverter::~CAnnexBConverter(void)
 {
 }
 
@@ -51,7 +51,7 @@ static HRESULT alloc_and_copy(uint8_t **poutbuf, int *poutbuf_size, const uint8_
   return S_OK;
 }
 
-HRESULT CAVC1AnnexBConverter::Convert(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size)
+HRESULT CAnnexBConverter::Convert(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size)
 {
   int32_t nal_size;
   const uint8_t *buf_end = buf + buf_size;
@@ -88,4 +88,33 @@ HRESULT CAVC1AnnexBConverter::Convert(BYTE **poutbuf, int *poutbuf_size, const B
 fail:
   av_freep(poutbuf);
   return E_FAIL;
+}
+
+HRESULT CAnnexBConverter::ConvertHEVCExtradata(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size)
+{
+  if (buf_size < 23)
+    return E_INVALIDARG;
+
+  SetNALUSize(2);
+
+  *poutbuf = nullptr;
+  *poutbuf_size = 0;
+
+  int num_arrays = buf[22];
+  int remaining_size = buf_size - 23;
+  buf += 23;
+  for (int i = 0; i < num_arrays; i++) {
+    if (remaining_size < 3) break;
+    int cnt = AV_RB16(buf+1);
+    buf += 3; remaining_size -= 3;
+    for (int j = 0; j < cnt; j++) {
+      if (remaining_size < 2) break;
+      int len = AV_RB16(buf) + 2;
+      if (remaining_size < len) break;
+      alloc_and_copy(poutbuf, poutbuf_size, buf + 2, len - 2);
+      buf += len; remaining_size -= len;
+    }
+  }
+
+  return S_OK;
 }

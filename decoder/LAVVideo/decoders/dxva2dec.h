@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2011-2014 Hendrik Leppkes
+ *      Copyright (C) 2011-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -52,9 +52,10 @@ public:
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
   STDMETHODIMP_(long) GetBufferCount();
-  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bNative ? L"dxva2n" : L"dxva2cb"; }
+  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bNative ? L"dxva2n" : (m_bDirect ? L"dxva2cb direct" : L"dxva2cb"); }
   STDMETHODIMP HasThreadSafeBuffers() { return m_bNative ? S_FALSE : S_OK; }
-  STDMETHODIMP SyncToProcessThread() { return HasThreadSafeBuffers() == S_OK ? S_FALSE : S_OK; }
+  STDMETHODIMP SyncToProcessThread() { return S_OK; }
+  STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
 
   // CDecBase
   STDMETHODIMP Init();
@@ -68,6 +69,7 @@ protected:
   HRESULT DeliverDXVA2Frame(LAVFrame *pFrame);
 
   bool CopyFrame(LAVFrame *pFrame);
+  bool DeliverDirect(LAVFrame *pFrame);
 
 private:
   HRESULT InitD3D();
@@ -77,7 +79,7 @@ private:
 
   HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
   HRESULT CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
-  HRESULT FindVideoServiceConversion(AVCodecID codec, GUID *input, D3DFORMAT *output);
+  HRESULT FindVideoServiceConversion(AVCodecID codec, bool bHighBitdepth, GUID *input, D3DFORMAT *output);
   HRESULT FindDecoderConfiguration(const GUID &input, const DXVA2_VideoDesc *pDesc, DXVA2_ConfigPictureDecode *pConfig);
 
   HRESULT CreateDXVA2Decoder(int nSurfaces = 0, IDirect3DSurface9 **ppSurfaces = nullptr);
@@ -87,9 +89,11 @@ private:
   HRESULT CheckHWCompatConditions(GUID decoderGuid);
   HRESULT FillHWContext(dxva_context *ctx);
 
+  HRESULT ReInitDXVA2Decoder(AVCodecContext *c);
+
+  static enum AVPixelFormat get_dxva2_format(struct AVCodecContext *s, const enum AVPixelFormat * pix_fmts);
   static int get_dxva2_buffer(struct AVCodecContext *c, AVFrame *pic, int flags);
   static void free_dxva2_buffer(void *opaque, uint8_t *data);
-  d3d_surface_t *FindSurface(LPDIRECT3DSURFACE9 pSurface);
 
   STDMETHODIMP FlushDisplayQueue(BOOL bDeliver);
   STDMETHODIMP FlushFromAllocator();
@@ -99,6 +103,7 @@ private:
 private:
   friend class CDXVA2SurfaceAllocator;
   BOOL m_bNative = FALSE;
+  BOOL m_bDirect = FALSE;
   CDXVA2SurfaceAllocator *m_pDXVA2Allocator = nullptr;
 
   struct {
@@ -129,8 +134,10 @@ private:
   LAVFrame* m_FrameQueue[DXVA2_QUEUE_SURFACES];
   int       m_FrameQueuePosition = 0;
 
+  AVPixelFormat m_DecoderPixelFormat = AV_PIX_FMT_NONE;
   DWORD     m_dwSurfaceWidth    = 0;
   DWORD     m_dwSurfaceHeight   = 0;
+  D3DFORMAT m_eSurfaceFormat    = D3DFMT_UNKNOWN;
   DWORD     m_dwVendorId        = 0;
   DWORD     m_dwDeviceId        = 0;
   GUID      m_guidDecoderDevice = GUID_NULL;

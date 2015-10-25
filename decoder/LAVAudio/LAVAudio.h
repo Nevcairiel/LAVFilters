@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -134,6 +134,10 @@ public:
   STDMETHODIMP_(BOOL) GetTrayIcon();
   STDMETHODIMP SetSampleConvertDithering(BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetSampleConvertDithering();
+  STDMETHODIMP SetSuppressFormatChanges(BOOL bEnabled);
+  STDMETHODIMP_(BOOL) GetSuppressFormatChanges();
+  STDMETHODIMP SetOutput51LegacyLayout(BOOL b51Legacy);
+  STDMETHODIMP_(BOOL) GetOutput51LegacyLayout();
 
   // ILAVAudioStatus
   STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
@@ -167,9 +171,9 @@ public:
 public:
   // Pin Configuration
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesIn[];
-  const static int                      sudPinTypesInCount;
+  const static UINT                     sudPinTypesInCount;
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesOut[];
-  const static int                      sudPinTypesOutCount;
+  const static UINT                     sudPinTypesOutCount;
 
 private:
   HRESULT LoadDefaults();
@@ -193,6 +197,7 @@ private:
   HRESULT FlushOutput(BOOL bDeliver = TRUE);
   HRESULT FlushDecoder();
 
+  HRESULT PerformFlush();
   HRESULT Deliver(BufferDetails &buffer);
 
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
@@ -227,7 +232,7 @@ private:
   HRESULT Create61Conformity(DWORD dwLayout);
   HRESULT Create71Conformity(DWORD dwLayout);
 
-  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback = FALSE);
+  LAVAudioSampleFormat GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, int *bits = NULL, BOOL bNoFallback = FALSE);
   HRESULT Truncate32Buffer(BufferDetails *buffer);
   HRESULT PadTo32(BufferDetails *buffer);
 
@@ -240,6 +245,7 @@ private:
   AVCodecParserContext *m_pParser  = nullptr;
   AVFrame              *m_pFrame   = nullptr;
 
+  BOOL                 m_bFlushing      = FALSE;
   BOOL                 m_bDiscontinuity = FALSE;
   REFERENCE_TIME       m_rtStart        = 0;
   double               m_dStartOffset   = 0.0;
@@ -258,9 +264,7 @@ private:
   LAVAudioSampleFormat m_FallbackFormat    = SampleFormat_None;
   DWORD                m_dwOverrideMixer   = 0;
 
-  BOOL                 m_bSampleSupport[SampleFormat_NB];
-
-  BOOL                 m_bHasVideo              = TRUE;
+  int                  m_bHasVideo              = -1;
 
   AVAudioResampleContext *m_avrContext          = nullptr;
   LAVAudioSampleFormat m_sfRemixFormat          = SampleFormat_None;
@@ -280,6 +284,7 @@ private:
     BOOL ExpandMono;
     BOOL Expand61;
     BOOL OutputStandardLayout;
+    BOOL Output51Legacy;
     BOOL AllowRawSPDIF;
     BOOL bSampleFormats[SampleFormat_NB];
     BOOL SampleConvertDither;
@@ -293,6 +298,8 @@ private:
     DWORD MixingCenterLevel;
     DWORD MixingSurroundLevel;
     DWORD MixingLFELevel;
+
+    BOOL SuppressFormatChanges;
   } m_settings;
   BOOL                m_bRuntimeConfig = FALSE;
 
@@ -302,6 +309,7 @@ private:
   BOOL                m_bQueueResync     = FALSE;
   BOOL                m_bResyncTimestamp = FALSE;
   BOOL                m_bNeedSyncpoint   = FALSE;
+  BOOL                m_bJustFlushed     = TRUE;
   BufferDetails       m_OutputQueue;
 
   AVIOContext        *m_avioBitstream = nullptr;
@@ -313,6 +321,7 @@ private:
   BOOL                m_bForceDTSCore                = FALSE;
   CBitstreamParser    m_bsParser;
   BOOL                m_bFindDTSInPCM                = FALSE;
+  BOOL                m_bDVDPlayback                 = FALSE;
 
   FloatingAverage<REFERENCE_TIME> m_faJitter{50};
   REFERENCE_TIME      m_JitterLimit = MAX_JITTER_DESYNC;
@@ -326,6 +335,8 @@ private:
   DWORD               m_DecodeLayoutSanified    = 0;
   DWORD               m_MixingInputLayout       = 0;
   BOOL                m_bChannelMappingRequired = FALSE;
+
+  DWORD               m_SuppressLayout          = 0;
 
   ExtendedChannelMap  m_ChannelMap;
   int                 m_ChannelMapOutputChannels = 0;

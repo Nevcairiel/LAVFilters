@@ -1,6 +1,6 @@
 /*
  *      Copyright (C) 2003-2006 Gabest
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -88,6 +88,9 @@ DEFINE_GUID(MEDIASUBTYPE_AMR,
 // {726D6173-0000-0010-8000-00AA00389B71}
 DEFINE_GUID(MEDIASUBTYPE_SAMR,
 			0x726D6173, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
+DEFINE_GUID(MEDIASUBTYPE_VP70,
+			0x30375056, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
 
 DEFINE_GUID(MEDIASUBTYPE_VP80 ,
 			0x30385056, 0x0000, 0x0010,  0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
@@ -1413,6 +1416,22 @@ DEFINE_GUID(MEDIASUBTYPE_SPEEX,
 DEFINE_GUID(MEDIASUBTYPE_OPUS,
 			WAVE_FORMAT_OPUS, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
 
+#define WAVE_FORMAT_DSDL      mmioFOURCC('D','S','D','L')
+DEFINE_GUID(MEDIASUBTYPE_DSDL,
+  WAVE_FORMAT_DSDL, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
+#define WAVE_FORMAT_DSDM      mmioFOURCC('D','S','D','M')
+DEFINE_GUID(MEDIASUBTYPE_DSDM,
+  WAVE_FORMAT_DSDM, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
+#define WAVE_FORMAT_DSD1      mmioFOURCC('D','S','D','1')
+DEFINE_GUID(MEDIASUBTYPE_DSD1,
+  WAVE_FORMAT_DSD1, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
+#define WAVE_FORMAT_DSD8      mmioFOURCC('D','S','D','8')
+DEFINE_GUID(MEDIASUBTYPE_DSD8,
+  WAVE_FORMAT_DSD8, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
 struct WAVEFORMATEX_HDMV_LPCM : public WAVEFORMATEX
 {
 	BYTE channel_conf;
@@ -1634,6 +1653,8 @@ DEFINE_GUID(MEDIASUBTYPE_DOLBY_DDPLUS_ARCSOFT ,0x71cfa727, 0x37e4, 0x404a, 0xae,
 #define FOURCC_Y800 mmioFOURCC('Y','8','0','0')
 #define FOURCC_NV12 mmioFOURCC('N','V','1','2')
 #define FOURCC_NV21 mmioFOURCC('N','V','2','1')
+#define FOURCC_P010 mmioFOURCC('P','0','1','0')
+#define FOURCC_P016 mmioFOURCC('P','0','1','6')
 
 DEFINE_GUID_FOURCC(422P)
 DEFINE_GUID_FOURCC(444P)

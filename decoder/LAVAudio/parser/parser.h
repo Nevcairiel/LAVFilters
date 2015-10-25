@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -22,10 +22,10 @@
 static inline const uint8_t *find_marker32_position(const uint8_t *pBuffer, size_t uBufSize, uint32_t marker)
 {
   uint32_t state = 0;
-  for (unsigned i = 0; i < uBufSize; ++i) {
+  for (size_t i = 0; i < uBufSize; ++i) {
     state = (state << 8) | pBuffer[i];
     if (state == marker) {
-      return pBuffer + (i-3);
+      return pBuffer + (i - 3);
     }
   }
 

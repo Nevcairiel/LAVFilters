@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -254,14 +254,14 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
 };
-const int CLAVAudio::sudPinTypesInCount = countof(CLAVAudio::sudPinTypesIn);
+const UINT CLAVAudio::sudPinTypesInCount = countof(CLAVAudio::sudPinTypesIn);
 
 // Define Output Media Types
 const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesOut[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_PCM        },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_IEEE_FLOAT },
 };
-const int CLAVAudio::sudPinTypesOutCount = countof(CLAVAudio::sudPinTypesOut);
+const UINT CLAVAudio::sudPinTypesOutCount = countof(CLAVAudio::sudPinTypesOut);
 
 // Crawl the lavc_audio_codecs array for the proper codec
 AVCodecID FindCodecId(const CMediaType *mt)
@@ -302,7 +302,7 @@ static const scmap_t m_scmap_default[] = {
   {3, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER},															// 3/0			FL, FR, FC
   {4, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY},										// 3/1			FL, FR, FC, Surround
   {5, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT},						// 3/2			FL, FR, FC, BL, BR
-  {6, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT},// 3/2+LFe		FL, FR, FC, BL, BR, LFe
+  {6, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT},// 3/2+LFe		FL, FR, FC, BL, BR, LFe
   {7, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT|SPEAKER_BACK_CENTER},	// 3/4			FL, FR, FC, BL, Bls, Brs, BR
   {8, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT},// 3/4+LFe		FL, FR, FC, BL, Bls, Brs, BR, LFe
 };
@@ -527,7 +527,7 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen
     if (version == 5)
       fmt++;
 
-    size_t ra_extralen = min((extra + extralen) - (fmt+4), AV_RB32(fmt));
+    size_t ra_extralen = min((size_t)((extra + extralen) - (fmt+4)), AV_RB32(fmt));
     if (ra_extralen > 0)  {
       m_pAVCtx->extradata_size = (int)ra_extralen;
       m_pAVCtx->extradata      = (uint8_t *)av_mallocz(ra_extralen + FF_INPUT_BUFFER_PADDING_SIZE);
@@ -663,7 +663,7 @@ static codec_config_t m_codec_config[] = {
   { 2, { AV_CODEC_ID_AAC, AV_CODEC_ID_AAC_LATM }},       // CC_AAC
   { 1, { AV_CODEC_ID_AC3 }},                          // CC_AC3
   { 1, { AV_CODEC_ID_EAC3 }},                         // CC_EAC3
-  { 1, { AV_CODEC_ID_DTS }},                          // CC_DTS
+  { 1, { AV_CODEC_ID_DTS }, "dts", "DTS Coherent Acoustics (DTS, DTS-HD)"},                          // CC_DTS
   { 2, { AV_CODEC_ID_MP2, AV_CODEC_ID_MP1 }},            // CC_MP2
   { 1, { AV_CODEC_ID_MP3 }},                          // CC_MP3
   { 2, { AV_CODEC_ID_TRUEHD, AV_CODEC_ID_MLP }},         // CC_TRUEHD
@@ -714,7 +714,7 @@ static LAVAudioSampleFormat sampleFormatMapping[5][5] = {
   { SampleFormat_FP32, SampleFormat_24, SampleFormat_32, SampleFormat_16, SampleFormat_U8 },  // SampleFormat_FP32
 };
 
-LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, BOOL bNoFallback)
+LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleFormat inFormat, int *bits, BOOL bNoFallback)
 {
   ASSERT(inFormat >= 0 && inFormat < SampleFormat_Bitstream);
 
@@ -728,6 +728,9 @@ LAVAudioSampleFormat CLAVAudio::GetBestAvailableSampleFormat(LAVAudioSampleForma
       break;
     }
   }
+
+  if (bits && outFormat != inFormat)
+    *bits = get_byte_per_sample(outFormat) << 3;
 
   return outFormat;
 }

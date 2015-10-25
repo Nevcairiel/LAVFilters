@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -186,7 +186,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   }
 
   pvi->dwBitErrorRate = 0;
-  pvi->dwBitRate = avstream->codec->bit_rate;
+  pvi->dwBitRate = (DWORD)avstream->codec->bit_rate;
   RECT empty_tagrect = {0,0,0,0};
   pvi->rcSource = empty_tagrect;//Some codecs like wmv are setting that value to the video current value
   pvi->rcTarget = empty_tagrect;
@@ -270,9 +270,9 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   AVRational rc = avstream->codec->sample_aspect_ratio;
   int num = vih->bmiHeader.biWidth, den = vih->bmiHeader.biHeight;
   if (r.den > 0 && r.num > 0) {
-    av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, 255);
+    av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, INT_MAX);
   } else if (rc.den > 0 && rc.num > 0) {
-    av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, 255);
+    av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, INT_MAX);
   } else {
     av_reduce(&num, &den, num, den, num);
   }
@@ -328,7 +328,7 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   mp1vi->hdr.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 
   mp1vi->dwStartTimeCode = 0; // is this not 0 anywhere..?
-  mp1vi->hdr.bmiHeader.biPlanes = 0;
+  mp1vi->hdr.bmiHeader.biPlanes = 1;
   mp1vi->hdr.bmiHeader.biCompression = 0;
 
   // copy extradata over
@@ -384,7 +384,7 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
     } else if (avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);
       mp2vi->cbSequenceHeader = (DWORD)parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
-      mp2vi->hdr.bmiHeader.biPlanes = 0;
+      mp2vi->hdr.bmiHeader.biPlanes = 1;
       mp2vi->hdr.bmiHeader.biCompression = 0;
     } else {
       bCopyUntouched = TRUE;

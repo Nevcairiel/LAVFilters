@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -41,7 +41,7 @@ class CLAVOutputPin
   , protected CAMThread
 {
 public:
-  CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "", bool bFirst = false);
+  CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "");
   virtual ~CLAVOutputPin();
 
   DECLARE_IUNKNOWN;
@@ -142,8 +142,6 @@ private:
 
   std::string m_containerFormat;
 
-  bool m_bFirstPin = false;
-
   // Flush control
   bool m_fFlushing = false;
   bool m_fFlushed  = false;
@@ -153,7 +151,7 @@ private:
 
   int m_nBuffers        = 1;
   DWORD m_dwQueueLow    = MIN_PACKETS_IN_QUEUE;
-  DWORD m_dwQueueHigh   = MAX_PACKETS_IN_QUEUE;
+  DWORD m_dwQueueHigh   = 350;
   DWORD m_dwQueueMaxMem = 256;
 
   DWORD m_streamId      = 0;

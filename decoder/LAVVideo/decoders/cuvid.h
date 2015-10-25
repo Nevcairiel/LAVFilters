@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@
 #include "cuvid/nvcuvid.h"
 #include "cuvid/cuda_dynlink.h"
 
-#include "parsers/AVC1AnnexBConverter.h"
+#include "parsers/AnnexBConverter.h"
 
 #include <queue>
 
@@ -75,8 +75,7 @@ private:
   STDMETHODIMP FlushParser();
 
   STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen);
-
-  HWND GetDummyHWND();
+  STDMETHODIMP CheckHEVCSequence(const BYTE *buffer, int buflen);
 
   int GetMaxGflopsGraphicsDeviceId();
 
@@ -154,7 +153,7 @@ private:
   BYTE                   *m_pbRawNV12 = nullptr;
   int                    m_cRawNV12   = 0;
 
-  CAVC1AnnexBConverter   *m_AVC1Converter = nullptr;
+  CAnnexBConverter       *m_AnnexBConverter = nullptr;
 
   BOOL                   m_bFormatIncompatible = FALSE;
   BOOL                   m_bNeedSequenceCheck  = FALSE;
@@ -166,8 +165,6 @@ private:
   BOOL                   m_bTFF           = TRUE;
   BOOL                   m_bARPresent     = TRUE;
   BOOL                   m_bEndOfSequence = FALSE;
-
-  HWND                   m_hwnd           = 0;
 
   int                    m_DisplayDelay   = DISPLAY_DELAY;
 };

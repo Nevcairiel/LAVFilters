@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -41,6 +41,7 @@
  * YUV444         -       -       -       -       -       x       x       -       -       -       -       -       -       -       -      x       x
  * YUV444bX       -       -       -       -       -       x       x       -       -       -       x       -       -       -       x      x       x
  * NV12           x       x       -       x       x       -       -       -       -       -       -       -       -       -       -      x       x
+ * P010           -       x       -       -       -       -       -       x       -       -       -       -       x       -       -      x       x
  * YUY2           -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       -
  * RGB24          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      x       -
  * RGB32          -       -       -       -       -       -       -       -       -       -       -       -       -       -       -      -       x
@@ -78,6 +79,7 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   // 4:2:0
   { LAVPixFmt_YUV420, 8,    { PIXOUT_420_8, PIXOUT_420_10, PIXOUT_420_16, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
   { LAVPixFmt_NV12,   8,    { PIXOUT_420_8, PIXOUT_420_10, PIXOUT_420_16, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
+  { LAVPixFmt_P010,   10,   { PIXOUT_420_10, PIXOUT_420_16, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
 
   { LAVPixFmt_YUV420bX, 10, { PIXOUT_420_10, PIXOUT_420_16, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
   { LAVPixFmt_YUV420bX, 16, { PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
@@ -100,7 +102,9 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
   { LAVPixFmt_ARGB32, 8,    { PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
   { LAVPixFmt_RGB48,  8,    { PIXOUT_RGB_16, PIXOUT_RGB_8, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
 
-  { LAVPixFmt_DXVA2, 8,     { PIXOUT_420_8, PIXOUT_420_10, PIXOUT_420_16, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_RGB_16 } },
+  { LAVPixFmt_DXVA2,  8,    { PIXOUT_420_8, PIXOUT_420_10, PIXOUT_420_16, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_RGB_16 } },
+  { LAVPixFmt_DXVA2, 10,    { PIXOUT_420_10, PIXOUT_420_16, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
+  { LAVPixFmt_DXVA2, 16,    { PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8 } },
 };
 
 LAVOutPixFmtDesc lav_pixfmt_desc[] = {
@@ -139,6 +143,7 @@ static LAV_INOUT_PIXFMT_MAP *lookupFormatMap(LAVPixelFormat informat, int bpp, B
 CLAVPixFmtConverter::CLAVPixFmtConverter()
 {
   convert = &CLAVPixFmtConverter::convert_generic;
+  convert_direct = nullptr;
 
   m_NumThreads = min(8, max(1, av_cpu_count() / 2));
 
@@ -161,12 +166,27 @@ LAVOutPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
   return LAVOutPixFmt_None;
 }
 
+static bool IsDXVAPixFmt(LAVPixelFormat inputFormat, LAVOutPixFmts outputFormat, int bpp)
+{
+  if (inputFormat != LAVPixFmt_DXVA2)
+    return false;
+
+  if (bpp == 8 && outputFormat == LAVOutPixFmt_NV12)
+    return true;
+  else if (bpp == 10 && outputFormat == LAVOutPixFmt_P010)
+    return true;
+  else if (bpp == 16 && outputFormat == LAVOutPixFmt_P016)
+    return true;
+
+  return false;
+}
+
 int CLAVPixFmtConverter::GetFilteredFormatCount()
 {
   LAV_INOUT_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt, m_InBpp);
   int count = 0;
   for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
-    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) || (m_InputPixFmt == LAVPixFmt_DXVA2 && pixFmtMap->lav_pix_fmts[i] == LAVOutPixFmt_NV12))
+    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) || IsDXVAPixFmt(m_InputPixFmt, pixFmtMap->lav_pix_fmts[i], m_InBpp))
       count++;
   }
 
@@ -181,7 +201,7 @@ LAVOutPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
   LAV_INOUT_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt, m_InBpp);
   int actualIndex = -1;
   for (int i = 0; i < LAVOutPixFmt_NB; ++i) {
-    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) || (m_InputPixFmt == LAVPixFmt_DXVA2 && pixFmtMap->lav_pix_fmts[i] == LAVOutPixFmt_NV12))
+    if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) || IsDXVAPixFmt(m_InputPixFmt, pixFmtMap->lav_pix_fmts[i], m_InBpp))
       actualIndex++;
     if (index == actualIndex)
       return pixFmtMap->lav_pix_fmts[i];
@@ -259,13 +279,9 @@ void CLAVPixFmtConverter::GetMediaType(CMediaType *mt, int index, LONG biWidth, 
   pBIH->biWidth = biWidth;
   pBIH->biHeight = biHeight;
   pBIH->biBitCount = lav_pixfmt_desc[pixFmt].bpp;
-  pBIH->biPlanes = lav_pixfmt_desc[pixFmt].planes;
+  pBIH->biPlanes = 1;
   pBIH->biSizeImage = GetImageSize(biWidth, abs(biHeight), pixFmt);
   pBIH->biCompression = guid.Data1;
-
-  if (!pBIH->biPlanes) {
-    pBIH->biPlanes = 1;
-  }
 
   if (guid == MEDIASUBTYPE_RGB32 || guid == MEDIASUBTYPE_RGB24) {
     pBIH->biCompression = BI_RGB;
@@ -322,8 +338,12 @@ void CLAVPixFmtConverter::SelectConvertFunction()
     m_RequiredAlignment = 0;
   } else if ((m_OutputPixFmt == LAVOutPixFmt_RGB32 && (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32))
     || (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) || (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48)
-    || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)) {
-    convert = &CLAVPixFmtConverter::plane_copy;
+    || (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12)
+    || ((m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016) && m_InputPixFmt == LAVPixFmt_P010)) {
+    if (cpu & AV_CPU_FLAG_SSE2)
+      convert = &CLAVPixFmtConverter::plane_copy_sse2;
+    else
+      convert = &CLAVPixFmtConverter::plane_copy;
     m_RequiredAlignment = 0;
   } else if (m_InputPixFmt == LAVPixFmt_RGB48 && m_OutputPixFmt == LAVOutPixFmt_RGB32 && (cpu & AV_CPU_FLAG_SSSE3)) {
     convert = &CLAVPixFmtConverter::convert_rgb48_rgb32_ssse3;
@@ -359,7 +379,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
             && (m_InputPixFmt == LAVPixFmt_YUV420 || m_InputPixFmt == LAVPixFmt_YUV420bX
              || m_InputPixFmt == LAVPixFmt_YUV422 || m_InputPixFmt == LAVPixFmt_YUV422bX
              || m_InputPixFmt == LAVPixFmt_YUV444 || m_InputPixFmt == LAVPixFmt_YUV444bX
-             || m_InputPixFmt == LAVPixFmt_NV12)) {
+             || m_InputPixFmt == LAVPixFmt_NV12   || m_InputPixFmt == LAVPixFmt_P010)) {
       convert = &CLAVPixFmtConverter::convert_yuv_rgb;
       if (m_OutputPixFmt == LAVOutPixFmt_RGB32) {
         m_RequiredAlignment = 4;
@@ -393,17 +413,46 @@ void CLAVPixFmtConverter::SelectConvertFunction()
         convert = &CLAVPixFmtConverter::convert_rgb48_rgb<1>;
       else
         convert = &CLAVPixFmtConverter::convert_rgb48_rgb<0>;
+    } else if (m_InputPixFmt == LAVPixFmt_P010 && m_OutputPixFmt == LAVOutPixFmt_NV12) {
+      convert = &CLAVPixFmtConverter::convert_p010_nv12_sse2;
     }
   }
 
   if (convert == nullptr) {
     convert = &CLAVPixFmtConverter::convert_generic;
   }
+
+  SelectConvertFunctionDirect();
 }
 
-HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, int dstStride, int planeHeight) {
+void CLAVPixFmtConverter::SelectConvertFunctionDirect()
+{
+  convert_direct = nullptr;
+  m_bDirectMode = FALSE;
+
+  int cpu = av_get_cpu_flags();
+  if ((m_InputPixFmt == LAVPixFmt_NV12 && m_OutputPixFmt == LAVOutPixFmt_NV12)
+   || (m_InputPixFmt == LAVPixFmt_P010 && (m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016))) {
+    if (cpu & AV_CPU_FLAG_SSE4)
+      convert_direct = &CLAVPixFmtConverter::plane_copy_direct_sse4;
+    else if (cpu & AV_CPU_FLAG_SSE2)
+      convert_direct = &CLAVPixFmtConverter::plane_copy_sse2;
+    else
+      convert_direct = &CLAVPixFmtConverter::plane_copy;
+  } else if (m_InputPixFmt == LAVPixFmt_P010 && m_OutputPixFmt == LAVOutPixFmt_NV12) {
+    if (cpu & AV_CPU_FLAG_SSE4)
+      convert_direct = &CLAVPixFmtConverter::convert_p010_nv12_direct_sse4;
+    else if (cpu & AV_CPU_FLAG_SSE2)
+      convert_direct = &CLAVPixFmtConverter::convert_p010_nv12_sse2;
+  }
+
+  if (convert_direct != nullptr)
+    m_bDirectMode = true;
+}
+
+HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight) {
   uint8_t *out = dst;
-  int outStride = dstStride, i;
+  ptrdiff_t outStride = dstStride, i;
   planeHeight = max(height, planeHeight);
   // Check if we have proper pixel alignment and the dst memory is actually aligned
   if (m_RequiredAlignment && (FFALIGN(dstStride, m_RequiredAlignment) != dstStride || ((uintptr_t)dst % 16u))) {
@@ -422,8 +471,8 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   }
 
   uint8_t *dstArray[4] = {0};
-  int dstStrideArray[4] = {0};
-  int byteStride = outStride * lav_pixfmt_desc[m_OutputPixFmt].codedbytes;
+  ptrdiff_t dstStrideArray[4] = {0};
+  ptrdiff_t byteStride = outStride * lav_pixfmt_desc[m_OutputPixFmt].codedbytes;
 
   dstArray[0] = out;
   dstStrideArray[0] = byteStride;
@@ -440,40 +489,49 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
   return hr;
 }
 
-DECLARE_CONV_FUNC_IMPL(plane_copy)
-{
-  LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
-
-  int plane, line;
-
-  const int widthBytes = width * desc.codedbytes;
-  const int planes = max(desc.planes, 1);
-
-  for (plane = 0; plane < planes; plane++) {
-    const int planeWidth     = widthBytes / desc.planeWidth[plane];
-    const int planeHeight    = height     / desc.planeHeight[plane];
-    const uint8_t *srcBuf = src[plane];
-    uint8_t *dstBuf = dst[plane];
-    for (line = 0; line < planeHeight; ++line) {
-      memcpy(dstBuf, srcBuf, planeWidth);
-      srcBuf += srcStride[plane];
-      dstBuf += dstStride[plane];
-    }
-  }
-
-  return S_OK;
+BOOL CLAVPixFmtConverter::IsDirectModeSupported(uintptr_t dst, ptrdiff_t stride) {
+  if (FFALIGN(stride, 16) != stride || (dst % 16u))
+    return false;
+  return m_bDirectMode;
 }
 
-void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_t *dst, int dstStride, int width, int height, int planeHeight, LAVOutPixFmts format)
+HRESULT CLAVPixFmtConverter::ConvertDirect(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight)
+{
+  HRESULT hr = S_OK;
+  planeHeight = max(height, planeHeight);
+  ASSERT(pFrame->direct && pFrame->direct_lock && pFrame->direct_unlock);
+
+  LAVDirectBuffer buffer;
+  if (pFrame->direct_lock(pFrame, &buffer)) {
+    uint8_t *dstArray[4] = { 0 };
+    ptrdiff_t dstStrideArray[4] = { 0 };
+    ptrdiff_t byteStride = dstStride * lav_pixfmt_desc[m_OutputPixFmt].codedbytes;
+
+    dstArray[0] = dst;
+    dstStrideArray[0] = byteStride;
+
+    for (int i = 1; i < lav_pixfmt_desc[m_OutputPixFmt].planes; ++i) {
+      dstArray[i] = dstArray[i - 1] + dstStrideArray[i - 1] * (planeHeight / lav_pixfmt_desc[m_OutputPixFmt].planeHeight[i - 1]);
+      dstStrideArray[i] = byteStride / lav_pixfmt_desc[m_OutputPixFmt].planeWidth[i];
+    }
+
+    hr = (this->*convert_direct)(buffer.data, buffer.stride, dstArray, dstStrideArray, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
+    pFrame->direct_unlock(pFrame);
+  }
+
+  return hr;
+}
+
+void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, ptrdiff_t srcStride, uint8_t *dst, ptrdiff_t dstStride, int width, int height, int planeHeight, LAVOutPixFmts format)
 {
   LAVOutPixFmtDesc desc = lav_pixfmt_desc[format];
 
   int line = 0;
 
   // Copy first plane
-  const int widthBytes = width * desc.codedbytes;
-  const int srcStrideBytes = srcStride * desc.codedbytes;
-  const int dstStrideBytes = dstStride * desc.codedbytes;
+  const size_t widthBytes = width * desc.codedbytes;
+  const ptrdiff_t srcStrideBytes = srcStride * desc.codedbytes;
+  const ptrdiff_t dstStrideBytes = dstStride * desc.codedbytes;
   for (line = 0; line < height; ++line) {
     memcpy(dst, src, widthBytes);
     src += srcStrideBytes;
@@ -482,11 +540,11 @@ void CLAVPixFmtConverter::ChangeStride(const uint8_t* src, int srcStride, uint8_
   dst += (planeHeight - height) * dstStrideBytes;
 
   for (int plane = 1; plane < desc.planes; ++plane) {
-    const int planeWidth        = widthBytes     / desc.planeWidth[plane];
+    const size_t planeWidth        = widthBytes     / desc.planeWidth[plane];
     const int activePlaneHeight = height         / desc.planeHeight[plane];
     const int totalPlaneHeight  = planeHeight    / desc.planeHeight[plane];
-    const int srcPlaneStride    = srcStrideBytes / desc.planeWidth[plane];
-    const int dstPlaneStride    = dstStrideBytes / desc.planeWidth[plane];
+    const ptrdiff_t srcPlaneStride    = srcStrideBytes / desc.planeWidth[plane];
+    const ptrdiff_t dstPlaneStride    = dstStrideBytes / desc.planeWidth[plane];
     for (line = 0; line < activePlaneHeight; ++line) {
       memcpy(dst, src, planeWidth);
       src += srcPlaneStride;

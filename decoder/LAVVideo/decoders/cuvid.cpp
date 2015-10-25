@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include "parsers/H264SequenceParser.h"
 #include "parsers/MPEG2HeaderParser.h"
 #include "parsers/VC1HeaderParser.h"
+#include "parsers/HEVCSequenceParser.h"
 
 #include "Media.h"
 
@@ -49,6 +50,7 @@ static struct {
   { AV_CODEC_ID_VC1,        cudaVideoCodec_VC1   },
   { AV_CODEC_ID_H264,       cudaVideoCodec_H264  },
   { AV_CODEC_ID_MPEG4,      cudaVideoCodec_MPEG4 },
+  { AV_CODEC_ID_HEVC,       cudaVideoCodec_HEVC  },
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,15 +118,12 @@ CDecCuvid::CDecCuvid(void)
 CDecCuvid::~CDecCuvid(void)
 {
   DestroyDecoder(true);
-  DestroyWindow(m_hwnd);
-  m_hwnd = 0;
-  UnregisterClass(L"cuvidDummyHWNDClass", nullptr);
 }
 
 STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 {
-  if (m_AVC1Converter) {
-    SAFE_DELETE(m_AVC1Converter);
+  if (m_AnnexBConverter) {
+    SAFE_DELETE(m_AnnexBConverter);
   }
 
   if (m_hDecoder) {
@@ -164,6 +163,8 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 
     FreeLibrary(cuda.cudaLib);
     FreeLibrary(cuda.cuvidLib);
+
+    ZeroMemory(&cuda, sizeof(cuda));
   }
 
   return S_OK;
@@ -251,43 +252,6 @@ STDMETHODIMP CDecCuvid::FlushParser()
   return result;
 }
 
-HWND CDecCuvid::GetDummyHWND()
-{
-  if (!m_hwnd)
-  {
-    WNDCLASS wndclass;
-
-    wndclass.style = CS_HREDRAW | CS_VREDRAW;
-    wndclass.lpfnWndProc = DefWindowProc;
-    wndclass.cbClsExtra = 0;
-    wndclass.cbWndExtra = 0;
-    wndclass.hInstance = nullptr;
-    wndclass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
-    wndclass.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wndclass.hbrBackground = (HBRUSH) GetStockObject (WHITE_BRUSH);
-    wndclass.lpszMenuName = nullptr;
-    wndclass.lpszClassName = L"cuvidDummyHWNDClass";
-
-    if (!RegisterClass(&wndclass)) {
-      DbgLog((LOG_ERROR, 10, L"Creating dummy HWND failed"));
-      return 0;
-    }
-
-    m_hwnd = CreateWindow(L"cuvidDummyHWNDClass",
-      TEXT("CUVIDDummyWindow"),
-      WS_OVERLAPPED,
-      0,                   // Initial X
-      0,                   // Initial Y
-      0,                   // Width
-      0,                   // Height
-      nullptr,
-      nullptr,
-      nullptr,
-      nullptr);
-  }
-  return m_hwnd;
-}
-
 // Beginning of GPU Architecture definitions
 static int _ConvertSMVer2CoresDrvApi(int major, int minor)
 {
@@ -306,6 +270,11 @@ static int _ConvertSMVer2CoresDrvApi(int major, int minor)
     { 0x20,  32 },
     { 0x21,  48 },
     { 0x30, 192 },
+    { 0x32, 192 },
+    { 0x35, 192 },
+    { 0x37, 192 },
+    { 0x50, 128 },
+    { 0x52, 128 },
     {   -1,  -1 }
   };
 
@@ -324,7 +293,8 @@ int CDecCuvid::GetMaxGflopsGraphicsDeviceId()
 {
   CUdevice current_device = 0, max_perf_device = 0;
   int device_count     = 0, sm_per_multiproc = 0;
-  int max_compute_perf = 0, best_SM_arch     = 0;
+  int best_SM_arch     = 0;
+  int64_t max_compute_perf = 0;
   int major = 0, minor = 0, multiProcessorCount, clockRate;
   int bTCC = 0, version;
   char deviceName[256];
@@ -377,7 +347,7 @@ int CDecCuvid::GetMaxGflopsGraphicsDeviceId()
     // If this is a Tesla based GPU and SM 2.0, and TCC is disabled, this is a contendor
     if (!bTCC) // Is this GPU running the TCC driver?  If so we pass on this
     {
-      int compute_perf = multiProcessorCount * sm_per_multiproc * clockRate;
+      int64_t compute_perf = int64_t(multiProcessorCount * sm_per_multiproc) * clockRate;
       if(compute_perf > max_compute_perf) {
         // If we find GPU with SM major > 2, search only these
         if (best_SM_arch > 2) {
@@ -394,7 +364,7 @@ int CDecCuvid::GetMaxGflopsGraphicsDeviceId()
 
 #ifdef DEBUG
       cuda.cuDeviceGetName(deviceName, 256, current_device);
-      DbgLog((LOG_TRACE, 10, L"CUDA Device: %S, Compute: %d.%d, CUDA Cores: %d, Clock: %d MHz", deviceName, major, minor, multiProcessorCount * sm_per_multiproc, clockRate / 1000));
+      DbgLog((LOG_TRACE, 10, L"CUDA Device (%d): %S, Compute: %d.%d, CUDA Cores: %d, Clock: %d MHz", current_device, deviceName, major, minor, multiProcessorCount * sm_per_multiproc, clockRate / 1000));
 #endif
     }
     ++current_device;
@@ -430,15 +400,11 @@ STDMETHODIMP CDecCuvid::Init()
     best_device = (int)dwDeviceIndex;
   }
 
+select_device:
   m_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
   if (!m_pD3D) {
     DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9"));
     return E_FAIL;
-  }
-
-  HWND hwnd = GetDummyHWND();
-  if (!hwnd) {
-    hwnd = GetShellWindow();
   }
 
   D3DADAPTER_IDENTIFIER9 d3dId;
@@ -461,7 +427,7 @@ STDMETHODIMP CDecCuvid::Init()
 
     IDirect3DDevice9 *pDev = nullptr;
     CUcontext cudaCtx = 0;
-    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &pDev);
+    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetShellWindow(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &pDev);
     if (SUCCEEDED(hr)) {
       m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dId);
       cuStatus = cuda.cuD3D9CtxCreate(&cudaCtx, &device, CU_CTX_SCHED_BLOCKING_SYNC, pDev);
@@ -473,6 +439,7 @@ STDMETHODIMP CDecCuvid::Init()
 
         if (m_bVDPAULevelC && !isLevelC) {
           DbgLog((LOG_TRACE, 10, L"InitCUDA(): We already had a Level C+ device, this one is not, skipping"));
+          cuda.cuCtxDestroy(cudaCtx);
           continue;
         }
 
@@ -500,8 +467,10 @@ STDMETHODIMP CDecCuvid::Init()
   if (dwDeviceIndex != DWORD_MAX && device != best_device) {
     DbgLog((LOG_ERROR, 10, L"-> No D3D Device found matching the requested device"));
     SafeRelease(&m_pD3DDevice);
-    if (m_cudaContext)
+    if (m_cudaContext) {
       cuda.cuCtxDestroy(m_cudaContext);
+      m_cudaContext = 0;
+    }
   }
 
   if (!m_pD3DDevice) {
@@ -509,10 +478,19 @@ STDMETHODIMP CDecCuvid::Init()
     SafeRelease(&m_pD3D);
     cuStatus = cuda.cuCtxCreate(&m_cudaContext, CU_CTX_SCHED_BLOCKING_SYNC, best_device);
 
-    int major, minor;
-    cuda.cuDeviceComputeCapability(&major, &minor, best_device);
-    m_bVDPAULevelC = (major >= 2);
-    DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor));
+    if (cuStatus == CUDA_SUCCESS) {
+      int major, minor;
+      cuda.cuDeviceComputeCapability(&major, &minor, best_device);
+      m_bVDPAULevelC = (major >= 2);
+      DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor));
+    }
+  }
+
+  if (cuStatus == CUDA_ERROR_INVALID_DEVICE && dwDeviceIndex != DWORD_MAX) {
+    DbgLog((LOG_TRACE, 10, L"-> Specific device was requested, but no match was found, re-trying automatic selection"));
+    dwDeviceIndex = DWORD_MAX;
+    best_device = GetMaxGflopsGraphicsDeviceId();
+    goto select_device;
   }
 
   if (cuStatus == CUDA_SUCCESS) {
@@ -602,21 +580,33 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   memset(&m_VideoParserExInfo, 0, sizeof(CUVIDEOFORMATEX));
 
-  if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1)) {
+  // Handle AnnexB conversion for H.264 and HEVC
+  if (pmt->formattype == FORMAT_MPEG2Video && (pmt->subtype == MEDIASUBTYPE_AVC1 || pmt->subtype == MEDIASUBTYPE_avc1 || pmt->subtype == MEDIASUBTYPE_CCV1 || pmt->subtype == MEDIASUBTYPE_HVC1)) {
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
-    m_AVC1Converter = new CAVC1AnnexBConverter();
-    m_AVC1Converter->SetNALUSize(2);
+    m_AnnexBConverter = new CAnnexBConverter();
+    m_AnnexBConverter->SetNALUSize(2);
 
     BYTE *annexBextra = nullptr;
     int size = 0;
-    m_AVC1Converter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+
+    if (cudaCodec == cudaVideoCodec_H264) {
+      m_AnnexBConverter->Convert(&annexBextra, &size, (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    } else if (cudaCodec == cudaVideoCodec_HEVC && mp2vi->cbSequenceHeader >= 23) {
+      BYTE * bHEVCHeader = (BYTE *)mp2vi->dwSequenceHeader;
+      int nal_len_size = (bHEVCHeader[21] & 3) + 1;
+      if (nal_len_size != mp2vi->dwFlags) {
+        DbgLog((LOG_ERROR, 10, L"hvcC nal length size doesn't match media type"));
+      }
+      m_AnnexBConverter->ConvertHEVCExtradata(&annexBextra, &size,  (BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader);
+    }
+
     if (annexBextra && size) {
       memcpy(m_VideoParserExInfo.raw_seqhdr_data, annexBextra, size);
       m_VideoParserExInfo.format.seqhdr_data_length = size;
       av_freep(&annexBextra);
     }
 
-    m_AVC1Converter->SetNALUSize(mp2vi->dwFlags);
+    m_AnnexBConverter->SetNALUSize(mp2vi->dwFlags);
   } else {
     size_t hdr_len = 0;
     getExtraData(*pmt, nullptr, &hdr_len);
@@ -648,9 +638,16 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     } else if (cudaCodec == cudaVideoCodec_VC1) {
       CVC1HeaderParser vc1Parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
       m_bInterlaced = vc1Parser.hdr.interlaced;
+    } else if (cudaCodec == cudaVideoCodec_HEVC) {
+      hr = CheckHEVCSequence(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
+      if (FAILED(hr)) {
+        return VFW_E_UNSUPPORTED_VIDEO;
+      } else if (hr == S_FALSE) {
+        m_bNeedSequenceCheck = TRUE;
+      }
     }
   } else {
-    m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264);
+    m_bNeedSequenceCheck = (cudaCodec == cudaVideoCodec_H264 || cudaCodec == cudaVideoCodec_HEVC);
   }
 
   oVideoParserParameters.pExtVideoInfo = &m_VideoParserExInfo;
@@ -692,7 +689,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
-  BOOL bDXVAMode = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && IsVistaOrNewer());
+  BOOL bDXVAMode = (m_pD3DDevice && m_pSettings->GetHWAccelDeintHQ() && IsVistaOrNewer()) || (codec == cudaVideoCodec_HEVC);
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   CUVIDDECODECREATEINFO *dci = &m_VideoDecoderInfo;
@@ -1089,18 +1086,35 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   return S_FALSE;
 }
 
+STDMETHODIMP CDecCuvid::CheckHEVCSequence(const BYTE *buffer, int buflen)
+{
+  DbgLog((LOG_TRACE, 10, L"CDecCuvid::CheckHEVCSequence(): Checking HEVC frame for SPS"));
+  CHEVCSequenceParser hevcParser;
+  hevcParser.ParseNALs(buffer, buflen, 0);
+  if (hevcParser.sps.valid) {
+    DbgLog((LOG_TRACE, 10, L"-> SPS found"));
+    if (hevcParser.sps.profile > FF_PROFILE_HEVC_MAIN) {
+      DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d)", hevcParser.sps.profile));
+      return E_FAIL;
+    }
+    DbgLog((LOG_TRACE, 10, L"-> Video seems compatible with CUVID"));
+    return S_OK;
+  }
+  return S_FALSE;
+}
+
 STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   CUresult result;
-  HRESULT hr;
+  HRESULT hr = S_OK;
 
   CUVIDSOURCEDATAPACKET pCuvidPacket;
   ZeroMemory(&pCuvidPacket, sizeof(pCuvidPacket));
 
   BYTE *pBuffer = nullptr;
-  if (m_AVC1Converter) {
+  if (m_AnnexBConverter) {
     int size = 0;
-    hr = m_AVC1Converter->Convert(&pBuffer, &size, buffer, buflen);
+    hr = m_AnnexBConverter->Convert(&pBuffer, &size, buffer, buflen);
     if (SUCCEEDED(hr)) {
       pCuvidPacket.payload      = pBuffer;
       pCuvidPacket.payload_size = size;
@@ -1115,19 +1129,23 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
       // If we found a EOS marker, but its not at the end of the packet, then split the packet
       // to be able to individually decode the frame before the EOS, and then decode the remainder
       if (eosmarker && eosmarker != end) {
-        Decode(buffer, (eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+        Decode(buffer, (int)(eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
 
         rtStart = rtStop = AV_NOPTS_VALUE;
         pCuvidPacket.payload      = eosmarker;
-        pCuvidPacket.payload_size = end - eosmarker;
+        pCuvidPacket.payload_size = (int)(end - eosmarker);
       } else if (eosmarker) {
         m_bEndOfSequence = TRUE;
       }
     }
   }
 
-  if (m_bNeedSequenceCheck && m_VideoDecoderInfo.CodecType == cudaVideoCodec_H264) {
-    hr = CheckH264Sequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+  if (m_bNeedSequenceCheck) {
+    if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_H264) {
+      hr = CheckH264Sequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+    } else if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_HEVC) {
+      hr = CheckHEVCSequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+    }
     if (FAILED(hr)) {
       m_bFormatIncompatible = TRUE;
     } else if (hr == S_OK) {

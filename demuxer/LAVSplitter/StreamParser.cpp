@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -26,8 +26,7 @@
 #include "H264Nalu.h"
 
 #pragma warning( push )
-#pragma warning( disable : 4018 )
-#pragma warning( disable : 4244 )
+#pragma warning( disable : 4101 )
 extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
@@ -71,8 +70,6 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     Queue(pPacket);
   } else if (pPacket->dwFlags & LAV_PACKET_MOV_TEXT) {
     ParseMOVText(pPacket);
-  } else if (m_strContainer == "avi" && m_gSubtype == MEDIASUBTYPE_ASS) {
-    ParseRawSSA(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_AAC && (m_strContainer != "matroska" && m_strContainer != "mp4")) {
     ParseAAC(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_UTF8 && (pPacket->dwFlags & LAV_PACKET_SRT)) {
@@ -288,7 +285,7 @@ HRESULT CStreamParser::ParsePGS(Packet *pPacket)
 
   m_pgsBuffer.SetSize(0);
 
-  while((buf + 3) < buf_end) {
+  while((buf + 3) <= buf_end) {
     const uint8_t *segment_start = buf;
     const size_t segment_buf_len = buf_end - buf;
     segment_type   = AV_RB8(buf);
@@ -366,63 +363,6 @@ HRESULT CStreamParser::ParseMOVText(Packet *pPacket)
   return S_FALSE;
 }
 
-static int ass_get_duration(const char *p)
-{
-    int sh, sm, ss, sc, eh, em, es, ec;
-    uint64_t start, end;
-
-    if (sscanf_s(p, "%*[^,],%d:%d:%d%*c%d,%d:%d:%d%*c%d",
-               &sh, &sm, &ss, &sc, &eh, &em, &es, &ec) != 8)
-        return 0;
-    start = 3600000*sh + 60000*sm + 1000*ss + 10*sc;
-    end   = 3600000*eh + 60000*em + 1000*es + 10*ec;
-    return (int)(end - start);
-}
-
-HRESULT CStreamParser::ParseRawSSA(Packet *pPacket)
-{
-  int i, layer = 0, max_duration = 0;
-  size_t size, line_size, data_size = pPacket->GetDataSize();
-  const char *start, *end, *data = (char *)pPacket->GetData();
-  char buffer[2048];
-
-  while(data_size) {
-    int duration = ass_get_duration(data);
-    max_duration = FFMAX(duration, max_duration);
-    end = (char *)memchr(data, '\n', data_size);
-    size = line_size = end ? end-data+1 : data_size;
-    size -= end ? (end[-1]=='\r')+1 : 0;
-    start = data;
-
-    for (i=0; i<3; i++, start++)
-      if (!(start = (char *)memchr(start, ',', size-(start-data))))
-        break;
-    size -= start - data;
-    // ASS packages with layer
-    sscanf_s(data, "Dialogue: %d,", &layer);
-    i = _snprintf_s(buffer, sizeof(buffer), "%I64d,%d,", 0, layer);
-    size = FFMIN(i+size, sizeof(buffer));
-    memcpy(buffer+i, start, size-i);
-
-    Packet *p = new Packet();
-    p->pmt            = pPacket->pmt; pPacket->pmt = nullptr;
-    p->bDiscontinuity = pPacket->bDiscontinuity;
-    p->bSyncPoint     = pPacket->bSyncPoint;
-    p->StreamId       = pPacket->StreamId;
-    p->rtStart        = pPacket->rtStart;
-    p->rtStop         = p->rtStart + (duration * 10000);
-    p->AppendData(buffer, size);
-
-    Queue(p);
-
-    data += line_size;
-    data_size -= line_size;
-  }
-
-  SAFE_DELETE(pPacket);
-  return S_FALSE;
-}
-
 HRESULT CStreamParser::ParseAAC(Packet *pPacket)
 {
   BYTE *pData = pPacket->GetData();
@@ -483,7 +423,7 @@ HRESULT CStreamParser::ParseSRT(Packet *pPacket)
             break;
         }
       }
-      int size = ptr - linestart;
+      size_t size = ptr - linestart;
 
       Packet *p = new Packet();
       p->pmt            = pPacket->pmt; pPacket->pmt = nullptr;

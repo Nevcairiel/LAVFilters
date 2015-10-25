@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -151,7 +151,7 @@ static struct PixelFormatMapping {
   { AV_PIX_FMT_RGB444BE,  LAVPixFmt_RGB32,  TRUE  },
   { AV_PIX_FMT_BGR444LE,  LAVPixFmt_RGB32,  TRUE  },
   { AV_PIX_FMT_BGR444BE,  LAVPixFmt_RGB32,  TRUE  },
-  { AV_PIX_FMT_GRAY8A,    LAVPixFmt_YUV420, TRUE  },
+  { AV_PIX_FMT_YA8,       LAVPixFmt_YUV420, TRUE },
   { AV_PIX_FMT_BGR48BE,   LAVPixFmt_RGB48,  TRUE  },
   { AV_PIX_FMT_BGR48LE,   LAVPixFmt_RGB48,  TRUE },
 
@@ -176,9 +176,8 @@ static struct PixelFormatMapping {
   { AV_PIX_FMT_GBRP16BE,  LAVPixFmt_RGB48,  TRUE  },
   { AV_PIX_FMT_GBRP16LE,  LAVPixFmt_RGB48,  TRUE  },
 
-  { AV_PIX_FMT_YUVA422P_LIBAV, LAVPixFmt_YUV422, TRUE },
-  { AV_PIX_FMT_YUVA444P_LIBAV, LAVPixFmt_YUV444, TRUE },
-
+  { AV_PIX_FMT_YUVA422P,     LAVPixFmt_YUV422,   TRUE },
+  { AV_PIX_FMT_YUVA444P,     LAVPixFmt_YUV444,   TRUE },
   { AV_PIX_FMT_YUVA420P9BE,  LAVPixFmt_YUV420bX, TRUE,  9 },
   { AV_PIX_FMT_YUVA420P9LE,  LAVPixFmt_YUV420bX, FALSE, 9 },
   { AV_PIX_FMT_YUVA422P9BE,  LAVPixFmt_YUV422bX, TRUE,  9 },
@@ -198,20 +197,29 @@ static struct PixelFormatMapping {
   { AV_PIX_FMT_YUVA444P16BE, LAVPixFmt_YUV444bX, TRUE,  16 },
   { AV_PIX_FMT_YUVA444P16LE, LAVPixFmt_YUV444bX, FALSE, 16 },
 
-  { AV_PIX_FMT_XYZ12LE, LAVPixFmt_RGB48, TRUE },
-  { AV_PIX_FMT_XYZ12BE, LAVPixFmt_RGB48, TRUE },
+  { AV_PIX_FMT_XYZ12LE, LAVPixFmt_RGB48,  TRUE },
+  { AV_PIX_FMT_XYZ12BE, LAVPixFmt_RGB48,  TRUE },
+  { AV_PIX_FMT_NV16,    LAVPixFmt_YUV422, TRUE },
+  { AV_PIX_FMT_NV20LE,  LAVPixFmt_YUV422bX, TRUE, 10 },
+  { AV_PIX_FMT_NV20BE,  LAVPixFmt_YUV422bX, TRUE, 10 },
 
   { AV_PIX_FMT_RGBA64BE,  LAVPixFmt_RGB48,  TRUE  },
   { AV_PIX_FMT_RGBA64LE,  LAVPixFmt_RGB48,  TRUE  },
   { AV_PIX_FMT_BGRA64BE,  LAVPixFmt_RGB48,  TRUE  },
   { AV_PIX_FMT_BGRA64LE,  LAVPixFmt_RGB48,  TRUE  },
 
+  { AV_PIX_FMT_NV16,      LAVPixFmt_YUV422,   TRUE },
+  { AV_PIX_FMT_YA16BE,    LAVPixFmt_YUV420bX, TRUE, 16 },
+  { AV_PIX_FMT_YA16LE,    LAVPixFmt_YUV420bX, TRUE, 16 },
+
+  { AV_PIX_FMT_GBRAP,     LAVPixFmt_ARGB32, TRUE },
+  { AV_PIX_FMT_GBRAP16BE, LAVPixFmt_RGB48,  TRUE },
+  { AV_PIX_FMT_GBRAP16LE, LAVPixFmt_RGB48,  TRUE },
+
   { AV_PIX_FMT_0RGB,      LAVPixFmt_RGB32,  TRUE  },
   { AV_PIX_FMT_RGB0,      LAVPixFmt_RGB32,  TRUE  },
   { AV_PIX_FMT_0BGR,      LAVPixFmt_RGB32,  TRUE  },
   { AV_PIX_FMT_BGR0,      LAVPixFmt_RGB32,  FALSE },
-  { AV_PIX_FMT_YUVA444P,  LAVPixFmt_YUV444, TRUE  },
-  { AV_PIX_FMT_YUVA422P,  LAVPixFmt_YUV422, TRUE  },
 
   { AV_PIX_FMT_YUV420P12BE, LAVPixFmt_YUV420bX, TRUE,  12 },
   { AV_PIX_FMT_YUV420P12LE, LAVPixFmt_YUV420bX, FALSE, 12 },
@@ -225,16 +233,18 @@ static struct PixelFormatMapping {
   { AV_PIX_FMT_YUV444P12LE, LAVPixFmt_YUV444bX, FALSE, 12 },
   { AV_PIX_FMT_YUV444P14BE, LAVPixFmt_YUV444bX, TRUE,  14 },
   { AV_PIX_FMT_YUV444P14LE, LAVPixFmt_YUV444bX, FALSE, 14 },
-
   { AV_PIX_FMT_GBRP12BE,  LAVPixFmt_RGB48,  TRUE },
   { AV_PIX_FMT_GBRP12LE,  LAVPixFmt_RGB48,  TRUE },
   { AV_PIX_FMT_GBRP14BE,  LAVPixFmt_RGB48,  TRUE },
   { AV_PIX_FMT_GBRP14LE,  LAVPixFmt_RGB48,  TRUE },
-  { AV_PIX_FMT_GBRAP,     LAVPixFmt_ARGB32, TRUE },
-  { AV_PIX_FMT_GBRAP16BE, LAVPixFmt_RGB48,  TRUE },
-  { AV_PIX_FMT_GBRAP16LE, LAVPixFmt_RGB48,  TRUE },
-
   { AV_PIX_FMT_YUVJ411P,  LAVPixFmt_YUV422, TRUE },
+
+  { AV_PIX_FMT_YUV440P10LE,  LAVPixFmt_YUV444bX, TRUE, 10 },
+  { AV_PIX_FMT_YUV440P10BE,  LAVPixFmt_YUV444bX, TRUE, 10 },
+  { AV_PIX_FMT_YUV440P12LE,  LAVPixFmt_YUV444bX, TRUE, 12 },
+  { AV_PIX_FMT_YUV440P12BE,  LAVPixFmt_YUV444bX, TRUE, 12 },
+
+  { AV_PIX_FMT_P010LE, LAVPixFmt_P010, FALSE, 10 },
 
   { AV_PIX_FMT_DXVA2_VLD, LAVPixFmt_DXVA2, FALSE },
 };
@@ -344,9 +354,8 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_pAVCtx->coded_width           = pBMI->biWidth;
   m_pAVCtx->coded_height          = abs(pBMI->biHeight);
   m_pAVCtx->bits_per_coded_sample = pBMI->biBitCount;
-  m_pAVCtx->error_concealment     = FF_EC_GUESS_MVS | FF_EC_DEBLOCK;
   m_pAVCtx->err_recognition       = 0;
-  m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT;
+  m_pAVCtx->workaround_bugs       = FF_BUG_AUTODETECT | FF_BUG_X264_LOSSLESS;
   m_pAVCtx->refcounted_frames     = 1;
 
   // Setup threading
@@ -370,30 +379,31 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   getExtraData(*pmt, nullptr, &extralen);
 
   BOOL bH264avc = FALSE;
-  if (extralen > 0) {
-    DbgLog((LOG_TRACE, 10, L"-> Processing extradata of %d bytes", extralen));
+  if (pmt->formattype == FORMAT_MPEG2Video && (m_pAVCtx->codec_tag == MAKEFOURCC('a','v','c','1') || m_pAVCtx->codec_tag == MAKEFOURCC('A','V','C','1') || m_pAVCtx->codec_tag == MAKEFOURCC('C','C','V','1'))) {
     // Reconstruct AVC1 extradata format
-    if (pmt->formattype == FORMAT_MPEG2Video && (m_pAVCtx->codec_tag == MAKEFOURCC('a','v','c','1') || m_pAVCtx->codec_tag == MAKEFOURCC('A','V','C','1') || m_pAVCtx->codec_tag == MAKEFOURCC('C','C','V','1'))) {
-      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
-      extralen += 7;
-      extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
-      extra[0] = 1;
-      extra[1] = (BYTE)mp2vi->dwProfile;
-      extra[2] = 0;
-      extra[3] = (BYTE)mp2vi->dwLevel;
-      extra[4] = (BYTE)(mp2vi->dwFlags ? mp2vi->dwFlags : 4) - 1;
+    DbgLog((LOG_TRACE, 10, L"-> Processing AVC1 extradata of %d bytes", extralen));
+    MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
+    extralen += 7;
+    extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+    extra[0] = 1;
+    extra[1] = (BYTE)mp2vi->dwProfile;
+    extra[2] = 0;
+    extra[3] = (BYTE)mp2vi->dwLevel;
+    extra[4] = (BYTE)(mp2vi->dwFlags ? mp2vi->dwFlags : 4) - 1;
 
+    // only process extradata if available
+    uint8_t ps_count = 0;
+    if (extralen > 7) {
       // Actually copy the metadata into our new buffer
       size_t actual_len;
-      getExtraData(*pmt, extra+6, &actual_len);
+      getExtraData(*pmt, extra + 6, &actual_len);
 
       // Count the number of SPS/PPS in them and set the length
       // We'll put them all into one block and add a second block with 0 elements afterwards
       // The parsing logic does not care what type they are, it just expects 2 blocks.
-      BYTE *p = extra+6, *end = extra+6+actual_len;
+      BYTE *p = extra + 6, *end = extra + 6 + actual_len;
       BOOL bSPS = FALSE, bPPS = FALSE;
-      int count = 0;
-      while (p+1 < end) {
+      while (p + 1 < end) {
         unsigned len = (((unsigned)p[0] << 8) | p[1]) + 2;
         if (p + len > end) {
           break;
@@ -402,14 +412,19 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
           bSPS = TRUE;
         if ((p[2] & 0x1F) == 8)
           bPPS = TRUE;
-        count++;
+        ps_count++;
         p += len;
       }
-      extra[5] = count;
-      extra[extralen-1] = 0;
+    }
+    extra[5] = ps_count;
+    extra[extralen - 1] = 0;
 
-      bH264avc = TRUE;
-    } else if (pmt->subtype == MEDIASUBTYPE_LAV_RAWVIDEO) {
+    bH264avc = TRUE;
+    m_pAVCtx->extradata = extra;
+    m_pAVCtx->extradata_size = (int)extralen;
+  } else if (extralen > 0) {
+    DbgLog((LOG_TRACE, 10, L"-> Processing extradata of %d bytes", extralen));
+    if (pmt->subtype == MEDIASUBTYPE_LAV_RAWVIDEO) {
       if (extralen < sizeof(m_pAVCtx->pix_fmt)) {
         DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is missing.."));
       } else {
@@ -460,6 +475,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // RealVideo is only DTS
   if (codec == AV_CODEC_ID_RV10 || codec == AV_CODEC_ID_RV20 || codec == AV_CODEC_ID_RV30 || codec == AV_CODEC_ID_RV40)
     dwDecFlags |= LAV_VIDEO_DEC_FLAG_ONLY_DTS;
+
+  // H.264 without B frames should use reordering for proper delay handling
+  if (codec == AV_CODEC_ID_H264 && bLAVInfoValid && lavPinInfo.has_b_frames == 0) {
+    dwDecFlags &= ~LAV_VIDEO_DEC_FLAG_ONLY_DTS;
+  }
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for H264 content (except AVI), and generally all codecs that use frame threading
@@ -515,7 +535,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   }
 
   // Open the decoder
+  m_bInInit = TRUE;
   int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, nullptr);
+  m_bInInit = FALSE;
   if (ret >= 0) {
     DbgLog((LOG_TRACE, 10, L"-> ffmpeg codec opened successfully (ret: %d)", ret));
     m_nCodecId = codec;
@@ -843,7 +865,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     AVRational display_aspect_ratio;
     int64_t num = (int64_t)m_pFrame->sample_aspect_ratio.num * m_pFrame->width;
     int64_t den = (int64_t)m_pFrame->sample_aspect_ratio.den * m_pFrame->height;
-    av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
+    av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, INT_MAX);
 
     pOutFrame->width        = m_pFrame->width;
     pOutFrame->height       = m_pFrame->height;
@@ -937,7 +959,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
 STDMETHODIMP CDecAvcodec::Flush()
 {
-  if (m_pAVCtx) {
+  if (m_pAVCtx && avcodec_is_open(m_pAVCtx)) {
     avcodec_flush_buffers(m_pAVCtx);
   }
 
@@ -988,10 +1010,14 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
   AVPixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);
 
   // Get a context
-  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
+  m_pSwsContext = sws_getCachedContext(m_pSwsContext, pFrame->width, pFrame->height, (AVPixelFormat)pFrame->format, pFrame->width, pFrame->height, dstFormat, SWS_BILINEAR | SWS_FULL_CHR_H_INT | SWS_PRINT_INFO, nullptr, nullptr, nullptr);
+
+  ptrdiff_t linesize[4];
+  for (int i = 0; i < 4; i++)
+    linesize[i] = pFrame->linesize[i];
 
   // Perform conversion
-  sws_scale(m_pSwsContext, pFrame->data, pFrame->linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
+  sws_scale2(m_pSwsContext, pFrame->data, linesize, 0, pFrame->height, pOutFrame->data, pOutFrame->stride);
 
   return S_OK;
 }

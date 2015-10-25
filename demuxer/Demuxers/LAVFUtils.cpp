@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -26,9 +26,9 @@ extern "C" {
 
 #include <sstream>
 
-static int get_bit_rate(AVCodecContext *ctx)
+static int64_t get_bit_rate(AVCodecContext *ctx)
 {
-  int bit_rate;
+  int64_t bit_rate;
   int bits_per_sample;
 
   switch(ctx->codec_type) {
@@ -194,6 +194,20 @@ static bool show_sample_fmt(AVCodecID codec_id) {
   return false;
 }
 
+const char * lavf_get_stream_title(AVStream * pStream)
+{
+  char *title = nullptr;
+  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "title", nullptr, 0)) {
+    title = dictEntry->value;
+  } else if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "handler_name", nullptr, 0)) {
+    title = dictEntry->value;
+    if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "VideoHandler") == 0 || strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
+      title = nullptr;
+  }
+
+  return title;
+}
+
 std::string lavf_get_stream_description(AVStream *pStream)
 {
   AVCodecContext *enc = pStream->codec;
@@ -210,20 +224,13 @@ std::string lavf_get_stream_description(AVStream *pStream)
     }
   }
 
-  char *title = nullptr;
-  if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "title", nullptr, 0)) {
-    title = dictEntry->value;
-  } else if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "handler_name", nullptr, 0)) {
-    title = dictEntry->value;
-    if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "VideoHandler") == 0|| strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
-      title = nullptr;
-  }
+  const char * title = lavf_get_stream_title(pStream);
 
   // Empty titles are rather useless
   if (title && strlen(title) == 0)
     title = nullptr;
 
-  int bitrate = get_bit_rate(enc);
+  int64_t bitrate = get_bit_rate(enc);
 
   std::ostringstream buf;
   switch(enc->codec_type) {
@@ -241,8 +248,8 @@ std::string lavf_get_stream_description(AVStream *pStream)
     // Codec
     buf << codec_name;
     // Pixel Format
-    if (enc->pix_fmt != AV_PIX_FMT_NONE) {
-      buf << ", " << av_get_pix_fmt_name(enc->pix_fmt);
+    if (const char *pix_fmt = av_get_pix_fmt_name(enc->pix_fmt)) {
+      buf << ", " << pix_fmt;
     }
     // Dimensions
     if (enc->width) {

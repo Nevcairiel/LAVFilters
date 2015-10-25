@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,7 @@ CLAVVideoSubtitleInputPin::CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CLAVVid
 
 CLAVVideoSubtitleInputPin::~CLAVVideoSubtitleInputPin(void)
 {
+  SafeRelease(&m_pConsumer);
   SafeRelease(&m_pProvider);
 }
 
@@ -122,7 +123,18 @@ STDMETHODIMP CLAVVideoSubtitleInputPin::EndFlush()
 
 HRESULT CLAVVideoSubtitleInputPin::SetSubtitleConsumer(ISubRenderConsumer *pConsumer)
 {
+  if (pConsumer == m_pConsumer)
+    return S_OK;
+
+  SafeRelease(&m_pConsumer);
   m_pConsumer = pConsumer;
+  m_pConsumer->AddRef();
+
+  if (m_pProvider) {
+    m_pProvider->DisconnectConsumer();
+    m_pProvider->SetConsumer(pConsumer);
+  }
+
   return S_OK;
 }
 

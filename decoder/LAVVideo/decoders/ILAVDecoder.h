@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,7 @@ typedef enum LAVPixelFormat {
   /* packed/half-packed YUV */
   LAVPixFmt_NV12,        ///< YUV 4:2:0, U/V interleaved
   LAVPixFmt_YUY2,        ///< YUV 4:2:2, packed, YUYV order
+  LAVPixFmt_P010,        ///< YUV 4:2:0, 10-bit, U/V interleaved
 
   /* RGB */
   LAVPixFmt_RGB24,       ///< RGB24, in BGR order
@@ -77,6 +78,11 @@ LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt);
  */
 AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp);
 
+typedef struct LAVDirectBuffer {
+  BYTE *data[4];                    ///< pointer to the picture planes
+  ptrdiff_t stride[4];              ///< stride of the planes (in bytes)
+} LAVDirectBuffer;
+
 /**
  * A Video Frame
  *
@@ -94,7 +100,7 @@ typedef struct LAVFrame {
   int height;                       ///< height of the frame (in pixel)
 
   BYTE *data[4];                    ///< pointer to the picture planes
-  int stride[4];                    ///< stride of the planes (in bytes)
+  ptrdiff_t stride[4];                    ///< stride of the planes (in bytes)
 
   LAVPixelFormat format;            ///< pixel format of the frame
   int bpp;                          ///< bits per pixel, only meaningful for YUV420bX, YUV422bX or YUV444bX
@@ -122,6 +128,10 @@ typedef struct LAVFrame {
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);
   void *priv_data;                  ///< private data from the decoder (mostly for destruct)
+
+  bool direct;
+  bool (*direct_lock)(struct LAVFrame *, struct LAVDirectBuffer *);
+  void (*direct_unlock)(struct LAVFrame *);
 } LAVFrame;
 
 /**
@@ -134,7 +144,7 @@ typedef struct LAVFrame {
  * @param stride stride to use (in pixel). If 0, a stride will be computed to fill usual alignment rules
  * @return HRESULT
  */
-HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, int stride = 0);
+HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride = 0);
 
 /**
  * Destruct a LAV Frame, freeing its data pointers
@@ -371,6 +381,11 @@ interface ILAVDecoder
    * Get whether the decoder should sync to the main thread
    */
   STDMETHOD(SyncToProcessThread)() PURE;
+
+  /**
+   * Toggle direct frame output mode for hardware decoders
+   */
+  STDMETHOD(SetDirectOutput)(BOOL bDirect) PURE;
 };
 
 /**
@@ -380,6 +395,7 @@ interface ILAVDecoder
  */
 ILAVDecoder *CreateDecoderAVCodec();
 ILAVDecoder *CreateDecoderWMV9();
+ILAVDecoder *CreateDecoderWMV9MFT();
 ILAVDecoder *CreateDecoderCUVID();
 ILAVDecoder *CreateDecoderQuickSync();
 ILAVDecoder *CreateDecoderDXVA2();

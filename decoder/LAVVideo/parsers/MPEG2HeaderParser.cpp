@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,8 +21,7 @@
 #include "MPEG2HeaderParser.h"
 
 #pragma warning( push )
-#pragma warning( disable : 4018 )
-#pragma warning( disable : 4244 )
+#pragma warning( disable : 4101 )
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
 #pragma warning( pop )

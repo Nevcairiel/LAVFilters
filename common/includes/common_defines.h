@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,15 +19,19 @@
 
 #pragma once
 
-class CAVC1AnnexBConverter
-{
-public:
-  CAVC1AnnexBConverter(void);
-  ~CAVC1AnnexBConverter(void);
+// Set minimal target OS (XP SP2+)
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0502
+#ifdef WINVER
+#undef WINVER
+#endif
+#define WINVER _WIN32_WINNT
 
-  HRESULT SetNALUSize(int nalusize) { m_NaluSize = nalusize; return S_OK; }
-  HRESULT Convert(BYTE **poutbuf, int *poutbuf_size, const BYTE *buf, int buf_size);
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
 
-private:
-  int m_NaluSize = 0;
-};
+#define LAV_AUDIO "LAV Audio Decoder"
+#define LAV_VIDEO "LAV Video Decoder"
+#define LAV_SPLITTER "LAV Splitter"

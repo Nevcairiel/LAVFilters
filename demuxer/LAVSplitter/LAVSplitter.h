@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -173,6 +173,8 @@ public:
   STDMETHODIMP GetFormats(LPSTR** formats, UINT* nFormats);
   STDMETHODIMP SetNetworkStreamAnalysisDuration(DWORD dwDuration);
   STDMETHODIMP_(DWORD) GetNetworkStreamAnalysisDuration();
+  STDMETHODIMP SetMaxQueueSize(DWORD dwMaxSize);
+  STDMETHODIMP_(DWORD) GetMaxQueueSize();
 
   // ILAVSplitterSettingsInternal
   STDMETHODIMP_(LPCSTR) GetInputFormat() { if (m_pDemuxer) return m_pDemuxer->GetContainerFormat(); return nullptr; }
@@ -251,7 +253,7 @@ private:
   REFERENCE_TIME m_rtCurrent  = 0;
   REFERENCE_TIME m_rtNewStart = 0;
   REFERENCE_TIME m_rtNewStop  = 0;
-  REFERENCE_TIME m_rtOffset   = 0;
+  REFERENCE_TIME m_rtOffset   = AV_NOPTS_VALUE;
   double m_dRate              = 1.0;
   BOOL m_bStopValid           = FALSE;
 
@@ -285,7 +287,8 @@ private:
     BOOL StreamSwitchRemoveAudio;
     BOOL ImpairedAudio;
     BOOL PreferHighQualityAudio;
-    DWORD QueueMaxSize;
+    DWORD QueueMaxPackets;
+    DWORD QueueMaxMemSize;
     DWORD NetworkAnalysisDuration;
 
     std::map<std::string, BOOL> formats;

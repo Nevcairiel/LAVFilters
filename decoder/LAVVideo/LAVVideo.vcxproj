@@ -69,7 +69,7 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)qsdecoder</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;ole32.lib;gdi32.lib;winmm.lib;user32.lib;oleaut32.lib;shell32.lib;Shlwapi.lib;Comctl32.lib;d3d9.lib;dmoguids.lib;strmbasd.lib;dsutild.lib;avutil-lav.lib;avcodec-lav.lib;swscale-lav.lib;avfilter-lav.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;gdi32.lib;winmm.lib;user32.lib;oleaut32.lib;shell32.lib;Shlwapi.lib;Comctl32.lib;d3d9.lib;mfuuid.lib;dmoguids.lib;strmbasd.lib;dsutild.lib;avutil-lav.lib;avcodec-lav.lib;swscale-lav.lib;avfilter-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVVideo.def</ModuleDefinitionFile>
     </Link>
     <Manifest>
@@ -82,7 +82,7 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)qsdecoder</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;ole32.lib;gdi32.lib;winmm.lib;user32.lib;oleaut32.lib;shell32.lib;Shlwapi.lib;Comctl32.lib;d3d9.lib;dmoguids.lib;strmbase.lib;dsutil.lib;avutil-lav.lib;avcodec-lav.lib;swscale-lav.lib;avfilter-lav.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;gdi32.lib;winmm.lib;user32.lib;oleaut32.lib;shell32.lib;Shlwapi.lib;Comctl32.lib;d3d9.lib;mfuuid.lib;dmoguids.lib;strmbase.lib;dsutil.lib;avutil-lav.lib;avcodec-lav.lib;swscale-lav.lib;avfilter-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVVideo.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
@@ -102,16 +102,19 @@
     <ClCompile Include="decoders\pixfmt.cpp" />
     <ClCompile Include="decoders\quicksync.cpp" />
     <ClCompile Include="decoders\wmv9.cpp" />
+    <ClCompile Include="decoders\wmv9mft.cpp" />
     <ClCompile Include="DecodeThread.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Filtering.cpp" />
     <ClCompile Include="LAVPixFmtConverter.cpp" />
     <ClCompile Include="LAVVideo.cpp" />
     <ClCompile Include="Media.cpp" />
-    <ClCompile Include="parsers\AVC1AnnexBConverter.cpp" />
+    <ClCompile Include="parsers\AnnexBConverter.cpp" />
     <ClCompile Include="parsers\H264SequenceParser.cpp" />
+    <ClCompile Include="parsers\HEVCSequenceParser.cpp" />
     <ClCompile Include="parsers\MPEG2HeaderParser.cpp" />
     <ClCompile Include="parsers\VC1HeaderParser.cpp" />
+    <ClCompile Include="pixconv\convert_direct.cpp" />
     <ClCompile Include="pixconv\convert_generic.cpp" />
     <ClCompile Include="pixconv\interleave.cpp" />
     <ClCompile Include="pixconv\pixconv.cpp" />
@@ -143,13 +146,15 @@
     <ClInclude Include="decoders\ILAVDecoder.h" />
     <ClInclude Include="decoders\quicksync.h" />
     <ClInclude Include="decoders\wmv9.h" />
+    <ClInclude Include="decoders\wmv9mft.h" />
     <ClInclude Include="DecodeThread.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
     <ClInclude Include="LAVVideoSettings.h" />
     <ClInclude Include="Media.h" />
-    <ClInclude Include="parsers\AVC1AnnexBConverter.h" />
+    <ClInclude Include="parsers\AnnexBConverter.h" />
     <ClInclude Include="parsers\H264SequenceParser.h" />
+    <ClInclude Include="parsers\HEVCSequenceParser.h" />
     <ClInclude Include="parsers\MPEG2HeaderParser.h" />
     <ClInclude Include="parsers\VC1HeaderParser.h" />
     <ClInclude Include="pixconv\pixconv_internal.h" />

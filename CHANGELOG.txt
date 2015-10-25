@@ -1,6 +1,117 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.67.0 - xxxx/xx/xx
+LAV Splitter
+- NEW: Support for HTTPS URLs
+
+0.66.0 - 2015/09/22
+LAV Splitter
+- NEW: Added options to increase the queue size for increased buffering
+- Changed: Switched ASF/WMV demuxing to a new demuxer from Libav
+- Fixed: Improved seeking with MPEG-TS files which contain teletext streams
+
+LAV Video
+- NEW: Support for DXVA2-Native decoding of HEVC 10-bit with EVR on supported GPUs
+- Changed: 4K Video Decoding on AMD graphics card is now enabled (needs recent drivers to work properly)
+- Changed: DXVA2-CB decoding uses less memory on NVIDIA graphics cards
+- Fixed: H264 DXVA2 decoding failed when no SPS/PPS was available in the media type
+- Fixed: Conversion of RGB48 to RGB32/24 did not properly use dithering
+- Fixed: Improved handling of a few DVD menu quirks
+- Fixed: Decoding 10-bit video with EVR could result in a black screen
+
+LAV Audio
+- Changed: 5.1 audio favors the "Side" 5.1 layout, which conforms to modern surround standards
+
+0.65.0 - 2015/04/21
+LAV Splitter
+- NEW: Support for MKV subtitle Cues to show subtitles immediately after a seek
+- NEW: Attachments and embedded cover art images are exported through the IDSMResourceBag interface
+- Fixed: Improved demuxing of HEVC in MPEG-TS and increased the reliability of the SPS/PPS/VPS extraction
+- Fixed: Demuxing Blu-rays/MPEG-TS where the first stream was not a video stream could result in broken timestamps
+- Fixed: Seeking in MKVs which are currently being written is more reliable
+
+LAV Video
+- Fixed: Improved HEVC DXVA2 decoding on a few samples
+- Fixed: Playback of VFR MPEG-4 in AVI had wrong timestamps in 0.64
+- Fixed: Improved handling of DVD subtitles without timestamps
+
+LAV Audio:
+- NEW: Native DTS-HD decoding using libdcadec
+- Changed: 5.1 audio prefers the speaker mask with side channels, to match recent specifications
+
+0.64.0 - 2015/02/13
+General
+- NEW: Individual LAV Filters can now be blacklisted through the registry by creating a key with the executable name in HKCU\Software\LAV\<Filter>\Blacklist
+
+LAV Splitter
+- NEW: Support for RTMP using rtmpdump-style parameter syntax
+- NEW: Support for Opus-in-TS
+- Fixed: The language reported for audio/subtitle streams on some Blu-rays could be wrong
+
+LAV Video
+- NEW: HEVC Main10 decoding in DXVA2 Copy-Back mode
+- Faster: DXVA2 Copy-Back in direct output mode uses up to 50% less CPU and performance is improved accordingly
+- Fixed: H.264 streams with only DTS timestamps would play out of sync with DXVA2
+- Fixed: DXVA2 could crash on some MPEG-2 streams
+- Fixed: Improved compatibility with a few HEVC streams when using DXVA2
+
+0.63.0 - 2014/10/03
+LAV Splitter
+- NEW: Support for playing AES encrypted HLS streams
+- NEW: Advanced Subtitle selection allows selecting subtitles by a string match on the stream title
+- NEW: Support for rtspu, rtspm, rtspt and rtsph URLs to force the RTSP transport protocol
+- NEW: Animated GIF image support
+- Fixed: Improved timestamp handling of badly muxed/corrupted H.264 streams
+- Fixed: 4K ProRes streams in MKV didn't play reliably
+- Fixed: Some HEVC streams in MKV/MP4 didn't play properly
+- Fixed: VobSubs in MP4 didn't properly export their color palette
+- Fixed: Streaming MP3s through the Microsoft URL filter could result in the last audio frame to be partially repeated
+- Fixed: The duration of MP3 files would be wrong if it contained long IDv3 tags
+- Fixed: TrueHD streams with an Dolby Atmos sub-stream were not demuxed properly
+
+LAV Video
+- NEW: Experimental support for CUVID and DXVA2 HEVC acceleration
+- Faster: HEVC decoding is up to 100% faster
+- Fixed: DVD subtitle rendering could crash in 64-bit builds
+
+LAV Audio
+- Fixed: TrueHD streams with an Dolby Atmos sub-stream did not decode
+
+0.62.0 - 2014/06/12
+LAV Splitter
+- Fixed: The filtered Forced Subtitles stream did not properly send all related subtitle data in some cases
+
+LAV Video
+- NEW: Implemented a WMV9 MFT decoder to replace the old DMO decoder for VC-1/WMV3 on Windows 7 and above
+- NEW: Support for VP7 video
+- Fixed: Multi-threaded video decoding could result in a handle leak on some systems
+- Fixed: Video processing was slow on Windows XP due to inefficient memcpy use
+- Fixed: DVD subtitles could overlap on some discs
+
+LAV Audio
+- Fixed: Dynamic format switching to an audio stream with a different sample rate did not work in some cases
+
+0.61.2 - 2014/04/08
+General
+- Installer: The installer does now backup DirectShow registry settings before overwriting them, allowing uninstall to restore them
+
+LAV Splitter
+- NEW: Support for ProRes in MKV
+- Fixed: Opening AviSynth scripts with LAV Splitter which used DirectShowSource to load LAV Splitter again caused a deadlock
+- Fixed: Audio-only AviSynth scripts did not show a duration.
+- Fixed: Cue Sheets with directives with empty parameters could cause a crash
+
+LAV Video
+- Fixed: AVC1 video streams without SPS/PPS in the configuration record did not decode properly
+- Fixed: Decoding H.264 streams with a resolution change using the DXVA2 Copy-Back decoder could crash
+- Fixed: YUV->RGB conversion produced the wrong output for the last line of odd-height 4:2:2 or 4:4:4 files
+
+LAV Audio
+- Changed: LAV Audio offers more alternate output configurations to the audio renderer if the audio renderer refuses our preferred format.
+- Fixed: Decoding AC3 audio with corrupted audio frames could cause unnecessary format changes to occur and disrupt playback
+- Fixed: Decoding DTS audio on a CPU without SSE2 support could crash on some streams
+
 0.61.1 - 2014/03/07
 LAV Splitter
 - NEW: Support for opening "icyx://" stream URLs

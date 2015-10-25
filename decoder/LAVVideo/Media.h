@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -35,3 +35,5 @@ const codec_config_t *get_codec_config(LAVVideoCodec codec);
 int flip_plane(BYTE *buffer, int stride, int height);
 void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer);
 const uint8_t* CheckForEndOfSequence(AVCodecID codec, const uint8_t *buf, long len, uint32_t *state);
+
+int sws_scale2(struct SwsContext *c, const uint8_t *const srcSlice[], const ptrdiff_t srcStride[], int srcSliceY, int srcSliceH, uint8_t *const dst[], const ptrdiff_t dstStride[]);

@@ -3,6 +3,7 @@
 arch=x86
 archdir=Win32
 clean_build=true
+debug=true
 
 for opt in "$@"
 do
@@ -16,6 +17,9 @@ do
     quick)
             clean_build=false
             ;;
+    release)
+            debug=false
+            ;;
     *)
             echo "Unknown Option $opt"
             exit 1
@@ -23,15 +27,20 @@ do
 done
 
 make_dirs() (
-  if [ ! -d bin_${archdir}d/lib ]; then
-    mkdir -p bin_${archdir}d/lib
-  fi
+  mkdir -p bin_${archdir}d/lib
+  mkdir -p bin_${archdir}/lib
 )
 
 copy_libs() (
-  cp lib*/*-lav-*.dll ../bin_${archdir}d
-  cp lib*/*-lav-*.pdb ../bin_${archdir}d
-  cp lib*/*.lib ../bin_${archdir}d/lib
+  if $debug ; then
+      cp -u lib*/*-lav-*.dll ../bin_${archdir}d
+      cp -u lib*/*-lav-*.pdb ../bin_${archdir}d
+      cp -u lib*/*.lib ../bin_${archdir}d/lib
+  else
+      cp -u lib*/*-lav-*.dll ../bin_${archdir}
+      cp -u lib*/*-lav-*.pdb ../bin_${archdir}
+      cp -u lib*/*.lib ../bin_${archdir}/lib
+  fi
 )
 
 clean() (
@@ -44,21 +53,17 @@ configure() (
     --disable-static                \
     --enable-version3               \
     --enable-w32threads             \
+    --disable-demuxer=asf           \
     --disable-demuxer=matroska      \
     --disable-filters               \
     --enable-filter=yadif           \
     --enable-filter=scale           \
-    --disable-protocols             \
-    --enable-protocol=file          \
-    --enable-protocol=pipe          \
-    --enable-protocol=mmsh          \
-    --enable-protocol=mmst          \
-    --enable-protocol=rtp           \
-    --enable-protocol=http          \
+    --disable-protocol=async,cache,concat,httpproxy,icecast,md5,subfile \
     --disable-muxers                \
     --enable-muxer=spdif            \
     --disable-hwaccels              \
     --enable-hwaccel=h264_dxva2     \
+    --enable-hwaccel=hevc_dxva2     \
     --enable-hwaccel=vc1_dxva2      \
     --enable-hwaccel=wmv3_dxva2     \
     --enable-hwaccel=mpeg2_dxva2    \
@@ -71,19 +76,24 @@ configure() (
     --disable-bsfs                  \
     --disable-devices               \
     --disable-programs              \
-    --enable-debug                  \
     --disable-doc                   \
     --build-suffix=-lav             \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -d2Zi+ -MDd"
-  EXTRA_LDFLAGS="-NODEFAULTLIB:libcmt"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -d2Zi+ -GS-"
+  EXTRA_LDFLAGS=""
 
-  sh configure --toolchain=msvc --enable-debug --extra-cflags="${EXTRA_CFLAGS}" --extra-ldflags="${EXTRA_LDFLAGS}" ${OPTIONS}
+  if $debug ; then
+    OPTIONS="${OPTIONS} --enable-debug"
+    EXTRA_CFLAGS="${EXTRA_CFLAGS} -MDd"
+    EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -NODEFAULTLIB:libcmt"
+  fi
+
+  sh configure --toolchain=msvc --extra-cflags="${EXTRA_CFLAGS}" --extra-ldflags="${EXTRA_LDFLAGS}" ${OPTIONS}
 )
 
 build() (
-  make -j8
+  make -j$NUMBER_OF_PROCESSORS
 )
 
 echo Building ffmpeg in MSVC Debug config...

@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -20,43 +20,11 @@
 #include "stdafx.h"
 #include "wmv9.h"
 
-#include "moreuuids.h"
 #include <wmsdk.h>
 #include <wmcodecdsp.h>
 
 #include "parsers/VC1HeaderParser.h"
 #include "registry.h"
-
-extern "C" {
-#define AVCODEC_X86_MATHOPS_H
-#include "libavcodec/get_bits.h"
-#include "libavcodec/unary.h"
-};
-
-enum VC1Code{
-  VC1_CODE_RES0       = 0x00000100,
-  VC1_CODE_ENDOFSEQ   = 0x0000010A,
-  VC1_CODE_SLICE,
-  VC1_CODE_FIELD,
-  VC1_CODE_FRAME,
-  VC1_CODE_ENTRYPOINT,
-  VC1_CODE_SEQHDR,
-};
-
-#define IS_MARKER(x) (((x) & ~0xFF) == VC1_CODE_RES0)
-
-enum Profile {
-  PROFILE_SIMPLE,
-  PROFILE_MAIN,
-  PROFILE_COMPLEX, ///< TODO: WMV9 specific
-  PROFILE_ADVANCED
-};
-
-enum FrameCodingMode {
-  PROGRESSIVE = 0,    ///<  in the bitstream is reported as 00b
-  ILACE_FRAME,        ///<  in the bitstream is reported as 10b
-  ILACE_FIELD         ///<  in the bitstream is reported as 11b
-};
 
 EXTERN_GUID(CLSID_CWMVDecMediaObject,
     0x82d353df, 0x90bd, 0x4382, 0x8b, 0xc2, 0x3f, 0x61, 0x92, 0xb7, 0x6e, 0x34);
@@ -327,7 +295,7 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     size_t i = 0;
     for (i = 0; i < (extralen - 4); i++) {
       uint32_t code = AV_RB32(extra+i);
-      if (IS_MARKER(code))
+      if ((code & ~0xFF) == 0x00000100)
         break;
     }
     if (i == 0) {
@@ -413,94 +381,6 @@ STDMETHODIMP CDecWMV9::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   return S_OK;
 }
 
-static inline const uint8_t* find_next_marker(const uint8_t *src, const uint8_t *end)
-{
-  uint32_t mrk = 0xFFFFFFFF;
-
-  if (end-src < 4)
-    return end;
-  while (src < end) {
-    mrk = (mrk << 8) | *src++;
-    if (IS_MARKER(mrk))
-      return src - 4;
-  }
-  return end;
-}
-
-static AVPictureType parse_picture_type(const uint8_t *buf, int buflen, CVC1HeaderParser *vc1Header)
-{
-  AVPictureType pictype = AV_PICTURE_TYPE_NONE;
-  int skipped = 0;
-  const BYTE *framestart = buf;
-  if (IS_MARKER(AV_RB32(buf))) {
-    framestart = nullptr;
-    const BYTE *start, *end, *next;
-    next = buf;
-    for (start = buf, end = buf + buflen; next < end; start = next) {
-      if (AV_RB32(start) == VC1_CODE_FRAME) {
-        framestart = start + 4;
-        break;
-      }
-      next = find_next_marker(start + 4, end);
-    }
-  }
-  if (framestart) {
-    GetBitContext gb;
-    init_get_bits(&gb, framestart, (buflen - (framestart-buf))*8);
-    if (vc1Header->hdr.profile == PROFILE_ADVANCED) {
-      int fcm = PROGRESSIVE;
-      if (vc1Header->hdr.interlaced)
-        fcm = decode012(&gb);
-      if (fcm == ILACE_FIELD) {
-        int fptype = get_bits(&gb, 3);
-        pictype = (fptype & 2) ? AV_PICTURE_TYPE_P : AV_PICTURE_TYPE_I;
-        if (fptype & 4) // B-picture
-          pictype = (fptype & 2) ? AV_PICTURE_TYPE_BI : AV_PICTURE_TYPE_B;
-      } else {
-        switch (get_unary(&gb, 0, 4)) {
-        case 0:
-            pictype = AV_PICTURE_TYPE_P;
-            break;
-        case 1:
-            pictype = AV_PICTURE_TYPE_B;
-            break;
-        case 2:
-            pictype = AV_PICTURE_TYPE_I;
-            break;
-        case 3:
-            pictype = AV_PICTURE_TYPE_BI;
-            break;
-        case 4:
-            pictype = AV_PICTURE_TYPE_P; // skipped pic
-            skipped = 1;
-            break;
-        }
-      }
-    } else {
-      if (vc1Header->hdr.finterp)
-        skip_bits1(&gb);
-      skip_bits(&gb, 2); // framecnt
-      if (vc1Header->hdr.rangered)
-        skip_bits1(&gb);
-      int pic = get_bits1(&gb);
-      if (vc1Header->hdr.bframes) {
-        if (!pic) {
-          if (get_bits1(&gb)) {
-            pictype = AV_PICTURE_TYPE_I;
-          } else {
-            pictype = AV_PICTURE_TYPE_B;
-          }
-        } else {
-          pictype = AV_PICTURE_TYPE_P;
-        }
-      } else {
-        pictype = pic ? AV_PICTURE_TYPE_P : AV_PICTURE_TYPE_I;
-      }
-    }
-  }
-  return pictype;
-}
-
 STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
 {
   HRESULT hr = S_OK;
@@ -523,7 +403,7 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
     dwFlags |= DMO_INPUT_DATA_BUFFERF_TIMELENGTH;
 
   if (m_vc1Header && (m_bManualReorder || m_bNeedKeyFrame)) {
-    AVPictureType pictype = parse_picture_type(buffer, buflen, m_vc1Header);
+    AVPictureType pictype = m_vc1Header->ParseVC1PictureType(buffer, buflen);
     if (m_bManualReorder) {
       if (pictype == AV_PICTURE_TYPE_I || pictype == AV_PICTURE_TYPE_P) {
         if (m_bReorderBufferValid)
@@ -561,7 +441,7 @@ STDMETHODIMP CDecWMV9::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtS
   return ProcessOutput();
 }
 
-static void memcpy_plane(BYTE *dst, const BYTE *src, int width, int stride, int height)
+static void memcpy_plane(BYTE *dst, const BYTE *src, ptrdiff_t width, ptrdiff_t stride, int height)
 {
   for (int i = 0; i < height; i++) {
     memcpy(dst, src, width);
@@ -613,7 +493,7 @@ STDMETHODIMP CDecWMV9::ProcessOutput()
   AVRational display_aspect_ratio;
   int64_t num = (int64_t)m_StreamAR.num * pBMI->biWidth;
   int64_t den = (int64_t)m_StreamAR.den * pBMI->biHeight;
-  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, 1 << 30);
+  av_reduce(&display_aspect_ratio.num, &display_aspect_ratio.den, num, den, INT_MAX);
 
   BYTE contentType = 0;
   DWORD dwPropSize = 1;

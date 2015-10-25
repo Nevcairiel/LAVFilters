@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -58,9 +58,9 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb32_ssse3)
       PIXCONV_LOAD_ALIGNED(xmm0, (rgb + i));      /* load */
       PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));
       PIXCONV_LOAD_ALIGNED(xmm2, (rgb + i + 16));
-      _mm_adds_epu16(xmm0, xmm5);                 /* apply dithering coefficients */
-      _mm_adds_epu16(xmm1, xmm6);
-      _mm_adds_epu16(xmm2, xmm7);
+      xmm0 = _mm_adds_epu16(xmm0, xmm5);          /* apply dithering coefficients */
+      xmm1 = _mm_adds_epu16(xmm1, xmm6);
+      xmm2 = _mm_adds_epu16(xmm2, xmm7);
       xmm0 = _mm_srli_epi16(xmm0, 8);             /* shift to 8-bit */
       xmm1 = _mm_srli_epi16(xmm1, 8);
       xmm2 = _mm_srli_epi16(xmm2, 8);
@@ -91,7 +91,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
   dstBS[0] = (BYTE *)av_malloc(height * srcStride[0]);
 
   SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_BGR48LE, SWS_POINT);
-  sws_scale(ctx, src, srcStride, 0, height, dstBS, srcStride);
+  sws_scale2(ctx, src, srcStride, 0, height, dstBS, srcStride);
 
   // Dither to RGB24/32 with SSE2
   const uint16_t *rgb = (const uint16_t *)dstBS[0];
@@ -131,8 +131,8 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
     for (i = 0; i < processWidth; i += 16) {
       PIXCONV_LOAD_ALIGNED(xmm0, (rgb + i));      /* load */
       PIXCONV_LOAD_ALIGNED(xmm1, (rgb + i + 8));
-      _mm_adds_epu16(xmm0, xmm6);                 /* apply dithering coefficients */
-      _mm_adds_epu16(xmm1, xmm7);
+      xmm0 = _mm_adds_epu16(xmm0, xmm6);          /* apply dithering coefficients */
+      xmm1 = _mm_adds_epu16(xmm1, xmm7);
       xmm0 = _mm_srli_epi16(xmm0, 8);             /* shift to 8-bit */
       xmm1 = _mm_srli_epi16(xmm1, 8);
 

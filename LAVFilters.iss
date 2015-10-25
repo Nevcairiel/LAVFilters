@@ -4,6 +4,16 @@
 #define ISPP_INCLUDED
 #include "common\includes\version.h"
 
+#if LAV_VERSION_BUILD > 0
+    #define LAV_VERSION_STRING str(LAV_VERSION_MAJOR) + "." + str(LAV_VERSION_MINOR) + "." + str(LAV_VERSION_REVISION) + "-" + str(LAV_VERSION_BUILD)
+#else
+    #if LAV_VERSION_REVISION > 0
+        #define LAV_VERSION_STRING str(LAV_VERSION_MAJOR) + "." + str(LAV_VERSION_MINOR) + "." + str(LAV_VERSION_REVISION)
+    #else
+        #define LAV_VERSION_STRING str(LAV_VERSION_MAJOR) + "." + str(LAV_VERSION_MINOR)
+    #endif
+#endif
+
 [Setup]
 AllowCancelDuringInstall  = no
 AllowNoIcons              = yes
@@ -12,14 +22,14 @@ AppId                     = lavfilters
 AppName                   = LAV Filters
 AppPublisher              = Hendrik Leppkes
 AppPublisherURL           = http://1f0.de/
-AppVerName                = LAV Filters {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
-AppVersion                = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
-VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}.0
+AppVerName                = LAV Filters {#=LAV_VERSION_STRING}
+AppVersion                = {#=LAV_VERSION_STRING}
+VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}.{#=LAV_VERSION_BUILD}
 VersionInfoCompany        = 1f0.de
 VersionInfoCopyright      = GPLv2
-OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}
+OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_STRING}
 OutputDir                 = .
-Compression               = lzma2/ultra
+Compression               = lzma2/ultra64
 SolidCompression          = yes
 MinVersion                = 0,5.01SP2
 PrivilegesRequired        = admin
@@ -53,12 +63,12 @@ Name: icons;          Description: "Create Start Menu Shortcuts";
 Name: reset_settings; Description: "Reset Settings"; Flags: checkedonce unchecked; Check: SettingsExistCheck()
 
 [Files]
-Source: bin_Win32\avcodec-lav-55.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
-Source: bin_Win32\avfilter-lav-4.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
-Source: bin_Win32\avformat-lav-55.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
-Source: bin_Win32\avresample-lav-1.dll;DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavaudio32
-Source: bin_Win32\avutil-lav-52.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
-Source: bin_Win32\swscale-lav-2.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: bin_Win32\avcodec-lav-57.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\avfilter-lav-6.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: bin_Win32\avformat-lav-57.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
+Source: bin_Win32\avresample-lav-3.dll;DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\avutil-lav-55.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\swscale-lav-4.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 Source: bin_Win32\libbluray.dll;       DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
 Source: bin_Win32\LAVAudio.ax;         DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio32
 Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
@@ -66,12 +76,12 @@ Source: bin_Win32\LAVVideo.ax;         DestDir: {app}\x86; Flags: regserver igno
 Source: bin_Win32\LAVFilters.Dependencies.manifest; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
 Source: bin_Win32\IntelQuickSyncDecoder.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 
-Source: bin_x64\avcodec-lav-55.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
-Source: bin_x64\avfilter-lav-4.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
-Source: bin_x64\avformat-lav-55.dll;   DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
-Source: bin_x64\avresample-lav-1.dll;  DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavaudio64
-Source: bin_x64\avutil-lav-52.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
-Source: bin_x64\swscale-lav-2.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: bin_x64\avcodec-lav-57.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\avfilter-lav-6.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: bin_x64\avformat-lav-57.dll;   DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
+Source: bin_x64\avresample-lav-3.dll;  DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\avutil-lav-55.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\swscale-lav-4.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
 Source: bin_x64\libbluray.dll;         DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
 Source: bin_x64\LAVAudio.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio64
 Source: bin_x64\LAVSplitter.ax;        DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
@@ -125,7 +135,7 @@ type
            end;
 
 const
-  NumFormatsMinusOne = 21;
+  NumFormatsMinusOne = 22;
   LavGUID = '{B98D13E7-55DB-4385-A33D-09FD1BA26338}';
   StreamGUID = '{E436EB83-524F-11CE-9F53-0020AF0BA770}';
   LavSplitterFormatsReg = 'Software\LAV\Splitter\Formats';
@@ -176,7 +186,7 @@ end;
 
 procedure InitFormats();
 begin
-  FR(SplitterFormats[0], 'matroska', 'Matroska/WebM', True, ['mkv','mka', 'mks', 'webm', '']);
+  FR(SplitterFormats[0], 'matroska', 'Matroska/WebM', True, ['mkv','mka', 'mks', 'mk3d', 'webm', '']);
   FS(SplitterFormats[0], '{1AC0BEBD-4D2B-45ad-BCEB-F2C41C5E3788}', ['0,4,,1A45DFA3', ''], True);
   FR(SplitterFormats[1], 'avi', 'AVI', True, ['avi','divx', 'vp6', 'amv', '']);
   FS(SplitterFormats[1], '{e436eb88-524f-11ce-9f53-0020af0ba770}', ['0,4,,52494646,8,4,,41564920', '0,4,,52494646,8,4,,41564958', '0,4,,52494646,8,4,,414D5620', ''], True);
@@ -203,15 +213,51 @@ begin
 
   FR(SplitterFormats[13], 'avisynth', 'AviSynth scripts', True, ['avs', '']);
 
-  FP(SplitterFormats[14], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', '']);
-  FP(SplitterFormats[15], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
-  FP(SplitterFormats[16], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
+  FP(SplitterFormats[14], 'rtmp', 'RTMP Streaming Protocol', False, ['rtmp', 'rtmpt', '']);
+  FP(SplitterFormats[15], 'rtsp', 'RTSP Streaming Protocol', True, ['rtsp', 'rtspu', 'rtspm', 'rtspt', 'rtsph', '']);
+  FP(SplitterFormats[16], 'rtp', 'RTP Streaming Protocol', True, ['rtp', '']);
+  FP(SplitterFormats[17], 'mms', 'MMS Streaming Protocol', True, ['mms', 'mmsh', 'mmst', '']);
 
-  FR(SplitterFormats[17], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
-  FR(SplitterFormats[18], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
-  FR(SplitterFormats[19], 'aac', 'AAC Audio', True, ['aac', '']);
-  FR(SplitterFormats[20], 'mp3', 'MP3 Audio', True, ['mp3', '']);
-  FR(SplitterFormats[21], 'flac', 'FLAC Audio', True, ['flac', '']);
+  FR(SplitterFormats[18], 'dts', 'DTS Audio', True, ['dts', 'dtshd', '']);
+  FR(SplitterFormats[19], 'ac3', 'AC3 Audio', True, ['ac3', 'eac3', '']);
+  FR(SplitterFormats[20], 'aac', 'AAC Audio', True, ['aac', '']);
+  FR(SplitterFormats[21], 'mp3', 'MP3 Audio', True, ['mp3', '']);
+  FR(SplitterFormats[22], 'flac', 'FLAC Audio', True, ['flac', '']);
+end;
+
+procedure RegWriteStringWithBackup(const RootKey: Integer; const SubKeyName, ValueName, Data: String);
+var
+  OldValue: String;
+begin
+  if RegQueryStringValue(RootKey, SubKeyName, ValueName, OldValue) then begin
+    if CompareText(OldValue, Data) <> 0 then begin
+      RegWriteStringValue(RootKey, SubKeyName, ValueName + '.LAV', OldValue);
+    end
+  end;
+  RegWriteStringValue(RootKey, SubKeyName, ValueName, Data);
+end;
+
+function RegRestoreBackup(const RootKey: Integer; const SubKeyName, ValueName, CheckValue: String; const DeleteMode: Integer) : Boolean;
+var
+  CurrentValue: String;
+  BackupValue: String;
+begin
+  Result := False;
+  if RegQueryStringValue(RootKey, SubKeyName, ValueName, CurrentValue) then begin
+    if CompareText(CurrentValue, CheckValue) = 0 then begin
+      if RegQueryStringValue(RootKey, SubKeyName, ValueName + '.LAV', BackupValue) then begin
+        RegWriteStringValue(RootKey, SubKeyName, ValueName, BackupValue);
+        Result := True;
+      end else begin
+        if DeleteMode = 1 then begin
+          RegDeleteValue(RootKey, SubKeyName, ValueName);
+          RegDeleteKeyIfEmpty(RootKey, SubKeyName);
+        end else if DeleteMode = 2 then
+          RegDeleteKeyIncludingSubkeys(RootKey, SubKeyName);
+      end
+    end
+  end;
+  RegDeleteValue(RootKey, SubKeyName, ValueName + '.LAV');
 end;
 
 procedure RegisterSourceFormatGUIDs(f: Format);
@@ -227,9 +273,9 @@ begin
       else
         source := LavGUID;
       if IsComponentSelected('lavsplitter32') then
-        RegWriteStringValue(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
+        RegWriteStringWithBackup(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
       if IsComponentSelected('lavsplitter64') then
-        RegWriteStringValue(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
+        RegWriteStringWithBackup(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source);
     end;
 
   while Length(f.chkbytes[i]) > 0 do
@@ -245,21 +291,22 @@ end;
 
 procedure UnregisterSourceFormatGUIDs(f: Format);
 var
-  source: String;
+  SourceGuid: String;
+  DelMode: Integer;
 begin
-  if not f.asyncSource then
-    begin
-      if RegQueryStringValue(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source) then begin
-        if CompareText(source, LavGUID) = 0 then
-          RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype);
-      end;
-      if IsWin64 then begin
-        if RegQueryStringValue(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', source) then begin
-          if CompareText(source, LavGUID) = 0 then
-            RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype);
-        end;
-      end;
+  if Length(f.subtype) > 0 then
+  begin
+    if f.asyncSource then begin
+      SourceGuid := '{e436ebb5-524f-11ce-9f53-0020af0ba770}';
+      DelMode := 0;
+    end else begin
+      SourceGuid := LavGUID;
+      DelMode := 2;
     end;
+    RegRestoreBackup(HKCR32, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', SourceGuid, DelMode);
+    if IsWin64 then
+      RegRestoreBackup(HKCR64, 'Media Type\' + StreamGUID + '\' + f.subtype, 'Source Filter', SourceGuid, DelMode);
+  end;
 end;
 
 procedure RegisterSourceFormatExtensions(f: Format);
@@ -270,20 +317,20 @@ begin
   while Length(f.extensions[i]) > 0 do
     begin
       if f.protocol then begin
-        RegWriteStringValue(HKCR, f.extensions[i], 'Source Filter', LavGUID);
+        RegWriteStringWithBackup(HKCR, f.extensions[i], 'Source Filter', LavGUID);
       end else begin
         if IsComponentSelected('lavsplitter32') then begin
-          RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
-          RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
+          RegWriteStringWithBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
+          RegWriteStringWithBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
           if Length(f.subtype) > 0 then
-            RegWriteStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
+            RegWriteStringWithBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
         end;
         if IsComponentSelected('lavsplitter64') then begin
-          RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
-          RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
+          RegWriteStringWithBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID);
+          RegWriteStringWithBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID);
           if Length(f.subtype) > 0 then
-            RegWriteStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
-        end;
+            RegWriteStringWithBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype);
+        end
       end;
 
       i := i+1;
@@ -298,24 +345,19 @@ begin
   i := 0;
   while Length(f.extensions[i]) > 0 do
     begin
-      if f.protocol then begin
-        if RegQueryStringValue(HKCR, f.extensions[i], 'Source Filter', source) then begin
-          if CompareText(source, LavGUID) = 0 then begin
-            RegDeleteValue(HKCR, f.extensions[i], 'Source Filter');
-            RegDeleteKeyIfEmpty(HKCR, f.extensions[i]);
-          end;
-        end;
-      end else begin
-        if RegQueryStringValue(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
-          if CompareText(source, LavGUID) = 0 then
-            RegDeleteKeyIncludingSubkeys(HKCR32, 'Media Type\Extensions\.' + f.extensions[i]);
-        end;
+      if f.protocol then
+        RegRestoreBackup(HKCR, f.extensions[i], 'Source Filter', LavGUID, 1)
+      else begin
+        RegRestoreBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID, 2);
+        RegRestoreBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID, 0);
+        if Length(f.subtype) > 0 then
+          RegRestoreBackup(HKCR32, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype, 0);
         if IsWin64 then begin
-          if RegQueryStringValue(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', source) then begin
-            if CompareText(source, LavGUID) = 0 then
-              RegDeleteKeyIncludingSubkeys(HKCR64, 'Media Type\Extensions\.' + f.extensions[i]);
-          end;
-        end;
+          RegRestoreBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Source Filter', LavGUID, 2);
+          RegRestoreBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'Media Type', StreamGUID, 0);
+          if Length(f.subtype) > 0 then
+            RegRestoreBackup(HKCR64, 'Media Type\Extensions\.' + f.extensions[i], 'SubType', f.subtype, 0)
+        end
       end;
 
       i := i+1;

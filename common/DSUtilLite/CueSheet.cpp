@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -66,6 +66,8 @@ static string GetCueParam(string line, bool firstWord = false)
   idx = line.find_first_of(delims, idx);
   // Find beginning of param
   idx = line.find_first_not_of(delims, idx);
+  if (idx == string::npos)
+    return string();
   string param = line.substr(idx);
   // trim spaces off the end
   param = param.substr(0, param.find_last_not_of(delims) + 1);
@@ -73,7 +75,9 @@ static string GetCueParam(string line, bool firstWord = false)
   str_replace(param, "\\\"", "\"");
 
   if (firstWord) {
-    param = param.substr(0, param.find_first_of(delims));
+    idx = param.find_first_of(delims);
+    if (idx != string::npos)
+      param = param.substr(0, idx);
   }
   return param;
 }

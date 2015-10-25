@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -26,6 +26,8 @@ class CVC1HeaderParser
 public:
   CVC1HeaderParser(const BYTE *pData, size_t length, AVCodecID codec = AV_CODEC_ID_VC1);
   ~CVC1HeaderParser(void);
+
+  AVPictureType ParseVC1PictureType(const uint8_t *buf, int buflen);
 
 public:
   struct {

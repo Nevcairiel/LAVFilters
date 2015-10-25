@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -44,8 +44,6 @@
 
 #define DEBUG_FRAME_TIMINGS 0
 #define DEBUG_PIXELCONV_TIMINGS 0
-
-#define LAV_MT_FILTER_QUEUE_SIZE 4
 
 typedef struct {
   REFERENCE_TIME rtStart;
@@ -148,6 +146,8 @@ public:
   HRESULT BreakConnect(PIN_DIRECTION dir);
   HRESULT CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin);
 
+  HRESULT StartStreaming();
+
   int GetPinCount();
   CBasePin* GetPin(int n);
 
@@ -172,9 +172,9 @@ public:
 public:
   // Pin Configuration
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesIn[];
-  const static int                      sudPinTypesInCount;
+  const static UINT                     sudPinTypesInCount;
   const static AMOVIESETUP_MEDIATYPE    sudPinTypesOut[];
-  const static int                      sudPinTypesOutCount;
+  const static UINT                     sudPinTypesOutCount;
 
 private:
   HRESULT LoadDefaults();
@@ -193,6 +193,9 @@ private:
 
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
   BOOL IsInterlaced();
+
+  HRESULT CheckDirectMode();
+  HRESULT DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode = true);
 
 
   HRESULT Filter(LAVFrame *pFrame);

@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -73,6 +73,7 @@ private:
   BOOL m_bDTSHDFraming;
   BOOL m_bAutoAVSync;
   BOOL m_bOutputStdLayout;
+  BOOL m_bOutput51Legacy;
   BOOL m_bExpandMono;
   BOOL m_bExpand61;
   bool m_bSampleFormats[SampleFormat_NB];

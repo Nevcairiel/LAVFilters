@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,6 @@ private:
   HRESULT ParseH264AnnexB(Packet *pPacket);
   HRESULT ParsePGS(Packet *pPacket);
   HRESULT ParseMOVText(Packet *pPacket);
-  HRESULT ParseRawSSA(Packet *pPacket);
   HRESULT ParseAAC(Packet *pPacket);
   HRESULT ParseSRT(Packet *pPacket);
 

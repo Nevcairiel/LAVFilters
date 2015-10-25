@@ -12,12 +12,6 @@
 #define IDI_ICON1                       104
 #define IDS_MIXER                       105
 #define IDC_INPUT_STATUS                1013
-#define IDC_SUP_SAMPLE_FORMATS          1020
-#define IDC_INT16                       1021
-#define IDC_INT24                       1022
-#define IDC_INT32                       1023
-#define IDC_FP32                        1024
-#define IDC_INT8                        1025
 #define IDC_OUTPUT_STATUS               1026
 #define IDC_DRC                         1034
 #define IDC_DRC_LEVEL                   1035
@@ -113,6 +107,7 @@
 #define IDC_LBL_MIXING_LEVEL            1130
 #define IDC_TRAYICON                    1131
 #define IDC_OUT_S16_DITHER              1132
+#define IDC_OUTPUT51_LEGACY             1133
 
 // Next default values for new objects
 // 
@@ -120,7 +115,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1133
+#define _APS_NEXT_CONTROL_VALUE         1134
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

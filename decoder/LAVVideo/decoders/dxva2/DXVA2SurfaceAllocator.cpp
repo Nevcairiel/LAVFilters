@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -159,14 +159,13 @@ HRESULT CDXVA2SurfaceAllocator::Alloc()
   }
 
   // Allocate the surfaces.
-  D3DFORMAT d3dFormat = (D3DFORMAT)FOURCC_NV12;
   if (SUCCEEDED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Allocating surfaces"));
     hr = pDXVA2Service->CreateSurface(
       m_pDec->m_dwSurfaceWidth,
       m_pDec->m_dwSurfaceHeight,
       m_lCount - 1,
-      d3dFormat,
+      m_pDec->m_eSurfaceFormat,
       D3DPOOL_DEFAULT,
       0,
       DXVA2_VideoDecoderRenderTarget,

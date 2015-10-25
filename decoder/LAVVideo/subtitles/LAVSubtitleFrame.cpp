@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -102,7 +102,7 @@ STDMETHODIMP CLAVSubtitleFrame::GetBitmap(int index, ULONGLONG *id, POINT *posit
   *position = m_Bitmaps[index]->position;
   *size     = m_Bitmaps[index]->size;
   *pixels   = m_Bitmaps[index]->pixels;
-  *pitch    = m_Bitmaps[index]->pitch;
+  *pitch    = m_Bitmaps[index]->pitch * 4;
 
   return S_OK;
 }

@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -27,8 +27,11 @@ class CLAVVideo;
 typedef struct LAVSubtitleProviderContext {
   LPWSTR name;                    ///< name of the Provider
   LPWSTR version;                 ///< Version of the Provider
+  LPWSTR yuvMatrix;               ///< YUV Matrix
 
   bool combineBitmaps;            ///< Control if the provider combines all bitmaps into one
+  bool isBitmap;
+  bool isMovable;
 } LAVSubtitleProviderContext;
 
 struct _AM_PROPERTY_SPPAL;
@@ -43,10 +46,11 @@ public:
   DECLARE_ISUBRENDEROPTIONS;
 
   // ISubRenderProvider
-  STDMETHODIMP RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop);
+  STDMETHODIMP RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context);
   STDMETHODIMP Disconnect(void);
 
   // CLAVSubtitleProvider public
+  STDMETHODIMP SetConsumer(ISubRenderConsumer *pConsumer);
   STDMETHODIMP DisconnectConsumer(void);
 
   STDMETHODIMP InitDecoder(const CMediaType *pmt, AVCodecID codecId);
@@ -61,7 +65,7 @@ public:
 private:
   void CloseDecoder();
 
-  void ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
+  void ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart);
   void ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
   void AddSubtitleRect(CLAVSubRect *rect);
   CLAVSubRect* ProcessDVDHLI(CLAVSubRect *rect);
@@ -72,12 +76,14 @@ private:
   LAVSubtitleProviderContext context;
   CLAVVideo *m_pLAVVideo            = nullptr;
 
-  ISubRenderConsumer *m_pConsumer   = nullptr;
+  ISubRenderConsumer  *m_pConsumer  = nullptr;
+  ISubRenderConsumer2 *m_pConsumer2 = nullptr;
 
   const AVCodec        *m_pAVCodec  = nullptr;
   AVCodecContext       *m_pAVCtx    = nullptr;
   AVCodecParserContext *m_pParser   = nullptr;
 
+  REFERENCE_TIME        m_rtLastFrame  = AV_NOPTS_VALUE;
   REFERENCE_TIME        m_rtStartCache = AV_NOPTS_VALUE;
   ULONGLONG             m_SubPicId     = 0;
   BOOL                  m_bComposit    = TRUE;

@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 #include "Media.h"
 
 #include <MMReg.h>
+#include <Mfidl.h>
 
 #include "moreuuids.h"
 
@@ -75,7 +76,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_WMVP, AV_CODEC_ID_WMV3IMAGE },
   { &MEDIASUBTYPE_wmvp, AV_CODEC_ID_WMV3IMAGE },
 
-  // VP8/9
+  // VP7/8/9
+  { &MEDIASUBTYPE_VP70, AV_CODEC_ID_VP7 },
   { &MEDIASUBTYPE_VP80, AV_CODEC_ID_VP8 },
   { &MEDIASUBTYPE_VP90, AV_CODEC_ID_VP9 },
 
@@ -327,7 +329,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_WMVP },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_wmvp },
 
-  // VP8/9
+  // VP7/8/9
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_VP70 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP80 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_VP90 },
 
@@ -529,7 +532,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_v410 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_LAV_RAWVIDEO },
 };
-const int CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
+const UINT CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
 
 // Define Output Media Types
 const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesOut[] = {
@@ -540,7 +543,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesOut[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB32 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_RGB24 },
 };
-const int CLAVVideo::sudPinTypesOutCount = countof(CLAVVideo::sudPinTypesOut);
+const UINT CLAVVideo::sudPinTypesOutCount = countof(CLAVVideo::sudPinTypesOut);
 
 // Crawl the lavc_video_codecs array for the proper codec
 AVCodecID FindCodecId(const CMediaType *mt)
@@ -613,6 +616,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_HEVC }},                                                // Codec_HEVC
   { 1, { AV_CODEC_ID_VP9 }},                                                 // Codec_VP9
   { 2, { AV_CODEC_ID_TRUEMOTION1, AV_CODEC_ID_TRUEMOTION2 }, "truemotion", "Duck TrueMotion 1/2"}, // Codec_TrueMotion
+  { 1, { AV_CODEC_ID_VP7 }},                                                 // Codec_VP7
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
@@ -707,6 +711,9 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   // Color Transfer Function
   switch(transfer) {
   case AVCOL_TRC_BT709:
+  case AVCOL_TRC_SMPTE170M:
+  case AVCOL_TRC_BT2020_10:
+  case AVCOL_TRC_BT2020_12:
     fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
     break;
   case AVCOL_TRC_GAMMA22:
@@ -717,6 +724,16 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
     break;
   case AVCOL_TRC_SMPTE240M:
     fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
+    break;
+  case AVCOL_TRC_LOG:
+    fmt.VideoTransferFunction = MFVideoTransFunc_Log_100;
+    break;
+  case AVCOL_TRC_LOG_SQRT:
+    fmt.VideoTransferFunction = MFVideoTransFunc_Log_316;
+    break;
+  // Custom values, not official standard, but understood by madVR
+  case AVCOL_TRC_SMPTEST2084:
+    fmt.VideoTransferFunction = 16;
     break;
   }
 }
@@ -739,4 +756,16 @@ const uint8_t* CheckForEndOfSequence(AVCodecID codec, const uint8_t *buf, long l
     return nullptr;
   }
   return nullptr;
+}
+
+int sws_scale2(struct SwsContext *c, const uint8_t *const srcSlice[], const ptrdiff_t srcStride[], int srcSliceY, int srcSliceH, uint8_t *const dst[], const ptrdiff_t dstStride[])
+{
+  int srcStride2[4];
+  int dstStride2[4];
+
+  for (int i = 0; i < 4; i++) {
+    srcStride2[i] = (int)srcStride[i];
+    dstStride2[i] = (int)dstStride[i];
+  }
+  return sws_scale(c, srcSlice, srcStride2, srcSliceY, srcSliceH, dst, dstStride2);
 }

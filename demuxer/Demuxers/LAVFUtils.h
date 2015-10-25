@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@ struct FormatMapping {
 
 const char *get_stream_language(const AVStream *pStream);
 std::string get_codec_name(AVCodecContext *pCodecCtx);
+const char * lavf_get_stream_title(AVStream * pStream);
 std::string lavf_get_stream_description(AVStream *pStream);
 
 #define LAVF_DISPOSITION_SUB_STREAM      0x10000

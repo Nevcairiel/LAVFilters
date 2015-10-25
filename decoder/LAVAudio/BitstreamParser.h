@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -39,7 +39,6 @@ public:
   DWORD m_dwSampleRate = 0;
   DWORD m_dwBlocks     = 0;
   DWORD m_dwFrameSize  = 0;
-  DWORD m_dwBitRate    = 0;
   DWORD m_dwSamples    = 0;
 
   BOOL m_bDTSHD        = FALSE;

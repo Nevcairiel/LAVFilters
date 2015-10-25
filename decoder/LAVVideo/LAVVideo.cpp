@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -88,7 +88,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   DbgSetModuleLevel (LOG_TRACE, DWORD_MAX);
   DbgSetModuleLevel (LOG_ERROR, DWORD_MAX);
   DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
-#if ENABLE_DEBUG_LOGFILE
+#ifdef LAV_DEBUG_RELEASE
   DbgSetLogFileDesktop(LAVC_VIDEO_LOG_FILE);
 #endif
 #endif
@@ -112,6 +112,10 @@ CLAVVideo::~CLAVVideo()
   SafeRelease(&m_SubtitleConsumer);
 
   SAFE_DELETE(m_pSubtitleInput);
+
+#if defined(DEBUG) && defined(LAV_DEBUG_RELEASE)
+  DbgCloseLogFile();
+#endif
 }
 
 HRESULT CLAVVideo::CreateTrayIcon()
@@ -175,7 +179,7 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.bHWFormats[HWCodec_MPEG4] = FALSE;
 
-  m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD;
+  m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD|LAVHWResFlag_UHD;
 
   m_settings.HWDeintMode = HWDeintMode_Weave;
   m_settings.HWDeintOutput = DeintOutput_FramePerField;
@@ -295,6 +299,9 @@ HRESULT CLAVVideo::ReadSettings(HKEY rootKey)
     bFlag = regHW.ReadBOOL(L"dvd", hr);
     if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_MPEG2DVD] = bFlag;
 
+    bFlag = regHW.ReadBOOL(L"hevc", hr);
+    if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_HEVC] = bFlag;
+
     dwVal = regHW.ReadDWORD(L"HWResFlags", hr);
     if (SUCCEEDED(hr)) m_settings.HWAccelResFlags = dwVal;
 
@@ -352,6 +359,7 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteBOOL(L"mpeg2",m_settings.bHWFormats[HWCodec_MPEG2]);
     regHW.WriteBOOL(L"mpeg4",m_settings.bHWFormats[HWCodec_MPEG4]);
     regHW.WriteBOOL(L"dvd",m_settings.bHWFormats[HWCodec_MPEG2DVD]);
+    regHW.WriteBOOL(L"hevc",m_settings.bHWFormats[HWCodec_HEVC]);
 
     regHW.WriteDWORD(L"HWResFlags", m_settings.HWAccelResFlags);
 
@@ -465,7 +473,7 @@ CBasePin* CLAVVideo::GetPin(int n)
 
 HRESULT CLAVVideo::CheckInputType(const CMediaType *mtIn)
 {
-  for(int i = 0; i < sudPinTypesInCount; i++) {
+  for(UINT i = 0; i < sudPinTypesInCount; i++) {
     if(*sudPinTypesIn[i].clsMajorType == mtIn->majortype
       && *sudPinTypesIn[i].clsMinorType == mtIn->subtype && (mtIn->formattype == FORMAT_VideoInfo || mtIn->formattype == FORMAT_VideoInfo2 || mtIn->formattype == FORMAT_MPEGVideo || mtIn->formattype == FORMAT_MPEG2Video)) {
         return S_OK;
@@ -670,6 +678,27 @@ done:
   return SUCCEEDED(hr) ? S_OK : VFW_E_TYPE_NOT_ACCEPTED;
 }
 
+HRESULT CLAVVideo::CheckDirectMode()
+{
+  LAVPixelFormat pix;
+  int bpp;
+  m_Decoder.GetPixelFormat(&pix, &bpp);
+
+  BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P010);
+  if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)
+    bDirect = FALSE;
+  else if (pix == LAVPixFmt_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
+    bDirect = FALSE;
+  else if (pix == LAVPixFmt_P010 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P010 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P016 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
+    bDirect = FALSE;
+  else if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider())
+    bDirect = FALSE;
+
+  m_Decoder.SetDirectOutput(bDirect);
+
+  return S_OK;
+}
+
 HRESULT CLAVVideo::SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
@@ -765,6 +794,9 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 HRESULT CLAVVideo::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 {
   if (dir == PINDIR_INPUT) {
+    if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVC_VIDEO_REGISTRY_KEY L"\\Blacklist"))
+      return E_FAIL;
+
     if (FilterInGraphSafe(pPin, CLSID_LAVVideo, TRUE)) {
       DbgLog((LOG_TRACE, 10, L"CLAVVideo::CheckConnect(): LAVVideo is already in this graph branch, aborting."));
       return E_FAIL;
@@ -790,7 +822,34 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   DbgLog((LOG_TRACE, 10, L"::CompleteConnect"));
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
+    BOOL bFailNonDXVA = false;
+    if (m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P010 || m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P016) {
+      // Check if we're connecting to EVR
+      IBaseFilter *pFilter = GetFilterFromPin(pReceivePin);
+      if (pFilter != nullptr) {
+        CLSID guid;
+        if (SUCCEEDED(pFilter->GetClassID(&guid))) {
+          DbgLog((LOG_TRACE, 10, L"-> Connecting P010/P016 to %s", WStringFromGUID(guid).c_str()));
+          bFailNonDXVA = (guid == CLSID_EnhancedVideoRenderer || guid == CLSID_VideoMixingRenderer9 || guid == CLSID_VideoMixingRenderer);
+        }
+        SafeRelease(&pFilter);
+      }
+    }
+
     hr = m_Decoder.PostConnect(pReceivePin);
+    if (SUCCEEDED(hr)) {
+      if (bFailNonDXVA) {
+        LAVPixelFormat fmt;
+        m_Decoder.GetPixelFormat(&fmt, nullptr);
+
+        if (fmt != LAVPixFmt_DXVA2) {
+          DbgLog((LOG_TRACE, 10, L"-> Non-DXVA2 Connection rejected on this renderer and subtype"));
+          return VFW_E_TYPE_NOT_ACCEPTED;
+        }
+      }
+
+      CheckDirectMode();
+    }
   } else if (dir == PINDIR_INPUT) {
     if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG2_VIDEO && !m_pSubtitleInput && (m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_DVD)) {
       m_pSubtitleInput = new CLAVVideoSubtitleInputPin(TEXT("CLAVVideoSubtitleInputPin"), this, &m_csFilter, &hr, L"Subtitle Input");
@@ -807,6 +866,56 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
     }
   }
   return hr;
+}
+
+HRESULT CLAVVideo::StartStreaming()
+{
+  CAutoLock cAutoLock(&m_csReceive);
+
+  if (m_pSubtitleInput) {
+    bool bFoundConsumer = false;
+    ISubRenderConsumer *pSubConsumer = nullptr;
+    if (SUCCEEDED(FindIntefaceInGraph(m_pOutput, __uuidof(ISubRenderConsumer), (void **)&pSubConsumer))) {
+      int nc = 0;
+      LPWSTR strName = nullptr, strVersion = nullptr;
+      pSubConsumer->GetString("name", &strName, &nc);
+      pSubConsumer->GetString("version", &strVersion, &nc);
+      DbgLog((LOG_TRACE, 10, L"CLAVVideo::StartStreaming():: Found ISubRenderConsumer (%s %s)", strName, strVersion));
+
+      // only support madVR for now, and only recent versions (anything before 0.89.10 crashes)
+      if (strName && strVersion && wcscmp(strName, L"madVR") == 0) {
+        int major, minor, build, rev;
+        if (swscanf_s(strVersion, L"%d.%d.%d.%d", &major, &minor, &build, &rev) == 4) {
+          if (major > 0 || (major == 0 && (minor > 89 || (minor == 89 && build >= 10))))
+            bFoundConsumer = true;
+        }
+      }
+
+      if (bFoundConsumer) {
+        m_pSubtitleInput->SetSubtitleConsumer(pSubConsumer);
+        SafeRelease(&m_SubtitleConsumer);
+      }
+
+      SafeRelease(&pSubConsumer);
+    }
+
+    if (bFoundConsumer == false) {
+      if (m_SubtitleConsumer == nullptr) {
+        m_SubtitleConsumer = new CLAVSubtitleConsumer(this);
+        m_SubtitleConsumer->AddRef();
+
+        BITMAPINFOHEADER *pBIH = nullptr;
+        videoFormatTypeHandler(m_pInput->CurrentMediaType(), &pBIH);
+        if (pBIH) {
+          m_SubtitleConsumer->SetVideoSize(pBIH->biWidth, pBIH->biHeight);
+        }
+      }
+
+      m_pSubtitleInput->SetSubtitleConsumer(m_SubtitleConsumer);
+    }
+  }
+
+  return S_OK;
 }
 
 HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height, AVRational ar, DXVA2_ExtendedFormat dxvaExtFlags, REFERENCE_TIME avgFrameDuration)
@@ -843,6 +952,15 @@ HRESULT CLAVVideo::GetDeliveryBuffer(IMediaSample** ppOut, int width, int height
     DbgLog((LOG_TRACE, 10, L"::GetDeliveryBuffer(): Sample contains new media type from downstream filter.."));
     DbgLog((LOG_TRACE, 10, L"-> Width changed from %d to %d (target: %d)", pBMIOld->biWidth, pBMINew->biWidth, rcTarget.right));
 #endif
+
+    if (pBMINew->biWidth < width) {
+      DbgLog((LOG_TRACE, 10, L" -> Renderer is trying to shrink the output window, failing!"));
+      (*ppOut)->Release();
+      (*ppOut) = nullptr;
+      DeleteMediaType(pmt);
+      return E_FAIL;
+    }
+
 
     if (pmt->formattype == FORMAT_VideoInfo2 && outMt.formattype == FORMAT_VideoInfo2 && m_bDXVAExtFormatSupport) {
       VIDEOINFOHEADER2 *vih2Current = (VIDEOINFOHEADER2 *)outMt.pbFormat;
@@ -926,6 +1044,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   }
   if (dxvaExtFlags.VideoPrimaries > DXVA2_VideoPrimaries_SMPTE_C && !m_bMadVR) {
     dxvaExtFlags.VideoPrimaries = DXVA2_VideoPrimaries_Unknown;
+  }
+  if (dxvaExtFlags.VideoTransferFunction > MFVideoTransFunc_Log_316 && !m_bMadVR) {
+    dxvaExtFlags.VideoTransferFunction = DXVA2_VideoTransFunc_Unknown;
   }
 
   if (mt.formattype  == FORMAT_VideoInfo) {
@@ -1045,6 +1166,12 @@ receiveconnection:
             CMediaType newmt = *pmt;
             videoFormatTypeHandler(newmt.Format(), newmt.FormatType(), &pBIH);
             DbgLog((LOG_TRACE, 10, L"-> New MediaType negotiated; actual width: %d - renderer requests: %ld", width, pBIH->biWidth));
+            if (pBIH->biWidth < width) {
+              DbgLog((LOG_ERROR, 10, L"-> Renderer requests width smaller than image width, failing.."));
+              DeleteMediaType(pmt);
+              pOut->Release();
+              return E_FAIL;
+            }
             // Check image size
             DWORD lSampleSize = m_PixFmtConverter.GetImageSize(pBIH->biWidth, abs(pBIH->biHeight));
             if (lSampleSize != pBIH->biSizeImage) {
@@ -1254,6 +1381,46 @@ STDMETHODIMP CLAVVideo::ReleaseFrame(LAVFrame **ppFrame)
   return S_OK;
 }
 
+HRESULT CLAVVideo::DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode)
+{
+  if (!pFrame->direct)
+    return S_FALSE;
+
+  ASSERT(pFrame->direct_lock && pFrame->direct_unlock);
+
+  LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
+
+  LAVFrame tmpFrame     = *pFrame;
+  pFrame->destruct      = nullptr;
+  pFrame->priv_data     = nullptr;
+  pFrame->direct        = false;
+  pFrame->direct_lock   = nullptr;
+  pFrame->direct_unlock = nullptr;
+  memset(pFrame->data, 0, sizeof(pFrame->data));
+
+  LAVDirectBuffer buffer;
+  if (tmpFrame.direct_lock(&tmpFrame, &buffer)) {
+    AllocLAVFrameBuffers(pFrame, buffer.stride[0] / desc.codedbytes);
+
+    // use slow copy, this should only be used extremely rarely
+    memcpy(pFrame->data[0], buffer.data[0], pFrame->height * buffer.stride[0]);
+    for (int i = 1; i < desc.planes; i++)
+      memcpy(pFrame->data[i], buffer.data[i], (pFrame->height / desc.planeHeight[i]) * buffer.stride[i]);
+
+    tmpFrame.direct_unlock(&tmpFrame);
+  } else {
+    // fallack, alloc anyway so nothing blows up
+    AllocLAVFrameBuffers(pFrame);
+  }
+
+  FreeLAVFrameBuffers(&tmpFrame);
+
+  if (bDisableDirectMode)
+    m_Decoder.SetDirectOutput(false);
+
+  return S_OK;
+}
+
 STDMETHODIMP_(LAVFrame*) CLAVVideo::GetFlushFrame()
 {
   LAVFrame *pFlushFrame = nullptr;
@@ -1344,6 +1511,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     if (pFrame->format != LAVPixFmt_DXVA2) {
       ReleaseFrame(&m_pLastSequenceFrame);
       if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
+        if (pFrame->direct) DeDirectFrame(pFrame, false);
         CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
       }
     } else {
@@ -1423,8 +1591,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider()) {
     m_SubtitleConsumer->SetVideoSize(width, height);
     m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
-    if (!bRGBOut)
+    if (!bRGBOut) {
+      if (pFrame->direct) DeDirectFrame(pFrame, true);
       m_SubtitleConsumer->ProcessFrame(pFrame);
+    }
   }
 
   // Grab a media sample, and start assembling the data for it.
@@ -1471,7 +1641,16 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&start);
   #endif
-    m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+
+    if (pFrame->direct && !m_PixFmtConverter.IsDirectModeSupported((uintptr_t)pDataOut, pBIH->biWidth)) {
+      DeDirectFrame(pFrame, true);
+    }
+
+    if (pFrame->direct)
+      m_PixFmtConverter.ConvertDirect(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+    else
+      m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+
   #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
     QueryPerformanceCounter(&end);
     double diff = (end.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
@@ -1586,6 +1765,17 @@ HRESULT CLAVVideo::GetD3DBuffer(LAVFrame *pFrame)
 
 HRESULT CLAVVideo::RedrawStillImage()
 {
+  IMediaControl *pMC = nullptr;
+  if (m_pGraph->QueryInterface(&pMC) == S_OK && pMC) {
+    OAFilterState state = State_Stopped;
+    pMC->GetState(0, &state);
+    SafeRelease(&pMC);
+    if (state != State_Running) {
+      DbgLog((LOG_TRACE, 10, L"CLAVVideo::RedrawStillImage(): Redraw ignored, graph is not running."));
+      return S_FALSE;
+    }
+  }
+
   if (m_pLastSequenceFrame) {
     CAutoLock lock(&m_csReceive);
     // Since a delivery call can clear the stored sequence frame, we need a second check here

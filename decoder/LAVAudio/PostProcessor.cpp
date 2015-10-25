@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -300,7 +300,7 @@ HRESULT CLAVAudio::Create51Conformity(DWORD dwLayout)
   }
   m_bChannelMappingRequired = TRUE;
   m_ChannelMapOutputChannels = 6;
-  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1_BACK;
+  m_ChannelMapOutputLayout = AV_CH_LAYOUT_5POINT1;
   return S_OK;
 }
 
@@ -387,36 +387,6 @@ HRESULT CLAVAudio::Create71Conformity(DWORD dwLayout)
   m_ChannelMapOutputChannels = 8;
   m_ChannelMapOutputLayout = AV_CH_LAYOUT_7POINT1;
   return S_OK;
-}
-
-static DWORD sanitize_mask(DWORD mask, AVCodecID codec)
-{
-  DWORD newmask = mask;
-  // Alot of codecs set 6.1/6.0 wrong..
-  // Only these codecs we can trust to properly set BL/BR + BC layouts
-  if (codec != AV_CODEC_ID_DTS) {
-    // 6.1
-    if (mask == (AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER))
-      newmask = AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER;
-    // 6.0
-    if (mask == (AV_CH_LAYOUT_5POINT0_BACK|AV_CH_BACK_CENTER))
-      newmask = AV_CH_LAYOUT_5POINT0|AV_CH_BACK_CENTER;
-  }
-  // The reverse, TrueHD sets SL/SR when it actually should be BL/BR
-  if (codec == AV_CODEC_ID_TRUEHD) {
-    // 6.1
-    if(mask == (AV_CH_LAYOUT_5POINT1|AV_CH_BACK_CENTER))
-      newmask = AV_CH_LAYOUT_5POINT1_BACK|AV_CH_BACK_CENTER;
-    // 6.0
-    if(mask == (AV_CH_LAYOUT_5POINT0|AV_CH_BACK_CENTER))
-      newmask = AV_CH_LAYOUT_5POINT0_BACK|AV_CH_BACK_CENTER;
-  }
-
-  // Prefer the 5.1 BACK mask
-  if (mask == AV_CH_LAYOUT_5POINT1)
-    newmask = AV_CH_LAYOUT_5POINT1_BACK;
-
-  return newmask;
 }
 
 HRESULT CLAVAudio::PadTo32(BufferDetails *buffer)
@@ -601,8 +571,6 @@ setuperr:
 
 HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
 {
-  buffer->dwChannelMask = sanitize_mask(buffer->dwChannelMask, m_nCodecId);
-
   int layout_channels = av_get_channel_layout_nb_channels(buffer->dwChannelMask);
 
   // Validate channel mask
@@ -610,6 +578,24 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
     buffer->dwChannelMask = get_channel_mask(buffer->wChannels);
     if (!buffer->dwChannelMask && buffer->wChannels <= 2) {
       buffer->dwChannelMask = buffer->wChannels == 2 ? AV_CH_LAYOUT_STEREO : AV_CH_LAYOUT_MONO;
+    }
+  }
+
+  if (m_settings.SuppressFormatChanges) {
+    if (!m_SuppressLayout) {
+      m_SuppressLayout = buffer->dwChannelMask;
+    } else {
+      if (buffer->dwChannelMask != m_SuppressLayout && buffer->wChannels <= av_get_channel_layout_nb_channels(m_SuppressLayout)) {
+        // only warn once
+        if (m_dwOverrideMixer != m_SuppressLayout) {
+          DbgLog((LOG_TRACE, 10, L"Channel Format change suppressed, from 0x%x to 0x%x", m_SuppressLayout, buffer->dwChannelMask));
+          m_dwOverrideMixer = m_SuppressLayout;
+        }
+      } else if (buffer->wChannels > av_get_channel_layout_nb_channels(m_SuppressLayout)) {
+        DbgLog((LOG_TRACE, 10, L"Channel count increased, allowing change from 0x%x to 0x%x", m_SuppressLayout, buffer->dwChannelMask));
+        m_dwOverrideMixer = 0;
+        m_SuppressLayout = buffer->dwChannelMask;
+      }
     }
   }
 
@@ -630,6 +616,22 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
     if (m_bChannelMappingRequired) {
       ExtendedChannelMapping(buffer, m_ChannelMapOutputChannels, m_ChannelMap);
       buffer->dwChannelMask = m_ChannelMapOutputLayout;
+    }
+  }
+
+  // Map to the requested 5.1 layout
+  if (m_settings.Output51Legacy && buffer->dwChannelMask == AV_CH_LAYOUT_5POINT1)
+    buffer->dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+  else if (!m_settings.Output51Legacy && buffer->dwChannelMask == AV_CH_LAYOUT_5POINT1_BACK)
+    buffer->dwChannelMask = AV_CH_LAYOUT_5POINT1;
+
+  // Check if current output uses back layout, and keep it active in that case
+  if (buffer->dwChannelMask == AV_CH_LAYOUT_5POINT1) {
+    WAVEFORMATEX * wfe = (WAVEFORMATEX *)m_pOutput->CurrentMediaType().Format();
+    if (wfe->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
+      WAVEFORMATEXTENSIBLE * wfex  = (WAVEFORMATEXTENSIBLE *)wfe;
+      if (wfex->dwChannelMask == AV_CH_LAYOUT_5POINT1_BACK)
+        buffer->dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
     }
   }
 

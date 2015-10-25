@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -64,6 +64,7 @@ protected:
   AVCodecContext       *m_pAVCtx   = nullptr;
   AVFrame              *m_pFrame   = nullptr;
   AVCodecID             m_nCodecId = AV_CODEC_ID_NONE;
+  BOOL                  m_bInInit  = FALSE;
 
 private:
   AVCodec              *m_pAVCodec   = nullptr;

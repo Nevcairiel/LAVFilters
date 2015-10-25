@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,15 +24,14 @@
 
 extern "C" {
 #pragma warning( push )
-#pragma warning( disable : 4018 )
+#pragma warning( disable : 4101 )
 #pragma warning( disable : 4244 )
 #pragma warning( disable : 4305 )
 #include "libavcodec/avcodec.h"
 #include "libavcodec/get_bits.h"
-#include "libavcodec/dcadata.h"
 #pragma warning( pop )
 
-extern int ff_dca_convert_bitstream(const uint8_t *src, int src_size, uint8_t *dst, int max_size);
+extern int avpriv_dca_convert_bitstream(const uint8_t *src, int src_size, uint8_t *dst, int max_size);
 extern __declspec(dllimport) const uint32_t avpriv_dca_sample_rates[16];
 };
 
@@ -223,7 +222,7 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
   unsigned ExtDescriptor = 0, ExtCoding = 0;
 
   uint8_t dts_buffer[32 + FF_INPUT_BUFFER_PADDING_SIZE] = {0};
-  int ret = ff_dca_convert_bitstream(pBuffer, uSize, dts_buffer, 32);
+  int ret = avpriv_dca_convert_bitstream(pBuffer, uSize, dts_buffer, 32);
 
   bool is16be = (AV_RB32(pBuffer) == DCA_MARKER_RAW_BE);
 
@@ -243,8 +242,7 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
     pHeader->ChannelLayout    = get_bits(gb, 6);        /* Channel configuration */
     unsigned sample_index     = get_bits(gb, 4);        /* Sample frequency index */
     pHeader->SampleRate       = avpriv_dca_sample_rates[sample_index];
-    unsigned bitrate_index    = get_bits(gb, 5);        /* Bitrate index */
-    pHeader->Bitrate          = dca_bit_rates[bitrate_index];
+    skip_bits(gb, 5);                                   /* Bitrate index */
     skip_bits1(gb);                                     /* Down mix */
     skip_bits1(gb);                                     /* Dynamic range */
     skip_bits1(gb);                                     /* Time stamp */

@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ typedef enum
 
 class CH264Nalu
 {
-private :
+protected:
   int        forbidden_bit      = 0;                 //! should be always FALSE
   int        nal_reference_idc  = 0;                 //! NALU_PRIORITY_xxxx
   NALU_TYPE  nal_unit_type      = NALU_TYPE_UNKNOWN; //! NALU_TYPE_xxxx
@@ -78,4 +78,11 @@ public :
 
   void      SetBuffer (const BYTE *pBuffer, size_t nSize, int nNALSize);
   bool      ReadNext();
+};
+
+class CH265Nalu : public CH264Nalu
+{
+public:
+  CH265Nalu() : CH264Nalu() {};
+  bool ReadNext();
 };

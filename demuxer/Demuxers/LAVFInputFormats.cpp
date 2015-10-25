@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2014 Hendrik Leppkes
+ *      Copyright (C) 2010-2015 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,7 @@ struct lavf_iformat_map
   { "matroska,webm",           "matroska", nullptr },
   { "mov,mp4,m4a,3gp,3g2,mj2", "mp4",      "MPEG-4/QuickTime format" },
   { "yuv4mpegpipe",            "y4m",      "YUV4MPEG" },
+  { "asf_o",                   "asf",      nullptr },
 
   // Raw Video formats (grouped into "rawvideo")
   { "dirac", RAW_VIDEO, RAW_VIDEO_DESC },
