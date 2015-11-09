@@ -444,7 +444,7 @@ softwaredec:
   if (!m_pDecoder) {
     DbgLog((LOG_TRACE, 10, L"-> No HW Codec, using Software"));
     m_bHWDecoder = FALSE;
-    if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3) && !m_bWMV9Failed) {
+    if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV1 || codec == AV_CODEC_ID_WMV2 || codec == AV_CODEC_ID_WMV3) && !m_bWMV9Failed) {
       if (IsWindows7OrNewer())
         m_pDecoder = CreateDecoderWMV9MFT();
       else

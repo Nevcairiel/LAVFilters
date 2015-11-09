@@ -128,7 +128,11 @@ STDMETHODIMP CDecWMV9MFT::Init()
 
 static GUID VerifySubtype(AVCodecID codec, GUID subtype)
 {
-  if (codec == AV_CODEC_ID_WMV3) {
+  if (codec == AV_CODEC_ID_WMV1) {
+    return MEDIASUBTYPE_WMV1;
+  } else if (codec == AV_CODEC_ID_WMV2) {
+    return MEDIASUBTYPE_WMV2;
+  } else if (codec == AV_CODEC_ID_WMV3) {
     return MEDIASUBTYPE_WMV3;
   } else {
     if (subtype == MEDIASUBTYPE_WVC1 || subtype == MEDIASUBTYPE_wvc1)
