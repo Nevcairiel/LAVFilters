@@ -136,6 +136,7 @@ private:
   template <int out32> DECLARE_CONV_FUNC(convert_rgb48_rgb);
 
   DECLARE_CONV_FUNC(plane_copy_direct_sse4);
+  DECLARE_CONV_FUNC(convert_nv12_yv12_direct_sse4);
   DECLARE_CONV_FUNC(convert_p010_nv12_direct_sse4);
 
   DECLARE_CONV_FUNC(convert_yuv_rgb);

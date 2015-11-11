@@ -444,10 +444,15 @@ void CLAVPixFmtConverter::SelectConvertFunctionDirect()
       convert_direct = &CLAVPixFmtConverter::convert_p010_nv12_direct_sse4;
     else if (cpu & AV_CPU_FLAG_SSE2)
       convert_direct = &CLAVPixFmtConverter::convert_p010_nv12_sse2;
+  } else if (m_InputPixFmt == LAVPixFmt_NV12 && m_OutputPixFmt == LAVOutPixFmt_YV12) {
+    if (cpu & AV_CPU_FLAG_SSE4)
+      convert_direct = &CLAVPixFmtConverter::convert_nv12_yv12_direct_sse4;
+    else if (cpu & AV_CPU_FLAG_SSE2)
+      convert_direct = &CLAVPixFmtConverter::convert_nv12_yv12;
   }
 
   if (convert_direct != nullptr)
-    m_bDirectMode = true;
+    m_bDirectMode = TRUE;
 }
 
 HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight) {
@@ -490,7 +495,8 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
 }
 
 BOOL CLAVPixFmtConverter::IsDirectModeSupported(uintptr_t dst, ptrdiff_t stride) {
-  if (FFALIGN(stride, 16) != stride || (dst % 16u))
+  const int stride_align = (m_OutputPixFmt == LAVOutPixFmt_YV12 ? 32 : 16);
+  if (FFALIGN(stride, stride_align) != stride || (dst % 16u))
     return false;
   return m_bDirectMode;
 }
