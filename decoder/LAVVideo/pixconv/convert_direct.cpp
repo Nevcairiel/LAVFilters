@@ -164,8 +164,8 @@ DECLARE_CONV_FUNC_IMPL(convert_nv12_yv12_direct_sse4)
     }
 
     for (; i < width; i += 32) {
-      PIXCONV_LOAD_ALIGNED(xmm0, uv + i);
-      PIXCONV_LOAD_ALIGNED(xmm1, uv + i);
+      PIXCONV_LOAD_ALIGNED(xmm0, uv + i + 0);
+      PIXCONV_LOAD_ALIGNED(xmm1, uv + i + 16);
 
       xmm4 = _mm_srli_epi16(xmm0, 8);
       xmm5 = _mm_srli_epi16(xmm1, 8);
