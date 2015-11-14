@@ -1111,7 +1111,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     if(m_avFormat->pb && !m_avFormat->pb->eof_reached) {
       bReturnEmpty = true;
     }
-    av_free_packet(&pkt);
+    av_packet_unref(&pkt);
   } else {
     // Check right here if the stream is active, we can drop the package otherwise.
     BOOL streamActive = FALSE;
@@ -1129,7 +1129,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     }
 
     if(!streamActive) {
-      av_free_packet(&pkt);
+      av_packet_unref(&pkt);
       return S_FALSE;
     }
 
@@ -1246,7 +1246,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     if (pPacket->rtStart != AV_NOPTS_VALUE)
       m_rtCurrent = pPacket->rtStart;
 
-    av_free_packet(&pkt);
+    av_packet_unref(&pkt);
   }
 
   if (bReturnEmpty && !pPacket) {

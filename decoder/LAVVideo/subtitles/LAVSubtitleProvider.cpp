@@ -379,7 +379,7 @@ void CLAVSubtitleProvider::ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME 
 
           // Update palette with new alpha values
           for (unsigned j = 0; j < 4; j++)
-            sub->rects[i]->pict.data[1][(j << 2) + 3] = sub->dvd_palette[k]->alpha[j] * 17;
+            sub->rects[i]->data[1][(j << 2) + 3] = sub->dvd_palette[k]->alpha[j] * 17;
 
           ProcessSubtitleRect(sub->rects[i], rtStartRect, rtStopRect);
         }
@@ -410,8 +410,8 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_T
   BYTE *rgbSub = (BYTE *)CoTaskMemAlloc(rgbStride * height * 4);
   if (!rgbSub) return;
   BYTE *rgbSubStart = rgbSub;
-  const BYTE *palSub = rect->pict.data[0];
-  const BYTE *palette = rect->pict.data[1];
+  const BYTE *palSub = rect->data[0];
+  const BYTE *palette = rect->data[1];
 
   memset(rgbSub, 0, rgbStride * height * 4);
 
@@ -437,7 +437,7 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_T
       rgbSub[(x << 2) + 2] = FAST_DIV255(r * a);
       rgbSub[(x << 2) + 3] = a;
     }
-    palSub += rect->pict.linesize[0];
+    palSub += rect->linesize[0];
     rgbSub += rgbStride * 4;
   }
 
@@ -468,13 +468,13 @@ void CLAVSubtitleProvider::ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_T
     }
     memset(lavRect->pixelsPal, paletteTransparent, lavRect->pitch * lavRect->size.cy);
     BYTE *palPixels = (BYTE *)lavRect->pixelsPal;
-    palSub = rect->pict.data[0];
+    palSub = rect->data[0];
 
     palPixels += lavRect->pitch * vpad + hpad;
     for (int y = 0; y < rect->h; y++) {
       memcpy(palPixels, palSub, rect->w);
       palPixels += lavRect->pitch;
-      palSub += rect->pict.linesize[0];
+      palSub += rect->linesize[0];
     }
   }
 
