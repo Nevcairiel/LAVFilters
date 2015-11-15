@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.67.0 - xxxx/xx/xx
+0.67.0 - 2015/11/15
 LAV Splitter
 - NEW: Support for HTTPS URLs
 - NEW: Automatic selection of the highest quality variant in HLS streams
