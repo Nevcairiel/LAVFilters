@@ -39,7 +39,6 @@ CLAVSplitterTrayIcon::~CLAVSplitterTrayIcon(void)
 HMENU CLAVSplitterTrayIcon::GetPopupMenu()
 {
   CheckPointer(m_pFilter, nullptr);
-  HRESULT hr = S_OK;
   CPopupMenu menu;
 
   IAMStreamSelect *pStreamSelect = nullptr;

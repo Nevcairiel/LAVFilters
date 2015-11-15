@@ -173,8 +173,6 @@ int64_t CLAVInputPin::Seek(void *opaque,  int64_t offset, int whence)
   CLAVInputPin *pin = static_cast<CLAVInputPin *>(opaque);
   CAutoLock lock(pin);
 
-  int64_t pos = 0;
-
   LONGLONG total = 0;
   LONGLONG available = 0;
   pin->m_pAsyncReader->Length(&total, &available);

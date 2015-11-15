@@ -230,7 +230,6 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
   addHint(IDC_QUEUE_MEM, L"Set the maximum memory a frame queue can use for buffering (in megabytes).\nNote that this is the maximum value, only very high bitrate files will usually even reach the default maximum value.");
   addHint(IDC_QUEUE_MEM_SPIN, L"Set the maximum memory a frame queue can use for buffering (in megabytes).\nNote that this is the maximum value, only very high bitrate files will usually even reach the default maximum value.");
 
-  WCHAR stringBuffer[100];
   swprintf_s(stringBuffer, L"%d", m_QueueMaxMem);
   SendDlgItemMessage(m_Dlg, IDC_QUEUE_MEM, WM_SETTEXT, 0, (LPARAM)stringBuffer);
 
