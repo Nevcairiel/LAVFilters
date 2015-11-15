@@ -4,6 +4,20 @@ LAV DirectShow Filters Changelog
 0.67.0 - xxxx/xx/xx
 LAV Splitter
 - NEW: Support for HTTPS URLs
+- NEW: Automatic selection of the highest quality variant in HLS streams
+- Changed: Reverted back to the old ASF demuxer
+- Changed: Backported ASF seeking improvements to the old ASF demuxer
+- Fixed: ASS in AVI did not work in recent versions
+- Fixed: RTP/RTSP did not work properly in 0.66
+
+LAV Video
+- NEW: Improved DVD subtitle and menu drawing with madVR (support for madVRs subtitle repositioning and lower latency)
+- Changed: HEVC and 4K HWAccel is enabled by default
+- Changed: Enabled DXVA2-CB Direct Mode with YV12 output on 8-bit sources
+- Fixed: DVD menus could show a black screen instead of the menu in some situations
+
+LAV Audio
+- Fixed: Improved clipping behavior in badly mastered DTS-HD tracks
 
 0.66.0 - 2015/09/22
 LAV Splitter
