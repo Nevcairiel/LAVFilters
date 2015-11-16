@@ -669,7 +669,10 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   LAVPixelFormat pix;
   int bpp;
   m_Decoder.GetPixelFormat(&pix, &bpp);
-  m_PixFmtConverter.SetInputFmt(pix, bpp);
+
+  // Set input on the converter, and force negotiation if needed
+  if (m_PixFmtConverter.SetInputFmt(pix, bpp) && m_pOutput->IsConnected())
+    m_bForceFormatNegotiation = TRUE;
 
   if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12)
     m_filterPixFmt = pix;
@@ -1564,7 +1567,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     height = 1080;
   }
 
-  if (m_PixFmtConverter.SetInputFmt(pFrame->format, pFrame->bpp)) {
+  if (m_PixFmtConverter.SetInputFmt(pFrame->format, pFrame->bpp) || m_bForceFormatNegotiation) {
     DbgLog((LOG_TRACE, 10, L"::Decode(): Changed input pixel format to %d (%d bpp)", pFrame->format, pFrame->bpp));
 
     CMediaType& mt = m_pOutput->CurrentMediaType();
@@ -1572,6 +1575,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     if (m_PixFmtConverter.GetOutputBySubtype(mt.Subtype()) != m_PixFmtConverter.GetPreferredOutput()) {
       NegotiatePixelFormat(mt, width, height);
     }
+    m_bForceFormatNegotiation = FALSE;
   }
   m_PixFmtConverter.SetColorProps(pFrame->ext_format, m_settings.RGBRange);
 
