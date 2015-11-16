@@ -1236,7 +1236,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   // If the codec is bitstreaming, and enabled for it, go there now
   if (IsBitstreaming(codec)) {
     WAVEFORMATEX *wfe = (format_type == FORMAT_WaveFormatEx) ? (WAVEFORMATEX *)format : nullptr;
-    if(SUCCEEDED(CreateBitstreamContext(codec, wfe))) {
+    if(wfe && SUCCEEDED(CreateBitstreamContext(codec, wfe))) {
       return S_OK;
     }
   }
