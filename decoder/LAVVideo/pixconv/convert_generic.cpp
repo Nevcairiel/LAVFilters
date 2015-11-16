@@ -129,7 +129,7 @@ inline SwsContext *CLAVPixFmtConverter::GetSWSContext(int width, int height, enu
         rgbTbl = sws_getCoefficients(isHD ? SWS_CS_ITU709 : SWS_CS_ITU601);
       }
       srcRange = dstRange = (m_ColorProps.NominalRange == DXVA2_NominalRange_0_255);
-      sws_setColorspaceDetails(m_pSwsContext, rgbTbl, srcRange, tbl, dstRange, brightness, contrast, saturation);
+      sws_setColorspaceDetails(m_pSwsContext, rgbTbl, srcRange, rgbTbl, dstRange, brightness, contrast, saturation);
     }
     swsWidth = width;
     swsHeight = height;
