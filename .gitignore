@@ -2,9 +2,10 @@
 *.user
 *.suo
 *.sdf
-*.opendb
 *.opensdf
 *.aps
+*.db
+*.opendb
 
 /ipch
 /bin_*
