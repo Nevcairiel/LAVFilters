@@ -122,6 +122,8 @@ CDecCuvid::~CDecCuvid(void)
 
 STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 {
+  if (m_cudaCtxLock) cuda.cuvidCtxLock(m_cudaCtxLock, 0);
+
   if (m_AnnexBConverter) {
     SAFE_DELETE(m_AnnexBConverter);
   }
@@ -146,6 +148,8 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
     m_pbRawNV12 = nullptr;
     m_cRawNV12 = 0;
   }
+
+  if (m_cudaCtxLock) cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
 
   if(bFull) {
     if (m_cudaCtxLock) {
