@@ -454,6 +454,7 @@ select_device:
         if (m_bVDPAULevelC && !isLevelC) {
           DbgLog((LOG_TRACE, 10, L"InitCUDA(): We already had a Level C+ device, this one is not, skipping"));
           cuda.cuCtxDestroy(cudaCtx);
+          SafeRelease(&pDev);
           continue;
         }
 
