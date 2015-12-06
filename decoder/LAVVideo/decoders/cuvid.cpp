@@ -241,8 +241,15 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   GET_PROC_CUVID(cuvidCreateDecoder);
   GET_PROC_CUVID(cuvidDecodePicture);
   GET_PROC_CUVID(cuvidDestroyDecoder);
+#ifdef _M_AMD64
+  GET_PROC_CUVID(cuvidMapVideoFrame64);
+  GET_PROC_CUVID(cuvidUnmapVideoFrame64);
+  cuda.cuvidMapVideoFrame = cuda.cuvidMapVideoFrame64;
+  cuda.cuvidUnmapVideoFrame = cuda.cuvidUnmapVideoFrame64;
+#else
   GET_PROC_CUVID(cuvidMapVideoFrame);
   GET_PROC_CUVID(cuvidUnmapVideoFrame);
+#endif
 
   return S_OK;
 }

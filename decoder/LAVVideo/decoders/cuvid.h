@@ -25,9 +25,7 @@
 #define USE_ASYNC_COPY 1
 #define MAX_PIC_INDEX 64
 
-#define CUDA_FORCE_API_VERSION 3010
 #include "cuvid/dynlink_cuda.h"
-#include "cuvid/dynlink_cuda_d3d.h"
 #include "cuvid/dynlink_cudaD3D9.h"
 #include "cuvid/dynlink_nvcuvid.h"
 
@@ -116,6 +114,10 @@ private:
     CUMETHOD(cuvidDestroyDecoder);
     CUMETHOD(cuvidMapVideoFrame);
     CUMETHOD(cuvidUnmapVideoFrame);
+#ifdef _M_AMD64
+    CUMETHOD(cuvidMapVideoFrame64);
+    CUMETHOD(cuvidUnmapVideoFrame64);
+#endif
   } cuda;
 
   IDirect3D9             *m_pD3D       = nullptr;
