@@ -1,44 +1,36 @@
 /*
- * Copyright 1993-2008 NVIDIA Corporation.  All rights reserved.
+ * This copyright notice applies to this header file only:
  *
- * NOTICE TO USER:
+ * Copyright (c) 2010-2015 NVIDIA Corporation
  *
- * This source code is subject to NVIDIA ownership rights under U.S. and
- * international Copyright laws.  Users and possessors of this source code
- * are hereby granted a nonexclusive, royalty-free license to use this code
- * in individual and commercial software.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the software, and to permit persons to whom the
+ * software is furnished to do so, subject to the following
+ * conditions:
  *
- * NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE
- * CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR
- * IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH
- * REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.
- * IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL,
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
- * OF USE, DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
- * OR OTHER TORTIOUS ACTION,  ARISING OUT OF OR IN CONNECTION WITH THE USE
- * OR PERFORMANCE OF THIS SOURCE CODE.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * U.S. Government End Users.   This source code is a "commercial item" as
- * that term is defined at  48 C.F.R. 2.101 (OCT 1995), consisting  of
- * "commercial computer  software"  and "commercial computer software
- * documentation" as such terms are  used in 48 C.F.R. 12.212 (SEPT 1995)
- * and is provided to the U.S. Government only as a commercial end item.
- * Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through
- * 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the
- * source code with only those rights set forth herein.
- *
- * Any use of this source code in individual and commercial software must
- * include, in the user documentation and internal comments to the code,
- * the above Disclaimer and U.S. Government End Users Notice.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+ 
 #if !defined(__CUDA_VIDEO_H__)
 #define __CUDA_VIDEO_H__
 
-#ifndef __cuda_cuda_h__
-#include <cuda.h>
-#endif // __cuda_cuda_h__
+#ifndef __dynlink_cuda_h__
+#include "dynlink_cuda.h"
+#endif // __dynlink_cuda_h__
 
 #if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64)
 #if (CUDA_VERSION >= 3020) && (!defined(CUDA_FORCE_API_VERSION) || (CUDA_FORCE_API_VERSION >= 3020))
@@ -63,11 +55,11 @@ typedef enum cudaVideoCodec_enum {
     cudaVideoCodec_H264_SVC,
     cudaVideoCodec_H264_MVC,
     cudaVideoCodec_HEVC,
-    cudaVideoCodec_NumCodecs,
-    // Uncompressed YUV
+	cudaVideoCodec_NumCodecs,
+	// Uncompressed YUV
     cudaVideoCodec_YUV420 = (('I'<<24)|('Y'<<16)|('U'<<8)|('V')),   // Y,U,V (4:2:0)
     cudaVideoCodec_YV12   = (('Y'<<24)|('V'<<16)|('1'<<8)|('2')),   // Y,V,U (4:2:0)
-    cudaVideoCodec_NV12   = (('N'<<24)|('V'<<16)|('1'<<8)|('2')),   // Y,UV  (4:2:0)
+    cudaVideoCodec_NV12   = (('N'<<24)|('V'<<16)|('1'<<8)|('2')),   // Y,U,V (4:2:0)
     cudaVideoCodec_YUYV   = (('Y'<<24)|('U'<<16)|('Y'<<8)|('V')),   // YUYV/YUY2 (4:2:2)
     cudaVideoCodec_UYVY   = (('U'<<24)|('Y'<<16)|('V'<<8)|('Y'))    // UYVY (4:2:2)
 } cudaVideoCodec;
@@ -116,7 +108,7 @@ typedef struct _CUVIDDECODECREATEINFO
     // Output format
     cudaVideoSurfaceFormat OutputFormat;       // cudaVideoSurfaceFormat_XXX
     cudaVideoDeinterlaceMode DeinterlaceMode;  // cudaVideoDeinterlaceMode_XXX
-    unsigned long ulTargetWidth;    // Post-processed Output Width
+    unsigned long ulTargetWidth;    // Post-processed Output Width 
     unsigned long ulTargetHeight;   // Post-processed Output Height
     unsigned long ulNumOutputSurfaces; // Maximum number of output surfaces simultaneously mapped
     CUvideoctxlock vidLock;         // If non-NULL, context lock used for synchronizing ownership of the cuda context
@@ -167,7 +159,7 @@ typedef struct _CUVIDH264SVCEXT
     unsigned char ref_layer_chroma_phase_y_plus1;
     signed char   inter_layer_slice_alpha_c0_offset_div2;
     signed char   inter_layer_slice_beta_offset_div2;
-
+    
     unsigned short DPBEntryValidFlag;
     unsigned char inter_layer_deblocking_filter_control_present_flag;
     unsigned char extended_spatial_scalability_idc;
@@ -175,16 +167,16 @@ typedef struct _CUVIDH264SVCEXT
     unsigned char slice_header_restriction_flag;
     unsigned char chroma_phase_x_plus1_flag;
     unsigned char chroma_phase_y_plus1;
-
+    
     unsigned char tcoeff_level_prediction_flag;
     unsigned char constrained_intra_resampling_flag;
     unsigned char ref_layer_chroma_phase_x_plus1_flag;
     unsigned char store_ref_base_pic_flag;
-    unsigned char Reserved8BitsA;
-    unsigned char Reserved8BitsB;
+    unsigned char Reserved8BitsA; 
+    unsigned char Reserved8BitsB; 
     // For the 4 scaled_ref_layer_XX fields below,
     // if (extended_spatial_scalability_idc == 1), SPS field, G.7.3.2.1.4, add prefix "seq_"
-    // if (extended_spatial_scalability_idc == 2), SLH field, G.7.3.3.4,
+    // if (extended_spatial_scalability_idc == 2), SLH field, G.7.3.3.4, 
     short scaled_ref_layer_left_offset;
     short scaled_ref_layer_top_offset;
     short scaled_ref_layer_right_offset;
@@ -392,7 +384,7 @@ typedef struct _CUVIDHEVCPICPARAMS
     unsigned char log2_min_pcm_luma_coding_block_size_minus3;
     unsigned char log2_diff_max_min_pcm_luma_coding_block_size;
     unsigned char pcm_sample_bit_depth_luma_minus1;
-
+    
     unsigned char pcm_sample_bit_depth_chroma_minus1;
     unsigned char pcm_loop_filter_disabled_flag;
     unsigned char strong_intra_smoothing_enabled_flag;
@@ -411,7 +403,7 @@ typedef struct _CUVIDHEVCPICPARAMS
     unsigned char IrapPicFlag;
     unsigned char IdrPicFlag;
     unsigned char reserved1[16];
-
+    
     // pps
     unsigned char dependent_slice_segments_enabled_flag;
     unsigned char slice_segment_header_extension_present_flag;
@@ -421,7 +413,7 @@ typedef struct _CUVIDHEVCPICPARAMS
     signed char init_qp_minus26;
     signed char pps_cb_qp_offset;
     signed char pps_cr_qp_offset;
-
+    
     unsigned char constrained_intra_pred_flag;
     unsigned char weighted_pred_flag;
     unsigned char weighted_bipred_flag;
@@ -430,7 +422,7 @@ typedef struct _CUVIDHEVCPICPARAMS
     unsigned char entropy_coding_sync_enabled_flag;
     unsigned char log2_parallel_merge_level_minus2;
     unsigned char num_extra_slice_header_bits;
-
+    
     unsigned char loop_filter_across_tiles_enabled_flag;
     unsigned char loop_filter_across_slices_enabled_flag;
     unsigned char output_flag_present_flag;
@@ -439,7 +431,7 @@ typedef struct _CUVIDHEVCPICPARAMS
     unsigned char lists_modification_present_flag;
     unsigned char cabac_init_present_flag;
     unsigned char pps_slice_chroma_qp_offsets_present_flag;
-
+    
     unsigned char deblocking_filter_override_enabled_flag;
     unsigned char pps_deblocking_filter_disabled_flag;
     signed char pps_beta_offset_div2;
@@ -448,7 +440,7 @@ typedef struct _CUVIDHEVCPICPARAMS
     unsigned char uniform_spacing_flag;
     unsigned char num_tile_columns_minus1;
     unsigned char num_tile_rows_minus1;
-
+    
     unsigned short column_width_minus1[21];
     unsigned short row_height_minus1[19];
     unsigned int reserved3[16];
@@ -481,7 +473,7 @@ typedef struct _CUVIDHEVCPICPARAMS
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// Picture Parameters for Decoding
+// Picture Parameters for Decoding 
 //
 
 typedef struct _CUVIDPICPARAMS
@@ -557,45 +549,46 @@ typedef struct _CUVIDPROCPARAMS
 // - In the current version, the cuda context MUST be created from a D3D device, using cuD3D9CtxCreate function.
 //   For multi-threaded operation, the D3D device must also be created with the D3DCREATE_MULTITHREADED flag.
 // - There is a limit to how many pictures can be mapped simultaneously (ulNumOutputSurfaces)
-// - cuVidDecodePicture may block the calling thread if there are too many pictures pending
+// - cuVidDecodePicture may block the calling thread if there are too many pictures pending 
 //   in the decode queue
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Create/Destroy the decoder object
-extern CUresult CUDAAPI cuvidCreateDecoder(CUvideodecoder *phDecoder, CUVIDDECODECREATEINFO *pdci);
-extern CUresult CUDAAPI cuvidDestroyDecoder(CUvideodecoder hDecoder);
+typedef CUresult CUDAAPI tcuvidCreateDecoder(CUvideodecoder *phDecoder, CUVIDDECODECREATEINFO *pdci);
+typedef CUresult CUDAAPI tcuvidDestroyDecoder(CUvideodecoder hDecoder);
 
 // Decode a single picture (field or frame)
-extern CUresult CUDAAPI cuvidDecodePicture(CUvideodecoder hDecoder, CUVIDPICPARAMS *pPicParams);
+typedef CUresult CUDAAPI tcuvidDecodePicture(CUvideodecoder hDecoder, CUVIDPICPARAMS *pPicParams);
 
 #if !defined(__CUVID_DEVPTR64) || defined(__CUVID_INTERNAL)
 // Post-process and map a video frame for use in cuda
-extern CUresult CUDAAPI cuvidMapVideoFrame(CUvideodecoder hDecoder, int nPicIdx,
-                                           unsigned int *pDevPtr, unsigned int *pPitch,
-                                           CUVIDPROCPARAMS *pVPP);
+typedef CUresult CUDAAPI tcuvidMapVideoFrame(CUvideodecoder hDecoder, int nPicIdx,
+                                            unsigned int *pDevPtr, unsigned int *pPitch,
+                                            CUVIDPROCPARAMS *pVPP);
 // Unmap a previously mapped video frame
-extern CUresult CUDAAPI cuvidUnmapVideoFrame(CUvideodecoder hDecoder, unsigned int DevPtr);
+typedef CUresult CUDAAPI tcuvidUnmapVideoFrame(CUvideodecoder hDecoder, unsigned int DevPtr);
 #endif
 
-#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64)
-extern CUresult CUDAAPI cuvidMapVideoFrame64(CUvideodecoder hDecoder, int nPicIdx, unsigned long long *pDevPtr,
-                                             unsigned int *pPitch, CUVIDPROCPARAMS *pVPP);
-extern CUresult CUDAAPI cuvidUnmapVideoFrame64(CUvideodecoder hDecoder, unsigned long long DevPtr);
-#if defined(__CUVID_DEVPTR64) && !defined(__CUVID_INTERNAL)
-#define cuvidMapVideoFrame      cuvidMapVideoFrame64
-#define cuvidUnmapVideoFrame    cuvidUnmapVideoFrame64
-#endif
+#if defined(WIN64) || defined(_WIN64) || defined(__x86_64) || defined(AMD64) || defined(_M_AMD64)
+typedef CUresult CUDAAPI tcuvidMapVideoFrame64(CUvideodecoder hDecoder, int nPicIdx, unsigned long long *pDevPtr,
+                                               unsigned int *pPitch, CUVIDPROCPARAMS *pVPP);
+typedef CUresult CUDAAPI tcuvidUnmapVideoFrame64(CUvideodecoder hDecoder, unsigned long long DevPtr);
+
+   #if defined(__CUVID_DEVPTR64) && !defined(__CUVID_INTERNAL)
+      #define tcuvidMapVideoFrame      tcuvidMapVideoFrame64
+      #define tcuvidUnmapVideoFrame    tcuvidUnmapVideoFrame64
+   #endif
 #endif
 
 // Get the pointer to the d3d9 surface that is the decode RT
-extern CUresult CUDAAPI cuvidGetVideoFrameSurface(CUvideodecoder hDecoder, int nPicIdx, void **pSrcSurface);
+//typedef CUresult CUDAAPI tcuvidGetVideoFrameSurface(CUvideodecoder hDecoder, int nPicIdx, void **pSrcSurface);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Context-locking: to facilitate multi-threaded implementations, the following 4 functions
 // provide a simple mutex-style host synchronization. If a non-NULL context is specified
-// in CUVIDDECODECREATEINFO, the codec library will acquire the mutex associated with the given
+// in CUVIDDECODECREATEINFO, the codec library will acquire the mutex associated with the given 
 // context before making any cuda calls.
 // A multi-threaded application could create a lock associated with a context handle so that
 // multiple threads can safely share the same cuda context:
@@ -606,15 +599,12 @@ extern CUresult CUDAAPI cuvidGetVideoFrameSurface(CUvideodecoder hDecoder, int n
 // NOTE: This is a safer alternative to cuCtxPushCurrent and cuCtxPopCurrent, and is not related to video
 // decoder in any way (implemented as a critical section associated with cuCtx{Push|Pop}Current calls).
 
-extern CUresult CUDAAPI cuvidCtxLockCreate(CUvideoctxlock *pLock, CUcontext ctx);
-extern CUresult CUDAAPI cuvidCtxLockDestroy(CUvideoctxlock lck);
-extern CUresult CUDAAPI cuvidCtxLock(CUvideoctxlock lck, unsigned int reserved_flags);
-extern CUresult CUDAAPI cuvidCtxUnlock(CUvideoctxlock lck, unsigned int reserved_flags);
+typedef CUresult CUDAAPI tcuvidCtxLockCreate(CUvideoctxlock *pLock, CUcontext ctx);
+typedef CUresult CUDAAPI tcuvidCtxLockDestroy(CUvideoctxlock lck);
+typedef CUresult CUDAAPI tcuvidCtxLock(CUvideoctxlock lck, unsigned int reserved_flags);
+typedef CUresult CUDAAPI tcuvidCtxUnlock(CUvideoctxlock lck, unsigned int reserved_flags);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-#if defined(__cplusplus)
-}
 
 // Auto-lock helper for C++ applications
 class CCtxAutoLock
@@ -622,10 +612,32 @@ class CCtxAutoLock
 private:
     CUvideoctxlock m_ctx;
 public:
-    CCtxAutoLock(CUvideoctxlock ctx):m_ctx(ctx) { cuvidCtxLock(m_ctx,0); }
-    ~CCtxAutoLock() { cuvidCtxUnlock(m_ctx,0); }
+    CCtxAutoLock(CUvideoctxlock ctx);
+    ~CCtxAutoLock();
 };
+
+extern tcuvidCreateDecoder        *cuvidCreateDecoder;
+extern tcuvidDestroyDecoder       *cuvidDestroyDecoder;
+extern tcuvidDecodePicture        *cuvidDecodePicture;
+extern tcuvidMapVideoFrame        *cuvidMapVideoFrame;
+extern tcuvidUnmapVideoFrame      *cuvidUnmapVideoFrame;
+
+#if defined(__x86_64) || defined(AMD64) || defined(_M_AMD64)
+extern tcuvidMapVideoFrame64      *cuvidMapVideoFrame64;
+extern tcuvidUnmapVideoFrame64    *cuvidUnmapVideoFrame64;
+#endif
+
+//extern tcuvidGetVideoFrameSurface *cuvidGetVideoFrameSurface;
+
+extern tcuvidCtxLockCreate        *cuvidCtxLockCreate;
+extern tcuvidCtxLockDestroy       *cuvidCtxLockDestroy;
+extern tcuvidCtxLock              *cuvidCtxLock;
+extern tcuvidCtxUnlock            *cuvidCtxUnlock;
+
+#if defined(__cplusplus)
+}
 
 #endif /* __cplusplus */
 
 #endif // __CUDA_VIDEO_H__
+

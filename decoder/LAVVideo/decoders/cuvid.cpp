@@ -174,6 +174,8 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
   return S_OK;
 }
 
+#define STRINGIFY(X) #X
+
 #define GET_PROC_EX(name, lib)                         \
   cuda.name = (t##name *)GetProcAddress(lib, #name); \
   if (cuda.name == nullptr) {                           \
@@ -181,8 +183,17 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
     return E_FAIL; \
   }
 
+#define GET_PROC_EX_V2(name, lib)                         \
+  cuda.name = (t##name *)GetProcAddress(lib, STRINGIFY(name##_v2)); \
+  if (cuda.name == nullptr) {                           \
+    DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"%s\"", TEXT(STRINGIFY(name##_v2)))); \
+    return E_FAIL; \
+  }
+
 #define GET_PROC_CUDA(name) GET_PROC_EX(name, cuda.cudaLib)
+#define GET_PROC_CUDA_V2(name) GET_PROC_EX_V2(name, cuda.cudaLib)
 #define GET_PROC_CUVID(name) GET_PROC_EX(name, cuda.cuvidLib)
+#define GET_PROC_CUVID_V2(name) GET_PROC_EX_V2(name, cuda.cuvidLib)
 
 
 STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
@@ -195,17 +206,17 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   }
 
   GET_PROC_CUDA(cuInit);
-  GET_PROC_CUDA(cuCtxCreate);
-  GET_PROC_CUDA(cuCtxDestroy);
-  GET_PROC_CUDA(cuCtxPushCurrent);
-  GET_PROC_CUDA(cuCtxPopCurrent);
-  GET_PROC_CUDA(cuD3D9CtxCreate);
-  GET_PROC_CUDA(cuMemAllocHost);
+  GET_PROC_CUDA_V2(cuCtxCreate);
+  GET_PROC_CUDA_V2(cuCtxDestroy);
+  GET_PROC_CUDA_V2(cuCtxPushCurrent);
+  GET_PROC_CUDA_V2(cuCtxPopCurrent);
+  GET_PROC_CUDA_V2(cuD3D9CtxCreate);
+  GET_PROC_CUDA_V2(cuMemAllocHost);
   GET_PROC_CUDA(cuMemFreeHost);
-  GET_PROC_CUDA(cuMemcpyDtoH);
-  GET_PROC_CUDA(cuMemcpyDtoHAsync);
+  GET_PROC_CUDA_V2(cuMemcpyDtoH);
+  GET_PROC_CUDA_V2(cuMemcpyDtoHAsync);
   GET_PROC_CUDA(cuStreamCreate);
-  GET_PROC_CUDA(cuStreamDestroy);
+  GET_PROC_CUDA_V2(cuStreamDestroy);
   GET_PROC_CUDA(cuStreamQuery);
   GET_PROC_CUDA(cuDeviceGetCount);
   GET_PROC_CUDA(cuDriverGetVersion);

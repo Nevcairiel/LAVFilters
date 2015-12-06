@@ -26,9 +26,10 @@
 #define MAX_PIC_INDEX 64
 
 #define CUDA_FORCE_API_VERSION 3010
-#include "cuvid/cuda.h"
-#include "cuvid/nvcuvid.h"
-#include "cuvid/cuda_dynlink.h"
+#include "cuvid/dynlink_cuda.h"
+#include "cuvid/dynlink_cuda_d3d.h"
+#include "cuvid/dynlink_cudaD3D9.h"
+#include "cuvid/dynlink_nvcuvid.h"
 
 #include "parsers/AnnexBConverter.h"
 
@@ -87,6 +88,7 @@ private:
     CUMETHOD(cuCtxDestroy);
     CUMETHOD(cuCtxPushCurrent);
     CUMETHOD(cuCtxPopCurrent);
+    CUMETHOD(cuD3D9GetDevice);
     CUMETHOD(cuD3D9CtxCreate);
     CUMETHOD(cuMemAllocHost);
     CUMETHOD(cuMemFreeHost);
