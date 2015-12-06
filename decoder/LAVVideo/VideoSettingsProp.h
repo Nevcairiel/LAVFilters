@@ -75,7 +75,6 @@ private:
 
   DWORD m_HWDeintAlgo;
   DWORD m_HWDeintOutMode;
-  BOOL  m_HWDeintHQ;
   BOOL  m_SWDeint;
   DWORD m_SWDeintOutMode;
 

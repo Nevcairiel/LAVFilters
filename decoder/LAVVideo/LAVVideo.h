@@ -276,7 +276,6 @@ private:
     DWORD HWAccelResFlags;
     DWORD HWDeintMode;
     DWORD HWDeintOutput;
-    BOOL HWDeintHQ;
     DWORD DeintFieldOrder;
     LAVDeintMode DeintMode;
     DWORD SWDeintMode;

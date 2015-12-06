@@ -183,7 +183,6 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.HWDeintMode = HWDeintMode_Weave;
   m_settings.HWDeintOutput = DeintOutput_FramePerField;
-  m_settings.HWDeintHQ = IsVistaOrNewer(); // Activate by default on Vista and above, on XP it causes issues
 
   m_settings.SWDeintMode = SWDeintMode_None;
   m_settings.SWDeintOutput = DeintOutput_FramePerField;
@@ -310,9 +309,6 @@ HRESULT CLAVVideo::ReadSettings(HKEY rootKey)
 
     dwVal = regHW.ReadDWORD(L"HWDeintOutput", hr);
     if (SUCCEEDED(hr)) m_settings.HWDeintOutput = dwVal;
-
-    bFlag = regHW.ReadBOOL(L"HWDeintHQ", hr);
-    if (SUCCEEDED(hr)) m_settings.HWDeintHQ = bFlag;
   }
 
   return S_OK;
@@ -365,7 +361,6 @@ HRESULT CLAVVideo::SaveSettings()
 
     regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
-    regHW.WriteBOOL(L"HWDeintHQ", m_settings.HWDeintHQ);
 
     reg.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
@@ -2057,13 +2052,12 @@ STDMETHODIMP_(LAVDeintOutput) CLAVVideo::GetHWAccelDeintOutput()
 
 STDMETHODIMP CLAVVideo::SetHWAccelDeintHQ(BOOL bHQ)
 {
-  m_settings.HWDeintHQ = bHQ;
-  return SaveSettings();
+  return S_FALSE;
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelDeintHQ()
 {
-  return m_settings.HWDeintHQ;
+  return TRUE;
 }
 
 STDMETHODIMP CLAVVideo::SetSWDeintMode(LAVSWDeintModes deintMode)

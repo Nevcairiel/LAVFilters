@@ -293,12 +293,8 @@ interface ILAVVideoSettings : public IUnknown
   // Get the deinterlacing output for the hardware decoder
   STDMETHOD_(LAVDeintOutput, GetHWAccelDeintOutput)() = 0;
 
-  // Set whether the hardware decoder should force high-quality deinterlacing
-  // Note: this option is not supported on all decoder implementations and/or all operating systems
+  // deprecated. HQ deint is always used when available depending on platform and codec
   STDMETHOD(SetHWAccelDeintHQ)(BOOL bHQ) = 0;
-
-  // Get whether the hardware decoder should force high-quality deinterlacing
-  // Note: this option is not supported on all decoder implementations and/or all operating systems
   STDMETHOD_(BOOL, GetHWAccelDeintHQ)() = 0;
 
   // Set the software deinterlacing mode used

@@ -145,9 +145,6 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelDeintOutput(bFilm ? DeintOutput_FramePer2Field : DeintOutput_FramePerField);
 
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetHWAccelDeintHQ(bFlag);
-
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetSWDeintMode(bFlag ? SWDeintMode_YADIF : SWDeintMode_None);
 
@@ -239,8 +236,6 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   addHint(IDC_HWDEINT_OUT_FILM, L"Deinterlace in \"Film\" Mode.\nFor every pair of interlaced fields, one frame will be created, resulting in 25/30 fps.");
   addHint(IDC_HWDEINT_OUT_VIDEO, L"Deinterlace in \"Video\" Mode. (Recommended)\nFor every interlaced field, one frame will be created, resulting in 50/60 fps.");
 
-  addHint(IDC_HWDEINT_HQ, L"Instruct the decoder to use the maximum quality possible.\nThis will cost performance, it is however required for the best deinterlacing quality.");
-
   addHint(IDC_DITHER_ORDERED, L"Ordered Dithering uses a static pattern, resulting in very smooth and regular pattern. However, in some cases the regular pattern can be visible and distracting.");
   addHint(IDC_DITHER_RANDOM, L"Random Dithering uses random noise to dither the video frames. This has the advantage of not creating any visible pattern, at the downside of increasing the noise floor slightly.");
 
@@ -292,8 +287,6 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePer2Field), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePerField), 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_HWDEINT_HQ, BM_SETCHECK, IsVistaOrNewer() ? m_HWDeintHQ : 0, 0);
-
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_SETCHECK, m_SWDeint, 0);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_FILM, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePer2Field), 0);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_VIDEO, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePerField), 0);
@@ -341,7 +334,6 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_HWDEINT_MODE), bHWDeintEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_FILM), bHWDeintEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_VIDEO), bHWDeintEnabled);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_HQ), bCUDAOnly && bHWDeintEnabled && IsVistaOrNewer());
 
   WCHAR hwAccelEmpty[] = L"";
   WCHAR hwAccelUnavailable[] = L"Not available";
@@ -387,7 +379,6 @@ HRESULT CLAVVideoSettingsProp::LoadData()
 
   m_HWDeintAlgo = m_pVideoSettings->GetHWAccelDeintMode();
   m_HWDeintOutMode = m_pVideoSettings->GetHWAccelDeintOutput();
-  m_HWDeintHQ = m_pVideoSettings->GetHWAccelDeintHQ();
 
   m_SWDeint = m_pVideoSettings->GetSWDeintMode() == SWDeintMode_YADIF;
   m_SWDeintOutMode = m_pVideoSettings->GetSWDeintOutput();
@@ -577,11 +568,6 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_HWDEINT_OUT_VIDEO && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != (m_HWDeintOutMode == DeintOutput_FramePerField)) {
-        SetDirty();
-      }
-    } else if (LOWORD(wParam) == IDC_HWDEINT_HQ && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_HWDeintHQ) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_SWDEINT_OUT_FILM && HIWORD(wParam) == BN_CLICKED) {

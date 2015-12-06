@@ -711,7 +711,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
-  BOOL bDXVAMode = (m_pD3DDevice && (m_pSettings->GetHWAccelDeintHQ() || (codec == cudaVideoCodec_HEVC)) && IsVistaOrNewer());
+  BOOL bDXVAMode = (m_pD3DDevice && IsVistaOrNewer());
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   CUVIDDECODECREATEINFO *dci = &m_VideoDecoderInfo;

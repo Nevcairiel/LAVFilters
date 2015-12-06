@@ -60,7 +60,6 @@
 #define IDC_LBL_DEINT_FIELDORDER        1049
 #define IDC_DEINT_FIELDORDER            1050
 #define IDC_LBL_DEINT_MODE              1051
-#define IDC_HWDEINT_HQ                  1052
 #define IDC_HWACCEL_AVAIL               1053
 #define IDC_DEINT_SETTINGS              1054
 #define IDC_DEINT_MODE                  1055
