@@ -425,8 +425,7 @@ select_device:
   D3DADAPTER_IDENTIFIER9 d3dId;
   D3DPRESENT_PARAMETERS d3dpp;
   D3DDISPLAYMODE d3ddm;
-  unsigned uAdapterCount = m_pD3D->GetAdapterCount();
-  for (unsigned lAdapter=0; lAdapter<uAdapterCount; lAdapter++) {
+  for (unsigned lAdapter = 0; lAdapter < m_pD3D->GetAdapterCount(); lAdapter++) {
     DbgLog((LOG_TRACE, 10, L"-> Trying D3D Adapter %d..", lAdapter));
 
     ZeroMemory(&d3dpp, sizeof(d3dpp));
