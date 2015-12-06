@@ -86,7 +86,6 @@ private:
     CUMETHOD(cuCtxDestroy);
     CUMETHOD(cuCtxPushCurrent);
     CUMETHOD(cuCtxPopCurrent);
-    CUMETHOD(cuD3D9GetDevice);
     CUMETHOD(cuD3D9CtxCreate);
     CUMETHOD(cuMemAllocHost);
     CUMETHOD(cuMemFreeHost);
