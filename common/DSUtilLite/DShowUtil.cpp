@@ -706,6 +706,17 @@ BOOL IsWindows7OrNewer()
   return (os.dwMajorVersion == 6 && os.dwMinorVersion >= 1) || (os.dwMajorVersion > 6);
 }
 
+BOOL IsWindows8OrNewer()
+{
+  // Query OS version info
+  OSVERSIONINFO os;
+  ZeroMemory(&os, sizeof(os));
+  os.dwOSVersionInfoSize = sizeof(os);
+  GetVersionEx(&os);
+
+  return (os.dwMajorVersion == 6 && os.dwMinorVersion >= 2) || (os.dwMajorVersion > 6);
+}
+
 void __cdecl debugprintf(LPCWSTR format, ...)
 {
   WCHAR    buf[4096], *p = buf;

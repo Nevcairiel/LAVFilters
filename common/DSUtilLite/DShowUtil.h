@@ -134,4 +134,5 @@ void getExtraData(const BYTE *format, const GUID *formattype, const size_t forma
 
 BOOL IsVistaOrNewer();
 BOOL IsWindows7OrNewer();
+BOOL IsWindows8OrNewer();
 void __cdecl debugprintf(LPCWSTR format, ...);
