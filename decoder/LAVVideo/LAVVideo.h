@@ -34,6 +34,7 @@
 #include "subtitles/LAVVideoSubtitleInputPin.h"
 
 #include "BaseTrayIcon.h"
+#include "IMediaSideData.h"
 
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"

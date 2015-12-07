@@ -1658,6 +1658,15 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
   #endif
 
+    // Set side data on the media sample
+    if (pFrame->side_data_count) {
+      IMediaSideData *pMediaSideData = nullptr;
+      if (SUCCEEDED(hr = pSampleOut->QueryInterface(&pMediaSideData))) {
+        for (int i = 0; i < pFrame->side_data_count; i++)
+          pMediaSideData->SetSideData(pFrame->side_data[i].guidType, pFrame->side_data[i].data, pFrame->side_data[i].size);
+      }
+    }
+
     // Once we're done with the old frame, release its buffers
     // This does not release the frame yet, just free its buffers
     FreeLAVFrameBuffers(pFrame);

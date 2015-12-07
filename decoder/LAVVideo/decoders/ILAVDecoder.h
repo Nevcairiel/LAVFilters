@@ -83,6 +83,12 @@ typedef struct LAVDirectBuffer {
   ptrdiff_t stride[4];              ///< stride of the planes (in bytes)
 } LAVDirectBuffer;
 
+typedef struct LAVFrameSideData {
+  GUID guidType;                    ///< type of the side data
+  BYTE *data;                       ///< side data
+  size_t size;                      ///< size
+} LAVFrameSideData;
+
 /**
  * A Video Frame
  *
@@ -125,6 +131,9 @@ typedef struct LAVFrame {
 #define LAV_FRAME_FLAG_REDRAW               0x00000008
 #define LAV_FRAME_FLAG_DXVA_NOADDREF        0x00000010
 
+  LAVFrameSideData *side_data;
+  int side_data_count;
+
   /* destruct function to free any buffers being held by this frame (may be null) */
   void  (*destruct)(struct LAVFrame *);
   void *priv_data;                  ///< private data from the decoder (mostly for destruct)
@@ -162,6 +171,11 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst);
  * Usually useful to release decoder-specific buffers, and move to memory buffers
  */
 HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame);
+
+/**
+ * Add Side Data to the frame and return a pointer to it
+ */
+BYTE * AddLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t size);
 
 typedef struct LAVPinInfo
 {

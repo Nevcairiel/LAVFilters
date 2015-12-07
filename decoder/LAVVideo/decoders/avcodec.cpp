@@ -26,6 +26,8 @@
 #include "parsers/VC1HeaderParser.h"
 
 #include "Media.h"
+#include "IMediaSideData.h"
+#include "ByteParser.h"
 
 #ifdef DEBUG
 #include "lavf_log.h"
@@ -902,6 +904,28 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
     if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO || m_nCodecId == AV_CODEC_ID_MPEG1VIDEO)
       pOutFrame->avgFrameDuration = GetFrameDuration();
+
+    AVFrameSideData * sdHDR = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_HDR_MASTERING_INFO);
+    if (sdHDR) {
+      if (sdHDR->size == 24) {
+        MediaSideDataHDR * hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
+        if (hdr) {
+          CByteParser hdrParser(sdHDR->data, sdHDR->size);
+          for (int i = 0; i < 3; i++)
+          {
+            hdr->display_primaries_x[i] = hdrParser.BitRead(16) * 0.00002;
+            hdr->display_primaries_y[i] = hdrParser.BitRead(16) * 0.00002;
+          }
+          hdr->white_point_x = hdrParser.BitRead(16) * 0.00002;
+          hdr->white_point_y = hdrParser.BitRead(16) * 0.00002;
+          hdr->max_display_mastering_luminance = hdrParser.BitRead(32) * 0.0001;
+          hdr->min_display_mastering_luminance = hdrParser.BitRead(32) * 0.0001;
+        }
+      }
+      else {
+        DbgLog((LOG_TRACE, 10, L"::Decode(): Found HDR data of an unexpected size (%d)", sdHDR->size));
+      }
+    }
 
     if (map.conversion) {
       ConvertPixFmt(m_pFrame, pOutFrame);

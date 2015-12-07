@@ -132,6 +132,14 @@ HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame)
   }
   memset(pFrame->data, 0, sizeof(pFrame->data));
   memset(pFrame->stride, 0, sizeof(pFrame->stride));
+
+  for (int i = 0; i < pFrame->side_data_count; i++)
+  {
+    SAFE_CO_FREE(pFrame->side_data[i].data);
+  }
+  SAFE_CO_FREE(pFrame->side_data);
+  pFrame->side_data_count = 0;
+
   return S_OK;
 }
 
@@ -161,6 +169,15 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
     }
   }
 
+  (*ppDst)->side_data = nullptr;
+  (*ppDst)->side_data_count = 0;
+  for (int i = 0; i < pSrc->side_data_count; i++)
+  {
+    BYTE * p = AddLAVFrameSideData(*ppDst, pSrc->side_data[i].guidType, pSrc->side_data[i].size);
+    if (p)
+      memcpy(p, pSrc->side_data[i].data, pSrc->side_data[i].size);
+  }
+
   return S_OK;
 }
 
@@ -172,4 +189,23 @@ HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame)
   *pFrame = *tmpFrame;
   SAFE_CO_FREE(tmpFrame);
   return S_OK;
+}
+
+BYTE * AddLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t size)
+{
+  BYTE * ptr = (BYTE *)CoTaskMemRealloc(pFrame->side_data, sizeof(LAVFrameSideData) * (pFrame->side_data_count + 1));
+  if (!ptr)
+    return NULL;
+
+  pFrame->side_data = (LAVFrameSideData *)ptr;
+  pFrame->side_data[pFrame->side_data_count].guidType = guidType;
+  pFrame->side_data[pFrame->side_data_count].data = (BYTE *)CoTaskMemAlloc(size);
+  pFrame->side_data[pFrame->side_data_count].size = size;
+
+  if (!pFrame->side_data[pFrame->side_data_count].data)
+    return NULL;
+
+  pFrame->side_data_count++;
+
+  return pFrame->side_data[pFrame->side_data_count - 1].data;
 }
