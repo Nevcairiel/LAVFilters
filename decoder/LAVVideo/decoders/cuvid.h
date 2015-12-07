@@ -26,8 +26,10 @@
 #define MAX_PIC_INDEX 64
 
 #include "cuvid/dynlink_cuda.h"
-#include "cuvid/dynlink_cudaD3D9.h"
 #include "cuvid/dynlink_nvcuvid.h"
+
+#define CUDA_INIT_D3D9
+#include "cuvid/dynlink_cuda_d3d.h"
 
 #include "parsers/AnnexBConverter.h"
 
@@ -57,6 +59,8 @@ public:
 private:
   STDMETHODIMP LoadCUDAFuncRefs();
   STDMETHODIMP DestroyDecoder(bool bFull);
+
+  STDMETHODIMP InitD3D9(int best_device, DWORD requested_device);
 
   STDMETHODIMP CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight);
   STDMETHODIMP DecodeSequenceData();
@@ -119,8 +123,8 @@ private:
 #endif
   } cuda;
 
-  IDirect3D9             *m_pD3D       = nullptr;
-  IDirect3DDevice9       *m_pD3DDevice = nullptr;
+  IDirect3D9             *m_pD3D9       = nullptr;
+  IDirect3DDevice9       *m_pD3DDevice9 = nullptr;
 
   CUcontext              m_cudaContext = 0;
   CUvideoctxlock         m_cudaCtxLock = 0;

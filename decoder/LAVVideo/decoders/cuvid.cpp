@@ -162,8 +162,8 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
       m_cudaContext = 0;
     }
 
-    SafeRelease(&m_pD3DDevice);
-    SafeRelease(&m_pD3D);
+    SafeRelease(&m_pD3DDevice9);
+    SafeRelease(&m_pD3D9);
 
     FreeLibrary(cuda.cudaLib);
     FreeLibrary(cuda.cuvidLib);
@@ -421,7 +421,6 @@ STDMETHODIMP CDecCuvid::Init()
 
   // TODO: select best device
   int best_device = GetMaxGflopsGraphicsDeviceId();
-  int device = best_device;
 
   DWORD dwDeviceIndex = m_pCallback->GetGPUDeviceIndex();
   if (dwDeviceIndex != DWORD_MAX) {
@@ -429,81 +428,10 @@ STDMETHODIMP CDecCuvid::Init()
   }
 
 select_device:
-  m_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
-  if (!m_pD3D) {
-    DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9"));
-    return E_FAIL;
-  }
+  hr = InitD3D9(best_device, dwDeviceIndex);
 
-  D3DADAPTER_IDENTIFIER9 d3dId;
-  D3DPRESENT_PARAMETERS d3dpp;
-  D3DDISPLAYMODE d3ddm;
-  for (unsigned lAdapter = 0; lAdapter < m_pD3D->GetAdapterCount(); lAdapter++) {
-    DbgLog((LOG_TRACE, 10, L"-> Trying D3D Adapter %d..", lAdapter));
-
-    ZeroMemory(&d3dpp, sizeof(d3dpp));
-    m_pD3D->GetAdapterDisplayMode(lAdapter, &d3ddm);
-
-    d3dpp.Windowed               = TRUE;
-    d3dpp.BackBufferWidth        = 640;
-    d3dpp.BackBufferHeight       = 480;
-    d3dpp.BackBufferCount        = 1;
-    d3dpp.BackBufferFormat       = d3ddm.Format;
-    d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
-    d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
-
-    IDirect3DDevice9 *pDev = nullptr;
-    CUcontext cudaCtx = 0;
-    hr = m_pD3D->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetShellWindow(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &pDev);
-    if (SUCCEEDED(hr)) {
-      m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dId);
-      cuStatus = cuda.cuD3D9CtxCreate(&cudaCtx, &device, CU_CTX_SCHED_BLOCKING_SYNC, pDev);
-      if (cuStatus == CUDA_SUCCESS) {
-        DbgLog((LOG_TRACE, 10, L"-> Created D3D Device on adapter %S (%d), using CUDA device %d", d3dId.Description, lAdapter, device));
-
-        BOOL isLevelC = IsLevelC(d3dId.DeviceId);
-        DbgLog((LOG_TRACE, 10, L"InitCUDA(): D3D Device with Id 0x%x is level C: %d", d3dId.DeviceId, isLevelC));
-
-        if (m_bVDPAULevelC && !isLevelC) {
-          DbgLog((LOG_TRACE, 10, L"InitCUDA(): We already had a Level C+ device, this one is not, skipping"));
-          cuda.cuCtxDestroy(cudaCtx);
-          SafeRelease(&pDev);
-          continue;
-        }
-
-        // Release old resources
-        SafeRelease(&m_pD3DDevice);
-        if (m_cudaContext)
-          cuda.cuCtxDestroy(m_cudaContext);
-
-        // Store resources
-        m_pD3DDevice = pDev;
-        m_cudaContext = cudaCtx;
-        m_bVDPAULevelC = isLevelC;
-        // Is this the one we want?
-        if (device == best_device)
-          break;
-      } else {
-        DbgLog((LOG_TRACE, 10, L"-> D3D Device on adapter %d is not CUDA capable", lAdapter));
-        SafeRelease(&pDev);
-      }
-    }
-  }
-
-  cuStatus = CUDA_SUCCESS;
-
-  if (dwDeviceIndex != DWORD_MAX && device != best_device) {
-    DbgLog((LOG_ERROR, 10, L"-> No D3D Device found matching the requested device"));
-    SafeRelease(&m_pD3DDevice);
-    if (m_cudaContext) {
-      cuda.cuCtxDestroy(m_cudaContext);
-      m_cudaContext = 0;
-    }
-  }
-
-  if (!m_pD3DDevice) {
+  if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> No D3D device available, building non-D3D context on device %d", best_device));
-    SafeRelease(&m_pD3D);
     cuStatus = cuda.cuCtxCreate(&m_cudaContext, CU_CTX_SCHED_BLOCKING_SYNC, best_device);
 
     if (cuStatus == CUDA_SUCCESS) {
@@ -536,6 +464,96 @@ select_device:
     }
   } else {
     DbgLog((LOG_TRACE, 10, L"-> Creation of CUDA context failed with error %d", cuStatus));
+    return E_FAIL;
+  }
+
+  return S_OK;
+}
+
+STDMETHODIMP CDecCuvid::InitD3D9(int best_device, DWORD requested_device)
+{
+  HRESULT hr = S_OK;
+  CUresult cuStatus = CUDA_SUCCESS;
+  int device = 0;
+
+  if (!m_pD3D9)
+    m_pD3D9 = Direct3DCreate9(D3D_SDK_VERSION);
+
+  if (!m_pD3D9) {
+    DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9"));
+    return E_FAIL;
+  }
+
+  D3DADAPTER_IDENTIFIER9 d3dId;
+  D3DPRESENT_PARAMETERS d3dpp;
+  D3DDISPLAYMODE d3ddm;
+  for (unsigned lAdapter = 0; lAdapter < m_pD3D9->GetAdapterCount(); lAdapter++) {
+    DbgLog((LOG_TRACE, 10, L"-> Trying D3D Adapter %d..", lAdapter));
+
+    ZeroMemory(&d3dpp, sizeof(d3dpp));
+    m_pD3D9->GetAdapterDisplayMode(lAdapter, &d3ddm);
+
+    d3dpp.Windowed               = TRUE;
+    d3dpp.BackBufferWidth        = 640;
+    d3dpp.BackBufferHeight       = 480;
+    d3dpp.BackBufferCount        = 1;
+    d3dpp.BackBufferFormat       = d3ddm.Format;
+    d3dpp.SwapEffect             = D3DSWAPEFFECT_DISCARD;
+    d3dpp.Flags                  = D3DPRESENTFLAG_VIDEO;
+
+    IDirect3DDevice9 *pDev = nullptr;
+    CUcontext cudaCtx = 0;
+    hr = m_pD3D9->CreateDevice(lAdapter, D3DDEVTYPE_HAL, GetShellWindow(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, &pDev);
+    if (SUCCEEDED(hr)) {
+      m_pD3D9->GetAdapterIdentifier(lAdapter, 0, &d3dId);
+      cuStatus = cuda.cuD3D9CtxCreate(&cudaCtx, &device, CU_CTX_SCHED_BLOCKING_SYNC, pDev);
+      if (cuStatus == CUDA_SUCCESS) {
+        DbgLog((LOG_TRACE, 10, L"-> Created D3D Device on adapter %S (%d), using CUDA device %d", d3dId.Description, lAdapter, device));
+
+        BOOL isLevelC = IsLevelC(d3dId.DeviceId);
+        DbgLog((LOG_TRACE, 10, L"InitCUDA(): D3D Device with Id 0x%x is level C: %d", d3dId.DeviceId, isLevelC));
+
+        if (m_bVDPAULevelC && !isLevelC) {
+          DbgLog((LOG_TRACE, 10, L"InitCUDA(): We already had a Level C+ device, this one is not, skipping"));
+          cuda.cuCtxDestroy(cudaCtx);
+          SafeRelease(&pDev);
+          continue;
+        }
+
+        // Release old resources
+        SafeRelease(&m_pD3DDevice9);
+        if (m_cudaContext)
+          cuda.cuCtxDestroy(m_cudaContext);
+
+        // Store resources
+        m_pD3DDevice9 = pDev;
+        m_cudaContext = cudaCtx;
+        m_bVDPAULevelC = isLevelC;
+        // Is this the one we want?
+        if (device == best_device)
+          break;
+      }
+      else {
+        DbgLog((LOG_TRACE, 10, L"-> D3D Device on adapter %d is not CUDA capable", lAdapter));
+        SafeRelease(&pDev);
+      }
+    }
+  }
+
+  if (requested_device != DWORD_MAX && device != best_device) {
+    DbgLog((LOG_ERROR, 10, L"-> No D3D Device found matching the requested device"));
+    SafeRelease(&m_pD3DDevice9);
+    SafeRelease(&m_pD3D9);
+    if (m_cudaContext) {
+      cuda.cuCtxDestroy(m_cudaContext);
+      m_cudaContext = 0;
+    }
+
+    return E_FAIL;
+  }
+
+  if (!m_pD3DDevice9) {
+    SafeRelease(&m_pD3D9);
     return E_FAIL;
   }
 
@@ -717,7 +735,7 @@ STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, 
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
-  BOOL bDXVAMode = (m_pD3DDevice && IsVistaOrNewer());
+  BOOL bDXVAMode = (m_pD3DDevice9 && IsVistaOrNewer());
 
   cuda.cuvidCtxLock(m_cudaCtxLock, 0);
   CUVIDDECODECREATEINFO *dci = &m_VideoDecoderInfo;
