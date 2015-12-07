@@ -1664,6 +1664,8 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
       if (SUCCEEDED(hr = pSampleOut->QueryInterface(&pMediaSideData))) {
         for (int i = 0; i < pFrame->side_data_count; i++)
           pMediaSideData->SetSideData(pFrame->side_data[i].guidType, pFrame->side_data[i].data, pFrame->side_data[i].size);
+
+        SafeRelease(&pMediaSideData);
       }
     }
 
