@@ -176,15 +176,21 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
 
 #define STRINGIFY(X) #X
 
-#define GET_PROC_EX(name, lib)                         \
-  cuda.name = (t##name *)GetProcAddress(lib, #name); \
+#define GET_PROC_EX_OPT(name, lib) \
+  cuda.name = (t##name *)GetProcAddress(lib, #name);
+
+#define GET_PROC_EX(name, lib)                          \
+  GET_PROC_EX_OPT(name, lib)                            \
   if (cuda.name == nullptr) {                           \
     DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"%s\"", TEXT(#name))); \
     return E_FAIL; \
   }
 
-#define GET_PROC_EX_V2(name, lib)                         \
+#define GET_PROC_EX_OPT_V2(name, lib) \
   cuda.name = (t##name *)GetProcAddress(lib, STRINGIFY(name##_v2)); \
+
+#define GET_PROC_EX_V2(name, lib)                       \
+  GET_PROC_EX_OPT_V2(name, lib)                         \
   if (cuda.name == nullptr) {                           \
     DbgLog((LOG_ERROR, 10, L"-> Failed to load function \"%s\"", TEXT(STRINGIFY(name##_v2)))); \
     return E_FAIL; \
