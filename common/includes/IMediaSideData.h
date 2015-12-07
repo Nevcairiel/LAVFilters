@@ -35,10 +35,13 @@ DEFINE_GUID(IID_MediaSideDataHDR,
 #pragma pack(push, 1)
 struct MediaSideDataHDR
 {
+  // coordinates of the primaries, in B-G-R order
   double display_primaries_x[3];
   double display_primaries_y[3];
+  // white point
   double white_point_x;
   double white_point_y;
+  // luminance
   double max_display_mastering_luminance;
   double min_display_mastering_luminance;
 };
