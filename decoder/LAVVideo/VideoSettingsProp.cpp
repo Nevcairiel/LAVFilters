@@ -126,6 +126,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_HEVC, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelCodec(HWCodec_HEVC, bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VP9, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelCodec(HWCodec_VP9, bFlag);
+
   DWORD dwHWResFlags = 0;
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWRES_SD, BM_GETCHECK, 0, 0);
   if (bFlag) dwHWResFlags |= LAVHWResFlag_SD;
@@ -226,6 +229,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
 
   addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
+  addHint(IDC_HWACCEL_VP9, L"EXPERIMENTAL! The VP9 HW decoder is still under development and may be unstable!");
 
   addHint(IDC_HWRES_SD, L"Use Hardware Decoding for Standard-definition content (DVD, SDTV)\n\nThis affects all videos with a resolution less than 1024x576 (DVD resolution)");
   addHint(IDC_HWRES_HD, L"Use Hardware Decoding for High-definition content (Blu-ray, HDTV)\n\nAffects all videos above SD resolution, up to Full-HD, 1920x1200");
@@ -277,6 +281,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG4, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG4], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2_DVD, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2DVD], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_HEVC, BM_SETCHECK, m_HWAccelCodecs[HWCodec_HEVC], 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VP9, BM_SETCHECK, m_HWAccelCodecs[IDC_HWACCEL_VP9], 0);
 
     SendDlgItemMessage(m_Dlg, IDC_HWRES_SD, BM_SETCHECK, !!(m_HWRes & LAVHWResFlag_SD), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWRES_HD, BM_SETCHECK, !!(m_HWRes & LAVHWResFlag_HD), 0);
@@ -317,6 +322,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   BOOL bCUDAOnly = bEnabled && (hwAccel == HWAccel_CUDA);
   BOOL bDVD = bEnabled && (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
   BOOL bHEVC = bEnabled && (hwAccel != HWAccel_QuickSync);
+  BOOL bVP9 = bEnabled && (hwAccel == HWAccel_DXVA2CopyBack || hwAccel == HWAccel_DXVA2Native);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
@@ -325,6 +331,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bCUDAOnly);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_HEVC), bHEVC);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VP9), bVP9);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_SD), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_HD), bEnabled);
@@ -552,6 +559,12 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     } else if (LOWORD(wParam) == IDC_HWACCEL_HEVC && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_HWAccelCodecs[HWCodec_HEVC]) {
+        SetDirty();
+      }
+    }
+    else if (LOWORD(wParam) == IDC_HWACCEL_VP9 && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWAccelCodecs[HWCodec_VP9]) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_HWDEINT_ENABLE && HIWORD(wParam) == BN_CLICKED) {

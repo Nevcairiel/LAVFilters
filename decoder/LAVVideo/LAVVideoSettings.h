@@ -99,8 +99,9 @@ typedef enum LAVVideoHWCodec {
   HWCodec_MPEG4 = Codec_MPEG4,
   HWCodec_MPEG2DVD,
   HWCodec_HEVC,
+  HWCodec_VP9,
 
-  HWCodec_NB    = HWCodec_HEVC + 1
+  HWCodec_NB,
 } LAVVideoHWCodec;
 
 // Flags for HW Resolution support
