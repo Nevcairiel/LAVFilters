@@ -1596,23 +1596,15 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackExtendedInfo(UINT aTrackIdx, void* pSt
 
 STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackName(UINT aTrackIdx)
 {
-  if(!m_avFormat)
+
+  const stream *st = GetStreamFromTotalIdx(aTrackIdx);
+  if (!st)
     return nullptr;
 
-  int id = GetStreamIdxFromTotalIdx(aTrackIdx);
-  if (id < 0 || (unsigned)id >= m_avFormat->nb_streams)
-    return FALSE;
-
-  const AVStream *st = m_avFormat->streams[id];
 
   BSTR trackName = nullptr;
-
-  const char *title = nullptr;
-  if (AVDictionaryEntry *dictEntry = av_dict_get(st->metadata, "title", nullptr, 0)) {
-    title = dictEntry->value;
-  }
-  if (title && title[0] != '\0') {
-    trackName = ConvertCharToBSTR(title);
+  if (!st->trackName.empty()) {
+    trackName = ConvertCharToBSTR(st->trackName.c_str());
   }
 
   return trackName;
