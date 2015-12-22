@@ -647,6 +647,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     }
 
     if (annexBextra && size) {
+      size = min(size, sizeof(m_VideoParserExInfo.raw_seqhdr_data));
       memcpy(m_VideoParserExInfo.raw_seqhdr_data, annexBextra, size);
       m_VideoParserExInfo.format.seqhdr_data_length = size;
       av_freep(&annexBextra);
