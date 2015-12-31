@@ -486,6 +486,8 @@ HRESULT CLAVSplitterFormatsProp::OnActivate()
   m_Formats = m_pLAVF->GetInputFormats();
 
   // Setup ListView control for format configuration
+  SendDlgItemMessage(m_Dlg, IDC_FORMATS, CCM_DPISCALE, TRUE, 0);
+
   HWND hlv = GetDlgItem(m_Dlg, IDC_FORMATS);
   ListView_SetExtendedListViewStyle(hlv, LVS_EX_CHECKBOXES|LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
 

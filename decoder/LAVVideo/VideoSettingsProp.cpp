@@ -703,6 +703,8 @@ HRESULT CLAVVideoFormatsProp::OnActivate()
   ASSERT(m_pVideoSettings != nullptr);
 
   // Setup ListView control for format configuration
+  SendDlgItemMessage(m_Dlg, IDC_CODECS, CCM_DPISCALE, TRUE, 0);
+
   HWND hlv = GetDlgItem(m_Dlg, IDC_CODECS);
   ListView_SetExtendedListViewStyle(hlv, LVS_EX_CHECKBOXES|LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
 
