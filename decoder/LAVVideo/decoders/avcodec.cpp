@@ -763,6 +763,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
             m_pFFBuffer2 = (BYTE *)av_realloc_f(m_pFFBuffer2, m_nFFBufferSize2 + FF_INPUT_BUFFER_PADDING_SIZE, 1);
             if (!m_pFFBuffer2) {
               m_nFFBufferSize2 = 0;
+              av_packet_unref(&avpkt);
               return E_OUTOFMEMORY;
             }
           }
@@ -798,12 +799,14 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
     if (FAILED(PostDecode())) {
       av_frame_unref(m_pFrame);
+      av_packet_unref(&avpkt);
       return E_FAIL;
     }
 
     // Decoding of this frame failed ... oh well!
     if (used_bytes < 0) {
       av_frame_unref(m_pFrame);
+      av_packet_unref(&avpkt);
       return S_OK;
     }
 
@@ -830,8 +833,11 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       if (!avpkt.size)
         bFlush = FALSE; // End flushing, no more frames
       av_frame_unref(m_pFrame);
+      av_packet_unref(&avpkt);
       continue;
     }
+
+    av_packet_unref(&avpkt);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Determine the proper timestamps for the frame, based on different possible flags.
@@ -978,6 +984,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     av_frame_unref(m_pFrame);
   }
 
+  av_packet_unref(&avpkt);
   return S_OK;
 }
 
