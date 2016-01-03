@@ -94,7 +94,7 @@ STDMETHODIMP CLAVSubtitleConsumer::DeliverFrame(REFERENCE_TIME start, REFERENCE_
 
 STDMETHODIMP CLAVSubtitleConsumer::Clear(REFERENCE_TIME clearNewerThan)
 {
-  m_pLAVVideo->ControlCmd(CLAVVideo::CNTRL_REDRAW);
+  m_pLAVVideo->RedrawStillImage();
   return S_OK;
 }
 

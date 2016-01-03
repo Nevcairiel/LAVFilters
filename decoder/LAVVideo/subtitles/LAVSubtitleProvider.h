@@ -37,6 +37,21 @@ typedef struct LAVSubtitleProviderContext {
 struct _AM_PROPERTY_SPPAL;
 struct _AM_PROPERTY_SPHLI;
 
+class CLAVSubtitleProviderControlThread : public CAMThread, protected CCritSec
+{
+public:
+  CLAVSubtitleProviderControlThread();
+  ~CLAVSubtitleProviderControlThread();
+
+  void SetConsumer2(ISubRenderConsumer2 * pConsumer2);
+
+protected:
+  DWORD ThreadProc();
+
+private:
+  ISubRenderConsumer2 *m_pConsumer2 = nullptr;
+};
+
 class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown, private CCritSec
 {
 public:
@@ -72,7 +87,13 @@ private:
   void ClearSubtitleRects();
   void TimeoutSubtitleRects(REFERENCE_TIME rtStop);
 
+  enum { CNTRL_EXIT, CNTRL_FLUSH };
+  HRESULT ControlCmd(DWORD cmd) {
+    return m_ControlThread->CallWorker(cmd);
+  }
+
 private:
+  friend class CLAVSubtitleProviderControlThread;
   LAVSubtitleProviderContext context;
   CLAVVideo *m_pLAVVideo            = nullptr;
 
@@ -91,4 +112,6 @@ private:
   std::list<CLAVSubRect *> m_SubFrames;
 
   struct _AM_PROPERTY_SPHLI *m_pHLI = nullptr;
+
+  CLAVSubtitleProviderControlThread *m_ControlThread = nullptr;
 };

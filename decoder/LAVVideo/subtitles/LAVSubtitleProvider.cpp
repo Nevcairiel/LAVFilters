@@ -48,6 +48,8 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
 {
   avcodec_register_all();
 
+  m_ControlThread = new CLAVSubtitleProviderControlThread();
+
   ASSERT(pConsumer);
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
@@ -65,6 +67,7 @@ CLAVSubtitleProvider::~CLAVSubtitleProvider(void)
   Flush();
   CloseDecoder();
   DisconnectConsumer();
+  SAFE_DELETE(m_ControlThread);
 }
 
 void CLAVSubtitleProvider::CloseDecoder()
@@ -98,6 +101,8 @@ STDMETHODIMP CLAVSubtitleProvider::SetConsumer(ISubRenderConsumer *pConsumer)
   if (FAILED(m_pConsumer->QueryInterface(&m_pConsumer2)))
     m_pConsumer2 = nullptr;
 
+  m_ControlThread->SetConsumer2(m_pConsumer2);
+
   return S_OK;
 }
 
@@ -105,6 +110,7 @@ STDMETHODIMP CLAVSubtitleProvider::DisconnectConsumer(void)
 {
   CAutoLock lock(this);
   CheckPointer(m_pConsumer, S_FALSE);
+  m_ControlThread->SetConsumer2(nullptr);
   m_pConsumer->Disconnect();
   SafeRelease(&m_pConsumer);
   SafeRelease(&m_pConsumer2);
@@ -563,8 +569,8 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI)
     }
   }
 
-  if (redraw && m_pConsumer2)
-    m_pConsumer2->Clear();
+  if (redraw)
+    ControlCmd(CNTRL_FLUSH);
 
   return S_OK;
 }
@@ -641,4 +647,45 @@ STDMETHODIMP CLAVSubtitleProvider::SetDVDComposit(BOOL bComposit)
   CAutoLock lock(this);
   m_bComposit = bComposit;
   return S_OK;
+}
+
+CLAVSubtitleProviderControlThread::CLAVSubtitleProviderControlThread()
+  : CAMThread()
+{
+  Create();
+}
+
+CLAVSubtitleProviderControlThread::~CLAVSubtitleProviderControlThread()
+{
+  CallWorker(CLAVSubtitleProvider::CNTRL_EXIT);
+  Close();
+}
+
+void CLAVSubtitleProviderControlThread::SetConsumer2(ISubRenderConsumer2 * pConsumer2)
+{
+  CAutoLock lock(this);
+  m_pConsumer2 = pConsumer2;
+}
+
+DWORD CLAVSubtitleProviderControlThread::ThreadProc()
+{
+  SetThreadName(-1, "LAV Control Thread");
+  DWORD cmd;
+  while (1) {
+    cmd = GetRequest();
+    switch (cmd) {
+    case CLAVSubtitleProvider::CNTRL_EXIT:
+      Reply(S_OK);
+      return 0;
+    case CLAVSubtitleProvider::CNTRL_FLUSH:
+      Reply(S_OK);
+      {
+        CAutoLock lock(this);
+        if (m_pConsumer2)
+          m_pConsumer2->Clear();
+      }
+      break;
+    }
+  }
+  return 1;
 }
