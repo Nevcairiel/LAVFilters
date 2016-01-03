@@ -374,7 +374,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
 {
   size_t len = wcslen(pszFileName);
 
-  if (len <= 23 || _wcsnicmp(pszFileName+len - 23, L"\\BDMV\\STREAM\\", 13) != 0)
+  if (len <= 23 || (_wcsnicmp(pszFileName+len - 23, L"\\BDMV\\STREAM\\", 13) != 0 && (len <= 28 || _wcsnicmp(pszFileName + len - 28, L"\\BDMV\\STREAM\\SSIF\\", 18) != 0)))
     return E_FAIL;
 
   // Get the base file name (should be a number, like 00000)
@@ -394,6 +394,11 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
 
   // Remove file name itself
   PathRemoveFileSpecA(path);
+
+  // Remove SSIF if appropriate
+  if (_strnicmp(path + strlen(path) - 5, "\\SSIF", 5) == 0)
+    PathRemoveFileSpecA(path);
+
   // Remove STREAM folder
   PathRemoveFileSpecA(path);
 
