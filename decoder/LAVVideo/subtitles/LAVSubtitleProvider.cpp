@@ -669,7 +669,7 @@ void CLAVSubtitleProviderControlThread::SetConsumer2(ISubRenderConsumer2 * pCons
 
 DWORD CLAVSubtitleProviderControlThread::ThreadProc()
 {
-  SetThreadName(-1, "LAV Control Thread");
+  SetThreadName(-1, "LAV Subtitle Control Thread");
   DWORD cmd;
   while (1) {
     cmd = GetRequest();
