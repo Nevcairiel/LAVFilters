@@ -100,8 +100,9 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
   AVCodecID id = pCodecCtx->codec_id;
 
   // Grab the codec
-  AVCodec *p = avcodec_find_decoder(id);
-  const char *profile = p ? av_get_profile_name(p, pCodecCtx->profile) : nullptr;
+  const AVCodec *p = avcodec_find_decoder(id);
+  const AVCodecDescriptor *desc = avcodec_descriptor_get(id);
+  const char *profile = avcodec_profile_name(id, pCodecCtx->profile);
 
   std::ostringstream codec_name;
 
@@ -138,12 +139,14 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
     codec_name << nice_name;
     if (profile)
       codec_name << " " << tolower(profile);
+  } else if (desc && desc->name) {
+    codec_name << desc->name;
+    if (profile)
+      codec_name << " " << tolower(profile);
   } else if (p && p->name) {
     codec_name << p->name;
     if (profile)
       codec_name << " " << tolower(profile);
-  } else if (pCodecCtx->codec_name[0] != '\0') {
-    codec_name << pCodecCtx->codec_name;
   } else {
     /* output avi tags */
     char buf[32];
