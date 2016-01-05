@@ -1723,7 +1723,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     s.trackName = title;
   s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr);
 
-  if(FAILED(hr)) {
+  if(hr != S_OK) {
     delete s.streamInfo;
     pStream->discard = AVDISCARD_ALL;
     return hr;
