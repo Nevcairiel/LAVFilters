@@ -174,7 +174,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
 
 static bool h264_is_annexb(std::string format, AVStream *avstream)
 {
-  ASSERT(avstream->codec->codec_id == AV_CODEC_ID_H264);
+  ASSERT(avstream->codec->codec_id == AV_CODEC_ID_H264 || avstream->codec->codec_id == AV_CODEC_ID_H264_MVC);
   if (avstream->codec->extradata_size < 4)
     return true;
   if (avstream->codec->extradata[0] == 1)
@@ -211,6 +211,11 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   unsigned int origCodecTag = avstream->codec->codec_tag;
   if (avstream->codec->codec_tag == 0 && avstream->codec->codec_id != AV_CODEC_ID_DVVIDEO) {
     avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
+  }
+
+  if (avstream->codec->codec_id == AV_CODEC_ID_H264_MVC) {
+    // Don't create media types for MVC extension streams, they are handled specially
+    return S_FALSE;
   }
 
   if (avstream->codec->width == 0 || avstream->codec->height == 0
@@ -296,6 +301,30 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
         mtype.subtype = MEDIASUBTYPE_HVC1;
       }
       mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
+    }
+  }
+
+  // Detect MVC extensions and adjust the type appropriately
+  if (avstream->codec->codec_id == AV_CODEC_ID_H264) {
+    if (h264_is_annexb(m_containerFormat, avstream)) {
+      // TODO
+    } else {
+      CMediaType mvcType = mtype;
+
+      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codec->extradata_size);
+      HRESULT hr = g_VideoHelper.ProcessH264MVCExtradata(avstream->codec->extradata, avstream->codec->extradata_size, mp2vi);
+      if (hr == S_OK) {
+        mvcType.cbFormat = SIZE_MPEG2VIDEOINFO(mp2vi);
+        mvcType.subtype = MEDIASUBTYPE_MVC1;
+        mp2vi->hdr.bmiHeader.biCompression = mvcType.subtype.Data1;
+        mtypes.push_front(mvcType);
+
+        // update stream profile/level appropriately
+        if (mp2vi->dwProfile != 0)
+          avstream->codec->profile = mp2vi->dwProfile;
+        if (mp2vi->dwLevel != 0)
+          avstream->codec->level = mp2vi->dwLevel;
+      }
     }
   }
 

@@ -424,6 +424,42 @@ HRESULT CLAVFVideoHelper::ProcessH264Extradata(BYTE *extradata, int extradata_si
   return 0;
 }
 
+HRESULT CLAVFVideoHelper::ProcessH264MVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi)
+{
+  if (*(char *)extradata == 1) {
+    // Find "mvcC" atom
+    uint32_t state = -1;
+    int i = 0;
+    for (; i < extradata_size; i++) {
+      state = (state << 8) | extradata[i];
+      if (state == MKBETAG('m', 'v', 'c', 'C'))
+        break;
+    }
+
+    if (i == extradata_size || i < 8)
+      return E_FAIL;
+
+    // Update pointers to the start of the mvcC atom
+    extradata = extradata + i - 7;
+    extradata_size = extradata_size - i + 7;
+    int sizeAtom = AV_RB32(extradata);
+
+    // verify size atom and actual size
+    if ((sizeAtom + 4) > extradata_size || extradata_size < 14)
+      return E_FAIL;
+
+    // Skip atom headers
+    extradata += 8;
+    extradata_size -= 8;
+
+    // Process as a normal "avcC" record
+    ProcessH264Extradata(extradata, extradata_size, mp2vi, FALSE);
+
+    return S_OK;
+  }
+  return E_FAIL;
+}
+
 HRESULT CLAVFVideoHelper::ProcessHEVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi)
 {
   if (extradata[0] || extradata[1] || extradata[2] > 1 && extradata_size > 25) {

@@ -68,6 +68,7 @@ public:
   MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bConvertToAVC1 = FALSE);
 
   HRESULT ProcessH264Extradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi, BOOL bConvertToAVC1);
+  HRESULT ProcessH264MVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
   HRESULT ProcessHEVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
 };
 
