@@ -28,7 +28,7 @@
 
 #include "PacketAllocator.h"
 
-CLAVOutputPin::CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container)
+CLAVOutputPin::CLAVOutputPin(std::deque<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
   , m_containerFormat(container)
   , m_pinType(pinType)
@@ -182,8 +182,7 @@ HRESULT CLAVOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERT
 
 HRESULT CLAVOutputPin::CheckMediaType(const CMediaType* pmt)
 {
-  std::vector<CMediaType>::iterator it;
-  for(it = m_mts.begin(); it != m_mts.end(); ++it)
+  for(auto it = m_mts.begin(); it != m_mts.end(); ++it)
   {
     if(*pmt == *it)
       return S_OK;

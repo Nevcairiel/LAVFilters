@@ -41,7 +41,7 @@ class CLAVOutputPin
   , protected CAMThread
 {
 public:
-  CLAVOutputPin(std::vector<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "");
+  CLAVOutputPin(std::deque<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType = CBaseDemuxer::unknown,const char* container = "");
   virtual ~CLAVOutputPin();
 
   DECLARE_IUNKNOWN;
@@ -99,7 +99,7 @@ public:
   DWORD GetStreamId() { return m_streamId; };
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
 
-  void SetNewMediaTypes(std::vector<CMediaType> pmts) { CAutoLock lock(&m_csMT); m_mts = pmts; SetQueueSizes(); }
+  void SetNewMediaTypes(std::deque<CMediaType> pmts) { CAutoLock lock(&m_csMT); m_mts = pmts; SetQueueSizes(); }
   void SendMediaType(CMediaType *mt) { CAutoLock lock(&m_csMT); m_newMT = mt;}
   void SetStreamMediaType(CMediaType *mt) { CAutoLock lock(&m_csMT); m_StreamMT = *mt; }
 
@@ -136,7 +136,7 @@ private:
 
 private:
   CCritSec m_csMT;
-  std::vector<CMediaType> m_mts;
+  std::deque<CMediaType> m_mts;
   CPacketQueue m_queue;
   CMediaType m_StreamMT;
 

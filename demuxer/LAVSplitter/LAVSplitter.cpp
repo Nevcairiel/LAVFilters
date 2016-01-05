@@ -1124,7 +1124,7 @@ STDMETHODIMP CLAVSplitter::UpdateForcedSubtitleMediaType()
   return S_OK;
 }
 
-static int QueryAcceptMediaTypes(IPin *pPin, std::vector<CMediaType> pmts)
+static int QueryAcceptMediaTypes(IPin *pPin, std::deque<CMediaType> pmts)
 {
   for(unsigned int i = 0; i < pmts.size(); i++) {
     if (S_OK == pPin->QueryAccept(&pmts[i])) {
@@ -1135,7 +1135,7 @@ static int QueryAcceptMediaTypes(IPin *pPin, std::vector<CMediaType> pmts)
   return -1;
 }
 
-STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::vector<CMediaType> pmts)
+STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::deque<CMediaType> pmts)
 {
   CheckPointer(m_pDemuxer, E_UNEXPECTED);
   if (TrackNumSrc == TrackNumDst) return S_OK;

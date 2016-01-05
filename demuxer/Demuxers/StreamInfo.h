@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <vector>
+#include <deque>
 
 class CStreamInfo
 {
@@ -27,6 +27,6 @@ public:
   CStreamInfo();
   virtual ~CStreamInfo();
 
-  std::vector<CMediaType> mtypes;
+  std::deque<CMediaType> mtypes;
   std::string codecInfo;
 };

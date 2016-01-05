@@ -27,6 +27,8 @@
 
 #include "ExtradataParser.h"
 
+#include <vector>
+
 CLAVFAudioHelper g_AudioHelper;
 
 // Map codec ids to media subtypes
