@@ -530,6 +530,10 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   DWORD dwAspectX = 0, dwAspectY = 0;
   videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
+  // Adjust for deinterlacing
+  if (m_Decoder.IsInterlaced() && m_settings.SWDeintMode != SWDeintMode_None && m_settings.SWDeintOutput == DeintOutput_FramePerField && !(m_settings.DeintMode == DeintMode_Disable))
+    rtAvgTime /= 2;
+
   m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, IsInterlaced(), bVIH1);
 
   return S_OK;
@@ -648,6 +652,9 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     DbgLog((LOG_TRACE, 10, L"-> Decoder creation failed"));
     goto done;
   }
+
+  // Get avg time per frame
+  videoFormatTypeHandler(pmt->Format(), pmt->FormatType(), nullptr, &m_rtAvgTimePerFrame);
 
   LAVPixelFormat pix;
   int bpp;
@@ -1464,6 +1471,11 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 
   m_rtPrevStart = pFrame->rtStart;
   m_rtPrevStop  = pFrame->rtStop;
+
+  if (!pFrame->avgFrameDuration || pFrame->avgFrameDuration == AV_NOPTS_VALUE)
+    pFrame->avgFrameDuration = m_rtAvgTimePerFrame;
+  else
+    m_rtAvgTimePerFrame = pFrame->avgFrameDuration;
 
   if (pFrame->rtStart < 0) {
     ReleaseFrame(&pFrame);

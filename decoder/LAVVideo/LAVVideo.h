@@ -219,6 +219,7 @@ private:
 
   REFERENCE_TIME       m_rtPrevStart = 0;
   REFERENCE_TIME       m_rtPrevStop  = 0;
+  REFERENCE_TIME       m_rtAvgTimePerFrame = AV_NOPTS_VALUE;
 
   BOOL                 m_bForceInputAR  = FALSE;
   BOOL                 m_bSendMediaType = FALSE;

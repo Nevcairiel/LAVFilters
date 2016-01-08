@@ -205,6 +205,11 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       outFrame->rtStart      = pts;
       outFrame->rtStop       = pts + rtDuration;
 
+      if (m_settings.SWDeintOutput == DeintOutput_FramePerField) {
+        if (outFrame->avgFrameDuration != AV_NOPTS_VALUE)
+          outFrame->avgFrameDuration /= 2;
+      }
+
       for (int i = 0; i < 4; i++) {
         outFrame->data[i] = out_frame->data[i];
         outFrame->stride[i] = out_frame->linesize[i];
