@@ -162,6 +162,9 @@
     <ClCompile Include="pixconv\convert_direct.cpp">
       <Filter>Source Files\pixconv</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\msdk_mvc.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -259,6 +262,9 @@
     </ClInclude>
     <ClInclude Include="parsers\HEVCSequenceParser.h">
       <Filter>Header Files\parsers</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\msdk_mvc.h">
+      <Filter>Header Files\decoders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -30,6 +30,8 @@
 #include "registry.h"
 #include "resource.h"
 
+#include "IMediaSample3D.h"
+
 #include <Shlwapi.h>
 
 #include "parsers/VC1HeaderParser.h"
@@ -1666,6 +1668,20 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
           pMediaSideData->SetSideData(pFrame->side_data[i].guidType, pFrame->side_data[i].data, pFrame->side_data[i].size);
 
         SafeRelease(&pMediaSideData);
+      }
+    }
+
+    // Write the second view into IMediaSample3D, if available
+    if (pFrame->flags & LAV_FRAME_FLAG_MVC) {
+      IMediaSample3D *pSample3D = nullptr;
+      if (SUCCEEDED(hr = pSampleOut->QueryInterface(&pSample3D))) {
+        BYTE *pDataOut3D = nullptr;
+        if (SUCCEEDED(pSample3D->Enable3D()) && SUCCEEDED(pSample3D->GetPointer3D(&pDataOut3D))) {
+          LAVFrame frame3D = *pFrame;
+          memcpy(frame3D.data, frame3D.stereo, sizeof(frame3D.stereo));
+          m_PixFmtConverter.Convert(&frame3D, pDataOut3D, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+        }
+        SafeRelease(&pSample3D);
       }
     }
 

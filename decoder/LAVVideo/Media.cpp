@@ -43,6 +43,8 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_CCV1, AV_CODEC_ID_H264 }, // Used by Haali Splitter
   { &MEDIASUBTYPE_H264_bis, AV_CODEC_ID_H264}, // MainConcept specific
 
+  { &MEDIASUBTYPE_MVC1, AV_CODEC_ID_H264_MVC },
+
   // HEVC
   { &MEDIASUBTYPE_HEVC, AV_CODEC_ID_HEVC },
   { &MEDIASUBTYPE_HVC1, AV_CODEC_ID_HEVC },
@@ -291,6 +293,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_avc1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_CCV1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_H264_bis },
+
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_MVC1 },
 
   // HEVC
   { &MEDIATYPE_Video, &MEDIASUBTYPE_HEVC },

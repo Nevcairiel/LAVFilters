@@ -106,7 +106,8 @@ typedef struct LAVFrame {
   int height;                       ///< height of the frame (in pixel)
 
   BYTE *data[4];                    ///< pointer to the picture planes
-  ptrdiff_t stride[4];                    ///< stride of the planes (in bytes)
+  BYTE *stereo[4];                  ///< pointer to the second view picture planes
+  ptrdiff_t stride[4];              ///< stride of the planes (in bytes)
 
   LAVPixelFormat format;            ///< pixel format of the frame
   int bpp;                          ///< bits per pixel, only meaningful for YUV420bX, YUV422bX or YUV444bX
@@ -130,6 +131,7 @@ typedef struct LAVFrame {
 #define LAV_FRAME_FLAG_FLUSH                0x00000004
 #define LAV_FRAME_FLAG_REDRAW               0x00000008
 #define LAV_FRAME_FLAG_DXVA_NOADDREF        0x00000010
+#define LAV_FRAME_FLAG_MVC                  0x00000020
 
   LAVFrameSideData *side_data;
   int side_data_count;
@@ -414,3 +416,4 @@ ILAVDecoder *CreateDecoderCUVID();
 ILAVDecoder *CreateDecoderQuickSync();
 ILAVDecoder *CreateDecoderDXVA2();
 ILAVDecoder *CreateDecoderDXVA2Native();
+ILAVDecoder *CreateDecoderMSDKMVC();

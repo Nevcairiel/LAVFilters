@@ -451,6 +451,8 @@ softwaredec:
       else
         m_pDecoder = CreateDecoderWMV9();
       bWMV9 = TRUE;
+    } else if (codec == AV_CODEC_ID_H264_MVC) {
+      m_pDecoder = CreateDecoderMSDKMVC();
     } else
       m_pDecoder = CreateDecoderAVCodec();
   }
