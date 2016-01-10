@@ -47,7 +47,7 @@ UsePreviousTasks          = yes
 [Messages]
 WelcomeLabel1=[name/ver]
 WelcomeLabel2=This will install [name] on your computer.%n%nIt is recommended that you close all other applications before continuing.
-WinVersionTooLowError=This software only works on Windows XP SP2 and newer.
+WinVersionTooLowError=This software only works on Windows XP SP3 and newer.
 
 [Types]
 Name: Normal; Description: Normal; Flags: iscustom
