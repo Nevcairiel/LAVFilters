@@ -326,7 +326,10 @@ HRESULT CLAVOutputPin::QueueEndOfStream()
 
 HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
 {
-  if(!ThreadExists()) return S_FALSE;
+  if (!ThreadExists()) {
+    SAFE_DELETE(pPacket);
+    return S_FALSE;
+  }
 
   CLAVSplitter *pSplitter = static_cast<CLAVSplitter*>(m_pFilter);
 
@@ -534,7 +537,7 @@ HRESULT CLAVOutputPin::DeliverPacket(Packet *pPacket)
   CHECK_HR(hr = Deliver(pSample));
 
 done:
-  if (!m_bPacketAllocator)
+  if (!m_bPacketAllocator || !pSample)
     SAFE_DELETE(pPacket);
   SafeRelease(&pSample);
   return hr;
