@@ -91,6 +91,12 @@ static void free_buffers(struct LAVFrame *pFrame)
   _aligned_free(pFrame->data[2]);
   _aligned_free(pFrame->data[3]);
   memset(pFrame->data, 0, sizeof(pFrame->data));
+
+  _aligned_free(pFrame->stereo[0]);
+  _aligned_free(pFrame->stereo[1]);
+  _aligned_free(pFrame->stereo[2]);
+  _aligned_free(pFrame->stereo[3]);
+  memset(pFrame->stereo, 0, sizeof(pFrame->stereo));
 }
 
 HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
@@ -107,12 +113,20 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
   int alignedHeight = FFALIGN(pFrame->height, 2);
 
   memset(pFrame->data, 0, sizeof(pFrame->data));
+  memset(pFrame->stereo, 0, sizeof(pFrame->stereo));
   memset(pFrame->stride, 0, sizeof(pFrame->stride));
   for (int plane = 0; plane < desc.planes; plane++) {
     ptrdiff_t planeStride = stride / desc.planeWidth[plane];
     size_t size = planeStride * (alignedHeight / desc.planeHeight[plane]);
     pFrame->data[plane]   = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
     pFrame->stride[plane] = planeStride;
+  }
+
+  if (pFrame->flags & LAV_FRAME_FLAG_MVC) {
+    for (int plane = 0; plane < desc.planes; plane++) {
+      size_t size = pFrame->stride[plane] * (alignedHeight / desc.planeHeight[plane]);
+      pFrame->stereo[plane] = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
+    }
   }
 
   pFrame->destruct = &free_buffers;
@@ -167,6 +181,18 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
       memcpy(dst, src, linesize);
       dst += (*ppDst)->stride[plane];
       src += pSrc->stride[plane];
+    }
+
+    if (pSrc->flags & LAV_FRAME_FLAG_MVC) {
+      dst = (*ppDst)->stereo[plane];
+      src = pSrc->stereo[plane];
+      if (!dst || !src)
+        return E_FAIL;
+      for (int i = 0; i < (pSrc->height / desc.planeHeight[plane]); i++) {
+        memcpy(dst, src, linesize);
+        dst += (*ppDst)->stride[plane];
+        src += pSrc->stride[plane];
+      }
     }
   }
 
