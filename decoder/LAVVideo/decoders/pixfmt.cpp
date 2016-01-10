@@ -131,6 +131,7 @@ HRESULT FreeLAVFrameBuffers(LAVFrame *pFrame)
     pFrame->priv_data = nullptr;
   }
   memset(pFrame->data, 0, sizeof(pFrame->data));
+  memset(pFrame->stereo, 0, sizeof(pFrame->stereo));
   memset(pFrame->stride, 0, sizeof(pFrame->stride));
 
   for (int i = 0; i < pFrame->side_data_count; i++)
