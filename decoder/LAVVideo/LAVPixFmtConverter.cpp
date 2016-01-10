@@ -455,7 +455,7 @@ void CLAVPixFmtConverter::SelectConvertFunctionDirect()
     m_bDirectMode = TRUE;
 }
 
-HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight) {
+HRESULT CLAVPixFmtConverter::Convert(const BYTE* const src[4], const ptrdiff_t srcStride[4], uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight) {
   uint8_t *out = dst;
   ptrdiff_t outStride = dstStride, i;
   planeHeight = max(height, planeHeight);
@@ -487,7 +487,7 @@ HRESULT CLAVPixFmtConverter::Convert(LAVFrame *pFrame, uint8_t *dst, int width, 
     dstStrideArray[i] = byteStride / lav_pixfmt_desc[m_OutputPixFmt].planeWidth[i];
   }
 
-  HRESULT hr = (this->*convert)(pFrame->data, pFrame->stride, dstArray, dstStrideArray, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
+  HRESULT hr = (this->*convert)(src, srcStride, dstArray, dstStrideArray, width, height, m_InputPixFmt, m_InBpp, m_OutputPixFmt);
   if (out != dst) {
     ChangeStride(out, outStride, dst, dstStride, width, height, planeHeight, m_OutputPixFmt);
   }

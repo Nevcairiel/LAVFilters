@@ -75,7 +75,7 @@ public:
   void GetMediaType(CMediaType *mt, int index, LONG biWidth, LONG biHeight, DWORD dwAspectX, DWORD dwAspectY, REFERENCE_TIME rtAvgTime, BOOL bInterlaced = TRUE, BOOL bVIH1 = FALSE);
   BOOL IsAllowedSubtype(const GUID *guid);
 
-  HRESULT Convert(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight);
+  HRESULT Convert(const uint8_t * const src[4], const ptrdiff_t srcStride[4], uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight);
   HRESULT ConvertDirect(LAVFrame *pFrame, uint8_t *dst, int width, int height, ptrdiff_t dstStride, int planeHeight);
 
   BOOL IsRGBConverterActive() { return m_bRGBConverter; }

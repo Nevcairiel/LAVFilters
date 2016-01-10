@@ -1650,7 +1650,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     if (pFrame->direct)
       m_PixFmtConverter.ConvertDirect(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
     else
-      m_PixFmtConverter.Convert(pFrame, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+      m_PixFmtConverter.Convert(pFrame->data, pFrame->stride, pDataOut, width, height, pBIH->biWidth, abs(pBIH->biHeight));
 
   #if defined(DEBUG) && DEBUG_PIXELCONV_TIMINGS
     QueryPerformanceCounter(&end);
@@ -1677,9 +1677,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
       if (SUCCEEDED(hr = pSampleOut->QueryInterface(&pSample3D))) {
         BYTE *pDataOut3D = nullptr;
         if (SUCCEEDED(pSample3D->Enable3D()) && SUCCEEDED(pSample3D->GetPointer3D(&pDataOut3D))) {
-          LAVFrame frame3D = *pFrame;
-          memcpy(frame3D.data, frame3D.stereo, sizeof(frame3D.stereo));
-          m_PixFmtConverter.Convert(&frame3D, pDataOut3D, width, height, pBIH->biWidth, abs(pBIH->biHeight));
+          m_PixFmtConverter.Convert(pFrame->stereo, pFrame->stride, pDataOut3D, width, height, pBIH->biWidth, abs(pBIH->biHeight));
         }
         SafeRelease(&pSample3D);
       }
