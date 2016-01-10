@@ -79,7 +79,6 @@ Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: regserver igno
 Source: bin_Win32\LAVVideo.ax;         DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 Source: bin_Win32\LAVFilters.Dependencies.manifest; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
 Source: bin_Win32\IntelQuickSyncDecoder.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
-Source: {tmp}\libmfxsw32-v1.7z;        DestDir: {tmp};     Flags: external deleteafterinstall dontcopy; Components: lavvideo32\mvc3d; ExternalSize: 3095639
 
 Source: bin_x64\avcodec-lav-57.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
 Source: bin_x64\avfilter-lav-6.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
@@ -93,7 +92,6 @@ Source: bin_x64\LAVSplitter.ax;        DestDir: {app}\x64; Flags: regserver igno
 Source: bin_x64\LAVVideo.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
 Source: bin_x64\LAVFilters.Dependencies.manifest; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
 Source: bin_x64\IntelQuickSyncDecoder.dll; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
-Source: {tmp}\libmfxsw64-v1.7z;        DestDir: {tmp};     Flags: external deleteafterinstall dontcopy; Components: lavvideo64\mvc3d; ExternalSize: 3916173
 
 Source: COPYING;                       DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 Source: README.txt;                    DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
