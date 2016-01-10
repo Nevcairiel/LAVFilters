@@ -1,5 +1,7 @@
 ; LAV Filters Inno Setup script
 
+#include <idp.iss>
+
 ; Include version info
 #define ISPP_INCLUDED
 #include "common\includes\version.h"
@@ -56,7 +58,9 @@ Name: lavsplitter64; Description: LAV Splitter (x64); Types: Normal; Check: IsWi
 Name: lavaudio32;    Description: LAV Audio (x86);    Types: Normal;
 Name: lavaudio64;    Description: LAV Audio (x64);    Types: Normal; Check: IsWin64;
 Name: lavvideo32;    Description: LAV Video (x86);    Types: Normal;
+Name: lavvideo32\mvc3d; Description:  H.264 MVC 3D Decoder (extra download); Types: Normal; ExtraDiskSpaceRequired: 3095639;
 Name: lavvideo64;    Description: LAV Video (x64);    Types: Normal; Check: IsWin64;
+Name: lavvideo64\mvc3d; Description:  H.264 MVC 3D Decoder (extra download); Types: Normal; Check: IsWin64; ExtraDiskSpaceRequired: 3916173;
 
 [Tasks]
 Name: icons;          Description: "Create Start Menu Shortcuts";
@@ -75,6 +79,7 @@ Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: regserver igno
 Source: bin_Win32\LAVVideo.ax;         DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 Source: bin_Win32\LAVFilters.Dependencies.manifest; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
 Source: bin_Win32\IntelQuickSyncDecoder.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: {tmp}\libmfxsw32-v1.7z;        DestDir: {tmp};     Flags: external deleteafterinstall dontcopy; Components: lavvideo32\mvc3d; ExternalSize: 3095639
 
 Source: bin_x64\avcodec-lav-57.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
 Source: bin_x64\avfilter-lav-6.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
@@ -88,10 +93,17 @@ Source: bin_x64\LAVSplitter.ax;        DestDir: {app}\x64; Flags: regserver igno
 Source: bin_x64\LAVVideo.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
 Source: bin_x64\LAVFilters.Dependencies.manifest; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
 Source: bin_x64\IntelQuickSyncDecoder.dll; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: {tmp}\libmfxsw64-v1.7z;        DestDir: {tmp};     Flags: external deleteafterinstall dontcopy; Components: lavvideo64\mvc3d; ExternalSize: 3916173
 
 Source: COPYING;                       DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 Source: README.txt;                    DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 Source: CHANGELOG.txt;                 DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
+
+Source: thirdparty\contrib\7za.exe;    DestDir: {tmp};     Flags: dontcopy
+
+[UninstallDelete]
+Type: files; Name: {app}\x86\libmfxsw32.dll
+Type: files; Name: {app}\x64\libmfxsw64.dll
 
 [Icons]
 Name: {group}\LAV Splitter Configuration;        Filename: rundll32.exe; Parameters: """{app}\x86\LAVSplitter.ax"",OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVSplitter.ax; IconIndex: 0; Tasks: icons; Components: lavsplitter32
@@ -380,9 +392,33 @@ begin
   RegDeleteKeyIncludingSubkeys(HKCU, 'Software\LAV');
 end;
 
+procedure DoUnzip(source: String; targetdir: String);
+var
+    unzipTool: String;
+    ReturnCode: Integer;
+begin
+    // source contains tmp constant, so resolve it to path name
+    source := ExpandConstant(source);
+
+    unzipTool := ExpandConstant('{tmp}\7za.exe');
+
+    if not FileExists(unzipTool)
+    then MsgBox('UnzipTool not found: ' + unzipTool, mbError, MB_OK)
+    else if not FileExists(source)
+    then MsgBox('File was not found while trying to unzip: ' + source, mbError, MB_OK)
+    else begin
+         if Exec(unzipTool, ' x "' + source + '" -o"' + targetdir + '" -y',
+                 '', SW_HIDE, ewWaitUntilTerminated, ReturnCode) = false
+         then begin
+             MsgBox('Unzip failed:' + source, mbError, MB_OK)
+         end;
+    end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   i: Integer;
+  targetPath : String;
 begin
   if (CurStep = ssPostInstall) then begin
     if IsTaskSelected('reset_settings') then
@@ -401,6 +437,15 @@ begin
             end;
             RegWriteDWordValue(HKCU, LavSplitterFormatsReg, SplitterFormats[i].id, Ord(SplitterPage.Values[i]));
           end;
+      end;
+
+      ExtractTemporaryFile('7za.exe');
+      targetPath := ExpandConstant('{tmp}\');
+      if IsComponentSelected('lavvideo32\mvc3d') then begin
+         DoUnzip(targetPath + 'libmfxsw32-v1.7z', ExpandConstant('{app}\x86'));
+      end;
+      if IsComponentSelected('lavvideo64\mvc3d') then begin
+         DoUnzip(targetPath + 'libmfxsw64-v1.7z', ExpandConstant('{app}\x64'));
       end;
   end;
 end;
@@ -459,4 +504,8 @@ begin
   WizardForm.SelectTasksLabel.Hide;
   WizardForm.TasksList.Top    := 0;
   WizardForm.TasksList.Height := PageFromID(wpSelectTasks).SurfaceHeight;
+
+  idpAddFileComp('http://files.1f0.de/lavf/plugins/libmfxsw32-v1.7z', ExpandConstant('{tmp}\libmfxsw32-v1.7z'), 'lavvideo32\mvc3d');
+  idpAddFileComp('http://files.1f0.de/lavf/plugins/libmfxsw64-v1.7z', ExpandConstant('{tmp}\libmfxsw64-v1.7z'), 'lavvideo64\mvc3d');
+  idpDownloadAfter(wpReady);
 end;
