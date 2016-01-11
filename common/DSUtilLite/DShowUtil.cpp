@@ -63,6 +63,7 @@ void SetThreadName( DWORD dwThreadID, LPCSTR szThreadName)
 #include <Shlwapi.h>
 
 extern HANDLE m_hOutput;
+volatile LONG hOutputCounter = 0;
 extern HRESULT  DbgUniqueProcessName(LPCTSTR inName, LPTSTR outName);
 void DbgSetLogFile(LPCTSTR szFile)
 {
@@ -82,6 +83,9 @@ void DbgSetLogFile(LPCTSTR szFile)
       m_hOutput = CreateFile(uniqueName, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     }
   }
+
+  if (m_hOutput != INVALID_HANDLE_VALUE)
+    InterlockedIncrement(&hOutputCounter);
 }
 
 void DbgSetLogFileDesktop(LPCTSTR szFile)
@@ -95,9 +99,12 @@ void DbgSetLogFileDesktop(LPCTSTR szFile)
 void DbgCloseLogFile()
 {
   if (m_hOutput != INVALID_HANDLE_VALUE) {
-    FlushFileBuffers (m_hOutput);
-    CloseHandle (m_hOutput);
-    m_hOutput = INVALID_HANDLE_VALUE;
+    LONG count = InterlockedDecrement(&hOutputCounter);
+    if (count == 0) {
+      FlushFileBuffers(m_hOutput);
+      CloseHandle(m_hOutput);
+      m_hOutput = INVALID_HANDLE_VALUE;
+    }
   }
 }
 #endif
