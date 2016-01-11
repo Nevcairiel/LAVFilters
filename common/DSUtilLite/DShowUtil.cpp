@@ -67,25 +67,24 @@ volatile LONG hOutputCounter = 0;
 extern HRESULT  DbgUniqueProcessName(LPCTSTR inName, LPTSTR outName);
 void DbgSetLogFile(LPCTSTR szFile)
 {
-  if (m_hOutput != INVALID_HANDLE_VALUE) {
-    CloseHandle (m_hOutput);
-    m_hOutput = INVALID_HANDLE_VALUE;
-  }
+  HANDLE hOutput = CreateFile(szFile, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 
-  m_hOutput = CreateFile(szFile, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-
-  if (INVALID_HANDLE_VALUE == m_hOutput &&
+  if (INVALID_HANDLE_VALUE == hOutput &&
     GetLastError() == ERROR_SHARING_VIOLATION)
   {
     TCHAR uniqueName[MAX_PATH] = {0};
     if (SUCCEEDED(DbgUniqueProcessName(szFile, uniqueName)))
     {
-      m_hOutput = CreateFile(uniqueName, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+      hOutput = CreateFile(uniqueName, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     }
   }
 
-  if (m_hOutput != INVALID_HANDLE_VALUE)
-    InterlockedIncrement(&hOutputCounter);
+  if (hOutput != INVALID_HANDLE_VALUE) {
+    if (InterlockedCompareExchangePointer(&m_hOutput, hOutput, INVALID_HANDLE_VALUE) != INVALID_HANDLE_VALUE)
+      CloseHandle(hOutput);
+  }
+
+  InterlockedIncrement(&hOutputCounter);
 }
 
 void DbgSetLogFileDesktop(LPCTSTR szFile)
@@ -98,13 +97,11 @@ void DbgSetLogFileDesktop(LPCTSTR szFile)
 
 void DbgCloseLogFile()
 {
-  if (m_hOutput != INVALID_HANDLE_VALUE) {
-    LONG count = InterlockedDecrement(&hOutputCounter);
-    if (count == 0) {
-      FlushFileBuffers(m_hOutput);
-      CloseHandle(m_hOutput);
-      m_hOutput = INVALID_HANDLE_VALUE;
-    }
+  LONG count = InterlockedDecrement(&hOutputCounter);
+  if (count == 0 && m_hOutput != INVALID_HANDLE_VALUE) {
+    FlushFileBuffers(m_hOutput);
+    CloseHandle(m_hOutput);
+    m_hOutput = INVALID_HANDLE_VALUE;
   }
 }
 #endif
