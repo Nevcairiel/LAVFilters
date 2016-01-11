@@ -50,17 +50,18 @@ WelcomeLabel2=This will install [name] on your computer.%n%nIt is recommended th
 WinVersionTooLowError=This software only works on Windows XP SP3 and newer.
 
 [Types]
-Name: Normal; Description: Normal; Flags: iscustom
+Name: default; Description: Default
+Name: full;    Description: Full
+Name: custom;  Description: Custom; Flags: iscustom
 
 [Components]
-Name: lavsplitter32; Description: LAV Splitter (x86); Types: Normal;
-Name: lavsplitter64; Description: LAV Splitter (x64); Types: Normal; Check: IsWin64;
-Name: lavaudio32;    Description: LAV Audio (x86);    Types: Normal;
-Name: lavaudio64;    Description: LAV Audio (x64);    Types: Normal; Check: IsWin64;
-Name: lavvideo32;    Description: LAV Video (x86);    Types: Normal;
-Name: lavvideo32\mvc3d; Description:  H.264 MVC 3D Decoder (extra download); Types: Normal; ExtraDiskSpaceRequired: 3095639;
-Name: lavvideo64;    Description: LAV Video (x64);    Types: Normal; Check: IsWin64;
-Name: lavvideo64\mvc3d; Description:  H.264 MVC 3D Decoder (extra download); Types: Normal; Check: IsWin64; ExtraDiskSpaceRequired: 3916173;
+Name: lavsplitter32; Description: LAV Splitter (x86); Types: default full custom;
+Name: lavsplitter64; Description: LAV Splitter (x64); Types: default full custom; Check: IsWin64;
+Name: lavaudio32;    Description: LAV Audio (x86);    Types: default full custom;
+Name: lavaudio64;    Description: LAV Audio (x64);    Types: default full custom; Check: IsWin64;
+Name: lavvideo32;    Description: LAV Video (x86);    Types: default full custom;
+Name: lavvideo64;    Description: LAV Video (x64);    Types: default full custom; Check: IsWin64;
+Name: mvc3d;         Description: H.264 MVC 3D Decoder (extra download); Types: full; ExtraDiskSpaceRequired: 35935024;
 
 [Tasks]
 Name: icons;          Description: "Create Start Menu Shortcuts";
@@ -437,13 +438,32 @@ begin
           end;
       end;
 
-      ExtractTemporaryFile('7za.exe');
-      targetPath := ExpandConstant('{tmp}\');
-      if IsComponentSelected('lavvideo32\mvc3d') then begin
-         DoUnzip(targetPath + 'libmfxsw32-v1.7z', ExpandConstant('{app}\x86'));
+      if IsComponentSelected('mvc3d') then
+      begin
+        ExtractTemporaryFile('7za.exe');
+        targetPath := ExpandConstant('{tmp}\');
+        if IsComponentSelected('lavvideo32') then
+          DoUnzip(targetPath + 'libmfxsw32-v1.7z', ExpandConstant('{app}\x86'));
+        if IsComponentSelected('lavvideo64') then
+          DoUnzip(targetPath + 'libmfxsw64-v1.7z', ExpandConstant('{app}\x64'));
       end;
-      if IsComponentSelected('lavvideo64\mvc3d') then begin
-         DoUnzip(targetPath + 'libmfxsw64-v1.7z', ExpandConstant('{app}\x64'));
+  end;
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+    if CurPageID = wpReady then
+    begin
+      // User can navigate to 'Ready to install' page several times, so we
+      // need to clear file list to ensure that only needed files are added.
+      idpClearFiles;
+
+      if IsComponentSelected('mvc3d') then
+      begin
+        if IsComponentSelected('lavvideo32') then
+          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw32-v1.7z', ExpandConstant('{tmp}\libmfxsw32-v1.7z'));
+        if IsComponentSelected('lavvideo64') then
+          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw64-v1.7z', ExpandConstant('{tmp}\libmfxsw64-v1.7z'));
       end;
   end;
 end;
@@ -503,7 +523,5 @@ begin
   WizardForm.TasksList.Top    := 0;
   WizardForm.TasksList.Height := PageFromID(wpSelectTasks).SurfaceHeight;
 
-  idpAddFileComp('http://files.1f0.de/lavf/plugins/libmfxsw32-v1.7z', ExpandConstant('{tmp}\libmfxsw32-v1.7z'), 'lavvideo32\mvc3d');
-  idpAddFileComp('http://files.1f0.de/lavf/plugins/libmfxsw64-v1.7z', ExpandConstant('{tmp}\libmfxsw64-v1.7z'), 'lavvideo64\mvc3d');
   idpDownloadAfter(wpReady);
 end;
