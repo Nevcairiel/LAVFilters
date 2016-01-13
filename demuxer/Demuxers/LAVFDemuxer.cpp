@@ -2034,7 +2034,12 @@ static int audio_codec_priority(AVCodecContext *codec)
 
     if (codec->codec_id == AV_CODEC_ID_DTS) {
       priority = 7;
-      if (codec->profile >= FF_PROFILE_DTS_HD_HRA) {
+
+      if (codec->profile == FF_PROFILE_DTS_EXPRESS) {
+        priority -= 1;
+      } else if (codec->profile == FF_PROFILE_DTS_HD_MA) {
+        priority += 3;
+      } else if (codec->profile == FF_PROFILE_DTS_HD_HRA) {
         priority += 2;
       } else if (codec->profile >= FF_PROFILE_DTS_ES) {
         priority += 1;
