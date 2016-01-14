@@ -202,6 +202,13 @@ int SafeMultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr,
     if (len == cchWideChar || (len == 0 && GetLastError() == ERROR_INSUFFICIENT_BUFFER)) {
       lpWideCharStr[cchWideChar - 1] = 0;
     } else if (len == 0) {
+      DWORD dwErr = GetLastError();
+      if (dwErr == ERROR_NO_UNICODE_TRANSLATION && CodePage == CP_UTF8) {
+        return SafeMultiByteToWideChar(CP_ACP, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
+      }
+      else if (dwErr == ERROR_NO_UNICODE_TRANSLATION && (dwFlags & MB_ERR_INVALID_CHARS)) {
+        return SafeMultiByteToWideChar(CP_UTF8, (dwFlags & ~MB_ERR_INVALID_CHARS), lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
+      }
       lpWideCharStr[0] = 0;
     }
   }
@@ -230,6 +237,15 @@ LPWSTR CoTaskGetWideCharFromMultiByte(UINT CodePage, DWORD dwFlags, LPCSTR lpMul
 
     return pszWideString;
   }
+  else {
+    DWORD dwErr = GetLastError();
+    if (dwErr == ERROR_NO_UNICODE_TRANSLATION && CodePage == CP_UTF8) {
+      return CoTaskGetWideCharFromMultiByte(CP_ACP, dwFlags, lpMultiByteStr, cbMultiByte);
+    }
+    else if (dwErr == ERROR_NO_UNICODE_TRANSLATION && (dwFlags & MB_ERR_INVALID_CHARS)) {
+      return CoTaskGetWideCharFromMultiByte(CP_UTF8, (dwFlags & ~MB_ERR_INVALID_CHARS), lpMultiByteStr, cbMultiByte);
+    }
+  }
   return NULL;
 }
 
@@ -251,18 +267,9 @@ BSTR ConvertCharToBSTR(const char *sz)
   if (!sz || strlen(sz) == 0)
     return nullptr;
 
-  int len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, sz, -1, nullptr, 0);
-  if (len == 0) {
-    acp = true;
-    len = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, sz, -1, nullptr, 0);
-    if (len == 0)
-      return nullptr;
-  }
-
-  WCHAR *wide = (WCHAR *)CoTaskMemAlloc(len * sizeof(WCHAR));
+  WCHAR *wide = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, sz, -1);
   if (!wide)
     return nullptr;
-  MultiByteToWideChar(acp ? CP_ACP : CP_UTF8, MB_ERR_INVALID_CHARS, sz, -1, wide, len);
 
   BSTR bstr = SysAllocString(wide);
   CoTaskMemFree(wide);
