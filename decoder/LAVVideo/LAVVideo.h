@@ -52,7 +52,7 @@ typedef struct {
 } TimingCache;
 
 [uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback
+class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback, public IPropertyBag
 {
 public:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);
@@ -169,6 +169,10 @@ public:
   STDMETHODIMP_(LAVFrame*) GetFlushFrame();
   STDMETHODIMP ReleaseAllDXVAResources() { ReleaseLastSequenceFrame(); return S_OK; }
   STDMETHODIMP_(DWORD) GetGPUDeviceIndex() { return m_dwGPUDeviceIndex; }
+
+  // IPropertyBag
+  STDMETHODIMP Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog);
+  STDMETHODIMP Write(LPCOLESTR pszPropName, VARIANT *pVar) { return E_NOTIMPL; }
 
 public:
   // Pin Configuration

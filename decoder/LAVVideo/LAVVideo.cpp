@@ -373,6 +373,7 @@ STDMETHODIMP CLAVVideo::NonDelegatingQueryInterface(REFIID riid, void** ppv)
   return
     QI(ISpecifyPropertyPages)
     QI(ISpecifyPropertyPages2)
+    QI(IPropertyBag)
     QI2(ILAVVideoSettings)
     QI2(ILAVVideoStatus)
     __super::NonDelegatingQueryInterface(riid, ppv);
@@ -1870,6 +1871,24 @@ HRESULT CLAVVideo::SetFrameFlags(IMediaSample* pMS, LAVFrame *pFrame)
   }
   SafeRelease(&pMS2);
   return hr;
+}
+
+STDMETHODIMP CLAVVideo::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog)
+{
+  CheckPointer(pszPropName, E_INVALIDARG);
+  CheckPointer(pVar, E_INVALIDARG);
+
+  if (_wcsicmp(pszPropName, L"STEREOSCOPIC3D") == 0) {
+    const WCHAR * pszDecoder = GetActiveDecoderName();
+    bool bMVC = pszDecoder && wcscmp(pszDecoder, L"msdk mvc") == 0;
+
+    VariantClear(pVar);
+    pVar->vt = VT_BSTR;
+    pVar->bstrVal = SysAllocString(bMVC ? L"1" : L"0");
+    return S_OK;
+  }
+
+  return E_INVALIDARG;
 }
 
 // ILAVVideoSettings
