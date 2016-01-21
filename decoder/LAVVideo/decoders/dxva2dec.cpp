@@ -125,6 +125,7 @@ static const dxva2_mode_t dxva2_modes[] = {
 
   /* VP8/9 */
   { "VP9 variable-length decoder, profile 0",                                       &DXVA_ModeVP9_VLD_Profile0,             AV_CODEC_ID_VP9 },
+  { "VP9 variable-length decoder, 10bit, profile 2",                                &DXVA_ModeVP9_VLD_10bit_Profile2,       0 },
   { "VP8 variable-length decoder",                                                  &DXVA_ModeVP8_VLD,                      0 },
 
   /* Intel specific modes (only useful on older GPUs) */
