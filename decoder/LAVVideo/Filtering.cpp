@@ -42,7 +42,9 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
 {
   int ret = 0;
   BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
-  if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable && m_settings.SWDeintMode == SWDeintMode_YADIF && ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
+  if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable
+    && (m_settings.SWDeintMode == SWDeintMode_YADIF || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex)
+    && ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
     AVPixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? AV_PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? AV_PIX_FMT_YUV422P : AV_PIX_FMT_NV12;
 
     if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth || pFrame->height != m_filterHeight)) {
@@ -79,7 +81,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       av_opt_set(m_pFilterGraph, "thread_type", "slice", AV_OPT_SEARCH_CHILDREN);
       av_opt_set_int(m_pFilterGraph, "threads", FFMAX(1, av_cpu_count() / 2), AV_OPT_SEARCH_CHILDREN);
 
-      _snprintf_s(args, sizeof(args), "video_size=%dx%d:pix_fmt=%s:time_base=1/10000000:pixel_aspect=1/1", pFrame->width, pFrame->height, av_get_pix_fmt_name(ff_pixfmt));
+      _snprintf_s(args, sizeof(args), "video_size=%dx%d:pix_fmt=%s:time_base=1/10000000:pixel_aspect=%d/%d", pFrame->width, pFrame->height, av_get_pix_fmt_name(ff_pixfmt), pFrame->aspect_ratio.num, pFrame->aspect_ratio.den);
       ret = avfilter_graph_create_filter(&m_pFilterBufferSrc, buffersrc, "in", args, nullptr, m_pFilterGraph);
       if (ret < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Creating the input buffer filter failed with code %d", ret));
@@ -109,7 +111,15 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       inputs->pad_idx    = 0;
       inputs->next       = nullptr;
 
-      _snprintf_s(args, sizeof(args), "yadif=mode=%s:parity=auto:deint=interlaced", (m_settings.SWDeintOutput == DeintOutput_FramePerField) ? "send_field" : "send_frame");
+      if (m_settings.SWDeintMode == SWDeintMode_YADIF)
+        _snprintf_s(args, sizeof(args), "yadif=mode=%s:parity=auto:deint=interlaced", (m_settings.SWDeintOutput == DeintOutput_FramePerField) ? "send_field" : "send_frame");
+      else if (m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple)
+        _snprintf_s(args, sizeof(args), "w3fdif=filter=simple:deint=interlaced");
+      else if (m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex)
+        _snprintf_s(args, sizeof(args), "w3fdif=filter=complex:deint=interlaced");
+      else
+        ASSERT(0);
+
       if ((ret = avfilter_graph_parse_ptr(m_pFilterGraph, args, &inputs, &outputs, nullptr)) < 0) {
         DbgLog((LOG_TRACE, 10, L"::Filter()(init) Parsing the graph failed with code %d", ret));
         avfilter_graph_free(&m_pFilterGraph);
@@ -122,7 +132,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
         goto deliver;
       }
 
-      DbgLog((LOG_TRACE, 10, L":Filter()(init) YADIF Initialization complete"));
+      DbgLog((LOG_TRACE, 10, L":Filter()(init) avfilter Initialization complete"));
     }
 
     if (!m_pFilterGraph)
@@ -179,6 +189,9 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       goto deliver;
     }
 
+    BOOL bFramePerField = (m_settings.SWDeintMode == SWDeintMode_YADIF && m_settings.SWDeintOutput == DeintOutput_FramePerField)
+                        || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex;
+
     AVFrame *out_frame = av_frame_alloc();
     HRESULT hrDeliver = S_OK;
     while (SUCCEEDED(hrDeliver) && (av_buffersink_get_frame(m_pFilterBufferSink, out_frame) >= 0)) {
@@ -186,7 +199,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       AllocateFrame(&outFrame);
 
       REFERENCE_TIME rtDuration = pFrame->rtStop - pFrame->rtStart;
-      if (m_settings.SWDeintOutput == DeintOutput_FramePerField)
+      if (bFramePerField)
         rtDuration >>= 1;
 
       // Copy most settings over
@@ -205,7 +218,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       outFrame->rtStart      = pts;
       outFrame->rtStop       = pts + rtDuration;
 
-      if (m_settings.SWDeintOutput == DeintOutput_FramePerField) {
+      if (bFramePerField) {
         if (outFrame->avgFrameDuration != AV_NOPTS_VALUE)
           outFrame->avgFrameDuration /= 2;
       }

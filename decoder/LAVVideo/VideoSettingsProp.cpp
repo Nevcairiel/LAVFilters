@@ -148,8 +148,8 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelDeintOutput(bFilm ? DeintOutput_FramePer2Field : DeintOutput_FramePerField);
 
-  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_GETCHECK, 0, 0);
-  m_pVideoSettings->SetSWDeintMode(bFlag ? SWDeintMode_YADIF : SWDeintMode_None);
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_GETCURSEL, 0, 0);
+  m_pVideoSettings->SetSWDeintMode((LAVSWDeintModes)dwVal);
 
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_FILM, BM_GETCHECK, 0, 0);
   //BOOL bVideo = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_VIDEO, BM_GETCHECK, 0, 0);
@@ -228,6 +228,16 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   WideStringFromResource(stringBuffer, IDS_DEINTMODE_DISABLE);
   SendDlgItemMessage(m_Dlg, IDC_DEINT_MODE, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
 
+  // SW Deint Mode
+  WCHAR swdeintNone[] = L"No Software Deinterlacing";
+  WCHAR swdeintYADIF[] = L"YADIF";
+  WCHAR swdeintW3FDIFS[] = L"Weston Three Field (Simple)";
+  WCHAR swdeintW3FDIFC[] = L"Weston Three Field (Complex)";
+  SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintNone);
+  SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintYADIF);
+  SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintW3FDIFS);
+  SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintW3FDIFC);
+
   addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
   addHint(IDC_HWACCEL_VP9, L"EXPERIMENTAL! The VP9 HW decoder is still under development and may be unstable!");
 
@@ -292,7 +302,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_FILM, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePer2Field), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWDEINT_OUT_VIDEO, BM_SETCHECK, (m_HWDeintOutMode == DeintOutput_FramePerField), 0);
 
-    SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_SETCHECK, m_SWDeint, 0);
+    SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_SETCURSEL, m_SWDeint, 0);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_FILM, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePer2Field), 0);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_OUT_VIDEO, BM_SETCHECK, (m_SWDeintOutMode == DeintOutput_FramePerField), 0);
 
@@ -354,11 +364,11 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
 HRESULT CLAVVideoSettingsProp::UpdateYADIFOptions()
 {
-  BOOL bYadifEnabled = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_ENABLE, BM_GETCHECK, 0, 0);
+  DWORD dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_GETCURSEL, 0, 0);
 
-  EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_SWDEINT_MODE), bYadifEnabled);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_FILM), bYadifEnabled);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_VIDEO), bYadifEnabled);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_SWDEINT_MODE), (dwVal == SWDeintMode_YADIF));
+  EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_FILM), (dwVal == SWDeintMode_YADIF));
+  EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_VIDEO), (dwVal == SWDeintMode_YADIF));
 
   return S_OK;
 }
@@ -387,7 +397,7 @@ HRESULT CLAVVideoSettingsProp::LoadData()
   m_HWDeintAlgo = m_pVideoSettings->GetHWAccelDeintMode();
   m_HWDeintOutMode = m_pVideoSettings->GetHWAccelDeintOutput();
 
-  m_SWDeint = m_pVideoSettings->GetSWDeintMode() == SWDeintMode_YADIF;
+  m_SWDeint = m_pVideoSettings->GetSWDeintMode();
   m_SWDeintOutMode = m_pVideoSettings->GetSWDeintOutput();
 
   m_DitherMode = m_pVideoSettings->GetDitherMode();
@@ -593,9 +603,9 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       if (bValue != (m_SWDeintOutMode == DeintOutput_FramePerField)) {
         SetDirty();
       }
-    } else if (LOWORD(wParam) == IDC_SWDEINT_ENABLE && HIWORD(wParam) == BN_CLICKED) {
-      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
-      if (bValue != m_SWDeint) {
+    } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_SWDEINT_MODE) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_SWDeint) {
         SetDirty();
       }
       UpdateYADIFOptions();

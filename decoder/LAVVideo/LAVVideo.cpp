@@ -681,7 +681,7 @@ HRESULT CLAVVideo::CheckDirectMode()
   m_Decoder.GetPixelFormat(&pix, &bpp);
 
   BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P010);
-  if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)
+  if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced() && m_settings.SWDeintMode != SWDeintMode_None)
     bDirect = FALSE;
   else if (pix == LAVPixFmt_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_YV12)
     bDirect = FALSE;
@@ -1486,9 +1486,9 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   }
 
   // Only perform filtering if we have to.
-  // DXVA Native generally can't be filtered, and the only filtering we currently support is YADIF deint
+  // DXVA Native generally can't be filtered, and the only filtering we currently support is software deinterlacing
   if ( pFrame->format == LAVPixFmt_DXVA2
-    || !(m_Decoder.IsInterlaced() && m_settings.SWDeintMode == SWDeintMode_YADIF)
+    || !(m_Decoder.IsInterlaced() && m_settings.SWDeintMode != SWDeintMode_None)
     || pFrame->flags & LAV_FRAME_FLAG_REDRAW) {
     return DeliverToRenderer(pFrame);
   } else {

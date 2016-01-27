@@ -63,7 +63,7 @@
 #define IDC_HWACCEL_AVAIL               1053
 #define IDC_DEINT_SETTINGS              1054
 #define IDC_DEINT_MODE                  1055
-#define IDC_SWDEINT_ENABLE              1056
+#define IDC_SWDEINT_MODE                1056
 #define IDC_SWDEINT                     1057
 #define IDC_LBL_SWDEINT_MODE            1058
 #define IDC_SWDEINT_OUT_FILM            1059
