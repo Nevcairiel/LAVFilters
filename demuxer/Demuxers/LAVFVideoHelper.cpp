@@ -28,8 +28,8 @@
 #include "ExtradataParser.h"
 #include "H264Nalu.h"
 
-// 125fps is the highest we accept as "sane"
-#define MIN_TIME_PER_FRAME 80000
+// 250fps is the highest we accept as "sane"
+#define MIN_TIME_PER_FRAME 40000
 // 8fps is the lowest that is "sane" in our definition
 #define MAX_TIME_PER_FRAME 1250000
 
