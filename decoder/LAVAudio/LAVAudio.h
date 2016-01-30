@@ -37,8 +37,8 @@
 // Maximum Durations (in reference time)
 // 10ms (DTS has 10.6667 ms samples, don't want to queue them up)
 #define PCM_BUFFER_MAX_DURATION 100000
-// 4ms
-#define PCM_BUFFER_MIN_DURATION 40000
+// 6ms
+#define PCM_BUFFER_MIN_DURATION 60000
 
 // Maximum desync that we attribute to jitter before re-syncing (10ms)
 #define MAX_JITTER_DESYNC 100000i64
