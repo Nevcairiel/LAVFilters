@@ -179,7 +179,9 @@ static std::string format_flags(int flags){
   return out.str();
 }
 
-static bool show_sample_fmt(AVCodecID codec_id) {
+static bool show_sample_fmt(AVCodecContext *ctx) {
+  AVCodecID codec_id = ctx->codec_id;
+
   // PCM Codecs
   if (codec_id >= 0x10000 && codec_id < 0x12000) {
     return true;
@@ -194,6 +196,11 @@ static bool show_sample_fmt(AVCodecID codec_id) {
    || codec_id == AV_CODEC_ID_ALAC) {
      return true;
   }
+
+  // Lossless DTS
+  if (codec_id == AV_CODEC_ID_DTS && ctx->profile == FF_PROFILE_DTS_HD_MA)
+    return true;
+
   return false;
 }
 
@@ -292,7 +299,7 @@ std::string lavf_get_stream_description(AVStream *pStream)
       buf << ", " << channel;
     }
     // Sample Format
-    if (show_sample_fmt(enc->codec_id) && get_bits_per_sample(enc, true)) {
+    if (show_sample_fmt(enc) && get_bits_per_sample(enc, true)) {
       if (enc->sample_fmt == AV_SAMPLE_FMT_FLT || enc->sample_fmt == AV_SAMPLE_FMT_DBL) {
         buf << ", fp";
       } else {

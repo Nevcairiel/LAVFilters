@@ -40,7 +40,7 @@ inline int get_bits_per_sample(AVCodecContext *ctx, bool bRaw = false)
   if (!bits || bRaw) {
     bits = ctx->bits_per_coded_sample;
     if(!bits || bRaw) {
-      if (ctx->sample_fmt == AV_SAMPLE_FMT_S32 && ctx->bits_per_raw_sample) {
+      if ((ctx->sample_fmt == AV_SAMPLE_FMT_S32 || ctx->sample_fmt == AV_SAMPLE_FMT_S32P) && ctx->bits_per_raw_sample) {
         bits = ctx->bits_per_raw_sample;
       } else {
         bits = av_get_bytes_per_sample(ctx->sample_fmt) << 3;
