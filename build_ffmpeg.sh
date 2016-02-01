@@ -24,10 +24,6 @@ do
     esac
 done
 
-BASEDIR=$(pwd)
-THIRDPARTYPREFIX=${BASEDIR}/bin_${archdir}/thirdparty
-export PKG_CONFIG_PATH="${THIRDPARTYPREFIX}/lib/pkgconfig/"
-
 make_dirs() (
   mkdir -p bin_${archdir}/lib
   mkdir -p bin_${archdir}d/lib
@@ -67,8 +63,6 @@ configure() (
     --enable-hwaccel=wmv3_dxva2     \
     --enable-hwaccel=mpeg2_dxva2    \
     --enable-hwaccel=vp9_dxva2      \
-    --disable-decoder=dca           \
-    --enable-libdcadec              \
     --enable-libspeex               \
     --enable-libopencore-amrnb      \
     --enable-libopencore-amrwb      \
@@ -104,23 +98,7 @@ build() (
   make -j$NUMBER_OF_PROCESSORS
 )
 
-build_dcadec() (
-  mkdir -p "${THIRDPARTYPREFIX}/dcadec"
-  cd "${THIRDPARTYPREFIX}/dcadec"
-  if $clean_build ; then
-    make -f "${BASEDIR}/thirdparty/dcadec/Makefile" CONFIG_WINDOWS=1 clean
-  fi
-  make -f "${BASEDIR}/thirdparty/dcadec/Makefile" -j$NUMBER_OF_PROCESSORS CONFIG_WINDOWS=1 CONFIG_SMALL=1 CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX="${THIRDPARTYPREFIX}" install-lib
-
-  cd "${BASEDIR}"
-)
-
 make_dirs
-
-echo Building dcadec
-echo
-
-build_dcadec
 
 echo
 echo Building ffmpeg in GCC ${arch} Release config...
