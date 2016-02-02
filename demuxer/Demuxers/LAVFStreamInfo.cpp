@@ -61,6 +61,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
   // Make sure DTS Express has valid settings
   if (avstream->codec->codec_id == AV_CODEC_ID_DTS && avstream->codec->codec_tag == 0xA2) {
     avstream->codec->channels = avstream->codec->channels ? avstream->codec->channels : 2;
+    avstream->codec->channel_layout = avstream->codec->channel_layout ? avstream->codec->channel_layout : av_get_default_channel_layout(avstream->codec->channels);
     avstream->codec->sample_rate = avstream->codec->sample_rate ? avstream->codec->sample_rate : 48000;
   }
 
