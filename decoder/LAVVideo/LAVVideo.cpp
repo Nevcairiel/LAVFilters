@@ -156,7 +156,6 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.bPixFmts[LAVOutPixFmt_YV16] = FALSE;
   m_settings.bPixFmts[LAVOutPixFmt_AYUV] = FALSE;
-  m_settings.bPixFmts[LAVOutPixFmt_RGB48] = FALSE;
 
   m_settings.HWAccel = HWAccel_None;
   for (int i = 0; i < HWCodec_NB; ++i)
