@@ -44,7 +44,7 @@ CDecMSDKMVC::~CDecMSDKMVC()
 
 STDMETHODIMP CDecMSDKMVC::Init()
 {
-  mfxIMPL impl = MFX_IMPL_AUTO_ANY;
+  mfxIMPL impl = MFX_IMPL_SOFTWARE;
   mfxVersion version = { 8, 1 };
 
   mfxStatus sts = MFXInit(impl, &version, &m_mfxSession);
