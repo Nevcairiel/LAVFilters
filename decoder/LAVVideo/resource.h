@@ -88,6 +88,7 @@
 #define IDC_TRAYICON                    1079
 #define IDC_HWACCEL_HEVC                1080
 #define IDC_HWACCEL_VP9                 1081
+#define IDC_LBL_SWDEINT_ALGO            1082
 
 // Next default values for new objects
 // 
@@ -95,7 +96,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        111
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1081
+#define _APS_NEXT_CONTROL_VALUE         1083
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

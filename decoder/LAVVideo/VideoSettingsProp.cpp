@@ -353,8 +353,8 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWDEINT_OUT_VIDEO), bHWDeintEnabled);
 
   WCHAR hwAccelEmpty[] = L"";
-  WCHAR hwAccelUnavailable[] = L"Not available";
-  WCHAR hwAccelAvailable[]   = L"Available";
+  WCHAR hwAccelUnavailable[] = L"N/A";
+  WCHAR hwAccelAvailable[]   = L"OK";
   WCHAR hwAccelActive[]      = L"Active";
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AVAIL, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_None ? hwAccelEmpty : dwSupport == 0 ? hwAccelUnavailable : dwSupport == 1 ? hwAccelAvailable : hwAccelActive));
