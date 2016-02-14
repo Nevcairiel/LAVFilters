@@ -47,6 +47,8 @@ public:
 
   STDMETHODIMP PostConnect(IPin *pPin);
 
+  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName) { CheckPointer(pstrDeviceName, E_POINTER); *pstrDeviceName = SysAllocString(L"Intel\xae QuickSync"); if (!*pstrDeviceName) return E_OUTOFMEMORY; return S_OK; }
+
   // CDecBase
   STDMETHODIMP Init();
 

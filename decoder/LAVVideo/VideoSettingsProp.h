@@ -72,6 +72,7 @@ private:
   BOOL  m_HWAccelCodecs[HWCodec_NB];
 
   DWORD m_HWRes;
+  DWORD m_HWDeviceIndex;
 
   DWORD m_HWDeintAlgo;
   DWORD m_HWDeintOutMode;

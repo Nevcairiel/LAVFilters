@@ -45,6 +45,10 @@ public:
 
   STDMETHODIMP SetDirectOutput(BOOL bDirect) { return S_FALSE; }
 
+  STDMETHODIMP_(DWORD) GetHWAccelNumDevices() { return 0; }
+  STDMETHODIMP GetHWAccelDeviceInfo(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier) { return E_UNEXPECTED; }
+  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName) { return E_UNEXPECTED; }
+
   STDMETHODIMP Decode(IMediaSample *pSample) {
     HRESULT hr;
 

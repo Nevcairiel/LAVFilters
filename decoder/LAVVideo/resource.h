@@ -89,6 +89,11 @@
 #define IDC_HWACCEL_HEVC                1080
 #define IDC_HWACCEL_VP9                 1081
 #define IDC_LBL_SWDEINT_ALGO            1082
+#define IDC_LBL_HWACCEL_DEVICE          1083
+#define IDC_HWACCEL_DEVICE              1084
+#define IDC_HWACCEL_DEVICE_SELECT       1085
+#define IDC_LBL_HWACCEL_DEVICE_SELECT   1086
+#define IDC_LBL_HWACCEL_DEVICE_HINT     1087
 
 // Next default values for new objects
 // 
@@ -96,7 +101,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        111
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1083
+#define _APS_NEXT_CONTROL_VALUE         1088
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

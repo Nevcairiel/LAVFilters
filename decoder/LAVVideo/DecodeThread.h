@@ -30,6 +30,8 @@ public:
   CDecodeThread(CLAVVideo *pLAVVideo);
   ~CDecodeThread();
 
+  static ILAVDecoder * CreateHWAccelDecoder(LAVHWAccel hwAccel);
+
   // Parts of ILAVDecoder
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_pDecoder ? m_pDecoder->GetDecoderName() : nullptr; }
   STDMETHODIMP_(long) GetBufferCount() { return m_pDecoder ? m_pDecoder->GetBufferCount() : 4; }
@@ -51,6 +53,7 @@ public:
   STDMETHODIMP PostConnect(IPin *pPin);
 
   STDMETHODIMP_(BOOL) IsHWDecoderActive() { return m_bHWDecoder; }
+  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName) { return m_pDecoder ? m_pDecoder->GetHWAccelActiveDevice(pstrDeviceName) : E_UNEXPECTED; }
 
   // ILAVVideoCallback
   STDMETHODIMP AllocateFrame(LAVFrame **ppFrame);

@@ -174,6 +174,10 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.DitherMode = LAVDither_Random;
 
+
+  m_settings.HWAccelDeviceDXVA2 = LAVHWACCEL_DEVICE_DEFAULT;
+  m_settings.HWAccelDeviceDXVA2Desc = 0;
+
   return S_OK;
 }
 
@@ -297,6 +301,12 @@ HRESULT CLAVVideo::ReadSettings(HKEY rootKey)
 
     dwVal = regHW.ReadDWORD(L"HWDeintOutput", hr);
     if (SUCCEEDED(hr)) m_settings.HWDeintOutput = dwVal;
+
+    dwVal = regHW.ReadDWORD(L"HWAccelDeviceDXVA2", hr);
+    if (SUCCEEDED(hr)) m_settings.HWAccelDeviceDXVA2 = dwVal;
+
+    dwVal = regHW.ReadDWORD(L"HWAccelDeviceDXVA2Desc", hr);
+    if (SUCCEEDED(hr)) m_settings.HWAccelDeviceDXVA2Desc = dwVal;
   }
 
   return S_OK;
@@ -350,6 +360,9 @@ HRESULT CLAVVideo::SaveSettings()
 
     regHW.WriteDWORD(L"HWDeintMode", m_settings.HWDeintMode);
     regHW.WriteDWORD(L"HWDeintOutput", m_settings.HWDeintOutput);
+
+    regHW.WriteDWORD(L"HWAccelDeviceDXVA2", m_settings.HWAccelDeviceDXVA2);
+    regHW.WriteDWORD(L"HWAccelDeviceDXVA2Desc", m_settings.HWAccelDeviceDXVA2Desc);
 
     reg.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
@@ -2016,21 +2029,7 @@ STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
     return 2;
 
   HRESULT hr = E_FAIL;
-  ILAVDecoder *pDecoder = nullptr;
-  switch(hwAccel) {
-  case HWAccel_CUDA:
-    pDecoder = CreateDecoderCUVID();
-    break;
-  case HWAccel_QuickSync:
-    pDecoder = CreateDecoderQuickSync();
-    break;
-  case HWAccel_DXVA2CopyBack:
-    pDecoder = CreateDecoderDXVA2();
-    break;
-  case HWAccel_DXVA2Native:
-    pDecoder = CreateDecoderDXVA2Native();
-    break;
-  }
+  ILAVDecoder *pDecoder = CDecodeThread::CreateHWAccelDecoder(hwAccel);
 
   if (pDecoder) {
     hr = pDecoder->InitInterfaces(this, this);
@@ -2211,4 +2210,84 @@ STDMETHODIMP CLAVVideo::SetGPUDeviceIndex(DWORD dwDevice)
 {
   m_dwGPUDeviceIndex = dwDevice;
   return S_OK;
+}
+
+STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelNumDevices(LAVHWAccel hwAccel)
+{
+  HRESULT hr = S_OK;
+  ILAVDecoder *pDecoder = CDecodeThread::CreateHWAccelDecoder(hwAccel);
+  DWORD dwDevices = 0;
+  if (pDecoder) {
+    hr = pDecoder->InitInterfaces(this, this);
+    if (SUCCEEDED(hr)) {
+      dwDevices = pDecoder->GetHWAccelNumDevices();
+    }
+    SAFE_DELETE(pDecoder);
+  }
+  return dwDevices;
+}
+
+STDMETHODIMP CLAVVideo::GetHWAccelDeviceInfo(LAVHWAccel hwAccel, DWORD dwIndex, BSTR *pstrDeviceName, DWORD *pdwDeviceIdentifier)
+{
+  HRESULT hr = E_NOINTERFACE;
+  ILAVDecoder *pDecoder = CDecodeThread::CreateHWAccelDecoder(hwAccel);
+  if (pDecoder) {
+    hr = pDecoder->InitInterfaces(this, this);
+    if (SUCCEEDED(hr)) {
+      hr = pDecoder->GetHWAccelDeviceInfo(dwIndex, pstrDeviceName, pdwDeviceIdentifier);
+    }
+    SAFE_DELETE(pDecoder);
+  }
+  return hr;
+}
+
+STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD *pdwDeviceIdentifier)
+{
+  HRESULT hr = S_OK;
+  if (hwAccel == HWAccel_DXVA2CopyBack) {
+    DWORD dwDeviceIndex = m_settings.HWAccelDeviceDXVA2;
+    DWORD dwDeviceId = m_settings.HWAccelDeviceDXVA2Desc;
+
+    // verify the values and re-match them to adapters appropriately
+    if (dwDeviceIndex != LAVHWACCEL_DEVICE_DEFAULT && dwDeviceId != 0) {
+      hr = VerifyD3D9Device(dwDeviceIndex, dwDeviceId);
+      if (FAILED(hr)) {
+        dwDeviceIndex = LAVHWACCEL_DEVICE_DEFAULT;
+        dwDeviceId = 0;
+      }
+    }
+
+    if (pdwDeviceIdentifier)
+      *pdwDeviceIdentifier = dwDeviceId;
+
+    return dwDeviceIndex;
+  }
+
+  if (pdwDeviceIdentifier)
+    *pdwDeviceIdentifier = 0;
+  return LAVHWACCEL_DEVICE_DEFAULT;
+}
+
+STDMETHODIMP CLAVVideo::SetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD dwIndex, DWORD dwDeviceIdentifier)
+{
+  HRESULT hr = S_OK;
+
+  if (dwIndex != LAVHWACCEL_DEVICE_DEFAULT && dwDeviceIdentifier == 0)
+    hr = GetHWAccelDeviceInfo(hwAccel, dwIndex, nullptr, &dwDeviceIdentifier);
+
+  if (SUCCEEDED(hr)) {
+    if (hwAccel == HWAccel_DXVA2CopyBack) {
+      m_settings.HWAccelDeviceDXVA2 = dwIndex;
+      m_settings.HWAccelDeviceDXVA2Desc = dwDeviceIdentifier;
+    }
+    return SaveSettings();
+  }
+  else {
+    return E_INVALIDARG;
+  }
+}
+
+STDMETHODIMP CLAVVideo::GetHWAccelActiveDevice(BSTR *pstrDeviceName)
+{
+  return m_Decoder.GetHWAccelActiveDevice(pstrDeviceName);
 }

@@ -402,6 +402,21 @@ interface ILAVDecoder
    * Toggle direct frame output mode for hardware decoders
    */
   STDMETHOD(SetDirectOutput)(BOOL bDirect) PURE;
+
+  /**
+   * Get the number of available hw accel devices
+   */
+  STDMETHOD_(DWORD, GetHWAccelNumDevices)() PURE;
+
+  /**
+   * Get information about a hwaccel device
+   */
+  STDMETHOD(GetHWAccelDeviceInfo)(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier) PURE;
+
+  /**
+   * Get the description of the currently active hwaccel device
+   */
+  STDMETHOD(GetHWAccelActiveDevice)(BSTR *pstrDeviceName) PURE;
 };
 
 /**
@@ -417,3 +432,5 @@ ILAVDecoder *CreateDecoderQuickSync();
 ILAVDecoder *CreateDecoderDXVA2();
 ILAVDecoder *CreateDecoderDXVA2Native();
 ILAVDecoder *CreateDecoderMSDKMVC();
+
+HRESULT VerifyD3D9Device(DWORD & dwIndex, DWORD dwDeviceId);

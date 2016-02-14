@@ -49,6 +49,38 @@ ILAVDecoder *CreateDecoderDXVA2Native() {
   return dec;
 }
 
+HRESULT VerifyD3D9Device(DWORD & dwIndex, DWORD dwDeviceId)
+{
+  HRESULT hr = S_OK;
+
+  IDirect3D9 * pD3D = Direct3DCreate9(D3D_SDK_VERSION);
+  if (!pD3D)
+    return E_FAIL;
+
+  D3DADAPTER_IDENTIFIER9 d3dai = { 0 };
+
+  // Check the combination of adapter and device id
+  hr = pD3D->GetAdapterIdentifier(dwIndex, 0, &d3dai);
+  if (hr == D3D_OK && d3dai.DeviceId == dwDeviceId)
+    goto done;
+
+  // find an adapter with the specified device id
+  for (UINT i = 0; i < pD3D->GetAdapterCount(); i++) {
+    hr = pD3D->GetAdapterIdentifier(i, 0, &d3dai);
+    if (hr == D3D_OK && d3dai.DeviceId == dwDeviceId) {
+      dwIndex = i;
+      goto done;
+    }
+  }
+
+  // fail otherwise
+  hr = E_FAIL;
+
+done:
+  SafeRelease(&pD3D);
+  return hr;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Codec Maps
 ////////////////////////////////////////////////////////////////////////////////
@@ -589,7 +621,9 @@ HRESULT CDecDXVA2::InitD3D()
     return E_FAIL;
   }
 
-  UINT lAdapter = D3DADAPTER_DEFAULT;
+  UINT lAdapter = m_pSettings->GetHWAccelDeviceIndex(HWAccel_DXVA2CopyBack, nullptr);
+  if (lAdapter == LAVHWACCEL_DEVICE_DEFAULT)
+    lAdapter = D3DADAPTER_DEFAULT;
 
   DWORD dwDeviceIndex = m_pCallback->GetGPUDeviceIndex();
   if (dwDeviceIndex != DWORD_MAX) {
@@ -696,6 +730,7 @@ HRESULT CDecDXVA2::RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager)
 
   m_dwVendorId = adIdentifier.VendorId;
   m_dwDeviceId = adIdentifier.DeviceId;
+  memcpy(m_cDeviceName, adIdentifier.Description, sizeof(m_cDeviceName));
 
 done:
   SafeRelease(&pD3D);
@@ -1572,4 +1607,59 @@ bool CDecDXVA2::DeliverDirect(LAVFrame *pFrame)
   Deliver(pFrame);
 
   return true;
+}
+
+STDMETHODIMP_(DWORD) CDecDXVA2::GetHWAccelNumDevices()
+{
+  if (m_bNative)
+    return 0;
+
+  if (!m_pD3D)
+    return 0;
+
+  return m_pD3D->GetAdapterCount();
+}
+
+STDMETHODIMP CDecDXVA2::GetHWAccelDeviceInfo(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier)
+{
+  if (m_bNative)
+    return E_UNEXPECTED;
+
+  if (!m_pD3D)
+    return E_NOINTERFACE;
+
+  D3DADAPTER_IDENTIFIER9 d3dai = { 0 };
+  HRESULT err = m_pD3D->GetAdapterIdentifier(dwIndex, 0, &d3dai);
+  if (err != D3D_OK)
+    return E_INVALIDARG;
+
+  if (pstrDeviceName) {
+    int len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, d3dai.Description, -1, nullptr, 0);
+    if (len == 0)
+      return E_FAIL;
+
+    *pstrDeviceName = SysAllocStringLen(nullptr, len);
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, d3dai.Description, -1, *pstrDeviceName, len);
+  }
+
+  if (dwDeviceIdentifier)
+    *dwDeviceIdentifier = d3dai.DeviceId;
+
+  return S_OK;
+}
+
+STDMETHODIMP CDecDXVA2::GetHWAccelActiveDevice(BSTR *pstrDeviceName)
+{
+  CheckPointer(pstrDeviceName, E_POINTER);
+
+  if (strlen(m_cDeviceName) == 0)
+    return E_UNEXPECTED;
+
+  int len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_cDeviceName, -1, nullptr, 0);
+  if (len == 0)
+    return E_FAIL;
+
+  *pstrDeviceName = SysAllocStringLen(nullptr, len);
+  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_cDeviceName, -1, *pstrDeviceName, len);
+  return S_OK;
 }

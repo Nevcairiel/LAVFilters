@@ -141,6 +141,13 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
 
   m_pVideoSettings->SetHWAccelResolutionFlags(dwHWResFlags);
 
+  dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_GETCURSEL, 0, 0);
+  if (dwVal == 0)
+    dwVal = LAVHWACCEL_DEVICE_DEFAULT;
+  else
+    dwVal--;
+  m_pVideoSettings->SetHWAccelDeviceIndex(m_pVideoSettings->GetHWAccel(), dwVal, 0);
+
   BOOL bHWDeint = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWDEINT_ENABLE, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelDeintMode(bHWDeint ? HWDeintMode_Hardware : HWDeintMode_Weave);
 
@@ -318,6 +325,15 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   const WCHAR *decoder = m_pVideoStatus->GetActiveDecoderName();
   SendDlgItemMessage(m_Dlg, IDC_ACTIVE_DECODER, WM_SETTEXT, 0, (LPARAM)(decoder ? decoder : L"<inactive>"));
 
+  BSTR bstrHWDevice = nullptr;
+  if (SUCCEEDED(m_pVideoStatus->GetHWAccelActiveDevice(&bstrHWDevice))) {
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE, WM_SETTEXT, 0, (LPARAM)bstrHWDevice);
+    SysFreeString(bstrHWDevice);
+  }
+  else {
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE, WM_SETTEXT, 0, (LPARAM)L"<none>");
+  }
+
   return hr;
 }
 
@@ -358,6 +374,43 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   WCHAR hwAccelActive[]      = L"Active";
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AVAIL, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_None ? hwAccelEmpty : dwSupport == 0 ? hwAccelUnavailable : dwSupport == 1 ? hwAccelAvailable : hwAccelActive));
+
+  EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_HWACCEL_DEVICE_SELECT), hwAccel == HWAccel_DXVA2CopyBack);
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_DEVICE_SELECT), hwAccel == HWAccel_DXVA2CopyBack);
+
+  const WCHAR hwHintNoDeviceChoice[] = L"The selected Hardware Decoder does not support using a specific device.";
+  const WCHAR hwHintDXVA2Display[] = L"DXVA2 requires an active display for GPUs to be available.\nNote that GPUs are listed once for each connected display.";
+
+
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_RESETCONTENT, 0, 0);
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_ADDSTRING, 0, (LPARAM)L"Automatic");
+
+  DWORD dwnDevices = m_pVideoSettings->GetHWAccelNumDevices(hwAccel);
+  for (DWORD dwDevice = 0; dwDevice < dwnDevices; dwDevice++)
+  {
+    BSTR bstrDeviceName = nullptr;
+    HRESULT hr = m_pVideoSettings->GetHWAccelDeviceInfo(hwAccel, dwDevice, &bstrDeviceName, NULL);
+    if (SUCCEEDED(hr)) {
+      SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_ADDSTRING, 0, (LPARAM)bstrDeviceName);
+      SysFreeString(bstrDeviceName);
+    }
+  }
+
+  if (dwnDevices == 0) {
+    m_HWDeviceIndex = 0;
+    SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)hwHintNoDeviceChoice);
+  }
+  else {
+    DWORD dwDeviceId = 0;
+    m_HWDeviceIndex = m_pVideoSettings->GetHWAccelDeviceIndex(hwAccel, &dwDeviceId);
+    if (m_HWDeviceIndex == LAVHWACCEL_DEVICE_DEFAULT)
+      m_HWDeviceIndex = 0;
+    else
+      m_HWDeviceIndex++;
+    SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_DXVA2CopyBack ? hwHintDXVA2Display : L""));
+  }
+
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_SETCURSEL, m_HWDeviceIndex, 0);
 
   return S_OK;
 }
@@ -575,6 +628,11 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     else if (LOWORD(wParam) == IDC_HWACCEL_VP9 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_HWAccelCodecs[HWCodec_VP9]) {
+        SetDirty();
+      }
+    } else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_HWACCEL_DEVICE_SELECT) {
+      lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+      if (lValue != m_HWDeviceIndex) {
         SetDirty();
       }
     } else if (LOWORD(wParam) == IDC_HWDEINT_ENABLE && HIWORD(wParam) == BN_CLICKED) {

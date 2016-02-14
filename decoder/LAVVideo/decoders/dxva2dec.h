@@ -56,6 +56,9 @@ public:
   STDMETHODIMP HasThreadSafeBuffers() { return m_bNative ? S_FALSE : S_OK; }
   STDMETHODIMP SyncToProcessThread() { return S_OK; }
   STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
+  STDMETHODIMP_(DWORD) GetHWAccelNumDevices();
+  STDMETHODIMP GetHWAccelDeviceInfo(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier);
+  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName);
 
   // CDecBase
   STDMETHODIMP Init();
@@ -140,6 +143,7 @@ private:
   D3DFORMAT m_eSurfaceFormat    = D3DFMT_UNKNOWN;
   DWORD     m_dwVendorId        = 0;
   DWORD     m_dwDeviceId        = 0;
+  char      m_cDeviceName[512]  = { 0 };
   GUID      m_guidDecoderDevice = GUID_NULL;
   int       m_DisplayDelay      = DXVA2_QUEUE_SURFACES;
 

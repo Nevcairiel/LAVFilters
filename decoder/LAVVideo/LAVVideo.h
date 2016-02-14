@@ -127,8 +127,15 @@ public:
 
   STDMETHODIMP SetGPUDeviceIndex(DWORD dwDevice);
 
+  STDMETHODIMP_(DWORD) GetHWAccelNumDevices(LAVHWAccel hwAccel);
+  STDMETHODIMP GetHWAccelDeviceInfo(LAVHWAccel hwAccel, DWORD dwIndex, BSTR *pstrDeviceName, DWORD *pdwDeviceIdentifier);
+
+  STDMETHODIMP_(DWORD) GetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD *pdwDeviceIdentifier);
+  STDMETHODIMP SetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD dwIndex, DWORD dwDeviceIdentifier);
+
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
+  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName);
 
   // CTransformFilter
   HRESULT CheckInputType(const CMediaType* mtIn);
@@ -281,6 +288,8 @@ private:
     DWORD SWDeintOutput;
     DWORD DitherMode;
     BOOL bDVDVideo;
+    DWORD HWAccelDeviceDXVA2;
+    DWORD HWAccelDeviceDXVA2Desc;
   } m_settings;
 
   DWORD m_dwGPUDeviceIndex = DWORD_MAX;

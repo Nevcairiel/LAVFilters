@@ -405,6 +405,21 @@ DWORD CDecodeThread::ThreadProc()
 || ((pBMI->biHeight > 576 || pBMI->biWidth > 1024) && pBMI->biHeight <= 1200 && pBMI->biWidth <= 1920 && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_HD)    \
 || ((pBMI->biHeight > 1200 || pBMI->biWidth > 1920) && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_UHD))
 
+ILAVDecoder * CDecodeThread::CreateHWAccelDecoder(LAVHWAccel hwAccel)
+{
+  ILAVDecoder * pDecoder = nullptr;
+  if (hwAccel == HWAccel_CUDA)
+    pDecoder = CreateDecoderCUVID();
+  else if (hwAccel == HWAccel_QuickSync)
+    pDecoder = CreateDecoderQuickSync();
+  else if (hwAccel == HWAccel_DXVA2CopyBack)
+    pDecoder = CreateDecoderDXVA2();
+  else if (hwAccel == HWAccel_DXVA2Native)
+    pDecoder = CreateDecoderDXVA2Native();
+
+  return pDecoder;
+}
+
 STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodecID codec)
 {
   DbgLog((LOG_TRACE, 10, L"CDecodeThread::CreateDecoderInternal(): Creating new decoder for codec %S", avcodec_get_name(codec)));
@@ -429,14 +444,7 @@ STDMETHODIMP CDecodeThread::CreateDecoderInternal(const CMediaType *pmt, AVCodec
   if (!bHWDecBlackList &&  hwAccel != HWAccel_None && !m_bHWDecoderFailed && HWFORMAT_ENABLED && HWRESOLUTION_ENABLED)
   {
     DbgLog((LOG_TRACE, 10, L"-> Trying Hardware Codec %d", hwAccel));
-    if (hwAccel == HWAccel_CUDA)
-      m_pDecoder = CreateDecoderCUVID();
-    else if (hwAccel == HWAccel_QuickSync)
-      m_pDecoder = CreateDecoderQuickSync();
-    else if (hwAccel == HWAccel_DXVA2CopyBack)
-      m_pDecoder = CreateDecoderDXVA2();
-    else if (hwAccel == HWAccel_DXVA2Native)
-      m_pDecoder = CreateDecoderDXVA2Native();
+    m_pDecoder = CreateHWAccelDecoder(hwAccel);
     m_bHWDecoder = TRUE;
   }
 
