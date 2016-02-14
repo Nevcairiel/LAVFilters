@@ -599,7 +599,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
 STDMETHODIMP CDecAvcodec::DestroyDecoder()
 {
-  DbgLog((LOG_TRACE, 10, L"Shutting down ffmpeg..."));
   m_pAVCodec	= nullptr;
 
   if (m_pParser) {
