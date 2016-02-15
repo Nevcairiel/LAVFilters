@@ -438,6 +438,7 @@ select_device:
       int major, minor;
       cuda.cuDeviceComputeCapability(&major, &minor, best_device);
       m_bVDPAULevelC = (major >= 2);
+      cuda.cuDeviceGetName(m_cudaDeviceName, sizeof(m_cudaDeviceName), best_device);
       DbgLog((LOG_TRACE, 10, L"InitCUDA(): pure CUDA context of device with compute %d.%d", major, minor));
     }
   }
@@ -529,6 +530,7 @@ STDMETHODIMP CDecCuvid::InitD3D9(int best_device, DWORD requested_device)
         m_pD3DDevice9 = pDev;
         m_cudaContext = cudaCtx;
         m_bVDPAULevelC = isLevelC;
+        cuda.cuDeviceGetName(m_cudaDeviceName, sizeof(m_cudaDeviceName), best_device);
         // Is this the one we want?
         if (device == best_device)
           break;
@@ -1298,4 +1300,21 @@ STDMETHODIMP_(REFERENCE_TIME) CDecCuvid::GetFrameDuration()
 STDMETHODIMP_(BOOL) CDecCuvid::IsInterlaced()
 {
   return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && (m_VideoDecoderInfo.DeinterlaceMode == cudaVideoDeinterlaceMode_Weave);
+}
+
+
+STDMETHODIMP CDecCuvid::GetHWAccelActiveDevice(BSTR *pstrDeviceName)
+{
+  CheckPointer(pstrDeviceName, E_POINTER);
+
+  if (strlen(m_cudaDeviceName) == 0)
+    return E_UNEXPECTED;
+
+  int len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_cudaDeviceName, -1, nullptr, 0);
+  if (len == 0)
+    return E_FAIL;
+
+  *pstrDeviceName = SysAllocStringLen(nullptr, len);
+  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_cudaDeviceName, -1, *pstrDeviceName, len);
+  return S_OK;
 }

@@ -52,6 +52,7 @@ public:
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
   STDMETHODIMP_(BOOL) IsInterlaced();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"cuvid"; }
+  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName);
 
   // CDecBase
   STDMETHODIMP Init();
@@ -145,6 +146,7 @@ private:
   CUstream               m_hStream = 0;
 
   BOOL                   m_bVDPAULevelC = FALSE;
+  char                   m_cudaDeviceName[256] = { 0 };
 
   BOOL                   m_bForceSequenceUpdate = FALSE;
   BOOL                   m_bInterlaced          = FALSE;
