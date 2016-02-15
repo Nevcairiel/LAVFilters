@@ -1646,6 +1646,7 @@ static struct {
 } mappedPropertys[] = {
   { "rotation", "rotate", true },
   { "rotate",   nullptr,  true },
+  { "stereoscopic3dmode", "stereo_mode", true },
 };
 
 STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog)
