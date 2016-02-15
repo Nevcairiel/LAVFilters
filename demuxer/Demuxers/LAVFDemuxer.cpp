@@ -1647,6 +1647,7 @@ static struct {
   { "rotation", "rotate", true },
   { "rotate",   nullptr,  true },
   { "stereoscopic3dmode", "stereo_mode", true },
+  { "stereo_mode", nullptr, true },
 };
 
 STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog)
