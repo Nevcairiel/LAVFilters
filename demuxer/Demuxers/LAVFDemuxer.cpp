@@ -1757,9 +1757,6 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CreateStreams()"));
   CAutoLock lock(m_pLock);
 
-  // try to use non-blocking methods
-  m_avFormat->flags |= AVFMT_FLAG_NONBLOCK;
-
   for(int i = 0; i < countof(m_streams); ++i) {
     m_streams[i].Clear();
   }
