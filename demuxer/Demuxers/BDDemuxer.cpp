@@ -658,7 +658,8 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
   if (m_MVCPlayback && m_MVCFormatContext) {
     // Re-open to switch clip if needed
     CloseMVCExtensionDemuxer();
-    OpenMVCExtensionDemuxer(m_NewClip);
+    if (FAILED(OpenMVCExtensionDemuxer(m_NewClip)))
+      return E_FAIL;
 
     // prevent re-opening the clip
     if (m_StreamClip[m_lavfDemuxer->m_nH264MVCBaseStream] != m_NewClip)
