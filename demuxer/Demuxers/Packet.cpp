@@ -36,8 +36,11 @@ int Packet::SetDataSize(size_t len)
     return -1;
 
   // RemoveHead may have moved m_Data, make sure the data moved too.
-  if (m_Buf && m_Buf->data != m_Data)
-    memmove(m_Buf->data, m_Data, m_DataSize);
+  if (m_Buf && m_Buf->data != m_Data) {
+    ptrdiff_t offset = m_Data - m_Buf->data;
+    av_buffer_make_writable(&m_Buf);
+    memmove(m_Buf->data, m_Buf->data + offset, m_DataSize);
+  }
 
   // Re-allocate the buffer, if required
   if (!m_Buf || (size_t)m_Buf->size < (len + FF_INPUT_BUFFER_PADDING_SIZE)) {
