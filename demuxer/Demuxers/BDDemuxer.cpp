@@ -65,6 +65,8 @@ int64_t CBDDemuxer::BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
     CoTaskMemFree(dump_buffer);
     achieved = bd_tell(bd);
   }
+
+  demux->ProcessBDEvents();
   return achieved;
 }
 
@@ -255,7 +257,7 @@ void CBDDemuxer::ProcessBDEvents()
     if (event.event == BD_EVENT_PLAYITEM) {
       uint64_t clip_start, clip_in, bytepos;
       int ret = bd_get_clip_infos(m_pBD, event.param, &clip_start, &clip_in, &bytepos, nullptr);
-      if (ret) {
+      if (ret && m_lavfDemuxer->GetStartTime() != AV_NOPTS_VALUE) {
         m_rtNewOffset = Convert90KhzToDSTime(clip_start - clip_in) + m_lavfDemuxer->GetStartTime();
         m_bNewOffsetPos = bytepos-4;
         DbgLog((LOG_TRACE, 10, L"New clip! offset: %I64d bytepos: %I64u", m_rtNewOffset, bytepos));
