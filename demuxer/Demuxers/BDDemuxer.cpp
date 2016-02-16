@@ -269,15 +269,11 @@ void CBDDemuxer::ProcessBDEvents()
   }
 }
 
-STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
+STDMETHODIMP CBDDemuxer::ProcessPacket(Packet *pPacket)
 {
-  HRESULT hr = m_lavfDemuxer->GetNextPacket(ppPacket);
-
   ProcessBDEvents();
 
-  Packet * const pPacket = *ppPacket;
-
-  if (hr == S_OK && pPacket && pPacket->rtStart != Packet::INVALID_TIME) {
+  if (pPacket && pPacket->rtStart != Packet::INVALID_TIME) {
     REFERENCE_TIME rtOffset = m_rtOffset[pPacket->StreamId];
     if (rtOffset != m_rtNewOffset && pPacket->bPosition != -1 && pPacket->bPosition >= m_bNewOffsetPos) {
       DbgLog((LOG_TRACE, 10, L"Actual clip change detected in stream %d; time: %I64d, old offset: %I64d, new offset: %I64d", pPacket->StreamId, pPacket->rtStart, rtOffset, m_rtNewOffset));
@@ -288,15 +284,14 @@ STDMETHODIMP CBDDemuxer::GetNextPacket(Packet **ppPacket)
     pPacket->rtStop += rtOffset;
   }
 
-  if (hr == S_OK && m_EndOfStreamPacketFlushProtection && pPacket && pPacket->bPosition != -1) {
+  if (m_EndOfStreamPacketFlushProtection && pPacket && pPacket->bPosition != -1) {
     if (pPacket->bPosition < m_bNewOffsetPos) {
       DbgLog((LOG_TRACE, 10, L"Dropping packet from a previous segment (pos %I64d, segment started at %I64d) at EOS, from stream %d", pPacket->bPosition, m_bNewOffsetPos, pPacket->StreamId));
-      SAFE_DELETE(*ppPacket);
-      *ppPacket = nullptr;
       return S_FALSE;
     }
   }
-  return hr;
+
+  return S_OK;
 }
 
 STDMETHODIMP CBDDemuxer::SetTitle(int idx)

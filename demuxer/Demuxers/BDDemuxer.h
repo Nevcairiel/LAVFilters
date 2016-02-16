@@ -43,7 +43,7 @@ public:
   // CBaseDemuxer
   STDMETHODIMP Open(LPCOLESTR pszFileName);
   REFERENCE_TIME GetDuration() const;
-  STDMETHODIMP GetNextPacket(Packet **ppPacket);
+  STDMETHODIMP GetNextPacket(Packet **ppPacket) { return m_lavfDemuxer->GetNextPacket(ppPacket); }
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
   STDMETHODIMP Reset() { return E_NOTIMPL; }
   const char *GetContainerFormat() const;
@@ -72,6 +72,7 @@ public:
   STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
 
   void ProcessClipLanguages();
+  STDMETHODIMP ProcessPacket(Packet *pPacket);
 
 private:
   void ProcessClipInfo(struct clpi_cl *clpi, bool overwrite);

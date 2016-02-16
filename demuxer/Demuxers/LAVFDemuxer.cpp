@@ -1315,6 +1315,14 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     av_packet_unref(&pkt);
   }
 
+  if (m_pBluRay && pPacket) {
+    HRESULT hr = m_pBluRay->ProcessPacket(pPacket);
+    if (hr != S_OK) {
+      SAFE_DELETE(pPacket);
+      bReturnEmpty = bReturnEmpty || hr == S_FALSE;
+    }
+  }
+
   if (m_bH264MVCCombine && pPacket && pPacket->StreamId == m_nH264MVCExtensionStream) {
     if (FAILED(QueueMVCExtension(pPacket))) {
       SAFE_DELETE(pPacket);
