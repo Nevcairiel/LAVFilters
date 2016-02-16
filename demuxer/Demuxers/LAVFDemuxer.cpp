@@ -396,8 +396,11 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   PathRemoveFileSpecA(path);
 
   // Remove SSIF if appropriate
-  if (_strnicmp(path + strlen(path) - 5, "\\SSIF", 5) == 0)
+  BOOL bSSIF = FALSE;
+  if (_strnicmp(path + strlen(path) - 5, "\\SSIF", 5) == 0) {
+    bSSIF = TRUE;
     PathRemoveFileSpecA(path);
+  }
 
   // Remove STREAM folder
   PathRemoveFileSpecA(path);
@@ -424,6 +427,51 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   // Free the clip
   bd_free_clpi(cl);
   cl = nullptr;
+
+  if (bSSIF) {
+    uint32_t clip_id = _wtoi(basename);
+
+    // Remove filename
+    PathRemoveFileSpecA(path);
+
+    // Remove CLIPINF
+    PathRemoveFileSpecA(path);
+
+    // Remove BDMV
+    PathRemoveFileSpecA(path);
+
+    BLURAY *bd = bd_open(path, nullptr);
+    if (!bd)
+      return S_FALSE;
+
+    uint32_t nTitles = bd_get_titles(bd, TITLES_RELEVANT, 0);
+    BOOL found = FALSE;
+    for (uint32_t n = 0; n < nTitles && !found; n++) {
+      BLURAY_TITLE_INFO *TitleInfo = bd_get_title_info(bd, n, 0);
+      if (TitleInfo) {
+        for (uint32_t i = 0; i < TitleInfo->clip_count; i++) {
+          BLURAY_CLIP_INFO *Clip = &TitleInfo->clips[i];
+          if (Clip->idx == clip_id) {
+            AVStream *avstream = nullptr;
+            for (uint8_t c = 0; c < Clip->video_stream_count && !avstream; c++) {
+              if (Clip->video_streams[c].coding_type == BLURAY_STREAM_TYPE_VIDEO_H264)
+                avstream = GetAVStreamByPID(Clip->video_streams[c].pid);
+            }
+
+            if (avstream)
+              av_dict_set(&avstream->metadata, "stereo_mode", TitleInfo->mvc_base_view_r_flag ? "mvc_rl" : "mvc_lr", 0);
+
+            found = TRUE;
+            break;
+          }
+        }
+
+        bd_free_title_info(TitleInfo);
+      }
+    }
+
+    bd_close(bd);
+  }
 
   return S_OK;
 }
