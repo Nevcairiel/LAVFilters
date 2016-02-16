@@ -321,7 +321,6 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
           mvcType.cbFormat = SIZE_MPEG2VIDEOINFO(mp2vi);
           mvcType.subtype = MEDIASUBTYPE_AMVC;
           mp2vi->hdr.bmiHeader.biCompression = mvcType.subtype.Data1;
-          mtypes.push_front(mvcType);
 
           CH264Nalu nalParser;
           nalParser.SetBuffer(mvcStream->codec->extradata, mvcStream->codec->extradata_size, 0);
@@ -333,6 +332,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
               break;
             }
           }
+
+          mtypes.push_front(mvcType);
         }
       }
     } else {
