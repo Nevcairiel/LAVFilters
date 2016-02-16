@@ -386,7 +386,7 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
     return E_FAIL;
 
   int ret, count = 0;
-  bool found = false;
+  bool found = (rtBase == Packet::INVALID_TIME);
 
   AVPacket mvcPacket = { 0 };
   av_init_packet(&mvcPacket);
