@@ -19,6 +19,11 @@
 
 #include "stdafx.h"
 #include "BDDemuxer.h"
+#include "libbluray/bdnav/mpls_parse.h"
+
+extern "C" {
+#include "libavutil/avstring.h"
+};
 
 #define BD_READ_BUFFER_SIZE (6144 * 20)
 
@@ -118,6 +123,8 @@ CBDDemuxer::CBDDemuxer(CCritSec *pLock, ILAVFSettingsInternal *pSettings)
 
 CBDDemuxer::~CBDDemuxer(void)
 {
+  CloseMVCExtensionDemuxer();
+
   if (m_pTitle) {
     bd_free_title_info(m_pTitle);
     m_pTitle = nullptr;
@@ -134,6 +141,7 @@ CBDDemuxer::~CBDDemuxer(void)
   }
 
   SafeRelease(&m_lavfDemuxer);
+  SAFE_CO_FREE(m_StreamClip);
   SAFE_CO_FREE(m_rtOffset);
 }
 
@@ -191,6 +199,7 @@ STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
       return E_FAIL;
     }
     m_pBD = bd;
+    strcpy_s(m_cBDRootPath, bd_path);
 
     uint32_t timelimit = (iPlaylist != -1) ? 0 : 180;
     uint8_t flags = (iPlaylist != -1) ? TITLES_ALL : TITLES_RELEVANT;
@@ -260,6 +269,7 @@ void CBDDemuxer::ProcessBDEvents()
       if (ret && m_lavfDemuxer->GetStartTime() != AV_NOPTS_VALUE) {
         m_rtNewOffset = Convert90KhzToDSTime(clip_start - clip_in) + m_lavfDemuxer->GetStartTime();
         m_bNewOffsetPos = bytepos-4;
+        m_NewClip = event.param;
         DbgLog((LOG_TRACE, 10, L"New clip! offset: %I64d bytepos: %I64u", m_rtNewOffset, bytepos));
       }
       m_EndOfStreamPacketFlushProtection = FALSE;
@@ -277,9 +287,22 @@ STDMETHODIMP CBDDemuxer::ProcessPacket(Packet *pPacket)
 
   if (pPacket && pPacket->rtStart != Packet::INVALID_TIME) {
     REFERENCE_TIME rtOffset = m_rtOffset[pPacket->StreamId];
-    if (rtOffset != m_rtNewOffset && pPacket->bPosition != -1 && pPacket->bPosition >= m_bNewOffsetPos) {
+    if (m_StreamClip[pPacket->StreamId] != m_NewClip && pPacket->bPosition != -1 && pPacket->bPosition >= m_bNewOffsetPos) {
       DbgLog((LOG_TRACE, 10, L"Actual clip change detected in stream %d; time: %I64d, old offset: %I64d, new offset: %I64d", pPacket->StreamId, pPacket->rtStart, rtOffset, m_rtNewOffset));
       rtOffset = m_rtOffset[pPacket->StreamId] = m_rtNewOffset;
+      m_StreamClip[pPacket->StreamId] = m_NewClip;
+
+      // Flush MVC extensions on stream change, it'll re-fill automatically
+      if (m_MVCPlayback && pPacket->StreamId == m_lavfDemuxer->m_nH264MVCBaseStream) {
+        if (!m_MVCInitialOpen) {
+          m_lavfDemuxer->FlushMVCExtensionQueue();
+          CloseMVCExtensionDemuxer();
+          OpenMVCExtensionDemuxer(m_NewClip);
+        }
+        else {
+          m_MVCInitialOpen = FALSE;
+        }
+      }
     }
     //DbgLog((LOG_TRACE, 10, L"Frame: stream: %d, start: %I64d, corrected: %I64d, bytepos: %I64d", pPacket->StreamId, pPacket->rtStart, pPacket->rtStart + rtOffset, pPacket->bPosition));
     pPacket->rtStart += rtOffset;
@@ -294,6 +317,125 @@ STDMETHODIMP CBDDemuxer::ProcessPacket(Packet *pPacket)
   }
 
   return S_OK;
+}
+
+void CBDDemuxer::CloseMVCExtensionDemuxer()
+{
+  if (m_MVCFormatContext)
+    avformat_close_input(&m_MVCFormatContext);
+}
+
+STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
+{
+  int ret;
+  MPLS_PL *pl = bd_get_title_mpls(m_pBD);
+  if (!pl)
+    return E_FAIL;
+
+  const char *clip_id = pl->ext_sub_path[m_MVCExtensionSubPathIndex].sub_play_item[playItem].clip->clip_id;
+  char *fileName = av_asprintf("%sBDMV\\STREAM\\%s.m2ts", m_cBDRootPath, clip_id);
+
+  DbgLog((LOG_TRACE, 10, "CBDDemuxer::OpenMVCExtensionDemuxer(): Opening MVC extension stream at %s", fileName));
+
+  // Try to open the MVC stream
+  ret = avformat_open_input(&m_MVCFormatContext, fileName, nullptr, nullptr);
+  if (ret < 0) {
+    DbgLog((LOG_TRACE, 10, "-> Opening MVC demuxing context failed (%d)", ret));
+    goto fail;
+  }
+
+  av_opt_set_int(m_MVCFormatContext, "correct_ts_overflow", 0, 0);
+
+  // Find the streams
+  ret = avformat_find_stream_info(m_MVCFormatContext, nullptr);
+  if (ret < 0) {
+    DbgLog((LOG_TRACE, 10, "-> avformat_find_stream_info failed (%d)", ret));
+    goto fail;
+  }
+
+  // Find and select our MVC stream
+  DbgLog((LOG_TRACE, 10, "-> MVC m2ts has %d streams", m_MVCFormatContext->nb_streams));
+  for (unsigned i = 0; i < m_MVCFormatContext->nb_streams; i++)
+  {
+    if (m_MVCFormatContext->streams[i]->codec->codec_id == AV_CODEC_ID_H264_MVC
+      && m_MVCFormatContext->streams[i]->codec->extradata_size > 0)
+    {
+      m_MVCStreamIndex = i;
+      break;
+    }
+    else {
+      m_MVCFormatContext->streams[i]->discard = AVDISCARD_ALL;
+    }
+  }
+
+  if (m_MVCStreamIndex < 0) {
+    DbgLog((LOG_TRACE, 10, "-> MVC Stream not found"));
+    goto fail;
+  }
+
+  return S_OK;
+fail:
+  CloseMVCExtensionDemuxer();
+  return E_FAIL;
+}
+
+STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
+{
+  if (!m_MVCFormatContext)
+    return E_FAIL;
+
+  int ret, count = 0;
+  bool found = false;
+
+  AVPacket mvcPacket = { 0 };
+  av_init_packet(&mvcPacket);
+
+  while (count < 100) {
+    ret = av_read_frame(m_MVCFormatContext, &mvcPacket);
+
+    if (ret == AVERROR(EINTR) || ret == AVERROR(EAGAIN)) {
+      continue;
+    }
+    else if (ret == AVERROR_EOF) {
+      DbgLog((LOG_TRACE, 10, L"EOF reading MVC extension data"));
+      break;
+    }
+    else if (mvcPacket.size <= 0 || mvcPacket.stream_index != m_MVCStreamIndex) {
+      av_packet_unref(&mvcPacket);
+      continue;
+    }
+    else {
+      AVStream *stream = m_MVCFormatContext->streams[mvcPacket.stream_index];
+
+      REFERENCE_TIME rtDTS = m_lavfDemuxer->ConvertTimestampToRT(mvcPacket.dts, stream->time_base.num, stream->time_base.den);
+      REFERENCE_TIME rtPTS = m_lavfDemuxer->ConvertTimestampToRT(mvcPacket.pts, stream->time_base.num, stream->time_base.den);
+
+      if (rtDTS < rtBase) {
+        av_packet_unref(&mvcPacket);
+        continue;
+      }
+      else if (rtDTS == rtBase) {
+        found = true;
+      }
+
+      Packet *pPacket = new Packet();
+      if (!pPacket) {
+        av_packet_unref(&mvcPacket);
+        return E_OUTOFMEMORY;
+      }
+
+      pPacket->SetPacket(&mvcPacket);
+      pPacket->rtDTS = rtDTS;
+      pPacket->rtPTS = rtPTS;
+
+      m_lavfDemuxer->QueueMVCExtension(pPacket);
+      av_packet_unref(&mvcPacket);
+
+      count++;
+    }
+  };
+
+  return found ? S_OK : (count > 0 ? S_FALSE : E_FAIL);
 }
 
 STDMETHODIMP CBDDemuxer::SetTitle(int idx)
@@ -314,6 +456,23 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
     return E_FAIL;
   }
 
+  MPLS_PL * mpls = bd_get_title_mpls(m_pBD);
+  if (mpls) {
+    for (int i = 0; i < mpls->ext_sub_count; i++)
+    {
+      if (mpls->ext_sub_path[i].type == 8
+        && mpls->ext_sub_path[i].sub_playitem_count == mpls->list_count)
+      {
+        DbgLog((LOG_TRACE, 20, L"Enabling BD3D MVC demuxing"));
+        m_MVCPlayback = TRUE;
+        m_MVCExtensionSubPathIndex = i;
+        break;
+      }
+    }
+  }
+
+  CloseMVCExtensionDemuxer();
+
   if (m_pb) {
     av_free(m_pb->buffer);
     av_free(m_pb);
@@ -323,6 +482,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, this, BDByteStreamRead, nullptr, BDByteStreamSeek);
 
   SafeRelease(&m_lavfDemuxer);
+  SAFE_CO_FREE(m_StreamClip);
   SAFE_CO_FREE(m_rtOffset);
 
   m_lavfDemuxer = new CLAVFDemuxer(m_pLock, m_pSettings);
@@ -342,17 +502,43 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
   m_EndOfStreamPacketFlushProtection = FALSE;
 
   // space for storing stream offsets
-  m_rtOffset = (REFERENCE_TIME *)CoTaskMemAlloc(sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
+  m_StreamClip = (uint16_t *)CoTaskMemAlloc(sizeof(*m_StreamClip) * m_lavfDemuxer->GetNumStreams());
+  if (!m_StreamClip)
+    return E_OUTOFMEMORY;
+  memset(m_StreamClip, -1, sizeof(*m_StreamClip) * m_lavfDemuxer->GetNumStreams());
+
+  m_rtOffset = (REFERENCE_TIME *)CoTaskMemAlloc(sizeof(*m_rtOffset) * m_lavfDemuxer->GetNumStreams());
   if (!m_rtOffset)
     return E_OUTOFMEMORY;
-  memset(m_rtOffset, 0, sizeof(REFERENCE_TIME) * m_lavfDemuxer->GetNumStreams());
+  memset(m_rtOffset, 0, sizeof(*m_rtOffset) * m_lavfDemuxer->GetNumStreams());
 
   DbgLog((LOG_TRACE, 20, L"Opened BD title with %d clips and %d chapters", m_pTitle->clip_count, m_pTitle->chapter_count));
   return S_OK;
 }
 
-void CBDDemuxer::ProcessClipLanguages()
+void CBDDemuxer::ProcessBluRayMetadata()
 {
+  if (m_MVCPlayback) {
+    HRESULT hr = OpenMVCExtensionDemuxer(m_NewClip);
+    if (SUCCEEDED(hr)) {
+      m_MVCInitialOpen = TRUE;
+
+      // Create a fake stream and set the appropriate properties
+      m_lavfDemuxer->AddMPEGTSStream(0x1FFE, 0x20);
+      AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(0x1FFE);
+      if (avstream) {
+        AVStream *mvcStream = m_MVCFormatContext->streams[m_MVCStreamIndex];
+        avstream->codec->codec_id = AV_CODEC_ID_H264_MVC;
+        avstream->codec->extradata = (BYTE *)av_mallocz(mvcStream->codec->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+        avstream->codec->extradata_size = mvcStream->codec->extradata_size;
+        memcpy(avstream->codec->extradata, mvcStream->codec->extradata, mvcStream->codec->extradata_size);
+      }
+    }
+    else {
+      m_MVCPlayback = FALSE;
+    }
+  }
+
   ASSERT(m_pTitle->clip_count >= 1 && m_pTitle->clips);
   int64_t max_clip_duration = 0;
   for (uint32_t i = 0; i < m_pTitle->clip_count; ++i) {
@@ -437,6 +623,10 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
               break;
             }
           }
+
+          if (m_MVCPlayback && stream->coding_type == BLURAY_STREAM_TYPE_VIDEO_H264) {
+            av_dict_set(&avstream->metadata, "stereo_mode", m_pTitle->mvc_base_view_r_flag ? "mvc_rl" : "mvc_lr", 0);
+          }
         } else if (avstream->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
           if (avstream->codec->channels == 0) {
             avstream->codec->channels = (stream->format == BLURAY_AUDIO_FORMAT_MONO) ? 1 : (stream->format == BLURAY_AUDIO_FORMAT_STEREO) ? 2 : 6;
@@ -463,7 +653,40 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
   m_EndOfStreamPacketFlushProtection = FALSE;
 
   DbgLog((LOG_TRACE, 1, "Seek Request: %I64u (time); %I64u (byte), %I64u (prev byte)", rTime, target, prev));
-  return m_lavfDemuxer->SeekByte(target + 4, AVSEEK_FLAG_BACKWARD);
+  HRESULT hr = m_lavfDemuxer->SeekByte(target + 4, AVSEEK_FLAG_BACKWARD);
+
+  if (m_MVCPlayback && m_MVCFormatContext) {
+    // Re-open to switch clip if needed
+    CloseMVCExtensionDemuxer();
+    OpenMVCExtensionDemuxer(m_NewClip);
+
+    // prevent re-opening the clip
+    if (m_StreamClip[m_lavfDemuxer->m_nH264MVCBaseStream] != m_NewClip)
+      m_MVCInitialOpen = TRUE;
+
+    // Adjust for clip offset
+    int64_t seek_pts = 0;
+    if (rTime > 0) {
+      AVStream *stream = m_MVCFormatContext->streams[m_MVCStreamIndex];
+
+      uint64_t clip_start, clip_in;
+      int ret = bd_get_clip_infos(m_pBD, m_NewClip, &clip_start, &clip_in, nullptr, nullptr);
+      if (ret) {
+        DbgLog((LOG_TRACE, 10, L"seek: %I64d, start: %I64d, in: %I64d", rTime, Convert90KhzToDSTime(clip_start), Convert90KhzToDSTime(clip_in)));
+        rTime -= Convert90KhzToDSTime(clip_start);
+        rTime += Convert90KhzToDSTime(clip_in);
+      }
+
+      rTime -= 10000000; // one second for "approximation"
+      seek_pts = m_lavfDemuxer->ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den, 0);
+    }
+
+    if (seek_pts < 0)
+      seek_pts = 0;
+
+    av_seek_frame(m_MVCFormatContext, m_MVCStreamIndex, seek_pts, AVSEEK_FLAG_BACKWARD);
+  }
+  return hr;
 }
 
 const char *CBDDemuxer::GetContainerFormat() const

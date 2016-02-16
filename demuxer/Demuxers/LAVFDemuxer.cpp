@@ -592,7 +592,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
   // Check if this is a m2ts in a BD structure, and if it is, read some extra stream properties out of the CLPI files
   if (m_pBluRay) {
-    m_pBluRay->ProcessClipLanguages();
+    m_pBluRay->ProcessBluRayMetadata();
   } else if (pszFileName && m_bMPEGTS) {
     CheckBDM2TSCPLI(pszFileName);
   }
@@ -1374,6 +1374,7 @@ STDMETHODIMP CLAVFDemuxer::FlushMVCExtensionQueue()
 
 STDMETHODIMP CLAVFDemuxer::CombineMVCBaseExtension(Packet *pBasePacket)
 {
+retry:
   while (!m_MVCExtensionQueue.empty()) {
     Packet *pExtensionPacket = m_MVCExtensionQueue.front();
     if (pExtensionPacket->rtDTS == pBasePacket->rtDTS) {
@@ -1396,6 +1397,15 @@ STDMETHODIMP CLAVFDemuxer::CombineMVCBaseExtension(Packet *pBasePacket)
       return S_FALSE;
     }
   }
+
+  if (m_pBluRay && m_MVCExtensionQueue.empty()) {
+    HRESULT hr = m_pBluRay->FillMVCExtensionQueue(pBasePacket->rtDTS);
+    if (hr == S_OK)
+      goto retry;
+    else if (FAILED(hr))
+      return hr;
+  }
+
   DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineMVCBaseExtension(): Ran out of extension packets for base %I64d", pBasePacket->rtDTS));
   return S_FALSE;
 }
@@ -2017,7 +2027,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     CreateNoSubtitleStream();
   }
 
-  if (m_bMPEGTS && !m_pBluRay) {
+  if (m_bMPEGTS) {
     m_bH264MVCCombine = GetH264MVCStreamIndices(m_avFormat, &m_nH264MVCBaseStream, &m_nH264MVCExtensionStream);
   }
 

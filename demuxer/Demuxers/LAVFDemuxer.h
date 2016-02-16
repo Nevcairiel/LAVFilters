@@ -172,6 +172,7 @@ private:
   STDMETHODIMP CombineMVCBaseExtension(Packet *pBasePacket);
 
 private:
+  friend class CBDDemuxer;
   AVFormatContext *m_avFormat        = nullptr;
   const char      *m_pszInputFormat  = nullptr;
 

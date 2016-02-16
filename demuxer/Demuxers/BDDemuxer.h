@@ -71,12 +71,16 @@ public:
   STDMETHODIMP put_PlaybackSpeed(double Speed) {return E_NOTIMPL;}
   STDMETHODIMP get_PlaybackSpeed(double* pSpeed) {return E_NOTIMPL;}
 
-  void ProcessClipLanguages();
+  void ProcessBluRayMetadata();
   STDMETHODIMP ProcessPacket(Packet *pPacket);
+  STDMETHODIMP FillMVCExtensionQueue(REFERENCE_TIME rtBase);
 
 private:
   void ProcessClipInfo(struct clpi_cl *clpi, bool overwrite);
   void ProcessBDEvents();
+
+  void CloseMVCExtensionDemuxer();
+  STDMETHODIMP OpenMVCExtensionDemuxer(int playItem);
 
   static int BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size);
   static int64_t CBDDemuxer::BDByteStreamSeek(void *opaque,  int64_t offset, int whence);
@@ -84,6 +88,7 @@ private:
 private:
   BLURAY      *m_pBD                      = nullptr;
   AVIOContext *m_pb                       = nullptr;
+  char         m_cBDRootPath[4096]        = { 0 };
 
   ILAVFSettingsInternal *m_pSettings      = nullptr;
   CLAVFDemuxer          *m_lavfDemuxer    = nullptr;
@@ -91,9 +96,19 @@ private:
   BLURAY_TITLE_INFO *m_pTitle             = nullptr;
   uint32_t           m_nTitleCount        = 0;
 
+  uint16_t       *m_StreamClip            = nullptr;
+  uint16_t        m_NewClip               = 0;
   REFERENCE_TIME *m_rtOffset              = nullptr;
   REFERENCE_TIME  m_rtNewOffset           = 0;
   int64_t         m_bNewOffsetPos         = 0;
+
+  BOOL m_MVCPlayback                      = FALSE;
+  BOOL m_MVCInitialOpen                   = FALSE;
+  int  m_MVCExtensionSubPathIndex         = 0;
+  char m_MVCExtensionClipId[6]            = { 0 };
+
+  AVFormatContext *m_MVCFormatContext     = nullptr;
+  int              m_MVCStreamIndex       = -1;
 
   BOOL m_EndOfStreamPacketFlushProtection = FALSE;
 };
