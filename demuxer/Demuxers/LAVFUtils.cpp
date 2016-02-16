@@ -345,6 +345,39 @@ std::string lavf_get_stream_description(AVStream *pStream)
   return buf.str();
 }
 
+bool GetH264MVCStreamIndices(AVFormatContext *fmt, int *nBaseIndex, int *nExtensionIndex)
+{
+  bool bResult = true;
+  *nBaseIndex = -1;
+  *nExtensionIndex = -1;
+  for (unsigned int i = 0; i < fmt->nb_streams; i++) {
+    AVStream *st = fmt->streams[i];
+
+    if (st->codec->codec_id == AV_CODEC_ID_H264_MVC && st->codec->extradata_size > 0) {
+      if (*nExtensionIndex == -1)
+        *nExtensionIndex = i;
+      else {
+        DbgLog((LOG_TRACE, 10, L" -> Multiple H264 MVC extension streams, unsupported."));
+        bResult = false;
+      }
+    }
+    else if (st->codec->codec_id == AV_CODEC_ID_H264) {
+      if ((st->codec->width == 1920 && st->codec->height == 1080) || (st->codec->width == 1280 && st->codec->height == 720))
+      {
+        if (*nBaseIndex == -1)
+          *nBaseIndex = i;
+        else {
+          DbgLog((LOG_TRACE, 10, L" -> Multiple H264 MVC base streams, unsupported."));
+          bResult = false;
+        }
+      }
+    }
+  }
+
+  bResult = bResult && *nBaseIndex >= 0 && *nExtensionIndex >= 0;
+  return bResult;
+}
+
 #ifdef DEBUG
 
 #define LAVF_PARSE_TYPE(x) case x: return #x;

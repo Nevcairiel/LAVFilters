@@ -50,6 +50,8 @@ inline int get_bits_per_sample(AVCodecContext *ctx, bool bRaw = false)
   return bits;
 }
 
+bool GetH264MVCStreamIndices(AVFormatContext *fmt, int *nBaseIndex, int *nExtensionIndex);
+
 #ifdef DEBUG
 const char *lavf_get_parsing_string(enum AVStreamParseType parsing);
 #endif

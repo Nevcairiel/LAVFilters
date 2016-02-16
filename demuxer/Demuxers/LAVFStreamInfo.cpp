@@ -25,6 +25,7 @@
 #include "LAVFAudioHelper.h"
 #include "LAVFUtils.h"
 #include "moreuuids.h"
+#include "H264Nalu.h"
 
 #include <vector>
 #include <sstream>
@@ -308,7 +309,32 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   // Detect MVC extensions and adjust the type appropriately
   if (avstream->codec->codec_id == AV_CODEC_ID_H264) {
     if (h264_is_annexb(m_containerFormat, avstream)) {
-      // TODO
+      if (m_containerFormat == "mpegts") {
+        int nBaseStream = -1, nExtensionStream = -1;
+        if (GetH264MVCStreamIndices(avctx, &nBaseStream, &nExtensionStream) && nBaseStream == avstream->index) {
+          CMediaType mvcType = mtypes.front();
+          AVStream *mvcStream = avctx->streams[nExtensionStream];
+
+          MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codec->extradata_size + mvcStream->codec->extradata_size);
+          memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + avstream->codec->extradata_size, mvcStream->codec->extradata, mvcStream->codec->extradata_size);
+
+          mvcType.cbFormat = SIZE_MPEG2VIDEOINFO(mp2vi);
+          mvcType.subtype = MEDIASUBTYPE_AMVC;
+          mp2vi->hdr.bmiHeader.biCompression = mvcType.subtype.Data1;
+          mtypes.push_front(mvcType);
+
+          CH264Nalu nalParser;
+          nalParser.SetBuffer(mvcStream->codec->extradata, mvcStream->codec->extradata_size, 0);
+          while (nalParser.ReadNext()) {
+            if (nalParser.GetType() == 15) { // Subset SPS
+              const BYTE *pData = nalParser.GetDataBuffer();
+              mp2vi->dwProfile = avstream->codec->profile = pData[1];
+              mp2vi->dwLevel   = avstream->codec->level   = pData[3];
+              break;
+            }
+          }
+        }
+      }
     } else {
       CMediaType mvcType = mtype;
 

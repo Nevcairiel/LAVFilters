@@ -703,6 +703,7 @@ done:
 
 void CLAVFDemuxer::CleanupAVFormat()
 {
+  FlushMVCExtensionQueue();
   if (m_avFormat) {
     avformat_close_input(&m_avFormat);
   }
@@ -749,6 +750,10 @@ HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
     AVStream *st = m_avFormat->streams[idx];
     if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       st->discard = (m_dActiveStreams[video] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
+
+      // don't discard h264 mvc streams
+      if (m_bH264MVCCombine && st->codec->codec_id == AV_CODEC_ID_H264_MVC)
+        st->discard = AVDISCARD_DEFAULT;
     } else if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
       st->discard = (m_dActiveStreams[audio] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
       // If the stream is a sub stream, make sure to activate the main stream as well
@@ -1119,6 +1124,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     av_packet_unref(&pkt);
   } else {
     // Check right here if the stream is active, we can drop the package otherwise.
+    AVStream *stream = m_avFormat->streams[pkt.stream_index];
     BOOL streamActive = FALSE;
     BOOL forcedSubStream = FALSE;
     for(int i = 0; i < unknown; ++i) {
@@ -1133,12 +1139,15 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       forcedSubStream = streamActive = TRUE;
     }
 
+    // Accept H264 MVC streams, as they get combined with the base stream later
+    if (m_bH264MVCCombine && stream->codec->codec_id == AV_CODEC_ID_H264_MVC)
+      streamActive = TRUE;
+
     if(!streamActive) {
       av_packet_unref(&pkt);
       return S_FALSE;
     }
 
-    AVStream *stream = m_avFormat->streams[pkt.stream_index];
     pPacket = new Packet();
     if (!pPacket)
       return E_OUTOFMEMORY;
@@ -1258,6 +1267,26 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     av_packet_unref(&pkt);
   }
 
+  if (m_bH264MVCCombine && pPacket && pPacket->StreamId == m_nH264MVCExtensionStream) {
+    if (FAILED(QueueMVCExtension(pPacket))) {
+      SAFE_DELETE(pPacket);
+      return E_FAIL;
+    }
+
+    return S_FALSE;
+  }
+
+  if (m_bH264MVCCombine && pPacket && pPacket->StreamId == m_nH264MVCBaseStream) {
+    HRESULT hr = CombineMVCBaseExtension(pPacket);
+    if (hr != S_OK) {
+      SAFE_DELETE(pPacket);
+
+      // S_FALSE indicates a skipped packet, not a hard failure
+      if (hr == S_FALSE)
+        bReturnEmpty = true;
+    }
+  }
+
   if (bReturnEmpty && !pPacket) {
     return S_FALSE;
   }
@@ -1269,6 +1298,50 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
   *ppPacket = pPacket;
   return S_OK;
+}
+
+STDMETHODIMP CLAVFDemuxer::QueueMVCExtension(Packet *pPacket)
+{
+  m_MVCExtensionQueue.push_back(pPacket);
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFDemuxer::FlushMVCExtensionQueue()
+{
+  for (auto it = m_MVCExtensionQueue.begin(); it != m_MVCExtensionQueue.end(); it++) {
+    delete (*it);
+  }
+
+  m_MVCExtensionQueue.clear();
+  return S_OK;
+}
+
+STDMETHODIMP CLAVFDemuxer::CombineMVCBaseExtension(Packet *pBasePacket)
+{
+  while (!m_MVCExtensionQueue.empty()) {
+    Packet *pExtensionPacket = m_MVCExtensionQueue.front();
+    if (pExtensionPacket->rtDTS == pBasePacket->rtDTS) {
+      if (pBasePacket->Append(pExtensionPacket) < 0)
+        return E_FAIL;
+
+      m_MVCExtensionQueue.pop_front();
+      delete pExtensionPacket;
+      return S_OK;
+    }
+    else if (pExtensionPacket->rtDTS < pBasePacket->rtDTS)
+    {
+      DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineMVCBaseExtension(): Dropping extension %I64d, base is %I64d", pExtensionPacket->rtDTS, pBasePacket->rtDTS));
+      m_MVCExtensionQueue.pop_front();
+      delete pExtensionPacket;
+    }
+    else if (pExtensionPacket->rtDTS > pBasePacket->rtDTS)
+    {
+      DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineMVCBaseExtension(): Dropping base %I64d, next extension is %I64d", pBasePacket->rtDTS, pExtensionPacket->rtDTS));
+      return S_FALSE;
+    }
+  }
+  DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineMVCBaseExtension(): Ran out of extension packets for base %I64d", pBasePacket->rtDTS));
+  return S_FALSE;
 }
 
 STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
@@ -1319,6 +1392,9 @@ retry:
 
   m_bVC1SeenTimestamp = FALSE;
 
+  // Flush MVC extensions on seek (no-op if empty)
+  FlushMVCExtensionQueue();
+
   return S_OK;
 }
 
@@ -1335,6 +1411,9 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
   }
 
   m_bVC1SeenTimestamp = FALSE;
+
+  // Flush MVC extensions on seek (no-op if empty)
+  FlushMVCExtensionQueue();
 
   return S_OK;
 }
@@ -1881,6 +1960,11 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
   if(!m_streams[subpic].empty()) {
     CreateNoSubtitleStream();
   }
+
+  if (m_bMPEGTS && !m_pBluRay) {
+    m_bH264MVCCombine = GetH264MVCStreamIndices(m_avFormat, &m_nH264MVCBaseStream, &m_nH264MVCExtensionStream);
+  }
+
   return S_OK;
 }
 

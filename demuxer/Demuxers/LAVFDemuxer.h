@@ -167,6 +167,10 @@ private:
   STDMETHODIMP CreatePacketMediaType(Packet *pPacket, enum AVCodecID codec_id, BYTE *extradata, int extradata_size, BYTE *paramchange, int paramchange_size);
   STDMETHODIMP ParseICYMetadataPacket();
 
+  STDMETHODIMP QueueMVCExtension(Packet *pPacket);
+  STDMETHODIMP FlushMVCExtensionQueue();
+  STDMETHODIMP CombineMVCBaseExtension(Packet *pBasePacket);
+
 private:
   AVFormatContext *m_avFormat        = nullptr;
   const char      *m_pszInputFormat  = nullptr;
@@ -185,6 +189,11 @@ private:
   BOOL m_bVC1Correction              = FALSE;
   BOOL m_bVC1SeenTimestamp           = FALSE;
   BOOL m_bPGSNoParsing               = FALSE;
+
+  BOOL m_bH264MVCCombine             = FALSE;
+  int  m_nH264MVCBaseStream          = -1;
+  int  m_nH264MVCExtensionStream     = -1;
+  std::deque<Packet *> m_MVCExtensionQueue;
 
   int m_ForcedSubStream              = -1;
   unsigned int m_program             = 0;
