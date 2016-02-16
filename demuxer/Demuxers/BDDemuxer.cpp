@@ -379,6 +379,7 @@ fail:
   return E_FAIL;
 }
 
+#define MVC_DEMUX_COUNT 100
 STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
 {
   if (!m_MVCFormatContext)
@@ -390,7 +391,7 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
   AVPacket mvcPacket = { 0 };
   av_init_packet(&mvcPacket);
 
-  while (count < 100) {
+  while (count < MVC_DEMUX_COUNT) {
     ret = av_read_frame(m_MVCFormatContext, &mvcPacket);
 
     if (ret == AVERROR(EINTR) || ret == AVERROR(EAGAIN)) {
@@ -437,7 +438,12 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
     }
   };
 
-  return found ? S_OK : (count > 0 ? S_FALSE : E_FAIL);
+  if (found)
+    return S_OK;
+  else if (count > 0)
+    return S_FALSE;
+  else
+    return E_FAIL;
 }
 
 STDMETHODIMP CBDDemuxer::SetTitle(int idx)
@@ -672,16 +678,10 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
     if (rTime > 0) {
       AVStream *stream = m_MVCFormatContext->streams[m_MVCStreamIndex];
 
-      uint64_t clip_start, clip_in;
-      int ret = bd_get_clip_infos(m_pBD, m_NewClip, &clip_start, &clip_in, nullptr, nullptr);
-      if (ret) {
-        DbgLog((LOG_TRACE, 10, L"seek: %I64d, start: %I64d, in: %I64d", rTime, Convert90KhzToDSTime(clip_start), Convert90KhzToDSTime(clip_in)));
-        rTime -= Convert90KhzToDSTime(clip_start);
-        rTime += Convert90KhzToDSTime(clip_in);
-      }
-
-      rTime -= 10000000; // one second for "approximation"
-      seek_pts = m_lavfDemuxer->ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den, 0);
+      DbgLog((LOG_TRACE, 10, L"seek: %I64d, offset: %I64d, corrected: %I64d", rTime, m_rtNewOffset, rTime - m_rtNewOffset));
+      rTime -= m_rtNewOffset;
+      rTime -= 10000000; // seek one second before the target to ensure the MVC queue isn't out of sync for too long
+      seek_pts = m_lavfDemuxer->ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
     }
 
     if (seek_pts < 0)
