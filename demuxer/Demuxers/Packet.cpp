@@ -38,7 +38,9 @@ int Packet::SetDataSize(size_t len)
   // RemoveHead may have moved m_Data, make sure the data moved too.
   if (m_Buf && m_Buf->data != m_Data) {
     ptrdiff_t offset = m_Data - m_Buf->data;
-    av_buffer_make_writable(&m_Buf);
+    if (av_buffer_make_writable(&m_Buf) < 0)
+      return -1;
+
     memmove(m_Buf->data, m_Buf->data + offset, m_DataSize);
   }
 
