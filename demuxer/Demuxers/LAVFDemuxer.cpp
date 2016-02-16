@@ -1142,6 +1142,15 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     pPacket = new Packet();
     if (!pPacket)
       return E_OUTOFMEMORY;
+
+    // Convert timestamps to reference time and set them on the packet
+    REFERENCE_TIME pts = ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
+    REFERENCE_TIME dts = ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
+    REFERENCE_TIME duration = ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den, 0);
+
+    pPacket->rtPTS = pts;
+    pPacket->rtDTS = dts;
+    pPacket->StreamId = (DWORD)pkt.stream_index;
     pPacket->bPosition = pkt.pos;
 
     if (stream->codec->codec_id == AV_CODEC_ID_H264) {
@@ -1149,10 +1158,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         if (!stream->codec->extradata_size || stream->codec->extradata[0] != 1 || AV_RB32(pkt.data) == 0x00000001) {
           pPacket->dwFlags |= LAV_PACKET_H264_ANNEXB;
         } else { // No DTS for H264 in native format
-          pkt.dts = AV_NOPTS_VALUE;
+          dts = Packet::INVALID_TIME;
         }
       } else if (!m_bPMP && !m_bAVI) { // For most formats, DTS timestamps for h.264 are no fun
-        pkt.dts = AV_NOPTS_VALUE;
+        dts = Packet::INVALID_TIME;
       }
     }
 
@@ -1160,16 +1169,16 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     {
       // AVI's always have borked pts, specially if m_pFormatContext->flags includes
       // AVFMT_FLAG_GENPTS so always use dts
-      pkt.pts = AV_NOPTS_VALUE;
+      pts = Packet::INVALID_TIME;
     }
 
     if (stream->codec->codec_id == AV_CODEC_ID_RV10 || stream->codec->codec_id == AV_CODEC_ID_RV20 || stream->codec->codec_id == AV_CODEC_ID_RV30 || stream->codec->codec_id == AV_CODEC_ID_RV40) {
-      pkt.pts = AV_NOPTS_VALUE;
+      pts = Packet::INVALID_TIME;
     }
 
     // Never use DTS for these formats
     if (!m_bAVI && (stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO || stream->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO))
-      pkt.dts = AV_NOPTS_VALUE;
+      dts = Packet::INVALID_TIME;
 
     if(pkt.data) {
       result = pPacket->SetPacket(&pkt);
@@ -1179,13 +1188,8 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       }
     }
 
-    pPacket->StreamId = (DWORD)pkt.stream_index;
-
-    REFERENCE_TIME pts = ConvertTimestampToRT(pkt.pts, stream->time_base.num, stream->time_base.den);
-    REFERENCE_TIME dts = ConvertTimestampToRT(pkt.dts, stream->time_base.num, stream->time_base.den);
-    REFERENCE_TIME duration = ConvertTimestampToRT(pkt.duration, stream->time_base.num, stream->time_base.den, 0);
-
-    REFERENCE_TIME rt = Packet::INVALID_TIME; // m_rtCurrent;
+    // Select the appropriate timestamps
+    REFERENCE_TIME rt = Packet::INVALID_TIME;
     // Try the different times set, pts first, dts when pts is not valid
     if (pts != Packet::INVALID_TIME) {
       rt = pts;
