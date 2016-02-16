@@ -140,6 +140,14 @@ STDMETHODIMP CDecMSDKMVC::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
     m_pAnnexBConverter->SetNALUSize(mp2vi->dwFlags);
   }
+  else if (*pmt->Subtype() == MEDIASUBTYPE_AMVC) {
+    // Decode sequence header from the media type
+    if (mp2vi->cbSequenceHeader) {
+      HRESULT hr = Decode((const BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader, AV_NOPTS_VALUE, AV_NOPTS_VALUE, TRUE, TRUE);
+      if (FAILED(hr))
+        return hr;
+    }
+  }
 
   return S_OK;
 }
@@ -266,7 +274,10 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       av_freep(&pOutBuffer);
     }
     else {
-      ASSERT(0);
+      m_buff.Append(buffer, buflen);
+      bs.Data = m_buff.Ptr();
+      bs.DataLength = m_buff.GetCount();
+      bs.MaxLength = bs.DataLength;
     }
   }
 
