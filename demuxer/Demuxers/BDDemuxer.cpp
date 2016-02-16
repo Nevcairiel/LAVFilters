@@ -385,7 +385,7 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
     return E_FAIL;
 
   int ret, count = 0;
-  bool found = false;
+  bool found = (rtBase == Packet::INVALID_TIME);
 
   AVPacket mvcPacket = { 0 };
   av_init_packet(&mvcPacket);
@@ -410,7 +410,9 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
       REFERENCE_TIME rtDTS = m_lavfDemuxer->ConvertTimestampToRT(mvcPacket.dts, stream->time_base.num, stream->time_base.den);
       REFERENCE_TIME rtPTS = m_lavfDemuxer->ConvertTimestampToRT(mvcPacket.pts, stream->time_base.num, stream->time_base.den);
 
-      if (rtDTS < rtBase) {
+      if (rtBase == Packet::INVALID_TIME || rtDTS == Packet::INVALID_TIME) {
+        // do nothing, can't compare timestamps when they are not set
+      } else if (rtDTS < rtBase) {
         av_packet_unref(&mvcPacket);
         continue;
       }
