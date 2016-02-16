@@ -1377,7 +1377,7 @@ STDMETHODIMP CLAVFDemuxer::CombineMVCBaseExtension(Packet *pBasePacket)
 retry:
   while (!m_MVCExtensionQueue.empty()) {
     Packet *pExtensionPacket = m_MVCExtensionQueue.front();
-    if (pExtensionPacket->rtDTS == pBasePacket->rtDTS) {
+    if (pExtensionPacket->rtDTS == pBasePacket->rtDTS || pBasePacket->rtDTS == Packet::INVALID_TIME || pExtensionPacket->rtDTS == Packet::INVALID_TIME) {
       if (pBasePacket->Append(pExtensionPacket) < 0)
         return E_FAIL;
 
