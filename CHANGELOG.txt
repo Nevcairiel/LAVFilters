@@ -1,6 +1,26 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.68.0 - 2016/xx/xx
+LAV Splitter
+- NEW: H.264 MVC 3D demuxing from MKV 3D, Blu-ray discs and Blu-ray SSIF files
+- Fixed: The bitdepth of DTS-HD MA streams is reported properly in the stream information
+
+LAV Video
+- NEW: H.264 MVC 3D decoding (requires madVR 0.90 or newer)
+- NEW: HEVC HDR streams export the HDR metadata to the video renderer (requires madVR 0.89.18 or newer)
+- NEW: VP9 DXVA2 Hardware Acceleration
+- NEW: Weston Three Field Deinterlacing filter (w3fdif)
+- NEW: Ability to choose which GPU is used for DXVA2-CopyBack decoding
+- Changed: Removed the CUVID HQ processing option, it is now automatically used when appropriate
+- Fixed: CUVID would crash when playing certain HEVC files
+- Fixed: Some pixel format conversions were much slower than expected
+- Fixed: Pixel Format changes mid-stream were not re-negotiated with the renderer in all cases
+- Fixed: Changes in the framerate due to software deinterlacing are properly reflected in the media type
+
+LAV Audio
+- Fixed: Increased PCM buffering to avoid stuttering with TrueHD on some audio devices
+
 0.67.0 - 2015/11/15
 LAV Splitter
 - NEW: Support for HTTPS URLs
