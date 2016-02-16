@@ -405,7 +405,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
   // Write new path
   sprintf_s(path+strlen(path), a_len-strlen(path), "\\CLIPINF\\%S.clpi", basename);
 
-  CLPI_CL *cl = clpi_parse(path);
+  CLPI_CL *cl = bd_read_clpi(path);
   if (!cl)
     return E_FAIL;
 
@@ -422,7 +422,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
     }
   }
   // Free the clip
-  clpi_free(cl);
+  bd_free_clpi(cl);
   cl = nullptr;
 
   return S_OK;
