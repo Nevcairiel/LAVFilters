@@ -471,7 +471,8 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
       if (mpls->ext_sub_path[i].type == 8
         && mpls->ext_sub_path[i].sub_playitem_count == mpls->list_count)
       {
-        DbgLog((LOG_TRACE, 20, L"Enabling BD3D MVC demuxing"));
+        DbgLog((LOG_TRACE, 20, L"CBDDemuxer::SetTitle(): Enabling BD3D MVC demuxing"));
+        DbgLog((LOG_TRACE, 20, L" -> MVC_Base_view_R_flag: %d", m_pTitle->mvc_base_view_r_flag));
         m_MVCPlayback = TRUE;
         m_MVCExtensionSubPathIndex = i;
         break;

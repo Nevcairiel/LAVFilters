@@ -269,6 +269,13 @@ std::string lavf_get_stream_description(AVStream *pStream)
     if (bitrate > 0) {
       buf << ", " << (bitrate / 1000) << " kb/s";
     }
+    if (enc->codec_id == AV_CODEC_ID_H264 && enc->profile == FF_PROFILE_H264_STEREO_HIGH) {
+      AVDictionaryEntry *entry = av_dict_get(pStream->metadata, "stereo_mode", nullptr, 0);
+      if (entry && strcmp(entry->value, "mvc_lr") == 0)
+        buf << ", lr";
+      else if (entry && strcmp(entry->value, "mvc_rl") == 0)
+        buf << ", rl";
+    }
     // Closing tag
     if (title || lang) {
       buf << ")";
