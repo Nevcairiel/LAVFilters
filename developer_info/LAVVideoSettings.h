@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2015 Hendrik Leppkes
+ *      Copyright (C) 2010-2016 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -99,8 +99,9 @@ typedef enum LAVVideoHWCodec {
   HWCodec_MPEG4 = Codec_MPEG4,
   HWCodec_MPEG2DVD,
   HWCodec_HEVC,
+  HWCodec_VP9,
 
-  HWCodec_NB    = HWCodec_HEVC + 1
+  HWCodec_NB,
 } LAVVideoHWCodec;
 
 // Flags for HW Resolution support
@@ -115,7 +116,8 @@ typedef enum LAVHWAccel {
   HWAccel_QuickSync,
   HWAccel_DXVA2,
   HWAccel_DXVA2CopyBack = HWAccel_DXVA2,
-  HWAccel_DXVA2Native
+  HWAccel_DXVA2Native,
+  HWAccel_NB,              // Number of HWAccels
 } LAVHWAccel;
 
 // Deinterlace algorithms offered by the hardware decoders
@@ -128,7 +130,9 @@ typedef enum LAVHWDeintModes {
 // Software deinterlacing algorithms
 typedef enum LAVSWDeintModes {
   SWDeintMode_None,
-  SWDeintMode_YADIF
+  SWDeintMode_YADIF,
+  SWDeintMode_W3FDIF_Simple,
+  SWDeintMode_W3FDIF_Complex,
 } LAVSWDeintModes;
 
 // Deinterlacing processing mode
@@ -293,12 +297,8 @@ interface ILAVVideoSettings : public IUnknown
   // Get the deinterlacing output for the hardware decoder
   STDMETHOD_(LAVDeintOutput, GetHWAccelDeintOutput)() = 0;
 
-  // Set whether the hardware decoder should force high-quality deinterlacing
-  // Note: this option is not supported on all decoder implementations and/or all operating systems
+  // deprecated. HQ deint is always used when available depending on platform and codec
   STDMETHOD(SetHWAccelDeintHQ)(BOOL bHQ) = 0;
-
-  // Get whether the hardware decoder should force high-quality deinterlacing
-  // Note: this option is not supported on all decoder implementations and/or all operating systems
   STDMETHOD_(BOOL, GetHWAccelDeintHQ)() = 0;
 
   // Set the software deinterlacing mode used
@@ -362,6 +362,19 @@ interface ILAVVideoSettings : public IUnknown
   // Must be called before an input is connected to LAV Video, and the setting is non-persistent
   // NOTE: For CUVID, the index defines the index of the CUDA capable device, while for DXVA2, the list includes all D3D9 devices
   STDMETHOD(SetGPUDeviceIndex)(DWORD dwDevice) = 0;
+
+  // Get the number of available devices for the specified HWAccel
+  STDMETHOD_(DWORD, GetHWAccelNumDevices)(LAVHWAccel hwAccel) = 0;
+
+  // Get a list of available HWAccel devices for the specified HWAccel
+  STDMETHOD(GetHWAccelDeviceInfo)(LAVHWAccel hwAccel, DWORD dwIndex, BSTR *pstrDeviceName, DWORD *pdwDeviceIdentifier) = 0;
+
+  // Get/Set the device for a specified HWAccel
+  // In contrast to SetGPUDeviceIndex, this setting is hwaccel-specific and persistent
+  // dwDeviceIdentifier is an optional parameter that identifies the selected device (ie. its device id), set to 0 if not used
+#define LAVHWACCEL_DEVICE_DEFAULT ((DWORD)-1)
+  STDMETHOD_(DWORD, GetHWAccelDeviceIndex)(LAVHWAccel hwAccel, DWORD *pdwDeviceIdentifier) = 0;
+  STDMETHOD(SetHWAccelDeviceIndex)(LAVHWAccel hwAccel, DWORD dwIndex, DWORD dwDeviceIdentifier) = 0;
 };
 
 // LAV Video status interface
@@ -370,4 +383,7 @@ interface ILAVVideoStatus : public IUnknown
 {
   // Get the name of the active decoder (can return NULL if none is active)
   STDMETHOD_(LPCWSTR, GetActiveDecoderName)() = 0;
+
+  // Get the name of the currently active hwaccel device
+  STDMETHOD(GetHWAccelActiveDevice)(BSTR *pstrDeviceName) = 0;
 };
