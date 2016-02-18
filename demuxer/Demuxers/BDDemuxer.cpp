@@ -338,7 +338,8 @@ STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
   DbgLog((LOG_TRACE, 10, "CBDDemuxer::OpenMVCExtensionDemuxer(): Opening MVC extension stream at %s", fileName));
 
   // Try to open the MVC stream
-  ret = avformat_open_input(&m_MVCFormatContext, fileName, nullptr, nullptr);
+  AVInputFormat *format = av_find_input_format("mpegts");
+  ret = avformat_open_input(&m_MVCFormatContext, fileName, format, nullptr);
   if (ret < 0) {
     DbgLog((LOG_TRACE, 10, "-> Opening MVC demuxing context failed (%d)", ret));
     goto fail;
