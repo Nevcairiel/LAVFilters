@@ -681,7 +681,6 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
     if (rTime > 0) {
       AVStream *stream = m_MVCFormatContext->streams[m_MVCStreamIndex];
 
-      DbgLog((LOG_TRACE, 10, L"seek: %I64d, offset: %I64d, corrected: %I64d", rTime, m_rtNewOffset, rTime - m_rtNewOffset));
       rTime -= m_rtNewOffset;
       rTime -= 10000000; // seek one second before the target to ensure the MVC queue isn't out of sync for too long
       seek_pts = m_lavfDemuxer->ConvertRTToTimestamp(rTime, stream->time_base.num, stream->time_base.den);
