@@ -19,12 +19,14 @@
 
 #pragma once
 #include "DecBase.h"
+#include "IMediaSideData.h"
 
 #include "mfxvideo.h"
 #include "mfxmvc.h"
 
 #include "parsers/AnnexBConverter.h"
 
+#include <deque>
 #include <vector>
 
 #define ASYNC_DEPTH 10
@@ -34,6 +36,11 @@ typedef struct _MVCBuffer {
   bool queued = false;
   mfxSyncPoint sync = nullptr;
 } MVCBuffer;
+
+typedef struct _MVCGOP {
+  std::deque<mfxU64> timestamps;
+  std::deque<MediaSideData3DOffset> offsets;
+} MVCGOP;
 
 class CDecMSDKMVC : public CDecBase
 {
@@ -65,6 +72,15 @@ private:
   HRESULT HandleOutput(MVCBuffer * pOutputBuffer);
   HRESULT DeliverOutput(MVCBuffer * pBaseView, MVCBuffer * pExtraView);
 
+  HRESULT ParseSEI(const BYTE *buffer, int size, mfxU64 timestamp);
+  HRESULT ParseMVCNestedSEI(const BYTE *buffer, int size, mfxU64 timestamp);
+  HRESULT ParseUnregUserDataSEI(const BYTE *buffer, int size, mfxU64 timestamp);
+  HRESULT ParseOffsetMetadata(const BYTE *buffer, int size, mfxU64 timestamp);
+
+  void AddFrameToGOP(mfxU64 timestamp);
+  BOOL RemoveFrameFromGOP(MVCGOP * pGOP, mfxU64 timestamp);
+  void GetOffsetSideData(LAVFrame *pFrame, mfxU64 timestamp);
+
   static void msdk_buffer_destruct(LAVFrame *pFrame);
 
 private:
@@ -86,4 +102,7 @@ private:
 
   MVCBuffer           *m_pOutputQueue[ASYNC_DEPTH] = { 0 };
   int                  m_nOutputQueuePosition = 0;
+
+  std::deque<MVCGOP>    m_GOPs;
+  MediaSideData3DOffset m_PrevOffset;
 };

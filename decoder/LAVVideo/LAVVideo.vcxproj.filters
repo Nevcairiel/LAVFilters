@@ -266,6 +266,9 @@
     <ClInclude Include="decoders\msdk_mvc.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\includes\IMediaSideData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVVideo.rc">

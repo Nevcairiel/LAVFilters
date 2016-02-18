@@ -20,6 +20,8 @@
 #include "stdafx.h"
 #include "msdk_mvc.h"
 #include "moreuuids.h"
+#include "ByteParser.h"
+#include "H264Nalu.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -279,6 +281,18 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       bs.DataLength = m_buff.GetCount();
       bs.MaxLength = bs.DataLength;
     }
+
+    // Check the buffer for SEI NALUs
+    // MSDK's SEI reading functionality is slightly buggy
+    CH264Nalu nalu;
+    nalu.SetBuffer(bs.Data, bs.DataLength, 0);
+    while (nalu.ReadNext()) {
+      if (nalu.GetType() == NALU_TYPE_SEI) {
+        ParseSEI(nalu.GetDataBuffer() + 1, nalu.GetDataLength() - 1, bs.TimeStamp);
+      }
+    }
+
+    AddFrameToGOP(bs.TimeStamp);
   }
 
   if (!m_bDecodeReady) {
@@ -363,6 +377,196 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   return S_OK;
 }
 
+HRESULT CDecMSDKMVC::ParseSEI(const BYTE *buffer, int size, mfxU64 timestamp)
+{
+  CByteParser seiParser(buffer, size);
+  while (seiParser.RemainingBits() > 16 && seiParser.BitRead(16, true)) {
+    int type = 0;
+    unsigned size = 0;
+
+    do {
+      if (seiParser.RemainingBits() < 8)
+        return E_FAIL;
+      type += seiParser.BitRead(8, true);
+    } while (seiParser.BitRead(8) == 0xFF);
+
+    do {
+      if (seiParser.RemainingBits() < 8)
+        return E_FAIL;
+      size += seiParser.BitRead(8, true);
+    } while (seiParser.BitRead(8) == 0xFF);
+
+    if (size > seiParser.Remaining()) {
+      DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::ParseSEI(): SEI type %d size %d truncated, available: %d", type, size, seiParser.Remaining()));
+      return E_FAIL;
+    }
+
+    switch (type) {
+    case 5:
+      ParseUnregUserDataSEI(buffer + seiParser.Pos(), size, timestamp);
+      break;
+    case 37:
+      ParseMVCNestedSEI(buffer + seiParser.Pos(), size, timestamp);
+      break;
+    }
+
+    seiParser.BitSkip(size * 8);
+  }
+
+  return S_OK;
+}
+
+HRESULT CDecMSDKMVC::ParseMVCNestedSEI(const BYTE *buffer, int size, mfxU64 timestamp)
+{
+  CByteParser seiParser(buffer, size);
+
+  // Parse the MVC Scalable Nesting SEI first
+  int op_flag = seiParser.BitRead(1);
+  if (!op_flag) {
+    int all_views_in_au = seiParser.BitRead(1);
+    if (!all_views_in_au) {
+      int num_views_min1 = seiParser.UExpGolombRead();
+      for (int i = 0; i <= num_views_min1; i++) {
+        seiParser.BitRead(10); // sei_view_id[i]
+      }
+    }
+  }
+  else {
+    int num_views_min1 = seiParser.UExpGolombRead();
+    for (int i = 0; i <= num_views_min1; i++) {
+      seiParser.BitRead(10); // sei_op_view_id[i]
+    }
+    seiParser.BitRead(3); // sei_op_temporal_id
+  }
+  seiParser.BitByteAlign();
+
+  // Parse nested SEI
+  ParseSEI(buffer + seiParser.Pos(), seiParser.Remaining(), timestamp);
+
+  return S_OK;
+}
+
+static const uint8_t uuid_iso_iec_11578[16] = {
+  0x17, 0xee, 0x8c, 0x60, 0xf8, 0x4d, 0x11, 0xd9, 0x8c, 0xd6, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66
+};
+
+HRESULT CDecMSDKMVC::ParseUnregUserDataSEI(const BYTE *buffer, int size, mfxU64 timestamp)
+{
+  if (size < 20)
+    return E_FAIL;
+
+  if (memcmp(buffer, uuid_iso_iec_11578, 16) != 0) {
+    DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::ParseUnregUserDataSEI(): Unknown User Data GUID"));
+    return S_FALSE;
+  }
+
+  uint32_t type = AV_RB32(buffer + 16);
+
+  // Offset metadata
+  if (type == 0x4F464D44) {
+    return ParseOffsetMetadata(buffer + 20, size - 20, timestamp);
+  }
+
+  return S_FALSE;
+}
+
+HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, int size, mfxU64 timestamp)
+{
+  if (size < 10)
+    return E_FAIL;
+
+  // Skip PTS part, its not used. Start parsing at first marker bit after the PTS
+  CByteParser offset(buffer + 6, size - 6);
+  offset.BitSkip(2); // Skip marker and re served
+
+  int nOffsets = offset.BitRead(6);
+  int nFrames = offset.BitRead(8);
+  DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::ParseOffsetMetadata(): offset_metadata with %d offsets and %d frames for time %I64u", nOffsets, nFrames, timestamp));
+
+  if (nOffsets > 32) {
+    DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::ParseOffsetMetadata(): > 32 offsets is not supported"));
+    return E_FAIL;
+  }
+
+  offset.BitSkip(16); // Skip marker and reserved
+  if (nOffsets * nFrames > (size - 10)) {
+    DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::ParseOffsetMetadata(): not enough data for all offsets (need %d, have %d)", nOffsets * nFrames, size - 4));
+    return E_FAIL;
+  }
+
+  MVCGOP GOP;
+
+  for (int o = 0; o < nOffsets; o++) {
+    for (int f = 0; f < nFrames; f++) {
+      if (o == 0) {
+        MediaSideData3DOffset offset = { (BYTE)nOffsets };
+        GOP.offsets.push_back(offset);
+      }
+
+      GOP.offsets[f].direction_flag[o] = offset.BitRead(1); // direction flag
+      GOP.offsets[f].offset[o]         = offset.BitRead(7); // value
+    }
+  }
+
+  m_GOPs.push_back(GOP);
+
+  return S_OK;
+}
+
+void CDecMSDKMVC::AddFrameToGOP(mfxU64 timestamp)
+{
+  if (m_GOPs.size() > 0)
+    m_GOPs.back().timestamps.push_back(timestamp);
+}
+
+BOOL CDecMSDKMVC::RemoveFrameFromGOP(MVCGOP * pGOP, mfxU64 timestamp)
+{
+  if (pGOP->timestamps.empty() || pGOP->offsets.empty())
+    return FALSE;
+
+  auto e = std::find(pGOP->timestamps.begin(), pGOP->timestamps.end(), timestamp);
+  if (e != pGOP->timestamps.end()) {
+    pGOP->timestamps.erase(e);
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+void CDecMSDKMVC::GetOffsetSideData(LAVFrame *pFrame, mfxU64 timestamp)
+{
+  MediaSideData3DOffset offset = { 255 };
+  for (auto it = m_GOPs.begin(); it != m_GOPs.end(); it++) {
+    if (RemoveFrameFromGOP(&(*it), timestamp)) {
+      offset = it->offsets.front();
+      it->offsets.pop_front();
+
+      if (it != m_GOPs.begin()) {
+#ifdef DEBUG
+        for (auto itd = m_GOPs.begin(); itd < it; itd++) {
+          if (!itd->offsets.empty()) {
+            DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::GetOffsetSideData(): Switched to next GOP at %I64u with %d entries remaining", itd->offsets.size()));
+          }
+        }
+#endif
+        m_GOPs.erase(m_GOPs.begin(), it);
+      }
+      break;
+    }
+  }
+
+  if (offset.offset_count == 255) {
+    DbgLog((LOG_TRACE, 10, L"No 3D Offset for frame at %I64u", timestamp));
+    offset = m_PrevOffset;
+  }
+
+  m_PrevOffset = offset;
+
+  MediaSideData3DOffset *FrameOffset = (MediaSideData3DOffset *)AddLAVFrameSideData(pFrame, IID_MediaSideData3DOffset, sizeof(MediaSideData3DOffset));
+  if (FrameOffset)
+    *FrameOffset = offset;
+}
+
 HRESULT CDecMSDKMVC::HandleOutput(MVCBuffer * pOutputBuffer)
 {
   int nCur = m_nOutputQueuePosition, nNext = (m_nOutputQueuePosition + 1) % ASYNC_DEPTH;
@@ -433,6 +637,8 @@ HRESULT CDecMSDKMVC::DeliverOutput(MVCBuffer * pBaseView, MVCBuffer * pExtraView
   pFrame->destruct = msdk_buffer_destruct;
   pFrame->priv_data = this;
 
+  GetOffsetSideData(pFrame, pBaseView->surface.Data.TimeStamp);
+
   return Deliver(pFrame);
 }
 
@@ -474,6 +680,9 @@ STDMETHODIMP CDecMSDKMVC::Flush()
     }
     memset(m_pOutputQueue, 0, sizeof(m_pOutputQueue));
   }
+
+  m_GOPs.clear();
+  memset(&m_PrevOffset, 0, sizeof(m_PrevOffset));
 
   return __super::Flush();
 }

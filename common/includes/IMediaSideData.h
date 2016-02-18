@@ -46,3 +46,25 @@ struct MediaSideDataHDR
   double min_display_mastering_luminance;
 };
 #pragma pack(pop)
+
+// -----------------------------------------------------------------
+// 3D Plane Offset Side Data
+// -----------------------------------------------------------------
+
+// {F169B76C-75A3-49E6-A23A-14983EBF4370}
+DEFINE_GUID(IID_MediaSideData3DOffset,
+  0xf169b76c, 0x75a3, 0x49e6, 0xa2, 0x3a, 0x14, 0x98, 0x3e, 0xbf, 0x43, 0x70);
+
+#pragma pack(push, 1)
+struct MediaSideData3DOffset
+{
+  // Number of valid offsets (up to 32)
+  BYTE offset_count;
+
+  // Direction Flags
+  BYTE direction_flag[32];
+
+  // Offset Value
+  BYTE offset[32];
+};
+#pragma pack(pop)
