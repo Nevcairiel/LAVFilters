@@ -502,6 +502,13 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
     return hr;
   }
 
+  if (m_MVCPlayback && !m_lavfDemuxer->m_bH264MVCCombine)
+  {
+    DbgLog((LOG_TRACE, 10, L"CBDDemuxer::SetTitle(): MVC demuxing was requested, but main demuxer did not activate MVC mode, disabling."));
+    CloseMVCExtensionDemuxer();
+    m_MVCPlayback = FALSE;
+  }
+
   m_lavfDemuxer->SeekByte(0, 0);
 
   // Process any events that occured during opening
