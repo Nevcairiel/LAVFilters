@@ -346,6 +346,7 @@ STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
   }
 
   av_opt_set_int(m_MVCFormatContext, "correct_ts_overflow", 0, 0);
+  m_MVCFormatContext->flags |= AVFMT_FLAG_KEEP_SIDE_DATA;
 
   // Find the streams
   ret = avformat_find_stream_info(m_MVCFormatContext, nullptr);
