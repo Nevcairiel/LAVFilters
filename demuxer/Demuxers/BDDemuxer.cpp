@@ -293,15 +293,10 @@ STDMETHODIMP CBDDemuxer::ProcessPacket(Packet *pPacket)
       m_StreamClip[pPacket->StreamId] = m_NewClip;
 
       // Flush MVC extensions on stream change, it'll re-fill automatically
-      if (m_MVCPlayback && pPacket->StreamId == m_lavfDemuxer->m_nH264MVCBaseStream) {
-        if (!m_MVCInitialOpen) {
-          m_lavfDemuxer->FlushMVCExtensionQueue();
-          CloseMVCExtensionDemuxer();
-          OpenMVCExtensionDemuxer(m_NewClip);
-        }
-        else {
-          m_MVCInitialOpen = FALSE;
-        }
+      if (m_MVCPlayback && pPacket->StreamId == m_lavfDemuxer->m_nH264MVCBaseStream && m_MVCExtensionClip != m_NewClip) {
+        m_lavfDemuxer->FlushMVCExtensionQueue();
+        CloseMVCExtensionDemuxer();
+        OpenMVCExtensionDemuxer(m_NewClip);
       }
     }
     //DbgLog((LOG_TRACE, 10, L"Frame: stream: %d, start: %I64d, corrected: %I64d, bytepos: %I64d", pPacket->StreamId, pPacket->rtStart, pPacket->rtStart + rtOffset, pPacket->bPosition));
@@ -323,6 +318,8 @@ void CBDDemuxer::CloseMVCExtensionDemuxer()
 {
   if (m_MVCFormatContext)
     avformat_close_input(&m_MVCFormatContext);
+
+  m_MVCExtensionClip = -1;
 }
 
 STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
@@ -374,6 +371,8 @@ STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
     DbgLog((LOG_TRACE, 10, "-> MVC Stream not found"));
     goto fail;
   }
+
+  m_MVCExtensionClip = playItem;
 
   return S_OK;
 fail:
@@ -539,8 +538,6 @@ void CBDDemuxer::ProcessBluRayMetadata()
   if (m_MVCPlayback) {
     HRESULT hr = OpenMVCExtensionDemuxer(m_NewClip);
     if (SUCCEEDED(hr)) {
-      m_MVCInitialOpen = TRUE;
-
       // Create a fake stream and set the appropriate properties
       m_lavfDemuxer->AddMPEGTSStream(0x1FFE, 0x20);
       AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(0x1FFE);
@@ -678,10 +675,6 @@ STDMETHODIMP CBDDemuxer::Seek(REFERENCE_TIME rTime)
     CloseMVCExtensionDemuxer();
     if (FAILED(OpenMVCExtensionDemuxer(m_NewClip)))
       return E_FAIL;
-
-    // prevent re-opening the clip
-    if (m_StreamClip[m_lavfDemuxer->m_nH264MVCBaseStream] != m_NewClip)
-      m_MVCInitialOpen = TRUE;
 
     // Adjust for clip offset
     int64_t seek_pts = 0;

@@ -103,9 +103,8 @@ private:
   int64_t         m_bNewOffsetPos         = 0;
 
   BOOL m_MVCPlayback                      = FALSE;
-  BOOL m_MVCInitialOpen                   = FALSE;
   int  m_MVCExtensionSubPathIndex         = 0;
-  char m_MVCExtensionClipId[6]            = { 0 };
+  int  m_MVCExtensionClip                 = -1;
 
   AVFormatContext *m_MVCFormatContext     = nullptr;
   int              m_MVCStreamIndex       = -1;
