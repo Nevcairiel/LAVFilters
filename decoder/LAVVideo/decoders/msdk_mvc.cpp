@@ -503,8 +503,13 @@ HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, int size, mfxU64 ti
         GOP.offsets.push_back(offset);
       }
 
-      GOP.offsets[f].direction_flag[o] = offset.BitRead(1); // direction flag
-      GOP.offsets[f].offset[o]         = offset.BitRead(7); // value
+      int direction_flag = offset.BitRead(1);
+      int value = offset.BitRead(7);
+
+      if (direction_flag)
+        value = -value;
+
+      GOP.offsets[f].offset[o] = value;
     }
   }
 

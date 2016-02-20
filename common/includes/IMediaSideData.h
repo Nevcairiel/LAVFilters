@@ -59,12 +59,11 @@ DEFINE_GUID(IID_MediaSideData3DOffset,
 struct MediaSideData3DOffset
 {
   // Number of valid offsets (up to 32)
-  BYTE offset_count;
+  int offset_count;
 
-  // Direction Flags
-  BYTE direction_flag[32];
-
-  // Offset Value
-  BYTE offset[32];
+  // Offset Value, can be positive or negative
+  // positive values offset closer to the viewer (move right on the left view, left on the right view)
+  // negative values offset further away from the viewer (move left on the left view, right on the right view)
+  int offset[32];
 };
 #pragma pack(pop)
