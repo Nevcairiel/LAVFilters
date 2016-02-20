@@ -481,7 +481,7 @@ HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, int size, mfxU64 ti
 
   int nOffsets = offset.BitRead(6);
   int nFrames = offset.BitRead(8);
-  DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::ParseOffsetMetadata(): offset_metadata with %d offsets and %d frames for time %I64u", nOffsets, nFrames, timestamp));
+  DbgLog((LOG_CUSTOM2, 10, L"CDecMSDKMVC::ParseOffsetMetadata(): offset_metadata with %d offsets and %d frames for time %I64u", nOffsets, nFrames, timestamp));
 
   if (nOffsets > 32) {
     DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::ParseOffsetMetadata(): > 32 offsets is not supported"));
@@ -566,7 +566,7 @@ void CDecMSDKMVC::GetOffsetSideData(LAVFrame *pFrame, mfxU64 timestamp)
   }
 
   if (offset.offset_count == 255) {
-    DbgLog((LOG_TRACE, 10, L"No 3D Offset for frame at %I64u", timestamp));
+    DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::GetOffsetSideData():No offset for frame at %I64u", timestamp));
     offset = m_PrevOffset;
   }
 
