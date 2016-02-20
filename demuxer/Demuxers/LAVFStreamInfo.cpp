@@ -316,7 +316,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
           AVStream *mvcStream = avctx->streams[nExtensionStream];
 
           MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codec->extradata_size + mvcStream->codec->extradata_size);
+
+          // Append the mvc subset data to the base view extradata
           memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + avstream->codec->extradata_size, mvcStream->codec->extradata, mvcStream->codec->extradata_size);
+          mp2vi->cbSequenceHeader = avstream->codec->extradata_size + mvcStream->codec->extradata_size;
 
           mvcType.cbFormat = SIZE_MPEG2VIDEOINFO(mp2vi);
           mvcType.subtype = MEDIASUBTYPE_AMVC;
