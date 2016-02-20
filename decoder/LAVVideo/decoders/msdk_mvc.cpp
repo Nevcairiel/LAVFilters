@@ -536,13 +536,18 @@ BOOL CDecMSDKMVC::RemoveFrameFromGOP(MVCGOP * pGOP, mfxU64 timestamp)
 void CDecMSDKMVC::GetOffsetSideData(LAVFrame *pFrame, mfxU64 timestamp)
 {
   MediaSideData3DOffset offset = { 255 };
+
+  // Go over all stored GOPs and find an entry for our timestamp
+  // In general it should be found in the first GOP, unless we lost frames in between or something else went wrong.
   for (auto it = m_GOPs.begin(); it != m_GOPs.end(); it++) {
     if (RemoveFrameFromGOP(&(*it), timestamp)) {
       offset = it->offsets.front();
       it->offsets.pop_front();
 
+      // Erase previous GOPs when we start accessing a new one
       if (it != m_GOPs.begin()) {
 #ifdef DEBUG
+        // Check that all to-be-erased GOPs are empty
         for (auto itd = m_GOPs.begin(); itd < it; itd++) {
           if (!itd->offsets.empty()) {
             DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::GetOffsetSideData(): Switched to next GOP at %I64u with %d entries remaining", itd->offsets.size()));
