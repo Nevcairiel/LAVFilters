@@ -549,11 +549,12 @@ void CBDDemuxer::ProcessBluRayMetadata()
   if (m_MVCPlayback) {
     HRESULT hr = OpenMVCExtensionDemuxer(m_NewClip);
     if (SUCCEEDED(hr)) {
+      AVStream *mvcStream = m_MVCFormatContext->streams[m_MVCStreamIndex];
+
       // Create a fake stream and set the appropriate properties
-      m_lavfDemuxer->AddMPEGTSStream(0x1FFE, 0x20);
-      AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(0x1FFE);
+      m_lavfDemuxer->AddMPEGTSStream(mvcStream->id, 0x20);
+      AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(mvcStream->id);
       if (avstream) {
-        AVStream *mvcStream = m_MVCFormatContext->streams[m_MVCStreamIndex];
         avstream->codec->codec_id = AV_CODEC_ID_H264_MVC;
         avstream->codec->extradata = (BYTE *)av_mallocz(mvcStream->codec->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
         avstream->codec->extradata_size = mvcStream->codec->extradata_size;

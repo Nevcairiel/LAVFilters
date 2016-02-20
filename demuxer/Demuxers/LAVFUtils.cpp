@@ -374,6 +374,16 @@ bool GetH264MVCStreamIndices(AVFormatContext *fmt, int *nBaseIndex, int *nExtens
         if (*nBaseIndex == -1)
           *nBaseIndex = i;
         else {
+          AVProgram *pBaseProgram = av_find_program_from_stream(fmt, nullptr, *nBaseIndex);
+          AVProgram *pNewProgram = av_find_program_from_stream(fmt, nullptr, i);
+          if (!pBaseProgram && pNewProgram) {
+            *nBaseIndex = i;
+            continue;
+          }
+          else if (!pNewProgram && pBaseProgram) {
+            continue;
+          }
+
           DbgLog((LOG_TRACE, 10, L" -> Multiple H264 MVC base streams, unsupported."));
           bResult = false;
         }
