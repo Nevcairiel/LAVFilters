@@ -147,6 +147,26 @@ STDMETHODIMP CLAVFDemuxer::Open(LPCOLESTR pszFileName)
   return OpenInputStream(nullptr, pszFileName, nullptr, TRUE);
 }
 
+STDMETHODIMP CLAVFDemuxer::Start()
+{
+  if (m_bH264MVCCombine) {
+    CMediaType *pmt = m_pSettings->GetOutputMediatype(m_nH264MVCBaseStream);
+    if (pmt) {
+      if (pmt->subtype != MEDIASUBTYPE_AMVC && pmt->subtype != MEDIASUBTYPE_MVC1) {
+        DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::Start(): Disabling MVC demuxing, downstream did not select an appropriate type"));
+        m_bH264MVCCombine = FALSE;
+        m_nH264MVCBaseStream = -1;
+        m_nH264MVCExtensionStream = -1;
+      }
+    }
+  }
+
+  if (m_avFormat)
+    av_read_play(m_avFormat);
+
+  return S_OK;
+}
+
 STDMETHODIMP CLAVFDemuxer::AbortOpening(int mode)
 {
   m_Abort = mode;

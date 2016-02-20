@@ -250,6 +250,17 @@ fetchtitles:
   return hr;
 }
 
+STDMETHODIMP CBDDemuxer::Start()
+{
+  HRESULT hr = m_lavfDemuxer->Start();
+  if (m_MVCPlayback && !m_lavfDemuxer->m_bH264MVCCombine) {
+    CloseMVCExtensionDemuxer();
+    m_MVCPlayback = FALSE;
+  }
+
+  return hr;
+}
+
 REFERENCE_TIME CBDDemuxer::GetDuration() const
 {
   if(m_pTitle) {

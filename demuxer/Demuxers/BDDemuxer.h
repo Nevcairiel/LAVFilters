@@ -42,6 +42,7 @@ public:
 
   // CBaseDemuxer
   STDMETHODIMP Open(LPCOLESTR pszFileName);
+  STDMETHODIMP Start();
   REFERENCE_TIME GetDuration() const;
   STDMETHODIMP GetNextPacket(Packet **ppPacket) { return m_lavfDemuxer->GetNextPacket(ppPacket); }
   STDMETHODIMP Seek(REFERENCE_TIME rTime);

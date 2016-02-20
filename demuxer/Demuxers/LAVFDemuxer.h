@@ -57,7 +57,7 @@ public:
 
   // CBaseDemuxer
   STDMETHODIMP Open(LPCOLESTR pszFileName);
-  STDMETHODIMP Start() { if (m_avFormat) av_read_play(m_avFormat); return S_OK; }
+  STDMETHODIMP Start();
   STDMETHODIMP AbortOpening(int mode = 1);
   REFERENCE_TIME GetDuration() const;
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
