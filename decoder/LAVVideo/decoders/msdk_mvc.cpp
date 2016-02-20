@@ -567,9 +567,12 @@ void CDecMSDKMVC::GetOffsetSideData(LAVFrame *pFrame, mfxU64 timestamp)
 
   m_PrevOffset = offset;
 
-  MediaSideData3DOffset *FrameOffset = (MediaSideData3DOffset *)AddLAVFrameSideData(pFrame, IID_MediaSideData3DOffset, sizeof(MediaSideData3DOffset));
-  if (FrameOffset)
-    *FrameOffset = offset;
+  // Only set the offset when data is present
+  if (offset.offset_count > 0) {
+    MediaSideData3DOffset *FrameOffset = (MediaSideData3DOffset *)AddLAVFrameSideData(pFrame, IID_MediaSideData3DOffset, sizeof(MediaSideData3DOffset));
+    if (FrameOffset)
+      *FrameOffset = offset;
+  }
 }
 
 HRESULT CDecMSDKMVC::HandleOutput(MVCBuffer * pOutputBuffer)
