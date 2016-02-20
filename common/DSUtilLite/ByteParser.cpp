@@ -54,6 +54,14 @@ unsigned int CByteParser::BitRead(unsigned int numBits, bool peek)
     return get_bits_long(m_gbCtx, numBits);
 }
 
+void CByteParser::BitSkip(unsigned int numBits)
+{
+  if (numBits == 0)
+    return;
+
+  skip_bits_long(m_gbCtx, numBits);
+}
+
 size_t CByteParser::RemainingBits() const
 {
   int bits = get_bits_left(m_gbCtx);

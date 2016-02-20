@@ -36,6 +36,9 @@ public:
   /** Read 1 to 32 Bits from the Byte Array. If peek is set, the data will just be returned, and the buffer not advanced. */
   unsigned int BitRead(unsigned int numBits, bool peek = false);
 
+  /** Skip any number of bits from the byte array */
+  void BitSkip(unsigned int numBits);
+
   /** Read a unsigned number in Exponential Golomb encoding (with k = 0) */
   unsigned int UExpGolombRead();
   /** Read a signed number in Exponential Golomb encoding (with k = 0) */
