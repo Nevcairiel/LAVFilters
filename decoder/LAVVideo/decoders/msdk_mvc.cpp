@@ -253,8 +253,8 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   mfxBitstream bs = { 0 };
   BOOL bBuffered = FALSE, bFlush = (buffer == nullptr);
 
-  if (rtStart >= 0 && rtStart != AV_NOPTS_VALUE)
-    bs.TimeStamp = rtStart;
+  if (rtStart >= -TIMESTAMP_OFFSET && rtStart != AV_NOPTS_VALUE)
+    bs.TimeStamp = rtStart + TIMESTAMP_OFFSET;
   else
     bs.TimeStamp = MFX_TIMESTAMP_UNKNOWN;
 
@@ -628,7 +628,16 @@ HRESULT CDecMSDKMVC::DeliverOutput(MVCBuffer * pBaseView, MVCBuffer * pExtraView
   pFrame->bpp    = 8;
   pFrame->flags |= LAV_FRAME_FLAG_MVC;
 
-  pFrame->rtStart = pBaseView->surface.Data.TimeStamp;
+  if (!(pBaseView->surface.Data.DataFlag & MFX_FRAMEDATA_ORIGINAL_TIMESTAMP))
+    pBaseView->surface.Data.TimeStamp = MFX_TIMESTAMP_UNKNOWN;
+
+  if (pBaseView->surface.Data.TimeStamp != MFX_TIMESTAMP_UNKNOWN) {
+    pFrame->rtStart = pBaseView->surface.Data.TimeStamp;
+    pFrame->rtStart -= TIMESTAMP_OFFSET;
+  }
+  else {
+    pFrame->rtStart = AV_NOPTS_VALUE;
+  }
 
   int64_t num = (int64_t)pBaseView->surface.Info.AspectRatioW * pFrame->width;
   int64_t den = (int64_t)pBaseView->surface.Info.AspectRatioH * pFrame->height;
