@@ -355,7 +355,7 @@ STDMETHODIMP CDecWMV9MFT::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   SafeRelease(&pSample);
 
   if (FAILED(hr)) {
-    DbgLog((LOG_TRACE, 10, L"-> ProcessInput failed with hr: %0x%x", hr));
+    DbgLog((LOG_TRACE, 10, L"-> ProcessInput failed with hr: 0x%x", hr));
     return E_FAIL;
   }
 

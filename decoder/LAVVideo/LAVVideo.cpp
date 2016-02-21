@@ -585,7 +585,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
       }
     }
     if (bMatched && !m_settings.bFormats[i]) {
-      DbgLog((LOG_TRACE, 10, L"-> Codec is disabled", codec));
+      DbgLog((LOG_TRACE, 10, L"-> Codec is disabled"));
       return VFW_E_TYPE_NOT_ACCEPTED;
     }
   }
@@ -1304,7 +1304,7 @@ receiveconnection:
     }
   }
 
-  DbgLog((LOG_ERROR, 10, L"::NegotiatePixelFormat(): Unable to agree on a pixel format", i));
+  DbgLog((LOG_ERROR, 10, L"::NegotiatePixelFormat(): Unable to agree on a pixel format"));
   hr = E_FAIL;
 
 done:

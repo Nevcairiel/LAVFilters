@@ -625,7 +625,7 @@ void CDecMSDKMVC::GetOffsetSideData(LAVFrame *pFrame, mfxU64 timestamp)
         // Check that all to-be-erased GOPs are empty
         for (auto itd = m_GOPs.begin(); itd < it; itd++) {
           if (!itd->offsets.empty()) {
-            DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::GetOffsetSideData(): Switched to next GOP at %I64u with %d entries remaining", itd->offsets.size()));
+            DbgLog((LOG_TRACE, 10, L"CDecMSDKMVC::GetOffsetSideData(): Switched to next GOP at %I64u with %Iu entries remaining", timestamp, itd->offsets.size()));
           }
         }
 #endif
