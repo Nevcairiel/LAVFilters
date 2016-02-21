@@ -32,6 +32,85 @@ ILAVDecoder *CreateDecoderMSDKMVC() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Bitstream buffering
+////////////////////////////////////////////////////////////////////////////////
+
+class CBitstreamBuffer {
+public:
+  CBitstreamBuffer(GrowableArray<BYTE> * arrStorage) : m_pStorage(arrStorage) {}
+
+  ~CBitstreamBuffer() {
+    if (m_pBuffer) {
+      ASSERT(m_nConsumed <= m_nBufferSize);
+      if (m_nConsumed < m_nBufferSize)
+        m_pStorage->Append(m_pBuffer + m_nConsumed, m_nBufferSize - m_nConsumed);
+
+      if (m_bBufferTemporary)
+        av_freep(&m_pBuffer);
+    }
+    else {
+      ASSERT(m_nConsumed <= m_pStorage->GetCount());
+      if (m_nConsumed < m_pStorage->GetCount()) {
+        BYTE *p = m_pStorage->Ptr();
+        memmove(p, p + m_nConsumed, m_pStorage->GetCount() - m_nConsumed);
+        m_pStorage->SetSize(m_pStorage->GetCount() - m_nConsumed);
+      }
+      else {
+        m_pStorage->Clear();
+      }
+    }
+  }
+
+  void SetBuffer(BYTE * buffer, size_t size, bool temporary) {
+    if (m_pStorage->GetCount() > 0) {
+      m_pStorage->Append(buffer, size);
+
+      if (temporary)
+        av_free(buffer);
+    }
+    else {
+      m_pBuffer = buffer;
+      m_nBufferSize = size;
+      m_bBufferTemporary = temporary;
+    }
+  }
+
+  void Consume(size_t count) {
+    m_nConsumed += min(count, GetBufferSize());
+  }
+
+  void Clear() {
+    m_nConsumed += GetBufferSize();
+  }
+
+  BYTE * GetBuffer() {
+    if (m_pBuffer) {
+      return m_pBuffer + m_nConsumed;
+    }
+    else {
+      return m_pStorage->Ptr() + m_nConsumed;
+    }
+  }
+
+  size_t GetBufferSize() {
+    if (m_nBufferSize) {
+      return m_nBufferSize - m_nConsumed;
+    }
+    else {
+      return m_pStorage->GetCount() - m_nConsumed;
+    }
+  }
+
+private:
+  GrowableArray<BYTE> * m_pStorage = nullptr;
+
+  BOOL m_bBufferTemporary = FALSE;
+  BYTE * m_pBuffer = nullptr;
+  size_t m_nBufferSize = 0;
+  size_t m_nConsumed = 0;
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // MSDK MVC decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -249,6 +328,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     return E_UNEXPECTED;
 
   HRESULT hr = S_OK;
+  CBitstreamBuffer bsBuffer(&m_buff);
   mfxStatus sts = MFX_ERR_NONE;
   mfxBitstream bs = { 0 };
   BOOL bBuffered = FALSE, bFlush = (buffer == nullptr);
@@ -268,19 +348,15 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       if (FAILED(hr))
         return hr;
 
-      m_buff.Append(pOutBuffer, pOutSize);
-      bs.Data = m_buff.Ptr();
-      bs.DataLength = m_buff.GetCount();
-      bs.MaxLength = bs.DataLength;
-
-      av_freep(&pOutBuffer);
+      bsBuffer.SetBuffer(pOutBuffer, pOutSize, true);
     }
     else {
-      m_buff.Append(buffer, buflen);
-      bs.Data = m_buff.Ptr();
-      bs.DataLength = m_buff.GetCount();
-      bs.MaxLength = bs.DataLength;
+      bsBuffer.SetBuffer((BYTE *)buffer, buflen, false);
     }
+
+    bs.Data = bsBuffer.GetBuffer();
+    bs.DataLength = bsBuffer.GetBufferSize();
+    bs.MaxLength = bs.DataLength;
 
     // Check the buffer for SEI NALUs
     // MSDK's SEI reading functionality is slightly buggy
@@ -338,7 +414,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     sts = MFXVideoDECODE_DecodeFrameAsync(m_mfxSession, bFlush ? nullptr : &bs, &pInputBuffer->surface, &outsurf, &sync);
 
     if (sts == MFX_ERR_INCOMPATIBLE_VIDEO_PARAM) {
-      m_buff.Clear();
+      bsBuffer.Clear();
       bFlush = TRUE;
       m_bDecodeReady = FALSE;
       continue;
@@ -358,16 +434,10 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
   if (!bs.DataOffset && !sync && !bFlush) {
     DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Decode(): Decoder did not consume any data, discarding"));
-    bs.DataOffset = m_buff.GetCount();
+    bs.DataOffset = bsBuffer.GetBufferSize();
   }
 
-  if (bs.DataOffset < m_buff.GetCount()) {
-    BYTE *p = m_buff.Ptr();
-    memmove(p, p + bs.DataOffset, m_buff.GetCount() - bs.DataOffset);
-    m_buff.SetSize(m_buff.GetCount() - bs.DataOffset);
-  } else {
-    m_buff.Clear();
-  }
+  bsBuffer.Consume(bs.DataOffset);
 
   if (sts != MFX_ERR_MORE_DATA && sts < 0) {
     DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Decode(): Error from Decode call (%d)", sts));
