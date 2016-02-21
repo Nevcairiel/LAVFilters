@@ -569,8 +569,8 @@ HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, int size, mfxU64 ti
   for (int o = 0; o < nOffsets; o++) {
     for (int f = 0; f < nFrames; f++) {
       if (o == 0) {
-        MediaSideData3DOffset offset = { nOffsets };
-        GOP.offsets.push_back(offset);
+        MediaSideData3DOffset off = { nOffsets };
+        GOP.offsets.push_back(off);
       }
 
       int direction_flag = offset.BitRead(1);
