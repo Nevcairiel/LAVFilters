@@ -331,7 +331,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   CBitstreamBuffer bsBuffer(&m_buff);
   mfxStatus sts = MFX_ERR_NONE;
   mfxBitstream bs = { 0 };
-  BOOL bBuffered = FALSE, bFlush = (buffer == nullptr);
+  BOOL bFlush = (buffer == nullptr);
 
   if (rtStart >= -TIMESTAMP_OFFSET && rtStart != AV_NOPTS_VALUE)
     bs.TimeStamp = rtStart + TIMESTAMP_OFFSET;
