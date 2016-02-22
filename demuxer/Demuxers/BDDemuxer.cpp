@@ -151,7 +151,7 @@ STDMETHODIMP CBDDemuxer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 
   *ppv = nullptr;
 
-  if (m_lavfDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo))) {
+  if (m_lavfDemuxer && (riid == __uuidof(IKeyFrameInfo) || riid == __uuidof(ITrackInfo) || riid == __uuidof(IPropertyBag))) {
     return m_lavfDemuxer->QueryInterface(riid, ppv);
   }
 
