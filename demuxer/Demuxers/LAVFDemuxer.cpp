@@ -1842,6 +1842,8 @@ STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog 
       if (mappedPropertys[i].stream) {
         int nStreamType = mappedPropertys[i].stream - 1;
         stream = m_dActiveStreams[nStreamType];
+        if (nStreamType == subpic && stream == FORCED_SUBTITLE_PID)
+          stream = m_ForcedSubStream;
       }
       break;
     }
