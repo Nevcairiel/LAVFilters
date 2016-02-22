@@ -1811,12 +1811,14 @@ STDMETHODIMP_(BSTR) CLAVFDemuxer::GetTrackCodecName(UINT aTrackIdx)
 static struct {
   const char *original;
   const char *map;
-  bool bVideoStream;
+  int stream; // 0 = none, 1 = video, 2 = audio, 3 = sub
 } mappedPropertys[] = {
-  { "rotation", "rotate", true },
-  { "rotate",   nullptr,  true },
-  { "stereoscopic3dmode", "stereo_mode", true },
-  { "stereo_mode", nullptr, true },
+  { "rotation", "rotate", 1 },
+  { "rotate",   nullptr,  1 },
+  { "stereoscopic3dmode", "stereo_mode", 1 },
+  { "stereo_mode", nullptr, 1 },
+  { "stereo_subtitle_offset_id", "ss_offset_sequence_id", 3 },
+  { "stereo_interactive_offset_id", "ig_offset_sequence_id", 0 },
 };
 
 STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog)
@@ -1837,8 +1839,10 @@ STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog 
     if (_stricmp(propName, mappedPropertys[i].original) == 0) {
       if (mappedPropertys[i].map)
         propName = mappedPropertys[i].map;
-      if (mappedPropertys[i].bVideoStream && !m_streams[video].empty())
-        stream = m_streams[video][0].pid;
+      if (mappedPropertys[i].stream) {
+        int nStreamType = mappedPropertys[i].stream - 1;
+        stream = m_dActiveStreams[nStreamType];
+      }
       break;
     }
   }

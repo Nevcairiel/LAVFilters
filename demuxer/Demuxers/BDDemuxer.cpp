@@ -579,6 +579,26 @@ void CBDDemuxer::ProcessBluRayMetadata()
     ProcessClipInfo(clpi, overwrite_info);
     bd_free_clpi(clpi);
   }
+
+  MPLS_PL * mpls = bd_get_title_mpls(m_pBD);
+  if (mpls) {
+    // Read the PG offsets and store them as metadata
+    for (int i = 0; i < mpls->play_item[0].stn.num_pg; i++) {
+      AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(mpls->play_item[0].stn.pg[i].pid);
+      if (avstream && mpls->play_item[0].stn.pg[i].ss_offset_sequence_id != 0xFF) {
+        char offset[4];
+        _itoa_s(mpls->play_item[0].stn.pg[i].ss_offset_sequence_id, offset, 10);
+        av_dict_set(&avstream->metadata, "ss_offset_sequence_id", offset, 0);
+      }
+    }
+
+    // Take the first IG offset, if any
+    if (mpls->play_item[0].stn.num_ig > 0 && mpls->play_item[0].stn.ig[0].ss_offset_sequence_id != 0xFF) {
+      char offset[4];
+      _itoa_s(mpls->play_item[0].stn.ig[0].ss_offset_sequence_id, offset, 10);
+      av_dict_set(&m_lavfDemuxer->m_avFormat->metadata, "ig_offset_sequence_id", offset, 0);
+    }
+  }
 }
 
 /*STDMETHODIMP_(int) CBDDemuxer::GetNumTitles()
