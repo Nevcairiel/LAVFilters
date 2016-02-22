@@ -592,11 +592,36 @@ void CBDDemuxer::ProcessBluRayMetadata()
       }
     }
 
-    // Take the first IG offset, if any
-    if (mpls->play_item[0].stn.num_ig > 0 && mpls->play_item[0].stn.ig[0].ss_offset_sequence_id != 0xFF) {
-      char offset[4];
-      _itoa_s(mpls->play_item[0].stn.ig[0].ss_offset_sequence_id, offset, 10);
-      av_dict_set(&m_lavfDemuxer->m_avFormat->metadata, "ig_offset_sequence_id", offset, 0);
+    // Export a list of all IG offsets
+    if (mpls->play_item[0].stn.num_ig > 0) {
+      std::list<uint8_t> ig_sequences;
+      for (int i = 0; i < mpls->play_item[0].stn.num_ig; i++) {
+        if (mpls->play_item[0].stn.ig[i].ss_offset_sequence_id != 0xFF) {
+          ig_sequences.push_back(mpls->play_item[0].stn.ig[i].ss_offset_sequence_id);
+        }
+      }
+
+      if (ig_sequences.size() > 0) {
+        // strip duplicate entries
+        ig_sequences.unique();
+
+        int size = ig_sequences.size() * 4;
+        char *offsets = new char[size];
+        offsets[0] = 0;
+
+        // Append all offsets to the string
+        for (auto it = ig_sequences.begin(); it != ig_sequences.end(); it++) {
+          int len = strlen(offsets);
+          if (len > 0) {
+            offsets[len] = ',';
+            len++;
+          }
+          _itoa_s(*it, offsets + len, size - len, 10);
+        }
+
+        av_dict_set(&m_lavfDemuxer->m_avFormat->metadata, "ig_offset_sequences", offsets, 0);
+        delete[] offsets;
+      }
     }
   }
 }

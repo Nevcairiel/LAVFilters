@@ -1818,7 +1818,7 @@ static struct {
   { "stereoscopic3dmode", "stereo_mode", 1 },
   { "stereo_mode", nullptr, 1 },
   { "stereo_subtitle_offset_id", "ss_offset_sequence_id", 3 },
-  { "stereo_interactive_offset_id", "ig_offset_sequence_id", 0 },
+  { "stereo_interactive_offset_ids", "ig_offset_sequences", 0 },
 };
 
 STDMETHODIMP CLAVFDemuxer::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog)
