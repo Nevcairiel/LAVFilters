@@ -154,7 +154,7 @@ void CDecMSDKMVC::DestroyDecoder(bool bFull)
 
   {
     CAutoLock lock(&m_BufferCritSec);
-    for (int i = 0; i < ASYNC_DEPTH; i++) {
+    for (int i = 0; i < ASYNC_QUEUE_SIZE; i++) {
       ReleaseBuffer(&m_pOutputQueue[i]->surface);
     }
     memset(m_pOutputQueue, 0, sizeof(m_pOutputQueue));
@@ -383,7 +383,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
     if (sts == MFX_ERR_NONE) {
       m_mfxVideoParams.IOPattern = MFX_IOPATTERN_OUT_SYSTEM_MEMORY;
-      m_mfxVideoParams.AsyncDepth = ASYNC_DEPTH - 2;
+      m_mfxVideoParams.AsyncDepth = ASYNC_DEPTH;
 
       sts = MFXVideoDECODE_Init(m_mfxSession, &m_mfxVideoParams);
       if (sts != MFX_ERR_NONE) {
@@ -652,7 +652,7 @@ void CDecMSDKMVC::GetOffsetSideData(LAVFrame *pFrame, mfxU64 timestamp)
 
 HRESULT CDecMSDKMVC::HandleOutput(MVCBuffer * pOutputBuffer)
 {
-  int nCur = m_nOutputQueuePosition, nNext = (m_nOutputQueuePosition + 1) % ASYNC_DEPTH;
+  int nCur = m_nOutputQueuePosition, nNext = (m_nOutputQueuePosition + 1) % ASYNC_QUEUE_SIZE;
   if (m_pOutputQueue[nCur] && m_pOutputQueue[nNext]) {
     DeliverOutput(m_pOutputQueue[nCur], m_pOutputQueue[nNext]);
 
@@ -767,7 +767,7 @@ STDMETHODIMP CDecMSDKMVC::Flush()
       MFXVideoDECODE_Reset(m_mfxSession, &m_mfxVideoParams);
     // TODO: decode sequence data
 
-    for (int i = 0; i < ASYNC_DEPTH; i++) {
+    for (int i = 0; i < ASYNC_QUEUE_SIZE; i++) {
       ReleaseBuffer(&m_pOutputQueue[i]->surface);
     }
     memset(m_pOutputQueue, 0, sizeof(m_pOutputQueue));
@@ -788,8 +788,8 @@ STDMETHODIMP CDecMSDKMVC::EndOfStream()
   Decode(nullptr, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, FALSE, FALSE);
 
   // Process all remaining frames in the queue
-  for (int i = 0; i < ASYNC_DEPTH; i++) {
-    int nCur = (m_nOutputQueuePosition + i) % ASYNC_DEPTH, nNext = (m_nOutputQueuePosition + i + 1) % ASYNC_DEPTH;
+  for (int i = 0; i < ASYNC_QUEUE_SIZE; i++) {
+    int nCur = (m_nOutputQueuePosition + i) % ASYNC_QUEUE_SIZE, nNext = (m_nOutputQueuePosition + i + 1) % ASYNC_QUEUE_SIZE;
     if (m_pOutputQueue[nCur] && m_pOutputQueue[nNext]) {
       DeliverOutput(m_pOutputQueue[nCur], m_pOutputQueue[nNext]);
 

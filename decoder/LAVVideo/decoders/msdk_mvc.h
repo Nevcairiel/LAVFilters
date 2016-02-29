@@ -29,7 +29,8 @@
 #include <deque>
 #include <vector>
 
-#define ASYNC_DEPTH 10
+#define ASYNC_DEPTH 8
+#define ASYNC_QUEUE_SIZE (ASYNC_DEPTH + 2)
 
 // 1s timestamp offset to avoid negative timestamps
 #define TIMESTAMP_OFFSET 10000000i64
@@ -103,7 +104,7 @@ private:
   GrowableArray<BYTE>  m_buff;
   CAnnexBConverter    *m_pAnnexBConverter = nullptr;
 
-  MVCBuffer           *m_pOutputQueue[ASYNC_DEPTH] = { 0 };
+  MVCBuffer           *m_pOutputQueue[ASYNC_QUEUE_SIZE] = { 0 };
   int                  m_nOutputQueuePosition = 0;
 
   std::deque<MVCGOP>    m_GOPs;
