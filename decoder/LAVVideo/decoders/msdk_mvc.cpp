@@ -101,6 +101,13 @@ public:
     }
   }
 
+  void EnsureWriteable() {
+    if (m_pBuffer && !m_bBufferTemporary) {
+      m_pStorage->Append(m_pBuffer, m_nBufferSize);
+      m_pBuffer = nullptr;
+    }
+  }
+
 private:
   GrowableArray<BYTE> * m_pStorage = nullptr;
 
@@ -354,19 +361,28 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       bsBuffer.SetBuffer((BYTE *)buffer, buflen, false);
     }
 
-    bs.Data = bsBuffer.GetBuffer();
-    bs.DataLength = bsBuffer.GetBufferSize();
-    bs.MaxLength = bs.DataLength;
+    DbgLog((LOG_TRACE, 10, L"Frame %I64u, size %u", bs.TimeStamp, bsBuffer.GetBufferSize()));
 
-    // Check the buffer for SEI NALUs
+    // Check the buffer for SEI NALU, and some unwanted NALUs that need filtering
     // MSDK's SEI reading functionality is slightly buggy
     CH264Nalu nalu;
-    nalu.SetBuffer(bs.Data, bs.DataLength, 0);
+    nalu.SetBuffer(bsBuffer.GetBuffer(), bsBuffer.GetBufferSize(), 0);
+    BOOL bNeedFilter = FALSE;
     while (nalu.ReadNext()) {
       if (nalu.GetType() == NALU_TYPE_SEI) {
         ParseSEI(nalu.GetDataBuffer() + 1, nalu.GetDataLength() - 1, bs.TimeStamp);
       }
+      else if (nalu.GetType() == NALU_TYPE_EOSEQ) {
+        bsBuffer.EnsureWriteable();
+        // This is rather ugly, and relies on the bitstream being AnnexB, so simply overwriting the EOS NAL with zero works.
+        // In the future a more elaborate bitstream filter might be advised
+        memset(bsBuffer.GetBuffer() + nalu.GetNALPos(), 0, 4);
+      }
     }
+
+    bs.Data = bsBuffer.GetBuffer();
+    bs.DataLength = bsBuffer.GetBufferSize();
+    bs.MaxLength = bs.DataLength;
 
     AddFrameToGOP(bs.TimeStamp);
   }
