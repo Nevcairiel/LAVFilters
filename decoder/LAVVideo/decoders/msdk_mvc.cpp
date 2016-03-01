@@ -430,6 +430,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     sts = MFXVideoDECODE_DecodeFrameAsync(m_mfxSession, bFlush ? nullptr : &bs, &pInputBuffer->surface, &outsurf, &sync);
 
     if (sts == MFX_ERR_INCOMPATIBLE_VIDEO_PARAM) {
+      DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Decode(): Incompatible video parameters detected, flushing decoder"));
       bsBuffer.Clear();
       bFlush = TRUE;
       m_bDecodeReady = FALSE;

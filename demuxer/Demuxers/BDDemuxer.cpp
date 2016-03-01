@@ -426,6 +426,7 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
       if (rtBase == Packet::INVALID_TIME || rtDTS == Packet::INVALID_TIME) {
         // do nothing, can't compare timestamps when they are not set
       } else if (rtDTS < rtBase) {
+        DbgLog((LOG_TRACE, 10, L"CBDDemuxer::FillMVCExtensionQueue(): Dropping MVC extension at %I64d, base is %I64d", rtDTS, rtBase));
         av_packet_unref(&mvcPacket);
         continue;
       }
