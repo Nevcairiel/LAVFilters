@@ -623,6 +623,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_VP9 }},                                                 // Codec_VP9
   { 2, { AV_CODEC_ID_TRUEMOTION1, AV_CODEC_ID_TRUEMOTION2 }, "truemotion", "Duck TrueMotion 1/2"}, // Codec_TrueMotion
   { 1, { AV_CODEC_ID_VP7 }},                                                 // Codec_VP7
+  { 1, { AV_CODEC_ID_H264_MVC }, "h264mvc", "H.264 MVC 3D" },                // Codec_H264MVC
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)

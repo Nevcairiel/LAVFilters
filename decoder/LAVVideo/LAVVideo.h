@@ -133,6 +133,8 @@ public:
   STDMETHODIMP_(DWORD) GetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD *pdwDeviceIdentifier);
   STDMETHODIMP SetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD dwIndex, DWORD dwDeviceIdentifier);
 
+  STDMETHODIMP SetH264MVCDecodingOverride(BOOL bEnabled);
+
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
   STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName);
@@ -290,6 +292,7 @@ private:
     BOOL bDVDVideo;
     DWORD HWAccelDeviceDXVA2;
     DWORD HWAccelDeviceDXVA2Desc;
+    BOOL bH264MVCOverride;
   } m_settings;
 
   DWORD m_dwGPUDeviceIndex = DWORD_MAX;

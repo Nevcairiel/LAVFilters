@@ -174,9 +174,10 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.DitherMode = LAVDither_Random;
 
-
   m_settings.HWAccelDeviceDXVA2 = LAVHWACCEL_DEVICE_DEFAULT;
   m_settings.HWAccelDeviceDXVA2Desc = 0;
+
+  m_settings.bH264MVCOverride = TRUE;
 
   return S_OK;
 }
@@ -588,6 +589,11 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
       DbgLog((LOG_TRACE, 10, L"-> Codec is disabled"));
       return VFW_E_TYPE_NOT_ACCEPTED;
     }
+  }
+
+  if (codec == AV_CODEC_ID_H264_MVC && !m_settings.bH264MVCOverride) {
+    DbgLog((LOG_TRACE, 10, L"-> H.264 MVC override, refusing"));
+    return VFW_E_TYPE_NOT_ACCEPTED;
   }
 
   ILAVPinInfo *pPinInfo = nullptr;
@@ -2285,6 +2291,12 @@ STDMETHODIMP CLAVVideo::SetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD dwIndex,
   else {
     return E_INVALIDARG;
   }
+}
+
+STDMETHODIMP CLAVVideo::SetH264MVCDecodingOverride(BOOL bEnabled)
+{
+  m_settings.bH264MVCOverride = bEnabled;
+  return S_OK;
 }
 
 STDMETHODIMP CLAVVideo::GetHWAccelActiveDevice(BSTR *pstrDeviceName)

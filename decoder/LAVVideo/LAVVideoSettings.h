@@ -87,6 +87,7 @@ typedef enum LAVVideoCodec {
   Codec_VP9,
   Codec_TrueMotion,
   Codec_VP7,
+  Codec_H264MVC,
 
   Codec_VideoNB            // Number of entries (do not use when dynamically linking)
 } LAVVideoCodec;
@@ -375,6 +376,12 @@ interface ILAVVideoSettings : public IUnknown
 #define LAVHWACCEL_DEVICE_DEFAULT ((DWORD)-1)
   STDMETHOD_(DWORD, GetHWAccelDeviceIndex)(LAVHWAccel hwAccel, DWORD *pdwDeviceIdentifier) = 0;
   STDMETHOD(SetHWAccelDeviceIndex)(LAVHWAccel hwAccel, DWORD dwIndex, DWORD dwDeviceIdentifier) = 0;
+
+  // Temporary Override for players to disable H.264 MVC decoding
+  // This is not a permanent setting and not saved, but can be used by players to offer a "Play in 2D" option, or similar.
+  // A setting of FALSE disable MVC decoding temporarily
+  // Note that the override cannot force-enable the option if its turned off through SetFormatConfiguration
+  STDMETHOD(SetH264MVCDecodingOverride)(BOOL bEnabled) = 0;
 };
 
 // LAV Video status interface
