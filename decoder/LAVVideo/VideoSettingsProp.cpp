@@ -371,9 +371,8 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   WCHAR hwAccelEmpty[] = L"";
   WCHAR hwAccelUnavailable[] = L"N/A";
   WCHAR hwAccelAvailable[]   = L"OK";
-  WCHAR hwAccelActive[]      = L"Active";
 
-  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AVAIL, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_None ? hwAccelEmpty : dwSupport == 0 ? hwAccelUnavailable : dwSupport == 1 ? hwAccelAvailable : hwAccelActive));
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AVAIL, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_None ? hwAccelEmpty : dwSupport == 0 ? hwAccelUnavailable : hwAccelAvailable));
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_HWACCEL_DEVICE_SELECT), hwAccel == HWAccel_DXVA2CopyBack);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_DEVICE_SELECT), hwAccel == HWAccel_DXVA2CopyBack);
