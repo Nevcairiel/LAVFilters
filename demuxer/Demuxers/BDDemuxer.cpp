@@ -584,13 +584,41 @@ void CBDDemuxer::ProcessBluRayMetadata()
   MPLS_PL * mpls = bd_get_title_mpls(m_pBD);
   if (mpls) {
     // Read the PG offsets and store them as metadata
+    std::list<uint8_t> pg_sequences;
     for (int i = 0; i < mpls->play_item[0].stn.num_pg; i++) {
       AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(mpls->play_item[0].stn.pg[i].pid);
-      if (avstream && mpls->play_item[0].stn.pg[i].ss_offset_sequence_id != 0xFF) {
-        char offset[4];
-        _itoa_s(mpls->play_item[0].stn.pg[i].ss_offset_sequence_id, offset, 10);
-        av_dict_set(&avstream->metadata, "ss_offset_sequence_id", offset, 0);
+      if (mpls->play_item[0].stn.pg[i].ss_offset_sequence_id != 0xFF) {
+        pg_sequences.push_back(mpls->play_item[0].stn.pg[i].ss_offset_sequence_id);
+        if (avstream) {
+          char offset[4];
+          _itoa_s(mpls->play_item[0].stn.pg[i].ss_offset_sequence_id, offset, 10);
+          av_dict_set(&avstream->metadata, "ss_offset_sequence_id", offset, 0);
+        }
       }
+    }
+
+    // export the list of pg sequences
+    if (pg_sequences.size() > 0)
+    {
+      // strip duplicate entries
+      pg_sequences.unique();
+
+      int size = pg_sequences.size() * 4;
+      char *offsets = new char[size];
+      offsets[0] = 0;
+
+      // Append all offsets to the string
+      for (auto it = pg_sequences.begin(); it != pg_sequences.end(); it++) {
+        int len = strlen(offsets);
+        if (len > 0) {
+          offsets[len] = ',';
+          len++;
+        }
+        _itoa_s(*it, offsets + len, size - len, 10);
+      }
+
+      av_dict_set(&m_lavfDemuxer->m_avFormat->metadata, "pg_offset_sequences", offsets, 0);
+      delete[] offsets;
     }
 
     // Export a list of all IG offsets
