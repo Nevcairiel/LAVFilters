@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.68.0 - 2016/xx/xx
+0.68.0 - 2016/03/08
 LAV Splitter
 - NEW: H.264 MVC 3D demuxing from MKV 3D, Blu-ray discs and Blu-ray SSIF files
 - Fixed: The bitdepth of DTS-HD MA streams is reported properly in the stream information
