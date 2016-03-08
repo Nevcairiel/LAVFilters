@@ -1345,6 +1345,29 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     return VFW_E_UNSUPPORTED_AUDIO;
   }
 
+  // Set initial format for DTS based on the best guess
+  if (codec == AV_CODEC_ID_DTS) {
+    if (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_DTS_HD) {
+      // HD with 16 or 24 bits is likely HD MA
+      // everything else outputs float
+      if (nBitsPerSample == 24) {
+        m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_S32P;
+        m_pAVCtx->bits_per_raw_sample = 24;
+      }
+      else if (nBitsPerSample == 16) {
+        m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_S16P;
+        m_pAVCtx->bits_per_raw_sample = 16;
+      }
+      else {
+        m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_FLTP;
+      }
+    }
+    // Lossy is by default float output
+    else {
+      m_pAVCtx->sample_fmt = AV_SAMPLE_FMT_FLTP;
+    }
+  }
+
   // Parse VorbisComment entries from FLAC extradata to find the WAVEFORMATEXTENSIBLE_CHANNEL_MASK tag
   // This tag is used to store non-standard channel layouts in FLAC files, see LAV-8 / Issue 342
   if (codec == AV_CODEC_ID_FLAC) {
