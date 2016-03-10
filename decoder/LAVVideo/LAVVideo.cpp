@@ -1053,11 +1053,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   // Remove custom matrix settings, which are not understood upstream
   if (dxvaExtFlags.VideoTransferMatrix == 6) {
     dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
-  } else if (dxvaExtFlags.VideoTransferMatrix > DXVA2_VideoTransferMatrix_SMPTE240M && !m_bMadVR) {
+  } else if (dxvaExtFlags.VideoTransferMatrix > 4 && !m_bMadVR) {
     dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
-  }
-  if (dxvaExtFlags.VideoPrimaries > DXVA2_VideoPrimaries_SMPTE_C && !m_bMadVR) {
-    dxvaExtFlags.VideoPrimaries = DXVA2_VideoPrimaries_Unknown;
   }
   if (dxvaExtFlags.VideoTransferFunction > MFVideoTransFunc_Log_316 && !m_bMadVR) {
     dxvaExtFlags.VideoTransferFunction = DXVA2_VideoTransFunc_Unknown;
