@@ -43,7 +43,7 @@ public:
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
-  STDMETHODIMP_(BOOL) IsInterlaced();
+  STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"avcodec"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
   STDMETHODIMP SyncToProcessThread() { return m_pAVCtx && m_pAVCtx->active_thread_type ? S_OK : S_FALSE; }

@@ -42,7 +42,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
 {
   int ret = 0;
   BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
-  if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable
+  if (m_Decoder.IsInterlaced(FALSE) && m_settings.DeintMode != DeintMode_Disable
     && (m_settings.SWDeintMode == SWDeintMode_YADIF || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex)
     && ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 || pFrame->format == LAVPixFmt_NV12)) {
     AVPixelFormat ff_pixfmt = (pFrame->format == LAVPixFmt_YUV420) ? AV_PIX_FMT_YUV420P : (pFrame->format == LAVPixFmt_YUV422) ? AV_PIX_FMT_YUV422P : AV_PIX_FMT_NV12;

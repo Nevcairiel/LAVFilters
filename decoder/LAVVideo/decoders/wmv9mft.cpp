@@ -629,7 +629,7 @@ STDMETHODIMP CDecWMV9MFT::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
   return S_OK;
 }
 
-STDMETHODIMP_(BOOL) CDecWMV9MFT::IsInterlaced()
+STDMETHODIMP_(BOOL) CDecWMV9MFT::IsInterlaced(BOOL bAllowGuess)
 {
   return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force);
 }

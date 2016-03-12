@@ -547,21 +547,21 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
   // Adjust for deinterlacing
-  if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable) {
+  if (m_Decoder.IsInterlaced(FALSE) && m_settings.DeintMode != DeintMode_Disable) {
     BOOL bFramePerField = (m_settings.SWDeintMode == SWDeintMode_YADIF && m_settings.SWDeintOutput == DeintOutput_FramePerField)
                         || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex;
     if (bFramePerField)
       rtAvgTime /= 2;
   }
 
-  m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, IsInterlaced(), bVIH1);
+  m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, IsInterlacedOutput(), bVIH1);
 
   return S_OK;
 }
 
-BOOL CLAVVideo::IsInterlaced()
+BOOL CLAVVideo::IsInterlacedOutput()
 {
-  return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_Decoder.IsInterlaced() && !(m_settings.DeintMode == DeintMode_Disable);
+  return (m_settings.SWDeintMode == SWDeintMode_None || m_filterPixFmt == LAVPixFmt_None) && m_Decoder.IsInterlaced(TRUE) && !(m_settings.DeintMode == DeintMode_Disable);
 }
 
 static const LPWSTR stream_ar_blacklist[] = {
@@ -703,7 +703,7 @@ HRESULT CLAVVideo::CheckDirectMode()
   m_Decoder.GetPixelFormat(&pix, &bpp);
 
   BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P010);
-  if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced() && m_settings.SWDeintMode != SWDeintMode_None)
+  if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced(FALSE) && m_settings.SWDeintMode != SWDeintMode_None)
     bDirect = FALSE;
   else if (pix == LAVPixFmt_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_YV12)
     bDirect = FALSE;
@@ -1040,7 +1040,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   // Determine Interlaced flags
   // - madVR handles the flags properly, so properly indicate forced deint, adaptive deint and progressive
   // - The OverlayMixer fails at interlaced support, so completely disable interlaced flags for it
-  BOOL bInterlaced = IsInterlaced();
+  BOOL bInterlaced = IsInterlacedOutput();
   DWORD dwInterlacedFlags = 0;
   if (m_bMadVR) {
     if (bInterlaced && (m_settings.DeintMode == DeintMode_Force || m_settings.DeintMode == DeintMode_Aggressive)) {
@@ -1287,7 +1287,7 @@ HRESULT CLAVVideo::NegotiatePixelFormat(CMediaType &outMt, int width, int height
 
   CMediaType mt;
   for (i = 0; i < m_PixFmtConverter.GetNumMediaTypes(); ++i) {
-    m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, m_Decoder.IsInterlaced(), bVIH1);
+    m_PixFmtConverter.GetMediaType(&mt, i, width, height, dwAspectX, dwAspectY, rtAvg, IsInterlacedOutput(), bVIH1);
     //hr = m_pOutput->GetConnected()->QueryAccept(&mt);
 receiveconnection:
     hr = m_pOutput->GetConnected()->ReceiveConnection(m_pOutput, &mt);
@@ -1507,7 +1507,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
   // Only perform filtering if we have to.
   // DXVA Native generally can't be filtered, and the only filtering we currently support is software deinterlacing
   if ( pFrame->format == LAVPixFmt_DXVA2
-    || !(m_Decoder.IsInterlaced() && m_settings.SWDeintMode != SWDeintMode_None)
+    || !(m_Decoder.IsInterlaced(FALSE) && m_settings.SWDeintMode != SWDeintMode_None)
     || pFrame->flags & LAV_FRAME_FLAG_REDRAW) {
     return DeliverToRenderer(pFrame);
   } else {

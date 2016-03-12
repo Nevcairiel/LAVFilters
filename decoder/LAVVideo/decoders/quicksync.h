@@ -42,7 +42,7 @@ public:
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
   STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
-  STDMETHODIMP_(BOOL) IsInterlaced();
+  STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"quicksync"; }
 
   STDMETHODIMP PostConnect(IPin *pPin);

@@ -1297,7 +1297,7 @@ STDMETHODIMP_(REFERENCE_TIME) CDecCuvid::GetFrameDuration()
   return 0;
 }
 
-STDMETHODIMP_(BOOL) CDecCuvid::IsInterlaced()
+STDMETHODIMP_(BOOL) CDecCuvid::IsInterlaced(BOOL bAllowGuess)
 {
   return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && (m_VideoDecoderInfo.DeinterlaceMode == cudaVideoDeinterlaceMode_Weave);
 }

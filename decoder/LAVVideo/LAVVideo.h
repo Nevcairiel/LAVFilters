@@ -206,7 +206,7 @@ private:
   HRESULT SetFrameFlags(IMediaSample* pMS, LAVFrame *pFrame);
 
   HRESULT NegotiatePixelFormat(CMediaType &mt, int width, int height);
-  BOOL IsInterlaced();
+  BOOL IsInterlacedOutput();
 
   HRESULT CheckDirectMode();
   HRESULT DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode = true);

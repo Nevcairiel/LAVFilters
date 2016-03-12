@@ -685,7 +685,7 @@ STDMETHODIMP_(REFERENCE_TIME) CDecQuickSync::GetFrameDuration()
   return (m_bInterlaced && m_bDI && m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField) ? rtDuration / 2 : rtDuration;
 }
 
-STDMETHODIMP_(BOOL) CDecQuickSync::IsInterlaced()
+STDMETHODIMP_(BOOL) CDecQuickSync::IsInterlaced(BOOL bAllowGuess)
 {
   return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) && !m_bDI;
 }

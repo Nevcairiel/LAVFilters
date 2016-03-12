@@ -365,7 +365,7 @@ interface ILAVDecoder
    * Query whether the format can potentially be interlaced.
    * This function should return false if the format can 100% not be interlaced, and true if it can be interlaced (but also progressive).
    */
-  STDMETHOD_(BOOL, IsInterlaced)() PURE;
+  STDMETHOD_(BOOL, IsInterlaced)(BOOL bAllowGuess) PURE;
 
   /**
    * Allows the decoder to handle an allocator.

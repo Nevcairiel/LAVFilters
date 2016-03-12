@@ -58,7 +58,7 @@ public:
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp) { if (pPix) *pPix = LAVPixFmt_NV12; if (pBpp) *pBpp = 8; return S_OK; }
-  STDMETHODIMP_(BOOL) IsInterlaced() { return FALSE; }
+  STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess) { return FALSE; }
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"msdk mvc"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
 

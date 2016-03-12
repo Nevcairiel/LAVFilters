@@ -63,7 +63,7 @@ public:
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
-  STDMETHODIMP_(BOOL) IsInterlaced();
+  STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"wmv9 mft"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
 

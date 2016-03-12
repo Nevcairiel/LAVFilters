@@ -604,7 +604,7 @@ STDMETHODIMP_(REFERENCE_TIME) CDecWMV9::GetFrameDuration()
   return 0;
 }
 
-STDMETHODIMP_(BOOL) CDecWMV9::IsInterlaced()
+STDMETHODIMP_(BOOL) CDecWMV9::IsInterlaced(BOOL bAllowGuess)
 {
   return (m_bInterlaced || m_pSettings->GetDeinterlacingMode() == DeintMode_Force);
 }

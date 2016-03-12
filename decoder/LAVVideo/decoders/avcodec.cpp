@@ -1059,7 +1059,7 @@ STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
   return 0;
 }
 
-STDMETHODIMP_(BOOL) CDecAvcodec::IsInterlaced()
+STDMETHODIMP_(BOOL) CDecAvcodec::IsInterlaced(BOOL bAllowGuess)
 {
-  return (m_iInterlaced != 0 || m_pSettings->GetDeinterlacingMode() == DeintMode_Force);
+  return (bAllowGuess && m_iInterlaced) || (m_iInterlaced > 0) || m_pSettings->GetDeinterlacingMode() == DeintMode_Force;
 }
