@@ -542,13 +542,17 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
   CMediaType &mtIn = m_pInput->CurrentMediaType();
 
   BITMAPINFOHEADER *pBIH = nullptr;
-  REFERENCE_TIME rtAvgTime;
+  REFERENCE_TIME rtAvgTime = 0;
   DWORD dwAspectX = 0, dwAspectY = 0;
   videoFormatTypeHandler(mtIn.Format(), mtIn.FormatType(), &pBIH, &rtAvgTime, &dwAspectX, &dwAspectY);
 
   // Adjust for deinterlacing
-  if (m_Decoder.IsInterlaced() && m_settings.SWDeintMode != SWDeintMode_None && m_settings.SWDeintOutput == DeintOutput_FramePerField && !(m_settings.DeintMode == DeintMode_Disable))
-    rtAvgTime /= 2;
+  if (m_Decoder.IsInterlaced() && m_settings.DeintMode != DeintMode_Disable) {
+    BOOL bFramePerField = (m_settings.SWDeintMode == SWDeintMode_YADIF && m_settings.SWDeintOutput == DeintOutput_FramePerField)
+                        || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex;
+    if (bFramePerField)
+      rtAvgTime /= 2;
+  }
 
   m_PixFmtConverter.GetMediaType(pMediaType, index, pBIH->biWidth, pBIH->biHeight, dwAspectX, dwAspectY, rtAvgTime, IsInterlaced(), bVIH1);
 
