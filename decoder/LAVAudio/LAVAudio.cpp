@@ -1833,14 +1833,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   consumed = min(consumed, buffer_size);
 
   // Remove the consumed data from the buffer
-  p += consumed;
-  if (p == end) {
-    m_buff.Clear();
-  } else {
-    DWORD remaining = (DWORD)(end - p);
-    memmove(base, p, remaining);
-    m_buff.SetSize(remaining);
-  }
+  m_buff.Consume(consumed);
 
   return hr;
 }

@@ -104,6 +104,19 @@ public:
     return S_OK;
   }
 
+  void Consume(DWORD dwSize)
+  {
+    ASSERT(dwSize <= m_count);
+
+    if (dwSize == m_count)
+      Clear();
+    else
+    {
+      memmove(m_pArray, m_pArray + dwSize, m_count - dwSize);
+      m_count -= dwSize;
+    }
+  }
+
   DWORD GetCount() const { return m_count; }
   DWORD GetAllocated() const { return m_allocated; }
 
