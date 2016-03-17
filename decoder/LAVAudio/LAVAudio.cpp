@@ -1770,8 +1770,6 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   int buffer_size = m_buff.GetCount();
 
   BYTE *p = m_buff.Ptr();
-  BYTE *base = p;
-  BYTE *end = p + buffer_size;
 
   int consumed = 0;
 
@@ -1829,8 +1827,6 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
         // SPDIF is apparently big-endian coded
         lav_spdif_bswap_buf16((uint16_t *)p, (uint16_t *)p, buffer_size >> 1);
-
-        end = p + buffer_size;
       }
     }
 
