@@ -1,6 +1,14 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.68.1 - 2016/xx/xx
+LAV Video
+- Changed: Flags for BT.2020 are exported in DXVA2_ExtendedFormat (previously only reported to madVR, since the Windows SDK did not specify them)
+- Fixed: Some progressive files could report the wrong FPS when software deinterlacing was turned on
+
+LAV Audio
+- Fixed: Decoding MPEG Audio streams from the Microsoft MPEG-1 Splitter could result in playback starting with an audible glitch
+
 0.68.0 - 2016/03/08
 LAV Splitter
 - NEW: H.264 MVC 3D demuxing from MKV 3D, Blu-ray discs and Blu-ray SSIF files
