@@ -203,6 +203,7 @@ private:
   void CreateBDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX_HDMV_LPCM *wfex_lpcm) const;
   void CreateDVDLPCMHeader(BYTE *pBuf, const WAVEFORMATEX *wfex) const;
   HRESULT ParseRealAudioHeader(const BYTE *extra, const size_t extralen);
+  HRESULT ResyncMPEGAudio();
 
   void UpdateVolumeStats(const BufferDetails &buffer);
 
@@ -322,6 +323,7 @@ private:
   CBitstreamParser    m_bsParser;
   BOOL                m_bFindDTSInPCM                = FALSE;
   BOOL                m_bDVDPlayback                 = FALSE;
+  BOOL                m_bMPEGAudioResync             = FALSE;
 
   FloatingAverage<REFERENCE_TIME> m_faJitter{50};
   REFERENCE_TIME      m_JitterLimit = MAX_JITTER_DESYNC;

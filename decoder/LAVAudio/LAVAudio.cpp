@@ -42,6 +42,7 @@ extern "C" {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavformat/spdif.h"
 #include "libavcodec/flac.h"
+#include "libavcodec/mpegaudiodecheader.h"
 
 extern int ff_vorbis_comment(AVFormatContext *ms, AVDictionary **m, const uint8_t *buf, int size, int parse_picture);
 extern void ff_rm_reorder_sipr_data(uint8_t *buf, int sub_packet_h, int framesize);
@@ -1421,6 +1422,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   m_dwOverrideMixer = 0;
   m_bMixingSettingsChanged = TRUE;
   m_SuppressLayout = 0;
+  m_bMPEGAudioResync = (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG1AudioPayload);
 
   return S_OK;
 }
@@ -1524,6 +1526,7 @@ HRESULT CLAVAudio::PerformFlush()
   m_bQueueResync = TRUE;
   m_bNeedSyncpoint = (m_raData.deint_id != 0);
   m_SuppressLayout = 0;
+  m_bMPEGAudioResync = (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG1AudioPayload);
 
   return S_OK;
 }
@@ -1713,6 +1716,53 @@ static void lav_spdif_bswap_buf16(uint16_t *dst, const uint16_t *src, int w)
         dst[i + 0] = av_bswap16(src[i + 0]);
 }
 
+#define SAME_HEADER_MASK \
+   (0xffe00000 | (3 << 17) | (3 << 10) | (3 << 19))
+
+static int check_mpegaudio_header(uint8_t *buf, uint32_t *retheader)
+{
+  MPADecodeHeader sd;
+  uint32_t header = AV_RB32(buf);
+
+  if (avpriv_mpegaudio_decode_header(&sd, header) != 0)
+    return -1;
+
+  if (retheader)
+    *retheader = header;
+
+  return sd.frame_size;
+}
+
+HRESULT CLAVAudio::ResyncMPEGAudio()
+{
+  uint8_t *buf = m_buff.Ptr();
+  int size = m_buff.GetCount();
+
+  for (int i = 0; i < size; i++)
+  {
+    uint32_t header, header2;
+    int frame_size = check_mpegaudio_header(buf + i, &header);
+    if (frame_size > 0 && (i + frame_size + 4) < size) {
+      int ret = check_mpegaudio_header(buf + i + frame_size, &header2);
+      if (ret >= 0 && (header & SAME_HEADER_MASK) == (header2 & SAME_HEADER_MASK))
+      {
+        if (i > 0) {
+          DbgLog((LOG_TRACE, 10, L"CLAVAudio::ResyncMPEGAudio(): Skipping %d bytes of junk", i));
+          m_buff.Consume(i);
+        }
+        return S_OK;
+      }
+    }
+  }
+
+  if (size > 64 * 1024) {
+    DbgLog((LOG_TRACE, 10, L"CLAVAudio::ResyncMPEGAudio(): No matching headers found in 64kb of data, aborting search"));
+    return S_OK;
+  }
+
+  return S_FALSE;
+}
+
 HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 {
   HRESULT hr = S_OK, hr2 = S_OK;
@@ -1782,6 +1832,15 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
         end = p + buffer_size;
       }
+    }
+
+    if (m_bMPEGAudioResync)
+    {
+      if (ResyncMPEGAudio() != S_OK)
+        return S_FALSE;
+
+      m_bMPEGAudioResync = FALSE;
+      return ProcessBuffer(FALSE);
     }
   } else {
     if (!m_bFindDTSInPCM) {
