@@ -1738,7 +1738,7 @@ HRESULT CLAVAudio::ResyncMPEGAudio()
   uint8_t *buf = m_buff.Ptr();
   int size = m_buff.GetCount();
 
-  for (int i = 0; i < size; i++)
+  for (int i = 0; i < (size - 3); i++)
   {
     uint32_t header, header2;
     int frame_size = check_mpegaudio_header(buf + i, &header);
