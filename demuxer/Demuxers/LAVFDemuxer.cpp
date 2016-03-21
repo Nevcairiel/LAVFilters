@@ -37,6 +37,7 @@ typedef struct CodecMime{
 #include "libavformat/mpegts.h"
 #include "libavformat/matroska.h"
 #include "libavutil/avstring.h"
+#include "libavformat/isom.h"
 
 AVChapter *avpriv_new_chapter(AVFormatContext *s, int id, AVRational time_base, int64_t start, int64_t end, const char *title);
 }
@@ -1608,6 +1609,13 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrameCount(UINT& nKFs)
     return E_FAIL;
   }
 
+  // No reliable info for fragmented mp4 files
+  if (m_bMP4) {
+    MOVContext *mov = (MOVContext *)m_avFormat->priv_data;
+    if (mov->fragment_index_count)
+      return S_FALSE;
+  }
+
   nKFs = 0;
 
   AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
@@ -1627,6 +1635,13 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
 
   if (!m_bMatroska && !m_bAVI && !m_bMP4) {
     return E_FAIL;
+  }
+
+  // No reliable info for fragmented mp4 files
+  if (m_bMP4) {
+    MOVContext *mov = (MOVContext *)m_avFormat->priv_data;
+    if (mov->fragment_index_count)
+      return S_FALSE;
   }
 
   if(*pFormat != TIME_FORMAT_MEDIA_TIME) return E_INVALIDARG;
