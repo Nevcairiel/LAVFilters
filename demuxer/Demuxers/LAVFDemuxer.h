@@ -118,7 +118,7 @@ public:
   STDMETHODIMP get_AuthorName(BSTR *pbstrAuthorName) { return GetBSTRMetadata("artist", pbstrAuthorName); }
   STDMETHODIMP get_Title(BSTR *pbstrTitle) { return GetBSTRMetadata("title", pbstrTitle); }
   STDMETHODIMP get_Rating(BSTR *pbstrRating) { return E_NOTIMPL; }
-  STDMETHODIMP get_Description(BSTR *pbstrDescription) { return GetBSTRMetadata("comment", pbstrDescription); }
+  STDMETHODIMP get_Description(BSTR *pbstrDescription) { HRESULT hr = GetBSTRMetadata("comment", pbstrDescription); if (hr == VFW_E_NOT_FOUND) hr = GetBSTRMetadata("description", pbstrDescription); return hr; }
   STDMETHODIMP get_Copyright(BSTR *pbstrCopyright) { return GetBSTRMetadata("copyright", pbstrCopyright); }
   STDMETHODIMP get_BaseURL(BSTR *pbstrBaseURL) { return E_NOTIMPL; }
   STDMETHODIMP get_LogoURL(BSTR *pbstrLogoURL) { return E_NOTIMPL; }
