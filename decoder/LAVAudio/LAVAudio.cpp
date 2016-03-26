@@ -1686,6 +1686,12 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     bufflen = m_buff.GetCount();
   }
 
+  // Ensure the size of the buffer doesn't overflow (its used as signed int in various places)
+  if (INT_MAX - (bufflen + FF_INPUT_BUFFER_PADDING_SIZE) < len) {
+    DbgLog((LOG_TRACE, 10, L"Too much audio buffered, aborting"));
+    return E_FAIL;
+  }
+
   m_buff.Allocate(bufflen + len + FF_INPUT_BUFFER_PADDING_SIZE);
   m_buff.Append(pDataIn, len);
 
