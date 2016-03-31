@@ -1625,6 +1625,10 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   }
 
   long len = pIn->GetActualDataLength();
+  if (len < 0) {
+    DbgLog((LOG_ERROR, 10, L"Invalid data length, aborting"));
+    return E_FAIL;
+  }
   if (len == 0) {
     return S_OK;
   }
@@ -1670,9 +1674,14 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   m_rtStartInput = SUCCEEDED(hr) ? rtStart : AV_NOPTS_VALUE;
   m_rtStopInput = SUCCEEDED(hr) ? rtStop : AV_NOPTS_VALUE;
 
-  int bufflen = m_buff.GetCount();
+#define DWORD_MAX 4294967295
+  size_t bufflen = m_buff.GetCount();
+  if (bufflen > DWORD_MAX - 4) {
+    DbgLog((LOG_ERROR, 10, L"Too much audio buffered, aborting"));
+    return E_FAIL;
+  }
 
-  // Hack to re-create the BD LPCM header because in the MPC-HC format its stripped off.
+  // Hack to re-create the BD LPCM header because in the MPC-HC format it's stripped off.
   CMediaType inMt(m_pInput->CurrentMediaType());
   if (inMt.subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO && inMt.formattype == FORMAT_WaveFormatEx) {
     m_buff.SetSize(bufflen + 4);
@@ -1686,8 +1695,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     bufflen = m_buff.GetCount();
   }
 
-  // Ensure the size of the buffer doesn't overflow (its used as signed int in various places)
-  if (INT_MAX - (bufflen + FF_INPUT_BUFFER_PADDING_SIZE) < len) {
+  // Ensure the size of the buffer doesn't overflow
+  if (bufflen > DWORD_MAX - (FF_INPUT_BUFFER_PADDING_SIZE + len)) {
     DbgLog((LOG_TRACE, 10, L"Too much audio buffered, aborting"));
     return E_FAIL;
   }
