@@ -32,6 +32,10 @@
 #include <assert.h>
 #include "DShowUtil.h"
 
+#ifndef DWORD_MAX
+#define DWORD_MAX 4294967295
+#endif
+
 template <class T>
 class GrowableArray
 {

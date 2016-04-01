@@ -1674,7 +1674,6 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   m_rtStartInput = SUCCEEDED(hr) ? rtStart : AV_NOPTS_VALUE;
   m_rtStopInput = SUCCEEDED(hr) ? rtStop : AV_NOPTS_VALUE;
 
-#define DWORD_MAX 4294967295
   size_t bufflen = m_buff.GetCount();
   if (bufflen > DWORD_MAX - 4) {
     DbgLog((LOG_ERROR, 10, L"Too much audio buffered, aborting"));
@@ -1751,9 +1750,13 @@ static int check_mpegaudio_header(uint8_t *buf, uint32_t *retheader)
 HRESULT CLAVAudio::ResyncMPEGAudio()
 {
   uint8_t *buf = m_buff.Ptr();
-  int size = m_buff.GetCount();
+  DWORD size = m_buff.GetCount();
+  if (size < 3) {
+    DbgLog((LOG_TRACE, 10, L"CLAVAudio::ResyncMPEGAudio(): Buffer too short to perform resync"));
+    return S_FALSE;
+  }
 
-  for (int i = 0; i < (size - 3); i++)
+  for (unsigned int i = 0; i < (size - 3); ++i)
   {
     uint32_t header, header2;
     int frame_size = check_mpegaudio_header(buf + i, &header);
@@ -1782,7 +1785,11 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 {
   HRESULT hr = S_OK, hr2 = S_OK;
 
-  int buffer_size = m_buff.GetCount();
+  DWORD buffer_size = m_buff.GetCount();
+  if (buffer_size < 2) {
+    DbgLog((LOG_TRACE, 10, L"::ProcessBuffer(): Buffer too short"));
+    return hr;
+  }
 
   BYTE *p = m_buff.Ptr();
 
@@ -1790,9 +1797,9 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
   if (!bEOF) {
     if (m_bFindDTSInPCM) {
-      int i = 0, count = 0;
+      unsigned int count = 0;
       uint32_t state = -1;
-      for (i = 0; i < buffer_size; ++i) {
+      for (unsigned int i = 0; i < buffer_size; ++i) {
         state = (state << 8) | p[i];
         if ((state == DCA_MARKER_14B_LE && (i < buffer_size-2) && (p[i+1] & 0xF0) == 0xF0 && p[i+2] == 0x07)
           || (state == DCA_MARKER_14B_BE && (i < buffer_size-2) && p[i+1] == 0x07 && (p[i+2] & 0xF0) == 0xF0)
