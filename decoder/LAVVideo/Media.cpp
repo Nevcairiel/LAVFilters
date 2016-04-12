@@ -747,8 +747,9 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
 
 extern "C" const uint8_t *avpriv_find_start_code(const uint8_t *p, const uint8_t *end, uint32_t *state);
 
-const uint8_t* CheckForEndOfSequence(AVCodecID codec, const uint8_t *buf, long len, uint32_t *state)
+int CheckForSequenceMarkers(AVCodecID codec, const uint8_t *buf, long len, uint32_t *state, const uint8_t **pos)
 {
+  int status = 0;
   if (buf && len > 0) {
     const uint8_t *p = buf, *end = buf + len;
     if (codec == AV_CODEC_ID_MPEG2VIDEO) {
@@ -756,13 +757,18 @@ const uint8_t* CheckForEndOfSequence(AVCodecID codec, const uint8_t *buf, long l
         p = avpriv_find_start_code(p, end, state);
         if (*state == 0x000001b7) {
           DbgLog((LOG_TRACE, 50, L"Found SEQ_END_CODE at %p (end: %p)", p, end));
-          return p;
+          status |= STATE_EOS_FOUND;
+          if (pos)
+            *pos = p;
+          return status;
+        } else if (*state == 0x000001b8) {
+          status |= STATE_GOP_FOUND;
         }
       }
     }
-    return nullptr;
+    return status;
   }
-  return nullptr;
+  return status;
 }
 
 int sws_scale2(struct SwsContext *c, const uint8_t *const srcSlice[], const ptrdiff_t srcStride[], int srcSliceY, int srcSliceH, uint8_t *const dst[], const ptrdiff_t dstStride[])

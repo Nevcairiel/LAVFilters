@@ -774,8 +774,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
           avpkt.pts = rtStart;
           avpkt.duration = 0;
 
-          const uint8_t *eosmarker = CheckForEndOfSequence(m_nCodecId, avpkt.data, avpkt.size, &m_MpegParserState);
-          if (eosmarker) {
+          int state = CheckForSequenceMarkers(m_nCodecId, avpkt.data, avpkt.size, &m_MpegParserState);
+          if (state & STATE_EOS_FOUND) {
             bEndOfSequence = TRUE;
           }
         } else {

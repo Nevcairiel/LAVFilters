@@ -532,11 +532,12 @@ STDMETHODIMP CDecQuickSync::Decode(const BYTE *buffer, int buflen, REFERENCE_TIM
   }
 
   if (m_Codec == FourCC_MPG2) {
-    const uint8_t *eosmarker = CheckForEndOfSequence(AV_CODEC_ID_MPEG2VIDEO, buffer, buflen, &m_MpegParserState);
-    const uint8_t *end = buffer+buflen;
+    const uint8_t *eosmarker = nullptr;
+    const uint8_t *end = buffer + buflen;
+    int status = CheckForSequenceMarkers(AV_CODEC_ID_MPEG2VIDEO, buffer, buflen, &m_MpegParserState, &eosmarker);
     // If we found a EOS marker, but its not at the end of the packet, then split the packet
     // to be able to individually decode the frame before the EOS, and then decode the remainder
-    if (eosmarker && eosmarker != end) {
+    if (status & STATE_EOS_FOUND && eosmarker && eosmarker != end) {
       Decode(buffer, (int)(eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
 
       rtStart = rtStop = AV_NOPTS_VALUE;
