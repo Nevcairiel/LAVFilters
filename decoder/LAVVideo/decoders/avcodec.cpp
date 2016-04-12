@@ -778,6 +778,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
           if (state & STATE_EOS_FOUND) {
             bEndOfSequence = TRUE;
           }
+          if (state & STATE_GOP_FOUND && m_nCodecId == AV_CODEC_ID_MPEG2VIDEO) {
+            m_bWaitingForKeyFrame = FALSE;
+          }
         } else {
           avpkt.data = nullptr;
           avpkt.size = 0;
