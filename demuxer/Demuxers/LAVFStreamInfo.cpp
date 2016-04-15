@@ -477,6 +477,15 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   mtype.formattype = FORMAT_SubtitleInfo;
 
   int extra = avstream->codec->extradata_size;
+
+  // parse flags from mov tx3g atom
+  if (avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT && avstream->codec->codec_tag == MKTAG('t', 'x', '3', 'g') && extra >= 4)
+  {
+    uint32_t flags = AV_RB32(avstream->codec->extradata);
+    if (flags & 0x80000000)
+      avstream->disposition |= AV_DISPOSITION_FORCED;
+  }
+
   if (avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT || avstream->codec->codec_id == AV_CODEC_ID_TEXT || avstream->codec->codec_id == AV_CODEC_ID_SUBRIP) {
     extra = 0;
   }
