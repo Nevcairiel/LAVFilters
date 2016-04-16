@@ -45,14 +45,14 @@ typedef HRESULT STDAPICALLTYPE tMFAverageTimePerFrameToFrameRate(UINT64 unAverag
 
 class CVC1HeaderParser;
 
-typedef struct _Buffer {
-  IMFMediaBuffer *pBuffer = nullptr;
-  DWORD size              = 0;
-  bool used               = false;
-} Buffer;
-
 class CDecWMV9MFT : public CDecBase
 {
+  typedef struct _Buffer {
+    IMFMediaBuffer *pBuffer = nullptr;
+    DWORD size              = 0;
+    bool used               = false;
+  } Buffer;
+
 public:
   CDecWMV9MFT(void);
   virtual ~CDecWMV9MFT(void);

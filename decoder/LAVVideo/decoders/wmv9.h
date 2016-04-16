@@ -27,14 +27,14 @@
 
 class CVC1HeaderParser;
 
-typedef struct _Buffer {
-  BYTE *buffer = nullptr;
-  size_t size  = 0;
-  bool used    = false;
-} Buffer;
-
 class CDecWMV9 : public CDecBase
 {
+  typedef struct _Buffer {
+    BYTE *buffer = nullptr;
+    size_t size  = 0;
+    bool used    = false;
+  } Buffer;
+
 public:
   CDecWMV9(void);
   virtual ~CDecWMV9(void);
