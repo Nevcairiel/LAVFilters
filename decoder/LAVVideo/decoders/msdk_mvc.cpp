@@ -365,8 +365,6 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       bsBuffer.SetBuffer((BYTE *)buffer, buflen, false);
     }
 
-    DbgLog((LOG_TRACE, 10, L"Frame %I64u, size %u", bs.TimeStamp, bsBuffer.GetBufferSize()));
-
     // Check the buffer for SEI NALU, and some unwanted NALUs that need filtering
     // MSDK's SEI reading functionality is slightly buggy
     CH264Nalu nalu;
