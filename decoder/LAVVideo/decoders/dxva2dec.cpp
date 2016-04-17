@@ -1549,7 +1549,13 @@ __forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
   pFrame->priv_data = nullptr;
 
   // Allocate memory buffers
-  AllocLAVFrameBuffers(pFrame, (pFrame->format == LAVPixFmt_P010) ? (LockedRect.Pitch >> 1) : LockedRect.Pitch);
+  hr = AllocLAVFrameBuffers(pFrame, (pFrame->format == LAVPixFmt_P010) ? (LockedRect.Pitch >> 1) : LockedRect.Pitch);
+  if (FAILED(hr)) {
+    pSurface->UnlockRect();
+    *pFrame = tmpFrame;
+    return false;
+  }
+
   // Copy surface onto memory buffers
   CopyFrameNV12((BYTE *)LockedRect.pBits, pFrame->data[0], pFrame->data[1], surfaceDesc.Height, pFrame->height, LockedRect.Pitch);
 

@@ -293,6 +293,10 @@ MVCBuffer * CDecMSDKMVC::GetBuffer()
 
     pBuffer->surface.Data.PitchLow = FFALIGN(m_mfxVideoParams.mfx.FrameInfo.Width, 64);
     pBuffer->surface.Data.Y  = (mfxU8 *)av_malloc(pBuffer->surface.Data.PitchLow * FFALIGN(m_mfxVideoParams.mfx.FrameInfo.Height, 64) * 3 / 2);
+    if (pBuffer->surface.Data.Y == nullptr) {
+      delete pBuffer;
+      return nullptr;
+    }
     pBuffer->surface.Data.UV = pBuffer->surface.Data.Y + (pBuffer->surface.Data.PitchLow * FFALIGN(m_mfxVideoParams.mfx.FrameInfo.Height, 64));
 
     m_BufferQueue.push_back(pBuffer);
@@ -426,6 +430,9 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   // Loop over the decoder to ensure all data is being consumed
   while (1) {
     MVCBuffer *pInputBuffer = GetBuffer();
+    if (pInputBuffer == nullptr)
+      return E_OUTOFMEMORY;
+
     mfxFrameSurface1 *outsurf = nullptr;
     sts = MFXVideoDECODE_DecodeFrameAsync(m_mfxSession, bFlush ? nullptr : &bs, &pInputBuffer->surface, &outsurf, &sync);
 

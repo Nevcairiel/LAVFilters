@@ -1037,7 +1037,9 @@ STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
 {
   // Allocate the buffers to write into
-  AllocLAVFrameBuffers(pOutFrame);
+  HRESULT hr = AllocLAVFrameBuffers(pOutFrame);
+  if (FAILED(hr))
+    return hr;
 
   // Map to swscale compatible format
   AVPixelFormat dstFormat = getFFPixelFormatFromLAV(pOutFrame->format, pOutFrame->bpp);

@@ -379,12 +379,17 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
       subStride[plane]  = stride / desc.planeWidth[plane];
       const size_t size = subStride[plane] * FFALIGN(newSize.cy, 2) / desc.planeHeight[plane];
       subData[plane]    = (BYTE *)av_mallocz(size + FF_INPUT_BUFFER_PADDING_SIZE);
+      if (subData[plane] == nullptr)
+        goto fail;
     }
 
     // Un-pre-multiply alpha for YUV formats
     // TODO: Can we SIMD this? See ARGBUnattenuateRow_C/SSE2 in libyuv
     if (avPixFmt != AV_PIX_FMT_BGRA) {
       tmpBuf = (uint8_t *)av_malloc(pitch * subSize.cy);
+      if (tmpBuf == nullptr)
+        goto fail;
+
       memcpy(tmpBuf, rgbData, pitch * subSize.cy);
       for (int line = 0; line < subSize.cy; line++) {
         uint8_t *p = tmpBuf + line * pitch;
@@ -423,4 +428,10 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessSubtitleBitmap(LAVPixelFormat pixFmt, 
   }
 
   return S_OK;
+
+fail:
+  for (int i = 0; i < 4; i++) {
+    av_freep(&subData[i]);
+  }
+  return E_OUTOFMEMORY;
 }

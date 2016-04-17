@@ -481,6 +481,8 @@ static int __stdcall yuv2rgb_convert(const uint8_t *srcY, const uint8_t *srcU, c
 DECLARE_CONV_FUNC_IMPL(convert_yuv_rgb)
 {
   const RGBCoeffs *coeffs = getRGBCoeffs(width, height);
+  if (coeffs == nullptr)
+    return E_OUTOFMEMORY;
 
   if (!m_bRGBConvInit) {
     m_bRGBConvInit = TRUE;
@@ -582,8 +584,11 @@ const RGBCoeffs* CLAVPixFmtConverter::getRGBCoeffs(int width, int height)
     swsWidth = width;
     swsHeight = height;
 
-    if (!m_rgbCoeffs)
+    if (!m_rgbCoeffs) {
       m_rgbCoeffs = (RGBCoeffs *)_aligned_malloc(sizeof(RGBCoeffs), 16);
+      if (m_rgbCoeffs == nullptr)
+        return nullptr;
+    }
 
     DXVA2_VideoTransferMatrix matrix = (DXVA2_VideoTransferMatrix)m_ColorProps.VideoTransferMatrix;
     if (matrix == DXVA2_VideoTransferMatrix_Unknown) {

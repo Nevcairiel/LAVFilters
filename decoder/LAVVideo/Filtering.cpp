@@ -139,8 +139,13 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     if (!m_pFilterGraph)
       goto deliver;
 
-    if (pFrame->direct)
-      DeDirectFrame(pFrame, true);
+    if (pFrame->direct) {
+      HRESULT hr = DeDirectFrame(pFrame, true);
+      if (FAILED(hr)) {
+        ReleaseFrame(&pFrame);
+        return hr;
+      }
+    }
 
     AVFrame *in_frame = nullptr;
     BOOL refcountedFrame = (m_Decoder.HasThreadSafeBuffers() == S_OK);

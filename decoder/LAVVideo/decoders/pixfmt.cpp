@@ -119,6 +119,10 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
     ptrdiff_t planeStride = stride / desc.planeWidth[plane];
     size_t size = planeStride * (alignedHeight / desc.planeHeight[plane]);
     pFrame->data[plane]   = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
+    if (pFrame->data[plane] == nullptr) {
+      free_buffers(pFrame);
+      return E_OUTOFMEMORY;
+    }
     pFrame->stride[plane] = planeStride;
   }
 
@@ -126,6 +130,10 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
     for (int plane = 0; plane < desc.planes; plane++) {
       size_t size = pFrame->stride[plane] * (alignedHeight / desc.planeHeight[plane]);
       pFrame->stereo[plane] = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
+      if (pFrame->stereo[plane] == nullptr) {
+        free_buffers(pFrame);
+        return E_OUTOFMEMORY;
+      }
     }
   }
 
@@ -168,7 +176,9 @@ HRESULT CopyLAVFrame(LAVFrame *pSrc, LAVFrame **ppDst)
   (*ppDst)->destruct  = nullptr;
   (*ppDst)->priv_data = nullptr;
 
-  AllocLAVFrameBuffers(*ppDst);
+  HRESULT hr = AllocLAVFrameBuffers(*ppDst);
+  if (FAILED(hr))
+    return hr;
 
   LAVPixFmtDesc desc = getPixelFormatDesc(pSrc->format);
   for (int plane = 0; plane < desc.planes; plane++) {

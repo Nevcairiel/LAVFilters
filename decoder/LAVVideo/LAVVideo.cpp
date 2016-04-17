@@ -1415,7 +1415,12 @@ HRESULT CLAVVideo::DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode)
 
   LAVDirectBuffer buffer;
   if (tmpFrame.direct_lock(&tmpFrame, &buffer)) {
-    AllocLAVFrameBuffers(pFrame, buffer.stride[0] / desc.codedbytes);
+    HRESULT hr = AllocLAVFrameBuffers(pFrame, buffer.stride[0] / desc.codedbytes);
+    if (FAILED(hr)) {
+      tmpFrame.direct_unlock(&tmpFrame);
+      FreeLAVFrameBuffers(&tmpFrame);
+      return hr;
+    }
 
     // use slow copy, this should only be used extremely rarely
     memcpy(pFrame->data[0], buffer.data[0], pFrame->height * buffer.stride[0]);
@@ -1425,7 +1430,11 @@ HRESULT CLAVVideo::DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode)
     tmpFrame.direct_unlock(&tmpFrame);
   } else {
     // fallack, alloc anyway so nothing blows up
-    AllocLAVFrameBuffers(pFrame);
+    HRESULT hr = AllocLAVFrameBuffers(pFrame);
+    if (FAILED(hr)) {
+      FreeLAVFrameBuffers(&tmpFrame);
+      return hr;
+    }
   }
 
   FreeLAVFrameBuffers(&tmpFrame);
@@ -1531,18 +1540,26 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     if (pFrame->format != LAVPixFmt_DXVA2) {
       ReleaseFrame(&m_pLastSequenceFrame);
       if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
-        if (pFrame->direct) DeDirectFrame(pFrame, false);
+        if (pFrame->direct) {
+          hr = DeDirectFrame(pFrame, false);
+          if (FAILED(hr)) {
+            ReleaseFrame(&pFrame);
+            return hr;
+          }
+        }
         CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
       }
     } else {
       if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
         if (!m_pLastSequenceFrame) {
-          AllocateFrame(&m_pLastSequenceFrame);
-          m_pLastSequenceFrame->format = LAVPixFmt_DXVA2;
+          hr = AllocateFrame(&m_pLastSequenceFrame);
+          if (SUCCEEDED(hr)) {
+            m_pLastSequenceFrame->format = LAVPixFmt_DXVA2;
 
-          hr = GetD3DBuffer(m_pLastSequenceFrame);
-          if (FAILED(hr)) {
-            ReleaseFrame(&m_pLastSequenceFrame);
+            hr = GetD3DBuffer(m_pLastSequenceFrame);
+            if (FAILED(hr)) {
+              ReleaseFrame(&m_pLastSequenceFrame);
+            }
           }
         }
         if (m_pLastSequenceFrame && m_pLastSequenceFrame->data[0] && m_pLastSequenceFrame->data[3]) {
@@ -1613,7 +1630,13 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     m_SubtitleConsumer->SetVideoSize(width, height);
     m_SubtitleConsumer->RequestFrame(pFrame->rtStart, pFrame->rtStop);
     if (!bRGBOut) {
-      if (pFrame->direct) DeDirectFrame(pFrame, true);
+      if (pFrame->direct) {
+        hr = DeDirectFrame(pFrame, true);
+        if (FAILED(hr)) {
+          ReleaseFrame(&pFrame);
+          return hr;
+        }
+      }
       m_SubtitleConsumer->ProcessFrame(pFrame);
     }
   }
@@ -1832,9 +1855,12 @@ HRESULT CLAVVideo::RedrawStillImage()
     LAVFrame *pFrame = nullptr;
 
     if (m_pLastSequenceFrame->format == LAVPixFmt_DXVA2) {
-      AllocateFrame(&pFrame);
+      HRESULT hr = AllocateFrame(&pFrame);
+      if (FAILED(hr))
+        return hr;
+
       *pFrame = *m_pLastSequenceFrame;
-      HRESULT hr = GetD3DBuffer(pFrame);
+      hr = GetD3DBuffer(pFrame);
       if (SUCCEEDED(hr)) {
         IMediaSample *pSample = (IMediaSample *)pFrame->data[0];
         IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)pFrame->data[3];
@@ -1857,7 +1883,10 @@ HRESULT CLAVVideo::RedrawStillImage()
       return hr;
     } else {
       LAVFrame *pFrame = nullptr;
-      CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
+      HRESULT hr = CopyLAVFrame(m_pLastSequenceFrame, &pFrame);
+      if (FAILED(hr))
+        return hr;
+
       pFrame->flags |= LAV_FRAME_FLAG_REDRAW;
       return Deliver(pFrame);
     }

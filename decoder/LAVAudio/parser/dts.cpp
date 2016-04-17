@@ -49,8 +49,8 @@ int init_dts_parser(DTSParserContext **pContext)
   if(!pContext) return -1;
 
   *pContext = (DTSParserContext *)malloc(sizeof(DTSParserContext));
+  if (*pContext == nullptr) return -1;
   memset(*pContext, 0, sizeof(DTSParserContext));
-  if(!*pContext) return -1;
 
   (*pContext)->gb = new GetBitContext();
 

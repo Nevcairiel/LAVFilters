@@ -574,6 +574,8 @@ const uint16_t* CLAVPixFmtConverter::GetRandomDitherCoeffs(int height, int coeff
     m_ditherHeight = height;
     m_ditherBits = bits;
     m_pRandomDithers = (uint16_t *)_aligned_malloc(m_ditherWidth * m_ditherHeight * 2, 16);
+    if (m_pRandomDithers == nullptr)
+      return nullptr;
 
 #ifdef DEBUG
     LARGE_INTEGER frequency, start, end;

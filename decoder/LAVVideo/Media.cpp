@@ -773,6 +773,9 @@ int CheckForSequenceMarkers(AVCodecID codec, const uint8_t *buf, long len, uint3
 
 int sws_scale2(struct SwsContext *c, const uint8_t *const srcSlice[], const ptrdiff_t srcStride[], int srcSliceY, int srcSliceH, uint8_t *const dst[], const ptrdiff_t dstStride[])
 {
+  if (!c)
+    return -1;
+
   int srcStride2[4];
   int dstStride2[4];
 

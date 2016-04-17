@@ -170,6 +170,8 @@ HRESULT CLAVPixFmtConverter::ConvertTo422Packed(const uint8_t* const src[4], con
     ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 2);
+    if (pTmpBuffer == nullptr)
+      return E_OUTOFMEMORY;
 
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride);
@@ -266,6 +268,8 @@ HRESULT CLAVPixFmtConverter::ConvertToAYUV(const uint8_t* const src[4], const pt
     ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 3);
+    if (pTmpBuffer == nullptr)
+      return E_OUTOFMEMORY;
 
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride);
@@ -337,6 +341,8 @@ HRESULT CLAVPixFmtConverter::ConvertToPX1X(const uint8_t* const src[4], const pt
     ptrdiff_t scaleStride = FFALIGN(width, 32) * 2;
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 2);
+    if (pTmpBuffer == nullptr)
+      return E_OUTOFMEMORY;
 
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride);
@@ -443,6 +449,8 @@ HRESULT CLAVPixFmtConverter::ConvertToY410(const uint8_t* const src[4], const pt
     ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
+    if (pTmpBuffer == nullptr)
+      return E_OUTOFMEMORY;
 
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);
@@ -502,6 +510,8 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const pt
     ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
+    if (pTmpBuffer == nullptr)
+      return E_OUTOFMEMORY;
 
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);
@@ -556,6 +566,8 @@ HRESULT CLAVPixFmtConverter::ConvertTov210(const uint8_t* const src[4], const pt
     ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
+    if (pTmpBuffer == nullptr)
+      return E_OUTOFMEMORY;
 
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);
@@ -654,6 +666,8 @@ HRESULT CLAVPixFmtConverter::ConvertTov410(const uint8_t* const src[4], const pt
     ptrdiff_t scaleStride = FFALIGN(width, 32);
 
     pTmpBuffer = (BYTE *)av_malloc(height * scaleStride * 6);
+    if (pTmpBuffer == nullptr)
+      return E_OUTOFMEMORY;
 
     tmp[0] = pTmpBuffer;
     tmp[1] = tmp[0] + (height * scaleStride * 2);

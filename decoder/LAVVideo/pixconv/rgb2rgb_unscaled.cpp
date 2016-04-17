@@ -89,6 +89,8 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
   // Byte Swap to BGR layout
   uint8_t *dstBS[4]    = {nullptr};
   dstBS[0] = (BYTE *)av_malloc(height * srcStride[0]);
+  if (dstBS[0] == nullptr)
+    return E_OUTOFMEMORY;
 
   SwsContext *ctx = GetSWSContext(width, height, GetFFInput(), AV_PIX_FMT_BGR48LE, SWS_POINT);
   sws_scale2(ctx, src, srcStride, 0, height, dstBS, srcStride);
@@ -108,8 +110,13 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
   __m128i xmm0,xmm1,xmm6,xmm7;
 
   uint8_t *rgb24buffer = nullptr;
-  if (out32)
+  if (out32) {
     rgb24buffer = (uint8_t *)av_malloc(outStride + FF_INPUT_BUFFER_PADDING_SIZE);
+    if (rgb24buffer == nullptr) {
+      av_freep(&dstBS[0]);
+      return E_OUTOFMEMORY;
+    }
+  }
 
   _mm_sfence();
   for (line = 0; line < height; line++) {
