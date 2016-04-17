@@ -2074,6 +2074,43 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
     m_bH264MVCCombine = GetH264MVCStreamIndices(m_avFormat, &m_nH264MVCBaseStream, &m_nH264MVCExtensionStream);
   }
 
+  if (m_bMatroska) {
+    std::list<std::string> pg_sequences;
+    for (unsigned i = 0; i < m_avFormat->nb_streams; i++) {
+      if (m_avFormat->streams[i]->codec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+        AVDictionaryEntry *e = av_dict_get(m_avFormat->streams[i]->metadata, "3d-plane", nullptr, AV_DICT_IGNORE_SUFFIX);
+        if (e && e->value) {
+          pg_sequences.push_back(std::string(e->value));
+        }
+      }
+    }
+
+    // export the list of pg sequences
+    if (pg_sequences.size() > 0)
+    {
+      // strip duplicate entries
+      pg_sequences.sort();
+      pg_sequences.unique();
+
+      int size = pg_sequences.size() * 4;
+      char *offsets = new char[size];
+      offsets[0] = 0;
+
+      // Append all offsets to the string
+      for (auto it = pg_sequences.begin(); it != pg_sequences.end(); it++) {
+        int len = strlen(offsets);
+        if (len > 0) {
+          offsets[len] = ',';
+          len++;
+        }
+        strcpy_s(offsets + len, size - len, it->c_str());
+      }
+
+      av_dict_set(&m_avFormat->metadata, "pg_offset_sequences", offsets, 0);
+      delete[] offsets;
+    }
+  }
+
   return S_OK;
 }
 

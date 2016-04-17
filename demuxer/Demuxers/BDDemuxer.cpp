@@ -601,6 +601,7 @@ void CBDDemuxer::ProcessBluRayMetadata()
     if (pg_sequences.size() > 0)
     {
       // strip duplicate entries
+      pg_sequences.sort();
       pg_sequences.unique();
 
       int size = pg_sequences.size() * 4;
