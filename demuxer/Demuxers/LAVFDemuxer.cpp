@@ -2262,6 +2262,10 @@ static int audio_codec_priority(AVCodecContext *codec)
     }
   }
 
+  // low priority for S302M with non-pcm content
+  if (codec->codec_id == AV_CODEC_ID_S302M && codec->codec_tag != -1)
+    priority = -1;
+
   return priority;
 }
 
