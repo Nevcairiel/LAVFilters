@@ -1833,7 +1833,7 @@ static struct {
   { "rotate",   nullptr,  1 },
   { "stereoscopic3dmode", "stereo_mode", 1 },
   { "stereo_mode", nullptr, 1 },
-  { "stereo_subtitle_offset_id", "ss_offset_sequence_id", 3 },
+  { "stereo_subtitle_offset_id", "3d-plane", 3 },
   { "stereo_subtitle_offset_ids", "pg_offset_sequences", 0 },
   { "stereo_interactive_offset_ids", "ig_offset_sequences", 0 },
 };
@@ -2474,7 +2474,7 @@ STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue, in
   if (stream >= (int)m_avFormat->nb_streams)
     return E_INVALIDARG;
 
-  AVDictionaryEntry *entry = av_dict_get(stream >= 0 ? m_avFormat->streams[stream]->metadata : m_avFormat->metadata, key, nullptr, 0);
+  AVDictionaryEntry *entry = av_dict_get(stream >= 0 ? m_avFormat->streams[stream]->metadata : m_avFormat->metadata, key, nullptr, AV_DICT_IGNORE_SUFFIX);
   if (!entry || !entry->value || entry->value[0] == '\0')
     return VFW_E_NOT_FOUND;
 

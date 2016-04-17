@@ -592,7 +592,7 @@ void CBDDemuxer::ProcessBluRayMetadata()
         if (avstream) {
           char offset[4];
           _itoa_s(mpls->play_item[0].stn.pg[i].ss_offset_sequence_id, offset, 10);
-          av_dict_set(&avstream->metadata, "ss_offset_sequence_id", offset, 0);
+          av_dict_set(&avstream->metadata, "3d-plane", offset, 0);
         }
       }
     }
