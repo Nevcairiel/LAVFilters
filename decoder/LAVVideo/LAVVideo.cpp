@@ -840,18 +840,25 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   DbgLog((LOG_TRACE, 10, L"::CompleteConnect"));
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
+    // Get the filter we're connecting to
+    IBaseFilter *pFilter = GetFilterFromPin(pReceivePin);
+    CLSID guidFilter = GUID_NULL;
+    if (pFilter != nullptr) {
+      if (FAILED(pFilter->GetClassID(&guidFilter)))
+        guidFilter = GUID_NULL;
+
+      SafeRelease(&pFilter);
+    }
+
+    // Don't allow connection to the AVI Decompressor, it doesn't support a variety of our output formats properly
+    if (guidFilter == CLSID_AVIDec)
+      return VFW_E_TYPE_NOT_ACCEPTED;
+
     BOOL bFailNonDXVA = false;
     if (m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P010 || m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P016) {
       // Check if we're connecting to EVR
-      IBaseFilter *pFilter = GetFilterFromPin(pReceivePin);
-      if (pFilter != nullptr) {
-        CLSID guid;
-        if (SUCCEEDED(pFilter->GetClassID(&guid))) {
-          DbgLog((LOG_TRACE, 10, L"-> Connecting P010/P016 to %s", WStringFromGUID(guid).c_str()));
-          bFailNonDXVA = (guid == CLSID_EnhancedVideoRenderer || guid == CLSID_VideoMixingRenderer9 || guid == CLSID_VideoMixingRenderer);
-        }
-        SafeRelease(&pFilter);
-      }
+      DbgLog((LOG_TRACE, 10, L"-> Connecting P010/P016 to %s", WStringFromGUID(guidFilter).c_str()));
+      bFailNonDXVA = (guidFilter == CLSID_EnhancedVideoRenderer || guidFilter == CLSID_VideoMixingRenderer9 || guidFilter == CLSID_VideoMixingRenderer);
     }
 
     hr = m_Decoder.PostConnect(pReceivePin);
