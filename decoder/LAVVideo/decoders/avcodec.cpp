@@ -68,7 +68,7 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
     fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_MPEG1;
     break;
   case AVCHROMA_LOC_TOPLEFT:
-    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_DV_PAL;
+    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_Cosited;
     break;
   }
 
