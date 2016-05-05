@@ -1,10 +1,17 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.68.1 - 2016/xx/xx
+0.68.1 - 2016/05/05
+LAV Splitter
+- NEW: Support for reading metadata tags from MKV files (including the "3d-plane" MVC 3D tag from MakeMKV 1.9.10 and newer)
+- Fixed: Improved handling of QuickTime codecs in MKV files
+- Fixed: S302M audio streams with non-pcm content did not work anymore (requires an external decoder)
+
 LAV Video
 - Changed: Flags for BT.2020 are exported in DXVA2_ExtendedFormat (previously only reported to madVR, since the Windows SDK did not specify them)
+- Changed: Prevent connections to the "AVI Decompressor" filter which could result in a broken image or crashes otherwise
 - Fixed: Some progressive files could report the wrong FPS when software deinterlacing was turned on
+- Fixed: MPEG-2 streams using "intra refresh" did not decode properly
 
 LAV Audio
 - Fixed: Decoding MPEG Audio streams from the Microsoft MPEG-1 Splitter could result in playback starting with an audible glitch
