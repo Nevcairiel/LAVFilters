@@ -125,7 +125,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
     pixT *dstV = (pixT *)(v + (line + yPos) * outStrideUV) + xPos;
     const BYTE *srcV = subV + line * inStrideUV;
 
-    const BYTE *srcA = subA + (line * inStride * (ptrdiff_t)(1 << hsub));
+    const BYTE *srcA = subA + (line * inStride * (ptrdiff_t(1) << hsub));
     for (col = 0; col < w; col++) {
       // Average Alpha
       int alpha;
@@ -165,7 +165,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
           break;
         }
       }
-      srcA += (ptrdiff_t)(1 << vsub);
+      srcA += ptrdiff_t(1) << vsub;
     }
   }
 
