@@ -604,13 +604,13 @@ void CBDDemuxer::ProcessBluRayMetadata()
       pg_sequences.sort();
       pg_sequences.unique();
 
-      int size = pg_sequences.size() * 4;
+      size_t size = pg_sequences.size() * 4;
       char *offsets = new char[size];
       offsets[0] = 0;
 
       // Append all offsets to the string
       for (auto it = pg_sequences.begin(); it != pg_sequences.end(); it++) {
-        int len = strlen(offsets);
+        size_t len = strlen(offsets);
         if (len > 0) {
           offsets[len] = ',';
           len++;
@@ -635,13 +635,13 @@ void CBDDemuxer::ProcessBluRayMetadata()
         // strip duplicate entries
         ig_sequences.unique();
 
-        int size = ig_sequences.size() * 4;
+        size_t size = ig_sequences.size() * 4;
         char *offsets = new char[size];
         offsets[0] = 0;
 
         // Append all offsets to the string
         for (auto it = ig_sequences.begin(); it != ig_sequences.end(); it++) {
-          int len = strlen(offsets);
+          size_t len = strlen(offsets);
           if (len > 0) {
             offsets[len] = ',';
             len++;

@@ -43,7 +43,7 @@ public:
     if (m_pBuffer) {
       ASSERT(m_nConsumed <= m_nBufferSize);
       if (m_nConsumed < m_nBufferSize)
-        m_pStorage->Append(m_pBuffer + m_nConsumed, m_nBufferSize - m_nConsumed);
+        m_pStorage->Append(m_pBuffer + m_nConsumed, DWORD(m_nBufferSize - m_nConsumed));
 
       if (m_bBufferTemporary)
         av_freep(&m_pBuffer);
@@ -53,7 +53,7 @@ public:
       if (m_nConsumed < m_pStorage->GetCount()) {
         BYTE *p = m_pStorage->Ptr();
         memmove(p, p + m_nConsumed, m_pStorage->GetCount() - m_nConsumed);
-        m_pStorage->SetSize(m_pStorage->GetCount() - m_nConsumed);
+        m_pStorage->SetSize(DWORD(m_pStorage->GetCount() - m_nConsumed));
       }
       else {
         m_pStorage->Clear();
@@ -63,7 +63,7 @@ public:
 
   void SetBuffer(BYTE * buffer, size_t size, bool temporary) {
     if (m_pStorage->GetCount() > 0) {
-      m_pStorage->Append(buffer, size);
+      m_pStorage->Append(buffer, DWORD(size));
 
       if (temporary)
         av_free(buffer);
@@ -103,7 +103,7 @@ public:
 
   void EnsureWriteable() {
     if (m_pBuffer && !m_bBufferTemporary) {
-      m_pStorage->Append(m_pBuffer, m_nBufferSize);
+      m_pStorage->Append(m_pBuffer, DWORD(m_nBufferSize));
       m_pBuffer = nullptr;
     }
   }
@@ -383,7 +383,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     }
 
     bs.Data = bsBuffer.GetBuffer();
-    bs.DataLength = bsBuffer.GetBufferSize();
+    bs.DataLength = mfxU32(bsBuffer.GetBufferSize());
     bs.MaxLength = bs.DataLength;
 
     AddFrameToGOP(bs.TimeStamp);
@@ -456,7 +456,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
 
   if (!bs.DataOffset && !sync && !bFlush) {
     DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Decode(): Decoder did not consume any data, discarding"));
-    bs.DataOffset = bsBuffer.GetBufferSize();
+    bs.DataOffset = mfxU32(bsBuffer.GetBufferSize());
   }
 
   bsBuffer.Consume(bs.DataOffset);
@@ -469,7 +469,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   return S_OK;
 }
 
-HRESULT CDecMSDKMVC::ParseSEI(const BYTE *buffer, int size, mfxU64 timestamp)
+HRESULT CDecMSDKMVC::ParseSEI(const BYTE *buffer, size_t size, mfxU64 timestamp)
 {
   CByteParser seiParser(buffer, size);
   while (seiParser.RemainingBits() > 16 && seiParser.BitRead(16, true)) {
@@ -508,7 +508,7 @@ HRESULT CDecMSDKMVC::ParseSEI(const BYTE *buffer, int size, mfxU64 timestamp)
   return S_OK;
 }
 
-HRESULT CDecMSDKMVC::ParseMVCNestedSEI(const BYTE *buffer, int size, mfxU64 timestamp)
+HRESULT CDecMSDKMVC::ParseMVCNestedSEI(const BYTE *buffer, size_t size, mfxU64 timestamp)
 {
   CByteParser seiParser(buffer, size);
 
@@ -542,7 +542,7 @@ static const uint8_t uuid_iso_iec_11578[16] = {
   0x17, 0xee, 0x8c, 0x60, 0xf8, 0x4d, 0x11, 0xd9, 0x8c, 0xd6, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66
 };
 
-HRESULT CDecMSDKMVC::ParseUnregUserDataSEI(const BYTE *buffer, int size, mfxU64 timestamp)
+HRESULT CDecMSDKMVC::ParseUnregUserDataSEI(const BYTE *buffer, size_t size, mfxU64 timestamp)
 {
   if (size < 20)
     return E_FAIL;
@@ -562,7 +562,7 @@ HRESULT CDecMSDKMVC::ParseUnregUserDataSEI(const BYTE *buffer, int size, mfxU64 
   return S_FALSE;
 }
 
-HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, int size, mfxU64 timestamp)
+HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, size_t size, mfxU64 timestamp)
 {
   if (size < 10)
     return E_FAIL;

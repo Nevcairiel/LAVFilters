@@ -76,10 +76,10 @@ private:
   HRESULT HandleOutput(MVCBuffer * pOutputBuffer);
   HRESULT DeliverOutput(MVCBuffer * pBaseView, MVCBuffer * pExtraView);
 
-  HRESULT ParseSEI(const BYTE *buffer, int size, mfxU64 timestamp);
-  HRESULT ParseMVCNestedSEI(const BYTE *buffer, int size, mfxU64 timestamp);
-  HRESULT ParseUnregUserDataSEI(const BYTE *buffer, int size, mfxU64 timestamp);
-  HRESULT ParseOffsetMetadata(const BYTE *buffer, int size, mfxU64 timestamp);
+  HRESULT ParseSEI(const BYTE *buffer, size_t size, mfxU64 timestamp);
+  HRESULT ParseMVCNestedSEI(const BYTE *buffer, size_t size, mfxU64 timestamp);
+  HRESULT ParseUnregUserDataSEI(const BYTE *buffer, size_t size, mfxU64 timestamp);
+  HRESULT ParseOffsetMetadata(const BYTE *buffer, size_t size, mfxU64 timestamp);
 
   void AddFrameToGOP(mfxU64 timestamp);
   BOOL RemoveFrameFromGOP(MVCGOP * pGOP, mfxU64 timestamp);
