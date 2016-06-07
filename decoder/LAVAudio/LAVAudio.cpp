@@ -1776,8 +1776,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
   int buffer_size = m_buff.GetCount();
 
   BYTE *p = m_buff.Ptr();
-
-  int consumed = 0;
+  int consumed = 0, consumed_header = 0;
 
   if (!bEOF) {
     if (m_bFindDTSInPCM) {
@@ -1833,6 +1832,10 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
 
         // SPDIF is apparently big-endian coded
         lav_spdif_bswap_buf16((uint16_t *)p, (uint16_t *)p, buffer_size >> 1);
+
+        // adjust buffer size to strip off spdif padding
+        consumed_header = BURST_HEADER_SIZE;
+        m_buff.SetSize(buffer_size + BURST_HEADER_SIZE);
       }
     }
 
@@ -1890,8 +1893,8 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     return hr;
   }
 
-  // This really shouldn't be needed, but apparently it is.
-  consumed = min(consumed, buffer_size);
+  // Determine actual buffer consumption
+  consumed = consumed_header + min(consumed, buffer_size);
 
   // Remove the consumed data from the buffer
   m_buff.Consume(consumed);
