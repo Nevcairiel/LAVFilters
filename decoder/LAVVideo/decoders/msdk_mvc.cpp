@@ -571,8 +571,8 @@ HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, size_t size, mfxU64
   CByteParser offset(buffer + 6, size - 6);
   offset.BitSkip(2); // Skip marker and re served
 
-  int nOffsets = offset.BitRead(6);
-  int nFrames = offset.BitRead(8);
+  unsigned int nOffsets = offset.BitRead(6);
+  unsigned int nFrames = offset.BitRead(8);
   DbgLog((LOG_CUSTOM2, 10, L"CDecMSDKMVC::ParseOffsetMetadata(): offset_metadata with %d offsets and %d frames for time %I64u", nOffsets, nFrames, timestamp));
 
   if (nOffsets > 32) {
@@ -588,10 +588,10 @@ HRESULT CDecMSDKMVC::ParseOffsetMetadata(const BYTE *buffer, size_t size, mfxU64
 
   MVCGOP GOP;
 
-  for (int o = 0; o < nOffsets; o++) {
-    for (int f = 0; f < nFrames; f++) {
+  for (unsigned int o = 0; o < nOffsets; o++) {
+    for (unsigned int f = 0; f < nFrames; f++) {
       if (o == 0) {
-        MediaSideData3DOffset off = { nOffsets };
+        MediaSideData3DOffset off = { (int)nOffsets };
         GOP.offsets.push_back(off);
       }
 
