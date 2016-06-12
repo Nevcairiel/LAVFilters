@@ -266,6 +266,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_DUCK, AV_CODEC_ID_TRUEMOTION1 },
   { &MEDIASUBTYPE_TM20, AV_CODEC_ID_TRUEMOTION2 },
   { &MEDIASUBTYPE_CFHD, AV_CODEC_ID_CFHD },
+  { &MEDIASUBTYPE_MAGY, AV_CODEC_ID_MAGICYUV },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, AV_CODEC_ID_BINKVIDEO  },
@@ -526,6 +527,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_DUCK },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_TM20 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_CFHD },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_MAGY },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -633,6 +635,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_VP7 }},                                                 // Codec_VP7
   { 1, { AV_CODEC_ID_H264_MVC }, "h264mvc", "H.264 MVC 3D" },                // Codec_H264MVC
   { 1, { AV_CODEC_ID_CFHD }, "cfhd", "Cineform HD (experimental)" },         // Codec_CineformHD
+  { 1, { AV_CODEC_ID_MAGICYUV }},                                            // Codec_MagicYUV
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
