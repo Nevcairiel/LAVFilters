@@ -35,6 +35,7 @@
 
 extern "C" {
 #include "libavutil/pixdesc.h"
+#include "libavutil/mastering_display_metadata.h"
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -913,21 +914,23 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO || m_nCodecId == AV_CODEC_ID_MPEG1VIDEO)
       pOutFrame->avgFrameDuration = GetFrameDuration();
 
-    AVFrameSideData * sdHDR = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_HDR_MASTERING_INFO);
+    AVFrameSideData * sdHDR = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_MASTERING_DISPLAY_METADATA);
     if (sdHDR) {
-      if (sdHDR->size == 24) {
+      if (sdHDR->size == sizeof(AVMasteringDisplayMetadata)) {
+        AVMasteringDisplayMetadata *metadata = (AVMasteringDisplayMetadata *)sdHDR->data;
         MediaSideDataHDR * hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
         if (hdr) {
-          CByteParser hdrParser(sdHDR->data, sdHDR->size);
-          for (int i = 0; i < 3; i++)
-          {
-            hdr->display_primaries_x[i] = hdrParser.BitRead(16) * 0.00002;
-            hdr->display_primaries_y[i] = hdrParser.BitRead(16) * 0.00002;
-          }
-          hdr->white_point_x = hdrParser.BitRead(16) * 0.00002;
-          hdr->white_point_y = hdrParser.BitRead(16) * 0.00002;
-          hdr->max_display_mastering_luminance = hdrParser.BitRead(32) * 0.0001;
-          hdr->min_display_mastering_luminance = hdrParser.BitRead(32) * 0.0001;
+          hdr->display_primaries_x[0] = av_q2d(metadata->display_primaries[2][0]);
+          hdr->display_primaries_y[0] = av_q2d(metadata->display_primaries[2][1]);
+          hdr->display_primaries_x[1] = av_q2d(metadata->display_primaries[0][0]);
+          hdr->display_primaries_y[1] = av_q2d(metadata->display_primaries[0][1]);
+          hdr->display_primaries_x[2] = av_q2d(metadata->display_primaries[1][0]);
+          hdr->display_primaries_y[2] = av_q2d(metadata->display_primaries[1][1]);
+
+          hdr->white_point_x = av_q2d(metadata->white_point[0]);
+          hdr->white_point_y = av_q2d(metadata->white_point[1]);
+          hdr->max_display_mastering_luminance = av_q2d(metadata->max_luminance);
+          hdr->min_display_mastering_luminance = av_q2d(metadata->min_luminance);
         }
       }
       else {
