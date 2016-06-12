@@ -144,6 +144,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.bFormats[Codec_RV12]     = FALSE;
   m_settings.bFormats[Codec_QPEG]     = FALSE;
   m_settings.bFormats[Codec_MSRLE]    = FALSE;
+  m_settings.bFormats[Codec_CineformHD] = FALSE;
 
   m_settings.bDVDVideo  = TRUE;
   m_settings.bMSWMV9DMO = TRUE;
