@@ -920,12 +920,13 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         AVMasteringDisplayMetadata *metadata = (AVMasteringDisplayMetadata *)sdHDR->data;
         MediaSideDataHDR * hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
         if (hdr) {
-          hdr->display_primaries_x[0] = av_q2d(metadata->display_primaries[2][0]);
-          hdr->display_primaries_y[0] = av_q2d(metadata->display_primaries[2][1]);
-          hdr->display_primaries_x[1] = av_q2d(metadata->display_primaries[0][0]);
-          hdr->display_primaries_y[1] = av_q2d(metadata->display_primaries[0][1]);
-          hdr->display_primaries_x[2] = av_q2d(metadata->display_primaries[1][0]);
-          hdr->display_primaries_y[2] = av_q2d(metadata->display_primaries[1][1]);
+          // avcodec exports the display primaries in RGB order, we export them in GBR
+          hdr->display_primaries_x[0] = av_q2d(metadata->display_primaries[1][0]);
+          hdr->display_primaries_y[0] = av_q2d(metadata->display_primaries[1][1]);
+          hdr->display_primaries_x[1] = av_q2d(metadata->display_primaries[2][0]);
+          hdr->display_primaries_y[1] = av_q2d(metadata->display_primaries[2][1]);
+          hdr->display_primaries_x[2] = av_q2d(metadata->display_primaries[0][0]);
+          hdr->display_primaries_y[2] = av_q2d(metadata->display_primaries[0][1]);
 
           hdr->white_point_x = av_q2d(metadata->white_point[0]);
           hdr->white_point_y = av_q2d(metadata->white_point[1]);
