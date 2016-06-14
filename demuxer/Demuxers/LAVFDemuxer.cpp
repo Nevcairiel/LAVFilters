@@ -2258,11 +2258,12 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 static int audio_codec_priority(AVCodecContext *codec)
 {
   int priority = 0;
+  const AVCodecDescriptor *desc = avcodec_descriptor_get(codec->codec_id);
 
   // lossless codecs have highest priority
-  if (codec->codec_descriptor && ((codec->codec_descriptor->props & (AV_CODEC_PROP_LOSSLESS|AV_CODEC_PROP_LOSSY)) == AV_CODEC_PROP_LOSSLESS)) {
+  if (desc && ((desc->props & (AV_CODEC_PROP_LOSSLESS|AV_CODEC_PROP_LOSSY)) == AV_CODEC_PROP_LOSSLESS)) {
     priority = 10;
-  } else if (codec->codec_descriptor && (codec->codec_descriptor->props & AV_CODEC_PROP_LOSSLESS)) {
+  } else if (desc && (desc->props & AV_CODEC_PROP_LOSSLESS)) {
     priority = 8;
 
     if (codec->codec_id == AV_CODEC_ID_DTS) {
