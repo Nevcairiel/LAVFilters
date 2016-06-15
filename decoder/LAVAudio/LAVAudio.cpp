@@ -820,10 +820,10 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
       *pCodec = codec->name;
     }
     if (pnChannels) {
-      *pnChannels = m_avBSContext->streams[0]->codec->channels;
+      *pnChannels = m_avBSContext->streams[0]->codecpar->channels;
     }
     if (pSampleRate) {
-      *pSampleRate = m_avBSContext->streams[0]->codec->sample_rate;
+      *pSampleRate = m_avBSContext->streams[0]->codecpar->sample_rate;
     }
     if (pDecodeFormat) {
       *pDecodeFormat = "";

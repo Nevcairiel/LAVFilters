@@ -127,10 +127,10 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of output stream failed"));
     goto fail;
   }
-  m_pAVCtx->codec_id    = st->codec->codec_id    = codec;
-  m_pAVCtx->codec_type  = st->codec->codec_type  = AVMEDIA_TYPE_AUDIO;
-  m_pAVCtx->channels    = st->codec->channels    = wfe->nChannels;
-  m_pAVCtx->sample_rate = st->codec->sample_rate = wfe->nSamplesPerSec;
+  m_pAVCtx->codec_id    = st->codecpar->codec_id    = codec;
+  m_pAVCtx->codec_type  = st->codecpar->codec_type  = AVMEDIA_TYPE_AUDIO;
+  m_pAVCtx->channels    = st->codecpar->channels    = wfe->nChannels;
+  m_pAVCtx->sample_rate = st->codecpar->sample_rate = wfe->nSamplesPerSec;
 
   ret = avformat_write_header(m_avBSContext, nullptr);
   if (ret < 0) {
