@@ -367,8 +367,8 @@ STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
   DbgLog((LOG_TRACE, 10, "-> MVC m2ts has %d streams", m_MVCFormatContext->nb_streams));
   for (unsigned i = 0; i < m_MVCFormatContext->nb_streams; i++)
   {
-    if (m_MVCFormatContext->streams[i]->codec->codec_id == AV_CODEC_ID_H264_MVC
-      && m_MVCFormatContext->streams[i]->codec->extradata_size > 0)
+    if (m_MVCFormatContext->streams[i]->codecpar->codec_id == AV_CODEC_ID_H264_MVC
+      && m_MVCFormatContext->streams[i]->codecpar->extradata_size > 0)
     {
       m_MVCStreamIndex = i;
       break;
@@ -556,10 +556,10 @@ void CBDDemuxer::ProcessBluRayMetadata()
       m_lavfDemuxer->AddMPEGTSStream(mvcStream->id, 0x20);
       AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(mvcStream->id);
       if (avstream) {
-        avstream->codec->codec_id = AV_CODEC_ID_H264_MVC;
-        avstream->codec->extradata = (BYTE *)av_mallocz(mvcStream->codec->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
-        avstream->codec->extradata_size = mvcStream->codec->extradata_size;
-        memcpy(avstream->codec->extradata, mvcStream->codec->extradata, mvcStream->codec->extradata_size);
+        avstream->codecpar->codec_id = AV_CODEC_ID_H264_MVC;
+        avstream->codecpar->extradata = (BYTE *)av_mallocz(mvcStream->codecpar->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+        avstream->codecpar->extradata_size = mvcStream->codecpar->extradata_size;
+        memcpy(avstream->codecpar->extradata, mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size);
       }
     }
     else {
@@ -700,28 +700,28 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
       if (avstream) {
         if (stream->lang[0] != 0)
           av_dict_set(&avstream->metadata, "language", (const char *)stream->lang, overwrite ? 0 : AV_DICT_DONT_OVERWRITE);
-        if (avstream->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
-          if (avstream->codec->width == 0 || avstream->codec->height == 0) {
+        if (avstream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+          if (avstream->codecpar->width == 0 || avstream->codecpar->height == 0) {
             switch(stream->format) {
             case BLURAY_VIDEO_FORMAT_480I:
             case BLURAY_VIDEO_FORMAT_480P:
-              avstream->codec->width = 720;
-              avstream->codec->height = 480;
+              avstream->codecpar->width = 720;
+              avstream->codecpar->height = 480;
               break;
             case BLURAY_VIDEO_FORMAT_576I:
             case BLURAY_VIDEO_FORMAT_576P:
-              avstream->codec->width = 720;
-              avstream->codec->height = 576;
+              avstream->codecpar->width = 720;
+              avstream->codecpar->height = 576;
               break;
             case BLURAY_VIDEO_FORMAT_720P:
-              avstream->codec->width = 1280;
-              avstream->codec->height = 720;
+              avstream->codecpar->width = 1280;
+              avstream->codecpar->height = 720;
               break;
             case BLURAY_VIDEO_FORMAT_1080I:
             case BLURAY_VIDEO_FORMAT_1080P:
             default:
-              avstream->codec->width = 1920;
-              avstream->codec->height = 1080;
+              avstream->codecpar->width = 1920;
+              avstream->codecpar->height = 1080;
               break;
             }
           }
@@ -729,16 +729,16 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
           if (m_MVCPlayback && stream->coding_type == BLURAY_STREAM_TYPE_VIDEO_H264) {
             av_dict_set(&avstream->metadata, "stereo_mode", m_pTitle->mvc_base_view_r_flag ? "mvc_rl" : "mvc_lr", 0);
           }
-        } else if (avstream->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-          if (avstream->codec->channels == 0) {
-            avstream->codec->channels = (stream->format == BLURAY_AUDIO_FORMAT_MONO) ? 1 : (stream->format == BLURAY_AUDIO_FORMAT_STEREO) ? 2 : 6;
-            avstream->codec->channel_layout = av_get_default_channel_layout(avstream->codec->channels);
-            avstream->codec->sample_rate = (stream->rate == BLURAY_AUDIO_RATE_96||stream->rate == BLURAY_AUDIO_RATE_96_COMBO) ? 96000 : (stream->rate == BLURAY_AUDIO_RATE_192||stream->rate == BLURAY_AUDIO_RATE_192_COMBO) ? 192000 : 48000;
-            if (avstream->codec->codec_id == AV_CODEC_ID_DTS) {
+        } else if (avstream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+          if (avstream->codecpar->channels == 0) {
+            avstream->codecpar->channels = (stream->format == BLURAY_AUDIO_FORMAT_MONO) ? 1 : (stream->format == BLURAY_AUDIO_FORMAT_STEREO) ? 2 : 6;
+            avstream->codecpar->channel_layout = av_get_default_channel_layout(avstream->codecpar->channels);
+            avstream->codecpar->sample_rate = (stream->rate == BLURAY_AUDIO_RATE_96||stream->rate == BLURAY_AUDIO_RATE_96_COMBO) ? 96000 : (stream->rate == BLURAY_AUDIO_RATE_192||stream->rate == BLURAY_AUDIO_RATE_192_COMBO) ? 192000 : 48000;
+            if (avstream->codecpar->codec_id == AV_CODEC_ID_DTS) {
               if (stream->coding_type == BLURAY_STREAM_TYPE_AUDIO_DTSHD)
-                avstream->codec->profile = FF_PROFILE_DTS_HD_HRA;
+                avstream->codecpar->profile = FF_PROFILE_DTS_HD_HRA;
               else if (stream->coding_type == BLURAY_STREAM_TYPE_AUDIO_DTSHD_MASTER)
-                avstream->codec->profile = FF_PROFILE_DTS_HD_MA;
+                avstream->codecpar->profile = FF_PROFILE_DTS_HD_MA;
             }
           }
         }

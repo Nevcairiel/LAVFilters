@@ -26,21 +26,21 @@ extern "C" {
 
 #include <sstream>
 
-static int64_t get_bit_rate(AVCodecContext *ctx)
+static int64_t get_bit_rate(const AVCodecParameters *par)
 {
   int64_t bit_rate;
   int bits_per_sample;
 
-  switch(ctx->codec_type) {
+  switch(par->codec_type) {
   case AVMEDIA_TYPE_VIDEO:
   case AVMEDIA_TYPE_DATA:
   case AVMEDIA_TYPE_SUBTITLE:
   case AVMEDIA_TYPE_ATTACHMENT:
-    bit_rate = ctx->bit_rate;
+    bit_rate = par->bit_rate;
     break;
   case AVMEDIA_TYPE_AUDIO:
-    bits_per_sample = av_get_bits_per_sample(ctx->codec_id);
-    bit_rate = ctx->bit_rate ? ctx->bit_rate : ctx->sample_rate * ctx->channels * bits_per_sample;
+    bits_per_sample = av_get_bits_per_sample(par->codec_id);
+    bit_rate = par->bit_rate ? par->bit_rate : par->sample_rate * par->channels * bits_per_sample;
     break;
   default:
     bit_rate = 0;
@@ -95,14 +95,14 @@ static std::string tolower(const char *str) {
   return ret;
 }
 
-std::string get_codec_name(AVCodecContext *pCodecCtx)
+std::string get_codec_name(const AVCodecParameters *par)
 {
-  AVCodecID id = pCodecCtx->codec_id;
+  AVCodecID id = par->codec_id;
 
   // Grab the codec
   const AVCodec *p = avcodec_find_decoder(id);
   const AVCodecDescriptor *desc = avcodec_descriptor_get(id);
-  const char *profile = avcodec_profile_name(id, pCodecCtx->profile);
+  const char *profile = avcodec_profile_name(id, par->profile);
 
   std::ostringstream codec_name;
 
@@ -115,21 +115,21 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
     }
   }
 
-  if (id == AV_CODEC_ID_DTS && pCodecCtx->codec_tag == 0xA2) {
+  if (id == AV_CODEC_ID_DTS && par->codec_tag == 0xA2) {
     profile = "DTS Express";
   }
 
   if (id == AV_CODEC_ID_H264 && profile) {
     codec_name << nice_name << " " << tolower(profile);
-    if (pCodecCtx->level && pCodecCtx->level != FF_LEVEL_UNKNOWN && pCodecCtx->level < 1000) {
+    if (par->level && par->level != FF_LEVEL_UNKNOWN && par->level < 1000) {
       char l_buf[5];
-      sprintf_s(l_buf, "%.1f", pCodecCtx->level / 10.0);
+      sprintf_s(l_buf, "%.1f", par->level / 10.0);
       codec_name << " L" << l_buf;
     }
   } else if (id == AV_CODEC_ID_VC1 && profile) {
     codec_name << nice_name << " " << tolower(profile);
-    if (pCodecCtx->level != FF_LEVEL_UNKNOWN) {
-      codec_name << " L" << pCodecCtx->level;
+    if (par->level != FF_LEVEL_UNKNOWN) {
+      codec_name << " L" << par->level;
     }
   } else if (id == AV_CODEC_ID_DTS && profile) {
     codec_name << tolower(profile);
@@ -150,9 +150,9 @@ std::string get_codec_name(AVCodecContext *pCodecCtx)
   } else {
     /* output avi tags */
     char buf[32];
-    av_get_codec_tag_string(buf, sizeof(buf), pCodecCtx->codec_tag);
+    av_get_codec_tag_string(buf, sizeof(buf), par->codec_tag);
     codec_name << buf;
-    sprintf_s(buf, "0x%04X", pCodecCtx->codec_tag);
+    sprintf_s(buf, "0x%04X", par->codec_tag);
     codec_name  << " / " << buf;
   }
   return codec_name.str();
@@ -179,8 +179,8 @@ static std::string format_flags(int flags){
   return out.str();
 }
 
-static bool show_sample_fmt(AVCodecContext *ctx) {
-  AVCodecID codec_id = ctx->codec_id;
+static bool show_sample_fmt(const AVCodecParameters *par) {
+  AVCodecID codec_id = par->codec_id;
 
   // PCM Codecs
   if (codec_id >= 0x10000 && codec_id < 0x12000) {
@@ -198,13 +198,13 @@ static bool show_sample_fmt(AVCodecContext *ctx) {
   }
 
   // Lossless DTS
-  if (codec_id == AV_CODEC_ID_DTS && ctx->profile == FF_PROFILE_DTS_HD_MA)
+  if (codec_id == AV_CODEC_ID_DTS && par->profile == FF_PROFILE_DTS_HD_MA)
     return true;
 
   return false;
 }
 
-const char * lavf_get_stream_title(AVStream * pStream)
+const char * lavf_get_stream_title(const AVStream * pStream)
 {
   char *title = nullptr;
   if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "title", nullptr, 0)) {
@@ -218,11 +218,11 @@ const char * lavf_get_stream_title(AVStream * pStream)
   return title;
 }
 
-std::string lavf_get_stream_description(AVStream *pStream)
+std::string lavf_get_stream_description(const AVStream *pStream)
 {
-  AVCodecContext *enc = pStream->codec;
+  AVCodecParameters *par = pStream->codecpar;
 
-  std::string codec_name = get_codec_name(enc);
+  std::string codec_name = get_codec_name(par);
 
   const char *lang = get_stream_language(pStream);
   std::string sLanguage;
@@ -240,10 +240,10 @@ std::string lavf_get_stream_description(AVStream *pStream)
   if (title && strlen(title) == 0)
     title = nullptr;
 
-  int64_t bitrate = get_bit_rate(enc);
+  int64_t bitrate = get_bit_rate(par);
 
   std::ostringstream buf;
-  switch(enc->codec_type) {
+  switch(par->codec_type) {
   case AVMEDIA_TYPE_VIDEO:
     buf << "V: ";
     // Title/Language
@@ -258,18 +258,18 @@ std::string lavf_get_stream_description(AVStream *pStream)
     // Codec
     buf << codec_name;
     // Pixel Format
-    if (const char *pix_fmt = av_get_pix_fmt_name(enc->pix_fmt)) {
+    if (const char *pix_fmt = av_get_pix_fmt_name((AVPixelFormat)par->format)) {
       buf << ", " << pix_fmt;
     }
     // Dimensions
-    if (enc->width) {
-      buf << ", " << enc->width << "x" << enc->height;
+    if (par->width) {
+      buf << ", " << par->width << "x" << par->height;
     }
     // Bitrate
     if (bitrate > 0) {
       buf << ", " << (bitrate / 1000) << " kb/s";
     }
-    if (enc->codec_id == AV_CODEC_ID_H264 && enc->profile == FF_PROFILE_H264_STEREO_HIGH) {
+    if (par->codec_id == AV_CODEC_ID_H264 && par->profile == FF_PROFILE_H264_STEREO_HIGH) {
       AVDictionaryEntry *entry = av_dict_get(pStream->metadata, "stereo_mode", nullptr, 0);
       if (entry && strcmp(entry->value, "mvc_lr") == 0)
         buf << ", lr";
@@ -296,23 +296,23 @@ std::string lavf_get_stream_description(AVStream *pStream)
     // Codec
     buf << codec_name;
     // Sample Rate
-    if (enc->sample_rate) {
-      buf << ", " << enc->sample_rate << " Hz";
+    if (par->sample_rate) {
+      buf << ", " << par->sample_rate << " Hz";
     }
-    if (enc->channels) {
+    if (par->channels) {
       // Get channel layout
       char channel[32];
-      av_get_channel_layout_string(channel, 32, enc->channels, enc->channel_layout);
+      av_get_channel_layout_string(channel, 32, par->channels, par->channel_layout);
       buf << ", " << channel;
     }
     // Sample Format
-    if (show_sample_fmt(enc) && get_bits_per_sample(enc, true)) {
-      if (enc->sample_fmt == AV_SAMPLE_FMT_FLT || enc->sample_fmt == AV_SAMPLE_FMT_DBL) {
+    if (show_sample_fmt(par) && get_bits_per_sample(par, true)) {
+      if (par->format == AV_SAMPLE_FMT_FLT || par->format == AV_SAMPLE_FMT_DBL) {
         buf << ", fp";
       } else {
         buf << ", s";
       }
-      buf << get_bits_per_sample(enc, true);
+      buf << get_bits_per_sample(par, true);
     }
     // Bitrate
     if (bitrate > 0) {
@@ -360,7 +360,7 @@ bool GetH264MVCStreamIndices(AVFormatContext *fmt, int *nBaseIndex, int *nExtens
   for (unsigned int i = 0; i < fmt->nb_streams; i++) {
     AVStream *st = fmt->streams[i];
 
-    if (st->codec->codec_id == AV_CODEC_ID_H264_MVC && st->codec->extradata_size > 0) {
+    if (st->codecpar->codec_id == AV_CODEC_ID_H264_MVC && st->codecpar->extradata_size > 0) {
       if (*nExtensionIndex == -1)
         *nExtensionIndex = i;
       else {
@@ -368,8 +368,8 @@ bool GetH264MVCStreamIndices(AVFormatContext *fmt, int *nBaseIndex, int *nExtens
         bResult = false;
       }
     }
-    else if (st->codec->codec_id == AV_CODEC_ID_H264) {
-      if ((st->codec->width == 1920 && st->codec->height == 1080) || (st->codec->width == 1280 && st->codec->height == 720))
+    else if (st->codecpar->codec_id == AV_CODEC_ID_H264) {
+      if ((st->codecpar->width == 1920 && st->codecpar->height == 1080) || (st->codecpar->width == 1280 && st->codecpar->height == 720))
       {
         if (*nBaseIndex == -1)
           *nBaseIndex = i;

@@ -33,7 +33,7 @@
 CLAVFStreamInfo::CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char* containerFormat, HRESULT &hr)
   : CStreamInfo(), m_containerFormat(containerFormat)
 {
-  switch(avstream->codec->codec_type) {
+  switch(avstream->codecpar->codec_type) {
   case AVMEDIA_TYPE_AUDIO:
     hr = CreateAudioMediaType(avctx, avstream);
     break;
@@ -60,25 +60,25 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   // Make sure DTS Express has valid settings
-  if (avstream->codec->codec_id == AV_CODEC_ID_DTS && avstream->codec->codec_tag == 0xA2) {
-    avstream->codec->channels = avstream->codec->channels ? avstream->codec->channels : 2;
-    avstream->codec->channel_layout = avstream->codec->channel_layout ? avstream->codec->channel_layout : av_get_default_channel_layout(avstream->codec->channels);
-    avstream->codec->sample_rate = avstream->codec->sample_rate ? avstream->codec->sample_rate : 48000;
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_DTS && avstream->codecpar->codec_tag == 0xA2) {
+    avstream->codecpar->channels = avstream->codecpar->channels ? avstream->codecpar->channels : 2;
+    avstream->codecpar->channel_layout = avstream->codecpar->channel_layout ? avstream->codecpar->channel_layout : av_get_default_channel_layout(avstream->codecpar->channels);
+    avstream->codecpar->sample_rate = avstream->codecpar->sample_rate ? avstream->codecpar->sample_rate : 48000;
   }
 
-  if (avstream->codec->codec_tag == 0) {
-    avstream->codec->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codec->codec_id);
+  if (avstream->codecpar->codec_tag == 0) {
+    avstream->codecpar->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codecpar->codec_id);
   }
 
-  if (avstream->codec->channels == 0 || avstream->codec->sample_rate == 0 || (is_mpeg_audio(avstream->codec->codec_id) && avstream->codec->frame_size == 0)) {
-    if (avstream->codec->codec_id == AV_CODEC_ID_AAC && avstream->codec->bit_rate) {
-      if (!avstream->codec->channels) avstream->codec->channels = 2;
-      if (!avstream->codec->sample_rate) avstream->codec->sample_rate = 48000;
+  if (avstream->codecpar->channels == 0 || avstream->codecpar->sample_rate == 0 || (is_mpeg_audio(avstream->codecpar->codec_id) && avstream->codecpar->frame_size == 0)) {
+    if (avstream->codecpar->codec_id == AV_CODEC_ID_AAC && avstream->codecpar->bit_rate) {
+      if (!avstream->codecpar->channels) avstream->codecpar->channels = 2;
+      if (!avstream->codecpar->sample_rate) avstream->codecpar->sample_rate = 48000;
     } else
       return E_FAIL;
   }
 
-  CMediaType mtype = g_AudioHelper.initAudioType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
+  CMediaType mtype = g_AudioHelper.initAudioType(avstream->codecpar->codec_id, avstream->codecpar->codec_tag, m_containerFormat);
 
   if(mtype.formattype == FORMAT_WaveFormatEx) {
     // Special Logic for the MPEG1 Audio Formats (MP1, MP2)
@@ -88,13 +88,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
       mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWVFMTEX_LPCM(avstream, &mtype.cbFormat);
       mtypes.push_back(mtype);
       mtype.subtype = MEDIASUBTYPE_HDMV_LPCM_AUDIO;
-    } else if ((mtype.subtype == MEDIASUBTYPE_PCM || mtype.subtype == MEDIASUBTYPE_IEEE_FLOAT) && avstream->codec->codec_tag != WAVE_FORMAT_EXTENSIBLE) {
+    } else if ((mtype.subtype == MEDIASUBTYPE_PCM || mtype.subtype == MEDIASUBTYPE_IEEE_FLOAT) && avstream->codecpar->codec_tag != WAVE_FORMAT_EXTENSIBLE) {
       // Create raw PCM media type
       mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWFMTEX_RAW_PCM(avstream, &mtype.cbFormat, mtype.subtype, &mtype.lSampleSize);
     } else {
       WAVEFORMATEX *wvfmt = g_AudioHelper.CreateWVFMTEX(avstream, &mtype.cbFormat);
 
-      if (avstream->codec->codec_tag == WAVE_FORMAT_EXTENSIBLE && avstream->codec->extradata_size >= 22) {
+      if (avstream->codecpar->codec_tag == WAVE_FORMAT_EXTENSIBLE && avstream->codecpar->extradata_size >= 22) {
         // The WAVEFORMATEXTENSIBLE GUID is not recognized by the audio renderers
         // Set the actual subtype as GUID
         WAVEFORMATEXTENSIBLE *wvfmtex = (WAVEFORMATEXTENSIBLE *)wvfmt;
@@ -102,28 +102,28 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
       }
       mtype.pbFormat = (BYTE *)wvfmt;
 
-      if (avstream->codec->codec_id == AV_CODEC_ID_FLAC) {
+      if (avstream->codecpar->codec_id == AV_CODEC_ID_FLAC) {
         // These are required to block accidental connection to ReClock
         wvfmt->nAvgBytesPerSec = (wvfmt->nSamplesPerSec * wvfmt->nChannels * wvfmt->wBitsPerSample) >> 3;
         wvfmt->nBlockAlign = 1;
         mtype.subtype = MEDIASUBTYPE_FLAC_FRAMED;
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_FLAC;
-      } else if (avstream->codec->codec_id == AV_CODEC_ID_EAC3) {
+      } else if (avstream->codecpar->codec_id == AV_CODEC_ID_EAC3) {
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_DOLBY_DDPLUS_ARCSOFT;
-      } else if (avstream->codec->codec_id == AV_CODEC_ID_DTS) {
+      } else if (avstream->codecpar->codec_id == AV_CODEC_ID_DTS) {
         wvfmt->wFormatTag = WAVE_FORMAT_DTS2;
-        if (avstream->codec->profile >= FF_PROFILE_DTS_HD_HRA) {
+        if (avstream->codecpar->profile >= FF_PROFILE_DTS_HD_HRA) {
           mtype.subtype = MEDIASUBTYPE_DTS_HD;
           mtypes.push_back(mtype);
         }
         mtype.subtype = MEDIASUBTYPE_WAVE_DTS;
-      } else if (avstream->codec->codec_id == AV_CODEC_ID_TRUEHD) {
+      } else if (avstream->codecpar->codec_id == AV_CODEC_ID_TRUEHD) {
         //wvfmt->wFormatTag = (WORD)WAVE_FORMAT_TRUEHD;
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_DOLBY_TRUEHD_ARCSOFT;
-      } else if (avstream->codec->codec_id == AV_CODEC_ID_AAC) {
+      } else if (avstream->codecpar->codec_id == AV_CODEC_ID_AAC) {
         wvfmt->wFormatTag = (WORD)MEDIASUBTYPE_AAC_ADTS.Data1;
 
         CMediaType adtsMtype = mtype;
@@ -137,7 +137,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
 
         mtype.subtype = MEDIASUBTYPE_AAC;
         wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
-      } else if (avstream->codec->codec_id == AV_CODEC_ID_AAC_LATM) {
+      } else if (avstream->codecpar->codec_id == AV_CODEC_ID_AAC_LATM) {
         mtypes.push_back(mtype);
         mtype.subtype = MEDIASUBTYPE_MPEG_LOAS;
         wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
@@ -176,17 +176,17 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
 
 static bool h264_is_annexb(std::string format, AVStream *avstream)
 {
-  ASSERT(avstream->codec->codec_id == AV_CODEC_ID_H264 || avstream->codec->codec_id == AV_CODEC_ID_H264_MVC);
-  if (avstream->codec->extradata_size < 4)
+  ASSERT(avstream->codecpar->codec_id == AV_CODEC_ID_H264 || avstream->codecpar->codec_id == AV_CODEC_ID_H264_MVC);
+  if (avstream->codecpar->extradata_size < 4)
     return true;
-  if (avstream->codec->extradata[0] == 1)
+  if (avstream->codecpar->extradata[0] == 1)
     return false;
   if (format == "avi") {
-    BYTE *src = avstream->codec->extradata;
+    BYTE *src = avstream->codecpar->extradata;
     unsigned startcode = AV_RB32(src);
     if (startcode == 0x00000001 || (startcode & 0xffffff00) == 0x00000100)
       return true;
-    if (avstream->codec->codec_tag == MKTAG('A','V','C','1') || avstream->codec->codec_tag == MKTAG('a','v','c','1'))
+    if (avstream->codecpar->codec_tag == MKTAG('A','V','C','1') || avstream->codecpar->codec_tag == MKTAG('a','v','c','1'))
       return false;
   }
   return true;
@@ -194,10 +194,10 @@ static bool h264_is_annexb(std::string format, AVStream *avstream)
 
 static bool hevc_is_annexb(std::string format, AVStream *avstream)
 {
-  ASSERT(avstream->codec->codec_id == AV_CODEC_ID_HEVC);
-  if (avstream->codec->extradata_size < 23)
+  ASSERT(avstream->codecpar->codec_id == AV_CODEC_ID_HEVC);
+  if (avstream->codecpar->extradata_size < 23)
     return true;
-  if (avstream->codec->extradata[0] || avstream->codec->extradata[1] || avstream->codec->extradata[2] > 1)
+  if (avstream->codecpar->extradata[0] || avstream->codecpar->extradata[1] || avstream->codecpar->extradata[2] > 1)
     return false;
   /*if (format == "avi") {
     BYTE *src = avstream->codec->extradata;
@@ -210,33 +210,32 @@ static bool hevc_is_annexb(std::string format, AVStream *avstream)
 
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
-  unsigned int origCodecTag = avstream->codec->codec_tag;
-  if (avstream->codec->codec_tag == 0 && avstream->codec->codec_id != AV_CODEC_ID_DVVIDEO) {
-    avstream->codec->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codec->codec_id);
+  unsigned int origCodecTag = avstream->codecpar->codec_tag;
+  if (avstream->codecpar->codec_tag == 0 && avstream->codecpar->codec_id != AV_CODEC_ID_DVVIDEO) {
+    avstream->codecpar->codec_tag = av_codec_get_tag(mp_bmp_taglists, avstream->codecpar->codec_id);
   }
 
-  if (avstream->codec->codec_id == AV_CODEC_ID_H264_MVC) {
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_H264_MVC) {
     // Don't create media types for MVC extension streams, they are handled specially
     return S_FALSE;
   }
 
-  if (avstream->codec->width == 0 || avstream->codec->height == 0
-    || ((avstream->codec->codec_id == AV_CODEC_ID_MPEG1VIDEO || avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO) && (avstream->codec->time_base.den == 0 || avstream->codec->time_base.num == 0)))
+  if (avstream->codecpar->width == 0 || avstream->codecpar->height == 0)
     return E_FAIL;
 
-  CMediaType mtype = g_VideoHelper.initVideoType(avstream->codec->codec_id, avstream->codec->codec_tag, m_containerFormat);
+  CMediaType mtype = g_VideoHelper.initVideoType(avstream->codecpar->codec_id, avstream->codecpar->codec_tag, m_containerFormat);
 
   mtype.SetTemporalCompression(TRUE);
   mtype.SetVariableSize();
 
   // Somewhat hackish to force VIH for AVI content.
   // TODO: Figure out why exactly this is required
-  if (m_containerFormat == "avi" && avstream->codec->codec_id != AV_CODEC_ID_H264) {
+  if (m_containerFormat == "avi" && avstream->codecpar->codec_id != AV_CODEC_ID_H264) {
     mtype.formattype = FORMAT_VideoInfo;
   }
 
   // Native MPEG4 in Matroska needs a special formattype
-  if (m_containerFormat == "matroska" && avstream->codec->codec_id == AV_CODEC_ID_MPEG4) {
+  if (m_containerFormat == "matroska" && avstream->codecpar->codec_id == AV_CODEC_ID_MPEG4) {
     if (AVDictionaryEntry *mkvCodecId = av_dict_get(avstream->metadata, "mkv-codec-id", nullptr, 0)) {
       if (strcmp(mkvCodecId->value, "V_MS/VFW/FOURCC") != 0)
         mtype.formattype = FORMAT_MPEG2Video;
@@ -245,7 +244,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
   // If we need aspect info, we switch to VIH2
   AVRational r = avstream->sample_aspect_ratio;
-  AVRational rc = avstream->codec->sample_aspect_ratio;
+  AVRational rc = avstream->codecpar->sample_aspect_ratio;
   if (mtype.formattype == FORMAT_VideoInfo && ((r.den > 0 && r.num > 0 && (r.den > 1 || r.num > 1)) || (rc.den > 0 && rc.num > 0 && (rc.den > 1 || rc.num > 1)))) {
     mtype.formattype = FORMAT_VideoInfo2;
   }
@@ -276,7 +275,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   } else if (mtype.formattype == FORMAT_MPEG2Video) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG2VI(avstream, &mtype.cbFormat, m_containerFormat, FALSE);
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
-    if (avstream->codec->codec_id == AV_CODEC_ID_H264) {
+    if (avstream->codecpar->codec_id == AV_CODEC_ID_H264) {
       if (h264_is_annexb(m_containerFormat, avstream)) {
         mtype.subtype = MEDIASUBTYPE_H264;
       } else {
@@ -296,7 +295,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
         MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mtype.pbFormat;
         mp2vi->hdr.bmiHeader.biCompression = mtype.subtype.Data1;
       }
-    } else if (avstream->codec->codec_id == AV_CODEC_ID_HEVC) {
+    } else if (avstream->codecpar->codec_id == AV_CODEC_ID_HEVC) {
       if (hevc_is_annexb(m_containerFormat, avstream)) {
         mtype.subtype = MEDIASUBTYPE_HEVC;
       } else {
@@ -307,7 +306,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   }
 
   // Detect MVC extensions and adjust the type appropriately
-  if (avstream->codec->codec_id == AV_CODEC_ID_H264) {
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_H264) {
     if (h264_is_annexb(m_containerFormat, avstream)) {
       if (m_containerFormat == "mpegts") {
         int nBaseStream = -1, nExtensionStream = -1;
@@ -315,23 +314,23 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
           CMediaType mvcType = mtypes.front();
           AVStream *mvcStream = avctx->streams[nExtensionStream];
 
-          MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codec->extradata_size + mvcStream->codec->extradata_size);
+          MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codecpar->extradata_size + mvcStream->codecpar->extradata_size);
 
           // Append the mvc subset data to the base view extradata
-          memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + avstream->codec->extradata_size, mvcStream->codec->extradata, mvcStream->codec->extradata_size);
-          mp2vi->cbSequenceHeader = avstream->codec->extradata_size + mvcStream->codec->extradata_size;
+          memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + avstream->codecpar->extradata_size, mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size);
+          mp2vi->cbSequenceHeader = avstream->codecpar->extradata_size + mvcStream->codecpar->extradata_size;
 
           mvcType.cbFormat = SIZE_MPEG2VIDEOINFO(mp2vi);
           mvcType.subtype = MEDIASUBTYPE_AMVC;
           mp2vi->hdr.bmiHeader.biCompression = mvcType.subtype.Data1;
 
           CH264Nalu nalParser;
-          nalParser.SetBuffer(mvcStream->codec->extradata, mvcStream->codec->extradata_size, 0);
+          nalParser.SetBuffer(mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size, 0);
           while (nalParser.ReadNext()) {
             if (nalParser.GetType() == 15) { // Subset SPS
               const BYTE *pData = nalParser.GetDataBuffer();
-              mp2vi->dwProfile = avstream->codec->profile = pData[1];
-              mp2vi->dwLevel   = avstream->codec->level   = pData[3];
+              mp2vi->dwProfile = avstream->codecpar->profile = pData[1];
+              mp2vi->dwLevel   = avstream->codecpar->level   = pData[3];
               break;
             }
           }
@@ -342,8 +341,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     } else {
       CMediaType mvcType = mtype;
 
-      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codec->extradata_size);
-      HRESULT hr = g_VideoHelper.ProcessH264MVCExtradata(avstream->codec->extradata, avstream->codec->extradata_size, mp2vi);
+      MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codecpar->extradata_size);
+      HRESULT hr = g_VideoHelper.ProcessH264MVCExtradata(avstream->codecpar->extradata, avstream->codecpar->extradata_size, mp2vi);
       if (hr == S_OK) {
         mvcType.cbFormat = SIZE_MPEG2VIDEOINFO(mp2vi);
         mvcType.subtype = MEDIASUBTYPE_MVC1;
@@ -352,21 +351,21 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
         // update stream profile/level appropriately
         if (mp2vi->dwProfile != 0)
-          avstream->codec->profile = mp2vi->dwProfile;
+          avstream->codecpar->profile = mp2vi->dwProfile;
         if (mp2vi->dwLevel != 0)
-          avstream->codec->level = mp2vi->dwLevel;
+          avstream->codecpar->level = mp2vi->dwLevel;
       }
     }
   }
 
-  if (avstream->codec->codec_id == AV_CODEC_ID_RAWVIDEO) {
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_RAWVIDEO) {
     BITMAPINFOHEADER *pBMI = nullptr;
     videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, nullptr, nullptr, nullptr);
     mtype.bFixedSizeSamples = TRUE;
     mtype.bTemporalCompression = FALSE;
     mtype.lSampleSize = pBMI->biSizeImage;
-    if (!avstream->codec->codec_tag || avstream->codec->codec_tag == MKTAG('r','a','w',' ')) {
-      switch (avstream->codec->pix_fmt) {
+    if (!avstream->codecpar->codec_tag || avstream->codecpar->codec_tag == MKTAG('r','a','w',' ')) {
+      switch (avstream->codecpar->format) {
       case AV_PIX_FMT_BGRA:
         mtype.subtype = MEDIASUBTYPE_ARGB32;
         mtypes.push_back(mtype);
@@ -379,7 +378,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
         DbgLog((LOG_TRACE, 10, L"::CreateVideoMediaType(): Unsupported raw video pixel format"));
       }
     } else {
-      switch (avstream->codec->codec_tag) {
+      switch (avstream->codecpar->codec_tag) {
       case MKTAG('B','G','R','A'):
         {
           pBMI->biHeight = -pBMI->biHeight;
@@ -403,17 +402,17 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       ASSERT(0);
     }
     extrasize = mtype.cbFormat - hdrsize;
-    mtype.ReallocFormatBuffer((ULONG)(hdrsize + extrasize + sizeof(avstream->codec->pix_fmt)));
+    mtype.ReallocFormatBuffer((ULONG)(hdrsize + extrasize + sizeof(avstream->codecpar->format)));
     if (extrasize) {
-      memmove(mtype.pbFormat + hdrsize + sizeof(avstream->codec->pix_fmt), mtype.pbFormat + hdrsize, extrasize);
+      memmove(mtype.pbFormat + hdrsize + sizeof(avstream->codecpar->format), mtype.pbFormat + hdrsize, extrasize);
     }
-    *(int *)(mtype.pbFormat + hdrsize) = avstream->codec->pix_fmt;
+    *(int *)(mtype.pbFormat + hdrsize) = avstream->codecpar->format;
     videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, nullptr, nullptr, nullptr);
-    pBMI->biSize = (DWORD)(sizeof(BITMAPINFOHEADER) + sizeof(avstream->codec->pix_fmt) + extrasize);
+    pBMI->biSize = (DWORD)(sizeof(BITMAPINFOHEADER) + sizeof(avstream->codecpar->format) + extrasize);
     mtypes.push_back(mtype);
   }
 
-  if (avstream->codec->codec_id == AV_CODEC_ID_MJPEG) {
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_MJPEG) {
     BITMAPINFOHEADER *pBMI = nullptr;
     videoFormatTypeHandler(mtype.pbFormat, &mtype.formattype, &pBMI, nullptr, nullptr, nullptr);
 
@@ -469,24 +468,24 @@ static std::string GetDefaultVOBSubHeader(int w, int h)
 STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   // Skip teletext
-  if (avstream->codec->codec_id == AV_CODEC_ID_DVB_TELETEXT) {
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_DVB_TELETEXT) {
     return E_FAIL;
   }
   CMediaType mtype;
   mtype.majortype = MEDIATYPE_Subtitle;
   mtype.formattype = FORMAT_SubtitleInfo;
 
-  int extra = avstream->codec->extradata_size;
+  int extra = avstream->codecpar->extradata_size;
 
   // parse flags from mov tx3g atom
-  if (avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT && avstream->codec->codec_tag == MKTAG('t', 'x', '3', 'g') && extra >= 4)
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_MOV_TEXT && avstream->codecpar->codec_tag == MKTAG('t', 'x', '3', 'g') && extra >= 4)
   {
-    uint32_t flags = AV_RB32(avstream->codec->extradata);
+    uint32_t flags = AV_RB32(avstream->codecpar->extradata);
     if (flags & 0x80000000)
       avstream->disposition |= AV_DISPOSITION_FORCED;
   }
 
-  if (avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT || avstream->codec->codec_id == AV_CODEC_ID_TEXT || avstream->codec->codec_id == AV_CODEC_ID_SUBRIP) {
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_MOV_TEXT || avstream->codecpar->codec_id == AV_CODEC_ID_TEXT || avstream->codecpar->codec_id == AV_CODEC_ID_SUBRIP) {
     extra = 0;
   }
 
@@ -515,21 +514,21 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
   // Find first video stream
   AVStream *vidStream = nullptr;
   for (unsigned i = 0; i < avctx->nb_streams; i++) {
-    if (avctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
+    if (avctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
       vidStream = avctx->streams[i];
       break;
     }
   }
 
   // Extradata
-  if (m_containerFormat == "mp4" && avstream->codec->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
-    std::string strVobSubHeader = CreateVOBSubHeaderFromMP4(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576, (MOVStreamContext *)avstream->priv_data, (char*)avstream->codec->extradata, extra);
+  if (m_containerFormat == "mp4" && avstream->codecpar->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
+    std::string strVobSubHeader = CreateVOBSubHeaderFromMP4(vidStream ? vidStream->codecpar->width : 720, vidStream ? vidStream->codecpar->height : 576, (MOVStreamContext *)avstream->priv_data, (char*)avstream->codecpar->extradata, extra);
     size_t len = strVobSubHeader.length();
     mtype.ReallocFormatBuffer((ULONG)(sizeof(SUBTITLEINFO) + len));
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
-  } else if (m_containerFormat == "mpeg" && avstream->codec->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
+  } else if (m_containerFormat == "mpeg" && avstream->codecpar->codec_id == AV_CODEC_ID_DVD_SUBTITLE) {
     // And a VobSub type
-    std::string strVobSubHeader = GetDefaultVOBSubHeader(vidStream ? vidStream->codec->width : 720, vidStream ? vidStream->codec->height : 576);
+    std::string strVobSubHeader = GetDefaultVOBSubHeader(vidStream ? vidStream->codecpar->width : 720, vidStream ? vidStream->codecpar->height : 576);
     size_t len = strVobSubHeader.length();
     mtype.ReallocFormatBuffer((ULONG)(sizeof(SUBTITLEINFO) + len));
     memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), strVobSubHeader.c_str(), len);
@@ -543,24 +542,24 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
     dvdmtype.formattype = FORMAT_MPEG2_VIDEO;
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)dvdmtype.AllocFormatBuffer(sizeof(MPEG2VIDEOINFO));
     ZeroMemory(mp2vi, sizeof(MPEG2VIDEOINFO));
-    mp2vi->hdr.bmiHeader.biWidth = vidStream ? vidStream->codec->width : 720;
-    mp2vi->hdr.bmiHeader.biHeight = vidStream ? vidStream->codec->height : 576;
+    mp2vi->hdr.bmiHeader.biWidth = vidStream ? vidStream->codecpar->width : 720;
+    mp2vi->hdr.bmiHeader.biHeight = vidStream ? vidStream->codecpar->height : 576;
     mtypes.push_back(dvdmtype);
 
     return S_OK;
   } else {
-    memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), avstream->codec->extradata, extra);
+    memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), avstream->codecpar->extradata, extra);
   }
 
-  mtype.subtype = avstream->codec->codec_id == AV_CODEC_ID_TEXT ? MEDIASUBTYPE_UTF8 :
-                  avstream->codec->codec_id == AV_CODEC_ID_SRT ? MEDIASUBTYPE_UTF8 : /* SRT is essentially SUBRIP with inband timing information, parsing needed */
-                  avstream->codec->codec_id == AV_CODEC_ID_SUBRIP ? MEDIASUBTYPE_UTF8 :
-                  avstream->codec->codec_id == AV_CODEC_ID_MOV_TEXT ? MEDIASUBTYPE_UTF8 :
-                  avstream->codec->codec_id == AV_CODEC_ID_ASS ? MEDIASUBTYPE_ASS :
-                  avstream->codec->codec_id == AV_CODEC_ID_SSA ? MEDIASUBTYPE_ASS :
-                  avstream->codec->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE ? MEDIASUBTYPE_HDMVSUB :
-                  avstream->codec->codec_id == AV_CODEC_ID_DVD_SUBTITLE ? MEDIASUBTYPE_VOBSUB :
-                  avstream->codec->codec_id == AV_CODEC_ID_DVB_SUBTITLE ? MEDIASUBTYPE_DVB_SUBTITLES :
+  mtype.subtype = avstream->codecpar->codec_id == AV_CODEC_ID_TEXT ? MEDIASUBTYPE_UTF8 :
+                  avstream->codecpar->codec_id == AV_CODEC_ID_SRT ? MEDIASUBTYPE_UTF8 : /* SRT is essentially SUBRIP with inband timing information, parsing needed */
+                  avstream->codecpar->codec_id == AV_CODEC_ID_SUBRIP ? MEDIASUBTYPE_UTF8 :
+                  avstream->codecpar->codec_id == AV_CODEC_ID_MOV_TEXT ? MEDIASUBTYPE_UTF8 :
+                  avstream->codecpar->codec_id == AV_CODEC_ID_ASS ? MEDIASUBTYPE_ASS :
+                  avstream->codecpar->codec_id == AV_CODEC_ID_SSA ? MEDIASUBTYPE_ASS :
+                  avstream->codecpar->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE ? MEDIASUBTYPE_HDMVSUB :
+                  avstream->codecpar->codec_id == AV_CODEC_ID_DVD_SUBTITLE ? MEDIASUBTYPE_VOBSUB :
+                  avstream->codecpar->codec_id == AV_CODEC_ID_DVB_SUBTITLE ? MEDIASUBTYPE_DVB_SUBTITLES :
                   MEDIASUBTYPE_NULL;
 
   mtypes.push_back(mtype);

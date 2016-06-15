@@ -156,7 +156,7 @@ size_t avc_parse_annexb(BYTE *extra, int extrasize, BYTE *dst)
 
 VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *size, std::string container)
 {
-  VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size));
+  VIDEOINFOHEADER *pvi = (VIDEOINFOHEADER*)CoTaskMemAlloc(ULONG(sizeof(VIDEOINFOHEADER) + avstream->codecpar->extradata_size));
   if (!pvi) return nullptr;
   memset(pvi, 0, sizeof(VIDEOINFOHEADER));
   // Get the frame rate
@@ -167,9 +167,12 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   if (avstream->avg_frame_rate.den > 0 &&  avstream->avg_frame_rate.num > 0) {
     avg_avg = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num);
   }
+#pragma warning(push)
+#pragma warning(disable: 4996)
   if (avstream->codec->time_base.den > 0 &&  avstream->codec->time_base.num > 0 && avstream->codec->ticks_per_frame > 0) {
     tb_avg = av_rescale(DSHOW_TIME_BASE, avstream->codec->time_base.num * avstream->codec->ticks_per_frame, avstream->codec->time_base.den);
   }
+#pragma warning(pop)
 
   DbgLog((LOG_TRACE, 10, L"CreateVIH: r_avg: %I64d, avg_avg: %I64d, tb_avg: %I64d", r_avg, avg_avg, tb_avg));
   if (r_avg >= MIN_TIME_PER_FRAME && r_avg <= MAX_TIME_PER_FRAME)
@@ -181,7 +184,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   else
     pvi->AvgTimePerFrame = r_avg;
 
-  if (container == "matroska" && r_avg && tb_avg && (avstream->codec->codec_id == AV_CODEC_ID_H264 || avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO)) {
+  if (container == "matroska" && r_avg && tb_avg && (avstream->codecpar->codec_id == AV_CODEC_ID_H264 || avstream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO)) {
     float factor = (float)r_avg / (float)tb_avg;
     if ((factor > 0.4 && factor < 0.6) || (factor > 1.9 && factor < 2.1)) {
       pvi->AvgTimePerFrame = tb_avg;
@@ -189,28 +192,28 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   }
 
   pvi->dwBitErrorRate = 0;
-  pvi->dwBitRate = (DWORD)avstream->codec->bit_rate;
+  pvi->dwBitRate = (DWORD)avstream->codecpar->bit_rate;
   RECT empty_tagrect = {0,0,0,0};
   pvi->rcSource = empty_tagrect;//Some codecs like wmv are setting that value to the video current value
   pvi->rcTarget = empty_tagrect;
-  pvi->rcTarget.right = pvi->rcSource.right = avstream->codec->width;
-  pvi->rcTarget.bottom = pvi->rcSource.bottom = avstream->codec->height;
+  pvi->rcTarget.right = pvi->rcSource.right = avstream->codecpar->width;
+  pvi->rcTarget.bottom = pvi->rcSource.bottom = avstream->codecpar->height;
 
-  memcpy((BYTE*)&pvi->bmiHeader + sizeof(BITMAPINFOHEADER), avstream->codec->extradata, avstream->codec->extradata_size);
-  pvi->bmiHeader.biSize = ULONG(sizeof(BITMAPINFOHEADER) + avstream->codec->extradata_size);
+  memcpy((BYTE*)&pvi->bmiHeader + sizeof(BITMAPINFOHEADER), avstream->codecpar->extradata, avstream->codecpar->extradata_size);
+  pvi->bmiHeader.biSize = ULONG(sizeof(BITMAPINFOHEADER) + avstream->codecpar->extradata_size);
 
-  pvi->bmiHeader.biWidth = avstream->codec->width;
-  pvi->bmiHeader.biHeight = avstream->codec->height;
-  pvi->bmiHeader.biBitCount = avstream->codec->bits_per_coded_sample;
+  pvi->bmiHeader.biWidth = avstream->codecpar->width;
+  pvi->bmiHeader.biHeight = avstream->codecpar->height;
+  pvi->bmiHeader.biBitCount = avstream->codecpar->bits_per_coded_sample;
   // Validate biBitCount is set to something useful
-  if ((pvi->bmiHeader.biBitCount == 0 || avstream->codec->codec_id == AV_CODEC_ID_RAWVIDEO) && avstream->codec->pix_fmt != AV_PIX_FMT_NONE) {
-    const AVPixFmtDescriptor *pixdecs = av_pix_fmt_desc_get(avstream->codec->pix_fmt);
+  if ((pvi->bmiHeader.biBitCount == 0 || avstream->codecpar->codec_id == AV_CODEC_ID_RAWVIDEO) && avstream->codecpar->format != AV_PIX_FMT_NONE) {
+    const AVPixFmtDescriptor *pixdecs = av_pix_fmt_desc_get((AVPixelFormat)avstream->codecpar->format);
     if (pixdecs)
       pvi->bmiHeader.biBitCount = av_get_bits_per_pixel(pixdecs);
   }
   pvi->bmiHeader.biSizeImage = DIBSIZE(pvi->bmiHeader); // Calculating this value doesn't really make alot of sense, but apparently some decoders freak out if its 0
 
-  pvi->bmiHeader.biCompression = avstream->codec->codec_tag;
+  pvi->bmiHeader.biCompression = avstream->codecpar->codec_tag;
   //TOFIX The bitplanes is depending on the subtype
   pvi->bmiHeader.biPlanes = 1;
   pvi->bmiHeader.biClrUsed = 0;
@@ -218,7 +221,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   pvi->bmiHeader.biYPelsPerMeter = 0;
   pvi->bmiHeader.biXPelsPerMeter = 0;
 
-  *size = sizeof(VIDEOINFOHEADER) + avstream->codec->extradata_size;
+  *size = sizeof(VIDEOINFOHEADER) + avstream->codecpar->extradata_size;
   return pvi;
 }
 
@@ -230,10 +233,10 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   int extra = 0;
   BYTE *extradata = nullptr;
   BOOL bZeroPad = FALSE;
-  if (avstream->codec->codec_id == AV_CODEC_ID_VC1 && avstream->codec->extradata_size) {
+  if (avstream->codecpar->codec_id == AV_CODEC_ID_VC1 && avstream->codecpar->extradata_size) {
     int i = 0;
-    for (i = 0; i < (avstream->codec->extradata_size-4); i++) {
-      uint32_t code = AV_RB32(avstream->codec->extradata + i);
+    for (i = 0; i < (avstream->codecpar->extradata_size-4); i++) {
+      uint32_t code = AV_RB32(avstream->codecpar->extradata + i);
       if (IS_VC1_MARKER(code))
         break;
     }
@@ -248,14 +251,14 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size, container);
   if (!vih) return nullptr;
 
-  if(avstream->codec->extradata_size > 0) {
-    extra = avstream->codec->extradata_size;
+  if(avstream->codecpar->extradata_size > 0) {
+    extra = avstream->codecpar->extradata_size;
     //increase extra size by one, because VIH2 requires one 0 byte between header and extra data
     if (bZeroPad) {
       extra++;
     }
 
-    extradata = avstream->codec->extradata;
+    extradata = avstream->codecpar->extradata;
   }
 
   VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)CoTaskMemAlloc(sizeof(VIDEOINFOHEADER2) + extra); 
@@ -270,7 +273,7 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream* avstream, ULONG *
 
   // Calculate aspect ratio
   AVRational r = avstream->sample_aspect_ratio;
-  AVRational rc = avstream->codec->sample_aspect_ratio;
+  AVRational rc = avstream->codecpar->sample_aspect_ratio;
   int num = vih->bmiHeader.biWidth, den = vih->bmiHeader.biHeight;
   if (r.den > 0 && r.num > 0) {
     av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, INT_MAX);
@@ -317,9 +320,9 @@ MPEG1VIDEOINFO *CLAVFVideoHelper::CreateMPEG1VI(const AVStream* avstream, ULONG 
   VIDEOINFOHEADER *vih = CreateVIH(avstream, size, container);
   if (!vih) return nullptr;
 
-  if(avstream->codec->extradata_size > 0) {
-    extra = avstream->codec->extradata_size;
-    extradata = avstream->codec->extradata;
+  if(avstream->codecpar->extradata_size > 0) {
+    extra = avstream->codecpar->extradata_size;
+    extradata = avstream->codecpar->extradata;
   }
 
   MPEG1VIDEOINFO *mp1vi = (MPEG1VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG1VIDEOINFO) + extra);
@@ -356,9 +359,9 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
   VIDEOINFOHEADER2 *vih2 = CreateVIH2(avstream, size, container);
   if (!vih2) return nullptr;
 
-  if(avstream->codec->extradata_size > 0) {
-    extra = avstream->codec->extradata_size;
-    extradata = avstream->codec->extradata;
+  if(avstream->codecpar->extradata_size > 0) {
+    extra = avstream->codecpar->extradata_size;
+    extradata = avstream->codecpar->extradata;
   }
 
   MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)CoTaskMemAlloc(sizeof(MPEG2VIDEOINFO) + max(extra - 4, 0));
@@ -368,23 +371,23 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
   mp2vi->hdr.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 
   // Set profile/level if we know them
-  mp2vi->dwProfile = (avstream->codec->profile != FF_PROFILE_UNKNOWN) ? avstream->codec->profile : 0;
-  mp2vi->dwLevel = (avstream->codec->level != FF_LEVEL_UNKNOWN) ? avstream->codec->level : 0;
+  mp2vi->dwProfile = (avstream->codecpar->profile != FF_PROFILE_UNKNOWN) ? avstream->codecpar->profile : 0;
+  mp2vi->dwLevel = (avstream->codecpar->level != FF_LEVEL_UNKNOWN) ? avstream->codecpar->level : 0;
   //mp2vi->dwFlags = 4; // where do we get flags otherwise..?
 
   if(extra > 0)
   {
     BOOL bCopyUntouched = FALSE;
-    if(avstream->codec->codec_id == AV_CODEC_ID_H264)
+    if(avstream->codecpar->codec_id == AV_CODEC_ID_H264)
     {
       int ret = ProcessH264Extradata(extradata, extra, mp2vi, bConvertToAVC1);
       if (ret < 0)
         bCopyUntouched = TRUE;
-    } else if (avstream->codec->codec_id == AV_CODEC_ID_HEVC) {
+    } else if (avstream->codecpar->codec_id == AV_CODEC_ID_HEVC) {
       int ret = ProcessHEVCExtradata(extradata, extra, mp2vi);
       if (ret < 0)
         bCopyUntouched = TRUE;
-    } else if (avstream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
+    } else if (avstream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
       CExtradataParser parser = CExtradataParser(extradata, extra);
       mp2vi->cbSequenceHeader = (DWORD)parser.ParseMPEGSequenceHeader((BYTE *)&mp2vi->dwSequenceHeader[0]);
       mp2vi->hdr.bmiHeader.biPlanes = 1;
