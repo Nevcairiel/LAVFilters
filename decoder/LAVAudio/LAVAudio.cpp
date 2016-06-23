@@ -1693,6 +1693,8 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   // Ensure the size of the buffer doesn't overflow (its used as signed int in various places)
   if (bufflen > (INT_MAX - (DWORD)len)) {
     DbgLog((LOG_TRACE, 10, L"Too much audio buffered, aborting"));
+    m_buff.Clear();
+    m_bQueueResync = TRUE;
     return E_FAIL;
   }
 
