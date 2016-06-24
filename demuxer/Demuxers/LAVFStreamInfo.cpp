@@ -57,13 +57,6 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
-  // Make sure DTS Express has valid settings
-  if (avstream->codecpar->codec_id == AV_CODEC_ID_DTS && avstream->codecpar->codec_tag == 0xA2) {
-    avstream->codecpar->channels = avstream->codecpar->channels ? avstream->codecpar->channels : 2;
-    avstream->codecpar->channel_layout = avstream->codecpar->channel_layout ? avstream->codecpar->channel_layout : av_get_default_channel_layout(avstream->codecpar->channels);
-    avstream->codecpar->sample_rate = avstream->codecpar->sample_rate ? avstream->codecpar->sample_rate : 48000;
-  }
-
   if (avstream->codecpar->codec_tag == 0) {
     avstream->codecpar->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codecpar->codec_id);
   }
