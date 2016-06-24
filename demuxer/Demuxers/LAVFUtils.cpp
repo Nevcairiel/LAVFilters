@@ -20,10 +20,6 @@
 #include "stdafx.h"
 #include "lavfutils.h"
 
-extern "C" {
-#include "libavcodec/audioconvert.h"
-}
-
 #include <sstream>
 
 static int64_t get_bit_rate(const AVCodecParameters *par)
