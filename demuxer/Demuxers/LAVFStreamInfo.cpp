@@ -55,8 +55,6 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 {
 }
 
-#define is_mpeg_audio(codec) (codec == AV_CODEC_ID_MP1 || codec == AV_CODEC_ID_MP2 || codec == AV_CODEC_ID_MP3)
-
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   // Make sure DTS Express has valid settings
