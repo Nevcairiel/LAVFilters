@@ -29,7 +29,6 @@ extern "C" {
 static int64_t get_bit_rate(const AVCodecParameters *par)
 {
   int64_t bit_rate;
-  int bits_per_sample;
 
   switch(par->codec_type) {
   case AVMEDIA_TYPE_VIDEO:
@@ -39,8 +38,7 @@ static int64_t get_bit_rate(const AVCodecParameters *par)
     bit_rate = par->bit_rate;
     break;
   case AVMEDIA_TYPE_AUDIO:
-    bits_per_sample = av_get_bits_per_sample(par->codec_id);
-    bit_rate = par->bit_rate ? par->bit_rate : par->sample_rate * par->channels * bits_per_sample;
+    bit_rate = par->bit_rate ? par->bit_rate : par->sample_rate * par->channels * av_get_bits_per_sample(par->codec_id);
     break;
   default:
     bit_rate = 0;
