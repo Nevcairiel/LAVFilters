@@ -1,6 +1,18 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.69.0 - 2016/xx/xx
+LAV Splitter
+- Fixed: Reading MKV files could crash when encountering tags for unknown or disabled streams
+
+LAV Video
+- NEW: Support for 10-bit UtVideo
+- NEW: MagicYUV decoding support
+- NEW: Experimental support for CineformHD decoding
+
+LAV Audio
+- NEW: DTS Express (LBR) decoding support
+
 0.68.1 - 2016/05/05
 LAV Splitter
 - NEW: Support for reading metadata tags from MKV files (including the "3d-plane" MVC 3D tag from MakeMKV 1.9.10 and newer)
