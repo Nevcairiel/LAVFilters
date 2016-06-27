@@ -39,8 +39,7 @@ public:
 DEFINE_GUID(IID_ILAVFSettingsInternal, 0x72b2c5fa, 0xa7a5, 
 0x4463, 0x9c, 0x1b, 0x9f, 0x47, 0x49, 0xc3, 0x5c, 0x79);
 
-[uuid("72b2c5fa-a7a5-4463-9c1b-9f4749c35c79")]
-interface ILAVFSettingsInternal : public ILAVFSettings
+interface __declspec(uuid("72b2c5fa-a7a5-4463-9c1b-9f4749c35c79")) ILAVFSettingsInternal : public ILAVFSettings
 {
   // Query if the current filter graph requires VC1 Correction
   STDMETHOD_(BOOL,IsVC1CorrectionRequired)() = 0;

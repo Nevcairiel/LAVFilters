@@ -79,8 +79,7 @@ struct BufferDetails {
 
 struct DTSDecoder;
 
-[uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")]
-class CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVAudioSettings, public ILAVAudioStatus
+class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVAudioSettings, public ILAVAudioStatus
 {
 public:
   CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr);

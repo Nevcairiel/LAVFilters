@@ -51,8 +51,7 @@ typedef struct {
   REFERENCE_TIME rtStop;
 } TimingCache;
 
-[uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")]
-class CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback, public IPropertyBag
+class __declspec(uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")) CLAVVideo : public CTransformFilter, public ISpecifyPropertyPages2, public ILAVVideoSettings, public ILAVVideoStatus, public ILAVVideoCallback, public IPropertyBag
 {
 public:
   CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr);

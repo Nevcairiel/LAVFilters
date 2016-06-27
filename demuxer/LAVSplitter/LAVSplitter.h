@@ -52,8 +52,7 @@ class CLAVInputPin;
 #pragma warning(disable: 4355)
 #endif
 
-[uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")]
-class CLAVSplitter 
+class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
   : public CBaseFilter
   , public CCritSec
   , protected CAMThread
@@ -300,8 +299,7 @@ private:
   CBaseTrayIcon *m_pTrayIcon = nullptr;
 };
 
-[uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")]
-class CLAVSplitterSource : public CLAVSplitter
+class __declspec(uuid("B98D13E7-55DB-4385-A33D-09FD1BA26338")) CLAVSplitterSource : public CLAVSplitter
 {
 public:
   // construct only via class factory

@@ -23,8 +23,7 @@
 DEFINE_GUID(IID_IGraphRebuildDelegate, 
 0x17989414, 0xc927, 0x4d73, 0xab, 0x6c, 0x19, 0xdf, 0x37, 0x60, 0x2a, 0xc4);
 
-[uuid("17989414-C927-4D73-AB6C-19DF37602AC4")]
-interface IGraphRebuildDelegate : public IUnknown
+interface __declspec(uuid("17989414-C927-4D73-AB6C-19DF37602AC4")) IGraphRebuildDelegate : public IUnknown
 {
   // Called by the splitter to let the player know that a certain pin needs to be rebuild.
   //

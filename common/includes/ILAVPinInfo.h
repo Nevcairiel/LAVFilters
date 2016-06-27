@@ -23,8 +23,7 @@
 DEFINE_GUID(IID_ILAVPinInfo,
 0xfd220bf4, 0x3f26, 0x4ad4, 0xa4, 0xa9, 0x34, 0x8c, 0x12, 0x73, 0xa1, 0x41);
 
-[uuid("FD220BF4-3F26-4AD4-A4A9-348C1273A141")]
-interface ILAVPinInfo : public IUnknown
+interface __declspec(uuid("FD220BF4-3F26-4AD4-A4A9-348C1273A141")) ILAVPinInfo : public IUnknown
 {
   // Get a set of flags that convey a special information for this kind of stream
   STDMETHOD_(DWORD,GetStreamFlags)() PURE;

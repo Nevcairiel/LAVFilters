@@ -32,8 +32,7 @@ typedef enum LAVSubtitleMode {
   LAVSubtitleMode_Advanced
 } LAVSubtitleMode;
 
-[uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")]
-interface ILAVFSettings : public IUnknown
+interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings : public IUnknown
 {
   // Switch to Runtime Config mode. This will reset all settings to default, and no changes to the settings will be saved
   // You can use this to programmatically configure LAV Splitter without interfering with the users settings in the registry.
