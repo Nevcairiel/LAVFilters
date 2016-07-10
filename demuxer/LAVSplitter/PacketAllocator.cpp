@@ -70,6 +70,8 @@ STDMETHODIMP_(ULONG) CMediaPacketSample::Release()
     SAFE_DELETE(m_pPacket);
     SetPointer(nullptr, 0);
 
+    SAFE_DELETE(m_pSideData);
+
     /* This may cause us to be deleted */
     // Our refcount is reliably 0 thus no-one will mess with us
     m_pAllocator->ReleaseBuffer(this);
@@ -83,7 +85,32 @@ STDMETHODIMP CMediaPacketSample::SetPacket(Packet *pPacket)
   m_pPacket = pPacket;
   SetPointer(pPacket->GetData(), (LONG)pPacket->GetDataSize());
 
+  SAFE_DELETE(m_pSideData);
+
+  if (pPacket->GetNumSideData() > 0) {
+    m_pSideData = new MediaSideDataFFMpeg();
+    m_pSideData->side_data = pPacket->GetSideData();
+    m_pSideData->side_data_elems = pPacket->GetNumSideData();
+  }
+
   return S_OK;
+}
+
+STDMETHODIMP CMediaPacketSample::SetSideData(GUID guidType, const BYTE *pData, size_t size)
+{
+  return E_NOTIMPL;
+}
+
+STDMETHODIMP CMediaPacketSample::GetSideData(GUID guidType, const BYTE **pData, size_t *pSize)
+{
+  if (guidType == IID_MediaSideDataFFMpeg && m_pSideData) {
+    *pData = (const BYTE *)m_pSideData;
+    *pSize = sizeof(MediaSideDataFFMpeg);
+
+    return S_OK;
+  }
+
+  return E_INVALIDARG;
 }
 
 CPacketAllocator::CPacketAllocator(LPCTSTR pName, LPUNKNOWN pUnk, HRESULT *phr)

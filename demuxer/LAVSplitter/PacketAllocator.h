@@ -22,13 +22,16 @@
 
 #pragma once
 
+#include "IMediaSideData.h"
+#include "IMediaSideDataFFmpeg.h"
+
 interface __declspec(uuid("0B2EE323-0ED8-452D-B31E-B9B4DE2C0C39"))
-ILAVMediaSample : public IUnknown {
+ILAVMediaSample : public IUnknown  {
   STDMETHOD(SetPacket)(Packet *pPacket) PURE;
 };
 
 
-class CMediaPacketSample : public CMediaSample, public ILAVMediaSample
+class CMediaPacketSample : public CMediaSample, public ILAVMediaSample, public IMediaSideData
 {
 public:
   CMediaPacketSample(LPCTSTR pName, CBaseAllocator *pAllocator, HRESULT *phr);
@@ -38,10 +41,16 @@ public:
   STDMETHODIMP_(ULONG) AddRef();
   STDMETHODIMP_(ULONG) Release();
 
+  // ILAVMediaSamples
   STDMETHODIMP SetPacket(Packet *pPacket);
+
+  // IMediaSideData
+  STDMETHODIMP SetSideData(GUID guidType, const BYTE *pData, size_t size);
+  STDMETHODIMP GetSideData(GUID guidType, const BYTE **pData, size_t *pSize);
 
 protected:
   Packet *m_pPacket = nullptr;
+  MediaSideDataFFMpeg *m_pSideData = nullptr;
 };
 
 class CPacketAllocator : public CBaseAllocator
