@@ -28,8 +28,11 @@ public:
   Packet();
   ~Packet();
 
-  size_t GetDataSize() const { return m_DataSize; }
-  BYTE *GetData() { return m_Data; }
+  size_t GetDataSize() const { return m_Packet ? m_Packet->size : 0; }
+  BYTE *GetData() { return m_Packet ? m_Packet->data : nullptr; }
+
+  int GetNumSideData() const { return m_Packet ? m_Packet->side_data_elems : 0; }
+  AVPacketSideData* GetSideData() { return m_Packet ? m_Packet->side_data : nullptr; }
 
   int SetDataSize(size_t len);
   int SetData(const void* ptr, size_t len);
@@ -63,7 +66,5 @@ public:
   DWORD dwFlags          = 0;
 
 private:
-  size_t       m_DataSize = 0;
-  BYTE        *m_Data     = nullptr;
-  AVBufferRef *m_Buf      = nullptr;
+  AVPacket    *m_Packet   = nullptr;
 };

@@ -27,7 +27,7 @@ Packet::Packet()
 Packet::~Packet()
 {
   DeleteMediaType(pmt);
-  av_buffer_unref(&m_Buf);
+  av_packet_free(&m_Packet);
 }
 
 int Packet::SetDataSize(size_t len)
@@ -35,23 +35,21 @@ int Packet::SetDataSize(size_t len)
   if (len < 0)
     return -1;
 
-  // RemoveHead may have moved m_Data, make sure the data moved too.
-  if (m_Buf && m_Buf->data != m_Data) {
-    ptrdiff_t offset = m_Data - m_Buf->data;
-    if (av_buffer_make_writable(&m_Buf) < 0)
+  if (len <= GetDataSize()) {
+    av_shrink_packet(m_Packet, len);
+    return 0;
+  }
+
+  if (!m_Packet) {
+    m_Packet = av_packet_alloc();
+    if (av_new_packet(m_Packet, len) < 0)
       return -1;
-
-    memmove(m_Buf->data, m_Buf->data + offset, m_DataSize);
   }
-
-  // Re-allocate the buffer, if required
-  if (!m_Buf || (size_t)m_Buf->size < (len + FF_INPUT_BUFFER_PADDING_SIZE)) {
-    int ret = av_buffer_realloc(&m_Buf, (int)len + FF_INPUT_BUFFER_PADDING_SIZE);
-    if (ret < 0)
-      return ret;
+  else
+  {
+    if (av_grow_packet(m_Packet, (len - m_Packet->size)) < 0)
+      return -1;
   }
-  m_Data = m_Buf->data;
-  m_DataSize = len;
 
   return 0;
 }
@@ -64,23 +62,19 @@ int Packet::SetData(const void* ptr, size_t len)
   if (ret < 0)
     return ret;
 
-  memcpy(m_Data, ptr, len);
+  memcpy(m_Packet->data, ptr, len);
   return 0;
 }
 
 int Packet::SetPacket(AVPacket *pkt)
 {
-  if (pkt->buf) {
-    ASSERT(!m_Buf);
-    m_Buf = av_buffer_ref(pkt->buf);
-    if (!m_Buf)
-      return -1;
-    m_Data = m_Buf->data;
-    m_DataSize = pkt->size;
-    return 0;
-  } else {
-    return SetData(pkt->data, pkt->size);
-  }
+  ASSERT(!m_Packet);
+
+  m_Packet = av_packet_alloc();
+  if (!m_Packet)
+    return -1;
+
+  return av_packet_ref(m_Packet, pkt);
 }
 
 int Packet::Append(Packet *ptr)
@@ -90,20 +84,17 @@ int Packet::Append(Packet *ptr)
 
 int Packet::AppendData(const void* ptr, size_t len)
 {
-  size_t prevSize = m_DataSize;
-  int ret = SetDataSize(m_DataSize + len);
+  size_t prevSize = GetDataSize();
+  int ret = SetDataSize(prevSize + len);
   if (ret < 0)
     return ret;
-  memcpy(m_Data+prevSize, ptr, len);
+  memcpy(m_Packet->data+prevSize, ptr, len);
   return 0;
 }
 
 int Packet::RemoveHead(size_t count)
 {
-  count = min(count, m_DataSize);
-  if (!m_Data || count < 0)
-    return -1;
-  m_Data += count;
-  m_DataSize -= count;
+  m_Packet->data += count;
+  m_Packet->size -= count;
   return 0;
 }
