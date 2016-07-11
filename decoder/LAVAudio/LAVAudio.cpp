@@ -26,6 +26,8 @@
 
 #include "moreuuids.h"
 #include "DShowUtil.h"
+#include "IMediaSideData.h"
+#include "IMediaSideDataFFmpeg.h"
 
 #include "AudioSettingsProp.h"
 
@@ -1505,8 +1507,8 @@ HRESULT CLAVAudio::EndOfStream()
   CAutoLock cAutoLock(&m_csReceive);
 
   // Flush the last data out of the parser
-  ProcessBuffer();
-  ProcessBuffer(TRUE);
+  ProcessBuffer(nullptr);
+  ProcessBuffer(nullptr, TRUE);
 
   FlushOutput(TRUE);
   return __super::EndOfStream();
@@ -1701,7 +1703,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   m_buff.Allocate(bufflen + len + FF_INPUT_BUFFER_PADDING_SIZE);
   m_buff.Append(pDataIn, len);
 
-  hr = ProcessBuffer();
+  hr = ProcessBuffer(pIn);
 
   if (FAILED(hr))
     return hr;
@@ -1775,7 +1777,7 @@ HRESULT CLAVAudio::ResyncMPEGAudio()
   return S_FALSE;
 }
 
-HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
+HRESULT CLAVAudio::ProcessBuffer(IMediaSample *pMediaSample, BOOL bEOF)
 {
   HRESULT hr = S_OK, hr2 = S_OK;
 
@@ -1851,7 +1853,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
         return S_FALSE;
 
       m_bMPEGAudioResync = FALSE;
-      return ProcessBuffer(FALSE);
+      return ProcessBuffer(pMediaSample, FALSE);
     }
   } else {
     if (!m_bFindDTSInPCM) {
@@ -1880,7 +1882,7 @@ HRESULT CLAVAudio::ProcessBuffer(BOOL bEOF)
     if (m_pDTSDecoderContext)
       hr2 = DecodeDTS(p, buffer_size, consumed, &hr);
     else
-      hr2 = Decode(p, buffer_size, consumed, &hr);
+      hr2 = Decode(p, buffer_size, consumed, &hr, pMediaSample);
     // FAILED - throw away the data
     if (FAILED(hr2)) {
       DbgLog((LOG_TRACE, 10, L"Dropped invalid sample in ProcessBuffer"));
@@ -1925,7 +1927,7 @@ static DWORD get_lav_channel_layout(uint64_t layout)
   return (DWORD)layout;
 }
 
-HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed, HRESULT *hrDeliver)
+HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed, HRESULT *hrDeliver, IMediaSample *pMediaSample)
 {
   int got_frame	= 0;
   BYTE *tmpProcessBuf = nullptr;
@@ -1937,6 +1939,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
   av_init_packet(&avpkt);
 
   BufferDetails out;
+  const MediaSideDataFFMpeg *pFFSideData = nullptr;
 
   if (!bFlush && (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r') || m_raData.deint_id == MKBETAG('s', 'i', 'p', 'r'))) {
     int w = m_raData.audio_framesize;
@@ -1979,6 +1982,18 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
   }
 #endif
 
+  if (pMediaSample) {
+    IMediaSideData *pSideData = nullptr;
+    if (SUCCEEDED(pMediaSample->QueryInterface(&pSideData))) {
+      size_t nFFSideDataSize = 0;
+      if (FAILED(pSideData->GetSideData(IID_MediaSideDataFFMpeg, (const BYTE **)&pFFSideData, &nFFSideDataSize)) || nFFSideDataSize != sizeof(MediaSideDataFFMpeg)) {
+        pFFSideData = nullptr;
+      }
+
+      SafeRelease(&pSideData);
+    }
+  }
+
   consumed = 0;
   while (buffsize > 0 || bFlush) {
     got_frame = 0;
@@ -2016,10 +2031,13 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
         avpkt.size = pOut_size;
         avpkt.dts  = m_rtStartInputCache;
 
+        CopyMediaSideDataFF(&avpkt, &pFFSideData);
+
         int ret2 = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
         if (ret2 < 0) {
           DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
           m_bQueueResync = TRUE;
+          av_packet_unref(&avpkt);
           continue;
         }
 
@@ -2039,12 +2057,16 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
       avpkt.size = buffsize;
       avpkt.dts  = m_rtStartInput;
 
+      CopyMediaSideDataFF(&avpkt, &pFFSideData);
+
       int used_bytes = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
 
       if(used_bytes < 0) {
+        av_packet_unref(&avpkt);
         goto fail;
       } else if(used_bytes == 0 && !got_frame) {
         DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
+        av_packet_unref(&avpkt);
         break;
       }
       buffsize -= used_bytes;
@@ -2055,6 +2077,8 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
       out.rtStart = m_pFrame->pkt_dts;
       m_rtStartInput = AV_NOPTS_VALUE;
     }
+
+    av_packet_unref(&avpkt);
 
     // Channel re-mapping and sample format conversion
     if (got_frame) {

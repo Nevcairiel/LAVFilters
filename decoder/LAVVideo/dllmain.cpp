@@ -35,6 +35,7 @@
 #include "LAVVideo.h"
 #include "VideoSettingsProp.h"
 #include "moreuuids.h"
+#include "IMediaSideDataFFmpeg.h"
 
 #include "registry.h"
 

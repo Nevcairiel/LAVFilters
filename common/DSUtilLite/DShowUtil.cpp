@@ -27,6 +27,8 @@
 
 #include "registry.h"
 
+#include "IMediaSideDataFFmpeg.h"
+
 //
 // Usage: SetThreadName (-1, "MainThread");
 //
@@ -693,6 +695,29 @@ void getExtraData(const BYTE *format, const GUID *formattype, const size_t forma
     memcpy(extra, extraposition, extralength);
   if (extralen)
     *extralen = extralength;
+}
+
+void CopyMediaSideDataFF(AVPacket *dst, const MediaSideDataFFMpeg **sd)
+{
+  if (!dst)
+    return;
+
+  if (!sd || !*sd) {
+    dst->side_data = nullptr;
+    dst->side_data_elems = 0;
+    return;
+  }
+
+  // create an empty dummy packet to copy side-data from
+  AVPacket sdPacket = { 0 };
+  av_init_packet(&sdPacket);
+  sdPacket.side_data = (*sd)->side_data;
+  sdPacket.side_data_elems = (*sd)->side_data_elems;
+
+  // copy into the main packet
+  av_copy_packet_side_data(dst, &sdPacket);
+
+  *sd = nullptr;
 }
 
 BOOL IsVistaOrNewer()

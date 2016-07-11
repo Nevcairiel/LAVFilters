@@ -132,6 +132,10 @@ void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *p
 void getExtraData(const AM_MEDIA_TYPE &mt, BYTE *extra, size_t *extralen);
 void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, size_t *extralen);
 
+struct AVPacket;
+struct MediaSideDataFFMpeg;
+void CopyMediaSideDataFF(AVPacket *dst, const MediaSideDataFFMpeg **sd);
+
 BOOL IsVistaOrNewer();
 BOOL IsWindows7OrNewer();
 BOOL IsWindows8OrNewer();

@@ -27,6 +27,7 @@
 
 #include "Media.h"
 #include "IMediaSideData.h"
+#include "IMediaSideDataFFmpeg.h"
 #include "ByteParser.h"
 
 #ifdef DEBUG
@@ -645,6 +646,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
   int     used_bytes  = 0;
   BOOL    bFlush = (buffer == nullptr);
   BOOL    bEndOfSequence = FALSE;
+  const MediaSideDataFFMpeg *pFFSideData = nullptr;
 
   AVPacket avpkt;
   av_init_packet(&avpkt);
@@ -693,6 +695,19 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     }
   }
 
+
+  if (pSample) {
+    IMediaSideData *pSideData = nullptr;
+    if (SUCCEEDED(pSample->QueryInterface(&pSideData))) {
+      size_t nFFSideDataSize = 0;
+      if (FAILED(pSideData->GetSideData(IID_MediaSideDataFFMpeg, (const BYTE **)&pFFSideData, &nFFSideDataSize)) || nFFSideDataSize != sizeof(MediaSideDataFFMpeg)) {
+        pFFSideData = nullptr;
+      }
+
+      SafeRelease(&pSideData);
+    }
+  }
+
   while (buflen > 0 || bFlush) {
     REFERENCE_TIME rtStart = rtStartIn, rtStop = rtStopIn;
 
@@ -705,6 +720,8 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       else
         avpkt.duration = 0;
       avpkt.flags = AV_PKT_FLAG_KEY;
+
+      CopyMediaSideDataFF(&avpkt, &pFFSideData);
 
       if (m_bHasPalette) {
         m_bHasPalette = FALSE;
