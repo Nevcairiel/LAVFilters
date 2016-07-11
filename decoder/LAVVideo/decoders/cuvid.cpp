@@ -1152,7 +1152,7 @@ STDMETHODIMP CDecCuvid::CheckHEVCSequence(const BYTE *buffer, int buflen)
   return S_FALSE;
 }
 
-STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
+STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity, IMediaSample *pSample)
 {
   CUresult result;
   HRESULT hr = S_OK;
@@ -1180,7 +1180,7 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
       // If we found a EOS marker, but its not at the end of the packet, then split the packet
       // to be able to individually decode the frame before the EOS, and then decode the remainder
       if (status & STATE_EOS_FOUND && eosmarker && eosmarker != end) {
-        Decode(buffer, (int)(eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity);
+        Decode(buffer, (int)(eosmarker - buffer), rtStart, rtStop, bSyncPoint, bDiscontinuity, nullptr);
 
         rtStart = rtStop = AV_NOPTS_VALUE;
         pCuvidPacket.payload      = eosmarker;

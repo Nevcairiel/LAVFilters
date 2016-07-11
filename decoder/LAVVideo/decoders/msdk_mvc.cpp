@@ -221,7 +221,7 @@ STDMETHODIMP CDecMSDKMVC::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
     // Decode sequence header from the media type
     if (mp2vi->cbSequenceHeader) {
-      HRESULT hr = Decode((const BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader, AV_NOPTS_VALUE, AV_NOPTS_VALUE, TRUE, TRUE);
+      HRESULT hr = Decode((const BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader, AV_NOPTS_VALUE, AV_NOPTS_VALUE, TRUE, TRUE, nullptr);
       if (FAILED(hr))
         return hr;
     }
@@ -231,7 +231,7 @@ STDMETHODIMP CDecMSDKMVC::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   else if (*pmt->Subtype() == MEDIASUBTYPE_AMVC) {
     // Decode sequence header from the media type
     if (mp2vi->cbSequenceHeader) {
-      HRESULT hr = Decode((const BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader, AV_NOPTS_VALUE, AV_NOPTS_VALUE, TRUE, TRUE);
+      HRESULT hr = Decode((const BYTE *)mp2vi->dwSequenceHeader, mp2vi->cbSequenceHeader, AV_NOPTS_VALUE, AV_NOPTS_VALUE, TRUE, TRUE, nullptr);
       if (FAILED(hr))
         return hr;
     }
@@ -333,7 +333,7 @@ void CDecMSDKMVC::ReleaseBuffer(mfxFrameSurface1 * pSurface)
   }
 }
 
-STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity)
+STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity, IMediaSample *pSample)
 {
   if (!m_mfxSession)
     return E_UNEXPECTED;
@@ -807,7 +807,7 @@ STDMETHODIMP CDecMSDKMVC::EndOfStream()
     return S_FALSE;
 
   // Flush frames out of the decoder
-  Decode(nullptr, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, FALSE, FALSE);
+  Decode(nullptr, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, FALSE, FALSE, nullptr);
 
   // Process all remaining frames in the queue
   for (int i = 0; i < ASYNC_QUEUE_SIZE; i++) {

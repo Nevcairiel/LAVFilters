@@ -59,7 +59,7 @@ public:
 
   // ILAVDecoder
   STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
-  STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity);
+  STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity, IMediaSample *pSample);
   STDMETHODIMP Flush();
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);

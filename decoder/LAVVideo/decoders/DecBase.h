@@ -29,7 +29,7 @@ public:
   virtual ~CDecBase(void) {}
 
   STDMETHOD(Init)() PURE;
-  STDMETHOD(Decode)(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity) PURE;
+  STDMETHOD(Decode)(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity, IMediaSample *pSample) PURE;
 
   // ILAVDecoder
   STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return Init(); }
@@ -77,7 +77,7 @@ public:
       rtStop = AV_NOPTS_VALUE;
     }
 
-    return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK);
+    return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK, pSample);
   }
 
   STDMETHODIMP Flush() {

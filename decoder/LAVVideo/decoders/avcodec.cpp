@@ -637,7 +637,7 @@ static void lav_avframe_free(LAVFrame *frame)
   av_frame_free((AVFrame **)&frame->priv_data);
 }
 
-STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity)
+STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn, BOOL bSyncPoint, BOOL bDiscontinuity, IMediaSample *pSample)
 {
   CheckPointer(m_pAVCtx, E_UNEXPECTED);
 
@@ -1023,7 +1023,7 @@ STDMETHODIMP CDecAvcodec::Flush()
 
 STDMETHODIMP CDecAvcodec::EndOfStream()
 {
-  Decode(nullptr, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, FALSE, FALSE);
+  Decode(nullptr, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, FALSE, FALSE, nullptr);
   return S_OK;
 }
 
