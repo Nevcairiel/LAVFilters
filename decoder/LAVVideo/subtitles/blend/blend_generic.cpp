@@ -64,7 +64,7 @@ DECLARE_BLEND_FUNC_IMPL(blend_rgb_c)
 template <class pixT, int nv12>
 DECLARE_BLEND_FUNC_IMPL(blend_yuv_c)
 {
-  ASSERT(pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_NV12 || pixFmt == LAVPixFmt_YUV422 || pixFmt == LAVPixFmt_YUV444 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_YUV422bX || pixFmt == LAVPixFmt_YUV444bX || pixFmt == LAVPixFmt_P010);
+  ASSERT(pixFmt == LAVPixFmt_YUV420 || pixFmt == LAVPixFmt_NV12 || pixFmt == LAVPixFmt_YUV422 || pixFmt == LAVPixFmt_YUV444 || pixFmt == LAVPixFmt_YUV420bX || pixFmt == LAVPixFmt_YUV422bX || pixFmt == LAVPixFmt_YUV444bX || pixFmt == LAVPixFmt_P010 || pixFmt == LAVPixFmt_P016);
 
   BYTE *y = video[0];
   BYTE *u = video[1];

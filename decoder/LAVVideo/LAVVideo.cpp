@@ -736,12 +736,12 @@ HRESULT CLAVVideo::CheckDirectMode()
   int bpp;
   m_Decoder.GetPixelFormat(&pix, &bpp);
 
-  BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P010);
+  BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P010 || pix == LAVPixFmt_P016);
   if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced(FALSE) && m_settings.SWDeintMode != SWDeintMode_None)
     bDirect = FALSE;
   else if (pix == LAVPixFmt_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_YV12)
     bDirect = FALSE;
-  else if (pix == LAVPixFmt_P010 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P010 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P016 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
+  else if ((pix == LAVPixFmt_P010 || pix == LAVPixFmt_P016) && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P010 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P016 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
     bDirect = FALSE;
   else if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider())
     bDirect = FALSE;
