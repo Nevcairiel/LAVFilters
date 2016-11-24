@@ -213,6 +213,9 @@ static int yuv2rgb_convert_pixels(const uint8_t* &srcY, const uint8_t* &srcU, co
     } else if (shift < 4) {
       xmm1 = _mm_slli_epi16(xmm0, 4-shift);
       xmm3 = _mm_slli_epi16(xmm2, 4-shift);
+    } else {
+      xmm1 = xmm0;
+      xmm3 = xmm2;
     }
   }
 
