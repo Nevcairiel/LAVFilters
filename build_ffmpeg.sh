@@ -63,6 +63,9 @@ configure() (
     --enable-hwaccel=wmv3_dxva2     \
     --enable-hwaccel=mpeg2_dxva2    \
     --enable-hwaccel=vp9_dxva2      \
+    --disable-cuda                  \
+    --disable-cuvid                 \
+    --disable-nvenc                 \
     --enable-libspeex               \
     --enable-libopencore-amrnb      \
     --enable-libopencore-amrwb      \
