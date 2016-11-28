@@ -122,6 +122,7 @@ public:
     void Clear();
   };
 
+  stream* FindStream(DWORD pid);
 
 protected:
   CBaseDemuxer(LPCTSTR pName, CCritSec *pLock);

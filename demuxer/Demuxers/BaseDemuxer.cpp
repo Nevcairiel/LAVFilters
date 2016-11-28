@@ -110,3 +110,13 @@ void CBaseDemuxer::CStreamList::Clear()
   }
   __super::clear();
 }
+
+CBaseDemuxer::stream* CBaseDemuxer::FindStream(DWORD pid)
+{
+  for (int i = 0; i < StreamType::unknown; i++) {
+    stream *pStream = m_streams[i].FindStream(pid);
+    if (pStream)
+      return pStream;
+  }
+  return nullptr;
+}
