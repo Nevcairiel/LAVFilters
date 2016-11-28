@@ -56,23 +56,10 @@ static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *
   DXVA2_ExtendedFormat fmt;
   ZeroMemory(&fmt, sizeof(fmt));
 
-  fillDXVAExtFormat(fmt, -1, ctx->color_primaries, ctx->colorspace, ctx->color_trc);
+  fillDXVAExtFormat(fmt, -1, ctx->color_primaries, ctx->colorspace, ctx->color_trc, ctx->chroma_sample_location);
 
   if (frame->format == AV_PIX_FMT_XYZ12LE || frame->format == AV_PIX_FMT_XYZ12BE)
     fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT709;
-
-  // Chroma location
-  switch(ctx->chroma_sample_location) {
-  case AVCHROMA_LOC_LEFT:
-    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_MPEG2;
-    break;
-  case AVCHROMA_LOC_CENTER:
-    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_MPEG1;
-    break;
-  case AVCHROMA_LOC_TOPLEFT:
-    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_Cosited;
-    break;
-  }
 
   // Color Range, 0-255 or 16-235
   BOOL ffFullRange = (ctx->color_range == AVCOL_RANGE_JPEG)
@@ -936,20 +923,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
       if (sdHDR->size == sizeof(AVMasteringDisplayMetadata)) {
         AVMasteringDisplayMetadata *metadata = (AVMasteringDisplayMetadata *)sdHDR->data;
         MediaSideDataHDR * hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
-        if (hdr) {
-          // avcodec exports the display primaries in RGB order, we export them in GBR
-          hdr->display_primaries_x[0] = av_q2d(metadata->display_primaries[1][0]);
-          hdr->display_primaries_y[0] = av_q2d(metadata->display_primaries[1][1]);
-          hdr->display_primaries_x[1] = av_q2d(metadata->display_primaries[2][0]);
-          hdr->display_primaries_y[1] = av_q2d(metadata->display_primaries[2][1]);
-          hdr->display_primaries_x[2] = av_q2d(metadata->display_primaries[0][0]);
-          hdr->display_primaries_y[2] = av_q2d(metadata->display_primaries[0][1]);
-
-          hdr->white_point_x = av_q2d(metadata->white_point[0]);
-          hdr->white_point_y = av_q2d(metadata->white_point[1]);
-          hdr->max_display_mastering_luminance = av_q2d(metadata->max_luminance);
-          hdr->min_display_mastering_luminance = av_q2d(metadata->min_luminance);
-        }
+        processFFHDRData(hdr, metadata);
       }
       else {
         DbgLog((LOG_TRACE, 10, L"::Decode(): Found HDR data of an unexpected size (%d)", sdHDR->size));

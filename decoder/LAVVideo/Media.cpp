@@ -673,7 +673,7 @@ int flip_plane(BYTE *buffer, int stride, int height)
   return 0;
 }
 
-void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer)
+void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer, int chroma_sample_location)
 {
   fmt.value = 0;
 
@@ -754,6 +754,43 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   case AVCOL_TRC_SMPTEST2084:
     fmt.VideoTransferFunction = 16;
     break;
+  }
+
+  // Chroma location
+  switch (chroma_sample_location) {
+  case AVCHROMA_LOC_LEFT:
+    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_MPEG2;
+    break;
+  case AVCHROMA_LOC_CENTER:
+    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_MPEG1;
+    break;
+  case AVCHROMA_LOC_TOPLEFT:
+    fmt.VideoChromaSubsampling = DXVA2_VideoChromaSubsampling_Cosited;
+    break;
+  }
+}
+
+void processFFHDRData(MediaSideDataHDR *sd, AVMasteringDisplayMetadata *ff)
+{
+  if (!sd || !ff)
+    return;
+
+  // avcodec exports the display primaries in RGB order, we export them in GBR
+  if (ff->has_primaries) {
+    sd->display_primaries_x[0] = av_q2d(ff->display_primaries[1][0]);
+    sd->display_primaries_y[0] = av_q2d(ff->display_primaries[1][1]);
+    sd->display_primaries_x[1] = av_q2d(ff->display_primaries[2][0]);
+    sd->display_primaries_y[1] = av_q2d(ff->display_primaries[2][1]);
+    sd->display_primaries_x[2] = av_q2d(ff->display_primaries[0][0]);
+    sd->display_primaries_y[2] = av_q2d(ff->display_primaries[0][1]);
+
+    sd->white_point_x = av_q2d(ff->white_point[0]);
+    sd->white_point_y = av_q2d(ff->white_point[1]);
+  }
+
+  if (ff->has_luminance) {
+    sd->max_display_mastering_luminance = av_q2d(ff->max_luminance);
+    sd->min_display_mastering_luminance = av_q2d(ff->min_luminance);
   }
 }
 
