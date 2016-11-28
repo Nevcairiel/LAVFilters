@@ -242,6 +242,8 @@ BYTE * AddLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t size)
   if (!pFrame->side_data[pFrame->side_data_count].data)
     return NULL;
 
+  memset(pFrame->side_data[pFrame->side_data_count].data, 0, size);
+
   pFrame->side_data_count++;
 
   return pFrame->side_data[pFrame->side_data_count - 1].data;
