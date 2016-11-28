@@ -1641,18 +1641,22 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     fillDXVAExtFormat(pFrame->ext_format, m_SideData.Mastering.color_range - 1, m_SideData.Mastering.color_primaries, m_SideData.Mastering.colorspace, m_SideData.Mastering.color_trc, m_SideData.Mastering.chroma_location);
   }
   if (m_SideData.Mastering.has_luminance || m_SideData.Mastering.has_primaries) {
-    bool bHasHDRData = false;
+    MediaSideDataHDR *hdr = nullptr;
+
+    // Check if HDR data already exists
     if (pFrame->side_data && pFrame->side_data_count) {
-      // Check if HDR data already exists
-      for (int i = 0; i < pFrame->side_data_count && bHasHDRData == false; i++) {
-        bHasHDRData = !!(pFrame->side_data[i].guidType == IID_MediaSideDataHDR);
+      for (int i = 0; i < pFrame->side_data_count; i++) {
+        if (pFrame->side_data[i].guidType == IID_MediaSideDataHDR) {
+          hdr = (MediaSideDataHDR *)pFrame->side_data[i].data;
+          break;
+        }
       }
     }
 
-    if (bHasHDRData == false) {
-      MediaSideDataHDR * hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
-      processFFHDRData(hdr, &m_SideData.Mastering);
-    }
+    if (hdr == nullptr)
+      hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
+
+    processFFHDRData(hdr, &m_SideData.Mastering);
   }
 
   // Collect width/height
