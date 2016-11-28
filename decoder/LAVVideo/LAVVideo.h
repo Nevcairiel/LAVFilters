@@ -36,6 +36,10 @@
 #include "BaseTrayIcon.h"
 #include "IMediaSideData.h"
 
+extern "C" {
+#include "libavutil/mastering_display_metadata.h"
+};
+
 #define LAVC_VIDEO_REGISTRY_KEY L"Software\\LAV\\Video"
 #define LAVC_VIDEO_REGISTRY_KEY_FORMATS L"Software\\LAV\\Video\\Formats"
 #define LAVC_VIDEO_REGISTRY_KEY_OUTPUT L"Software\\LAV\\Video\\Output"
@@ -261,6 +265,10 @@ private:
 
   BOOL                 m_LAVPinInfoValid       = FALSE;
   LAVPinInfo           m_LAVPinInfo;
+
+  struct {
+    AVMasteringDisplayMetadata Mastering;
+  } m_SideData;
 
   CLAVVideoSubtitleInputPin *m_pSubtitleInput  = nullptr;
   CLAVSubtitleConsumer *m_SubtitleConsumer     = nullptr;

@@ -31,6 +31,7 @@
 #include "resource.h"
 
 #include "IMediaSample3D.h"
+#include "IMediaSideDataFFmpeg.h"
 
 #include <Shlwapi.h>
 
@@ -64,6 +65,7 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
 
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
   memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
+  memset(&m_SideData, 0, sizeof(m_SideData));
 
   StaticInit(TRUE, nullptr);
 
@@ -614,6 +616,31 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     SafeRelease(&pPinInfo);
   } else {
     m_LAVPinInfoValid = FALSE;
+  }
+
+  // Clear old sidedata
+  memset(&m_SideData, 0, sizeof(m_SideData));
+
+  // Read and store stream-level sidedata
+  IMediaSideData *pPinSideData = nullptr;
+  hr = FindPinIntefaceInGraph(m_pInput, __uuidof(IMediaSideData), (void **)&pPinSideData);
+  if (SUCCEEDED(hr)) {
+    MediaSideDataFFMpeg *pSideData = nullptr;
+    size_t size = 0;
+    hr = pPinSideData->GetSideData(IID_MediaSideDataFFMpeg, (const BYTE **)&pSideData, &size);
+    if (SUCCEEDED(hr) && size == sizeof(MediaSideDataFFMpeg)) {
+      for (int i = 0; i < pSideData->side_data_elems; i++) {
+        AVPacketSideData *sd = &pSideData->side_data[i];
+
+        // Display Mastering metadata, including color info
+        if (sd->type == AV_PKT_DATA_MASTERING_DISPLAY_METADATA && sd->size == sizeof(AVMasteringDisplayMetadata))
+        {
+          m_SideData.Mastering = *(AVMasteringDisplayMetadata *)sd->data;
+        }
+      }
+    }
+
+    SafeRelease(&pPinSideData);
   }
 
   m_dwDecodeFlags = 0;
@@ -1607,6 +1634,25 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (m_bFlushing) {
     ReleaseFrame(&pFrame);
     return S_FALSE;
+  }
+
+  // Process stream-level sidedata and attach it to the frame if necessary
+  if (m_SideData.Mastering.has_colorspace) {
+    fillDXVAExtFormat(pFrame->ext_format, m_SideData.Mastering.color_range - 1, m_SideData.Mastering.color_primaries, m_SideData.Mastering.colorspace, m_SideData.Mastering.color_trc, m_SideData.Mastering.chroma_location);
+  }
+  if (m_SideData.Mastering.has_luminance || m_SideData.Mastering.has_primaries) {
+    bool bHasHDRData = false;
+    if (pFrame->side_data && pFrame->side_data_count) {
+      // Check if HDR data already exists
+      for (int i = 0; i < pFrame->side_data_count && bHasHDRData == false; i++) {
+        bHasHDRData = !!(pFrame->side_data[i].guidType == IID_MediaSideDataHDR);
+      }
+    }
+
+    if (bHasHDRData == false) {
+      MediaSideDataHDR * hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
+      processFFHDRData(hdr, &m_SideData.Mastering);
+    }
   }
 
   // Collect width/height
