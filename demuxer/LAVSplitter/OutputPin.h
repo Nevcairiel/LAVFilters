@@ -32,11 +32,13 @@
 #include "LAVSplitter.h"
 #include "ILAVPinInfo.h"
 #include "IBitRateInfo.h"
+#include "IMediaSideData.h"
 
 class CLAVOutputPin
   : public CBaseOutputPin
   , public ILAVPinInfo
   , public IBitRateInfo
+  , public IMediaSideData
   , IMediaSeeking
   , protected CAMThread
 {
@@ -89,6 +91,10 @@ public:
   // IBitRateInfo
   STDMETHODIMP_(DWORD) GetCurrentBitRate() { return m_BitRate.nCurrentBitRate; }
   STDMETHODIMP_(DWORD) GetAverageBitRate() { return m_BitRate.nAverageBitRate; }
+
+  // IMediaSideData
+  STDMETHODIMP SetSideData(GUID guidType, const BYTE *pData, size_t size) { return E_NOTIMPL; }
+  STDMETHODIMP GetSideData(GUID guidType, const BYTE **pData, size_t *pSize);
 
   size_t QueueCount();
   HRESULT QueuePacket(Packet *pPacket);

@@ -24,6 +24,7 @@
 #include "ILAVPinInfo.h"
 #include "LAVFVideoHelper.h"
 #include "ExtradataParser.h"
+#include "IMediaSideDataFFmpeg.h"
 
 #include "LAVSplitterSettingsInternal.h"
 
@@ -2499,6 +2500,27 @@ STDMETHODIMP_(int) CLAVFDemuxer::GetHasBFrames(DWORD dwStream)
     return -1;
 
   return m_avFormat->streams[dwStream]->codecpar->video_delay;
+}
+
+STDMETHODIMP CLAVFDemuxer::GetSideData(DWORD dwStream, GUID guidType, const BYTE **pData, size_t *pSize)
+{
+  if (!m_avFormat || dwStream >= m_avFormat->nb_streams)
+    return E_INVALIDARG;
+
+  if (guidType == IID_MediaSideDataFFMpeg) {
+    CBaseDemuxer::stream *pStream = FindStream(dwStream);
+    if (!pStream)
+      return E_FAIL;
+
+    pStream->SideData.side_data = m_avFormat->streams[dwStream]->side_data;
+    pStream->SideData.side_data_elems = m_avFormat->streams[dwStream]->nb_side_data;
+    *pData = (BYTE*)&pStream->SideData;
+    *pSize = sizeof(pStream->SideData);
+
+    return S_OK;
+  }
+
+  return E_INVALIDARG;
 }
 
 STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue, int stream)

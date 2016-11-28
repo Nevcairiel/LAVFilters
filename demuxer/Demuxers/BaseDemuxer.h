@@ -23,6 +23,7 @@
 
 #include "StreamInfo.h"
 #include "Packet.h"
+#include "IMediaSideDataFFmpeg.h"
 
 #define DSHOW_TIME_BASE 10000000        // DirectShow times are in 100ns units
 #define NO_SUBTITLE_PID DWORD_MAX
@@ -60,7 +61,8 @@ public:
     std::string language;
     std::string trackName;
     LCID lcid;
-    struct stream() { streamInfo = nullptr; pid = 0; lcid = 0; }
+    MediaSideDataFFMpeg SideData;
+    struct stream() { streamInfo = nullptr; pid = 0; lcid = 0; memset(&SideData, 0, sizeof(SideData)); }
     operator DWORD() const { return pid; }
     bool operator == (const struct stream& s) const { return (DWORD)*this == (DWORD)s; }
   } stream;
@@ -110,6 +112,7 @@ public:
   virtual STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream) { return 0; }
   virtual STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream) { return AV_PIX_FMT_NONE; }
   virtual STDMETHODIMP_(int) GetHasBFrames(DWORD dwStream) { return -1; }
+  virtual STDMETHODIMP GetSideData(DWORD dwStream, GUID guidType, const BYTE **pData, size_t *pSize) { return E_NOTIMPL; }
 
 public:
   class CStreamList : public std::deque<stream>

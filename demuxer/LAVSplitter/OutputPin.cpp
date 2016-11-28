@@ -88,6 +88,7 @@ STDMETHODIMP CLAVOutputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
     QI(IMediaSeeking)
     QI(ILAVPinInfo)
     QI(IBitRateInfo)
+    QI(IMediaSideData)
     __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
@@ -626,4 +627,9 @@ STDMETHODIMP_(int) CLAVOutputPin::GetPixelFormat()
 STDMETHODIMP_(int) CLAVOutputPin::GetHasBFrames()
 {
   return (static_cast<CLAVSplitter*>(m_pFilter))->GetHasBFrames(m_streamId);
+}
+
+STDMETHODIMP CLAVOutputPin::GetSideData(GUID guidType, const BYTE **pData, size_t *pSize)
+{
+  return (static_cast<CLAVSplitter*>(m_pFilter))->GetSideData(m_streamId, guidType, pData, pSize);
 }

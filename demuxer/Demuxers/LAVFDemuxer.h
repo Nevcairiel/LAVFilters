@@ -85,6 +85,7 @@ public:
   STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream);
   STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream);
   STDMETHODIMP_(int) GetHasBFrames(DWORD dwStream);
+  STDMETHODIMP GetSideData(DWORD dwStream, GUID guidType, const BYTE **pData, size_t *pSize);
 
   // IAMExtendedSeeking
   STDMETHODIMP get_ExSeekCapabilities(long* pExCapabilities);
