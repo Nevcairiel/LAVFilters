@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "Packet.h"
 #include "IMediaSideData.h"
 #include "IMediaSideDataFFmpeg.h"
 

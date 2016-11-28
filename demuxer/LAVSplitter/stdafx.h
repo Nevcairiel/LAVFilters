@@ -41,9 +41,7 @@ extern "C" {
 #pragma warning(pop)
 
 #include "streams.h"
-
 #include "DShowUtil.h"
-#include "BaseDemuxer.h"
 
 #include "resource.h"
 

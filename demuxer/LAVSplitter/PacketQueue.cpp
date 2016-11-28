@@ -19,6 +19,7 @@
 
 #include "stdafx.h"
 #include "PacketQueue.h"
+#include "BaseDemuxer.h"
 
 // Queue a new packet at the end of the list
 void CPacketQueue::Queue(Packet *pPacket)
