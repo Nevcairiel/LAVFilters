@@ -3,12 +3,14 @@ LAV DirectShow Filters Changelog
 
 0.69.0 - 2016/xx/xx
 LAV Splitter
+- NEW: Support for extracting HDR metadata from YouTube HDR VP9 streams
 - Fixed: Reading MKV files could crash when encountering tags for unknown or disabled streams
 
 LAV Video
 - NEW: Support for 10-bit UtVideo
 - NEW: MagicYUV decoding support
 - NEW: Experimental support for CineformHD decoding
+- Fixed: Converting 12-bit 4:4:4 YCbCr to RGB32 would result in a garbled image
 
 LAV Audio
 - NEW: DTS Express (LBR) decoding support
