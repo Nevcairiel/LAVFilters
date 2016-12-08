@@ -237,6 +237,7 @@ interface ILAVVideoCallback
 #define LAV_VIDEO_DEC_FLAG_DVD                    0x00000010
 #define LAV_VIDEO_DEC_FLAG_NO_MT                  0x00000020
 #define LAV_VIDEO_DEC_FLAG_SAGE_HACK              0x00000040
+#define LAV_VIDEO_DEC_FLAG_LIVE                   0x00000080
 
   /**
    * Get the input media type

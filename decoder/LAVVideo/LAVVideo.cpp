@@ -697,6 +697,8 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_NO_MT;
   if (bSageVC1Hack)
     m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_SAGE_HACK;
+  if (m_LAVPinInfoValid && (m_LAVPinInfo.flags & LAV_STREAM_FLAG_LIVE))
+    m_dwDecodeFlags |= LAV_VIDEO_DEC_FLAG_LIVE;
 
   SAFE_CO_FREE(pszExtension);
 

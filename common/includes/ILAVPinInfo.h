@@ -29,6 +29,7 @@ interface __declspec(uuid("FD220BF4-3F26-4AD4-A4A9-348C1273A141")) ILAVPinInfo :
   STDMETHOD_(DWORD,GetStreamFlags)() PURE;
 #define LAV_STREAM_FLAG_ONLY_DTS  0x0000001 ///< Stream has only DTS timestamps (AVI, MKV in MS-Compat mode)
 #define LAV_STREAM_FLAG_RV34_MKV  0x0000002 ///< RV30/40 in MKV or similar container with horrible timstamps
+#define LAV_STREAM_FLAG_LIVE      0x0000004 ///< Stream is from a Live source
 
   // Get the pixel format detected for this video stream
   STDMETHOD_(int,GetPixelFormat)() PURE;

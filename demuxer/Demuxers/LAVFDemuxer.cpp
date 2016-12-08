@@ -2483,6 +2483,9 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
   if (m_bMatroska && (st->codecpar->codec_id == AV_CODEC_ID_RV30 || st->codecpar->codec_id == AV_CODEC_ID_RV40))
     dwFlags |= LAV_STREAM_FLAG_RV34_MKV;
 
+  if (m_avFormat->flags & AVFMT_FLAG_NETWORK)
+    dwFlags |= LAV_STREAM_FLAG_LIVE;
+
   return dwFlags;
 }
 
