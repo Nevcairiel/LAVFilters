@@ -43,6 +43,10 @@ Uninstallable             = yes
 DisableDirPage            = auto
 DisableProgramGroupPage   = auto
 UsePreviousTasks          = yes
+#ifexist "..\LAVSignInfo.txt"
+SignTool                  = LAVSignTool
+SignedUninstaller         = yes
+#endif
 
 [Messages]
 WelcomeLabel1=[name/ver]
