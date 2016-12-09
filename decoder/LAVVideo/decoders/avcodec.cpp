@@ -830,7 +830,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     if (m_bResumeAtKeyFrame) {
       if (m_bWaitingForKeyFrame && got_picture) {
         if (m_pFrame->key_frame) {
-          DbgLog((LOG_TRACE, 50, L"::Decode() - Found Key-Frame, resuming decoding at %I64d", m_pFrame->pkt_pts));
+          DbgLog((LOG_TRACE, 50, L"::Decode() - Found Key-Frame, resuming decoding at %I64d", m_pFrame->pts));
           m_bWaitingForKeyFrame = FALSE;
         } else {
           got_picture = 0;
@@ -858,9 +858,9 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     // Determine the proper timestamps for the frame, based on different possible flags.
     ///////////////////////////////////////////////////////////////////////////////////////////////
     if (m_bFFReordering) {
-      rtStart = m_pFrame->pkt_pts;
+      rtStart = m_pFrame->pts;
       if (m_pFrame->pkt_duration)
-        rtStop = m_pFrame->pkt_pts + m_pFrame->pkt_duration;
+        rtStop = m_pFrame->pts + m_pFrame->pkt_duration;
       else
         rtStop = AV_NOPTS_VALUE;
     } else if (m_bBFrameDelay && m_pAVCtx->has_b_frames) {
