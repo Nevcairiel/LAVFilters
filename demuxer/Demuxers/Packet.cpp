@@ -30,7 +30,7 @@ Packet::~Packet()
   av_packet_free(&m_Packet);
 }
 
-int Packet::SetDataSize(size_t len)
+int Packet::SetDataSize(int len)
 {
   if (len < 0)
     return -1;
@@ -54,7 +54,7 @@ int Packet::SetDataSize(size_t len)
   return 0;
 }
 
-int Packet::SetData(const void* ptr, size_t len)
+int Packet::SetData(const void* ptr, int len)
 {
   if (!ptr || len < 0)
     return -1;
@@ -82,9 +82,9 @@ int Packet::Append(Packet *ptr)
   return AppendData(ptr->GetData(), ptr->GetDataSize());
 }
 
-int Packet::AppendData(const void* ptr, size_t len)
+int Packet::AppendData(const void* ptr, int len)
 {
-  size_t prevSize = GetDataSize();
+  int prevSize = GetDataSize();
   int ret = SetDataSize(prevSize + len);
   if (ret < 0)
     return ret;
@@ -92,9 +92,9 @@ int Packet::AppendData(const void* ptr, size_t len)
   return 0;
 }
 
-int Packet::RemoveHead(size_t count)
+int Packet::RemoveHead(int count)
 {
   m_Packet->data += count;
-  m_Packet->size -= count;
+  m_Packet->size -= (int)count;
   return 0;
 }

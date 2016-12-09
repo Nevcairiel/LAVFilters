@@ -155,7 +155,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
 
     while (Nalu.ReadNext()) {
       Packet *p3 = new Packet();
-      p3->SetDataSize(Nalu.GetDataLength() + 4);
+      p3->SetDataSize((int)Nalu.GetDataLength() + 4);
 
       // Write size of the NALU (Big Endian)
       AV_WB32(p3->GetData(), (uint32_t)Nalu.GetDataLength());
@@ -213,7 +213,7 @@ HRESULT CStreamParser::ParseH264AnnexB(Packet *pPacket)
   }
 
   if(start > m_pPacketBuffer->GetData()) {
-    m_pPacketBuffer->RemoveHead(start - m_pPacketBuffer->GetData());
+    m_pPacketBuffer->RemoveHead((int)(start - m_pPacketBuffer->GetData()));
   }
 
   SAFE_DELETE(pPacket);
@@ -432,7 +432,7 @@ HRESULT CStreamParser::ParseSRT(Packet *pPacket)
       p->StreamId       = pPacket->StreamId;
       p->rtStart        = pPacket->rtStart;
       p->rtStop         = pPacket->rtStop;
-      p->AppendData(linestart, size);
+      p->AppendData(linestart, (int)size);
       Queue(p);
     }
   }

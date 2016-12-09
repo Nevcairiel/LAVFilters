@@ -28,21 +28,21 @@ public:
   Packet();
   ~Packet();
 
-  size_t GetDataSize() const { return m_Packet ? m_Packet->size : 0; }
+  int GetDataSize() const { return m_Packet ? m_Packet->size : 0; }
   BYTE *GetData() { return m_Packet ? m_Packet->data : nullptr; }
 
   int GetNumSideData() const { return m_Packet ? m_Packet->side_data_elems : 0; }
   AVPacketSideData* GetSideData() { return m_Packet ? m_Packet->side_data : nullptr; }
 
-  int SetDataSize(size_t len);
-  int SetData(const void* ptr, size_t len);
+  int SetDataSize(int len);
+  int SetData(const void* ptr, int len);
   int SetPacket(AVPacket *pkt);
 
   // Append the data of the package to our data buffer
   int Append(Packet *ptr);
-  int AppendData(const void* ptr, size_t len);
+  int AppendData(const void* ptr, int len);
   // Remove count bytes from position index
-  int RemoveHead(size_t count);
+  int RemoveHead(int count);
 
 public:
   DWORD StreamId         = 0;
