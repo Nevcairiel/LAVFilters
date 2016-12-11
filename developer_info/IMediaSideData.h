@@ -10,8 +10,7 @@
 // This interface should be implemented in IMediaSample objects and accessed through IUnknown
 // It allows binary side data to be attached to the media samples and delivered with them
 // Restrictions: Only one side data per type can be attached
-[uuid("F940AE7F-48EB-4377-806C-8FC48CAB2292")]
-interface IMediaSideData : public IUnknown
+interface __declspec(uuid("F940AE7F-48EB-4377-806C-8FC48CAB2292")) IMediaSideData : public IUnknown
 {
   // Set the side data identified by guidType to the data provided
   // The provided data will be copied and stored internally

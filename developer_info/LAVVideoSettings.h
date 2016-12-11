@@ -88,6 +88,8 @@ typedef enum LAVVideoCodec {
   Codec_TrueMotion,
   Codec_VP7,
   Codec_H264MVC,
+  Codec_CineformHD,
+  Codec_MagicYUV,
 
   Codec_VideoNB            // Number of entries (do not use when dynamically linking)
 } LAVVideoCodec;
@@ -194,8 +196,7 @@ typedef enum LAVDitherMode {
 } LAVDitherMode;
 
 // LAV Video configuration interface
-[uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")]
-interface ILAVVideoSettings : public IUnknown
+interface __declspec(uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")) ILAVVideoSettings : public IUnknown
 {
   // Switch to Runtime Config mode. This will reset all settings to default, and no changes to the settings will be saved
   // You can use this to programmatically configure LAV Video without interfering with the users settings in the registry.
@@ -385,8 +386,7 @@ interface ILAVVideoSettings : public IUnknown
 };
 
 // LAV Video status interface
-[uuid("1CC2385F-36FA-41B1-9942-5024CE0235DC")]
-interface ILAVVideoStatus : public IUnknown
+interface __declspec(uuid("1CC2385F-36FA-41B1-9942-5024CE0235DC")) ILAVVideoStatus : public IUnknown
 {
   // Get the name of the active decoder (can return NULL if none is active)
   STDMETHOD_(LPCWSTR, GetActiveDecoderName)() = 0;
