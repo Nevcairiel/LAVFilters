@@ -500,11 +500,11 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const pt
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
   const int16_t *v = nullptr;
-  const int shift = (16 - m_InBpp);
   ptrdiff_t sourceStride = 0;
 
   BYTE *pTmpBuffer = nullptr;
 
+  int shift = (16 - m_InBpp);
   if (m_InputPixFmt != LAVPixFmt_YUV444bX) {
     uint8_t  *tmp[4] = {nullptr};
     ptrdiff_t tmpStride[4] = {0};
@@ -530,6 +530,7 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const pt
     u = (int16_t *)tmp[1];
     v = (int16_t *)tmp[2];
     sourceStride = scaleStride;
+    shift = 0;
   } else {
     y = (int16_t *)src[0];
     u = (int16_t *)src[1];
