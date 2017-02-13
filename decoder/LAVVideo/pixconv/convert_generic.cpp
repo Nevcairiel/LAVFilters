@@ -500,11 +500,12 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const pt
   const int16_t *y = nullptr;
   const int16_t *u = nullptr;
   const int16_t *v = nullptr;
+  const int shift = (16 - m_InBpp);
   ptrdiff_t sourceStride = 0;
 
   BYTE *pTmpBuffer = nullptr;
 
-  if (m_InputPixFmt != LAVPixFmt_YUV444bX || m_InBpp != 16) {
+  if (m_InputPixFmt != LAVPixFmt_YUV444bX) {
     uint8_t  *tmp[4] = {nullptr};
     ptrdiff_t tmpStride[4] = {0};
     ptrdiff_t scaleStride = FFALIGN(width, 32);
@@ -537,8 +538,8 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const pt
   }
 
 #define YUV444_Y416_PACK \
-  *idst++ = 0xFFFF | (vv << 16); \
-  *idst++ = yv | (uv << 16);
+  *idst++ = 0xFFFF | (vv << (16 + shift)); \
+  *idst++ = (yv << shift) | (uv << (16 + shift));
 
   BYTE *out = dst[0];
   YUV444_PACKED_LOOP_HEAD_LE(width, height, y, u, v, out)
