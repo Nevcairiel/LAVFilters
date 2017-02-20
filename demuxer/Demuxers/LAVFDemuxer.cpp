@@ -310,6 +310,7 @@ trynoformat:
   // demuxer/protocol options
   AVDictionary *options = nullptr;
   av_dict_set(&options, "icy", "1", 0); // request ICY metadata
+  av_dict_set(&options, "editlist_fix_index", "0", 0); // disable broken move editlist handling
 
   if (rtsp_transport != nullptr) {
     av_dict_set(&options, "rtsp_transport", rtsp_transport, 0);
