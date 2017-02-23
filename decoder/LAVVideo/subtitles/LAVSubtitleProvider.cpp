@@ -145,17 +145,24 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
   // Scope this so we limit the provider-lock to the part where its needed
   {
     CAutoLock lock(this);
+    CLAVSubRect *pRectToRender = nullptr;
     for (auto it = m_SubFrames.begin(); it != m_SubFrames.end(); it++) {
       CLAVSubRect *pRect = *it;
       if ((pRect->rtStart == AV_NOPTS_VALUE || pRect->rtStart <= mid)
         && (pRect->rtStop == AV_NOPTS_VALUE || pRect->rtStop > mid)
         && (m_bComposit || pRect->forced)) {
+        pRectToRender = *it;
 
-        if (m_pHLI && PTS2RT(m_pHLI->StartPTM) <= mid && PTS2RT(m_pHLI->EndPTM) >= mid) {
-          pRect = ProcessDVDHLI(pRect);
-        }
-        subtitleFrame->AddBitmap(pRect);
+        if (pRect->rtStop != AV_NOPTS_VALUE)
+          break;
       }
+    }
+
+    if (pRectToRender) {
+      if (m_pHLI && PTS2RT(m_pHLI->StartPTM) <= mid && PTS2RT(m_pHLI->EndPTM) >= mid) {
+        pRectToRender = ProcessDVDHLI(pRectToRender);
+      }
+      subtitleFrame->AddBitmap(pRectToRender);
     }
 
     m_rtLastFrame = start;
