@@ -22,6 +22,8 @@
 #include "LAVVideoSettings.h"
 #include "decoders/ILAVDecoder.h"
 
+#include <emmintrin.h>
+
 #define CONV_FUNC_PARAMS (const uint8_t* const src[4], const ptrdiff_t srcStride[4], uint8_t* dst[4], const ptrdiff_t dstStride[4], int width, int height, LAVPixelFormat inputFormat, int bpp, LAVOutPixFmts outputFormat)
 
 #define DECLARE_CONV_FUNC(name) \

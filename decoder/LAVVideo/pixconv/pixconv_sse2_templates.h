@@ -20,6 +20,7 @@
 #pragma once
 
 #include <emmintrin.h>
+#include <smmintrin.h>
 
 // Load the dithering coefficients for this line
 // reg   - register to load coefficients into
