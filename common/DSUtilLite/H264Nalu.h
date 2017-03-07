@@ -87,3 +87,16 @@ public:
   CH265Nalu() : CH264Nalu() {};
   bool ReadNext();
 };
+
+class CH264NALUnescape
+{
+public:
+  CH264NALUnescape(const BYTE *pBuffer, size_t nSize);
+  ~CH264NALUnescape();
+  const BYTE *GetBuffer() const { return m_pBuffer; }
+  size_t GetSize() const { return m_nSize; }
+
+private:
+  BYTE  *m_pBuffer = nullptr;
+  size_t m_nSize   = 0;
+};

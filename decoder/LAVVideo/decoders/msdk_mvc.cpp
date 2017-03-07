@@ -372,7 +372,8 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     BOOL bNeedFilter = FALSE;
     while (nalu.ReadNext()) {
       if (nalu.GetType() == NALU_TYPE_SEI) {
-        ParseSEI(nalu.GetDataBuffer() + 1, nalu.GetDataLength() - 1, bs.TimeStamp);
+        CH264NALUnescape seiNalu(nalu.GetDataBuffer() + 1, nalu.GetDataLength() - 1);
+        ParseSEI(seiNalu.GetBuffer(), seiNalu.GetSize(), bs.TimeStamp);
       }
       else if (nalu.GetType() == NALU_TYPE_EOSEQ) {
         bsBuffer.EnsureWriteable();

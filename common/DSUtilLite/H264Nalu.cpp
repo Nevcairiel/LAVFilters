@@ -114,3 +114,41 @@ bool CH265Nalu::ReadNext()
 
   return false;
 }
+
+
+CH264NALUnescape::CH264NALUnescape(const BYTE *src, size_t nSize)
+{
+  m_pBuffer = (BYTE *)_aligned_malloc(nSize + 16, 16);
+  memset(m_pBuffer, 0, nSize + 16);
+
+  unsigned si = 0, di = 0;
+  BYTE *dst = m_pBuffer;
+  while (si + 2 < nSize) {
+    // detect and remove escapes
+    if (src[si + 2] > 3) {
+      dst[di++] = src[si++];
+      dst[di++] = src[si++];
+    }
+    else if (src[si] == 0 && src[si + 1] == 0 && src[si + 2] != 0) {
+      if (src[si + 2] == 3) { // escape
+        dst[di++] = 0;
+        dst[di++] = 0;
+        si += 3;
+
+        continue;
+      }
+    }
+
+    dst[di++] = src[si++];
+  }
+
+  while (si < nSize)
+    dst[di++] = src[si++];
+
+  m_nSize = di;
+}
+
+CH264NALUnescape::~CH264NALUnescape()
+{
+  _aligned_free(m_pBuffer);
+}
