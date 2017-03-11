@@ -2478,7 +2478,7 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
   if (st->codecpar->codec_id == AV_CODEC_ID_H264 && (m_bAVI || m_bPMP || (m_bMatroska && (!st->codecpar->extradata_size || st->codecpar->extradata[0] != 1)) || (m_bMP4 && st->priv_data && ((MOVStreamContext *)st->priv_data)->ctts_count == 0)))
     dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
 
-  if (st->codecpar->codec_id == AV_CODEC_ID_HEVC && m_bAVI)
+  if (st->codecpar->codec_id == AV_CODEC_ID_HEVC && (m_bAVI || (m_bMP4 && st->priv_data && ((MOVStreamContext *)st->priv_data)->ctts_count == 0)))
     dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
 
   if (m_bMatroska && (st->codecpar->codec_id == AV_CODEC_ID_RV30 || st->codecpar->codec_id == AV_CODEC_ID_RV40))
