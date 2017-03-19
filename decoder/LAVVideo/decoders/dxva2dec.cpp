@@ -1382,6 +1382,10 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
 
   m_pAVCtx->slice_flags    |= SLICE_FLAG_ALLOW_FIELD;
 
+  // disable error conealment in hwaccel mode, it doesn't work either way
+  m_pAVCtx->error_concealment = 0;
+  av_opt_set_int(m_pAVCtx, "enable_er", 0, AV_OPT_SEARCH_CHILDREN);
+
   return S_OK;
 }
 
