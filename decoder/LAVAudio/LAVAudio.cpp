@@ -1506,11 +1506,6 @@ HRESULT CLAVAudio::EndOfStream()
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::EndOfStream()"));
   CAutoLock cAutoLock(&m_csReceive);
 
-  if (m_bFindDTSInPCM) {
-    m_rtStartInput = m_rtStartInputCache;
-    m_rtStartInputCache = AV_NOPTS_VALUE;
-  }
-
   // Flush the last data out of the parser
   ProcessBuffer(nullptr);
   ProcessBuffer(nullptr, TRUE);
@@ -1861,7 +1856,15 @@ HRESULT CLAVAudio::ProcessBuffer(IMediaSample *pMediaSample, BOOL bEOF)
       return ProcessBuffer(pMediaSample, FALSE);
     }
   } else {
-    if (!m_bFindDTSInPCM) {
+    // In DTSinPCm mode, make sure the timestamps are correct, and process the remaining buffer
+    if (m_bFindDTSInPCM)
+    {
+      m_rtStartInput = m_rtStartInputCache;
+      m_rtStartInputCache = AV_NOPTS_VALUE;
+    }
+    // Otherwise, performa proper flush and stop working
+    else
+    {
       p = nullptr;
       buffer_size = -1;
     }
