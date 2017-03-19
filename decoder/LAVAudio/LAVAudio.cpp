@@ -1506,6 +1506,11 @@ HRESULT CLAVAudio::EndOfStream()
   DbgLog((LOG_TRACE, 10, L"CLAVAudio::EndOfStream()"));
   CAutoLock cAutoLock(&m_csReceive);
 
+  if (m_bFindDTSInPCM) {
+    m_rtStartInput = m_rtStartInputCache;
+    m_rtStartInputCache = AV_NOPTS_VALUE;
+  }
+
   // Flush the last data out of the parser
   ProcessBuffer(nullptr);
   ProcessBuffer(nullptr, TRUE);
