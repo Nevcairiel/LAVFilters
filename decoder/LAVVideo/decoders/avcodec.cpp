@@ -519,7 +519,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   if (bLAVInfoValid) {
     // Use strict decoding with LAV Splitter and non-live sources
-    if (codec == AV_CODEC_ID_H264 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_LIVE) && m_bFFReordering) {
+    if (codec == AV_CODEC_ID_H264 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_LIVE) && m_bFFReordering && !m_pAVCtx->hwaccel_context) {
       m_pAVCtx->strict_std_compliance = FF_COMPLIANCE_STRICT;
     }
     // Try to set the has_b_frames info if available
