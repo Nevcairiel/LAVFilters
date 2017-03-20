@@ -44,11 +44,11 @@ inline void* gpu_memcpy(void* d, const void* s, size_t size)
     __m128i xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15;
 #endif
 
-    size_t reminder = size & (regsInLoop * sizeof(xmm0) - 1); // Copy 128 or 256 bytes every loop
+    size_t remainder = size & (regsInLoop * sizeof(xmm0) - 1); // Copy 128 or 256 bytes every loop
     size_t end = 0;
 
     __m128i* pTrg = (__m128i*)d;
-    __m128i* pTrgEnd = pTrg + ((size - reminder) >> 4);
+    __m128i* pTrgEnd = pTrg + ((size - remainder) >> 4);
     __m128i* pSrc = (__m128i*)s;
     
     // Make sure source is synced - doesn't hurt if not needed.
@@ -103,10 +103,10 @@ inline void* gpu_memcpy(void* d, const void* s, size_t size)
     }
 
     // Copy in 16 byte steps
-    if (reminder >= 16)
+    if (remainder >= 16)
     {
-        size = reminder;
-        reminder = size & 15;
+        size = remainder;
+        remainder = size & 15;
         end = size >> 4;
         for (size_t i = 0; i < end; ++i)
         {
@@ -115,14 +115,14 @@ inline void* gpu_memcpy(void* d, const void* s, size_t size)
     }
 
     // Copy last bytes - shouldn't happen as strides are modulu 16
-    if (reminder)
+    if (remainder)
     {
         __m128i temp = _mm_stream_load_si128(pSrc + end);
 
         char* ps = (char*)(&temp);
         char* pt = (char*)(pTrg + end);
 
-        for (size_t i = 0; i < reminder; ++i)
+        for (size_t i = 0; i < remainder; ++i)
         {
             pt[i] = ps[i];
         }
