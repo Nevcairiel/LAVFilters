@@ -538,13 +538,15 @@ HRESULT CLAVPixFmtConverter::ConvertToY416(const uint8_t* const src[4], const pt
     sourceStride = srcStride[0] / 2;
   }
 
-#define YUV444_Y416_PACK \
-  *idst++ = 0xFFFF | (vv << (16 + shift)); \
-  *idst++ = (yv << shift) | (uv << (16 + shift));
-
   BYTE *out = dst[0];
   YUV444_PACKED_LOOP_HEAD_LE(width, height, y, u, v, out)
-    YUV444_Y416_PACK
+    uint16_t *p = (uint16_t *)idst;
+    p[0] = (uv << shift);
+    p[1] = (yv << shift);
+    p[2] = (vv << shift);
+    p[3] = 0xFFFF;
+
+    idst += 2;
   YUV444_PACKED_LOOP_END(y, u, v, out, sourceStride, dstStride[0])
 
   av_freep(&pTmpBuffer);
