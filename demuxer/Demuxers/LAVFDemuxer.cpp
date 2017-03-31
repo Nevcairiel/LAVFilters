@@ -169,9 +169,10 @@ STDMETHODIMP CLAVFDemuxer::Start()
   return S_OK;
 }
 
-STDMETHODIMP CLAVFDemuxer::AbortOpening(int mode)
+STDMETHODIMP CLAVFDemuxer::AbortOpening(int mode, int timeout)
 {
   m_Abort = mode;
+  m_timeAbort = timeout ? time(nullptr) + timeout : 0;
   return S_OK;
 }
 
@@ -184,7 +185,10 @@ int CLAVFDemuxer::avio_interrupt_cb(void *opaque)
   if (demux->m_timeOpening && now > (demux->m_timeOpening + AVFORMAT_OPEN_TIMEOUT))
     return 1;
 
-  return demux->m_Abort;
+  if (demux->m_Abort && now > demux->m_timeAbort)
+    return 1;
+
+  return 0;
 }
 
 static LPCWSTR wszImageExtensions[] = {
@@ -773,6 +777,8 @@ void CLAVFDemuxer::CleanupAVFormat()
 {
   FlushMVCExtensionQueue();
   if (m_avFormat) {
+    // Override abort timer to ensure the close function in network protocols can actually close the stream
+    AbortOpening(1, 5);
     avformat_close_input(&m_avFormat);
   }
   SAFE_CO_FREE(m_stOrigParser);

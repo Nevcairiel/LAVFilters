@@ -58,7 +58,7 @@ public:
   // CBaseDemuxer
   STDMETHODIMP Open(LPCOLESTR pszFileName);
   STDMETHODIMP Start();
-  STDMETHODIMP AbortOpening(int mode = 1);
+  STDMETHODIMP AbortOpening(int mode = 1, int timeout = 0);
   REFERENCE_TIME GetDuration() const;
   STDMETHODIMP GetNextPacket(Packet **ppPacket);
   STDMETHODIMP Seek(REFERENCE_TIME rTime);
@@ -212,5 +212,6 @@ private:
   CBDDemuxer *m_pBluRay              = nullptr;
 
   int m_Abort                        = 0;
+  time_t m_timeAbort                 = 0;
   time_t m_timeOpening               = 0;
 };
