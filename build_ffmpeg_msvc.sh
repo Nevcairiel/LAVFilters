@@ -51,6 +51,7 @@ configure() (
   OPTIONS="
     --enable-shared                 \
     --disable-static                \
+    --enable-gpl                    \
     --enable-version3               \
     --enable-w32threads             \
     --disable-demuxer=matroska      \
