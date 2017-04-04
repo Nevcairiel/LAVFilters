@@ -315,6 +315,7 @@ trynoformat:
   AVDictionary *options = nullptr;
   av_dict_set(&options, "icy", "1", 0); // request ICY metadata
   av_dict_set(&options, "advanced_editlist", "0", 0); // disable broken mov editlist handling
+  av_dict_set(&options, "reconnect", "1", 0); // for http, reconnect if we get disconnected
 
   if (rtsp_transport != nullptr) {
     av_dict_set(&options, "rtsp_transport", rtsp_transport, 0);
