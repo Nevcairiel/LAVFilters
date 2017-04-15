@@ -478,6 +478,11 @@ STDMETHODIMP CDecCuvid::InitD3D9(int best_device, DWORD requested_device)
   CUresult cuStatus = CUDA_SUCCESS;
   int device = 0;
 
+  if (IsWindows10OrNewer()) {
+    DbgLog((LOG_ERROR, 10, L"-> D3D9 CUVID interop is not supported on Windows 10"));
+    return E_FAIL;
+  }
+
   if (!m_pD3D9)
     m_pD3D9 = Direct3DCreate9(D3D_SDK_VERSION);
 
