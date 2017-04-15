@@ -63,7 +63,7 @@ private:
 
   STDMETHODIMP InitD3D9(int best_device, DWORD requested_device);
 
-  STDMETHODIMP CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight);
+  STDMETHODIMP CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, bool bProgressiveSequence);
   STDMETHODIMP DecodeSequenceData();
 
   // CUDA Callbacks

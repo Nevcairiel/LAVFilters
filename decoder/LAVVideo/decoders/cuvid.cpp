@@ -721,7 +721,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   videoFormatTypeHandler(pmt->Format(), pmt->FormatType(), &bmi);
 
   {
-    hr = CreateCUVIDDecoder(cudaCodec, bmi->biWidth, bmi->biHeight);
+    hr = CreateCUVIDDecoder(cudaCodec, bmi->biWidth, bmi->biHeight, !m_bInterlaced);
     if (FAILED(hr)) {
       DbgLog((LOG_ERROR, 10, L"-> Creating CUVID decoder failed"));
       return hr;
@@ -735,7 +735,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   return S_OK;
 }
 
-STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight)
+STDMETHODIMP CDecCuvid::CreateCUVIDDecoder(cudaVideoCodec codec, DWORD dwWidth, DWORD dwHeight, bool bProgressiveSequence)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CreateCUVIDDecoder(): Creating CUVID decoder instance"));
   HRESULT hr = S_OK;
@@ -756,7 +756,7 @@ retry:
   dci->CodecType           = codec;
   dci->ChromaFormat        = cudaVideoChromaFormat_420;
   dci->OutputFormat        = cudaVideoSurfaceFormat_NV12;
-  dci->DeinterlaceMode     = (cudaVideoDeinterlaceMode)m_pSettings->GetHWAccelDeintMode();
+  dci->DeinterlaceMode     = (bProgressiveSequence || (m_pSettings->GetDeinterlacingMode() == DeintMode_Disable)) ? cudaVideoDeinterlaceMode_Weave : (cudaVideoDeinterlaceMode)m_pSettings->GetHWAccelDeintMode();
   dci->ulNumOutputSurfaces = 1;
 
   dci->ulTargetWidth       = dwWidth;
@@ -817,18 +817,23 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
 
   CUVIDDECODECREATEINFO *dci = &filter->m_VideoDecoderInfo;
 
+  // Check if we should be deinterlacing
+  bool bShouldDeinterlace = (!cuvidfmt->progressive_sequence && filter->m_pSettings->GetDeinterlacingMode() != DeintMode_Disable && filter->m_pSettings->GetHWAccelDeintMode() != HWDeintMode_Weave);
+
+  // Re-initialize the decoder if needed
   if ((cuvidfmt->codec != dci->CodecType)
     || (cuvidfmt->coded_width != dci->ulWidth)
     || (cuvidfmt->coded_height != dci->ulHeight)
     || (cuvidfmt->chroma_format != dci->ChromaFormat)
+    || (bShouldDeinterlace != (dci->DeinterlaceMode != cudaVideoDeinterlaceMode_Weave))
     || filter->m_bForceSequenceUpdate)
   {
     filter->m_bForceSequenceUpdate = FALSE;
-    filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height);
+    filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->progressive_sequence);
   }
 
   filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
-  filter->m_bDoubleRateDeint = filter->m_bInterlaced && (filter->m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField) && (filter->m_VideoDecoderInfo.DeinterlaceMode != cudaVideoDeinterlaceMode_Weave) && !(filter->m_pSettings->GetDeinterlacingMode() == DeintMode_Disable);
+  filter->m_bDoubleRateDeint = bShouldDeinterlace && (filter->m_pSettings->GetHWAccelDeintOutput() == DeintOutput_FramePerField);
   if (filter->m_bInterlaced && cuvidfmt->frame_rate.numerator && cuvidfmt->frame_rate.denominator) {
     double dFrameTime = 10000000.0 / ((double)cuvidfmt->frame_rate.numerator / cuvidfmt->frame_rate.denominator);
     if (filter->m_bDoubleRateDeint && (int)(dFrameTime / 10000.0) == 41) {
