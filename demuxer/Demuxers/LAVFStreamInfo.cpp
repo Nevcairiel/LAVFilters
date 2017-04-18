@@ -199,6 +199,35 @@ static bool hevc_is_annexb(std::string format, AVStream *avstream)
   return true;
 }
 
+static int get_vpcC_chroma(AVCodecParameters *codecpar)
+{
+  int chroma_w = 0, chroma_h = 0;
+  if (av_pix_fmt_get_chroma_sub_sample((AVPixelFormat)codecpar->format, &chroma_w, &chroma_h) == 0) {
+    if (chroma_w == 1 && chroma_h == 1) {
+      return (codecpar->chroma_location == AVCHROMA_LOC_LEFT)
+        ? 0
+        : 1;
+    }
+    else if (chroma_w == 1 && chroma_h == 0) {
+      return 2;
+    }
+    else if (chroma_w == 0 && chroma_h == 0) {
+      return 3;
+    }
+  }
+  return 0;
+}
+
+static int get_pixel_bitdepth(AVPixelFormat pix_fmt)
+{
+  const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(pix_fmt);
+  if (desc == NULL) {
+    DbgLog((LOG_TRACE, 10, "Unknown pixel format"));
+    return 8;
+  }
+  return desc->comp[0].depth;
+}
+
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
   unsigned int origCodecTag = avstream->codecpar->codec_tag;
@@ -260,6 +289,23 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       mtype.subtype = MEDIASUBTYPE_WVC1;
       VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
       vih2->bmiHeader.biCompression = mtype.subtype.Data1;
+    }
+    else if (mtype.subtype == MEDIASUBTYPE_VP90) {
+      // generate extradata for VP9 streams
+      mtype.ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + 15);
+      VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
+      vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + 15;
+
+      BYTE *extra = mtype.pbFormat + sizeof(VIDEOINFOHEADER2);
+      AV_WL32(extra, MKTAG('v', 'p', 'c', 'C'));
+      AV_WL32(extra +  4, 0); // version & flags
+      AV_WL8 (extra +  8, avstream->codecpar->profile);
+      AV_WL8 (extra +  9, avstream->codecpar->level == FF_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level);
+      AV_WL8 (extra + 10, get_pixel_bitdepth((AVPixelFormat)avstream->codecpar->format) << 4 | get_vpcC_chroma(avstream->codecpar) << 1 | (avstream->codecpar->color_range == AVCOL_RANGE_JPEG));
+      AV_WL8 (extra + 11, avstream->codecpar->color_primaries);
+      AV_WL8 (extra + 12, avstream->codecpar->color_trc);
+      AV_WL8 (extra + 13, avstream->codecpar->color_space);
+      AV_WL16(extra + 14, 0); // no codec init data
     }
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat, m_containerFormat);
