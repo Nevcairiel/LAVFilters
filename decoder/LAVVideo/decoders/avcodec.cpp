@@ -312,18 +312,19 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
   CheckPointer(m_pAVCtx, E_POINTER);
 
-  if(    codec == AV_CODEC_ID_MPEG1VIDEO
+  DWORD dwDecFlags = m_pCallback->GetDecodeFlags();
+
+  if(!(dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER) &&
+        (codec == AV_CODEC_ID_MPEG1VIDEO
       || codec == AV_CODEC_ID_MPEG2VIDEO
       || pmt->subtype == MEDIASUBTYPE_H264
       || pmt->subtype == MEDIASUBTYPE_h264
       || pmt->subtype == MEDIASUBTYPE_X264
       || pmt->subtype == MEDIASUBTYPE_x264
       || pmt->subtype == MEDIASUBTYPE_H264_bis
-      || pmt->subtype == MEDIASUBTYPE_HEVC) {
+      || pmt->subtype == MEDIASUBTYPE_HEVC)) {
     m_pParser = av_parser_init(codec);
   }
-
-  DWORD dwDecFlags = m_pCallback->GetDecodeFlags();
 
   LONG biRealWidth = pBMI->biWidth, biRealHeight = pBMI->biHeight;
   if (pmt->formattype == FORMAT_VideoInfo || pmt->formattype == FORMAT_MPEGVideo) {
