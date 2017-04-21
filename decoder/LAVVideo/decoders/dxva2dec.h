@@ -54,7 +54,6 @@ public:
   STDMETHODIMP_(long) GetBufferCount();
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bNative ? L"dxva2n" : (m_bDirect ? L"dxva2cb direct" : L"dxva2cb"); }
   STDMETHODIMP HasThreadSafeBuffers() { return m_bNative ? S_FALSE : S_OK; }
-  STDMETHODIMP SyncToProcessThread() { return S_OK; }
   STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
   STDMETHODIMP_(DWORD) GetHWAccelNumDevices();
   STDMETHODIMP GetHWAccelDeviceInfo(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier);

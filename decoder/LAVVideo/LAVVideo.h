@@ -20,7 +20,7 @@
 #pragma once
 
 #include "decoders/ILAVDecoder.h"
-#include "DecodeThread.h"
+#include "DecodeManager.h"
 #include "ILAVPinInfo.h"
 
 #include "LAVPixFmtConverter.h"
@@ -227,11 +227,11 @@ private:
 
 private:
   friend class CVideoOutputPin;
-  friend class CDecodeThread;
+  friend class CDecodeManager;
   friend class CLAVSubtitleProvider;
   friend class CLAVSubtitleConsumer;
 
-  CDecodeThread        m_Decoder;
+  CDecodeManager       m_Decoder;
 
   REFERENCE_TIME       m_rtPrevStart = 0;
   REFERENCE_TIME       m_rtPrevStop  = 0;

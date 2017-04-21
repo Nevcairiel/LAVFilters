@@ -123,9 +123,6 @@
     <ClCompile Include="decoders\wmv9.cpp">
       <Filter>Source Files\decoders</Filter>
     </ClCompile>
-    <ClCompile Include="DecodeThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="subtitles\LAVSubtitleProvider.cpp">
       <Filter>Source Files\subtitles</Filter>
     </ClCompile>
@@ -164,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="decoders\msdk_mvc.cpp">
       <Filter>Source Files\decoders</Filter>
+    </ClCompile>
+    <ClCompile Include="DecodeManager.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -230,9 +230,6 @@
     <ClInclude Include="decoders\wmv9.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
-    <ClInclude Include="DecodeThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\includes\SubRenderIntf.h">
       <Filter>Header Files\subtitles</Filter>
     </ClInclude>
@@ -267,6 +264,9 @@
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\includes\IMediaSideData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DecodeManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

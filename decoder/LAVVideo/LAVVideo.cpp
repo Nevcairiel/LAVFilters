@@ -2133,7 +2133,7 @@ STDMETHODIMP_(DWORD) CLAVVideo::CheckHWAccelSupport(LAVHWAccel hwAccel)
     return 2;
 
   HRESULT hr = E_FAIL;
-  ILAVDecoder *pDecoder = CDecodeThread::CreateHWAccelDecoder(hwAccel);
+  ILAVDecoder *pDecoder = CDecodeManager::CreateHWAccelDecoder(hwAccel);
 
   if (pDecoder) {
     hr = pDecoder->InitInterfaces(this, this);
@@ -2319,7 +2319,7 @@ STDMETHODIMP CLAVVideo::SetGPUDeviceIndex(DWORD dwDevice)
 STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelNumDevices(LAVHWAccel hwAccel)
 {
   HRESULT hr = S_OK;
-  ILAVDecoder *pDecoder = CDecodeThread::CreateHWAccelDecoder(hwAccel);
+  ILAVDecoder *pDecoder = CDecodeManager::CreateHWAccelDecoder(hwAccel);
   DWORD dwDevices = 0;
   if (pDecoder) {
     hr = pDecoder->InitInterfaces(this, this);
@@ -2334,7 +2334,7 @@ STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelNumDevices(LAVHWAccel hwAccel)
 STDMETHODIMP CLAVVideo::GetHWAccelDeviceInfo(LAVHWAccel hwAccel, DWORD dwIndex, BSTR *pstrDeviceName, DWORD *pdwDeviceIdentifier)
 {
   HRESULT hr = E_NOINTERFACE;
-  ILAVDecoder *pDecoder = CDecodeThread::CreateHWAccelDecoder(hwAccel);
+  ILAVDecoder *pDecoder = CDecodeManager::CreateHWAccelDecoder(hwAccel);
   if (pDecoder) {
     hr = pDecoder->InitInterfaces(this, this);
     if (SUCCEEDED(hr)) {

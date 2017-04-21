@@ -46,7 +46,6 @@ public:
   STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"avcodec"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
-  STDMETHODIMP SyncToProcessThread() { return m_pAVCtx && m_pAVCtx->active_thread_type ? S_OK : S_FALSE; }
 
   // CDecBase
   STDMETHODIMP Init();

@@ -395,11 +395,6 @@ interface ILAVDecoder
   STDMETHOD(HasThreadSafeBuffers)() PURE;
 
   /**
-   * Get whether the decoder should sync to the main thread
-   */
-  STDMETHOD(SyncToProcessThread)() PURE;
-
-  /**
    * Toggle direct frame output mode for hardware decoders
    */
   STDMETHOD(SetDirectOutput)(BOOL bDirect) PURE;
