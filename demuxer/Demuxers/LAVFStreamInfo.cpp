@@ -298,7 +298,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
       BYTE *extra = mtype.pbFormat + sizeof(VIDEOINFOHEADER2);
       AV_WL32(extra, MKTAG('v', 'p', 'c', 'C'));
-      AV_WL32(extra +  4, 0); // version & flags
+      AV_WL8 (extra +  4, 1); // version
+      AV_WL24(extra +  5, 0); // flags
       AV_WL8 (extra +  8, avstream->codecpar->profile);
       AV_WL8 (extra +  9, avstream->codecpar->level == FF_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level);
       AV_WL8 (extra + 10, get_pixel_bitdepth((AVPixelFormat)avstream->codecpar->format) << 4 | get_vpcC_chroma(avstream->codecpar) << 1 | (avstream->codecpar->color_range == AVCOL_RANGE_JPEG));
