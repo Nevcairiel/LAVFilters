@@ -171,6 +171,15 @@ STDMETHODIMP CDecodeManager::Decode(IMediaSample *pSample)
     DbgLog((LOG_TRACE, 10, L"CDecodeManager::Decode(): Hardware decoder indicates failure, switching back to software"));
     m_bHWDecoderFailed = TRUE;
 
+    // If we're disabling DXVA2 Native decoding, we need to release resources now
+    if (wcscmp(m_pDecoder->GetDecoderName(), L"dxva2n") == 0) {
+      m_pLAVVideo->ReleaseAllDXVAResources();
+      m_pLAVVideo->GetOutputPin()->GetConnected()->BeginFlush();
+      m_pLAVVideo->GetOutputPin()->GetConnected()->EndFlush();
+
+      // TODO: further decoding still fails when DXVA2-Native fails mid-decoding, since we can't inform the renderer about no longer delivering DXVA surfaces
+    }
+
     CMediaType &mt = m_pLAVVideo->GetInputMediaType();
     hr = CreateDecoder(&mt, m_Codec);
 
