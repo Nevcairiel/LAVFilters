@@ -56,6 +56,10 @@ protected:
   virtual HRESULT HandleDXVA2Frame(LAVFrame *pFrame) { return S_FALSE; }
   STDMETHODIMP DestroyDecoder();
 
+  STDMETHODIMP FillAVPacketData(AVPacket *avpkt, const BYTE *buffer, int buflen, IMediaSample *pSample, bool bRefCounting);
+  STDMETHODIMP DecodePacket(AVPacket *avpkt, REFERENCE_TIME rtStartIn, REFERENCE_TIME rtStopIn);
+  STDMETHODIMP ParsePacket(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, IMediaSample *pSample);
+
 private:
   STDMETHODIMP ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame);
 
