@@ -838,6 +838,7 @@ STDMETHODIMP CDecAvcodec::DecodePacket(AVPacket *avpkt, REFERENCE_TIME rtStartIn
 {
   int ret = 0;
   BOOL bEndOfSequence = FALSE;
+  BOOL bDeliverFirst = FALSE;
   REFERENCE_TIME rtStart = rtStartIn, rtStop = rtStopIn;
 
   // packet pre-processing
@@ -884,6 +885,7 @@ STDMETHODIMP CDecAvcodec::DecodePacket(AVPacket *avpkt, REFERENCE_TIME rtStartIn
     }
   }
 
+send_packet:
   // send packet to the decoder
   ret = avcodec_send_packet(m_pAVCtx, avpkt);
   if (ret < 0) {
@@ -892,7 +894,18 @@ STDMETHODIMP CDecAvcodec::DecodePacket(AVPacket *avpkt, REFERENCE_TIME rtStartIn
       return E_FAIL;
     }
 
-    return S_FALSE;
+    if (ret == AVERROR(EAGAIN))
+    {
+      if (bDeliverFirst)
+      {
+        DbgLog((LOG_ERROR, 10, L"::Decode(): repeated packet submission to the decoder failed"));
+        ASSERT(0);
+        return E_FAIL;
+      }
+      bDeliverFirst = TRUE;
+    }
+    else
+      return S_FALSE;
   }
 
   // loop over available frames
@@ -1068,6 +1081,11 @@ STDMETHODIMP CDecAvcodec::DecodePacket(AVPacket *avpkt, REFERENCE_TIME rtStartIn
       m_CurrentThread = (m_CurrentThread + 1) % m_pAVCtx->thread_count;
     }
     av_frame_unref(m_pFrame);
+  }
+
+  // repeat sending the packet to the decoder if it failed first
+  if (bDeliverFirst) {
+    goto send_packet;
   }
 
   return S_OK;
