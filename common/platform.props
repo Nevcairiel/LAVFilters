@@ -9,4 +9,7 @@
   <PropertyGroup Label="Configuration" Condition="'$(VisualStudioVersion)' == '15.0'">
     <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup>
+    <UseNativeEnvironment>true</UseNativeEnvironment>
+  </PropertyGroup>
 </Project>
