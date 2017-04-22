@@ -907,6 +907,10 @@ send_packet:
     else
       return S_FALSE;
   }
+  else
+  {
+    bDeliverFirst = FALSE;
+  }
 
   // loop over available frames
   while(1) {
