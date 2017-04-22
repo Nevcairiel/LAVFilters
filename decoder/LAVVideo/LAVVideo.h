@@ -181,6 +181,7 @@ public:
   STDMETHODIMP_(LAVFrame*) GetFlushFrame();
   STDMETHODIMP ReleaseAllDXVAResources() { ReleaseLastSequenceFrame(); return S_OK; }
   STDMETHODIMP_(DWORD) GetGPUDeviceIndex() { return m_dwGPUDeviceIndex; }
+  STDMETHODIMP_(BOOL) HasDynamicInputAllocator();
 
   // IPropertyBag
   STDMETHODIMP Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog);

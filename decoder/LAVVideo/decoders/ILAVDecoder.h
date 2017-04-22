@@ -282,6 +282,11 @@ interface ILAVVideoCallback
    * Get the index of the GPU device to be used for HW decoding, DWORD_MAX if not set
    */
   STDMETHOD_(DWORD, GetGPUDeviceIndex)() PURE;
+
+  /**
+   * Check if the input is using a dynamic allocator
+   */
+  STDMETHOD_(BOOL, HasDynamicInputAllocator)() PURE;
 };
 
 /**

@@ -19,11 +19,28 @@
 
 #include "stdafx.h"
 #include "VideoInputPin.h"
+#include "ILAVDynamicAllocator.h"
 
 CVideoInputPin::CVideoInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, HRESULT* phr, LPWSTR pName)
   : CDeCSSTransformInputPin(pObjectName, pFilter, phr, pName)
   , m_pLAVVideo(pFilter)
 {
+}
+
+STDMETHODIMP CVideoInputPin::NotifyAllocator(IMemAllocator * pAllocator, BOOL bReadOnly)
+{
+  HRESULT hr = __super::NotifyAllocator(pAllocator, bReadOnly);
+
+  m_bDynamicAllocator = FALSE;
+  if (SUCCEEDED(hr) && pAllocator) {
+    ILAVDynamicAllocator *pDynamicAllocator = nullptr;
+    if (SUCCEEDED(pAllocator->QueryInterface(&pDynamicAllocator))) {
+      m_bDynamicAllocator = pDynamicAllocator->IsDynamicAllocator();
+    }
+    SafeRelease(&pDynamicAllocator);
+  }
+
+  return hr;
 }
 
 // IKsPropertySet

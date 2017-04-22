@@ -648,7 +648,7 @@ STDMETHODIMP CDecAvcodec::FillAVPacketData(AVPacket *avpkt, const uint8_t *buffe
     avpkt->data = (uint8_t *)buffer;
     avpkt->size = buflen;
 
-    if (pSample && bRefCounting)
+    if (pSample && bRefCounting && m_pCallback->HasDynamicInputAllocator())
     {
       avpkt->buf = av_buffer_create(avpkt->data, avpkt->size, avpacket_mediasample_free, pSample, AV_BUFFER_FLAG_READONLY);
       if (!avpkt->buf) {
@@ -722,7 +722,7 @@ STDMETHODIMP CDecAvcodec::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
     AVPacket *avpkt = av_packet_alloc();
 
     // set data pointers
-    if (FAILED(FillAVPacketData(avpkt, buffer, buflen, pSample, false)))
+    if (FAILED(FillAVPacketData(avpkt, buffer, buflen, pSample, true)))
     {
       return E_OUTOFMEMORY;
     }

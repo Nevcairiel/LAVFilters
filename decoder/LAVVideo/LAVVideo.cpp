@@ -2007,6 +2007,11 @@ STDMETHODIMP CLAVVideo::Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pE
   return E_INVALIDARG;
 }
 
+STDMETHODIMP_(BOOL) CLAVVideo::HasDynamicInputAllocator()
+{
+  return dynamic_cast<CVideoInputPin*>(m_pInput)->HasDynamicAllocator();
+}
+
 // ILAVVideoSettings
 STDMETHODIMP CLAVVideo::SetRuntimeConfig(BOOL bRuntimeConfig)
 {
