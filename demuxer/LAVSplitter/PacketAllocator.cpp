@@ -127,6 +127,16 @@ CPacketAllocator::~CPacketAllocator(void)
   ReallyFree();
 }
 
+STDMETHODIMP CPacketAllocator::NonDelegatingQueryInterface(REFIID riid, __deref_out void **ppv)
+{
+  if (riid == IID_ILAVDynamicAllocator) {
+    return GetInterface((ILAVDynamicAllocator *) this, ppv);
+  }
+  else {
+    return __super::NonDelegatingQueryInterface(riid, ppv);
+  }
+}
+
 STDMETHODIMP CPacketAllocator::SetProperties(ALLOCATOR_PROPERTIES* pRequest, ALLOCATOR_PROPERTIES* pActual)
 {
   CheckPointer(pActual,E_POINTER);
@@ -215,47 +225,13 @@ HRESULT CPacketAllocator::Alloc(void)
     return E_OUTOFMEMORY;
   }
 
-  /* Compute the aligned size */
-  LONG lAlignedSize = m_lSize + m_lPrefix;
-
-  /*  Check overflow */
-  if (lAlignedSize < m_lSize) {
-    return E_OUTOFMEMORY;
-  }
-
-  if (m_lAlignment > 1) {
-    LONG lRemainder = lAlignedSize % m_lAlignment;
-    if (lRemainder != 0) {
-      LONG lNewSize = lAlignedSize + m_lAlignment - lRemainder;
-      if (lNewSize < lAlignedSize) {
-        return E_OUTOFMEMORY;
-      }
-      lAlignedSize = lNewSize;
-    }
-  }
-
-  /* Create the contiguous memory block for the samples
-  making sure it's properly aligned (64K should be enough!)
-  */
-  ASSERT(lAlignedSize % m_lAlignment == 0);
-
-  LONGLONG lToAllocate = m_lCount * (LONGLONG)lAlignedSize;
-
-  /*  Check overflow */
-  if (lToAllocate > MAXLONG) {
-    return E_OUTOFMEMORY;
-  }
-
   m_bAllocated = TRUE;
 
   CMediaPacketSample *pSample = nullptr;
 
   ASSERT(m_lAllocated == 0);
 
-  // Create the new samples - we have allocated m_lSize bytes for each sample
-  // plus m_lPrefix bytes per sample as a prefix. We set the pointer to
-  // the memory after the prefix - so that GetPointer() will return a pointer
-  // to m_lSize bytes.
+  // Create the initial set of samples
   for (; m_lAllocated < m_lCount; m_lAllocated++) {
     pSample = new CMediaPacketSample(NAME("LAV Package media sample"), this, &hr);
 
@@ -269,6 +245,76 @@ HRESULT CPacketAllocator::Alloc(void)
   }
 
   m_bChanged = FALSE;
+  return NOERROR;
+}
+
+// get container for a sample. Blocking, synchronous call to get the
+// next free buffer (as represented by an IMediaSample interface).
+// on return, the time etc properties will be invalid, but the buffer
+// pointer and size will be correct.
+
+HRESULT CPacketAllocator::GetBuffer(__deref_out IMediaSample **ppBuffer,
+  __in_opt REFERENCE_TIME *pStartTime,
+  __in_opt REFERENCE_TIME *pEndTime,
+  DWORD dwFlags
+)
+{
+  UNREFERENCED_PARAMETER(pStartTime);
+  UNREFERENCED_PARAMETER(pEndTime);
+  UNREFERENCED_PARAMETER(dwFlags);
+  CMediaSample *pSample;
+
+  *ppBuffer = NULL;
+  for (;;)
+  {
+    {  // scope for lock
+      CAutoLock cObjectLock(this);
+
+      /* Check we are committed */
+      if (!m_bCommitted) {
+        return VFW_E_NOT_COMMITTED;
+      }
+      pSample = (CMediaSample *)m_lFree.RemoveHead();
+
+      /* if no sample was available, allocate a new one */
+      if (pSample == NULL) {
+        HRESULT hr = S_OK;
+        pSample = new CMediaPacketSample(NAME("LAV Package media sample"), this, &hr);
+        ASSERT(SUCCEEDED(hr));
+
+        if (pSample) {
+          m_lAllocated++;
+          DbgLog((LOG_TRACE, 10, "Allocated new sample, %d total", m_lAllocated));
+        }
+      }
+    }
+
+    /* If we didn't get a sample then wait for the list to signal */
+
+    if (pSample) {
+      break;
+    }
+    if (dwFlags & AM_GBF_NOWAIT) {
+      return VFW_E_TIMEOUT;
+    }
+    ASSERT(m_hSem != NULL);
+    WaitForSingleObject(m_hSem, INFINITE);
+  }
+
+  /* Addref the buffer up to one. On release
+  back to zero instead of being deleted, it will requeue itself by
+  calling the ReleaseBuffer member function. NOTE the owner of a
+  media sample must always be derived from CBaseAllocator */
+
+
+  ASSERT(pSample->m_cRef == 0);
+  pSample->m_cRef = 1;
+  *ppBuffer = pSample;
+
+#ifdef DXMPERF
+  PERFLOG_GETBUFFER((IMemAllocator *) this, pSample);
+#endif // DXMPERF
+
   return NOERROR;
 }
 

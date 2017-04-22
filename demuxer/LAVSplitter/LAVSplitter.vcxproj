@@ -114,6 +114,7 @@
     <ClInclude Include="..\..\common\includes\IDSMResourceBag.h" />
     <ClInclude Include="..\..\common\includes\IGraphRebuildDelegate.h" />
     <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h" />
+    <ClInclude Include="..\..\common\includes\ILAVDynamicAllocator.h" />
     <ClInclude Include="..\..\common\includes\ILAVPinInfo.h" />
     <ClInclude Include="..\..\common\includes\ISpecifyPropertyPages2.h" />
     <ClInclude Include="..\..\common\includes\IStreamSourceControl.h" />

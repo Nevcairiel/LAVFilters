@@ -164,7 +164,7 @@ HRESULT CLAVOutputPin::DecideBufferSize(IMemAllocator* pAlloc, ALLOCATOR_PROPERT
 
   HRESULT hr = S_OK;
 
-  pProperties->cBuffers = max(pProperties->cBuffers, (m_bPacketAllocator ? 10 : m_nBuffers));
+  pProperties->cBuffers = max(pProperties->cBuffers, (m_bPacketAllocator ? 20 : m_nBuffers));
   pProperties->cbBuffer = max(max(m_mt.lSampleSize, 256000), (ULONG)pProperties->cbBuffer);
 
   // Vorbis requires at least 2 buffers

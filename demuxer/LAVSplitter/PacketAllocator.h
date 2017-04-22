@@ -25,6 +25,7 @@
 #include "Packet.h"
 #include "IMediaSideData.h"
 #include "IMediaSideDataFFmpeg.h"
+#include "ILAVDynamicAllocator.h"
 
 interface __declspec(uuid("0B2EE323-0ED8-452D-B31E-B9B4DE2C0C39"))
 ILAVMediaSample : public IUnknown  {
@@ -54,7 +55,7 @@ protected:
   MediaSideDataFFMpeg *m_pSideData = nullptr;
 };
 
-class CPacketAllocator : public CBaseAllocator
+class CPacketAllocator : public CBaseAllocator, public ILAVDynamicAllocator
 {
 protected:
   BOOL m_bAllocated = FALSE;
@@ -69,9 +70,19 @@ protected:
 
   // overriden to allocate the memory when commit called
   HRESULT Alloc(void);
+
 public:
   CPacketAllocator(LPCTSTR pName, LPUNKNOWN pUnk, HRESULT *phr);
   virtual ~CPacketAllocator(void);
 
+  // CUnknown support
+  DECLARE_IUNKNOWN;
+  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void **ppv);
+
+  // CBaseAllocator overrides
   STDMETHODIMP SetProperties(ALLOCATOR_PROPERTIES* pRequest, ALLOCATOR_PROPERTIES* pActual);
+  STDMETHODIMP GetBuffer(IMediaSample **ppBuffer, REFERENCE_TIME *pStartTime, REFERENCE_TIME *pEndTime, DWORD dwFlags);
+
+  // ILAVDynamicAllocator
+  STDMETHODIMP_(BOOL) IsDynamicAllocator() { return TRUE; }
 };
