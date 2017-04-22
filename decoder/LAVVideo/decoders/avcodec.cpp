@@ -925,14 +925,13 @@ send_packet:
 
     // Judge frame usability
     // This determines if a frame is artifact free and can be delivered.
-    if (m_bResumeAtKeyFrame) {
-      if (m_bWaitingForKeyFrame && ret >= 0) {
-        if (m_pFrame->key_frame) {
-          DbgLog((LOG_TRACE, 50, L"::Decode() - Found Key-Frame, resuming decoding at %I64d", m_pFrame->pts));
-          m_bWaitingForKeyFrame = FALSE;
-        } else {
-          ret = AVERROR(EAGAIN);
-        }
+    if (m_bResumeAtKeyFrame && m_bWaitingForKeyFrame && ret >= 0) {
+      if (m_pFrame->key_frame) {
+        DbgLog((LOG_TRACE, 50, L"::Decode() - Found Key-Frame, resuming decoding at %I64d", m_pFrame->pts));
+        m_bWaitingForKeyFrame = FALSE;
+      }
+      else {
+        ret = AVERROR(EAGAIN);
       }
     }
 
@@ -942,6 +941,7 @@ send_packet:
       m_nBFramePos = !m_nBFramePos;
     }
 
+    // no frame was decoded, bail out here
     if (ret < 0 || !m_pFrame->data[0]) {
       av_frame_unref(m_pFrame);
       break;
