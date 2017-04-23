@@ -269,6 +269,7 @@ private:
 
   struct {
     AVMasteringDisplayMetadata Mastering;
+    AVContentLightMetadata ContentLight;
   } m_SideData;
 
   CLAVVideoSubtitleInputPin *m_pSubtitleInput  = nullptr;

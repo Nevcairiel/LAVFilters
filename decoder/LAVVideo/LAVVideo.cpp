@@ -637,6 +637,10 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
         {
           m_SideData.Mastering = *(AVMasteringDisplayMetadata *)sd->data;
         }
+        else if (sd->type == AV_PKT_DATA_CONTENT_LIGHT_LEVEL && sd->size == sizeof(AVContentLightMetadata))
+        {
+          m_SideData.ContentLight = *(AVContentLightMetadata *)sd->data;
+        }
       }
     }
 
@@ -1659,6 +1663,26 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
       hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
 
     processFFHDRData(hdr, &m_SideData.Mastering);
+  }
+
+  if (m_SideData.ContentLight.MaxCLL && m_SideData.ContentLight.MaxFALL) {
+    MediaSideDataHDRContentLightLevel *hdr = nullptr;
+
+    // Check if data already exists
+    if (pFrame->side_data && pFrame->side_data_count) {
+      for (int i = 0; i < pFrame->side_data_count; i++) {
+        if (pFrame->side_data[i].guidType == IID_MediaSideDataHDRContentLightLevel) {
+          hdr = (MediaSideDataHDRContentLightLevel *)pFrame->side_data[i].data;
+          break;
+        }
+      }
+    }
+
+    if (hdr == nullptr)
+      hdr = (MediaSideDataHDRContentLightLevel *)AddLAVFrameSideData(pFrame, IID_MediaSideDataHDRContentLightLevel, sizeof(MediaSideDataHDRContentLightLevel));
+
+    hdr->MaxCLL = m_SideData.ContentLight.MaxCLL;
+    hdr->MaxFALL = m_SideData.ContentLight.MaxFALL;
   }
 
   // Collect width/height
