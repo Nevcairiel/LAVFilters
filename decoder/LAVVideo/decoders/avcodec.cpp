@@ -1038,7 +1038,7 @@ send_packet:
     AVFrameSideData * sdHDRContentLightLevel = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_CONTENT_LIGHT_LEVEL);
     if (sdHDRContentLightLevel) {
       if (sdHDRContentLightLevel->size == sizeof(AVContentLightMetadata)) {
-        AVContentLightMetadata *metadata = (AVContentLightMetadata *)sdHDR->data;
+        AVContentLightMetadata *metadata = (AVContentLightMetadata *)sdHDRContentLightLevel->data;
         MediaSideDataHDRContentLightLevel * hdr = (MediaSideDataHDRContentLightLevel *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDRContentLightLevel, sizeof(MediaSideDataHDRContentLightLevel));
         hdr->MaxCLL = metadata->MaxCLL;
         hdr->MaxFALL = metadata->MaxFALL;
