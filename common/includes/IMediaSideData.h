@@ -46,6 +46,21 @@ struct MediaSideDataHDR
 };
 #pragma pack(pop)
 
+// {ED6AE576-7CBE-41A6-9DC3-07C35DC13EF9}
+DEFINE_GUID(IID_MediaSideDataHDRContentLightLevel,
+  0xed6ae576, 0x7cbe, 0x41a6, 0x9d, 0xc3, 0x7, 0xc3, 0x5d, 0xc1, 0x3e, 0xf9);
+
+#pragma pack(push, 1)
+struct MediaSideDataHDRContentLightLevel
+{
+  // maximum content light level (cd/m2)
+  unsigned int MaxCLL;
+
+  // maximum frame average light level (cd/m2)
+  unsigned int MaxFALL;
+};
+#pragma pack(pop)
+
 // -----------------------------------------------------------------
 // 3D Plane Offset Side Data
 // -----------------------------------------------------------------
