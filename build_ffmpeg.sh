@@ -57,6 +57,8 @@ configure() (
     --disable-protocol=async,cache,concat,httpproxy,icecast,md5,subfile \
     --disable-muxers                \
     --enable-muxer=spdif            \
+    --disable-bsfs                  \
+    --enable-bsf=extract_extradata,vp9_superframe \
     --disable-hwaccels              \
     --enable-hwaccel=h264_dxva2     \
     --enable-hwaccel=hevc_dxva2     \
@@ -76,7 +78,6 @@ configure() (
     --disable-postproc              \
     --disable-swresample            \
     --disable-encoders              \
-    --disable-bsfs                  \
     --disable-devices               \
     --disable-programs              \
     --disable-debug                 \
