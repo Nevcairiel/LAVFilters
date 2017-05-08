@@ -1524,7 +1524,7 @@ STDMETHODIMP CDecDXVA2::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
     if (m_bNative)
       *pPix = LAVPixFmt_DXVA2;
     else
-      *pPix = (m_eSurfaceFormat == FOURCC_P010 || m_eSurfaceFormat == FOURCC_P016) ? LAVPixFmt_P010 : LAVPixFmt_NV12;
+      *pPix = (m_eSurfaceFormat == FOURCC_P010 || m_eSurfaceFormat == FOURCC_P016) ? LAVPixFmt_P016 : LAVPixFmt_NV12;
   }
   if (pBpp)
     *pBpp = (m_eSurfaceFormat == FOURCC_P016) ? 16 : ((m_eSurfaceFormat == FOURCC_P010) ? 10 : 8);
@@ -1553,7 +1553,7 @@ __forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
   pFrame->priv_data = nullptr;
 
   // Allocate memory buffers
-  hr = AllocLAVFrameBuffers(pFrame, (pFrame->format == LAVPixFmt_P010 || pFrame->format == LAVPixFmt_P016) ? (LockedRect.Pitch >> 1) : LockedRect.Pitch);
+  hr = AllocLAVFrameBuffers(pFrame, (pFrame->format == LAVPixFmt_P016) ? (LockedRect.Pitch >> 1) : LockedRect.Pitch);
   if (FAILED(hr)) {
     pSurface->UnlockRect();
     *pFrame = tmpFrame;

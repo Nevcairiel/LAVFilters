@@ -1082,7 +1082,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
       rtStop = AV_NOPTS_VALUE;
   }
 
-  pFrame->format = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? ((m_VideoDecoderInfo.bitDepthMinus8 > 2) ? LAVPixFmt_P016 : LAVPixFmt_P010) : LAVPixFmt_NV12;
+  pFrame->format = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? LAVPixFmt_P016 : LAVPixFmt_NV12;
   pFrame->bpp = m_VideoDecoderInfo.bitDepthMinus8 + 8;
   pFrame->width  = m_VideoFormat.display_area.right;
   pFrame->height = m_VideoFormat.display_area.bottom;
@@ -1298,7 +1298,7 @@ STDMETHODIMP CDecCuvid::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 {
   // Output is always NV12
   if (pPix)
-    *pPix = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? ((m_VideoDecoderInfo.bitDepthMinus8 > 2) ? LAVPixFmt_P016 : LAVPixFmt_P010) : LAVPixFmt_NV12;
+    *pPix = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? LAVPixFmt_P016 : LAVPixFmt_NV12;
   if (pBpp)
     *pBpp = m_VideoDecoderInfo.bitDepthMinus8 + 8;
   return S_OK;

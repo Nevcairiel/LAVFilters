@@ -29,7 +29,6 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
   { 2, 3, { 1, 1, 1 }, { 1, 1, 1 } },       ///< LAVPixFmt_YUV444bX
   { 1, 2, { 1, 1 },    { 1, 2 }    },       ///< LAVPixFmt_NV12
   { 2, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_YUY2
-  { 2, 2, { 1, 1 },    { 1, 2 }    },       ///< LAVPixFmt_P010
   { 2, 2, { 1, 1 },    { 1, 2 }    },       ///< LAVPixFmt_P016
   { 3, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB24
   { 4, 1, { 1 },       { 1 }       },       ///< LAVPixFmt_RGB32
@@ -51,8 +50,6 @@ static struct {
   { LAVPixFmt_YUV444, AV_PIX_FMT_YUV444P },
   { LAVPixFmt_NV12,   AV_PIX_FMT_NV12    },
   { LAVPixFmt_YUY2,   AV_PIX_FMT_YUYV422 },
-  { LAVPixFmt_P010,   AV_PIX_FMT_P010    },
-  { LAVPixFmt_P016,   AV_PIX_FMT_P016    },
   { LAVPixFmt_RGB24,  AV_PIX_FMT_BGR24   },
   { LAVPixFmt_RGB32,  AV_PIX_FMT_BGRA    },
   { LAVPixFmt_ARGB32, AV_PIX_FMT_BGRA    },
@@ -78,6 +75,9 @@ AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
       break;
     case LAVPixFmt_YUV444bX:
       fmt = (bpp == 9) ? AV_PIX_FMT_YUV444P9LE : ((bpp == 10) ? AV_PIX_FMT_YUV444P10LE : ((bpp == 12) ? AV_PIX_FMT_YUV444P12LE : ((bpp == 14) ? AV_PIX_FMT_YUV444P14LE : AV_PIX_FMT_YUV444P16LE)));
+      break;
+    case LAVPixFmt_P016:
+      fmt = (bpp <= 10) ? AV_PIX_FMT_P010LE : AV_PIX_FMT_P016LE;
       break;
     default:
       ASSERT(0);
