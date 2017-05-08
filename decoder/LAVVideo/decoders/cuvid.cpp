@@ -870,7 +870,7 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     filter->m_bFormatIncompatible = TRUE;
   }
 
-  fillDXVAExtFormat(filter->m_DXVAExtendedFormat, filter->m_iFullRange, cuvidfmt->video_signal_description.color_primaries, cuvidfmt->video_signal_description.matrix_coefficients, cuvidfmt->video_signal_description.transfer_characteristics);
+  fillDXVAExtFormat(filter->m_DXVAExtendedFormat, (filter->m_iFullRange > 0 || cuvidfmt->video_signal_description.video_full_range_flag), cuvidfmt->video_signal_description.color_primaries, cuvidfmt->video_signal_description.matrix_coefficients, cuvidfmt->video_signal_description.transfer_characteristics);
 
   return TRUE;
 }
