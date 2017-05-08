@@ -79,7 +79,7 @@ private:
   STDMETHODIMP FlushParser();
 
   STDMETHODIMP CheckH264Sequence(const BYTE *buffer, int buflen);
-  STDMETHODIMP CheckHEVCSequence(const BYTE *buffer, int buflen);
+  STDMETHODIMP CheckHEVCSequence(const BYTE *buffer, int buflen, int *bitdepth);
 
   int GetMaxGflopsGraphicsDeviceId();
 

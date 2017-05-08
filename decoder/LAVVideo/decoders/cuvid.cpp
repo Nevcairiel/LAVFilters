@@ -695,7 +695,7 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
       CVC1HeaderParser vc1Parser(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
       m_bInterlaced = vc1Parser.hdr.interlaced;
     } else if (cudaCodec == cudaVideoCodec_HEVC) {
-      hr = CheckHEVCSequence(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length);
+      hr = CheckHEVCSequence(m_VideoParserExInfo.raw_seqhdr_data, m_VideoParserExInfo.format.seqhdr_data_length, &bitdepth);
       if (FAILED(hr)) {
         return VFW_E_UNSUPPORTED_VIDEO;
       } else if (hr == S_FALSE) {
@@ -1151,17 +1151,19 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
   return S_FALSE;
 }
 
-STDMETHODIMP CDecCuvid::CheckHEVCSequence(const BYTE *buffer, int buflen)
+STDMETHODIMP CDecCuvid::CheckHEVCSequence(const BYTE *buffer, int buflen, int *bitdepth)
 {
   DbgLog((LOG_TRACE, 10, L"CDecCuvid::CheckHEVCSequence(): Checking HEVC frame for SPS"));
   CHEVCSequenceParser hevcParser;
   hevcParser.ParseNALs(buffer, buflen, 0);
   if (hevcParser.sps.valid) {
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
-    if (hevcParser.sps.profile > FF_PROFILE_HEVC_MAIN) {
+    if (hevcParser.sps.profile > FF_PROFILE_HEVC_MAIN_10) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d)", hevcParser.sps.profile));
       return E_FAIL;
     }
+    if (bitdepth)
+      *bitdepth = hevcParser.sps.bitdepth;
     DbgLog((LOG_TRACE, 10, L"-> Video seems compatible with CUVID"));
     return S_OK;
   }
@@ -1211,7 +1213,7 @@ STDMETHODIMP CDecCuvid::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rt
     if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_H264) {
       hr = CheckH264Sequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
     } else if (m_VideoDecoderInfo.CodecType == cudaVideoCodec_HEVC) {
-      hr = CheckHEVCSequence(pCuvidPacket.payload, pCuvidPacket.payload_size);
+      hr = CheckHEVCSequence(pCuvidPacket.payload, pCuvidPacket.payload_size, nullptr);
     }
     if (FAILED(hr)) {
       m_bFormatIncompatible = TRUE;
