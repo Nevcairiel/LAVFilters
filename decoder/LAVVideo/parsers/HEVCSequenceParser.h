@@ -37,6 +37,8 @@ public:
     int level;
     int chroma;
     int bitdepth;
+
+    int range_extension_flags;
   } sps;
 
 private:
