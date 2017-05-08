@@ -834,7 +834,9 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     || filter->m_bForceSequenceUpdate)
   {
     filter->m_bForceSequenceUpdate = FALSE;
-    filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->progressive_sequence);
+    HRESULT hr = filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->progressive_sequence);
+    if (FAILED(hr))
+      filter->m_bFormatIncompatible = TRUE;
   }
 
   filter->m_bInterlaced = !cuvidfmt->progressive_sequence;
