@@ -22,7 +22,6 @@
 
 #define MAX_DECODE_FRAMES 20
 #define DISPLAY_DELAY	4
-#define USE_ASYNC_COPY 1
 #define MAX_PIC_INDEX 64
 
 #include "cuvid/dynlink_cuda.h"

@@ -1035,22 +1035,11 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
   }
   // Copy memory from the device into the staging area
   if (m_pbRawNV12) {
-#if USE_ASYNC_COPY
-    cuStatus = cuda.cuMemcpyDtoHAsync(m_pbRawNV12, devPtr, size, m_hStream);
-    if (cuStatus != CUDA_SUCCESS) {
-      DbgLog((LOG_ERROR, 10, L"Async Memory Transfer failed (%d)", cuStatus));
-      goto cuda_fail;
-    }
-    while (CUDA_ERROR_NOT_READY == cuda.cuStreamQuery(m_hStream)) {
-      Sleep(1);
-    }
-#else
     cuStatus = cuda.cuMemcpyDtoH(m_pbRawNV12, devPtr, size);
     if (cuStatus != CUDA_SUCCESS) {
       DbgLog((LOG_ERROR, 10, L"Memory Transfer failed (%d)", cuStatus));
       goto cuda_fail;
     }
-#endif
   } else {
     // If we don't have our memory, this is bad.
     DbgLog((LOG_ERROR, 10, L"No Valid Staging Memory - failing"));
