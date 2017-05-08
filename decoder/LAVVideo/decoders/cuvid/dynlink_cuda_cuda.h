@@ -1385,15 +1385,17 @@ typedef CUresult  CUDAAPI tcuMemcpy3DAsync(const CUDA_MEMCPY3D *pCopy, CUstream 
  **    Memset
  **
  ***********************************/
-typedef CUresult  CUDAAPI tcuMemsetD8(CUdeviceptr dstDevice, unsigned char uc, unsigned int N);
-typedef CUresult  CUDAAPI tcuMemsetD16(CUdeviceptr dstDevice, unsigned short us, unsigned int N);
-typedef CUresult  CUDAAPI tcuMemsetD32(CUdeviceptr dstDevice, unsigned int ui, unsigned int N);
-
 #if __CUDA_API_VERSION >= 3020
+    typedef CUresult  CUDAAPI tcuMemsetD8(CUdeviceptr dstDevice, unsigned char uc, size_t N);
+    typedef CUresult  CUDAAPI tcuMemsetD16(CUdeviceptr dstDevice, unsigned short us, size_t N);
+    typedef CUresult  CUDAAPI tcuMemsetD32(CUdeviceptr dstDevice, unsigned int ui, size_t N);
     typedef CUresult  CUDAAPI tcuMemsetD2D8(CUdeviceptr dstDevice, unsigned int dstPitch, unsigned char uc, size_t Width, size_t Height);
     typedef CUresult  CUDAAPI tcuMemsetD2D16(CUdeviceptr dstDevice, unsigned int dstPitch, unsigned short us, size_t Width, size_t Height);
     typedef CUresult  CUDAAPI tcuMemsetD2D32(CUdeviceptr dstDevice, unsigned int dstPitch, unsigned int ui, size_t Width, size_t Height);
 #else
+    typedef CUresult  CUDAAPI tcuMemsetD8(CUdeviceptr dstDevice, unsigned char uc, unsigned int N);
+    typedef CUresult  CUDAAPI tcuMemsetD16(CUdeviceptr dstDevice, unsigned short us, unsigned int N);
+    typedef CUresult  CUDAAPI tcuMemsetD32(CUdeviceptr dstDevice, unsigned int ui, unsigned int N);
     typedef CUresult  CUDAAPI tcuMemsetD2D8(CUdeviceptr dstDevice, unsigned int dstPitch, unsigned char uc, unsigned int Width, unsigned int Height);
     typedef CUresult  CUDAAPI tcuMemsetD2D16(CUdeviceptr dstDevice, unsigned int dstPitch, unsigned short us, unsigned int Width, unsigned int Height);
     typedef CUresult  CUDAAPI tcuMemsetD2D32(CUdeviceptr dstDevice, unsigned int dstPitch, unsigned int ui, unsigned int Width, unsigned int Height);
