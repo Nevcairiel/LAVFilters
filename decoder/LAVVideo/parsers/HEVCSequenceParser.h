@@ -35,6 +35,8 @@ public:
 
     int profile;
     int level;
+    int chroma;
+    int bitdepth;
   } sps;
 
 private:
