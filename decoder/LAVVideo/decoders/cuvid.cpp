@@ -114,6 +114,7 @@ CDecCuvid::CDecCuvid(void)
   ZeroMemory(&cuda, sizeof(cuda));
   ZeroMemory(&m_VideoFormat, sizeof(m_VideoFormat));
   ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
+  ZeroMemory(&m_VideoDecoderInfo, sizeof(m_VideoDecoderInfo));
 }
 
 CDecCuvid::~CDecCuvid(void)
@@ -763,7 +764,7 @@ retry:
   dci->CodecType           = codec;
   dci->bitDepthMinus8      = nBitdepth - 8;
   dci->ChromaFormat        = cudaVideoChromaFormat_420;
-  dci->OutputFormat        = cudaVideoSurfaceFormat_NV12;
+  dci->OutputFormat        = nBitdepth > 8 ? cudaVideoSurfaceFormat_P016 : cudaVideoSurfaceFormat_NV12;
   dci->DeinterlaceMode     = (bProgressiveSequence || (m_pSettings->GetDeinterlacingMode() == DeintMode_Disable)) ? cudaVideoDeinterlaceMode_Weave : (cudaVideoDeinterlaceMode)m_pSettings->GetHWAccelDeintMode();
   dci->ulNumOutputSurfaces = 1;
 
@@ -1092,7 +1093,8 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
       rtStop = AV_NOPTS_VALUE;
   }
 
-  pFrame->format = LAVPixFmt_NV12;
+  pFrame->format = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? LAVPixFmt_P010 : LAVPixFmt_NV12;
+  pFrame->bpp = m_VideoDecoderInfo.bitDepthMinus8 + 8;
   pFrame->width  = m_VideoFormat.display_area.right;
   pFrame->height = m_VideoFormat.display_area.bottom;
   pFrame->rtStart = rtStart;
@@ -1307,9 +1309,9 @@ STDMETHODIMP CDecCuvid::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 {
   // Output is always NV12
   if (pPix)
-    *pPix = LAVPixFmt_NV12;
+    *pPix = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? LAVPixFmt_P010 : LAVPixFmt_NV12;
   if (pBpp)
-    *pBpp = 8;
+    *pBpp = m_VideoDecoderInfo.bitDepthMinus8 + 8;
   return S_OK;
 }
 
