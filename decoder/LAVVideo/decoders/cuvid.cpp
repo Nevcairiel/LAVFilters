@@ -51,6 +51,7 @@ static struct {
   { AV_CODEC_ID_H264,       cudaVideoCodec_H264  },
   { AV_CODEC_ID_MPEG4,      cudaVideoCodec_MPEG4 },
   { AV_CODEC_ID_HEVC,       cudaVideoCodec_HEVC  },
+  { AV_CODEC_ID_VP9,        cudaVideoCodec_VP9   },
 };
 
 ////////////////////////////////////////////////////////////////////////////////

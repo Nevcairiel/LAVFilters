@@ -348,7 +348,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   BOOL bCUDAOnly = bEnabled && (hwAccel == HWAccel_CUDA);
   BOOL bDVD = bEnabled && (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
   BOOL bHEVC = bEnabled && (hwAccel != HWAccel_QuickSync);
-  BOOL bVP9 = bEnabled && (hwAccel == HWAccel_DXVA2CopyBack || hwAccel == HWAccel_DXVA2Native);
+  BOOL bVP9 = bEnabled && (hwAccel != HWAccel_QuickSync);
 
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_H264), bEnabled);
   EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VC1), bEnabled);
