@@ -52,7 +52,7 @@ static struct {
   { LAVPixFmt_NV12,   AV_PIX_FMT_NV12    },
   { LAVPixFmt_YUY2,   AV_PIX_FMT_YUYV422 },
   { LAVPixFmt_P010,   AV_PIX_FMT_P010    },
-  { LAVPixFmt_P016,   AV_PIX_FMT_P010    }, // XXX: no P016 in ffmpeg yet
+  { LAVPixFmt_P016,   AV_PIX_FMT_P016    },
   { LAVPixFmt_RGB24,  AV_PIX_FMT_BGR24   },
   { LAVPixFmt_RGB32,  AV_PIX_FMT_BGRA    },
   { LAVPixFmt_ARGB32, AV_PIX_FMT_BGRA    },
