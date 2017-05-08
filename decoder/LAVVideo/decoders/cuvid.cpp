@@ -1082,7 +1082,7 @@ STDMETHODIMP CDecCuvid::Deliver(CUVIDPARSERDISPINFO *cuviddisp, int field)
       rtStop = AV_NOPTS_VALUE;
   }
 
-  pFrame->format = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? LAVPixFmt_P010 : LAVPixFmt_NV12;
+  pFrame->format = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? ((m_VideoDecoderInfo.bitDepthMinus8 > 2) ? LAVPixFmt_P016 : LAVPixFmt_P010) : LAVPixFmt_NV12;
   pFrame->bpp = m_VideoDecoderInfo.bitDepthMinus8 + 8;
   pFrame->width  = m_VideoFormat.display_area.right;
   pFrame->height = m_VideoFormat.display_area.bottom;
@@ -1150,7 +1150,7 @@ STDMETHODIMP CDecCuvid::CheckHEVCSequence(const BYTE *buffer, int buflen, int *b
   hevcParser.ParseNALs(buffer, buflen, 0);
   if (hevcParser.sps.valid) {
     DbgLog((LOG_TRACE, 10, L"-> SPS found"));
-    if (hevcParser.sps.profile > FF_PROFILE_HEVC_MAIN_10) {
+    if (hevcParser.sps.chroma > 1 || hevcParser.sps.bitdepth > 12 || (hevcParser.sps.range_extension_flags & 0x6f)) {
       DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d)", hevcParser.sps.profile));
       return E_FAIL;
     }
@@ -1298,7 +1298,7 @@ STDMETHODIMP CDecCuvid::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 {
   // Output is always NV12
   if (pPix)
-    *pPix = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? LAVPixFmt_P010 : LAVPixFmt_NV12;
+    *pPix = (m_VideoDecoderInfo.OutputFormat == cudaVideoSurfaceFormat_P016) ? ((m_VideoDecoderInfo.bitDepthMinus8 > 2) ? LAVPixFmt_P016 : LAVPixFmt_P010) : LAVPixFmt_NV12;
   if (pBpp)
     *pBpp = m_VideoDecoderInfo.bitDepthMinus8 + 8;
   return S_OK;
