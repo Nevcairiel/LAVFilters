@@ -246,7 +246,6 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintW3FDIFC);
 
   addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
-  addHint(IDC_HWACCEL_VP9, L"EXPERIMENTAL! The VP9 HW decoder is still under development and may be unstable!");
 
   addHint(IDC_HWRES_SD, L"Use Hardware Decoding for Standard-definition content (DVD, SDTV)\n\nThis affects all videos with a resolution less than 1024x576 (DVD resolution)");
   addHint(IDC_HWRES_HD, L"Use Hardware Decoding for High-definition content (Blu-ray, HDTV)\n\nAffects all videos above SD resolution, up to Full-HD, 1920x1200");
