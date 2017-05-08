@@ -316,7 +316,7 @@ static int _ConvertSMVer2CoresDrvApi(int major, int minor)
     }
     index++;
   }
-  printf("MapSMtoCores undefined SMversion %d.%d!\n", major, minor);
+  DbgLog((LOG_ERROR, 10, L"MapSMtoCores undefined SMversion %d.%d!", major, minor));
   return -1;
 }
 
