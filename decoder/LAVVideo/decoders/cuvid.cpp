@@ -140,11 +140,6 @@ STDMETHODIMP CDecCuvid::DestroyDecoder(bool bFull)
     m_hParser = 0;
   }
 
-  if (m_hStream) {
-    cuda.cuStreamDestroy(m_hStream);
-    m_hStream = 0;
-  }
-
   if (m_pbRawNV12) {
     cuda.cuMemFreeHost(m_pbRawNV12);
     m_pbRawNV12 = nullptr;
@@ -222,10 +217,6 @@ STDMETHODIMP CDecCuvid::LoadCUDAFuncRefs()
   GET_PROC_CUDA_V2(cuMemAllocHost);
   GET_PROC_CUDA(cuMemFreeHost);
   GET_PROC_CUDA_V2(cuMemcpyDtoH);
-  GET_PROC_CUDA_V2(cuMemcpyDtoHAsync);
-  GET_PROC_CUDA(cuStreamCreate);
-  GET_PROC_CUDA_V2(cuStreamDestroy);
-  GET_PROC_CUDA(cuStreamQuery);
   GET_PROC_CUDA(cuDeviceGetCount);
   GET_PROC_CUDA(cuDriverGetVersion);
   GET_PROC_CUDA(cuDeviceGetName);
@@ -713,16 +704,6 @@ STDMETHODIMP CDecCuvid::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   if (oResult != CUDA_SUCCESS) {
     DbgLog((LOG_ERROR, 10, L"-> Creating parser for type %d failed with code %d", cudaCodec, oResult));
     return E_FAIL;
-  }
-
-  {
-    cuda.cuvidCtxLock(m_cudaCtxLock, 0);
-    oResult = cuda.cuStreamCreate(&m_hStream, 0);
-    cuda.cuvidCtxUnlock(m_cudaCtxLock, 0);
-    if (oResult != CUDA_SUCCESS) {
-      DbgLog((LOG_ERROR, 10, L"::InitCodec(): Creating stream failed"));
-      return E_FAIL;
-    }
   }
 
   BITMAPINFOHEADER *bmi = nullptr;

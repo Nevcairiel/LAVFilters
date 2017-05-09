@@ -94,10 +94,6 @@ private:
     CUMETHOD(cuMemAllocHost);
     CUMETHOD(cuMemFreeHost);
     CUMETHOD(cuMemcpyDtoH);
-    CUMETHOD(cuMemcpyDtoHAsync);
-    CUMETHOD(cuStreamCreate);
-    CUMETHOD(cuStreamDestroy);
-    CUMETHOD(cuStreamQuery);
     CUMETHOD(cuDeviceGetCount);
     CUMETHOD(cuDriverGetVersion);
     CUMETHOD(cuDeviceGetName);
@@ -141,8 +137,6 @@ private:
   int                    m_DisplayPos = 0;
 
   CUVIDPICPARAMS         m_PicParams[MAX_PIC_INDEX];
-
-  CUstream               m_hStream = 0;
 
   BOOL                   m_bVDPAULevelC = FALSE;
   char                   m_cudaDeviceName[256] = { 0 };
