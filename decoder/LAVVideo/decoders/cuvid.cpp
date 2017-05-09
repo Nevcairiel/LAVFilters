@@ -839,7 +839,7 @@ int CUDAAPI CDecCuvid::HandleVideoSequence(void *obj, CUVIDEOFORMAT *cuvidfmt)
     || filter->m_bForceSequenceUpdate)
   {
     filter->m_bForceSequenceUpdate = FALSE;
-    HRESULT hr = filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->bit_depth_luma_minus8 + 8, cuvidfmt->progressive_sequence);
+    HRESULT hr = filter->CreateCUVIDDecoder(cuvidfmt->codec, cuvidfmt->coded_width, cuvidfmt->coded_height, cuvidfmt->bit_depth_luma_minus8 + 8, cuvidfmt->progressive_sequence != 0);
     if (FAILED(hr))
       filter->m_bFormatIncompatible = TRUE;
   }
