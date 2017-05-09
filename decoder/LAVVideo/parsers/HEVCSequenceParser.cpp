@@ -58,7 +58,7 @@ HRESULT CHEVCSequenceParser::ParseNALs(const BYTE *buffer, size_t buflen, int na
 HRESULT CHEVCSequenceParser::ParseSPS(const BYTE *buffer, size_t buflen)
 {
   CByteParser parser(buffer, buflen);
-  int i, j;
+  int i;
 
   ZeroMemory(&sps, sizeof(sps));
   sps.valid = 1;
@@ -67,10 +67,6 @@ HRESULT CHEVCSequenceParser::ParseSPS(const BYTE *buffer, size_t buflen)
     int profile_present;
     int level_present;
   } Sublayers[7];
-
-  struct {
-    int NumDeltaPocs;
-  } ShortTermRPS[64];
 
   parser.BitSkip(4); // sps_video_parameter_set_id
   int max_sub_layers = parser.BitRead(3); // sps_max_sub_layers_minus1
