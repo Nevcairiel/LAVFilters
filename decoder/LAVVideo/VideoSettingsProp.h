@@ -70,6 +70,7 @@ private:
   BOOL  m_bPixFmts[LAVOutPixFmt_NB];
   DWORD m_HWAccel;
   BOOL  m_HWAccelCodecs[HWCodec_NB];
+  BOOL  m_HWAccelCUVIDDXVA;
 
   DWORD m_HWRes;
   DWORD m_HWDeviceIndex;

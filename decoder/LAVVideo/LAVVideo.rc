@@ -131,7 +131,8 @@ BEGIN
     LTEXT           "<none>",IDC_HWACCEL_DEVICE,160,72,105,8
     LTEXT           "Hardware Device to use:",IDC_LBL_HWACCEL_DEVICE_SELECT,157,87,105,8
     COMBOBOX        IDC_HWACCEL_DEVICE_SELECT,160,98,235,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "The selected Hardware Decoder does not support using a specific device.", IDC_LBL_HWACCEL_DEVICE_HINT, 160, 115, 235, 18
+    LTEXT           "The selected Hardware Decoder does not support using a specific device.",IDC_LBL_HWACCEL_DEVICE_HINT,160,115,235,18
+    CONTROL         "Enable CUVID DXVA processing", IDC_HWACCEL_CUVID_DXVA, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 160,125,139,10
     GROUPBOX        "Hardware/GPU Deinterlacing (CUVID/QS only)",IDC_GROUP_HWDEINT,237,143,167,52
     CONTROL         "Enable Adaptive HW Deinterlacing",IDC_HWDEINT_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,244,155,139,10

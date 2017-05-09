@@ -291,6 +291,7 @@ private:
     DWORD HWAccel;
     BOOL bHWFormats[HWCodec_NB];
     DWORD HWAccelResFlags;
+    BOOL  HWAccelCUVIDXVA;
     DWORD HWDeintMode;
     DWORD HWDeintOutput;
     DWORD DeintFieldOrder;

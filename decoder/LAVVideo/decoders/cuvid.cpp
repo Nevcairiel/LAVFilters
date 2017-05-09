@@ -424,8 +424,10 @@ STDMETHODIMP CDecCuvid::Init()
 select_device:
   hr = InitD3D9(best_device, dwDeviceIndex);
 
-  if (FAILED(hr)) {
-    DbgLog((LOG_TRACE, 10, L"-> No D3D device available, building non-D3D context on device %d", best_device));
+  if (hr != S_OK) {
+    if (FAILED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"-> No D3D device available, building non-D3D context on device %d", best_device));
+    }
     cuStatus = cuda.cuCtxCreate(&m_cudaContext, CU_CTX_SCHED_BLOCKING_SYNC, best_device);
 
     if (cuStatus == CUDA_SUCCESS) {
@@ -474,6 +476,12 @@ STDMETHODIMP CDecCuvid::InitD3D9(int best_device, DWORD requested_device)
   if (IsWindows10OrNewer()) {
     DbgLog((LOG_ERROR, 10, L"-> D3D9 CUVID interop is not supported on Windows 10"));
     return E_FAIL;
+  }
+
+  // Check if D3D mode is enabled/wanted
+  if (m_pSettings->GetHWAccelDeintHQ() == FALSE) {
+    DbgLog((LOG_ERROR, 10, L"-> HQ mode is turned off, skipping D3D9 init"));
+    return S_FALSE;
   }
 
   if (!m_pD3D9)

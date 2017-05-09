@@ -169,6 +169,8 @@ HRESULT CLAVVideo::LoadDefaults()
 
   m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD|LAVHWResFlag_UHD;
 
+  m_settings.HWAccelCUVIDXVA = TRUE;
+
   m_settings.HWDeintMode = HWDeintMode_Weave;
   m_settings.HWDeintOutput = DeintOutput_FramePerField;
 
@@ -311,6 +313,9 @@ HRESULT CLAVVideo::ReadSettings(HKEY rootKey)
 
     dwVal = regHW.ReadDWORD(L"HWAccelDeviceDXVA2Desc", hr);
     if (SUCCEEDED(hr)) m_settings.HWAccelDeviceDXVA2Desc = dwVal;
+
+    bFlag = regHW.ReadBOOL(L"HWAccelCUVIDXVA", hr);
+    if (SUCCEEDED(hr)) m_settings.HWAccelCUVIDXVA = bFlag;
   }
 
   return S_OK;
@@ -367,6 +372,8 @@ HRESULT CLAVVideo::SaveSettings()
 
     regHW.WriteDWORD(L"HWAccelDeviceDXVA2", m_settings.HWAccelDeviceDXVA2);
     regHW.WriteDWORD(L"HWAccelDeviceDXVA2Desc", m_settings.HWAccelDeviceDXVA2Desc);
+
+    regHW.WriteBOOL(L"HWAccelCUVIDXVA", m_settings.HWAccelCUVIDXVA);
 
     reg.WriteDWORD(L"SWDeintMode", m_settings.SWDeintMode);
     reg.WriteDWORD(L"SWDeintOutput", m_settings.SWDeintOutput);
@@ -2227,12 +2234,13 @@ STDMETHODIMP_(LAVDeintOutput) CLAVVideo::GetHWAccelDeintOutput()
 
 STDMETHODIMP CLAVVideo::SetHWAccelDeintHQ(BOOL bHQ)
 {
-  return S_FALSE;
+  m_settings.HWAccelCUVIDXVA = bHQ;
+  return SaveSettings();
 }
 
 STDMETHODIMP_(BOOL) CLAVVideo::GetHWAccelDeintHQ()
 {
-  return TRUE;
+  return m_settings.HWAccelCUVIDXVA;
 }
 
 STDMETHODIMP CLAVVideo::SetSWDeintMode(LAVSWDeintModes deintMode)
