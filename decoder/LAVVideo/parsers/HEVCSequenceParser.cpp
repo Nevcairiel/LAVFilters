@@ -81,13 +81,28 @@ HRESULT CHEVCSequenceParser::ParseSPS(const BYTE *buffer, size_t buflen)
   parser.BitSkip(1); // general_tier_flag
   sps.profile = parser.BitRead(5); // general_profile_idc
 
-  parser.BitSkip(32); // general_profile_compatibility_flag[32]
+  for (i = 0; i < 32; i++)
+  {
+    int flag = parser.BitRead(1);
+    if (sps.profile == 0 && i > 0 && flag)
+      sps.profile = i;
+  }
   parser.BitSkip(1); // general_progressive_source_flag
   parser.BitSkip(1); // general_interlaced_source_flag
   parser.BitSkip(1); // general_non_packed_constraint_flag
   parser.BitSkip(1); // general_frame_only_constraint_flag
-  parser.BitSkip(22); // general_reserved_zero_44bits
-  parser.BitSkip(22); // general_reserved_zero_44bits
+  if (sps.profile == 4) {
+    sps.rext_profile = parser.BitRead(8); // 8 constraint flags
+
+    parser.BitSkip(1);  // general_lower_bit_rate_constraint_flag
+    parser.BitSkip(17); // general_reserved_zero_34bits
+    parser.BitSkip(17); // general_reserved_zero_34bits
+  }
+  else {
+    parser.BitSkip(21); // general_reserved_zero_43bits
+    parser.BitSkip(22); // general_reserved_zero_43bits
+  }
+  parser.BitSkip(1); // general_reserved_zero_bit
   sps.level = parser.BitRead(8); // general_level_idc
 
   if (max_sub_layers > 7)
@@ -139,7 +154,8 @@ HRESULT CHEVCSequenceParser::ParseSPS(const BYTE *buffer, size_t buflen)
 
   sps.bitdepth = parser.UExpGolombRead() + 8; // bit_depth_luma_minus8
   parser.UExpGolombRead(); // bit_depth_chroma_minus8
-  int log2_max_pic_order_count = parser.UExpGolombRead() + 4; // log2_max_pic_order_cnt_lsb_minus4
+
+  /*int log2_max_pic_order_count = parser.UExpGolombRead() + 4; // log2_max_pic_order_cnt_lsb_minus4
 
   for (i = (parser.BitRead(1) ? 0 : max_sub_layers); i <= max_sub_layers; i++) {
     parser.UExpGolombRead(); // sps_max_dec_pic_buffering_minus1
@@ -359,7 +375,7 @@ HRESULT CHEVCSequenceParser::ParseSPS(const BYTE *buffer, size_t buflen)
 
   if (sps_range_extension_present) {
     sps.range_extension_flags = parser.BitRead(9);
-  }
+  }*/
 
   return S_OK;
 }

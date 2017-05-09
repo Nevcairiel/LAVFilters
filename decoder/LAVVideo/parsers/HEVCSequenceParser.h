@@ -21,6 +21,8 @@
 
 #include "ByteParser.h"
 
+#define HEVC_REXT_PROFILE_MAIN_12 0x98
+
 class CHEVCSequenceParser
 {
 public:
@@ -34,11 +36,10 @@ public:
     int valid;
 
     int profile;
+    int rext_profile;
     int level;
     int chroma;
     int bitdepth;
-
-    int range_extension_flags;
   } sps;
 
 private:
