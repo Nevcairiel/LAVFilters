@@ -69,7 +69,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
       return E_FAIL;
   }
 
-  CMediaType mtype = g_AudioHelper.initAudioType(avstream->codecpar->codec_id, avstream->codecpar->codec_tag, m_containerFormat);
+  CMediaType mtype = g_AudioHelper.initAudioType(avstream->codecpar, avstream->codecpar->codec_tag, m_containerFormat);
 
   if(mtype.formattype == FORMAT_WaveFormatEx) {
     // Special Logic for the MPEG1 Audio Formats (MP1, MP2)

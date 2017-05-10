@@ -84,7 +84,7 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_DSD_MSBF_PLANAR, &MEDIASUBTYPE_DSD8,         0,                      nullptr },
 };
 
-CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &codecTag, std::string container)
+CMediaType CLAVFAudioHelper::initAudioType(AVCodecParameters *codecpar, unsigned int &codecTag, std::string container)
 {
   CMediaType mediaType;
   mediaType.InitMediaType();
@@ -93,21 +93,42 @@ CMediaType CLAVFAudioHelper::initAudioType(AVCodecID codecId, unsigned int &code
   mediaType.formattype = FORMAT_WaveFormatEx; //default value
   mediaType.SetSampleSize(256000);
 
+  // map mono planar pcm formats (if its mono, planar makes no difference)
+  if (codecpar->channels == 1) {
+    switch (codecpar->codec_id) {
+    case AV_CODEC_ID_PCM_S8_PLANAR:
+      codecpar->codec_id = AV_CODEC_ID_PCM_S8;
+      break;
+    case AV_CODEC_ID_PCM_S16BE_PLANAR:
+      codecpar->codec_id = AV_CODEC_ID_PCM_S16BE;
+      break;
+    case AV_CODEC_ID_PCM_S16LE_PLANAR:
+      codecpar->codec_id = AV_CODEC_ID_PCM_S16LE;
+      break;
+    case AV_CODEC_ID_PCM_S24LE_PLANAR:
+      codecpar->codec_id = AV_CODEC_ID_PCM_S24LE;
+      break;
+    case AV_CODEC_ID_PCM_S32LE_PLANAR:
+      codecpar->codec_id = AV_CODEC_ID_PCM_S32LE;
+      break;
+    }
+  }
+
   // Check against values from the map above
   for(unsigned i = 0; i < countof(audio_map); ++i) {
-    if (audio_map[i].codec == codecId) {
+    if (audio_map[i].codec == codecpar->codec_id) {
       if (audio_map[i].subtype)
         mediaType.subtype = *audio_map[i].subtype;
       if (audio_map[i].codecTag)
         codecTag = audio_map[i].codecTag;
       if (audio_map[i].format)
-         mediaType.formattype = *audio_map[i].format;
+        mediaType.formattype = *audio_map[i].format;
       break;
     }
   }
 
   // special cases
-  switch(codecId)
+  switch(codecpar->codec_id)
   {
   case AV_CODEC_ID_PCM_F64LE:
     // Qt PCM
