@@ -44,6 +44,8 @@ public:
   // Remove count bytes from position index
   int RemoveHead(int count);
 
+  bool CopyProperties(const Packet *src);
+
 public:
   DWORD StreamId         = 0;
   BOOL  bDiscontinuity   = FALSE;

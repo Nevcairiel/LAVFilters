@@ -98,3 +98,20 @@ int Packet::RemoveHead(int count)
   m_Packet->size -= (int)count;
   return 0;
 }
+
+bool Packet::CopyProperties(const Packet *src)
+{
+  StreamId = src->StreamId;
+  bDiscontinuity = src->bDiscontinuity;
+  bSyncPoint = src->bSyncPoint;
+  bPosition = src->bPosition;
+  rtStart = src->rtStart;
+  rtStop = src->rtStop;
+  rtPTS = src->rtPTS;
+  rtDTS = src->rtDTS;
+  if (src->pmt)
+    pmt = CreateMediaType(src->pmt);
+  dwFlags = src->dwFlags;
+
+  return true;
+}
