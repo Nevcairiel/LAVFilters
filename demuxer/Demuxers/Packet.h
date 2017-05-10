@@ -65,6 +65,7 @@ public:
 #define LAV_PACKET_FORCED_SUBTITLE  0x0004
 #define LAV_PACKET_H264_ANNEXB      0x0008
 #define LAV_PACKET_SRT              0x0010
+#define LAV_PACKET_PLANAR_PCM       0x0020
   DWORD dwFlags          = 0;
 
 private:

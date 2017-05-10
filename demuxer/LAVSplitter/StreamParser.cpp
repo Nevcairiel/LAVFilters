@@ -74,6 +74,8 @@ HRESULT CStreamParser::Parse(const GUID &gSubtype, Packet *pPacket)
     ParseAAC(pPacket);
   } else if (m_gSubtype == MEDIASUBTYPE_UTF8 && (pPacket->dwFlags & LAV_PACKET_SRT)) {
     ParseSRT(pPacket);
+  } else if ((m_gSubtype == MEDIASUBTYPE_PCM || m_gSubtype == MEDIASUBTYPE_PCM_TWOS) && (pPacket->dwFlags & LAV_PACKET_PLANAR_PCM)) {
+    ParsePlanarPCM(pPacket);
   } else {
     Queue(pPacket);
   }
@@ -439,4 +441,39 @@ HRESULT CStreamParser::ParseSRT(Packet *pPacket)
 
   SAFE_DELETE(pPacket);
   return S_FALSE;
+}
+
+HRESULT CStreamParser::ParsePlanarPCM(Packet *pPacket)
+{
+  CMediaType mt = m_pPin->GetActiveMediaType();
+
+  WORD nChannels = 0, nBPS = 0, nBlockAlign = 0;
+  audioFormatTypeHandler(mt.Format(), mt.FormatType(), nullptr, &nChannels, &nBPS, &nBlockAlign, nullptr);
+
+  // Mono needs no special handling
+  if (nChannels == 1)
+    return Queue(pPacket);
+
+  Packet *out = new Packet();
+  out->CopyProperties(pPacket);
+  out->SetDataSize(pPacket->GetDataSize());
+
+  int nBytesPerChannel = nBPS / 8;
+  int nAudioBlocks = pPacket->GetDataSize() / nChannels;
+  BYTE *out_data = out->GetData();
+  const BYTE *in_data = pPacket->GetData();
+
+  for (int i = 0; i < nAudioBlocks; i += nBytesPerChannel) {
+    // interleave the channels into audio blocks
+    for (int c = 0; c < nChannels; c++) {
+      memcpy(out_data + (c * nBytesPerChannel), in_data + (nAudioBlocks * c), nBytesPerChannel);
+    }
+    // Skip to the next output block
+    out_data += nChannels * nBytesPerChannel;
+
+    // skip to the next input sample
+    in_data += nBytesPerChannel;
+  }
+
+  return Queue(out);
 }

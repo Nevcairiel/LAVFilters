@@ -50,6 +50,9 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_PCM_S24LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        nullptr },
   { AV_CODEC_ID_PCM_S32LE,  &MEDIASUBTYPE_PCM,               WAVE_FORMAT_PCM,        nullptr },
   { AV_CODEC_ID_PCM_F32LE,  &MEDIASUBTYPE_IEEE_FLOAT,        WAVE_FORMAT_IEEE_FLOAT, nullptr },
+  { AV_CODEC_ID_PCM_S16LE_PLANAR, &MEDIASUBTYPE_PCM,         WAVE_FORMAT_PCM,        nullptr },
+  { AV_CODEC_ID_PCM_S24LE_PLANAR, &MEDIASUBTYPE_PCM,         WAVE_FORMAT_PCM,        nullptr },
+  { AV_CODEC_ID_PCM_S32LE_PLANAR, &MEDIASUBTYPE_PCM,         WAVE_FORMAT_PCM,        nullptr },
   { AV_CODEC_ID_WMAV1,      &MEDIASUBTYPE_MSAUDIO1,          WAVE_FORMAT_MSAUDIO1,   nullptr },
   { AV_CODEC_ID_WMAV2,      &MEDIASUBTYPE_WMAUDIO2,          WAVE_FORMAT_WMAUDIO2,   nullptr },
   { AV_CODEC_ID_WMAPRO,     &MEDIASUBTYPE_WMAUDIO3,          WAVE_FORMAT_WMAUDIO3,   nullptr },
@@ -72,6 +75,7 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_TAK,        &MEDIASUBTYPE_TAK,               0,                      nullptr },
   { AV_CODEC_ID_S302M,      &MEDIASUBTYPE_AES3,              0,                      nullptr },
   { AV_CODEC_ID_PCM_S16BE,  &MEDIASUBTYPE_PCM_TWOS,          0,                      nullptr },
+  { AV_CODEC_ID_PCM_S16BE_PLANAR, &MEDIASUBTYPE_PCM_TWOS,    0,                      nullptr },
   { AV_CODEC_ID_PCM_S24BE,  &MEDIASUBTYPE_PCM_IN24,          0,                      nullptr },
   { AV_CODEC_ID_PCM_S32BE,  &MEDIASUBTYPE_PCM_IN32,          0,                      nullptr },
   { AV_CODEC_ID_QDM2,       &MEDIASUBTYPE_QDM2,              WAVE_FORMAT_QDESIGN_MUSIC, nullptr },
@@ -92,27 +96,6 @@ CMediaType CLAVFAudioHelper::initAudioType(AVCodecParameters *codecpar, unsigned
   mediaType.subtype = FOURCCMap(codecTag);
   mediaType.formattype = FORMAT_WaveFormatEx; //default value
   mediaType.SetSampleSize(256000);
-
-  // map mono planar pcm formats (if its mono, planar makes no difference)
-  if (codecpar->channels == 1) {
-    switch (codecpar->codec_id) {
-    case AV_CODEC_ID_PCM_S8_PLANAR:
-      codecpar->codec_id = AV_CODEC_ID_PCM_S8;
-      break;
-    case AV_CODEC_ID_PCM_S16BE_PLANAR:
-      codecpar->codec_id = AV_CODEC_ID_PCM_S16BE;
-      break;
-    case AV_CODEC_ID_PCM_S16LE_PLANAR:
-      codecpar->codec_id = AV_CODEC_ID_PCM_S16LE;
-      break;
-    case AV_CODEC_ID_PCM_S24LE_PLANAR:
-      codecpar->codec_id = AV_CODEC_ID_PCM_S24LE;
-      break;
-    case AV_CODEC_ID_PCM_S32LE_PLANAR:
-      codecpar->codec_id = AV_CODEC_ID_PCM_S32LE;
-      break;
-    }
-  }
 
   // Check against values from the map above
   for(unsigned i = 0; i < countof(audio_map); ++i) {

@@ -1320,6 +1320,13 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
       }
     }
 
+    if (stream->codecpar->codec_id == AV_CODEC_ID_PCM_S16BE_PLANAR
+      || stream->codecpar->codec_id == AV_CODEC_ID_PCM_S16LE_PLANAR
+      || stream->codecpar->codec_id == AV_CODEC_ID_PCM_S24LE_PLANAR
+      || stream->codecpar->codec_id == AV_CODEC_ID_PCM_S32LE_PLANAR
+      )
+      pPacket->dwFlags |= LAV_PACKET_PLANAR_PCM;
+
     // Update extradata and send new mediatype, when required
     int sidedata_size = 0;
     uint8_t *sidedata = av_packet_get_side_data(&pkt, AV_PKT_DATA_NEW_EXTRADATA, &sidedata_size);

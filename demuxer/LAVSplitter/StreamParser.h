@@ -41,6 +41,7 @@ private:
   HRESULT ParseMOVText(Packet *pPacket);
   HRESULT ParseAAC(Packet *pPacket);
   HRESULT ParseSRT(Packet *pPacket);
+  HRESULT ParsePlanarPCM(Packet *pPacket);
 
   HRESULT Queue(Packet *pPacket) const;
 
