@@ -57,7 +57,8 @@ CLAVFStreamInfo::~CLAVFStreamInfo()
 
 STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
-  if (avstream->codecpar->codec_tag == 0) {
+  // if no codec tag is set, or the tag is set to PCM (which is often wrong), lookup a new tag
+  if (avstream->codecpar->codec_tag == 0 || avstream->codecpar->codec_tag == 1) {
     avstream->codecpar->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codecpar->codec_id);
   }
 
