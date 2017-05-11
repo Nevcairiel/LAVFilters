@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-Copyright (C) 2013-2015 Intel Corporation.  All rights reserved.
+Copyright (C) 2013-2016 Intel Corporation.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -150,6 +150,24 @@ typedef struct {
     mfxI32       Priority;
     mfxU16       reserved[55];
 } mfxExtThreadsParam;
+
+/* PlatformCodeName */
+enum {
+    MFX_PLATFORM_UNKNOWN        = 0,
+    MFX_PLATFORM_SANDYBRIDGE    = 1,
+    MFX_PLATFORM_IVYBRIDGE      = 2,
+    MFX_PLATFORM_HASWELL        = 3,
+    MFX_PLATFORM_BAYTRAIL       = 4,
+    MFX_PLATFORM_BROADWELL      = 5,
+    MFX_PLATFORM_CHERRYTRAIL    = 6,
+    MFX_PLATFORM_SKYLAKE        = 7,
+};
+
+typedef struct {
+    mfxU16 CodeName;
+    mfxU16 DeviceId;
+    mfxU16 reserved[14];
+} mfxPlatform;
 
 #ifdef __cplusplus
 }
