@@ -897,7 +897,8 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
   HRESULT hr = S_OK;
   if (dir == PINDIR_OUTPUT) {
     BOOL bFailNonDXVA = false;
-    if (m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P010 || m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P016) {
+    // Fail P010 software connections before Windows 10 Creators Update (presumably it was fixed before Creators already, but this is definitely a safe known condition)
+    if (!IsWindows10BuildOrNewer(15063) && (m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P010 || m_pOutput->CurrentMediaType().subtype == MEDIASUBTYPE_P016)) {
       // Check if we're connecting to EVR
       IBaseFilter *pFilter = GetFilterFromPin(pReceivePin);
       if (pFilter != nullptr) {
