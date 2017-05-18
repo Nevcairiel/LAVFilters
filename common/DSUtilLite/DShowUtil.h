@@ -140,4 +140,5 @@ BOOL IsVistaOrNewer();
 BOOL IsWindows7OrNewer();
 BOOL IsWindows8OrNewer();
 BOOL IsWindows10OrNewer();
+BOOL IsWindows10BuildOrNewer(DWORD dwBuild);
 void __cdecl debugprintf(LPCWSTR format, ...);

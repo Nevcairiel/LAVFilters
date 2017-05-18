@@ -764,6 +764,17 @@ BOOL IsWindows10OrNewer()
   return (os.dwMajorVersion >= 10);
 }
 
+BOOL IsWindows10BuildOrNewer(DWORD dwBuild)
+{
+  // Query OS version info
+  OSVERSIONINFO os;
+  ZeroMemory(&os, sizeof(os));
+  os.dwOSVersionInfoSize = sizeof(os);
+  GetVersionEx(&os);
+
+  return (os.dwMajorVersion > 10 || (os.dwMajorVersion == 10 && os.dwBuildNumber >= dwBuild));
+}
+
 void __cdecl debugprintf(LPCWSTR format, ...)
 {
   WCHAR    buf[4096], *p = buf;
