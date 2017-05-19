@@ -115,11 +115,11 @@ if $clean_build ; then
     clean
 
     ## run configure, redirect to file because of a msys bug
-    configure > config.out 2>&1
+    configure > ffbuild/config.out 2>&1
     CONFIGRETVAL=$?
 
     ## show configure output
-    cat config.out
+    cat ffbuild/config.out
 fi
 
 ## Only if configure succeeded, actually build
