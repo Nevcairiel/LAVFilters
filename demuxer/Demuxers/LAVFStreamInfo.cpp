@@ -293,9 +293,9 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
     }
     else if (mtype.subtype == MEDIASUBTYPE_VP90) {
       // generate extradata for VP9 streams
-      mtype.ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + 15);
+      mtype.ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + 16);
       VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
-      vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + 15;
+      vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + 16;
 
       BYTE *extra = mtype.pbFormat + sizeof(VIDEOINFOHEADER2);
       AV_WL32(extra, MKTAG('v', 'p', 'c', 'C'));
