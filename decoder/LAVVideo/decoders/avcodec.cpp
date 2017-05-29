@@ -428,6 +428,22 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         extralen -= sizeof(AVPixelFormat);
         memmove(extra, extra+sizeof(AVPixelFormat), extralen);
       }
+    } else if (codec == AV_CODEC_ID_VP9) {
+      // read custom vpcC headers
+      if (extralen >= 16) {
+        extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+        getExtraData(*pmt, extra, nullptr);
+
+        if (AV_RB32(extra) == MKBETAG('v', 'p', 'c', 'C') && AV_RB8(extra + 4) == 1) {
+          m_pAVCtx->profile = AV_RB8(extra + 8);
+          m_pAVCtx->color_primaries = (AVColorPrimaries)AV_RB8(extra + 11);
+          m_pAVCtx->color_trc = (AVColorTransferCharacteristic)AV_RB8(extra + 12);
+          m_pAVCtx->colorspace = (AVColorSpace)AV_RB8(extra + 13);
+        }
+
+        av_freep(&extra);
+        extralen = 0;
+      }
     } else {
       // Just copy extradata for other formats
       extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
