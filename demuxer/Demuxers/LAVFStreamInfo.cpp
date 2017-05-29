@@ -298,16 +298,16 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + 16;
 
       BYTE *extra = mtype.pbFormat + sizeof(VIDEOINFOHEADER2);
-      AV_WL32(extra, MKTAG('v', 'p', 'c', 'C'));
-      AV_WL8 (extra +  4, 1); // version
-      AV_WL24(extra +  5, 0); // flags
-      AV_WL8 (extra +  8, avstream->codecpar->profile);
-      AV_WL8 (extra +  9, avstream->codecpar->level == FF_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level);
-      AV_WL8 (extra + 10, get_pixel_bitdepth((AVPixelFormat)avstream->codecpar->format) << 4 | get_vpcC_chroma(avstream->codecpar) << 1 | (avstream->codecpar->color_range == AVCOL_RANGE_JPEG));
-      AV_WL8 (extra + 11, avstream->codecpar->color_primaries);
-      AV_WL8 (extra + 12, avstream->codecpar->color_trc);
-      AV_WL8 (extra + 13, avstream->codecpar->color_space);
-      AV_WL16(extra + 14, 0); // no codec init data
+      AV_WB32(extra, MKBETAG('v', 'p', 'c', 'C'));
+      AV_WB8 (extra +  4, 1); // version
+      AV_WB24(extra +  5, 0); // flags
+      AV_WB8 (extra +  8, avstream->codecpar->profile);
+      AV_WB8 (extra +  9, avstream->codecpar->level == FF_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level);
+      AV_WB8 (extra + 10, get_pixel_bitdepth((AVPixelFormat)avstream->codecpar->format) << 4 | get_vpcC_chroma(avstream->codecpar) << 1 | (avstream->codecpar->color_range == AVCOL_RANGE_JPEG));
+      AV_WB8 (extra + 11, avstream->codecpar->color_primaries);
+      AV_WB8 (extra + 12, avstream->codecpar->color_trc);
+      AV_WB8 (extra + 13, avstream->codecpar->color_space);
+      AV_WB16(extra + 14, 0); // no codec init data
     }
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat, m_containerFormat);
