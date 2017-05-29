@@ -439,6 +439,14 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
           m_pAVCtx->color_primaries = (AVColorPrimaries)AV_RB8(extra + 11);
           m_pAVCtx->color_trc = (AVColorTransferCharacteristic)AV_RB8(extra + 12);
           m_pAVCtx->colorspace = (AVColorSpace)AV_RB8(extra + 13);
+
+          int bitdepth = AV_RB8(extra + 10) >> 4;
+          if (m_pAVCtx->profile == 2 && bitdepth == 10) {
+            m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P10;
+          }
+          else if (m_pAVCtx->profile == 2 && bitdepth == 12) {
+            m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P12;
+          }
         }
 
         av_freep(&extra);
