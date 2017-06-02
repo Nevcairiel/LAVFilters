@@ -159,6 +159,15 @@ var
   SplitterPage: TInputOptionWizardPage;
   SplitterFormats: Array [0..NumFormatsMinusOne] of Format;
 
+function IsProcessorFeaturePresent(Feature: Integer): Boolean;
+external 'IsProcessorFeaturePresent@kernel32.dll stdcall';
+
+function Is_SSE2_Supported(): Boolean;
+begin
+  // PF_XMMI64_INSTRUCTIONS_AVAILABLE
+  Result := IsProcessorFeaturePresent(10);
+end;
+
 function SettingsExistCheck(): Boolean;
 begin
   if RegKeyExists(HKCU, 'Software\LAV') then
@@ -498,6 +507,11 @@ function InitializeSetup(): Boolean;
 begin
   InitFormats;
   Result := True;
+
+  if not Is_SSE2_Supported() then begin
+    SuppressibleMsgBox('LAV Filters requires a CPU with SSE2 instruction support.'#10'Your CPU does not have these capabilities.', mbCriticalError, MB_OK, MB_OK);
+    Result := False;
+  end;
 end;
 
 function InitializeUninstall(): Boolean;
