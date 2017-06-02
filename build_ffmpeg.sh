@@ -92,7 +92,7 @@ configure() (
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib64"
   else
     OPTIONS="${OPTIONS} --cpu=i686"
-    EXTRA_CFLAGS="${EXTRA_CFLAGS} -mmmx -msse -mfpmath=sse"
+    EXTRA_CFLAGS="${EXTRA_CFLAGS} -mmmx -msse -msse2 -mfpmath=sse -mstackrealign"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib32"
   fi
 
