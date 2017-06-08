@@ -5,6 +5,9 @@ archdir=Win32
 clean_build=true
 cross_prefix=
 
+## Specify MSYSTEM value for MSYS2 compatibility
+export MSYSTEM=MINGW32
+
 for opt in "$@"
 do
     case "$opt" in
