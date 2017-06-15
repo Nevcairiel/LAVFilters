@@ -299,7 +299,7 @@ interface __declspec(uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")) ILAVVideoSett
   // Get the deinterlacing output for the hardware decoder
   STDMETHOD_(LAVDeintOutput, GetHWAccelDeintOutput)() = 0;
 
-  // deprecated. HQ deint is always used when available depending on platform and codec
+  // deprecated. HQ mode is only supported by NVIDIA CUVID/NVDEC and officially deprecated by NVIDIA
   STDMETHOD(SetHWAccelDeintHQ)(BOOL bHQ) = 0;
   STDMETHOD_(BOOL, GetHWAccelDeintHQ)() = 0;
 
