@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.70.0 - 2017/xx/xx
+0.70.0 - 2017/06/15
 General
 - Official LAV Filters builds require a SSE2 capable CPU
 
