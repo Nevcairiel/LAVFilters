@@ -2,14 +2,20 @@ LAV DirectShow Filters Changelog
 ===================================
 
 0.70.0 - 2017/xx/xx
+General
+- Official LAV Filters builds require a SSE2 capable CPU
+
 LAV Splitter
-- Fixed: Certain MP4/MOV didn't play or seek correctly in recent versions of LAV Splitter
+- Fixed: Certain MP4/MOV files didn't play or seek correctly in recent versions of LAV Splitter
 - Fixed: HEVC in MP4 without PTS timestamp is being signaled appropriately
 - Fixed: Closing RTSP streams did not properly call the TEARDOWN function
 
 LAV Video
+- NEW: CUVID support for VP9 8/10-bit and HEVC 10/12-bit decoding
+- NEW: DXVA2 support for VP9 10-bit decoding
 - Changed: Simplified the internal dataflow to reduce overhead and improve performance
-- Fixed: Y416 output was incorrect (required by madVR 0.91.8)
+- Changed: Enabled P010 output to EVR on Windows 10 Creators Update
+- Fixed: Y416 output was incorrect (required by madVR 0.91.8 and newer)
 - Fixed: Parsing H.264 MVC SEI NALs could fail in some cases
 - Fixed: CUVID decoding could deinterlace progressive streams under certain circumstances, degrading the quality
 
