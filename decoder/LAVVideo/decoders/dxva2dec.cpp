@@ -606,6 +606,32 @@ done:
   return E_FAIL;
 }
 
+HRESULT CDecDXVA2::InitD3DAdapterIdentifier(UINT lAdapter)
+{
+  ASSERT(m_pD3D);
+
+  D3DADAPTER_IDENTIFIER9 d3dai = { 0 };
+  HRESULT hr = m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dai);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> Querying of adapter identifier %d failed with hr: %X", lAdapter, hr));
+    return E_FAIL;
+  }
+
+  const char *vendor = "Unknown";
+  for (int i = 0; vendors[i].id != 0; i++) {
+    if (vendors[i].id == d3dai.VendorId) {
+      vendor = vendors[i].name;
+      break;
+    }
+  }
+
+  DbgLog((LOG_TRACE, 10, L"-> Running on adapter %d, %S, vendor 0x%04X(%S), device 0x%04X", lAdapter, d3dai.Description, d3dai.VendorId, vendor, d3dai.DeviceId));
+  m_dwVendorId = d3dai.VendorId;
+  m_dwDeviceId = d3dai.DeviceId;
+
+  return S_OK;
+}
+
 /**
  * This function is only called in non-native mode
  * Its responsibility is to initialize D3D, create a device and a device manager
@@ -621,30 +647,18 @@ HRESULT CDecDXVA2::InitD3D(UINT lAdapter)
     return E_FAIL;
   }
 
-retry_default:
-  D3DADAPTER_IDENTIFIER9 d3dai = {0};
-  hr = m_pD3D->GetAdapterIdentifier(lAdapter, 0, &d3dai);
+  // populate the adapter identifier values
+  hr = InitD3DAdapterIdentifier(lAdapter);
+
+  // if the requested adapter failed, try again
+  if (FAILED(hr) && lAdapter != D3DADAPTER_DEFAULT) {
+    lAdapter = D3DADAPTER_DEFAULT;
+    hr = InitD3DAdapterIdentifier(lAdapter);
+  }
+
   if (FAILED(hr)) {
-    // retry if the adapter is invalid
-    if (lAdapter != D3DADAPTER_DEFAULT) {
-      lAdapter = D3DADAPTER_DEFAULT;
-      goto retry_default;
-    }
-    DbgLog((LOG_TRACE, 10, L"-> Querying of adapter identifier failed with hr: %X", hr));
-    return E_FAIL;
+    return hr;
   }
-
-  const char *vendor = "Unknown";
-  for (int i = 0; vendors[i].id != 0; i++) {
-    if (vendors[i].id == d3dai.VendorId) {
-      vendor = vendors[i].name;
-      break;
-    }
-  }
-
-  DbgLog((LOG_TRACE, 10, L"-> Running on adapter %d, %S, vendor 0x%04X(%S), device 0x%04X", lAdapter, d3dai.Description, d3dai.VendorId, vendor, d3dai.DeviceId));
-  m_dwVendorId = d3dai.VendorId;
-  m_dwDeviceId = d3dai.DeviceId;
 
   D3DPRESENT_PARAMETERS d3dpp = { 0 };
   D3DDISPLAYMODE d3ddm = { 0 };

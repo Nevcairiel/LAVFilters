@@ -75,6 +75,7 @@ protected:
 
 private:
   HRESULT InitD3D(UINT lAdapter);
+  HRESULT InitD3DAdapterIdentifier(UINT lAdapter);
   STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
   STDMETHODIMP FreeD3DResources();
   STDMETHODIMP LoadDXVA2Functions();
