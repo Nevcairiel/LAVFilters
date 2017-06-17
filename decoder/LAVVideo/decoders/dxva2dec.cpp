@@ -615,11 +615,6 @@ HRESULT CDecDXVA2::InitD3D()
 {
   HRESULT hr = S_OK;
 
-  if (FAILED(hr = LoadDXVA2Functions())) {
-    DbgLog((LOG_ERROR, 10, L"-> Failed to load DXVA2 DLL functions"));
-    return E_FAIL;
-  }
-
   m_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
   if (!m_pD3D) {
     DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9"));
@@ -869,6 +864,12 @@ STDMETHODIMP CDecDXVA2::Init()
 
   // Initialize all D3D interfaces in non-native mode
   if (!m_bNative) {
+    // load DLLs and functions
+    if (FAILED(hr = LoadDXVA2Functions())) {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to load DXVA2 DLL functions"));
+      return E_FAIL;
+    }
+
     hr = InitD3D();
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> D3D Initialization failed with hr: %X", hr));
