@@ -436,6 +436,15 @@ done:
 
 STDMETHODIMP CDecDXVA2::LoadDXVA2Functions()
 {
+  // Load D3D9 library
+  dx.d3dlib = LoadLibrary(L"d3d9.dll");
+  if (dx.d3dlib == nullptr) {
+    DbgLog((LOG_TRACE, 10, L"-> Loading d3d9.dll failed"));
+    return E_FAIL;
+  }
+
+  dx.direct3DCreate9Ex = (pDirect3DCreate9Ex *)GetProcAddress(dx.d3dlib, "Direct3DCreate9Ex");
+
   // Load DXVA2 library
   dx.dxva2lib = LoadLibrary(L"dxva2.dll");
   if (dx.dxva2lib == nullptr) {
@@ -682,6 +691,61 @@ HRESULT CDecDXVA2::InitD3D(UINT lAdapter)
   return S_OK;
 }
 
+HRESULT CDecDXVA2::InitD3DEx(UINT lAdapter)
+{
+  HRESULT hr = S_OK;
+
+  if (dx.direct3DCreate9Ex == nullptr) {
+    DbgLog((LOG_ERROR, 10, L"-> Direct3DCreate9Ex not available"));
+    return E_NOINTERFACE;
+  }
+
+  IDirect3D9Ex *pD3D9Ex = nullptr;
+  hr = dx.direct3DCreate9Ex(D3D_SDK_VERSION, &pD3D9Ex);
+  if (FAILED(hr)) {
+    DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9Ex"));
+    return E_NOINTERFACE;
+  }
+  m_pD3D = dynamic_cast<IDirect3D9*>(pD3D9Ex);
+
+  // populate the adapter identifier values
+  hr = InitD3DAdapterIdentifier(lAdapter);
+
+  // if the requested adapter failed, try again
+  if (FAILED(hr) && lAdapter != D3DADAPTER_DEFAULT) {
+    lAdapter = D3DADAPTER_DEFAULT;
+    hr = InitD3DAdapterIdentifier(lAdapter);
+  }
+
+  if (FAILED(hr)) {
+    return hr;
+  }
+
+  D3DPRESENT_PARAMETERS d3dpp = { 0 };
+  D3DDISPLAYMODEEX d3ddm = { 0 };
+  d3ddm.Size = sizeof(D3DDISPLAYMODEEX);
+
+  pD3D9Ex->GetAdapterDisplayModeEx(lAdapter, &d3ddm, NULL);
+
+  d3dpp.Windowed = TRUE;
+  d3dpp.BackBufferWidth = 640;
+  d3dpp.BackBufferHeight = 480;
+  d3dpp.BackBufferCount = 0;
+  d3dpp.BackBufferFormat = d3ddm.Format;
+  d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+  d3dpp.Flags = D3DPRESENTFLAG_VIDEO;
+
+  IDirect3DDevice9Ex *pD3D9DeviceEx = nullptr;
+  hr = pD3D9Ex->CreateDeviceEx(lAdapter, D3DDEVTYPE_HAL, GetShellWindow(), D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, NULL, &pD3D9DeviceEx);
+  if (FAILED(hr)) {
+    DbgLog((LOG_TRACE, 10, L"-> Creation of device failed with hr: %X", hr));
+    return E_FAIL;
+  }
+  m_pD3DDev = dynamic_cast<IDirect3DDevice9*>(pD3D9DeviceEx);
+
+  return S_OK;
+}
+
 HRESULT CDecDXVA2::RetrieveVendorId(IDirect3DDeviceManager9 *pDevManager)
 {
   HANDLE hDevice = 0;
@@ -873,7 +937,12 @@ STDMETHODIMP CDecDXVA2::Init()
     }
 
     // initialize D3D
-    hr = InitD3D(lAdapter);
+    hr = InitD3DEx(lAdapter);
+    if (hr == E_NOINTERFACE) {
+      // D3D9Ex failed, try plain D3D
+      hr = InitD3D(lAdapter);
+    }
+
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> D3D Initialization failed with hr: %X", hr));
       return hr;

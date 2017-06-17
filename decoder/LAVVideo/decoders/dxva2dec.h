@@ -26,6 +26,7 @@
 #define DXVA2_QUEUE_SURFACES 4
 #define DXVA2_SURFACE_BASE_ALIGN 16
 
+typedef HRESULT WINAPI pDirect3DCreate9Ex(UINT, IDirect3D9Ex **);
 typedef HRESULT WINAPI pCreateDeviceManager9(UINT *pResetToken, IDirect3DDeviceManager9 **);
 
 typedef struct {
@@ -75,6 +76,7 @@ protected:
 
 private:
   HRESULT InitD3D(UINT lAdapter);
+  HRESULT InitD3DEx(UINT lAdapter);
   HRESULT InitD3DAdapterIdentifier(UINT lAdapter);
   STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
   STDMETHODIMP FreeD3DResources();
@@ -110,6 +112,9 @@ private:
   CDXVA2SurfaceAllocator *m_pDXVA2Allocator = nullptr;
 
   struct {
+    HMODULE d3dlib;
+    pDirect3DCreate9Ex *direct3DCreate9Ex;
+
     HMODULE dxva2lib;
     pCreateDeviceManager9 *createDeviceManager;
   } dx;
