@@ -718,6 +718,7 @@ HRESULT CDecDXVA2::InitD3DEx(UINT lAdapter)
   }
 
   if (FAILED(hr)) {
+    SafeRelease(&m_pD3D);
     return hr;
   }
 
@@ -739,6 +740,7 @@ HRESULT CDecDXVA2::InitD3DEx(UINT lAdapter)
   hr = pD3D9Ex->CreateDeviceEx(lAdapter, D3DDEVTYPE_HAL, GetShellWindow(), D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED | D3DCREATE_FPU_PRESERVE, &d3dpp, NULL, &pD3D9DeviceEx);
   if (FAILED(hr)) {
     DbgLog((LOG_TRACE, 10, L"-> Creation of device failed with hr: %X", hr));
+    SafeRelease(&m_pD3D);
     return E_FAIL;
   }
   m_pD3DDev = dynamic_cast<IDirect3DDevice9*>(pD3D9DeviceEx);
