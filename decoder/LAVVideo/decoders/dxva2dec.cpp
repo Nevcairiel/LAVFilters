@@ -611,7 +611,7 @@ done:
  * Its responsibility is to initialize D3D, create a device and a device manager
  * and call SetD3DDeviceManager with it.
  */
-HRESULT CDecDXVA2::InitD3D()
+HRESULT CDecDXVA2::InitD3D(UINT lAdapter)
 {
   HRESULT hr = S_OK;
 
@@ -619,15 +619,6 @@ HRESULT CDecDXVA2::InitD3D()
   if (!m_pD3D) {
     DbgLog((LOG_ERROR, 10, L"-> Failed to acquire IDirect3D9"));
     return E_FAIL;
-  }
-
-  UINT lAdapter = m_pSettings->GetHWAccelDeviceIndex(HWAccel_DXVA2CopyBack, nullptr);
-  if (lAdapter == LAVHWACCEL_DEVICE_DEFAULT)
-    lAdapter = D3DADAPTER_DEFAULT;
-
-  DWORD dwDeviceIndex = m_pCallback->GetGPUDeviceIndex();
-  if (dwDeviceIndex != DWORD_MAX) {
-    lAdapter = (UINT)dwDeviceIndex;
   }
 
 retry_default:
@@ -870,7 +861,18 @@ STDMETHODIMP CDecDXVA2::Init()
       return E_FAIL;
     }
 
-    hr = InitD3D();
+    // determin the adapter the user requested
+    UINT lAdapter = m_pSettings->GetHWAccelDeviceIndex(HWAccel_DXVA2CopyBack, nullptr);
+    if (lAdapter == LAVHWACCEL_DEVICE_DEFAULT)
+      lAdapter = D3DADAPTER_DEFAULT;
+
+    DWORD dwDeviceIndex = m_pCallback->GetGPUDeviceIndex();
+    if (dwDeviceIndex != DWORD_MAX) {
+      lAdapter = (UINT)dwDeviceIndex;
+    }
+
+    // initialize D3D
+    hr = InitD3D(lAdapter);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> D3D Initialization failed with hr: %X", hr));
       return hr;

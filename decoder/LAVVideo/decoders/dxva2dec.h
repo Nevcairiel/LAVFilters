@@ -74,7 +74,7 @@ protected:
   bool DeliverDirect(LAVFrame *pFrame);
 
 private:
-  HRESULT InitD3D();
+  HRESULT InitD3D(UINT lAdapter);
   STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
   STDMETHODIMP FreeD3DResources();
   STDMETHODIMP LoadDXVA2Functions();
