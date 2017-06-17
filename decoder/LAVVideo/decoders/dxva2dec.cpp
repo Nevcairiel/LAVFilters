@@ -646,10 +646,9 @@ retry_default:
   m_dwVendorId = d3dai.VendorId;
   m_dwDeviceId = d3dai.DeviceId;
 
-  D3DPRESENT_PARAMETERS d3dpp;
-  D3DDISPLAYMODE d3ddm;
+  D3DPRESENT_PARAMETERS d3dpp = { 0 };
+  D3DDISPLAYMODE d3ddm = { 0 };
 
-  ZeroMemory(&d3dpp, sizeof(d3dpp));
   m_pD3D->GetAdapterDisplayMode(lAdapter, &d3ddm);
 
   d3dpp.Windowed               = TRUE;
