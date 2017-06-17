@@ -666,18 +666,6 @@ retry_default:
     return E_FAIL;
   }
 
-  hr = CreateD3DDeviceManager(m_pD3DDev, &m_pD3DResetToken, &m_pD3DDevMngr);
-  if (FAILED(hr)) {
-    DbgLog((LOG_TRACE, 10, L"-> Creation of Device manager failed with hr: %X", hr));
-    return E_FAIL;
-  }
-
-  hr = SetD3DDeviceManager(m_pD3DDevMngr);
-  if (FAILED(hr)) {
-    DbgLog((LOG_TRACE, 10, L"-> SetD3DDeviceManager failed with hr: %X", hr));
-    return E_FAIL;
-  }
-
   return S_OK;
 }
 
@@ -876,6 +864,20 @@ STDMETHODIMP CDecDXVA2::Init()
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> D3D Initialization failed with hr: %X", hr));
       return hr;
+    }
+
+    // create device manager for the device
+    hr = CreateD3DDeviceManager(m_pD3DDev, &m_pD3DResetToken, &m_pD3DDevMngr);
+    if (FAILED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"-> Creation of Device manager failed with hr: %X", hr));
+      return E_FAIL;
+    }
+
+    // set it as the active device manager
+    hr = SetD3DDeviceManager(m_pD3DDevMngr);
+    if (FAILED(hr)) {
+      DbgLog((LOG_TRACE, 10, L"-> SetD3DDeviceManager failed with hr: %X", hr));
+      return E_FAIL;
     }
 
     if (CopyFrameNV12 == nullptr) {
