@@ -356,7 +356,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // Thread Count. 0 = auto detect
   int thread_count = m_pSettings->GetNumThreads();
   if (thread_count == 0) {
-    thread_count = av_cpu_count() * 3 / 2;
+    thread_count = av_cpu_count();
   }
   m_pAVCtx->thread_count = max(1, min(thread_count, AVCODEC_MAX_THREADS));
 
