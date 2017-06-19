@@ -198,7 +198,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
   SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_RESETCONTENT, 0, 0);
   SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
 
-  for (unsigned i = 1; i <= 16; ++i) {
+  for (unsigned i = 1; i <= 32; ++i) {
     swprintf_s(stringBuffer, L"%d", i);
     SendDlgItemMessage(m_Dlg, IDC_THREADS, CB_ADDSTRING, 0, (LPARAM)stringBuffer);
   }

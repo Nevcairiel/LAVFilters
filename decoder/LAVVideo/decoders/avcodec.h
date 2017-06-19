@@ -23,7 +23,7 @@
 
 #include <map>
 
-#define AVCODEC_MAX_THREADS 16
+#define AVCODEC_MAX_THREADS 32
 
 typedef struct {
   REFERENCE_TIME rtStart;
