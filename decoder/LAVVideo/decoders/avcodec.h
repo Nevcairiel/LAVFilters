@@ -74,9 +74,7 @@ private:
   AVCodecParserContext *m_pParser    = nullptr;
 
   BYTE                 *m_pFFBuffer     = nullptr;
-  int                  m_nFFBufferSize  = 0;
-  BYTE                 *m_pFFBuffer2    = nullptr;
-  int                  m_nFFBufferSize2 = 0;
+  unsigned int         m_nFFBufferSize  = 0;
 
   SwsContext           *m_pSwsContext   = nullptr;
 

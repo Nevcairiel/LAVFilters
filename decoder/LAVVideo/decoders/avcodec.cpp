@@ -482,7 +482,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   LAVPinInfo lavPinInfo = {0};
   BOOL bLAVInfoValid = SUCCEEDED(m_pCallback->GetLAVPinInfo(lavPinInfo));
 
-  m_bInputPadded = (dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER) && (m_pParser == nullptr);
+  m_bInputPadded = (dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER);
 
   // Setup codec-specific timing logic
 
@@ -641,9 +641,6 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
   av_freep(&m_pFFBuffer);
   m_nFFBufferSize = 0;
 
-  av_freep(&m_pFFBuffer2);
-  m_nFFBufferSize2 = 0;
-
   if (m_pSwsContext) {
     sws_freeContext(m_pSwsContext);
     m_pSwsContext = nullptr;
@@ -668,7 +665,7 @@ static void avpacket_mediasample_free(void *opaque, uint8_t *buffer)
 
 STDMETHODIMP CDecAvcodec::FillAVPacketData(AVPacket *avpkt, const uint8_t *buffer, int buflen, IMediaSample *pSample, bool bRefCounting)
 {
-  if (m_bInputPadded)
+  if (m_bInputPadded && (m_pParser == nullptr))
   {
     avpkt->data = (uint8_t *)buffer;
     avpkt->size = buflen;
@@ -781,6 +778,21 @@ STDMETHODIMP CDecAvcodec::ParsePacket(const BYTE *buffer, int buflen, REFERENCE_
   int used_bytes = 0;
   uint8_t *pDataBuffer = (uint8_t *)buffer;
   HRESULT hr = S_OK;
+
+  // re-allocate with padding, if needed
+  if (m_bInputPadded == false && buflen > 0) {
+    // re-allocate buffer to have enough space
+    BYTE *pBuf = (BYTE *)av_fast_realloc(m_pFFBuffer, &m_nFFBufferSize, buflen + AV_INPUT_BUFFER_PADDING_SIZE);
+    if (!pBuf)
+      return E_FAIL;
+
+    m_pFFBuffer = pBuf;
+
+    // copy data to buffer
+    memcpy(m_pFFBuffer, buffer, buflen);
+    memset(m_pFFBuffer + buflen, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+    pDataBuffer = m_pFFBuffer;
+  }
 
   // loop over the data buffer until the parser has consumed all data
   while (buflen > 0 || bFlush) {
