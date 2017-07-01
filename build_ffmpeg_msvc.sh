@@ -84,7 +84,7 @@ configure() (
     --build-suffix=-lav             \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0502 -DWINVER=0x0502 -Zo -GS-"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -Zo -GS-"
   EXTRA_LDFLAGS=""
 
   if $debug ; then

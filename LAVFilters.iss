@@ -33,7 +33,7 @@ OutputBaseFilename        = LAVFilters-{#=LAV_VERSION_STRING}
 OutputDir                 = .
 Compression               = lzma2/ultra64
 SolidCompression          = yes
-MinVersion                = 0,5.1SP3
+MinVersion                = 0,6.0
 PrivilegesRequired        = admin
 CreateAppDir              = yes
 DefaultDirName            = {pf}\LAV Filters

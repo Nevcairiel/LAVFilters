@@ -19,11 +19,11 @@
 
 #pragma once
 
-// Set minimal target OS (XP SP2+)
+// Set minimal target OS (Vista+)
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
 #endif
-#define _WIN32_WINNT 0x0502
+#define _WIN32_WINNT 0x0600
 #ifdef WINVER
 #undef WINVER
 #endif
