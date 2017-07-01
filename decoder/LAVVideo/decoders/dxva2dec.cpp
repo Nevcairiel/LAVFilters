@@ -261,7 +261,6 @@ CDecDXVA2::CDecDXVA2(void)
   : CDecAvcodec()
 {
   ZeroMemory(&dx, sizeof(dx));
-  ZeroMemory(&m_DXVAExtendedFormat, sizeof(m_DXVAExtendedFormat));
   ZeroMemory(&m_pSurfaces, sizeof(m_pSurfaces));
   ZeroMemory(&m_pRawSurface, sizeof(m_pRawSurface));
   ZeroMemory(&m_FrameQueue, sizeof(m_FrameQueue));

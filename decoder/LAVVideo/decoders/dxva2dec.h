@@ -137,8 +137,6 @@ private:
 
   BOOL m_bFailHWDecode = FALSE;
 
-  DXVA2_ExtendedFormat m_DXVAExtendedFormat;
-
   LAVFrame* m_FrameQueue[DXVA2_QUEUE_SURFACES];
   int       m_FrameQueuePosition = 0;
 
