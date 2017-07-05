@@ -1,6 +1,10 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.70.2 - 2017/07/06
+LAV Video
+- Fixed: DXVA2 decoding could fail in 0.70 after a dynamic media type change
+
 0.70.1 - 2017/07/01
 LAV Video
 - NEW: DXVA2-CopyBack uses D3D9Ex to allow headless operation
