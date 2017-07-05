@@ -1029,6 +1029,9 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
       if (mediaTypeCheck == *pmt) {
         DbgLog((LOG_TRACE, 10, L"-> Skipping re-init because media type is unchanged."));
         m_MediaType = *pmt;
+
+        // flush the decoder so we can resume decoding properly (before a re-init, EndOfStream would be called, making this necessary)
+        avcodec_flush_buffers(m_pAVCtx);
         return S_OK;
       }
     }
