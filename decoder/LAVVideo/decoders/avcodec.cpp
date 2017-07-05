@@ -239,6 +239,7 @@ static struct PixelFormatMapping {
   { AV_PIX_FMT_P016LE, LAVPixFmt_P016, FALSE, 16 },
 
   { AV_PIX_FMT_DXVA2_VLD, LAVPixFmt_DXVA2, FALSE },
+  { AV_PIX_FMT_D3D11, LAVPixFmt_D3D11, FALSE },
 };
 
 static AVCodecID ff_interlace_capable[] = {
@@ -1127,13 +1128,15 @@ send_packet:
     if (pOutFrame->format == LAVPixFmt_DXVA2) {
       pOutFrame->data[0] = m_pFrame->data[4];
       HandleDXVA2Frame(pOutFrame);
+    } else if (pOutFrame->format == LAVPixFmt_D3D11) {
+      HandleDXVA2Frame(pOutFrame);
     } else {
       Deliver(pOutFrame);
     }
 
     if (bEndOfSequence) {
       bEndOfSequence = FALSE;
-      if (pOutFrame->format == LAVPixFmt_DXVA2) {
+      if (pOutFrame->format == LAVPixFmt_DXVA2 || pOutFrame->format == LAVPixFmt_D3D11) {
         HandleDXVA2Frame(m_pCallback->GetFlushFrame());
       } else {
         Deliver(m_pCallback->GetFlushFrame());

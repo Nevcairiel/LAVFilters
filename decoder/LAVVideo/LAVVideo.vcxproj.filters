@@ -46,6 +46,12 @@
     <Filter Include="Source Files\subtitles\blend">
       <UniqueIdentifier>{313fee8a-af36-434b-9ac0-808a14d70bb0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\decoders\d3d11">
+      <UniqueIdentifier>{aa256837-6553-43d3-bdf9-bce2e149fb21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\decoders\d3d11">
+      <UniqueIdentifier>{5bef8a26-ba3d-4eb9-aa69-0bfaf1c6a433}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -168,6 +174,12 @@
     <ClCompile Include="decoders\dxva2\dxva_common.cpp">
       <Filter>Source Files\decoders\dxva2</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\d3d11va.cpp">
+      <Filter>Source Files\decoders</Filter>
+    </ClCompile>
+    <ClCompile Include="decoders\d3d11\D3D11SurfaceAllocator.cpp">
+      <Filter>Source Files\decoders\d3d11</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -274,6 +286,15 @@
     </ClInclude>
     <ClInclude Include="decoders\dxva2\dxva_common.h">
       <Filter>Header Files\decoders\dxva2</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\d3d11va.h">
+      <Filter>Header Files\decoders</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\d3d11\ID3DVideoMemoryConfiguration.h">
+      <Filter>Header Files\decoders\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\d3d11\D3D11SurfaceAllocator.h">
+      <Filter>Header Files\decoders\d3d11</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

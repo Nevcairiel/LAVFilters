@@ -818,6 +818,10 @@ HRESULT CLAVVideo::ReleaseLastSequenceFrame()
     SafeRelease(&pSample);
     SafeRelease(&pSurface);
   }
+  else if (m_pLastSequenceFrame && m_pLastSequenceFrame->format == LAVPixFmt_D3D11)
+  {
+    // TODO D3D11
+  }
   ReleaseFrame(&m_pLastSequenceFrame);
 
   return S_OK;
@@ -1578,7 +1582,7 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
 
   // Only perform filtering if we have to.
   // DXVA Native generally can't be filtered, and the only filtering we currently support is software deinterlacing
-  if ( pFrame->format == LAVPixFmt_DXVA2
+  if ( pFrame->format == LAVPixFmt_DXVA2 || pFrame->format == LAVPixFmt_D3D11
     || !(m_Decoder.IsInterlaced(FALSE) && m_settings.SWDeintMode != SWDeintMode_None)
     || pFrame->flags & LAV_FRAME_FLAG_REDRAW) {
     return DeliverToRenderer(pFrame);
@@ -1600,7 +1604,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
   if (!(pFrame->flags & LAV_FRAME_FLAG_REDRAW)) {
     // Release the old End-of-Sequence frame, this ensures any "normal" frame will clear the stored EOS frame
-    if (pFrame->format != LAVPixFmt_DXVA2) {
+    if (pFrame->format != LAVPixFmt_DXVA2 && pFrame->format != LAVPixFmt_D3D11) {
       ReleaseFrame(&m_pLastSequenceFrame);
       if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
         if (pFrame->direct) {
@@ -1612,7 +1616,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
         }
         CopyLAVFrame(pFrame, &m_pLastSequenceFrame);
       }
-    } else {
+    } else if (pFrame->format == LAVPixFmt_DXVA2) {
       if ((pFrame->flags & LAV_FRAME_FLAG_END_OF_SEQUENCE || m_bInDVDMenu)) {
         if (!m_pLastSequenceFrame) {
           hr = AllocateFrame(&m_pLastSequenceFrame);
@@ -1652,6 +1656,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
           }
         }
       }
+    }
+    else if (pFrame->format == LAVPixFmt_D3D11)
+    {
+      // TODO D3D11
     }
   }
 
@@ -1759,7 +1767,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   if (avgDuration == 0)
     avgDuration = AV_NOPTS_VALUE;
 
-  if (pFrame->format == LAVPixFmt_DXVA2) {
+  if (pFrame->format == LAVPixFmt_DXVA2 || pFrame->format == LAVPixFmt_D3D11) {
     pSampleOut = (IMediaSample *)pFrame->data[0];
     // Addref the sample if we need to. If its coming from the decoder, it should be addref'ed,
     // but if its a copy from the subtitle engine, then it should not be addref'ed.
@@ -1790,7 +1798,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     }
   }
 
-  if (pFrame->format != LAVPixFmt_DXVA2) {
+  if (pFrame->format != LAVPixFmt_DXVA2 && pFrame->format != LAVPixFmt_D3D11) {
     long required = m_PixFmtConverter.GetImageSize(pBIH->biWidth, abs(pBIH->biHeight));
 
     long lSampleSize = pSampleOut->GetSize();
@@ -1875,7 +1883,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     pSampleOut->SetMediaType(sendmt);
     DeleteMediaType(sendmt);
     m_bSendMediaType = FALSE;
-    if (pFrame->format == LAVPixFmt_DXVA2)
+    if (pFrame->format == LAVPixFmt_DXVA2 || pFrame->format == LAVPixFmt_D3D11)
       bSizeChanged = TRUE;
   }
 
@@ -1992,6 +2000,8 @@ HRESULT CLAVVideo::RedrawStillImage()
         SafeRelease(&pSample);
       }
       return hr;
+    } else if (m_pLastSequenceFrame->format == LAVPixFmt_D3D11) {
+      // TODO D3D11
     } else {
       LAVFrame *pFrame = nullptr;
       HRESULT hr = CopyLAVFrame(m_pLastSequenceFrame, &pFrame);

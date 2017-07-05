@@ -102,6 +102,8 @@
   <ItemGroup>
     <ClCompile Include="decoders\avcodec.cpp" />
     <ClCompile Include="decoders\cuvid.cpp" />
+    <ClCompile Include="decoders\d3d11va.cpp" />
+    <ClCompile Include="decoders\d3d11\D3D11SurfaceAllocator.cpp" />
     <ClCompile Include="decoders\dxva2dec.cpp" />
     <ClCompile Include="decoders\dxva2\DXVA2SurfaceAllocator.cpp" />
     <ClCompile Include="decoders\dxva2\dxva_common.cpp" />
@@ -148,6 +150,9 @@
     <ClInclude Include="..\..\common\includes\SubRenderIntf.h" />
     <ClInclude Include="decoders\avcodec.h" />
     <ClInclude Include="decoders\cuvid.h" />
+    <ClInclude Include="decoders\d3d11va.h" />
+    <ClInclude Include="decoders\d3d11\D3D11SurfaceAllocator.h" />
+    <ClInclude Include="decoders\d3d11\ID3DVideoMemoryConfiguration.h" />
     <ClInclude Include="decoders\DecBase.h" />
     <ClInclude Include="decoders\dxva2dec.h" />
     <ClInclude Include="decoders\dxva2\DXVA2SurfaceAllocator.h" />

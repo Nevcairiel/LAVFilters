@@ -182,6 +182,10 @@ STDMETHODIMP CLAVSubtitleConsumer::ProcessFrame(LAVFrame *pFrame)
 
       format = LAVPixFmt_NV12;
       bpp = 8;
+    } else if (pFrame->format == LAVPixFmt_D3D11) {
+      // TODO D3D11
+      SafeRelease(&m_SubtitleFrame);
+      return E_FAIL;
     } else {
       if (!(pFrame->flags & LAV_FRAME_FLAG_BUFFER_MODIFY)) {
         CopyLAVFrameInPlace(pFrame);
