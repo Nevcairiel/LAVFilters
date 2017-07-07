@@ -1114,11 +1114,13 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   // Remove custom matrix settings, which are not understood upstream
   if (dxvaExtFlags.VideoTransferMatrix == 6) {
     dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
-  } else if (dxvaExtFlags.VideoTransferMatrix > 4 && !m_bMadVR) {
+  } else if (dxvaExtFlags.VideoTransferMatrix > 5 && !m_bMadVR) {
     dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
   }
-  if (dxvaExtFlags.VideoTransferFunction > MFVideoTransFunc_Log_316 && !m_bMadVR) {
-    dxvaExtFlags.VideoTransferFunction = DXVA2_VideoTransFunc_Unknown;
+
+  // madVR uses a different value for SMPTE ST 2084
+  if (dxvaExtFlags.VideoTransferFunction == 15 && m_bMadVR) {
+    dxvaExtFlags.VideoTransferFunction = 16;
   }
 
   if (mt.formattype  == FORMAT_VideoInfo) {
