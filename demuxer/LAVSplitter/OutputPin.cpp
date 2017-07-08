@@ -30,10 +30,10 @@
 
 CLAVOutputPin::CLAVOutputPin(std::deque<CMediaType>& mts, LPCWSTR pName, CBaseFilter *pFilter, CCritSec *pLock, HRESULT *phr, CBaseDemuxer::StreamType pinType, const char* container)
   : CBaseOutputPin(NAME("lavf dshow output pin"), pFilter, pLock, phr, pName)
+  , m_mts(mts)
   , m_containerFormat(container)
   , m_pinType(pinType)
   , m_Parser(this, container)
-  , m_mts(mts)
 {
   SetQueueSizes();
 }
