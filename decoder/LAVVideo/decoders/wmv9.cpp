@@ -44,7 +44,7 @@ ILAVDecoder *CreateDecoderWMV9() {
 class CMediaBuffer : public IMediaBuffer, public INSSBuffer3
 {
 public:
-  CMediaBuffer(BYTE *pData, DWORD dwLength, bool bNSSBuffer) : m_pData(pData), m_dwLength(dwLength), m_dwMaxLength(dwLength), m_cRef(1), m_bNSSBuffer(bNSSBuffer), m_ContentType(0) {}
+  CMediaBuffer(BYTE *pData, DWORD dwLength, bool bNSSBuffer) : m_cRef(1), m_bNSSBuffer(bNSSBuffer), m_pData(pData), m_dwLength(dwLength), m_dwMaxLength(dwLength), m_ContentType(0) {}
   virtual ~CMediaBuffer() {}
 
   // IUnknown
