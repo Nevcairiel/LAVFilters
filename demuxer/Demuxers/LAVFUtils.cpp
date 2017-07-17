@@ -143,9 +143,8 @@ std::string get_codec_name(const AVCodecParameters *par)
       codec_name << " " << tolower(profile);
   } else {
     /* output avi tags */
-    char buf[32];
-    av_get_codec_tag_string(buf, sizeof(buf), par->codec_tag);
-    codec_name << buf;
+    char buf[AV_FOURCC_MAX_STRING_SIZE] = { 0 };
+    codec_name << av_fourcc_make_string(buf, par->codec_tag);
     sprintf_s(buf, "0x%04X", par->codec_tag);
     codec_name  << " / " << buf;
   }
