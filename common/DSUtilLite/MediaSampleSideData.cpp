@@ -92,6 +92,9 @@ void CMediaSampleSideData::ReleaseSideData()
 // IMediaSideData
 STDMETHODIMP CMediaSampleSideData::SetSideData(GUID guidType, const BYTE *pData, size_t size)
 {
+  if (!pData || !size)
+    return E_POINTER;
+
   CAutoLock Lock(&m_csSideData);
 
   auto it = m_SideData.find(guidType);
