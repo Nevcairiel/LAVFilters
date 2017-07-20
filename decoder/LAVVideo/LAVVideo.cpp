@@ -1770,6 +1770,17 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
   BITMAPINFOHEADER *pBIH = nullptr;
   videoFormatTypeHandler(mt.Format(), mt.FormatType(), &pBIH);
 
+  // Set side data on the media sample
+  if (pFrame->side_data_count) {
+    IMediaSideData *pMediaSideData = nullptr;
+    if (SUCCEEDED(hr = pSampleOut->QueryInterface(&pMediaSideData))) {
+      for (int i = 0; i < pFrame->side_data_count; i++)
+        pMediaSideData->SetSideData(pFrame->side_data[i].guidType, pFrame->side_data[i].data, pFrame->side_data[i].size);
+
+      SafeRelease(&pMediaSideData);
+    }
+  }
+
   if (pFrame->format != LAVPixFmt_DXVA2) {
     long required = m_PixFmtConverter.GetImageSize(pBIH->biWidth, abs(pBIH->biHeight));
 
@@ -1804,17 +1815,6 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
     DbgLog((LOG_TRACE, 10, L"Pixel Mapping took %2.3fms in avg", m_pixFmtTimingAvg.Average()));
   #endif
-
-    // Set side data on the media sample
-    if (pFrame->side_data_count) {
-      IMediaSideData *pMediaSideData = nullptr;
-      if (SUCCEEDED(hr = pSampleOut->QueryInterface(&pMediaSideData))) {
-        for (int i = 0; i < pFrame->side_data_count; i++)
-          pMediaSideData->SetSideData(pFrame->side_data[i].guidType, pFrame->side_data[i].data, pFrame->side_data[i].size);
-
-        SafeRelease(&pMediaSideData);
-      }
-    }
 
     // Write the second view into IMediaSample3D, if available
     if (pFrame->flags & LAV_FRAME_FLAG_MVC) {

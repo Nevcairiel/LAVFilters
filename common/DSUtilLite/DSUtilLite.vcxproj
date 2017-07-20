@@ -78,6 +78,7 @@
     <ClInclude Include="BaseDSPropPage.h" />
     <ClInclude Include="CueSheet.h" />
     <ClInclude Include="DSMResourceBag.h" />
+    <ClInclude Include="MediaSampleSideData.h" />
     <ClInclude Include="PopupMenu.h" />
     <ClInclude Include="BaseTrayIcon.h" />
     <ClInclude Include="ByteParser.h" />
@@ -101,6 +102,7 @@
     <ClCompile Include="BaseDSPropPage.cpp" />
     <ClCompile Include="CueSheet.cpp" />
     <ClCompile Include="DSMResourceBag.cpp" />
+    <ClCompile Include="MediaSampleSideData.cpp" />
     <ClCompile Include="PopupMenu.cpp" />
     <ClCompile Include="BaseTrayIcon.cpp" />
     <ClCompile Include="ByteParser.cpp" />

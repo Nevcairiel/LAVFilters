@@ -28,7 +28,7 @@
 #include <Mferror.h>
 
 CDXVA2Sample::CDXVA2Sample(CDXVA2SurfaceAllocator *pAlloc, HRESULT *phr)
-  : CMediaSample(NAME("CDXVA2Sample"), (CBaseAllocator*)pAlloc, phr, nullptr, 0)
+  : CMediaSampleSideData(NAME("CDXVA2Sample"), (CBaseAllocator*)pAlloc, phr, nullptr, 0)
 {
 }
 
@@ -48,10 +48,10 @@ STDMETHODIMP CDXVA2Sample::QueryInterface(REFIID riid, __deref_out void **ppv)
   if (riid == __uuidof(IMFGetService)) {
     return GetInterface((IMFGetService*) this, ppv);
   }
-  if (riid == __uuidof(ILAVDXVA2Sample)) {
+  else if (riid == __uuidof(ILAVDXVA2Sample)) {
     return GetInterface((ILAVDXVA2Sample*) this, ppv);
   } else {
-    return CMediaSample::QueryInterface(riid, ppv);
+    return __super::QueryInterface(riid, ppv);
   }
 }
 
