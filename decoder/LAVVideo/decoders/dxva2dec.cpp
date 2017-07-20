@@ -92,22 +92,32 @@ typedef struct {
   const char   *name;
   const GUID   *guid;
   int          codec;
+  const int    *profiles;
+  int          high_bit_depth;
 } dxva2_mode_t;
+
+static const int prof_mpeg2_main[]  = { FF_PROFILE_MPEG2_SIMPLE, FF_PROFILE_MPEG2_MAIN, FF_PROFILE_UNKNOWN };
+static const int prof_h264_high[]   = { FF_PROFILE_H264_CONSTRAINED_BASELINE, FF_PROFILE_H264_MAIN, FF_PROFILE_H264_HIGH, FF_PROFILE_UNKNOWN };
+static const int prof_hevc_main[]   = { FF_PROFILE_HEVC_MAIN, FF_PROFILE_UNKNOWN };
+static const int prof_hevc_main10[] = { FF_PROFILE_HEVC_MAIN_10, FF_PROFILE_UNKNOWN };
+static const int prof_vp9_0[]       = { FF_PROFILE_VP9_0, FF_PROFILE_UNKNOWN };
+static const int prof_vp9_2_10bit[] = { FF_PROFILE_VP9_2, FF_PROFILE_UNKNOWN };
+
 /* XXX Prefered modes must come first */
 static const dxva2_mode_t dxva2_modes[] = {
   /* MPEG-1/2 */
-  { "MPEG-2 variable-length decoder",                                               &DXVA2_ModeMPEG2_VLD,                   AV_CODEC_ID_MPEG2VIDEO },
-  { "MPEG-2 & MPEG-1 variable-length decoder",                                      &DXVA2_ModeMPEG2and1_VLD,               AV_CODEC_ID_MPEG2VIDEO },
+  { "MPEG-2 variable-length decoder",                                               &DXVA2_ModeMPEG2_VLD,                   AV_CODEC_ID_MPEG2VIDEO, prof_mpeg2_main },
+  { "MPEG-2 & MPEG-1 variable-length decoder",                                      &DXVA2_ModeMPEG2and1_VLD,               AV_CODEC_ID_MPEG2VIDEO, prof_mpeg2_main },
   { "MPEG-2 motion compensation",                                                   &DXVA2_ModeMPEG2_MoComp,                0 },
   { "MPEG-2 inverse discrete cosine transform",                                     &DXVA2_ModeMPEG2_IDCT,                  0 },
 
   { "MPEG-1 variable-length decoder",                                               &DXVA2_ModeMPEG1_VLD,                   0 },
 
   /* H.264 */
-  { "H.264 variable-length decoder, film grain technology",                         &DXVA2_ModeH264_F,                      AV_CODEC_ID_H264 },
-  { "H.264 variable-length decoder, no film grain technology",                      &DXVA2_ModeH264_E,                      AV_CODEC_ID_H264 },
-  { "H.264 variable-length decoder, no film grain technology, FMO/ASO",             &DXVA_ModeH264_VLD_WithFMOASO_NoFGT,    AV_CODEC_ID_H264 },
-  { "H.264 variable-length decoder, no film grain technology, Flash",               &DXVA_ModeH264_VLD_NoFGT_Flash,         AV_CODEC_ID_H264 },
+  { "H.264 variable-length decoder, film grain technology",                         &DXVA2_ModeH264_F,                      AV_CODEC_ID_H264, prof_h264_high },
+  { "H.264 variable-length decoder, no film grain technology",                      &DXVA2_ModeH264_E,                      AV_CODEC_ID_H264, prof_h264_high },
+  { "H.264 variable-length decoder, no film grain technology, FMO/ASO",             &DXVA_ModeH264_VLD_WithFMOASO_NoFGT,    AV_CODEC_ID_H264, prof_h264_high },
+  { "H.264 variable-length decoder, no film grain technology, Flash",               &DXVA_ModeH264_VLD_NoFGT_Flash,         AV_CODEC_ID_H264, prof_h264_high },
 
   { "H.264 inverse discrete cosine transform, film grain technology",               &DXVA2_ModeH264_D,                      0 },
   { "H.264 inverse discrete cosine transform, no film grain technology",            &DXVA2_ModeH264_C,                      0 },
@@ -152,16 +162,16 @@ static const dxva2_mode_t dxva2_modes[] = {
   { "H.264 SVC variable-length decoder, constrained high progressive",              &DXVA_ModeH264_VLD_SVC_Restricted_Scalable_High_Progressive, 0 },
 
   /* HEVC / H.265 */
-  { "HEVC / H.265 variable-length decoder, main",                                   &DXVA_ModeHEVC_VLD_Main,                AV_CODEC_ID_HEVC },
-  { "HEVC / H.265 variable-length decoder, main10",                                 &DXVA_ModeHEVC_VLD_Main10,              AV_CODEC_ID_HEVC },
+  { "HEVC / H.265 variable-length decoder, main",                                   &DXVA_ModeHEVC_VLD_Main,                AV_CODEC_ID_HEVC, prof_hevc_main },
+  { "HEVC / H.265 variable-length decoder, main10",                                 &DXVA_ModeHEVC_VLD_Main10,              AV_CODEC_ID_HEVC, prof_hevc_main10, 1 },
 
   /* VP8/9 */
-  { "VP9 variable-length decoder, profile 0",                                       &DXVA_ModeVP9_VLD_Profile0,             AV_CODEC_ID_VP9 },
-  { "VP9 variable-length decoder, 10bit, profile 2",                                &DXVA_ModeVP9_VLD_10bit_Profile2,       AV_CODEC_ID_VP9 },
+  { "VP9 variable-length decoder, profile 0",                                       &DXVA_ModeVP9_VLD_Profile0,             AV_CODEC_ID_VP9, prof_vp9_0 },
+  { "VP9 variable-length decoder, 10bit, profile 2",                                &DXVA_ModeVP9_VLD_10bit_Profile2,       AV_CODEC_ID_VP9, prof_vp9_2_10bit, 1 },
   { "VP8 variable-length decoder",                                                  &DXVA_ModeVP8_VLD,                      0 },
 
   /* Intel specific modes (only useful on older GPUs) */
-  { "H.264 variable-length decoder, no film grain technology (Intel ClearVideo)",   &DXVADDI_Intel_ModeH264_E,              AV_CODEC_ID_H264 },
+  { "H.264 variable-length decoder, no film grain technology (Intel ClearVideo)",   &DXVADDI_Intel_ModeH264_E,              AV_CODEC_ID_H264, prof_h264_high },
   { "H.264 inverse discrete cosine transform, no film grain technology (Intel)",    &DXVADDI_Intel_ModeH264_C,              0 },
   { "H.264 motion compensation, no film grain technology (Intel)",                  &DXVADDI_Intel_ModeH264_A,              0 },
   { "VC-1 variable-length decoder 2 (Intel)",                                       &DXVA_Intel_VC1_ClearVideo_2,           0 },
@@ -177,6 +187,24 @@ static const dxva2_mode_t *DXVA2FindMode(const GUID *guid)
       return &dxva2_modes[i];
   }
   return nullptr;
+}
+
+static int check_dxva_mode_compatibility(const dxva2_mode_t *mode, int codec, int profile)
+{
+  if (mode->codec != codec)
+    return 0;
+
+  if (mode->profiles)
+  {
+    for (int i = 0; mode->profiles[i] != FF_PROFILE_UNKNOWN; i++)
+    {
+      if (mode->profiles[i] == profile)
+        return 1;
+    }
+    return 0;
+  }
+
+  return 1;
 }
 
 // List of PCI Device ID of ATI cards with UVD or UVD+ decoding block.
@@ -529,7 +557,7 @@ done:
   return hr;
 }
 
-HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, bool bHighBitdepth, GUID *input, D3DFORMAT *output)
+HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, int profile, GUID *input, D3DFORMAT *output)
 {
   HRESULT hr = S_OK;
 
@@ -557,22 +585,12 @@ HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, bool bHighBitdept
   /* Iterate over our priority list */
   for (unsigned i = 0; dxva2_modes[i].name; i++) {
     const dxva2_mode_t *mode = &dxva2_modes[i];
-     if (!mode->codec || mode->codec != codec)
+    if (!check_dxva_mode_compatibility(mode, codec, profile))
        continue;
 
      BOOL supported = FALSE;
      for (const GUID *g = &input_list[0]; !supported && g < &input_list[count]; g++) {
        supported = IsEqualGUID(*mode->guid, *g);
-
-       // High-bit-depth codec checks
-       if (codec == AV_CODEC_ID_HEVC && bHighBitdepth && !IsEqualGUID(*g, DXVA_ModeHEVC_VLD_Main10))
-         supported = false;
-       else if (codec == AV_CODEC_ID_HEVC && !bHighBitdepth && IsEqualGUID(*g, DXVA_ModeHEVC_VLD_Main10))
-         supported = false;
-       else if (codec == AV_CODEC_ID_VP9 && bHighBitdepth && !IsEqualGUID(*g, DXVA_ModeVP9_VLD_10bit_Profile2))
-         supported = false;
-       else if (codec == AV_CODEC_ID_VP9 && !bHighBitdepth && IsEqualGUID(*g, DXVA_ModeVP9_VLD_10bit_Profile2))
-         supported = false;
      }
      if (!supported)
        continue;
@@ -592,10 +610,10 @@ HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, bool bHighBitdept
      for (unsigned j = 0; j < out_count; j++) {
        const D3DFORMAT f = out_list[j];
        DbgLog((LOG_TRACE, 10, L"  -> %d is supported (%4.4S)", f, (const char *)&f));
-       if (bHighBitdepth && (f == FOURCC_P010 || f == FOURCC_P016)) {
+       if (mode->high_bit_depth && (f == FOURCC_P010 || f == FOURCC_P016)) {
          matchingFormat = TRUE;
          format = f;
-       } else if (!bHighBitdepth && f == FOURCC_NV12) {
+       } else if (!mode->high_bit_depth && f == FOURCC_NV12) {
          matchingFormat = TRUE;
          format = f;
        }
@@ -862,9 +880,7 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
 
     GUID input = GUID_NULL;
     D3DFORMAT output;
-    bool bHighBitdepth = (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10))
-                      || (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_VP9_2));
-    hr = FindVideoServiceConversion(m_pAVCtx->codec_id, bHighBitdepth, &input, &output);
+    hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, &input, &output);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> No decoder device available that can decode codec '%S' to a matching output", avcodec_get_name(m_pAVCtx->codec_id)));
       goto done;
@@ -1066,15 +1082,15 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // If we don't have one yet, it may be handed to us later, and compat is checked at that point
   GUID input = GUID_NULL;
   D3DFORMAT output = D3DFMT_UNKNOWN;
-  bool bHighBitdepth = (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10))
-                    || (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_VP9_2));
   if (m_pDXVADecoderService) {
-    hr = FindVideoServiceConversion(codec, bHighBitdepth, &input, &output);
+    hr = FindVideoServiceConversion(codec, m_pAVCtx->profile, &input, &output);
     if (FAILED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> No decoder device available that can decode codec '%S' to a matching output", avcodec_get_name(codec)));
       return E_FAIL;
     }
   } else {
+    bool bHighBitdepth = (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10))
+                      || (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_VP9_2));
     if (bHighBitdepth)
       output = (D3DFORMAT)FOURCC_P010;
     else
@@ -1185,10 +1201,8 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
   DestroyDecoder(false, true);
 
   GUID input = GUID_NULL;
-  bool bHighBitdepth = (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10))
-                    || (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_VP9_2));
   D3DFORMAT output;
-  FindVideoServiceConversion(m_pAVCtx->codec_id, bHighBitdepth, &input, &output);
+  FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, &input, &output);
 
   if (!nSurfaces) {
     m_dwSurfaceWidth = GetAlignedDimension(m_pAVCtx->coded_width);
@@ -1353,9 +1367,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
       m_DecoderPixelFormat = c->sw_pix_fmt;
 
       GUID input;
-      bool bHighBitdepth =    (c->codec_id == AV_CODEC_ID_HEVC && (c->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || c->profile == FF_PROFILE_HEVC_MAIN_10))
-                           || (c->codec_id == AV_CODEC_ID_VP9 && (c->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || c->profile == FF_PROFILE_VP9_2));
-      FindVideoServiceConversion(c->codec_id, bHighBitdepth, &input, &m_eSurfaceFormat);
+      FindVideoServiceConversion(c->codec_id, c->profile, &input, &m_eSurfaceFormat);
 
       // Re-Commit the allocator (creates surfaces and new decoder)
       hr = m_pDXVA2Allocator->Decommit();
