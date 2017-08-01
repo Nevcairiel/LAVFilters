@@ -194,7 +194,7 @@ static int check_dxva_mode_compatibility(const dxva2_mode_t *mode, int codec, in
   if (mode->codec != codec)
     return 0;
 
-  if (mode->profiles)
+  if (mode->profiles && profile != FF_PROFILE_UNKNOWN)
   {
     for (int i = 0; mode->profiles[i] != FF_PROFILE_UNKNOWN; i++)
     {
