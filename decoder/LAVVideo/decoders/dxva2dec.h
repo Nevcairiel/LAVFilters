@@ -24,7 +24,6 @@
 
 #define DXVA2_MAX_SURFACES 64
 #define DXVA2_QUEUE_SURFACES 4
-#define DXVA2_SURFACE_BASE_ALIGN 16
 
 typedef HRESULT WINAPI pDirect3DCreate9Ex(UINT, IDirect3D9Ex **);
 typedef HRESULT WINAPI pCreateDeviceManager9(UINT *pResetToken, IDirect3DDeviceManager9 **);
@@ -102,8 +101,6 @@ private:
 
   STDMETHODIMP FlushDisplayQueue(BOOL bDeliver);
   STDMETHODIMP FlushFromAllocator();
-
-  DWORD GetAlignedDimension(DWORD dim);
 
 private:
   friend class CDXVA2SurfaceAllocator;

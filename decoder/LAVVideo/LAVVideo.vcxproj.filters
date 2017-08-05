@@ -165,6 +165,9 @@
     <ClCompile Include="DecodeManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="decoders\dxva2\dxva_common.cpp">
+      <Filter>Source Files\decoders\dxva2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -268,6 +271,9 @@
     </ClInclude>
     <ClInclude Include="DecodeManager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decoders\dxva2\dxva_common.h">
+      <Filter>Header Files\decoders\dxva2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

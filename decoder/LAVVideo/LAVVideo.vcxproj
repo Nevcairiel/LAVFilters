@@ -104,6 +104,7 @@
     <ClCompile Include="decoders\cuvid.cpp" />
     <ClCompile Include="decoders\dxva2dec.cpp" />
     <ClCompile Include="decoders\dxva2\DXVA2SurfaceAllocator.cpp" />
+    <ClCompile Include="decoders\dxva2\dxva_common.cpp" />
     <ClCompile Include="decoders\msdk_mvc.cpp" />
     <ClCompile Include="decoders\pixfmt.cpp" />
     <ClCompile Include="decoders\quicksync.cpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="decoders\DecBase.h" />
     <ClInclude Include="decoders\dxva2dec.h" />
     <ClInclude Include="decoders\dxva2\DXVA2SurfaceAllocator.h" />
+    <ClInclude Include="decoders\dxva2\dxva_common.h" />
     <ClInclude Include="decoders\ILAVDecoder.h" />
     <ClInclude Include="decoders\msdk_mvc.h" />
     <ClInclude Include="decoders\quicksync.h" />
