@@ -108,7 +108,7 @@ static struct {LPCSTR name, iso6392, iso6391, iso6392_2; LCID lcid;} s_isolangs[
   {"Chewa; Chichewa; Nyanja", "nya", "ny"},
   {"Cheyenne", "chy", nullptr},
   {"Chibcha", "chb", nullptr},
-  {"Chinese", "chi", "zh", "zho", MAKELCID( MAKELANGID(LANG_CHINESE, SUBLANG_DEFAULT), SORT_DEFAULT)},
+  {"Chinese", "chi", "zh", "zho", MAKELCID( MAKELANGID(LANG_CHINESE, SUBLANG_NEUTRAL), SORT_DEFAULT)},
   {"Chinook jargon", "chn", nullptr},
   {"Chipewyan", "chp", nullptr},
   {"Choctaw", "cho", nullptr},
