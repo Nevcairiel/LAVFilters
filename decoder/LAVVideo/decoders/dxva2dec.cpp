@@ -1534,6 +1534,10 @@ __forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
   pFrame->destruct  = nullptr;
   pFrame->priv_data = nullptr;
 
+  // side-data shall not be copied to tmpFrame
+  tmpFrame.side_data = nullptr;
+  tmpFrame.side_data_count = 0;
+
   // Allocate memory buffers
   hr = AllocLAVFrameBuffers(pFrame, (pFrame->format == LAVPixFmt_P016) ? (LockedRect.Pitch >> 1) : LockedRect.Pitch);
   if (FAILED(hr)) {
