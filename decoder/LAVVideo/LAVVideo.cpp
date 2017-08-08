@@ -1472,6 +1472,10 @@ HRESULT CLAVVideo::DeDirectFrame(LAVFrame *pFrame, bool bDisableDirectMode)
   pFrame->direct_unlock = nullptr;
   memset(pFrame->data, 0, sizeof(pFrame->data));
 
+  // sidedata remains on the main frame
+  tmpFrame.side_data = nullptr;
+  tmpFrame.side_data_count = 0;
+
   LAVDirectBuffer buffer;
   if (tmpFrame.direct_lock(&tmpFrame, &buffer)) {
     HRESULT hr = AllocLAVFrameBuffers(pFrame, buffer.stride[0] / desc.codedbytes);
