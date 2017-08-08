@@ -1635,6 +1635,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
           m_pLastSequenceFrame->destruct = nullptr;
           m_pLastSequenceFrame->priv_data = nullptr;
 
+          // don't copy side data
+          m_pLastSequenceFrame->side_data = nullptr;
+          m_pLastSequenceFrame->side_data_count = 0;
+
           IDirect3DSurface9 *pSurface = (IDirect3DSurface9 *)m_pLastSequenceFrame->data[3];
 
           IDirect3DDevice9 *pDevice = nullptr;
