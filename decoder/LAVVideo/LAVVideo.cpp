@@ -1768,7 +1768,8 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
     ReconnectOutput(width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration, TRUE);
   } else {
-    if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut))) {
+    if(FAILED(hr = GetDeliveryBuffer(&pSampleOut, width, height, pFrame->aspect_ratio, pFrame->ext_format, avgDuration)) || FAILED(hr = pSampleOut->GetPointer(&pDataOut)) || pDataOut == nullptr) {
+      SafeRelease(&pSampleOut);
       ReleaseFrame(&pFrame);
       return hr;
     }
