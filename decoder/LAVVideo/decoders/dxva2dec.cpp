@@ -884,15 +884,6 @@ STDMETHODIMP CDecDXVA2::Init()
   return S_OK;
 }
 
-#define H264_CHECK_PROFILE(profile) \
-  (((profile) & ~FF_PROFILE_H264_CONSTRAINED) <= FF_PROFILE_H264_HIGH)
-
-#define HEVC_CHECK_PROFILE(profile) \
-  ((profile) <= FF_PROFILE_HEVC_MAIN_10)
-
-#define VP9_CHECK_PROFILE(profile) \
-  ((profile) == FF_PROFILE_VP9_0 || (profile) == FF_PROFILE_VP9_2)
-
 STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
@@ -959,11 +950,8 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
       output = (D3DFORMAT)FOURCC_NV12;
   }
 
-  if (((codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_MPEG2VIDEO) && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUVJ420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != AV_PIX_FMT_NONE)
-    || (codec == AV_CODEC_ID_H264 && m_pAVCtx->profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(m_pAVCtx->profile))
-    || ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && m_pAVCtx->profile == FF_PROFILE_VC1_COMPLEX)
-    || (codec == AV_CODEC_ID_HEVC && (!HEVC_CHECK_PROFILE(m_pAVCtx->profile) || (m_pAVCtx->pix_fmt != AV_PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUVJ420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUV420P10 && m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != AV_PIX_FMT_NONE)))
-    || (codec == AV_CODEC_ID_VP9 && (!VP9_CHECK_PROFILE(m_pAVCtx->profile) || (m_pAVCtx->pix_fmt != AV_PIX_FMT_YUV420P && m_pAVCtx->pix_fmt != AV_PIX_FMT_YUV420P10 && m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != AV_PIX_FMT_NONE)))) {
+  if (check_dxva_codec_profile(m_pAVCtx->codec_id, m_pAVCtx->pix_fmt, m_pAVCtx->profile, AV_PIX_FMT_DXVA2_VLD))
+  {
     DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
     return E_FAIL;
   }
