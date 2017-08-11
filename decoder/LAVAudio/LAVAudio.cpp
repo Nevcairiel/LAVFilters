@@ -181,9 +181,6 @@ HRESULT CLAVAudio::LoadDefaults()
     m_settings.bSampleFormats[i] = TRUE;
   m_settings.SampleConvertDither = TRUE;
 
-  if (!IsVistaOrNewer())
-    m_settings.bSampleFormats[SampleFormat_FP32] = FALSE;
-
   m_settings.AudioDelayEnabled = FALSE;
   m_settings.AudioDelay = 0;
 

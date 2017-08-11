@@ -136,7 +136,6 @@ struct AVPacket;
 struct MediaSideDataFFMpeg;
 void CopyMediaSideDataFF(AVPacket *dst, const MediaSideDataFFMpeg **sd);
 
-BOOL IsVistaOrNewer();
 BOOL IsWindows7OrNewer();
 BOOL IsWindows8OrNewer();
 BOOL IsWindows10OrNewer();

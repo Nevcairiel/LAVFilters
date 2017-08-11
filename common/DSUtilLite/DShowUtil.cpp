@@ -720,17 +720,6 @@ void CopyMediaSideDataFF(AVPacket *dst, const MediaSideDataFFMpeg **sd)
   *sd = nullptr;
 }
 
-BOOL IsVistaOrNewer()
-{
-  // Query OS version info
-  OSVERSIONINFO os;
-  ZeroMemory(&os, sizeof(os));
-  os.dwOSVersionInfoSize = sizeof(os);
-  GetVersionEx(&os);
-
-  return (os.dwMajorVersion >= 6);
-}
-
 BOOL IsWindows7OrNewer()
 {
   // Query OS version info
