@@ -49,15 +49,18 @@ public:
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
   STDMETHODIMP_(long) GetBufferCount();
-  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bReadBackFallback ? L"d3d11 cb" : L"d3d11 native"; }
+  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bReadBackFallback ? (m_bDirect ? L"d3d11 cb direct" : L"d3d11 cb") : L"d3d11 native"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
+  STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
 
 protected:
   HRESULT AdditionaDecoderInit();
   HRESULT PostDecode();
 
   HRESULT HandleDXVA2Frame(LAVFrame *pFrame);
+  HRESULT DeliverD3D11Frame(LAVFrame *pFrame);
   HRESULT DeliverD3D11Readback(LAVFrame *pFrame);
+  HRESULT DeliverD3D11ReadbackDirect(LAVFrame *pFrame);
 
 private:
   STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
@@ -96,7 +99,10 @@ private:
   DXGI_FORMAT m_SurfaceFormat = DXGI_FORMAT_UNKNOWN;
 
   BOOL m_bReadBackFallback = FALSE;
+  BOOL m_bDirect = FALSE;
   BOOL m_bFailHWDecode = FALSE;
+
+  ID3D11Texture2D *m_pD3D11StagingTexture = nullptr;
 
   LAVFrame* m_FrameQueue[D3D11_QUEUE_SURFACES];
   int       m_FrameQueuePosition = 0;

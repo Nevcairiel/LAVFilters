@@ -64,6 +64,7 @@ STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull, bool bNoAVCodec)
   }
 
   SafeRelease(&m_pDecoder);
+  SafeRelease(&m_pD3D11StagingTexture);
   av_buffer_unref(&m_pFramesCtx);
 
   if (!bNoAVCodec) {
@@ -322,7 +323,7 @@ STDMETHODIMP CDecD3D11::FlushDisplayQueue(BOOL bDeliver)
   for (int i = 0; i < m_DisplayDelay; ++i) {
     if (m_FrameQueue[m_FrameQueuePosition]) {
       if (bDeliver) {
-        DeliverD3D11Readback(m_FrameQueue[m_FrameQueuePosition]);
+        DeliverD3D11Frame(m_FrameQueue[m_FrameQueuePosition]);
         m_FrameQueue[m_FrameQueuePosition] = nullptr;
       }
       else {
@@ -724,6 +725,7 @@ STDMETHODIMP CDecD3D11::AllocateFramesContext(int width, int height, AVPixelForm
 
   // unref any old buffer
   av_buffer_unref(ppFramesCtx);
+  SafeRelease(&m_pD3D11StagingTexture);
 
   // allocate a new frames context for the device context
   *ppFramesCtx = av_hwframe_ctx_alloc(m_pDevCtx);
@@ -759,27 +761,37 @@ HRESULT CDecD3D11::HandleDXVA2Frame(LAVFrame *pFrame)
     if (m_bReadBackFallback) {
       FlushDisplayQueue(TRUE);
     }
-    Deliver(pFrame);
+    DeliverD3D11Frame(pFrame);
     return S_OK;
   }
 
+  if (m_bReadBackFallback == false || m_DisplayDelay == 0)
+  {
+    DeliverD3D11Frame(pFrame);
+  }
+  else
+  {
+    LAVFrame *pQueuedFrame = m_FrameQueue[m_FrameQueuePosition];
+    m_FrameQueue[m_FrameQueuePosition] = pFrame;
+
+    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
+
+    if (pQueuedFrame) {
+      DeliverD3D11Frame(pQueuedFrame);
+    }
+  }
+
+  return S_OK;
+}
+
+HRESULT CDecD3D11::DeliverD3D11Frame(LAVFrame *pFrame)
+{
   if (m_bReadBackFallback)
   {
-    if (m_DisplayDelay == 0)
-    {
-      DeliverD3D11Readback(pFrame);
-    }
+    if (m_bDirect)
+      DeliverD3D11ReadbackDirect(pFrame);
     else
-    {
-      LAVFrame *pQueuedFrame = m_FrameQueue[m_FrameQueuePosition];
-      m_FrameQueue[m_FrameQueuePosition] = pFrame;
-
-      m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
-
-      if (pQueuedFrame) {
-        DeliverD3D11Readback(pQueuedFrame);
-      }
-    }
+      DeliverD3D11Readback(pFrame);
   }
   else
   {
@@ -821,6 +833,106 @@ HRESULT CDecD3D11::DeliverD3D11Readback(LAVFrame *pFrame)
     pFrame->data[i] = dst->data[i];
     pFrame->stride[i] = dst->linesize[i];
   }
+
+  return Deliver(pFrame);
+}
+
+struct D3D11DirectPrivate
+{
+  AVBufferRef *pDeviceContex;
+  ID3D11Texture2D *pStagingTexture;
+};
+
+static bool d3d11_direct_lock(LAVFrame * pFrame, LAVDirectBuffer *pBuffer)
+{
+  D3D11DirectPrivate *c = (D3D11DirectPrivate *)pFrame->priv_data;
+  AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)c->pDeviceContex->data)->hwctx;
+  D3D11_TEXTURE2D_DESC desc;
+  D3D11_MAPPED_SUBRESOURCE map;
+
+  ASSERT(pFrame && pBuffer);
+
+  // lock the device context
+  pDeviceContext->lock(pDeviceContext->lock_ctx);
+
+  c->pStagingTexture->GetDesc(&desc);
+
+  // map
+  HRESULT hr = pDeviceContext->device_context->Map(c->pStagingTexture, 0, D3D11_MAP_READ, 0, &map);
+  if (FAILED(hr))
+  {
+    pDeviceContext->unlock(pDeviceContext->lock_ctx);
+    return false;
+  }
+
+  pBuffer->data[0] = (BYTE *)map.pData;
+  pBuffer->data[1] = pBuffer->data[0] + desc.Height * map.RowPitch;
+
+  pBuffer->stride[0] = map.RowPitch;
+  pBuffer->stride[1] = map.RowPitch;
+
+  return true;
+}
+
+static void d3d11_direct_unlock(LAVFrame * pFrame)
+{
+  D3D11DirectPrivate *c = (D3D11DirectPrivate *)pFrame->priv_data;
+  AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)c->pDeviceContex->data)->hwctx;
+
+  pDeviceContext->device_context->Unmap(c->pStagingTexture, 0);
+  pDeviceContext->unlock(pDeviceContext->lock_ctx);
+}
+
+static void d3d11_direct_free(LAVFrame * pFrame)
+{
+  D3D11DirectPrivate *c = (D3D11DirectPrivate *)pFrame->priv_data;
+  av_buffer_unref(&c->pDeviceContex);
+  c->pStagingTexture->Release();
+  delete c;
+}
+
+HRESULT CDecD3D11::DeliverD3D11ReadbackDirect(LAVFrame *pFrame)
+{
+  AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
+  AVFrame *src = (AVFrame *)pFrame->priv_data;
+
+  if (m_pD3D11StagingTexture == nullptr)
+  {
+    D3D11_TEXTURE2D_DESC texDesc = { 0 };
+    ((ID3D11Texture2D *)src->data[0])->GetDesc(&texDesc);
+
+    texDesc.ArraySize = 1;
+    texDesc.Usage = D3D11_USAGE_STAGING;
+    texDesc.BindFlags = 0;
+    texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+
+    HRESULT hr = pDeviceContext->device->CreateTexture2D(&texDesc, nullptr, &m_pD3D11StagingTexture);
+    if (FAILED(hr))
+    {
+      ReleaseFrame(&pFrame);
+      return E_FAIL;
+    }
+  }
+
+  pDeviceContext->lock(pDeviceContext->lock_ctx);
+  pDeviceContext->device_context->CopySubresourceRegion(m_pD3D11StagingTexture, 0, 0, 0, 0, (ID3D11Texture2D *)src->data[0], (intptr_t)src->data[1], nullptr);
+  pDeviceContext->unlock(pDeviceContext->lock_ctx);
+
+  av_frame_free(&src);
+
+  D3D11DirectPrivate *c = new D3D11DirectPrivate;
+  c->pDeviceContex = av_buffer_ref(m_pDevCtx);
+  c->pStagingTexture = m_pD3D11StagingTexture;
+  m_pD3D11StagingTexture->AddRef();
+
+  pFrame->priv_data = c;
+  pFrame->destruct = d3d11_direct_free;
+
+  GetPixelFormat(&pFrame->format, &pFrame->bpp);
+
+  pFrame->direct = true;
+  pFrame->direct_lock = d3d11_direct_lock;
+  pFrame->direct_unlock = d3d11_direct_unlock;
 
   return Deliver(pFrame);
 }
