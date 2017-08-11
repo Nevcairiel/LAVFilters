@@ -722,46 +722,22 @@ void CopyMediaSideDataFF(AVPacket *dst, const MediaSideDataFFMpeg **sd)
 
 BOOL IsWindows7OrNewer()
 {
-  // Query OS version info
-  OSVERSIONINFO os;
-  ZeroMemory(&os, sizeof(os));
-  os.dwOSVersionInfoSize = sizeof(os);
-  GetVersionEx(&os);
-
-  return (os.dwMajorVersion == 6 && os.dwMinorVersion >= 1) || (os.dwMajorVersion > 6);
+  return (g_osInfo.dwMajorVersion == 6 && g_osInfo.dwMinorVersion >= 1) || (g_osInfo.dwMajorVersion > 6);
 }
 
 BOOL IsWindows8OrNewer()
 {
-  // Query OS version info
-  OSVERSIONINFO os;
-  ZeroMemory(&os, sizeof(os));
-  os.dwOSVersionInfoSize = sizeof(os);
-  GetVersionEx(&os);
-
-  return (os.dwMajorVersion == 6 && os.dwMinorVersion >= 2) || (os.dwMajorVersion > 6);
+  return (g_osInfo.dwMajorVersion == 6 && g_osInfo.dwMinorVersion >= 2) || (g_osInfo.dwMajorVersion > 6);
 }
 
 BOOL IsWindows10OrNewer()
 {
-  // Query OS version info
-  OSVERSIONINFO os;
-  ZeroMemory(&os, sizeof(os));
-  os.dwOSVersionInfoSize = sizeof(os);
-  GetVersionEx(&os);
-
-  return (os.dwMajorVersion >= 10);
+  return (g_osInfo.dwMajorVersion >= 10);
 }
 
 BOOL IsWindows10BuildOrNewer(DWORD dwBuild)
 {
-  // Query OS version info
-  OSVERSIONINFO os;
-  ZeroMemory(&os, sizeof(os));
-  os.dwOSVersionInfoSize = sizeof(os);
-  GetVersionEx(&os);
-
-  return (os.dwMajorVersion > 10 || (os.dwMajorVersion == 10 && os.dwBuildNumber >= dwBuild));
+  return (g_osInfo.dwMajorVersion > 10 || (g_osInfo.dwMajorVersion == 10 && g_osInfo.dwBuildNumber >= dwBuild));
 }
 
 void __cdecl debugprintf(LPCWSTR format, ...)
