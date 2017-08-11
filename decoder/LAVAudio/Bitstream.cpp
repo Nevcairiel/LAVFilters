@@ -112,6 +112,9 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
   m_avBSContext->pb = m_avioBitstream;
   m_avBSContext->oformat->flags |= AVFMT_NOFILE;
 
+  // flush IO after every packet, so we can send it to the audio renderer immediately
+  m_avBSContext->flags |= AVFMT_FLAG_FLUSH_PACKETS;
+
   // DTS-HD is by default off, unless explicitly asked for
   if (m_settings.DTSHDFraming && m_settings.bBitstream[Bitstream_DTSHD] && !m_bForceDTSCore) {
     m_bDTSHD = TRUE;
