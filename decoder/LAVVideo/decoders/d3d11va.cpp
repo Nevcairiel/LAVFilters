@@ -34,6 +34,7 @@ ILAVDecoder *CreateDecoderD3D11()
 CDecD3D11::CDecD3D11(void)
   : CDecAvcodec()
 {
+  ZeroMemory(&m_FrameQueue, sizeof(m_FrameQueue));
 }
 
 
@@ -48,6 +49,10 @@ CDecD3D11::~CDecD3D11(void)
 
 STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull, bool bNoAVCodec)
 {
+  for (int i = 0; i < D3D11_QUEUE_SURFACES; i++) {
+    ReleaseFrame(&m_FrameQueue[i]);
+  }
+
   if (m_pOutputViews)
   {
     for (int i = 0; i < m_nOutputViews; i++)
@@ -213,6 +218,12 @@ STDMETHODIMP CDecD3D11::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // reset stream compatibility
   m_bFailHWDecode = false;
 
+  m_DisplayDelay = D3D11_QUEUE_SURFACES;
+
+  // Reduce display delay for DVD decoding for lower decode latency
+  if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD)
+    m_DisplayDelay /= 2;
+
   // Initialize ffmpeg
   hr = CDecAvcodec::InitDecoder(codec, pmt);
   if (FAILED(hr))
@@ -296,13 +307,52 @@ STDMETHODIMP_(long) CDecD3D11::GetBufferCount()
   // 4 extra buffers for handling and safety
   buffers += 4;
 
-  /*if (m_bReadBackFallback) {
+  if (m_bReadBackFallback) {
     buffers += m_DisplayDelay;
-  }*/
+  }
+
   if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) {
     buffers += 4;
   }
   return buffers;
+}
+
+STDMETHODIMP CDecD3D11::FlushDisplayQueue(BOOL bDeliver)
+{
+  for (int i = 0; i < m_DisplayDelay; ++i) {
+    if (m_FrameQueue[m_FrameQueuePosition]) {
+      if (bDeliver) {
+        DeliverD3D11Readback(m_FrameQueue[m_FrameQueuePosition]);
+        m_FrameQueue[m_FrameQueuePosition] = nullptr;
+      }
+      else {
+        ReleaseFrame(&m_FrameQueue[m_FrameQueuePosition]);
+      }
+    }
+    m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
+  }
+
+  return S_OK;
+}
+
+STDMETHODIMP CDecD3D11::Flush()
+{
+  CDecAvcodec::Flush();
+
+  // Flush display queue
+  FlushDisplayQueue(FALSE);
+
+  return S_OK;
+}
+
+STDMETHODIMP CDecD3D11::EndOfStream()
+{
+  CDecAvcodec::EndOfStream();
+
+  // Flush display queue
+  FlushDisplayQueue(TRUE);
+
+  return S_OK;
 }
 
 HRESULT CDecD3D11::PostDecode()
@@ -412,6 +462,8 @@ STDMETHODIMP CDecD3D11::ReInitD3D11Decoder(AVCodecContext *c)
     // if we're not in readback mode, we need to flush all the frames
     if (m_bReadBackFallback == false)
       avcodec_flush_buffers(c);
+    else
+      FlushDisplayQueue(TRUE);
 
     pDeviceContext->lock(pDeviceContext->lock_ctx);
     hr = CreateD3D11Decoder();
@@ -704,41 +756,30 @@ HRESULT CDecD3D11::HandleDXVA2Frame(LAVFrame *pFrame)
   ASSERT(pFrame->format == LAVPixFmt_D3D11);
 
   if (pFrame->flags & LAV_FRAME_FLAG_FLUSH) {
-    /*if (m_bReadBackFallback) {
+    if (m_bReadBackFallback) {
       FlushDisplayQueue(TRUE);
-    }*/
+    }
     Deliver(pFrame);
     return S_OK;
   }
 
   if (m_bReadBackFallback)
   {
-    AVFrame *src = (AVFrame *)pFrame->priv_data;
-    AVFrame *dst = av_frame_alloc();
-
-    int ret = av_hwframe_transfer_data(dst, src, 0);
-    if (ret < 0)
+    if (m_DisplayDelay == 0)
     {
-      ReleaseFrame(&pFrame);
-      av_frame_free(&dst);
-      return E_FAIL;
+      DeliverD3D11Readback(pFrame);
     }
+    else
+    {
+      LAVFrame *pQueuedFrame = m_FrameQueue[m_FrameQueuePosition];
+      m_FrameQueue[m_FrameQueuePosition] = pFrame;
 
-    // free the source frame
-    av_frame_free(&src);
+      m_FrameQueuePosition = (m_FrameQueuePosition + 1) % m_DisplayDelay;
 
-    // and store the dst frame in LAVFrame
-    pFrame->priv_data = dst;
-    GetPixelFormat(&pFrame->format, &pFrame->bpp);
-
-    ASSERT((dst->format == AV_PIX_FMT_NV12 && pFrame->format == LAVPixFmt_NV12) || (dst->format == AV_PIX_FMT_P010 && pFrame->format == LAVPixFmt_P016));
-
-    for (int i = 0; i < 4; i++) {
-      pFrame->data[i] = dst->data[i];
-      pFrame->stride[i] = dst->linesize[i];
+      if (pQueuedFrame) {
+        DeliverD3D11Readback(pQueuedFrame);
+      }
     }
-
-    Deliver(pFrame);
   }
   else
   {
@@ -752,6 +793,36 @@ HRESULT CDecD3D11::HandleDXVA2Frame(LAVFrame *pFrame)
   }
 
   return S_OK;
+}
+
+HRESULT CDecD3D11::DeliverD3D11Readback(LAVFrame *pFrame)
+{
+  AVFrame *src = (AVFrame *)pFrame->priv_data;
+  AVFrame *dst = av_frame_alloc();
+
+  int ret = av_hwframe_transfer_data(dst, src, 0);
+  if (ret < 0)
+  {
+    ReleaseFrame(&pFrame);
+    av_frame_free(&dst);
+    return E_FAIL;
+  }
+
+  // free the source frame
+  av_frame_free(&src);
+
+  // and store the dst frame in LAVFrame
+  pFrame->priv_data = dst;
+  GetPixelFormat(&pFrame->format, &pFrame->bpp);
+
+  ASSERT((dst->format == AV_PIX_FMT_NV12 && pFrame->format == LAVPixFmt_NV12) || (dst->format == AV_PIX_FMT_P010 && pFrame->format == LAVPixFmt_P016));
+
+  for (int i = 0; i < 4; i++) {
+    pFrame->data[i] = dst->data[i];
+    pFrame->stride[i] = dst->linesize[i];
+  }
+
+  return Deliver(pFrame);
 }
 
 STDMETHODIMP CDecD3D11::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)

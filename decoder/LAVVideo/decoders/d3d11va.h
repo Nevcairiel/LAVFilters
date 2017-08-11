@@ -32,6 +32,8 @@ extern "C" {
 #include "libavcodec/d3d11va.h"
 }
 
+#define D3D11_QUEUE_SURFACES 4
+
 class CDecD3D11 : public CDecAvcodec
 {
 public:
@@ -41,6 +43,8 @@ public:
   // ILAVDecoder
   STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
+  STDMETHODIMP Flush();
+  STDMETHODIMP EndOfStream();
 
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
@@ -53,6 +57,7 @@ protected:
   HRESULT PostDecode();
 
   HRESULT HandleDXVA2Frame(LAVFrame *pFrame);
+  HRESULT DeliverD3D11Readback(LAVFrame *pFrame);
 
 private:
   STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
@@ -66,6 +71,8 @@ private:
   STDMETHODIMP FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC *desc, D3D11_VIDEO_DECODER_CONFIG *pConfig);
 
   STDMETHODIMP FillHWContext(AVD3D11VAContext *ctx);
+
+  STDMETHODIMP FlushDisplayQueue(BOOL bDeliver);
 
   static enum AVPixelFormat get_d3d11_format(struct AVCodecContext *s, const enum AVPixelFormat * pix_fmts);
   static int get_d3d11_buffer(struct AVCodecContext *c, AVFrame *pic, int flags);
@@ -90,6 +97,10 @@ private:
 
   BOOL m_bReadBackFallback = FALSE;
   BOOL m_bFailHWDecode = FALSE;
+
+  LAVFrame* m_FrameQueue[D3D11_QUEUE_SURFACES];
+  int       m_FrameQueuePosition = 0;
+  int       m_DisplayDelay = D3D11_QUEUE_SURFACES;
 
   friend class CD3D11SurfaceAllocator;
 };
