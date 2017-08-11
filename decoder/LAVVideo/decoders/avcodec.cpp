@@ -639,7 +639,7 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
     if (m_pAVCtx->codec_id == AV_CODEC_ID_H264) {
       int64_t x264build = -1;
       if (av_opt_get_int(m_pAVCtx->priv_data, "x264_build", 0, &x264build) >= 0)
-        m_nx264build = x264build;
+        m_nx264build = (int)x264build;
     }
 
     avcodec_close(m_pAVCtx);
