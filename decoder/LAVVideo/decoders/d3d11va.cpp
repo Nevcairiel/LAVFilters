@@ -73,6 +73,51 @@ STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull, bool bNoAVCodec)
 
   if (bFull) {
     av_buffer_unref(&m_pDevCtx);
+
+    if (dx.d3d11lib)
+    {
+      FreeLibrary(dx.d3d11lib);
+      dx.d3d11lib = nullptr;
+    }
+
+    if (dx.dxgilib)
+    {
+      FreeLibrary(dx.dxgilib);
+      dx.dxgilib = nullptr;
+    }
+  }
+
+  return S_OK;
+}
+
+STDMETHODIMP CDecD3D11::Init()
+{
+  dx.d3d11lib = LoadLibrary(L"d3d11.dll");
+  if (dx.d3d11lib == nullptr)
+  {
+    DbgLog((LOG_TRACE, 10, L"Cannot open d3d11.dll"));
+    return E_FAIL;
+  }
+
+  dx.mD3D11CreateDevice = (PFN_D3D11_CREATE_DEVICE)GetProcAddress(dx.d3d11lib, "D3D11CreateDevice");
+  if (dx.mD3D11CreateDevice == nullptr)
+  {
+    DbgLog((LOG_TRACE, 10, L"D3D11CreateDevice not available"));
+    return E_FAIL;
+  }
+
+  dx.dxgilib = LoadLibrary(L"dxgi.dll");
+  if (dx.dxgilib == nullptr)
+  {
+    DbgLog((LOG_TRACE, 10, L"Cannot open dxgi.dll"));
+    return E_FAIL;
+  }
+
+  dx.mCreateDXGIFactory1 = (PFN_CREATE_DXGI_FACTORY1)GetProcAddress(dx.dxgilib, "CreateDXGIFactory1");
+  if (dx.mCreateDXGIFactory1 == nullptr)
+  {
+    DbgLog((LOG_TRACE, 10, L"CreateDXGIFactory1 not available"));
+    return E_FAIL;
   }
 
   return S_OK;
@@ -127,26 +172,67 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
   // device id (hwcontext API wants a string)
   UINT nDevice = pD3D11DecoderConfiguration ? pD3D11DecoderConfiguration->GetD3D11AdapterIndex() : 0;
 
-  for (;;)
+  // get adapter
+  IDXGIAdapter *pDXGIAdapter = nullptr;
+  ID3D11Device *pD3D11Device = nullptr;
+
+  // create DXGI factory
+  IDXGIFactory1 *pDXGIFactory = nullptr;
+  hr = dx.mCreateDXGIFactory1(IID_IDXGIFactory1, (void **)&pDXGIFactory);
+  if (FAILED(hr))
   {
-    char deviceId[34] = { 0 };
-    _itoa_s(nDevice, deviceId, 10);
+    DbgLog((LOG_ERROR, 10, L"-> DXGIFactory creation failed"));
+    goto fail;
+  }
 
-    // allocate device context
-    int ret = av_hwdevice_ctx_create(&m_pDevCtx, AV_HWDEVICE_TYPE_D3D11VA, deviceId, nullptr, 0);
-    if (ret < 0) {
-      // if the device failed, try with the default device
-      if (nDevice != 0)
-      {
-        nDevice = 0;
-        continue;
-      }
-
-      DbgLog((LOG_ERROR, 10, L"-> Failed to create D3D11 hardware context"));
-      goto fail;
+  // find the adapter
+enum_adapter:
+  hr = pDXGIFactory->EnumAdapters(nDevice, &pDXGIAdapter);
+  if (FAILED(hr))
+  {
+    if (nDevice != 0)
+    {
+      DbgLog((LOG_ERROR, 10, L"-> Requested DXGI device %d not available, falling back to default", nDevice));
+      nDevice = 0;
+      hr = pDXGIFactory->EnumAdapters(0, &pDXGIAdapter);
     }
 
-    break;
+    if (FAILED(hr))
+    {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to enumerate a valid DXGI device"));
+      goto fail;
+    }
+  }
+
+  hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &pD3D11Device, nullptr, nullptr);
+  if (FAILED(hr))
+  {
+    if (nDevice != 0)
+    {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support on requested device %d, re-trying with default", nDevice));
+      nDevice = 0;
+      goto enum_adapter;
+    }
+
+    DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support"));
+    goto fail;
+  }
+
+  // done with the DXGI interface
+  SafeRelease(&pDXGIFactory);
+  SafeRelease(&pDXGIAdapter);
+
+  // allocate and fill device context
+  m_pDevCtx = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_D3D11VA);
+  AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
+  pDeviceContext->device = pD3D11Device;
+
+  // finalize the context
+  int ret = av_hwdevice_ctx_init(m_pDevCtx);
+  if (ret < 0)
+  {
+    av_buffer_unref(&m_pDevCtx);
+    goto fail;
   }
 
   // check if the connection supports native mode
@@ -189,8 +275,6 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
   // Notice the connected pin that we're sending D3D11 textures
   if (pD3D11DecoderConfiguration)
   {
-    AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
-
     hr = pD3D11DecoderConfiguration->ActivateD3D11Decoding(pDeviceContext->device, pDeviceContext->device_context, pDeviceContext->lock_ctx, 0);
     SafeRelease(&pD3D11DecoderConfiguration);
 
@@ -205,6 +289,8 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
 
 fail:
   SafeRelease(&pD3D11DecoderConfiguration);
+  SafeRelease(&pDXGIFactory);
+  SafeRelease(&pDXGIAdapter);
   return E_FAIL;
 }
 

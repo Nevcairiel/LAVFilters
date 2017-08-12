@@ -34,6 +34,8 @@ extern "C" {
 
 #define D3D11_QUEUE_SURFACES 4
 
+typedef HRESULT(WINAPI *PFN_CREATE_DXGI_FACTORY1)(REFIID riid, void **ppFactory);
+
 class CDecD3D11 : public CDecAvcodec
 {
 public:
@@ -52,6 +54,9 @@ public:
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bReadBackFallback ? (m_bDirect ? L"d3d11 cb direct" : L"d3d11 cb") : L"d3d11 native"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
   STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
+
+  // CDecBase
+  STDMETHODIMP Init();
 
 protected:
   HRESULT AdditionaDecoderInit();
@@ -107,6 +112,15 @@ private:
   LAVFrame* m_FrameQueue[D3D11_QUEUE_SURFACES];
   int       m_FrameQueuePosition = 0;
   int       m_DisplayDelay = D3D11_QUEUE_SURFACES;
+
+  struct
+  {
+    HMODULE d3d11lib;
+    PFN_D3D11_CREATE_DEVICE mD3D11CreateDevice;
+
+    HMODULE dxgilib;
+    PFN_CREATE_DXGI_FACTORY1 mCreateDXGIFactory1;
+  } dx = { 0 };
 
   friend class CD3D11SurfaceAllocator;
 };
