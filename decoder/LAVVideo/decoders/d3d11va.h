@@ -43,6 +43,7 @@ public:
   virtual ~CDecD3D11(void);
 
   // ILAVDecoder
+  STDMETHODIMP Check();
   STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
   STDMETHODIMP Flush();

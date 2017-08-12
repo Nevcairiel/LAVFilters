@@ -90,6 +90,7 @@ STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull, bool bNoAVCodec)
   return S_OK;
 }
 
+// ILAVDecoder
 STDMETHODIMP CDecD3D11::Init()
 {
   dx.d3d11lib = LoadLibrary(L"d3d11.dll");
@@ -123,7 +124,14 @@ STDMETHODIMP CDecD3D11::Init()
   return S_OK;
 }
 
-// ILAVDecoder
+STDMETHODIMP CDecD3D11::Check()
+{
+  // attempt creating a hardware device with video support
+  // by passing nullptr to the device parameter, no actual device will be created and only support will be checked
+  HRESULT hr = dx.mD3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, nullptr, nullptr, nullptr);
+  return hr;
+}
+
 STDMETHODIMP CDecD3D11::InitAllocator(IMemAllocator **ppAlloc)
 {
   HRESULT hr = S_OK;
