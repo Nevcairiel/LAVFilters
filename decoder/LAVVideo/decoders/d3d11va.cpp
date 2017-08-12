@@ -218,6 +218,10 @@ enum_adapter:
     goto fail;
   }
 
+  // store adapter info
+  ZeroMemory(&m_AdapterDesc, sizeof(m_AdapterDesc));
+  pDXGIAdapter->GetDesc(&m_AdapterDesc);
+
   // done with the DXGI interface
   SafeRelease(&pDXGIFactory);
   SafeRelease(&pDXGIAdapter);
@@ -1032,5 +1036,16 @@ STDMETHODIMP CDecD3D11::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
   if (pBpp)
     *pBpp = (m_SurfaceFormat == DXGI_FORMAT_P016) ? 16 : (m_SurfaceFormat == DXGI_FORMAT_P010 ? 10 : 8);
 
+  return S_OK;
+}
+
+STDMETHODIMP CDecD3D11::GetHWAccelActiveDevice(BSTR *pstrDeviceName)
+{
+  CheckPointer(pstrDeviceName, E_POINTER);
+
+  if (m_AdapterDesc.Description[0] == 0)
+    return E_UNEXPECTED;
+
+  *pstrDeviceName = SysAllocString(m_AdapterDesc.Description);
   return S_OK;
 }

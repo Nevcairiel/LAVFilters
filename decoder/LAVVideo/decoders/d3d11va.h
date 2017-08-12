@@ -54,6 +54,7 @@ public:
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bReadBackFallback ? (m_bDirect ? L"d3d11 cb direct" : L"d3d11 cb") : L"d3d11 native"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
   STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
+  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName);
 
   // CDecBase
   STDMETHODIMP Init();
@@ -121,6 +122,8 @@ private:
     HMODULE dxgilib;
     PFN_CREATE_DXGI_FACTORY1 mCreateDXGIFactory1;
   } dx = { 0 };
+
+  DXGI_ADAPTER_DESC m_AdapterDesc = { 0 };
 
   friend class CD3D11SurfaceAllocator;
 };
