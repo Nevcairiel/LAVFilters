@@ -218,6 +218,7 @@ enum_adapter:
     if (nDevice != 0)
     {
       DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support on requested device %d, re-trying with default", nDevice));
+      SafeRelease(&pDXGIAdapter);
       nDevice = 0;
       goto enum_adapter;
     }
