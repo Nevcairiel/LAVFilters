@@ -157,6 +157,70 @@ STDMETHODIMP CDecD3D11::InitAllocator(IMemAllocator **ppAlloc)
   return m_pAllocator->QueryInterface(__uuidof(IMemAllocator), (void **)ppAlloc);
 }
 
+STDMETHODIMP CDecD3D11::CreateD3D11Device(UINT nDeviceIndex, ID3D11Device **ppDevice, DXGI_ADAPTER_DESC *pDesc)
+{
+  ID3D11Device *pD3D11Device = nullptr;
+
+  // create DXGI factory
+  IDXGIAdapter *pDXGIAdapter = nullptr;
+  IDXGIFactory1 *pDXGIFactory = nullptr;
+  HRESULT hr = dx.mCreateDXGIFactory1(IID_IDXGIFactory1, (void **)&pDXGIFactory);
+  if (FAILED(hr))
+  {
+    DbgLog((LOG_ERROR, 10, L"-> DXGIFactory creation failed"));
+    goto fail;
+  }
+
+  // find the adapter
+enum_adapter:
+  hr = pDXGIFactory->EnumAdapters(nDeviceIndex, &pDXGIAdapter);
+  if (FAILED(hr))
+  {
+    if (nDeviceIndex != 0)
+    {
+      DbgLog((LOG_ERROR, 10, L"-> Requested DXGI device %d not available, falling back to default", nDeviceIndex));
+      nDeviceIndex = 0;
+      hr = pDXGIFactory->EnumAdapters(0, &pDXGIAdapter);
+    }
+
+    if (FAILED(hr))
+    {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to enumerate a valid DXGI device"));
+      goto fail;
+    }
+  }
+
+  hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &pD3D11Device, nullptr, nullptr);
+  if (FAILED(hr))
+  {
+    if (nDeviceIndex != 0)
+    {
+      DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support on requested device %d, re-trying with default", nDeviceIndex));
+      SafeRelease(&pDXGIAdapter);
+      nDeviceIndex = 0;
+      goto enum_adapter;
+    }
+
+    DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support"));
+    goto fail;
+  }
+
+  // store adapter info
+  if (pDesc)
+  {
+    ZeroMemory(pDesc, sizeof(*pDesc));
+    pDXGIAdapter->GetDesc(pDesc);
+  }
+
+  // return device
+  *ppDevice = pD3D11Device;
+
+fail:
+  SafeRelease(&pDXGIFactory);
+  SafeRelease(&pDXGIAdapter);
+  return hr;
+}
+
 STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
 {
   DbgLog((LOG_TRACE, 10, L"CDecD3D11::PostConnect()"));
@@ -177,63 +241,16 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
   // and the old device
   av_buffer_unref(&m_pDevCtx);
 
-  // device id (hwcontext API wants a string)
+  // device id
   UINT nDevice = pD3D11DecoderConfiguration ? pD3D11DecoderConfiguration->GetD3D11AdapterIndex() : 0;
 
-  // get adapter
-  IDXGIAdapter *pDXGIAdapter = nullptr;
+  // create the device
   ID3D11Device *pD3D11Device = nullptr;
-
-  // create DXGI factory
-  IDXGIFactory1 *pDXGIFactory = nullptr;
-  hr = dx.mCreateDXGIFactory1(IID_IDXGIFactory1, (void **)&pDXGIFactory);
+  hr = CreateD3D11Device(nDevice, &pD3D11Device, &m_AdapterDesc);
   if (FAILED(hr))
   {
-    DbgLog((LOG_ERROR, 10, L"-> DXGIFactory creation failed"));
     goto fail;
   }
-
-  // find the adapter
-enum_adapter:
-  hr = pDXGIFactory->EnumAdapters(nDevice, &pDXGIAdapter);
-  if (FAILED(hr))
-  {
-    if (nDevice != 0)
-    {
-      DbgLog((LOG_ERROR, 10, L"-> Requested DXGI device %d not available, falling back to default", nDevice));
-      nDevice = 0;
-      hr = pDXGIFactory->EnumAdapters(0, &pDXGIAdapter);
-    }
-
-    if (FAILED(hr))
-    {
-      DbgLog((LOG_ERROR, 10, L"-> Failed to enumerate a valid DXGI device"));
-      goto fail;
-    }
-  }
-
-  hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &pD3D11Device, nullptr, nullptr);
-  if (FAILED(hr))
-  {
-    if (nDevice != 0)
-    {
-      DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support on requested device %d, re-trying with default", nDevice));
-      SafeRelease(&pDXGIAdapter);
-      nDevice = 0;
-      goto enum_adapter;
-    }
-
-    DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support"));
-    goto fail;
-  }
-
-  // store adapter info
-  ZeroMemory(&m_AdapterDesc, sizeof(m_AdapterDesc));
-  pDXGIAdapter->GetDesc(&m_AdapterDesc);
-
-  // done with the DXGI interface
-  SafeRelease(&pDXGIFactory);
-  SafeRelease(&pDXGIAdapter);
 
   // allocate and fill device context
   m_pDevCtx = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_D3D11VA);
@@ -302,8 +319,6 @@ enum_adapter:
 
 fail:
   SafeRelease(&pD3D11DecoderConfiguration);
-  SafeRelease(&pDXGIFactory);
-  SafeRelease(&pDXGIAdapter);
   return E_FAIL;
 }
 

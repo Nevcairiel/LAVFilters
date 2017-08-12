@@ -74,6 +74,7 @@ private:
 
   STDMETHODIMP ReInitD3D11Decoder(AVCodecContext *c);
 
+  STDMETHODIMP CreateD3D11Device(UINT nDeviceIndex, ID3D11Device **ppDevice, DXGI_ADAPTER_DESC *pDesc);
   STDMETHODIMP CreateD3D11Decoder();
   STDMETHODIMP AllocateFramesContext(int width, int height, AVPixelFormat format, int nSurfaces, AVBufferRef **pFramesCtx);
 
