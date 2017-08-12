@@ -915,7 +915,7 @@ HRESULT CDecD3D11::DeliverD3D11ReadbackDirect(LAVFrame *pFrame)
   }
 
   pDeviceContext->lock(pDeviceContext->lock_ctx);
-  pDeviceContext->device_context->CopySubresourceRegion(m_pD3D11StagingTexture, 0, 0, 0, 0, (ID3D11Texture2D *)src->data[0], (intptr_t)src->data[1], nullptr);
+  pDeviceContext->device_context->CopySubresourceRegion(m_pD3D11StagingTexture, 0, 0, 0, 0, (ID3D11Texture2D *)src->data[0], (UINT)(intptr_t)src->data[1], nullptr);
   pDeviceContext->unlock(pDeviceContext->lock_ctx);
 
   av_frame_free(&src);
