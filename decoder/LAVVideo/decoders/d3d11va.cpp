@@ -205,6 +205,14 @@ enum_adapter:
     goto fail;
   }
 
+  // enable multithreaded protection
+  ID3D10Multithread *pMultithread = nullptr;
+  hr = pD3D11Device->QueryInterface(&pMultithread);
+  if (SUCCEEDED(hr)) {
+    pMultithread->SetMultithreadProtected(TRUE);
+    SafeRelease(&pMultithread);
+  }
+
   // store adapter info
   if (pDesc)
   {
