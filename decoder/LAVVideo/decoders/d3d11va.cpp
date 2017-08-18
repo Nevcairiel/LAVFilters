@@ -31,6 +31,17 @@ ILAVDecoder *CreateDecoderD3D11()
 // D3D11 decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
 
+static const D3D_FEATURE_LEVEL s_D3D11Levels[] =
+{
+  D3D_FEATURE_LEVEL_11_1,
+  D3D_FEATURE_LEVEL_11_0,
+  D3D_FEATURE_LEVEL_10_1,
+  D3D_FEATURE_LEVEL_10_0,
+  D3D_FEATURE_LEVEL_9_3,
+  D3D_FEATURE_LEVEL_9_2,
+  D3D_FEATURE_LEVEL_9_1,
+};
+
 CDecD3D11::CDecD3D11(void)
   : CDecAvcodec()
 {
@@ -128,7 +139,7 @@ STDMETHODIMP CDecD3D11::Check()
 {
   // attempt creating a hardware device with video support
   // by passing nullptr to the device parameter, no actual device will be created and only support will be checked
-  HRESULT hr = dx.mD3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, nullptr, nullptr, nullptr);
+  HRESULT hr = dx.mD3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, s_D3D11Levels, countof(s_D3D11Levels), D3D11_SDK_VERSION, nullptr, nullptr, nullptr);
   return hr;
 }
 
@@ -190,7 +201,8 @@ enum_adapter:
     }
   }
 
-  hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, nullptr, 0, D3D11_SDK_VERSION, &pD3D11Device, nullptr, nullptr);
+  D3D_FEATURE_LEVEL d3dFeatureLevel;
+  hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, s_D3D11Levels, countof(s_D3D11Levels), D3D11_SDK_VERSION, &pD3D11Device, &d3dFeatureLevel, nullptr);
   if (FAILED(hr))
   {
     if (nDeviceIndex != 0)
@@ -204,6 +216,8 @@ enum_adapter:
     DbgLog((LOG_ERROR, 10, L"-> Failed to create a D3D11 device with video support"));
     goto fail;
   }
+
+  DbgLog((LOG_TRACE, 10, L"-> Created D3D11 device with feature level %d.%d", d3dFeatureLevel >> 12, (d3dFeatureLevel >> 8) & 0xF));
 
   // enable multithreaded protection
   ID3D10Multithread *pMultithread = nullptr;
