@@ -104,6 +104,10 @@ STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull, bool bNoAVCodec)
 // ILAVDecoder
 STDMETHODIMP CDecD3D11::Init()
 {
+  // D3D11 decoding requires Windows 8 or newer
+  if (!IsWindows8OrNewer())
+    return E_NOINTERFACE;
+
   dx.d3d11lib = LoadLibrary(L"d3d11.dll");
   if (dx.d3d11lib == nullptr)
   {
