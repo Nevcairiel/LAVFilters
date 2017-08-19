@@ -268,7 +268,20 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
   av_buffer_unref(&m_pDevCtx);
 
   // device id
-  UINT nDevice = pD3D11DecoderConfiguration ? pD3D11DecoderConfiguration->GetD3D11AdapterIndex() : 0;
+  UINT nDevice = 0;
+
+  // use the device the renderer recommends
+  if (pD3D11DecoderConfiguration)
+  {
+    nDevice = pD3D11DecoderConfiguration->GetD3D11AdapterIndex();
+  }
+  else
+  {
+    // use the configured device
+    nDevice = m_pSettings->GetHWAccelDeviceIndex(HWAccel_D3D11, nullptr);
+    if (nDevice == LAVHWACCEL_DEVICE_DEFAULT)
+      nDevice = 0;
+  }
 
   // create the device
   ID3D11Device *pD3D11Device = nullptr;
@@ -1087,6 +1100,72 @@ STDMETHODIMP CDecD3D11::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
     *pBpp = (m_SurfaceFormat == DXGI_FORMAT_P016) ? 16 : (m_SurfaceFormat == DXGI_FORMAT_P010 ? 10 : 8);
 
   return S_OK;
+}
+
+STDMETHODIMP_(DWORD) CDecD3D11::GetHWAccelNumDevices()
+{
+  DWORD nDevices = 0;
+  UINT i = 0;
+  IDXGIAdapter *pDXGIAdapter = nullptr;
+  IDXGIFactory1 *pDXGIFactory = nullptr;
+
+  HRESULT hr = dx.mCreateDXGIFactory1(IID_IDXGIFactory1, (void **)&pDXGIFactory);
+  if (FAILED(hr))
+    goto fail;
+
+  DXGI_ADAPTER_DESC desc;
+  while (SUCCEEDED(pDXGIFactory->EnumAdapters(i, &pDXGIAdapter)))
+  {
+    pDXGIAdapter->GetDesc(&desc);
+    SafeRelease(&pDXGIAdapter);
+
+    // stop when we hit the MS software device
+    if (desc.VendorId == 0x1414 && desc.DeviceId == 0x8c)
+      break;
+
+    i++;
+  }
+
+  nDevices = i;
+
+fail:
+  SafeRelease(&pDXGIFactory);
+  return nDevices;
+}
+
+STDMETHODIMP CDecD3D11::GetHWAccelDeviceInfo(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier)
+{
+  IDXGIAdapter *pDXGIAdapter = nullptr;
+  IDXGIFactory1 *pDXGIFactory = nullptr;
+
+  HRESULT hr = dx.mCreateDXGIFactory1(IID_IDXGIFactory1, (void **)&pDXGIFactory);
+  if (FAILED(hr))
+    goto fail;
+
+  hr = pDXGIFactory->EnumAdapters(dwIndex, &pDXGIAdapter);
+  if (FAILED(hr))
+    goto fail;
+
+  DXGI_ADAPTER_DESC desc;
+  pDXGIAdapter->GetDesc(&desc);
+
+  // stop when we hit the MS software device
+  if (desc.VendorId == 0x1414 && desc.DeviceId == 0x8c)
+  {
+    hr = E_INVALIDARG;
+    goto fail;
+  }
+
+  if (pstrDeviceName)
+    *pstrDeviceName = SysAllocString(desc.Description);
+
+  if (dwDeviceIdentifier)
+    *dwDeviceIdentifier = desc.DeviceId;
+
+fail:
+  SafeRelease(&pDXGIFactory);
+  SafeRelease(&pDXGIAdapter);
+  return hr;
 }
 
 STDMETHODIMP CDecD3D11::GetHWAccelActiveDevice(BSTR *pstrDeviceName)
