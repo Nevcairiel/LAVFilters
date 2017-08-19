@@ -383,9 +383,6 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AVAIL, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_None ? hwAccelEmpty : dwSupport == 0 ? hwAccelUnavailable : hwAccelAvailable));
 
-  EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_HWACCEL_DEVICE_SELECT), hwAccel == HWAccel_DXVA2CopyBack);
-  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_DEVICE_SELECT), hwAccel == HWAccel_DXVA2CopyBack);
-
   const WCHAR hwHintNoDeviceChoice[] = L"The selected Hardware Decoder does not support using a specific device.";
   const WCHAR hwHintDXVA2Display[] = L"DXVA2 requires an active display for GPUs to be available.\nNote that GPUs are listed once for each connected display.";
   const WCHAR hwHintD3D11NotSupported[] = L"D3D11 requires Windows 8 or newer, and is not supported on this OS.";
@@ -409,6 +406,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   if (hwAccel == HWAccel_D3D11 && !IsWindows8OrNewer())
   {
     m_HWDeviceIndex = 0;
+    dwnDevices = 0;
     SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)hwHintD3D11NotSupported);
   }
   else if (dwnDevices == 0) {
@@ -430,6 +428,9 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
     else
       SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)L"");
   }
+
+  EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_HWACCEL_DEVICE_SELECT), (dwnDevices > 0));
+  EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_DEVICE_SELECT), (dwnDevices > 0));
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_SETCURSEL, m_HWDeviceIndex, 0);
 
