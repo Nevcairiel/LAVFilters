@@ -388,6 +388,8 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 
   const WCHAR hwHintNoDeviceChoice[] = L"The selected Hardware Decoder does not support using a specific device.";
   const WCHAR hwHintDXVA2Display[] = L"DXVA2 requires an active display for GPUs to be available.\nNote that GPUs are listed once for each connected display.";
+  const WCHAR hwHintD3D11NotSupported[] = L"D3D11 requires Windows 8 or newer, and is not supported on this OS.";
+  const WCHAR hwHintD3D11DeviceHint[] = L"The selected D3D11 device is only used in copy-back mode. In native mode the renderer determines the device used.";
 
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_RESETCONTENT, 0, 0);
@@ -404,7 +406,12 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
     }
   }
 
-  if (dwnDevices == 0) {
+  if (hwAccel == HWAccel_D3D11 && !IsWindows8OrNewer())
+  {
+    m_HWDeviceIndex = 0;
+    SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)hwHintD3D11NotSupported);
+  }
+  else if (dwnDevices == 0) {
     m_HWDeviceIndex = 0;
     SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)hwHintNoDeviceChoice);
   }
@@ -415,7 +422,13 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
       m_HWDeviceIndex = 0;
     else
       m_HWDeviceIndex++;
-    SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)(hwAccel == HWAccel_DXVA2CopyBack ? hwHintDXVA2Display : L""));
+
+    if (hwAccel == HWAccel_DXVA2CopyBack)
+      SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)hwHintDXVA2Display);
+    else if (hwAccel == HWAccel_D3D11)
+      SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)hwHintD3D11DeviceHint);
+    else
+      SendDlgItemMessage(m_Dlg, IDC_LBL_HWACCEL_DEVICE_HINT, WM_SETTEXT, 0, (LPARAM)L"");
   }
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_SETCURSEL, m_HWDeviceIndex, 0);
