@@ -27,6 +27,69 @@ ILAVDecoder *CreateDecoderD3D11()
   return new CDecD3D11();
 }
 
+HRESULT VerifyD3D11Device(DWORD & dwIndex, DWORD dwDeviceId)
+{
+  HRESULT hr = S_OK;
+  DXGI_ADAPTER_DESC desc;
+
+  HMODULE dxgi = LoadLibrary(L"dxgi.dll");
+  if (dxgi == nullptr)
+  {
+    hr = E_FAIL;
+    goto done;
+  }
+
+  PFN_CREATE_DXGI_FACTORY1 mCreateDXGIFactory1 = (PFN_CREATE_DXGI_FACTORY1)GetProcAddress(dxgi, "CreateDXGIFactory1");
+  if (mCreateDXGIFactory1 == nullptr)
+  {
+    hr = E_FAIL;
+    goto done;
+  }
+
+  IDXGIAdapter *pDXGIAdapter = nullptr;
+  IDXGIFactory1 *pDXGIFactory = nullptr;
+
+  hr = mCreateDXGIFactory1(IID_IDXGIFactory1, (void **)&pDXGIFactory);
+  if (FAILED(hr))
+    goto done;
+
+  // check the adapter specified by dwIndex
+  hr = pDXGIFactory->EnumAdapters(dwIndex, &pDXGIAdapter);
+  if (FAILED(hr))
+    goto done;
+
+  // if it matches the device id, then all is well and we're done
+  pDXGIAdapter->GetDesc(&desc);
+  if (desc.DeviceId == dwDeviceId)
+    goto done;
+
+  SafeRelease(&pDXGIAdapter);
+
+  // try to find a device that matches this device id
+  UINT i = 0;
+  while (SUCCEEDED(pDXGIFactory->EnumAdapters(i, &pDXGIAdapter)))
+  {
+    pDXGIAdapter->GetDesc(&desc);
+    SafeRelease(&pDXGIAdapter);
+
+    if (desc.DeviceId == dwDeviceId)
+    {
+      dwIndex = i;
+      goto done;
+    }
+    i++;
+  }
+
+  // if none is found, fail
+  hr = E_FAIL;
+
+done:
+  SafeRelease(&pDXGIAdapter);
+  SafeRelease(&pDXGIFactory);
+  FreeLibrary(dxgi);
+  return hr;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // D3D11 decoder implementation
 ////////////////////////////////////////////////////////////////////////////////

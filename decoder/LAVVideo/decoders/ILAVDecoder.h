@@ -437,3 +437,4 @@ ILAVDecoder *CreateDecoderD3D11();
 ILAVDecoder *CreateDecoderMSDKMVC();
 
 HRESULT VerifyD3D9Device(DWORD & dwIndex, DWORD dwDeviceId);
+HRESULT VerifyD3D11Device(DWORD & dwIndex, DWORD dwDeviceId);

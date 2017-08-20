@@ -182,6 +182,9 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.HWAccelDeviceDXVA2 = LAVHWACCEL_DEVICE_DEFAULT;
   m_settings.HWAccelDeviceDXVA2Desc = 0;
 
+  m_settings.HWAccelDeviceD3D11 = LAVHWACCEL_DEVICE_DEFAULT;
+  m_settings.HWAccelDeviceD3D11Desc = 0;
+
   m_settings.bH264MVCOverride = TRUE;
 
   return S_OK;
@@ -314,6 +317,12 @@ HRESULT CLAVVideo::ReadSettings(HKEY rootKey)
     dwVal = regHW.ReadDWORD(L"HWAccelDeviceDXVA2Desc", hr);
     if (SUCCEEDED(hr)) m_settings.HWAccelDeviceDXVA2Desc = dwVal;
 
+    dwVal = regHW.ReadDWORD(L"HWAccelDeviceD3D11", hr);
+    if (SUCCEEDED(hr)) m_settings.HWAccelDeviceD3D11 = dwVal;
+
+    dwVal = regHW.ReadDWORD(L"HWAccelDeviceD3D11Desc", hr);
+    if (SUCCEEDED(hr)) m_settings.HWAccelDeviceD3D11Desc = dwVal;
+
     bFlag = regHW.ReadBOOL(L"HWAccelCUVIDXVA", hr);
     if (SUCCEEDED(hr)) m_settings.HWAccelCUVIDXVA = bFlag;
   }
@@ -372,6 +381,9 @@ HRESULT CLAVVideo::SaveSettings()
 
     regHW.WriteDWORD(L"HWAccelDeviceDXVA2", m_settings.HWAccelDeviceDXVA2);
     regHW.WriteDWORD(L"HWAccelDeviceDXVA2Desc", m_settings.HWAccelDeviceDXVA2Desc);
+
+    regHW.WriteDWORD(L"HWAccelDeviceD3D11", m_settings.HWAccelDeviceD3D11);
+    regHW.WriteDWORD(L"HWAccelDeviceD3D11Desc", m_settings.HWAccelDeviceD3D11Desc);
 
     regHW.WriteBOOL(L"HWAccelCUVIDXVA", m_settings.HWAccelCUVIDXVA);
 
@@ -2425,7 +2437,24 @@ STDMETHODIMP_(DWORD) CLAVVideo::GetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD 
       *pdwDeviceIdentifier = dwDeviceId;
 
     return dwDeviceIndex;
-  }
+  } else if (hwAccel == HWAccel_D3D11) {
+      DWORD dwDeviceIndex = m_settings.HWAccelDeviceD3D11;
+      DWORD dwDeviceId = m_settings.HWAccelDeviceD3D11Desc;
+
+      // verify the values and re-match them to adapters appropriately
+      if (dwDeviceIndex != LAVHWACCEL_DEVICE_DEFAULT && dwDeviceId != 0) {
+        hr = VerifyD3D11Device(dwDeviceIndex, dwDeviceId);
+        if (FAILED(hr)) {
+          dwDeviceIndex = LAVHWACCEL_DEVICE_DEFAULT;
+          dwDeviceId = 0;
+        }
+      }
+
+      if (pdwDeviceIdentifier)
+        *pdwDeviceIdentifier = dwDeviceId;
+
+      return dwDeviceIndex;
+    }
 
   if (pdwDeviceIdentifier)
     *pdwDeviceIdentifier = 0;
@@ -2443,6 +2472,10 @@ STDMETHODIMP CLAVVideo::SetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD dwIndex,
     if (hwAccel == HWAccel_DXVA2CopyBack) {
       m_settings.HWAccelDeviceDXVA2 = dwIndex;
       m_settings.HWAccelDeviceDXVA2Desc = dwDeviceIdentifier;
+    }
+    else if (hwAccel == HWAccel_D3D11) {
+      m_settings.HWAccelDeviceD3D11 = dwIndex;
+      m_settings.HWAccelDeviceD3D11Desc = dwDeviceIdentifier;
     }
     return SaveSettings();
   }

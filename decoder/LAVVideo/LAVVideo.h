@@ -302,6 +302,8 @@ private:
     BOOL bDVDVideo;
     DWORD HWAccelDeviceDXVA2;
     DWORD HWAccelDeviceDXVA2Desc;
+    DWORD HWAccelDeviceD3D11;
+    DWORD HWAccelDeviceD3D11Desc;
     BOOL bH264MVCOverride;
   } m_settings;
 
