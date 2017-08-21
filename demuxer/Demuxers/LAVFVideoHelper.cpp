@@ -184,7 +184,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream* avstream, ULONG *si
   else
     pvi->AvgTimePerFrame = r_avg;
 
-  if (container == "matroska" && r_avg && tb_avg && (avstream->codecpar->codec_id == AV_CODEC_ID_H264 || avstream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO)) {
+  if ((container == "matroska" || container == "mp4") && r_avg && tb_avg && (avstream->codecpar->codec_id == AV_CODEC_ID_H264 || avstream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO)) {
     float factor = (float)r_avg / (float)tb_avg;
     if ((factor > 0.4 && factor < 0.6) || (factor > 1.9 && factor < 2.1)) {
       pvi->AvgTimePerFrame = tb_avg;
