@@ -526,14 +526,16 @@ HRESULT CLAVVideo::DecideBufferSize(IMemAllocator* pAllocator, ALLOCATOR_PROPERT
   CMediaType &mtOut = m_pOutput->CurrentMediaType();
   videoFormatTypeHandler(mtOut, &pBIH);
 
-  // try to honor the requested number of downstream buffers, but cap at 127, because the amount needs to fit into 7-bit for DXVA decoding
+  // try to honor the requested number of downstream buffers, but cap at the decoders maximum
+  long decoderBuffersMax = LONG_MAX;
+  long decoderBuffs = m_Decoder.GetBufferCount(&decoderBuffersMax);
   long downstreamBuffers = pProperties->cBuffers;
-  pProperties->cBuffers = min(max(pProperties->cBuffers, 2) + m_Decoder.GetBufferCount(), 127);
+  pProperties->cBuffers = min(max(pProperties->cBuffers, 2) + decoderBuffs, decoderBuffersMax);
   pProperties->cbBuffer = pBIH ? pBIH->biSizeImage : 3110400;
   pProperties->cbAlign  = 1;
   pProperties->cbPrefix = 0;
 
-  DbgLog((LOG_TRACE, 10, L" -> Downstream wants %d buffers, decoder wants %d, for a total of: %d", downstreamBuffers, m_Decoder.GetBufferCount(), pProperties->cBuffers));
+  DbgLog((LOG_TRACE, 10, L" -> Downstream wants %d buffers, decoder wants %d, for a total of: %d", downstreamBuffers, decoderBuffs, pProperties->cBuffers));
 
   HRESULT hr;
   ALLOCATOR_PROPERTIES Actual;

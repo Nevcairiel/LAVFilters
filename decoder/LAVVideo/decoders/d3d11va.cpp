@@ -508,7 +508,7 @@ STDMETHODIMP CDecD3D11::FillHWContext(AVD3D11VAContext *ctx)
   return S_OK;
 }
 
-STDMETHODIMP_(long) CDecD3D11::GetBufferCount()
+STDMETHODIMP_(long) CDecD3D11::GetBufferCount(long *pMaxBuffers)
 {
   long buffers = 0;
 
@@ -533,6 +533,13 @@ STDMETHODIMP_(long) CDecD3D11::GetBufferCount()
   if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) {
     buffers += 4;
   }
+
+  if (pMaxBuffers)
+  {
+    // cap at 127, because it needs to fit into the 7-bit DXVA structs
+    *pMaxBuffers = 127;
+  }
+
   return buffers;
 }
 

@@ -969,7 +969,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   return S_OK;
 }
 
-STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
+STDMETHODIMP_(long) CDecDXVA2::GetBufferCount(long *pMaxBuffers)
 {
   long buffers = 0;
 
@@ -993,6 +993,13 @@ STDMETHODIMP_(long) CDecDXVA2::GetBufferCount()
   if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) {
     buffers += 4;
   }
+
+  if (pMaxBuffers)
+  {
+    // cap at 127, because it needs to fit into the 7-bit DXVA structs
+    *pMaxBuffers = 127;
+  }
+
   return buffers;
 }
 

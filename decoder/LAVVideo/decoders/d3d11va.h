@@ -51,7 +51,7 @@ public:
 
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
-  STDMETHODIMP_(long) GetBufferCount();
+  STDMETHODIMP_(long) GetBufferCount(long *pMaxBuffers = nullptr);
   STDMETHODIMP_(const WCHAR*) GetDecoderName() { return m_bReadBackFallback ? (m_bDirect ? L"d3d11 cb direct" : L"d3d11 cb") : L"d3d11 native"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
   STDMETHODIMP SetDirectOutput(BOOL bDirect) { m_bDirect = bDirect; return S_OK; }
