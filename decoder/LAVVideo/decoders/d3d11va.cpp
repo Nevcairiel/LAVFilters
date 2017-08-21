@@ -331,17 +331,19 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
   av_buffer_unref(&m_pDevCtx);
 
   // device id
-  UINT nDevice = 0;
+  UINT nDevice = m_pSettings->GetHWAccelDeviceIndex(HWAccel_D3D11, nullptr);
 
-  // use the device the renderer recommends
-  if (pD3D11DecoderConfiguration)
+  // in automatic mode use the device the renderer gives us
+  if (nDevice == LAVHWACCEL_DEVICE_DEFAULT && pD3D11DecoderConfiguration)
   {
     nDevice = pD3D11DecoderConfiguration->GetD3D11AdapterIndex();
   }
   else
   {
+    // if a device is specified manually, fallback to copy-back and use the selected device
+    SafeRelease(&pD3D11DecoderConfiguration);
+
     // use the configured device
-    nDevice = m_pSettings->GetHWAccelDeviceIndex(HWAccel_D3D11, nullptr);
     if (nDevice == LAVHWACCEL_DEVICE_DEFAULT)
       nDevice = 0;
   }
@@ -368,6 +370,7 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
   }
 
   // check if the connection supports native mode
+  if (pD3D11DecoderConfiguration)
   {
     CMediaType mt = m_pCallback->GetOutputMediaType();
     if ((m_SurfaceFormat == DXGI_FORMAT_NV12 && mt.subtype != MEDIASUBTYPE_NV12)
@@ -375,7 +378,6 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
       || (m_SurfaceFormat == DXGI_FORMAT_P016 && mt.subtype != MEDIASUBTYPE_P016)) {
       DbgLog((LOG_ERROR, 10, L"-> Connection is not the appropriate pixel format for D3D11 Native"));
 
-      m_bReadBackFallback = false;
       SafeRelease(&pD3D11DecoderConfiguration);
     }
   }

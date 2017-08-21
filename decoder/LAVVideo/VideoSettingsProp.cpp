@@ -386,11 +386,11 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
   const WCHAR hwHintNoDeviceChoice[] = L"The selected Hardware Decoder does not support using a specific device.";
   const WCHAR hwHintDXVA2Display[] = L"DXVA2 requires an active display for GPUs to be available.\nNote that GPUs are listed once for each connected display.";
   const WCHAR hwHintD3D11NotSupported[] = L"D3D11 requires Windows 8 or newer, and is not supported on this OS.";
-  const WCHAR hwHintD3D11DeviceHint[] = L"The selected D3D11 device is only used in copy-back mode. In native mode the renderer determines the device used.";
+  const WCHAR hwHintD3D11DeviceHint[] = L"Selecting a specific device for D3D11 disables Native mode and forces Copy-Back, use Automatic for the best performance.";
 
 
   SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_RESETCONTENT, 0, 0);
-  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_ADDSTRING, 0, (LPARAM)L"Automatic");
+  SendDlgItemMessage(m_Dlg, IDC_HWACCEL_DEVICE_SELECT, CB_ADDSTRING, 0, (hwAccel == HWAccel_D3D11) ? (LPARAM)L"Automatic (Native)" : (LPARAM)L"Automatic");
 
   DWORD dwnDevices = m_pVideoSettings->GetHWAccelNumDevices(hwAccel);
   for (DWORD dwDevice = 0; dwDevice < dwnDevices; dwDevice++)
