@@ -1460,6 +1460,7 @@ STDMETHODIMP CLAVVideo::AllocateFrame(LAVFrame **ppFrame)
   (*ppFrame)->bpp = 8;
   (*ppFrame)->rtStart = AV_NOPTS_VALUE;
   (*ppFrame)->rtStop  = AV_NOPTS_VALUE;
+  (*ppFrame)->aspect_ratio = { 0, 1 };
 
   (*ppFrame)->frame_type = '?';
 
