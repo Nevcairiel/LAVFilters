@@ -1018,6 +1018,12 @@ HRESULT CLAVVideo::StartStreaming()
 
 STDMETHODIMP CLAVVideo::Stop()
 {
+  // Get the receiver lock and prevent frame delivery
+  {
+    CAutoLock lck3(&m_csReceive);
+    m_bFlushing = TRUE;
+  }
+
   CAutoLock lck1(&m_csFilter);
   if (m_State == State_Stopped) {
     return NOERROR;
@@ -1033,9 +1039,6 @@ STDMETHODIMP CLAVVideo::Stop()
 
   ASSERT(m_pInput);
   ASSERT(m_pOutput);
-
-  // block futher delivery to prevent lock issues
-  m_bFlushing = TRUE;
 
   // decommit the input pin before locking or we can deadlock
   m_pInput->Inactive();
@@ -1055,6 +1058,7 @@ STDMETHODIMP CLAVVideo::Stop()
     m_bEOSDelivered = FALSE;
   }
 
+  // unblock delivery again, if we continue receiving frames
   m_bFlushing = FALSE;
   return hr;
 }
