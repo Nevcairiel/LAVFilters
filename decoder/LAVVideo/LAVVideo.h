@@ -143,6 +143,8 @@ public:
   STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName);
 
   // CTransformFilter
+  STDMETHODIMP Stop();
+
   HRESULT CheckInputType(const CMediaType* mtIn);
   HRESULT CheckTransform(const CMediaType* mtIn, const CMediaType* mtOut);
   HRESULT DecideBufferSize(IMemAllocator * pAllocator, ALLOCATOR_PROPERTIES *pprop);
