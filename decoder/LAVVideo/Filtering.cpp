@@ -81,6 +81,11 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       av_opt_set(m_pFilterGraph, "thread_type", "slice", AV_OPT_SEARCH_CHILDREN);
       av_opt_set_int(m_pFilterGraph, "threads", FFMAX(1, av_cpu_count() / 2), AV_OPT_SEARCH_CHILDREN);
 
+      // 0/0 is not a valid value for avfilter, make sure it doesn't happen
+      AVRational aspect_ratio = pFrame->aspect_ratio;
+      if (aspect_ratio.num == 0 || aspect_ratio.den == 0)
+        aspect_ratio = { 0, 1 };
+
       _snprintf_s(args, sizeof(args), "video_size=%dx%d:pix_fmt=%s:time_base=1/10000000:pixel_aspect=%d/%d", pFrame->width, pFrame->height, av_get_pix_fmt_name(ff_pixfmt), pFrame->aspect_ratio.num, pFrame->aspect_ratio.den);
       ret = avfilter_graph_create_filter(&m_pFilterBufferSrc, buffersrc, "in", args, nullptr, m_pFilterGraph);
       if (ret < 0) {
