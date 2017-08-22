@@ -110,7 +110,6 @@
     <ClCompile Include="decoders\msdk_mvc.cpp" />
     <ClCompile Include="decoders\pixfmt.cpp" />
     <ClCompile Include="decoders\quicksync.cpp" />
-    <ClCompile Include="decoders\wmv9.cpp" />
     <ClCompile Include="decoders\wmv9mft.cpp" />
     <ClCompile Include="DecodeManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -160,7 +159,6 @@
     <ClInclude Include="decoders\ILAVDecoder.h" />
     <ClInclude Include="decoders\msdk_mvc.h" />
     <ClInclude Include="decoders\quicksync.h" />
-    <ClInclude Include="decoders\wmv9.h" />
     <ClInclude Include="decoders\wmv9mft.h" />
     <ClInclude Include="DecodeManager.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />

@@ -111,10 +111,7 @@ softwaredec:
     DbgLog((LOG_TRACE, 10, L"-> No HW Codec, using Software"));
     m_bHWDecoder = FALSE;
     if (m_pLAVVideo->GetUseMSWMV9Decoder() && (codec == AV_CODEC_ID_VC1 || codec == AV_CODEC_ID_WMV3) && !m_bWMV9Failed) {
-      if (IsWindows7OrNewer())
-        m_pDecoder = CreateDecoderWMV9MFT();
-      else
-        m_pDecoder = CreateDecoderWMV9();
+      m_pDecoder = CreateDecoderWMV9MFT();
       bWMV9 = TRUE;
     } else if (codec == AV_CODEC_ID_H264_MVC) {
       m_pDecoder = CreateDecoderMSDKMVC();
@@ -144,7 +141,7 @@ done:
       goto softwaredec;
     }
     if (bWMV9) {
-      DbgLog((LOG_TRACE, 10, L"-> WMV9 DMO decoder failed, trying avcodec instead..."));
+      DbgLog((LOG_TRACE, 10, L"-> WMV9 MFT decoder failed, trying avcodec instead..."));
       m_bWMV9Failed = TRUE;
       bWMV9 = FALSE;
       goto softwaredec;

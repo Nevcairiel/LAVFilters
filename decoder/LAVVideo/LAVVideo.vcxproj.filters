@@ -126,9 +126,6 @@
     <ClCompile Include="decoders\dxva2\DXVA2SurfaceAllocator.cpp">
       <Filter>Source Files\decoders\dxva2</Filter>
     </ClCompile>
-    <ClCompile Include="decoders\wmv9.cpp">
-      <Filter>Source Files\decoders</Filter>
-    </ClCompile>
     <ClCompile Include="subtitles\LAVSubtitleProvider.cpp">
       <Filter>Source Files\subtitles</Filter>
     </ClCompile>
@@ -241,9 +238,6 @@
     </ClInclude>
     <ClInclude Include="decoders\dxva2\DXVA2SurfaceAllocator.h">
       <Filter>Header Files\decoders\dxva2</Filter>
-    </ClInclude>
-    <ClInclude Include="decoders\wmv9.h">
-      <Filter>Header Files\decoders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\includes\SubRenderIntf.h">
       <Filter>Header Files\subtitles</Filter>
