@@ -44,6 +44,7 @@ public:
   // Allocator/memory management
   STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc);
   STDMETHODIMP PostConnect(IPin *pPin);
+  STDMETHODIMP BreakConnect();
 
   // HWAccel Query
   STDMETHODIMP_(BOOL) IsHWDecoderActive() { return m_bHWDecoder; }

@@ -237,3 +237,13 @@ STDMETHODIMP CDecodeManager::PostConnect(IPin *pPin)
   }
   return hr;
 }
+
+STDMETHODIMP CDecodeManager::BreakConnect()
+{
+  CAutoLock decoderLock(this);
+
+  if (!m_pDecoder)
+    return E_UNEXPECTED;
+
+  return m_pDecoder->BreakConnect();
+}

@@ -907,6 +907,10 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
     if (m_pFilterGraph)
       avfilter_graph_free(&m_pFilterGraph);
   }
+  else if (dir == PINDIR_OUTPUT)
+  {
+    m_Decoder.BreakConnect();
+  }
   return __super::BreakConnect(dir);
 }
 

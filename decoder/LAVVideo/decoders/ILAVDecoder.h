@@ -386,6 +386,11 @@ interface ILAVDecoder
   STDMETHOD(PostConnect)(IPin *pPin) PURE;
 
   /**
+   * Notify the decoder the output connection was broken
+   */
+  STDMETHOD(BreakConnect)() PURE;
+
+  /**
    * Get the number of sample buffers optimal for this decoder
    */
   STDMETHOD_(long, GetBufferCount)(long *pMaxBuffers = nullptr) PURE;

@@ -426,6 +426,21 @@ fail:
   return E_FAIL;
 }
 
+STDMETHODIMP CDecD3D11::BreakConnect()
+{
+  if (m_bReadBackFallback)
+    return S_FALSE;
+
+  // release any resources held by the core
+  m_pCallback->ReleaseAllDXVAResources();
+
+  // flush all buffers out of the decoder to ensure the allocator can be properly de-allocated
+  if (m_pAVCtx && avcodec_is_open(m_pAVCtx))
+    avcodec_flush_buffers(m_pAVCtx);
+
+  return S_OK;
+}
+
 STDMETHODIMP CDecD3D11::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 {
   HRESULT hr = S_OK;
