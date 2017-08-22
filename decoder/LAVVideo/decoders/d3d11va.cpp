@@ -265,8 +265,11 @@ enum_adapter:
     }
   }
 
+  // Create a device with video support, and BGRA support for Direct2D interoperability (drawing UI, etc)
+  UINT nCreationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
   D3D_FEATURE_LEVEL d3dFeatureLevel;
-  hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT, s_D3D11Levels, countof(s_D3D11Levels), D3D11_SDK_VERSION, &pD3D11Device, &d3dFeatureLevel, nullptr);
+  hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, nCreationFlags, s_D3D11Levels, countof(s_D3D11Levels), D3D11_SDK_VERSION, &pD3D11Device, &d3dFeatureLevel, nullptr);
   if (FAILED(hr))
   {
     if (nDeviceIndex != 0)
