@@ -902,10 +902,10 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
 {
   DbgLog((LOG_TRACE, 10, L"::BreakConnect"));
   if (dir == PINDIR_INPUT) {
-    m_Decoder.Close();
-
     if (m_pFilterGraph)
       avfilter_graph_free(&m_pFilterGraph);
+
+    m_Decoder.Close();
   }
   else if (dir == PINDIR_OUTPUT)
   {
