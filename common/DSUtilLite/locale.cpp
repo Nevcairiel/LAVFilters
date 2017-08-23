@@ -612,9 +612,9 @@ std::string ProbeForISO6392(LPCSTR lang)
   } else if (strlen(lang) > 3) {
     isoLang = LanguageToISO6392(lang);
     if (isoLang.empty()) {
-      std::tr1::regex ogmRegex("\\[([[:alpha:]]{3})\\]");
-      std::tr1::cmatch res;
-      bool found = std::tr1::regex_search(lang, res, ogmRegex);
+      std::regex ogmRegex("\\[([[:alpha:]]{3})\\]");
+      std::cmatch res;
+      bool found = std::regex_search(lang, res, ogmRegex);
       if (found && !res[1].str().empty()) {
         isoLang = ISO6392Check(res[1].str().c_str());
       }
