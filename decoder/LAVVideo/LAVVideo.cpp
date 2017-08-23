@@ -1024,39 +1024,8 @@ STDMETHODIMP CLAVVideo::Stop()
     m_bFlushing = TRUE;
   }
 
-  CAutoLock lck1(&m_csFilter);
-  if (m_State == State_Stopped) {
-    return NOERROR;
-  }
-
-  // Succeed the Stop if we are not completely connected
-  ASSERT(m_pInput == NULL || m_pOutput != NULL);
-  if (m_pInput == NULL || m_pInput->IsConnected() == FALSE || m_pOutput->IsConnected() == FALSE) {
-    m_State = State_Stopped;
-    m_bEOSDelivered = FALSE;
-    return NOERROR;
-  }
-
-  ASSERT(m_pInput);
-  ASSERT(m_pOutput);
-
-  // decommit the input pin before locking or we can deadlock
-  m_pInput->Inactive();
-
-  // synchronize with Receive calls
-
-  CAutoLock lck2(&m_csReceive);
-  m_pOutput->Inactive();
-
-  // allow a class derived from CTransformFilter
-  // to know about starting and stopping streaming
-
-  HRESULT hr = StopStreaming();
-  if (SUCCEEDED(hr)) {
-    // complete the state transition
-    m_State = State_Stopped;
-    m_bEOSDelivered = FALSE;
-  }
+  // actually perform the stop
+  HRESULT hr = __super::Stop();
 
   // unblock delivery again, if we continue receiving frames
   m_bFlushing = FALSE;
