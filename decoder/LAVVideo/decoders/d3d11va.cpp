@@ -404,6 +404,26 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
     {
       goto fail;
     }
+
+    // test creating a texture
+    D3D11_TEXTURE2D_DESC texDesc = { 0 };
+    texDesc.Width = m_pAVCtx->coded_width;
+    texDesc.Height = m_pAVCtx->coded_height;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 10;
+    texDesc.Format = m_SurfaceFormat;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_DECODER | D3D11_BIND_SHADER_RESOURCE;
+    texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+
+    ID3D11Texture2D *pTexture2D = nullptr;
+    hr = pD3D11Device->CreateTexture2D(&texDesc, nullptr, &pTexture2D);
+    if (FAILED(hr))
+    {
+      goto fail;
+    }
+    SafeRelease(&pTexture2D);
   }
 
   // Notice the connected pin that we're sending D3D11 textures
