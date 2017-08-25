@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?> 
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)'=='Debug' Or '$(Configuration)'=='DebugRelease'">
     <OutDir>$(SolutionDir)bin_$(PlatformName)d\lib\</OutDir>
@@ -11,7 +11,8 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)common\includes;$(SolutionDir)common\baseclasses;$(SolutionDir)ffmpeg;$(SolutionDir)libbluray\src;$(SolutionDir)common\DSUtilLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/Zc:inline /Zc:rvalueCast /Zc:throwingNew %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:inline,referenceBinding,rvalueCast,throwingNew %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(PlatformToolsetVersion)' != '140'">/Zc:ternary %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
