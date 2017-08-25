@@ -284,7 +284,7 @@ void CLAVAudio::ActivateDTSHDMuxing()
   m_bDTSHD = TRUE;
 
   // Check if downstream actually accepts it..
-  CMediaType &mt = CreateBitstreamMediaType(m_nCodecId, m_bsParser.m_dwSampleRate);
+  const CMediaType &mt = CreateBitstreamMediaType(m_nCodecId, m_bsParser.m_dwSampleRate);
   HRESULT hr = m_pOutput->GetConnected()->QueryAccept(&mt);
   if (hr != S_OK) {
     DbgLog((LOG_TRACE, 20, L"-> But downstream doesn't want DTS-HD, sticking to DTS core"));
