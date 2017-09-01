@@ -1025,7 +1025,7 @@ HRESULT CDecD3D11::HandleDXVA2Frame(LAVFrame *pFrame)
     if (m_bReadBackFallback) {
       FlushDisplayQueue(TRUE);
     }
-    DeliverD3D11Frame(pFrame);
+    Deliver(pFrame);
     return S_OK;
   }
 
