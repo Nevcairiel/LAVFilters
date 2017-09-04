@@ -723,6 +723,10 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
               avstream->codecpar->width = 1920;
               avstream->codecpar->height = 1080;
               break;
+            case BLURAY_VIDEO_FORMAT_2160P:
+              avstream->codecpar->width = 3840;
+              avstream->codecpar->height = 2160;
+              break;
             }
           }
 
