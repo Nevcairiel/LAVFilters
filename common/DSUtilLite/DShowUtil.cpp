@@ -108,7 +108,7 @@ void DbgCloseLogFile()
 }
 #endif
 
-void split(std::string& text, std::string& separators, std::list<std::string>& words)
+void split(const std::string& text, const std::string& separators, std::list<std::string>& words)
 {
     size_t n = text.length();
     size_t start, stop;
