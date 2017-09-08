@@ -132,22 +132,34 @@ CDecMSDKMVC::~CDecMSDKMVC()
 
 STDMETHODIMP CDecMSDKMVC::Init()
 {
-  mfxIMPL impl = MFX_IMPL_SOFTWARE;
+  const mfxIMPL impls[] = { MFX_IMPL_AUTO_ANY, MFX_IMPL_SOFTWARE };
   mfxVersion version = { 8, 1 };
 
-  mfxStatus sts = MFXInit(impl, &version, &m_mfxSession);
-  if (sts != MFX_ERR_NONE) {
-    DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Init(): MSDK not available"));
-    return E_NOINTERFACE;
+  for (int i = 0; i < countof(impls); i++)
+  {
+    mfxStatus sts = MFXInit(impls[i], &version, &m_mfxSession);
+    if (sts != MFX_ERR_NONE) {
+      DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Init(): MSDK not available"));
+      return E_NOINTERFACE;
+    }
+
+    // query actual API version
+    MFXQueryVersion(m_mfxSession, &m_mfxVersion);
+
+    mfxIMPL impl = 0;
+    MFXQueryIMPL(m_mfxSession, &impl);
+    DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Init(): MSDK Initialized, version %d.%d, impl 0x%04x", m_mfxVersion.Major, m_mfxVersion.Minor, impl));
+
+    if ((impl & MFX_IMPL_VIA_MASK) == MFX_IMPL_VIA_D3D11 && !IsWindows8OrNewer())
+    {
+      DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Init(): Skipping D3D11 acceleration on pre-Windows 8 system"));
+      MFXClose(m_mfxSession);
+      m_mfxSession = nullptr;
+      continue;
+    }
+
+    break;
   }
-
-  // query actual API version
-  MFXQueryVersion(m_mfxSession, &m_mfxVersion);
-
-#ifdef DEBUG
-  MFXQueryIMPL(m_mfxSession, &impl);
-  DbgLog((LOG_TRACE, 10, L"CDevMSDKMVC::Init(): MSDK Initialized, version %d.%d, impl 0x%04x", m_mfxVersion.Major, m_mfxVersion.Minor, impl));
-#endif
 
   return S_OK;
 }

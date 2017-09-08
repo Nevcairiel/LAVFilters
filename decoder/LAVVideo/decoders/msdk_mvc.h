@@ -35,6 +35,8 @@
 // 1s timestamp offset to avoid negative timestamps
 #define TIMESTAMP_OFFSET 10000000i64
 
+#define MFX_IMPL_VIA_MASK 0x0F00
+
 typedef struct _MVCBuffer {
   mfxFrameSurface1 surface = { 0 };
   bool queued = false;
