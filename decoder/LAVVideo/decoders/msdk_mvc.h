@@ -32,8 +32,8 @@
 #define ASYNC_DEPTH 8
 #define ASYNC_QUEUE_SIZE (ASYNC_DEPTH + 2)
 
-// 1s timestamp offset to avoid negative timestamps
-#define TIMESTAMP_OFFSET 10000000i64
+// 10s timestamp offset to avoid negative timestamps
+#define TIMESTAMP_OFFSET 100000000i64
 
 #define MFX_IMPL_VIA_MASK 0x0F00
 
