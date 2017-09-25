@@ -1019,8 +1019,6 @@ STDMETHODIMP CDecD3D11::AllocateFramesContext(int width, int height, AVPixelForm
 
 HRESULT CDecD3D11::HandleDXVA2Frame(LAVFrame *pFrame)
 {
-  ASSERT(pFrame->format == LAVPixFmt_D3D11);
-
   if (pFrame->flags & LAV_FRAME_FLAG_FLUSH) {
     if (m_bReadBackFallback) {
       FlushDisplayQueue(TRUE);
@@ -1028,6 +1026,8 @@ HRESULT CDecD3D11::HandleDXVA2Frame(LAVFrame *pFrame)
     Deliver(pFrame);
     return S_OK;
   }
+
+  ASSERT(pFrame->format == LAVPixFmt_D3D11);
 
   if (m_bReadBackFallback == false || m_DisplayDelay == 0)
   {
