@@ -70,6 +70,13 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
       return E_FAIL;
   }
 
+  // use the variant bitrate for the stream if only one stream is available (applies to some radio streams)
+  if (avstream->codecpar->bit_rate == 0 && avctx->nb_streams == 1) {
+    AVDictionaryEntry *dict = av_dict_get(avstream->metadata, "variant_bitrate", nullptr, 0);
+    if (dict && dict->value)
+      avstream->codecpar->bit_rate = atoi(dict->value);
+  }
+
   CMediaType mtype = g_AudioHelper.initAudioType(avstream->codecpar, avstream->codecpar->codec_tag, m_containerFormat);
 
   if(mtype.formattype == FORMAT_WaveFormatEx) {
