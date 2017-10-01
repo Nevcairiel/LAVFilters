@@ -1,6 +1,24 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.71.0 - 2017/xx/xx
+General
+- LAV Filters now requires Windows Vista or newer, Windows XP is no longer supported
+
+LAV Splitter
+- NEW: Preliminary support for UHD Blu-ray parsing
+
+LAV Video
+- NEW: D3D11 hardware accelerated decoding (native mode with madVR, Copy-Back otherwise)
+- NEW: Support for hardware accelerated H.264 MVC 3D decoding on Intel GPUs
+- Fixed: HDR metadata was not properly communicated to madVR in DXVA2-Native mode
+- Fixed: Anamorphic WMV9/VC-1 videos were not being played back with the correct aspect ratio in all cases
+- Fixed: Changing certain settings while playback was paused could result in a deadlock
+- Fixed: Playing severly corrupted HEVC streams with hardware decoding could result in playback failing entirely, instead of skipping over the corruption
+
+LAV Audio
+- NEW: Basic support for AAC 960 streams (common in DVB radio streams)
+
 0.70.2 - 2017/07/06
 LAV Video
 - Fixed: DXVA2 decoding could fail in 0.70 after a dynamic media type change
