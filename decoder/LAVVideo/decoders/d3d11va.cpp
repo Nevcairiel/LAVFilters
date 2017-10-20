@@ -574,8 +574,8 @@ STDMETHODIMP_(long) CDecD3D11::GetBufferCount(long *pMaxBuffers)
     // cap at 127, because it needs to fit into the 7-bit DXVA structs
     *pMaxBuffers = 127;
 
-    // VC-1 decoding has stricter requirements (decoding flickers otherwise)
-    if (m_nCodecId == AV_CODEC_ID_VC1)
+    // VC-1 and VP9 decoding has stricter requirements (decoding flickers otherwise)
+    if (m_nCodecId == AV_CODEC_ID_VC1 || m_nCodecId == AV_CODEC_ID_VP9)
       *pMaxBuffers = 32;
   }
 
