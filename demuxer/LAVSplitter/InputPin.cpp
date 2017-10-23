@@ -162,7 +162,7 @@ int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
       DbgLog((LOG_TRACE, 10, L"-> Read %d bytes", read));
     }
     pin->m_llPos += read;
-    return read;
+    return read > 0 ? read : AVERROR_EOF;
   }
   pin->m_llPos += buf_size;
   return buf_size;

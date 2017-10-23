@@ -30,7 +30,8 @@ extern "C" {
 int CBDDemuxer::BDByteStreamRead(void *opaque, uint8_t *buf, int buf_size)
 {
   CBDDemuxer *demux = (CBDDemuxer *)opaque;
-  return bd_read(demux->m_pBD, buf, buf_size);
+  int ret = bd_read(demux->m_pBD, buf, buf_size);
+  return (ret != 0) ? ret : AVERROR_EOF;
 }
 
 int64_t CBDDemuxer::BDByteStreamSeek(void *opaque,  int64_t offset, int whence)
