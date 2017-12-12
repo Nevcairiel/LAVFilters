@@ -813,14 +813,11 @@ HRESULT CLAVVideo::EndFlush()
   DbgLog((LOG_TRACE, 1, L"::EndFlush"));
   CAutoLock cAutoLock(&m_csReceive);
 
-  ReleaseLastSequenceFrame();
-
-  if (m_dwDecodeFlags & LAV_VIDEO_DEC_FLAG_DVD) {
-    PerformFlush();
-  }
+  PerformFlush();
 
   HRESULT hr = __super::EndFlush();
   m_bFlushing = FALSE;
+  m_bFlushed = TRUE;
   return hr;
 }
 
@@ -864,7 +861,14 @@ HRESULT CLAVVideo::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, doubl
 {
   DbgLog((LOG_TRACE, 1, L"::NewSegment - %I64d / %I64d", tStart, tStop));
 
-  PerformFlush();
+  // If this call is not directly following a flush anyway..
+  if (m_bFlushing == FALSE && m_bFlushed == FALSE) {
+    // Ensure all previous data is flushed out of the decoder
+    m_Decoder.EndOfStream();
+
+    // and reset the decoder
+    PerformFlush();
+  }
 
   return __super::NewSegment(tStart, tStop, dRate);
 }
@@ -1443,6 +1447,7 @@ HRESULT CLAVVideo::Receive(IMediaSample *pIn)
   }
 
   m_hrDeliver = S_OK;
+  m_bFlushed = FALSE;
 
   // Skip over empty packets
   if (pIn->GetActualDataLength() == 0) {
