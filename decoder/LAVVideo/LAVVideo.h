@@ -247,7 +247,6 @@ private:
   BOOL                 m_bForceInputAR  = FALSE;
   BOOL                 m_bSendMediaType = FALSE;
   BOOL                 m_bFlushing      = FALSE;
-  BOOL                 m_bFlushed       = FALSE;
   BOOL                 m_bForceFormatNegotiation = FALSE;
 
   HRESULT              m_hrDeliver      = S_OK;
