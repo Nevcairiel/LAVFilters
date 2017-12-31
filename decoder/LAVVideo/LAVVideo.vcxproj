@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\includes\IMediaSideData.h" />
+    <ClInclude Include="..\..\common\includes\IPinSegmentEx.h" />
     <ClInclude Include="..\..\common\includes\SubRenderIntf.h" />
     <ClInclude Include="decoders\avcodec.h" />
     <ClInclude Include="decoders\cuvid.h" />

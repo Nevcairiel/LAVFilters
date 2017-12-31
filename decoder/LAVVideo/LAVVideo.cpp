@@ -801,6 +801,30 @@ HRESULT CLAVVideo::EndOfStream()
   return __super::EndOfStream();
 }
 
+HRESULT CLAVVideo::EndOfSegment()
+{
+  DbgLog((LOG_TRACE, 1, L"EndOfSegment, flushing decoder"));
+  CAutoLock cAutoLock(&m_csReceive);
+
+  m_Decoder.EndOfStream();
+  Filter(GetFlushFrame());
+
+  // Forward the EndOfSegment call downstream
+  if (m_pOutput != NULL && m_pOutput->IsConnected())
+  {
+    IPin *pConnected = m_pOutput->GetConnected();
+
+    IPinSegmentEx *pPinSegmentEx = NULL;
+    if (pConnected->QueryInterface(&pPinSegmentEx) == S_OK)
+    {
+      pPinSegmentEx->EndOfSegment();
+    }
+    SafeRelease(&pPinSegmentEx);
+  }
+
+  return S_OK;
+}
+
 HRESULT CLAVVideo::BeginFlush()
 {
   DbgLog((LOG_TRACE, 1, L"::BeginFlush"));

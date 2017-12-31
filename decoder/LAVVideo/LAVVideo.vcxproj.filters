@@ -290,6 +290,9 @@
     <ClInclude Include="decoders\d3d11\D3D11SurfaceAllocator.h">
       <Filter>Header Files\decoders\d3d11</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\includes\IPinSegmentEx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="LAVVideo.rc">

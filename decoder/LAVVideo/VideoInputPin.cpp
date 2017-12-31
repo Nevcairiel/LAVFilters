@@ -27,6 +27,15 @@ CVideoInputPin::CVideoInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, HRESULT* 
 {
 }
 
+STDMETHODIMP CVideoInputPin::NonDelegatingQueryInterface(REFIID riid, void** ppv)
+{
+  CheckPointer(ppv, E_POINTER);
+
+  return
+    QI(IPinSegmentEx)
+    __super::NonDelegatingQueryInterface(riid, ppv);
+}
+
 STDMETHODIMP CVideoInputPin::NotifyAllocator(IMemAllocator * pAllocator, BOOL bReadOnly)
 {
   HRESULT hr = __super::NotifyAllocator(pAllocator, bReadOnly);
@@ -38,6 +47,17 @@ STDMETHODIMP CVideoInputPin::NotifyAllocator(IMemAllocator * pAllocator, BOOL bR
       m_bDynamicAllocator = pDynamicAllocator->IsDynamicAllocator();
     }
     SafeRelease(&pDynamicAllocator);
+  }
+
+  return hr;
+}
+
+STDMETHODIMP CVideoInputPin::EndOfSegment()
+{
+  CAutoLock lck(&m_pLAVVideo->m_csReceive);
+  HRESULT hr = CheckStreaming();
+  if (S_OK == hr) {
+    hr = m_pLAVVideo->EndOfSegment();
   }
 
   return hr;

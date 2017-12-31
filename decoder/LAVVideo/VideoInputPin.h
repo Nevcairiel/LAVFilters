@@ -21,14 +21,22 @@
 
 #include "DeCSS/DeCSSInputPin.h"
 #include "LAVVideo.h"
+#include "IPinSegmentEx.h"
 
-class CVideoInputPin : public CDeCSSTransformInputPin
+class CVideoInputPin : public CDeCSSTransformInputPin, public IPinSegmentEx
 {
 public:
   CVideoInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, HRESULT* phr, LPWSTR pName);
 
+  // CUnknown
+  DECLARE_IUNKNOWN
+  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+
   // IMemInputPin
   STDMETHODIMP NotifyAllocator(IMemAllocator * pAllocator, BOOL bReadOnly);
+
+  // IPinSegmentEx
+  STDMETHODIMP EndOfSegment();
 
   // IKsPropertySet
   STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength);

@@ -168,6 +168,9 @@ public:
 
   STDMETHODIMP JoinFilterGraph(IFilterGraph * pGraph, LPCWSTR pName);
 
+  // IPinSegmentEx
+  HRESULT EndOfSegment();
+
   // ILAVVideoCallback
   STDMETHODIMP AllocateFrame(LAVFrame **ppFrame);
   STDMETHODIMP ReleaseFrame(LAVFrame **ppFrame);
@@ -229,6 +232,7 @@ private:
   HRESULT SetInDVDMenu(bool menu) { m_bInDVDMenu = menu; return S_OK; }
 
 private:
+  friend class CVideoInputPin;
   friend class CVideoOutputPin;
   friend class CDecodeManager;
   friend class CLAVSubtitleProvider;
