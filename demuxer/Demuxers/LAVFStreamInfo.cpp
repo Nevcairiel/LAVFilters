@@ -362,24 +362,62 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
           MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)mvcType.ReallocFormatBuffer(sizeof(MPEG2VIDEOINFO) + avstream->codecpar->extradata_size + mvcStream->codecpar->extradata_size);
 
-          // Append the mvc subset data to the base view extradata
-          memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + avstream->codecpar->extradata_size, mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size);
-          mp2vi->cbSequenceHeader = avstream->codecpar->extradata_size + mvcStream->codecpar->extradata_size;
+          size_t ExtradataSize = 0;
 
+          // clear the extradata storage
+          memset(&mp2vi->dwSequenceHeader[0], 0, avstream->codecpar->extradata_size + mvcStream->codecpar->extradata_size);
+
+          // assemble the extradata in the correct order, first the SPS+SPS Subset, then any PPS
+          CH264Nalu nalParser;
+
+          // main SPS from the base stream
+          nalParser.SetBuffer(avstream->codecpar->extradata, avstream->codecpar->extradata_size, 0);
+          while (nalParser.ReadNext()) {
+            if (nalParser.GetType() == NALU_TYPE_SPS) {
+              memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + ExtradataSize, nalParser.GetNALBuffer(), nalParser.GetLength());
+              ExtradataSize += nalParser.GetLength();
+            }
+          }
+
+          // subset SPS from the extension stream
+          nalParser.SetBuffer(mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size, 0);
+          while (nalParser.ReadNext()) {
+            if (nalParser.GetType() == NALU_TYPE_SPS || nalParser.GetType() == NALU_TYPE_SPS_SUB) {
+              memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + ExtradataSize, nalParser.GetNALBuffer(), nalParser.GetLength());
+              ExtradataSize += nalParser.GetLength();
+            }
+
+            // extract profile info from the subset SPS
+            if (nalParser.GetType() == NALU_TYPE_SPS_SUB) {
+              const BYTE *pData = nalParser.GetDataBuffer();
+              mp2vi->dwProfile = avstream->codecpar->profile = pData[1];
+              mp2vi->dwLevel = avstream->codecpar->level = pData[3];
+            }
+          }
+
+          // PPS from the main stream
+          nalParser.SetBuffer(avstream->codecpar->extradata, avstream->codecpar->extradata_size, 0);
+          while (nalParser.ReadNext()) {
+            if (nalParser.GetType() == NALU_TYPE_PPS) {
+              memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + ExtradataSize, nalParser.GetNALBuffer(), nalParser.GetLength());
+              ExtradataSize += nalParser.GetLength();
+            }
+          }
+
+          // PPS from the extension stream
+          nalParser.SetBuffer(mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size, 0);
+          while (nalParser.ReadNext()) {
+            if (nalParser.GetType() == NALU_TYPE_PPS) {
+              memcpy((BYTE *)&mp2vi->dwSequenceHeader[0] + ExtradataSize, nalParser.GetNALBuffer(), nalParser.GetLength());
+              ExtradataSize += nalParser.GetLength();
+            }
+          }
+
+          // update mediatype
+          mp2vi->cbSequenceHeader = (DWORD)ExtradataSize;
           mvcType.cbFormat = SIZE_MPEG2VIDEOINFO(mp2vi);
           mvcType.subtype = MEDIASUBTYPE_AMVC;
           mp2vi->hdr.bmiHeader.biCompression = mvcType.subtype.Data1;
-
-          CH264Nalu nalParser;
-          nalParser.SetBuffer(mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size, 0);
-          while (nalParser.ReadNext()) {
-            if (nalParser.GetType() == 15) { // Subset SPS
-              const BYTE *pData = nalParser.GetDataBuffer();
-              mp2vi->dwProfile = avstream->codecpar->profile = pData[1];
-              mp2vi->dwLevel   = avstream->codecpar->level   = pData[3];
-              break;
-            }
-          }
 
           mtypes.push_front(mvcType);
         }
