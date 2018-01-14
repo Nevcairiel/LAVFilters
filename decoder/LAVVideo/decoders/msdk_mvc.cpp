@@ -132,7 +132,7 @@ CDecMSDKMVC::~CDecMSDKMVC()
 
 STDMETHODIMP CDecMSDKMVC::Init()
 {
-  const mfxIMPL impls[] = { MFX_IMPL_AUTO_ANY, MFX_IMPL_SOFTWARE };
+  const mfxIMPL impls[] = { /*MFX_IMPL_AUTO_ANY,*/ MFX_IMPL_SOFTWARE };
   mfxVersion version = { 8, 1 };
 
   for (int i = 0; i < countof(impls); i++)

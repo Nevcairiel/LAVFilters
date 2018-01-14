@@ -10,7 +10,6 @@ LAV Splitter
 
 LAV Video
 - NEW: D3D11 hardware accelerated decoding (native mode with madVR, Copy-Back otherwise)
-- NEW: Support for hardware accelerated H.264 MVC 3D decoding on Intel GPUs
 - Fixed: HDR metadata was not properly communicated to madVR in DXVA2-Native mode
 - Fixed: Anamorphic WMV9/VC-1 videos were not being played back with the correct aspect ratio in all cases
 - Fixed: Changing certain settings while playback was paused could result in a deadlock
