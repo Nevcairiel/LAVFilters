@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.71.0 - 2017/xx/xx
+0.71.0 - 2018/02/15
 General
 - LAV Filters now requires Windows Vista or newer, Windows XP is no longer supported
 
