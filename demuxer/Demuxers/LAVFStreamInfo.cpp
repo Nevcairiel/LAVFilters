@@ -515,6 +515,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
   return S_OK;
 }
 
+enum AVCodecID ff_get_pcm_codec_id(int bps, int flt, int be, int sflags);
 #include "libavformat/isom.h"
 
 static std::string CreateVOBSubHeaderFromMP4(int vidW, int vidH, MOVStreamContext *context, const char *buffer, int buf_size)
