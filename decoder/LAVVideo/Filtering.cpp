@@ -71,8 +71,8 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
       }
       pix_fmts[2] = AV_PIX_FMT_NONE;
 
-      AVFilter *buffersrc  = avfilter_get_by_name("buffer");
-      AVFilter *buffersink = avfilter_get_by_name("buffersink");
+      const AVFilter *buffersrc  = avfilter_get_by_name("buffer");
+      const AVFilter *buffersink = avfilter_get_by_name("buffersink");
       AVFilterInOut *outputs = avfilter_inout_alloc();
       AVFilterInOut *inputs  = avfilter_inout_alloc();
 
