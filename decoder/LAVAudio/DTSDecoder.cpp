@@ -142,7 +142,7 @@ HRESULT CLAVAudio::InitDTSDecoder()
   context->dtsContext = context->pDtsOpen();
   if(!context->dtsContext) goto fail;
 
-  context->dtsPCMBuffer = (BYTE *)av_mallocz(LAV_AUDIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+  context->dtsPCMBuffer = (BYTE *)av_mallocz(LAV_AUDIO_BUFFER_SIZE + AV_INPUT_BUFFER_PADDING_SIZE);
 
   m_DTSBitDepth = 24;
   m_DTSDecodeChannels = 8;

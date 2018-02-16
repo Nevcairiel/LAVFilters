@@ -196,7 +196,7 @@ STDMETHODIMP CLAVSubtitleProvider::InitDecoder(const CMediaType *pmt, AVCodecID 
 
   if (extralen > 0) {
     // Just copy extradata
-    BYTE *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+    BYTE *extra = (uint8_t *)av_mallocz(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
     getExtraData((const BYTE *)pmt->Format(), pmt->FormatType(), pmt->FormatLength(), extra, nullptr);
 
     m_pAVCtx->extradata = extra;

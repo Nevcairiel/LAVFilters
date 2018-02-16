@@ -202,7 +202,7 @@ HRESULT CLAVInputPin::GetAVIOContext(AVIOContext** ppContext)
   CheckPointer(ppContext, E_POINTER);
 
   if (!m_pAVIOContext) {
-    uint8_t *buffer = (uint8_t *)av_mallocz(READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    uint8_t *buffer = (uint8_t *)av_mallocz(READ_BUFFER_SIZE + AV_INPUT_BUFFER_PADDING_SIZE);
     m_pAVIOContext = avio_alloc_context(buffer, READ_BUFFER_SIZE, 0, this, Read, nullptr, Seek);
 
     LONGLONG total = 0;

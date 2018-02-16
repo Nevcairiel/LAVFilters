@@ -120,7 +120,7 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
   for (int plane = 0; plane < desc.planes; plane++) {
     ptrdiff_t planeStride = stride / desc.planeWidth[plane];
     size_t size = planeStride * (alignedHeight / desc.planeHeight[plane]);
-    pFrame->data[plane]   = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
+    pFrame->data[plane]   = (BYTE *)_aligned_malloc(size + AV_INPUT_BUFFER_PADDING_SIZE, 64);
     if (pFrame->data[plane] == nullptr) {
       free_buffers(pFrame);
       return E_OUTOFMEMORY;
@@ -131,7 +131,7 @@ HRESULT AllocLAVFrameBuffers(LAVFrame *pFrame, ptrdiff_t stride)
   if (pFrame->flags & LAV_FRAME_FLAG_MVC) {
     for (int plane = 0; plane < desc.planes; plane++) {
       size_t size = pFrame->stride[plane] * (alignedHeight / desc.planeHeight[plane]);
-      pFrame->stereo[plane] = (BYTE *)_aligned_malloc(size + FF_INPUT_BUFFER_PADDING_SIZE, 64);
+      pFrame->stereo[plane] = (BYTE *)_aligned_malloc(size + AV_INPUT_BUFFER_PADDING_SIZE, 64);
       if (pFrame->stereo[plane] == nullptr) {
         free_buffers(pFrame);
         return E_OUTOFMEMORY;

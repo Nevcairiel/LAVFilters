@@ -111,7 +111,7 @@ DECLARE_CONV_FUNC_IMPL(convert_rgb48_rgb)
 
   uint8_t *rgb24buffer = nullptr;
   if (out32) {
-    rgb24buffer = (uint8_t *)av_malloc(outStride + FF_INPUT_BUFFER_PADDING_SIZE);
+    rgb24buffer = (uint8_t *)av_malloc(outStride + AV_INPUT_BUFFER_PADDING_SIZE);
     if (rgb24buffer == nullptr) {
       av_freep(&dstBS[0]);
       return E_OUTOFMEMORY;

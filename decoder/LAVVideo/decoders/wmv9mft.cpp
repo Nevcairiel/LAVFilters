@@ -156,7 +156,7 @@ STDMETHODIMP CDecWMV9MFT::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   BYTE *extra = nullptr;
   getExtraData(*pmt, nullptr, &extralen);
   if (extralen > 0) {
-    extra = (BYTE *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+    extra = (BYTE *)av_mallocz(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
     getExtraData(*pmt, extra, &extralen);
   }
 

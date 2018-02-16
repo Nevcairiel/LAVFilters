@@ -501,7 +501,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
     av_free(m_pb);
   }
 
-  uint8_t *buffer = (uint8_t *)av_mallocz(BD_READ_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+  uint8_t *buffer = (uint8_t *)av_mallocz(BD_READ_BUFFER_SIZE + AV_INPUT_BUFFER_PADDING_SIZE);
   m_pb = avio_alloc_context(buffer, BD_READ_BUFFER_SIZE, 0, this, BDByteStreamRead, nullptr, BDByteStreamSeek);
 
   SafeRelease(&m_lavfDemuxer);
@@ -558,7 +558,7 @@ void CBDDemuxer::ProcessBluRayMetadata()
       AVStream *avstream = m_lavfDemuxer->GetAVStreamByPID(mvcStream->id);
       if (avstream) {
         avstream->codecpar->codec_id = AV_CODEC_ID_H264_MVC;
-        avstream->codecpar->extradata = (BYTE *)av_mallocz(mvcStream->codecpar->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+        avstream->codecpar->extradata = (BYTE *)av_mallocz(mvcStream->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
         avstream->codecpar->extradata_size = mvcStream->codecpar->extradata_size;
         memcpy(avstream->codecpar->extradata, mvcStream->codecpar->extradata, mvcStream->codecpar->extradata_size);
       }

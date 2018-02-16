@@ -1300,7 +1300,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
 
   if (bTrustExtraData && extralen) {
     if (codec == AV_CODEC_ID_COOK || codec == AV_CODEC_ID_ATRAC3 || codec == AV_CODEC_ID_SIPR) {
-      uint8_t *extra = (uint8_t *)av_mallocz(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+      uint8_t *extra = (uint8_t *)av_mallocz(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
       getExtraData((BYTE *)format, &format_type, formatlen, extra, nullptr);
 
       if (extra[0] == '.' && extra[1] == 'r' && extra[2] == 'a' && extra[3] == 0xfd) {
@@ -1331,7 +1331,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
       }
     } else {
       m_pAVCtx->extradata_size      = (int)extralen;
-      m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+      m_pAVCtx->extradata           = (uint8_t *)av_mallocz(m_pAVCtx->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
       getExtraData((BYTE *)format, &format_type, formatlen, m_pAVCtx->extradata, nullptr);
     }
   }
@@ -1697,7 +1697,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
     return E_FAIL;
   }
 
-  m_buff.Allocate(bufflen + len + FF_INPUT_BUFFER_PADDING_SIZE);
+  m_buff.Allocate(bufflen + len + AV_INPUT_BUFFER_PADDING_SIZE);
   m_buff.Append(pDataIn, len);
 
   hr = ProcessBuffer(pIn);
@@ -1952,7 +1952,7 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
     int sps = m_raData.sub_packet_size;
     int len = w * h;
     if (buffsize >= len) {
-      tmpProcessBuf = (BYTE *)av_mallocz(len + FF_INPUT_BUFFER_PADDING_SIZE);
+      tmpProcessBuf = (BYTE *)av_mallocz(len + AV_INPUT_BUFFER_PADDING_SIZE);
 
       // "genr" deinterleaving is used for COOK and ATRAC
       if (m_raData.deint_id == MKBETAG('g', 'e', 'n', 'r')) {

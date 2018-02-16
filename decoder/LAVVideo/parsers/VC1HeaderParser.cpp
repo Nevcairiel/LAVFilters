@@ -120,7 +120,7 @@ void CVC1HeaderParser::ParseVC1Header(const BYTE *pData, size_t length, AVCodecI
     int size, buf2_size;
     uint8_t *buf2;
 
-    buf2 = (uint8_t *)av_mallocz(length + FF_INPUT_BUFFER_PADDING_SIZE);
+    buf2 = (uint8_t *)av_mallocz(length + AV_INPUT_BUFFER_PADDING_SIZE);
 
     start = find_next_marker(start, end);
     next = start;

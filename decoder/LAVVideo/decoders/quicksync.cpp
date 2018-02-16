@@ -382,7 +382,7 @@ STDMETHODIMP CDecQuickSync::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   size_t extralen = 0;
   getExtraData(*pmt, nullptr, &extralen);
   if (extralen > 0) {
-    extradata = (BYTE *)av_malloc(extralen + FF_INPUT_BUFFER_PADDING_SIZE);
+    extradata = (BYTE *)av_malloc(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
     if (extradata == nullptr)
       return E_OUTOFMEMORY;
     getExtraData(*pmt, extradata, nullptr);
