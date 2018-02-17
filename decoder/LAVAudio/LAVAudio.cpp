@@ -61,8 +61,6 @@ extern HINSTANCE g_hInst;
 void CALLBACK CLAVAudio::StaticInit(BOOL bLoading, const CLSID *clsid)
 {
   if (!bLoading) return;
-
-  av_register_all();
 }
 
 // Constructor

@@ -42,7 +42,6 @@ public:
   CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings);
   ~CLAVFDemuxer();
 
-  static void ffmpeg_init(bool network);
   static std::set<FormatInfo> GetFormatList();
 
   // IUnknown

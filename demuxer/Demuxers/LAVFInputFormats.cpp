@@ -81,7 +81,7 @@ struct lavf_iformat_map
   { "vc1test", nullptr, nullptr },
 };
 
-void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription)
+void lavf_get_iformat_infos(const AVInputFormat *pFormat, const char **pszName, const char **pszDescription)
 {
   const char *name = pFormat->name;
   const char *desc = pFormat->long_name;

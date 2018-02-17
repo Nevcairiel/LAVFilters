@@ -41,7 +41,6 @@
 void CALLBACK CLAVSplitter::StaticInit(BOOL bLoading, const CLSID *clsid)
 {
   if (!bLoading) return;
-  CLAVFDemuxer::ffmpeg_init(false);
 }
 
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
@@ -50,8 +49,6 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr)
   WCHAR fileName[1024];
   GetModuleFileName(nullptr, fileName, 1024);
   m_processName = PathFindFileName (fileName);
-
-  CLAVFDemuxer::ffmpeg_init(true);
 
   m_InputFormats.clear();
 

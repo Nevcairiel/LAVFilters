@@ -295,8 +295,6 @@ STDMETHODIMP CDecAvcodec::Init()
 #else
   av_log_set_callback(nullptr);
 #endif
-
-  avcodec_register_all();
   return S_OK;
 }
 

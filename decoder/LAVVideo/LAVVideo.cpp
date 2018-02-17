@@ -46,7 +46,6 @@ void CALLBACK CLAVVideo::StaticInit(BOOL bLoading, const CLSID *clsid)
 {
   if (!bLoading) return;
 
-  avcodec_register_all();
   avfilter_register_all();
 }
 

@@ -54,29 +54,17 @@ AVChapter *avpriv_new_chapter(AVFormatContext *s, int id, AVRational time_base, 
 
 #define AVFORMAT_OPEN_TIMEOUT 20
 
-extern void lavf_get_iformat_infos(AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
+extern void lavf_get_iformat_infos(const AVInputFormat *pFormat, const char **pszName, const char **pszDescription);
 
 static const AVRational AV_RATIONAL_TIMEBASE = {1, AV_TIME_BASE};
-
-void CLAVFDemuxer::ffmpeg_init(bool network)
-{
-#ifdef DEBUG
-  DbgSetModuleLevel (LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
-  av_log_set_callback(lavf_log_callback);
-#else
-  av_log_set_callback(nullptr);
-#endif
-
-  av_register_all();
-  if (network)
-    avformat_network_init();
-}
 
 std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
 {
   std::set<FormatInfo> formats;
-  AVInputFormat *f = nullptr;
-  while (f = av_iformat_next(f)) {
+  const AVInputFormat *f = nullptr;
+  void *state = NULL;
+
+  while (f = av_demuxer_iterate(&state)) {
     FormatInfo format;
     lavf_get_iformat_infos(f, &format.strName, &format.strDescription);
     if (format.strName)
@@ -88,6 +76,13 @@ std::set<FormatInfo> CLAVFDemuxer::GetFormatList()
 CLAVFDemuxer::CLAVFDemuxer(CCritSec *pLock, ILAVFSettingsInternal *settings)
   : CBaseDemuxer(L"lavf demuxer", pLock)
 {
+#ifdef DEBUG
+  DbgSetModuleLevel(LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
+  av_log_set_callback(lavf_log_callback);
+#else
+  av_log_set_callback(nullptr);
+#endif
+
   m_bSubStreams = settings->GetSubstreamsEnabled();
 
   m_pSettings = settings;
