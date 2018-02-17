@@ -708,14 +708,10 @@ void CopyMediaSideDataFF(AVPacket *dst, const MediaSideDataFFMpeg **sd)
     return;
   }
 
-  // create an empty dummy packet to copy side-data from
-  AVPacket sdPacket = { 0 };
-  av_init_packet(&sdPacket);
-  sdPacket.side_data = (*sd)->side_data;
-  sdPacket.side_data_elems = (*sd)->side_data_elems;
-
-  // copy into the main packet
-  av_copy_packet_side_data(dst, &sdPacket);
+  // add sidedata to the packet
+  for (int i = 0; i < (*sd)->side_data_elems; i++) {
+    av_packet_add_side_data(dst, (*sd)->side_data[i].type, (*sd)->side_data[i].data, (*sd)->side_data[i].size);
+  }
 
   *sd = nullptr;
 }
