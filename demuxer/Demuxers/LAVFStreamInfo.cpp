@@ -127,14 +127,15 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
 
         CMediaType adtsMtype = mtype;
         adtsMtype.subtype = MEDIASUBTYPE_AAC_ADTS;
-        // Clear artificially generated extradata so we don't confuse LAV Audio
-        if (m_containerFormat == "mpeg" || m_containerFormat == "mpegts") {
-          adtsMtype.cbFormat = sizeof(WAVEFORMATEX);
-          ((WAVEFORMATEX *)adtsMtype.pbFormat)->cbSize = 0;
-        }
         mtypes.push_back(adtsMtype);
 
-        mtype.subtype = MEDIASUBTYPE_AAC;
+        // if we have extradata, use ordinary AAC type
+        if (avstream->codecpar->extradata_size) {
+          mtype.subtype = MEDIASUBTYPE_AAC;
+        } else {
+          // else, use ADTS type
+          mtype.subtype = MEDIASUBTYPE_MPEG_ADTS_AAC;
+        }
         wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
       } else if (avstream->codecpar->codec_id == AV_CODEC_ID_AAC_LATM) {
         mtypes.push_back(mtype);
