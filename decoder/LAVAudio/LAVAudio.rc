@@ -81,8 +81,8 @@ BEGIN
     CONTROL         "DTS",IDC_BS_DTS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,130,72,29,10
     CONTROL         "DTS-HD",IDC_BS_DTSHD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,130,86,41,10
     LTEXT           "Options",IDC_BS_OPTIONS,12,112,26,8
-    CONTROL         "Use DTS-HD Framing for all DTS types",IDC_BS_DTSHD_FRAMING,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,123,137,10
+    CONTROL         "Force max DTS-HD rate (not recommended)",IDC_BS_DTSHD_FRAMING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,123,151,10
     GROUPBOX        "Options",IDC_OPTIONS,7,139,196,65
     CONTROL         "Auto A/V Sync correction",IDC_AUTO_AVSYNC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,150,96,10
     CONTROL         "Convert Output to Standard Channel Layouts",IDC_STANDARD_CH_LAYOUT,
