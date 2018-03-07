@@ -106,7 +106,6 @@ private:
   DWORD m_dwSurfaceWidth = 0;
   DWORD m_dwSurfaceHeight = 0;
   DWORD m_dwSurfaceCount = 0;
-  AVPixelFormat m_DecodePixelFormat = AV_PIX_FMT_NONE;
   DXGI_FORMAT m_SurfaceFormat = DXGI_FORMAT_UNKNOWN;
 
   BOOL m_bReadBackFallback = FALSE;

@@ -102,6 +102,16 @@ static const D3D_FEATURE_LEVEL s_D3D11Levels[] =
   D3D_FEATURE_LEVEL_10_0,
 };
 
+static DXGI_FORMAT d3d11va_map_sw_to_hw_format(enum AVPixelFormat pix_fmt)
+{
+  switch (pix_fmt) {
+  case AV_PIX_FMT_YUV420P10:
+  case AV_PIX_FMT_P010:       return DXGI_FORMAT_P010;
+  case AV_PIX_FMT_NV12:
+  default:                    return DXGI_FORMAT_NV12;
+  }
+}
+
 CDecD3D11::CDecD3D11(void)
   : CDecAvcodec()
 {
@@ -719,14 +729,15 @@ STDMETHODIMP CDecD3D11::ReInitD3D11Decoder(AVCodecContext *c)
   if (m_bReadBackFallback == false && m_pAllocator == nullptr)
     return E_FAIL;
 
-  if (m_pDecoder == nullptr || m_dwSurfaceWidth != dxva_align_dimensions(c->codec_id, c->coded_width) || m_dwSurfaceHeight != dxva_align_dimensions(c->codec_id, c->coded_height) || m_DecodePixelFormat != c->sw_pix_fmt)
+  if (m_pDecoder == nullptr || m_dwSurfaceWidth != dxva_align_dimensions(c->codec_id, c->coded_width) || m_dwSurfaceHeight != dxva_align_dimensions(c->codec_id, c->coded_height) || m_SurfaceFormat != d3d11va_map_sw_to_hw_format(c->sw_pix_fmt))
   {
     AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
     DbgLog((LOG_TRACE, 10, L"No D3D11 Decoder or image dimensions changed -> Re-Allocating resources"));
 
     // if we're not in readback mode, we need to flush all the frames
     if (m_bReadBackFallback == false)
-      avcodec_flush_buffers(c);
+      if (m_pDecoder)
+        avcodec_flush_buffers(c);
     else
       FlushDisplayQueue(TRUE);
 
@@ -865,16 +876,6 @@ STDMETHODIMP CDecD3D11::FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC 
   return S_OK;
 }
 
-static DXGI_FORMAT d3d11va_map_sw_to_hw_format(enum AVPixelFormat pix_fmt)
-{
-  switch (pix_fmt) {
-  case AV_PIX_FMT_YUV420P10:
-  case AV_PIX_FMT_P010:       return DXGI_FORMAT_P010;
-  case AV_PIX_FMT_NV12:
-  default:                    return DXGI_FORMAT_NV12;
-  }
-}
-
 STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
 {
   HRESULT hr = S_OK;
@@ -913,7 +914,6 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
   // update surface properties
   m_dwSurfaceWidth = dxva_align_dimensions(m_pAVCtx->codec_id, m_pAVCtx->coded_width);
   m_dwSurfaceHeight = dxva_align_dimensions(m_pAVCtx->codec_id, m_pAVCtx->coded_height);
-  m_DecodePixelFormat = m_pAVCtx->sw_pix_fmt;
   m_SurfaceFormat = surface_format;
 
   if (m_bReadBackFallback == false && m_pAllocator)
@@ -931,7 +931,7 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
   }
 
   // allocate a new frames context for the dimensions and format
-  hr = AllocateFramesContext(m_dwSurfaceWidth, m_dwSurfaceHeight, m_DecodePixelFormat, m_dwSurfaceCount, &m_pFramesCtx);
+  hr = AllocateFramesContext(m_dwSurfaceWidth, m_dwSurfaceHeight, m_pAVCtx->sw_pix_fmt, m_dwSurfaceCount, &m_pFramesCtx);
   if (FAILED(hr))
   {
     DbgLog((LOG_ERROR, 10, L"-> Error allocating frames context"));
