@@ -128,7 +128,7 @@ CDecD3D11::~CDecD3D11(void)
   SafeRelease(&m_pAllocator);
 }
 
-STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull, bool bNoAVCodec)
+STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull)
 {
   for (int i = 0; i < D3D11_QUEUE_SURFACES; i++) {
     ReleaseFrame(&m_FrameQueue[i]);
@@ -148,9 +148,7 @@ STDMETHODIMP CDecD3D11::DestroyDecoder(bool bFull, bool bNoAVCodec)
   SafeRelease(&m_pD3D11StagingTexture);
   av_buffer_unref(&m_pFramesCtx);
 
-  if (!bNoAVCodec) {
-    CDecAvcodec::DestroyDecoder();
-  }
+  CDecAvcodec::DestroyDecoder();
 
   if (bFull) {
     av_buffer_unref(&m_pDevCtx);

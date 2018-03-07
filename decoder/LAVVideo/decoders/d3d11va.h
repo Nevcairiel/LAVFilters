@@ -73,7 +73,7 @@ protected:
   HRESULT DeliverD3D11ReadbackDirect(LAVFrame *pFrame);
 
 private:
-  STDMETHODIMP DestroyDecoder(bool bFull, bool bNoAVCodec = false);
+  STDMETHODIMP DestroyDecoder(bool bFull);
 
   STDMETHODIMP ReInitD3D11Decoder(AVCodecContext *c);
 
