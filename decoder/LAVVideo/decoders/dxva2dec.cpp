@@ -959,6 +959,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   m_dwSurfaceWidth = dxva_align_dimensions(m_pAVCtx->codec_id, m_pAVCtx->coded_width);
   m_dwSurfaceHeight = dxva_align_dimensions(m_pAVCtx->codec_id, m_pAVCtx->coded_height);
   m_eSurfaceFormat = output;
+  m_DecoderPixelFormat = m_pAVCtx->sw_pix_fmt;
 
   if (FAILED(CheckHWCompatConditions(input))) {
     return E_FAIL;
