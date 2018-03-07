@@ -40,6 +40,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVVideo", "decoder\LAVVide
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IntelQuickSyncDecoder", "qsdecoder\IntelQuickSyncDecoder.vcxproj", "{83F0170E-6AB3-467B-98D5-E061BD2BF00D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5E1DF139-2356-4683-AC07-79AD1CA5EFFE}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -149,5 +154,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F5B92918-449E-4214-B227-464B757DB420}
 	EndGlobalSection
 EndGlobal
