@@ -98,6 +98,4 @@ private:
   BOOL                 m_bWaitingForKeyFrame  = FALSE;
   int                  m_iInterlaced          = -1;
   int                  m_nSoftTelecine        = 0;
-
-  int                  m_nx264build           = -1;
 };

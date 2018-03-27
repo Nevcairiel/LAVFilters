@@ -929,6 +929,7 @@ HRESULT CLAVVideo::BreakConnect(PIN_DIRECTION dir)
       avfilter_graph_free(&m_pFilterGraph);
 
     m_Decoder.Close();
+    m_X264Build = -1;
   }
   else if (dir == PINDIR_OUTPUT)
   {

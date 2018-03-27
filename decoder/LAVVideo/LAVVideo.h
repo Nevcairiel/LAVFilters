@@ -187,6 +187,8 @@ public:
   STDMETHODIMP ReleaseAllDXVAResources() { ReleaseLastSequenceFrame(); return S_OK; }
   STDMETHODIMP_(DWORD) GetGPUDeviceIndex() { return m_dwGPUDeviceIndex; }
   STDMETHODIMP_(BOOL) HasDynamicInputAllocator();
+  STDMETHODIMP SetX264Build(int nBuild) { m_X264Build = nBuild; return S_OK; }
+  STDMETHODIMP_(int) GetX264Build() { return m_X264Build; }
 
   // IPropertyBag
   STDMETHODIMP Read(LPCOLESTR pszPropName, VARIANT *pVar, IErrorLog *pErrorLog);
@@ -272,6 +274,7 @@ private:
 
   BOOL                 m_LAVPinInfoValid       = FALSE;
   LAVPinInfo           m_LAVPinInfo;
+  int                  m_X264Build             = -1;
 
   struct {
     AVMasteringDisplayMetadata Mastering;

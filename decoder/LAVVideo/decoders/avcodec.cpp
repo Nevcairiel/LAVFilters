@@ -572,8 +572,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     return VFW_E_UNSUPPORTED_VIDEO;
   }
 
-  if (codec == AV_CODEC_ID_H264 && m_nx264build != -1) {
-    av_opt_set_int(m_pAVCtx->priv_data, "x264_build", m_nx264build, 0);
+  int nX264Build = m_pCallback->GetX264Build();
+  if (codec == AV_CODEC_ID_H264 && nX264Build != -1) {
+    av_opt_set_int(m_pAVCtx->priv_data, "x264_build", nX264Build, 0);
   }
 
   m_iInterlaced = 0;
@@ -642,7 +643,7 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
     if (m_pAVCtx->codec_id == AV_CODEC_ID_H264) {
       int64_t x264build = -1;
       if (av_opt_get_int(m_pAVCtx->priv_data, "x264_build", 0, &x264build) >= 0)
-        m_nx264build = (int)x264build;
+        m_pCallback->SetX264Build((int)x264build);
     }
 
     avcodec_close(m_pAVCtx);

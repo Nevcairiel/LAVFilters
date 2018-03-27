@@ -288,6 +288,16 @@ interface ILAVVideoCallback
    * Check if the input is using a dynamic allocator
    */
   STDMETHOD_(BOOL, HasDynamicInputAllocator)() PURE;
+
+  /**
+  * Set the x264 build info
+  */
+  STDMETHOD(SetX264Build)(int nBuild) PURE;
+
+  /**
+  * Get the x264 build info
+  */
+  STDMETHOD_(int, GetX264Build)() PURE;
 };
 
 /**
