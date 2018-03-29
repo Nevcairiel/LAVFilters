@@ -1,6 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+LAV Audio
+- NEW: Blu-ray Dolby Digital Plus 7.1 decoding support
+
 0.71.0 - 2018/02/15
 General
 - LAV Filters now requires Windows Vista or newer, Windows XP is no longer supported
