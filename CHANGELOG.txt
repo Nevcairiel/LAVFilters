@@ -2,7 +2,7 @@ LAV DirectShow Filters Changelog
 ===================================
 
 LAV Audio
-- NEW: Blu-ray Dolby Digital Plus 7.1 decoding support
+- NEW: Blu-ray Dolby Digital Plus 7.1 decoding and bitstreaming support
 
 0.71.0 - 2018/02/15
 General
