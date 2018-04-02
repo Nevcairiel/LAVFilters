@@ -419,19 +419,17 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
   }
 
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE;
-  // TrueHD/EAC3 timings
-  // The SPDIF muxer combines multiple frames into one IEC61937 frame (24 for TrueHD, up to 6 for EAC3), we use the cached timestamp from before.
-  if (codec == AV_CODEC_ID_TRUEHD || codec == AV_CODEC_ID_EAC3) {
+  // TrueHD timings
+  // Since the SPDIF muxer takes 24 frames and puts them into one IEC61937 frame, we use the cached timestamp from before.
+  if (codec == AV_CODEC_ID_TRUEHD) {
     // long-term cache is valid
     if (m_rtBitstreamCache != AV_NOPTS_VALUE)
       rtStart = m_rtBitstreamCache;
     // Duration - stop time of the current frame is valid
     if (rtStopInput != AV_NOPTS_VALUE)
       rtStop = rtStopInput;
-    else if (codec == AV_CODEC_ID_TRUEHD) // no actual time of the current frame, use typical TrueHD frame size, 24 * 0.83333ms
+    else // no actual time of the current frame, use typical TrueHD frame size, 24 * 0.83333ms
       rtStop = rtStart + (REFERENCE_TIME)(200000 / m_dRate);
-    else if (codec == AV_CODEC_ID_EAC3)
-      rtStop = rtStart + (REFERENCE_TIME)((DBL_SECOND_MULT * (double)m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate / m_dRate) + 0.5);
     m_rtStart = rtStop;
   } else {
     double dDuration = DBL_SECOND_MULT * (double)m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate / m_dRate;
