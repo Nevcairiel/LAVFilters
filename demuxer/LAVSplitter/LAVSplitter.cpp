@@ -38,11 +38,6 @@
 
 #include "IGraphRebuildDelegate.h"
 
-void CALLBACK CLAVSplitter::StaticInit(BOOL bLoading, const CLSID *clsid)
-{
-  if (!bLoading) return;
-}
-
 CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr) 
   : CBaseFilter(NAME("lavf dshow source filter"), pUnk, this,  __uuidof(this), phr)
 {

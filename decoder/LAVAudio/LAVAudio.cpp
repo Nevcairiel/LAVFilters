@@ -58,17 +58,10 @@ __declspec(dllimport) extern const unsigned char ff_sipr_subpk_size[4];
 
 extern HINSTANCE g_hInst;
 
-void CALLBACK CLAVAudio::StaticInit(BOOL bLoading, const CLSID *clsid)
-{
-  if (!bLoading) return;
-}
-
 // Constructor
 CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT* phr)
   : CTransformFilter(NAME("lavc audio decoder"), 0, __uuidof(CLAVAudio))
 {
-  StaticInit(TRUE, nullptr);
-
   m_pInput = new CDeCSSTransformInputPin(TEXT("CDeCSSTransformInputPin"), this, phr, L"Input");
   if(!m_pInput) {
     *phr = E_OUTOFMEMORY;

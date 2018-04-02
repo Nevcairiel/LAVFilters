@@ -69,8 +69,6 @@ public:
   CLAVSplitter(LPUNKNOWN pUnk, HRESULT* phr);
   virtual ~CLAVSplitter();
 
-  static void CALLBACK StaticInit(BOOL bLoading, const CLSID *clsid);
-
   // IUnknown
   DECLARE_IUNKNOWN;
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);

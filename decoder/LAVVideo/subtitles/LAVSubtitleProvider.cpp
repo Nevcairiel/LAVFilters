@@ -46,8 +46,6 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
   , CUnknown(L"CLAVSubtitleProvider", nullptr)
   , m_pLAVVideo(pLAVVideo)
 {
-  avcodec_register_all();
-
   m_ControlThread = new CLAVSubtitleProviderControlThread();
 
   ASSERT(pConsumer);

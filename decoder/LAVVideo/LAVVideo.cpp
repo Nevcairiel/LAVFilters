@@ -42,13 +42,6 @@
 #include <evr.h>
 #include <d3d9.h>
 
-void CALLBACK CLAVVideo::StaticInit(BOOL bLoading, const CLSID *clsid)
-{
-  if (!bLoading) return;
-
-  avfilter_register_all();
-}
-
 #pragma warning(disable: 4355)
 
 CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
@@ -65,8 +58,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT* phr)
   memset(&m_LAVPinInfo, 0, sizeof(m_LAVPinInfo));
   memset(&m_FilterPrevFrame, 0, sizeof(m_FilterPrevFrame));
   memset(&m_SideData, 0, sizeof(m_SideData));
-
-  StaticInit(TRUE, nullptr);
 
   LoadSettings();
 
