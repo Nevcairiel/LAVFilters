@@ -1,8 +1,13 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.72.0 - 2018/xx/xx
+LAV Video
+- Fixed: Decoding Matroska files with Linked Segments which used old x264 4:4:4 encodes could result in corruption
+
 LAV Audio
 - NEW: Blu-ray Dolby Digital Plus 7.1 decoding and bitstreaming support
+- Fixed: DTS-HD HRA bitstreaming did not work properly with many A/V receivers (although some are still reporting issues)
 
 0.71.0 - 2018/02/15
 General
