@@ -175,6 +175,12 @@ public:
   const static UINT                     sudPinTypesOutCount;
 
 private:
+  enum DTSBitstreamMode {
+    DTS_Core,
+    DTS_HDMA,
+    DTS_HDHR
+  };
+
   HRESULT LoadDefaults();
   HRESULT ReadSettings(HKEY rootKey);
   HRESULT LoadSettings();
@@ -220,6 +226,7 @@ private:
 
   CMediaType CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate, BOOL bDTSHDOverride = FALSE);
   void ActivateDTSHDMuxing();
+  DTSBitstreamMode GetDTSHDBitstreamMode();
 
   HRESULT InitDTSDecoder();
   HRESULT FreeDTSDecoder();
@@ -317,7 +324,7 @@ private:
   GrowableArray<BYTE> m_bsOutput;
   BOOL                m_bBitStreamingSettingsChanged = FALSE;
 
-  BOOL                m_bDTSHD                       = FALSE;
+  DTSBitstreamMode    m_DTSBitstreamMode             = DTS_Core;
   BOOL                m_bForceDTSCore                = FALSE;
   CBitstreamParser    m_bsParser;
   BOOL                m_bFindDTSInPCM                = FALSE;

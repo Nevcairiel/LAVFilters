@@ -24,7 +24,8 @@
 #include "moreuuids.h"
 
 #define LAV_BITSTREAM_BUFFER_SIZE 4096
-#define LAV_BITSTREAM_DTS_HD_RATE 768000
+#define LAV_BITSTREAM_DTS_HD_HR_RATE 192000
+#define LAV_BITSTREAM_DTS_HD_MA_RATE 768000
 
 static struct {
   AVCodecID codec;
@@ -117,10 +118,10 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
 
   // DTS-HD is by default off, unless explicitly asked for
   if (m_settings.DTSHDFraming && m_settings.bBitstream[Bitstream_DTSHD] && !m_bForceDTSCore) {
-    m_bDTSHD = TRUE;
-    av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
+    m_DTSBitstreamMode = DTS_HDMA;
+    av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_MA_RATE, 0);
   } else {
-    m_bDTSHD = FALSE;
+    m_DTSBitstreamMode = DTS_Core;
     av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", 0, 0);
   }
   av_opt_set_int(m_avBSContext->priv_data, "dtshd_fallback_time", -1, 0);
@@ -177,10 +178,10 @@ HRESULT CLAVAudio::UpdateBitstreamContext()
   // Configure DTS-HD setting
   if(m_avBSContext) {
     if (m_settings.bBitstream[Bitstream_DTSHD] && m_settings.DTSHDFraming && !m_bForceDTSCore) {
-      m_bDTSHD = TRUE;
-      av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
+      m_DTSBitstreamMode = DTS_HDMA;
+      av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_MA_RATE, 0);
     } else {
-      m_bDTSHD = FALSE; // Force auto-detection
+      m_DTSBitstreamMode = DTS_Core; // Force auto-detection
       av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", 0, 0);
     }
   }
@@ -247,9 +248,9 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRa
      subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
      break;
    case AV_CODEC_ID_DTS:
-     if (m_settings.bBitstream[Bitstream_DTSHD] && m_bDTSHD && !bDTSHDOverride) {
+     if (m_settings.bBitstream[Bitstream_DTSHD] && !bDTSHDOverride && m_DTSBitstreamMode != DTS_Core) {
        wfe->nSamplesPerSec = 192000;
-       wfe->nChannels      = 8;
+       wfe->nChannels      = (m_DTSBitstreamMode == DTS_HDHR) ? 2 : 8;
        subtype = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
      } else {
        wfe->wFormatTag     = WAVE_FORMAT_DOLBY_AC3_SPDIF; // huh? but it works.
@@ -278,20 +279,37 @@ CMediaType CLAVAudio::CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRa
    return mt;
 }
 
+CLAVAudio::DTSBitstreamMode CLAVAudio::GetDTSHDBitstreamMode()
+{
+  if (m_bForceDTSCore || !m_settings.bBitstream[Bitstream_DTSHD])
+    return DTS_Core;
+
+  if (m_settings.DTSHDFraming)
+    return DTS_HDMA;
+
+  if (!m_bsParser.m_bDTSHD)
+    return DTS_Core;
+
+  if (m_pAVCtx->profile == FF_PROFILE_DTS_HD_HRA)
+    return DTS_HDHR;
+
+  return DTS_HDMA;
+}
+
 void CLAVAudio::ActivateDTSHDMuxing()
 {
   DbgLog((LOG_TRACE, 20, L"::ActivateDTSHDMuxing(): Found DTS-HD marker - switching to DTS-HD muxing mode"));
-  m_bDTSHD = TRUE;
+  m_DTSBitstreamMode = GetDTSHDBitstreamMode();
 
   // Check if downstream actually accepts it..
   const CMediaType &mt = CreateBitstreamMediaType(m_nCodecId, m_bsParser.m_dwSampleRate);
   HRESULT hr = m_pOutput->GetConnected()->QueryAccept(&mt);
   if (hr != S_OK) {
     DbgLog((LOG_TRACE, 20, L"-> But downstream doesn't want DTS-HD, sticking to DTS core"));
-    m_bDTSHD = FALSE;
+    m_DTSBitstreamMode = DTS_Core;
     m_bForceDTSCore = TRUE;
   } else {
-    av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", LAV_BITSTREAM_DTS_HD_RATE, 0);
+    av_opt_set_int(m_avBSContext->priv_data, "dtshd_rate", (m_DTSBitstreamMode == DTS_HDHR) ? LAV_BITSTREAM_DTS_HD_HR_RATE : LAV_BITSTREAM_DTS_HD_MA_RATE, 0);
   }
 }
 
@@ -340,8 +358,11 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
         continue;
       }
 
-      if (m_nCodecId == AV_CODEC_ID_DTS && !m_bDTSHD && !m_bForceDTSCore && m_bsParser.m_bDTSHD && m_settings.bBitstream[Bitstream_DTSHD]) {
-        ActivateDTSHDMuxing();
+      if (m_nCodecId == AV_CODEC_ID_DTS)
+      {
+        DTSBitstreamMode mode = GetDTSHDBitstreamMode();
+        if (mode != DTS_Core && mode != m_DTSBitstreamMode)
+          ActivateDTSHDMuxing();
       }
 
       avpkt.data = pOut;
@@ -465,7 +486,7 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
 
   if(hr == S_OK) {
     hr = m_pOutput->GetConnected()->QueryAccept(&mt);
-    if (hr == S_FALSE && m_nCodecId == AV_CODEC_ID_DTS && m_bDTSHD) {
+    if (hr == S_FALSE && m_nCodecId == AV_CODEC_ID_DTS && m_DTSBitstreamMode != DTS_Core) {
       DbgLog((LOG_TRACE, 1, L"DTS-HD Media Type failed with %0#.8x, trying fallback to DTS core", hr));
       m_bForceDTSCore = TRUE;
       UpdateBitstreamContext();
