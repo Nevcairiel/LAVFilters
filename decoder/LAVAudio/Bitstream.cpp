@@ -413,8 +413,11 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
     return E_FAIL;
   }
 
-  if (m_bResyncTimestamp && rtStartInput != AV_NOPTS_VALUE) {
-    m_rtStart = rtStartInput;
+  if (m_bResyncTimestamp && (rtStartInput != AV_NOPTS_VALUE || m_rtBitstreamCache != AV_NOPTS_VALUE)) {
+    if (m_rtBitstreamCache != AV_NOPTS_VALUE)
+      m_rtStart = m_rtBitstreamCache;
+    else
+      m_rtStart = rtStartInput;
     m_bResyncTimestamp = FALSE;
   }
 
