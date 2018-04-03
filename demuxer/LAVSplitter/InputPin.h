@@ -46,7 +46,7 @@ public:
 
   // IStreamSourceControl
   STDMETHODIMP GetStreamDuration(REFERENCE_TIME *prtDuration) { CheckPointer(m_pStreamControl, E_NOTIMPL); return m_pStreamControl->GetStreamDuration(prtDuration); }
-  STDMETHODIMP SeekStream(REFERENCE_TIME rtPosition) { CheckPointer(m_pStreamControl, E_NOTIMPL); return m_pStreamControl->SeekStream(rtPosition); }
+  STDMETHODIMP SeekStream(REFERENCE_TIME rtPosition);
 
 protected:
   static int Read(void *opaque, uint8_t *buf, int buf_size);

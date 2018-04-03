@@ -229,3 +229,19 @@ STDMETHODIMP CLAVInputPin::EndFlush()
 {
   return E_UNEXPECTED;
 }
+
+STDMETHODIMP CLAVInputPin::SeekStream(REFERENCE_TIME rtPosition)
+{
+	CheckPointer(m_pStreamControl, E_NOTIMPL);
+	HRESULT hr = m_pStreamControl->SeekStream(rtPosition);
+	if (SUCCEEDED(hr))
+	{
+		// flush the avio context to remove any buffered data
+		if (m_pAVIOContext) {
+			avio_flush(m_pAVIOContext);
+			m_pAVIOContext->pos = 0;
+		}
+	}
+
+	return hr;
+}
