@@ -226,9 +226,13 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
   int ret; // return code from avformat functions
 
   // Convert the filename from wchar to char for avformat
-  char fileName[4100] = {0};
-  if (pszFileName) {
-    ret = SafeWideCharToMultiByte(CP_UTF8, 0, pszFileName, -1, fileName, 4096, nullptr, nullptr);
+  char *fileName = NULL;
+  if (pszFileName)
+    fileName = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, pszFileName, -1);
+
+  if (fileName == NULL) {
+    fileName = (char *)CoTaskMemAlloc(1);
+    *fileName = 0;
   }
 
   if (_strnicmp("mms:", fileName, 4) == 0) {
@@ -375,9 +379,11 @@ trynoformat:
 
   CHECK_HR(hr = InitAVFormat(pszFileName, bForce));
 
+  SAFE_CO_FREE(fileName);
   return S_OK;
 done:
   CleanupAVFormat();
+  SAFE_CO_FREE(fileName);
   return E_FAIL;
 }
 
