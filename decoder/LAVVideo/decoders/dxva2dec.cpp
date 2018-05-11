@@ -1222,7 +1222,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
       ASSERT(0);
       hr = E_FAIL;
     } else if (m_bNative) {
-	  // shortcut to update only the Decoder Pixel Format if needed
+      // shortcut to update only the Decoder Pixel Format if needed
       if (m_pDecoder && m_DecoderPixelFormat == AV_PIX_FMT_NONE && m_DecoderPixelFormat != c->sw_pix_fmt) {
         GUID input; D3DFORMAT output;
         FindVideoServiceConversion(c->codec_id, c->profile, &input, &output);
@@ -1230,7 +1230,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
         if (output == m_eSurfaceFormat) {
           m_DecoderPixelFormat = c->sw_pix_fmt;
           return ReInitDXVA2Decoder(c);
-		}
+        }
       }
 
       avcodec_flush_buffers(c);
