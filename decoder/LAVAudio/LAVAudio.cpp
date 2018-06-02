@@ -1518,6 +1518,11 @@ HRESULT CLAVAudio::PerformFlush()
   m_SuppressLayout = 0;
   m_bMPEGAudioResync = (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG1AudioPayload);
 
+  m_TrueHDMATState.prev_frametime_valid = false;
+  m_TrueHDMATState.mat_framesize = 0;
+  m_TrueHDMATState.prev_mat_framesize = 0;
+  m_TrueHDMATState.padding = 0;
+
   return S_OK;
 }
 
@@ -1969,6 +1974,29 @@ HRESULT CLAVAudio::Decode(const BYTE * pDataBuffer, int buffsize, int &consumed,
 
       SafeRelease(&pSideData);
     }
+  }
+
+  if (m_nCodecId == AV_CODEC_ID_TRUEHD && !bFlush)
+  {
+    uint16_t frame_time = AV_RB16(pDataBuffer + 2);
+    int sync = (AV_RB32(pDataBuffer + 4) & 0xf8726fba) == 0xf8726fba;
+    static int ratebits = 0;
+    if (sync)
+    {
+      if (pDataBuffer[7] == 0xba)
+      {
+        ratebits = pDataBuffer[8] >> 4;
+      }
+      else
+      {
+        ratebits = pDataBuffer[9] >> 4;
+      }
+    }
+    static uint16_t prevFrameTime = 0;
+    uint16_t deltaFrameTime = (frame_time - prevFrameTime);
+    uint32_t space_size = (deltaFrameTime & 0xFF) * (64 >> (ratebits & 7));
+    DbgLog((LOG_TRACE, 10, L"Size: %d, ft: %u (delta: %u), sync: %d, space_size: %d", buffsize, frame_time, deltaFrameTime, sync, space_size));
+    prevFrameTime = frame_time;
   }
 
   consumed = 0;

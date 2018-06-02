@@ -94,6 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Bitstream.cpp" />
+    <ClCompile Include="BitstreamMAT.cpp" />
     <ClCompile Include="BitstreamParser.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="DTSDecoder.cpp" />

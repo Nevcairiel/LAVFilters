@@ -358,35 +358,49 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
         continue;
       }
 
-      if (m_nCodecId == AV_CODEC_ID_DTS)
+      if (m_nCodecId == AV_CODEC_ID_TRUEHD)
       {
-        DTSBitstreamMode mode = GetDTSHDBitstreamMode();
-        if (mode != DTS_Core && mode != m_DTSBitstreamMode)
-          ActivateDTSHDMuxing();
+        m_bUpdateTimeCache = TRUE;
+
+        // Set long-time cache to the first timestamp encountered, used by TrueHD and E-AC3 because the S/PDIF muxer caches data internally
+        // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
+        if (m_rtBitstreamCache == AV_NOPTS_VALUE)
+          m_rtBitstreamCache = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
+
+        BitstreamTrueHD(pOut, pOut_size, hrDeliver);
       }
+      else
+      {
+        if (m_nCodecId == AV_CODEC_ID_DTS)
+        {
+          DTSBitstreamMode mode = GetDTSHDBitstreamMode();
+          if (mode != DTS_Core && mode != m_DTSBitstreamMode)
+            ActivateDTSHDMuxing();
+        }
 
-      avpkt.data = pOut;
-      avpkt.size = pOut_size;
+        avpkt.data = pOut;
+        avpkt.size = pOut_size;
 
-      // Write SPDIF muxed frame
-      ret = av_write_frame(m_avBSContext, &avpkt);
-      if(ret < 0) {
-        DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));
-        m_bsOutput.SetSize(0);
-        continue;
-      }
+        // Write SPDIF muxed frame
+        ret = av_write_frame(m_avBSContext, &avpkt);
+        if (ret < 0) {
+          DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));
+          m_bsOutput.SetSize(0);
+          continue;
+        }
 
-      m_bUpdateTimeCache = TRUE;
+        m_bUpdateTimeCache = TRUE;
 
-      // Set long-time cache to the first timestamp encountered, used by TrueHD and E-AC3 because the S/PDIF muxer caches data internally
-      // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
-      if (m_rtBitstreamCache == AV_NOPTS_VALUE)
-        m_rtBitstreamCache = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
+        // Set long-time cache to the first timestamp encountered, used by TrueHD and E-AC3 because the S/PDIF muxer caches data internally
+        // If the current timestamp is not valid, use the last delivery timestamp in m_rtStart
+        if (m_rtBitstreamCache == AV_NOPTS_VALUE)
+          m_rtBitstreamCache = m_rtStartInputCache != AV_NOPTS_VALUE ? m_rtStartInputCache : m_rtStart;
 
-      // Deliver frame
-      if (m_bsOutput.GetCount() > 0) {
-        *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), pOut_size, m_rtStartInputCache, m_rtStopInputCache);
-        m_bsOutput.SetSize(0);
+        // Deliver frame
+        if (m_bsOutput.GetCount() > 0) {
+          *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), pOut_size, m_rtStartInputCache, m_rtStopInputCache);
+          m_bsOutput.SetSize(0);
+        }
       }
     }
   }

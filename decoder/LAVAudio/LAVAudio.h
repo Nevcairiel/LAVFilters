@@ -222,6 +222,14 @@ private:
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
   HRESULT DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
+  HRESULT BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliver);
+  void MATWriteHeader();
+  void MATWriteFooter();
+  void MATWritePadding();
+  void MATAppendData(const BYTE *p, int size);
+  int MATFillDataBuffer(const BYTE *p, int size, bool padding = false);
+  void MATFlushPacket(HRESULT *hrDeliver);
+
   CMediaType CreateBitstreamMediaType(AVCodecID codec, DWORD dwSampleRate, BOOL bDTSHDOverride = FALSE);
   void ActivateDTSHDMuxing();
   DTSBitstreamMode GetDTSHDBitstreamMode();
@@ -347,6 +355,21 @@ private:
   ExtendedChannelMap  m_ChannelMap;
   int                 m_ChannelMapOutputChannels = 0;
   DWORD               m_ChannelMapOutputLayout   = 0;
+
+  // TrueHD Bitstreaming
+  struct {
+    int ratebits = 0;
+
+    int prev_frametime = 0;
+    BOOL prev_frametime_valid = FALSE;
+
+    int mat_framesize = 0;
+    int prev_mat_framesize = 0;
+
+    DWORD padding = 0;
+
+    GrowableArray<BYTE> bsOutputSwap;
+  } m_TrueHDMATState;
 
   struct {
     int flavor;
