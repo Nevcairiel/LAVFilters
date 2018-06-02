@@ -1518,10 +1518,7 @@ HRESULT CLAVAudio::PerformFlush()
   m_SuppressLayout = 0;
   m_bMPEGAudioResync = (m_pInput->CurrentMediaType().subtype == MEDIASUBTYPE_MPEG1AudioPayload);
 
-  m_TrueHDMATState.prev_frametime_valid = false;
-  m_TrueHDMATState.mat_framesize = 0;
-  m_TrueHDMATState.prev_mat_framesize = 0;
-  m_TrueHDMATState.padding = 0;
+  memset(&m_TrueHDMATState, 0, sizeof(m_TrueHDMATState));
 
   return S_OK;
 }

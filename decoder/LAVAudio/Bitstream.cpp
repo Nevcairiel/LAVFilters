@@ -211,6 +211,9 @@ HRESULT CLAVAudio::FreeBitstreamContext()
   // Dump any remaining data
   m_bsOutput.SetSize(0);
 
+  // reset TrueHD MAT state
+  memset(&m_TrueHDMATState, 0, sizeof(m_TrueHDMATState));
+
   return S_OK;
 }
 
