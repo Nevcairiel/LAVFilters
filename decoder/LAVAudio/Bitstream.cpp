@@ -466,7 +466,9 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
     }
   }
 
-  REFERENCE_TIME rtJitter = rtStart - m_rtBitstreamCache;
+  REFERENCE_TIME rtJitter = 0;
+  if (m_rtBitstreamCache != AV_NOPTS_VALUE)
+    rtJitter = rtStart - m_rtBitstreamCache;
   m_faJitter.Sample(rtJitter);
 
   REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
