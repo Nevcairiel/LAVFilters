@@ -408,7 +408,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
   return S_OK;
 }
 
-HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
+HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput, BOOL bSwap)
 {
   HRESULT hr = S_OK;
 
@@ -499,7 +499,15 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
 
   pOut->SetActualDataLength(dwSize);
 
-  memcpy(pDataOut, buffer, dwSize);
+  // byte-swap if needed
+  if (bSwap)
+  {
+    lav_spdif_bswap_buf16((uint16_t *)pDataOut, (uint16_t *)buffer, dwSize >> 1);
+  }
+  else
+  {
+    memcpy(pDataOut, buffer, dwSize);
+  }
 
   if(hr == S_OK) {
     hr = m_pOutput->GetConnected()->QueryAccept(&mt);

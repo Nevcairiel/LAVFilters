@@ -169,12 +169,8 @@ int CLAVAudio::MATFillDataBuffer(const BYTE *p, int size, bool padding)
 void CLAVAudio::MATFlushPacket(HRESULT *hrDeliver)
 {
   if (m_bsOutput.GetCount() > 0) {
-    // byte-swap the buffer to big-endian
-    m_TrueHDMATState.bsOutputSwap.SetSize(m_bsOutput.GetCount());
-    lav_spdif_bswap_buf16((uint16_t *)m_TrueHDMATState.bsOutputSwap.Ptr(), (const uint16_t *)m_bsOutput.Ptr(), m_bsOutput.GetCount() >> 1);
-
-    // Deliver the byte-swaped MAT packet to the audio renderer
-    *hrDeliver = DeliverBitstream(m_nCodecId, m_TrueHDMATState.bsOutputSwap.Ptr(), m_TrueHDMATState.bsOutputSwap.GetCount(), m_rtStartInputCache, m_rtStopInputCache);
+    // Deliver MAT packet to the audio renderer
+    *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache, m_rtStopInputCache, true);
     m_bsOutput.SetSize(0);
   }
 }
