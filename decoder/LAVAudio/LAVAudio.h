@@ -220,7 +220,7 @@ private:
   HRESULT FreeBitstreamContext();
 
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
-  HRESULT DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
+  HRESULT DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput);
 
   HRESULT BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliver);
   void MATWriteHeader();

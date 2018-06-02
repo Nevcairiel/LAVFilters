@@ -174,7 +174,7 @@ void CLAVAudio::MATFlushPacket(HRESULT *hrDeliver)
     lav_spdif_bswap_buf16((uint16_t *)m_TrueHDMATState.bsOutputSwap.Ptr(), (const uint16_t *)m_bsOutput.Ptr(), m_bsOutput.GetCount() >> 1);
 
     // Deliver the byte-swaped MAT packet to the audio renderer
-    *hrDeliver = DeliverBitstream(m_nCodecId, m_TrueHDMATState.bsOutputSwap.Ptr(), m_TrueHDMATState.bsOutputSwap.GetCount(), 0, m_rtStartInputCache, m_rtStopInputCache);
+    *hrDeliver = DeliverBitstream(m_nCodecId, m_TrueHDMATState.bsOutputSwap.Ptr(), m_TrueHDMATState.bsOutputSwap.GetCount(), m_rtStartInputCache, m_rtStopInputCache);
     m_bsOutput.SetSize(0);
   }
 }

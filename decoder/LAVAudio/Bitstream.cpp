@@ -398,7 +398,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
 
         // Deliver frame
         if (m_bsOutput.GetCount() > 0) {
-          *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), pOut_size, m_rtStartInputCache, m_rtStopInputCache);
+          *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache, m_rtStopInputCache);
           m_bsOutput.SetSize(0);
         }
       }
@@ -408,7 +408,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
   return S_OK;
 }
 
-HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, DWORD dwFrameSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
+HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput)
 {
   HRESULT hr = S_OK;
 
