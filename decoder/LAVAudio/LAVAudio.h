@@ -224,7 +224,6 @@ private:
 
   HRESULT BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliver);
   void MATWriteHeader();
-  void MATWriteFooter();
   void MATWritePadding();
   void MATAppendData(const BYTE *p, int size);
   int MATFillDataBuffer(const BYTE *p, int size, bool padding = false);
