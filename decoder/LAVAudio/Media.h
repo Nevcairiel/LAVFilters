@@ -68,3 +68,5 @@ const char *get_channel_desc(DWORD dwFlag);
 // DO NOT USE WITH AN INTEGER TYPE - only double and float are allowed
 template <class T>
 T get_sample_from_buffer(const BYTE *pBuffer, LAVAudioSampleFormat sfFormat);
+
+void lav_spdif_bswap_buf16(uint16_t *dst, const uint16_t *src, int w);
