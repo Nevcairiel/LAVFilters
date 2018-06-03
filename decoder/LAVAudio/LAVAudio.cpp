@@ -1665,7 +1665,7 @@ HRESULT CLAVAudio::Receive(IMediaSample *pIn)
   m_bJustFlushed = FALSE;
 
   m_rtStartInput = SUCCEEDED(hr) ? rtStart : AV_NOPTS_VALUE;
-  m_rtStopInput = SUCCEEDED(hr) ? rtStop : AV_NOPTS_VALUE;
+  m_rtStopInput = (hr == S_OK) ? rtStop : AV_NOPTS_VALUE;
 
   DWORD bufflen = m_buff.GetCount();
 
