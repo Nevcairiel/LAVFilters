@@ -943,63 +943,65 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   }
 
   if (m_avBSContext) {
-    if (iPosition > 0)
-      return VFW_S_NO_MORE_ITEMS;
-
-    *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate, TRUE);
-  } else {
-    const int nSamplesPerSec = m_pAVCtx->sample_rate;
-    int nChannels = m_pAVCtx->channels;
-    DWORD dwChannelMask = get_channel_mask(nChannels);
-
-    AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_NONE);
-    if (sample_fmt == AV_SAMPLE_FMT_NONE)
-      sample_fmt = AV_SAMPLE_FMT_S32; // this gets mapped to S16/S24/S32 in get_lav_sample_fmt based on the bits per sample
-
-    // Prefer bits_per_raw_sample if set, but if not, try to do a better guess with bits per coded sample
-    int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
-
-    LAVAudioSampleFormat lav_sample_fmt;
-    if (m_pDTSDecoderContext) {
-      bits = m_DTSBitDepth;
-      lav_sample_fmt = (m_DTSBitDepth == 24) ? SampleFormat_24 : SampleFormat_16;
-    } else
-      lav_sample_fmt = get_lav_sample_fmt(sample_fmt, bits);
-
-    if (m_settings.MixingEnabled) {
-      if (nChannels != av_get_channel_layout_nb_channels(m_settings.MixingLayout)
-        && (nChannels > 2 || !(m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO))) {
-        lav_sample_fmt = SampleFormat_FP32;
-        bits = 32;
-        dwChannelMask = m_settings.MixingLayout;
-        nChannels = av_get_channel_layout_nb_channels(dwChannelMask);
-      } else if (nChannels == 7 && m_settings.Expand61) {
-        nChannels = 8;
-        dwChannelMask = get_channel_mask(nChannels);
-      } else if (nChannels == 1 && m_settings.ExpandMono) {
-        nChannels = 2;
-        dwChannelMask = get_channel_mask(nChannels);
-      }
-    }
-
-    // map to legacy 5.1 if user requested
-    if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && m_settings.Output51Legacy)
-      dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
-
-    if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && iPosition > 1 && iPosition < 4)
-      dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
-    else if (iPosition > 1)
-      return VFW_S_NO_MORE_ITEMS;
-
-    if (iPosition % 2) {
-      lav_sample_fmt = SampleFormat_16;
-      bits = 16;
+    if (iPosition == 0) {
+      *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate, TRUE);
+      return S_OK;
     } else {
-      lav_sample_fmt = GetBestAvailableSampleFormat(lav_sample_fmt, &bits, TRUE);
+      iPosition--;
     }
-
-    *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, bits);
   }
+
+  const int nSamplesPerSec = m_pAVCtx->sample_rate;
+  int nChannels = m_pAVCtx->channels;
+  DWORD dwChannelMask = get_channel_mask(nChannels);
+
+  AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE) ? m_pAVCtx->sample_fmt : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_NONE);
+  if (sample_fmt == AV_SAMPLE_FMT_NONE)
+    sample_fmt = AV_SAMPLE_FMT_S32; // this gets mapped to S16/S24/S32 in get_lav_sample_fmt based on the bits per sample
+
+  // Prefer bits_per_raw_sample if set, but if not, try to do a better guess with bits per coded sample
+  int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
+
+  LAVAudioSampleFormat lav_sample_fmt;
+  if (m_pDTSDecoderContext) {
+    bits = m_DTSBitDepth;
+    lav_sample_fmt = (m_DTSBitDepth == 24) ? SampleFormat_24 : SampleFormat_16;
+  } else
+    lav_sample_fmt = get_lav_sample_fmt(sample_fmt, bits);
+
+  if (m_settings.MixingEnabled) {
+    if (nChannels != av_get_channel_layout_nb_channels(m_settings.MixingLayout)
+      && (nChannels > 2 || !(m_settings.MixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO))) {
+      lav_sample_fmt = SampleFormat_FP32;
+      bits = 32;
+      dwChannelMask = m_settings.MixingLayout;
+      nChannels = av_get_channel_layout_nb_channels(dwChannelMask);
+    } else if (nChannels == 7 && m_settings.Expand61) {
+      nChannels = 8;
+      dwChannelMask = get_channel_mask(nChannels);
+    } else if (nChannels == 1 && m_settings.ExpandMono) {
+      nChannels = 2;
+      dwChannelMask = get_channel_mask(nChannels);
+    }
+  }
+
+  // map to legacy 5.1 if user requested
+  if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && m_settings.Output51Legacy)
+    dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+
+  if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && iPosition > 1 && iPosition < 4)
+    dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+  else if (iPosition > 1)
+    return VFW_S_NO_MORE_ITEMS;
+
+  if (iPosition % 2) {
+    lav_sample_fmt = SampleFormat_16;
+    bits = 16;
+  } else {
+    lav_sample_fmt = GetBestAvailableSampleFormat(lav_sample_fmt, &bits, TRUE);
+  }
+
+  *pMediaType = CreateMediaType(lav_sample_fmt, nSamplesPerSec, nChannels, dwChannelMask, bits);
   return S_OK;
 }
 
@@ -1227,9 +1229,9 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
   // If the codec is bitstreaming, and enabled for it, go there now
   if (IsBitstreaming(codec)) {
     WAVEFORMATEX *wfe = (format_type == FORMAT_WaveFormatEx) ? (WAVEFORMATEX *)format : nullptr;
-    if(wfe && SUCCEEDED(CreateBitstreamContext(codec, wfe))) {
-      return S_OK;
-    }
+
+    if (wfe)
+      CreateBitstreamContext(codec, wfe);
   }
 
   if (codec == AV_CODEC_ID_DTS) {
@@ -1487,6 +1489,33 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
     // Validate that this is called before any media type negotiation
   }
   return __super::CheckConnect(dir, pPin);
+}
+
+HRESULT CLAVAudio::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
+{
+  DbgLog((LOG_TRACE, 5, L"CompleteConnect -- %S", dir == PINDIR_INPUT ? "in" : "out"));
+  if (dir == PINDIR_OUTPUT)
+  {
+    // check that we connected with a bitstream type, or go back to decoding otherwise
+    if (m_avBSContext) {
+      CMediaType &mt = m_pOutput->CurrentMediaType();
+      WAVEFORMATEX *wfe = (WAVEFORMATEX *)mt.Format();
+      bool bPCM = false;
+
+      // float is always PCM
+      if (mt.subtype == MEDIASUBTYPE_IEEE_FLOAT || wfe->wFormatTag == WAVE_FORMAT_PCM)
+        bPCM = true;
+      else if (wfe->wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
+        WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)wfe;
+        if (wfex->SubFormat == MEDIASUBTYPE_IEEE_FLOAT || wfex->SubFormat == MEDIASUBTYPE_PCM)
+          bPCM = true;
+      }
+
+      if (bPCM)
+        BitstreamFallbackToPCM();
+    }
+  }
+  return __super::CompleteConnect(dir, pReceivePin);
 }
 
 HRESULT CLAVAudio::EndOfStream()

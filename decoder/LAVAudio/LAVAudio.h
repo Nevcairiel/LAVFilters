@@ -156,6 +156,7 @@ public:
 
   // Optional Overrides
   HRESULT CheckConnect(PIN_DIRECTION dir, IPin *pPin);
+  HRESULT CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin);
   HRESULT SetMediaType(PIN_DIRECTION dir, const CMediaType *pmt);
 
   HRESULT EndOfStream();
@@ -218,6 +219,7 @@ private:
   HRESULT CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe);
   HRESULT UpdateBitstreamContext();
   HRESULT FreeBitstreamContext();
+  HRESULT BitstreamFallbackToPCM();
 
   HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
   HRESULT DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput, REFERENCE_TIME rtStopInput, BOOL bSwap = false);
@@ -328,6 +330,7 @@ private:
   AVFormatContext    *m_avBSContext   = nullptr;
   GrowableArray<BYTE> m_bsOutput;
   BOOL                m_bBitStreamingSettingsChanged = FALSE;
+  BOOL                m_bBitstreamOverride[Bitstream_NB] = { FALSE };
 
   DTSBitstreamMode    m_DTSBitstreamMode             = DTS_Core;
   BOOL                m_bForceDTSCore                = FALSE;

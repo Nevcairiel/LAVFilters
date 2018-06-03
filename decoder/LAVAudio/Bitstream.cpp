@@ -42,7 +42,7 @@ BOOL CLAVAudio::IsBitstreaming(AVCodecID codec)
 {
   for(int i = 0; i < countof(lavf_bitstream_config); ++i) {
     if (lavf_bitstream_config[i].codec == codec) {
-      return m_settings.bBitstream[lavf_bitstream_config[i].config];
+      return m_bBitstreamOverride[lavf_bitstream_config[i].config] ? FALSE : m_settings.bBitstream[lavf_bitstream_config[i].config];
     }
   }
   return FALSE;
@@ -90,18 +90,6 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
     FreeBitstreamContext();
   m_bsParser.Reset();
 
-  // Increase DTS buffer even further, as we do not have any sample caching
-  if (codec == AV_CODEC_ID_DTS)
-    m_faJitter.SetNumSamples(400);
-  else
-    m_faJitter.SetNumSamples(100);
-
-  m_pParser = av_parser_init(codec);
-  ASSERT(m_pParser);
-
-  m_pAVCtx = avcodec_alloc_context3(avcodec_find_decoder(codec));
-  CheckPointer(m_pAVCtx, E_POINTER);
-
   DbgLog((LOG_TRACE, 20, "Creating Bistreaming Context..."));
 
   ret = avformat_alloc_output_context2(&m_avBSContext, nullptr, "spdif", nullptr);
@@ -131,18 +119,16 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- alloc of output stream failed"));
     goto fail;
   }
-  m_pAVCtx->codec_id    = st->codecpar->codec_id    = codec;
-  m_pAVCtx->codec_type  = st->codecpar->codec_type  = AVMEDIA_TYPE_AUDIO;
-  m_pAVCtx->channels    = st->codecpar->channels    = wfe->nChannels;
-  m_pAVCtx->sample_rate = st->codecpar->sample_rate = wfe->nSamplesPerSec;
+  st->codecpar->codec_id    = codec;
+  st->codecpar->codec_type  = AVMEDIA_TYPE_AUDIO;
+  st->codecpar->channels    = wfe->nChannels;
+  st->codecpar->sample_rate = wfe->nSamplesPerSec;
 
   ret = avformat_write_header(m_avBSContext, nullptr);
   if (ret < 0) {
     DbgLog((LOG_ERROR, 10, L"::CreateBitstreamContext() -- av_write_header returned an error code (%d)", -ret));
     goto fail;
   }
-
-  m_nCodecId = codec;
 
   return S_OK;
 fail:
@@ -196,17 +182,6 @@ HRESULT CLAVAudio::FreeBitstreamContext()
     avformat_free_context(m_avBSContext);
   }
   m_avBSContext = nullptr;
-
-  if (m_pParser)
-    av_parser_close(m_pParser);
-  m_pParser = nullptr;
-
-  if (m_pAVCtx) {
-    if (m_pAVCtx->codec)
-      avcodec_close(m_pAVCtx);
-    av_freep(&m_pAVCtx->extradata);
-    av_freep(&m_pAVCtx);
-  }
 
   // Dump any remaining data
   m_bsOutput.SetSize(0);
@@ -522,6 +497,11 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
       UpdateBitstreamContext();
       goto done;
     }
+    else if (hr == S_FALSE)
+    {
+      BitstreamFallbackToPCM();
+      goto done;
+    }
     DbgLog((LOG_TRACE, 1, L"Sending new Media Type (QueryAccept: %0#.8x)", hr));
     m_pOutput->SetMediaType(&mt);
     pOut->SetMediaType(&mt);
@@ -535,4 +515,18 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
 done:
   SafeRelease(&pOut);
   return hr;
+}
+
+HRESULT CLAVAudio::BitstreamFallbackToPCM()
+{
+  // fallback to decoding
+  FreeBitstreamContext();
+
+  for (int i = 0; i < countof(lavf_bitstream_config); ++i) {
+    if (lavf_bitstream_config[i].codec == m_nCodecId) {
+      m_bBitstreamOverride[lavf_bitstream_config[i].config] = TRUE;
+    }
+  }
+
+  return S_OK;
 }
