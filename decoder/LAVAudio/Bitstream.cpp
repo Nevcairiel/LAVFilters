@@ -444,7 +444,7 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
   DbgLog((LOG_CUSTOM5, 20, L"Bitstream Delivery, rtStart(calc): %I64d, rtStart(input): %I64d, duration: %I64d, diff: %I64d", rtStart, m_rtBitstreamCache, rtStop-rtStart, rtJitter));
 
   if (m_faJitter.CurrentSample() == 0) {
-    DbgLog((LOG_TRACE, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
+    DbgLog((LOG_CUSTOM2, 20, L"Jitter Stats: min: %I64d - max: %I64d - avg: %I64d", rtJitterMin, m_faJitter.AbsMaximum(), m_faJitter.Average()));
   }
 #endif
   m_rtBitstreamCache = AV_NOPTS_VALUE;
