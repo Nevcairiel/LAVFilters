@@ -414,31 +414,17 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
   }
 
   REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE;
-  // TrueHD timings
-  // Since the SPDIF muxer takes 24 frames and puts them into one IEC61937 frame, we use the cached timestamp from before.
-  if (codec == AV_CODEC_ID_TRUEHD) {
-    // long-term cache is valid
-    if (m_rtBitstreamCache != AV_NOPTS_VALUE)
-      rtStart = m_rtBitstreamCache;
-    // Duration - stop time of the current frame is valid
-    if (rtStopInput != AV_NOPTS_VALUE)
-      rtStop = rtStopInput;
-    else // no actual time of the current frame, use typical TrueHD frame size, 24 * 0.83333ms
-      rtStop = rtStart + (REFERENCE_TIME)(200000 / m_dRate);
-    m_rtStart = rtStop;
-  } else {
-    double dDuration = DBL_SECOND_MULT * (double)m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate / m_dRate;
-    m_dStartOffset += fmod(dDuration, 1.0);
+  double dDuration = DBL_SECOND_MULT * (double)m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate / m_dRate;
+  m_dStartOffset += fmod(dDuration, 1.0);
 
-    // Add rounded duration to rtStop
-    rtStop = rtStart + (REFERENCE_TIME)(dDuration + 0.5);
-    // and unrounded to m_rtStart..
-    m_rtStart += (REFERENCE_TIME)dDuration;
-    // and accumulate error..
-    if (m_dStartOffset > 0.5) {
-      m_rtStart++;
-      m_dStartOffset -= 1.0;
-    }
+  // Add rounded duration to rtStop
+  rtStop = rtStart + (REFERENCE_TIME)(dDuration + 0.5);
+  // and unrounded to m_rtStart..
+  m_rtStart += (REFERENCE_TIME)dDuration;
+  // and accumulate error..
+  if (m_dStartOffset > 0.5) {
+    m_rtStart++;
+    m_dStartOffset -= 1.0;
   }
 
   REFERENCE_TIME rtJitter = 0;

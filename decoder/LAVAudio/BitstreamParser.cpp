@@ -55,6 +55,8 @@ HRESULT CBitstreamParser::Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, vo
   case AV_CODEC_ID_AC3:
   case AV_CODEC_ID_EAC3:
     return ParseAC3(pBuffer, dwSize, pParserContext);
+  case AV_CODEC_ID_TRUEHD:
+    return ParseTrueHD(pBuffer, dwSize);
   }
   return S_OK;
 }
@@ -83,6 +85,19 @@ HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserCon
 
   // E-AC3 always combines 6 blocks, resulting in 1536 samples
   m_dwSamples    = (ctx->codec_id == AV_CODEC_ID_EAC3) ? (6 * 256) : ctx->samples;
+
+  return S_OK;
+}
+
+HRESULT CBitstreamParser::ParseTrueHD(BYTE *pBuffer, DWORD dwSize)
+{
+  if (AV_RB32(pBuffer + 4) == 0xf8726fba)
+  {
+    int nRatebits = pBuffer[8] >> 4;
+
+    m_dwSampleRate = (nRatebits & 8 ? 44100 : 48000) << (nRatebits & 7);
+    m_dwSamples = 24 * (40 << (nRatebits & 7));
+  }
 
   return S_OK;
 }

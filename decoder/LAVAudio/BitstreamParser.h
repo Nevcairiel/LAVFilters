@@ -34,6 +34,7 @@ public:
 private:
   HRESULT ParseDTS(BYTE *pBuffer, DWORD dwSize);
   HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+  HRESULT ParseTrueHD(BYTE *pBuffer, DWORD dwSize);
 
 public:
   DWORD m_dwSampleRate = 0;
