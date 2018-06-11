@@ -191,6 +191,8 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
   {
     m_TrueHDMATState.ratebits = p[8] >> 4;
   }
+  else if (m_TrueHDMATState.prev_frametime_valid == false) // only start streaming on a major sync frame
+    return S_FALSE;
 
   uint16_t frame_time = AV_RB16(p + 2);
   uint32_t space_size = 0;
