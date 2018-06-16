@@ -362,11 +362,11 @@ private:
   struct {
     int ratebits = 0;
 
-    int prev_frametime = 0;
+    uint16_t prev_frametime = 0;
     BOOL prev_frametime_valid = FALSE;
 
-    int mat_framesize = 0;
-    int prev_mat_framesize = 0;
+    uint32_t mat_framesize = 0;
+    uint32_t prev_mat_framesize = 0;
 
     DWORD padding = 0;
   } m_TrueHDMATState;
