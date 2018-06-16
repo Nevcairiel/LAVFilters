@@ -206,7 +206,7 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
     space_size = ((frame_time - m_TrueHDMATState.prev_frametime) & 0xff) * (64 >> (m_TrueHDMATState.ratebits & 7));
 
   // compute padding (ie. difference to the size of the previous frame)
-  m_TrueHDMATState.padding += (space_size - m_TrueHDMATState.prev_mat_framesize) & 0xfff;
+  m_TrueHDMATState.padding += (space_size - m_TrueHDMATState.prev_mat_framesize) & 0xffff;
 
   // store frame time of the previous frame
   m_TrueHDMATState.prev_frametime = frame_time;
