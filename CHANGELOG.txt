@@ -1,13 +1,14 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.72.0 - 2018/xx/xx
+0.72.0 - 2018/06/19
 LAV Video
 - Changed: Enabled CineformHD decoding by default, since the decoder has much improved
 - Fixed: Decoding Matroska files with Linked Segments which used old x264 4:4:4 encodes could result in corruption
 
 LAV Audio
 - NEW: Blu-ray Dolby Digital Plus 7.1 decoding and bitstreaming support
+- NEW: LAV Audio will fallback to audio decoding if bitstreaming is not supported by the audio renderer/hardware
 - Fixed: DTS-HD HRA bitstreaming did not work properly with many A/V receivers
 - Fixed: TrueHD bitstreaming could result in drop-outs on high bitrate TrueHD+Atmos streams
 

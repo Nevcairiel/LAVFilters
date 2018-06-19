@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2017 Hendrik Leppkes
+ *      Copyright (C) 2010-2018 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -120,6 +120,7 @@ typedef enum LAVHWAccel {
   HWAccel_DXVA2,
   HWAccel_DXVA2CopyBack = HWAccel_DXVA2,
   HWAccel_DXVA2Native,
+  HWAccel_D3D11,
   HWAccel_NB,              // Number of HWAccels
 } LAVHWAccel;
 
