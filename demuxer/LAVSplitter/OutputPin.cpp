@@ -121,7 +121,7 @@ HRESULT CLAVOutputPin::DecideAllocator(IMemInputPin * pPin, IMemAllocator **ppAl
     hr = DecideBufferSize(*ppAlloc, &prop);
     if (SUCCEEDED(hr)) {
       DbgLog((LOG_TRACE, 10, L"-> DecideBufferSize Success"));
-      hr = pPin->NotifyAllocator(*ppAlloc, FALSE);
+      hr = pPin->NotifyAllocator(*ppAlloc, TRUE);
       if (SUCCEEDED(hr)) {
         DbgLog((LOG_TRACE, 10, L"-> NotifyAllocator Success"));
         return NOERROR;
