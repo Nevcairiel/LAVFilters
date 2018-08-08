@@ -198,6 +198,13 @@ STDMETHODIMP CDecWMV9MFT::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   UINT32 rateNum = 0, rateDen = 0;
   MF.AverageTimePerFrameToFrameRate(rtAvg, &rateNum, &rateDen);
   MFSetAttributeRatio(pMTIn, MF_MT_FRAME_RATE, rateNum, rateDen);
+
+  if (dwARX != 0 && dwARY != 0)
+  {
+    int uParX, uParY;
+    av_reduce(&uParX, &uParY, dwARX * pBMI->biHeight, dwARY * pBMI->biWidth, INT_MAX);
+    MFSetAttributeRatio(pMTIn, MF_MT_PIXEL_ASPECT_RATIO, uParX, uParY);
+  }
   
   pMTIn->SetBlob(MF_MT_USER_DATA, extra, (UINT32)extralen);
   av_freep(&extra);
