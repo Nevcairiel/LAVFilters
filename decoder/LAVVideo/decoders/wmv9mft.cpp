@@ -201,7 +201,7 @@ STDMETHODIMP CDecWMV9MFT::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   if (dwARX != 0 && dwARY != 0)
   {
-    int uParX, uParY;
+    int uParX = 1, uParY = 1;
     av_reduce(&uParX, &uParY, dwARX * pBMI->biHeight, dwARY * pBMI->biWidth, INT_MAX);
     MFSetAttributeRatio(pMTIn, MF_MT_PIXEL_ASPECT_RATIO, uParX, uParY);
   }
