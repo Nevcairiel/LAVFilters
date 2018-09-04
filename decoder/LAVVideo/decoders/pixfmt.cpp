@@ -250,3 +250,21 @@ BYTE * AddLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t size)
 
   return pFrame->side_data[pFrame->side_data_count - 1].data;
 }
+
+BYTE * GetLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t *pSize)
+{
+  if (!pFrame || pFrame->side_data_count == 0)
+    return NULL;
+
+  ASSERT(pSize);
+
+  for (int i = 0; i < pFrame->side_data_count; i++)
+  {
+    if (pFrame->side_data[i].guidType == guidType) {
+      *pSize = pFrame->side_data[i].size;
+      return pFrame->side_data[i].data;
+    }
+  }
+
+  return NULL;
+}

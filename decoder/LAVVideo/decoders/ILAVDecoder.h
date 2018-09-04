@@ -180,6 +180,11 @@ HRESULT CopyLAVFrameInPlace(LAVFrame *pFrame);
  */
 BYTE * AddLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t size);
 
+/**
+ * Get a side data entry from the frame by its type
+ */
+BYTE * GetLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t *pSize);
+
 typedef struct LAVPinInfo
 {
   DWORD flags;              ///< Flags that describe the video content (see ILAVPinInfo.h for valid values)
