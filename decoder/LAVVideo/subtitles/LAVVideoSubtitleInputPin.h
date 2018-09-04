@@ -30,7 +30,7 @@ class CLAVVideoSubtitleInputPin : public CBaseInputPin, public CDeCSSPinHelper
 {
 public:
   CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName);
-  ~CLAVVideoSubtitleInputPin(void);
+  virtual ~CLAVVideoSubtitleInputPin(void);
 
   DECLARE_IUNKNOWN
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
