@@ -33,6 +33,8 @@
 #include "subtitles/LAVSubtitleConsumer.h"
 #include "subtitles/LAVVideoSubtitleInputPin.h"
 
+#include "CCOutputPin.h"
+
 #include "BaseTrayIcon.h"
 #include "IMediaSideData.h"
 
@@ -281,6 +283,8 @@ private:
 
   CLAVVideoSubtitleInputPin *m_pSubtitleInput  = nullptr;
   CLAVSubtitleConsumer *m_SubtitleConsumer     = nullptr;
+
+  CCCOutputPin         *m_pCCOutputPin         = nullptr;
 
   LAVFrame             *m_pLastSequenceFrame   = nullptr;
 

@@ -100,6 +100,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CCOutputPin.cpp" />
     <ClCompile Include="decoders\avcodec.cpp" />
     <ClCompile Include="decoders\cuvid.cpp" />
     <ClCompile Include="decoders\d3d11va.cpp" />
@@ -148,6 +149,7 @@
     <ClInclude Include="..\..\common\includes\IMediaSideData.h" />
     <ClInclude Include="..\..\common\includes\IPinSegmentEx.h" />
     <ClInclude Include="..\..\common\includes\SubRenderIntf.h" />
+    <ClInclude Include="CCOutputPin.h" />
     <ClInclude Include="decoders\avcodec.h" />
     <ClInclude Include="decoders\cuvid.h" />
     <ClInclude Include="decoders\d3d11va.h" />

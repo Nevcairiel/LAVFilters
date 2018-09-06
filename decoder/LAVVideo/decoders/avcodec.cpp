@@ -1100,6 +1100,12 @@ send_packet:
       }
     }
 
+    AVFrameSideData * sdCC = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_A53_CC);
+    if (sdCC) {
+      BYTE *CC = AddLAVFrameSideData(pOutFrame, IID_MediaSideDataEIA608CC, sdCC->size);
+      memcpy(CC, sdCC->data, sdCC->size);
+    }
+
     if (map.conversion) {
       ConvertPixFmt(m_pFrame, pOutFrame);
     } else {

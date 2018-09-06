@@ -81,3 +81,13 @@ struct MediaSideData3DOffset
   int offset[32];
 };
 #pragma pack(pop)
+
+// -----------------------------------------------------------------
+// EIA-608/708 Closed Caption Data
+// -----------------------------------------------------------------
+
+// {40FEFD7F-85DD-4335-A804-8A33B0BF7B81}
+DEFINE_GUID(IID_MediaSideDataEIA608CC,
+  0x40fefd7f, 0x85dd, 0x4335, 0xa8, 0x4, 0x8a, 0x33, 0xb0, 0xbf, 0x7b, 0x81);
+
+// There is no struct definition. The data is supplied as a list of 3 byte CC data packets (control byte + cc_data1/2)

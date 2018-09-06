@@ -177,6 +177,9 @@
     <ClCompile Include="decoders\d3d11\D3D11SurfaceAllocator.cpp">
       <Filter>Source Files\decoders\d3d11</Filter>
     </ClCompile>
+    <ClCompile Include="CCOutputPin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -291,6 +294,9 @@
       <Filter>Header Files\decoders\d3d11</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\includes\IPinSegmentEx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CCOutputPin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
