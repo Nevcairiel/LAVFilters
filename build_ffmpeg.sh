@@ -62,6 +62,7 @@ configure() (
     --disable-cuda                  \
     --disable-cuvid                 \
     --disable-nvenc                 \
+    --enable-libaom                 \
     --enable-libspeex               \
     --enable-libopencore-amrnb      \
     --enable-libopencore-amrwb      \
@@ -76,14 +77,17 @@ configure() (
     --disable-debug                 \
     --disable-doc                   \
     --build-suffix=-lav             \
-    --arch=${arch}"
+    --arch=${arch}                  \
+    --pkg-config=../thirdparty/contrib/pkg-config.sh"
 
   EXTRA_CFLAGS="-fno-tree-vectorize -D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -I../thirdparty/include"
   EXTRA_LDFLAGS=""
   if [ "${arch}" == "x86_64" ]; then
-    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32 --pkg-config=pkg-config"
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:../thirdparty/lib64/pkgconfig/"
+    OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib64"
   else
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:../thirdparty/lib32/pkgconfig/"
     OPTIONS="${OPTIONS} --cpu=i686"
     EXTRA_CFLAGS="${EXTRA_CFLAGS} -mmmx -msse -msse2 -mfpmath=sse -mstackrealign"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib32"
