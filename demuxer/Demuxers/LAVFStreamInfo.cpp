@@ -317,6 +317,14 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
       AV_WB8 (extra + 13, avstream->codecpar->color_space);
       AV_WB16(extra + 14, 0); // no codec init data
     }
+    else if (mtype.subtype == MEDIASUBTYPE_AV01) {
+
+      // TODO: properly decide on an extradata format for AV1
+      // Empty it for now, just in case
+      mtype.ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2));
+      VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
+      vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    }
   } else if (mtype.formattype == FORMAT_MPEGVideo) {
     mtype.pbFormat = (BYTE *)g_VideoHelper.CreateMPEG1VI(avstream, &mtype.cbFormat, m_containerFormat);
   } else if (mtype.formattype == FORMAT_MPEG2Video) {

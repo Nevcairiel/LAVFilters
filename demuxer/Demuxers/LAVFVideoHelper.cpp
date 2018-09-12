@@ -55,6 +55,7 @@ static FormatMapping video_map[] = {
   { AV_CODEC_ID_TARGA,      &MEDIASUBTYPE_TGA,          MKTAG('T','G','A',' '), nullptr },
   { AV_CODEC_ID_VP8,        &MEDIASUBTYPE_VP80,         MKTAG('V','P','8','0'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_VP9,        &MEDIASUBTYPE_VP90,         MKTAG('V','P','9','0'), &FORMAT_VideoInfo2 },
+  { AV_CODEC_ID_AV1,        &MEDIASUBTYPE_AV01,         MKTAG('A','V','0','1'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_CFHD,       &MEDIASUBTYPE_CFHD,         MKTAG('C','F','H','D'), &FORMAT_VideoInfo2 },
 };
 
