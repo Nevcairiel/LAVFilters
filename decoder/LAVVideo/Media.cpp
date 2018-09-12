@@ -646,6 +646,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_H264_MVC }, "h264mvc", "H.264 MVC 3D" },                // Codec_H264MVC
   { 1, { AV_CODEC_ID_CFHD }, "cfhd", "Cineform HD (experimental)" },         // Codec_CineformHD
   { 1, { AV_CODEC_ID_MAGICYUV }},                                            // Codec_MagicYUV
+  { 1, { AV_CODEC_ID_AV1 }},                                                 // Codec_AV1
 };
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
