@@ -367,7 +367,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   CheckPointer(m_pFrame, E_POINTER);
 
   // Process Extradata
-  BYTE *extra = nullptr;
   size_t extralen = 0;
   getExtraData(*pmt, nullptr, &extralen);
 
@@ -377,7 +376,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     DbgLog((LOG_TRACE, 10, L"-> Processing AVC1 extradata of %d bytes", extralen));
     MPEG2VIDEOINFO *mp2vi = (MPEG2VIDEOINFO *)pmt->Format();
     extralen += 7;
-    extra = (uint8_t *)av_mallocz(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
+    BYTE *extra = (uint8_t *)av_mallocz(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
     extra[0] = 1;
     extra[1] = (BYTE)mp2vi->dwProfile;
     extra[2] = 0;
@@ -417,6 +416,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_pAVCtx->extradata_size = (int)extralen;
   } else if (extralen > 0) {
     DbgLog((LOG_TRACE, 10, L"-> Processing extradata of %d bytes", extralen));
+    BYTE *extra = nullptr;
     if (pmt->subtype == MEDIASUBTYPE_LAV_RAWVIDEO) {
       if (extralen < sizeof(m_pAVCtx->pix_fmt)) {
         DbgLog((LOG_TRACE, 10, L"-> LAV RAW Video extradata is missing.."));
@@ -588,7 +588,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
   // Detect chroma and interlaced
   if (m_pAVCtx->extradata && m_pAVCtx->extradata_size) {
     if (codec == AV_CODEC_ID_MPEG2VIDEO) {
-      CMPEG2HeaderParser mpeg2Parser(extra, extralen);
+      CMPEG2HeaderParser mpeg2Parser(m_pAVCtx->extradata, m_pAVCtx->extradata_size);
       if (mpeg2Parser.hdr.valid) {
         if (mpeg2Parser.hdr.chroma < 2) {
           m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -600,13 +600,13 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     } else if (codec == AV_CODEC_ID_H264) {
       CH264SequenceParser h264parser;
       if (bH264avc)
-        h264parser.ParseNALs(extra+6, extralen-6, 2);
+        h264parser.ParseNALs(m_pAVCtx->extradata+6, m_pAVCtx->extradata_size-6, 2);
       else
-        h264parser.ParseNALs(extra, extralen, 0);
+        h264parser.ParseNALs(m_pAVCtx->extradata, m_pAVCtx->extradata_size, 0);
       if (h264parser.sps.valid)
         m_iInterlaced = h264parser.sps.interlaced;
     } else if (codec == AV_CODEC_ID_VC1) {
-      CVC1HeaderParser vc1parser(extra, extralen);
+      CVC1HeaderParser vc1parser(m_pAVCtx->extradata, m_pAVCtx->extradata_size);
       if (vc1parser.hdr.valid)
         m_iInterlaced = (vc1parser.hdr.interlaced ? -1 : 0);
     }
