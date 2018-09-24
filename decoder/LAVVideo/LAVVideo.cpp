@@ -749,7 +749,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12)
     m_filterPixFmt = pix;
 
-  if (codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_H264)
+  if (!bDVDPlayback && (codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_H264))
   {
     if (m_pCCOutputPin == nullptr && CBaseFilter::IsStopped())
       m_pCCOutputPin = new CCCOutputPin(TEXT("CCCOutputPin"), this, &m_csFilter, &hr, L"~CC Output");
