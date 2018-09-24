@@ -385,6 +385,9 @@ interface __declspec(uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")) ILAVVideoSett
   // A setting of FALSE disable MVC decoding temporarily
   // Note that the override cannot force-enable the option if its turned off through SetFormatConfiguration
   STDMETHOD(SetH264MVCDecodingOverride)(BOOL bEnabled) = 0;
+
+  //  Enable the creation of the Closed Caption output pin
+  STDMETHOD(SetEnableCCOutputPin)(BOOL bEnabled) = 0;
 };
 
 // LAV Video status interface

@@ -176,6 +176,7 @@ HRESULT CLAVVideo::LoadDefaults()
   m_settings.HWAccelDeviceD3D11Desc = 0;
 
   m_settings.bH264MVCOverride = TRUE;
+  m_settings.bCCOutputPinEnabled = FALSE;
 
   return S_OK;
 }
@@ -749,7 +750,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
   if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12)
     m_filterPixFmt = pix;
 
-  if (!bDVDPlayback && (codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_H264))
+  if (m_settings.bCCOutputPinEnabled && !bDVDPlayback && (codec == AV_CODEC_ID_MPEG2VIDEO || codec == AV_CODEC_ID_H264))
   {
     if (m_pCCOutputPin == nullptr && CBaseFilter::IsStopped())
       m_pCCOutputPin = new CCCOutputPin(TEXT("CCCOutputPin"), this, &m_csFilter, &hr, L"~CC Output");
@@ -2567,6 +2568,12 @@ STDMETHODIMP CLAVVideo::SetHWAccelDeviceIndex(LAVHWAccel hwAccel, DWORD dwIndex,
 STDMETHODIMP CLAVVideo::SetH264MVCDecodingOverride(BOOL bEnabled)
 {
   m_settings.bH264MVCOverride = bEnabled;
+  return S_OK;
+}
+
+STDMETHODIMP CLAVVideo::SetEnableCCOutputPin(BOOL bEnabled)
+{
+  m_settings.bCCOutputPinEnabled = bEnabled;
   return S_OK;
 }
 

@@ -138,6 +138,8 @@ public:
 
   STDMETHODIMP SetH264MVCDecodingOverride(BOOL bEnabled);
 
+  STDMETHODIMP SetEnableCCOutputPin(BOOL bEnabled);
+
   // ILAVVideoStatus
   STDMETHODIMP_(const WCHAR *) GetActiveDecoderName() { return m_Decoder.GetDecoderName(); }
   STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName);
@@ -316,6 +318,7 @@ private:
     DWORD HWAccelDeviceD3D11;
     DWORD HWAccelDeviceD3D11Desc;
     BOOL bH264MVCOverride;
+    BOOL bCCOutputPinEnabled;
   } m_settings;
 
   DWORD m_dwGPUDeviceIndex = DWORD_MAX;
