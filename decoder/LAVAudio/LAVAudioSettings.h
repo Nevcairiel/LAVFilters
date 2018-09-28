@@ -193,7 +193,7 @@ interface __declspec(uuid("4158A22B-6553-45D0-8069-24716F8FF171")) ILAVAudioSett
   // Use 5.1 legacy layout (using back channels instead of side)
   STDMETHOD_(BOOL, GetOutput51LegacyLayout)() = 0;
   STDMETHOD(SetOutput51LegacyLayout)(BOOL b51Legacy) = 0;
-  
+
   // Fallback to audio decoding if bitstreaming is not supported by the audio renderer/hardware
   STDMETHOD_(BOOL, GetBitstreamingFallback)() = 0;
   STDMETHOD(SetBitstreamingFallback)(BOOL bBitstreamingFallback) = 0;
