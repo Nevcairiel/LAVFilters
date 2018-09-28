@@ -160,6 +160,7 @@ HRESULT CLAVAudio::LoadDefaults()
   memset(m_settings.bBitstream, 0, sizeof(m_settings.bBitstream));
 
   m_settings.DTSHDFraming         = FALSE;
+  m_settings.bBitstreamingFallback= TRUE;
   m_settings.AutoAVSync           = TRUE;
   m_settings.ExpandMono           = FALSE;
   m_settings.Expand61             = FALSE;
@@ -240,6 +241,9 @@ HRESULT CLAVAudio::ReadSettings(HKEY rootKey)
 
     bFlag = reg.ReadBOOL(L"DTSHDFraming", hr);
     if (SUCCEEDED(hr)) m_settings.DTSHDFraming = bFlag;
+
+    bFlag = reg.ReadBOOL(L"BitstreamingFallback", hr);
+	  if (SUCCEEDED(hr)) m_settings.bBitstreamingFallback = bFlag;
 
     bFlag = reg.ReadBOOL(L"AutoAVSync", hr);
     if (SUCCEEDED(hr)) m_settings.AutoAVSync = bFlag;
@@ -335,6 +339,7 @@ HRESULT CLAVAudio::SaveSettings()
     reg.WriteBOOL(L"DRCEnabled", m_settings.DRCEnabled);
     reg.WriteDWORD(L"DRCLevel", m_settings.DRCLevel);
     reg.WriteBOOL(L"DTSHDFraming", m_settings.DTSHDFraming);
+    reg.WriteBOOL(L"BitstreamingFallback", m_settings.bBitstreamingFallback);
     reg.WriteBOOL(L"AutoAVSync", m_settings.AutoAVSync);
     reg.WriteBOOL(L"ExpandMono", m_settings.ExpandMono);
     reg.WriteBOOL(L"Expand61", m_settings.Expand61);
@@ -546,6 +551,11 @@ STDMETHODIMP_(BOOL) CLAVAudio::GetDTSHDFraming()
   return m_settings.DTSHDFraming;
 }
 
+STDMETHODIMP_(BOOL) CLAVAudio::GetBitstreamingFallback()
+{
+	return m_settings.bBitstreamingFallback;
+}
+
 STDMETHODIMP CLAVAudio::SetDTSHDFraming(BOOL bHDFraming)
 {
   m_settings.DTSHDFraming = bHDFraming;
@@ -555,6 +565,14 @@ STDMETHODIMP CLAVAudio::SetDTSHDFraming(BOOL bHDFraming)
     m_bBitStreamingSettingsChanged = TRUE;
 
   return S_OK;
+}
+
+STDMETHODIMP CLAVAudio::SetBitstreamingFallback(BOOL bBitstreamingFallback)
+{
+	m_settings.bBitstreamingFallback = bBitstreamingFallback;
+	SaveSettings();
+
+	return S_OK;
 }
 
 STDMETHODIMP_(BOOL) CLAVAudio::GetAutoAVSync()
@@ -943,6 +961,9 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
   }
 
   if (m_avBSContext) {
+    if (iPosition > 0 && m_settings.bBitstreamingFallback == FALSE)
+	    return VFW_S_NO_MORE_ITEMS;
+
     if (iPosition == 0) {
       *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate, TRUE);
       return S_OK;
@@ -1494,7 +1515,7 @@ HRESULT CLAVAudio::CheckConnect(PIN_DIRECTION dir, IPin *pPin)
 HRESULT CLAVAudio::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
 {
   DbgLog((LOG_TRACE, 5, L"CompleteConnect -- %S", dir == PINDIR_INPUT ? "in" : "out"));
-  if (dir == PINDIR_OUTPUT)
+  if (dir == PINDIR_OUTPUT && m_settings.bBitstreamingFallback == TRUE)
   {
     // check that we connected with a bitstream type, or go back to decoding otherwise
     if (m_avBSContext) {
