@@ -243,7 +243,7 @@ HRESULT CLAVAudio::ReadSettings(HKEY rootKey)
     if (SUCCEEDED(hr)) m_settings.DTSHDFraming = bFlag;
 
     bFlag = reg.ReadBOOL(L"BitstreamingFallback", hr);
-	  if (SUCCEEDED(hr)) m_settings.bBitstreamingFallback = bFlag;
+    if (SUCCEEDED(hr)) m_settings.bBitstreamingFallback = bFlag;
 
     bFlag = reg.ReadBOOL(L"AutoAVSync", hr);
     if (SUCCEEDED(hr)) m_settings.AutoAVSync = bFlag;
@@ -962,7 +962,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 
   if (m_avBSContext) {
     if (iPosition > 0 && m_settings.bBitstreamingFallback == FALSE)
-	    return VFW_S_NO_MORE_ITEMS;
+      return VFW_S_NO_MORE_ITEMS;
 
     if (iPosition == 0) {
       *pMediaType = CreateBitstreamMediaType(m_nCodecId, m_pAVCtx->sample_rate, TRUE);
