@@ -84,6 +84,10 @@ HRESULT CLAVAudioSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetDTSHDFraming(bFlag);
 
+  // Fallback to audio decoding
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_BS_FALLBACK, BM_GETCHECK, 0, 0);
+  m_pAudioSettings->SetBitstreamingFallback(bFlag);
+
   // The other playback options
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_GETCHECK, 0, 0);
   m_pAudioSettings->SetAutoAVSync(bFlag);
@@ -171,7 +175,10 @@ HRESULT CLAVAudioSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_BS_DTSHD_FRAMING, BM_SETCHECK, m_bDTSHDFraming, 0);
     EnableWindow(GetDlgItem(m_Dlg, IDC_BS_DTSHD_FRAMING), m_bBitstreaming[Bitstream_DTSHD]);
     addHint(IDC_BS_DTSHD_FRAMING, L"With some Receivers, this setting might be needed to achieve the full features of DTS. However, on other Receivers, this option will cause DTS to not work at all.\n\nIf you do not experience any problems, its recommended to leave this setting untouched.");
-
+	
+    SendDlgItemMessage(m_Dlg, IDC_BS_FALLBACK, BM_SETCHECK, m_bBitstreamingFallback, 0);
+	  addHint(IDC_BS_FALLBACK, L"Fallback to audio decoding if bitstreaming is not supported by the audio renderer/hardware.");
+    
     SendDlgItemMessage(m_Dlg, IDC_AUTO_AVSYNC, BM_SETCHECK, m_bAutoAVSync, 0);
     addHint(IDC_AUTO_AVSYNC, L"Enables automatic tracking and correction of A/V sync.\n\nIf you encounter any sync issues, disabling this option can help in debugging the source of the problem.");
 
@@ -217,6 +224,7 @@ HRESULT CLAVAudioSettingsProp::LoadData()
   for (unsigned i = 0; i < Bitstream_NB; ++i)
     m_bBitstreaming[i] = m_pAudioSettings->GetBitstreamConfig((LAVBitstreamCodec)i) != 0;
   m_bDTSHDFraming = m_pAudioSettings->GetDTSHDFraming();
+  m_bBitstreamingFallback = m_pAudioSettings->GetBitstreamingFallback();
   m_bAutoAVSync = m_pAudioSettings->GetAutoAVSync();
   m_bOutputStdLayout = m_pAudioSettings->GetOutputStandardLayout();
   m_bOutput51Legacy = m_pAudioSettings->GetOutput51LegacyLayout();
@@ -272,6 +280,10 @@ INT_PTR CLAVAudioSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bDTSHDFraming)
         SetDirty();
+    } else if (LOWORD(wParam) == IDC_BS_FALLBACK && HIWORD(wParam) == BN_CLICKED) {
+		  BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+		  if (bFlag != m_bBitstreamingFallback)
+			  SetDirty();
     } else if (LOWORD(wParam) == IDC_AUTO_AVSYNC && HIWORD(wParam) == BN_CLICKED) {
       BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bFlag != m_bAutoAVSync)
