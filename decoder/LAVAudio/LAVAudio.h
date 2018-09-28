@@ -296,7 +296,7 @@ private:
     BOOL bFormats[Codec_AudioNB];
     BOOL bBitstream[Bitstream_NB];
     BOOL DTSHDFraming;
-	  BOOL bBitstreamingFallback;
+    BOOL bBitstreamingFallback;
     BOOL AutoAVSync;
     BOOL ExpandMono;
     BOOL Expand61;
