@@ -695,22 +695,29 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
       const AVDictionaryEntry* attachFilename = av_dict_get(st->metadata, "filename", nullptr, 0);
       const AVDictionaryEntry* attachMimeType = av_dict_get(st->metadata, "mimetype", nullptr, 0);
+      const AVDictionaryEntry* attachDescription = av_dict_get(st->metadata, "comment", nullptr, 0);
 
       if (attachFilename && attachMimeType) {
         LPWSTR chFilename = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachFilename->value, -1);
         LPWSTR chMimetype = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachMimeType->value, -1);
+        LPWSTR chDescription = nullptr;
+
+        if (attachDescription)
+          chDescription = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachDescription->value, -1);
 
         if (chFilename && chMimetype)
-          ResAppend(chFilename, nullptr, chMimetype, st->codecpar->extradata, (DWORD)st->codecpar->extradata_size);
+          ResAppend(chFilename, chDescription, chMimetype, st->codecpar->extradata, (DWORD)st->codecpar->extradata_size);
 
         SAFE_CO_FREE(chFilename);
         SAFE_CO_FREE(chMimetype);
+        SAFE_CO_FREE(chDescription);
       } else {
         DbgLog((LOG_TRACE, 10, L" -> Unknown attachment, missing filename or mimetype"));
       }
     } else if (st->disposition & AV_DISPOSITION_ATTACHED_PIC && st->attached_pic.data && st->attached_pic.size > 0) {
       LPWSTR chFilename = nullptr;
       LPWSTR chMimeType = nullptr;
+      LPWSTR chDescription = nullptr;
 
       // gather a filename
       const AVDictionaryEntry* attachFilename = av_dict_get(st->metadata, "filename", nullptr, 0);
@@ -721,6 +728,11 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
       const AVDictionaryEntry* attachMimeType = av_dict_get(st->metadata, "mimetype", nullptr, 0);
       if (attachMimeType)
         chMimeType = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachMimeType->value, -1);
+
+      // gather description
+      const AVDictionaryEntry* attachDescription = av_dict_get(st->metadata, "comment", nullptr, 0);
+      if (attachDescription)
+        chDescription = CoTaskGetWideCharFromMultiByte(CP_UTF8, MB_ERR_INVALID_CHARS, attachDescription->value, -1);
 
       for (int c = 0; c < countof(CoverMimeTypes); c++)
       {
@@ -742,7 +754,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
       // Export embedded cover-art through IDSMResourceBag interface
       if (chFilename && chMimeType) {
-        ResAppend(chFilename, nullptr, chMimeType, st->attached_pic.data, (DWORD)st->attached_pic.size);
+        ResAppend(chFilename, chDescription, chMimeType, st->attached_pic.data, (DWORD)st->attached_pic.size);
       } else {
         DbgLog((LOG_TRACE, 10, L" -> Unknown attachment, missing filename or mimetype"));
       }
