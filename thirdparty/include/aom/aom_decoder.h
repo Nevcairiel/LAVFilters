@@ -55,8 +55,6 @@ extern "C" {
 #define AOM_CODEC_CAP_PUT_SLICE 0x10000 /**< Will issue put_slice callbacks */
 #define AOM_CODEC_CAP_PUT_FRAME 0x20000 /**< Will issue put_frame callbacks */
 #define AOM_CODEC_CAP_POSTPROC 0x40000  /**< Can postprocess decoded frame */
-/*!\brief Can receive encoded frames one fragment at a time */
-#define AOM_CODEC_CAP_INPUT_FRAGMENTS 0x100000
 
 /*! \brief Initialization-time Feature Enabling
  *
@@ -65,15 +63,10 @@ extern "C" {
  *
  *  The available flags are specified by AOM_CODEC_USE_* defines.
  */
-/*!\brief Can support frame-based multi-threading */
-#define AOM_CODEC_CAP_FRAME_THREADING 0x200000
 /*!brief Can support external frame buffers */
-#define AOM_CODEC_CAP_EXTERNAL_FRAME_BUFFER 0x400000
+#define AOM_CODEC_CAP_EXTERNAL_FRAME_BUFFER 0x200000
 
 #define AOM_CODEC_USE_POSTPROC 0x10000 /**< Postprocess decoded frame */
-/*!\brief The input frame should be passed to the decoder one fragment at a
- * time */
-#define AOM_CODEC_USE_INPUT_FRAGMENTS 0x40000
 
 /*!\brief Stream properties
  *
@@ -191,13 +184,6 @@ aom_codec_err_t aom_codec_get_stream_info(aom_codec_ctx_t *ctx,
  * generated, as appropriate. Encoded data \ref MUST be passed in DTS (decode
  * time stamp) order. Frames produced will always be in PTS (presentation
  * time stamp) order.
- * If the decoder is configured with AOM_CODEC_USE_INPUT_FRAGMENTS enabled,
- * data and data_sz can contain a fragment of the encoded frame. Fragment
- * \#n must contain at least partition \#n, but can also contain subsequent
- * partitions (\#n+1 - \#n+i), and if so, fragments \#n+1, .., \#n+i must
- * be empty. When no more data is available, this function should be called
- * with NULL as data and 0 as data_sz. The memory passed to this function
- * must be available until the frame has been decoded.
  *
  * \param[in] ctx          Pointer to this instance's context
  * \param[in] data         Pointer to this block of new coded data. If

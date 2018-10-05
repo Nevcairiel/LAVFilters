@@ -5,7 +5,7 @@ libdir=${prefix}/lib32
 includedir=${prefix}/include
 
 Name: aom
-Description: AV1 codec library v1.0.0-552-gbb82e05fb.
+Description: AV1 codec library v1.0.0-729-ged7d0d090.
 Version: 1.0.0
 Requires:
 Conflicts:

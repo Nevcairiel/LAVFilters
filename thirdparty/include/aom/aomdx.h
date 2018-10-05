@@ -227,6 +227,12 @@ enum aom_dec_control_id {
    */
   AV1_SET_INSPECTION_CALLBACK,
 
+  /** control function to set the skip film grain flag. Valid values are
+   * integers. The decoder will skip the film grain when its value is set to
+   * nonzero. The default value is 0.
+   */
+  AV1D_SET_SKIP_FILM_GRAIN,
+
   AOM_DECODER_CTRL_ID_MAX,
 };
 
@@ -276,6 +282,8 @@ AOM_CTRL_USE_TYPE(AV1D_EXT_TILE_DEBUG, unsigned int)
 #define AOM_CTRL_AV1D_EXT_TILE_DEBUG
 AOM_CTRL_USE_TYPE(AV1D_SET_ROW_MT, unsigned int)
 #define AOM_CTRL_AV1D_SET_ROW_MT
+AOM_CTRL_USE_TYPE(AV1D_SET_SKIP_FILM_GRAIN, int)
+#define AOM_CTRL_AV1D_SET_SKIP_FILM_GRAIN
 AOM_CTRL_USE_TYPE(AV1D_SET_IS_ANNEXB, unsigned int)
 #define AOM_CTRL_AV1D_SET_IS_ANNEXB
 AOM_CTRL_USE_TYPE(AV1D_SET_OPERATING_POINT, int)
