@@ -758,6 +758,10 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
       } else {
         DbgLog((LOG_TRACE, 10, L" -> Unknown attachment, missing filename or mimetype"));
       }
+
+      SAFE_CO_FREE(chFilename);
+      SAFE_CO_FREE(chMimeType);
+      SAFE_CO_FREE(chDescription);
     }
   }
 
