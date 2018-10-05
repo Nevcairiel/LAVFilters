@@ -100,8 +100,8 @@ In future versions you'll be able to choose the title from within the player, as
 
 Compiling
 =============================
-Compiling is pretty straight forward using VC++2015 U1 (included project files).
-Older versions of Visual Studio are not supported.
+Compiling is pretty straight forward using VS2017 (included project files).
+Older versions of Visual Studio are not officially supported, but may stil work.
 
 It does, however, require that you build your own ffmpeg and libbluray.
 You need to place the full ffmpeg package in a directory called "ffmpeg" in the 
