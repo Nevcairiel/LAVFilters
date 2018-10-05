@@ -1,6 +1,16 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.73.0 - 2018/10/05
+LAV Splitter
+- Changed: Export the description of cover art and attachments for use by players
+- Fixed: Properly marked the packet allocator as providing read-only packets, to avoid crashes with in-place transform filters
+
+LAV Video
+- NEW: Support for AV1 decoding using libaom
+- Changed: Enabled VP9 hardware acceleration by default
+- Fixed: The aspect ratio of certain WMV/VC-1 files was not being properly respected in the WMV9 MFT decoder
+
 0.72.0 - 2018/06/19
 LAV Video
 - Changed: Enabled CineformHD decoding by default, since the decoder has much improved
