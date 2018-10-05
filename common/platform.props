@@ -5,6 +5,7 @@
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(VisualStudioVersion)' == '15.0'">
     <PlatformToolset>v141</PlatformToolset>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup>
     <UseNativeEnvironment>true</UseNativeEnvironment>
