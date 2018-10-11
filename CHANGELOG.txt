@@ -1,6 +1,13 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.73.1 - 2018/10/11
+LAV Video
+- Fixed: Container-provided color information will only overwrite video bitstream color information if its set and valid
+
+LAV Audio
+- Fixed: Certain multi-channel AAC streams did not decode in 0.73
+
 0.73.0 - 2018/10/05
 LAV Splitter
 - Changed: Export the description of cover art and attachments for use by players
