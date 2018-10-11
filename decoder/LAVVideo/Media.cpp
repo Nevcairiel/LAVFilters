@@ -684,9 +684,10 @@ int flip_plane(BYTE *buffer, int stride, int height)
   return 0;
 }
 
-void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer, int chroma_sample_location)
+void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer, int chroma_sample_location, bool bClear)
 {
-  fmt.value = 0;
+  if (bClear)
+    fmt.value = 0;
 
   if (range != -1)
       fmt.NominalRange = range ? DXVA2_NominalRange_0_255 : DXVA2_NominalRange_16_235;

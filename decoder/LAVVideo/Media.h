@@ -36,7 +36,7 @@ struct codec_config_t {
 const codec_config_t *get_codec_config(LAVVideoCodec codec);
 
 int flip_plane(BYTE *buffer, int stride, int height);
-void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer, int chroma_sample_location = 0);
+void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer, int chroma_sample_location = 0, bool bClear = true);
 void processFFHDRData(MediaSideDataHDR *sd, AVMasteringDisplayMetadata *ff);
 
 #define STATE_NOT_FOUND 0

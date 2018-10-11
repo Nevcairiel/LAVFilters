@@ -1752,7 +1752,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
   // Process stream-level sidedata and attach it to the frame if necessary
   if (m_SideData.Mastering.has_colorspace) {
-    fillDXVAExtFormat(pFrame->ext_format, m_SideData.Mastering.color_range - 1, m_SideData.Mastering.color_primaries, m_SideData.Mastering.colorspace, m_SideData.Mastering.color_trc, m_SideData.Mastering.chroma_location);
+    fillDXVAExtFormat(pFrame->ext_format, m_SideData.Mastering.color_range - 1, m_SideData.Mastering.color_primaries, m_SideData.Mastering.colorspace, m_SideData.Mastering.color_trc, m_SideData.Mastering.chroma_location, false);
   }
   if (m_SideData.Mastering.has_luminance || m_SideData.Mastering.has_primaries) {
     MediaSideDataHDR *hdr = nullptr;
