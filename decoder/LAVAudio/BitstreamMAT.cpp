@@ -27,7 +27,8 @@ extern "C"
 #include "libavformat/spdif.h"
 }
 
-#define MAT_BUFFER_LIMIT (61440 /* IEC total frame size */ - 24 /* MAT end code size */)
+#define MAT_BUFFER_SIZE (61440)
+#define MAT_BUFFER_LIMIT (MAT_BUFFER_SIZE - 24 /* MAT end code size */)
 #define MAT_POS_MIDDLE (30708 /* middle point*/ + 8 /* IEC header in front */)
 
 static const BYTE mat_start_code[20] = { 0x07, 0x9E, 0x00, 0x03, 0x84, 0x01, 0x01, 0x01, 0x80, 0x00, 0x56, 0xA5, 0x3B, 0xF4, 0x81, 0x83, 0x49, 0x80, 0x77, 0xE0 };
@@ -143,7 +144,7 @@ int CLAVAudio::MATFillDataBuffer(const BYTE *p, int size, bool padding)
   }
 
   // not enough room in the buffer to write all the data, write as much as we can and add the MAT footer
-  if (m_bsOutput.GetCount() + size > MAT_BUFFER_LIMIT)
+  if (m_bsOutput.GetCount() + size >= MAT_BUFFER_LIMIT)
   {
     // write as much data before the middle code as we can
     int nBytesBefore = MAT_BUFFER_LIMIT - m_bsOutput.GetCount();
@@ -152,6 +153,8 @@ int CLAVAudio::MATFillDataBuffer(const BYTE *p, int size, bool padding)
 
     // write the MAT end code
     MATAppendData(mat_end_code, sizeof(mat_end_code));
+
+    ASSERT(m_bsOutput.GetCount() == MAT_BUFFER_SIZE);
 
     // MAT markers don't displace padding, so reduce the amount of padding
     if (padding)
@@ -213,17 +216,6 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
   m_TrueHDMATState.prev_frametime = frame_time;
   m_TrueHDMATState.prev_frametime_valid = true;
 
-  // if the buffer is as full as its going to be, add the MAT footer and flush it
-  if (m_bsOutput.GetCount() >= MAT_BUFFER_LIMIT)
-  {
-    // write footer and remove it from the padding
-    MATAppendData(mat_end_code, sizeof(mat_end_code));
-    m_TrueHDMATState.padding -= sizeof(mat_end_code);
-
-    // flush packet out
-    MATFlushPacket(hrDeliver);
-  }
-
   // Write the MAT header into the fresh buffer
   if (m_bsOutput.GetCount() == 0)
   {
@@ -234,29 +226,36 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
   MATWritePadding();
 
   // Buffer is full, submit it
-  if (m_bsOutput.GetCount() >= (61440 - 8))
+  if (m_bsOutput.GetCount() == MAT_BUFFER_SIZE)
   {
     MATFlushPacket(hrDeliver);
 
     // and setup a new buffer
     MATWriteHeader();
+
+    // write any remaining padding
     MATWritePadding();
   }
 
   // write actual audio data to the buffer
   int remaining = MATFillDataBuffer(p, buffsize);
 
-  // not all data could be written
-  if (remaining)
+  // not all data could be written, or the buffer is full
+  if (remaining || m_bsOutput.GetCount() == MAT_BUFFER_SIZE)
   {
     // flush out old data
     MATFlushPacket(hrDeliver);
 
-    // .. setup a new buffer
-    MATWriteHeader();
+    if (remaining)
+    {
+      // .. setup a new buffer
+      MATWriteHeader();
 
-    // and write the remaining data
-    MATFillDataBuffer(p + (buffsize - remaining), remaining);
+      // and write the remaining data
+      remaining = MATFillDataBuffer(p + (buffsize - remaining), remaining);
+
+      ASSERT(remaining == 0);
+    }
   }
 
   // store the size of the current MAT frame, so we can add padding later
