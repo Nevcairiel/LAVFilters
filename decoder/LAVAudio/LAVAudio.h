@@ -360,6 +360,7 @@ private:
 
   // TrueHD Bitstreaming
   struct {
+    bool init = false;
     int ratebits = 0;
 
     uint16_t prev_frametime = 0;

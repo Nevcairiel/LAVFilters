@@ -220,6 +220,13 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
   if (m_bsOutput.GetCount() == 0)
   {
     MATWriteHeader();
+
+    // initial header, don't count it for the frame size
+    if (m_TrueHDMATState.init == false)
+    {
+      m_TrueHDMATState.init = true;
+      m_TrueHDMATState.mat_framesize = 0;
+    }
   }
 
   // write padding of the previous frame (if any)
