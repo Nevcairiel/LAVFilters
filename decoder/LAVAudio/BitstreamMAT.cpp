@@ -136,8 +136,7 @@ int CLAVAudio::MATFillDataBuffer(const BYTE *p, int size, bool padding)
     // write remaining data after the MAT marker
     if (remaining > 0)
     {
-      MATAppendData(p + nBytesBefore, remaining);
-      remaining = 0;
+      remaining = MATFillDataBuffer(p + nBytesBefore, remaining, padding);
     }
 
     return remaining;
@@ -172,6 +171,8 @@ int CLAVAudio::MATFillDataBuffer(const BYTE *p, int size, bool padding)
 void CLAVAudio::MATFlushPacket(HRESULT *hrDeliver)
 {
   if (m_bsOutput.GetCount() > 0) {
+    ASSERT(m_bsOutput.GetCount() == 61440);
+
     // Deliver MAT packet to the audio renderer
     *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache, m_rtStopInputCache, true);
     m_bsOutput.SetSize(0);
@@ -235,18 +236,20 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
   }
 
   // write padding of the previous frame (if any)
-  MATWritePadding();
-
-  // Buffer is full, submit it
-  if (m_bsOutput.GetCount() == MAT_BUFFER_SIZE)
+  while (m_TrueHDMATState.padding > 0)
   {
-    MATFlushPacket(hrDeliver);
-
-    // and setup a new buffer
-    MATWriteHeader();
-
-    // write any remaining padding
     MATWritePadding();
+
+    ASSERT(m_TrueHDMATState.padding == 0 || m_bsOutput.GetCount() == MAT_BUFFER_SIZE);
+
+    // Buffer is full, submit it
+    if (m_bsOutput.GetCount() == MAT_BUFFER_SIZE)
+    {
+      MATFlushPacket(hrDeliver);
+
+      // and setup a new buffer
+      MATWriteHeader();
+    }
   }
 
   // write actual audio data to the buffer
