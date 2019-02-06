@@ -1203,11 +1203,6 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
   }
 
-  // madVR uses a different value for SMPTE ST 2084
-  if (dxvaExtFlags.VideoTransferFunction == 15 && m_bMadVR) {
-    dxvaExtFlags.VideoTransferFunction = 16;
-  }
-
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
     if (avgFrameDuration == AV_NOPTS_VALUE)
