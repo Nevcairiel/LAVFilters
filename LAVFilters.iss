@@ -456,9 +456,9 @@ begin
         ExtractTemporaryFile('7za.exe');
         targetPath := ExpandConstant('{tmp}\');
         if IsComponentSelected('lavvideo32') then
-          DoUnzip(targetPath + 'libmfxsw32-v2.7z', ExpandConstant('{app}\x86'));
+          DoUnzip(targetPath + 'libmfxsw32-v3.7z', ExpandConstant('{app}\x86'));
         if IsComponentSelected('lavvideo64') then
-          DoUnzip(targetPath + 'libmfxsw64-v2.7z', ExpandConstant('{app}\x64'));
+          DoUnzip(targetPath + 'libmfxsw64-v3.7z', ExpandConstant('{app}\x64'));
       end;
   end;
 end;
@@ -474,9 +474,9 @@ begin
       if IsComponentSelected('mvc3d') then
       begin
         if IsComponentSelected('lavvideo32') then
-          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw32-v2.7z', ExpandConstant('{tmp}\libmfxsw32-v2.7z'));
+          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw32-v3.7z', ExpandConstant('{tmp}\libmfxsw32-v3.7z'));
         if IsComponentSelected('lavvideo64') then
-          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw64-v2.7z', ExpandConstant('{tmp}\libmfxsw64-v2.7z'));
+          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw64-v3.7z', ExpandConstant('{tmp}\libmfxsw64-v3.7z'));
       end;
   end;
 end;
