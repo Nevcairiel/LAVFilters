@@ -23,7 +23,7 @@ AllowUNCPath              = no
 AppId                     = lavfilters
 AppName                   = LAV Filters
 AppPublisher              = Hendrik Leppkes
-AppPublisherURL           = http://1f0.de/
+AppPublisherURL           = https://1f0.de/
 AppVerName                = LAV Filters {#=LAV_VERSION_STRING}
 AppVersion                = {#=LAV_VERSION_STRING}
 VersionInfoVersion        = {#=LAV_VERSION_MAJOR}.{#=LAV_VERSION_MINOR}.{#=LAV_VERSION_REVISION}.{#=LAV_VERSION_BUILD}
@@ -115,8 +115,8 @@ Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Paramet
 Name: {group}\LAV Audio Configuration;           Filename: rundll32.exe; Parameters: """{app}\x64\LAVAudio.ax"",OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVAudio.ax; IconIndex: 0; Tasks: icons; Components: lavaudio64 AND NOT lavaudio32
 Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: """{app}\x86\LAVVideo.ax"",OpenConfiguration"; WorkingDir: {app}\x86; IconFilename: {app}\x86\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo32
 Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: """{app}\x64\LAVVideo.ax"",OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo64 AND NOT lavvideo32
-Name: {group}\Visit LAV Filters Home Page;       Filename: "http://1f0.de/"; Tasks: icons
-Name: {group}\Visit LAV Filters on Doom9;        Filename: "http://forum.doom9.org/showthread.php?t=156191"; Tasks: icons
+Name: {group}\Visit LAV Filters Home Page;       Filename: "https://1f0.de/"; Tasks: icons
+Name: {group}\Visit LAV Filters on Doom9;        Filename: "https://forum.doom9.org/showthread.php?t=156191"; Tasks: icons
 Name: {group}\Uninstall LAV Filters;             Filename: {uninstallexe}; Tasks: icons
 
 [Registry]
@@ -474,9 +474,9 @@ begin
       if IsComponentSelected('mvc3d') then
       begin
         if IsComponentSelected('lavvideo32') then
-          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw32-v3.7z', ExpandConstant('{tmp}\libmfxsw32-v3.7z'));
+          idpAddFile('https://files.1f0.de/lavf/plugins/libmfxsw32-v3.7z', ExpandConstant('{tmp}\libmfxsw32-v3.7z'));
         if IsComponentSelected('lavvideo64') then
-          idpAddFile('http://files.1f0.de/lavf/plugins/libmfxsw64-v3.7z', ExpandConstant('{tmp}\libmfxsw64-v3.7z'));
+          idpAddFile('https://files.1f0.de/lavf/plugins/libmfxsw64-v3.7z', ExpandConstant('{tmp}\libmfxsw64-v3.7z'));
       end;
   end;
 end;
