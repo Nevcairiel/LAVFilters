@@ -776,6 +776,9 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   case AVCOL_TRC_SMPTEST2084:
     fmt.VideoTransferFunction = 15;
     break;
+  case AVCOL_TRC_ARIB_STD_B67: // HLG
+    fmt.VideoTransferFunction = 16;
+    break;
   }
 
   // Chroma location

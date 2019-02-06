@@ -1203,6 +1203,13 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
   }
 
+  // madVR doesn't understand HLG yet, fallback to BT.709, which makes use of the backwards-compatible nature of HLG
+  // Value 16 was used for ST2084 by madVR, which results in a terrible experience with HLG videos otherwise
+  // TODO: remove once madVR learns HLG
+  if (dxvaExtFlags.VideoTransferFunction == 16 && m_bMadVR) {
+    dxvaExtFlags.VideoTransferFunction = DXVA2_VideoTransFunc_709;
+  }
+
   if (mt.formattype  == FORMAT_VideoInfo) {
     VIDEOINFOHEADER *vih = (VIDEOINFOHEADER *)mt.Format();
     if (avgFrameDuration == AV_NOPTS_VALUE)
