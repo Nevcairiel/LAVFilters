@@ -1,6 +1,6 @@
 /* ****************************************************************************** *\
 
-Copyright (C) 2007-2016 Intel Corporation.  All rights reserved.
+Copyright (C) 2007-2018 Intel Corporation.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,6 +29,15 @@ File Name: mfxdefs.h
 \* ****************************************************************************** */
 #ifndef __MFXDEFS_H__
 #define __MFXDEFS_H__
+
+#define MFX_VERSION_MAJOR 1
+#define MFX_VERSION_MINOR 27
+
+#define MFX_VERSION_NEXT 1028
+
+#ifndef MFX_VERSION
+#define MFX_VERSION (MFX_VERSION_MAJOR * 1000 + MFX_VERSION_MINOR)
+#endif
 
 #ifdef __cplusplus
 extern "C"
