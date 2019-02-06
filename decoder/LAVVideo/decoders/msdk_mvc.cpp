@@ -391,7 +391,7 @@ STDMETHODIMP CDecMSDKMVC::Decode(const BYTE *buffer, int buflen, REFERENCE_TIME 
         bsBuffer.EnsureWriteable();
         // This is rather ugly, and relies on the bitstream being AnnexB, so simply overwriting the EOS NAL with zero works.
         // In the future a more elaborate bitstream filter might be advised
-        memset(bsBuffer.GetBuffer() + nalu.GetNALPos(), 0, 4);
+        memset(bsBuffer.GetBuffer() + nalu.GetNALPos(), 0, 3 + nalu.GetDataLength());
       }
     }
 
