@@ -95,8 +95,12 @@ CDecMSDKMVC::~CDecMSDKMVC()
 
 STDMETHODIMP CDecMSDKMVC::Init()
 {
-  const mfxIMPL impls[] = { /*MFX_IMPL_AUTO_ANY,*/ MFX_IMPL_SOFTWARE };
+  mfxIMPL impls[] = { MFX_IMPL_AUTO_ANY, MFX_IMPL_SOFTWARE };
   mfxVersion version = { 8, 1 };
+
+  // Check if HWAccel is allowed
+  if (!m_pSettings->GetHWAccelCodec(HWCodec_H264MVC))
+    impls[0] = MFX_IMPL_SOFTWARE;
 
   for (int i = 0; i < countof(impls); i++)
   {
@@ -120,6 +124,8 @@ STDMETHODIMP CDecMSDKMVC::Init()
       m_mfxSession = nullptr;
       continue;
     }
+
+    m_mfxImpl = impl;
 
     break;
   }

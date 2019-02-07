@@ -104,6 +104,7 @@ typedef enum LAVVideoHWCodec {
   HWCodec_MPEG2DVD,
   HWCodec_HEVC,
   HWCodec_VP9,
+  HWCodec_H264MVC,
 
   HWCodec_NB,
 } LAVVideoHWCodec;

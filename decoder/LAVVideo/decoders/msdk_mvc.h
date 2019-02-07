@@ -59,7 +59,7 @@ public:
   STDMETHODIMP EndOfStream();
   STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp) { if (pPix) *pPix = LAVPixFmt_NV12; if (pBpp) *pBpp = 8; return S_OK; }
   STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess) { return FALSE; }
-  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"msdk mvc"; }
+  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return (m_mfxImpl != MFX_IMPL_SOFTWARE) ? L"msdk mvc hw" : L"msdk mvc"; }
   STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }
 
   // CDecBase
@@ -91,6 +91,7 @@ private:
 
   mfxSession m_mfxSession = nullptr;
   mfxVersion m_mfxVersion = { 0 };
+  mfxIMPL    m_mfxImpl = 0;
 
   BOOL                 m_bDecodeReady   = FALSE;
   mfxVideoParam        m_mfxVideoParams = { 0 };

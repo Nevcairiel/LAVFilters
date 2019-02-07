@@ -155,6 +155,7 @@ HRESULT CLAVVideo::LoadDefaults()
     m_settings.bHWFormats[i] = TRUE;
 
   m_settings.bHWFormats[HWCodec_MPEG4] = FALSE;
+  m_settings.bHWFormats[HWCodec_H264MVC] = FALSE;
 
   m_settings.HWAccelResFlags = LAVHWResFlag_SD|LAVHWResFlag_HD|LAVHWResFlag_UHD;
 
@@ -292,6 +293,9 @@ HRESULT CLAVVideo::ReadSettings(HKEY rootKey)
     bFlag = regHW.ReadBOOL(L"vp9", hr);
     if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_VP9] = bFlag;
 
+    bFlag = regHW.ReadBOOL(L"h264mvc", hr);
+    if (SUCCEEDED(hr)) m_settings.bHWFormats[HWCodec_H264MVC] = bFlag;
+
     dwVal = regHW.ReadDWORD(L"HWResFlags", hr);
     if (SUCCEEDED(hr)) m_settings.HWAccelResFlags = dwVal;
 
@@ -363,6 +367,7 @@ HRESULT CLAVVideo::SaveSettings()
     regHW.WriteBOOL(L"dvd",m_settings.bHWFormats[HWCodec_MPEG2DVD]);
     regHW.WriteBOOL(L"hevc",m_settings.bHWFormats[HWCodec_HEVC]);
     regHW.WriteBOOL(L"vp9", m_settings.bHWFormats[HWCodec_VP9]);
+    regHW.WriteBOOL(L"h264mvc", m_settings.bHWFormats[HWCodec_H264MVC]);
 
     regHW.WriteDWORD(L"HWResFlags", m_settings.HWAccelResFlags);
 

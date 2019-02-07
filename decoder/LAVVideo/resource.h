@@ -95,6 +95,7 @@
 #define IDC_LBL_HWACCEL_DEVICE_SELECT   1086
 #define IDC_LBL_HWACCEL_DEVICE_HINT     1087
 #define IDC_HWACCEL_CUVID_DXVA          1088
+#define IDC_HWACCEL_H264MVC             1089
 
 // Next default values for new objects
 // 

@@ -129,6 +129,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VP9, BM_GETCHECK, 0, 0);
   m_pVideoSettings->SetHWAccelCodec(HWCodec_VP9, bFlag);
 
+  bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264MVC, BM_GETCHECK, 0, 0);
+  m_pVideoSettings->SetHWAccelCodec(HWCodec_H264MVC, bFlag);
+
   DWORD dwHWResFlags = 0;
   bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWRES_SD, BM_GETCHECK, 0, 0);
   if (bFlag) dwHWResFlags |= LAVHWResFlag_SD;
@@ -304,6 +307,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2_DVD, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2DVD], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_HEVC, BM_SETCHECK, m_HWAccelCodecs[HWCodec_HEVC], 0);
     SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VP9, BM_SETCHECK, m_HWAccelCodecs[HWCodec_VP9], 0);
+    SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264MVC, BM_SETCHECK, m_HWAccelCodecs[HWCodec_H264MVC], 0);
 
     SendDlgItemMessage(m_Dlg, IDC_HWRES_SD, BM_SETCHECK, !!(m_HWRes & LAVHWResFlag_SD), 0);
     SendDlgItemMessage(m_Dlg, IDC_HWRES_HD, BM_SETCHECK, !!(m_HWRes & LAVHWResFlag_HD), 0);
@@ -651,6 +655,12 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
     else if (LOWORD(wParam) == IDC_HWACCEL_VP9 && HIWORD(wParam) == BN_CLICKED) {
       bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
       if (bValue != m_HWAccelCodecs[HWCodec_VP9]) {
+        SetDirty();
+      }
+    }
+    else if (LOWORD(wParam) == IDC_HWACCEL_H264MVC && HIWORD(wParam) == BN_CLICKED) {
+      bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+      if (bValue != m_HWAccelCodecs[HWCodec_H264MVC]) {
         SetDirty();
       }
     }
