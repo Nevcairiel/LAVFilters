@@ -24,8 +24,6 @@
 #include "mfxvideo.h"
 #include "mfxmvc.h"
 
-#include "parsers/AnnexBConverter.h"
-
 #include <deque>
 #include <vector>
 
@@ -104,7 +102,7 @@ private:
   std::vector<MVCBuffer *> m_BufferQueue;
 
   GrowableArray<BYTE>  m_buff;
-  CAnnexBConverter    *m_pAnnexBConverter = nullptr;
+  int                  m_nMP4NALUSize = 0;
 
   MVCBuffer           *m_pOutputQueue[ASYNC_QUEUE_SIZE] = { 0 };
   int                  m_nOutputQueuePosition = 0;
