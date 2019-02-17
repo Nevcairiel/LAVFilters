@@ -30,11 +30,11 @@ extern "C" {
  * types, removing or reassigning enums, adding/removing/rearranging
  * fields to structures
  */
-#define AOM_IMAGE_ABI_VERSION (4) /**<\hideinitializer*/
+#define AOM_IMAGE_ABI_VERSION (5) /**<\hideinitializer*/
 
-#define AOM_IMG_FMT_PLANAR 0x100       /**< Image is a planar format. */
-#define AOM_IMG_FMT_UV_FLIP 0x200      /**< V plane precedes U in memory. */
-#define AOM_IMG_FMT_HAS_ALPHA 0x400    /**< Image has an alpha channel. */
+#define AOM_IMG_FMT_PLANAR 0x100  /**< Image is a planar format. */
+#define AOM_IMG_FMT_UV_FLIP 0x200 /**< V plane precedes U in memory. */
+/** 0x400 used to signal alpha channel, skipping for backwards compatibility. */
 #define AOM_IMG_FMT_HIGHBITDEPTH 0x800 /**< Image uses 16bit framebuffer. */
 
 /*!\brief List of supported image formats */
@@ -48,8 +48,8 @@ typedef enum aom_img_fmt {
   AOM_IMG_FMT_AOMI420 = AOM_IMG_FMT_PLANAR | 4,
   AOM_IMG_FMT_I422 = AOM_IMG_FMT_PLANAR | 5,
   AOM_IMG_FMT_I444 = AOM_IMG_FMT_PLANAR | 6,
-  AOM_IMG_FMT_444A = AOM_IMG_FMT_PLANAR | AOM_IMG_FMT_HAS_ALPHA | 6,
   AOM_IMG_FMT_I42016 = AOM_IMG_FMT_I420 | AOM_IMG_FMT_HIGHBITDEPTH,
+  AOM_IMG_FMT_YV1216 = AOM_IMG_FMT_YV12 | AOM_IMG_FMT_HIGHBITDEPTH,
   AOM_IMG_FMT_I42216 = AOM_IMG_FMT_I422 | AOM_IMG_FMT_HIGHBITDEPTH,
   AOM_IMG_FMT_I44416 = AOM_IMG_FMT_I444 | AOM_IMG_FMT_HIGHBITDEPTH,
 } aom_img_fmt_t; /**< alias for enum aom_img_fmt */
@@ -169,9 +169,8 @@ typedef struct aom_image {
 #define AOM_PLANE_Y 0       /**< Y (Luminance) plane */
 #define AOM_PLANE_U 1       /**< U (Chroma) plane */
 #define AOM_PLANE_V 2       /**< V (Chroma) plane */
-#define AOM_PLANE_ALPHA 3   /**< A (Transparency) plane */
-  unsigned char *planes[4]; /**< pointer to the top left pixel for each plane */
-  int stride[4];            /**< stride between rows for each plane */
+  unsigned char *planes[3]; /**< pointer to the top left pixel for each plane */
+  int stride[3];            /**< stride between rows for each plane */
   size_t sz;                /**< data size */
 
   int bps; /**< bits per sample (for packed formats) */
