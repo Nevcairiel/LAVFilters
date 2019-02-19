@@ -141,12 +141,12 @@ BEGIN
     LTEXT           "The mixing levels control the volume of the individual channels when being mixed with other channels into a downmix.",IDC_LBL_MIXING_LEVEL,12,97,200,18
 END
 
-IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 369, 215
+IDD_PROPPAGE_FORMATS DIALOGEX 0, 0, 369, 234
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     LTEXT           "Here you can select which formats LAV Audio should decode.\nBecause LAV Audio supports a wide range of (rare) formats, not all are listed here.\nIf you need to configure a specific format which is not listed, submit a ticket asking for the option.",IDC_LBL_FORMATS,8,10,333,30
-    CONTROL         "",IDC_CODECS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,40,351,166
+    CONTROL         "",IDC_CODECS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,7,40,351,185
 END
 
 IDD_PROPPAGE_STATUS DIALOGEX 0, 0, 214, 156
