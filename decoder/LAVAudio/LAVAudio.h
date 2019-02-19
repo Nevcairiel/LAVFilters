@@ -103,6 +103,8 @@ public:
   STDMETHODIMP SetBitstreamConfig(LAVBitstreamCodec bsCodec, BOOL bEnabled);
   STDMETHODIMP_(BOOL) GetDTSHDFraming();
   STDMETHODIMP SetDTSHDFraming(BOOL bHDFraming);
+  STDMETHODIMP_(BOOL) GetBitstreamingFallback();
+  STDMETHODIMP SetBitstreamingFallback(BOOL bBitstreamingFallback);
   STDMETHODIMP_(BOOL) GetAutoAVSync();
   STDMETHODIMP SetAutoAVSync(BOOL bAutoSync);
   STDMETHODIMP_(BOOL) GetOutputStandardLayout();
@@ -294,6 +296,7 @@ private:
     BOOL bFormats[Codec_AudioNB];
     BOOL bBitstream[Bitstream_NB];
     BOOL DTSHDFraming;
+    BOOL bBitstreamingFallback;
     BOOL AutoAVSync;
     BOOL ExpandMono;
     BOOL Expand61;

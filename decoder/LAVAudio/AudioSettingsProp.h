@@ -71,6 +71,7 @@ private:
 
   bool m_bBitstreaming[Bitstream_NB];
   BOOL m_bDTSHDFraming;
+  BOOL m_bBitstreamingFallback;
   BOOL m_bAutoAVSync;
   BOOL m_bOutputStdLayout;
   BOOL m_bOutput51Legacy;

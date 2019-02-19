@@ -28,6 +28,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // remains consistent on all systems.
 IDI_ICON1               ICON                    "..\\..\\resources\\blue.ico"
 
+
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -63,7 +64,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_AUDIO_SETTINGS DIALOGEX 0, 0, 369, 224
+IDD_PROPPAGE_AUDIO_SETTINGS DIALOGEX 0, 0, 369, 234
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
@@ -73,7 +74,7 @@ BEGIN
     CONTROL         "",IDC_DRC_LEVEL,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_TABSTOP,50,30,100,12
     LTEXT           "Level: ",IDC_LBL_DRC_LEVEL,15,30,28,8
     LTEXT           "100%",IDC_DRC_LEVEL_TEXT,150,30,20,8,0,WS_EX_RIGHT
-    GROUPBOX        "Bitstreaming (S/PDIF, HDMI)",IDC_BITSTREAMING,7,50,196,88
+    GROUPBOX        "Bitstreaming (S/PDIF, HDMI)",IDC_BITSTREAMING,7,50,196,98
     LTEXT           "Formats",IDC_BS_FORMATS,12,60,122,8
     CONTROL         "Dolby Digital (AC-3)",IDC_BS_AC3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,72,79,10
     CONTROL         "Dolby Digital Plus (E-AC3)",IDC_BS_EAC3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,86,97,10
@@ -83,14 +84,17 @@ BEGIN
     LTEXT           "Options",IDC_BS_OPTIONS,12,112,26,8
     CONTROL         "Force max DTS-HD rate (not recommended)",IDC_BS_DTSHD_FRAMING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,123,151,10
-    GROUPBOX        "Options",IDC_OPTIONS,7,139,196,65
-    CONTROL         "Auto A/V Sync correction",IDC_AUTO_AVSYNC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,150,96,10
+    CONTROL         "Fallback to PCM if Bitstreaming is not supported",IDC_BS_FALLBACK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,135,161,10
+    GROUPBOX        "Options",IDC_OPTIONS,7,149,196,65
+    CONTROL         "Auto A/V Sync correction",IDC_AUTO_AVSYNC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,160,96,10
     CONTROL         "Convert Output to Standard Channel Layouts",IDC_STANDARD_CH_LAYOUT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,164,162,10
-    CONTROL         "Expand Mono to Stereo",IDC_EXPAND_MONO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,178,91,10
-    CONTROL         "Expand 6.1 to 7.1",IDC_EXPAND61,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,118,178,74,10
-    CONTROL         "Use Legacy 5.1 channel layout",IDC_OUTPUT51_LEGACY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,192,162,10
-    LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,209,211,149,8,0,WS_EX_RIGHT
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,174,162,10
+    CONTROL         "Expand Mono to Stereo",IDC_EXPAND_MONO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,188,91,10
+    CONTROL         "Expand 6.1 to 7.1",IDC_EXPAND61,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,118,188,74,10
+    CONTROL         "Use Legacy 5.1 channel layout",IDC_OUTPUT51_LEGACY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,202,162,10
+    LTEXT           "LAV Audio Decoder x.xx",IDC_LAVAUDIO_FOOTER,209,221,149,8,0,WS_EX_RIGHT
     GROUPBOX        "Output Formats",IDC_OUTPUT_FORMATS,207,59,151,132
     LTEXT           "Select which output formats are available.\nThe best format is used automatically.",IDC_LBL_OUTPUTFORMATS,213,70,140,22
     CONTROL         "16-bit Integer",IDC_OUT_S16,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,216,91,61,10
@@ -106,7 +110,7 @@ BEGIN
     LTEXT           "Delay (in ms):",IDC_STATIC,213,37,47,8
     EDITTEXT        IDC_DELAY,261,35,46,13,ES_AUTOHSCROLL,WS_EX_RIGHT
     CONTROL         "",IDC_DELAYSPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS | UDS_HOTTRACK,305,35,11,13
-    CONTROL         "Enable System Tray Icon",IDC_TRAYICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,209,192,10
+    CONTROL         "Enable System Tray Icon", IDC_TRAYICON, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 7, 219, 192, 10
 END
 
 IDD_PROPPAGE_AUDIO_MIXING DIALOGEX 0, 0, 369, 215
@@ -200,7 +204,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 358
         TOPMARGIN, 7
-        BOTTOMMARGIN, 219
+        BOTTOMMARGIN, 229
     END
 
     IDD_PROPPAGE_AUDIO_MIXING, DIALOG
@@ -228,7 +232,6 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
-
 
 /////////////////////////////////////////////////////////////////////////////
 //

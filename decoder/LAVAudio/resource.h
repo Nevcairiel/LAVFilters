@@ -108,6 +108,7 @@
 #define IDC_TRAYICON                    1131
 #define IDC_OUT_S16_DITHER              1132
 #define IDC_OUTPUT51_LEGACY             1133
+#define IDC_BS_FALLBACK                 1135
 
 // Next default values for new objects
 // 

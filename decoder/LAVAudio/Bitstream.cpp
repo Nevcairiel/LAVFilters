@@ -483,7 +483,7 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
       UpdateBitstreamContext();
       goto done;
     }
-    else if (hr == S_FALSE)
+    else if (hr == S_FALSE && m_settings.bBitstreamingFallback)
     {
       BitstreamFallbackToPCM();
       goto done;
