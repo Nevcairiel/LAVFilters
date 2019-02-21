@@ -21,6 +21,7 @@
 
 #include "IMediaSideData.h"
 #include "libavutil/mastering_display_metadata.h"
+#include "libavutil/hdr_dynamic_metadata.h"
 
 AVCodecID FindCodecId(const CMediaType *mt);
 int getThreadFlags(AVCodecID codecId);
@@ -38,6 +39,7 @@ const codec_config_t *get_codec_config(LAVVideoCodec codec);
 int flip_plane(BYTE *buffer, int stride, int height);
 void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer, int chroma_sample_location = 0, bool bClear = true);
 void processFFHDRData(MediaSideDataHDR *sd, AVMasteringDisplayMetadata *ff);
+void processFFHDR10PlusData(MediaSideDataHDR10Plus *sd, AVDynamicHDRPlus *ff, int width, int height);
 
 #define STATE_NOT_FOUND 0
 #define STATE_EOS_FOUND 1

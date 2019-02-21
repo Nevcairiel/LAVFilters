@@ -37,6 +37,7 @@
 extern "C" {
 #include "libavutil/pixdesc.h"
 #include "libavutil/mastering_display_metadata.h"
+#include "libavutil/hdr_dynamic_metadata.h"
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1097,6 +1098,18 @@ send_packet:
       }
       else {
         DbgLog((LOG_TRACE, 10, L"::Decode(): Found HDR Light Level data of an unexpected size (%d)", sdHDRContentLightLevel->size));
+      }
+    }
+
+    AVFrameSideData * sdHDR10Plus = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_DYNAMIC_HDR_PLUS);
+    if (sdHDR10Plus) {
+      if (sdHDR10Plus->size == sizeof(AVDynamicHDRPlus)) {
+        AVDynamicHDRPlus *metadata = (AVDynamicHDRPlus *)sdHDR10Plus->data;
+        MediaSideDataHDR10Plus * hdr = (MediaSideDataHDR10Plus *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR10Plus, sizeof(MediaSideDataHDR10Plus));
+        processFFHDR10PlusData(hdr, metadata, m_pFrame->width, m_pFrame->height);
+      }
+      else {
+        DbgLog((LOG_TRACE, 10, L"::Decode(): Found HDR10+ data of an unexpected size (%d)", sdHDR10Plus->size));
       }
     }
 

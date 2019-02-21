@@ -61,6 +61,71 @@ struct MediaSideDataHDRContentLightLevel
 };
 #pragma pack(pop)
 
+// {183ED511-8910-4262-88F6-4946BC799C84}
+DEFINE_GUID(IID_MediaSideDataHDR10Plus,
+  0x183ed511, 0x8910, 0x4262, 0x88, 0xf6, 0x49, 0x46, 0xbc, 0x79, 0x9c, 0x84);
+
+#pragma pack(push, 1)
+// HDR10+ metadata according to SMPTE 2094-40
+// Refer to the specification for the meaning of the fields
+//
+// All pixel values are kept as-is, rational values are normalized as double-precision floating point
+struct MediaSideDataHDR10Plus
+{
+  // number of windows (1-3)
+  unsigned int num_windows;
+
+  // processing windows
+  struct {
+    unsigned int upper_left_corner_x;
+    unsigned int upper_left_corner_y;
+    unsigned int lower_right_corner_x;
+    unsigned int lower_right_corner_y;
+    unsigned int center_of_ellipse_x;
+    unsigned int center_of_ellipse_y;
+    unsigned int rotation_angle;
+    unsigned int semimajor_axis_internal_ellipse;
+    unsigned int semimajor_axis_external_ellipse;
+    unsigned int semiminor_axis_external_ellipse;
+    unsigned int overlap_process_option;
+
+    double maxscl[3];
+    double average_maxrgb;
+
+    unsigned int num_distribution_maxrgb_percentiles;
+    struct {
+      unsigned int percentage;
+      double percentile;
+    } distribution_maxrgb_percentiles[15];
+
+    double fraction_bright_pixels;
+
+    unsigned int tone_mapping_flag;
+
+    double knee_point_x;
+    double knee_point_y;
+
+    unsigned int num_bezier_curve_anchors;
+    double bezier_curve_anchors[15];
+
+    unsigned int color_saturation_mapping_flag;
+    double color_saturation_weight;
+  } windows[3];
+
+  double targeted_system_display_maximum_luminance;
+
+  unsigned int targeted_system_display_actual_peak_luminance_flag;
+  unsigned int num_rows_targeted_system_display_actual_peak_luminance;
+  unsigned int num_cols_targeted_system_display_actual_peak_luminance;
+  double targeted_system_display_actual_peak_luminance[25][25];
+
+  unsigned int mastering_display_actual_peak_luminance_flag;
+  unsigned int num_rows_mastering_display_actual_peak_luminance;
+  unsigned int num_cols_mastering_display_actual_peak_luminance;
+  double mastering_display_actual_peak_luminance[25][25];
+};
+#pragma pack(pop)
+
 // -----------------------------------------------------------------
 // 3D Plane Offset Side Data
 // -----------------------------------------------------------------
