@@ -61,7 +61,7 @@ configure() (
     --disable-muxers                \
     --enable-muxer=spdif            \
     --disable-bsfs                  \
-    --enable-bsf=extract_extradata,vp9_superframe \
+    --enable-bsf=extract_extradata,vp9_superframe_split \
     --disable-cuda                  \
     --disable-cuvid                 \
     --disable-nvenc                 \
