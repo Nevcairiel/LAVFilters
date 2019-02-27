@@ -1,6 +1,20 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.74.0 - 2019/xx/xx
+LAV Splitter
+- Changed: Using GnuTLS for HTTPS and other TLS protocols, improving performance and compatibility with a lot of web streaming services (ie. YouTube Live Streams through youtube-dl, and more)
+- Fixed: Keyframes in MP4 files were being reported with a slightly offset timestamp, resulting in slow keyframe seeking
+
+LAV Video
+- NEW: Initial support for parsing HDR10+ (SMPTE ST 2094-40) metadata, and passing it to the video renderer
+- Changed: Re-enabled experimental hardware acceleration for H.264 MVC 3D decoding on Intel GPUs, disabled by default
+- Changed: Updated Intel MediaSDK dispatchers to the latest Media SDK, fixing compatibility with newer runtimes in the Intel DCH drivers
+
+LAV Audio
+- Changed: Added an option to disable the PCM fallback when bitstreaming is requested
+- Fixed: Further improvements to TrueHD Bitstreaming, resolving glitching on more new titles (particularly seamless branching titles)
+
 0.73.1 - 2018/10/11
 LAV Video
 - Fixed: Container-provided color information will only overwrite video bitstream color information if its set and valid
