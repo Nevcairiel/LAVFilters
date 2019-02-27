@@ -78,7 +78,8 @@ configure() (
     --disable-doc                   \
     --build-suffix=-lav             \
     --arch=${arch}                  \
-    --pkg-config=../thirdparty/contrib/pkg-config.sh"
+    --pkg-config=../thirdparty/contrib/pkg-config.sh \
+    --pkg-config-flags=--static"
 
   EXTRA_CFLAGS="-fno-tree-vectorize -D_WIN32_WINNT=0x0600 -DWINVER=0x0600"
   EXTRA_LDFLAGS=""
