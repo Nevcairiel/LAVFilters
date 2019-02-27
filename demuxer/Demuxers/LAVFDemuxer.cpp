@@ -1684,7 +1684,16 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID* pFormat, REFERENCE_TIME* pKF
   AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
   for(int i = 0; i < stream->nb_index_entries && nKFs < nKFsMax; i++) {
     if (stream->index_entries[i].flags & AVINDEX_KEYFRAME) {
-      pKFs[nKFs] = ConvertTimestampToRT(stream->index_entries[i].timestamp, stream->time_base.num, stream->time_base.den);
+      int64_t timestamp = stream->index_entries[i].timestamp;
+
+      // MP4 index timestamps are DTS, seeking expects PTS however, so offset them accordingly to ensure seeking works as expected
+      if (m_bMP4)
+      {
+        MOVStreamContext *sc = (MOVStreamContext *)stream->priv_data;
+        timestamp += (sc->min_corrected_pts + sc->dts_shift);
+      }
+
+      pKFs[nKFs] = ConvertTimestampToRT(timestamp, stream->time_base.num, stream->time_base.den);
       nKFs++;
     }
   }
