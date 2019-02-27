@@ -26,3 +26,30 @@ cmake -G"Unix Makefiles" /path/to/aom/ -DCONFIG_AV1_ENCODER=0 -DENABLE_TESTS=0 -
 
 64-bit
 cmake -G"Unix Makefiles" /path/to/aom/ -DCMAKE_TOOLCHAIN_FILE=/path/to/aom/build/cmake/toolchains/x86_64-mingw-gcc.cmake -DCONFIG_AV1_ENCODER=0 -DENABLE_TESTS=0 -DCONFIG_LOWBITDEPTH=1 -DCMAKE_INSTALL_PREFIX=...
+
+----------------------------------------------
+gnutls & deps
+
+PREFIX=/tmp/install
+
+GMP:
+32-bit
+./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=i686-w64-mingw32
+
+64-bit
+./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=x86_64-w64-mingw32
+
+
+NETTLE:
+32-bit
+./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=i686-w64-mingw32 --with-include-path=$PREFIX/include --with-lib-path=$PREFIX/lib
+
+64-bit
+./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=x86_64-w64-mingw32 --with-include-path=$PREFIX/include --with-lib-path=$PREFIX/lib
+
+GNUTLS:
+32-bit
+GMP_CFLAGS="-I$PREFIX/include" GMP_LIBS="-L$PREFIX/lib" PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig/ ./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=i686-w64-mingw32 --disable-cxx --with-included-libtasn1 --with-included-unistring --without-p11-kit
+
+64-bit
+GMP_CFLAGS="-I$PREFIX/include" GMP_LIBS="-L$PREFIX/lib" PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig/ ./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=x86_64-w64-mingw32 --disable-cxx --with-included-libtasn1 --with-included-unistring --without-p11-kit

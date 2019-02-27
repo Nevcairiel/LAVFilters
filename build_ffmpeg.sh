@@ -76,6 +76,9 @@ configure() (
     --disable-programs              \
     --disable-debug                 \
     --disable-doc                   \
+    --disable-schannel              \
+    --enable-gnutls                 \
+    --enable-gmp                    \
     --build-suffix=-lav             \
     --arch=${arch}                  \
     --pkg-config=../thirdparty/contrib/pkg-config.sh \
