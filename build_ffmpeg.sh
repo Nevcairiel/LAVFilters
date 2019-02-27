@@ -80,17 +80,18 @@ configure() (
     --arch=${arch}                  \
     --pkg-config=../thirdparty/contrib/pkg-config.sh"
 
-  EXTRA_CFLAGS="-fno-tree-vectorize -D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -I../thirdparty/include"
+  EXTRA_CFLAGS="-fno-tree-vectorize -D_WIN32_WINNT=0x0600 -DWINVER=0x0600"
   EXTRA_LDFLAGS=""
   if [ "${arch}" == "x86_64" ]; then
-    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:../thirdparty/lib64/pkgconfig/"
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:../thirdparty/64/lib/pkgconfig/"
     OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32"
-    EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib64"
+    EXTRA_CFLAGS="${EXTRA_CFLAGS} -I../thirdparty/64/include"
+    EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/64/lib"
   else
-    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:../thirdparty/lib32/pkgconfig/"
+    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:../thirdparty/32/lib/pkgconfig/"
     OPTIONS="${OPTIONS} --cpu=i686"
-    EXTRA_CFLAGS="${EXTRA_CFLAGS} -mmmx -msse -msse2 -mfpmath=sse -mstackrealign"
-    EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/lib32"
+    EXTRA_CFLAGS="${EXTRA_CFLAGS} -I../thirdparty/32/include -mmmx -msse -msse2 -mfpmath=sse -mstackrealign"
+    EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/32/lib"
   fi
 
   sh configure --extra-ldflags="${EXTRA_LDFLAGS}" --extra-cflags="${EXTRA_CFLAGS}" ${OPTIONS}
