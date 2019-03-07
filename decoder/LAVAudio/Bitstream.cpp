@@ -380,6 +380,11 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
           m_bsOutput.SetSize(0);
         }
       }
+
+      /* if the bitstreaming context is lost at this point, then the deliver function caused a fallback to PCM */
+      if (m_avBSContext == nullptr)
+        return S_FALSE;
+
     }
   }
 
