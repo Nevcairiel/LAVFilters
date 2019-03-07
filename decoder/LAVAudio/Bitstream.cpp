@@ -519,5 +519,7 @@ HRESULT CLAVAudio::BitstreamFallbackToPCM()
     }
   }
 
+  m_bQueueResync = TRUE;
+
   return S_OK;
 }
