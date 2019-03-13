@@ -364,6 +364,12 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_pAVCtx->thread_count = 1;
   }
 
+  // enable tile threading for dav1d decoding
+  if (codec == AV_CODEC_ID_AV1 && strcmp(m_pAVCodec->name, "libdav1d") == 0)
+  {
+    av_opt_set_int(m_pAVCtx->priv_data, "tilethreads", 2, 0);
+  }
+
   m_pFrame = av_frame_alloc();
   CheckPointer(m_pFrame, E_POINTER);
 
