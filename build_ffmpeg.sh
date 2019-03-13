@@ -62,7 +62,7 @@ configure() (
     --disable-cuda                  \
     --disable-cuvid                 \
     --disable-nvenc                 \
-    --enable-libaom                 \
+    --enable-libdav1d               \
     --enable-libspeex               \
     --enable-libopencore-amrnb      \
     --enable-libopencore-amrwb      \
