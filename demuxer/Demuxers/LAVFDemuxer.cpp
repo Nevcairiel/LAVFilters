@@ -685,13 +685,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     UpdateSubStreams();
 
     if (st->codecpar->codec_type == AVMEDIA_TYPE_ATTACHMENT) {
-      if (st->codecpar->codec_id == AV_CODEC_ID_TTF || st->codecpar->codec_id == AV_CODEC_ID_OTF) {
-        if (!m_pFontInstaller) {
-          m_pFontInstaller = new CFontInstaller();
-        }
-        m_pFontInstaller->InstallFont(st->codecpar->extradata, st->codecpar->extradata_size);
-      }
-
       const AVDictionaryEntry* attachFilename = av_dict_get(st->metadata, "filename", nullptr, 0);
       const AVDictionaryEntry* attachMimeType = av_dict_get(st->metadata, "mimetype", nullptr, 0);
       const AVDictionaryEntry* attachDescription = av_dict_get(st->metadata, "comment", nullptr, 0);
@@ -712,6 +705,23 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
         SAFE_CO_FREE(chDescription);
       } else {
         DbgLog((LOG_TRACE, 10, L" -> Unknown attachment, missing filename or mimetype"));
+      }
+
+      // Try to guess the codec id for fonts only listed by name
+      if (st->codecpar->codec_id == AV_CODEC_ID_NONE && attachFilename)
+      {
+        char *dot = strrchr(attachFilename->value, '.');
+        if (dot && !strcmp(dot, ".ttf"))
+          st->codecpar->codec_id = AV_CODEC_ID_TTF;
+        else if (dot && !strcmp(dot, ".otf"))
+          st->codecpar->codec_id = AV_CODEC_ID_OTF;
+      }
+
+      if (st->codecpar->codec_id == AV_CODEC_ID_TTF || st->codecpar->codec_id == AV_CODEC_ID_OTF) {
+        if (!m_pFontInstaller) {
+          m_pFontInstaller = new CFontInstaller();
+        }
+        m_pFontInstaller->InstallFont(st->codecpar->extradata, st->codecpar->extradata_size);
       }
     } else if (st->disposition & AV_DISPOSITION_ATTACHED_PIC && st->attached_pic.data && st->attached_pic.size > 0) {
       LPWSTR chFilename = nullptr;
