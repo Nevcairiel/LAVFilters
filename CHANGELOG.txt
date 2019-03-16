@@ -1,7 +1,7 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.74.0 - 2019/xx/xx
+0.74.0 - 2019/03/16
 LAV Splitter
 - Changed: Using GnuTLS for HTTPS and other TLS protocols, improving performance and compatibility with a lot of web streaming services (ie. YouTube Live Streams through youtube-dl, and more)
 - Fixed: Keyframes in MP4 files were being reported with a slightly offset timestamp, resulting in slow keyframe seeking
