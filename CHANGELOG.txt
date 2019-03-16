@@ -5,15 +5,20 @@ LAV DirectShow Filters Changelog
 LAV Splitter
 - Changed: Using GnuTLS for HTTPS and other TLS protocols, improving performance and compatibility with a lot of web streaming services (ie. YouTube Live Streams through youtube-dl, and more)
 - Fixed: Keyframes in MP4 files were being reported with a slightly offset timestamp, resulting in slow keyframe seeking
+- Fixed: Subtitles that stretch over chapter boundaries could be lost in Ordered Chapter MKV files
+- Fixed: Fonts embedded in MKVs without a proper mimetype were not being imported (now it checks the file extensions for .ttf/.otf as well)
 
 LAV Video
 - NEW: Initial support for parsing HDR10+ (SMPTE ST 2094-40) metadata, and passing it to the video renderer
+- NEW: Using the dav1d AV1 decoder for significantly improved AV1 decoding performance
 - Changed: Re-enabled experimental hardware acceleration for H.264 MVC 3D decoding on Intel GPUs, disabled by default
 - Changed: Updated Intel MediaSDK dispatchers to the latest Media SDK, fixing compatibility with newer runtimes in the Intel DCH drivers
+- Changed: Improved support for additional UtVideo subtypes
 
 LAV Audio
 - Changed: Added an option to disable the PCM fallback when bitstreaming is requested
 - Fixed: Further improvements to TrueHD Bitstreaming, resolving glitching on more new titles (particularly seamless branching titles)
+- Fixed: Automatic fallback from bitstreaming to PCM could crash in some situations
 
 0.73.1 - 2018/10/11
 LAV Video
