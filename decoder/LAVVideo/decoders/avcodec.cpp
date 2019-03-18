@@ -924,6 +924,26 @@ STDMETHODIMP CDecAvcodec::DecodePacket(AVPacket *avpkt, REFERENCE_TIME rtStartIn
         return S_OK;
       }
     }
+    else if (m_nCodecId == AV_CODEC_ID_VP9 && m_bWaitingForKeyFrame)
+    {
+      CByteParser VP9Header(avpkt->data, avpkt->size);
+
+      // check vp9 frame marker
+      if (VP9Header.BitRead(2) != 0x2)
+        return E_FAIL;
+
+      int profile = VP9Header.BitRead(1) | (VP9Header.BitRead(1) << 1);
+      if (profile == 3) profile += VP9Header.BitRead(1);
+      if (VP9Header.BitRead(1) == 0 && VP9Header.BitRead(1) == 0)
+      {
+        DbgLog((LOG_TRACE, 10, L"::Decode(): Found VP9 key-frame, resuming decoding"));
+        m_bWaitingForKeyFrame = FALSE;
+      }
+      else
+      {
+        return S_OK;
+      }
+    }
 
     // Add a palette from extradata, if any
     if (m_bHasPalette)
