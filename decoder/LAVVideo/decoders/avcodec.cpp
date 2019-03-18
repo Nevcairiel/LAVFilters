@@ -507,7 +507,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
   // Use ffmpegs logic to reorder timestamps
   // This is required for all codecs which use frame re-ordering or frame-threaded decoding (unless they specifically use DTS timestamps, ie. H264 in AVI)
-  m_bFFReordering        = !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS) && (m_pAVCodec->capabilities & AV_CODEC_CAP_DELAY);
+  m_bFFReordering        = !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS) && (m_pAVCodec->capabilities & (AV_CODEC_CAP_DELAY|AV_CODEC_CAP_FRAME_THREADS));
 
   // Stop time is unreliable, drop it and calculate it
   m_bCalculateStopTime   = (codec == AV_CODEC_ID_H264 || codec == AV_CODEC_ID_DIRAC || (codec == AV_CODEC_ID_MPEG4 && pmt->formattype == FORMAT_MPEG2Video) || (codec == AV_CODEC_ID_VC1 && !(dwDecFlags & LAV_VIDEO_DEC_FLAG_ONLY_DTS)));
