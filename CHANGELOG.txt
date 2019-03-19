@@ -1,6 +1,11 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.74.1 - 2019/03/19
+LAV Video
+- Fixed: VP9 video could produce wrong timestamps, resulting in a black screen or other playback disruptions
+- Fixed: Decoding VP9 from a non-keyframe (ie. after a seek, or badly cut file) would not always recover properly once a keyframe was encountered
+
 0.74.0 - 2019/03/16
 LAV Splitter
 - Changed: Using GnuTLS for HTTPS and other TLS protocols, improving performance and compatibility with a lot of web streaming services (ie. YouTube Live Streams through youtube-dl, and more)
