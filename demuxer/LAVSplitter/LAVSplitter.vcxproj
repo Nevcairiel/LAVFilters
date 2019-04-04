@@ -69,7 +69,7 @@
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;shell32.lib;version.lib;Shlwapi.lib;strmbasd.lib;dsutild.lib;demuxersd.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;shell32.lib;version.lib;Shlwapi.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
     <Manifest>
@@ -82,7 +82,7 @@
       <AdditionalIncludeDirectories>..\Demuxers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;shell32.lib;version.lib;Shlwapi.lib;strmbase.lib;dsutil.lib;demuxers.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;Comctl32.lib;shell32.lib;version.lib;Shlwapi.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVSplitter.def</ModuleDefinitionFile>
     </Link>
     <CustomBuildStep>
@@ -148,6 +148,20 @@
       <Outputs>$(IntermediateOutputPath)..\%(Filename)%(Extension);%(Outputs)</Outputs>
     </CustomBuild>
     <Manifest Include="LAVSplitter.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\baseclasses\baseclasses.vcxproj">
+      <Project>{e8a3f6fa-ae1c-4c8e-a0b6-9c8480324eaa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\common\DSUtilLite\DSUtilLite.vcxproj">
+      <Project>{0a058024-41f4-4509-97d2-803a1806ce86}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libbluray\libbluray.vcxproj">
+      <Project>{e1da1b95-71f1-4c21-a271-121176925062}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Demuxers\Demuxers.vcxproj">
+      <Project>{e2012db5-33cb-44a7-b521-04287f6d0d80}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
