@@ -22,8 +22,6 @@
 #include "BaseDemuxer.h"
 #include "LAVFDemuxer.h"
 
-#pragma comment(lib, "libbluray.lib")
-
 class CBDDemuxer : public CBaseDemuxer, public IAMExtendedSeeking
 {
 public:
