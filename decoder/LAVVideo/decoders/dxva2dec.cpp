@@ -272,7 +272,7 @@ STDMETHODIMP CDecDXVA2::PostConnect(IPin *pPin)
 
   hr = SetD3DDeviceManager(m_pD3DDevMngr);
   if (FAILED(hr)) {
-    DbgLog((LOG_ERROR, 10, L"-> Setting D3D Device Manager faield"));
+    DbgLog((LOG_ERROR, 10, L"-> Setting D3D Device Manager failed"));
     goto done;
   }
 
