@@ -32,7 +32,7 @@
 #define DECLARE_CONV_FUNC_IMPL(name) \
   DECLARE_CONV_FUNC(CLAVPixFmtConverter::name)
 
-// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors
+// Important, when adding new pixel formats, they need to be added in LAVPixFmtConverter.cpp as well to the format descriptors
 typedef struct {
   GUID subtype;
   int bpp;
