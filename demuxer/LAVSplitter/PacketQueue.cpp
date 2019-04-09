@@ -27,7 +27,7 @@ void CPacketQueue::Queue(Packet *pPacket)
   CAutoLock cAutoLock(this);
 
   if (pPacket)
-    m_dataSize += pPacket->GetDataSize();
+    m_dataSize += (size_t)pPacket->GetDataSize();
 
   m_queue.push_back(pPacket);
 }
@@ -44,7 +44,7 @@ Packet *CPacketQueue::Get()
   m_queue.pop_front();
 
   if (pPacket)
-    m_dataSize -= pPacket->GetDataSize();
+    m_dataSize -= (size_t)pPacket->GetDataSize();
 
   return pPacket;
 }

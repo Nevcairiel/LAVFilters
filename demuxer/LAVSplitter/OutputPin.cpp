@@ -47,7 +47,7 @@ CLAVOutputPin::~CLAVOutputPin()
 
 void CLAVOutputPin::SetQueueSizes()
 {
-  int factor = 1;
+  size_t factor = 1;
 
   // Normalize common audio codecs to reach a base line of 20ms
   if (m_mts.begin()->subtype == MEDIASUBTYPE_DOLBY_TRUEHD) {
@@ -63,12 +63,12 @@ void CLAVOutputPin::SetQueueSizes()
     factor *= 4;
   }
 
-  m_dwQueueLow  = MIN_PACKETS_IN_QUEUE * factor;
-  m_dwQueueHigh = (static_cast<CLAVSplitter*>(m_pFilter))->GetMaxQueueSize() * factor;
+  m_nQueueLow  = MIN_PACKETS_IN_QUEUE * factor;
+  m_nQueueHigh = (size_t)(static_cast<CLAVSplitter*>(m_pFilter))->GetMaxQueueSize() * factor;
 
-  m_dwQueueMaxMem = (static_cast<CLAVSplitter*>(m_pFilter))->GetMaxQueueMemSize() * 1024 * 1024;
-  if (!m_dwQueueMaxMem) {
-    m_dwQueueMaxMem = 256 * 1024 * 1024;
+  m_nQueueMaxMem = (size_t)(static_cast<CLAVSplitter*>(m_pFilter))->GetMaxQueueMemSize() * 1024 * 1024;
+  if (!m_nQueueMaxMem) {
+    m_nQueueMaxMem = 256 * 1024 * 1024;
   }
 }
 
@@ -338,9 +338,9 @@ HRESULT CLAVOutputPin::QueuePacket(Packet *pPacket)
   // The queu has a "soft" limit of MAX_PACKETS_IN_QUEUE, and a hard limit of MAX_PACKETS_IN_QUEUE * 2
   // That means, even if one pin is drying, we'll never exceed MAX_PACKETS_IN_QUEUE * 2
   while(S_OK == m_hrDeliver 
-    && (m_queue.DataSize() > m_dwQueueMaxMem
-    || m_queue.Size() > 2*m_dwQueueHigh
-    || (m_queue.Size() > m_dwQueueHigh && !pSplitter->IsAnyPinDrying())))
+    && (m_queue.DataSize() > m_nQueueMaxMem
+    || m_queue.Size() > 2*m_nQueueHigh
+    || (m_queue.Size() > m_nQueueHigh && !pSplitter->IsAnyPinDrying())))
     Sleep(10);
 
   if(S_OK != m_hrDeliver) {

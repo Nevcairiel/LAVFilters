@@ -100,7 +100,7 @@ public:
   HRESULT QueuePacket(Packet *pPacket);
   HRESULT QueueEndOfStream();
   bool IsDiscontinuous();
-  DWORD GetQueueLowLimit() const { return m_dwQueueLow; }
+  size_t GetQueueLowLimit() const { return m_nQueueLow; }
 
   DWORD GetStreamId() { return m_streamId; };
   void SetStreamId(DWORD newStreamId) { m_streamId = newStreamId; };
@@ -156,9 +156,9 @@ private:
   HRESULT m_hrDeliver = S_OK;
 
   int m_nBuffers        = 1;
-  DWORD m_dwQueueLow    = MIN_PACKETS_IN_QUEUE;
-  DWORD m_dwQueueHigh   = 350;
-  DWORD m_dwQueueMaxMem = 256;
+  size_t m_nQueueLow    = MIN_PACKETS_IN_QUEUE;
+  size_t m_nQueueHigh   = 350;
+  size_t m_nQueueMaxMem = 256 * 1024 * 1024;
 
   DWORD m_streamId      = 0;
   CMediaType *m_newMT   = nullptr;
