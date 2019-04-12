@@ -65,7 +65,7 @@ Name: lavaudio32;    Description: LAV Audio (x86);    Types: default full custom
 Name: lavaudio64;    Description: LAV Audio (x64);    Types: default full custom; Check: IsWin64;
 Name: lavvideo32;    Description: LAV Video (x86);    Types: default full custom;
 Name: lavvideo64;    Description: LAV Video (x64);    Types: default full custom; Check: IsWin64;
-Name: mvc3d;         Description: H.264 MVC 3D Decoder (extra download); Types: full; ExtraDiskSpaceRequired: 35935024;
+Name: mvc3d;         Description: H.264 MVC 3D Decoder (extra download); Types: full; ExtraDiskSpaceRequired: 41242624;
 
 [Tasks]
 Name: icons;          Description: "Create Start Menu Shortcuts";
