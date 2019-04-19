@@ -33,7 +33,11 @@
 
 #ifndef DAV1D_API
     #if defined _WIN32
-      #define DAV1D_API __declspec(dllexport)
+      #if defined DAV1D_BUILDING_DLL
+        #define DAV1D_API __declspec(dllexport)
+      #else
+        #define DAV1D_API
+      #endif
     #else
       #if __GNUC__ >= 4
         #define DAV1D_API __attribute__ ((visibility ("default")))

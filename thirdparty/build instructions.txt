@@ -19,7 +19,7 @@ make
 ./configure --host=x86_64-w64-mingw32 --enable-sse --enable-static --disable-shared
 
 ----------------------------------------------
-AOM
+dav1d
 
 32-bit
 meson build32 --prefix .. --buildtype release --default-library static && ninja -C build32
