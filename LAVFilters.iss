@@ -72,31 +72,31 @@ Name: icons;          Description: "Create Start Menu Shortcuts";
 Name: reset_settings; Description: "Reset Settings"; Flags: checkedonce unchecked; Check: SettingsExistCheck()
 
 [Files]
-Source: bin_Win32\avcodec-lav-58.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
-Source: bin_Win32\avfilter-lav-7.dll;  DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
-Source: bin_Win32\avformat-lav-58.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
-Source: bin_Win32\avresample-lav-4.dll;DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
-Source: bin_Win32\avutil-lav-56.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
-Source: bin_Win32\swscale-lav-5.dll;   DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
-Source: bin_Win32\libbluray.dll;       DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
-Source: bin_Win32\LAVAudio.ax;         DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio32
-Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
-Source: bin_Win32\LAVVideo.ax;         DestDir: {app}\x86; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
-Source: bin_Win32\LAVFilters.Dependencies.manifest; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
-Source: bin_Win32\IntelQuickSyncDecoder.dll; DestDir: {app}\x86; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: bin_Win32\avcodec-lav-58.dll;  DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\avfilter-lav-7.dll;  DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: bin_Win32\avformat-lav-58.dll; DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32
+Source: bin_Win32\avresample-lav-4.dll;DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\avutil-lav-56.dll;   DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\swscale-lav-5.dll;   DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: bin_Win32\libbluray.dll;       DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
+Source: bin_Win32\LAVAudio.ax;         DestDir: {app}\x86; Flags: 32bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio32
+Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: 32bit 32bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
+Source: bin_Win32\LAVVideo.ax;         DestDir: {app}\x86; Flags: 32bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
+Source: bin_Win32\LAVFilters.Dependencies.manifest; DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
+Source: bin_Win32\IntelQuickSyncDecoder.dll; DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 
-Source: bin_x64\avcodec-lav-58.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
-Source: bin_x64\avfilter-lav-7.dll;    DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
-Source: bin_x64\avformat-lav-58.dll;   DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
-Source: bin_x64\avresample-lav-4.dll;  DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
-Source: bin_x64\avutil-lav-56.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
-Source: bin_x64\swscale-lav-5.dll;     DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
-Source: bin_x64\libbluray.dll;         DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
-Source: bin_x64\LAVAudio.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio64
-Source: bin_x64\LAVSplitter.ax;        DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
-Source: bin_x64\LAVVideo.ax;           DestDir: {app}\x64; Flags: regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
-Source: bin_x64\LAVFilters.Dependencies.manifest; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
-Source: bin_x64\IntelQuickSyncDecoder.dll; DestDir: {app}\x64; Flags: ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: bin_x64\avcodec-lav-58.dll;    DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\avfilter-lav-7.dll;    DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: bin_x64\avformat-lav-58.dll;   DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64
+Source: bin_x64\avresample-lav-4.dll;  DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\avutil-lav-56.dll;     DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\swscale-lav-5.dll;     DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: bin_x64\libbluray.dll;         DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
+Source: bin_x64\LAVAudio.ax;           DestDir: {app}\x64; Flags: 64bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio64
+Source: bin_x64\LAVSplitter.ax;        DestDir: {app}\x64; Flags: 64bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64
+Source: bin_x64\LAVVideo.ax;           DestDir: {app}\x64; Flags: 64bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
+Source: bin_x64\LAVFilters.Dependencies.manifest; DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter64 lavaudio64 lavvideo64
+Source: bin_x64\IntelQuickSyncDecoder.dll; DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
 
 Source: COPYING;                       DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 Source: README.txt;                    DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
