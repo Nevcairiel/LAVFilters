@@ -80,7 +80,7 @@ Source: bin_Win32\avutil-lav-56.dll;   DestDir: {app}\x86; Flags: 32bit ignoreve
 Source: bin_Win32\swscale-lav-5.dll;   DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 Source: bin_Win32\libbluray.dll;       DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
 Source: bin_Win32\LAVAudio.ax;         DestDir: {app}\x86; Flags: 32bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavaudio32
-Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: 32bit 32bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
+Source: bin_Win32\LAVSplitter.ax;      DestDir: {app}\x86; Flags: 32bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32
 Source: bin_Win32\LAVVideo.ax;         DestDir: {app}\x86; Flags: 32bit regserver ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
 Source: bin_Win32\LAVFilters.Dependencies.manifest; DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavsplitter32 lavaudio32 lavvideo32
 Source: bin_Win32\IntelQuickSyncDecoder.dll; DestDir: {app}\x86; Flags: 32bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo32
