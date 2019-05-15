@@ -109,7 +109,7 @@ typedef struct Dav1dPicAllocator {
      *
      * @note No fields other than data, stride and allocator_data must be filled
      *       by this callback.
-     * @return 0 on success. A negative errno value on error.
+     * @return 0 on success. A negative DAV1D_ERR value on error.
      */
     int (*alloc_picture_callback)(Dav1dPicture *pic, void *cookie);
     /**

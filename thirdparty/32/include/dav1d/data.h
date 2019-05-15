@@ -62,7 +62,7 @@ DAV1D_API uint8_t * dav1d_data_create(Dav1dData *data, size_t sz);
  *                      be the $cookie input argument to this function.
  * @param        cookie Opaque parameter passed to free_callback().
  *
- * @return 0 on success. A negative errno value on error.
+ * @return 0 on success. A negative DAV1D_ERR value on error.
  */
 DAV1D_API int dav1d_data_wrap(Dav1dData *data, const uint8_t *buf, size_t sz,
                               void (*free_callback)(const uint8_t *buf, void *cookie),
@@ -87,7 +87,7 @@ DAV1D_API int dav1d_data_wrap(Dav1dData *data, const uint8_t *buf, size_t sz,
  *                      function.
  * @param        cookie Opaque parameter passed to $free_callback.
  *
- * @return 0 on success. A negative errno value on error.
+ * @return 0 on success. A negative DAV1D_ERR value on error.
  */
 DAV1D_API int dav1d_data_wrap_user_data(Dav1dData *data,
                                         const uint8_t *user_data,

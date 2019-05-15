@@ -28,6 +28,7 @@
 #ifndef DAV1D_COMMON_H
 #define DAV1D_COMMON_H
 
+#include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -45,6 +46,12 @@
         #define DAV1D_API
       #endif
     #endif
+#endif
+
+#if EPERM > 0
+#define DAV1D_ERR(e) (-(e)) ///< Negate POSIX error code.
+#else
+#define DAV1D_ERR(e) (e)
 #endif
 
 /**
