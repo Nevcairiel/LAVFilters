@@ -301,7 +301,7 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
     space_size = uint16_t(frame_time - m_TrueHDMATState.prev_frametime) * (64 >> (m_TrueHDMATState.ratebits & 7));
 
   // compute padding (ie. difference to the size of the previous frame)
-  ASSERT(space_size >= m_TrueHDMATState.prev_mat_framesize);
+  ASSERT(!m_TrueHDMATState.prev_frametime_valid || space_size >= m_TrueHDMATState.prev_mat_framesize);
 
   // if for some reason the space_size fails, align the actual frame size
   if (space_size < m_TrueHDMATState.prev_mat_framesize)
