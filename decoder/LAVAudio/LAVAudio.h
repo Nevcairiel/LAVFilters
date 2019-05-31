@@ -365,6 +365,8 @@ private:
   struct {
     bool init = false;
     int ratebits = 0;
+    uint16_t output_timing = 0;
+    BOOL output_timing_valid = FALSE;
 
     uint16_t prev_frametime = 0;
     BOOL prev_frametime_valid = FALSE;

@@ -25,6 +25,8 @@
 extern "C"
 {
 #include "libavformat/spdif.h"
+#define AVCODEC_X86_MATHOPS_H
+#include "libavcodec/get_bits.h"
 }
 
 #define MAT_BUFFER_SIZE (61440)
@@ -179,6 +181,77 @@ void CLAVAudio::MATFlushPacket(HRESULT *hrDeliver)
   }
 }
 
+static bool ParseTrueHDMajorSyncHeaders(const BYTE *p, int buffsize, int &ratebits, uint16_t &output_timing, bool &output_timing_present)
+{
+  ASSERT(AV_RB32(p + 4) == 0xf8726fba);
+
+  int length = (AV_RB16(p) & 0xfff) * 2;
+  if (buffsize < 32)
+    return false;
+
+  // parse major sync and look for a restart header
+  int major_sync_size = 28;
+  if (p[29] & 1) {
+    int extension_size = p[30] >> 4;
+    major_sync_size += 2 + extension_size * 2;
+  }
+
+  GetBitContext gb;
+  init_get_bits8(&gb, p + 4, buffsize - 4);
+  skip_bits_long(&gb, 32); // format_sync
+
+  // v(32) format_info
+  ratebits = get_bits(&gb, 4); // ratebits
+  skip_bits1(&gb);    // 6ch_multichannel_type
+  skip_bits1(&gb);    // 8ch_multichannel_type
+  skip_bits(&gb, 2);  // reserved
+
+  skip_bits(&gb, 2);  // 2ch_presentation_channel_modifier
+  skip_bits(&gb, 2);  // 6ch_presentation_channel_modifier
+  skip_bits(&gb, 5);  // 6ch_presentation_channel_assignment
+  skip_bits(&gb, 2);  // 8ch_presentation_channel_modifier
+  skip_bits(&gb, 13); // 8ch_presentation_channel_assignment
+
+  skip_bits(&gb, 16); // signature
+  skip_bits(&gb, 16); // flags
+  skip_bits(&gb, 16); // reserved
+
+  skip_bits1(&gb);    // variable_rate
+  skip_bits(&gb, 15); // peak_data_rate
+
+  int num_substreams = get_bits(&gb, 4);
+  skip_bits_long(&gb, 4 + (major_sync_size - 17) * 8);
+
+  // substream directory
+  for (int i = 0; i < num_substreams; i++)
+  {
+    int extra_substream_word = get_bits1(&gb);
+    skip_bits1(&gb);    // restart_nonexistent
+    skip_bits1(&gb);    // crc_present
+    skip_bits1(&gb);    // reserved
+    skip_bits(&gb, 12); // substream_end_ptr
+    if (extra_substream_word)
+      skip_bits(&gb, 16); // drc_gain_update, drc_time_update, reserved
+  }
+
+  // substream segments
+  for (int i = 0; i < num_substreams; i++) {
+    if (get_bits1(&gb)) { // block_header_exists
+      if (get_bits1(&gb)) { // restart_header_exists
+        skip_bits(&gb, 14); // restart_sync_word
+        output_timing = get_bits(&gb, 16);
+        output_timing_present = true;
+        // XXX: restart header
+      }
+      // XXX: Block header
+    }
+    // XXX: All blocks, all substreams?
+    break;
+  }
+
+  return true;
+}
+
 HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliver)
 {
   // On a high level, a MAT frame consists of a sequence of padded TrueHD frames
@@ -190,10 +263,14 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
   // A constant padding to 2560 bytes can work (this is how the ffmpeg spdifenc module works), however
   // high-bitrate streams can overshoot this size and therefor require proper handling of dynamic padding.
 
-  // get the ratebits from the sync frame
+  uint16_t output_timing = 0;
+  bool bOutputTimingPresent = false;
+
+  // get the ratebits and output timing from the sync frame
   if (AV_RB32(p + 4) == 0xf8726fba)
   {
-    m_TrueHDMATState.ratebits = p[8] >> 4;
+    if (ParseTrueHDMajorSyncHeaders(p, buffsize, m_TrueHDMATState.ratebits, output_timing, bOutputTimingPresent) == false)
+      return E_FAIL;
   }
   else if (m_TrueHDMATState.prev_frametime_valid == false)
   {
@@ -204,6 +281,20 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
 
   uint16_t frame_time = AV_RB16(p + 2);
   uint32_t space_size = 0;
+
+  uint16_t frame_samples = 40 << (m_TrueHDMATState.ratebits & 7);
+  m_TrueHDMATState.output_timing += frame_samples;
+  if (bOutputTimingPresent)
+  {
+    if (m_TrueHDMATState.output_timing_valid && (output_timing != m_TrueHDMATState.output_timing))
+    {
+      DbgLog((LOG_TRACE, 10, _T("BitstreamTrueHD(): Detected a stream discontinuity, reseting framesize cache")));
+      m_TrueHDMATState.prev_frametime_valid = false;
+      space_size = 40 * (64 >> (m_TrueHDMATState.ratebits & 7));
+    }
+    m_TrueHDMATState.output_timing = output_timing;
+    m_TrueHDMATState.output_timing_valid = true;
+  }
 
   // compute final padded size for the previous frame, if any
   if (m_TrueHDMATState.prev_frametime_valid)
