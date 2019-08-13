@@ -28,6 +28,8 @@
 #ifndef DAV1D_HEADERS_H
 #define DAV1D_HEADERS_H
 
+#include <stddef.h>
+
 // Constants from Section 3. "Symbols and abbreviated terms"
 #define DAV1D_MAX_CDEF_STRENGTHS 8
 #define DAV1D_MAX_OPERATING_POINTS 32
@@ -175,6 +177,13 @@ typedef struct Dav1dMasteringDisplay {
     ///< 18.14 fixed point
     uint32_t min_luminance;
 } Dav1dMasteringDisplay;
+
+typedef struct Dav1dITUTT35 {
+    uint8_t  country_code;
+    uint8_t  country_code_extension_byte;
+    size_t   payload_size;
+    uint8_t *payload;
+} Dav1dITUTT35;
 
 typedef struct Dav1dSequenceHeader {
     /**

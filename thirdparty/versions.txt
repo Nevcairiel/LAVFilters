@@ -1,4 +1,4 @@
-DAV1D 0.3.1-7-ge16e272
+DAV1D 0.4.0-12-gdff0a08
 
 GMP 6.1.2
 NETTLE 3.4.1
