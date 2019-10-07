@@ -711,9 +711,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
       if (st->codecpar->codec_id == AV_CODEC_ID_NONE && attachFilename)
       {
         char *dot = strrchr(attachFilename->value, '.');
-        if (dot && !strcmp(dot, ".ttf"))
+        if (dot && !_stricmp(dot, ".ttf"))
           st->codecpar->codec_id = AV_CODEC_ID_TTF;
-        else if (dot && !strcmp(dot, ".otf"))
+        else if (dot && !_stricmp(dot, ".otf"))
           st->codecpar->codec_id = AV_CODEC_ID_OTF;
       }
 
