@@ -298,7 +298,7 @@ typedef struct Dav1dLoopfilterModeRefDeltas {
 } Dav1dLoopfilterModeRefDeltas;
 
 typedef struct Dav1dFilmGrainData {
-    uint16_t seed;
+    unsigned seed;
     int num_y_points;
     uint8_t y_points[14][2 /* value, scaling */];
     int chroma_scaling_from_luma;
