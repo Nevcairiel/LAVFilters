@@ -850,6 +850,8 @@ STDMETHODIMP CDecD3D11::FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC 
     if (FAILED(hr))
       continue;
 
+    DbgLog((LOG_ERROR, 10, "-> Configuration Record %d: ConfigBitstreamRaw = %d", i, config.ConfigBitstreamRaw));
+
     int score;
     if (config.ConfigBitstreamRaw == 1)
       score = 1;

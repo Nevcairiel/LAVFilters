@@ -1027,6 +1027,8 @@ HRESULT CDecDXVA2::FindDecoderConfiguration(const GUID &input, const DXVA2_Video
   for (unsigned i = 0; i < cfg_count; i++) {
     DXVA2_ConfigPictureDecode *cfg = &cfg_list[i];
 
+    DbgLog((LOG_ERROR, 10, "-> Configuration Record %d: ConfigBitstreamRaw = %d", i, cfg->ConfigBitstreamRaw));
+
     int score;
     if (cfg->ConfigBitstreamRaw == 1)
       score = 1;
