@@ -4,6 +4,6 @@ includedir=${prefix}/include
 
 Name: libdav1d
 Description: AV1 decoding library
-Version: 0.5.1
+Version: 0.6.0
 Libs: -L${libdir} -ldav1d
 Cflags: -I${includedir}

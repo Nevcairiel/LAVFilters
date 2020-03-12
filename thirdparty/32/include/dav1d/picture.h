@@ -37,7 +37,7 @@
 /* Number of bytes to align AND pad picture memory buffers by, so that SIMD
  * implementations can over-read by a few bytes, and use aligned read/write
  * instructions. */
-#define DAV1D_PICTURE_ALIGNMENT 32
+#define DAV1D_PICTURE_ALIGNMENT 64
 
 typedef struct Dav1dPictureParameters {
     int w; ///< width (in pixels)
