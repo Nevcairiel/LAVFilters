@@ -21,15 +21,14 @@
 
 #include "byteparser.h"
 
-class CExtradataParser :
-  protected CByteParser
+class CExtradataParser : protected CByteParser
 {
-public:
-  CExtradataParser(BYTE *pExtradata, size_t extra_len);
-  ~CExtradataParser();
+  public:
+    CExtradataParser(BYTE *pExtradata, size_t extra_len);
+    ~CExtradataParser();
 
-  size_t ParseMPEGSequenceHeader(BYTE *pTarget);
+    size_t ParseMPEGSequenceHeader(BYTE *pTarget);
 
-private:
-  bool NextMPEGStartCode(BYTE &code);
+  private:
+    bool NextMPEGStartCode(BYTE &code);
 };

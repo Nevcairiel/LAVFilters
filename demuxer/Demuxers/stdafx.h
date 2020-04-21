@@ -27,8 +27,9 @@
 #include "streams.h"
 
 #pragma warning(push)
-#pragma warning(disable:4244)
-extern "C" {
+#pragma warning(disable : 4244)
+extern "C"
+{
 #define __STDC_CONSTANT_MACROS
 #include "libavformat/avformat.h"
 #include "libavutil/intreadwrite.h"
@@ -41,7 +42,8 @@ extern "C" {
 #pragma warning(pop)
 
 #define AVFORMAT_INTERNAL_H
-typedef struct AVCodecTag {
+typedef struct AVCodecTag
+{
     enum AVCodecID id;
     unsigned int tag;
 } AVCodecTag;
@@ -52,6 +54,5 @@ typedef struct AVCodecTag {
 #include <MMReg.h>
 
 #include <Shlwapi.h>
-
 
 // TODO: reference additional headers your program requires here

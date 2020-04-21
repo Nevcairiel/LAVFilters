@@ -23,6 +23,7 @@
 
 #include "dvdmedia.h"
 
+// clang-format off
 const AVCodecTag mp_bmp_tags[] = {
   { AV_CODEC_ID_AMV,               MKTAG('A', 'M', 'V', 'V')},
   { AV_CODEC_ID_BETHSOFTVID,       MKTAG('B', 'E', 'T', 'H')},
@@ -54,22 +55,25 @@ const AVCodecTag mp_bmp_tags[] = {
   { AV_CODEC_ID_XAN_WC3,           MKTAG('W', 'C', '3', 'V')},
   { AV_CODEC_ID_NONE,              0}
 };
-const struct AVCodecTag * const mp_bmp_taglists[] = { avformat_get_riff_video_tags(), mp_bmp_tags, 0};
+// clang-format on
+
+const struct AVCodecTag *const mp_bmp_taglists[] = {avformat_get_riff_video_tags(), mp_bmp_tags, 0};
 
 class CLAVFVideoHelper
 {
-public:
-  CLAVFVideoHelper() {};
-  CMediaType initVideoType(AVCodecID codecId, unsigned int &codecTag, std::string container);
+  public:
+    CLAVFVideoHelper(){};
+    CMediaType initVideoType(AVCodecID codecId, unsigned int &codecTag, std::string container);
 
-  VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size, std::string container);
-  VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container);
-  MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size, std::string container);
-  MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container, BOOL bConvertToAVC1 = FALSE);
+    VIDEOINFOHEADER *CreateVIH(const AVStream *avstream, ULONG *size, std::string container);
+    VIDEOINFOHEADER2 *CreateVIH2(const AVStream *avstream, ULONG *size, std::string container);
+    MPEG1VIDEOINFO *CreateMPEG1VI(const AVStream *avstream, ULONG *size, std::string container);
+    MPEG2VIDEOINFO *CreateMPEG2VI(const AVStream *avstream, ULONG *size, std::string container,
+                                  BOOL bConvertToAVC1 = FALSE);
 
-  HRESULT ProcessH264Extradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi, BOOL bConvertToAVC1);
-  HRESULT ProcessH264MVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
-  HRESULT ProcessHEVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
+    HRESULT ProcessH264Extradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi, BOOL bConvertToAVC1);
+    HRESULT ProcessH264MVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
+    HRESULT ProcessHEVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
 };
 
 extern CLAVFVideoHelper g_VideoHelper;

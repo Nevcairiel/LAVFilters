@@ -26,14 +26,14 @@
 
 class CLAVFStreamInfo : public CStreamInfo
 {
-public:
-  CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char* containerFormat, HRESULT &hr);
-  ~CLAVFStreamInfo();
+  public:
+    CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char *containerFormat, HRESULT &hr);
+    ~CLAVFStreamInfo();
 
-  STDMETHODIMP CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream);
-  STDMETHODIMP CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream);
-  STDMETHODIMP CreateSubtitleMediaType(AVFormatContext *avctx, AVStream *avstream);
+    STDMETHODIMP CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream);
+    STDMETHODIMP CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream);
+    STDMETHODIMP CreateSubtitleMediaType(AVFormatContext *avctx, AVStream *avstream);
 
-private:
-  std::string m_containerFormat;
+  private:
+    std::string m_containerFormat;
 };

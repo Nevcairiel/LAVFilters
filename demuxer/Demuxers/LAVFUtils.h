@@ -19,35 +19,41 @@
 
 #pragma once
 
-struct FormatMapping {
-  AVCodecID codec;
-  const GUID *subtype;
-  unsigned codecTag;
-  const GUID *format;
+struct FormatMapping
+{
+    AVCodecID codec;
+    const GUID *subtype;
+    unsigned codecTag;
+    const GUID *format;
 };
 
 const char *get_stream_language(const AVStream *pStream);
 std::string get_codec_name(const AVCodecParameters *par);
-const char * lavf_get_stream_title(const AVStream * pStream);
+const char *lavf_get_stream_title(const AVStream *pStream);
 std::string lavf_get_stream_description(const AVStream *pStream);
 
-#define LAVF_DISPOSITION_SUB_STREAM      0x10000
+#define LAVF_DISPOSITION_SUB_STREAM 0x10000
 #define LAVF_DISPOSITION_SECONDARY_AUDIO 0x20000
 
 inline int get_bits_per_sample(AVCodecParameters *par, bool bRaw = false)
 {
-  int bits = av_get_bits_per_sample(par->codec_id);
-  if (!bits || bRaw) {
-    bits = par->bits_per_coded_sample;
-    if(!bits || bRaw) {
-      if ((par->format == AV_SAMPLE_FMT_S32 || par->format == AV_SAMPLE_FMT_S32P) && par->bits_per_raw_sample) {
-        bits = par->bits_per_raw_sample;
-      } else {
-        bits = av_get_bytes_per_sample((AVSampleFormat)par->format) << 3;
-      }
+    int bits = av_get_bits_per_sample(par->codec_id);
+    if (!bits || bRaw)
+    {
+        bits = par->bits_per_coded_sample;
+        if (!bits || bRaw)
+        {
+            if ((par->format == AV_SAMPLE_FMT_S32 || par->format == AV_SAMPLE_FMT_S32P) && par->bits_per_raw_sample)
+            {
+                bits = par->bits_per_raw_sample;
+            }
+            else
+            {
+                bits = av_get_bytes_per_sample((AVSampleFormat)par->format) << 3;
+            }
+        }
     }
-  }
-  return bits;
+    return bits;
 }
 
 bool GetH264MVCStreamIndices(AVFormatContext *fmt, int *nBaseIndex, int *nExtensionIndex);

@@ -23,10 +23,10 @@
 
 class CStreamInfo
 {
-public:
-  CStreamInfo();
-  virtual ~CStreamInfo();
+  public:
+    CStreamInfo();
+    virtual ~CStreamInfo();
 
-  std::deque<CMediaType> mtypes;
-  std::string codecInfo;
+    std::deque<CMediaType> mtypes;
+    std::string codecInfo;
 };

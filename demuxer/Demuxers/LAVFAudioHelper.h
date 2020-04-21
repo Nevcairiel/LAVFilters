@@ -24,6 +24,7 @@
 #include "dvdmedia.h"
 #include "moreuuids.h"
 
+// clang-format off
 const AVCodecTag mp_wav_tags[] = {
   { AV_CODEC_ID_WAVPACK,           0x5756 },
   { AV_CODEC_ID_TTA,               0x77A1 },
@@ -60,22 +61,24 @@ const AVCodecTag mp_wav_tags[] = {
   { AV_CODEC_ID_MP4ALS,            MKTAG('A', 'L', 'S', ' ')},
   { AV_CODEC_ID_NONE,              0}
 };
+// clang-format on
 
-const struct AVCodecTag * const mp_wav_taglists[] = { avformat_get_riff_audio_tags(), mp_wav_tags, 0};
+const struct AVCodecTag *const mp_wav_taglists[] = {avformat_get_riff_audio_tags(), mp_wav_tags, 0};
 
 class CLAVFAudioHelper
 {
-public:
-  CLAVFAudioHelper() {};
-  CMediaType initAudioType(AVCodecParameters *codecpar, unsigned int &codecTag, std::string container);
+  public:
+    CLAVFAudioHelper(){};
+    CMediaType initAudioType(AVCodecParameters *codecpar, unsigned int &codecTag, std::string container);
 
-  WAVEFORMATEX *CreateWVFMTEX(const AVStream *avstream, ULONG *size);
-  WAVEFORMATEXFFMPEG *CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size);
-  WAVEFORMATEX_HDMV_LPCM *CreateWVFMTEX_LPCM(const AVStream *avstream, ULONG *size);
-  WAVEFORMATEXTENSIBLE *CreateWFMTEX_RAW_PCM(const AVStream *avstream, ULONG *size, const GUID subtype, ULONG *samplesize);
-  MPEG1WAVEFORMAT *CreateMP1WVFMT(const AVStream *avstream, ULONG *size);
-  VORBISFORMAT *CreateVorbis(const AVStream *avstream, ULONG *size);
-  VORBISFORMAT2 *CreateVorbis2(const AVStream *avstream, ULONG *size);
+    WAVEFORMATEX *CreateWVFMTEX(const AVStream *avstream, ULONG *size);
+    WAVEFORMATEXFFMPEG *CreateWVFMTEX_FF(const AVStream *avstream, ULONG *size);
+    WAVEFORMATEX_HDMV_LPCM *CreateWVFMTEX_LPCM(const AVStream *avstream, ULONG *size);
+    WAVEFORMATEXTENSIBLE *CreateWFMTEX_RAW_PCM(const AVStream *avstream, ULONG *size, const GUID subtype,
+                                               ULONG *samplesize);
+    MPEG1WAVEFORMAT *CreateMP1WVFMT(const AVStream *avstream, ULONG *size);
+    VORBISFORMAT *CreateVorbis(const AVStream *avstream, ULONG *size);
+    VORBISFORMAT2 *CreateVorbis2(const AVStream *avstream, ULONG *size);
 };
 
 extern CLAVFAudioHelper g_AudioHelper;
