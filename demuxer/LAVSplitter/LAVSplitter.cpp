@@ -59,10 +59,6 @@ CLAVSplitter::CLAVSplitter(LPUNKNOWN pUnk, HRESULT *phr)
 #ifdef DEBUG
     DbgSetModuleLevel(LOG_TRACE, DWORD_MAX);
     DbgSetModuleLevel(LOG_ERROR, DWORD_MAX);
-
-#ifdef LAV_DEBUG_RELEASE
-    DbgSetLogFileDesktop(LAVF_LOG_FILE);
-#endif
 #endif
 }
 
@@ -80,10 +76,6 @@ CLAVSplitter::~CLAVSplitter()
     m_pRetiredPins.clear();
 
     SafeRelease(&m_pSite);
-
-#if defined(DEBUG) && defined(LAV_DEBUG_RELEASE)
-    DbgCloseLogFile();
-#endif
 }
 
 STDMETHODIMP CLAVSplitter::Close()

@@ -97,10 +97,6 @@ CLAVAudio::CLAVAudio(LPUNKNOWN pUnk, HRESULT *phr)
     DbgSetModuleLevel(LOG_TRACE, DWORD_MAX);
     // DbgSetModuleLevel (LOG_CUSTOM2, DWORD_MAX); // Jitter statistics
     // DbgSetModuleLevel (LOG_CUSTOM5, DWORD_MAX); // Extensive timing options
-
-#ifdef LAV_DEBUG_RELEASE
-    DbgSetLogFileDesktop(LAVC_AUDIO_LOG_FILE);
-#endif
 #else
     av_log_set_callback(nullptr);
 #endif
@@ -118,10 +114,6 @@ CLAVAudio::~CLAVAudio()
         FreeLibrary(m_hDllExtraDecoder);
         m_hDllExtraDecoder = nullptr;
     }
-
-#if defined(DEBUG) && defined(LAV_DEBUG_RELEASE)
-    DbgCloseLogFile();
-#endif
 }
 
 STDMETHODIMP CLAVAudio::CreateTrayIcon()

@@ -67,9 +67,6 @@ CLAVVideo::CLAVVideo(LPUNKNOWN pUnk, HRESULT *phr)
     DbgSetModuleLevel(LOG_TRACE, DWORD_MAX);
     DbgSetModuleLevel(LOG_ERROR, DWORD_MAX);
     DbgSetModuleLevel(LOG_CUSTOM1, DWORD_MAX); // FFMPEG messages use custom1
-#ifdef LAV_DEBUG_RELEASE
-    DbgSetLogFileDesktop(LAVC_VIDEO_LOG_FILE);
-#endif
 #endif
 }
 
@@ -91,10 +88,6 @@ CLAVVideo::~CLAVVideo()
 
     SAFE_DELETE(m_pSubtitleInput);
     SAFE_DELETE(m_pCCOutputPin);
-
-#if defined(DEBUG) && defined(LAV_DEBUG_RELEASE)
-    DbgCloseLogFile();
-#endif
 }
 
 HRESULT CLAVVideo::CreateTrayIcon()
