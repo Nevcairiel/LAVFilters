@@ -1,0 +1,18 @@
+root = true
+
+[*]
+end_of_line = CRLF
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[ffmpeg/**]
+end_of_line = LF
+indent_style = space
+indent_size = 4
+
+[libbluray/**]
+end_of_line = LF
+indent_style = space
+indent_size = 4

@@ -1,0 +1,34 @@
+BasedOnStyle: Microsoft
+IndentWidth: 4
+UseTab: false
+
+Language: Cpp
+Standard: Cpp11
+SortIncludes: false
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+# AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: All
+AlwaysBreakAfterReturnType: None
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+Cpp11BracedListStyle: true
+PointerAlignment: Right
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+# SpaceBeforeSquareBrackets: false
+# SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+# SpacesInConditionalStatement: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
