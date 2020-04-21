@@ -22,68 +22,78 @@
 
 #include "IQuickSyncDecoder.h"
 
-typedef IQuickSyncDecoder* __stdcall pcreateQuickSync();
-typedef void               __stdcall pdestroyQuickSync(IQuickSyncDecoder*);
-typedef DWORD              __stdcall pcheck();
+typedef IQuickSyncDecoder *__stdcall pcreateQuickSync();
+typedef void __stdcall pdestroyQuickSync(IQuickSyncDecoder *);
+typedef DWORD __stdcall pcheck();
 
 #include <queue>
 
 class CDecQuickSync : public CDecBase
 {
-public:
-  CDecQuickSync(void);
-  virtual ~CDecQuickSync(void);
+  public:
+    CDecQuickSync(void);
+    virtual ~CDecQuickSync(void);
 
-  // ILAVDecoder
-  STDMETHODIMP Check();
-  STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
-  STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity, IMediaSample *pSample);
-  STDMETHODIMP Flush();
-  STDMETHODIMP EndOfStream();
-  STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
-  STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
-  STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
-  STDMETHODIMP_(const WCHAR*) GetDecoderName() { return L"quicksync"; }
+    // ILAVDecoder
+    STDMETHODIMP Check();
+    STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
+    STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint,
+                        BOOL bDiscontinuity, IMediaSample *pSample);
+    STDMETHODIMP Flush();
+    STDMETHODIMP EndOfStream();
+    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
+    STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
+    STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
+    STDMETHODIMP_(const WCHAR *) GetDecoderName() { return L"quicksync"; }
 
-  STDMETHODIMP PostConnect(IPin *pPin);
+    STDMETHODIMP PostConnect(IPin *pPin);
 
-  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName) { CheckPointer(pstrDeviceName, E_POINTER); *pstrDeviceName = SysAllocString(L"Intel\xae QuickSync"); if (!*pstrDeviceName) return E_OUTOFMEMORY; return S_OK; }
+    STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName)
+    {
+        CheckPointer(pstrDeviceName, E_POINTER);
+        *pstrDeviceName = SysAllocString(L"Intel\xae QuickSync");
+        if (!*pstrDeviceName)
+            return E_OUTOFMEMORY;
+        return S_OK;
+    }
 
-  // CDecBase
-  STDMETHODIMP Init();
+    // CDecBase
+    STDMETHODIMP Init();
 
-private:
-  STDMETHODIMP DestroyDecoder(bool bFull);
+  private:
+    STDMETHODIMP DestroyDecoder(bool bFull);
 
-  static HRESULT QS_DeliverSurfaceCallback(void* obj, QsFrameData* data);
-  STDMETHODIMP HandleFrame(QsFrameData *data);
+    static HRESULT QS_DeliverSurfaceCallback(void *obj, QsFrameData *data);
+    STDMETHODIMP HandleFrame(QsFrameData *data);
 
-  STDMETHODIMP CheckH264Sequence(const BYTE *buffer, size_t buflen, int nal_size, int *pRefFrames = nullptr, int *pProfile = nullptr, int *pLevel = nullptr);
+    STDMETHODIMP CheckH264Sequence(const BYTE *buffer, size_t buflen, int nal_size, int *pRefFrames = nullptr,
+                                   int *pProfile = nullptr, int *pLevel = nullptr);
 
-private:
-  struct {
-    HMODULE quickSyncLib;
+  private:
+    struct
+    {
+        HMODULE quickSyncLib;
 
-    pcreateQuickSync *create;
-    pdestroyQuickSync *destroy;
-    pcheck *check;
-  } qs;
+        pcreateQuickSync *create;
+        pdestroyQuickSync *destroy;
+        pcheck *check;
+    } qs;
 
-  IQuickSyncDecoder *m_pDecoder = nullptr;
+    IQuickSyncDecoder *m_pDecoder = nullptr;
 
-  BOOL m_bNeedSequenceCheck = FALSE;
-  BOOL m_bInterlaced        = TRUE;
-  BOOL m_bDI                = FALSE;
-  BOOL m_bAVC1              = FALSE;
-  int  m_nAVCNalSize        = 0;
-  BOOL m_bEndOfSequence     = FALSE;
+    BOOL m_bNeedSequenceCheck = FALSE;
+    BOOL m_bInterlaced = TRUE;
+    BOOL m_bDI = FALSE;
+    BOOL m_bAVC1 = FALSE;
+    int m_nAVCNalSize = 0;
+    BOOL m_bEndOfSequence = FALSE;
 
-  BOOL                   m_bUseTimestampQueue;
-  std::queue<REFERENCE_TIME> m_timestampQueue;
+    BOOL m_bUseTimestampQueue;
+    std::queue<REFERENCE_TIME> m_timestampQueue;
 
-  DXVA2_ExtendedFormat m_DXVAExtendedFormat;
+    DXVA2_ExtendedFormat m_DXVAExtendedFormat;
 
-  FOURCC m_Codec = 0;
+    FOURCC m_Codec = 0;
 
-  IDirect3DDeviceManager9 *m_pD3DDevMngr = nullptr;
+    IDirect3DDeviceManager9 *m_pD3DDevMngr = nullptr;
 };

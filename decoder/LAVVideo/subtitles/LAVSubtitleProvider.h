@@ -24,94 +24,103 @@
 
 class CLAVVideo;
 
-typedef struct LAVSubtitleProviderContext {
-  LPWSTR name;                    ///< name of the Provider
-  LPWSTR version;                 ///< Version of the Provider
-  LPWSTR yuvMatrix;               ///< YUV Matrix
+typedef struct LAVSubtitleProviderContext
+{
+    LPWSTR name;      ///< name of the Provider
+    LPWSTR version;   ///< Version of the Provider
+    LPWSTR yuvMatrix; ///< YUV Matrix
 
-  bool combineBitmaps;            ///< Control if the provider combines all bitmaps into one
-  bool isBitmap;
-  bool isMovable;
+    bool combineBitmaps; ///< Control if the provider combines all bitmaps into one
+    bool isBitmap;
+    bool isMovable;
 } LAVSubtitleProviderContext;
 
 struct _AM_PROPERTY_SPPAL;
 struct _AM_PROPERTY_SPHLI;
 
-class CLAVSubtitleProviderControlThread : public CAMThread, protected CCritSec
+class CLAVSubtitleProviderControlThread
+    : public CAMThread
+    , protected CCritSec
 {
-public:
-  CLAVSubtitleProviderControlThread();
-  ~CLAVSubtitleProviderControlThread();
+  public:
+    CLAVSubtitleProviderControlThread();
+    ~CLAVSubtitleProviderControlThread();
 
-  void SetConsumer2(ISubRenderConsumer2 * pConsumer2);
+    void SetConsumer2(ISubRenderConsumer2 *pConsumer2);
 
-protected:
-  DWORD ThreadProc();
+  protected:
+    DWORD ThreadProc();
 
-private:
-  ISubRenderConsumer2 *m_pConsumer2 = nullptr;
+  private:
+    ISubRenderConsumer2 *m_pConsumer2 = nullptr;
 };
 
-class CLAVSubtitleProvider : public ISubRenderProvider, public CSubRenderOptionsImpl, public CUnknown, private CCritSec
+class CLAVSubtitleProvider
+    : public ISubRenderProvider
+    , public CSubRenderOptionsImpl
+    , public CUnknown
+    , private CCritSec
 {
-public:
-  CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsumer *pConsumer);
-  ~CLAVSubtitleProvider(void);
-  DECLARE_IUNKNOWN;
-  DECLARE_ISUBRENDEROPTIONS;
+  public:
+    CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsumer *pConsumer);
+    ~CLAVSubtitleProvider(void);
+    DECLARE_IUNKNOWN;
+    DECLARE_ISUBRENDEROPTIONS;
 
-  // ISubRenderProvider
-  STDMETHODIMP RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context);
-  STDMETHODIMP Disconnect(void);
+    // ISubRenderProvider
+    STDMETHODIMP RequestFrame(REFERENCE_TIME start, REFERENCE_TIME stop, LPVOID context);
+    STDMETHODIMP Disconnect(void);
 
-  // CLAVSubtitleProvider public
-  STDMETHODIMP SetConsumer(ISubRenderConsumer *pConsumer);
-  STDMETHODIMP DisconnectConsumer(void);
+    // CLAVSubtitleProvider public
+    STDMETHODIMP SetConsumer(ISubRenderConsumer *pConsumer);
+    STDMETHODIMP DisconnectConsumer(void);
 
-  STDMETHODIMP InitDecoder(const CMediaType *pmt, AVCodecID codecId);
-  STDMETHODIMP Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
+    STDMETHODIMP InitDecoder(const CMediaType *pmt, AVCodecID codecId);
+    STDMETHODIMP Decode(BYTE *buf, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
 
-  STDMETHODIMP Flush();
+    STDMETHODIMP Flush();
 
-  STDMETHODIMP SetDVDPalette(struct _AM_PROPERTY_SPPAL *pPal);
-  STDMETHODIMP SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI);
-  STDMETHODIMP SetDVDComposit(BOOL bComposit);
+    STDMETHODIMP SetDVDPalette(struct _AM_PROPERTY_SPPAL *pPal);
+    STDMETHODIMP SetDVDHLI(struct _AM_PROPERTY_SPHLI *pHLI);
+    STDMETHODIMP SetDVDComposit(BOOL bComposit);
 
-private:
-  void CloseDecoder();
+  private:
+    void CloseDecoder();
 
-  void ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart);
-  void ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
-  void AddSubtitleRect(CLAVSubRect *rect);
-  CLAVSubRect* ProcessDVDHLI(CLAVSubRect *rect);
-  void ClearSubtitleRects();
-  void TimeoutSubtitleRects(REFERENCE_TIME rtStop);
+    void ProcessSubtitleFrame(AVSubtitle *sub, REFERENCE_TIME rtStart);
+    void ProcessSubtitleRect(AVSubtitleRect *rect, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop);
+    void AddSubtitleRect(CLAVSubRect *rect);
+    CLAVSubRect *ProcessDVDHLI(CLAVSubRect *rect);
+    void ClearSubtitleRects();
+    void TimeoutSubtitleRects(REFERENCE_TIME rtStop);
 
-  enum { CNTRL_EXIT, CNTRL_FLUSH };
-  HRESULT ControlCmd(DWORD cmd) {
-    return m_ControlThread->CallWorker(cmd);
-  }
+    enum
+    {
+        CNTRL_EXIT,
+        CNTRL_FLUSH
+    };
+    HRESULT ControlCmd(DWORD cmd) { return m_ControlThread->CallWorker(cmd); }
 
-private:
-  friend class CLAVSubtitleProviderControlThread;
-  LAVSubtitleProviderContext context;
-  CLAVVideo *m_pLAVVideo            = nullptr;
+  private:
+    friend class CLAVSubtitleProviderControlThread;
+    LAVSubtitleProviderContext context;
+    CLAVVideo *m_pLAVVideo = nullptr;
 
-  ISubRenderConsumer  *m_pConsumer  = nullptr;
-  ISubRenderConsumer2 *m_pConsumer2 = nullptr;
+    ISubRenderConsumer *m_pConsumer = nullptr;
+    ISubRenderConsumer2 *m_pConsumer2 = nullptr;
 
-  const AVCodec        *m_pAVCodec  = nullptr;
-  AVCodecContext       *m_pAVCtx    = nullptr;
-  AVCodecParserContext *m_pParser   = nullptr;
+    const AVCodec *m_pAVCodec = nullptr;
+    AVCodecContext *m_pAVCtx = nullptr;
+    AVCodecParserContext *m_pParser = nullptr;
 
-  REFERENCE_TIME        m_rtLastFrame  = AV_NOPTS_VALUE;
-  REFERENCE_TIME        m_rtStartCache = AV_NOPTS_VALUE;
-  ULONGLONG             m_SubPicId     = 0;
-  BOOL                  m_bComposit    = TRUE;
+    REFERENCE_TIME m_rtLastFrame = AV_NOPTS_VALUE;
+    REFERENCE_TIME m_rtStartCache = AV_NOPTS_VALUE;
+    ULONGLONG m_SubPicId = 0;
+    BOOL m_bComposit = TRUE;
 
-  std::list<CLAVSubRect *> m_SubFrames;
+    std::list<CLAVSubRect *> m_SubFrames;
 
-  struct _AM_PROPERTY_SPHLI *m_pHLI = nullptr;
+    struct _AM_PROPERTY_SPHLI *m_pHLI = nullptr;
 
-  CLAVSubtitleProviderControlThread *m_ControlThread = nullptr;
+    CLAVSubtitleProviderControlThread *m_ControlThread = nullptr;
 };

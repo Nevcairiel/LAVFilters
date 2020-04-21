@@ -26,35 +26,38 @@
 
 class CLAVVideo;
 
-class CLAVVideoSubtitleInputPin : public CBaseInputPin, public CDeCSSPinHelper
+class CLAVVideoSubtitleInputPin
+    : public CBaseInputPin
+    , public CDeCSSPinHelper
 {
-public:
-  CLAVVideoSubtitleInputPin(TCHAR* pObjectName, CLAVVideo* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName);
-  virtual ~CLAVVideoSubtitleInputPin(void);
+  public:
+    CLAVVideoSubtitleInputPin(TCHAR *pObjectName, CLAVVideo *pFilter, CCritSec *pcsFilter, HRESULT *phr, LPWSTR pName);
+    virtual ~CLAVVideoSubtitleInputPin(void);
 
-  DECLARE_IUNKNOWN
-  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+    DECLARE_IUNKNOWN
+    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void **ppv);
 
-  // IMemInputPin
-  STDMETHODIMP Receive(IMediaSample* pSample);
+    // IMemInputPin
+    STDMETHODIMP Receive(IMediaSample *pSample);
 
-  // CBasePin
-  HRESULT CheckMediaType(const CMediaType *mtIn);
-  HRESULT SetMediaType(const CMediaType *pmt);
-  HRESULT BreakConnect();
-  STDMETHODIMP BeginFlush();
-  STDMETHODIMP EndFlush();
+    // CBasePin
+    HRESULT CheckMediaType(const CMediaType *mtIn);
+    HRESULT SetMediaType(const CMediaType *pmt);
+    HRESULT BreakConnect();
+    STDMETHODIMP BeginFlush();
+    STDMETHODIMP EndFlush();
 
-  HRESULT SetSubtitleConsumer(ISubRenderConsumer *pConsumer);
+    HRESULT SetSubtitleConsumer(ISubRenderConsumer *pConsumer);
 
-  // KsPropertySet
-  STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData, ULONG DataLength);
-	STDMETHODIMP QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport);
+    // KsPropertySet
+    STDMETHODIMP Set(REFGUID PropSet, ULONG Id, LPVOID InstanceData, ULONG InstanceLength, LPVOID PropertyData,
+                     ULONG DataLength);
+    STDMETHODIMP QuerySupported(REFGUID PropSet, ULONG Id, ULONG *pTypeSupport);
 
-protected:
-  CCritSec m_csReceive;
+  protected:
+    CCritSec m_csReceive;
 
-  ISubRenderConsumer   *m_pConsumer = nullptr;
-  CLAVSubtitleProvider *m_pProvider = nullptr;
-  CLAVVideo            *m_pLAVVideo = nullptr;
+    ISubRenderConsumer *m_pConsumer = nullptr;
+    CLAVSubtitleProvider *m_pProvider = nullptr;
+    CLAVVideo *m_pLAVVideo = nullptr;
 };

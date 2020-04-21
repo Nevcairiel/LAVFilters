@@ -26,55 +26,57 @@
 
 DECLARE_CONV_FUNC_IMPL(convert_yuv444_y410)
 {
-  const uint16_t *y = (const uint16_t *)src[0];
-  const uint16_t *u = (const uint16_t *)src[1];
-  const uint16_t *v = (const uint16_t *)src[2];
+    const uint16_t *y = (const uint16_t *)src[0];
+    const uint16_t *u = (const uint16_t *)src[1];
+    const uint16_t *v = (const uint16_t *)src[2];
 
-  const ptrdiff_t inStride = srcStride[0] >> 1;
-  const ptrdiff_t outStride = dstStride[0];
-  int shift = 10 - bpp;
+    const ptrdiff_t inStride = srcStride[0] >> 1;
+    const ptrdiff_t outStride = dstStride[0];
+    int shift = 10 - bpp;
 
-  ptrdiff_t line, i;
+    ptrdiff_t line, i;
 
-  __m128i xmm0,xmm1,xmm2,xmm3,xmm4,xmm5,xmm6,xmm7;
+    __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 
-  xmm7 = _mm_set1_epi32(0xC0000000);
-  xmm6 = _mm_setzero_si128();
+    xmm7 = _mm_set1_epi32(0xC0000000);
+    xmm6 = _mm_setzero_si128();
 
-  _mm_sfence();
+    _mm_sfence();
 
-  for (line = 0; line < height; ++line) {
-    __m128i *dst128 = (__m128i *)(dst[0] + line * outStride);
+    for (line = 0; line < height; ++line)
+    {
+        __m128i *dst128 = (__m128i *)(dst[0] + line * outStride);
 
-    for (i = 0; i < width; i+=8) {
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (y+i));
-      xmm0 = _mm_slli_epi16(xmm0, shift);
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, (u+i));
-      xmm1 = _mm_slli_epi16(xmm1, shift);
-      PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, (v+i));
-      xmm2 = _mm_slli_epi16(xmm2, shift+4);  // +4 so its directly aligned properly (data from bit 14 to bit 4)
+        for (i = 0; i < width; i += 8)
+        {
+            PIXCONV_LOAD_PIXEL8_ALIGNED(xmm0, (y + i));
+            xmm0 = _mm_slli_epi16(xmm0, shift);
+            PIXCONV_LOAD_PIXEL8_ALIGNED(xmm1, (u + i));
+            xmm1 = _mm_slli_epi16(xmm1, shift);
+            PIXCONV_LOAD_PIXEL8_ALIGNED(xmm2, (v + i));
+            xmm2 = _mm_slli_epi16(xmm2, shift + 4); // +4 so its directly aligned properly (data from bit 14 to bit 4)
 
-      xmm3 = _mm_unpacklo_epi16(xmm1, xmm2); // 0VVVVV00000UUUUU
-      xmm4 = _mm_unpackhi_epi16(xmm1, xmm2); // 0VVVVV00000UUUUU
-      xmm3 = _mm_or_si128(xmm3, xmm7);       // AVVVVV00000UUUUU
-      xmm4 = _mm_or_si128(xmm4, xmm7);       // AVVVVV00000UUUUU
+            xmm3 = _mm_unpacklo_epi16(xmm1, xmm2); // 0VVVVV00000UUUUU
+            xmm4 = _mm_unpackhi_epi16(xmm1, xmm2); // 0VVVVV00000UUUUU
+            xmm3 = _mm_or_si128(xmm3, xmm7);       // AVVVVV00000UUUUU
+            xmm4 = _mm_or_si128(xmm4, xmm7);       // AVVVVV00000UUUUU
 
-      xmm5 = _mm_unpacklo_epi16(xmm0, xmm6); // 00000000000YYYYY
-      xmm2 = _mm_unpackhi_epi16(xmm0, xmm6); // 00000000000YYYYY
-      xmm5 = _mm_slli_epi32(xmm5, 10);       // 000000YYYYY00000
-      xmm2 = _mm_slli_epi32(xmm2, 10);       // 000000YYYYY00000
+            xmm5 = _mm_unpacklo_epi16(xmm0, xmm6); // 00000000000YYYYY
+            xmm2 = _mm_unpackhi_epi16(xmm0, xmm6); // 00000000000YYYYY
+            xmm5 = _mm_slli_epi32(xmm5, 10);       // 000000YYYYY00000
+            xmm2 = _mm_slli_epi32(xmm2, 10);       // 000000YYYYY00000
 
-      xmm3 = _mm_or_si128(xmm3, xmm5);       // AVVVVVYYYYYUUUUU
-      xmm4 = _mm_or_si128(xmm4, xmm2);       // AVVVVVYYYYYUUUUU
+            xmm3 = _mm_or_si128(xmm3, xmm5); // AVVVVVYYYYYUUUUU
+            xmm4 = _mm_or_si128(xmm4, xmm2); // AVVVVVYYYYYUUUUU
 
-      // Write data back
-      _mm_stream_si128(dst128++, xmm3);
-      _mm_stream_si128(dst128++, xmm4);
+            // Write data back
+            _mm_stream_si128(dst128++, xmm3);
+            _mm_stream_si128(dst128++, xmm4);
+        }
+
+        y += inStride;
+        u += inStride;
+        v += inStride;
     }
-
-    y += inStride;
-    u += inStride;
-    v += inStride;
-  }
-  return S_OK;
+    return S_OK;
 }

@@ -52,6 +52,7 @@ static const int prof_vp9_0[] = { FF_PROFILE_VP9_0, FF_PROFILE_UNKNOWN };
 static const int prof_vp9_2_10bit[] = { FF_PROFILE_VP9_2, FF_PROFILE_UNKNOWN };
 
 /* XXX Prefered modes must come first */
+// clang-format off
 const dxva_mode_t dxva_modes[] = {
   /* MPEG-1/2 */
   { "MPEG-2 variable-length decoder",                                               &DXVA2_ModeMPEG2_VLD,                   AV_CODEC_ID_MPEG2VIDEO, prof_mpeg2_main },
@@ -127,6 +128,7 @@ const dxva_mode_t dxva_modes[] = {
 
   { nullptr, nullptr, 0 }
 };
+// clang-format on
 
 const dxva_mode_t *get_dxva_mode_from_guid(const GUID *guid)
 {

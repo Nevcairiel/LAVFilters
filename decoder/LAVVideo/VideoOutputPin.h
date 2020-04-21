@@ -21,13 +21,12 @@
 
 class CVideoOutputPin : public CTransformOutputPin
 {
-public:
-  CVideoOutputPin(LPCTSTR pObjectName, CLAVVideo *pFilter, HRESULT * phr, LPCWSTR pName);
-  virtual ~CVideoOutputPin();
+  public:
+    CVideoOutputPin(LPCTSTR pObjectName, CLAVVideo *pFilter, HRESULT *phr, LPCWSTR pName);
+    virtual ~CVideoOutputPin();
 
-  HRESULT InitAllocator(IMemAllocator **ppAlloc);
+    HRESULT InitAllocator(IMemAllocator **ppAlloc);
 
-private:
-  CLAVVideo *m_pFilter = nullptr;
+  private:
+    CLAVVideo *m_pFilter = nullptr;
 };
-

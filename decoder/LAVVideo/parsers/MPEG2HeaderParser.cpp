@@ -20,32 +20,34 @@
 #include "stdafx.h"
 #include "MPEG2HeaderParser.h"
 
-#pragma warning( push )
-#pragma warning( disable : 4101 )
+#pragma warning(push)
+#pragma warning(disable : 4101)
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
-#pragma warning( pop )
+#pragma warning(pop)
 
-#define SEQ_START_CODE          0x000001b3
-#define EXT_START_CODE          0x000001b5
+#define SEQ_START_CODE 0x000001b3
+#define EXT_START_CODE 0x000001b5
 
-static inline const uint8_t* find_next_marker(const uint8_t *src, const uint8_t *end)
+static inline const uint8_t *find_next_marker(const uint8_t *src, const uint8_t *end)
 {
-  uint32_t mrk = 0xFFFFFFFF;
+    uint32_t mrk = 0xFFFFFFFF;
 
-  if(end-src < 4) return end;
-  while(src < end){
-    mrk = (mrk << 8) | *src++;
-    if((mrk & ~0xFF) == 0x00000100)
-      return src-4;
-  }
-  return end;
+    if (end - src < 4)
+        return end;
+    while (src < end)
+    {
+        mrk = (mrk << 8) | *src++;
+        if ((mrk & ~0xFF) == 0x00000100)
+            return src - 4;
+    }
+    return end;
 }
 
 CMPEG2HeaderParser::CMPEG2HeaderParser(const BYTE *pData, size_t length)
 {
-  memset(&hdr, 0, sizeof(hdr));
-  ParseMPEG2Header(pData, length);
+    memset(&hdr, 0, sizeof(hdr));
+    ParseMPEG2Header(pData, length);
 }
 
 CMPEG2HeaderParser::~CMPEG2HeaderParser(void)
@@ -54,36 +56,35 @@ CMPEG2HeaderParser::~CMPEG2HeaderParser(void)
 
 void CMPEG2HeaderParser::ParseMPEG2Header(const BYTE *pData, size_t length)
 {
-  if (length < 16)
-    return;
+    if (length < 16)
+        return;
 
-  GetBitContext gb;
+    GetBitContext gb;
 
-  const uint8_t *start = pData;
-  const uint8_t *end = start + length;
-  const uint8_t *next = nullptr;
+    const uint8_t *start = pData;
+    const uint8_t *end = start + length;
+    const uint8_t *next = nullptr;
 
-  int size;
+    int size;
 
-  start = find_next_marker(start, end);
-  next = start;
+    start = find_next_marker(start, end);
+    next = start;
 
-  for(; next < end; start = next) {
-    next = find_next_marker(start + 4, end);
-    size = (int)(next - start - 4);
-    if(size <= 0) continue;
+    for (; next < end; start = next)
+    {
+        next = find_next_marker(start + 4, end);
+        size = (int)(next - start - 4);
+        if (size <= 0)
+            continue;
 
-    init_get_bits(&gb, start + 4, (size - 4) * 8);
+        init_get_bits(&gb, start + 4, (size - 4) * 8);
 
-    switch(AV_RB32(start)) {
-      case SEQ_START_CODE:
-        MPEG2ParseSequenceHeader(&gb);
-        break;
-      case EXT_START_CODE:
-        MPEG2ParseExtHeader(&gb);
-        break;
+        switch (AV_RB32(start))
+        {
+        case SEQ_START_CODE: MPEG2ParseSequenceHeader(&gb); break;
+        case EXT_START_CODE: MPEG2ParseExtHeader(&gb); break;
+        }
     }
-  }
 }
 
 void CMPEG2HeaderParser::MPEG2ParseSequenceHeader(GetBitContext *gb)
@@ -92,17 +93,18 @@ void CMPEG2HeaderParser::MPEG2ParseSequenceHeader(GetBitContext *gb)
 
 void CMPEG2HeaderParser::MPEG2ParseExtHeader(GetBitContext *gb)
 {
-  int startcode = get_bits(gb, 4); // Start Code
-  if (startcode == 1) {
-    hdr.valid = 1;
+    int startcode = get_bits(gb, 4); // Start Code
+    if (startcode == 1)
+    {
+        hdr.valid = 1;
 
-    skip_bits(gb, 1); // profile and level esc
-    hdr.profile = get_bits(gb, 3);
-    hdr.level = get_bits(gb, 4);
+        skip_bits(gb, 1); // profile and level esc
+        hdr.profile = get_bits(gb, 3);
+        hdr.level = get_bits(gb, 4);
 
-    hdr.interlaced = !get_bits1(gb);
-    hdr.chroma = get_bits(gb, 2);
+        hdr.interlaced = !get_bits1(gb);
+        hdr.chroma = get_bits(gb, 2);
 
-    // TODO: Fill in other fields, if needed
-  }
+        // TODO: Fill in other fields, if needed
+    }
 }

@@ -23,23 +23,24 @@ struct GetBitContext;
 
 class CMPEG2HeaderParser
 {
-public:
-  CMPEG2HeaderParser(const BYTE *pData, size_t length);
-  ~CMPEG2HeaderParser(void);
+  public:
+    CMPEG2HeaderParser(const BYTE *pData, size_t length);
+    ~CMPEG2HeaderParser(void);
 
-public:
-  struct {
-    int valid;
+  public:
+    struct
+    {
+        int valid;
 
-    int profile;
-    int level;
+        int profile;
+        int level;
 
-    int interlaced;
-    int chroma;
-  } hdr;
+        int interlaced;
+        int chroma;
+    } hdr;
 
-private:
-  void ParseMPEG2Header(const BYTE *pData, size_t length);
-  void MPEG2ParseSequenceHeader(GetBitContext *gb);
-  void MPEG2ParseExtHeader(GetBitContext *gb);
+  private:
+    void ParseMPEG2Header(const BYTE *pData, size_t length);
+    void MPEG2ParseSequenceHeader(GetBitContext *gb);
+    void MPEG2ParseExtHeader(GetBitContext *gb);
 };

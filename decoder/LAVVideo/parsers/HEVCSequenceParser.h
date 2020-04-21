@@ -25,23 +25,24 @@
 
 class CHEVCSequenceParser
 {
-public:
-  CHEVCSequenceParser();
-  ~CHEVCSequenceParser();
+  public:
+    CHEVCSequenceParser();
+    ~CHEVCSequenceParser();
 
-  HRESULT ParseNALs(const BYTE *buffer, size_t buflen, int nal_size);
+    HRESULT ParseNALs(const BYTE *buffer, size_t buflen, int nal_size);
 
-public:
-  struct {
-    int valid;
+  public:
+    struct
+    {
+        int valid;
 
-    int profile;
-    int rext_profile;
-    int level;
-    int chroma;
-    int bitdepth;
-  } sps;
+        int profile;
+        int rext_profile;
+        int level;
+        int chroma;
+        int bitdepth;
+    } sps;
 
-private:
-  HRESULT ParseSPS(const BYTE *buffer, size_t buflen);
+  private:
+    HRESULT ParseSPS(const BYTE *buffer, size_t buflen);
 };

@@ -31,6 +31,7 @@
 #define SUBTITLE_PTS_TIMEOUT (AV_NOPTS_VALUE + 1)
 
 #define OFFSET(x) offsetof(LAVSubtitleProviderContext, x)
+// clang-format off
 static const SubRenderOption options[] = {
   { "name",           OFFSET(name),            SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "version",        OFFSET(version),         SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
@@ -40,6 +41,7 @@ static const SubRenderOption options[] = {
   { "combineBitmaps", OFFSET(combineBitmaps),  SROPT_TYPE_BOOL,   0                   },
   { 0 }
 };
+// clang-format on
 
 CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsumer *pConsumer)
   : CSubRenderOptionsImpl(::options, &context)

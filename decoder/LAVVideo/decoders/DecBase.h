@@ -24,87 +24,99 @@
 
 class CDecBase : public ILAVDecoder
 {
-public:
-  CDecBase(void) {}
-  virtual ~CDecBase(void) {}
+  public:
+    CDecBase(void) {}
+    virtual ~CDecBase(void) {}
 
-  STDMETHOD(Init)() PURE;
-  STDMETHOD(Decode)(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint, BOOL bDiscontinuity, IMediaSample *pSample) PURE;
+    STDMETHOD(Init)() PURE;
+    STDMETHOD(Decode)
+    (const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint,
+     BOOL bDiscontinuity, IMediaSample *pSample) PURE;
 
-  // ILAVDecoder
-  STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback) { m_pSettings = pSettings; m_pCallback = pCallback; return Init(); }
-  STDMETHODIMP Check() { return S_FALSE; }
-  STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration() { return 0; }
-  STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess) { return TRUE; }
-  STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc) { return E_NOTIMPL; }
-  STDMETHODIMP PostConnect(IPin *pPin) { return S_FALSE; }
-  STDMETHODIMP BreakConnect() { return S_FALSE; }
-  STDMETHODIMP_(long) GetBufferCount(long *pMaxBuffers = nullptr) { return 2; }
+    // ILAVDecoder
+    STDMETHODIMP InitInterfaces(ILAVVideoSettings *pSettings, ILAVVideoCallback *pCallback)
+    {
+        m_pSettings = pSettings;
+        m_pCallback = pCallback;
+        return Init();
+    }
+    STDMETHODIMP Check() { return S_FALSE; }
+    STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration() { return 0; }
+    STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess) { return TRUE; }
+    STDMETHODIMP InitAllocator(IMemAllocator **ppAlloc) { return E_NOTIMPL; }
+    STDMETHODIMP PostConnect(IPin *pPin) { return S_FALSE; }
+    STDMETHODIMP BreakConnect() { return S_FALSE; }
+    STDMETHODIMP_(long) GetBufferCount(long *pMaxBuffers = nullptr) { return 2; }
 
-  STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
+    STDMETHODIMP HasThreadSafeBuffers() { return S_FALSE; }
 
-  STDMETHODIMP SetDirectOutput(BOOL bDirect) { return S_FALSE; }
+    STDMETHODIMP SetDirectOutput(BOOL bDirect) { return S_FALSE; }
 
-  STDMETHODIMP_(DWORD) GetHWAccelNumDevices() { return 0; }
-  STDMETHODIMP GetHWAccelDeviceInfo(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier) { return E_UNEXPECTED; }
-  STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName) { return E_UNEXPECTED; }
+    STDMETHODIMP_(DWORD) GetHWAccelNumDevices() { return 0; }
+    STDMETHODIMP GetHWAccelDeviceInfo(DWORD dwIndex, BSTR *pstrDeviceName, DWORD *dwDeviceIdentifier)
+    {
+        return E_UNEXPECTED;
+    }
+    STDMETHODIMP GetHWAccelActiveDevice(BSTR *pstrDeviceName) { return E_UNEXPECTED; }
 
-  STDMETHODIMP Decode(IMediaSample *pSample) {
-    HRESULT hr;
+    STDMETHODIMP Decode(IMediaSample *pSample)
+    {
+        HRESULT hr;
 
-    // Retrieve buffer
-    BYTE *pData = nullptr;
-    if (FAILED(hr = pSample->GetPointer(&pData))) {
-      return hr;
+        // Retrieve buffer
+        BYTE *pData = nullptr;
+        if (FAILED(hr = pSample->GetPointer(&pData)))
+        {
+            return hr;
+        }
+
+        // Retrieve timestamps
+        REFERENCE_TIME rtStart, rtStop;
+        hr = pSample->GetTime(&rtStart, &rtStop);
+
+        if (FAILED(hr))
+        {
+            rtStart = rtStop = AV_NOPTS_VALUE;
+        }
+        else if (hr == VFW_S_NO_STOP_TIME || rtStop - 1 <= rtStart)
+        {
+            rtStop = AV_NOPTS_VALUE;
+        }
+
+        // DVD Stripping
+        long nSize = pSample->GetActualDataLength();
+        m_pCallback->DVDStripPacket(pData, nSize);
+
+        if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_SAGE_HACK)
+        {
+            FFSWAP(REFERENCE_TIME, rtStart, m_rtTimestampBuffer);
+            rtStop = AV_NOPTS_VALUE;
+        }
+
+        return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK,
+                      pSample);
     }
 
-    // Retrieve timestamps
-    REFERENCE_TIME rtStart, rtStop;
-    hr = pSample->GetTime(&rtStart, &rtStop);
+    STDMETHODIMP Flush()
+    {
+        m_rtTimestampBuffer = 0;
+        m_MpegParserState = (uint32_t)-1;
+        return S_OK;
+    };
 
-    if (FAILED(hr)) {
-      rtStart = rtStop = AV_NOPTS_VALUE;
-    } else if (hr == VFW_S_NO_STOP_TIME || rtStop-1 <= rtStart) {
-      rtStop = AV_NOPTS_VALUE;
-    }
+  protected:
+    // Convenience wrapper around m_pCallback
+    inline HRESULT Deliver(LAVFrame *pFrame) { return m_pCallback->Deliver(pFrame); }
 
-    // DVD Stripping
-    long nSize = pSample->GetActualDataLength();
-    m_pCallback->DVDStripPacket(pData, nSize);
+    inline HRESULT AllocateFrame(LAVFrame **ppFrame) { return m_pCallback->AllocateFrame(ppFrame); }
 
-    if (m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_SAGE_HACK) {
-      FFSWAP(REFERENCE_TIME, rtStart, m_rtTimestampBuffer);
-      rtStop = AV_NOPTS_VALUE;
-    }
+    inline HRESULT ReleaseFrame(LAVFrame **ppFrame) { return m_pCallback->ReleaseFrame(ppFrame); }
 
-    return Decode(pData, nSize, rtStart, rtStop, pSample->IsSyncPoint() == S_OK, pSample->IsDiscontinuity() == S_OK, pSample);
-  }
+  protected:
+    ILAVVideoSettings *m_pSettings = nullptr;
+    ILAVVideoCallback *m_pCallback = nullptr;
 
-  STDMETHODIMP Flush() {
-    m_rtTimestampBuffer = 0;
-    m_MpegParserState = (uint32_t)-1;
-    return S_OK;
-  };
+    REFERENCE_TIME m_rtTimestampBuffer = AV_NOPTS_VALUE;
 
-protected:
-  // Convenience wrapper around m_pCallback
-  inline HRESULT Deliver(LAVFrame *pFrame) {
-    return m_pCallback->Deliver(pFrame);
-  }
-
-  inline HRESULT AllocateFrame(LAVFrame **ppFrame) {
-    return m_pCallback->AllocateFrame(ppFrame);
-  }
-
-  inline HRESULT ReleaseFrame(LAVFrame **ppFrame) {
-    return m_pCallback->ReleaseFrame(ppFrame);
-  }
-
-protected:
-  ILAVVideoSettings *m_pSettings = nullptr;
-  ILAVVideoCallback *m_pCallback = nullptr;
-
-  REFERENCE_TIME m_rtTimestampBuffer = AV_NOPTS_VALUE;
-
-  uint32_t m_MpegParserState     = (uint32_t)-1;
+    uint32_t m_MpegParserState = (uint32_t)-1;
 };

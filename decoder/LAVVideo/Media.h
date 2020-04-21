@@ -28,22 +28,26 @@ int getThreadFlags(AVCodecID codecId);
 
 #define MAX_NUM_CC_CODECS 3
 
-struct codec_config_t {
-  int nCodecs;
-  AVCodecID codecs[MAX_NUM_CC_CODECS];
-  const char *name;
-  const char *description;
+struct codec_config_t
+{
+    int nCodecs;
+    AVCodecID codecs[MAX_NUM_CC_CODECS];
+    const char *name;
+    const char *description;
 };
 const codec_config_t *get_codec_config(LAVVideoCodec codec);
 
 int flip_plane(BYTE *buffer, int stride, int height);
-void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer, int chroma_sample_location = 0, bool bClear = true);
+void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int matrix, int transfer,
+                       int chroma_sample_location = 0, bool bClear = true);
 void processFFHDRData(MediaSideDataHDR *sd, AVMasteringDisplayMetadata *ff);
 void processFFHDR10PlusData(MediaSideDataHDR10Plus *sd, AVDynamicHDRPlus *ff, int width, int height);
 
 #define STATE_NOT_FOUND 0
 #define STATE_EOS_FOUND 1
 #define STATE_GOP_FOUND 2
-int CheckForSequenceMarkers(AVCodecID codec, const uint8_t *buf, long len, uint32_t *state, const uint8_t **pos = nullptr);
+int CheckForSequenceMarkers(AVCodecID codec, const uint8_t *buf, long len, uint32_t *state,
+                            const uint8_t **pos = nullptr);
 
-int sws_scale2(struct SwsContext *c, const uint8_t *const srcSlice[], const ptrdiff_t srcStride[], int srcSliceY, int srcSliceH, uint8_t *const dst[], const ptrdiff_t dstStride[]);
+int sws_scale2(struct SwsContext *c, const uint8_t *const srcSlice[], const ptrdiff_t srcStride[], int srcSliceY,
+               int srcSliceH, uint8_t *const dst[], const ptrdiff_t dstStride[]);

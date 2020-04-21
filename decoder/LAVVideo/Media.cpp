@@ -26,11 +26,13 @@
 
 #include "moreuuids.h"
 
-typedef struct {
-  const CLSID*        clsMinorType;
-  const enum AVCodecID  nFFCodec;
+typedef struct
+{
+    const CLSID *clsMinorType;
+    const enum AVCodecID nFFCodec;
 } FFMPEG_SUBTYPE_MAP;
 
+// clang-format off
 // Map Media Subtype <> FFMPEG Codec Id
 static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   // H264
@@ -590,12 +592,14 @@ const UINT CLAVVideo::sudPinTypesOutCount = countof(CLAVVideo::sudPinTypesOut);
 // Crawl the lavc_video_codecs array for the proper codec
 AVCodecID FindCodecId(const CMediaType *mt)
 {
-  for (int i=0; i<countof(lavc_video_codecs); ++i) {
-    if (mt->subtype == *lavc_video_codecs[i].clsMinorType) {
-      return lavc_video_codecs[i].nFFCodec;
+    for (int i = 0; i < countof(lavc_video_codecs); ++i)
+    {
+        if (mt->subtype == *lavc_video_codecs[i].clsMinorType)
+        {
+            return lavc_video_codecs[i].nFFCodec;
+        }
     }
-  }
-  return AV_CODEC_ID_NONE;
+    return AV_CODEC_ID_NONE;
 }
 
 // Strings will be filled in eventually.
@@ -664,6 +668,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_MAGICYUV }},                                            // Codec_MagicYUV
   { 1, { AV_CODEC_ID_AV1 }},                                                 // Codec_AV1
 };
+// clang-format off
 
 const codec_config_t *get_codec_config(LAVVideoCodec codec)
 {

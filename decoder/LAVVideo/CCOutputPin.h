@@ -23,25 +23,25 @@ class CLAVVideo;
 
 class CCCOutputPin : public CBaseOutputPin
 {
-public:
-  CCCOutputPin(TCHAR* pObjectName, CLAVVideo* pFilter, CCritSec *pcsFilter, HRESULT* phr, LPWSTR pName);
-	virtual ~CCCOutputPin();
+  public:
+    CCCOutputPin(TCHAR *pObjectName, CLAVVideo *pFilter, CCritSec *pcsFilter, HRESULT *phr, LPWSTR pName);
+    virtual ~CCCOutputPin();
 
-  // IUnknown
-  DECLARE_IUNKNOWN
-  STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
+    // IUnknown
+    DECLARE_IUNKNOWN
+    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void **ppv);
 
-  // CBasePin
-  virtual HRESULT CheckMediaType(const CMediaType* pmt);
-  virtual HRESULT GetMediaType(int iPosition, CMediaType* pmt);
-  virtual HRESULT Active(void);
+    // CBasePin
+    virtual HRESULT CheckMediaType(const CMediaType *pmt);
+    virtual HRESULT GetMediaType(int iPosition, CMediaType *pmt);
+    virtual HRESULT Active(void);
 
-  // CBaseOutputPin
-  virtual HRESULT DecideBufferSize(IMemAllocator * pAlloc, ALLOCATOR_PROPERTIES * ppropInputRequest);
+    // CBaseOutputPin
+    virtual HRESULT DecideBufferSize(IMemAllocator *pAlloc, ALLOCATOR_PROPERTIES *ppropInputRequest);
 
-  // CCOutputPin
-  STDMETHODIMP DeliverCCData(BYTE *pData, size_t size, REFERENCE_TIME rtTime);
+    // CCOutputPin
+    STDMETHODIMP DeliverCCData(BYTE *pData, size_t size, REFERENCE_TIME rtTime);
 
-private:
-  CMediaType m_CCmt;
+  private:
+    CMediaType m_CCmt;
 };

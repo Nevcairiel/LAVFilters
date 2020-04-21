@@ -41,61 +41,39 @@
 
 // --- COM factory table and registration code --------------
 
-const AMOVIESETUP_PIN sudpPinsVideoDec[] = {
-	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVVideo::sudPinTypesInCount,  CLAVVideo::sudPinTypesIn},
-	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVVideo::sudPinTypesOutCount, CLAVVideo::sudPinTypesOut}
-};
+const AMOVIESETUP_PIN sudpPinsVideoDec[] = {{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, nullptr,
+                                             CLAVVideo::sudPinTypesInCount, CLAVVideo::sudPinTypesIn},
+                                            {L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, nullptr,
+                                             CLAVVideo::sudPinTypesOutCount, CLAVVideo::sudPinTypesOut}};
 
-const AMOVIESETUP_FILTER sudFilterReg =
-{
-  &__uuidof(CLAVVideo),       // filter clsid
-  L"LAV Video Decoder",       // filter name
-  MERIT_PREFERRED + 3,        // merit
-  countof(sudpPinsVideoDec),
-  sudpPinsVideoDec,
-  CLSID_LegacyAmFilterCategory
-};
+const AMOVIESETUP_FILTER sudFilterReg = {&__uuidof(CLAVVideo), // filter clsid
+                                         L"LAV Video Decoder", // filter name
+                                         MERIT_PREFERRED + 3,  // merit
+                                         countof(sudpPinsVideoDec), sudpPinsVideoDec, CLSID_LegacyAmFilterCategory};
 
 // --- COM factory table and registration code --------------
 
 // DirectShow base class COM factory requires this table,
 // declaring all the COM objects in this DLL
 CFactoryTemplate g_Templates[] = {
-  // one entry for each CoCreate-able object
-  {
-    sudFilterReg.strName,
-      sudFilterReg.clsID,
-      CreateInstance<CLAVVideo>,
-      nullptr,
-      &sudFilterReg
-  },
-  // This entry is for the property page.
-  {
-    L"LAV Video Properties",
-    &CLSID_LAVVideoSettingsProp,
-    CreateInstance<CLAVVideoSettingsProp>,
-    nullptr, nullptr
-  },
-  {
-    L"LAV Video Format Settings",
-    &CLSID_LAVVideoFormatsProp,
-    CreateInstance<CLAVVideoFormatsProp>,
-    nullptr, nullptr
-  }
-};
+    // one entry for each CoCreate-able object
+    {sudFilterReg.strName, sudFilterReg.clsID, CreateInstance<CLAVVideo>, nullptr, &sudFilterReg},
+    // This entry is for the property page.
+    {L"LAV Video Properties", &CLSID_LAVVideoSettingsProp, CreateInstance<CLAVVideoSettingsProp>, nullptr, nullptr},
+    {L"LAV Video Format Settings", &CLSID_LAVVideoFormatsProp, CreateInstance<CLAVVideoFormatsProp>, nullptr, nullptr}};
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 
 // self-registration entrypoint
 STDAPI DllRegisterServer()
 {
-  // base classes will handle registration using the factory template table
-  return AMovieDllRegisterServer2(true);
+    // base classes will handle registration using the factory template table
+    return AMovieDllRegisterServer2(true);
 }
 
 STDAPI DllUnregisterServer()
 {
-  // base classes will handle de-registration using the factory template table
-  return AMovieDllRegisterServer2(false);
+    // base classes will handle de-registration using the factory template table
+    return AMovieDllRegisterServer2(false);
 }
 
 // if we declare the correct C runtime entrypoint and then forward it to the DShow base
@@ -104,18 +82,19 @@ STDAPI DllUnregisterServer()
 extern "C" BOOL WINAPI DllEntryPoint(HINSTANCE, ULONG, LPVOID);
 BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
 {
-  return DllEntryPoint(reinterpret_cast<HINSTANCE>(hDllHandle), dwReason, lpReserved);
+    return DllEntryPoint(reinterpret_cast<HINSTANCE>(hDllHandle), dwReason, lpReserved);
 }
 
 void CALLBACK OpenConfiguration(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
-  HRESULT hr = S_OK;
-  CUnknown *pInstance = CreateInstance<CLAVVideo>(nullptr, &hr);
-  IBaseFilter *pFilter = nullptr;
-  pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
-  if (pFilter) {
-    pFilter->AddRef();
-    CBaseDSPropPage::ShowPropPageDialog(pFilter);
-  }
-  delete pInstance;
+    HRESULT hr = S_OK;
+    CUnknown *pInstance = CreateInstance<CLAVVideo>(nullptr, &hr);
+    IBaseFilter *pFilter = nullptr;
+    pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
+    if (pFilter)
+    {
+        pFilter->AddRef();
+        CBaseDSPropPage::ShowPropPageDialog(pFilter);
+    }
+    delete pInstance;
 }

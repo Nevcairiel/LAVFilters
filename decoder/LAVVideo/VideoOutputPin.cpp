@@ -21,9 +21,9 @@
 #include "LAVVideo.h"
 #include "VideoOutputPin.h"
 
-CVideoOutputPin::CVideoOutputPin(LPCTSTR pObjectName, CLAVVideo *pFilter, HRESULT * phr, LPCWSTR pName)
-  : CTransformOutputPin(pObjectName, (CTransformFilter *)pFilter, phr, pName)
-  , m_pFilter(pFilter)
+CVideoOutputPin::CVideoOutputPin(LPCTSTR pObjectName, CLAVVideo *pFilter, HRESULT *phr, LPCWSTR pName)
+    : CTransformOutputPin(pObjectName, (CTransformFilter *)pFilter, phr, pName)
+    , m_pFilter(pFilter)
 {
 }
 
@@ -33,11 +33,11 @@ CVideoOutputPin::~CVideoOutputPin()
 
 HRESULT CVideoOutputPin::InitAllocator(IMemAllocator **ppAlloc)
 {
-  HRESULT hr = S_FALSE;
-  hr = m_pFilter->m_Decoder.InitAllocator(ppAlloc);
+    HRESULT hr = S_FALSE;
+    hr = m_pFilter->m_Decoder.InitAllocator(ppAlloc);
 
-  if (hr != S_OK)
-    hr = __super::InitAllocator(ppAlloc);
+    if (hr != S_OK)
+        hr = __super::InitAllocator(ppAlloc);
 
-  return hr;
+    return hr;
 }

@@ -21,35 +21,37 @@
 
 class CH264SequenceParser
 {
-public:
-  CH264SequenceParser(void);
-  virtual ~CH264SequenceParser(void);
+  public:
+    CH264SequenceParser(void);
+    virtual ~CH264SequenceParser(void);
 
-  HRESULT ParseNALs(const BYTE *buffer, size_t buflen, int nal_size);
+    HRESULT ParseNALs(const BYTE *buffer, size_t buflen, int nal_size);
 
-public:
-  struct {
-    int valid;
+  public:
+    struct
+    {
+        int valid;
 
-    int profile;
-    int level;
-    int chroma;
-    int luma_bitdepth;
-    int chroma_bitdepth;
-    int ref_frames;
-    int interlaced;
-    int ar_present;
+        int profile;
+        int level;
+        int chroma;
+        int luma_bitdepth;
+        int chroma_bitdepth;
+        int ref_frames;
+        int interlaced;
+        int ar_present;
 
-    int full_range;
-    int primaries;
-    int trc;
-    int colorspace;
-  } sps;
+        int full_range;
+        int primaries;
+        int trc;
+        int colorspace;
+    } sps;
 
-  struct {
-    int valid;
-  } pps;
+    struct
+    {
+        int valid;
+    } pps;
 
-private:
-  HRESULT ParseSPS(const BYTE *buffer, size_t buflen);
+  private:
+    HRESULT ParseSPS(const BYTE *buffer, size_t buflen);
 };
