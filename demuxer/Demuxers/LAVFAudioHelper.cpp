@@ -65,7 +65,7 @@ static FormatMapping audio_map[] = {
   { AV_CODEC_ID_RALF,       &MEDIASUBTYPE_RALF,              WAVE_FORMAT_RALF,       nullptr },
   { AV_CODEC_ID_ALAC,       &MEDIASUBTYPE_ALAC,              0,                      nullptr },
   { AV_CODEC_ID_MP4ALS,     &MEDIASUBTYPE_ALS,               0,                      nullptr },
-  { AV_CODEC_ID_OPUS,       &MEDIASUBTYPE_OPUS,              0,                      nullptr },
+  { AV_CODEC_ID_OPUS,       &MEDIASUBTYPE_OPUS,              WAVE_FORMAT_OPUS,       nullptr },
   { AV_CODEC_ID_NELLYMOSER, &MEDIASUBTYPE_NELLYMOSER,        0,                      nullptr },
   { AV_CODEC_ID_PCM_ALAW,   &MEDIASUBTYPE_ALAW,              WAVE_FORMAT_ALAW,       nullptr },
   { AV_CODEC_ID_PCM_MULAW,  &MEDIASUBTYPE_MULAW,             WAVE_FORMAT_MULAW,      nullptr },

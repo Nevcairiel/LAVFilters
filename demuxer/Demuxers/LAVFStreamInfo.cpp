@@ -142,6 +142,11 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
         mtype.subtype = MEDIASUBTYPE_MPEG_LOAS;
         wvfmt->wFormatTag = (WORD)mtype.subtype.Data1;
       }
+      else if (avstream->codecpar->codec_id == AV_CODEC_ID_OPUS) {
+        mtypes.push_back(mtype);
+        mtype.subtype = MEDIASUBTYPE_OPUS_OLD;
+        wvfmt->wFormatTag = (WORD)WAVE_FORMAT_OPUS_OLD;
+      }
     }
   } else if (mtype.formattype == FORMAT_VorbisFormat2 && mtype.subtype == MEDIASUBTYPE_Vorbis2) {
     // With Matroska and Ogg we know how to split up the extradata
