@@ -1,16 +1,14 @@
 //------------------------------------------------------------------------------
 // File: SysClock.cpp
 //
-// Desc: DirectShow base classes - implements a system clock based on 
+// Desc: DirectShow base classes - implements a system clock based on
 //       IReferenceClock.
 //
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 #include <streams.h>
 #include <limits.h>
-
 
 #ifdef FILTER_DLL
 
@@ -19,28 +17,23 @@
    being created. The class factory will call the static CreateInstance
    function when it is asked to create a CLSID_SystemClock object */
 
-CFactoryTemplate g_Templates[1] = {
-    {&CLSID_SystemClock, CSystemClock::CreateInstance}
-};
+CFactoryTemplate g_Templates[1] = {{&CLSID_SystemClock, CSystemClock::CreateInstance}};
 
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 #endif
 
 /* This goes in the factory template table to create new instances */
-CUnknown * WINAPI CSystemClock::CreateInstance(__inout_opt LPUNKNOWN pUnk, __inout HRESULT *phr)
+CUnknown *WINAPI CSystemClock::CreateInstance(__inout_opt LPUNKNOWN pUnk, __inout HRESULT *phr)
 {
-    return new CSystemClock(NAME("System reference clock"),pUnk, phr);
+    return new CSystemClock(NAME("System reference clock"), pUnk, phr);
 }
 
-
-CSystemClock::CSystemClock(__in_opt LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, __inout HRESULT *phr) :
-    CBaseReferenceClock(pName, pUnk, phr)
+CSystemClock::CSystemClock(__in_opt LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, __inout HRESULT *phr)
+    : CBaseReferenceClock(pName, pUnk, phr)
 {
 }
 
-STDMETHODIMP CSystemClock::NonDelegatingQueryInterface(
-    REFIID riid,
-    __deref_out void ** ppv)
+STDMETHODIMP CSystemClock::NonDelegatingQueryInterface(REFIID riid, __deref_out void **ppv)
 {
     if (riid == IID_IPersist)
     {
@@ -60,14 +53,13 @@ STDMETHODIMP CSystemClock::NonDelegatingQueryInterface(
 STDMETHODIMP
 CSystemClock::GetClassID(__out CLSID *pClsID)
 {
-    CheckPointer(pClsID,E_POINTER);
-    ValidateReadWritePtr(pClsID,sizeof(CLSID));
+    CheckPointer(pClsID, E_POINTER);
+    ValidateReadWritePtr(pClsID, sizeof(CLSID));
     *pClsID = CLSID_SystemClock;
     return NOERROR;
 }
 
-
-STDMETHODIMP 
+STDMETHODIMP
 CSystemClock::SetClockDelta(REFERENCE_TIME rtDelta)
 {
     return SetTimeDelta(rtDelta);

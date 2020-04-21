@@ -1,12 +1,11 @@
 //------------------------------------------------------------------------------
 // File: WinCtrl.h
 //
-// Desc: DirectShow base classes - defines classes for video control 
+// Desc: DirectShow base classes - defines classes for video control
 //       interfaces.
 //
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
-
 
 #ifndef __WINCTRL__
 #define __WINCTRL__
@@ -17,25 +16,25 @@
 //  Helper
 BOOL WINAPI PossiblyEatMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-class CBaseControlWindow : public CBaseVideoWindow, public CBaseWindow
+class CBaseControlWindow
+    : public CBaseVideoWindow
+    , public CBaseWindow
 {
-protected:
+  protected:
+    CBaseFilter *m_pFilter;     // Pointer to owning media filter
+    CBasePin *m_pPin;           // Controls media types for connection
+    CCritSec *m_pInterfaceLock; // Externally defined critical section
+    COLORREF m_BorderColour;    // Current window border colour
+    BOOL m_bAutoShow;           // What happens when the state changes
+    HWND m_hwndOwner;           // Owner window that we optionally have
+    HWND m_hwndDrain;           // HWND to post any messages received
+    BOOL m_bCursorHidden;       // Should we hide the window cursor
 
-    CBaseFilter *m_pFilter;            // Pointer to owning media filter
-    CBasePin *m_pPin;                  // Controls media types for connection
-    CCritSec *m_pInterfaceLock;        // Externally defined critical section
-    COLORREF m_BorderColour;           // Current window border colour
-    BOOL m_bAutoShow;                  // What happens when the state changes
-    HWND m_hwndOwner;                  // Owner window that we optionally have
-    HWND m_hwndDrain;                  // HWND to post any messages received
-    BOOL m_bCursorHidden;              // Should we hide the window cursor
-
-public:
-
+  public:
     // Internal methods for other objects to get information out
 
-    HRESULT DoSetWindowStyle(long Style,long WindowLong);
-    HRESULT DoGetWindowStyle(__out long *pStyle,long WindowLong);
+    HRESULT DoSetWindowStyle(long Style, long WindowLong);
+    HRESULT DoGetWindowStyle(__out long *pStyle, long WindowLong);
     BOOL IsAutoShowEnabled() { return m_bAutoShow; };
     COLORREF GetBorderColour() { return m_BorderColour; };
     HWND GetOwnerWindow() { return m_hwndOwner; };
@@ -52,17 +51,14 @@ public:
     // pins dynamically when requested in CBaseFilter::GetPin. This can
     // not be called from our constructor because is is a virtual method
 
-    void SetControlWindowPin(CBasePin *pPin) {
-        m_pPin = pPin;
-    }
+    void SetControlWindowPin(CBasePin *pPin) { m_pPin = pPin; }
 
-public:
-
-    CBaseControlWindow(__inout CBaseFilter *pFilter,   // Owning media filter
-                       __in CCritSec *pInterfaceLock,  // Locking object
-                       __in_opt LPCTSTR pName,         // Object description
-                       __inout_opt LPUNKNOWN pUnk,     // Normal COM ownership
-                       __inout HRESULT *phr);          // OLE return code
+  public:
+    CBaseControlWindow(__inout CBaseFilter *pFilter,  // Owning media filter
+                       __in CCritSec *pInterfaceLock, // Locking object
+                       __in_opt LPCTSTR pName,        // Object description
+                       __inout_opt LPUNKNOWN pUnk,    // Normal COM ownership
+                       __inout HRESULT *phr);         // OLE return code
 
     // These are the properties we support
 
@@ -100,13 +96,13 @@ public:
     // And these are the methods
 
     STDMETHODIMP SetWindowForeground(long Focus);
-    STDMETHODIMP NotifyOwnerMessage(OAHWND hwnd,long uMsg,LONG_PTR wParam,LONG_PTR lParam);
-    STDMETHODIMP GetMinIdealImageSize(__out long *pWidth,__out long *pHeight);
-    STDMETHODIMP GetMaxIdealImageSize(__out long *pWidth,__out long *pHeight);
-    STDMETHODIMP SetWindowPosition(long Left,long Top,long Width,long Height);
-    STDMETHODIMP GetWindowPosition(__out long *pLeft,__out long *pTop,__out long *pWidth,__out long *pHeight);
-    STDMETHODIMP GetRestorePosition(__out long *pLeft,__out long *pTop,__out long *pWidth,__out long *pHeight);
-	STDMETHODIMP HideCursor(long HideCursor);
+    STDMETHODIMP NotifyOwnerMessage(OAHWND hwnd, long uMsg, LONG_PTR wParam, LONG_PTR lParam);
+    STDMETHODIMP GetMinIdealImageSize(__out long *pWidth, __out long *pHeight);
+    STDMETHODIMP GetMaxIdealImageSize(__out long *pWidth, __out long *pHeight);
+    STDMETHODIMP SetWindowPosition(long Left, long Top, long Width, long Height);
+    STDMETHODIMP GetWindowPosition(__out long *pLeft, __out long *pTop, __out long *pWidth, __out long *pHeight);
+    STDMETHODIMP GetRestorePosition(__out long *pLeft, __out long *pTop, __out long *pWidth, __out long *pHeight);
+    STDMETHODIMP HideCursor(long HideCursor);
     STDMETHODIMP IsCursorHidden(__out long *CursorHidden);
 };
 
@@ -114,14 +110,12 @@ public:
 
 class CBaseControlVideo : public CBaseBasicVideo
 {
-protected:
+  protected:
+    CBaseFilter *m_pFilter;     // Pointer to owning media filter
+    CBasePin *m_pPin;           // Controls media types for connection
+    CCritSec *m_pInterfaceLock; // Externally defined critical section
 
-    CBaseFilter *m_pFilter;   // Pointer to owning media filter
-    CBasePin *m_pPin;                   // Controls media types for connection
-    CCritSec *m_pInterfaceLock;         // Externally defined critical section
-
-public:
-
+  public:
     // Derived classes must provide these for the implementation
 
     virtual HRESULT IsDefaultTargetRect() PURE;
@@ -132,7 +126,8 @@ public:
     virtual HRESULT SetDefaultSourceRect() PURE;
     virtual HRESULT SetSourceRect(RECT *pSourceRect) PURE;
     virtual HRESULT GetSourceRect(RECT *pSourceRect) PURE;
-    virtual HRESULT GetStaticImage(__inout long *pBufferSize,__out_bcount_part(*pBufferSize, *pBufferSize) long *pDIBImage) PURE;
+    virtual HRESULT GetStaticImage(__inout long *pBufferSize,
+                                   __out_bcount_part(*pBufferSize, *pBufferSize) long *pDIBImage) PURE;
 
     // Derived classes must override this to return a VIDEOINFO representing
     // the video format. We cannot call IPin ConnectionMediaType to get this
@@ -145,15 +140,10 @@ public:
 
     // Helper functions for creating memory renderings of a DIB image
 
-    HRESULT GetImageSize(__in VIDEOINFOHEADER *pVideoInfo,
-                         __out LONG *pBufferSize,
-                         __in RECT *pSourceRect);
+    HRESULT GetImageSize(__in VIDEOINFOHEADER *pVideoInfo, __out LONG *pBufferSize, __in RECT *pSourceRect);
 
-    HRESULT CopyImage(IMediaSample *pMediaSample,
-                      __in VIDEOINFOHEADER *pVideoInfo,
-                      __inout LONG *pBufferSize,
-                      __out_bcount_part(*pBufferSize, *pBufferSize) BYTE *pVideoImage,
-                      __in RECT *pSourceRect);
+    HRESULT CopyImage(IMediaSample *pMediaSample, __in VIDEOINFOHEADER *pVideoInfo, __inout LONG *pBufferSize,
+                      __out_bcount_part(*pBufferSize, *pBufferSize) BYTE *pVideoImage, __in RECT *pSourceRect);
 
     // Override this if you want notifying when the rectangles change
     virtual HRESULT OnUpdateRectangles() { return NOERROR; };
@@ -165,21 +155,18 @@ public:
     // pins dynamically when requested in CBaseFilter::GetPin. This can
     // not be called from our constructor because is is a virtual method
 
-    void SetControlVideoPin(__inout CBasePin *pPin) {
-        m_pPin = pPin;
-    }
+    void SetControlVideoPin(__inout CBasePin *pPin) { m_pPin = pPin; }
 
     // Helper methods for checking rectangles
     virtual HRESULT CheckSourceRect(__in RECT *pSourceRect);
     virtual HRESULT CheckTargetRect(__in RECT *pTargetRect);
 
-public:
-
-    CBaseControlVideo(__inout CBaseFilter *pFilter,    // Owning media filter
-                      __in CCritSec *pInterfaceLock,   // Serialise interface
-                      __in_opt LPCTSTR pName,          // Object description
-                      __inout_opt LPUNKNOWN pUnk,      // Normal COM ownership
-                      __inout HRESULT *phr);           // OLE return code
+  public:
+    CBaseControlVideo(__inout CBaseFilter *pFilter,  // Owning media filter
+                      __in CCritSec *pInterfaceLock, // Serialise interface
+                      __in_opt LPCTSTR pName,        // Object description
+                      __inout_opt LPUNKNOWN pUnk,    // Normal COM ownership
+                      __inout HRESULT *phr);         // OLE return code
 
     // These are the properties we support
 
@@ -207,18 +194,19 @@ public:
 
     // And these are the methods
 
-    STDMETHODIMP GetVideoSize(__out long *pWidth,__out long *pHeight);
-    STDMETHODIMP SetSourcePosition(long Left,long Top,long Width,long Height);
-    STDMETHODIMP GetSourcePosition(__out long *pLeft,__out long *pTop,__out long *pWidth,__out long *pHeight);
-    STDMETHODIMP GetVideoPaletteEntries(long StartIndex,long Entries,__out long *pRetrieved,__out_ecount_part(Entries, *pRetrieved) long *pPalette);
+    STDMETHODIMP GetVideoSize(__out long *pWidth, __out long *pHeight);
+    STDMETHODIMP SetSourcePosition(long Left, long Top, long Width, long Height);
+    STDMETHODIMP GetSourcePosition(__out long *pLeft, __out long *pTop, __out long *pWidth, __out long *pHeight);
+    STDMETHODIMP GetVideoPaletteEntries(long StartIndex, long Entries, __out long *pRetrieved,
+                                        __out_ecount_part(Entries, *pRetrieved) long *pPalette);
     STDMETHODIMP SetDefaultSourcePosition();
     STDMETHODIMP IsUsingDefaultSource();
-    STDMETHODIMP SetDestinationPosition(long Left,long Top,long Width,long Height);
-    STDMETHODIMP GetDestinationPosition(__out long *pLeft,__out long *pTop,__out long *pWidth,__out long *pHeight);
+    STDMETHODIMP SetDestinationPosition(long Left, long Top, long Width, long Height);
+    STDMETHODIMP GetDestinationPosition(__out long *pLeft, __out long *pTop, __out long *pWidth, __out long *pHeight);
     STDMETHODIMP SetDefaultDestinationPosition();
     STDMETHODIMP IsUsingDefaultDestination();
-    STDMETHODIMP GetCurrentImage(__inout long *pBufferSize,__out_bcount_part(*pBufferSize, *pBufferSize) long *pVideoImage);
+    STDMETHODIMP GetCurrentImage(__inout long *pBufferSize,
+                                 __out_bcount_part(*pBufferSize, *pBufferSize) long *pVideoImage);
 };
 
 #endif // __WINCTRL__
-

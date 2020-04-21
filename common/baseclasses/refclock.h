@@ -6,17 +6,16 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 #ifndef __BASEREFCLOCK__
 #define __BASEREFCLOCK__
 
 #include <Schedule.h>
 
-const UINT RESOLUTION = 1;                      /* High resolution timer */
-const INT ADVISE_CACHE = 4;                     /* Default cache size */
-const LONGLONG MAX_TIME = 0x7FFFFFFFFFFFFFFF;   /* Maximum LONGLONG value */
+const UINT RESOLUTION = 1;                    /* High resolution timer */
+const INT ADVISE_CACHE = 4;                   /* Default cache size */
+const LONGLONG MAX_TIME = 0x7FFFFFFFFFFFFFFF; /* Maximum LONGLONG value */
 
-inline LONGLONG WINAPI ConvertToMilliseconds(const REFERENCE_TIME& RT)
+inline LONGLONG WINAPI ConvertToMilliseconds(const REFERENCE_TIME &RT)
 {
     /* This converts an arbitrary value representing a reference time
        into a MILLISECONDS value for use in subsequent system calls */
@@ -72,17 +71,18 @@ inline LONGLONG WINAPI ConvertToMilliseconds(const REFERENCE_TIME& RT)
  */
 
 class CBaseReferenceClock
-: public CUnknown, public IReferenceClock, public CCritSec, public IReferenceClockTimerControl 
+    : public CUnknown
+    , public IReferenceClock
+    , public CCritSec
+    , public IReferenceClockTimerControl
 {
-protected:
-    virtual ~CBaseReferenceClock();     // Don't let me be created on the stack!
-public:
-    CBaseReferenceClock(__in_opt LPCTSTR pName, 
-                        __inout_opt LPUNKNOWN pUnk, 
-                        __inout HRESULT *phr, 
-                        __inout_opt CAMSchedule * pSched = 0 );
+  protected:
+    virtual ~CBaseReferenceClock(); // Don't let me be created on the stack!
+  public:
+    CBaseReferenceClock(__in_opt LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, __inout HRESULT *phr,
+                        __inout_opt CAMSchedule *pSched = 0);
 
-    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void ** ppv);
+    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void **ppv);
 
     DECLARE_IUNKNOWN
 
@@ -99,19 +99,17 @@ public:
     /* Provide standard mechanisms for scheduling events */
 
     /* Ask for an async notification that a time has elapsed */
-    STDMETHODIMP AdviseTime(
-        REFERENCE_TIME baseTime,        // base reference time
-        REFERENCE_TIME streamTime,      // stream offset time
-        HEVENT hEvent,                  // advise via this event
-        __out DWORD_PTR *pdwAdviseCookie// where your cookie goes
+    STDMETHODIMP AdviseTime(REFERENCE_TIME baseTime,         // base reference time
+                            REFERENCE_TIME streamTime,       // stream offset time
+                            HEVENT hEvent,                   // advise via this event
+                            __out DWORD_PTR *pdwAdviseCookie // where your cookie goes
     );
 
     /* Ask for an asynchronous periodic notification that a time has elapsed */
-    STDMETHODIMP AdvisePeriodic(
-        REFERENCE_TIME StartTime,       // starting at this time
-        REFERENCE_TIME PeriodTime,      // time between notifications
-        HSEMAPHORE hSemaphore,          // advise via a semaphore
-        __out DWORD_PTR *pdwAdviseCookie// where your cookie goes
+    STDMETHODIMP AdvisePeriodic(REFERENCE_TIME StartTime,        // starting at this time
+                                REFERENCE_TIME PeriodTime,       // time between notifications
+                                HSEMAPHORE hSemaphore,           // advise via a semaphore
+                                __out DWORD_PTR *pdwAdviseCookie // where your cookie goes
     );
 
     /* Cancel a request for notification(s) - if the notification was
@@ -134,51 +132,47 @@ public:
     virtual REFERENCE_TIME GetPrivateTime();
 
     /* Provide a method for correcting drift */
-    STDMETHODIMP SetTimeDelta( const REFERENCE_TIME& TimeDelta );
+    STDMETHODIMP SetTimeDelta(const REFERENCE_TIME &TimeDelta);
 
-    CAMSchedule * GetSchedule() const { return m_pSchedule; }
+    CAMSchedule *GetSchedule() const { return m_pSchedule; }
 
     // IReferenceClockTimerControl methods
     //
     // Setting a default of 0 disables the default of 1ms
-    STDMETHODIMP SetDefaultTimerResolution(
-        REFERENCE_TIME timerResolution // in 100ns
+    STDMETHODIMP SetDefaultTimerResolution(REFERENCE_TIME timerResolution // in 100ns
     );
-    STDMETHODIMP GetDefaultTimerResolution(
-        __out REFERENCE_TIME* pTimerResolution // in 100ns
+    STDMETHODIMP GetDefaultTimerResolution(__out REFERENCE_TIME *pTimerResolution // in 100ns
     );
 
-private:
-    REFERENCE_TIME m_rtPrivateTime;     // Current best estimate of time
-    DWORD          m_dwPrevSystemTime;  // Last vaule we got from timeGetTime
-    REFERENCE_TIME m_rtLastGotTime;     // Last time returned by GetTime
-    REFERENCE_TIME m_rtNextAdvise;      // Time of next advise
-    UINT           m_TimerResolution;
+  private:
+    REFERENCE_TIME m_rtPrivateTime; // Current best estimate of time
+    DWORD m_dwPrevSystemTime;       // Last vaule we got from timeGetTime
+    REFERENCE_TIME m_rtLastGotTime; // Last time returned by GetTime
+    REFERENCE_TIME m_rtNextAdvise;  // Time of next advise
+    UINT m_TimerResolution;
 
 #ifdef PERF
     int m_idGetSystemTime;
 #endif
 
-// Thread stuff
-public:
-    void TriggerThread()    // Wakes thread up.  Need to do this if
-    {                       // time to next advise needs reevaluating.
+    // Thread stuff
+  public:
+    void TriggerThread() // Wakes thread up.  Need to do this if
+    {                    // time to next advise needs reevaluating.
         EXECUTE_ASSERT(SetEvent(m_pSchedule->GetEvent()));
     }
 
+  private:
+    BOOL m_bAbort;    // Flag used for thread shutdown
+    HANDLE m_hThread; // Thread handle
 
-private:
-    BOOL           m_bAbort;            // Flag used for thread shutdown
-    HANDLE         m_hThread;           // Thread handle
-
-    HRESULT AdviseThread();             // Method in which the advise thread runs
+    HRESULT AdviseThread();                                   // Method in which the advise thread runs
     static DWORD __stdcall AdviseThreadFunction(__in LPVOID); // Function used to get there
 
-protected:
-    CAMSchedule * m_pSchedule;
+  protected:
+    CAMSchedule *m_pSchedule;
 
-    void Restart (IN REFERENCE_TIME rtMinTime = 0I64) ;
+    void Restart(IN REFERENCE_TIME rtMinTime = 0I64);
 };
 
 #endif
-

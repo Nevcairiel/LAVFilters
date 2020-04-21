@@ -7,23 +7,21 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 #ifndef __FILTER__
 #define __FILTER__
 
 /* The following classes are declared in this header: */
 
-class CBaseMediaFilter;     // IMediaFilter support
-class CBaseFilter;          // IBaseFilter,IMediaFilter support
-class CBasePin;             // Abstract base class for IPin interface
-class CEnumPins;            // Enumerate input and output pins
-class CEnumMediaTypes;      // Enumerate the pin's preferred formats
-class CBaseOutputPin;       // Adds data provider member functions
-class CBaseInputPin;        // Implements IMemInputPin interface
-class CMediaSample;         // Basic transport unit for IMemInputPin
-class CBaseAllocator;       // General list guff for most allocators
-class CMemAllocator;        // Implements memory buffer allocation
-
+class CBaseMediaFilter; // IMediaFilter support
+class CBaseFilter;      // IBaseFilter,IMediaFilter support
+class CBasePin;         // Abstract base class for IPin interface
+class CEnumPins;        // Enumerate input and output pins
+class CEnumMediaTypes;  // Enumerate the pin's preferred formats
+class CBaseOutputPin;   // Adds data provider member functions
+class CBaseInputPin;    // Implements IMemInputPin interface
+class CMediaSample;     // Basic transport unit for IMemInputPin
+class CBaseAllocator;   // General list guff for most allocators
+class CMemAllocator;    // Implements memory buffer allocation
 
 //=====================================================================
 //=====================================================================
@@ -34,9 +32,13 @@ class CMemAllocator;        // Implements memory buffer allocation
 //=====================================================================
 //=====================================================================
 
-#define QueryFilterInfoReleaseGraph(fi) if ((fi).pGraph) (fi).pGraph->Release();
+#define QueryFilterInfoReleaseGraph(fi) \
+    if ((fi).pGraph)                    \
+        (fi).pGraph->Release();
 
-#define QueryPinInfoReleaseFilter(pi) if ((pi).pFilter) (pi).pFilter->Release();
+#define QueryPinInfoReleaseFilter(pi) \
+    if ((pi).pFilter)                 \
+        (pi).pFilter->Release();
 
 //=====================================================================
 //=====================================================================
@@ -53,37 +55,32 @@ class CMemAllocator;        // Implements memory buffer allocation
 //=====================================================================
 //=====================================================================
 
-class AM_NOVTABLE CBaseMediaFilter : public CUnknown,
-                                     public IMediaFilter
+class AM_NOVTABLE CBaseMediaFilter
+    : public CUnknown
+    , public IMediaFilter
 {
 
-protected:
-
-    FILTER_STATE    m_State;            // current state: running, paused
-    IReferenceClock *m_pClock;          // this filter's reference clock
+  protected:
+    FILTER_STATE m_State;      // current state: running, paused
+    IReferenceClock *m_pClock; // this filter's reference clock
     // note: all filters in a filter graph use the same clock
 
     // offset from stream time to reference time
-    CRefTime        m_tStart;
+    CRefTime m_tStart;
 
-    CLSID	    m_clsid;            // This filters clsid
-                                        // used for serialization
-    CCritSec        *m_pLock;           // Object we use for locking
+    CLSID m_clsid;     // This filters clsid
+                       // used for serialization
+    CCritSec *m_pLock; // Object we use for locking
 
-public:
-
-    CBaseMediaFilter(
-        __in_opt LPCTSTR pName,
-        __inout_opt LPUNKNOWN pUnk,
-        __in CCritSec  *pLock,
-	REFCLSID   clsid);
+  public:
+    CBaseMediaFilter(__in_opt LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, __in CCritSec *pLock, REFCLSID clsid);
 
     virtual ~CBaseMediaFilter();
 
     DECLARE_IUNKNOWN
 
     // override this to say what interfaces we support where
-    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void ** ppv);
+    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void **ppv);
 
     //
     // --- IPersist method ---
@@ -107,7 +104,6 @@ public:
     STDMETHODIMP Stop();
     STDMETHODIMP Pause();
 
-
     // the start parameter is the difference to be added to the
     // sample's stream time to get the reference time for
     // its presentation
@@ -117,10 +113,11 @@ public:
 
     // return the current stream time - ie find out what
     // stream time should be appearing now
-    virtual HRESULT StreamTime(CRefTime& rtStream);
+    virtual HRESULT StreamTime(CRefTime &rtStream);
 
     // Is the filter currently active? (running or paused)
-    BOOL IsActive() {
+    BOOL IsActive()
+    {
         CAutoLock cObjectLock(m_pLock);
         return ((m_State == State_Paused) || (m_State == State_Running));
     };
@@ -144,61 +141,58 @@ public:
 //=====================================================================
 //=====================================================================
 
-
-class AM_NOVTABLE CBaseFilter : public CUnknown,        // Handles an IUnknown
-                    public IBaseFilter,     // The Filter Interface
-                    public IAMovieSetup     // For un/registration
+class AM_NOVTABLE CBaseFilter
+    : public CUnknown
+    , // Handles an IUnknown
+      public IBaseFilter
+    ,                     // The Filter Interface
+      public IAMovieSetup // For un/registration
 {
 
-friend class CBasePin;
+    friend class CBasePin;
 
-protected:
-    FILTER_STATE    m_State;            // current state: running, paused
-    IReferenceClock *m_pClock;          // this graph's ref clock
-    CRefTime        m_tStart;           // offset from stream time to reference time
-    CLSID	    m_clsid;            // This filters clsid
-                                        // used for serialization
-    CCritSec        *m_pLock;           // Object we use for locking
+  protected:
+    FILTER_STATE m_State;      // current state: running, paused
+    IReferenceClock *m_pClock; // this graph's ref clock
+    CRefTime m_tStart;         // offset from stream time to reference time
+    CLSID m_clsid;             // This filters clsid
+                               // used for serialization
+    CCritSec *m_pLock;         // Object we use for locking
 
-    WCHAR           *m_pName;           // Full filter name
-    IFilterGraph    *m_pGraph;          // Graph we belong to
-    IMediaEventSink *m_pSink;           // Called with notify events
-    LONG            m_PinVersion;       // Current pin version
+    WCHAR *m_pName;           // Full filter name
+    IFilterGraph *m_pGraph;   // Graph we belong to
+    IMediaEventSink *m_pSink; // Called with notify events
+    LONG m_PinVersion;        // Current pin version
 
-public:
+  public:
+    CBaseFilter(__in_opt LPCTSTR pName,     // Object description
+                __inout_opt LPUNKNOWN pUnk, // IUnknown of delegating object
+                __in CCritSec *pLock,       // Object who maintains lock
+                REFCLSID clsid);            // The clsid to be used to serialize this filter
 
-    CBaseFilter(
-        __in_opt LPCTSTR pName,   // Object description
-        __inout_opt LPUNKNOWN pUnk,  // IUnknown of delegating object
-        __in CCritSec  *pLock,    // Object who maintains lock
-	REFCLSID   clsid);        // The clsid to be used to serialize this filter
-
-    CBaseFilter(
-        __in_opt LPCTSTR pName,    // Object description
-        __in_opt LPUNKNOWN pUnk,  // IUnknown of delegating object
-        __in CCritSec  *pLock,    // Object who maintains lock
-	REFCLSID   clsid,         // The clsid to be used to serialize this filter
-        __inout HRESULT   *phr);  // General OLE return code
+    CBaseFilter(__in_opt LPCTSTR pName,  // Object description
+                __in_opt LPUNKNOWN pUnk, // IUnknown of delegating object
+                __in CCritSec *pLock,    // Object who maintains lock
+                REFCLSID clsid,          // The clsid to be used to serialize this filter
+                __inout HRESULT *phr);   // General OLE return code
 #ifdef UNICODE
-    CBaseFilter(
-        __in_opt LPCSTR pName,    // Object description
-        __in_opt LPUNKNOWN pUnk,  // IUnknown of delegating object
-        __in CCritSec  *pLock,    // Object who maintains lock
-	REFCLSID   clsid);        // The clsid to be used to serialize this filter
+    CBaseFilter(__in_opt LPCSTR pName,   // Object description
+                __in_opt LPUNKNOWN pUnk, // IUnknown of delegating object
+                __in CCritSec *pLock,    // Object who maintains lock
+                REFCLSID clsid);         // The clsid to be used to serialize this filter
 
-    CBaseFilter(
-        __in_opt LPCSTR pName,     // Object description
-        __in_opt LPUNKNOWN pUnk,  // IUnknown of delegating object
-        __in CCritSec  *pLock,    // Object who maintains lock
-	REFCLSID   clsid,         // The clsid to be used to serialize this filter
-        __inout HRESULT   *phr);  // General OLE return code
+    CBaseFilter(__in_opt LPCSTR pName,   // Object description
+                __in_opt LPUNKNOWN pUnk, // IUnknown of delegating object
+                __in CCritSec *pLock,    // Object who maintains lock
+                REFCLSID clsid,          // The clsid to be used to serialize this filter
+                __inout HRESULT *phr);   // General OLE return code
 #endif
     ~CBaseFilter();
 
     DECLARE_IUNKNOWN
 
     // override this to say what interfaces we support where
-    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void ** ppv);
+    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void **ppv);
 #ifdef DEBUG
     STDMETHODIMP_(ULONG) NonDelegatingRelease();
 #endif
@@ -217,7 +211,6 @@ public:
 
     STDMETHODIMP GetSyncSource(__deref_out_opt IReferenceClock **pClock);
 
-
     // override Stop and Pause so we can activate the pins.
     // Note that Run will call Pause first if activation needed.
     // Override these if you want to activate your filter rather than
@@ -234,62 +227,46 @@ public:
 
     // return the current stream time - ie find out what
     // stream time should be appearing now
-    virtual HRESULT StreamTime(CRefTime& rtStream);
+    virtual HRESULT StreamTime(CRefTime &rtStream);
 
     // Is the filter currently active?
-    BOOL IsActive() {
+    BOOL IsActive()
+    {
         CAutoLock cObjectLock(m_pLock);
         return ((m_State == State_Paused) || (m_State == State_Running));
     };
 
     // Is this filter stopped (without locking)
-    BOOL IsStopped() {
-        return (m_State == State_Stopped);
-    };
+    BOOL IsStopped() { return (m_State == State_Stopped); };
 
     //
     // --- IBaseFilter methods ---
     //
 
     // pin enumerator
-    STDMETHODIMP EnumPins(
-                    __deref_out IEnumPins ** ppEnum);
-
+    STDMETHODIMP EnumPins(__deref_out IEnumPins **ppEnum);
 
     // default behaviour of FindPin assumes pin ids are their names
-    STDMETHODIMP FindPin(
-        LPCWSTR Id,
-        __deref_out IPin ** ppPin
-    );
+    STDMETHODIMP FindPin(LPCWSTR Id, __deref_out IPin **ppPin);
 
-    STDMETHODIMP QueryFilterInfo(
-                    __out FILTER_INFO * pInfo);
+    STDMETHODIMP QueryFilterInfo(__out FILTER_INFO *pInfo);
 
-    STDMETHODIMP JoinFilterGraph(
-                    __inout_opt IFilterGraph * pGraph,
-                    __in_opt LPCWSTR pName);
+    STDMETHODIMP JoinFilterGraph(__inout_opt IFilterGraph *pGraph, __in_opt LPCWSTR pName);
 
     // return a Vendor information string. Optional - may return E_NOTIMPL.
     // memory returned should be freed using CoTaskMemFree
     // default implementation returns E_NOTIMPL
-    STDMETHODIMP QueryVendorInfo(
-                    __deref_out LPWSTR* pVendorInfo
-            );
+    STDMETHODIMP QueryVendorInfo(__deref_out LPWSTR *pVendorInfo);
 
     // --- helper methods ---
 
     // send an event notification to the filter graph if we know about it.
     // returns S_OK if delivered, S_FALSE if the filter graph does not sink
     // events, or an error otherwise.
-    HRESULT NotifyEvent(
-        long EventCode,
-        LONG_PTR EventParam1,
-        LONG_PTR EventParam2);
+    HRESULT NotifyEvent(long EventCode, LONG_PTR EventParam1, LONG_PTR EventParam2);
 
     // return the filter graph we belong to
-    __out_opt IFilterGraph *GetFilterGraph() {
-        return m_pGraph;
-    }
+    __out_opt IFilterGraph *GetFilterGraph() { return m_pGraph; }
 
     // Request reconnect
     // pPin is the pin to reconnect
@@ -308,16 +285,14 @@ public:
 
     // --- IAMovieSetup methods ---
 
-    STDMETHODIMP Register();    // ask filter to register itself
-    STDMETHODIMP Unregister();  // and unregister itself
+    STDMETHODIMP Register();   // ask filter to register itself
+    STDMETHODIMP Unregister(); // and unregister itself
 
     // --- setup helper methods ---
     // (override to return filters setup data)
 
-    virtual __out_opt LPAMOVIESETUP_FILTER GetSetupData(){ return NULL; }
-
+    virtual __out_opt LPAMOVIESETUP_FILTER GetSetupData() { return NULL; }
 };
-
 
 //=====================================================================
 //=====================================================================
@@ -327,30 +302,32 @@ public:
 //=====================================================================
 //=====================================================================
 
-class  AM_NOVTABLE CBasePin : public CUnknown, public IPin, public IQualityControl
+class AM_NOVTABLE CBasePin
+    : public CUnknown
+    , public IPin
+    , public IQualityControl
 {
 
-protected:
+  protected:
+    WCHAR *m_pName;                 // This pin's name
+    IPin *m_Connected;              // Pin we have connected to
+    PIN_DIRECTION m_dir;            // Direction of this pin
+    CCritSec *m_pLock;              // Object we use for locking
+    bool m_bRunTimeError;           // Run time error generated
+    bool m_bCanReconnectWhenActive; // OK to reconnect when active
+    bool m_bTryMyTypesFirst;        // When connecting enumerate
+                                    // this pin's types first
+    CBaseFilter *m_pFilter;         // Filter we were created by
+    IQualityControl *m_pQSink;      // Target for Quality messages
+    LONG m_TypeVersion;             // Holds current type version
+    CMediaType m_mt;                // Media type of connection
 
-    WCHAR *         m_pName;		        // This pin's name
-    IPin            *m_Connected;               // Pin we have connected to
-    PIN_DIRECTION   m_dir;                      // Direction of this pin
-    CCritSec        *m_pLock;                   // Object we use for locking
-    bool            m_bRunTimeError;            // Run time error generated
-    bool            m_bCanReconnectWhenActive;  // OK to reconnect when active
-    bool            m_bTryMyTypesFirst;         // When connecting enumerate
-                                                // this pin's types first
-    CBaseFilter    *m_pFilter;                  // Filter we were created by
-    IQualityControl *m_pQSink;                  // Target for Quality messages
-    LONG            m_TypeVersion;              // Holds current type version
-    CMediaType      m_mt;                       // Media type of connection
-
-    CRefTime        m_tStart;                   // time from NewSegment call
-    CRefTime        m_tStop;                    // time from NewSegment
-    double          m_dRate;                    // rate from NewSegment
+    CRefTime m_tStart; // time from NewSegment call
+    CRefTime m_tStop;  // time from NewSegment
+    double m_dRate;    // rate from NewSegment
 
 #ifdef DEBUG
-    LONG            m_cRef;                     // Ref count tracing
+    LONG m_cRef; // Ref count tracing
 #endif
 
     // displays pin connection information
@@ -359,8 +336,8 @@ protected:
     void DisplayPinInfo(IPin *pReceivePin);
     void DisplayTypeInfo(IPin *pPin, const CMediaType *pmt);
 #else
-    void DisplayPinInfo(IPin *pReceivePin) {};
-    void DisplayTypeInfo(IPin *pPin, const CMediaType *pmt) {};
+    void DisplayPinInfo(IPin *pReceivePin){};
+    void DisplayTypeInfo(IPin *pPin, const CMediaType *pmt){};
 #endif
 
     // used to agree a media type for a pin connection
@@ -368,49 +345,43 @@ protected:
     // given a specific media type, attempt a connection (includes
     // checking that the type is acceptable to this pin)
     HRESULT
-    AttemptConnection(
-        IPin* pReceivePin,      // connect to this pin
-        const CMediaType* pmt   // using this type
+    AttemptConnection(IPin *pReceivePin,    // connect to this pin
+                      const CMediaType *pmt // using this type
     );
 
     // try all the media types in this enumerator - for each that
     // we accept, try to connect using ReceiveConnection.
-    HRESULT TryMediaTypes(
-                        IPin *pReceivePin,          // connect to this pin
-                        __in_opt const CMediaType *pmt,  // proposed type from Connect
-                        IEnumMediaTypes *pEnum);    // try this enumerator
+    HRESULT TryMediaTypes(IPin *pReceivePin,              // connect to this pin
+                          __in_opt const CMediaType *pmt, // proposed type from Connect
+                          IEnumMediaTypes *pEnum);        // try this enumerator
 
     // establish a connection with a suitable mediatype. Needs to
     // propose a media type if the pmt pointer is null or partially
     // specified - use TryMediaTypes on both our and then the other pin's
     // enumerator until we find one that works.
-    HRESULT AgreeMediaType(
-                        IPin *pReceivePin,      // connect to this pin
-                        const CMediaType *pmt);      // proposed type from Connect
+    HRESULT AgreeMediaType(IPin *pReceivePin,      // connect to this pin
+                           const CMediaType *pmt); // proposed type from Connect
 
-public:
-
-    CBasePin(
-        __in_opt LPCTSTR pObjectName,         // Object description
-        __in CBaseFilter *pFilter,       // Owning filter who knows about pins
-        __in CCritSec *pLock,            // Object who implements the lock
-        __inout HRESULT *phr,               // General OLE return code
-        __in_opt LPCWSTR pName,              // Pin name for us
-        PIN_DIRECTION dir);         // Either PINDIR_INPUT or PINDIR_OUTPUT
+  public:
+    CBasePin(__in_opt LPCTSTR pObjectName, // Object description
+             __in CBaseFilter *pFilter,    // Owning filter who knows about pins
+             __in CCritSec *pLock,         // Object who implements the lock
+             __inout HRESULT *phr,         // General OLE return code
+             __in_opt LPCWSTR pName,       // Pin name for us
+             PIN_DIRECTION dir);           // Either PINDIR_INPUT or PINDIR_OUTPUT
 #ifdef UNICODE
-    CBasePin(
-        __in_opt LPCSTR pObjectName,         // Object description
-        __in CBaseFilter *pFilter,       // Owning filter who knows about pins
-        __in CCritSec *pLock,            // Object who implements the lock
-        __inout HRESULT *phr,               // General OLE return code
-        __in_opt LPCWSTR pName,              // Pin name for us
-        PIN_DIRECTION dir);         // Either PINDIR_INPUT or PINDIR_OUTPUT
+    CBasePin(__in_opt LPCSTR pObjectName, // Object description
+             __in CBaseFilter *pFilter,   // Owning filter who knows about pins
+             __in CCritSec *pLock,        // Object who implements the lock
+             __inout HRESULT *phr,        // General OLE return code
+             __in_opt LPCWSTR pName,      // Pin name for us
+             PIN_DIRECTION dir);          // Either PINDIR_INPUT or PINDIR_OUTPUT
 #endif
     virtual ~CBasePin();
 
     DECLARE_IUNKNOWN
 
-    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void ** ppv);
+    STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void **ppv);
     STDMETHODIMP_(ULONG) NonDelegatingRelease();
     STDMETHODIMP_(ULONG) NonDelegatingAddRef();
 
@@ -419,15 +390,13 @@ public:
     // take lead role in establishing a connection. Media type pointer
     // may be null, or may point to partially-specified mediatype
     // (subtype or format type may be GUID_NULL).
-    STDMETHODIMP Connect(
-        IPin * pReceivePin,
-        __in_opt const AM_MEDIA_TYPE *pmt   // optional media type
+    STDMETHODIMP Connect(IPin *pReceivePin,
+                         __in_opt const AM_MEDIA_TYPE *pmt // optional media type
     );
 
     // (passive) accept a connection from another pin
-    STDMETHODIMP ReceiveConnection(
-        IPin * pConnector,      // this is the initiating connecting pin
-        const AM_MEDIA_TYPE *pmt   // this is the media type we will exchange
+    STDMETHODIMP ReceiveConnection(IPin *pConnector,        // this is the initiating connecting pin
+                                   const AM_MEDIA_TYPE *pmt // this is the media type we will exchange
     );
 
     STDMETHODIMP Disconnect();
@@ -436,27 +405,17 @@ public:
 
     STDMETHODIMP ConnectionMediaType(__out AM_MEDIA_TYPE *pmt);
 
-    STDMETHODIMP QueryPinInfo(
-        __out PIN_INFO * pInfo
-    );
+    STDMETHODIMP QueryPinInfo(__out PIN_INFO *pInfo);
 
-    STDMETHODIMP QueryDirection(
-    	__out PIN_DIRECTION * pPinDir
-    );
+    STDMETHODIMP QueryDirection(__out PIN_DIRECTION *pPinDir);
 
-    STDMETHODIMP QueryId(
-        __deref_out LPWSTR * Id
-    );
+    STDMETHODIMP QueryId(__deref_out LPWSTR *Id);
 
     // does the pin support this media type
-    STDMETHODIMP QueryAccept(
-        const AM_MEDIA_TYPE *pmt
-    );
+    STDMETHODIMP QueryAccept(const AM_MEDIA_TYPE *pmt);
 
     // return an enumerator for this pins preferred media types
-    STDMETHODIMP EnumMediaTypes(
-        __deref_out IEnumMediaTypes **ppEnum
-    );
+    STDMETHODIMP EnumMediaTypes(__deref_out IEnumMediaTypes **ppEnum);
 
     // return an array of IPin* - the pins that this pin internally connects to
     // All pins put in the array must be AddReffed (but no others)
@@ -465,11 +424,13 @@ public:
     // The filter graph will interpret NOT_IMPL as any input pin connects to
     // all visible output pins and vice versa.
     // apPin can be NULL if nPin==0 (not otherwise).
-    STDMETHODIMP QueryInternalConnections(
-        __out_ecount_part(*nPin,*nPin) IPin* *apPin,     // array of IPin*
-        __inout ULONG *nPin                  // on input, the number of slots
-                                             // on output  the number of pins
-    ) { return E_NOTIMPL; }
+    STDMETHODIMP QueryInternalConnections(__out_ecount_part(*nPin, *nPin) IPin **apPin, // array of IPin*
+                                          __inout ULONG *nPin                           // on input, the number of slots
+                                                                                        // on output  the number of pins
+    )
+    {
+        return E_NOTIMPL;
+    }
 
     // Called when no more data will be sent
     STDMETHODIMP EndOfStream(void);
@@ -480,30 +441,25 @@ public:
     // about to be received. Default implementation records data and
     // returns S_OK.
     // Override this to pass downstream.
-    STDMETHODIMP NewSegment(
-                    REFERENCE_TIME tStart,
-                    REFERENCE_TIME tStop,
-                    double dRate);
+    STDMETHODIMP NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
     //================================================================================
     // IQualityControl methods
     //================================================================================
 
-    STDMETHODIMP Notify(IBaseFilter * pSender, Quality q);
+    STDMETHODIMP Notify(IBaseFilter *pSender, Quality q);
 
-    STDMETHODIMP SetSink(IQualityControl * piqc);
+    STDMETHODIMP SetSink(IQualityControl *piqc);
 
     // --- helper methods ---
 
     // Returns true if the pin is connected. false otherwise.
-    BOOL IsConnected(void) {return (m_Connected != NULL); };
+    BOOL IsConnected(void) { return (m_Connected != NULL); };
     // Return the pin this is connected to (if any)
-    IPin * GetConnected() { return m_Connected; };
+    IPin *GetConnected() { return m_Connected; };
 
     // Check if our filter is currently stopped
-    BOOL IsStopped() {
-        return (m_pFilter->m_State == State_Stopped);
-    };
+    BOOL IsStopped() { return (m_pFilter->m_State == State_Stopped); };
 
     // find out the current type version (used by enumerators)
     virtual LONG GetMediaTypeVersion();
@@ -537,34 +493,21 @@ public:
     virtual HRESULT GetMediaType(int iPosition, __inout CMediaType *pMediaType);
 
     // access to NewSegment values
-    REFERENCE_TIME CurrentStopTime() {
-        return m_tStop;
-    }
-    REFERENCE_TIME CurrentStartTime() {
-        return m_tStart;
-    }
-    double CurrentRate() {
-        return m_dRate;
-    }
+    REFERENCE_TIME CurrentStopTime() { return m_tStop; }
+    REFERENCE_TIME CurrentStartTime() { return m_tStart; }
+    double CurrentRate() { return m_dRate; }
 
     //  Access name
     LPWSTR Name() { return m_pName; };
 
     //  Can reconnectwhen active?
-    void SetReconnectWhenActive(bool bCanReconnect)
-    {
-        m_bCanReconnectWhenActive = bCanReconnect;
-    }
+    void SetReconnectWhenActive(bool bCanReconnect) { m_bCanReconnectWhenActive = bCanReconnect; }
 
-    bool CanReconnectWhenActive()
-    {
-        return m_bCanReconnectWhenActive;
-    }
+    bool CanReconnectWhenActive() { return m_bCanReconnectWhenActive; }
 
-protected:
+  protected:
     STDMETHODIMP DisconnectInternal();
 };
-
 
 //=====================================================================
 //=====================================================================
@@ -579,19 +522,19 @@ protected:
 //=====================================================================
 //=====================================================================
 
-class CEnumPins : public IEnumPins      // The interface we support
+class CEnumPins : public IEnumPins // The interface we support
 {
-    int m_Position;                 // Current ordinal position
-    int m_PinCount;                 // Number of pins available
-    CBaseFilter *m_pFilter;         // The filter who owns us
-    LONG m_Version;                 // Pin version information
+    int m_Position;         // Current ordinal position
+    int m_PinCount;         // Number of pins available
+    CBaseFilter *m_pFilter; // The filter who owns us
+    LONG m_Version;         // Pin version information
     LONG m_cRef;
 
     typedef CGenericList<CBasePin> CPinList;
 
-    CPinList m_PinCache;	    // These pointers have not been AddRef'ed and
-				    // so they should not be dereferenced.  They are
-				    // merely kept to ID which pins have been enumerated.
+    CPinList m_PinCache; // These pointers have not been AddRef'ed and
+                         // so they should not be dereferenced.  They are
+                         // merely kept to ID which pins have been enumerated.
 
 #ifdef DEBUG
     DWORD m_dwCookie;
@@ -604,20 +547,15 @@ class CEnumPins : public IEnumPins      // The interface we support
        filter what it's current version number is. If the filter has not
        overriden the GetPinVersion method then this will always match */
 
-    BOOL AreWeOutOfSync() {
-        return (m_pFilter->GetPinVersion() == m_Version ? FALSE : TRUE);
-    };
+    BOOL AreWeOutOfSync() { return (m_pFilter->GetPinVersion() == m_Version ? FALSE : TRUE); };
 
     /* This method performs the same operations as Reset, except is does not clear
        the cache of pins already enumerated. */
 
     STDMETHODIMP Refresh();
 
-public:
-
-    CEnumPins(
-        __in CBaseFilter *pFilter,
-        __in_opt CEnumPins *pEnumPins);
+  public:
+    CEnumPins(__in CBaseFilter *pFilter, __in_opt CEnumPins *pEnumPins);
 
     virtual ~CEnumPins();
 
@@ -627,19 +565,15 @@ public:
     STDMETHODIMP_(ULONG) Release();
 
     // IEnumPins
-    STDMETHODIMP Next(
-        ULONG cPins,         // place this many pins...
-        __out_ecount(cPins) IPin ** ppPins,    // ...in this array of IPin*
-        __out_opt ULONG * pcFetched    // actual count passed returned here
+    STDMETHODIMP Next(ULONG cPins,                       // place this many pins...
+                      __out_ecount(cPins) IPin **ppPins, // ...in this array of IPin*
+                      __out_opt ULONG *pcFetched         // actual count passed returned here
     );
 
     STDMETHODIMP Skip(ULONG cPins);
     STDMETHODIMP Reset();
     STDMETHODIMP Clone(__deref_out IEnumPins **ppEnum);
-
-
 };
-
 
 //=====================================================================
 //=====================================================================
@@ -649,11 +583,11 @@ public:
 //=====================================================================
 //=====================================================================
 
-class CEnumMediaTypes : public IEnumMediaTypes    // The interface we support
+class CEnumMediaTypes : public IEnumMediaTypes // The interface we support
 {
-    int m_Position;           // Current ordinal position
-    CBasePin *m_pPin;         // The pin who owns us
-    LONG m_Version;           // Media type version value
+    int m_Position;   // Current ordinal position
+    CBasePin *m_pPin; // The pin who owns us
+    LONG m_Version;   // Media type version value
     LONG m_cRef;
 #ifdef DEBUG
     DWORD m_dwCookie;
@@ -665,15 +599,10 @@ class CEnumMediaTypes : public IEnumMediaTypes    // The interface we support
        Reset method is called after the state changes all further calls to
        the enumerator (except Reset) will return E_UNEXPECTED error code */
 
-    BOOL AreWeOutOfSync() {
-        return (m_pPin->GetMediaTypeVersion() == m_Version ? FALSE : TRUE);
-    };
+    BOOL AreWeOutOfSync() { return (m_pPin->GetMediaTypeVersion() == m_Version ? FALSE : TRUE); };
 
-public:
-
-    CEnumMediaTypes(
-        __in CBasePin *pPin,
-        __in_opt CEnumMediaTypes *pEnumMediaTypes);
+  public:
+    CEnumMediaTypes(__in CBasePin *pPin, __in_opt CEnumMediaTypes *pEnumMediaTypes);
 
     virtual ~CEnumMediaTypes();
 
@@ -683,19 +612,15 @@ public:
     STDMETHODIMP_(ULONG) Release();
 
     // IEnumMediaTypes
-    STDMETHODIMP Next(
-        ULONG cMediaTypes,          // place this many pins...
-        __out_ecount(cMediaTypes) AM_MEDIA_TYPE ** ppMediaTypes,  // ...in this array
-        __out_opt ULONG * pcFetched           // actual count passed
+    STDMETHODIMP Next(ULONG cMediaTypes,                                      // place this many pins...
+                      __out_ecount(cMediaTypes) AM_MEDIA_TYPE **ppMediaTypes, // ...in this array
+                      __out_opt ULONG *pcFetched                              // actual count passed
     );
 
     STDMETHODIMP Skip(ULONG cMediaTypes);
     STDMETHODIMP Reset();
     STDMETHODIMP Clone(__deref_out IEnumMediaTypes **ppEnum);
 };
-
-
-
 
 //=====================================================================
 //=====================================================================
@@ -709,53 +634,38 @@ public:
 //=====================================================================
 //=====================================================================
 
-class  AM_NOVTABLE CBaseOutputPin : public CBasePin
+class AM_NOVTABLE CBaseOutputPin : public CBasePin
 {
 
-protected:
-
+  protected:
     IMemAllocator *m_pAllocator;
-    IMemInputPin *m_pInputPin;        // interface on the downstreaminput pin
-                                      // set up in CheckConnect when we connect.
+    IMemInputPin *m_pInputPin; // interface on the downstreaminput pin
+                               // set up in CheckConnect when we connect.
 
-public:
-
-    CBaseOutputPin(
-        __in_opt LPCTSTR pObjectName,
-        __in CBaseFilter *pFilter,
-        __in CCritSec *pLock,
-        __inout HRESULT *phr,
-        __in_opt LPCWSTR pName);
+  public:
+    CBaseOutputPin(__in_opt LPCTSTR pObjectName, __in CBaseFilter *pFilter, __in CCritSec *pLock, __inout HRESULT *phr,
+                   __in_opt LPCWSTR pName);
 #ifdef UNICODE
-    CBaseOutputPin(
-        __in_opt LPCSTR pObjectName,
-        __in CBaseFilter *pFilter,
-        __in CCritSec *pLock,
-        __inout HRESULT *phr,
-        __in_opt LPCWSTR pName);
+    CBaseOutputPin(__in_opt LPCSTR pObjectName, __in CBaseFilter *pFilter, __in CCritSec *pLock, __inout HRESULT *phr,
+                   __in_opt LPCWSTR pName);
 #endif
     // override CompleteConnect() so we can negotiate an allocator
     virtual HRESULT CompleteConnect(IPin *pReceivePin);
 
     // negotiate the allocator and its buffer size/count and other properties
     // Calls DecideBufferSize to set properties
-    virtual HRESULT DecideAllocator(IMemInputPin * pPin, __deref_out IMemAllocator ** pAlloc);
+    virtual HRESULT DecideAllocator(IMemInputPin *pPin, __deref_out IMemAllocator **pAlloc);
 
     // override this to set the buffer size and count. Return an error
     // if the size/count is not to your liking.
     // The allocator properties passed in are those requested by the
     // input pin - use eg the alignment and prefix members if you have
     // no preference on these.
-    virtual HRESULT DecideBufferSize(
-        IMemAllocator * pAlloc,
-        __inout ALLOCATOR_PROPERTIES * ppropInputRequest
-    ) PURE;
+    virtual HRESULT DecideBufferSize(IMemAllocator *pAlloc, __inout ALLOCATOR_PROPERTIES *ppropInputRequest) PURE;
 
     // returns an empty sample buffer from the allocator
-    virtual HRESULT GetDeliveryBuffer(__deref_out IMediaSample ** ppSample,
-                                      __in_opt REFERENCE_TIME * pStartTime,
-                                      __in_opt REFERENCE_TIME * pEndTime,
-                                      DWORD dwFlags);
+    virtual HRESULT GetDeliveryBuffer(__deref_out IMediaSample **ppSample, __in_opt REFERENCE_TIME *pStartTime,
+                                      __in_opt REFERENCE_TIME *pEndTime, DWORD dwFlags);
 
     // deliver a filled-in sample to the connected input pin
     // note - you need to release it after calling this. The receiving
@@ -790,10 +700,7 @@ public:
 
     // deliver NewSegment to connected pin - you will need to
     // override this if you queue any data in your output pin.
-    virtual HRESULT DeliverNewSegment(
-                        REFERENCE_TIME tStart,
-                        REFERENCE_TIME tStop,
-                        double dRate);
+    virtual HRESULT DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
     //================================================================================
     // IQualityControl methods
@@ -803,7 +710,6 @@ public:
     // STDMETHODIMP Notify(IBaseFilter * pSender, Quality q);
     // STDMETHODIMP SetSink(IQualityControl * piqc);
 };
-
 
 //=====================================================================
 //=====================================================================
@@ -816,13 +722,13 @@ public:
 //=====================================================================
 //=====================================================================
 
-class AM_NOVTABLE CBaseInputPin : public CBasePin,
-                                  public IMemInputPin
+class AM_NOVTABLE CBaseInputPin
+    : public CBasePin
+    , public IMemInputPin
 {
 
-protected:
-
-    IMemAllocator *m_pAllocator;    // Default memory allocator
+  protected:
+    IMemAllocator *m_pAllocator; // Default memory allocator
 
     // allocator is read-only, so received samples
     // cannot be modified (probably only relevant to in-place
@@ -836,21 +742,12 @@ protected:
     // Sample properties - initalized in Receive
     AM_SAMPLE2_PROPERTIES m_SampleProps;
 
-public:
-
-    CBaseInputPin(
-        __in_opt LPCTSTR pObjectName,
-        __in CBaseFilter *pFilter,
-        __in CCritSec *pLock,
-        __inout HRESULT *phr,
-        __in_opt LPCWSTR pName);
+  public:
+    CBaseInputPin(__in_opt LPCTSTR pObjectName, __in CBaseFilter *pFilter, __in CCritSec *pLock, __inout HRESULT *phr,
+                  __in_opt LPCWSTR pName);
 #ifdef UNICODE
-    CBaseInputPin(
-        __in_opt LPCSTR pObjectName,
-        __in CBaseFilter *pFilter,
-        __in CCritSec *pLock,
-        __inout HRESULT *phr,
-        __in_opt LPCWSTR pName);
+    CBaseInputPin(__in_opt LPCSTR pObjectName, __in CBaseFilter *pFilter, __in CCritSec *pLock, __inout HRESULT *phr,
+                  __in_opt LPCWSTR pName);
 #endif
     virtual ~CBaseInputPin();
 
@@ -861,22 +758,18 @@ public:
 
     // return the allocator interface that this input pin
     // would like the output pin to use
-    STDMETHODIMP GetAllocator(__deref_out IMemAllocator ** ppAllocator);
+    STDMETHODIMP GetAllocator(__deref_out IMemAllocator **ppAllocator);
 
     // tell the input pin which allocator the output pin is actually
     // going to use.
-    STDMETHODIMP NotifyAllocator(
-                    IMemAllocator * pAllocator,
-                    BOOL bReadOnly);
+    STDMETHODIMP NotifyAllocator(IMemAllocator *pAllocator, BOOL bReadOnly);
 
     // do something with this media sample
     STDMETHODIMP Receive(IMediaSample *pSample);
 
     // do something with these media samples
-    STDMETHODIMP ReceiveMultiple (
-        __in_ecount(nSamples) IMediaSample **pSamples,
-        long nSamples,
-        __out long *nSamplesProcessed);
+    STDMETHODIMP ReceiveMultiple(__in_ecount(nSamples) IMediaSample **pSamples, long nSamples,
+                                 __out long *nSamplesProcessed);
 
     // See if Receive() blocks
     STDMETHODIMP ReceiveCanBlock();
@@ -898,73 +791,60 @@ public:
     // default implementation returns E_NOTIMPL. Override if you have
     // specific alignment or prefix needs, but could use an upstream
     // allocator
-    STDMETHODIMP GetAllocatorRequirements(__out ALLOCATOR_PROPERTIES*pProps);
+    STDMETHODIMP GetAllocatorRequirements(__out ALLOCATOR_PROPERTIES *pProps);
 
     // Release the pin's allocator.
     HRESULT BreakConnect();
 
     // helper method to check the read-only flag
-    BOOL IsReadOnly() {
-        return m_bReadOnly;
-    };
+    BOOL IsReadOnly() { return m_bReadOnly; };
 
     // helper method to see if we are flushing
-    BOOL IsFlushing() {
-        return m_bFlushing;
-    };
+    BOOL IsFlushing() { return m_bFlushing; };
 
     //  Override this for checking whether it's OK to process samples
     //  Also call this from EndOfStream.
     virtual HRESULT CheckStreaming();
 
     // Pass a Quality notification on to the appropriate sink
-    HRESULT PassNotify(Quality& q);
-
+    HRESULT PassNotify(Quality &q);
 
     //================================================================================
     // IQualityControl methods (from CBasePin)
     //================================================================================
 
-    STDMETHODIMP Notify(IBaseFilter * pSender, Quality q);
+    STDMETHODIMP Notify(IBaseFilter *pSender, Quality q);
 
     // no need to override:
     // STDMETHODIMP SetSink(IQualityControl * piqc);
-
 
     // switch the pin to inactive state - may already be inactive
     virtual HRESULT Inactive(void);
 
     // Return sample properties pointer
-    AM_SAMPLE2_PROPERTIES * SampleProps() {
+    AM_SAMPLE2_PROPERTIES *SampleProps()
+    {
         ASSERT(m_SampleProps.cbData != 0);
         return &m_SampleProps;
     }
-
 };
 
 ///////////////////////////////////////////////////////////////////////////
 // CDynamicOutputPin
 //
 
-class CDynamicOutputPin : public CBaseOutputPin,
-                          public IPinFlowControl
+class CDynamicOutputPin
+    : public CBaseOutputPin
+    , public IPinFlowControl
 {
-public:
+  public:
 #ifdef UNICODE
-    CDynamicOutputPin(
-        __in_opt LPCSTR pObjectName,
-        __in CBaseFilter *pFilter,
-        __in CCritSec *pLock,
-        __inout HRESULT *phr,
-        __in_opt LPCWSTR pName);
+    CDynamicOutputPin(__in_opt LPCSTR pObjectName, __in CBaseFilter *pFilter, __in CCritSec *pLock,
+                      __inout HRESULT *phr, __in_opt LPCWSTR pName);
 #endif
 
-    CDynamicOutputPin(
-        __in_opt LPCTSTR pObjectName,
-        __in CBaseFilter *pFilter,
-        __in CCritSec *pLock,
-        __inout HRESULT *phr,
-        __in_opt LPCWSTR pName);
+    CDynamicOutputPin(__in_opt LPCTSTR pObjectName, __in CBaseFilter *pFilter, __in CCritSec *pLock,
+                      __inout HRESULT *phr, __in_opt LPCWSTR pName);
 
     ~CDynamicOutputPin();
 
@@ -981,11 +861,11 @@ public:
     //  Set graph config info
     void SetConfigInfo(IGraphConfig *pGraphConfig, HANDLE hStopEvent);
 
-    #ifdef DEBUG
+#ifdef DEBUG
     virtual HRESULT Deliver(IMediaSample *pSample);
     virtual HRESULT DeliverEndOfStream(void);
     virtual HRESULT DeliverNewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
-    #endif // DEBUG
+#endif // DEBUG
 
     HRESULT DeliverBeginFlush(void);
     HRESULT DeliverEndFlush(void);
@@ -998,17 +878,12 @@ public:
     virtual void StopUsingOutputPin(void);
     virtual bool StreamingThreadUsingOutputPin(void);
 
-    HRESULT ChangeOutputFormat
-        (
-        const AM_MEDIA_TYPE *pmt,
-        REFERENCE_TIME tSegmentStart,
-        REFERENCE_TIME tSegmentStop,
-        double dSegmentRate
-        );
+    HRESULT ChangeOutputFormat(const AM_MEDIA_TYPE *pmt, REFERENCE_TIME tSegmentStart, REFERENCE_TIME tSegmentStop,
+                               double dSegmentRate);
     HRESULT ChangeMediaType(const CMediaType *pmt);
     HRESULT DynamicReconnect(const CMediaType *pmt);
 
-protected:
+  protected:
     HRESULT SynchronousBlockOutputPin(void);
     HRESULT AsynchronousBlockOutputPin(HANDLE hNotifyCallerPinBlockedEvent);
     HRESULT UnblockOutputPin(void);
@@ -1064,44 +939,44 @@ protected:
     // This is a manual reset event.  It is also set when the output pin
     // delivers a flush to the connected input pin.
     HANDLE m_hStopEvent;
-    IGraphConfig* m_pGraphConfig;
+    IGraphConfig *m_pGraphConfig;
 
     // TRUE if the output pin's allocator's samples are read only.
     // Otherwise FALSE.  For more information, see the documentation
     // for IMemInputPin::NotifyAllocator().
     BOOL m_bPinUsesReadOnlyAllocator;
 
-private:
+  private:
     HRESULT Initialize(void);
     HRESULT ChangeMediaTypeHelper(const CMediaType *pmt);
 
-    #ifdef DEBUG
+#ifdef DEBUG
     void AssertValid(void);
-    #endif // DEBUG
+#endif // DEBUG
 };
 
 class CAutoUsingOutputPin
 {
-public:
-    CAutoUsingOutputPin( __in CDynamicOutputPin* pOutputPin, __inout HRESULT* phr );
+  public:
+    CAutoUsingOutputPin(__in CDynamicOutputPin *pOutputPin, __inout HRESULT *phr);
     ~CAutoUsingOutputPin();
 
-private:
-    CDynamicOutputPin* m_pOutputPin;
+  private:
+    CDynamicOutputPin *m_pOutputPin;
 };
 
-inline CAutoUsingOutputPin::CAutoUsingOutputPin( __in CDynamicOutputPin* pOutputPin, __inout HRESULT* phr ) :
-    m_pOutputPin(NULL)
+inline CAutoUsingOutputPin::CAutoUsingOutputPin(__in CDynamicOutputPin *pOutputPin, __inout HRESULT *phr)
+    : m_pOutputPin(NULL)
 {
     // The caller should always pass in valid pointers.
-    ASSERT( NULL != pOutputPin );
-    ASSERT( NULL != phr );
+    ASSERT(NULL != pOutputPin);
+    ASSERT(NULL != phr);
 
     // Make sure the user initialized phr.
-    ASSERT( S_OK == *phr );
+    ASSERT(S_OK == *phr);
 
     HRESULT hr = pOutputPin->StartUsingOutputPin();
-    if( FAILED( hr ) )
+    if (FAILED(hr))
     {
         *phr = hr;
         return;
@@ -1112,7 +987,7 @@ inline CAutoUsingOutputPin::CAutoUsingOutputPin( __in CDynamicOutputPin* pOutput
 
 inline CAutoUsingOutputPin::~CAutoUsingOutputPin()
 {
-    if( NULL != m_pOutputPin )
+    if (NULL != m_pOutputPin)
     {
         m_pOutputPin->StopUsingOutputPin();
     }
@@ -1133,7 +1008,7 @@ inline HRESULT CDynamicOutputPin::DeliverEndOfStream(void)
 {
     // The caller should call StartUsingOutputPin() before calling this
     // method.
-    ASSERT( StreamingThreadUsingOutputPin() );
+    ASSERT(StreamingThreadUsingOutputPin());
 
     return CBaseOutputPin::DeliverEndOfStream();
 }
@@ -1171,7 +1046,6 @@ inline HRESULT CDynamicOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFER
 //=====================================================================
 //=====================================================================
 
-
 //=====================================================================
 //=====================================================================
 // Defines CMediaSample
@@ -1182,67 +1056,58 @@ inline HRESULT CDynamicOutputPin::DeliverNewSegment(REFERENCE_TIME tStart, REFER
 //=====================================================================
 //=====================================================================
 
-class CMediaSample : public IMediaSample2    // The interface we support
+class CMediaSample : public IMediaSample2 // The interface we support
 {
 
-protected:
-
+  protected:
     friend class CBaseAllocator;
 
     /*  Values for dwFlags - these are used for backward compatiblity
         only now - use AM_SAMPLE_xxx
     */
-    enum { Sample_SyncPoint       = 0x01,   /* Is this a sync point */
-           Sample_Preroll         = 0x02,   /* Is this a preroll sample */
-           Sample_Discontinuity   = 0x04,   /* Set if start of new segment */
-           Sample_TypeChanged     = 0x08,   /* Has the type changed */
-           Sample_TimeValid       = 0x10,   /* Set if time is valid */
-           Sample_MediaTimeValid  = 0x20,   /* Is the media time valid */
-           Sample_TimeDiscontinuity = 0x40, /* Time discontinuity */
-           Sample_StopValid       = 0x100,  /* Stop time valid */
-           Sample_ValidFlags      = 0x1FF
-         };
+    enum
+    {
+        Sample_SyncPoint = 0x01,         /* Is this a sync point */
+        Sample_Preroll = 0x02,           /* Is this a preroll sample */
+        Sample_Discontinuity = 0x04,     /* Set if start of new segment */
+        Sample_TypeChanged = 0x08,       /* Has the type changed */
+        Sample_TimeValid = 0x10,         /* Set if time is valid */
+        Sample_MediaTimeValid = 0x20,    /* Is the media time valid */
+        Sample_TimeDiscontinuity = 0x40, /* Time discontinuity */
+        Sample_StopValid = 0x100,        /* Stop time valid */
+        Sample_ValidFlags = 0x1FF
+    };
 
     /* Properties, the media sample class can be a container for a format
        change in which case we take a copy of a type through the SetMediaType
        interface function and then return it when GetMediaType is called. As
        we do no internal processing on it we leave it as a pointer */
 
-    DWORD            m_dwFlags;         /* Flags for this sample */
-                                        /* Type specific flags are packed
-                                           into the top word
-                                        */
-    DWORD            m_dwTypeSpecificFlags; /* Media type specific flags */
-    __field_ecount_opt(m_cbBuffer) LPBYTE           m_pBuffer;         /* Pointer to the complete buffer */
-    LONG             m_lActual;         /* Length of data in this sample */
-    LONG             m_cbBuffer;        /* Size of the buffer */
-    CBaseAllocator  *m_pAllocator;      /* The allocator who owns us */
-    CMediaSample     *m_pNext;          /* Chaining in free list */
-    REFERENCE_TIME   m_Start;           /* Start sample time */
-    REFERENCE_TIME   m_End;             /* End sample time */
-    LONGLONG         m_MediaStart;      /* Real media start position */
-    LONG             m_MediaEnd;        /* A difference to get the end */
-    AM_MEDIA_TYPE    *m_pMediaType;     /* Media type change data */
-    DWORD            m_dwStreamId;      /* Stream id */
-public:
-    LONG             m_cRef;            /* Reference count */
+    DWORD m_dwFlags;                                 /* Flags for this sample */
+                                                     /* Type specific flags are packed
+                                                        into the top word
+                                                     */
+    DWORD m_dwTypeSpecificFlags;                     /* Media type specific flags */
+    __field_ecount_opt(m_cbBuffer) LPBYTE m_pBuffer; /* Pointer to the complete buffer */
+    LONG m_lActual;                                  /* Length of data in this sample */
+    LONG m_cbBuffer;                                 /* Size of the buffer */
+    CBaseAllocator *m_pAllocator;                    /* The allocator who owns us */
+    CMediaSample *m_pNext;                           /* Chaining in free list */
+    REFERENCE_TIME m_Start;                          /* Start sample time */
+    REFERENCE_TIME m_End;                            /* End sample time */
+    LONGLONG m_MediaStart;                           /* Real media start position */
+    LONG m_MediaEnd;                                 /* A difference to get the end */
+    AM_MEDIA_TYPE *m_pMediaType;                     /* Media type change data */
+    DWORD m_dwStreamId;                              /* Stream id */
+  public:
+    LONG m_cRef; /* Reference count */
 
-
-public:
-
-    CMediaSample(
-        __in_opt LPCTSTR pName,
-        __in_opt CBaseAllocator *pAllocator,
-        __inout_opt HRESULT *phr,
-        __in_bcount_opt(length) LPBYTE pBuffer = NULL,
-        LONG length = 0);
+  public:
+    CMediaSample(__in_opt LPCTSTR pName, __in_opt CBaseAllocator *pAllocator, __inout_opt HRESULT *phr,
+                 __in_bcount_opt(length) LPBYTE pBuffer = NULL, LONG length = 0);
 #ifdef UNICODE
-    CMediaSample(
-        __in_opt LPCSTR pName,
-        __in_opt CBaseAllocator *pAllocator,
-        __inout_opt HRESULT *phr,
-        __in_bcount_opt(length) LPBYTE pBuffer = NULL,
-        LONG length = 0);
+    CMediaSample(__in_opt LPCSTR pName, __in_opt CBaseAllocator *pAllocator, __inout_opt HRESULT *phr,
+                 __in_bcount_opt(length) LPBYTE pBuffer = NULL, LONG length = 0);
 #endif
 
     virtual ~CMediaSample();
@@ -1257,24 +1122,20 @@ public:
     // want variable sized pointers or pointers into already-read data.
     // This is only available through a CMediaSample* not an IMediaSample*
     // and so cannot be changed by clients.
-    HRESULT SetPointer(__in_bcount(cBytes) BYTE * ptr, LONG cBytes);
+    HRESULT SetPointer(__in_bcount(cBytes) BYTE *ptr, LONG cBytes);
 
     // Get me a read/write pointer to this buffer's memory.
-    STDMETHODIMP GetPointer(__deref_out BYTE ** ppBuffer);
+    STDMETHODIMP GetPointer(__deref_out BYTE **ppBuffer);
 
     STDMETHODIMP_(LONG) GetSize(void);
 
     // get the stream time at which this sample should start and finish.
-    STDMETHODIMP GetTime(
-        __out REFERENCE_TIME * pTimeStart,     // put time here
-        __out REFERENCE_TIME * pTimeEnd
-    );
+    STDMETHODIMP GetTime(__out REFERENCE_TIME *pTimeStart, // put time here
+                         __out REFERENCE_TIME *pTimeEnd);
 
     // Set the stream time at which this sample should start and finish.
-    STDMETHODIMP SetTime(
-        __in_opt REFERENCE_TIME * pTimeStart,     // put time here
-        __in_opt REFERENCE_TIME * pTimeEnd
-    );
+    STDMETHODIMP SetTime(__in_opt REFERENCE_TIME *pTimeStart, // put time here
+                         __in_opt REFERENCE_TIME *pTimeEnd);
     STDMETHODIMP IsSyncPoint(void);
     STDMETHODIMP SetSyncPoint(BOOL bIsSyncPoint);
     STDMETHODIMP IsPreroll(void);
@@ -1297,29 +1158,16 @@ public:
     STDMETHODIMP SetDiscontinuity(BOOL bDiscontinuity);
 
     // get the media times for this sample
-    STDMETHODIMP GetMediaTime(
-    	__out LONGLONG * pTimeStart,
-	    __out LONGLONG * pTimeEnd
-    );
+    STDMETHODIMP GetMediaTime(__out LONGLONG *pTimeStart, __out LONGLONG *pTimeEnd);
 
     // Set the media times for this sample
-    STDMETHODIMP SetMediaTime(
-    	__in_opt LONGLONG * pTimeStart,
-	    __in_opt LONGLONG * pTimeEnd
-    );
+    STDMETHODIMP SetMediaTime(__in_opt LONGLONG *pTimeStart, __in_opt LONGLONG *pTimeEnd);
 
     // Set and get properties (IMediaSample2)
-    STDMETHODIMP GetProperties(
-        DWORD cbProperties,
-        __out_bcount(cbProperties) BYTE * pbProperties
-    );
+    STDMETHODIMP GetProperties(DWORD cbProperties, __out_bcount(cbProperties) BYTE *pbProperties);
 
-    STDMETHODIMP SetProperties(
-        DWORD cbProperties,
-        __in_bcount(cbProperties) const BYTE * pbProperties
-    );
+    STDMETHODIMP SetProperties(DWORD cbProperties, __in_bcount(cbProperties) const BYTE *pbProperties);
 };
-
 
 //=====================================================================
 //=====================================================================
@@ -1336,29 +1184,28 @@ public:
 //=====================================================================
 //=====================================================================
 
-class AM_NOVTABLE CBaseAllocator : public CUnknown,// A non delegating IUnknown
-                       public IMemAllocatorCallbackTemp, // The interface we support
-                       public CCritSec             // Provides object locking
+class AM_NOVTABLE CBaseAllocator
+    : public CUnknown
+    , // A non delegating IUnknown
+      public IMemAllocatorCallbackTemp
+    ,                 // The interface we support
+      public CCritSec // Provides object locking
 {
     class CSampleList;
     friend class CSampleList;
 
     /*  Trick to get at protected member in CMediaSample */
-    static CMediaSample * &NextSample(__in CMediaSample *pSample)
-    {
-        return pSample->m_pNext;
-    };
+    static CMediaSample *&NextSample(__in CMediaSample *pSample) { return pSample->m_pNext; };
 
     /*  Mini list class for the free list */
     class CSampleList
     {
-    public:
-        CSampleList() : m_List(NULL), m_nOnList(0) {};
+      public:
+        CSampleList()
+            : m_List(NULL)
+            , m_nOnList(0){};
 #ifdef DEBUG
-        ~CSampleList()
-        {
-            ASSERT(m_nOnList == 0);
-        };
+        ~CSampleList() { ASSERT(m_nOnList == 0); };
 #endif
         CMediaSample *Head() const { return m_List; };
         CMediaSample *Next(__in CMediaSample *pSample) const { return CBaseAllocator::NextSample(pSample); };
@@ -1373,7 +1220,8 @@ class AM_NOVTABLE CBaseAllocator : public CUnknown,// A non delegating IUnknown
         CMediaSample *RemoveHead()
         {
             CMediaSample *pSample = m_List;
-            if (pSample != NULL) {
+            if (pSample != NULL)
+            {
                 m_List = CBaseAllocator::NextSample(m_List);
                 m_nOnList--;
             }
@@ -1381,13 +1229,13 @@ class AM_NOVTABLE CBaseAllocator : public CUnknown,// A non delegating IUnknown
         };
         void Remove(__inout CMediaSample *pSample);
 
-    public:
+      public:
         CMediaSample *m_List;
-        int           m_nOnList;
+        int m_nOnList;
     };
-protected:
 
-    CSampleList m_lFree;        // Free list
+  protected:
+    CSampleList m_lFree; // Free list
 
     /*  Note to overriders of CBaseAllocator.
 
@@ -1425,14 +1273,14 @@ protected:
            deadlock can't happen.
     */
 
-    HANDLE m_hSem;              // For signalling
-    long m_lWaiting;            // Waiting for a free element
-    long m_lCount;              // how many buffers we have agreed to provide
-    long m_lAllocated;          // how many buffers are currently allocated
-    long m_lSize;               // agreed size of each buffer
-    long m_lAlignment;          // agreed alignment
-    long m_lPrefix;             // agreed prefix (preceeds GetPointer() value)
-    BOOL m_bChanged;            // Have the buffer requirements changed
+    HANDLE m_hSem;     // For signalling
+    long m_lWaiting;   // Waiting for a free element
+    long m_lCount;     // how many buffers we have agreed to provide
+    long m_lAllocated; // how many buffers are currently allocated
+    long m_lSize;      // agreed size of each buffer
+    long m_lAlignment; // agreed alignment
+    long m_lPrefix;    // agreed prefix (preceeds GetPointer() value)
+    BOOL m_bChanged;   // Have the buffer requirements changed
 
     // if true, we are decommitted and can't allocate memory
     BOOL m_bCommitted;
@@ -1452,15 +1300,12 @@ protected:
     // override to allocate the memory when commit called
     virtual HRESULT Alloc(void);
 
-public:
-
-    CBaseAllocator(
-        __in_opt LPCTSTR , __inout_opt LPUNKNOWN, __inout HRESULT *,
-        BOOL bEvent = TRUE, BOOL fEnableReleaseCallback = FALSE);
+  public:
+    CBaseAllocator(__in_opt LPCTSTR, __inout_opt LPUNKNOWN, __inout HRESULT *, BOOL bEvent = TRUE,
+                   BOOL fEnableReleaseCallback = FALSE);
 #ifdef UNICODE
-    CBaseAllocator(
-        __in_opt LPCSTR , __inout_opt LPUNKNOWN, __inout HRESULT *,
-        BOOL bEvent = TRUE, BOOL fEnableReleaseCallback = FALSE);
+    CBaseAllocator(__in_opt LPCSTR, __inout_opt LPUNKNOWN, __inout HRESULT *, BOOL bEvent = TRUE,
+                   BOOL fEnableReleaseCallback = FALSE);
 #endif
     virtual ~CBaseAllocator();
 
@@ -1469,16 +1314,13 @@ public:
     // override this to publicise our interfaces
     STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, __deref_out void **ppv);
 
-    STDMETHODIMP SetProperties(
-		    __in ALLOCATOR_PROPERTIES* pRequest,
-		    __out ALLOCATOR_PROPERTIES* pActual);
+    STDMETHODIMP SetProperties(__in ALLOCATOR_PROPERTIES *pRequest, __out ALLOCATOR_PROPERTIES *pActual);
 
     // return the properties actually being used on this allocator
-    STDMETHODIMP GetProperties(
-		    __out ALLOCATOR_PROPERTIES* pProps);
+    STDMETHODIMP GetProperties(__out ALLOCATOR_PROPERTIES *pProps);
 
     // override Commit to allocate memory. We handle the GetBuffer
-    //state changes
+    // state changes
     STDMETHODIMP Commit();
 
     // override this to handle the memory freeing. We handle any outstanding
@@ -1494,10 +1336,8 @@ public:
     // bPrevFramesSkipped is not used (used only by the video renderer's
     // allocator where it affects quality management in direct draw).
 
-    STDMETHODIMP GetBuffer(__deref_out IMediaSample **ppBuffer,
-                           __in_opt REFERENCE_TIME * pStartTime,
-                           __in_opt REFERENCE_TIME * pEndTime,
-                           DWORD dwFlags);
+    STDMETHODIMP GetBuffer(__deref_out IMediaSample **ppBuffer, __in_opt REFERENCE_TIME *pStartTime,
+                           __in_opt REFERENCE_TIME *pEndTime, DWORD dwFlags);
 
     // final release of a CMediaSample will call this
     STDMETHODIMP ReleaseBuffer(IMediaSample *pBuffer);
@@ -1513,7 +1353,6 @@ public:
     // Notify that we're waiting for a sample
     void SetWaiting() { m_lWaiting++; };
 };
-
 
 //=====================================================================
 //=====================================================================
@@ -1537,9 +1376,8 @@ STDAPI CreateMemoryAllocator(__deref_out IMemAllocator **ppAllocator);
 class CMemAllocator : public CBaseAllocator
 {
 
-protected:
-
-    LPBYTE m_pBuffer;   // combined memory for all buffers
+  protected:
+    LPBYTE m_pBuffer; // combined memory for all buffers
 
     // override to free the memory when decommit completes
     // - we actually do nothing, and save the memory until deletion.
@@ -1552,27 +1390,22 @@ protected:
     // overriden to allocate the memory when commit called
     HRESULT Alloc(void);
 
-public:
+  public:
     /* This goes in the factory template table to create new instances */
     static CUnknown *CreateInstance(__inout_opt LPUNKNOWN, __inout HRESULT *);
 
-    STDMETHODIMP SetProperties(
-		    __in ALLOCATOR_PROPERTIES* pRequest,
-		    __out ALLOCATOR_PROPERTIES* pActual);
+    STDMETHODIMP SetProperties(__in ALLOCATOR_PROPERTIES *pRequest, __out ALLOCATOR_PROPERTIES *pActual);
 
-    CMemAllocator(__in_opt LPCTSTR , __inout_opt LPUNKNOWN, __inout HRESULT *);
+    CMemAllocator(__in_opt LPCTSTR, __inout_opt LPUNKNOWN, __inout HRESULT *);
 #ifdef UNICODE
-    CMemAllocator(__in_opt LPCSTR , __inout_opt LPUNKNOWN, __inout HRESULT *);
+    CMemAllocator(__in_opt LPCSTR, __inout_opt LPUNKNOWN, __inout HRESULT *);
 #endif
     ~CMemAllocator();
 };
 
 // helper used by IAMovieSetup implementation
 STDAPI
-AMovieSetupRegisterFilter( const AMOVIESETUP_FILTER * const psetupdata
-                         , IFilterMapper *                  pIFM
-                         , BOOL                             bRegister  );
-
+AMovieSetupRegisterFilter(const AMOVIESETUP_FILTER *const psetupdata, IFilterMapper *pIFM, BOOL bRegister);
 
 ///////////////////////////////////////////////////////////////////////////
 // ------------------------------------------------------------------------
@@ -1582,6 +1415,3 @@ AMovieSetupRegisterFilter( const AMOVIESETUP_FILTER * const psetupdata
 ///////////////////////////////////////////////////////////////////////////
 
 #endif /* __FILTER__ */
-
-
-

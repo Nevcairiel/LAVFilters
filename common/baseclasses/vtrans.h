@@ -6,7 +6,6 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 // This class is derived from CTransformFilter, but is specialised to handle
 // the requirements of video quality control by frame dropping.
 // This is a non-in-place transform, (i.e. it copies the data) such as a decoder.
@@ -14,7 +13,6 @@
 class CVideoTransformFilter : public CTransformFilter
 {
   public:
-
     CVideoTransformFilter(__in_opt LPCTSTR, __inout_opt LPUNKNOWN, REFCLSID clsid);
     ~CVideoTransformFilter();
     HRESULT EndFlush();
@@ -53,17 +51,17 @@ class CVideoTransformFilter : public CTransformFilter
 
     // If you override this - ensure that you register all these ids
     // as well as any of your own,
-    virtual void RegisterPerfId() {
-        m_idSkip        = MSR_REGISTER(TEXT("Video Transform Skip frame"));
-        m_idFrameType   = MSR_REGISTER(TEXT("Video transform frame type"));
-        m_idLate        = MSR_REGISTER(TEXT("Video Transform Lateness"));
+    virtual void RegisterPerfId()
+    {
+        m_idSkip = MSR_REGISTER(TEXT("Video Transform Skip frame"));
+        m_idFrameType = MSR_REGISTER(TEXT("Video transform frame type"));
+        m_idLate = MSR_REGISTER(TEXT("Video Transform Lateness"));
         m_idTimeTillKey = MSR_REGISTER(TEXT("Video Transform Estd. time to next key"));
         CTransformFilter::RegisterPerfId();
     }
 #endif
 
   protected:
-
     // =========== QUALITY MANAGEMENT IMPLEMENTATION ========================
     // Frames are assumed to come in three types:
     // Type 1: an AVI key frame or an MPEG I frame.
@@ -106,31 +104,31 @@ class CVideoTransformFilter : public CTransformFilter
     int m_nFramesSinceKeyFrame; // Used to count frames since the last type 1.
                                 // becomes the new m_nKeyFramePeriod if greater.
 
-    BOOL m_bSkipping;           // we are skipping to the next type 1 frame
+    BOOL m_bSkipping; // we are skipping to the next type 1 frame
 
 #ifdef PERF
-    int m_idFrameType;          // MSR id Frame type.  1=Key, 2="non-key"
-    int m_idSkip;               // MSR id skipping
-    int m_idLate;               // MSR id lateness
-    int m_idTimeTillKey;        // MSR id for guessed time till next key frame.
+    int m_idFrameType;   // MSR id Frame type.  1=Key, 2="non-key"
+    int m_idSkip;        // MSR id skipping
+    int m_idLate;        // MSR id lateness
+    int m_idTimeTillKey; // MSR id for guessed time till next key frame.
 #endif
 
     virtual HRESULT StartStreaming();
 
-    HRESULT AbortPlayback(HRESULT hr);	// if something bad happens
+    HRESULT AbortPlayback(HRESULT hr); // if something bad happens
 
     HRESULT Receive(IMediaSample *pSample);
 
     HRESULT AlterQuality(Quality q);
 
-    BOOL ShouldSkipFrame(IMediaSample * pIn);
+    BOOL ShouldSkipFrame(IMediaSample *pIn);
 
-    int m_itrLate;              // lateness from last Quality message
-                                // (this overflows at 214 secs late).
-    int m_tDecodeStart;         // timeGetTime when decode started.
-    int m_itrAvgDecode;         // Average decode time in reference units.
+    int m_itrLate;      // lateness from last Quality message
+                        // (this overflows at 214 secs late).
+    int m_tDecodeStart; // timeGetTime when decode started.
+    int m_itrAvgDecode; // Average decode time in reference units.
 
-    BOOL m_bNoSkip;             // debug - no skipping.
+    BOOL m_bNoSkip; // debug - no skipping.
 
     // We send an EC_QUALITY_CHANGE notification to the app if we have to degrade.
     // We send one when we start degrading, not one for every frame, this means

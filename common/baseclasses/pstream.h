@@ -7,7 +7,6 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 #ifndef __PSTREAM__
 #define __PSTREAM__
 
@@ -38,72 +37,70 @@
 // Normally you should accept files whose version is no newer than the software
 // version that's reading them.
 
-
 // CPersistStream
 //
 // Implements IPersistStream.
 // See 'OLE Programmers Reference (Vol 1):Structured Storage Overview' for
 // more implementation information.
-class CPersistStream : public IPersistStream {
-    private:
+class CPersistStream : public IPersistStream
+{
+  private:
+    // Internal state:
 
-        // Internal state:
+  protected:
+    DWORD mPS_dwFileVersion; // version number of file (being read)
+    BOOL mPS_fDirty;
 
-    protected:
-        DWORD     mPS_dwFileVersion;         // version number of file (being read)
-        BOOL      mPS_fDirty;
+  public:
+    // IPersistStream methods
 
-    public:
+    STDMETHODIMP IsDirty() { return (mPS_fDirty ? S_OK : S_FALSE); } // note FALSE means clean
+    STDMETHODIMP Load(LPSTREAM pStm);
+    STDMETHODIMP Save(LPSTREAM pStm, BOOL fClearDirty);
+    STDMETHODIMP GetSizeMax(__out ULARGE_INTEGER *pcbSize)
+    // Allow 24 bytes for version.
+    {
+        pcbSize->QuadPart = 12 * sizeof(WCHAR) + SizeMax();
+        return NOERROR;
+    }
 
-        // IPersistStream methods
+    // implementation
 
-        STDMETHODIMP IsDirty()
-            {return (mPS_fDirty ? S_OK : S_FALSE);}  // note FALSE means clean
-        STDMETHODIMP Load(LPSTREAM pStm);
-        STDMETHODIMP Save(LPSTREAM pStm, BOOL fClearDirty);
-        STDMETHODIMP GetSizeMax(__out ULARGE_INTEGER * pcbSize)
-                         // Allow 24 bytes for version.
-                         { pcbSize->QuadPart = 12*sizeof(WCHAR)+SizeMax(); return NOERROR; }
+    CPersistStream(IUnknown *punk, __inout HRESULT *phr);
+    ~CPersistStream();
 
-        // implementation
+    HRESULT SetDirty(BOOL fDirty)
+    {
+        mPS_fDirty = fDirty;
+        return NOERROR;
+    }
 
-        CPersistStream(IUnknown *punk, __inout HRESULT *phr);
-        ~CPersistStream();
+    // override to reveal IPersist & IPersistStream
+    // STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void **ppv);
 
-        HRESULT SetDirty(BOOL fDirty)
-            { mPS_fDirty = fDirty; return NOERROR;}
+    // --- IPersist ---
 
+    // You must override this to provide your own class id
+    STDMETHODIMP GetClassID(__out CLSID *pClsid) PURE;
 
-        // override to reveal IPersist & IPersistStream
-        // STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void **ppv);
+    // overrideable if you want
+    // file version number.  Override it if you ever change format
+    virtual DWORD GetSoftwareVersion(void) { return 0; }
 
-        // --- IPersist ---
+    //=========================================================================
+    // OVERRIDE THESE to read and write your data
+    // OVERRIDE THESE to read and write your data
+    // OVERRIDE THESE to read and write your data
 
-        // You must override this to provide your own class id
-        STDMETHODIMP GetClassID(__out CLSID *pClsid) PURE;
+    virtual int SizeMax() { return 0; }
+    virtual HRESULT WriteToStream(IStream *pStream);
+    virtual HRESULT ReadFromStream(IStream *pStream);
+    //=========================================================================
 
-        // overrideable if you want
-        // file version number.  Override it if you ever change format
-        virtual DWORD GetSoftwareVersion(void) { return 0; }
-
-
-        //=========================================================================
-        // OVERRIDE THESE to read and write your data
-        // OVERRIDE THESE to read and write your data
-        // OVERRIDE THESE to read and write your data
-
-        virtual int SizeMax() {return 0;}
-        virtual HRESULT WriteToStream(IStream *pStream);
-        virtual HRESULT ReadFromStream(IStream *pStream);
-        //=========================================================================
-
-    private:
-
+  private:
 };
 
-
 // --- Useful helpers ---
-
 
 // Writes an int to an IStream as UNICODE.
 STDAPI WriteInt(IStream *pIStream, int n);

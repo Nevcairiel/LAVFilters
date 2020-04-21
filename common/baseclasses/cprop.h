@@ -6,7 +6,6 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 #ifndef __CPROP__
 #define __CPROP__
 
@@ -30,38 +29,32 @@
 // OnReceiveMessage. We have a static dialog procedure that calls the method
 // so that derived classes don't have to fiddle around with the this pointer
 
-class AM_NOVTABLE CBasePropertyPage : public IPropertyPage, public CUnknown
+class AM_NOVTABLE CBasePropertyPage
+    : public IPropertyPage
+    , public CUnknown
 {
-protected:
+  protected:
+    LPPROPERTYPAGESITE m_pPageSite; // Details for our property site
+    HWND m_hwnd;                    // Window handle for the page
+    HWND m_Dlg;                     // Actual dialog window handle
+    BOOL m_bDirty;                  // Has anything been changed
+    int m_TitleId;                  // Resource identifier for title
+    int m_DialogId;                 // Dialog resource identifier
 
-    LPPROPERTYPAGESITE m_pPageSite;       // Details for our property site
-    HWND m_hwnd;                          // Window handle for the page
-    HWND m_Dlg;                           // Actual dialog window handle
-    BOOL m_bDirty;                        // Has anything been changed
-    int m_TitleId;                        // Resource identifier for title
-    int m_DialogId;                       // Dialog resource identifier
+    static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    static INT_PTR CALLBACK DialogProc(HWND hwnd,
-                                       UINT uMsg,
-                                       WPARAM wParam,
-                                       LPARAM lParam);
-
-private:
-    BOOL m_bObjectSet ;                  // SetObject has been called or not.
-public:
-
-    CBasePropertyPage(__in_opt LPCTSTR pName,      // Debug only name
+  private:
+    BOOL m_bObjectSet; // SetObject has been called or not.
+  public:
+    CBasePropertyPage(__in_opt LPCTSTR pName,     // Debug only name
                       __inout_opt LPUNKNOWN pUnk, // COM Delegator
                       int DialogId,               // Resource ID
                       int TitleId);               // To get tital
 
 #ifdef UNICODE
-    CBasePropertyPage(__in_opt LPCSTR pName,
-                      __inout_opt LPUNKNOWN pUnk,
-                      int DialogId,  
-                      int TitleId);
+    CBasePropertyPage(__in_opt LPCSTR pName, __inout_opt LPUNKNOWN pUnk, int DialogId, int TitleId);
 #endif
-    virtual ~CBasePropertyPage() { };
+    virtual ~CBasePropertyPage(){};
     DECLARE_IUNKNOWN
 
     // Override these virtual methods
@@ -71,7 +64,7 @@ public:
     virtual HRESULT OnActivate() { return NOERROR; };
     virtual HRESULT OnDeactivate() { return NOERROR; };
     virtual HRESULT OnApplyChanges() { return NOERROR; };
-    virtual INT_PTR OnReceiveMessage(HWND hwnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+    virtual INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
     // These implement an IPropertyPage interface
 
@@ -79,7 +72,7 @@ public:
     STDMETHODIMP_(ULONG) NonDelegatingRelease();
     STDMETHODIMP_(ULONG) NonDelegatingAddRef();
     STDMETHODIMP SetPageSite(__in_opt LPPROPERTYPAGESITE pPageSite);
-    STDMETHODIMP Activate(HWND hwndParent, LPCRECT prect,BOOL fModal);
+    STDMETHODIMP Activate(HWND hwndParent, LPCRECT prect, BOOL fModal);
     STDMETHODIMP Deactivate(void);
     STDMETHODIMP GetPageInfo(__out LPPROPPAGEINFO pPageInfo);
     STDMETHODIMP SetObjects(ULONG cObjects, __in_ecount_opt(cObjects) LPUNKNOWN *ppUnk);
@@ -92,4 +85,3 @@ public:
 };
 
 #endif // __CPROP__
-

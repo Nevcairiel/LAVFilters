@@ -9,9 +9,7 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 #include <streams.h>
-
 
 //
 //  COutputQueue Constructor :
@@ -40,54 +38,56 @@
 //
 //     dwPriority - If we create a thread set its priority to this
 //
-COutputQueue::COutputQueue(
-             IPin         *pInputPin,          //  Pin to send stuff to
-             __inout HRESULT      *phr,        //  'Return code'
-             BOOL          bAuto,              //  Ask pin if queue or not
-             BOOL          bQueue,             //  Send through queue
-             LONG          lBatchSize,         //  Batch
-             BOOL          bBatchExact,        //  Batch exactly to BatchSize
-             LONG          lListSize,
-             DWORD         dwPriority,
-             bool          bFlushingOpt        // flushing optimization
-            ) : m_lBatchSize(lBatchSize),
-                m_bBatchExact(bBatchExact && (lBatchSize > 1)),
-                m_hThread(NULL),
-                m_hSem(NULL),
-                m_List(NULL),
-                m_pPin(pInputPin),
-                m_ppSamples(NULL),
-                m_lWaiting(0),
-                m_evFlushComplete(FALSE, phr),
-                m_pInputPin(NULL),
-                m_bSendAnyway(FALSE),
-                m_nBatched(0),
-                m_bFlushing(FALSE),
-                m_bFlushed(TRUE),
-                m_bFlushingOpt(bFlushingOpt),
-                m_bTerminate(FALSE),
-                m_hEventPop(NULL),
-                m_hr(S_OK)
+COutputQueue::COutputQueue(IPin *pInputPin,      //  Pin to send stuff to
+                           __inout HRESULT *phr, //  'Return code'
+                           BOOL bAuto,           //  Ask pin if queue or not
+                           BOOL bQueue,          //  Send through queue
+                           LONG lBatchSize,      //  Batch
+                           BOOL bBatchExact,     //  Batch exactly to BatchSize
+                           LONG lListSize, DWORD dwPriority,
+                           bool bFlushingOpt // flushing optimization
+                           )
+    : m_lBatchSize(lBatchSize)
+    , m_bBatchExact(bBatchExact && (lBatchSize > 1))
+    , m_hThread(NULL)
+    , m_hSem(NULL)
+    , m_List(NULL)
+    , m_pPin(pInputPin)
+    , m_ppSamples(NULL)
+    , m_lWaiting(0)
+    , m_evFlushComplete(FALSE, phr)
+    , m_pInputPin(NULL)
+    , m_bSendAnyway(FALSE)
+    , m_nBatched(0)
+    , m_bFlushing(FALSE)
+    , m_bFlushed(TRUE)
+    , m_bFlushingOpt(bFlushingOpt)
+    , m_bTerminate(FALSE)
+    , m_hEventPop(NULL)
+    , m_hr(S_OK)
 {
     ASSERT(m_lBatchSize > 0);
 
-
-    if (FAILED(*phr)) {
+    if (FAILED(*phr))
+    {
         return;
     }
 
     //  Check the input pin is OK and cache its IMemInputPin interface
 
     *phr = pInputPin->QueryInterface(IID_IMemInputPin, (void **)&m_pInputPin);
-    if (FAILED(*phr)) {
+    if (FAILED(*phr))
+    {
         return;
     }
 
     // See if we should ask the downstream pin
 
-    if (bAuto) {
+    if (bAuto)
+    {
         HRESULT hr = m_pInputPin->ReceiveCanBlock();
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr))
+        {
             bQueue = hr == S_OK;
         }
     }
@@ -95,45 +95,45 @@ COutputQueue::COutputQueue(
     //  Create our sample batch
 
     m_ppSamples = new PMEDIASAMPLE[m_lBatchSize];
-    if (m_ppSamples == NULL) {
+    if (m_ppSamples == NULL)
+    {
         *phr = E_OUTOFMEMORY;
         return;
     }
 
     //  If we're queueing allocate resources
 
-    if (bQueue) {
+    if (bQueue)
+    {
         DbgLog((LOG_TRACE, 2, TEXT("Creating thread for output pin")));
         m_hSem = CreateSemaphore(NULL, 0, 0x7FFFFFFF, NULL);
-        if (m_hSem == NULL) {
+        if (m_hSem == NULL)
+        {
             DWORD dwError = GetLastError();
             *phr = AmHresultFromWin32(dwError);
             return;
         }
-        m_List = new CSampleList(NAME("Sample Queue List"),
-                                 lListSize,
-                                 FALSE         // No lock
-                                );
-        if (m_List == NULL) {
+        m_List = new CSampleList(NAME("Sample Queue List"), lListSize,
+                                 FALSE // No lock
+        );
+        if (m_List == NULL)
+        {
             *phr = E_OUTOFMEMORY;
             return;
         }
 
-
         DWORD dwThreadId;
-        m_hThread = CreateThread(NULL,
-                                 0,
-                                 InitialThreadProc,
-                                 (LPVOID)this,
-                                 0,
-                                 &dwThreadId);
-        if (m_hThread == NULL) {
+        m_hThread = CreateThread(NULL, 0, InitialThreadProc, (LPVOID)this, 0, &dwThreadId);
+        if (m_hThread == NULL)
+        {
             DWORD dwError = GetLastError();
             *phr = AmHresultFromWin32(dwError);
             return;
         }
         SetThreadPriority(m_hThread, dwPriority);
-    } else {
+    }
+    else
+    {
         DbgLog((LOG_TRACE, 2, TEXT("Calling input pin directly - no thread")));
     }
 }
@@ -150,10 +150,12 @@ COutputQueue::~COutputQueue()
 {
     DbgLog((LOG_TRACE, 3, TEXT("COutputQueue::~COutputQueue")));
     /*  Free our pointer */
-    if (m_pInputPin != NULL) {
+    if (m_pInputPin != NULL)
+    {
         m_pInputPin->Release();
     }
-    if (m_hThread != NULL) {
+    if (m_hThread != NULL)
+    {
         {
             CAutoLock lck(this);
             m_bTerminate = TRUE;
@@ -167,13 +169,16 @@ COutputQueue::~COutputQueue()
 
         ASSERT(m_List->GetCount() == 0);
         delete m_List;
-    } else {
+    }
+    else
+    {
         FreeSamples();
     }
-    if (m_hSem != NULL) {
+    if (m_hSem != NULL)
+    {
         EXECUTE_ASSERT(CloseHandle(m_hSem));
     }
-    delete [] m_ppSamples;
+    delete[] m_ppSamples;
 }
 
 //
@@ -182,14 +187,15 @@ COutputQueue::~COutputQueue()
 DWORD WINAPI COutputQueue::InitialThreadProc(__in LPVOID pv)
 {
     HRESULT hrCoInit = CAMThread::CoInitializeHelper();
-    
+
     COutputQueue *pSampleQueue = (COutputQueue *)pv;
     DWORD dwReturn = pSampleQueue->ThreadProc();
 
-    if(hrCoInit == S_OK) {
+    if (hrCoInit == S_OK)
+    {
         CoUninitialize();
     }
-    
+
     return dwReturn;
 }
 
@@ -202,11 +208,12 @@ DWORD WINAPI COutputQueue::InitialThreadProc(__in LPVOID pv)
 //
 DWORD COutputQueue::ThreadProc()
 {
-    while (TRUE) {
-        BOOL          bWait = FALSE;
+    while (TRUE)
+    {
+        BOOL bWait = FALSE;
         IMediaSample *pSample;
-        LONG          lNumberToSend; // Local copy
-        NewSegmentPacket* ppacket;
+        LONG lNumberToSend; // Local copy
+        NewSegmentPacket *ppacket;
 
         //
         //  Get a batch of samples and send it if possible
@@ -215,13 +222,16 @@ DWORD COutputQueue::ThreadProc()
         //
         {
             CAutoLock lck(this);
-            while (TRUE) {
+            while (TRUE)
+            {
 
-                if (m_bTerminate) {
+                if (m_bTerminate)
+                {
                     FreeSamples();
                     return 0;
                 }
-                if (m_bFlushing) {
+                if (m_bFlushing)
+                {
                     FreeSamples();
                     SetEvent(m_evFlushComplete);
                 }
@@ -229,55 +239,64 @@ DWORD COutputQueue::ThreadProc()
                 //  Get a sample off the list
 
                 pSample = m_List->RemoveHead();
-		// inform derived class we took something off the queue
-		if (m_hEventPop) {
-                    //DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
-		    SetEvent(m_hEventPop);
-		}
+                // inform derived class we took something off the queue
+                if (m_hEventPop)
+                {
+                    // DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
+                    SetEvent(m_hEventPop);
+                }
 
-                if (pSample != NULL &&
-                    !IsSpecialSample(pSample)) {
+                if (pSample != NULL && !IsSpecialSample(pSample))
+                {
 
                     //  If its just a regular sample just add it to the batch
                     //  and exit the loop if the batch is full
 
                     m_ppSamples[m_nBatched++] = pSample;
-                    if (m_nBatched == m_lBatchSize) {
+                    if (m_nBatched == m_lBatchSize)
+                    {
                         break;
                     }
-                } else {
+                }
+                else
+                {
 
                     //  If there was nothing in the queue and there's nothing
                     //  to send (either because there's nothing or the batch
                     //  isn't full) then prepare to wait
 
-                    if (pSample == NULL &&
-                        (m_bBatchExact || m_nBatched == 0)) {
+                    if (pSample == NULL && (m_bBatchExact || m_nBatched == 0))
+                    {
 
                         //  Tell other thread to set the event when there's
                         //  something do to
 
                         ASSERT(m_lWaiting == 0);
                         m_lWaiting++;
-                        bWait      = TRUE;
-                    } else {
+                        bWait = TRUE;
+                    }
+                    else
+                    {
 
                         //  We break out of the loop on SEND_PACKET unless
                         //  there's nothing to send
 
-                        if (pSample == SEND_PACKET && m_nBatched == 0) {
+                        if (pSample == SEND_PACKET && m_nBatched == 0)
+                        {
                             continue;
                         }
 
-                        if (pSample == NEW_SEGMENT) {
+                        if (pSample == NEW_SEGMENT)
+                        {
                             // now we need the parameters - we are
                             // guaranteed that the next packet contains them
-                            ppacket = (NewSegmentPacket *) m_List->RemoveHead();
-			    // we took something off the queue
-			    if (m_hEventPop) {
-                    	        //DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
-		    	        SetEvent(m_hEventPop);
-			    }
+                            ppacket = (NewSegmentPacket *)m_List->RemoveHead();
+                            // we took something off the queue
+                            if (m_hEventPop)
+                            {
+                                // DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
+                                SetEvent(m_hEventPop);
+                            }
 
                             ASSERT(ppacket);
                         }
@@ -287,22 +306,22 @@ DWORD COutputQueue::ThreadProc()
                     break;
                 }
             }
-            if (!bWait) {
+            if (!bWait)
+            {
                 // We look at m_nBatched from the client side so keep
                 // it up to date inside the critical section
-                lNumberToSend = m_nBatched;  // Local copy
+                lNumberToSend = m_nBatched; // Local copy
                 m_nBatched = 0;
             }
         }
 
         //  Wait for some more data
 
-        if (bWait) {
+        if (bWait)
+        {
             DbgWaitForSingleObject(m_hSem);
             continue;
         }
-
-
 
         //  OK - send it if there's anything to send
         //  We DON'T check m_bBatchExact here because either we've got
@@ -310,36 +329,39 @@ DWORD COutputQueue::ThreadProc()
         //  SEND_PACKET or EOS_PACKET - both of which imply we should
         //  flush our batch
 
-        if (lNumberToSend != 0) {
+        if (lNumberToSend != 0)
+        {
             long nProcessed;
-            if (m_hr == S_OK) {
+            if (m_hr == S_OK)
+            {
                 ASSERT(!m_bFlushed);
-                HRESULT hr = m_pInputPin->ReceiveMultiple(m_ppSamples,
-                                                          lNumberToSend,
-                                                          &nProcessed);
+                HRESULT hr = m_pInputPin->ReceiveMultiple(m_ppSamples, lNumberToSend, &nProcessed);
                 /*  Don't overwrite a flushing state HRESULT */
                 CAutoLock lck(this);
-                if (m_hr == S_OK) {
+                if (m_hr == S_OK)
+                {
                     m_hr = hr;
                 }
                 ASSERT(!m_bFlushed);
             }
-            while (lNumberToSend != 0) {
+            while (lNumberToSend != 0)
+            {
                 m_ppSamples[--lNumberToSend]->Release();
             }
-            if (m_hr != S_OK) {
+            if (m_hr != S_OK)
+            {
 
                 //  In any case wait for more data - S_OK just
                 //  means there wasn't an error
 
-                DbgLog((LOG_ERROR, 2, TEXT("ReceiveMultiple returned %8.8X"),
-                       m_hr));
+                DbgLog((LOG_ERROR, 2, TEXT("ReceiveMultiple returned %8.8X"), m_hr));
             }
         }
 
         //  Check for end of stream
 
-        if (pSample == EOS_PACKET) {
+        if (pSample == EOS_PACKET)
+        {
 
             //  We don't send even end of stream on if we've previously
             //  returned something other than S_OK
@@ -347,10 +369,12 @@ DWORD COutputQueue::ThreadProc()
             //  something other than S_OK should have either sent
             //  EndOfStream() or notified the filter graph
 
-            if (m_hr == S_OK) {
+            if (m_hr == S_OK)
+            {
                 DbgLog((LOG_TRACE, 2, TEXT("COutputQueue sending EndOfStream()")));
                 HRESULT hr = m_pPin->EndOfStream();
-                if (FAILED(hr)) {
+                if (FAILED(hr))
+                {
                     DbgLog((LOG_ERROR, 2, TEXT("COutputQueue got code 0x%8.8X from EndOfStream()")));
                 }
             }
@@ -358,12 +382,14 @@ DWORD COutputQueue::ThreadProc()
 
         //  Data from a new source
 
-        if (pSample == RESET_PACKET) {
+        if (pSample == RESET_PACKET)
+        {
             m_hr = S_OK;
             SetEvent(m_evFlushComplete);
         }
 
-        if (pSample == NEW_SEGMENT) {
+        if (pSample == NEW_SEGMENT)
+        {
             m_pPin->NewSegment(ppacket->tStart, ppacket->tStop, ppacket->dRate);
             delete ppacket;
         }
@@ -373,7 +399,8 @@ DWORD COutputQueue::ThreadProc()
 //  Send batched stuff anyway
 void COutputQueue::SendAnyway()
 {
-    if (!IsQueued()) {
+    if (!IsQueued())
+    {
 
         //  m_bSendAnyway is a private parameter checked in ReceiveMultiple
 
@@ -381,29 +408,32 @@ void COutputQueue::SendAnyway()
         LONG nProcessed;
         ReceiveMultiple(NULL, 0, &nProcessed);
         m_bSendAnyway = FALSE;
-
-    } else {
+    }
+    else
+    {
         CAutoLock lck(this);
         QueueSample(SEND_PACKET);
         NotifyThread();
     }
 }
 
-void
-COutputQueue::NewSegment(
-    REFERENCE_TIME tStart,
-    REFERENCE_TIME tStop,
-    double dRate)
+void COutputQueue::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate)
 {
-    if (!IsQueued()) {
-        if (S_OK == m_hr) {
-            if (m_bBatchExact) {
+    if (!IsQueued())
+    {
+        if (S_OK == m_hr)
+        {
+            if (m_bBatchExact)
+            {
                 SendAnyway();
             }
             m_pPin->NewSegment(tStart, tStop, dRate);
         }
-    } else {
-        if (m_hr == S_OK) {
+    }
+    else
+    {
+        if (m_hr == S_OK)
+        {
             //
             // we need to queue the new segment to appear in order in the
             // data, but we need to pass parameters to it. Rather than
@@ -413,8 +443,9 @@ COutputQueue::NewSegment(
             // critical section) that the packet immediately following a
             // NEW_SEGMENT value is a NewSegmentPacket containing the
             // parameters.
-            NewSegmentPacket * ppack = new NewSegmentPacket;
-            if (ppack == NULL) {
+            NewSegmentPacket *ppack = new NewSegmentPacket;
+            if (ppack == NULL)
+            {
                 return;
             }
             ppack->tStart = tStart;
@@ -423,12 +454,11 @@ COutputQueue::NewSegment(
 
             CAutoLock lck(this);
             QueueSample(NEW_SEGMENT);
-            QueueSample( (IMediaSample*) ppack);
+            QueueSample((IMediaSample *)ppack);
             NotifyThread();
         }
     }
 }
-
 
 //
 //  End of Stream is queued to output device
@@ -436,20 +466,27 @@ COutputQueue::NewSegment(
 void COutputQueue::EOS()
 {
     CAutoLock lck(this);
-    if (!IsQueued()) {
-        if (m_bBatchExact) {
+    if (!IsQueued())
+    {
+        if (m_bBatchExact)
+        {
             SendAnyway();
         }
-        if (m_hr == S_OK) {
+        if (m_hr == S_OK)
+        {
             DbgLog((LOG_TRACE, 2, TEXT("COutputQueue sending EndOfStream()")));
             m_bFlushed = FALSE;
             HRESULT hr = m_pPin->EndOfStream();
-            if (FAILED(hr)) {
+            if (FAILED(hr))
+            {
                 DbgLog((LOG_ERROR, 2, TEXT("COutputQueue got code 0x%8.8X from EndOfStream()")));
             }
         }
-    } else {
-        if (m_hr == S_OK) {
+    }
+    else
+    {
+        if (m_hr == S_OK)
+        {
             m_bFlushed = FALSE;
             QueueSample(EOS_PACKET);
             NotifyThread();
@@ -462,7 +499,8 @@ void COutputQueue::EOS()
 //
 void COutputQueue::BeginFlush()
 {
-    if (IsQueued()) {
+    if (IsQueued())
+    {
         {
             CAutoLock lck(this);
 
@@ -475,13 +513,15 @@ void COutputQueue::BeginFlush()
 
             //  Make sure we discard all samples from now on
 
-            if (m_hr == S_OK) {
+            if (m_hr == S_OK)
+            {
                 m_hr = S_FALSE;
             }
 
             // Optimize so we don't keep calling downstream all the time
 
-            if (m_bFlushed && m_bFlushingOpt) {
+            if (m_bFlushed && m_bFlushingOpt)
+            {
                 return;
             }
 
@@ -494,7 +534,9 @@ void COutputQueue::BeginFlush()
         // pass this downstream
 
         m_pPin->BeginFlush();
-    } else {
+    }
+    else
+    {
         // pass downstream first to avoid deadlocks
         m_pPin->BeginFlush();
         CAutoLock lck(this);
@@ -504,11 +546,11 @@ void COutputQueue::BeginFlush()
 
         //  Make sure we discard all samples from now on
 
-        if (m_hr == S_OK) {
+        if (m_hr == S_OK)
+        {
             m_hr = S_FALSE;
         }
     }
-
 }
 
 //
@@ -518,7 +560,8 @@ void COutputQueue::EndFlush()
     {
         CAutoLock lck(this);
         ASSERT(m_bFlushing);
-        if (m_bFlushingOpt && m_bFlushed && IsQueued()) {
+        if (m_bFlushingOpt && m_bFlushed && IsQueued())
+        {
             m_bFlushing = FALSE;
             m_hr = S_OK;
             return;
@@ -531,9 +574,12 @@ void COutputQueue::EndFlush()
     // Because we are synching here there is no need to hold the critical
     // section (in fact we'd deadlock if we did!)
 
-    if (IsQueued()) {
+    if (IsQueued())
+    {
         m_evFlushComplete.Wait();
-    } else {
+    }
+    else
+    {
         FreeSamples();
     }
 
@@ -541,7 +587,7 @@ void COutputQueue::EndFlush()
     //  before EndFlush() returns
 
     m_bFlushing = FALSE;
-    m_bFlushed  = TRUE;
+    m_bFlushed = TRUE;
 
     // call EndFlush on downstream pins
 
@@ -557,8 +603,10 @@ void COutputQueue::EndFlush()
 
 void COutputQueue::QueueSample(IMediaSample *pSample)
 {
-    if (NULL == m_List->AddTail(pSample)) {
-        if (!IsSpecialSample(pSample)) {
+    if (NULL == m_List->AddTail(pSample))
+    {
+        if (!IsSpecialSample(pSample))
+        {
             pSample->Release();
         }
     }
@@ -591,23 +639,24 @@ HRESULT COutputQueue::Receive(IMediaSample *pSample)
 //  On return all samples will have been Release()'d
 //
 
-HRESULT COutputQueue::ReceiveMultiple (
-    __in_ecount(nSamples) IMediaSample **ppSamples,
-    long nSamples,
-    __out long *nSamplesProcessed)
+HRESULT COutputQueue::ReceiveMultiple(__in_ecount(nSamples) IMediaSample **ppSamples, long nSamples,
+                                      __out long *nSamplesProcessed)
 {
-    if (nSamples < 0) {
+    if (nSamples < 0)
+    {
         return E_INVALIDARG;
     }
-    
+
     CAutoLock lck(this);
     //  Either call directly or queue up the samples
 
-    if (!IsQueued()) {
+    if (!IsQueued())
+    {
 
         //  If we already had a bad return code then just return
 
-        if (S_OK != m_hr) {
+        if (S_OK != m_hr)
+        {
 
             //  If we've never received anything since the last Flush()
             //  and the sticky return code is not S_OK we must be
@@ -617,9 +666,10 @@ HRESULT COutputQueue::ReceiveMultiple (
 
             //  We're supposed to Release() them anyway!
             *nSamplesProcessed = 0;
-            for (int i = 0; i < nSamples; i++) {
-                DbgLog((LOG_TRACE, 3, TEXT("COutputQueue (direct) : Discarding %d samples code 0x%8.8X"),
-                        nSamples, m_hr));
+            for (int i = 0; i < nSamples; i++)
+            {
+                DbgLog(
+                    (LOG_TRACE, 3, TEXT("COutputQueue (direct) : Discarding %d samples code 0x%8.8X"), nSamples, m_hr));
                 ppSamples[i]->Release();
             }
 
@@ -638,59 +688,65 @@ HRESULT COutputQueue::ReceiveMultiple (
 
         LONG iLost = 0;
         long iDone = 0;
-        for (iDone = 0;
-             iDone < nSamples || (m_nBatched != 0 && m_bSendAnyway);
-            ) {
+        for (iDone = 0; iDone < nSamples || (m_nBatched != 0 && m_bSendAnyway);)
+        {
 
-//pragma message (REMIND("Implement threshold scheme"))
+            // pragma message (REMIND("Implement threshold scheme"))
             ASSERT(m_nBatched < m_lBatchSize);
-            if (iDone < nSamples) {
+            if (iDone < nSamples)
+            {
                 m_ppSamples[m_nBatched++] = ppSamples[iDone++];
             }
-            if (m_nBatched == m_lBatchSize ||
-                nSamples == 0 && (m_bSendAnyway || !m_bBatchExact)) {
+            if (m_nBatched == m_lBatchSize || nSamples == 0 && (m_bSendAnyway || !m_bBatchExact))
+            {
                 LONG nDone;
-                DbgLog((LOG_TRACE, 4, TEXT("Batching %d samples"),
-                       m_nBatched));
+                DbgLog((LOG_TRACE, 4, TEXT("Batching %d samples"), m_nBatched));
 
-                if (m_hr == S_OK) {
-                    m_hr = m_pInputPin->ReceiveMultiple(m_ppSamples,
-                                                        m_nBatched,
-                                                        &nDone);
-                } else {
+                if (m_hr == S_OK)
+                {
+                    m_hr = m_pInputPin->ReceiveMultiple(m_ppSamples, m_nBatched, &nDone);
+                }
+                else
+                {
                     nDone = 0;
                 }
                 iLost += m_nBatched - nDone;
-                for (LONG i = 0; i < m_nBatched; i++) {
+                for (LONG i = 0; i < m_nBatched; i++)
+                {
                     m_ppSamples[i]->Release();
                 }
                 m_nBatched = 0;
             }
         }
         *nSamplesProcessed = iDone - iLost;
-        if (*nSamplesProcessed < 0) {
+        if (*nSamplesProcessed < 0)
+        {
             *nSamplesProcessed = 0;
         }
         return m_hr;
-    } else {
+    }
+    else
+    {
         /*  We're sending to our thread */
 
-        if (m_hr != S_OK) {
+        if (m_hr != S_OK)
+        {
             *nSamplesProcessed = 0;
-            DbgLog((LOG_TRACE, 3, TEXT("COutputQueue (queued) : Discarding %d samples code 0x%8.8X"),
-                    nSamples, m_hr));
-            for (int i = 0; i < nSamples; i++) {
+            DbgLog((LOG_TRACE, 3, TEXT("COutputQueue (queued) : Discarding %d samples code 0x%8.8X"), nSamples, m_hr));
+            for (int i = 0; i < nSamples; i++)
+            {
                 ppSamples[i]->Release();
             }
             return m_hr;
         }
         m_bFlushed = FALSE;
-        for (long i = 0; i < nSamples; i++) {
+        for (long i = 0; i < nSamples; i++)
+        {
             QueueSample(ppSamples[i]);
         }
         *nSamplesProcessed = nSamples;
-        if (!m_bBatchExact ||
-            m_nBatched + m_List->GetCount() >= m_lBatchSize) {
+        if (!m_bBatchExact || m_nBatched + m_List->GetCount() >= m_lBatchSize)
+        {
             NotifyThread();
         }
         return S_OK;
@@ -700,9 +756,12 @@ HRESULT COutputQueue::ReceiveMultiple (
 //  Get ready for new data - cancels sticky m_hr
 void COutputQueue::Reset()
 {
-    if (!IsQueued()) {
+    if (!IsQueued())
+    {
         m_hr = S_OK;
-    } else {
+    }
+    else
+    {
         {
             CAutoLock lck(this);
             QueueSample(RESET_PACKET);
@@ -716,30 +775,38 @@ void COutputQueue::Reset()
 void COutputQueue::FreeSamples()
 {
     CAutoLock lck(this);
-    if (IsQueued()) {
-        while (TRUE) {
+    if (IsQueued())
+    {
+        while (TRUE)
+        {
             IMediaSample *pSample = m_List->RemoveHead();
-	    // inform derived class we took something off the queue
-	    if (m_hEventPop) {
-                //DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
-	        SetEvent(m_hEventPop);
-	    }
+            // inform derived class we took something off the queue
+            if (m_hEventPop)
+            {
+                // DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
+                SetEvent(m_hEventPop);
+            }
 
-            if (pSample == NULL) {
+            if (pSample == NULL)
+            {
                 break;
             }
-            if (!IsSpecialSample(pSample)) {
+            if (!IsSpecialSample(pSample))
+            {
                 pSample->Release();
-            } else {
-                if (pSample == NEW_SEGMENT) {
+            }
+            else
+            {
+                if (pSample == NEW_SEGMENT)
+                {
                     //  Free NEW_SEGMENT packet
-                    NewSegmentPacket *ppacket =
-                        (NewSegmentPacket *) m_List->RemoveHead();
-		    // inform derived class we took something off the queue
-		    if (m_hEventPop) {
-                        //DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
-		        SetEvent(m_hEventPop);
-		    }
+                    NewSegmentPacket *ppacket = (NewSegmentPacket *)m_List->RemoveHead();
+                    // inform derived class we took something off the queue
+                    if (m_hEventPop)
+                    {
+                        // DbgLog((LOG_TRACE,3,TEXT("Queue: Delivered  SET EVENT")));
+                        SetEvent(m_hEventPop);
+                    }
 
                     ASSERT(ppacket != NULL);
                     delete ppacket;
@@ -747,7 +814,8 @@ void COutputQueue::FreeSamples()
             }
         }
     }
-    for (int i = 0; i < m_nBatched; i++) {
+    for (int i = 0; i < m_nBatched; i++)
+    {
         m_ppSamples[i]->Release();
     }
     m_nBatched = 0;
@@ -760,7 +828,8 @@ void COutputQueue::NotifyThread()
 {
     //  Optimize - no need to signal if it's not waiting
     ASSERT(IsQueued());
-    if (m_lWaiting) {
+    if (m_lWaiting)
+    {
         ReleaseSemaphore(m_hSem, m_lWaiting, NULL);
         m_lWaiting = 0;
     }
@@ -782,9 +851,12 @@ BOOL COutputQueue::IsIdle()
     //  AND
     //      there's nothing in the current batch (m_nBatched == 0)
 
-    if (IsQueued() && m_lWaiting == 0 || m_nBatched != 0) {
+    if (IsQueued() && m_lWaiting == 0 || m_nBatched != 0)
+    {
         return FALSE;
-    } else {
+    }
+    else
+    {
 
         //  If we're idle it shouldn't be possible for there
         //  to be anything on the work queue
@@ -793,7 +865,6 @@ BOOL COutputQueue::IsIdle()
         return TRUE;
     }
 }
-
 
 void COutputQueue::SetPopEvent(HANDLE hEvent)
 {

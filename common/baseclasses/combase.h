@@ -7,7 +7,6 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 /*
 
 a. Derive your COM object from CUnknown
@@ -107,22 +106,19 @@ inheritance and some via nested classes
 
 // Filter Setup data structures no defined in axextend.idl
 
-typedef REGPINTYPES
-AMOVIESETUP_MEDIATYPE, * PAMOVIESETUP_MEDIATYPE, * FAR LPAMOVIESETUP_MEDIATYPE;
+typedef REGPINTYPES AMOVIESETUP_MEDIATYPE, *PAMOVIESETUP_MEDIATYPE, *FAR LPAMOVIESETUP_MEDIATYPE;
 
-typedef REGFILTERPINS
-AMOVIESETUP_PIN, * PAMOVIESETUP_PIN, * FAR LPAMOVIESETUP_PIN;
+typedef REGFILTERPINS AMOVIESETUP_PIN, *PAMOVIESETUP_PIN, *FAR LPAMOVIESETUP_PIN;
 
 typedef struct _AMOVIESETUP_FILTER
 {
-  const CLSID * clsID;
-  const WCHAR * strName;
-  DWORD      dwMerit;
-  UINT       nPins;
-  const AMOVIESETUP_PIN * lpPin;
-  const CLSID filterCategory;
-}
-AMOVIESETUP_FILTER, * PAMOVIESETUP_FILTER, * FAR LPAMOVIESETUP_FILTER;
+    const CLSID *clsID;
+    const WCHAR *strName;
+    DWORD dwMerit;
+    UINT nPins;
+    const AMOVIESETUP_PIN *lpPin;
+    const CLSID filterCategory;
+} AMOVIESETUP_FILTER, *PAMOVIESETUP_FILTER, *FAR LPAMOVIESETUP_FILTER;
 
 /* The DLLENTRY module initialises the module handle on loading */
 
@@ -131,7 +127,7 @@ extern HINSTANCE g_hInst;
 /* On DLL load remember which platform we are running on */
 
 extern DWORD g_amPlatform;
-extern OSVERSIONINFO g_osInfo;     // Filled in by GetVersionEx
+extern OSVERSIONINFO g_osInfo; // Filled in by GetVersionEx
 
 /* Version of IUnknown that is renamed to allow a class to support both
    non delegating and delegating IUnknowns in the same COM object */
@@ -139,7 +135,7 @@ extern OSVERSIONINFO g_osInfo;     // Filled in by GetVersionEx
 #ifndef INONDELEGATINGUNKNOWN_DEFINED
 DECLARE_INTERFACE(INonDelegatingUnknown)
 {
-    STDMETHOD(NonDelegatingQueryInterface) (THIS_ REFIID, LPVOID *) PURE;
+    STDMETHOD(NonDelegatingQueryInterface)(THIS_ REFIID, LPVOID *) PURE;
     STDMETHOD_(ULONG, NonDelegatingAddRef)(THIS) PURE;
     STDMETHOD_(ULONG, NonDelegatingRelease)(THIS) PURE;
 };
@@ -147,7 +143,6 @@ DECLARE_INTERFACE(INonDelegatingUnknown)
 #endif
 
 typedef INonDelegatingUnknown *PNDUNKNOWN;
-
 
 /* This is the base object class that supports active object counting. As
    part of the debug facilities we trace every time a C++ object is created
@@ -159,25 +154,22 @@ typedef INonDelegatingUnknown *PNDUNKNOWN;
 class CBaseObject
 {
 
-private:
-
+  private:
     // Disable the copy constructor and assignment by default so you will get
     //   compiler errors instead of unexpected behaviour if you pass objects
     //   by value or assign objects.
-    CBaseObject(const CBaseObject& objectSrc);          // no implementation
-    void operator=(const CBaseObject& objectSrc);       // no implementation
+    CBaseObject(const CBaseObject &objectSrc);    // no implementation
+    void operator=(const CBaseObject &objectSrc); // no implementation
 
-private:
-    static LONG m_cObjects;     /* Total number of objects active */
+  private:
+    static LONG m_cObjects; /* Total number of objects active */
 
-protected:
+  protected:
 #ifdef DEBUG
-    DWORD m_dwCookie;           /* Cookie identifying this object */
+    DWORD m_dwCookie; /* Cookie identifying this object */
 #endif
 
-
-public:
-
+  public:
     /* These increment and decrement the number of active objects */
 
     CBaseObject(__in_opt LPCTSTR pName);
@@ -188,43 +180,38 @@ public:
 
     /* Call this to find if there are any CUnknown derived objects active */
 
-    static LONG ObjectsActive() {
-        return m_cObjects;
-    };
+    static LONG ObjectsActive() { return m_cObjects; };
 };
-
 
 /* An object that supports one or more COM interfaces will be based on
    this class. It supports counting of total objects for DLLCanUnloadNow
    support, and an implementation of the core non delegating IUnknown */
 
-class AM_NOVTABLE CUnknown : public INonDelegatingUnknown,
-                 public CBaseObject
+class AM_NOVTABLE CUnknown
+    : public INonDelegatingUnknown
+    , public CBaseObject
 {
-private:
+  private:
     const LPUNKNOWN m_pUnknown; /* Owner of this object */
 
-protected:                      /* So we can override NonDelegatingRelease() */
-    volatile LONG m_cRef;       /* Number of reference counts */
+  protected:              /* So we can override NonDelegatingRelease() */
+    volatile LONG m_cRef; /* Number of reference counts */
 
-public:
-
+  public:
     CUnknown(__in_opt LPCTSTR pName, __in_opt LPUNKNOWN pUnk);
-    virtual ~CUnknown() {};
+    virtual ~CUnknown(){};
 
     // This is redundant, just use the other constructor
     //   as we never touch the HRESULT in this anyway
     CUnknown(__in_opt LPCTSTR Name, __in_opt LPUNKNOWN pUnk, __inout_opt HRESULT *phr);
 #ifdef UNICODE
     CUnknown(__in_opt LPCSTR pName, __in_opt LPUNKNOWN pUnk);
-    CUnknown(__in_opt LPCSTR pName, __in_opt LPUNKNOWN pUnk,__inout_opt HRESULT *phr);
+    CUnknown(__in_opt LPCSTR pName, __in_opt LPUNKNOWN pUnk, __inout_opt HRESULT *phr);
 #endif
 
     /* Return the owner of this object */
 
-    LPUNKNOWN GetOwner() const {
-        return m_pUnknown;
-    };
+    LPUNKNOWN GetOwner() const { return m_pUnknown; };
 
     /* Called from the class factory to create a new instance, it is
        pure virtual so it must be overriden in your derived class */
@@ -253,54 +240,42 @@ typedef CUnknown *(CALLBACK *LPFNNewCOMObject)(__in_opt LPUNKNOWN pUnkOuter, __i
     bLoading - TRUE on DLL load, FALSE on DLL unload
     rclsid   - the m_ClsID of the entry
 */
-typedef void (CALLBACK *LPFNInitRoutine)(BOOL bLoading, const CLSID *rclsid);
+typedef void(CALLBACK *LPFNInitRoutine)(BOOL bLoading, const CLSID *rclsid);
 
 /* Create one of these per object class in an array so that
    the default class factory code can create new instances */
 
-class CFactoryTemplate {
+class CFactoryTemplate
+{
 
-public:
+  public:
+    const WCHAR *m_Name;
+    const CLSID *m_ClsID;
+    LPFNNewCOMObject m_lpfnNew;
+    LPFNInitRoutine m_lpfnInit;
+    const AMOVIESETUP_FILTER *m_pAMovieSetup_Filter;
 
-    const WCHAR *              m_Name;
-    const CLSID *              m_ClsID;
-    LPFNNewCOMObject           m_lpfnNew;
-    LPFNInitRoutine            m_lpfnInit;
-    const AMOVIESETUP_FILTER * m_pAMovieSetup_Filter;
+    BOOL IsClassID(REFCLSID rclsid) const { return (IsEqualCLSID(*m_ClsID, rclsid)); };
 
-    BOOL IsClassID(REFCLSID rclsid) const {
-        return (IsEqualCLSID(*m_ClsID,rclsid));
-    };
-
-    CUnknown *CreateInstance(__inout_opt LPUNKNOWN pUnk, __inout_opt HRESULT *phr) const {
-        CheckPointer(phr,NULL);
+    CUnknown *CreateInstance(__inout_opt LPUNKNOWN pUnk, __inout_opt HRESULT *phr) const
+    {
+        CheckPointer(phr, NULL);
         return m_lpfnNew(pUnk, phr);
     };
 };
-
 
 /* You must override the (pure virtual) NonDelegatingQueryInterface to return
    interface pointers (using GetInterface) to the interfaces your derived
    class supports (the default implementation only supports IUnknown) */
 
-#define DECLARE_IUNKNOWN                                        \
-    STDMETHODIMP QueryInterface(REFIID riid, __deref_out void **ppv) {      \
-        return GetOwner()->QueryInterface(riid,ppv);            \
-    };                                                          \
-    STDMETHODIMP_(ULONG) AddRef() {                             \
-        return GetOwner()->AddRef();                            \
-    };                                                          \
-    STDMETHODIMP_(ULONG) Release() {                            \
-        return GetOwner()->Release();                           \
-    };
+#define DECLARE_IUNKNOWN                                             \
+    STDMETHODIMP QueryInterface(REFIID riid, __deref_out void **ppv) \
+    {                                                                \
+        return GetOwner()->QueryInterface(riid, ppv);                \
+    };                                                               \
+    STDMETHODIMP_(ULONG) AddRef() { return GetOwner()->AddRef(); };  \
+    STDMETHODIMP_(ULONG) Release() { return GetOwner()->Release(); };
 
-
-
-HINSTANCE	LoadOLEAut32();
-
+HINSTANCE LoadOLEAut32();
 
 #endif /* __COMBASE__ */
-
-
-
-

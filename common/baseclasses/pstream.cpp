@@ -6,7 +6,6 @@
 // Copyright (c) 1992-2001 Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------------------------
 
-
 #include <streams.h>
 #include <strsafe.h>
 
@@ -24,11 +23,11 @@ CPersistStream::CPersistStream(IUnknown *punk, __inout HRESULT *phr)
     mPS_dwFileVersion = GetSoftwareVersion();
 }
 
-
 //
 // Destructor
 //
-CPersistStream::~CPersistStream() {
+CPersistStream::~CPersistStream()
+{
     // Nothing to do
 }
 
@@ -53,7 +52,6 @@ STDMETHODIMP CPersistStream::NonDelegatingQueryInterface(REFIID riid, __deref_ou
 }
 #endif
 
-
 //
 // WriteToStream
 //
@@ -66,16 +64,13 @@ HRESULT CPersistStream::WriteToStream(IStream *pStream)
     return NOERROR;
 }
 
-
-
-HRESULT CPersistStream::ReadFromStream(IStream * pStream)
+HRESULT CPersistStream::ReadFromStream(IStream *pStream)
 {
     // You can override this to do things like
     // hr = pStream->Read(MyStructure, sizeof(MyStructure), NULL);
 
     return NOERROR;
 }
-
 
 //
 // Load
@@ -86,14 +81,13 @@ STDMETHODIMP CPersistStream::Load(LPSTREAM pStm)
     HRESULT hr;
     // Load the version number then the data
     mPS_dwFileVersion = ReadInt(pStm, hr);
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         return hr;
     }
 
     return ReadFromStream(pStm);
-}  // Load
-
-
+} // Load
 
 //
 // Save
@@ -103,12 +97,14 @@ STDMETHODIMP CPersistStream::Save(LPSTREAM pStm, BOOL fClearDirty)
 {
 
     HRESULT hr = WriteInt(pStm, GetSoftwareVersion());
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         return hr;
     }
 
     hr = WriteToStream(pStm);
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         return hr;
     }
 
@@ -116,7 +112,6 @@ STDMETHODIMP CPersistStream::Save(LPSTREAM pStm, BOOL fClearDirty)
 
     return hr;
 } // Save
-
 
 // WriteInt
 //
@@ -128,11 +123,10 @@ STDMETHODIMP CPersistStream::Save(LPSTREAM pStm, BOOL fClearDirty)
 
 STDAPI WriteInt(IStream *pIStream, int n)
 {
-    WCHAR Buff[13];  // Allows for trailing null that we don't write
-    (void)StringCchPrintfW(Buff, NUMELMS(Buff),L"%011d ",n);
-    return pIStream->Write(&(Buff[0]), 12*sizeof(WCHAR), NULL);
+    WCHAR Buff[13]; // Allows for trailing null that we don't write
+    (void)StringCchPrintfW(Buff, NUMELMS(Buff), L"%011d ", n);
+    return pIStream->Write(&(Buff[0]), 12 * sizeof(WCHAR), NULL);
 } // WriteInt
-
 
 // ReadInt
 //
@@ -145,53 +139,59 @@ STDAPI_(int) ReadInt(IStream *pIStream, __out HRESULT &hr)
 {
 
     int Sign = 1;
-    unsigned int n = 0;    // result wil be n*Sign
+    unsigned int n = 0; // result wil be n*Sign
     WCHAR wch;
 
-    hr = pIStream->Read( &wch, sizeof(wch), NULL);
-    if (FAILED(hr)) {
+    hr = pIStream->Read(&wch, sizeof(wch), NULL);
+    if (FAILED(hr))
+    {
         return 0;
     }
 
-    if (wch==L'-'){
+    if (wch == L'-')
+    {
         Sign = -1;
-        hr = pIStream->Read( &wch, sizeof(wch), NULL);
-        if (FAILED(hr)) {
+        hr = pIStream->Read(&wch, sizeof(wch), NULL);
+        if (FAILED(hr))
+        {
             return 0;
         }
     }
 
-    for( ; ; ) {
-        if (wch>=L'0' && wch<=L'9') {
-            n = 10*n+(int)(wch-L'0');
-        } else if (  wch == L' '
-                  || wch == L'\t'
-                  || wch == L'\r'
-                  || wch == L'\n'
-                  || wch == L'\0'
-                  ) {
+    for (;;)
+    {
+        if (wch >= L'0' && wch <= L'9')
+        {
+            n = 10 * n + (int)(wch - L'0');
+        }
+        else if (wch == L' ' || wch == L'\t' || wch == L'\r' || wch == L'\n' || wch == L'\0')
+        {
             break;
-        } else {
+        }
+        else
+        {
             hr = VFW_E_INVALID_FILE_FORMAT;
             return 0;
         }
 
-        hr = pIStream->Read( &wch, sizeof(wch), NULL);
-        if (FAILED(hr)) {
+        hr = pIStream->Read(&wch, sizeof(wch), NULL);
+        if (FAILED(hr))
+        {
             return 0;
         }
     }
 
-    if (n==0x80000000 && Sign==-1) {
+    if (n == 0x80000000 && Sign == -1)
+    {
         // This is the negative number that has no positive version!
         return (int)n;
     }
-    else return (int)n * Sign;
+    else
+        return (int)n * Sign;
 } // ReadInt
-
 
 // The microsoft C/C++ compile generates level 4 warnings to the effect that
 // a particular inline function (from some base class) was not needed.
 // This line gets rid of hundreds of such unwanted messages and makes
 // -W4 compilation feasible:
-#pragma warning(disable: 4514)
+#pragma warning(disable : 4514)
