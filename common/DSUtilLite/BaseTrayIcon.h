@@ -23,43 +23,43 @@
 
 class CBaseTrayIcon
 {
-public:
-  CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
-  virtual ~CBaseTrayIcon(void);
+  public:
+    CBaseTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
+    virtual ~CBaseTrayIcon(void);
 
-  static BOOL ProcessBlackList();
+    static BOOL ProcessBlackList();
 
-protected:
-  virtual HRESULT CreateTrayIconData();
+  protected:
+    virtual HRESULT CreateTrayIconData();
 
-  virtual HMENU GetPopupMenu() { return nullptr; }
-  virtual HRESULT ProcessMenuCommand(HMENU hMenu, int cmd) { return E_NOTIMPL; }
+    virtual HMENU GetPopupMenu() { return nullptr; }
+    virtual HRESULT ProcessMenuCommand(HMENU hMenu, int cmd) { return E_NOTIMPL; }
 
-  HRESULT OpenPropPage();
+    HRESULT OpenPropPage();
 
-private:
-  HRESULT StartMessageThread();
-  HRESULT RegisterWindowClass();
-  HRESULT CreateMessageWindow();
+  private:
+    HRESULT StartMessageThread();
+    HRESULT RegisterWindowClass();
+    HRESULT CreateMessageWindow();
 
-  DWORD TrayMessageThread();
-  static unsigned int WINAPI InitialThreadProc(LPVOID pv);
+    DWORD TrayMessageThread();
+    static unsigned int WINAPI InitialThreadProc(LPVOID pv);
 
-  static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-protected:
-  IBaseFilter *m_pFilter;
+  protected:
+    IBaseFilter *m_pFilter;
 
-private:
-  CAMEvent m_evSetupFinished{TRUE};
+  private:
+    CAMEvent m_evSetupFinished{TRUE};
 
-  HANDLE m_hThread       = 0;
-  HWND   m_hWnd          = 0;
-  BOOL   m_bPropPageOpen = FALSE;
+    HANDLE m_hThread = 0;
+    HWND m_hWnd = 0;
+    BOOL m_bPropPageOpen = FALSE;
 
-  WCHAR m_wszClassName[64];
-  const WCHAR *m_wszName = nullptr;
-  int m_resIcon          = 0;
+    WCHAR m_wszClassName[64];
+    const WCHAR *m_wszName = nullptr;
+    int m_resIcon = 0;
 
-  NOTIFYICONDATA m_NotifyIconData;
+    NOTIFYICONDATA m_NotifyIconData;
 };

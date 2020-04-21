@@ -20,30 +20,33 @@
 #pragma once
 
 #define LOG_BUF_LEN 2048
-inline void lavf_log_callback(void* ptr, int level, const char* fmt, va_list vl)
+inline void lavf_log_callback(void *ptr, int level, const char *fmt, va_list vl)
 {
-  static int print_prefix=1;
-  static int count;
-  static char line[LOG_BUF_LEN] = {0}, prev[LOG_BUF_LEN] = {0};
+    static int print_prefix = 1;
+    static int count;
+    static char line[LOG_BUF_LEN] = {0}, prev[LOG_BUF_LEN] = {0};
 
-  if(level>AV_LOG_VERBOSE)
-    return;
+    if (level > AV_LOG_VERBOSE)
+        return;
 
-  av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
+    av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
 
-  if(print_prefix && !strcmp(line, prev)){
-    count++;
-    return;
-  }
-  if(count>0){
-    DbgLog((LOG_CUSTOM1, level, L"    Last message repeated %d times", count));
-    count=0;
-  }
-  size_t len = strnlen_s(line, LOG_BUF_LEN);
-  if (len > 0 && line[len - 1] == '\n') {
-    line[len - 1] = 0;
-  }
+    if (print_prefix && !strcmp(line, prev))
+    {
+        count++;
+        return;
+    }
+    if (count > 0)
+    {
+        DbgLog((LOG_CUSTOM1, level, L"    Last message repeated %d times", count));
+        count = 0;
+    }
+    size_t len = strnlen_s(line, LOG_BUF_LEN);
+    if (len > 0 && line[len - 1] == '\n')
+    {
+        line[len - 1] = 0;
+    }
 
-  DbgLog((LOG_CUSTOM1, level, L"%S", line));
-  strncpy_s(prev, line, _TRUNCATE);
+    DbgLog((LOG_CUSTOM1, level, L"%S", line));
+    strncpy_s(prev, line, _TRUNCATE);
 }

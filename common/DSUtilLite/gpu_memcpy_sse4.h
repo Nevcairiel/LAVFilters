@@ -26,11 +26,12 @@
 // GPU tiled memory (write back)
 // Performance tip: page offset (12 lsb) of both addresses should be different
 //  optimally use a 2K offset between them.
-inline void* gpu_memcpy(void* d, const void* s, size_t size)
+inline void *gpu_memcpy(void *d, const void *s, size_t size)
 {
     static const size_t regsInLoop = sizeof(size_t) * 2; // 8 or 16
 
-    if (d == nullptr || s == nullptr) return nullptr;
+    if (d == nullptr || s == nullptr)
+        return nullptr;
 
     // If memory is not aligned, use memcpy
     bool isAligned = (((size_t)(s) | (size_t)(d)) & 0xF) == 0;
@@ -47,10 +48,10 @@ inline void* gpu_memcpy(void* d, const void* s, size_t size)
     size_t remainder = size & (regsInLoop * sizeof(xmm0) - 1); // Copy 128 or 256 bytes every loop
     size_t end = 0;
 
-    __m128i* pTrg = (__m128i*)d;
-    __m128i* pTrgEnd = pTrg + ((size - remainder) >> 4);
-    __m128i* pSrc = (__m128i*)s;
-    
+    __m128i *pTrg = (__m128i *)d;
+    __m128i *pTrgEnd = pTrg + ((size - remainder) >> 4);
+    __m128i *pSrc = (__m128i *)s;
+
     // Make sure source is synced - doesn't hurt if not needed.
     _mm_sfence();
 
@@ -58,17 +59,17 @@ inline void* gpu_memcpy(void* d, const void* s, size_t size)
     {
         // _mm_stream_load_si128 emits the Streaming SIMD Extensions 4 (SSE4.1) instruction MOVNTDQA
         // Fastest method for copying GPU RAM. Available since Penryn (45nm Core 2 Duo/Quad)
-        xmm0  = _mm_stream_load_si128(pSrc);
-        xmm1  = _mm_stream_load_si128(pSrc + 1);
-        xmm2  = _mm_stream_load_si128(pSrc + 2);
-        xmm3  = _mm_stream_load_si128(pSrc + 3);
-        xmm4  = _mm_stream_load_si128(pSrc + 4);
-        xmm5  = _mm_stream_load_si128(pSrc + 5);
-        xmm6  = _mm_stream_load_si128(pSrc + 6);
-        xmm7  = _mm_stream_load_si128(pSrc + 7);
+        xmm0 = _mm_stream_load_si128(pSrc);
+        xmm1 = _mm_stream_load_si128(pSrc + 1);
+        xmm2 = _mm_stream_load_si128(pSrc + 2);
+        xmm3 = _mm_stream_load_si128(pSrc + 3);
+        xmm4 = _mm_stream_load_si128(pSrc + 4);
+        xmm5 = _mm_stream_load_si128(pSrc + 5);
+        xmm6 = _mm_stream_load_si128(pSrc + 6);
+        xmm7 = _mm_stream_load_si128(pSrc + 7);
 #ifdef _M_X64 // Use all 16 xmm registers
-        xmm8  = _mm_stream_load_si128(pSrc + 8);
-        xmm9  = _mm_stream_load_si128(pSrc + 9);
+        xmm8 = _mm_stream_load_si128(pSrc + 8);
+        xmm9 = _mm_stream_load_si128(pSrc + 9);
         xmm10 = _mm_stream_load_si128(pSrc + 10);
         xmm11 = _mm_stream_load_si128(pSrc + 11);
         xmm12 = _mm_stream_load_si128(pSrc + 12);
@@ -80,17 +81,17 @@ inline void* gpu_memcpy(void* d, const void* s, size_t size)
         _ReadWriteBarrier();
 
         // _mm_store_si128 emit the SSE2 intruction MOVDQA (aligned store)
-        _mm_store_si128(pTrg     , xmm0);
-        _mm_store_si128(pTrg +  1, xmm1);
-        _mm_store_si128(pTrg +  2, xmm2);
-        _mm_store_si128(pTrg +  3, xmm3);
-        _mm_store_si128(pTrg +  4, xmm4);
-        _mm_store_si128(pTrg +  5, xmm5);
-        _mm_store_si128(pTrg +  6, xmm6);
-        _mm_store_si128(pTrg +  7, xmm7);
+        _mm_store_si128(pTrg, xmm0);
+        _mm_store_si128(pTrg + 1, xmm1);
+        _mm_store_si128(pTrg + 2, xmm2);
+        _mm_store_si128(pTrg + 3, xmm3);
+        _mm_store_si128(pTrg + 4, xmm4);
+        _mm_store_si128(pTrg + 5, xmm5);
+        _mm_store_si128(pTrg + 6, xmm6);
+        _mm_store_si128(pTrg + 7, xmm7);
 #ifdef _M_X64 // Use all 16 xmm registers
-        _mm_store_si128(pTrg +  8, xmm8);
-        _mm_store_si128(pTrg +  9, xmm9);
+        _mm_store_si128(pTrg + 8, xmm8);
+        _mm_store_si128(pTrg + 9, xmm9);
         _mm_store_si128(pTrg + 10, xmm10);
         _mm_store_si128(pTrg + 11, xmm11);
         _mm_store_si128(pTrg + 12, xmm12);
@@ -119,8 +120,8 @@ inline void* gpu_memcpy(void* d, const void* s, size_t size)
     {
         __m128i temp = _mm_stream_load_si128(pSrc + end);
 
-        char* ps = (char*)(&temp);
-        char* pt = (char*)(pTrg + end);
+        char *ps = (char *)(&temp);
+        char *pt = (char *)(pTrg + end);
 
         for (size_t i = 0; i < remainder; ++i)
         {

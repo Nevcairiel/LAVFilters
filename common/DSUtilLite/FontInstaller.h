@@ -25,16 +25,16 @@
 
 class CFontInstaller
 {
-	HANDLE (WINAPI *pAddFontMemResourceEx)(PVOID,DWORD,PVOID,DWORD*) = nullptr;
-	BOOL (WINAPI *pRemoveFontMemResourceEx)(HANDLE)                  = nullptr;
+    HANDLE(WINAPI *pAddFontMemResourceEx)(PVOID, DWORD, PVOID, DWORD *) = nullptr;
+    BOOL(WINAPI *pRemoveFontMemResourceEx)(HANDLE) = nullptr;
 
-	std::vector<HANDLE> m_fonts;
-	bool InstallFontMemory(const void* pData, UINT len);
+    std::vector<HANDLE> m_fonts;
+    bool InstallFontMemory(const void *pData, UINT len);
 
-public:
-	CFontInstaller();
-	virtual ~CFontInstaller();
+  public:
+    CFontInstaller();
+    virtual ~CFontInstaller();
 
-	bool InstallFont(const void* pData, UINT len);
-	void UninstallFonts();
+    bool InstallFont(const void *pData, UINT len);
+    void UninstallFonts();
 };

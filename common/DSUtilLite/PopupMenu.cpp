@@ -22,61 +22,61 @@
 
 CPopupMenu::CPopupMenu(void)
 {
-  m_hMenu = CreatePopupMenu();
+    m_hMenu = CreatePopupMenu();
 }
 
 CPopupMenu::~CPopupMenu(void)
 {
-  if (m_hMenu)
-    DestroyMenu(m_hMenu);
+    if (m_hMenu)
+        DestroyMenu(m_hMenu);
 }
 
 HRESULT CPopupMenu::AddItem(UINT id, LPWSTR caption, BOOL checked, BOOL enabled)
 {
-  if (!m_hMenu)
-    return E_UNEXPECTED;
-  MENUITEMINFO mii;
-  mii.cbSize = sizeof(mii);
-  mii.fMask = MIIM_ID | MIIM_STATE | MIIM_FTYPE | MIIM_STRING;
-  mii.fType = MFT_STRING | MFT_RADIOCHECK;
-  mii.wID = id;
-  mii.fState = (checked ? MFS_CHECKED : 0) | (!enabled ? MFS_DISABLED : 0);
-  mii.dwTypeData = caption;
-  mii.cch = (UINT)wcslen(mii.dwTypeData);
-  InsertMenuItem(m_hMenu, order++, TRUE, &mii);
-  return S_OK;
+    if (!m_hMenu)
+        return E_UNEXPECTED;
+    MENUITEMINFO mii;
+    mii.cbSize = sizeof(mii);
+    mii.fMask = MIIM_ID | MIIM_STATE | MIIM_FTYPE | MIIM_STRING;
+    mii.fType = MFT_STRING | MFT_RADIOCHECK;
+    mii.wID = id;
+    mii.fState = (checked ? MFS_CHECKED : 0) | (!enabled ? MFS_DISABLED : 0);
+    mii.dwTypeData = caption;
+    mii.cch = (UINT)wcslen(mii.dwTypeData);
+    InsertMenuItem(m_hMenu, order++, TRUE, &mii);
+    return S_OK;
 }
 
 HRESULT CPopupMenu::AddSeparator()
 {
-  if (!m_hMenu)
-    return E_UNEXPECTED;
-  MENUITEMINFO mii;
-  mii.cbSize = sizeof(mii);
-  mii.fMask = MIIM_TYPE;
-  mii.fType = MFT_SEPARATOR;
-  InsertMenuItem(m_hMenu, order++, TRUE, &mii);
-  return S_OK;
+    if (!m_hMenu)
+        return E_UNEXPECTED;
+    MENUITEMINFO mii;
+    mii.cbSize = sizeof(mii);
+    mii.fMask = MIIM_TYPE;
+    mii.fType = MFT_SEPARATOR;
+    InsertMenuItem(m_hMenu, order++, TRUE, &mii);
+    return S_OK;
 }
 
 HRESULT CPopupMenu::AddSubmenu(HMENU hSubMenu, LPWSTR caption)
 {
-  if (!m_hMenu)
-    return E_UNEXPECTED;
-  MENUITEMINFO mii;
-  mii.cbSize = sizeof(mii);
-  mii.fMask = MIIM_FTYPE | MIIM_STRING | MIIM_SUBMENU;
-  mii.fType = MFT_STRING;
-  mii.hSubMenu = hSubMenu;
-  mii.dwTypeData = caption;
-  mii.cch = (UINT)wcslen(mii.dwTypeData);
-  InsertMenuItem(m_hMenu, order++, TRUE, &mii);
-  return S_OK;
+    if (!m_hMenu)
+        return E_UNEXPECTED;
+    MENUITEMINFO mii;
+    mii.cbSize = sizeof(mii);
+    mii.fMask = MIIM_FTYPE | MIIM_STRING | MIIM_SUBMENU;
+    mii.fType = MFT_STRING;
+    mii.hSubMenu = hSubMenu;
+    mii.dwTypeData = caption;
+    mii.cch = (UINT)wcslen(mii.dwTypeData);
+    InsertMenuItem(m_hMenu, order++, TRUE, &mii);
+    return S_OK;
 }
 
 HMENU CPopupMenu::Finish()
 {
-  HMENU hMenu = m_hMenu;
-  m_hMenu = nullptr;
-  return hMenu;
+    HMENU hMenu = m_hMenu;
+    m_hMenu = nullptr;
+    return hMenu;
 }

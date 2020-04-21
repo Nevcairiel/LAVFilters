@@ -24,25 +24,25 @@
 
 class CCueSheet
 {
-public:
-  CCueSheet();
-  ~CCueSheet();
+  public:
+    CCueSheet();
+    ~CCueSheet();
 
-  HRESULT Parse(std::string cueSheet);
+    HRESULT Parse(std::string cueSheet);
 
-public:
-  struct Track {
-    int index;
-    std::string Id;
-    std::string Title;
-    REFERENCE_TIME Time;
-    std::string Performer;
-  };
+  public:
+    struct Track
+    {
+        int index;
+        std::string Id;
+        std::string Title;
+        REFERENCE_TIME Time;
+        std::string Performer;
+    };
 
-  std::string m_Performer;
-  std::string m_Title;
-  std::list<Track> m_Tracks;
+    std::string m_Performer;
+    std::string m_Title;
+    std::list<Track> m_Tracks;
 
-  std::string FormatTrack(Track & track);
+    std::string FormatTrack(Track &track);
 };
-

@@ -21,42 +21,45 @@
 
 #include <deque>
 
-template <class T>
-class CSynchronizedQueue : public CCritSec
+template <class T> class CSynchronizedQueue : public CCritSec
 {
-public:
-  CSynchronizedQueue() {};
+  public:
+    CSynchronizedQueue(){};
 
-  void Push(T item) {
-    CAutoLock lock(this);
-    
-    m_queue.push_back(item);
-  }
-  
-  T Pop(void) { 
-    CAutoLock lock(this);
-    
-    if (m_queue.empty())
-      return nullptr;
-    
-    T item = m_queue.front();
-    m_queue.pop_front();
-    
-    return item;
-  }
+    void Push(T item)
+    {
+        CAutoLock lock(this);
 
-  bool Empty() {
-    CAutoLock lock(this);
-    
-    return m_queue.empty();
-  }
-  
-  size_t Size() {
-    CAutoLock lock(this);
+        m_queue.push_back(item);
+    }
 
-    return m_queue.size();
-  }
+    T Pop(void)
+    {
+        CAutoLock lock(this);
 
-private:
-  std::deque<T> m_queue;
+        if (m_queue.empty())
+            return nullptr;
+
+        T item = m_queue.front();
+        m_queue.pop_front();
+
+        return item;
+    }
+
+    bool Empty()
+    {
+        CAutoLock lock(this);
+
+        return m_queue.empty();
+    }
+
+    size_t Size()
+    {
+        CAutoLock lock(this);
+
+        return m_queue.size();
+    }
+
+  private:
+    std::deque<T> m_queue;
 };

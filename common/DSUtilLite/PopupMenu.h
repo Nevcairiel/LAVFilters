@@ -21,16 +21,17 @@
 
 class CPopupMenu
 {
-public:
-  CPopupMenu(void);
-  virtual ~CPopupMenu(void);
+  public:
+    CPopupMenu(void);
+    virtual ~CPopupMenu(void);
 
-  HRESULT AddItem(UINT id, LPWSTR caption, BOOL checked = FALSE, BOOL enabled = TRUE);
-  HRESULT AddSeparator();
-  HRESULT AddSubmenu(HMENU hSubMenu, LPWSTR caption);
+    HRESULT AddItem(UINT id, LPWSTR caption, BOOL checked = FALSE, BOOL enabled = TRUE);
+    HRESULT AddSeparator();
+    HRESULT AddSubmenu(HMENU hSubMenu, LPWSTR caption);
 
-  HMENU Finish();
-private:
-  HMENU m_hMenu = 0;
-  int   order   = 0;
+    HMENU Finish();
+
+  private:
+    HMENU m_hMenu = 0;
+    int order = 0;
 };

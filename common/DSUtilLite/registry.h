@@ -25,27 +25,27 @@ bool CreateRegistryKey(HKEY hKeyRoot, LPCTSTR pszSubKey);
 
 class CRegistry
 {
-public:
-  CRegistry();
-  CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr, BOOL bReadOnly = FALSE, BOOL b64Bit = TRUE);
-  ~CRegistry();
-  
-  HRESULT Open(HKEY hkeyRoot, LPCTSTR pszSubKey, BOOL bReadOnly = FALSE, BOOL b64Bit = TRUE);
+  public:
+    CRegistry();
+    CRegistry(HKEY hkeyRoot, LPCTSTR pszSubKey, HRESULT &hr, BOOL bReadOnly = FALSE, BOOL b64Bit = TRUE);
+    ~CRegistry();
 
-  std::wstring ReadString(LPCTSTR pszKey, HRESULT &hr);
-  HRESULT WriteString(LPCTSTR pszKey, LPCTSTR pszValue);
+    HRESULT Open(HKEY hkeyRoot, LPCTSTR pszSubKey, BOOL bReadOnly = FALSE, BOOL b64Bit = TRUE);
 
-  DWORD ReadDWORD(LPCTSTR pszKey, HRESULT &hr);
-  HRESULT WriteDWORD(LPCTSTR pszKey, DWORD dwValue);
+    std::wstring ReadString(LPCTSTR pszKey, HRESULT &hr);
+    HRESULT WriteString(LPCTSTR pszKey, LPCTSTR pszValue);
 
-  BOOL ReadBOOL(LPCTSTR pszKey, HRESULT &hr);
-  HRESULT WriteBOOL(LPCTSTR pszKey, BOOL bValue);
+    DWORD ReadDWORD(LPCTSTR pszKey, HRESULT &hr);
+    HRESULT WriteDWORD(LPCTSTR pszKey, DWORD dwValue);
 
-  BYTE *ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr);
-  HRESULT WriteBinary(LPCTSTR pszKey, const BYTE *pbValue, int iLen);
+    BOOL ReadBOOL(LPCTSTR pszKey, HRESULT &hr);
+    HRESULT WriteBOOL(LPCTSTR pszKey, BOOL bValue);
 
-  HRESULT DeleteKey(LPCTSTR pszKey);
+    BYTE *ReadBinary(LPCTSTR pszKey, DWORD &dwSize, HRESULT &hr);
+    HRESULT WriteBinary(LPCTSTR pszKey, const BYTE *pbValue, int iLen);
 
-private:
-  HKEY *m_key = nullptr;
+    HRESULT DeleteKey(LPCTSTR pszKey);
+
+  private:
+    HKEY *m_key = nullptr;
 };

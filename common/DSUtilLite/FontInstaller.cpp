@@ -23,46 +23,52 @@
 #include "FontInstaller.h"
 
 CFontInstaller::CFontInstaller()
-  : pAddFontMemResourceEx(nullptr)
-  , pRemoveFontMemResourceEx(nullptr)
+    : pAddFontMemResourceEx(nullptr)
+    , pRemoveFontMemResourceEx(nullptr)
 {
-	if(HMODULE hGdi = GetModuleHandle(_T("gdi32.dll"))) {
-		pAddFontMemResourceEx = (HANDLE (WINAPI *)(PVOID,DWORD,PVOID,DWORD*))GetProcAddress(hGdi, "AddFontMemResourceEx");
-		pRemoveFontMemResourceEx = (BOOL (WINAPI *)(HANDLE))GetProcAddress(hGdi, "RemoveFontMemResourceEx");
-	}
+    if (HMODULE hGdi = GetModuleHandle(_T("gdi32.dll")))
+    {
+        pAddFontMemResourceEx =
+            (HANDLE(WINAPI *)(PVOID, DWORD, PVOID, DWORD *))GetProcAddress(hGdi, "AddFontMemResourceEx");
+        pRemoveFontMemResourceEx = (BOOL(WINAPI *)(HANDLE))GetProcAddress(hGdi, "RemoveFontMemResourceEx");
+    }
 }
 
 CFontInstaller::~CFontInstaller()
 {
-	UninstallFonts();
+    UninstallFonts();
 }
 
-bool CFontInstaller::InstallFont(const void* pData, UINT len)
+bool CFontInstaller::InstallFont(const void *pData, UINT len)
 {
-	return InstallFontMemory(pData, len);
+    return InstallFontMemory(pData, len);
 }
 
 void CFontInstaller::UninstallFonts()
 {
-	if(pRemoveFontMemResourceEx) {
-    std::vector<HANDLE>::iterator it;
-    for(it = m_fonts.begin(); it != m_fonts.end(); ++it) {
-      pRemoveFontMemResourceEx(*it);
+    if (pRemoveFontMemResourceEx)
+    {
+        std::vector<HANDLE>::iterator it;
+        for (it = m_fonts.begin(); it != m_fonts.end(); ++it)
+        {
+            pRemoveFontMemResourceEx(*it);
+        }
+        m_fonts.clear();
     }
-    m_fonts.clear();
-	}
 }
 
-bool CFontInstaller::InstallFontMemory(const void* pData, UINT len)
+bool CFontInstaller::InstallFontMemory(const void *pData, UINT len)
 {
-	if(!pAddFontMemResourceEx) {
-		return false;
-	}
+    if (!pAddFontMemResourceEx)
+    {
+        return false;
+    }
 
-	DWORD nFonts = 0;
-	HANDLE hFont = pAddFontMemResourceEx((PVOID)pData, len, nullptr, &nFonts);
-	if(hFont && nFonts > 0) {
-		m_fonts.push_back(hFont);
-	}
-	return hFont && nFonts > 0;
+    DWORD nFonts = 0;
+    HANDLE hFont = pAddFontMemResourceEx((PVOID)pData, len, nullptr, &nFonts);
+    if (hFont && nFonts > 0)
+    {
+        m_fonts.push_back(hFont);
+    }
+    return hFont && nFonts > 0;
 }

@@ -21,21 +21,21 @@
 
 class CBaseDSPropPage : public CBasePropertyPage
 {
-public:
-  CBaseDSPropPage(LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, int DialogId, int TitleId);
+  public:
+    CBaseDSPropPage(LPCTSTR pName, __inout_opt LPUNKNOWN pUnk, int DialogId, int TitleId);
 
-public:
-  static HRESULT ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner = nullptr);
+  public:
+    static HRESULT ShowPropPageDialog(IBaseFilter *pFilter, HWND hwndOwner = nullptr);
 
-protected:
-  // Convenience function to add a new column to a list view control
-  static void ListView_AddCol(HWND hlv, int &ncol, int w, const wchar_t *txt, bool right);
+  protected:
+    // Convenience function to add a new column to a list view control
+    static void ListView_AddCol(HWND hlv, int &ncol, int w, const wchar_t *txt, bool right);
 
-  TOOLINFO addHint(int id, const LPWSTR text);
+    TOOLINFO addHint(int id, const LPWSTR text);
 
-private:
-  HWND createHintWindow(HWND parent, int timePop = 1700, int timeInit = 70, int timeReshow = 7);
+  private:
+    HWND createHintWindow(HWND parent, int timePop = 1700, int timeInit = 70, int timeReshow = 7);
 
-private:
-  HWND m_hHint = 0;
+  private:
+    HWND m_hHint = 0;
 };

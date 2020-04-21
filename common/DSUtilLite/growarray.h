@@ -17,10 +17,10 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// Class template: Re-sizable array. 
+// Class template: Re-sizable array.
 
-// To grow or shrink the array, call SetSize(). 
-// To pre-allocate the array, call Allocate(). 
+// To grow or shrink the array, call SetSize().
+// To pre-allocate the array, call Allocate().
 
 // Notes:
 // Copy constructor and assignment operator are private, to avoid throwing exceptions. (One could easily modify this.)
@@ -32,116 +32,108 @@
 #include <assert.h>
 #include "DShowUtil.h"
 
-template <class T>
-class GrowableArray
+template <class T> class GrowableArray
 {
-public:
-  GrowableArray()
-  {
-  }
+  public:
+    GrowableArray() {}
 
-  virtual ~GrowableArray()
-  {
-    free(m_pArray);
-  }
+    virtual ~GrowableArray() { free(m_pArray); }
 
-  // Allocate: Reserves memory for the array, but does not increase the count.
-  HRESULT Allocate(DWORD alloc)
-  {
-    HRESULT hr = S_OK;
-    if (alloc > m_allocated || !m_pArray)
+    // Allocate: Reserves memory for the array, but does not increase the count.
+    HRESULT Allocate(DWORD alloc)
     {
-      T *pNew = (T *)realloc(m_pArray, sizeof(T) * alloc);
-      if (!pNew) {
+        HRESULT hr = S_OK;
+        if (alloc > m_allocated || !m_pArray)
+        {
+            T *pNew = (T *)realloc(m_pArray, sizeof(T) * alloc);
+            if (!pNew)
+            {
+                free(m_pArray);
+                m_pArray = nullptr;
+                m_allocated = 0;
+                return E_OUTOFMEMORY;
+            }
+            m_pArray = pNew;
+            ZeroMemory(m_pArray + m_allocated, (alloc - m_allocated) * sizeof(T));
+            m_allocated = alloc;
+        }
+        return hr;
+    }
+
+    HRESULT Clear()
+    {
         free(m_pArray);
         m_pArray = nullptr;
-        m_allocated = 0;
-        return E_OUTOFMEMORY;
-      }
-      m_pArray = pNew;
-      ZeroMemory(m_pArray+m_allocated, (alloc - m_allocated) * sizeof(T));
-      m_allocated = alloc;
+        m_count = m_allocated = 0;
+        return S_OK;
     }
-    return hr;
-  }
 
-  HRESULT Clear()
-  {
-    free(m_pArray);
-    m_pArray = nullptr;
-    m_count = m_allocated = 0;
-    return S_OK;
-  }
-
-  // SetSize: Changes the count, and grows the array if needed.
-  HRESULT SetSize(DWORD count)
-  {
-    HRESULT hr = S_OK;
-    if (count > m_allocated)
+    // SetSize: Changes the count, and grows the array if needed.
+    HRESULT SetSize(DWORD count)
     {
-      hr = Allocate(count);
+        HRESULT hr = S_OK;
+        if (count > m_allocated)
+        {
+            hr = Allocate(count);
+        }
+        if (SUCCEEDED(hr))
+        {
+            m_count = count;
+        }
+        return hr;
     }
-    if (SUCCEEDED(hr))
+
+    HRESULT Append(GrowableArray<T> *other) { return Append(other->Ptr(), other->GetCount()); }
+
+    HRESULT Append(const T *other, DWORD dwSize)
     {
-      m_count = count;
+        HRESULT hr = S_OK;
+        DWORD old = GetCount();
+        hr = SetSize(old + dwSize);
+        if (SUCCEEDED(hr))
+            memcpy(m_pArray + old, other, dwSize);
+
+        return S_OK;
     }
-    return hr;
-  }
 
-  HRESULT Append(GrowableArray<T> *other)
-  {
-    return Append(other->Ptr(), other->GetCount());
-  }
-
-  HRESULT Append(const T *other, DWORD dwSize)
-  {
-    HRESULT hr = S_OK;
-    DWORD old = GetCount();
-    hr = SetSize(old + dwSize);
-    if (SUCCEEDED(hr))
-      memcpy(m_pArray + old, other, dwSize);
-
-    return S_OK;
-  }
-
-  void Consume(DWORD dwSize)
-  {
-    ASSERT(dwSize <= m_count);
-
-    if (dwSize == m_count)
-      Clear();
-    else
+    void Consume(DWORD dwSize)
     {
-      memmove(m_pArray, m_pArray + dwSize, m_count - dwSize);
-      m_count -= dwSize;
+        ASSERT(dwSize <= m_count);
+
+        if (dwSize == m_count)
+            Clear();
+        else
+        {
+            memmove(m_pArray, m_pArray + dwSize, m_count - dwSize);
+            m_count -= dwSize;
+        }
     }
-  }
 
-  DWORD GetCount() const { return m_count; }
-  DWORD GetAllocated() const { return m_allocated; }
+    DWORD GetCount() const { return m_count; }
+    DWORD GetAllocated() const { return m_allocated; }
 
-  // Accessor.
-  T& operator[](DWORD index)
-  {
-    assert(index < m_count);
-    return m_pArray[index];
-  }
+    // Accessor.
+    T &operator[](DWORD index)
+    {
+        assert(index < m_count);
+        return m_pArray[index];
+    }
 
-  // Const accessor.
-  const T& operator[](DWORD index) const
-  {
-    assert(index < m_count);
-    return m_pArray[index];
-  }
+    // Const accessor.
+    const T &operator[](DWORD index) const
+    {
+        assert(index < m_count);
+        return m_pArray[index];
+    }
 
-  // Return the underlying array.
-  T* Ptr() { return m_pArray; }
+    // Return the underlying array.
+    T *Ptr() { return m_pArray; }
 
-protected:
-  GrowableArray& operator=(const GrowableArray& r);
-  GrowableArray(const GrowableArray &r);
+  protected:
+    GrowableArray &operator=(const GrowableArray &r);
+    GrowableArray(const GrowableArray &r);
 
-  T       *m_pArray    = nullptr;
-  DWORD   m_count      = 0;        // Nominal count.
-  DWORD   m_allocated  = 0;        // Actual allocation size.
+    T *m_pArray = nullptr;
+    DWORD m_count = 0;     // Nominal count.
+    DWORD m_allocated = 0; // Actual allocation size.
 };
