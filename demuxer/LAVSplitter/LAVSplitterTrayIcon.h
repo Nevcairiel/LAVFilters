@@ -23,15 +23,15 @@
 
 class CLAVSplitterTrayIcon : public CBaseTrayIcon
 {
-public:
-  CLAVSplitterTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
-  virtual ~CLAVSplitterTrayIcon(void);
+  public:
+    CLAVSplitterTrayIcon(IBaseFilter *pFilter, const WCHAR *wszName, int resIcon);
+    virtual ~CLAVSplitterTrayIcon(void);
 
-protected:
-  HMENU GetPopupMenu();
-  HRESULT ProcessMenuCommand(HMENU hMenu, int cmd);
+  protected:
+    HMENU GetPopupMenu();
+    HRESULT ProcessMenuCommand(HMENU hMenu, int cmd);
 
-private:
-  int m_NumStreams  = 0;
-  int m_NumChapters = 0;
+  private:
+    int m_NumStreams = 0;
+    int m_NumChapters = 0;
 };

@@ -21,42 +21,47 @@
 
 #include <deque>
 
-#define MIN_PACKETS_IN_QUEUE 50           // Below this is considered "drying pin"
+#define MIN_PACKETS_IN_QUEUE 50 // Below this is considered "drying pin"
 
 class Packet;
 
 // FIFO Packet Queue
 class CPacketQueue : public CCritSec
 {
-public:
-  CPacketQueue() {};
+  public:
+    CPacketQueue(){};
 
-  // Queue a new packet at the end of the list
-  void Queue(Packet *pPacket);
+    // Queue a new packet at the end of the list
+    void Queue(Packet *pPacket);
 
-  // Get a packet from the beginning of the list
-  Packet *Get();
+    // Get a packet from the beginning of the list
+    Packet *Get();
 
-  // Get the size of the queue
-  size_t Size();
+    // Get the size of the queue
+    size_t Size();
 
-  // Get the size of the queue in bytes
-  size_t DataSize();
+    // Get the size of the queue in bytes
+    size_t DataSize();
 
-  // Clear the List (all elements are free'ed)
-  void Clear();
+    // Clear the List (all elements are free'ed)
+    void Clear();
 
-  // Get access to the internal queue
-  std::deque<Packet *> *GetQueue() { return &m_queue; }
+    // Get access to the internal queue
+    std::deque<Packet *> *GetQueue() { return &m_queue; }
 
-  bool IsEmpty() { CAutoLock cAutoLock(this); return m_queue.empty(); }
-private:
-  // The actual storage class
-  std::deque<Packet *> m_queue;
-  size_t m_dataSize = 0;
+    bool IsEmpty()
+    {
+        CAutoLock cAutoLock(this);
+        return m_queue.empty();
+    }
+
+  private:
+    // The actual storage class
+    std::deque<Packet *> m_queue;
+    size_t m_dataSize = 0;
 
 #ifdef DEBUG
-  bool m_bWarnedFull    = false;
-  bool m_bWarnedExtreme = false;
+    bool m_bWarnedFull = false;
+    bool m_bWarnedExtreme = false;
 #endif
 };

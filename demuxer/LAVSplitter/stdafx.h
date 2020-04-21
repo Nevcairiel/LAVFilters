@@ -22,7 +22,9 @@
 #pragma once
 
 // Support for Version 6.0 styles
-#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#pragma comment( \
+    linker,      \
+    "\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #include "common_defines.h"
 
@@ -31,8 +33,9 @@
 #include <Commctrl.h>
 
 #pragma warning(push)
-#pragma warning(disable:4244)
-extern "C" {
+#pragma warning(disable : 4244)
+extern "C"
+{
 #define __STDC_CONSTANT_MACROS
 #include "libavformat/avformat.h"
 #include "libbluray/bluray.h"
@@ -44,5 +47,3 @@ extern "C" {
 #include "DShowUtil.h"
 
 #include "resource.h"
-
-

@@ -24,58 +24,60 @@
 // Queue a new packet at the end of the list
 void CPacketQueue::Queue(Packet *pPacket)
 {
-  CAutoLock cAutoLock(this);
+    CAutoLock cAutoLock(this);
 
-  if (pPacket)
-    m_dataSize += (size_t)pPacket->GetDataSize();
+    if (pPacket)
+        m_dataSize += (size_t)pPacket->GetDataSize();
 
-  m_queue.push_back(pPacket);
+    m_queue.push_back(pPacket);
 }
 
 // Get a packet from the beginning of the list
 Packet *CPacketQueue::Get()
 {
-  CAutoLock cAutoLock(this);
+    CAutoLock cAutoLock(this);
 
-  if (m_queue.size() == 0) {
-    return nullptr;
-  }
-  Packet *pPacket = m_queue.front();
-  m_queue.pop_front();
+    if (m_queue.size() == 0)
+    {
+        return nullptr;
+    }
+    Packet *pPacket = m_queue.front();
+    m_queue.pop_front();
 
-  if (pPacket)
-    m_dataSize -= (size_t)pPacket->GetDataSize();
+    if (pPacket)
+        m_dataSize -= (size_t)pPacket->GetDataSize();
 
-  return pPacket;
+    return pPacket;
 }
 
 // Get the size of the queue
 size_t CPacketQueue::Size()
 {
-  CAutoLock cAutoLock(this);
+    CAutoLock cAutoLock(this);
 
-  return m_queue.size();
+    return m_queue.size();
 }
 
 // Get the size of the queue
 size_t CPacketQueue::DataSize()
 {
-  CAutoLock cAutoLock(this);
+    CAutoLock cAutoLock(this);
 
-  return m_dataSize;
+    return m_dataSize;
 }
 
 // Clear the List (all elements are free'ed)
 void CPacketQueue::Clear()
 {
-  CAutoLock cAutoLock(this);
+    CAutoLock cAutoLock(this);
 
-  DbgLog((LOG_TRACE, 10, L"CPacketQueue::Clear() - clearing queue with %d entries", m_queue.size()));
+    DbgLog((LOG_TRACE, 10, L"CPacketQueue::Clear() - clearing queue with %d entries", m_queue.size()));
 
-  std::deque<Packet *>::iterator it;
-  for (it = m_queue.begin(); it != m_queue.end(); ++it) {
-    delete *it;
-  }
-  m_queue.clear();
-  m_dataSize = 0;
+    std::deque<Packet *>::iterator it;
+    for (it = m_queue.begin(); it != m_queue.end(); ++it)
+    {
+        delete *it;
+    }
+    m_queue.clear();
+    m_dataSize = 0;
 }

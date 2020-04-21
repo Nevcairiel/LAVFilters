@@ -22,30 +22,40 @@
 #include "LAVSplitterSettings.h"
 #include <set>
 
-class FormatInfo {
-public:
-  FormatInfo() {}
-  FormatInfo(LPCSTR name, LPCSTR desc) : strName(name), strDescription(desc) {}
-  LPCSTR strName        = nullptr;
-  LPCSTR strDescription = nullptr;
+class FormatInfo
+{
+  public:
+    FormatInfo() {}
+    FormatInfo(LPCSTR name, LPCSTR desc)
+        : strName(name)
+        , strDescription(desc)
+    {
+    }
+    LPCSTR strName = nullptr;
+    LPCSTR strDescription = nullptr;
 
-  // Comparison operators for sorting (NULL safe)
-  bool FormatInfo::operator < (const FormatInfo& rhs) const { return strName ? (rhs.strName ? _stricmp(strName, rhs.strName) < 0 : false) : true; }
-  bool FormatInfo::operator > (const FormatInfo& rhs) const { return !(*this < rhs); }
-  bool FormatInfo::operator == (const FormatInfo& rhs) const { return (strName == rhs.strName) || (strName && rhs.strName && (_stricmp(strName, rhs.strName) == 0)); }
+    // Comparison operators for sorting (NULL safe)
+    bool FormatInfo::operator<(const FormatInfo &rhs) const
+    {
+        return strName ? (rhs.strName ? _stricmp(strName, rhs.strName) < 0 : false) : true;
+    }
+    bool FormatInfo::operator>(const FormatInfo &rhs) const { return !(*this < rhs); }
+    bool FormatInfo::operator==(const FormatInfo &rhs) const
+    {
+        return (strName == rhs.strName) || (strName && rhs.strName && (_stricmp(strName, rhs.strName) == 0));
+    }
 };
 
 // GUID: 72b2c5fa-a7a5-4463-9c1b-9f4749c35c79
-DEFINE_GUID(IID_ILAVFSettingsInternal, 0x72b2c5fa, 0xa7a5, 
-0x4463, 0x9c, 0x1b, 0x9f, 0x47, 0x49, 0xc3, 0x5c, 0x79);
+DEFINE_GUID(IID_ILAVFSettingsInternal, 0x72b2c5fa, 0xa7a5, 0x4463, 0x9c, 0x1b, 0x9f, 0x47, 0x49, 0xc3, 0x5c, 0x79);
 
 interface __declspec(uuid("72b2c5fa-a7a5-4463-9c1b-9f4749c35c79")) ILAVFSettingsInternal : public ILAVFSettings
 {
-  // Query if the current filter graph requires VC1 Correction
-  STDMETHOD_(BOOL,IsVC1CorrectionRequired)() = 0;
+    // Query if the current filter graph requires VC1 Correction
+    STDMETHOD_(BOOL, IsVC1CorrectionRequired)() = 0;
 
-  STDMETHOD_(LPCSTR, GetInputFormat)() = 0;
-  STDMETHOD_(std::set<FormatInfo>&, GetInputFormats)() = 0;
-  STDMETHOD_(CMediaType *, GetOutputMediatype)(int stream) = 0;
-  STDMETHOD_(IFilterGraph *, GetFilterGraph)() = 0;
+    STDMETHOD_(LPCSTR, GetInputFormat)() = 0;
+    STDMETHOD_(std::set<FormatInfo> &, GetInputFormats)() = 0;
+    STDMETHOD_(CMediaType *, GetOutputMediatype)(int stream) = 0;
+    STDMETHOD_(IFilterGraph *, GetFilterGraph)() = 0;
 };

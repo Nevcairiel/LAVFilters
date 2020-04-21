@@ -22,99 +22,95 @@
 #include "BaseDSPropPage.h"
 #include "LAVSplitterSettingsInternal.h"
 
-
 // GUID: a19de2f2-2f74-4927-8436-61129d26c141
-DEFINE_GUID(CLSID_LAVSplitterSettingsProp, 0xa19de2f2, 0x2f74, 
-  0x4927, 0x84, 0x36, 0x61, 0x12, 0x9d, 0x26, 0xc1, 0x41);
+DEFINE_GUID(CLSID_LAVSplitterSettingsProp, 0xa19de2f2, 0x2f74, 0x4927, 0x84, 0x36, 0x61, 0x12, 0x9d, 0x26, 0xc1, 0x41);
 
 // {56904B22-091C-4459-A2E6-B1F4F946B55F}
-DEFINE_GUID(CLSID_LAVSplitterFormatsProp,
-  0x56904b22, 0x91c, 0x4459, 0xa2, 0xe6, 0xb1, 0xf4, 0xf9, 0x46, 0xb5, 0x5f);
-
+DEFINE_GUID(CLSID_LAVSplitterFormatsProp, 0x56904b22, 0x91c, 0x4459, 0xa2, 0xe6, 0xb1, 0xf4, 0xf9, 0x46, 0xb5, 0x5f);
 
 class CLAVSplitterSettingsProp : public CBaseDSPropPage
 {
-public:
-  CLAVSplitterSettingsProp(LPUNKNOWN pUnk, HRESULT* phr);
-  virtual ~CLAVSplitterSettingsProp(void);
+  public:
+    CLAVSplitterSettingsProp(LPUNKNOWN pUnk, HRESULT *phr);
+    virtual ~CLAVSplitterSettingsProp(void);
 
-  HRESULT OnActivate();
-  HRESULT OnConnect(IUnknown *pUnk);
-  HRESULT OnDisconnect();
-  HRESULT OnApplyChanges();
-  INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    HRESULT OnActivate();
+    HRESULT OnConnect(IUnknown *pUnk);
+    HRESULT OnDisconnect();
+    HRESULT OnApplyChanges();
+    INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-private:
-  HRESULT LoadData();
-  void UpdateSubtitleMode(LAVSubtitleMode mode);
+  private:
+    HRESULT LoadData();
+    void UpdateSubtitleMode(LAVSubtitleMode mode);
 
-  void SetDirty()
-  {
-    m_bDirty = TRUE;
-    if (m_pPageSite)
+    void SetDirty()
     {
-      m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+        m_bDirty = TRUE;
+        if (m_pPageSite)
+        {
+            m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+        }
     }
-  }
 
-private:
-  ILAVFSettingsInternal *m_pLAVF = nullptr;
+  private:
+    ILAVFSettingsInternal *m_pLAVF = nullptr;
 
-  // Settings
-  WCHAR *m_pszPrefLang     = nullptr;
-  WCHAR *m_pszPrefSubLang  = nullptr;
-  WCHAR *m_pszAdvSubConfig = nullptr;
+    // Settings
+    WCHAR *m_pszPrefLang = nullptr;
+    WCHAR *m_pszPrefSubLang = nullptr;
+    WCHAR *m_pszAdvSubConfig = nullptr;
 
-  LAVSubtitleMode m_subtitleMode;
-  BOOL m_PGSForcedStream;
-  BOOL m_PGSOnlyForced;
-  int m_VC1Mode;
-  BOOL m_substreams;
-  BOOL m_MKVExternal;
+    LAVSubtitleMode m_subtitleMode;
+    BOOL m_PGSForcedStream;
+    BOOL m_PGSOnlyForced;
+    int m_VC1Mode;
+    BOOL m_substreams;
+    BOOL m_MKVExternal;
 
-  BOOL m_StreamSwitchRemoveAudio;
-  BOOL m_PreferHighQualityAudio;
-  BOOL m_ImpairedAudio;
-  DWORD m_QueueMaxMem;
-  DWORD m_QueueMaxPackets;
-  DWORD m_NetworkAnalysisDuration;
+    BOOL m_StreamSwitchRemoveAudio;
+    BOOL m_PreferHighQualityAudio;
+    BOOL m_ImpairedAudio;
+    DWORD m_QueueMaxMem;
+    DWORD m_QueueMaxPackets;
+    DWORD m_NetworkAnalysisDuration;
 
-  BOOL m_TrayIcon;
+    BOOL m_TrayIcon;
 
-  LAVSubtitleMode m_selectedSubMode;
-  WCHAR m_subLangBuffer[256];
-  WCHAR m_advSubBuffer[256];
+    LAVSubtitleMode m_selectedSubMode;
+    WCHAR m_subLangBuffer[256];
+    WCHAR m_advSubBuffer[256];
 
-  WCHAR stringBuffer[256];
+    WCHAR stringBuffer[256];
 };
 
 class CLAVSplitterFormatsProp : public CBaseDSPropPage
 {
-public:
-  CLAVSplitterFormatsProp(LPUNKNOWN pUnk, HRESULT* phr);
-  virtual ~CLAVSplitterFormatsProp(void);
+  public:
+    CLAVSplitterFormatsProp(LPUNKNOWN pUnk, HRESULT *phr);
+    virtual ~CLAVSplitterFormatsProp(void);
 
-  HRESULT OnActivate();
-  HRESULT OnConnect(IUnknown *pUnk);
-  HRESULT OnDisconnect();
-  HRESULT OnApplyChanges();
-  INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+    HRESULT OnActivate();
+    HRESULT OnConnect(IUnknown *pUnk);
+    HRESULT OnDisconnect();
+    HRESULT OnApplyChanges();
+    INT_PTR OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-private:
-  void SetDirty()
-  {
-    m_bDirty = TRUE;
-    if (m_pPageSite)
+  private:
+    void SetDirty()
     {
-      m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+        m_bDirty = TRUE;
+        if (m_pPageSite)
+        {
+            m_pPageSite->OnStatusChange(PROPPAGESTATUS_DIRTY);
+        }
     }
-  }
 
-private:
-  ILAVFSettingsInternal *m_pLAVF = nullptr;
+  private:
+    ILAVFSettingsInternal *m_pLAVF = nullptr;
 
-  std::set<FormatInfo> m_Formats;
-  BOOL *m_bFormats = nullptr;
+    std::set<FormatInfo> m_Formats;
+    BOOL *m_bFormats = nullptr;
 
-  WCHAR stringBuffer[256];
+    WCHAR stringBuffer[256];
 };

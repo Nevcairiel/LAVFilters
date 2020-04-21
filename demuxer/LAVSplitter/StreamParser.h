@@ -28,35 +28,35 @@ class CLAVOutputPin;
 
 class CStreamParser
 {
-public:
-  CStreamParser(CLAVOutputPin *pPin, const char *szContainer);
-  ~CStreamParser();
+  public:
+    CStreamParser(CLAVOutputPin *pPin, const char *szContainer);
+    ~CStreamParser();
 
-  HRESULT Parse(const GUID &gSubtype, Packet *pPacket);
-  HRESULT Flush();
+    HRESULT Parse(const GUID &gSubtype, Packet *pPacket);
+    HRESULT Flush();
 
-private:
-  HRESULT ParseH264AnnexB(Packet *pPacket);
-  HRESULT ParsePGS(Packet *pPacket);
-  HRESULT ParseMOVText(Packet *pPacket);
-  HRESULT ParseAAC(Packet *pPacket);
-  HRESULT ParseSRT(Packet *pPacket);
-  HRESULT ParsePlanarPCM(Packet *pPacket);
+  private:
+    HRESULT ParseH264AnnexB(Packet *pPacket);
+    HRESULT ParsePGS(Packet *pPacket);
+    HRESULT ParseMOVText(Packet *pPacket);
+    HRESULT ParseAAC(Packet *pPacket);
+    HRESULT ParseSRT(Packet *pPacket);
+    HRESULT ParsePlanarPCM(Packet *pPacket);
 
-  HRESULT Queue(Packet *pPacket) const;
+    HRESULT Queue(Packet *pPacket) const;
 
-private:
-  CLAVOutputPin * const m_pPin = nullptr;
-  std::string m_strContainer;
+  private:
+    CLAVOutputPin *const m_pPin = nullptr;
+    std::string m_strContainer;
 
-  GUID m_gSubtype = GUID_NULL;
+    GUID m_gSubtype = GUID_NULL;
 
-  Packet *m_pPacketBuffer = nullptr;
+    Packet *m_pPacketBuffer = nullptr;
 
-  BOOL m_bPGSDropState = FALSE;
-  GrowableArray<BYTE> m_pgsBuffer;
+    BOOL m_bPGSDropState = FALSE;
+    GrowableArray<BYTE> m_pgsBuffer;
 
-  CPacketQueue m_queue;
+    CPacketQueue m_queue;
 
-  bool m_bHasAccessUnitDelimiters = false;
+    bool m_bHasAccessUnitDelimiters = false;
 };
