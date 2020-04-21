@@ -1190,7 +1190,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
   BOOL bInterlaced = IsInterlacedOutput();
   DWORD dwInterlacedFlags = 0;
   if (m_bMadVR) {
-    if (bInterlaced && (m_settings.DeintMode == DeintMode_Force || m_settings.DeintMode == DeintMode_Aggressive)) {
+    if (bInterlaced && m_settings.DeintMode == DeintMode_Force) {
       dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOnly;
     } else if (bInterlaced) {
       dwInterlacedFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_DisplayModeBobOrWeave;

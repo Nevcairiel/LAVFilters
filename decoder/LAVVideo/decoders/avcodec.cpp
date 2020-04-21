@@ -1082,15 +1082,17 @@ send_packet:
     pOutFrame->frame_type   = av_get_picture_type_char(m_pFrame->pict_type);
     pOutFrame->ext_format   = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
 
-    if (m_pFrame->interlaced_frame || (!m_pAVCtx->progressive_sequence && (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)))
-      m_iInterlaced = 1;
-    else if (m_pAVCtx->progressive_sequence)
-      m_iInterlaced = 0;
-
     if ((m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO) && m_pFrame->repeat_pict)
       m_nSoftTelecine = 2;
     else if (m_nSoftTelecine > 0)
       m_nSoftTelecine--;
+
+    if (m_pFrame->interlaced_frame || (!m_pAVCtx->progressive_sequence && (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO))) {
+      if (!m_nSoftTelecine)
+        m_iInterlaced = 1;
+    }
+    else if (m_pAVCtx->progressive_sequence)
+      m_iInterlaced = 0;
 
     // Don't apply aggressive deinterlacing to content that looks soft-telecined, as it would destroy the content
     bool bAggressiveFlag    = (m_iInterlaced == 1 && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) && !m_nSoftTelecine;
