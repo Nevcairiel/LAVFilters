@@ -24,80 +24,76 @@
 
 #include "parser/dts.h"
 
-
 CBitstreamParser::CBitstreamParser()
 {
-  init_dts_parser((DTSParserContext **)&m_pParserContext);
-  Reset();
+    init_dts_parser((DTSParserContext **)&m_pParserContext);
+    Reset();
 }
 
 CBitstreamParser::~CBitstreamParser()
 {
-  close_dts_parser((DTSParserContext **)&m_pParserContext);
+    close_dts_parser((DTSParserContext **)&m_pParserContext);
 }
 
 void CBitstreamParser::Reset()
 {
-  m_dwBlocks     = 0;
-  m_dwFrameSize  = 0;
-  m_dwSampleRate = 0;
-  m_dwSamples    = 0;
-  m_bDTSHD       = FALSE;
-  memset(&m_DTSHeader, 0, sizeof(m_DTSHeader));
+    m_dwBlocks = 0;
+    m_dwFrameSize = 0;
+    m_dwSampleRate = 0;
+    m_dwSamples = 0;
+    m_bDTSHD = FALSE;
+    memset(&m_DTSHeader, 0, sizeof(m_DTSHeader));
 }
-
 
 HRESULT CBitstreamParser::Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext)
 {
-  switch (codec) {
-  case AV_CODEC_ID_DTS:
-    return ParseDTS(pBuffer, dwSize);
-  case AV_CODEC_ID_AC3:
-  case AV_CODEC_ID_EAC3:
-    return ParseAC3(pBuffer, dwSize, pParserContext);
-  case AV_CODEC_ID_TRUEHD:
-    return ParseTrueHD(pBuffer, dwSize);
-  }
-  return S_OK;
+    switch (codec)
+    {
+    case AV_CODEC_ID_DTS: return ParseDTS(pBuffer, dwSize);
+    case AV_CODEC_ID_AC3:
+    case AV_CODEC_ID_EAC3: return ParseAC3(pBuffer, dwSize, pParserContext);
+    case AV_CODEC_ID_TRUEHD: return ParseTrueHD(pBuffer, dwSize);
+    }
+    return S_OK;
 }
 
 HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
 {
-  int ret = parse_dts_header((DTSParserContext *)m_pParserContext, &m_DTSHeader, pBuffer, (unsigned)dwSize);
-  if (ret < 0)
-    return E_FAIL;
+    int ret = parse_dts_header((DTSParserContext *)m_pParserContext, &m_DTSHeader, pBuffer, (unsigned)dwSize);
+    if (ret < 0)
+        return E_FAIL;
 
-  m_bDTSHD = m_bDTSHD || m_DTSHeader.IsHD;
+    m_bDTSHD = m_bDTSHD || m_DTSHeader.IsHD;
 
-  m_dwBlocks      = m_DTSHeader.Blocks;
-  m_dwSampleRate  = m_DTSHeader.SampleRate;
-  m_dwFrameSize   = m_DTSHeader.FrameSize;
-  m_dwSamples     = m_DTSHeader.SamplesPerBlock * m_dwBlocks;
+    m_dwBlocks = m_DTSHeader.Blocks;
+    m_dwSampleRate = m_DTSHeader.SampleRate;
+    m_dwFrameSize = m_DTSHeader.FrameSize;
+    m_dwSamples = m_DTSHeader.SamplesPerBlock * m_dwBlocks;
 
-  return S_OK;
+    return S_OK;
 }
 
 HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext)
 {
-  AACAC3ParseContext *ctx = (AACAC3ParseContext *)pParserContext;
+    AACAC3ParseContext *ctx = (AACAC3ParseContext *)pParserContext;
 
-  m_dwSampleRate = ctx->sample_rate;
+    m_dwSampleRate = ctx->sample_rate;
 
-  // E-AC3 always combines 6 blocks, resulting in 1536 samples
-  m_dwSamples    = (ctx->codec_id == AV_CODEC_ID_EAC3) ? (6 * 256) : ctx->samples;
+    // E-AC3 always combines 6 blocks, resulting in 1536 samples
+    m_dwSamples = (ctx->codec_id == AV_CODEC_ID_EAC3) ? (6 * 256) : ctx->samples;
 
-  return S_OK;
+    return S_OK;
 }
 
 HRESULT CBitstreamParser::ParseTrueHD(BYTE *pBuffer, DWORD dwSize)
 {
-  if (AV_RB32(pBuffer + 4) == 0xf8726fba)
-  {
-    int nRatebits = pBuffer[8] >> 4;
+    if (AV_RB32(pBuffer + 4) == 0xf8726fba)
+    {
+        int nRatebits = pBuffer[8] >> 4;
 
-    m_dwSampleRate = (nRatebits & 8 ? 44100 : 48000) << (nRatebits & 7);
-    m_dwSamples = 24 * (40 << (nRatebits & 7));
-  }
+        m_dwSampleRate = (nRatebits & 8 ? 44100 : 48000) << (nRatebits & 7);
+        m_dwSamples = 24 * (40 << (nRatebits & 7));
+    }
 
-  return S_OK;
+    return S_OK;
 }

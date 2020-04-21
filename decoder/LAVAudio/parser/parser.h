@@ -21,13 +21,15 @@
 
 static inline const uint8_t *find_marker32_position(const uint8_t *pBuffer, size_t uBufSize, uint32_t marker)
 {
-  uint32_t state = 0;
-  for (size_t i = 0; i < uBufSize; ++i) {
-    state = (state << 8) | pBuffer[i];
-    if (state == marker) {
-      return pBuffer + (i - 3);
+    uint32_t state = 0;
+    for (size_t i = 0; i < uBufSize; ++i)
+    {
+        state = (state << 8) | pBuffer[i];
+        if (state == marker)
+        {
+            return pBuffer + (i - 3);
+        }
     }
-  }
 
-  return nullptr;
+    return nullptr;
 }

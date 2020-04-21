@@ -36,23 +36,24 @@
 
 struct DTSParserContext;
 
-struct DTSHeader {
-  unsigned HasCore;
-  unsigned CRCPresent;
-  unsigned SamplesPerBlock;
-  unsigned Blocks;
-  unsigned FrameSize;
-  unsigned ChannelLayout;
-  unsigned SampleRate;
-  unsigned LFE;
+struct DTSHeader
+{
+    unsigned HasCore;
+    unsigned CRCPresent;
+    unsigned SamplesPerBlock;
+    unsigned Blocks;
+    unsigned FrameSize;
+    unsigned ChannelLayout;
+    unsigned SampleRate;
+    unsigned LFE;
 
-  // Extensions
-  unsigned ES;
-  unsigned XChChannelLayout;
+    // Extensions
+    unsigned ES;
+    unsigned XChChannelLayout;
 
-  unsigned IsHD;
-  unsigned HDTotalChannels;
-  unsigned HDSpeakerMask;
+    unsigned IsHD;
+    unsigned HDTotalChannels;
+    unsigned HDSpeakerMask;
 };
 
 int init_dts_parser(DTSParserContext **pContext);

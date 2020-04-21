@@ -23,29 +23,30 @@
 
 struct GetBitContext;
 
-class CBitstreamParser {
-public:
-  CBitstreamParser();
-  ~CBitstreamParser();
+class CBitstreamParser
+{
+  public:
+    CBitstreamParser();
+    ~CBitstreamParser();
 
-  HRESULT Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
-  void Reset();
+    HRESULT Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+    void Reset();
 
-private:
-  HRESULT ParseDTS(BYTE *pBuffer, DWORD dwSize);
-  HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
-  HRESULT ParseTrueHD(BYTE *pBuffer, DWORD dwSize);
+  private:
+    HRESULT ParseDTS(BYTE *pBuffer, DWORD dwSize);
+    HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+    HRESULT ParseTrueHD(BYTE *pBuffer, DWORD dwSize);
 
-public:
-  DWORD m_dwSampleRate = 0;
-  DWORD m_dwBlocks     = 0;
-  DWORD m_dwFrameSize  = 0;
-  DWORD m_dwSamples    = 0;
+  public:
+    DWORD m_dwSampleRate = 0;
+    DWORD m_dwBlocks = 0;
+    DWORD m_dwFrameSize = 0;
+    DWORD m_dwSamples = 0;
 
-  BOOL m_bDTSHD        = FALSE;
-  DTSHeader m_DTSHeader;
+    BOOL m_bDTSHD = FALSE;
+    DTSHeader m_DTSHeader;
 
-private:
-  GetBitContext *m_gb    = nullptr;
-  void *m_pParserContext = nullptr;
+  private:
+    GetBitContext *m_gb = nullptr;
+    void *m_pParserContext = nullptr;
 };

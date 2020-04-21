@@ -20,27 +20,30 @@
 #pragma once
 
 #define DBL_SECOND_MULT 10000000.0
-#define RT_SECOND_MULT  10000000LL
+#define RT_SECOND_MULT 10000000LL
 
 #define INT24_MAX 8388607i32
 #define INT24_MIN (-8388607i32 - 1)
 
-#define LAV_CH_LAYOUT_5POINT1_BC (AV_CH_LAYOUT_SURROUND|AV_CH_LOW_FREQUENCY|AV_CH_BACK_CENTER)
-#define LAV_CH_LAYOUT_5POINT1_WIDE (AV_CH_LAYOUT_SURROUND|AV_CH_LOW_FREQUENCY|AV_CH_FRONT_LEFT_OF_CENTER|AV_CH_FRONT_RIGHT_OF_CENTER)
-#define LAV_CH_LAYOUT_7POINT1_EXTRAWIDE (LAV_CH_LAYOUT_5POINT1_WIDE|AV_CH_SIDE_LEFT|AV_CH_SIDE_RIGHT)
+#define LAV_CH_LAYOUT_5POINT1_BC (AV_CH_LAYOUT_SURROUND | AV_CH_LOW_FREQUENCY | AV_CH_BACK_CENTER)
+#define LAV_CH_LAYOUT_5POINT1_WIDE \
+    (AV_CH_LAYOUT_SURROUND | AV_CH_LOW_FREQUENCY | AV_CH_FRONT_LEFT_OF_CENTER | AV_CH_FRONT_RIGHT_OF_CENTER)
+#define LAV_CH_LAYOUT_7POINT1_EXTRAWIDE (LAV_CH_LAYOUT_5POINT1_WIDE | AV_CH_SIDE_LEFT | AV_CH_SIDE_RIGHT)
 
-struct scmap_t {
-  WORD nChannels;
-  DWORD dwChannelMask;
+struct scmap_t
+{
+    WORD nChannels;
+    DWORD dwChannelMask;
 };
 
 #define MAX_NUM_CC_CODECS 5
 
-struct codec_config_t {
-  int nCodecs;
-  AVCodecID codecs[MAX_NUM_CC_CODECS];
-  const char *name;
-  const char *description;
+struct codec_config_t
+{
+    int nCodecs;
+    AVCodecID codecs[MAX_NUM_CC_CODECS];
+    const char *name;
+    const char *description;
 };
 
 const codec_config_t *get_codec_config(LAVAudioCodec codec);
@@ -66,7 +69,6 @@ const char *get_channel_desc(DWORD dwFlag);
 // Gets a sample from the buffer for processing
 // The sample is returned as a floating point, with either single or double precision, depending on the template type
 // DO NOT USE WITH AN INTEGER TYPE - only double and float are allowed
-template <class T>
-T get_sample_from_buffer(const BYTE *pBuffer, LAVAudioSampleFormat sfFormat);
+template <class T> T get_sample_from_buffer(const BYTE *pBuffer, LAVAudioSampleFormat sfFormat);
 
 void lav_spdif_bswap_buf16(uint16_t *dst, const uint16_t *src, int w);

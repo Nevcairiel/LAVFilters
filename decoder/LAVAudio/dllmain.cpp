@@ -19,7 +19,7 @@
 
 // Based on the SampleParser Template by GDCL
 // --------------------------------------------------------------------------------
-// Copyright (c) GDCL 2004. All Rights Reserved. 
+// Copyright (c) GDCL 2004. All Rights Reserved.
 // You are free to re-use this as the basis for your own filter development,
 // provided you retain this copyright notice in the source.
 // http://www.gdcl.co.uk
@@ -40,73 +40,41 @@
 
 // --- COM factory table and registration code --------------
 
-const AMOVIESETUP_PIN sudpPinsAudioDec[] = {
-	{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVAudio::sudPinTypesInCount,  CLAVAudio::sudPinTypesIn},
-	{L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, nullptr, CLAVAudio::sudPinTypesOutCount, CLAVAudio::sudPinTypesOut}
-};
+const AMOVIESETUP_PIN sudpPinsAudioDec[] = {{L"Input", FALSE, FALSE, FALSE, FALSE, &CLSID_NULL, nullptr,
+                                             CLAVAudio::sudPinTypesInCount, CLAVAudio::sudPinTypesIn},
+                                            {L"Output", FALSE, TRUE, FALSE, FALSE, &CLSID_NULL, nullptr,
+                                             CLAVAudio::sudPinTypesOutCount, CLAVAudio::sudPinTypesOut}};
 
-const AMOVIESETUP_FILTER sudFilterReg =
-{
-  &__uuidof(CLAVAudio),       // filter clsid
-  L"LAV Audio Decoder",       // filter name
-  MERIT_PREFERRED + 3,        // merit
-  countof(sudpPinsAudioDec),
-  sudpPinsAudioDec,
-  CLSID_LegacyAmFilterCategory
-};
+const AMOVIESETUP_FILTER sudFilterReg = {&__uuidof(CLAVAudio), // filter clsid
+                                         L"LAV Audio Decoder", // filter name
+                                         MERIT_PREFERRED + 3,  // merit
+                                         countof(sudpPinsAudioDec), sudpPinsAudioDec, CLSID_LegacyAmFilterCategory};
 
 // --- COM factory table and registration code --------------
 
-// DirectShow base class COM factory requires this table, 
+// DirectShow base class COM factory requires this table,
 // declaring all the COM objects in this DLL
 CFactoryTemplate g_Templates[] = {
-  // one entry for each CoCreate-able object
-  {
-    sudFilterReg.strName,
-      sudFilterReg.clsID,
-      CreateInstance<CLAVAudio>,
-      nullptr,
-      &sudFilterReg
-  },
-  // This entry is for the property page.
-  { 
-      L"LAV Audio Properties",
-      &CLSID_LAVAudioSettingsProp,
-      CreateInstance<CLAVAudioSettingsProp>,
-      nullptr, nullptr
-  },
-  { 
-      L"LAV Audio Mixer",
-      &CLSID_LAVAudioMixingProp,
-      CreateInstance<CLAVAudioMixingProp>,
-      nullptr, nullptr
-  },
-  {
-    L"LAV Audio Format Settings",
-      &CLSID_LAVAudioFormatsProp,
-      CreateInstance<CLAVAudioFormatsProp>,
-      nullptr, nullptr
-  },
-  {
-      L"LAV Audio Status",
-      &CLSID_LAVAudioStatusProp,
-      CreateInstance<CLAVAudioStatusProp>,
-      nullptr, nullptr
-  }
-};
+    // one entry for each CoCreate-able object
+    {sudFilterReg.strName, sudFilterReg.clsID, CreateInstance<CLAVAudio>, nullptr, &sudFilterReg},
+    // This entry is for the property page.
+    {L"LAV Audio Properties", &CLSID_LAVAudioSettingsProp, CreateInstance<CLAVAudioSettingsProp>, nullptr, nullptr},
+    {L"LAV Audio Mixer", &CLSID_LAVAudioMixingProp, CreateInstance<CLAVAudioMixingProp>, nullptr, nullptr},
+    {L"LAV Audio Format Settings", &CLSID_LAVAudioFormatsProp, CreateInstance<CLAVAudioFormatsProp>, nullptr, nullptr},
+    {L"LAV Audio Status", &CLSID_LAVAudioStatusProp, CreateInstance<CLAVAudioStatusProp>, nullptr, nullptr}};
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 
 // self-registration entrypoint
 STDAPI DllRegisterServer()
 {
-  // base classes will handle registration using the factory template table
-  return AMovieDllRegisterServer2(true);
+    // base classes will handle registration using the factory template table
+    return AMovieDllRegisterServer2(true);
 }
 
 STDAPI DllUnregisterServer()
 {
-  // base classes will handle de-registration using the factory template table
-  return AMovieDllRegisterServer2(false);
+    // base classes will handle de-registration using the factory template table
+    return AMovieDllRegisterServer2(false);
 }
 
 // if we declare the correct C runtime entrypoint and then forward it to the DShow base
@@ -115,18 +83,19 @@ STDAPI DllUnregisterServer()
 extern "C" BOOL WINAPI DllEntryPoint(HINSTANCE, ULONG, LPVOID);
 BOOL WINAPI DllMain(HANDLE hDllHandle, DWORD dwReason, LPVOID lpReserved)
 {
-  return DllEntryPoint(reinterpret_cast<HINSTANCE>(hDllHandle), dwReason, lpReserved);
+    return DllEntryPoint(reinterpret_cast<HINSTANCE>(hDllHandle), dwReason, lpReserved);
 }
 
 void CALLBACK OpenConfiguration(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
 {
-  HRESULT hr = S_OK;
-  CUnknown *pInstance = CreateInstance<CLAVAudio>(nullptr, &hr);
-  IBaseFilter *pFilter = nullptr;
-  pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
-  if (pFilter) {
-    pFilter->AddRef();
-    CBaseDSPropPage::ShowPropPageDialog(pFilter);
-  }
-  delete pInstance;
+    HRESULT hr = S_OK;
+    CUnknown *pInstance = CreateInstance<CLAVAudio>(nullptr, &hr);
+    IBaseFilter *pFilter = nullptr;
+    pInstance->NonDelegatingQueryInterface(IID_IBaseFilter, (void **)&pFilter);
+    if (pFilter)
+    {
+        pFilter->AddRef();
+        CBaseDSPropPage::ShowPropPageDialog(pFilter);
+    }
+    delete pInstance;
 }
