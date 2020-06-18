@@ -49,7 +49,7 @@ typedef struct Dav1dRef Dav1dRef;
 typedef struct Dav1dLogger {
     void *cookie; ///< Custom data to pass to the callback.
     /**
-     * Logger callback. Default prints to stderr. May be NULL to disable logging.
+     * Logger callback. May be NULL to disable logging.
      *
      * @param cookie Custom pointer passed to all calls.
      * @param format The vprintf compatible format string.
@@ -66,8 +66,8 @@ typedef struct Dav1dSettings {
     int all_layers; ///< output all spatial layers of a scalable AV1 biststream
     unsigned frame_size_limit; ///< maximum frame size, in pixels (0 = unlimited)
     uint8_t reserved[32]; ///< reserved for future use
-    Dav1dPicAllocator allocator;
-    Dav1dLogger logger;
+    Dav1dPicAllocator allocator; ///< Picture allocator callback.
+    Dav1dLogger logger; ///< Logger callback.
 } Dav1dSettings;
 
 /**

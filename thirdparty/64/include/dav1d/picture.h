@@ -84,8 +84,11 @@ typedef struct Dav1dPicture {
 
     uintptr_t reserved[4]; ///< reserved for future use
 
-    struct Dav1dRef *frame_hdr_ref, *seq_hdr_ref; ///< Frame parameter allocation origins
-    struct Dav1dRef *content_light_ref, *mastering_display_ref, *itut_t35_ref; ///< Metadata allocation origins
+    struct Dav1dRef *frame_hdr_ref; ///< Dav1dFrameHeader allocation origin
+    struct Dav1dRef *seq_hdr_ref; ///< Dav1dSequenceHeader allocation origin
+    struct Dav1dRef *content_light_ref; ///< Dav1dContentLightLevel allocation origin
+    struct Dav1dRef *mastering_display_ref; ///< Dav1dMasteringDisplay allocation origin
+    struct Dav1dRef *itut_t35_ref; ///< Dav1dITUTT35 allocation origin
     uintptr_t reserved_ref[4]; ///< reserved for future use
     struct Dav1dRef *ref; ///< Frame data allocation origin
 
