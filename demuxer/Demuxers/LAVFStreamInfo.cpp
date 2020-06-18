@@ -182,7 +182,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
     {
         // With Matroska and Ogg we know how to split up the extradata
         // and put it into a VorbisFormat2
-        if (m_containerFormat == "matroska" || m_containerFormat == "ogg")
+        if ((m_containerFormat == "matroska" || m_containerFormat == "ogg") && avstream->codecpar->extradata_size > 0)
         {
             BYTE *vorbis2 = (BYTE *)g_AudioHelper.CreateVorbis2(avstream, &mtype.cbFormat);
             if (vorbis2)
