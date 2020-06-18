@@ -886,7 +886,7 @@ STDMETHODIMP CDecD3D11::FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC 
         return E_FAIL;
     }
 
-    int best_score = 0;
+    int best_score = -1;
     D3D11_VIDEO_DECODER_CONFIG best_config;
     for (UINT i = 0; i < nConfig; i++)
     {
@@ -902,6 +902,8 @@ STDMETHODIMP CDecD3D11::FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC 
             score = 1;
         else if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && config.ConfigBitstreamRaw == 2)
             score = 2;
+        else if (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 && config.ConfigBitstreamRaw == 0) // hack for broken AMD drivers
+            score = 0;
         else
             continue;
         if (IsEqualGUID(config.guidConfigBitstreamEncryption, DXVA2_NoEncrypt))
@@ -913,7 +915,7 @@ STDMETHODIMP CDecD3D11::FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC 
         }
     }
 
-    if (best_score <= 0)
+    if (best_score < 0)
     {
         DbgLog((LOG_TRACE, 10, L"-> No matching configuration available"));
         return E_FAIL;
