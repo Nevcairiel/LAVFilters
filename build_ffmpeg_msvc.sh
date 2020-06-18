@@ -2,6 +2,7 @@
 
 arch=x86
 archdir=Win32
+archincdir=32
 clean_build=true
 debug=true
 
@@ -13,6 +14,7 @@ do
     x64 | amd64)
             arch=x86_64
             archdir=x64
+            archincdir=64
             ;;
     quick)
             clean_build=false
@@ -77,7 +79,7 @@ configure() (
     --build-suffix=-lav             \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -Zo -GS-"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -Zo -GS- -I../thirdparty/$archincdir/include/"
   EXTRA_LDFLAGS=""
 
   if $debug ; then
