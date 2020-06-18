@@ -2722,6 +2722,15 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
         {
             best = check;
         }
+        else if (m_bMP4 && m_avFormat->streams[check->pid]->nb_frames == 1 && m_avFormat->streams[best->pid]->nb_frames > 1)
+        {
+            // avoid selecting a video stream with only one frame
+        }
+        else if (m_bMP4 && m_avFormat->streams[best->pid]->nb_frames == 1 && m_avFormat->streams[check->pid]->nb_frames > 1)
+        {
+            // prefer a stream with more then one frame, if available
+            best = check;
+        }
         else if (!m_bRM || check_nb_f > 0)
         {
             if (checkPixels > bestPixels)
