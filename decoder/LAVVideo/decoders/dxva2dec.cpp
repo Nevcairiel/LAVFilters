@@ -1158,7 +1158,7 @@ HRESULT CDecDXVA2::FindDecoderConfiguration(const GUID &input, const DXVA2_Video
             score = 1;
         else if (m_pAVCtx->codec_id == AV_CODEC_ID_H264 && cfg->ConfigBitstreamRaw == 2)
             score = 2;
-        else if (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 && cfg->ConfigBitstreamRaw == 0) // hack for broken AMD drivers
+        else if (m_pAVCtx->codec_id == AV_CODEC_ID_VP9) // hack for broken AMD drivers
             score = 0;
         else
             continue;
