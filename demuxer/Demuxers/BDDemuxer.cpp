@@ -19,7 +19,7 @@
 
 #include "stdafx.h"
 #include "BDDemuxer.h"
-#include "libbluray/bdnav/mpls_parse.h"
+#include "libbluray/bdnav/mpls_data.h"
 
 extern "C"
 {
