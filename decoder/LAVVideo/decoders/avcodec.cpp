@@ -610,10 +610,28 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         }
     }
 
+    // codec-specific options
+    AVDictionary *options = nullptr;
+
+
+    // workaround for old/broken x264 streams
+    int nX264Build = m_pCallback->GetX264Build();
+    if (codec == AV_CODEC_ID_H264 && nX264Build != -1)
+    {
+        av_dict_set_int(&options, "x264_build", nX264Build, 0);
+    }
+
     // Open the decoder
     m_bInInit = TRUE;
-    int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, nullptr);
+    int ret = avcodec_open2(m_pAVCtx, m_pAVCodec, &options);
     m_bInInit = FALSE;
+
+    // the dict now contains all options that could not be applied
+    if (options)
+    {
+        av_dict_free(&options);
+    }
+
     if (ret >= 0)
     {
         DbgLog((LOG_TRACE, 10, L"-> ffmpeg codec opened successfully (ret: %d)", ret));
@@ -624,12 +642,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         DbgLog((LOG_TRACE, 10, L"-> ffmpeg codec failed to open (ret: %d)", ret));
         DestroyDecoder();
         return VFW_E_UNSUPPORTED_VIDEO;
-    }
-
-    int nX264Build = m_pCallback->GetX264Build();
-    if (codec == AV_CODEC_ID_H264 && nX264Build != -1)
-    {
-        av_opt_set_int(m_pAVCtx->priv_data, "x264_build", nX264Build, 0);
     }
 
     m_iInterlaced = 0;
