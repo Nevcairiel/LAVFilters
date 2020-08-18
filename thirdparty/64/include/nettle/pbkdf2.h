@@ -45,6 +45,7 @@ extern "C"
 #define pbkdf2 nettle_pbkdf2
 #define pbkdf2_hmac_sha1 nettle_pbkdf2_hmac_sha1
 #define pbkdf2_hmac_sha256 nettle_pbkdf2_hmac_sha256
+#define pbkdf2_hmac_gosthash94cp nettle_pbkdf2_hmac_gosthash94cp
 
 void
 pbkdf2 (void *mac_ctx,
@@ -77,6 +78,12 @@ pbkdf2_hmac_sha256 (size_t key_length, const uint8_t *key,
 		    unsigned iterations,
 		    size_t salt_length, const uint8_t *salt,
 		    size_t length, uint8_t *dst);
+
+void
+pbkdf2_hmac_gosthash94cp (size_t key_length, const uint8_t *key,
+			  unsigned iterations,
+			  size_t salt_length, const uint8_t *salt,
+			  size_t length, uint8_t *dst);
 
 #ifdef __cplusplus
 }

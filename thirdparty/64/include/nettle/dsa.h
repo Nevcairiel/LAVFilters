@@ -59,7 +59,6 @@ extern "C" {
 #define dsa_public_key_from_der_iterator nettle_dsa_public_key_from_der_iterator
 #define dsa_openssl_private_key_from_der_iterator nettle_dsa_openssl_private_key_from_der_iterator 
 #define dsa_openssl_private_key_from_der nettle_openssl_provate_key_from_der
-#define _dsa_hash _nettle_dsa_hash
 
 /* For FIPS approved parameters */
 #define DSA_SHA1_MIN_P_BITS 512
@@ -203,11 +202,6 @@ dsa_openssl_private_key_from_der(struct dsa_params *params,
 				 unsigned p_max_bits,
 				 size_t length, const uint8_t *data);
 
-
-/* Internal functions. */
-void
-_dsa_hash (mpz_t h, unsigned bit_size,
-	   size_t length, const uint8_t *digest);
 
 #ifdef __cplusplus
 }

@@ -54,8 +54,8 @@ struct md2_ctx
 {
   uint8_t C[MD2_BLOCK_SIZE];
   uint8_t X[3 * MD2_BLOCK_SIZE];
-  uint8_t block[MD2_BLOCK_SIZE]; /* Block buffer */
   unsigned index;               /* Into buffer */
+  uint8_t block[MD2_BLOCK_SIZE]; /* Block buffer */
 };
 
 void

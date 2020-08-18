@@ -99,11 +99,6 @@ extern "C" {
 #define rsa_private_key_from_der_iterator nettle_rsa_private_key_from_der_iterator
 #define rsa_keypair_from_der nettle_rsa_keypair_from_der
 #define rsa_keypair_to_openpgp nettle_rsa_keypair_to_openpgp
-#define _rsa_verify _nettle_rsa_verify
-#define _rsa_verify_recover _nettle_rsa_verify_recover
-#define _rsa_check_size _nettle_rsa_check_size
-#define _rsa_blind _nettle_rsa_blind
-#define _rsa_unblind _nettle_rsa_unblind
 
 /* This limit is somewhat arbitrary. Technically, the smallest modulo
    which makes sense at all is 15 = 3*5, phi(15) = 8, size 4 bits. But
@@ -534,28 +529,6 @@ rsa_keypair_to_openpgp(struct nettle_buffer *buffer,
 		       /* A single user id. NUL-terminated utf8. */
 		       const char *userid);
 
-/* Internal functions. */
-int
-_rsa_verify(const struct rsa_public_key *key,
-	    const mpz_t m,
-	    const mpz_t s);
-
-int
-_rsa_verify_recover(const struct rsa_public_key *key,
-		    mpz_t m,
-		    const mpz_t s);
-
-size_t
-_rsa_check_size(mpz_t n);
-
-/* _rsa_blind and _rsa_unblind are deprecated, unused in the library,
-   and will likely be removed with the next ABI break. */
-void
-_rsa_blind (const struct rsa_public_key *pub,
-	    void *random_ctx, nettle_random_func *random,
-	    mpz_t c, mpz_t ri);
-void
-_rsa_unblind (const struct rsa_public_key *pub, mpz_t c, const mpz_t ri);
 
 #ifdef __cplusplus
 }

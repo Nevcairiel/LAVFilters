@@ -59,8 +59,8 @@ struct ripemd160_ctx
 {
   uint32_t state[_RIPEMD160_DIGEST_LENGTH];
   uint64_t count;         /* 64-bit block count */
-  uint8_t block[RIPEMD160_BLOCK_SIZE];
   unsigned int index;
+  uint8_t block[RIPEMD160_BLOCK_SIZE];
 };
 
 void
@@ -75,11 +75,6 @@ void
 ripemd160_digest(struct ripemd160_ctx *ctx,
 		 size_t length,
 		 uint8_t *digest);
-
-/* Internal compression function. STATE points to 5 uint32_t words,
-   and DATA points to 64 bytes of input data, possibly unaligned. */
-void
-_nettle_ripemd160_compress(uint32_t *state, const uint8_t *data);
 
 #ifdef __cplusplus
 }

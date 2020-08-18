@@ -36,6 +36,7 @@
 
 #include "nettle-meta.h"
 
+#include "gosthash94.h"
 #include "md5.h"
 #include "ripemd160.h"
 #include "sha1.h"
@@ -68,6 +69,12 @@ extern "C" {
 #define hmac_sha512_set_key nettle_hmac_sha512_set_key
 #define hmac_sha512_update nettle_hmac_sha512_update
 #define hmac_sha512_digest nettle_hmac_sha512_digest
+#define hmac_gosthash94_set_key nettle_hmac_gosthash94_set_key
+#define hmac_gosthash94_update nettle_hmac_gosthash94_update
+#define hmac_gosthash94_digest nettle_hmac_gosthash94_digest
+#define hmac_gosthash94cp_set_key nettle_hmac_gosthash94cp_set_key
+#define hmac_gosthash94cp_update nettle_hmac_gosthash94cp_update
+#define hmac_gosthash94cp_digest nettle_hmac_gosthash94cp_digest
 
 void
 hmac_set_key(void *outer, void *inner, void *state,
@@ -202,6 +209,36 @@ hmac_sha384_set_key(struct hmac_sha512_ctx *ctx,
 void
 hmac_sha384_digest(struct hmac_sha512_ctx *ctx,
 		   size_t length, uint8_t *digest);
+
+/* hmac-gosthash94 */
+struct hmac_gosthash94_ctx HMAC_CTX(struct gosthash94_ctx);
+
+void
+hmac_gosthash94_set_key(struct hmac_gosthash94_ctx *ctx,
+			size_t key_length, const uint8_t *key);
+
+void
+hmac_gosthash94_update(struct hmac_gosthash94_ctx *ctx,
+		       size_t length, const uint8_t *data);
+
+  void
+hmac_gosthash94_digest(struct hmac_gosthash94_ctx *ctx,
+		       size_t length, uint8_t *digest);
+
+struct hmac_gosthash94cp_ctx HMAC_CTX(struct gosthash94cp_ctx);
+
+void
+hmac_gosthash94cp_set_key(struct hmac_gosthash94cp_ctx *ctx,
+			  size_t key_length, const uint8_t *key);
+
+void
+hmac_gosthash94cp_update(struct hmac_gosthash94cp_ctx *ctx,
+			 size_t length, const uint8_t *data);
+
+void
+hmac_gosthash94cp_digest(struct hmac_gosthash94cp_ctx *ctx,
+			 size_t length, uint8_t *digest);
+
 
 #ifdef __cplusplus
 }

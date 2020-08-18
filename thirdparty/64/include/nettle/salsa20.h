@@ -47,7 +47,6 @@ extern "C" {
 #define salsa20_256_set_key nettle_salsa20_256_set_key
 #define salsa20_set_nonce nettle_salsa20_set_nonce
 #define salsa20_crypt nettle_salsa20_crypt
-#define _salsa20_core _nettle_salsa20_core
 
 #define salsa20r12_crypt nettle_salsa20r12_crypt
 
@@ -103,9 +102,6 @@ void
 salsa20r12_crypt(struct salsa20_ctx *ctx,
 		 size_t length, uint8_t *dst,
 		 const uint8_t *src);
-
-void
-_salsa20_core(uint32_t *dst, const uint32_t *src, unsigned rounds);
 
 #ifdef __cplusplus
 }

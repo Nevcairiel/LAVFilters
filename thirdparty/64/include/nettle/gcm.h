@@ -261,31 +261,34 @@ void
 gcm_aes256_digest(struct gcm_aes256_ctx *ctx,
 		  size_t length, uint8_t *digest);
 
-/* Old aes interface, for backwards compatibility */
+/* Old deprecated aes interface, for backwards compatibility */
 struct gcm_aes_ctx GCM_CTX(struct aes_ctx);
 
 void
 gcm_aes_set_key(struct gcm_aes_ctx *ctx,
-		size_t length, const uint8_t *key);
+		size_t length, const uint8_t *key) _NETTLE_ATTRIBUTE_DEPRECATED;
 
 void
 gcm_aes_set_iv(struct gcm_aes_ctx *ctx,
-	       size_t length, const uint8_t *iv);
+	       size_t length, const uint8_t *iv) _NETTLE_ATTRIBUTE_DEPRECATED;
 
 void
 gcm_aes_update(struct gcm_aes_ctx *ctx,
-	       size_t length, const uint8_t *data);
+	       size_t length, const uint8_t *data) _NETTLE_ATTRIBUTE_DEPRECATED;
 
 void
 gcm_aes_encrypt(struct gcm_aes_ctx *ctx,
-		size_t length, uint8_t *dst, const uint8_t *src);
+		size_t length, uint8_t *dst, const uint8_t *src)
+  _NETTLE_ATTRIBUTE_DEPRECATED;
 
 void
 gcm_aes_decrypt(struct gcm_aes_ctx *ctx,
-		size_t length, uint8_t *dst, const uint8_t *src);
+		size_t length, uint8_t *dst, const uint8_t *src)
+  _NETTLE_ATTRIBUTE_DEPRECATED;
 
 void
-gcm_aes_digest(struct gcm_aes_ctx *ctx, size_t length, uint8_t *digest);
+gcm_aes_digest(struct gcm_aes_ctx *ctx, size_t length, uint8_t *digest)
+  _NETTLE_ATTRIBUTE_DEPRECATED;
 
 
 struct gcm_camellia128_ctx GCM_CTX(struct camellia128_ctx);

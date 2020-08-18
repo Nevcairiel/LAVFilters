@@ -42,10 +42,6 @@ extern "C" {
 #endif
 
 /* Name mangling */
-#define poly1305_set_key nettle_poly1305_set_key
-#define poly1305_digest nettle_poly1305_digest
-#define _poly1305_block _nettle_poly1305_block
-
 #define poly1305_aes_set_key nettle_poly1305_aes_set_key
 #define poly1305_aes_set_nonce nettle_poly1305_aes_set_nonce
 #define poly1305_aes_update nettle_poly1305_aes_update
@@ -53,9 +49,7 @@ extern "C" {
 
 /* Low level functions/macros for the poly1305 construction. */
 
-#define POLY1305_DIGEST_SIZE 16
 #define POLY1305_BLOCK_SIZE 16
-#define POLY1305_KEY_SIZE 16
 
 struct poly1305_ctx {
   /* Key, 128-bit value and some cached multiples. */
@@ -75,14 +69,6 @@ struct poly1305_ctx {
     uint64_t h64[2];
   } h;
 };
-
-/* Low-level internal interface. */
-void poly1305_set_key(struct poly1305_ctx *ctx, const uint8_t key[POLY1305_KEY_SIZE]);
-/* Extracts digest, and adds it to s, the encrypted nonce. */
-void poly1305_digest (struct poly1305_ctx *ctx, union nettle_block16 *s);
-/* Internal function. Process one block. */
-void _poly1305_block (struct poly1305_ctx *ctx, const uint8_t *m,
-		      unsigned high);
 
 /* poly1305-aes */
 

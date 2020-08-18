@@ -17,7 +17,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
  *
  */
 
@@ -324,7 +324,8 @@ int gnutls_pkcs11_obj_set_info(gnutls_pkcs11_obj_t obj,
  * @GNUTLS_PKCS11_TOKEN_SERIAL: The token's serial number (string)
  * @GNUTLS_PKCS11_TOKEN_MANUFACTURER: The token's manufacturer (string)
  * @GNUTLS_PKCS11_TOKEN_MODEL: The token's model (string)
- * @GNUTLS_PKCS11_TOKEN_MODNAME: The token's module name (string - since 3.4.3)
+ * @GNUTLS_PKCS11_TOKEN_MODNAME: The token's module name (string - since 3.4.3). This value is
+ *   unavailable for providers which were manually loaded.
  *
  * Enumeration of types for retrieving token information.
  */

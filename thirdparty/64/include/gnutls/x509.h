@@ -17,7 +17,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
  *
  */
 
@@ -148,7 +148,7 @@ typedef enum gnutls_x509_crt_flags {
 void gnutls_x509_crt_set_flags(gnutls_x509_crt_t cert, unsigned flags);
 
 unsigned gnutls_x509_crt_equals(gnutls_x509_crt_t cert1, gnutls_x509_crt_t cert2);
-unsigned gnutls_x509_crt_equals2(gnutls_x509_crt_t cert1, gnutls_datum_t * der);
+unsigned gnutls_x509_crt_equals2(gnutls_x509_crt_t cert1, const gnutls_datum_t * der);
 
 int gnutls_x509_crt_import(gnutls_x509_crt_t cert,
 			   const gnutls_datum_t * data,
@@ -988,6 +988,7 @@ typedef enum gnutls_certificate_verify_flags {
 
 /**
  * gnutls_certificate_verification_profiles_t:
+ * @GNUTLS_PROFILE_UNKNOWN: An invalid/unknown profile.
  * @GNUTLS_PROFILE_VERY_WEAK: A verification profile that
  *  corresponds to @GNUTLS_SEC_PARAM_VERY_WEAK (64 bits)
  * @GNUTLS_PROFILE_LOW: A verification profile that
@@ -999,8 +1000,10 @@ typedef enum gnutls_certificate_verify_flags {
  * @GNUTLS_PROFILE_HIGH: A verification profile that
  *  corresponds to @GNUTLS_SEC_PARAM_HIGH (128 bits)
  * @GNUTLS_PROFILE_ULTRA: A verification profile that
- *  corresponds to @GNUTLS_SEC_PARAM_ULTRA (256 bits)
-% * @GNUTLS_PROFILE_SUITEB128: A verification profile that
+ *  corresponds to @GNUTLS_SEC_PARAM_ULTRA (192 bits)
+ * @GNUTLS_PROFILE_FUTURE: A verification profile that
+ *  corresponds to @GNUTLS_SEC_PARAM_FUTURE (256 bits)
+ * @GNUTLS_PROFILE_SUITEB128: A verification profile that
  *  applies the SUITEB128 rules
  * @GNUTLS_PROFILE_SUITEB192: A verification profile that
  *  applies the SUITEB192 rules
@@ -1008,12 +1011,14 @@ typedef enum gnutls_certificate_verify_flags {
  * Enumeration of different certificate verification profiles.
  */
 typedef enum gnutls_certificate_verification_profiles_t {
+	GNUTLS_PROFILE_UNKNOWN = 0,
 	GNUTLS_PROFILE_VERY_WEAK = 1,
 	GNUTLS_PROFILE_LOW = 2,
 	GNUTLS_PROFILE_LEGACY = 4,
 	GNUTLS_PROFILE_MEDIUM = 5,
 	GNUTLS_PROFILE_HIGH = 6,
 	GNUTLS_PROFILE_ULTRA = 7,
+	GNUTLS_PROFILE_FUTURE = 8,
 	
 	GNUTLS_PROFILE_SUITEB128=32,
 	GNUTLS_PROFILE_SUITEB192=33
@@ -1028,6 +1033,9 @@ typedef enum gnutls_certificate_verification_profiles_t {
 #define GNUTLS_VFLAGS_TO_PROFILE(x) \
 	((((unsigned)x)>>24)&0xff)
 
+const char *
+	gnutls_certificate_verification_profile_get_name(gnutls_certificate_verification_profiles_t id) __GNUTLS_CONST__;
+gnutls_certificate_verification_profiles_t gnutls_certificate_verification_profile_get_id(const char *name) __GNUTLS_CONST__;
 
 unsigned gnutls_x509_crt_check_issuer(gnutls_x509_crt_t cert,
 				 gnutls_x509_crt_t issuer);

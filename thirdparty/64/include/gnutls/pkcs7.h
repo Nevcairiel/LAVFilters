@@ -17,7 +17,7 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
  *
  */
 
@@ -143,6 +143,10 @@ gnutls_pkcs7_get_crl_raw2(gnutls_pkcs7_t pkcs7,
 int gnutls_pkcs7_print(gnutls_pkcs7_t pkcs7,
 		       gnutls_certificate_print_formats_t format,
 		       gnutls_datum_t * out);
+
+int gnutls_pkcs7_print_signature_info(gnutls_pkcs7_signature_info_st * info,
+				      gnutls_certificate_print_formats_t format,
+				      gnutls_datum_t * out);
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus

@@ -58,8 +58,8 @@ struct md4_ctx
 {
   uint32_t state[_MD4_DIGEST_LENGTH];
   uint64_t count;			/* Block count */
-  uint8_t block[MD4_BLOCK_SIZE];	/* Block buffer */
   unsigned index;			/* Into buffer */
+  uint8_t block[MD4_BLOCK_SIZE];	/* Block buffer */
 };
 
 void

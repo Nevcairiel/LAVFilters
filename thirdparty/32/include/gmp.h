@@ -1,6 +1,6 @@
 /* Definitions for GNU multiple precision functions.   -*- mode: c -*-
 
-Copyright 1991, 1993-1997, 1999-2016 Free Software Foundation, Inc.
+Copyright 1991, 1993-1997, 1999-2016, 2020 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
@@ -341,7 +341,11 @@ typedef __mpq_struct *mpq_ptr;
    __GMP_ATTRIBUTE_PURE.  */
 
 #if defined (__cplusplus)
+#if __cplusplus >= 201103L
+#define __GMP_NOTHROW  noexcept
+#else
 #define __GMP_NOTHROW  throw ()
+#endif
 #else
 #define __GMP_NOTHROW
 #endif
@@ -845,13 +849,13 @@ __GMP_DECLSPEC mp_bitcnt_t mpz_hamdist (mpz_srcptr, mpz_srcptr) __GMP_NOTHROW __
 __GMP_DECLSPEC void mpz_import (mpz_ptr, size_t, int, size_t, int, size_t, const void *);
 
 #define mpz_init __gmpz_init
-__GMP_DECLSPEC void mpz_init (mpz_ptr);
+__GMP_DECLSPEC void mpz_init (mpz_ptr) __GMP_NOTHROW;
 
 #define mpz_init2 __gmpz_init2
 __GMP_DECLSPEC void mpz_init2 (mpz_ptr, mp_bitcnt_t);
 
 #define mpz_inits __gmpz_inits
-__GMP_DECLSPEC void mpz_inits (mpz_ptr, ...);
+__GMP_DECLSPEC void mpz_inits (mpz_ptr, ...) __GMP_NOTHROW;
 
 #define mpz_init_set __gmpz_init_set
 __GMP_DECLSPEC void mpz_init_set (mpz_ptr, mpz_srcptr);
@@ -1512,6 +1516,9 @@ __GMP_DECLSPEC mp_limb_t mpn_div_qr_2 (mp_ptr, mp_ptr, mp_srcptr, mp_size_t, mp_
 #define mpn_gcd __MPN(gcd)
 __GMP_DECLSPEC mp_size_t mpn_gcd (mp_ptr, mp_ptr, mp_size_t, mp_ptr, mp_size_t);
 
+#define mpn_gcd_11 __MPN(gcd_11)
+__GMP_DECLSPEC mp_limb_t mpn_gcd_11 (mp_limb_t, mp_limb_t) __GMP_ATTRIBUTE_PURE;
+
 #define mpn_gcd_1 __MPN(gcd_1)
 __GMP_DECLSPEC mp_limb_t mpn_gcd_1 (mp_srcptr, mp_size_t, mp_limb_t) __GMP_ATTRIBUTE_PURE;
 
@@ -1840,7 +1847,7 @@ mpz_popcount (mpz_srcptr __gmp_u) __GMP_NOTHROW
   mp_bitcnt_t    __gmp_result;
 
   __gmp_usize = __gmp_u->_mp_size;
-  __gmp_result = (__gmp_usize < 0 ? ULONG_MAX : 0);
+  __gmp_result = (__gmp_usize < 0 ? ~ __GMP_CAST (mp_bitcnt_t, 0) : __GMP_CAST (mp_bitcnt_t, 0));
   if (__GMP_LIKELY (__gmp_usize > 0))
     __gmp_result =  mpn_popcount (__gmp_u->_mp_d, __gmp_usize);
   return __gmp_result;
@@ -2321,8 +2328,8 @@ enum
 
 /* Major version number is the value of __GNU_MP__ too, above. */
 #define __GNU_MP_VERSION            6
-#define __GNU_MP_VERSION_MINOR      1
-#define __GNU_MP_VERSION_PATCHLEVEL 2
+#define __GNU_MP_VERSION_MINOR      2
+#define __GNU_MP_VERSION_PATCHLEVEL 0
 #define __GNU_MP_RELEASE (__GNU_MP_VERSION * 10000 + __GNU_MP_VERSION_MINOR * 100 + __GNU_MP_VERSION_PATCHLEVEL)
 
 #define __GMP_H__

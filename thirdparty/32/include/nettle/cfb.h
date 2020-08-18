@@ -45,6 +45,9 @@ extern "C" {
 #define cfb_encrypt nettle_cfb_encrypt
 #define cfb_decrypt nettle_cfb_decrypt
 
+#define cfb8_encrypt nettle_cfb8_encrypt
+#define cfb8_decrypt nettle_cfb8_decrypt
+
 void
 cfb_encrypt(const void *ctx, nettle_cipher_func *f,
 	    size_t block_size, uint8_t *iv,
@@ -57,11 +60,27 @@ cfb_decrypt(const void *ctx, nettle_cipher_func *f,
 	    size_t length, uint8_t *dst,
 	    const uint8_t *src);
 
+void
+cfb8_encrypt(const void *ctx, nettle_cipher_func *f,
+	     size_t block_size, uint8_t *iv,
+	     size_t length, uint8_t *dst,
+	     const uint8_t *src);
+
+void
+cfb8_decrypt(const void *ctx, nettle_cipher_func *f,
+	     size_t block_size, uint8_t *iv,
+	     size_t length, uint8_t *dst,
+	     const uint8_t *src);
+
+
 #define CFB_CTX(type, size) \
 { type ctx; uint8_t iv[size]; }
 
 #define CFB_SET_IV(ctx, data) \
 memcpy((ctx)->iv, (data), sizeof((ctx)->iv))
+
+#define CFB8_CTX CFB_CTX
+#define CFB8_SET_IV CFB_SET_IV
 
 /* NOTE: Avoid using NULL, as we don't include anything defining it. */
 #define CFB_ENCRYPT(self, f, length, dst, src)		\
@@ -79,6 +98,22 @@ memcpy((ctx)->iv, (data), sizeof((ctx)->iv))
 		 (nettle_cipher_func *) (f),		\
 		 sizeof((self)->iv), (self)->iv,	\
 		 (length), (dst), (src)))
+
+#define CFB8_ENCRYPT(self, f, length, dst, src)		\
+  (0 ? ((f)(&(self)->ctx, ~(size_t) 0,			\
+	    (uint8_t *) 0, (const uint8_t *) 0))	\
+   : cfb8_encrypt((void *) &(self)->ctx,		\
+		  (nettle_cipher_func *) (f),		\
+		  sizeof((self)->iv), (self)->iv,	\
+		  (length), (dst), (src)))
+
+#define CFB8_DECRYPT(self, f, length, dst, src)		\
+  (0 ? ((f)(&(self)->ctx, ~(size_t) 0,			\
+	    (uint8_t *) 0, (const uint8_t *) 0))	\
+   : cfb8_decrypt((void *) &(self)->ctx,		\
+		  (nettle_cipher_func *) (f),		\
+		  sizeof((self)->iv), (self)->iv,	\
+		  (length), (dst), (src)))
 
 #ifdef __cplusplus
 }

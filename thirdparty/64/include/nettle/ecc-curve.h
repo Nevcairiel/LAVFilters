@@ -34,6 +34,8 @@
 #ifndef NETTLE_ECC_CURVE_H_INCLUDED
 #define NETTLE_ECC_CURVE_H_INCLUDED
 
+#include "nettle-types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,28 +43,13 @@ extern "C" {
 /* The contents of this struct is internal. */
 struct ecc_curve;
 
-/* FIXME: Rename with leading underscore. Due to ABI subtleties,
-   applications should not refer to these directly, but use the below
-   accessor functions. */
-extern const struct ecc_curve nettle_secp_192r1;
-extern const struct ecc_curve nettle_secp_224r1;
-extern const struct ecc_curve nettle_secp_256r1;
-extern const struct ecc_curve nettle_secp_384r1;
-extern const struct ecc_curve nettle_secp_521r1;
-
-#ifdef __GNUC__
-#define NETTLE_PURE __attribute__((pure))
-#else
-#define NETTLE_PURE
-#endif
-
-const struct ecc_curve * NETTLE_PURE nettle_get_secp_192r1(void);
-const struct ecc_curve * NETTLE_PURE nettle_get_secp_224r1(void);
-const struct ecc_curve * NETTLE_PURE nettle_get_secp_256r1(void);
-const struct ecc_curve * NETTLE_PURE nettle_get_secp_384r1(void);
-const struct ecc_curve * NETTLE_PURE nettle_get_secp_521r1(void);
-
-#undef NETTLE_PURE
+const struct ecc_curve * _NETTLE_ATTRIBUTE_PURE nettle_get_gost_gc256b(void);
+const struct ecc_curve * _NETTLE_ATTRIBUTE_PURE nettle_get_gost_gc512a(void);
+const struct ecc_curve * _NETTLE_ATTRIBUTE_PURE nettle_get_secp_192r1(void);
+const struct ecc_curve * _NETTLE_ATTRIBUTE_PURE nettle_get_secp_224r1(void);
+const struct ecc_curve * _NETTLE_ATTRIBUTE_PURE nettle_get_secp_256r1(void);
+const struct ecc_curve * _NETTLE_ATTRIBUTE_PURE nettle_get_secp_384r1(void);
+const struct ecc_curve * _NETTLE_ATTRIBUTE_PURE nettle_get_secp_521r1(void);
 
 #ifdef __cplusplus
 }

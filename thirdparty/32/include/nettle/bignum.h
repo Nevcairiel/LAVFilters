@@ -34,8 +34,6 @@
 #ifndef NETTLE_BIGNUM_H_INCLUDED
 #define NETTLE_BIGNUM_H_INCLUDED
 
-#include "nettle-meta.h"
-
 #include "nettle-types.h"
 
 /* For NETTLE_USE_MINI_GMP */
@@ -46,8 +44,6 @@
 
 # define GMP_NUMB_MASK (~(mp_limb_t) 0)
 
-/* Function missing in older gmp versions, and checked for with ifdef */
-# define mpz_limbs_read mpz_limbs_read
 /* Side-channel silent powm not available in mini-gmp. */
 # define mpz_powm_sec mpz_powm
 #else
@@ -109,13 +105,6 @@ nettle_random_prime(mpz_t p, unsigned bits, int top_bits_set,
 		    void *ctx, nettle_random_func *random,
 		    void *progress_ctx, nettle_progress_func *progress);
 
-void
-_nettle_generate_pocklington_prime (mpz_t p, mpz_t r,
-				    unsigned bits, int top_bits_set, 
-				    void *ctx, nettle_random_func *random, 
-				    const mpz_t p0,
-				    const mpz_t q,
-				    const mpz_t p0q);
   
 /* sexp parsing */
 struct sexp_iterator;
