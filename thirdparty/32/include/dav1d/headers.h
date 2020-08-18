@@ -127,6 +127,7 @@ enum Dav1dColorPrimaries {
     DAV1D_COLOR_PRI_SMPTE431 = 11,
     DAV1D_COLOR_PRI_SMPTE432 = 12,
     DAV1D_COLOR_PRI_EBU3213 = 22,
+    DAV1D_COLOR_PRI_RESERVED = 255,
 };
 
 enum Dav1dTransferCharacteristics {
@@ -147,6 +148,7 @@ enum Dav1dTransferCharacteristics {
     DAV1D_TRC_SMPTE2084 = 16,     ///< PQ
     DAV1D_TRC_SMPTE428 = 17,
     DAV1D_TRC_HLG = 18,           ///< hybrid log/gamma (BT.2100 / ARIB STD-B67)
+    DAV1D_TRC_RESERVED = 255,
 };
 
 enum Dav1dMatrixCoefficients {
@@ -164,6 +166,7 @@ enum Dav1dMatrixCoefficients {
     DAV1D_MC_CHROMAT_NCL = 12, ///< Chromaticity-derived
     DAV1D_MC_CHROMAT_CL = 13,
     DAV1D_MC_ICTCP = 14,
+    DAV1D_MC_RESERVED = 255,
 };
 
 enum Dav1dChromaSamplePosition {
