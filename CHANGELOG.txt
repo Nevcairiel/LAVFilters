@@ -1,6 +1,21 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.75.0 - 2020/xx/xx
+LAV Splitter
+- Changed: Improved Font support from Matroska files
+- Fixed: Large queue size limits could result in the wrong limit being applied
+- Fixed: Resolved a memory leak in Matroska demuxing
+- Fixed: Avoid selecting a stream with only a single video frame in MP4 files, which is often a cover art
+- Fixed: Seeking in Matroska files with only audio cue points did not function
+
+LAV Video
+- Faster: Updated dav1d decoder and improved thread configuration for significantly improved AV1 decoding speed
+- Fixed: Added a workaround for VP9 hardware decoding on AMD video cards.
+
+LAV Audio
+- Fixed: Resolved an issue with glitching TrueHD bitstreaming on seamless-branching titles
+
 0.74.1 - 2019/03/19
 LAV Video
 - Fixed: VP9 video could produce wrong timestamps, resulting in a black screen or other playback disruptions
