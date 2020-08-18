@@ -157,7 +157,7 @@ int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profil
   return 1;
 }
 
-int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile, int hwpixfmt)
+int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile, int level, int hwpixfmt)
 {
   // check mpeg2 pixfmt
   if (codec == AV_CODEC_ID_MPEG2VIDEO && pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)
@@ -170,6 +170,10 @@ int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile
   // check h264 profile
   if (codec == AV_CODEC_ID_H264 && profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(profile))
     return 1;
+
+  // check h264 level
+  if (codec == AV_CODEC_ID_H264 && level >= 60)
+      return 1;
 
   // check wmv/vc1 profile
   if ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && profile == FF_PROFILE_VC1_COMPLEX)

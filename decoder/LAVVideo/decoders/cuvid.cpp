@@ -1297,12 +1297,12 @@ STDMETHODIMP CDecCuvid::CheckH264Sequence(const BYTE *buffer, int buflen)
         m_bARPresent = h264parser.sps.ar_present;
         DbgLog((LOG_TRACE, 10, L"-> SPS found"));
         if (h264parser.sps.profile > 100 || h264parser.sps.chroma != 1 || h264parser.sps.luma_bitdepth != 8 ||
-            h264parser.sps.chroma_bitdepth != 8)
+            h264parser.sps.chroma_bitdepth != 8 || h264parser.sps.level >= 60)
         {
             DbgLog((LOG_TRACE, 10,
-                    L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, chroma: %d, bitdepth: "
+                    L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d, level: %d, chroma: %d, bitdepth: "
                     L"%d/%d)",
-                    h264parser.sps.profile, h264parser.sps.chroma, h264parser.sps.luma_bitdepth,
+                    h264parser.sps.profile, h264parser.sps.level, h264parser.sps.chroma, h264parser.sps.luma_bitdepth,
                     h264parser.sps.chroma_bitdepth));
             return E_FAIL;
         }

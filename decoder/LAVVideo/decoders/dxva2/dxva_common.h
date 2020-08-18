@@ -37,7 +37,7 @@ extern const dxva_mode_t dxva_modes[];
 const dxva_mode_t *get_dxva_mode_from_guid(const GUID *guid);
 int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile);
 
-int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile, int hwpixfmt);
+int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile, int level, int hwpixfmt);
 
 #define H264_CHECK_PROFILE(profile) (((profile) & ~FF_PROFILE_H264_CONSTRAINED) <= FF_PROFILE_H264_HIGH)
 #define HEVC_CHECK_PROFILE(profile) ((profile) <= FF_PROFILE_HEVC_MAIN_10)

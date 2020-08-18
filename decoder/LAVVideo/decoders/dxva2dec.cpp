@@ -1067,7 +1067,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
             output = (D3DFORMAT)FOURCC_NV12;
     }
 
-    if (check_dxva_codec_profile(m_pAVCtx->codec_id, m_pAVCtx->pix_fmt, m_pAVCtx->profile, AV_PIX_FMT_DXVA2_VLD))
+    if (check_dxva_codec_profile(m_pAVCtx->codec_id, m_pAVCtx->pix_fmt, m_pAVCtx->profile, m_pAVCtx->level, AV_PIX_FMT_DXVA2_VLD))
     {
         DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
         return E_FAIL;

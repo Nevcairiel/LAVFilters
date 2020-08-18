@@ -506,7 +506,7 @@ STDMETHODIMP CDecD3D11::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     if (FAILED(hr))
         return hr;
 
-    if (check_dxva_codec_profile(m_pAVCtx->codec_id, m_pAVCtx->pix_fmt, m_pAVCtx->profile, AV_PIX_FMT_D3D11))
+    if (check_dxva_codec_profile(m_pAVCtx->codec_id, m_pAVCtx->pix_fmt, m_pAVCtx->profile, m_pAVCtx->level, AV_PIX_FMT_D3D11))
     {
         DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
         return E_FAIL;
