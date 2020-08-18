@@ -1,0 +1,15 @@
+# libspeex pkg-config source file
+
+prefix=.
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: speex
+Description: Speex is an audio codec tuned for speech
+Version: 1.2.0
+Requires:
+Conflicts:
+Libs: -L${libdir} -lspeex
+Libs.private: -lm
+Cflags: -I${includedir}

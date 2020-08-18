@@ -7,18 +7,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -40,8 +40,8 @@
  *  @{
  */
 
-#include "speex/speex_bits.h"
-#include "speex/speex_types.h"
+#include "speex_types.h"
+#include "speex_bits.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -137,7 +137,8 @@ extern "C" {
 #define SPEEX_GET_SUBMODE_ENCODING 37
 
 /*#define SPEEX_SET_LOOKAHEAD 38*/
-/** Returns the lookahead used by Speex */
+/** Returns the lookahead used by Speex separately for an encoder and a decoder.
+ *  Sum encoder and decoder lookahead values to get the total codec lookahead. */
 #define SPEEX_GET_LOOKAHEAD 39
 
 /** Sets tuning for packet-loss concealment (expected loss rate) */
@@ -245,14 +246,14 @@ typedef int (*decoder_ctl_func)(void *state, int request, void *ptr);
 /** Query function for a mode */
 typedef int (*mode_query_func)(const void *mode, int request, void *ptr);
 
-/** Struct defining a Speex mode */ 
+/** Struct defining a Speex mode */
 typedef struct SpeexMode {
    /** Pointer to the low-level mode data */
    const void *mode;
 
    /** Pointer to the mode query function */
    mode_query_func query;
-   
+
    /** The name of the mode (you should not rely on this to identify the mode)*/
    const char *modeName;
 
@@ -290,25 +291,25 @@ typedef struct SpeexMode {
 } SpeexMode;
 
 /**
- * Returns a handle to a newly created Speex encoder state structure. For now, 
- * the "mode" argument can be &nb_mode or &wb_mode . In the future, more modes 
- * may be added. Note that for now if you have more than one channels to 
+ * Returns a handle to a newly created Speex encoder state structure. For now,
+ * the "mode" argument can be &nb_mode or &wb_mode . In the future, more modes
+ * may be added. Note that for now if you have more than one channels to
  * encode, you need one state per channel.
  *
- * @param mode The mode to use (either speex_nb_mode or speex_wb.mode) 
+ * @param mode The mode to use (either speex_nb_mode or speex_wb.mode)
  * @return A newly created encoder state or NULL if state allocation fails
  */
 void *speex_encoder_init(const SpeexMode *mode);
 
-/** Frees all resources associated to an existing Speex encoder state. 
+/** Frees all resources associated to an existing Speex encoder state.
  * @param state Encoder state to be destroyed */
 void speex_encoder_destroy(void *state);
 
 /** Uses an existing encoder state to encode one frame of speech pointed to by
     "in". The encoded bit-stream is saved in "bits".
  @param state Encoder state
- @param in Frame that will be encoded with a +-2^15 range. This data MAY be 
-        overwritten by the encoder and should be considered uninitialised 
+ @param in Frame that will be encoded with a +-2^15 range. This data MAY be
+        overwritten by the encoder and should be considered uninitialised
         after the call.
  @param bits Bit-stream where the data will be written
  @return 0 if frame needs not be transmitted (DTX only), 1 otherwise
@@ -334,14 +335,14 @@ int speex_encode_int(void *state, spx_int16_t *in, SpeexBits *bits);
 int speex_encoder_ctl(void *state, int request, void *ptr);
 
 
-/** Returns a handle to a newly created decoder state structure. For now, 
+/** Returns a handle to a newly created decoder state structure. For now,
  * the mode argument can be &nb_mode or &wb_mode . In the future, more modes
  * may be added.  Note that for now if you have more than one channels to
  * decode, you need one state per channel.
  *
  * @param mode Speex mode (one of speex_nb_mode or speex_wb_mode)
  * @return A newly created decoder state or NULL if state allocation fails
- */ 
+ */
 void *speex_decoder_init(const SpeexMode *mode);
 
 /** Frees all resources associated to an existing decoder state.

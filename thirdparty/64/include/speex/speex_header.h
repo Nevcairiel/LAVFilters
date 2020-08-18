@@ -7,18 +7,18 @@
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
    are met:
-   
+
    - Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
-   
+
    - Redistributions in binary form must reproduce the above copyright
    notice, this list of conditions and the following disclaimer in the
    documentation and/or other materials provided with the distribution.
-   
+
    - Neither the name of the Xiph.org Foundation nor the names of its
    contributors may be used to endorse or promote products derived from
    this software without specific prior written permission.
-   
+
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -41,7 +41,7 @@
  *  @{
  */
 
-#include "speex/speex_types.h"
+#include "speex_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,7 +58,7 @@ struct SpeexMode;
 /** Speex header info for file-based formats */
 typedef struct SpeexHeader {
    char speex_string[SPEEX_HEADER_STRING_LENGTH];   /**< Identifies a Speex bit-stream, always set to "Speex   " */
-   char speex_version[SPEEX_HEADER_VERSION_LENGTH]; /**< Speex version */ 
+   char speex_version[SPEEX_HEADER_VERSION_LENGTH]; /**< Speex version */
    spx_int32_t speex_version_id;       /**< Version for Speex (for checking compatibility) */
    spx_int32_t header_size;            /**< Total size of the header ( sizeof(SpeexHeader) ) */
    spx_int32_t rate;                   /**< Sampling rate used */

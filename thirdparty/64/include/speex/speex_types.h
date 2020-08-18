@@ -22,7 +22,7 @@
 #ifndef _SPEEX_TYPES_H
 #define _SPEEX_TYPES_H
 
-#if defined(_WIN32) 
+#if defined(_WIN32)
 
 #  if defined(__CYGWIN__)
 #    include <_G_config.h>
@@ -119,7 +119,7 @@
 
 #else
 
-#  include <speex/speex_config_types.h>
+#include "speex_config_types.h"
 
 #endif
 
