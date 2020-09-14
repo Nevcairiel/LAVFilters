@@ -183,6 +183,10 @@ int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile
   if (codec == AV_CODEC_ID_HEVC && (!HEVC_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
     return 1;
 
+  // check for wrong pix_fmt on high bitdepth hevc profile
+  if (codec == AV_CODEC_ID_HEVC && profile == FF_PROFILE_HEVC_MAIN_10 && (pix_fmt == AV_PIX_FMT_YUV420P || pix_fmt == AV_PIX_FMT_YUVJ420P))
+    return 1;
+
   // check vp9 profile/pixfmt
   if (codec == AV_CODEC_ID_VP9 && (!VP9_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != AV_PIX_FMT_DXVA2_VLD && pix_fmt != AV_PIX_FMT_NONE)))
     return 1;
