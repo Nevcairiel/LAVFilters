@@ -1,6 +1,6 @@
 BasedOnStyle: Microsoft
 IndentWidth: 4
-UseTab: false
+UseTab: Never
 
 Language: Cpp
 Standard: Cpp11
