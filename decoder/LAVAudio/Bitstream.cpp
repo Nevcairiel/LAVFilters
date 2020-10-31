@@ -486,7 +486,7 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
     m_faJitter.Sample(rtJitter);
 
     REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
-    if (m_settings.AutoAVSync && abs(rtJitterMin) > m_JitterLimit && m_bHasVideo)
+    if (m_settings.AutoAVSync && abs(rtJitterMin) > m_JitterLimit)
     {
         DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
         m_rtStart -= rtJitterMin;

@@ -1355,20 +1355,6 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
         }
     }
 
-    WCHAR fileName[1024];
-    GetModuleFileName(nullptr, fileName, 1024);
-    std::wstring processName = PathFindFileName(fileName);
-
-    if (m_bHasVideo == -1)
-    {
-        m_bHasVideo =
-            _wcsicmp(processName.c_str(), L"dllhost.exe") == 0 || _wcsicmp(processName.c_str(), L"explorer.exe") == 0 ||
-            _wcsicmp(processName.c_str(), L"ReClockHelper.dll") == 0 ||
-            _wcsicmp(processName.c_str(), L"dvbviewer.exe") == 0 || HasSourceWithType(m_pInput, MEDIATYPE_Video) ||
-            m_pInput->CurrentMediaType().majortype != MEDIATYPE_Audio;
-    }
-    DbgLog((LOG_TRACE, 10, L"-> Do we have video? %d", m_bHasVideo));
-
     // If the codec is bitstreaming, and enabled for it, go there now
     if (IsBitstreaming(codec))
     {
@@ -2682,7 +2668,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
         REFERENCE_TIME rtJitter = rtStart - buffer.rtStart;
         m_faJitter.Sample(rtJitter);
         REFERENCE_TIME rtJitterMin = m_faJitter.AbsMinimum();
-        if (m_settings.AutoAVSync && abs(rtJitterMin) > m_JitterLimit && m_bHasVideo)
+        if (m_settings.AutoAVSync && abs(rtJitterMin) > m_JitterLimit)
         {
             DbgLog((LOG_TRACE, 10, L"::Deliver(): corrected A/V sync by %I64d", rtJitterMin));
             m_rtStart -= rtJitterMin;
@@ -2819,7 +2805,6 @@ HRESULT CLAVAudio::BreakConnect(PIN_DIRECTION dir)
     if (dir == PINDIR_INPUT)
     {
         ffmpeg_shutdown();
-        m_bHasVideo = -1;
     }
     return __super::BreakConnect(dir);
 }

@@ -286,8 +286,6 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     LAVAudioSampleFormat m_FallbackFormat = SampleFormat_None;
     DWORD m_dwOverrideMixer = 0;
 
-    int m_bHasVideo = -1;
-
     AVAudioResampleContext *m_avrContext = nullptr;
     LAVAudioSampleFormat m_sfRemixFormat = SampleFormat_None;
     DWORD m_dwRemixLayout = 0;
