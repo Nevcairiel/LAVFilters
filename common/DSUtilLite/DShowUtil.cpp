@@ -537,7 +537,7 @@ HRESULT FindFilterSafe(IPin *pPin, const GUID &guid, IBaseFilter **ppFilter, BOO
 // ppFilter - variable that'll receive a AddRef'd reference to the filter
 BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType)
 {
-    CheckPointer(pPin, E_POINTER);
+    CheckPointer(pPin, false);
     BOOL bFound = FALSE;
 
     PIN_DIRECTION dir;
@@ -586,6 +586,58 @@ BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType)
         SafeRelease(&pFilter);
         SafeRelease(&pOtherPin);
     }
+    return bFound;
+}
+
+// Similar to HasSourceWithType but also checks forward pins for future backwards joins
+BOOL HasSourceWithTypeAdvanced(IPin *pPinInput, IPin *pPinOutput, const GUID &mediaType)
+{
+    // check the input pin backwards first
+    if (pPinInput && HasSourceWithType(pPinInput, mediaType))
+        return true;
+
+    if (pPinOutput == NULL)
+        return false;
+
+    // and check the tree forwards
+    BOOL bFound = FALSE;
+    IPin *pOtherPin = nullptr;
+    if (SUCCEEDED(pPinOutput->ConnectedTo(&pOtherPin)) && pOtherPin)
+    {
+        IBaseFilter *pFilter = GetFilterFromPin(pOtherPin);
+
+        HRESULT hrFilter = E_NOINTERFACE;
+        IEnumPins *pPinEnum = nullptr;
+        pFilter->EnumPins(&pPinEnum);
+
+        // Iterate over pins of the filter..
+        HRESULT hrPin = E_FAIL;
+        for (IPin *pOtherPin2 = nullptr; !bFound && pPinEnum->Next(1, &pOtherPin2, 0) == S_OK; pOtherPin2 = nullptr)
+        {
+            // ignore the pint we're connected to
+            if (pOtherPin2 != pOtherPin)
+            {
+                PIN_DIRECTION pinDir;
+                pOtherPin2->QueryDirection(&pinDir);
+
+                // if its another input, go backwards there
+                if (pinDir == PINDIR_INPUT)
+                {
+                    bFound = HasSourceWithType(pOtherPin2, mediaType);
+                }
+                // if its an output, go forwards
+                else if (pinDir == PINDIR_OUTPUT)
+                {
+                    bFound = HasSourceWithTypeAdvanced(NULL, pOtherPin2, mediaType);
+                }
+            }
+            SafeRelease(&pOtherPin2);
+        }
+        SafeRelease(&pPinEnum);
+        SafeRelease(&pFilter);
+        SafeRelease(&pOtherPin);
+    }
+
     return bFound;
 }
 

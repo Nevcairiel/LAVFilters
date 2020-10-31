@@ -137,6 +137,7 @@ extern HRESULT FindPinIntefaceInGraph(IPin *pPin, REFIID refiid, void **pUnknown
 extern HRESULT FindFilterSafe(IPin *pPin, const GUID &guid, IBaseFilter **ppFilter, BOOL bReverse = FALSE);
 extern BOOL FilterInGraphSafe(IPin *pPin, const GUID &guid, BOOL bReverse = FALSE);
 extern BOOL HasSourceWithType(IPin *pPin, const GUID &mediaType);
+extern BOOL HasSourceWithTypeAdvanced(IPin *pPinInput, IPin *pPinOutput, const GUID &mediaType);
 
 std::wstring WStringFromGUID(const GUID &guid);
 BSTR ConvertCharToBSTR(const char *sz);
