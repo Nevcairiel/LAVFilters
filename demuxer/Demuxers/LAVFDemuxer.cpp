@@ -2003,9 +2003,11 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrameCount(UINT &nKFs)
     nKFs = 0;
 
     AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-    for (int i = 0; i < stream->nb_index_entries; i++)
+    int nb_indexes = 0;
+    AVIndexEntry *index_entries = av_lav_get_index_entries(stream, &nb_indexes);
+    for (int i = 0; i < nb_indexes; i++)
     {
-        if (stream->index_entries[i].flags & AVINDEX_KEYFRAME)
+        if (index_entries[i].flags & AVINDEX_KEYFRAME)
             nKFs++;
     }
     return (nKFs == stream->nb_frames) ? S_FALSE : S_OK;
@@ -2041,11 +2043,13 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID *pFormat, REFERENCE_TIME *pKF
     nKFs = 0;
 
     AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-    for (int i = 0; i < stream->nb_index_entries && nKFs < nKFsMax; i++)
+    int nb_indexes = 0;
+    AVIndexEntry *index_entries = av_lav_get_index_entries(stream, &nb_indexes);
+    for (int i = 0; i < nb_indexes && nKFs < nKFsMax; i++)
     {
-        if (stream->index_entries[i].flags & AVINDEX_KEYFRAME)
+        if (index_entries[i].flags & AVINDEX_KEYFRAME)
         {
-            int64_t timestamp = stream->index_entries[i].timestamp;
+            int64_t timestamp = index_entries[i].timestamp;
 
             // MP4 index timestamps are DTS, seeking expects PTS however, so offset them accordingly to ensure seeking
             // works as expected
