@@ -1228,6 +1228,7 @@ HRESULT CDecD3D11::DeliverD3D11ReadbackDirect(LAVFrame *pFrame)
         texDesc.Usage = D3D11_USAGE_STAGING;
         texDesc.BindFlags = 0;
         texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+        texDesc.MiscFlags = 0;
 
         HRESULT hr = pDeviceContext->device->CreateTexture2D(&texDesc, nullptr, &m_pD3D11StagingTexture);
         if (FAILED(hr))
