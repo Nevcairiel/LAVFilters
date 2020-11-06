@@ -149,7 +149,7 @@ const dxva_mode_t *get_dxva_mode_from_guid(const GUID *guid)
   return nullptr;
 }
 
-int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile)
+int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile, bool b8Bit)
 {
   if (mode->codec != codec)
     return 0;
@@ -161,6 +161,11 @@ int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profil
       if (mode->profiles[i] == profile)
         return 1;
     }
+
+    /* hevc main and main10 are very similar, and in some cases streams can be flagged as main10, but actually contain 8-bit content */
+    if (codec == AV_CODEC_ID_HEVC && mode->profiles[0] == FF_PROFILE_HEVC_MAIN && profile == FF_PROFILE_HEVC_MAIN_10 && b8Bit)
+        return 1;
+
     return 0;
   }
 
@@ -191,10 +196,6 @@ int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile
 
   // check hevc profile/pixfmt
   if (codec == AV_CODEC_ID_HEVC && (!HEVC_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
-    return 1;
-
-  // check for wrong pix_fmt on high bitdepth hevc profile
-  if (codec == AV_CODEC_ID_HEVC && profile == FF_PROFILE_HEVC_MAIN_10 && (pix_fmt == AV_PIX_FMT_YUV420P || pix_fmt == AV_PIX_FMT_YUVJ420P))
     return 1;
 
   // check vp9 profile/pixfmt

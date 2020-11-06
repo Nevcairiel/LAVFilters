@@ -34,7 +34,7 @@ typedef struct
 extern const dxva_mode_t dxva_modes[];
 
 const dxva_mode_t *get_dxva_mode_from_guid(const GUID *guid);
-int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile);
+int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile, bool b8Bit);
 
 int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile, int level, int hwpixfmt);
 

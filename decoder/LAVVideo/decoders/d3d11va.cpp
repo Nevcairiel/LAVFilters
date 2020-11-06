@@ -838,7 +838,7 @@ STDMETHODIMP CDecD3D11::FindVideoServiceConversion(AVCodecID codec, int profile,
     for (unsigned i = 0; dxva_modes[i].name; i++)
     {
         const dxva_mode_t *mode = &dxva_modes[i];
-        if (!check_dxva_mode_compatibility(mode, codec, profile))
+        if (!check_dxva_mode_compatibility(mode, codec, profile, (surface_format == DXGI_FORMAT_NV12)))
             continue;
 
         BOOL supported = FALSE;
