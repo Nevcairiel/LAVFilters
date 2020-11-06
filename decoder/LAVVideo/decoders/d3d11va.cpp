@@ -573,6 +573,8 @@ STDMETHODIMP_(long) CDecD3D11::GetBufferCount(long *pMaxBuffers)
         // Buffers based on max ref frames
         if (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_HEVC)
             buffers = 16;
+        else if (m_nCodecId == AV_CODEC_ID_VP9 || m_nCodecId == AV_CODEC_ID_AV1)
+            buffers = 8;
         else
             buffers = 2;
     }
@@ -596,7 +598,7 @@ STDMETHODIMP_(long) CDecD3D11::GetBufferCount(long *pMaxBuffers)
         *pMaxBuffers = 127;
 
         // VC-1 and VP9 decoding has stricter requirements (decoding flickers otherwise)
-        if (m_nCodecId == AV_CODEC_ID_VC1 || m_nCodecId == AV_CODEC_ID_VP9)
+        if (m_nCodecId == AV_CODEC_ID_VC1 || m_nCodecId == AV_CODEC_ID_VP9 || m_nCodecId == AV_CODEC_ID_AV1)
             *pMaxBuffers = 32;
     }
 
