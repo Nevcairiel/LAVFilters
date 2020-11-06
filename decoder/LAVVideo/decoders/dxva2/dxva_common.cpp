@@ -50,6 +50,9 @@ static const int prof_hevc_main[] = { FF_PROFILE_HEVC_MAIN, FF_PROFILE_UNKNOWN }
 static const int prof_hevc_main10[] = { FF_PROFILE_HEVC_MAIN_10, FF_PROFILE_UNKNOWN };
 static const int prof_vp9_0[] = { FF_PROFILE_VP9_0, FF_PROFILE_UNKNOWN };
 static const int prof_vp9_2_10bit[] = { FF_PROFILE_VP9_2, FF_PROFILE_UNKNOWN };
+static const int prof_av1_0[] = {FF_PROFILE_AV1_MAIN, FF_PROFILE_UNKNOWN};
+static const int prof_av1_1[] = {FF_PROFILE_AV1_HIGH, FF_PROFILE_UNKNOWN};
+static const int prof_av1_2[] = {FF_PROFILE_AV1_PROFESSIONAL, FF_PROFILE_UNKNOWN};
 
 /* XXX Prefered modes must come first */
 // clang-format off
@@ -118,6 +121,13 @@ const dxva_mode_t dxva_modes[] = {
   { "VP9 variable-length decoder, profile 0",                                       &DXVA_ModeVP9_VLD_Profile0,             AV_CODEC_ID_VP9, prof_vp9_0 },
   { "VP9 variable-length decoder, 10bit, profile 2",                                &DXVA_ModeVP9_VLD_10bit_Profile2,       AV_CODEC_ID_VP9, prof_vp9_2_10bit },
   { "VP8 variable-length decoder",                                                  &DXVA_ModeVP8_VLD,                      0 },
+
+  /* AV1 */
+  { "AV1 variable-length decoder, profile 0",                                       &DXVA_ModeAV1_VLD_Profile0,             0 },
+  { "AV1 variable-length decoder, profile 1",                                       &DXVA_ModeAV1_VLD_Profile1,             0 },
+  { "AV1 variable-length decoder, profile 2",                                       &DXVA_ModeAV1_VLD_Profile2,             0 },
+  { "AV1 variable-length decoder, profile 2 12-bit",                                &DXVA_ModeAV1_VLD_12bit_Profile2,       0 },
+  { "AV1 variable-length decoder, profile 2 12-bit 4:2:0",                          &DXVA_ModeAV1_VLD_12bit_Profile2_420,   0 },
 
   /* Intel specific modes (only useful on older GPUs) */
   { "H.264 variable-length decoder, no film grain technology (Intel ClearVideo)",   &DXVADDI_Intel_ModeH264_E,              AV_CODEC_ID_H264, prof_h264_high },
