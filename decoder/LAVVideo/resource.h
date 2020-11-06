@@ -96,6 +96,7 @@
 #define IDC_LBL_HWACCEL_DEVICE_HINT     1087
 #define IDC_HWACCEL_CUVID_DXVA          1088
 #define IDC_HWACCEL_H264MVC             1089
+#define IDC_HWACCEL_AV1                 1090
 
 // Next default values for new objects
 // 
@@ -103,7 +104,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        111
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1088
+#define _APS_NEXT_CONTROL_VALUE         1091
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -130,6 +130,9 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
     bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VP9, BM_GETCHECK, 0, 0);
     m_pVideoSettings->SetHWAccelCodec(HWCodec_VP9, bFlag);
 
+    bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AV1, BM_GETCHECK, 0, 0);
+    m_pVideoSettings->SetHWAccelCodec(HWCodec_AV1, bFlag);
+
     bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264MVC, BM_GETCHECK, 0, 0);
     m_pVideoSettings->SetHWAccelCodec(HWCodec_H264MVC, bFlag);
 
@@ -262,6 +265,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintW3FDIFC);
 
     addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
+    addHint(IDC_HWACCEL_H264MVC, L"Intel GPU only.\nMVC acceleration is not supported on other graphics cards.");
     addHint(IDC_HWACCEL_CUVID_DXVA, L"Enable DXVA video processing for CUVID decoding, enables hybrid decoding and can "
                                     L"affect deinterlacing quality.\n\nNote: Using DXVA2-CopyBack is recommended for "
                                     L"hybrid decoding instead of using CUVID in DXVA mode.");
@@ -331,6 +335,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
         SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2_DVD, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2DVD], 0);
         SendDlgItemMessage(m_Dlg, IDC_HWACCEL_HEVC, BM_SETCHECK, m_HWAccelCodecs[HWCodec_HEVC], 0);
         SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VP9, BM_SETCHECK, m_HWAccelCodecs[HWCodec_VP9], 0);
+        SendDlgItemMessage(m_Dlg, IDC_HWACCEL_AV1, BM_SETCHECK, m_HWAccelCodecs[HWCodec_AV1], 0);
         SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264MVC, BM_SETCHECK, m_HWAccelCodecs[HWCodec_H264MVC], 0);
 
         SendDlgItemMessage(m_Dlg, IDC_HWRES_SD, BM_SETCHECK, !!(m_HWRes & LAVHWResFlag_SD), 0);
@@ -390,6 +395,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
     BOOL bDVD = bEnabled && (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_GETCHECK, 0, 0);
     BOOL bHEVC = bEnabled && (hwAccel != HWAccel_QuickSync);
     BOOL bVP9 = bEnabled && (hwAccel != HWAccel_QuickSync);
+    BOOL bAV1 = bEnabled && (hwAccel != HWAccel_QuickSync) && (hwAccel != HWAccel_CUDA);
 
     ShowWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_CUVID_DXVA),
                (hwAccel == HWAccel_CUDA && !IsWindows10OrNewer()) ? SW_SHOW : SW_HIDE);
@@ -402,6 +408,7 @@ HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
     EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_MPEG4), bCUDAOnly);
     EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_HEVC), bHEVC);
     EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_VP9), bVP9);
+    EnableWindow(GetDlgItem(m_Dlg, IDC_HWACCEL_AV1), bAV1);
 
     EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_SD), bEnabled);
     EnableWindow(GetDlgItem(m_Dlg, IDC_HWRES_HD), bEnabled);
@@ -788,6 +795,14 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
         {
             bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
             if (bValue != m_HWAccelCodecs[HWCodec_VP9])
+            {
+                SetDirty();
+            }
+        }
+        else if (LOWORD(wParam) == IDC_HWACCEL_AV1 && HIWORD(wParam) == BN_CLICKED)
+        {
+            bValue = (BOOL)SendDlgItemMessage(m_Dlg, LOWORD(wParam), BM_GETCHECK, 0, 0);
+            if (bValue != m_HWAccelCodecs[HWCodec_AV1])
             {
                 SetDirty();
             }
