@@ -95,7 +95,8 @@ class CDecDXVA2 : public CDecAvcodec
 
     HRESULT CreateD3DDeviceManager(IDirect3DDevice9 *pDevice, UINT *pReset, IDirect3DDeviceManager9 **ppManager);
     HRESULT CreateDXVAVideoService(IDirect3DDeviceManager9 *pManager, IDirectXVideoDecoderService **ppService);
-    HRESULT FindVideoServiceConversion(AVCodecID codec, int profile, GUID *input, D3DFORMAT *output);
+    HRESULT FindVideoServiceConversion(AVCodecID codec, int profile, D3DFORMAT suggestedOutput, GUID *input,
+                                       D3DFORMAT *output);
     HRESULT FindDecoderConfiguration(const GUID &input, const DXVA2_VideoDesc *pDesc,
                                      DXVA2_ConfigPictureDecode *pConfig);
 

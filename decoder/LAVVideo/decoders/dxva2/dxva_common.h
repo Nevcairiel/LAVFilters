@@ -29,7 +29,6 @@ typedef struct
     const GUID *guid;
     int codec;
     const int *profiles;
-    int high_bit_depth;
 } dxva_mode_t;
 
 extern const dxva_mode_t dxva_modes[];

@@ -121,6 +121,18 @@ static int IsAMDUVD(DWORD dwDeviceId)
     return 0;
 }
 
+static D3DFORMAT get_dxva_surface_format(AVCodecContext *ctx)
+{
+    if (ctx->sw_pix_fmt == AV_PIX_FMT_YUV420P || ctx->sw_pix_fmt == AV_PIX_FMT_YUVJ420P || ctx->sw_pix_fmt == AV_PIX_FMT_NV12)
+        return (D3DFORMAT)FOURCC_NV12;
+    else if (ctx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || ctx->sw_pix_fmt == AV_PIX_FMT_P010)
+        return (D3DFORMAT)FOURCC_P010;
+
+    ASSERT(0);
+    return (D3DFORMAT)FOURCC_NV12;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // DXVA2 decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
@@ -465,7 +477,7 @@ done:
     return hr;
 }
 
-HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, int profile, GUID *input, D3DFORMAT *output)
+HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, int profile, D3DFORMAT suggestedOutput, GUID *input, D3DFORMAT *output)
 {
     HRESULT hr = S_OK;
 
@@ -527,12 +539,7 @@ HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, int profile, GUID
         {
             const D3DFORMAT f = out_list[j];
             DbgLog((LOG_TRACE, 10, L"  -> %d is supported (%4.4S)", f, (const char *)&f));
-            if (mode->high_bit_depth && (f == FOURCC_P010 || f == FOURCC_P016))
-            {
-                matchingFormat = TRUE;
-                format = f;
-            }
-            else if (!mode->high_bit_depth && f == FOURCC_NV12)
+            if (suggestedOutput == f || (suggestedOutput == FOURCC_P010 && f == FOURCC_P016))
             {
                 matchingFormat = TRUE;
                 format = f;
@@ -540,7 +547,7 @@ HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, int profile, GUID
         }
         if (matchingFormat)
         {
-            DbgLog((LOG_TRACE, 10, L"-> Found matching output format, finished setup"));
+            DbgLog((LOG_TRACE, 10, L"-> Found matching output format, finished setup with render target %d (%4.4S)", format, (const char *)&format));
             *input = *mode->guid;
             *output = format;
 
@@ -838,7 +845,7 @@ HRESULT CDecDXVA2::SetD3DDeviceManager(IDirect3DDeviceManager9 *pDevManager)
 
         GUID input = GUID_NULL;
         D3DFORMAT output;
-        hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, &input, &output);
+        hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, get_dxva_surface_format(m_pAVCtx), &input, &output);
         if (FAILED(hr))
         {
             DbgLog((LOG_TRACE, 10, L"-> No decoder device available that can decode codec '%S' to a matching output",
@@ -1039,14 +1046,13 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     {
         return hr;
     }
-
     // If we have a DXVA Decoder, check if its capable
     // If we don't have one yet, it may be handed to us later, and compat is checked at that point
     GUID input = GUID_NULL;
     D3DFORMAT output = D3DFMT_UNKNOWN;
     if (m_pDXVADecoderService)
     {
-        hr = FindVideoServiceConversion(codec, m_pAVCtx->profile, &input, &output);
+        hr = FindVideoServiceConversion(codec, m_pAVCtx->profile, get_dxva_surface_format(m_pAVCtx), &input, &output);
         if (FAILED(hr))
         {
             DbgLog((LOG_TRACE, 10, L"-> No decoder device available that can decode codec '%S' to a matching output",
@@ -1056,15 +1062,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     }
     else
     {
-        bool bHighBitdepth =
-            (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC &&
-             (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10)) ||
-            (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 &&
-             (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_VP9_2));
-        if (bHighBitdepth)
-            output = (D3DFORMAT)FOURCC_P010;
-        else
-            output = (D3DFORMAT)FOURCC_NV12;
+        output = get_dxva_surface_format(m_pAVCtx);
     }
 
     if (check_dxva_codec_profile(m_pAVCtx->codec_id, m_pAVCtx->pix_fmt, m_pAVCtx->profile, m_pAVCtx->level, AV_PIX_FMT_DXVA2_VLD))
@@ -1194,7 +1192,7 @@ HRESULT CDecDXVA2::CreateDXVA2Decoder(int nSurfaces, IDirect3DSurface9 **ppSurfa
 
     GUID input = GUID_NULL;
     D3DFORMAT output;
-    FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, &input, &output);
+    FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, get_dxva_surface_format(m_pAVCtx),&input, &output);
 
     if (!nSurfaces)
     {
@@ -1386,7 +1384,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
             {
                 GUID input;
                 D3DFORMAT output;
-                FindVideoServiceConversion(c->codec_id, c->profile, &input, &output);
+                FindVideoServiceConversion(c->codec_id, c->profile, get_dxva_surface_format(m_pAVCtx), &input, &output);
 
                 if (output == m_eSurfaceFormat)
                 {
@@ -1402,7 +1400,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
             m_DecoderPixelFormat = c->sw_pix_fmt;
 
             GUID input;
-            FindVideoServiceConversion(c->codec_id, c->profile, &input, &m_eSurfaceFormat);
+            FindVideoServiceConversion(c->codec_id, c->profile, get_dxva_surface_format(m_pAVCtx), &input, &m_eSurfaceFormat);
 
             // Re-Commit the allocator (creates surfaces and new decoder)
             hr = m_pDXVA2Allocator->Decommit();
