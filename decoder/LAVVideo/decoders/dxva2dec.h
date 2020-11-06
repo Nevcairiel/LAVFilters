@@ -81,6 +81,7 @@ class CDecDXVA2 : public CDecAvcodec
     HRESULT PostDecode();
     HRESULT HandleDXVA2Frame(LAVFrame *pFrame);
     HRESULT DeliverDXVA2Frame(LAVFrame *pFrame);
+    BOOL IsHardwareAccelerator() { return TRUE; }
 
     bool CopyFrame(LAVFrame *pFrame);
     bool DeliverDirect(LAVFrame *pFrame);

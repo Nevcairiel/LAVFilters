@@ -80,6 +80,8 @@ class CDecD3D11 : public CDecAvcodec
     HRESULT DeliverD3D11Readback(LAVFrame *pFrame);
     HRESULT DeliverD3D11ReadbackDirect(LAVFrame *pFrame);
 
+    BOOL IsHardwareAccelerator() { return TRUE; }
+
   private:
     STDMETHODIMP DestroyDecoder(bool bFull);
 

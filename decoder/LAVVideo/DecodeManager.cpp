@@ -53,7 +53,8 @@ STDMETHODIMP CDecodeManager::Close()
        m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG2DVD))) ||                                                     \
      (codec == AV_CODEC_ID_MPEG4 && m_pLAVVideo->GetHWAccelCodec(HWCodec_MPEG4)) ||                            \
      (codec == AV_CODEC_ID_HEVC && m_pLAVVideo->GetHWAccelCodec(HWCodec_HEVC)) ||                              \
-     (codec == AV_CODEC_ID_VP9 && m_pLAVVideo->GetHWAccelCodec(HWCodec_VP9)))
+     (codec == AV_CODEC_ID_VP9 && m_pLAVVideo->GetHWAccelCodec(HWCodec_VP9))  ||                               \
+     (codec == AV_CODEC_ID_AV1 && m_pLAVVideo->GetHWAccelCodec(HWCodec_AV1)))
 
 #define HWRESOLUTION_ENABLED                                                                                           \
     ((pBMI->biHeight <= 576 && pBMI->biWidth <= 1024 && m_pLAVVideo->GetHWAccelResolutionFlags() & LAVHWResFlag_SD) || \

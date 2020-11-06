@@ -323,6 +323,10 @@ HRESULT CLAVVideo::ReadSettings(HKEY rootKey)
         if (SUCCEEDED(hr))
             m_settings.bHWFormats[HWCodec_H264MVC] = bFlag;
 
+        bFlag = regHW.ReadBOOL(L"av1", hr);
+        if (SUCCEEDED(hr))
+            m_settings.bHWFormats[HWCodec_AV1] = bFlag;
+
         dwVal = regHW.ReadDWORD(L"HWResFlags", hr);
         if (SUCCEEDED(hr))
             m_settings.HWAccelResFlags = dwVal;
@@ -406,6 +410,7 @@ HRESULT CLAVVideo::SaveSettings()
         regHW.WriteBOOL(L"hevc", m_settings.bHWFormats[HWCodec_HEVC]);
         regHW.WriteBOOL(L"vp9", m_settings.bHWFormats[HWCodec_VP9]);
         regHW.WriteBOOL(L"h264mvc", m_settings.bHWFormats[HWCodec_H264MVC]);
+        regHW.WriteBOOL(L"av1", m_settings.bHWFormats[HWCodec_AV1]);
 
         regHW.WriteDWORD(L"HWResFlags", m_settings.HWAccelResFlags);
 

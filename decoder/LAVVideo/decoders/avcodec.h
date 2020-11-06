@@ -56,6 +56,7 @@ class CDecAvcodec : public CDecBase
     virtual HRESULT AdditionaDecoderInit() { return S_FALSE; }
     virtual HRESULT PostDecode() { return S_FALSE; }
     virtual HRESULT HandleDXVA2Frame(LAVFrame *pFrame) { return S_FALSE; }
+    virtual BOOL IsHardwareAccelerator() { return FALSE; }
     STDMETHODIMP DestroyDecoder();
 
     STDMETHODIMP FillAVPacketData(AVPacket *avpkt, const BYTE *buffer, int buflen, IMediaSample *pSample,

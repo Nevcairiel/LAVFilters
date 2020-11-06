@@ -306,7 +306,14 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     BITMAPINFOHEADER *pBMI = nullptr;
     videoFormatTypeHandler((const BYTE *)pmt->Format(), pmt->FormatType(), &pBMI);
 
-    m_pAVCodec = avcodec_find_decoder(codec);
+    if (codec == AV_CODEC_ID_AV1 && IsHardwareAccelerator())
+    {
+        m_pAVCodec = avcodec_find_decoder_by_name("av1");
+    }
+    else
+    {
+        m_pAVCodec = avcodec_find_decoder(codec);
+    }
     CheckPointer(m_pAVCodec, VFW_E_UNSUPPORTED_VIDEO);
 
     m_pAVCtx = avcodec_alloc_context3(m_pAVCodec);
