@@ -513,15 +513,7 @@ STDMETHODIMP CDecD3D11::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     }
 
     // initialize surface format to ensure the default media type is set properly
-    bool bHighBitdepth = (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC && (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 ||
-                                                                     m_pAVCtx->profile == FF_PROFILE_HEVC_MAIN_10)) ||
-                         (m_pAVCtx->codec_id == AV_CODEC_ID_VP9 &&
-                          (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || m_pAVCtx->profile == FF_PROFILE_VP9_2));
-    if (bHighBitdepth)
-        m_SurfaceFormat = DXGI_FORMAT_P010;
-    else
-        m_SurfaceFormat = DXGI_FORMAT_NV12;
-
+    m_SurfaceFormat = d3d11va_map_sw_to_hw_format(m_pAVCtx->sw_pix_fmt);
     m_dwSurfaceWidth = dxva_align_dimensions(m_pAVCtx->codec_id, m_pAVCtx->coded_width);
     m_dwSurfaceHeight = dxva_align_dimensions(m_pAVCtx->codec_id, m_pAVCtx->coded_height);
 
