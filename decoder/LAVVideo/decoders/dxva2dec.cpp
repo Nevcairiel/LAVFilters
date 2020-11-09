@@ -32,9 +32,10 @@
 #include <evr.h>
 #include "libavcodec/dxva2.h"
 
-#include "gpu_memcpy_sse4.h"
-
-#include <ppl.h>
+extern "C"
+{
+    #include "libavutil/imgutils.h"
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -136,49 +137,6 @@ static D3DFORMAT get_dxva_surface_format(AVCodecContext *ctx)
 ////////////////////////////////////////////////////////////////////////////////
 // DXVA2 decoder implementation
 ////////////////////////////////////////////////////////////////////////////////
-
-static void (*CopyFrameNV12)(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight, size_t imageHeight,
-                             size_t pitch) = nullptr;
-
-static void CopyFrameNV12_fallback(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight,
-                                   size_t imageHeight, size_t pitch)
-{
-    const size_t size = imageHeight * pitch;
-    memcpy(pY, pSourceData, size);
-    memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
-}
-
-static void CopyFrameNV12_fallback_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight,
-                                      size_t imageHeight, size_t pitch)
-{
-    const size_t halfSize = (imageHeight * pitch) >> 1;
-    Concurrency::parallel_for(0, 3, [&](int i) {
-        if (i < 2)
-            memcpy(pY + (halfSize * i), pSourceData + (halfSize * i), halfSize);
-        else
-            memcpy(pUV, pSourceData + (surfaceHeight * pitch), halfSize);
-    });
-}
-
-static void CopyFrameNV12_SSE4(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight, size_t imageHeight,
-                               size_t pitch)
-{
-    const size_t size = imageHeight * pitch;
-    gpu_memcpy(pY, pSourceData, size);
-    gpu_memcpy(pUV, pSourceData + (surfaceHeight * pitch), size >> 1);
-}
-
-static void CopyFrameNV12_SSE4_MT(const BYTE *pSourceData, BYTE *pY, BYTE *pUV, size_t surfaceHeight,
-                                  size_t imageHeight, size_t pitch)
-{
-    const size_t halfSize = (imageHeight * pitch) >> 1;
-    Concurrency::parallel_for(0, 3, [&](int i) {
-        if (i < 2)
-            gpu_memcpy(pY + (halfSize * i), pSourceData + (halfSize * i), halfSize);
-        else
-            gpu_memcpy(pUV, pSourceData + (surfaceHeight * pitch), halfSize);
-    });
-}
 
 CDecDXVA2::CDecDXVA2(void)
     : CDecAvcodec()
@@ -965,27 +923,6 @@ STDMETHODIMP CDecDXVA2::Init()
             DbgLog((LOG_TRACE, 10, L"-> SetD3DDeviceManager failed with hr: %X", hr));
             return E_FAIL;
         }
-
-        if (CopyFrameNV12 == nullptr)
-        {
-            int cpu_flags = av_get_cpu_flags();
-            if (cpu_flags & AV_CPU_FLAG_SSE4)
-            {
-                DbgLog((LOG_TRACE, 10, L"-> Using SSE4 frame copy"));
-                if (m_dwVendorId == VEND_ID_INTEL)
-                    CopyFrameNV12 = CopyFrameNV12_SSE4_MT;
-                else
-                    CopyFrameNV12 = CopyFrameNV12_SSE4;
-            }
-            else
-            {
-                DbgLog((LOG_TRACE, 10, L"-> Using fallback frame copy"));
-                if (m_dwVendorId == VEND_ID_INTEL)
-                    CopyFrameNV12 = CopyFrameNV12_fallback_MT;
-                else
-                    CopyFrameNV12 = CopyFrameNV12_fallback;
-            }
-        }
     }
 
     // Init the ffmpeg parts
@@ -1769,8 +1706,10 @@ __forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
     }
 
     // Copy surface onto memory buffers
-    CopyFrameNV12((BYTE *)LockedRect.pBits, pFrame->data[0], pFrame->data[1], surfaceDesc.Height, pFrame->height,
-                  LockedRect.Pitch);
+
+    const uint8_t *src[4] = {(const uint8_t *)LockedRect.pBits, ((const uint8_t *)LockedRect.pBits) + (LockedRect.Pitch * surfaceDesc.Height), 0, 0};
+    const ptrdiff_t src_pitch[4] = {LockedRect.Pitch, LockedRect.Pitch, 0, 0};
+    av_image_copy_uc_from(pFrame->data, pFrame->stride, src, src_pitch, (pFrame->format == LAVPixFmt_P016) ? AV_PIX_FMT_P010 : AV_PIX_FMT_NV12, pFrame->width, pFrame->height);
 
     pSurface->UnlockRect();
 
