@@ -202,7 +202,7 @@ DECLARE_CONV_FUNC_IMPL(convert_p010_nv12_direct_sse4)
     const ptrdiff_t chromaHeight = (height >> 1);
 
     const ptrdiff_t byteWidth = width << 1;
-    const ptrdiff_t stride = min(FFALIGN(byteWidth, 64), min(inStride, outStride));
+    const ptrdiff_t stride = min(FFALIGN(byteWidth, 64), min(inStride, outStride << 1));
 
     LAVDitherMode ditherMode = m_pSettings->GetDitherMode();
     const uint16_t *dithers = GetRandomDitherCoeffs(height, 4, 8, 0);
