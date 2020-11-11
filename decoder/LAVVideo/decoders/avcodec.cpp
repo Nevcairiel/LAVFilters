@@ -711,6 +711,11 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
             m_pAVCtx->sw_pix_fmt = lavPinInfo.pix_fmt;
     }
 
+    // Ensure software pixfmt is set, so hardware accels can use it immediately
+    if (m_pAVCtx->sw_pix_fmt == AV_PIX_FMT_NONE && m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != AV_PIX_FMT_D3D11)
+        m_pAVCtx->sw_pix_fmt = m_pAVCtx->pix_fmt;
+
+
     DbgLog((LOG_TRACE, 10, L"AVCodec init successfull. interlaced: %d", m_iInterlaced));
 
     return S_OK;
