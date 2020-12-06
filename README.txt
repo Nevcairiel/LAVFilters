@@ -110,17 +110,17 @@ build a proper ffmpeg included.
 
 I recommend using my fork of ffmpeg, as it includes additional patches for 
 media compatibility:
-http://git.1f0.de/gitweb?p=ffmpeg.git;a=summary
+https://git.1f0.de/gitweb?p=ffmpeg.git;a=summary
 
 libbluray is compiled with the MSVC project files, however a specially modified
 version of libbluray is required. Similar to ffmpeg, just place the full tree
 inside the "libbluray" directory in the main directory.
 
 You can get the modified version here:
-http://git.1f0.de/gitweb?p=libbluray.git;a=summary
+https://git.1f0.de/gitweb?p=libbluray.git;a=summary
 
 Feedback
 =============================
 GitHub Project: https://github.com/Nevcairiel/LAVFilters
-Doom9: http://forum.doom9.org/showthread.php?t=156191
+Doom9: https://forum.doom9.org/showthread.php?t=156191
 You can, additionally, reach me on IRC in the MPC-HC channel on freenode (#mpc-hc)
