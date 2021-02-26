@@ -1233,7 +1233,7 @@ STDMETHODIMP CLAVFDemuxer::CreatePacketMediaType(Packet *pPacket, enum AVCodecID
                     memcpy((BYTE *)vih2 + sizeof(VIDEOINFOHEADER2), extradata, extradata_size);
                 }
             }
-            else if (codec_id == AV_CODEC_ID_SSA)
+            else if (codec_id == AV_CODEC_ID_ASS)
             {
                 SUBTITLEINFO *sif = (SUBTITLEINFO *)pmt->ReallocFormatBuffer(sizeof(SUBTITLEINFO) + extradata_size);
                 memcpy((BYTE *)sif + sizeof(SUBTITLEINFO), extradata, extradata_size);
