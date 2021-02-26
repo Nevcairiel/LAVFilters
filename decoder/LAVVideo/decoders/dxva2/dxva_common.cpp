@@ -172,39 +172,47 @@ int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profil
   return 1;
 }
 
-int check_dxva_codec_profile(AVCodecID codec, AVPixelFormat pix_fmt, int profile, int level, int hwpixfmt)
+#define H264_MAX_REF_DPB(ctx, dpbsize, dpblimit, mbcount) (min(dpblimit, (dpbsize) / (mbcount)))
+
+int check_dxva_codec_profile(const AVCodecContext *ctx, int hwpixfmt)
 {
-  // check mpeg2 pixfmt
-  if (codec == AV_CODEC_ID_MPEG2VIDEO && pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)
-    return 1;
+    AVCodecID codec = ctx->codec_id;
+    AVPixelFormat pix_fmt = ctx->pix_fmt;
+    int profile = ctx->profile;
+    int level = ctx->level;
 
-  // check h264 pixfmt
-  if (codec == AV_CODEC_ID_H264 && pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)
-    return 1;
+    // check mpeg2 pixfmt
+    if (codec == AV_CODEC_ID_MPEG2VIDEO && pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)
+        return 1;
 
-  // check h264 profile
-  if (codec == AV_CODEC_ID_H264 && profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(profile))
-    return 1;
+    // check h264 pixfmt
+    if (codec == AV_CODEC_ID_H264 && pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)
+        return 1;
 
-  // check h264 level
-  if (codec == AV_CODEC_ID_H264 && level >= 60)
-      return 1;
+    // check h264 profile
+    if (codec == AV_CODEC_ID_H264 && profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(profile))
+        return 1;
 
-  // check wmv/vc1 profile
-  if ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && profile == FF_PROFILE_VC1_COMPLEX)
-    return 1;
+    // H.264 Level 5.1 ref frame limits
+    const int h264mb_count = (ctx->coded_width / 16) * (ctx->coded_height / 16);
+    if (codec == AV_CODEC_ID_H264 && h264mb_count > 0 && ctx->refs > H264_MAX_REF_DPB(ctx, 184320, 16, h264mb_count))
+        return 1;
 
-  // check hevc profile/pixfmt
-  if (codec == AV_CODEC_ID_HEVC && (!HEVC_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
-    return 1;
+    // check wmv/vc1 profile
+    if ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && profile == FF_PROFILE_VC1_COMPLEX)
+        return 1;
 
-  // check vp9 profile/pixfmt
-  if (codec == AV_CODEC_ID_VP9 && (!VP9_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
-    return 1;
+    // check hevc profile/pixfmt
+    if (codec == AV_CODEC_ID_HEVC && (!HEVC_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
+        return 1;
 
-  // check av1 profile/pixfmt
-  if (codec == AV_CODEC_ID_AV1 && (profile != FF_PROFILE_AV1_MAIN || (pix_fmt != AV_PIX_FMT_YUV420P  && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
-      return 1;
+    // check vp9 profile/pixfmt
+    if (codec == AV_CODEC_ID_VP9 && (!VP9_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
+        return 1;
 
-  return 0;
+    // check av1 profile/pixfmt
+    if (codec == AV_CODEC_ID_AV1 && (profile != FF_PROFILE_AV1_MAIN || (pix_fmt != AV_PIX_FMT_YUV420P  && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
+        return 1;
+
+    return 0;
 }
