@@ -2329,7 +2329,7 @@ enum
 /* Major version number is the value of __GNU_MP__ too, above. */
 #define __GNU_MP_VERSION            6
 #define __GNU_MP_VERSION_MINOR      2
-#define __GNU_MP_VERSION_PATCHLEVEL 0
+#define __GNU_MP_VERSION_PATCHLEVEL 1
 #define __GNU_MP_RELEASE (__GNU_MP_VERSION * 10000 + __GNU_MP_VERSION_MINOR * 100 + __GNU_MP_VERSION_PATCHLEVEL)
 
 #define __GMP_H__

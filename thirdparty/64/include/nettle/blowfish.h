@@ -46,6 +46,8 @@ extern "C" {
 #define blowfish128_set_key nettle_blowfish128_set_key
 #define blowfish_encrypt nettle_blowfish_encrypt
 #define blowfish_decrypt nettle_blowfish_decrypt
+#define blowfish_bcrypt_hash nettle_blowfish_bcrypt_hash
+#define blowfish_bcrypt_verify nettle_blowfish_bcrypt_verify
 
 #define BLOWFISH_BLOCK_SIZE 8
 
@@ -59,6 +61,9 @@ extern "C" {
 #define BLOWFISH128_KEY_SIZE 16
 
 #define _BLOWFISH_ROUNDS 16
+
+#define BLOWFISH_BCRYPT_HASH_SIZE (60 + 1) /* Including null-terminator */
+#define BLOWFISH_BCRYPT_BINSALT_SIZE 16    /* Binary string size */
 
 struct blowfish_ctx
 {
@@ -81,6 +86,18 @@ void
 blowfish_decrypt(const struct blowfish_ctx *ctx,
                  size_t length, uint8_t *dst,
                  const uint8_t *src);
+
+/* dst parameter must point to a buffer of minimally
+ * BLOWFISH_BCRYPT_HASH_SIZE bytes */
+int
+blowfish_bcrypt_hash(uint8_t *dst,
+                     size_t lenkey, const uint8_t *key,
+                     size_t lenscheme, const uint8_t *scheme,
+		     int log2rounds,
+		     const uint8_t *salt);
+int
+blowfish_bcrypt_verify(size_t lenkey, const uint8_t *key,
+                       size_t lenhashed, const uint8_t *hashed);
 
 #ifdef __cplusplus
 }
