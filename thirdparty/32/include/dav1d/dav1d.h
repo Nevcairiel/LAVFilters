@@ -45,6 +45,7 @@ typedef struct Dav1dRef Dav1dRef;
 
 #define DAV1D_MAX_FRAME_THREADS 256
 #define DAV1D_MAX_TILE_THREADS 64
+#define DAV1D_MAX_POSTFILTER_THREADS 256
 
 typedef struct Dav1dLogger {
     void *cookie; ///< Custom data to pass to the callback.
@@ -65,9 +66,10 @@ typedef struct Dav1dSettings {
     int operating_point; ///< select an operating point for scalable AV1 bitstreams (0 - 31)
     int all_layers; ///< output all spatial layers of a scalable AV1 biststream
     unsigned frame_size_limit; ///< maximum frame size, in pixels (0 = unlimited)
-    uint8_t reserved[32]; ///< reserved for future use
     Dav1dPicAllocator allocator; ///< Picture allocator callback.
     Dav1dLogger logger; ///< Logger callback.
+    int n_postfilter_threads;
+    uint8_t reserved[28]; ///< reserved for future use
 } Dav1dSettings;
 
 /**
