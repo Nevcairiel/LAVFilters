@@ -662,7 +662,7 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
     m_bPMP = (_stricmp(m_pszInputFormat, "pmp") == 0);
     m_bMP4 = (_stricmp(m_pszInputFormat, "mp4") == 0);
 
-    m_bTSDiscont = (m_avFormat->iformat->flags & AVFMT_TS_DISCONT) || m_bRM;
+    m_bTSDiscont = (m_avFormat->iformat->flags & AVFMT_TS_DISCONT) || m_bRM || (_stricmp(m_pszInputFormat, "dash") == 0);
 
     WCHAR szProt[24] = L"file";
     if (pszFileName)
