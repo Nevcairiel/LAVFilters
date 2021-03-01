@@ -53,3 +53,14 @@ GMP_CFLAGS="-I$PREFIX/include" GMP_LIBS="-L$PREFIX/lib" PKG_CONFIG_PATH=$PREFIX/
 
 64-bit
 GMP_CFLAGS="-I$PREFIX/include" GMP_LIBS="-L$PREFIX/lib" PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig/ ./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=x86_64-w64-mingw32 --disable-cxx --with-included-libtasn1 --with-included-unistring --without-p11-kit
+
+----------------------------------------------
+libxml2
+
+PREFIX=/tmp/install
+
+32-bit
+./configure --prefix=$PREFIX --disable-shared --build=i686-w64-mingw32 --host=i686-w64-mingw32 --without-threads --without-python --without-ftp --without-http
+
+64-bit
+./configure --prefix=$PREFIX --disable-shared -build=i686-w64-mingw32 --host=x86_64-w64-mingw32 --without-threads --without-python --without-ftp --without-http
