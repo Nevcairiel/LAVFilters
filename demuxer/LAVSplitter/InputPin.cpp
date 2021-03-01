@@ -156,8 +156,24 @@ int CLAVInputPin::Read(void *opaque, uint8_t *buf, int buf_size)
     if (FAILED(hr))
     {
         DbgLog((LOG_TRACE, 10, L"Read failed at pos: %I64d, hr: 0x%X", pin->m_llPos, hr));
-        return -1;
+        return AVERROR_EOF;
     }
+
+    // The URL source can return S_OK even on incomplete reads, so run the length logic by it at all times
+    if (hr == S_OK && pin->m_bURLSource)
+    {
+        LONGLONG total = 0, available = 0;
+        int read = buf_size;
+        if (S_OK == pin->m_pAsyncReader->Length(&total, &available) && total >= pin->m_llPos &&
+            total <= (pin->m_llPos + buf_size))
+        {
+            read = (int)(total - pin->m_llPos);
+            DbgLog((LOG_TRACE, 10, L"At EOF, pos: %I64d, size: %I64d, remainder: %d", pin->m_llPos, total, read));
+        }
+        pin->m_llPos += read;
+        return read > 0 ? read : AVERROR_EOF;
+    }
+
     if (hr == S_FALSE)
     {
         LONGLONG total = 0, available = 0;
