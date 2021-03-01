@@ -65,8 +65,10 @@ configure() (
     --disable-bsfs                  \
     --enable-bsf=extract_extradata,vp9_superframe_split \
     --disable-cuda                  \
+    --disable-cuda-llvm             \
     --disable-cuvid                 \
     --disable-nvenc                 \
+    --disable-mediafoundation       \
     --enable-avresample             \
     --enable-avisynth               \
     --disable-avdevice              \
