@@ -106,7 +106,8 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
     BOOL bRGBPC = (BOOL)SendDlgItemMessage(m_Dlg, IDC_RGBOUT_PC, BM_GETCHECK, 0, 0);
     m_pVideoSettings->SetRGBOutputRange(bRGBAuto ? 0 : bRGBTV ? 1 : 2);
 
-    dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+    LRESULT retVal = SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+    dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETITEMDATA, retVal, 0);
     m_pVideoSettings->SetHWAccel((LAVHWAccel)dwVal);
 
     bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264, BM_GETCHECK, 0, 0);
@@ -187,6 +188,31 @@ HRESULT CLAVVideoSettingsProp::OnApplyChanges()
     return hr;
 }
 
+static void AddComboBoxEntryWithData(HWND hwnd, int nIDDlgItem, WCHAR *pszText, UINT Data)
+{
+    // add the entry
+    LRESULT ret = SendDlgItemMessage(hwnd, nIDDlgItem, CB_ADDSTRING, 0, (LPARAM)pszText);
+    if (ret < 0)
+        return;
+
+    // set its data
+    SendDlgItemMessage(hwnd, nIDDlgItem, CB_SETITEMDATA, ret, Data);
+}
+
+static void SelectComboBoxItemByValue(HWND hwnd, int nIDDlgItem, UINT Data)
+{
+    LRESULT count = SendDlgItemMessage(hwnd, nIDDlgItem, CB_GETCOUNT, 0, 0);
+    for (int i = 0; i < count; i++)
+    {
+        LRESULT ItemData = SendDlgItemMessage(hwnd, nIDDlgItem, CB_GETITEMDATA, i, 0);
+        if (ItemData == Data)
+        {
+            SendDlgItemMessage(hwnd, nIDDlgItem, CB_SETCURSEL, i, 0);
+            break;
+        }
+    }
+}
+
 HRESULT CLAVVideoSettingsProp::OnActivate()
 {
     HRESULT hr = S_OK;
@@ -227,12 +253,12 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     WCHAR hwAccelDXVA2CB[] = L"DXVA2 (copy-back)";
     WCHAR hwAccelDXVA2N[] = L"DXVA2 (native)";
     WCHAR hwAccelD3D11[] = L"D3D11";
-    SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelNone);
-    SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelCUDA);
-    SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelQuickSync);
-    SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelDXVA2CB);
-    SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelDXVA2N);
-    SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_ADDSTRING, 0, (LPARAM)hwAccelD3D11);
+    AddComboBoxEntryWithData(m_Dlg, IDC_HWACCEL, hwAccelNone, HWAccel_None);
+    AddComboBoxEntryWithData(m_Dlg, IDC_HWACCEL, hwAccelCUDA, HWAccel_CUDA);
+    AddComboBoxEntryWithData(m_Dlg, IDC_HWACCEL, hwAccelQuickSync, HWAccel_QuickSync);
+    AddComboBoxEntryWithData(m_Dlg, IDC_HWACCEL, hwAccelDXVA2CB, HWAccel_DXVA2CopyBack);
+    AddComboBoxEntryWithData(m_Dlg, IDC_HWACCEL, hwAccelDXVA2N, HWAccel_DXVA2Native);
+    AddComboBoxEntryWithData(m_Dlg, IDC_HWACCEL, hwAccelD3D11, HWAccel_D3D11);
 
     // Init the fieldorder Combo Box
     SendDlgItemMessage(m_Dlg, IDC_DEINT_FIELDORDER, CB_RESETCONTENT, 0, 0);
@@ -327,7 +353,7 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
         SendDlgItemMessage(m_Dlg, IDC_RGBOUT_TV, BM_SETCHECK, (m_dwRGBOutput == 1), 0);
         SendDlgItemMessage(m_Dlg, IDC_RGBOUT_PC, BM_SETCHECK, (m_dwRGBOutput == 2), 0);
 
-        SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_SETCURSEL, m_HWAccel, 0);
+        SelectComboBoxItemByValue(m_Dlg, IDC_HWACCEL, m_HWAccel);
         SendDlgItemMessage(m_Dlg, IDC_HWACCEL_H264, BM_SETCHECK, m_HWAccelCodecs[HWCodec_H264], 0);
         SendDlgItemMessage(m_Dlg, IDC_HWACCEL_VC1, BM_SETCHECK, m_HWAccelCodecs[HWCodec_VC1], 0);
         SendDlgItemMessage(m_Dlg, IDC_HWACCEL_MPEG2, BM_SETCHECK, m_HWAccelCodecs[HWCodec_MPEG2], 0);
@@ -385,7 +411,8 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
 
 HRESULT CLAVVideoSettingsProp::UpdateHWOptions()
 {
-    LAVHWAccel hwAccel = (LAVHWAccel)SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+    LRESULT lValue = SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETCURSEL, 0, 0);
+    LAVHWAccel hwAccel = (LAVHWAccel)SendDlgItemMessage(m_Dlg, IDC_HWACCEL, CB_GETITEMDATA, lValue, 0);
 
     DWORD dwSupport = m_pVideoSettings->CheckHWAccelSupport(hwAccel);
     BOOL bEnabled = (hwAccel != HWAccel_None) && dwSupport;
@@ -736,6 +763,7 @@ INT_PTR CLAVVideoSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wPa
         else if (HIWORD(wParam) == CBN_SELCHANGE && LOWORD(wParam) == IDC_HWACCEL)
         {
             lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETCURSEL, 0, 0);
+            lValue = SendDlgItemMessage(m_Dlg, LOWORD(wParam), CB_GETITEMDATA, lValue, 0);
             if (lValue != m_HWAccel)
             {
                 SetDirty();
