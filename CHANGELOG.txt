@@ -1,20 +1,31 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.75.0 - 2020/xx/xx
+0.75.0 - 2021/xx/xx
 LAV Splitter
+- NEW: Support for DASH streaming
 - Changed: Improved Font support from Matroska files
 - Fixed: Large queue size limits could result in the wrong limit being applied
 - Fixed: Resolved a memory leak in Matroska demuxing
 - Fixed: Avoid selecting a stream with only a single video frame in MP4 files, which is often a cover art
 - Fixed: Seeking in Matroska files with only audio cue points did not function
+- Fixed: Seeking to the beginning of certain HLS streams did not work properly
+- Fixed: Duration information in Matroska files is more reliable
 
 LAV Video
+- NEW: AV1 DXVA2/D3D11 hardware decoding support
+- NEW: ProRes 4444 XQ support
 - Faster: Updated dav1d decoder and improved thread configuration for significantly improved AV1 decoding speed
-- Fixed: Added a workaround for VP9 hardware decoding on AMD video cards.
+- Fixed: Added a workaround for VP9 hardware decoding on AMD video cards
+- Fixed: H.264 streams exceeding the Level 5.1 DPB limit will no longer be hardware decoded
+- Fixed: Improved handling of missing reference frames in H.264 streams with hardware decoding
+- Fixed: HEVC streams encoding 8-bit video in a Main10 profile can be properly hardware decoded
+- Deprecated: NVIDIA CUVID and Intel QuickSync have been deprecated for future removal/replacement
 
 LAV Audio
 - Fixed: Resolved an issue with glitching TrueHD bitstreaming on seamless-branching titles
+- Fixed: Resolved a compatibility issue with some playback applications
+- Deprecated: Support for binary DTS decoder (dtsdecoderdll.dll) has been deprecated for future removal
 
 0.74.1 - 2019/03/19
 LAV Video
