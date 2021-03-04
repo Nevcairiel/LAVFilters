@@ -25,7 +25,7 @@ LAV Video
 LAV Audio
 - Fixed: Resolved an issue with glitching TrueHD bitstreaming on seamless-branching titles
 - Fixed: Resolved a compatibility issue with some playback applications
-- Deprecated: Support for binary DTS decoder (dtsdecoderdll.dll) has been deprecated for future removal
+- Deprecated: Support for the binary DTS decoder (dtsdecoderdll.dll) has been deprecated for future removal
 
 0.74.1 - 2019/03/19
 LAV Video
