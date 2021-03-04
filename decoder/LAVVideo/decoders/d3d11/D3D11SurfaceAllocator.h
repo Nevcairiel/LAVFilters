@@ -52,6 +52,7 @@ class CD3D11MediaSample
 
   private:
     AVFrame *m_pFrame = nullptr;
+    void *m_pAllocatorCookie = nullptr;
 };
 
 class CD3D11SurfaceAllocator : public CBaseAllocator
@@ -59,6 +60,8 @@ class CD3D11SurfaceAllocator : public CBaseAllocator
   public:
     CD3D11SurfaceAllocator(CDecD3D11 *pDec, HRESULT *phr);
     virtual ~CD3D11SurfaceAllocator();
+
+    STDMETHODIMP ReleaseBuffer(IMediaSample *pSample);
 
     STDMETHODIMP_(BOOL) DecommitInProgress()
     {
@@ -70,6 +73,8 @@ class CD3D11SurfaceAllocator : public CBaseAllocator
         CAutoLock cal(this);
         return m_bCommitted;
     }
+
+    STDMETHODIMP_(void) ForceDecommit();
 
     // LAV interface
     STDMETHODIMP_(void) DecoderDestruct()
@@ -85,4 +90,6 @@ class CD3D11SurfaceAllocator : public CBaseAllocator
   private:
     CDecD3D11 *m_pDec = nullptr;
     AVBufferRef *m_pFramesCtx = nullptr;
+
+    friend class CD3D11MediaSample;
 };

@@ -31,11 +31,15 @@ CD3D11MediaSample::CD3D11MediaSample(CD3D11SurfaceAllocator *pAllocator, AVFrame
     , m_pFrame(pFrame)
 {
     ASSERT(m_pFrame && m_pFrame->format == AV_PIX_FMT_D3D11);
+    pAllocator->AddRef();
+
+    m_pAllocatorCookie = pAllocator->m_pFramesCtx;
 }
 
 CD3D11MediaSample::~CD3D11MediaSample()
 {
     av_frame_free(&m_pFrame);
+    SafeRelease(&m_pAllocator);
 }
 
 // Note: CMediaSample does not derive from CUnknown, so we cannot use the
@@ -217,4 +221,43 @@ void CD3D11SurfaceAllocator::Free(void)
 
     m_lAllocated = 0;
     av_buffer_unref(&m_pFramesCtx);
+}
+
+STDMETHODIMP CD3D11SurfaceAllocator::ReleaseBuffer(IMediaSample *pSample)
+{
+    CD3D11MediaSample *pD3D11Sample = dynamic_cast<CD3D11MediaSample *>(pSample);
+    if (pD3D11Sample && pD3D11Sample->m_pAllocatorCookie != m_pFramesCtx)
+    {
+        DbgLog((LOG_TRACE, 10, L"CD3D11SurfaceAllocator::ReleaseBuffer: Freeing late sample"));
+        delete pD3D11Sample;
+        return S_OK;
+    }
+    else
+    {
+        return __super::ReleaseBuffer(pSample);
+    }
+}
+
+STDMETHODIMP_(void) CD3D11SurfaceAllocator::ForceDecommit()
+{
+    {
+        CAutoLock lock(this);
+
+        if (m_bCommitted || !m_bDecommitInProgress)
+            return;
+
+        // actually free all the samples that are already back
+        Free();
+
+        // finish decommit, so that Alloc works again
+        m_bDecommitInProgress = FALSE;
+    }
+
+    if (m_pNotify)
+    {
+        m_pNotify->NotifyRelease();
+    }
+
+    // alloc holds one reference, we need free that here
+    Release();
 }

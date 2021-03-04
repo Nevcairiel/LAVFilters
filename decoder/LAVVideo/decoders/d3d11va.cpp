@@ -788,6 +788,7 @@ STDMETHODIMP CDecD3D11::ReInitD3D11Decoder(AVCodecContext *c)
                 {
                     DbgLog(
                         (LOG_TRACE, 10, L"WARNING! Flush had no effect, decommit of the allocator still not complete"));
+                    m_pAllocator->ForceDecommit();
                 }
                 else
                 {
