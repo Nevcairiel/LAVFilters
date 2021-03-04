@@ -983,6 +983,13 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     {
         return hr;
     }
+
+    if (check_dxva_codec_profile(m_pAVCtx, AV_PIX_FMT_DXVA2_VLD))
+    {
+        DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
+        return E_FAIL;
+    }
+
     // If we have a DXVA Decoder, check if its capable
     // If we don't have one yet, it may be handed to us later, and compat is checked at that point
     GUID input = GUID_NULL;
@@ -1000,12 +1007,6 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     else
     {
         output = get_dxva_surface_format(m_pAVCtx);
-    }
-
-    if (check_dxva_codec_profile(m_pAVCtx, AV_PIX_FMT_DXVA2_VLD))
-    {
-        DbgLog((LOG_TRACE, 10, L"-> Incompatible profile detected, falling back to software decoding"));
-        return E_FAIL;
     }
 
     m_dwSurfaceWidth = dxva_align_dimensions(m_pAVCtx->codec_id, m_pAVCtx->coded_width);
