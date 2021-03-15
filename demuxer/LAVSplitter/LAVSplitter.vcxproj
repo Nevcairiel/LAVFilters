@@ -45,12 +45,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <LinkIncremental>true</LinkIncremental>
     <TargetExt>.ax</TargetExt>
     <OutDir>$(SolutionDir)bin_$(PlatformName)d\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <LinkIncremental>false</LinkIncremental>
     <TargetExt>.ax</TargetExt>
     <OutDir>$(SolutionDir)bin_$(PlatformName)\$(ProjectName)\</OutDir>
     <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
