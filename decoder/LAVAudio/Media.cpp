@@ -587,8 +587,8 @@ void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
     {
         if (fChAvg[ch] > FLT_EPSILON)
         {
-            const float fAvgSqrt = sqrt(fChAvg[ch] / dwSamplesPerChannel);
-            const float fDb = 20.0f * log10(fAvgSqrt);
+            const float fAvgSqrt = sqrtf(fChAvg[ch] / dwSamplesPerChannel);
+            const float fDb = 20.0f * log10f(fAvgSqrt);
             m_faVolume[ch].Sample(fDb);
         }
         else
