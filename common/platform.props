@@ -13,4 +13,7 @@
   <PropertyGroup>
     <UseNativeEnvironment>true</UseNativeEnvironment>
   </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Debug'">
+    <!-- EnableASAN>true</EnableASAN-->
+  </PropertyGroup>
 </Project>
