@@ -703,7 +703,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     else if (codec == AV_CODEC_ID_FRAPS)
         m_pAVCtx->pix_fmt = AV_PIX_FMT_BGR24;
 
-    if (bLAVInfoValid && codec != AV_CODEC_ID_FRAPS)
+    if (bLAVInfoValid && lavPinInfo.pix_fmt != AV_PIX_FMT_NONE && codec != AV_CODEC_ID_FRAPS)
     {
         if (m_pAVCtx->pix_fmt != AV_PIX_FMT_DXVA2_VLD && m_pAVCtx->pix_fmt != AV_PIX_FMT_D3D11)
             m_pAVCtx->pix_fmt = lavPinInfo.pix_fmt;
