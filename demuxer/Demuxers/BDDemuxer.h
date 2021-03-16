@@ -81,6 +81,25 @@ class CBDDemuxer
             m_lavfDemuxer->SettingsChanged(pSettings);
     }
 
+    STDMETHODIMP_(DWORD) GetStreamFlags(DWORD dwStream)
+    {
+        if (m_lavfDemuxer)
+            return m_lavfDemuxer->GetStreamFlags(dwStream);
+        return 0;
+    }
+    STDMETHODIMP_(int) GetPixelFormat(DWORD dwStream)
+    {
+        if (m_lavfDemuxer)
+            return m_lavfDemuxer->GetPixelFormat(dwStream);
+        return AV_PIX_FMT_NONE;
+    }
+    STDMETHODIMP_(int) GetHasBFrames(DWORD dwStream)
+    {
+        if (m_lavfDemuxer)
+            return m_lavfDemuxer->GetHasBFrames(dwStream);
+        return -1;
+    }
+
     const stream *SelectVideoStream() { return m_lavfDemuxer->SelectVideoStream(); }
     const stream *SelectAudioStream(std::list<std::string> prefLanguages)
     {
