@@ -665,16 +665,27 @@ static std::string GetDefaultVOBSubHeader(int w, int h)
     return header.str();
 }
 
+// Map codec ids to media subtypes
+// clang-format off
+static FormatMapping subtitle_format_map[] = {
+    { AV_CODEC_ID_TEXT,                 &MEDIASUBTYPE_UTF8 },
+    { AV_CODEC_ID_SRT,                  &MEDIASUBTYPE_UTF8 },
+    { AV_CODEC_ID_SUBRIP,               &MEDIASUBTYPE_UTF8 },
+    { AV_CODEC_ID_MOV_TEXT,             &MEDIASUBTYPE_UTF8 },
+    { AV_CODEC_ID_ASS,                  &MEDIASUBTYPE_ASS  },
+    { AV_CODEC_ID_SSA,                  &MEDIASUBTYPE_ASS  },
+    { AV_CODEC_ID_HDMV_PGS_SUBTITLE,    &MEDIASUBTYPE_HDMVSUB },
+    { AV_CODEC_ID_DVD_SUBTITLE,         &MEDIASUBTYPE_VOBSUB },
+    { AV_CODEC_ID_DVB_SUBTITLE,         &MEDIASUBTYPE_DVB_SUBTITLES },
+};
+// clang-format on
+
 STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
-    // Skip teletext
-    if (avstream->codecpar->codec_id == AV_CODEC_ID_DVB_TELETEXT)
-    {
-        return E_FAIL;
-    }
     CMediaType mtype;
     mtype.majortype = MEDIATYPE_Subtitle;
     mtype.formattype = FORMAT_SubtitleInfo;
+    mtype.subtype = MEDIASUBTYPE_NULL;
 
     int extra = avstream->codecpar->extradata_size;
 
@@ -767,27 +778,20 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
         memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), avstream->codecpar->extradata, extra);
     }
 
-    mtype.subtype =
-        avstream->codecpar->codec_id == AV_CODEC_ID_TEXT
-            ? MEDIASUBTYPE_UTF8
-            : avstream->codecpar->codec_id == AV_CODEC_ID_SRT
-                  ? MEDIASUBTYPE_UTF8
-                  : /* SRT is essentially SUBRIP with inband timing information, parsing needed */
-                  avstream->codecpar->codec_id == AV_CODEC_ID_SUBRIP
-                      ? MEDIASUBTYPE_UTF8
-                      : avstream->codecpar->codec_id == AV_CODEC_ID_MOV_TEXT
-                            ? MEDIASUBTYPE_UTF8
-                            : avstream->codecpar->codec_id == AV_CODEC_ID_ASS
-                                  ? MEDIASUBTYPE_ASS
-                                  : avstream->codecpar->codec_id == AV_CODEC_ID_SSA
-                                        ? MEDIASUBTYPE_ASS
-                                        : avstream->codecpar->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE
-                                              ? MEDIASUBTYPE_HDMVSUB
-                                              : avstream->codecpar->codec_id == AV_CODEC_ID_DVD_SUBTITLE
-                                                    ? MEDIASUBTYPE_VOBSUB
-                                                    : avstream->codecpar->codec_id == AV_CODEC_ID_DVB_SUBTITLE
-                                                          ? MEDIASUBTYPE_DVB_SUBTITLES
-                                                          : MEDIASUBTYPE_NULL;
+    // Check against values from the map above
+    for (unsigned i = 0; i < countof(subtitle_format_map); ++i)
+    {
+        if (subtitle_format_map[i].codec == avstream->codecpar->codec_id)
+        {
+            if (subtitle_format_map[i].subtype)
+                mtype.subtype = *subtitle_format_map[i].subtype;
+            break;
+        }
+    }
+
+    // not type found
+    if (mtype.subtype == MEDIASUBTYPE_NULL)
+        return E_FAIL;
 
     mtypes.push_back(mtype);
     return S_OK;
