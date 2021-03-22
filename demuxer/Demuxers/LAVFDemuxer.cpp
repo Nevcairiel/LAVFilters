@@ -1645,6 +1645,39 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
             stream->codecpar->codec_id == AV_CODEC_ID_PCM_S32LE_PLANAR)
             pPacket->dwFlags |= LAV_PACKET_PLANAR_PCM;
 
+        if (stream->codecpar->codec_id == AV_CODEC_ID_WEBVTT)
+        {
+            int id_size = 0, settings_size = 0;
+            uint8_t *id = NULL, *settings = NULL;
+            id = av_packet_get_side_data(&pkt, AV_PKT_DATA_WEBVTT_IDENTIFIER, &id_size);
+            settings = av_packet_get_side_data(&pkt, AV_PKT_DATA_WEBVTT_SETTINGS, &settings_size);
+
+            int text_size = pPacket->GetDataSize();
+
+            // allocate size for id/settings
+            int pkt_size = text_size + id_size + 2 + settings_size + 2;
+            pPacket->SetDataSize(pkt_size);
+
+            uint8_t *data = pPacket->GetData();
+
+            // offset data
+            memmove(data + id_size + 2 + settings_size + 2, data, text_size);
+
+            // write id
+            if (id && id_size > 0)
+                memcpy(data, id, id_size);
+
+            data[id_size + 0] = '\r';
+            data[id_size + 1] = '\n';
+
+            // write settings
+            if (settings && settings_size > 0)
+                memcpy(data + id_size + 2, settings, settings_size);
+
+            data[id_size + 2 + settings_size + 0] = '\r';
+            data[id_size + 2 + settings_size + 1] = '\n';
+        }
+
         // Update extradata and send new mediatype, when required
         int sidedata_size = 0;
         uint8_t *sidedata = av_packet_get_side_data(&pkt, AV_PKT_DATA_NEW_EXTRADATA, &sidedata_size);
