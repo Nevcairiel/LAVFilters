@@ -129,7 +129,7 @@ static D3DFORMAT get_dxva_surface_format(AVCodecContext *ctx)
     else if (ctx->sw_pix_fmt == AV_PIX_FMT_YUV420P10 || ctx->sw_pix_fmt == AV_PIX_FMT_P010)
         return (D3DFORMAT)FOURCC_P010;
 
-    ASSERT(0);
+    ASSERT(ctx->sw_pix_fmt == AV_PIX_FMT_NONE);
     return (D3DFORMAT)FOURCC_NV12;
 }
 
