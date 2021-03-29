@@ -81,7 +81,6 @@ configure() (
     --disable-schannel              \
     --enable-gnutls                 \
     --enable-gmp                    \
-    --enable-libxml2                \
     --build-suffix=-lav             \
     --arch=${arch}"
 
