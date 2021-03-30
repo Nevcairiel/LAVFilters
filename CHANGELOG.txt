@@ -1,9 +1,10 @@
 LAV DirectShow Filters Changelog
 ===================================
 
-0.75.0 - 2021/xx/xx
+0.75.0 - 2021/03/30
 LAV Splitter
 - NEW: Support for DASH streaming
+- NEW: WebVTT support in Matroska/WebM
 - Changed: Improved Font support from Matroska files
 - Fixed: Large queue size limits could result in the wrong limit being applied
 - Fixed: Resolved a memory leak in Matroska demuxing
