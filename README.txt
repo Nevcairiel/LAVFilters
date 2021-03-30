@@ -13,7 +13,7 @@ Install
 
 Using it
 =============================
-By default the splitter will register for all media formats that have been
+By default, the splitter will register for all media formats that have been
 tested and found working at least partially.
 This currently includes (but is not limited to)
 	MKV/WebM, AVI, MP4/MOV, TS/M2TS/MPG, FLV, OGG, BluRay (.bdmv and .mpls)
@@ -23,7 +23,7 @@ to use them. The Haali Media Splitter is one of those, and to give priority
 to the LAVFSplitter you have to either uninstall Haali or rename its .ax file
 at least temporarily.
 
-The Audio and Video Decoder will register with a relatively high merit, which should make
+The Audio and Video Decoder will register with relatively high merit, which should make
 it the preferred decoder by default. Most players offer a way to choose the preferred
 decoder however.
 
@@ -34,18 +34,18 @@ The selection of video streams is not configurable, and LAV Splitter will quite 
 pick the one with the best quality.
 
 Audio stream selection offers some flexibility, specifically you can configure your preferred languages.
-The language configuration is straight forward. Just enter a list of 3-letter language codes (ISO 639-2),
+The language configuration is straightforward. Just enter a list of 3-letter language codes (ISO 639-2),
 separated by comma or space.
 For example: "eng ger fre". This would try to select a stream matching one of these languages,
-in the order you specified them. First check if an English track is present, and only if not,
+in the order you specified them. First, check if an English track is present, and only if not,
 go to German, and after that, go to French.
 
 If multiple audio tracks match one language, the choice is based on the quality. The primary attribute here
-is the number of channels, and after that the codec used. PCM and lossless codecs have a higher priority
-then lossy codecs.
+is the number of channels, and after that is the codec used. PCM and lossless codecs have a higher priority
+than lossy codecs.
 
 Subtitle selection offers the most flexibility.
-There is 4 distinct modes of subtitle selection.
+There are 4 distinct modes of subtitle selection.
 
 "No Subtitles"
 This mode is simple, by default subtitles will be off.
@@ -55,7 +55,7 @@ This mode will only pre-select subtitles flagged with the "forced" flag. It'll a
 
 "Default"
 The default mode will select subtitles matching your language preference. If there is no match, or you didn't configure
-languages, no subtitles will be activated. In addion, subtitles flagged "default" or "forced" will always be used.
+languages, no subtitles will be activated. In addition, subtitles flagged "default" or "forced" will always be used.
 
 "Advanced"
 The advanced mode lets you write your own combinations of rules with a special syntax. It also allows selecting subtitles
@@ -66,26 +66,26 @@ In this example, LAV Splitter would select German subtitles if English audio was
 
 Instead of language codes, the advanced mode supports two special cases: "*" and "off".
 When you specify "*" for a language code, it'll match everything. For example "*:eng"  will activate English subtitles, independent
-of the audio language. The reverse is also possible: "eng:*" will activate any subtitles when the audio is english.
+of the audio language. The reverse is also possible: "eng:*" will activate any subtitles when the audio is English.
 
 The "off" flag is only valid for the subtitle language, and it instructs LAV Splitter to turn the subtitles off.
-So "eng:off" means that when the audio is english, the subtitles will be deactivated.
+So "eng:off" means that when the audio is English, the subtitles will be deactivated.
 
 Additionally to the syntax above, two flags are supported to enhance the subtitle selection.
 Specifically, LAV Splitter understands the flag "d" for default subtitles, the flag "f" for forced subtitles,
 the flag "h" for hearing impaired, and the flag "n" for normal streams (not default, forced, or impaired).
 In addition, flags can be negated with a leading "!" before the whole flags block - "!h" becomes "dfn", etc.
 Flags are appended to the subtitle language, separated by a pipe symbol ("|"). Example: "*:*|f"
-This token specifys that on any audio language, you want any subtitle that is flagged forced.
+This token specifies that on any audio language, you want any subtitle that is flagged forced.
 
-The advanced rukes can be combined into a complete logic for subtitle selection by just appending them, separated with a comma or a space.
+The advanced rules can be combined into a complete logic for subtitle selection by just appending them, separated with a comma or a space.
 The rules will always be parsed from left to right, the first match taking precedence.
 
-Consider the following rule set:
+Consider the following ruleset:
 "eng:eng|f eng:ger|f eng:off *:eng *:ger"
 This rule means the following:
-If audio is english, load an english or a german forced subtitle track, otherwise turn subtitles off.
-If audio is not english, load english or german subtitles.
+If the audio is English, load an english or a German forced subtitle track, otherwise turn subtitles off.
+If the audio is not english, load English or German subtitles.
 
 BluRay Support
 =============================
@@ -95,12 +95,12 @@ and start playing.
 Alternatively, you can also open a playlist file (*.mpls, located in BDMV/PLAYLIST), and LAV Splitter
 will then play that specific title.
 
-In future versions you'll be able to choose the title from within the player, as well.
+In future versions, you'll be able to choose the title from within the player, as well.
 
 Compiling
 =============================
-Compiling is pretty straight forward using VS2019 (included project files).
-Older versions of Visual Studio are not officially supported, but may stil work.
+Compiling is pretty straightforward using VS2019 (included project files).
+Older versions of Visual Studio are not officially supported, but may still work.
 
 It does, however, require that you build your own ffmpeg and libbluray.
 You need to place the full ffmpeg package in a directory called "ffmpeg" in the 
@@ -111,7 +111,7 @@ I recommend using my fork of ffmpeg, as it includes additional patches for
 media compatibility:
 https://git.1f0.de/gitweb?p=ffmpeg.git;a=summary
 
-libbluray is compiled with the MSVC project files, however a specially modified
+libbluray is compiled with the MSVC project files, however, a specially modified
 version of libbluray is required. Similar to ffmpeg, just place the full tree
 inside the "libbluray" directory in the main directory.
 
