@@ -84,8 +84,8 @@ The rules will always be parsed from left to right, the first match taking prece
 Consider the following ruleset:
 "eng:eng|f eng:ger|f eng:off *:eng *:ger"
 This rule means the following:
-If the audio is English, load an english or a German forced subtitle track, otherwise turn subtitles off.
-If the audio is not english, load English or German subtitles.
+If the audio is English, load an English or a German forced subtitle track, otherwise turn subtitles off.
+If the audio is not English, load English or German subtitles.
 
 BluRay Support
 =============================
