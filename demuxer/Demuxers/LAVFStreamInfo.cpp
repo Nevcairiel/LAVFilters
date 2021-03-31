@@ -277,6 +277,39 @@ static int get_pixel_bitdepth(AVPixelFormat pix_fmt)
     return desc->comp[0].depth;
 }
 
+static bool is_monochrome(AVPixelFormat pix_fmt)
+{
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(pix_fmt);
+    if (desc == NULL)
+    {
+        DbgLog((LOG_TRACE, 10, "Unknown pixel format"));
+        return false;
+    }
+    return desc->nb_components == 1;
+}
+
+static int chroma_x(AVPixelFormat pix_fmt)
+{
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(pix_fmt);
+    if (desc == NULL)
+    {
+        DbgLog((LOG_TRACE, 10, "Unknown pixel format"));
+        return 1;
+    }
+    return desc->log2_chroma_w;
+}
+
+static int chroma_y(AVPixelFormat pix_fmt)
+{
+    const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(pix_fmt);
+    if (desc == NULL)
+    {
+        DbgLog((LOG_TRACE, 10, "Unknown pixel format"));
+        return 1;
+    }
+    return desc->log2_chroma_h;
+}
+
 STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStream *avstream)
 {
     unsigned int origCodecTag = avstream->codecpar->codec_tag;
@@ -379,6 +412,36 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
             AV_WB8(extra + 12, avstream->codecpar->color_trc);
             AV_WB8(extra + 13, avstream->codecpar->color_space);
             AV_WB16(extra + 14, 0); // no codec init data
+        }
+        else if (mtype.subtype == MEDIASUBTYPE_AV01)
+        {
+            VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
+
+            // check if extradata is missing, and we have some basic information to share
+            if (vih2->bmiHeader.biSize == sizeof(BITMAPINFOHEADER) && avstream->codecpar->profile != FF_PROFILE_UNKNOWN)
+            {
+                // if not, generate some
+                mtype.ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + 4);
+                vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
+                vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + 4;
+
+                BYTE *extra = mtype.pbFormat + sizeof(VIDEOINFOHEADER2);
+                AV_WB8(extra, 0x81);  // version
+                AV_WB8(extra + 1, (avstream->codecpar->profile == FF_PROFILE_UNKNOWN ? 0 : avstream->codecpar->profile) << 5
+                                    | (avstream->codecpar->level == FF_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level));
+
+                int bpp = get_pixel_bitdepth((AVPixelFormat)avstream->codecpar->format);
+                AV_WB8(extra + 2, (0 << 7) | // seq_tier
+                                  ((bpp > 8) << 6) | // high_bitdepth
+                                  ((bpp == 12) << 5) | // twelve bit
+                                  (is_monochrome((AVPixelFormat)avstream->codecpar->format) << 4) | // monochrome
+                                  (chroma_x((AVPixelFormat)avstream->codecpar->format) << 3) |
+                                  (chroma_y((AVPixelFormat)avstream->codecpar->format) << 2) |
+                                  (0 << 1) // chroma  sample position
+                    );
+
+                AV_WB8(extra + 3, 0); // reserved, unusued fields
+            }
         }
     }
     else if (mtype.formattype == FORMAT_MPEGVideo)
