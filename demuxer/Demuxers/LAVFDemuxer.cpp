@@ -2731,28 +2731,35 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
     {
         stream *check = &*it;
 
-        if (m_avFormat->streams[check->pid]->disposition & AV_DISPOSITION_DEFAULT)
-        {
-            best = check;
-            break;
-        }
-
         if (!best)
         {
             best = check;
             continue;
         }
-        uint64_t bestPixels = (uint64_t)m_avFormat->streams[best->pid]->codecpar->width *
-                              m_avFormat->streams[best->pid]->codecpar->height;
-        uint64_t checkPixels = (uint64_t)m_avFormat->streams[check->pid]->codecpar->width *
-                               m_avFormat->streams[check->pid]->codecpar->height;
 
+        // if the best stream is an unknown codec, prefer any other
         if (m_avFormat->streams[best->pid]->codecpar->codec_id == AV_CODEC_ID_NONE &&
             m_avFormat->streams[check->pid]->codecpar->codec_id != AV_CODEC_ID_NONE)
         {
             best = check;
             continue;
         }
+
+        // prefer default streams
+        bool checkDefault = m_avFormat->streams[check->pid]->disposition & AV_DISPOSITION_DEFAULT;
+        bool bestDefault = m_avFormat->streams[best->pid]->disposition & AV_DISPOSITION_DEFAULT;
+
+        if (checkDefault != bestDefault)
+        {
+            if (checkDefault)
+                best = check;
+            continue;
+        }
+
+        uint64_t bestPixels = (uint64_t)m_avFormat->streams[best->pid]->codecpar->width *
+                              m_avFormat->streams[best->pid]->codecpar->height;
+        uint64_t checkPixels = (uint64_t)m_avFormat->streams[check->pid]->codecpar->width *
+                               m_avFormat->streams[check->pid]->codecpar->height;
 
         int check_nb_f = m_avFormat->streams[check->pid]->codec_info_nb_frames;
         int best_nb_f = m_avFormat->streams[best->pid]->codec_info_nb_frames;
