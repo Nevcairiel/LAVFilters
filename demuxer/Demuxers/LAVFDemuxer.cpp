@@ -2723,69 +2723,14 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
 // Select the best video stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 {
-    const stream *best = nullptr;
-    CStreamList *streams = GetStreams(video);
+    const CStreamList *streams = GetStreams(video);
+    int pid = av_find_best_stream(m_avFormat, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
 
-    std::deque<stream>::iterator it;
-    for (it = streams->begin(); it != streams->end(); ++it)
-    {
-        stream *check = &*it;
+    for (const auto &stream : *streams)
+        if (stream.pid == pid)
+            return &stream;
 
-        if (m_avFormat->streams[check->pid]->disposition & AV_DISPOSITION_DEFAULT)
-        {
-            best = check;
-            break;
-        }
-
-        if (!best)
-        {
-            best = check;
-            continue;
-        }
-        uint64_t bestPixels = (uint64_t)m_avFormat->streams[best->pid]->codecpar->width *
-                              m_avFormat->streams[best->pid]->codecpar->height;
-        uint64_t checkPixels = (uint64_t)m_avFormat->streams[check->pid]->codecpar->width *
-                               m_avFormat->streams[check->pid]->codecpar->height;
-
-        if (m_avFormat->streams[best->pid]->codecpar->codec_id == AV_CODEC_ID_NONE &&
-            m_avFormat->streams[check->pid]->codecpar->codec_id != AV_CODEC_ID_NONE)
-        {
-            best = check;
-            continue;
-        }
-
-        int check_nb_f = m_avFormat->streams[check->pid]->codec_info_nb_frames;
-        int best_nb_f = m_avFormat->streams[best->pid]->codec_info_nb_frames;
-        if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0))
-        {
-            best = check;
-        }
-        else if (m_bMP4 && m_avFormat->streams[check->pid]->nb_frames == 1 && m_avFormat->streams[best->pid]->nb_frames > 1)
-        {
-            // avoid selecting a video stream with only one frame
-        }
-        else if (m_bMP4 && m_avFormat->streams[best->pid]->nb_frames == 1 && m_avFormat->streams[check->pid]->nb_frames > 1)
-        {
-            // prefer a stream with more then one frame, if available
-            best = check;
-        }
-        else if (!m_bRM || check_nb_f > 0)
-        {
-            if (checkPixels > bestPixels)
-            {
-                best = check;
-            }
-            else if (m_bRM && checkPixels == bestPixels)
-            {
-                int64_t best_rate = m_avFormat->streams[best->pid]->codecpar->bit_rate;
-                int64_t check_rate = m_avFormat->streams[check->pid]->codecpar->bit_rate;
-                if (best_rate && check_rate && check_rate > best_rate)
-                    best = check;
-            }
-        }
-    }
-
-    return best;
+    return nullptr;
 }
 
 static int audio_codec_priority(const AVCodecParameters *par)
