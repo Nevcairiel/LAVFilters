@@ -1,6 +1,18 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.75.1 - 2021/06/21
+LAV Splitter
+- Changed: AV1 files with no extradata will now generate a format header with stream information for decoders to use
+- Fixed: Improved stream selection when multiple "default" video tracks are present
+
+LAV Video
+- Changed: Updated dav1d for significant improvements in AV1 10-bit decoding performance
+- Changed: AV1 hardware decoding will more reliably engage when provided with additional stream information from the demuxer
+
+LAV Audio
+- Fixed: Opus decoding had audible artifacts in some files in 0.75
+
 0.75.0 - 2021/03/30
 LAV Splitter
 - NEW: Support for DASH streaming
