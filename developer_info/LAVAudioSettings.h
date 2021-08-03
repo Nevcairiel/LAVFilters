@@ -20,7 +20,7 @@
 #pragma once
 
 // {4158A22B-6553-45D0-8069-24716F8FF171}
-DEFINE_GUID(IID_ILAVAudioSettings, 
+DEFINE_GUID(IID_ILAVAudioSettings,
 0x4158a22b, 0x6553, 0x45d0, 0x80, 0x69, 0x24, 0x71, 0x6f, 0x8f, 0xf1, 0x71);
 
 // {A668B8F2-BA87-4F63-9D41-768F7DE9C50E}
@@ -100,7 +100,7 @@ interface __declspec(uuid("4158A22B-6553-45D0-8069-24716F8FF171")) ILAVAudioSett
   // You can use this to programmatically configure LAV Audio without interfering with the users settings in the registry.
   // Subsequent calls to this function will reset all settings back to defaults, even if the mode does not change.
   //
-  // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
+  // Note that calling this function during playback is not supported and may exhibit undocumented behaviour.
   // For smooth operations, it must be called before LAV Audio is connected to other filters.
   STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
 
@@ -109,7 +109,7 @@ interface __declspec(uuid("4158A22B-6553-45D0-8069-24716F8FF171")) ILAVAudioSett
   // piDRCLevel:   The DRC strength (0-100, 100 is maximum)
   STDMETHOD(GetDRC)(BOOL *pbDRCEnabled, int *piDRCLevel) = 0;
   STDMETHOD(SetDRC)(BOOL bDRCEnabled, int iDRCLevel) = 0;
-  
+
   // Configure which codecs are enabled
   // If aCodec is invalid (possibly a version difference), Get will return FALSE, and Set E_FAIL.
   STDMETHOD_(BOOL,GetFormatConfiguration)(LAVAudioCodec aCodec) = 0;
@@ -119,7 +119,7 @@ interface __declspec(uuid("4158A22B-6553-45D0-8069-24716F8FF171")) ILAVAudioSett
   // If bsCodec is invalid (possibly a version difference), Get will return FALSE, and Set E_FAIL.
   STDMETHOD_(BOOL, GetBitstreamConfig)(LAVBitstreamCodec bsCodec) = 0;
   STDMETHOD(SetBitstreamConfig)(LAVBitstreamCodec bsCodec, BOOL bEnabled) = 0;
-  
+
   // Should "normal" DTS frames be encapsulated in DTS-HD frames when bitstreaming?
   STDMETHOD_(BOOL,GetDTSHDFraming)() = 0;
   STDMETHOD(SetDTSHDFraming)(BOOL bHDFraming) = 0;
@@ -132,7 +132,7 @@ interface __declspec(uuid("4158A22B-6553-45D0-8069-24716F8FF171")) ILAVAudioSett
   // Standard are: Mono, Stereo, 5.1, 6.1, 7.1
   STDMETHOD_(BOOL,GetOutputStandardLayout)() = 0;
   STDMETHOD(SetOutputStandardLayout)(BOOL bStdLayout) = 0;
-  
+
   // Expand Mono to Stereo by simply doubling the audio
   STDMETHOD_(BOOL,GetExpandMono)() = 0;
   STDMETHOD(SetExpandMono)(BOOL bExpandMono) = 0;
@@ -204,10 +204,10 @@ interface __declspec(uuid("A668B8F2-BA87-4F63-9D41-768F7DE9C50E")) ILAVAudioStat
 
   // Get details about the current decoding format
   STDMETHOD(GetDecodeDetails)(LPCSTR *pCodec, LPCSTR *pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
-  
+
   // Get details about the current output format
   STDMETHOD(GetOutputDetails)(LPCSTR *pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
-  
+
   // Enable Volume measurements
   STDMETHOD(EnableVolumeStats)() = 0;
 

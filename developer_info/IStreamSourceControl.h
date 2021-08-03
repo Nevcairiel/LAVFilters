@@ -35,7 +35,7 @@ IStreamSourceControl : public IUnknown
   // Get the duration of the stream being played.
   // Duration is in DirectShow reference time, 100ns units.
   STDMETHOD(GetStreamDuration) (REFERENCE_TIME *prtDuration) PURE;
-  
+
   // Seek the stream to a specified time
   //
   // Position is in DirectShow reference time, 100ns units.

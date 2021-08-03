@@ -20,7 +20,7 @@
 #pragma once
 
 // {8FBB906B-D1DB-4528-9498-563241CCD43D}
-DEFINE_GUID(IID_ILAVDynamicAllocator, 
+DEFINE_GUID(IID_ILAVDynamicAllocator,
 0x8fbb906b, 0xd1db, 0x4528, 0x94, 0x98, 0x56, 0x32, 0x41, 0xcc, 0xd4, 0x3d);
 
 interface __declspec(uuid("8FBB906B-D1DB-4528-9498-563241CCD43D")) ILAVDynamicAllocator : public IUnknown

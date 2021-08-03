@@ -20,7 +20,7 @@
 #pragma once
 
 // {FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F}
-DEFINE_GUID(IID_ILAVVideoSettings, 
+DEFINE_GUID(IID_ILAVVideoSettings,
 0xfa40d6e9, 0x4d38, 0x4761, 0xad, 0xd2, 0x71, 0xa9, 0xec, 0x5f, 0xd3, 0x2f);
 
 // {1CC2385F-36FA-41B1-9942-5024CE0235DC}
@@ -205,7 +205,7 @@ interface __declspec(uuid("FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F")) ILAVVideoSett
   // You can use this to programmatically configure LAV Video without interfering with the users settings in the registry.
   // Subsequent calls to this function will reset all settings back to defaults, even if the mode does not change.
   //
-  // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
+  // Note that calling this function during playback is not supported and may exhibit undocumented behaviour.
   // For smooth operations, it must be called before LAV Video is connected to other filters.
   STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
 

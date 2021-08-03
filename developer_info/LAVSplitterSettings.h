@@ -22,7 +22,7 @@
 #include <Unknwn.h>       // IUnknown and GUID Macros
 
 // {774A919D-EA95-4A87-8A1E-F48ABE8499C7}
-DEFINE_GUID(IID_ILAVFSettings, 
+DEFINE_GUID(IID_ILAVFSettings,
 0x774a919d, 0xea95, 0x4a87, 0x8a, 0x1e, 0xf4, 0x8a, 0xbe, 0x84, 0x99, 0xc7);
 
 typedef enum LAVSubtitleMode {
@@ -38,7 +38,7 @@ interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings
   // You can use this to programmatically configure LAV Splitter without interfering with the users settings in the registry.
   // Subsequent calls to this function will reset all settings back to defaults, even if the mode does not change.
   //
-  // Note that calling this function during playback is not supported and may exhibit undocumented behaviour. 
+  // Note that calling this function during playback is not supported and may exhibit undocumented behaviour.
   // For smooth operations, it must be called before LAV Splitter opens a file.
   STDMETHOD(SetRuntimeConfig)(BOOL bRuntimeConfig) = 0;
 
@@ -50,7 +50,7 @@ interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings
   // Set the preferred languages as ISO 639-2 language codes, comma separated
   // To reset to no preferred language, pass NULL or the empty string
   STDMETHOD(SetPreferredLanguages)(LPCWSTR pLanguages) = 0;
-  
+
   // Retrieve the preferred subtitle languages as ISO 639-2 language codes, comma separated
   // If the result is NULL, no language has been set
   // If no subtitle language is set, the main language preference is used.
@@ -97,7 +97,7 @@ interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings
   // Get the VC-1 Timestamp Processing mode
   // 0 - No Timestamp Correction, 1 - Always Timestamp Correction, 2 - Auto (Correction for Decoders that need it)
   STDMETHOD_(int,GetVC1TimestampMode)() = 0;
-  
+
   // Set the VC-1 Timestamp Processing mode
   // 0 - No Timestamp Correction, 1 - Always Timestamp Correction, 2 - Auto (Correction for Decoders that need it)
   STDMETHOD(SetVC1TimestampMode)(int iMode) = 0;
@@ -110,7 +110,7 @@ interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings
 
   // @deprecated - no longer required
   STDMETHOD(SetVideoParsingEnabled)(BOOL bEnabled) = 0;
-  
+
   // @deprecated - no longer required
   STDMETHOD_(BOOL,GetVideoParsingEnabled)() = 0;
 

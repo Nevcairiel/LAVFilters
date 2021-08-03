@@ -8,7 +8,7 @@
  * is strictly prohibited.
  *
  */
- 
+
 #ifndef __cuda_h__
 #define __cuda_h__
 
