@@ -325,7 +325,7 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
 
         int ret = avcodec_decode_subtitle2(m_pAVCtx, &sub, &got_sub, m_pSubtitlePacket);
         if (ret < 0) {
-          DbgLog((LOG_TRACE, 50, L"CLAVSubtitleProvider::Decode - decoding failed despite successfull parsing"));
+          DbgLog((LOG_TRACE, 50, L"CLAVSubtitleProvider::Decode - decoding failed despite successful parsing"));
           got_sub = 0;
         }
       } else {

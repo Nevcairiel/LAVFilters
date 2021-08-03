@@ -54,7 +54,7 @@ static const int prof_av1_0[] = {FF_PROFILE_AV1_MAIN, FF_PROFILE_UNKNOWN};
 static const int prof_av1_1[] = {FF_PROFILE_AV1_HIGH, FF_PROFILE_UNKNOWN};
 static const int prof_av1_2[] = {FF_PROFILE_AV1_PROFESSIONAL, FF_PROFILE_UNKNOWN};
 
-/* XXX Prefered modes must come first */
+/* XXX Preferred modes must come first */
 // clang-format off
 const dxva_mode_t dxva_modes[] = {
   /* MPEG-1/2 */

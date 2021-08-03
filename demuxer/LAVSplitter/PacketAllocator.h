@@ -72,7 +72,7 @@ class CPacketAllocator
     // actually free up the memory
     void ReallyFree(void);
 
-    // overriden to allocate the memory when commit called
+    // overridden to allocate the memory when commit called
     HRESULT Alloc(void);
 
   public:

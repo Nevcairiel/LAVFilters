@@ -606,7 +606,7 @@ STDMETHODIMP CBDDemuxer::SetTitle(int idx)
 
     m_lavfDemuxer->SeekByte(0, 0);
 
-    // Process any events that occured during opening
+    // Process any events that occurred during opening
     ProcessBDEvents();
 
     // Reset EOS protection

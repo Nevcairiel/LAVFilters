@@ -842,7 +842,7 @@ STDMETHODIMP CDecD3D11::ReInitD3D11Decoder(AVCodecContext *c)
                 }
                 else
                 {
-                    DbgLog((LOG_TRACE, 10, L"Flush was successfull, decommit completed!"));
+                    DbgLog((LOG_TRACE, 10, L"Flush was successful, decommit completed!"));
                 }
             }
 
@@ -927,7 +927,7 @@ STDMETHODIMP CDecD3D11::FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC 
     hr = pDeviceContext->video_device->GetVideoDecoderConfigCount(desc, &nConfig);
     if (FAILED(hr))
     {
-        DbgLog((LOG_ERROR, 10, L"Unable to retreive decoder configuration count"));
+        DbgLog((LOG_ERROR, 10, L"Unable to retrieve decoder configuration count"));
         return E_FAIL;
     }
 

@@ -973,7 +973,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
 
     m_bFailHWDecode = FALSE;
 
-    DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 decoder successfull, initializing ffmpeg"));
+    DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 decoder successful, initializing ffmpeg"));
     hr = CDecAvcodec::InitDecoder(codec, pmt);
     if (FAILED(hr))
     {
@@ -1353,7 +1353,7 @@ HRESULT CDecDXVA2::ReInitDXVA2Decoder(AVCodecContext *c)
                 }
                 else
                 {
-                    DbgLog((LOG_TRACE, 10, L"Flush was successfull, decommit completed!"));
+                    DbgLog((LOG_TRACE, 10, L"Flush was successful, decommit completed!"));
                 }
             }
             hr = m_pDXVA2Allocator->Commit();
