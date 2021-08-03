@@ -353,7 +353,7 @@ interface ILAVDecoder
      * Decode a frame.
      *
      * @param pSample Media Sample to decode
-     * @return S_OK if decoding was successfull, S_FALSE if no frame could be extracted, an error code if the decoder is
+     * @return S_OK if decoding was successful, S_FALSE if no frame could be extracted, an error code if the decoder is
      * not compatible with the bitstream
      *
      * Note: When returning an actual error code, the filter will switch to the fallback software decoder! This should

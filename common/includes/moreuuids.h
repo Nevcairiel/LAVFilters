@@ -450,7 +450,7 @@ typedef struct
 // --------------------------------------------------------------------------------------
 //
 // Here the text should start with the Byte Order Mark, even though
-// UTF-8 is prefered, it also helps identifying the encoding type.
+// UTF-8 is preferred, it also helps identifying the encoding type.
 //
 // MEDIASUBTYPE_USF:
 //

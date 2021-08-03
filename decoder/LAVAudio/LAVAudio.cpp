@@ -2303,7 +2303,7 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
                 int ret2 = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
                 if (ret2 < 0)
                 {
-                    DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
+                    DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successful parsing"));
                     m_bQueueResync = TRUE;
                     av_packet_unref(&avpkt);
                     continue;

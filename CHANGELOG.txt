@@ -104,7 +104,7 @@ LAV Video
 - Fixed: HDR metadata was not properly communicated to madVR in DXVA2-Native mode
 - Fixed: Anamorphic WMV9/VC-1 videos were not being played back with the correct aspect ratio in all cases
 - Fixed: Changing certain settings while playback was paused could result in a deadlock
-- Fixed: Playing severly corrupted HEVC streams with hardware decoding could result in playback failing entirely, instead of skipping over the corruption
+- Fixed: Playing severely corrupted HEVC streams with hardware decoding could result in playback failing entirely, instead of skipping over the corruption
 
 LAV Audio
 - NEW: Basic support for AAC 960 streams (common in DVB radio streams)
@@ -521,7 +521,7 @@ LAV Splitter
 LAV Video
 - Basic support for playing DVDs in different playback rates
 - Fixed DXVA2 resource cleanup which may have caused a crash in some situations with DXVA2-Native
-- Fixed A/V Sync when using the WMV9 DMO decoder (especially noticable after seeking)
+- Fixed A/V Sync when using the WMV9 DMO decoder (especially noticeable after seeking)
 
 LAV Audio
 - Improved AC3 decoding quality (thanks to madshi for the patch in ffmpeg)
@@ -532,7 +532,7 @@ General
 
 LAV Splitter
 - Added an option to disable quality-based audio stream selection (selects the first stream matching the language preferences)
-- Removed Bitrate from audio quality criterias, because its too unreliable at this point.
+- Removed Bitrate from audio quality criteria, because its too unreliable at this point.
 
 LAV Video
 - Fixed YADIF deinterlacing (broken after a ffmpeg update on 0.55)
@@ -885,7 +885,7 @@ LAV Video
 0.42 - 2011/11/30
 LAV Splitter
 - Fixed a timestamping bug in the new MKV demuxer
-- Futher enhancements to explorer thumbnail generation
+- Further enhancements to explorer thumbnail generation
 
 0.41 - 2011/11/29
 LAV Splitter
@@ -1105,7 +1105,7 @@ LAV Audio
   - Support for 1.1.0.0
   - Try to reverse any channel upmixing done by the decoder, outputting the audio as close to the original source as possible.
 - New Channel Mapping functionality
-  - Output only "standard" channel layouts (Mono, Stereo, 5.1, 6.1, 7.1), filling non-existant channels with silence. Required by some HDMI receivers with "odd" source layouts. (default)
+  - Output only "standard" channel layouts (Mono, Stereo, 5.1, 6.1, 7.1), filling non-existent channels with silence. Required by some HDMI receivers with "odd" source layouts. (default)
   - Convert Mono to Stereo (simply double the audio channel)
   - Convert 6.1 to 7.1 (Back Center gets doubled into both back channels)
 
@@ -1261,7 +1261,7 @@ LAV Splitter
 - Improved MPEG-TS duration calculations.
 - The settings will now always be properly saved and loaded.
 - Disabled the limit of 20 Streams per file.
-- Fixed two seperate issues that caused files to not start playing.
+- Fixed two separate issues that caused files to not start playing.
 
 LAV Audio Decoder
 - Property Page for Configuration and Status has been added

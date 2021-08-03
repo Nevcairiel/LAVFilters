@@ -478,7 +478,7 @@ HRESULT CStreamParser::ParseSRT(Packet *pPacket)
 
     while (ptr && end > ptr && *ptr)
     {
-        // Read the embeded timestamp and find the start of the subtitle
+        // Read the embedded timestamp and find the start of the subtitle
         ptr = read_srt_ts(ptr, &ts_start, &ts_end, &x1, &y1, &x2, &y2);
         if (ptr)
         {

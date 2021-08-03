@@ -29,7 +29,7 @@ public IUnknown {
 	// Number of Buffers
 	STDMETHOD_(int, GetCount()) = 0;
 	// Get Info about Buffer "i" (0-based index up to count)
-	// sampels: number of frames in the buffer
+	// samples: number of frames in the buffer
 	// size: total size in bytes of the buffer
 	STDMETHOD(GetStatus(int i, int& samples, int& size)) = 0;
 	// Get priority of the demuxing thread

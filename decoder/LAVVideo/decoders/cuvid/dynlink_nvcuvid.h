@@ -273,7 +273,7 @@ typedef CUresult CUDAAPI tcuvidGetSourceVideoFormat(CUvideosource obj, CUVIDEOFO
 /****************************************************************************************************************/
 //! \fn CUresult CUDAAPI cuvidGetSourceAudioFormat(CUvideosource obj, CUAUDIOFORMAT *paudfmt, unsigned int flags)
 //! Get audio source format
-//! NVDECODE API is intended for HW accelarated video decoding so CUvideosource doesn't have audio demuxer for all suppported
+//! NVDECODE API is intended for HW accelerated video decoding so CUvideosource doesn't have audio demuxer for all suppported
 //! containers. It's recommended to clients to use their own or third party demuxer if audio support is needed.
 /****************************************************************************************************************/
 typedef CUresult CUDAAPI tcuvidGetSourceAudioFormat(CUvideosource obj, CUAUDIOFORMAT *paudfmt, unsigned int flags);
