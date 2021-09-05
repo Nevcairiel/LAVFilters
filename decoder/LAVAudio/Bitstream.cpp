@@ -435,7 +435,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
 }
 
 HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput,
-                                    REFERENCE_TIME rtStopInput, BOOL bSwap)
+                                    REFERENCE_TIME rtStopInput, BOOL bSwap, DWORD dwSamples)
 {
     HRESULT hr = S_OK;
 
@@ -465,8 +465,12 @@ HRESULT CLAVAudio::DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD d
         m_bResyncTimestamp = FALSE;
     }
 
+    // number of samples in this packet
+    if (dwSamples == 0)
+        dwSamples = m_bsParser.m_dwSamples;
+
     REFERENCE_TIME rtStart = m_rtStart, rtStop = AV_NOPTS_VALUE;
-    double dDuration = DBL_SECOND_MULT * (double)m_bsParser.m_dwSamples / m_bsParser.m_dwSampleRate / m_dRate;
+    double dDuration = DBL_SECOND_MULT * (double)dwSamples / m_bsParser.m_dwSampleRate / m_dRate;
     m_dStartOffset += fmod(dDuration, 1.0);
 
     // Add rounded duration to rtStop

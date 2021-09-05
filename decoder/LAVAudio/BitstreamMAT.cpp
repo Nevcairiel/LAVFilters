@@ -183,8 +183,9 @@ void CLAVAudio::MATFlushPacket(HRESULT *hrDeliver)
 
         // Deliver MAT packet to the audio renderer
         *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache,
-                                      m_rtStopInputCache, true);
+                                      m_rtStopInputCache, true, m_TrueHDMATState.nSamples);
         m_bsOutput.SetSize(0);
+        m_TrueHDMATState.nSamples = 0;
     }
 }
 
@@ -355,6 +356,9 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
             MATWriteHeader();
         }
     }
+
+    // count the number of samples in this frame
+    m_TrueHDMATState.nSamples += frame_samples;
 
     // write actual audio data to the buffer
     int remaining = MATFillDataBuffer(p, buffsize);
