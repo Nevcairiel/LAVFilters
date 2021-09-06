@@ -326,7 +326,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         (!(dwDecFlags & LAV_VIDEO_DEC_FLAG_LAVSPLITTER) &&
          (pmt->subtype == MEDIASUBTYPE_H264 || pmt->subtype == MEDIASUBTYPE_h264 || pmt->subtype == MEDIASUBTYPE_X264 ||
           pmt->subtype == MEDIASUBTYPE_x264 || pmt->subtype == MEDIASUBTYPE_H264_bis ||
-          pmt->subtype == MEDIASUBTYPE_HEVC)))
+          pmt->subtype == MEDIASUBTYPE_HEVC || pmt->subtype == MEDIASUBTYPE_H265)))
     {
         m_pParser = av_parser_init(codec);
     }
