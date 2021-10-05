@@ -1313,6 +1313,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     if (m_bMadVR == -1)
         m_bMadVR = FilterInGraph(PINDIR_OUTPUT, CLSID_madVR);
 
+    if (m_bJRVR == -1)
+        m_bJRVR = !m_bMadVR && FilterInGraph(PINDIR_OUTPUT, CLSID_JRVR);
+
     if (m_bOverlayMixer == -1)
     {
         m_bOverlayMixer = !m_bMadVR && FilterInGraph(PINDIR_OUTPUT, CLSID_OverlayMixer);
@@ -1325,7 +1328,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     // - The OverlayMixer fails at interlaced support, so completely disable interlaced flags for it
     BOOL bInterlaced = IsInterlacedOutput();
     DWORD dwInterlacedFlags = 0;
-    if (m_bMadVR)
+    if (m_bMadVR || m_bJRVR)
     {
         if (bInterlaced && m_settings.DeintMode == DeintMode_Force)
         {
@@ -1350,7 +1353,7 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
     {
         dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_BT601;
     }
-    else if (dxvaExtFlags.VideoTransferMatrix > 5 && !m_bMadVR)
+    else if (dxvaExtFlags.VideoTransferMatrix > 5 && !(m_bMadVR || m_bJRVR))
     {
         dxvaExtFlags.VideoTransferMatrix = DXVA2_VideoTransferMatrix_Unknown;
     }

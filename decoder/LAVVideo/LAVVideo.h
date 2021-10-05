@@ -300,6 +300,7 @@ class __declspec(uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")) CLAVVideo
 
     BOOL m_bDXVAExtFormatSupport = TRUE;
     DWORD m_bMadVR = -1;
+    DWORD m_bJRVR = -1;
     DWORD m_bOverlayMixer = -1;
     DWORD m_dwDecodeFlags = 0;
 
