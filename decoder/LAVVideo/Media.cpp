@@ -780,9 +780,11 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   switch(transfer) {
   case AVCOL_TRC_BT709:
   case AVCOL_TRC_SMPTE170M:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
+    break;
   case AVCOL_TRC_BT2020_10:
   case AVCOL_TRC_BT2020_12:
-    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_709;
+    fmt.VideoTransferFunction = (matrix == AVCOL_SPC_BT2020_CL) ? MFVideoTransFunc_2020_const : MFVideoTransFunc_2020;
     break;
   case AVCOL_TRC_GAMMA22:
     fmt.VideoTransferFunction = DXVA2_VideoTransFunc_22;
@@ -792,6 +794,9 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
     break;
   case AVCOL_TRC_SMPTE240M:
     fmt.VideoTransferFunction = DXVA2_VideoTransFunc_240M;
+    break;
+  case AVCOL_TRC_LINEAR:
+    fmt.VideoTransferFunction = DXVA2_VideoTransFunc_10;
     break;
   case AVCOL_TRC_LOG:
     fmt.VideoTransferFunction = MFVideoTransFunc_Log_100;
