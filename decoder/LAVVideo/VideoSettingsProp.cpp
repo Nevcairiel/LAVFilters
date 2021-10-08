@@ -285,10 +285,12 @@ HRESULT CLAVVideoSettingsProp::OnActivate()
     WCHAR swdeintYADIF[] = L"YADIF";
     WCHAR swdeintW3FDIFS[] = L"Weston Three Field (Simple)";
     WCHAR swdeintW3FDIFC[] = L"Weston Three Field (Complex)";
+    WCHAR swdeintBWDIF[] = L"BobWeaver (bwdif)";
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintNone);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintYADIF);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintW3FDIFS);
     SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintW3FDIFC);
+    SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_ADDSTRING, 0, (LPARAM)swdeintBWDIF);
 
     addHint(IDC_HWACCEL_MPEG4, L"EXPERIMENTAL! The MPEG4-ASP decoder is known to be unstable! Use at your own peril!");
     addHint(IDC_HWACCEL_H264MVC, L"Intel GPU only.\nMVC acceleration is not supported on other graphics cards.");
@@ -517,9 +519,9 @@ HRESULT CLAVVideoSettingsProp::UpdateYADIFOptions()
 {
     DWORD dwVal = (DWORD)SendDlgItemMessage(m_Dlg, IDC_SWDEINT_MODE, CB_GETCURSEL, 0, 0);
 
-    EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_SWDEINT_MODE), (dwVal == SWDeintMode_YADIF));
-    EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_FILM), (dwVal == SWDeintMode_YADIF));
-    EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_VIDEO), (dwVal == SWDeintMode_YADIF));
+    EnableWindow(GetDlgItem(m_Dlg, IDC_LBL_SWDEINT_MODE), (dwVal != SWDeintMode_None));
+    EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_FILM), (dwVal != SWDeintMode_None));
+    EnableWindow(GetDlgItem(m_Dlg, IDC_SWDEINT_OUT_VIDEO), (dwVal != SWDeintMode_None));
 
     return S_OK;
 }

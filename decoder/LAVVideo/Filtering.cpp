@@ -137,9 +137,14 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
                 _snprintf_s(args, sizeof(args), "yadif=mode=%s:parity=auto:deint=interlaced",
                             (m_settings.SWDeintOutput == DeintOutput_FramePerField) ? "send_field" : "send_frame");
             else if (m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple)
-                _snprintf_s(args, sizeof(args), "w3fdif=filter=simple:deint=interlaced");
+                _snprintf_s(args, sizeof(args), "w3fdif=filter=simple:deint=interlaced:mode=%s:parity=auto",
+                            (m_settings.SWDeintOutput == DeintOutput_FramePerField) ? "field" : "frame");
             else if (m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex)
-                _snprintf_s(args, sizeof(args), "w3fdif=filter=complex:deint=interlaced");
+                _snprintf_s(args, sizeof(args), "w3fdif=filter=complex:deint=interlaced:mode=%s:parity=auto",
+                            (m_settings.SWDeintOutput == DeintOutput_FramePerField) ? "field" : "frame");
+            else if (m_settings.SWDeintMode == SWDeintMode_BWDIF)
+                _snprintf_s(args, sizeof(args), "bwdif=mode=%s:parity=auto:deint=interlaced",
+                            (m_settings.SWDeintOutput == DeintOutput_FramePerField) ? "send_field" : "send_frame");
             else
                 ASSERT(0);
 

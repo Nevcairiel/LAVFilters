@@ -58,7 +58,7 @@ configure() (
     --enable-w32threads             \
     --disable-demuxer=matroska      \
     --disable-filters               \
-    --enable-filter=scale,yadif,w3fdif \
+    --enable-filter=scale,yadif,w3fdif,bwdif \
     --disable-protocol=async,cache,concat,httpproxy,icecast,md5,subfile \
     --disable-muxers                \
     --enable-muxer=spdif            \

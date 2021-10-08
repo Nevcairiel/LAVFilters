@@ -635,9 +635,7 @@ HRESULT CLAVVideo::GetMediaType(int iPosition, CMediaType *pMediaType)
     // Adjust for deinterlacing
     if (m_Decoder.IsInterlaced(FALSE) && m_settings.DeintMode != DeintMode_Disable)
     {
-        BOOL bFramePerField =
-            (m_settings.SWDeintMode == SWDeintMode_YADIF && m_settings.SWDeintOutput == DeintOutput_FramePerField) ||
-            m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex;
+        BOOL bFramePerField = (m_settings.SWDeintMode != SWDeintMode_None && m_settings.SWDeintOutput == DeintOutput_FramePerField);
         if (bFramePerField)
             rtAvgTime /= 2;
     }

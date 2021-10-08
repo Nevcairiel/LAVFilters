@@ -142,6 +142,7 @@ typedef enum LAVSWDeintModes
     SWDeintMode_YADIF,
     SWDeintMode_W3FDIF_Simple,
     SWDeintMode_W3FDIF_Complex,
+    SWDeintMode_BWDIF,
 } LAVSWDeintModes;
 
 // Deinterlacing processing mode
