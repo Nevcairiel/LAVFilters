@@ -95,11 +95,27 @@ done:
 ////////////////////////////////////////////////////////////////////////////////
 
 static const D3D_FEATURE_LEVEL s_D3D11Levels[] = {
+    D3D_FEATURE_LEVEL_12_1,
+    D3D_FEATURE_LEVEL_12_0,
     D3D_FEATURE_LEVEL_11_1,
     D3D_FEATURE_LEVEL_11_0,
     D3D_FEATURE_LEVEL_10_1,
     D3D_FEATURE_LEVEL_10_0,
 };
+
+static int s_GetD3D11FeatureLevels(int max_fl, const D3D_FEATURE_LEVEL **out)
+{
+    static const int levels_len = countof(s_D3D11Levels);
+
+    int start = 0;
+    for (; start < levels_len; start++)
+    {
+        if (s_D3D11Levels[start] <= max_fl)
+            break;
+    }
+    *out = &s_D3D11Levels[start];
+    return levels_len - start;
+}
 
 static DXGI_FORMAT d3d11va_map_sw_to_hw_format(enum AVPixelFormat pix_fmt)
 {
@@ -212,9 +228,14 @@ STDMETHODIMP CDecD3D11::Check()
 {
     // attempt creating a hardware device with video support
     // by passing nullptr to the device parameter, no actual device will be created and only support will be checked
+
+    // do probing agains level 11.1 only, to avoid complex checking logic here
+    const D3D_FEATURE_LEVEL *levels = NULL;
+    int level_count = s_GetD3D11FeatureLevels(D3D_FEATURE_LEVEL_11_1, &levels);
+
     HRESULT hr =
         dx.mD3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, D3D11_CREATE_DEVICE_VIDEO_SUPPORT,
-                              s_D3D11Levels, countof(s_D3D11Levels), D3D11_SDK_VERSION, nullptr, nullptr, nullptr);
+                                       levels, level_count, D3D11_SDK_VERSION, nullptr, nullptr, nullptr);
     return hr;
 }
 
@@ -281,10 +302,29 @@ enum_adapter:
 
     // Create a device with video support, and BGRA support for Direct2D interoperability (drawing UI, etc)
     UINT nCreationFlags = D3D11_CREATE_DEVICE_VIDEO_SUPPORT | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-
+    D3D_FEATURE_LEVEL max_level = D3D_FEATURE_LEVEL_12_1;
     D3D_FEATURE_LEVEL d3dFeatureLevel;
-    hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, nCreationFlags, s_D3D11Levels,
-                               countof(s_D3D11Levels), D3D11_SDK_VERSION, &pD3D11Device, &d3dFeatureLevel, nullptr);
+
+    do
+    {
+        const D3D_FEATURE_LEVEL *levels = NULL;
+        int level_count = s_GetD3D11FeatureLevels(max_level, &levels);
+        hr = dx.mD3D11CreateDevice(pDXGIAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, nCreationFlags, levels, level_count,
+                                   D3D11_SDK_VERSION, &pD3D11Device, &d3dFeatureLevel, nullptr);
+
+        if (SUCCEEDED(hr))
+            break;
+
+        // 12.0+ devices fail on Windows 8.1, try without it
+        if (max_level >= D3D_FEATURE_LEVEL_12_0)
+        {
+            max_level = D3D_FEATURE_LEVEL_11_1;
+            continue;
+        }
+
+        break;
+    } while (true);
+
     if (FAILED(hr))
     {
         if (nDeviceIndex != 0)
