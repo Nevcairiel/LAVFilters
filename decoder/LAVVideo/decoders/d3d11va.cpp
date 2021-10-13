@@ -390,6 +390,15 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
         goto fail;
     }
 
+    // enable multithreaded protection
+    ID3D10Multithread *pMultithread = nullptr;
+    hr = pDeviceContext->device_context->QueryInterface(&pMultithread);
+    if (SUCCEEDED(hr))
+    {
+        pMultithread->SetMultithreadProtected(TRUE);
+        SafeRelease(&pMultithread);
+    }
+
     // check if the connection supports native mode
     if (pD3D11DecoderConfiguration)
     {
