@@ -352,8 +352,6 @@ BOOL CLAVPixFmtConverter::IsAllowedSubtype(const GUID *guid)
     return FALSE;
 }
 
-#define OUTPUT_RGB (m_OutputPixFmt == LAVOutPixFmt_RGB32 || m_OutputPixFmt == LAVOutPixFmt_RGB24)
-
 void CLAVPixFmtConverter::SelectConvertFunction()
 {
     m_RequiredAlignment = 16;
