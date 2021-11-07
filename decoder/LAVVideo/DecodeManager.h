@@ -65,7 +65,16 @@ class CDecodeManager : protected CCritSec
     }
     STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
     {
-        ASSERT(m_pDecoder);
+        if (m_pDecoder == NULL)
+        {
+            if (pPix)
+                *pPix = LAVPixFmt_None;
+            if (pBpp)
+                *pBpp = 8;
+
+            return S_FALSE;
+        }
+
         return m_pDecoder->GetPixelFormat(pPix, pBpp);
     }
     STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration()
