@@ -129,9 +129,17 @@ interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings
     // Check if the given format is enabled
     STDMETHOD_(BOOL, IsFormatEnabled)(LPCSTR strFormat) = 0;
 
+    // Set if LAV Splitter should reselect subs based on given rules when audio stream
+    // is changed
+    STDMETHOD(SetStreamSwitchReselectSubs)(BOOL bEnabled) = 0;
+
     // Set if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream
     // is changed
     STDMETHOD(SetStreamSwitchRemoveAudio)(BOOL bEnabled) = 0;
+
+    // Query if LAV Splitter should reselect subs based on given rules when audio stream
+    // is changed
+    STDMETHOD_(BOOL, GetStreamSwitchReselectSubs)() = 0;
 
     // Query if LAV Splitter should always completely remove the filter connected to its Audio Pin when the audio stream
     // is changed

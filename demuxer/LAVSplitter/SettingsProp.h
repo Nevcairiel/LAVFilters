@@ -68,6 +68,8 @@ class CLAVSplitterSettingsProp : public CBaseDSPropPage
     BOOL m_substreams;
     BOOL m_MKVExternal;
 
+    BOOL m_StreamSwitchReselectSubs;
+
     BOOL m_StreamSwitchRemoveAudio;
     BOOL m_PreferHighQualityAudio;
     BOOL m_ImpairedAudio;

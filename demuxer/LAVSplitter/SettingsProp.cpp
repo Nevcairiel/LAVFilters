@@ -106,6 +106,9 @@ HRESULT CLAVSplitterSettingsProp::OnApplyChanges()
     bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
     CHECK_HR(hr = m_pLAVF->SetStreamSwitchRemoveAudio(bFlag));
 
+    bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_RESELECT_SUBS, BM_GETCHECK, 0, 0);
+    CHECK_HR(hr = m_pLAVF->SetStreamSwitchReselectSubs(bFlag));
+
     bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_SELECT_AUDIO_QUALITY, BM_GETCHECK, 0, 0);
     CHECK_HR(hr = m_pLAVF->SetPreferHighQualityAudioStreams(bFlag));
 
@@ -248,6 +251,12 @@ HRESULT CLAVSplitterSettingsProp::OnActivate()
             L"DirectShow to select a new one.\n\nThis option ensures that the preferred decoder is always used, "
             L"however it does not work properly with all players.");
 
+    SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_RESELECT_SUBS, BM_SETCHECK, m_StreamSwitchReselectSubs, 0);
+    addHint(IDC_STREAM_SWITCH_RESELECT_SUBS,
+            L"Reapply the subtitle-selection rules when the audio-stream has changed. This automatically adjusts the "
+            L"selected subtitle to the selected audio track.\nOf cause subtitle-track can be changed after this automatic selection "
+            L"by hand, but will be overridden again on next audio track switch.");
+
     addHint(IDC_SELECT_AUDIO_QUALITY,
             L"Controls if the stream with the highest quality (matching your language preferences) should always be "
             L"used.\nIf disabled, the first stream is always used.");
@@ -314,6 +323,8 @@ HRESULT CLAVSplitterSettingsProp::LoadData()
     m_VC1Mode = m_pLAVF->GetVC1TimestampMode();
     m_substreams = m_pLAVF->GetSubstreamsEnabled();
     m_MKVExternal = m_pLAVF->GetLoadMatroskaExternalSegments();
+
+    m_StreamSwitchReselectSubs = m_pLAVF->GetStreamSwitchReselectSubs();
 
     m_StreamSwitchRemoveAudio = m_pLAVF->GetStreamSwitchRemoveAudio();
     m_PreferHighQualityAudio = m_pLAVF->GetPreferHighQualityAudioStreams();
@@ -418,6 +429,14 @@ INT_PTR CLAVSplitterSettingsProp::OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM 
         {
             BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_REMOVE_AUDIO, BM_GETCHECK, 0, 0);
             if (bFlag != m_StreamSwitchRemoveAudio)
+            {
+                SetDirty();
+            }
+        }
+        else if (HIWORD(wParam) == BN_CLICKED && LOWORD(wParam) == IDC_STREAM_SWITCH_RESELECT_SUBS)
+        {
+            BOOL bFlag = (BOOL)SendDlgItemMessage(m_Dlg, IDC_STREAM_SWITCH_RESELECT_SUBS, BM_GETCHECK, 0, 0);
+            if (bFlag != m_StreamSwitchReselectSubs)
             {
                 SetDirty();
             }

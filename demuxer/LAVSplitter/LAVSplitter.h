@@ -155,7 +155,9 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     STDMETHODIMP_(BOOL) GetFixBrokenHDPVR();
     STDMETHODIMP_(HRESULT) SetFormatEnabled(LPCSTR strFormat, BOOL bEnabled);
     STDMETHODIMP_(BOOL) IsFormatEnabled(LPCSTR strFormat);
+    STDMETHODIMP SetStreamSwitchReselectSubs(BOOL bEnabled);
     STDMETHODIMP SetStreamSwitchRemoveAudio(BOOL bEnabled);
+    STDMETHODIMP_(BOOL) GetStreamSwitchReselectSubs();
     STDMETHODIMP_(BOOL) GetStreamSwitchRemoveAudio();
     STDMETHODIMP GetAdvancedSubtitleConfig(LPWSTR *ppAdvancedConfig);
     STDMETHODIMP SetAdvancedSubtitleConfig(LPCWSTR pAdvancedConfig);
@@ -257,6 +259,7 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     CLAVOutputPin *GetOutputPin(DWORD streamId, BOOL bActiveOnly = FALSE);
     STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::deque<CMediaType> pmts);
     STDMETHODIMP UpdateForcedSubtitleMediaType();
+    STDMETHODIMP ReselectSubs(int pid);
 
     STDMETHODIMP CompleteInputConnection();
     STDMETHODIMP BreakInputConnection();
@@ -324,6 +327,8 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
         BOOL substreams;
 
         BOOL MatroskaExternalSegments;
+
+        BOOL StreamSwitchReselectSubs;
 
         BOOL StreamSwitchRemoveAudio;
         BOOL ImpairedAudio;

@@ -47,14 +47,15 @@
 #define IDC_LBL_QUEUE_PACKETS           1039
 #define IDC_QUEUE_PACKETS               1040
 #define IDC_QUEUE_PACKETS_SPIN          1041
+#define IDC_STREAM_SWITCH_RESELECT_SUBS 1042
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        107
+#define _APS_NEXT_RESOURCE_VALUE        108
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1042
+#define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
