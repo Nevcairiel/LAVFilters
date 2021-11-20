@@ -48,7 +48,8 @@ typedef struct CSubtitleSelector
 
 // Values above 0xFF are special
 #define SUBTITLE_FLAG_PGS 0x8000
-    DWORD dwFlags;
+    DWORD dwFlagsSet;
+    DWORD dwFlagsNot;
 } CSubtitleSelector;
 
 class CBaseDemuxer : public CUnknown

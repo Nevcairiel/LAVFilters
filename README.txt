@@ -71,21 +71,37 @@ of the audio language. The reverse is also possible: "eng:*" will activate any s
 The "off" flag is only valid for the subtitle language, and it instructs LAV Splitter to turn the subtitles off.
 So "eng:off" means that when the audio is English, the subtitles will be deactivated.
 
-Additionally to the syntax above, two flags are supported to enhance the subtitle selection.
-Specifically, LAV Splitter understands the flag "d" for default subtitles, the flag "f" for forced subtitles,
-the flag "h" for hearing impaired, and the flag "n" for normal streams (not default, forced, or impaired).
-In addition, flags can be negated with a leading "!" before the whole flags block - "!h" becomes "dfn", etc.
-Flags are appended to the subtitle language, separated by a pipe symbol ("|"). Example: "*:*|f"
-This token specifies that on any audio language, you want any subtitle that is flagged forced.
-
+Additionally to the syntax above, the following flags can be appended to the subtitle token separated by a pipe symbol ("|"):
+ - "d" for default subtitles
+ - "f" for forced subtitles
+ - "h" for hearing impaired
+ - "n" for normal streams (not default, forced, or impaired).
+In addition, you can also check for the absence of flags by preceeding the flags with with a "!".
 The advanced rules can be combined into a complete logic for subtitle selection by just appending them, separated with a comma or a space.
 The rules will always be parsed from left to right, the first match taking precedence.
 
-Consider the following ruleset:
-"eng:eng|f eng:ger|f eng:off *:eng *:ger"
-This rule means the following:
-If the audio is English, load an English or a German forced subtitle track, otherwise turn subtitles off.
-If the audio is not English, load English or German subtitles.
+Example: (basic flag usage)
+  "*:*|f"
+Explanation:
+  On any audio language, load any subtitles that is flagged forced.
+
+Example: (basic ruleset)
+  "eng:eng|f eng:ger|f eng:off *:eng *:ger"
+Explanation:
+  If the audio is English, load an English or a German forced subtitle track, otherwise turn subtitles off.
+  If the audio is not English, load English or German subtitles.
+
+Example: (flag usage with negation)
+  "jpn:ger|d!f"
+Explanation:
+  On Japanese language, load German subtitles that have the default-flag but not together with forced-flag.
+  This is usefull when you have files where the default and forced flags are set together.
+
+Example: (advanced ruleset for files with multiple audio and subtitle-tracks)
+  "jpn:ger|d!f  jpn:ger|!f  jpn:ger  ger:ger|f  ger:eng|f  ger:*|f"
+Explanation:
+  On Japanese audio, try to load German full subs (default but not forced), then unforced, and at last any german subs if there are no unforced subs.
+  On German audio load only forced subs in the following order: german, english, any
 
 BluRay Support
 =============================

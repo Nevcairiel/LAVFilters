@@ -1750,7 +1750,7 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
 
     std::regex advRegex("(?:(\\*|[[:alpha:]]+):)?" // audio language
                         "(\\*|[[:alpha:]]+)"       // subtitle language
-                        "(?:\\|(!?)([fdnh]+))?"    // flags
+                        "(?:\\|([fdnh]*!?[fdnh]+))?"    // flags
                         "(?:@([^" +
                         separators + "]+))?" // subtitle track name substring
     );
@@ -1763,46 +1763,64 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
             CSubtitleSelector selector;
             selector.audioLanguage = res[1].str().empty() ? "*" : ProbeForISO6392(res[1].str().c_str());
             selector.subtitleLanguage = ProbeForISO6392(res[2].str().c_str());
-            selector.dwFlags = 0;
+            selector.dwFlagsSet = 0;
+            selector.dwFlagsNot = 0;
 
             // Parse flags
-            std::string flags = res[4];
-            if (flags.length() > 0)
+            std::string flags = res[3];
+            std::string flagsSet;
+            std::string flagsNot;
+            if (flags.find('!') != flags.npos)
             {
-                if (flags.find('d') != flags.npos)
-                    selector.dwFlags |= SUBTITLE_FLAG_DEFAULT;
-                if (flags.find('f') != flags.npos)
-                    selector.dwFlags |= SUBTITLE_FLAG_FORCED;
-                if (flags.find('n') != flags.npos)
-                    selector.dwFlags |= SUBTITLE_FLAG_NORMAL;
-                if (flags.find('h') != flags.npos)
-                    selector.dwFlags |= SUBTITLE_FLAG_IMPAIRED;
+                flagsSet = flags.substr(0, flags.find('!'));
+                flagsNot = flags.substr(flags.find('!')+1);
+            }
+            else
+            {
+                flagsSet = flags;
+                flagsNot = "";
+            }
+            if (flagsSet.length() > 0)
+            {
+                if (flagsSet.find('d') != std::string::npos)
+                    selector.dwFlagsSet |= SUBTITLE_FLAG_DEFAULT;
+                if (flagsSet.find('f') != std::string::npos)
+                    selector.dwFlagsSet |= SUBTITLE_FLAG_FORCED;
+                if (flagsSet.find('n') != std::string::npos)
+                    selector.dwFlagsSet |= SUBTITLE_FLAG_NORMAL;
+                if (flagsSet.find('h') != std::string::npos)
+                    selector.dwFlagsSet |= SUBTITLE_FLAG_IMPAIRED;
 
                 if (m_settings.subtitleMode == LAVSubtitleMode_Default)
                 {
-                    if (selector.subtitleLanguage == "*" && (selector.dwFlags & SUBTITLE_FLAG_DEFAULT))
-                        selector.dwFlags |= SUBTITLE_FLAG_VIRTUAL;
+                    if (selector.subtitleLanguage == "*" && (selector.dwFlagsSet & SUBTITLE_FLAG_DEFAULT))
+                        selector.dwFlagsSet |= SUBTITLE_FLAG_VIRTUAL;
                 }
                 else
                 {
-                    if (selector.dwFlags & SUBTITLE_FLAG_FORCED)
-                        selector.dwFlags |= SUBTITLE_FLAG_VIRTUAL;
-                }
-
-                // Check for flag negation
-                std::string not = res[3];
-                if (not.length() == 1 && not == "!")
-                {
-                    selector.dwFlags = (~selector.dwFlags) & 0xFF;
+                    if (selector.dwFlagsSet & SUBTITLE_FLAG_FORCED)
+                        selector.dwFlagsSet |= SUBTITLE_FLAG_VIRTUAL;
                 }
             }
+            if (flagsNot.length() > 0)
+            {
+                if (flagsNot.find('d') != std::string::npos)
+                    selector.dwFlagsNot |= SUBTITLE_FLAG_DEFAULT;
+                if (flagsNot.find('f') != std::string::npos)
+                    selector.dwFlagsNot |= SUBTITLE_FLAG_FORCED;
+                if (flagsNot.find('n') != std::string::npos)
+                    selector.dwFlagsNot |= SUBTITLE_FLAG_NORMAL;
+                if (flagsNot.find('h') != std::string::npos)
+                    selector.dwFlagsNot |= SUBTITLE_FLAG_IMPAIRED;
+            }
 
-            selector.subtitleTrackName = res[5];
+            selector.subtitleTrackName = res[4];
 
             selectorList.push_back(selector);
             DbgLog((LOG_TRACE, 10,
-                    L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flags: 0x%x, match: %S)",
-                    token.c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(), selector.dwFlags,
+                    L"::GetSubtitleSelectors(): Parsed selector \"%S\" to: %S -> %S (flagsSet: 0x%x, flagsNot: 0x%x, match: %S)",
+                    token.c_str(), selector.audioLanguage.c_str(), selector.subtitleLanguage.c_str(),
+                    selector.dwFlagsSet, selector.dwFlagsNot,
                     selector.subtitleTrackName.c_str()));
         }
         else
