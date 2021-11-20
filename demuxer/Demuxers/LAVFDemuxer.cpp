@@ -966,7 +966,8 @@ HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
         CSubtitleSelector selector;
         selector.audioLanguage = "*";
         selector.subtitleLanguage = "*";
-        selector.dwFlags = SUBTITLE_FLAG_PGS;
+        selector.dwFlagsSet = SUBTITLE_FLAG_PGS;
+        selector.dwFlagsNot = 0;
         selectors.push_back(selector);
 
         const stream *subst = SelectSubtitleStream(selectors, "");
@@ -2685,7 +2686,8 @@ HRESULT CLAVFDemuxer::UpdateForcedSubtitleStream(unsigned audio_pid)
     CSubtitleSelector selector;
     selector.audioLanguage = "*";
     selector.subtitleLanguage = audiost->language;
-    selector.dwFlags = SUBTITLE_FLAG_PGS;
+    selector.dwFlagsSet = SUBTITLE_FLAG_PGS;
+    selector.dwFlagsNot = 0;
     selectors.push_back(selector);
 
     selector.subtitleLanguage = "*";
@@ -3013,26 +3015,37 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
 
             if (sit->pid == FORCED_SUBTITLE_PID)
             {
-                if ((it->dwFlags == 0 || it->dwFlags & SUBTITLE_FLAG_VIRTUAL) &&
+                if ((it->dwFlagsSet == 0 || it->dwFlagsSet & SUBTITLE_FLAG_VIRTUAL) &&
                     does_language_match(it->subtitleLanguage, audioLanguage))
                     checkedStreams.push_back(&*sit);
                 continue;
             }
 
-            if (it->dwFlags == 0 ||
-                ((it->dwFlags & SUBTITLE_FLAG_DEFAULT) &&
-                 (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT)) ||
-                ((it->dwFlags & SUBTITLE_FLAG_FORCED) &&
-                 (m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_FORCED)) ||
-                ((it->dwFlags & SUBTITLE_FLAG_IMPAIRED) &&
-                 (m_avFormat->streams[sit->pid]->disposition &
-                  (AV_DISPOSITION_HEARING_IMPAIRED | AV_DISPOSITION_VISUAL_IMPAIRED))) ||
-                ((it->dwFlags & SUBTITLE_FLAG_PGS) &&
-                 (m_avFormat->streams[sit->pid]->codecpar->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE)) ||
-                ((it->dwFlags & SUBTITLE_FLAG_NORMAL) &&
-                 !(m_avFormat->streams[sit->pid]->disposition &
-                   (AV_DISPOSITION_DEFAULT | AV_DISPOSITION_FORCED | AV_DISPOSITION_HEARING_IMPAIRED |
-                    AV_DISPOSITION_VISUAL_IMPAIRED))))
+            bool streamIsDefault = m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_DEFAULT;
+            bool streamIsForced = m_avFormat->streams[sit->pid]->disposition & AV_DISPOSITION_FORCED;
+            bool streamIsImpaired = m_avFormat->streams[sit->pid]->disposition &
+                                    (AV_DISPOSITION_HEARING_IMPAIRED | AV_DISPOSITION_VISUAL_IMPAIRED);
+            bool streamIsNormal = !streamIsDefault && !streamIsForced && !streamIsImpaired;
+            bool streamIsPgsFormat =
+                (m_avFormat->streams[sit->pid]->codecpar->codec_id == AV_CODEC_ID_HDMV_PGS_SUBTITLE);
+
+            bool flagsSetMatch =
+                ((it->dwFlagsSet == 0) ||
+                 ((it->dwFlagsSet & SUBTITLE_FLAG_DEFAULT) && streamIsDefault) ||
+                 ((it->dwFlagsSet & SUBTITLE_FLAG_FORCED) && streamIsForced) ||
+                 ((it->dwFlagsSet & SUBTITLE_FLAG_IMPAIRED) && streamIsImpaired) ||
+                 ((it->dwFlagsSet & SUBTITLE_FLAG_PGS) && streamIsPgsFormat) ||
+                 ((it->dwFlagsSet & SUBTITLE_FLAG_NORMAL) && streamIsNormal)
+                );
+
+            bool flagsNotMatch =
+                (!((it->dwFlagsNot & SUBTITLE_FLAG_DEFAULT) && streamIsDefault) &&
+                 !((it->dwFlagsNot & SUBTITLE_FLAG_FORCED) && streamIsForced) &&
+                 !((it->dwFlagsNot & SUBTITLE_FLAG_IMPAIRED) && streamIsImpaired) &&
+                 !((it->dwFlagsNot & SUBTITLE_FLAG_NORMAL) && streamIsNormal)
+                );
+
+            if (flagsSetMatch && flagsNotMatch)
             {
                 std::string streamLanguage = sit->language;
                 if (does_language_match(it->subtitleLanguage, streamLanguage))
