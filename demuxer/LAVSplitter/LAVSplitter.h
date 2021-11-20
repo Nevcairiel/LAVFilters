@@ -174,6 +174,8 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     STDMETHODIMP_(DWORD) GetNetworkStreamAnalysisDuration();
     STDMETHODIMP SetMaxQueueSize(DWORD dwMaxSize);
     STDMETHODIMP_(DWORD) GetMaxQueueSize();
+    STDMETHODIMP SetStreamSwitchReselectSubtitles(BOOL bEnabled);
+    STDMETHODIMP_(BOOL) GetStreamSwitchReselectSubtitles();
 
     // ILAVSplitterSettingsInternal
     STDMETHODIMP_(LPCSTR) GetInputFormat()
@@ -257,6 +259,7 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     CLAVOutputPin *GetOutputPin(DWORD streamId, BOOL bActiveOnly = FALSE);
     STDMETHODIMP RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst, std::deque<CMediaType> pmts);
     STDMETHODIMP UpdateForcedSubtitleMediaType();
+    STDMETHODIMP ReselectSubs(int pid);
 
     STDMETHODIMP CompleteInputConnection();
     STDMETHODIMP BreakInputConnection();
@@ -324,6 +327,8 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
         BOOL substreams;
 
         BOOL MatroskaExternalSegments;
+
+        BOOL StreamSwitchReselectSubs;
 
         BOOL StreamSwitchRemoveAudio;
         BOOL ImpairedAudio;

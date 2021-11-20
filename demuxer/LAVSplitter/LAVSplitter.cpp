@@ -143,6 +143,7 @@ STDMETHODIMP CLAVSplitter::LoadDefaults()
 
     m_settings.MatroskaExternalSegments = TRUE;
 
+    m_settings.StreamSwitchReselectSubs = FALSE;
     m_settings.StreamSwitchRemoveAudio = FALSE;
     m_settings.ImpairedAudio = FALSE;
     m_settings.PreferHighQualityAudio = TRUE;
@@ -220,6 +221,10 @@ STDMETHODIMP CLAVSplitter::ReadSettings(HKEY rootKey)
         if (SUCCEEDED(hr))
             m_settings.MatroskaExternalSegments = bFlag;
 
+        bFlag = reg.ReadDWORD(L"StreamSwitchReselectSubs", hr);
+        if (SUCCEEDED(hr))
+            m_settings.StreamSwitchReselectSubs = bFlag;
+
         bFlag = reg.ReadDWORD(L"StreamSwitchRemoveAudio", hr);
         if (SUCCEEDED(hr))
             m_settings.StreamSwitchRemoveAudio = bFlag;
@@ -285,6 +290,7 @@ STDMETHODIMP CLAVSplitter::SaveSettings()
         reg.WriteDWORD(L"vc1TimestampMode", m_settings.vc1Mode);
         reg.WriteBOOL(L"substreams", m_settings.substreams);
         reg.WriteBOOL(L"MatroskaExternalSegments", m_settings.MatroskaExternalSegments);
+        reg.WriteBOOL(L"StreamSwitchReselectSubs", m_settings.StreamSwitchReselectSubs);
         reg.WriteBOOL(L"StreamSwitchRemoveAudio", m_settings.StreamSwitchRemoveAudio);
         reg.WriteBOOL(L"PreferHighQualityAudio", m_settings.PreferHighQualityAudio);
         reg.WriteBOOL(L"ImpairedAudio", m_settings.ImpairedAudio);
@@ -1271,6 +1277,36 @@ STDMETHODIMP CLAVSplitter::UpdateForcedSubtitleMediaType()
     return S_OK;
 }
 
+STDMETHODIMP CLAVSplitter::ReselectSubs(int streamId)
+{
+    CheckPointer(m_pDemuxer, E_UNEXPECTED);
+    CBaseDemuxer::stream *audioStream = m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::audio)->FindStream(streamId);
+    std::string audioLanguage = audioStream ? audioStream->language : std::string();
+    std::list<CSubtitleSelector> subtitleSelectors = GetSubtitleSelectors();
+
+    const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage);
+    if (subtitleStream)
+    {
+        long lIndex = m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::video)->size() +
+                      m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::audio)->size();
+
+        auto subpics = m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::subpic);
+        for (int i = 0; i < subpics->size(); i++)
+        {
+            if (subpics->at(i).pid == subtitleStream->pid)
+            {
+                lIndex += i;
+                break;
+            }
+        }
+
+        Enable(lIndex, AMSTREAMSELECTENABLE_ENABLE);
+        return S_OK;
+    }
+
+    return E_FAIL;
+}
+
 static int QueryAcceptMediaTypes(IPin *pPin, std::deque<CMediaType> pmts)
 {
     for (unsigned int i = 0; i < pmts.size(); i++)
@@ -1304,6 +1340,8 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
     // This only works on pins that were connected before, or the filter graph could .. well, break
     if (pPin && pPin->IsConnected())
     {
+        bool reselectSubsAtEnd = false;
+
         HRESULT hr = S_OK;
 
         IMediaControl *pControl = nullptr;
@@ -1402,6 +1440,11 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
 
             if (pPin->IsAudioPin() && m_settings.PGSForcedStream)
                 UpdateForcedSubtitleMediaType();
+
+            if (pPin->IsAudioPin() && m_settings.StreamSwitchReselectSubs)
+            {
+                reselectSubsAtEnd = true;
+            }
         }
         else
         {
@@ -1429,6 +1472,11 @@ STDMETHODIMP CLAVSplitter::RenameOutputPin(DWORD TrackNumSrc, DWORD TrackNumDst,
             DbgLog((LOG_TRACE, 20, L"::RenameOutputPin() - IMediaControl::Run (hr %x)", hr));
         }
         pControl->Release();
+
+        if (reselectSubsAtEnd)
+        {
+            ReselectSubs(TrackNumDst);
+        }
 
         return hr;
     }
@@ -2012,6 +2060,17 @@ STDMETHODIMP CLAVSplitter::SetMaxQueueMemSize(DWORD dwMaxSize)
 STDMETHODIMP_(DWORD) CLAVSplitter::GetMaxQueueMemSize()
 {
     return m_settings.QueueMaxMemSize;
+}
+
+STDMETHODIMP CLAVSplitter::SetStreamSwitchReselectSubtitles(BOOL bEnabled)
+{
+    m_settings.StreamSwitchReselectSubs = bEnabled;
+    return SaveSettings();
+}
+
+STDMETHODIMP_(BOOL) CLAVSplitter::GetStreamSwitchReselectSubtitles()
+{
+    return m_settings.StreamSwitchReselectSubs;
 }
 
 STDMETHODIMP CLAVSplitter::SetTrayIcon(BOOL bEnabled)

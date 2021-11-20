@@ -192,4 +192,10 @@ interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings
 
     // Get the maximum queue size, in number of packets
     STDMETHOD_(DWORD, GetMaxQueueSize)() = 0;
+
+    // Set if LAV Splitter should reselect subs based on given rules when audio stream is changed
+    STDMETHOD(SetStreamSwitchReselectSubtitles)(BOOL bEnabled) = 0;
+
+    // Query if LAV Splitter should reselect subs based on given rules when audio stream is changed
+    STDMETHOD_(BOOL, GetStreamSwitchReselectSubtitles)() = 0;
 };
