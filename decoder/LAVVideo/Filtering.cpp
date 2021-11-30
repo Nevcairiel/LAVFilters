@@ -43,8 +43,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     int ret = 0;
     BOOL bFlush = pFrame->flags & LAV_FRAME_FLAG_FLUSH;
     if (m_Decoder.IsInterlaced(FALSE) && m_settings.DeintMode != DeintMode_Disable &&
-        (m_settings.SWDeintMode == SWDeintMode_YADIF || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple ||
-         m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex) &&
+        m_settings.SWDeintMode != SWDeintMode_None &&
         ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 ||
          pFrame->format == LAVPixFmt_NV12))
     {
@@ -55,7 +54,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
         if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth ||
                         pFrame->height != m_filterHeight))
         {
-            DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing YADIF deinterlacing filter..."));
+            DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing software deinterlacing filter..."));
             if (m_pFilterGraph)
             {
                 avfilter_graph_free(&m_pFilterGraph);
@@ -235,8 +234,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
         }
 
         BOOL bFramePerField =
-            (m_settings.SWDeintMode == SWDeintMode_YADIF && m_settings.SWDeintOutput == DeintOutput_FramePerField) ||
-            m_settings.SWDeintMode == SWDeintMode_W3FDIF_Simple || m_settings.SWDeintMode == SWDeintMode_W3FDIF_Complex;
+            (m_settings.SWDeintMode != SWDeintMode_None && m_settings.SWDeintOutput == DeintOutput_FramePerField);
 
         AVFrame *out_frame = av_frame_alloc();
         HRESULT hrDeliver = S_OK;
