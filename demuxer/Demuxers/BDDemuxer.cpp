@@ -406,7 +406,7 @@ STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
     DbgLog((LOG_TRACE, 10, "CBDDemuxer::OpenMVCExtensionDemuxer(): Opening MVC extension stream at %s", fileName));
 
     // Try to open the MVC stream
-    AVInputFormat *format = av_find_input_format("mpegts");
+    const AVInputFormat *format = av_find_input_format("mpegts");
     ret = avformat_open_input(&m_MVCFormatContext, fileName, format, nullptr);
     if (ret < 0)
     {
@@ -415,7 +415,6 @@ STDMETHODIMP CBDDemuxer::OpenMVCExtensionDemuxer(int playItem)
     }
 
     av_opt_set_int(m_MVCFormatContext, "correct_ts_overflow", 0, 0);
-    m_MVCFormatContext->flags |= AVFMT_FLAG_KEEP_SIDE_DATA;
 
     // Find the streams
     ret = avformat_find_stream_info(m_MVCFormatContext, nullptr);

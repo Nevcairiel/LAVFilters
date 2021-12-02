@@ -358,7 +358,6 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_pAVCtx->bits_per_coded_sample = pBMI->biBitCount;
     m_pAVCtx->err_recognition = 0;
     m_pAVCtx->workaround_bugs = FF_BUG_AUTODETECT;
-    m_pAVCtx->refcounted_frames = 1;
 
     // Setup threading
     // Thread Count. 0 = auto detect

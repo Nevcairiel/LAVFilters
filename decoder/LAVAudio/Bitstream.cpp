@@ -107,7 +107,6 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
     }
 
     m_avBSContext->pb = m_avioBitstream;
-    m_avBSContext->oformat->flags |= AVFMT_NOFILE;
 
     // flush IO after every packet, so we can send it to the audio renderer immediately
     m_avBSContext->flags |= AVFMT_FLAG_FLUSH_PACKETS;

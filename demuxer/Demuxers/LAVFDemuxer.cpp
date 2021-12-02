@@ -303,7 +303,7 @@ trynoformat:
 
     LPWSTR extension = pszFileName ? PathFindExtensionW(pszFileName) : nullptr;
 
-    AVInputFormat *inputFormat = nullptr;
+    const AVInputFormat *inputFormat = nullptr;
     if (format)
     {
         inputFormat = av_find_input_format(format);
@@ -574,53 +574,37 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
 
 inline static int init_parser(AVFormatContext *s, AVStream *st)
 {
-    if (!st->parser && st->need_parsing && !(s->flags & AVFMT_FLAG_NOPARSE))
+    if (av_lav_stream_parser_get_needed(st) && !(s->flags & AVFMT_FLAG_NOPARSE))
     {
-        st->parser = av_parser_init(st->codecpar->codec_id);
-        if (st->parser)
-        {
-            if (st->need_parsing == AVSTREAM_PARSE_HEADERS)
-            {
-                st->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-            }
-            else if (st->need_parsing == AVSTREAM_PARSE_FULL_ONCE)
-            {
-                st->parser->flags |= PARSER_FLAG_ONCE;
-            }
-        }
-        else
-        {
-            return -1;
-        }
+        av_lav_stream_parser_init(st);
     }
     return 0;
 }
 
 void CLAVFDemuxer::UpdateParserFlags(AVStream *st)
 {
-    if (st->parser)
+    int flags = av_lav_stream_parser_get_flags(st);
+    if ((st->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO || st->codecpar->codec_id == AV_CODEC_ID_MPEG1VIDEO) &&
+        _stricmp(m_pszInputFormat, "mpegvideo") != 0)
     {
-        if ((st->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO || st->codecpar->codec_id == AV_CODEC_ID_MPEG1VIDEO) &&
-            _stricmp(m_pszInputFormat, "mpegvideo") != 0)
+        flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+    }
+    else if (st->codecpar->codec_id == AV_CODEC_ID_H264)
+    {
+        flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+    }
+    else if (st->codecpar->codec_id == AV_CODEC_ID_VC1)
+    {
+        if (m_bVC1Correction)
         {
-            st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
+            flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
         }
-        else if (st->codecpar->codec_id == AV_CODEC_ID_H264)
+        else
         {
-            st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-        }
-        else if (st->codecpar->codec_id == AV_CODEC_ID_VC1)
-        {
-            if (m_bVC1Correction)
-            {
-                st->parser->flags &= ~PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-            }
-            else
-            {
-                st->parser->flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
-            }
+            flags |= PARSER_FLAG_NO_TIMESTAMP_MANGLING;
         }
     }
+    av_lav_stream_parser_update_flags(st, flags);
 }
 
 static struct sCoverMimeTypes
@@ -698,9 +682,6 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
 
     av_opt_set_int(m_avFormat, "correct_ts_overflow", !m_pBluRay, 0);
 
-    // preserve side-data in the packets properly
-    m_avFormat->flags |= AVFMT_FLAG_KEEP_SIDE_DATA;
-
     m_timeOpening = time(nullptr);
     int ret = avformat_find_stream_info(m_avFormat, nullptr);
     if (ret < 0)
@@ -764,17 +745,17 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
         AVStream *st = m_avFormat->streams[idx];
 
         // Disable full stream parsing for these formats
-        if (st->need_parsing == AVSTREAM_PARSE_FULL)
+        if (av_lav_stream_parser_get_needed(st) == AVSTREAM_PARSE_FULL)
         {
             if (st->codecpar->codec_id == AV_CODEC_ID_DVB_SUBTITLE)
             {
-                st->need_parsing = AVSTREAM_PARSE_NONE;
+                av_lav_stream_parser_set_needed(st, AVSTREAM_PARSE_NONE);
             }
         }
 
         if (m_bOgg && st->codecpar->codec_id == AV_CODEC_ID_H264)
         {
-            st->need_parsing = AVSTREAM_PARSE_FULL;
+            av_lav_stream_parser_set_needed(st, AVSTREAM_PARSE_FULL);
         }
 
         // Create the parsers with the appropriate flags
@@ -785,9 +766,9 @@ STDMETHODIMP CLAVFDemuxer::InitAVFormat(LPCOLESTR pszFileName, BOOL bForce)
         AVProgram *streamProg = av_find_program_from_stream(m_avFormat, nullptr, idx);
         DbgLog((LOG_TRACE, 30, L"Stream %d (pid %d) - program: %d, codec: %S; parsing: %S;", idx, st->id,
                 streamProg ? streamProg->pmt_pid : -1, avcodec_get_name(st->codecpar->codec_id),
-                lavf_get_parsing_string(st->need_parsing)));
+                lavf_get_parsing_string(av_lav_stream_parser_get_needed(st))));
 #endif
-        m_stOrigParser[idx] = st->need_parsing;
+        m_stOrigParser[idx] = av_lav_stream_parser_get_needed(st);
 
         if ((st->codecpar->codec_id == AV_CODEC_ID_DTS && st->codecpar->codec_tag == 0xA2) ||
             (st->codecpar->codec_id == AV_CODEC_ID_EAC3 && st->codecpar->codec_tag == 0xA1))
@@ -1150,7 +1131,7 @@ void CLAVFDemuxer::SettingsChanged(ILAVFSettingsInternal *pSettings)
         }
         else if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
-            st->need_parsing = m_stOrigParser[idx];
+            av_lav_stream_parser_set_needed(st, m_stOrigParser[idx]);
         }
     }
 
@@ -1647,7 +1628,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
         if (stream->codecpar->codec_id == AV_CODEC_ID_WEBVTT)
         {
-            int id_size = 0, settings_size = 0;
+            size_t id_size = 0, settings_size = 0;
             uint8_t *id = NULL, *settings = NULL;
             id = av_packet_get_side_data(&pkt, AV_PKT_DATA_WEBVTT_IDENTIFIER, &id_size);
             settings = av_packet_get_side_data(&pkt, AV_PKT_DATA_WEBVTT_SETTINGS, &settings_size);
@@ -1679,9 +1660,9 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         }
 
         // Update extradata and send new mediatype, when required
-        int sidedata_size = 0;
+        size_t sidedata_size = 0;
         uint8_t *sidedata = av_packet_get_side_data(&pkt, AV_PKT_DATA_NEW_EXTRADATA, &sidedata_size);
-        int paramchange_size = 0;
+        size_t paramchange_size = 0;
         uint8_t *paramchange = av_packet_get_side_data(&pkt, AV_PKT_DATA_PARAM_CHANGE, &paramchange_size);
         if ((sidedata && sidedata_size) || (paramchange && paramchange_size))
         {
@@ -2037,11 +2018,11 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrameCount(UINT &nKFs)
     nKFs = 0;
 
     AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-    int nb_indexes = 0;
-    AVIndexEntry *index_entries = av_lav_get_index_entries(stream, &nb_indexes);
+    int nb_indexes = avformat_index_get_entries_count(stream);
     for (int i = 0; i < nb_indexes; i++)
     {
-        if (index_entries[i].flags & AVINDEX_KEYFRAME)
+        const AVIndexEntry *entry = avformat_index_get_entry(stream, i);
+        if (entry && (entry->flags & AVINDEX_KEYFRAME))
             nKFs++;
     }
     return (nKFs == stream->nb_frames) ? S_FALSE : S_OK;
@@ -2077,13 +2058,13 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID *pFormat, REFERENCE_TIME *pKF
     nKFs = 0;
 
     AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
-    int nb_indexes = 0;
-    AVIndexEntry *index_entries = av_lav_get_index_entries(stream, &nb_indexes);
+    int nb_indexes = avformat_index_get_entries_count(stream);
     for (int i = 0; i < nb_indexes && nKFs < nKFsMax; i++)
     {
-        if (index_entries[i].flags & AVINDEX_KEYFRAME)
+        const AVIndexEntry *entry = avformat_index_get_entry(stream, i);
+        if (entry && (entry->flags & AVINDEX_KEYFRAME))
         {
-            int64_t timestamp = index_entries[i].timestamp;
+            int64_t timestamp = entry->timestamp;
 
             // MP4 index timestamps are DTS, seeking expects PTS however, so offset them accordingly to ensure seeking
             // works as expected
@@ -2761,8 +2742,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
         uint64_t checkPixels = (uint64_t)m_avFormat->streams[check->pid]->codecpar->width *
                                m_avFormat->streams[check->pid]->codecpar->height;
 
-        int check_nb_f = m_avFormat->streams[check->pid]->codec_info_nb_frames;
-        int best_nb_f = m_avFormat->streams[best->pid]->codec_info_nb_frames;
+        int check_nb_f = av_lav_stream_codec_info_nb_frames(m_avFormat->streams[check->pid]);
+        int best_nb_f = av_lav_stream_codec_info_nb_frames(m_avFormat->streams[best->pid]);
         if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0))
         {
             best = check;
@@ -2937,8 +2918,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
                 AVStream *old_stream = m_avFormat->streams[best->pid];
                 AVStream *new_stream = m_avFormat->streams[(*sit)->pid];
 
-                int check_nb_f = new_stream->codec_info_nb_frames;
-                int best_nb_f = old_stream->codec_info_nb_frames;
+                int check_nb_f = av_lav_stream_codec_info_nb_frames(new_stream);
+                int best_nb_f = av_lav_stream_codec_info_nb_frames(old_stream);
                 if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0))
                 {
                     best = *sit;

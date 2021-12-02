@@ -694,7 +694,7 @@ const codec_config_t *get_codec_config(LAVAudioCodec codec)
 {
     codec_config_t *config = &m_codec_config[codec];
 
-    AVCodec *avcodec = avcodec_find_decoder(config->codecs[0]);
+    const AVCodec *avcodec = avcodec_find_decoder(config->codecs[0]);
     if (avcodec)
     {
         if (!config->name)

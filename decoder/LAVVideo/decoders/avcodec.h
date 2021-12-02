@@ -75,7 +75,7 @@ class CDecAvcodec : public CDecBase
     BOOL m_bInInit = FALSE;
 
   private:
-    AVCodec *m_pAVCodec = nullptr;
+    const AVCodec *m_pAVCodec = nullptr;
     AVCodecParserContext *m_pParser = nullptr;
 
     BYTE *m_pFFBuffer = nullptr;

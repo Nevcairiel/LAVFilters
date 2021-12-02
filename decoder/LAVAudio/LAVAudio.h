@@ -263,7 +263,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
 
   private:
     AVCodecID m_nCodecId = AV_CODEC_ID_NONE;
-    AVCodec *m_pAVCodec = nullptr;
+    const AVCodec *m_pAVCodec = nullptr;
     AVCodecContext *m_pAVCtx = nullptr;
     AVCodecParserContext *m_pParser = nullptr;
     AVFrame *m_pFrame = nullptr;
