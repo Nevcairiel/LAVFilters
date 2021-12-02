@@ -432,10 +432,9 @@ void CLAVAudio::ffmpeg_shutdown()
         m_pParser = nullptr;
     }
 
-    if (m_avrContext)
+    if (m_swrContext)
     {
-        avresample_close(m_avrContext);
-        avresample_free(&m_avrContext);
+        swr_free(&m_swrContext);
     }
 
     FreeBitstreamContext();

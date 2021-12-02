@@ -69,11 +69,10 @@ configure() (
     --disable-cuvid                 \
     --disable-nvenc                 \
     --disable-mediafoundation       \
-    --enable-avresample             \
+    --enable-swresample             \
     --enable-avisynth               \
     --disable-avdevice              \
     --disable-postproc              \
-    --disable-swresample            \
     --disable-encoders              \
     --disable-devices               \
     --disable-programs              \

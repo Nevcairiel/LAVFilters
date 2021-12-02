@@ -58,7 +58,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LAVAUDIO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;shell32.lib;Shlwapi.lib;Comctl32.lib;version.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib;avresample-lav.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;ole32.lib;winmm.lib;user32.lib;oleaut32.lib;shell32.lib;Shlwapi.lib;Comctl32.lib;version.lib;avformat-lav.lib;avutil-lav.lib;avcodec-lav.lib;swresample-lav.lib</AdditionalDependencies>
       <ModuleDefinitionFile>LAVAudio.def</ModuleDefinitionFile>
     </Link>
     <Manifest>

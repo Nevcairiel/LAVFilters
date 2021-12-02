@@ -44,7 +44,7 @@ extern "C"
 #include "libavcodec/avcodec.h"
 #include "libavutil/opt.h"
 #include "libavutil/intreadwrite.h"
-#include "libavresample/avresample.h"
+#include "libswresample/swresample.h"
 }
 #pragma warning(pop)
 
