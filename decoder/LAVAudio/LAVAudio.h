@@ -199,6 +199,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     HRESULT ReconnectOutput(long cbBuffer, CMediaType &mt);
     HRESULT ProcessBuffer(IMediaSample *pMediaSample, BOOL bEOF = FALSE);
     HRESULT Decode(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver, IMediaSample *pMediaSample);
+    HRESULT DecodeReceive(HRESULT *hrDeliver);
     HRESULT PostProcess(BufferDetails *buffer);
     HRESULT GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData);
 

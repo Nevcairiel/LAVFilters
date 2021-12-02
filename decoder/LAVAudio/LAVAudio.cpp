@@ -2176,7 +2176,6 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
     AVPacket avpkt;
     av_init_packet(&avpkt);
 
-    BufferDetails out;
     const MediaSideDataFFMpeg *pFFSideData = nullptr;
 
     if (!bFlush &&
@@ -2299,7 +2298,15 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
 
                 CopyMediaSideDataFF(&avpkt, &pFFSideData);
 
-                int ret2 = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
+                int ret2 = avcodec_send_packet(m_pAVCtx, &avpkt);
+
+                // decoder wants us to drain it first
+                if (ret2 == AVERROR(EAGAIN))
+                {
+                    DecodeReceive(hrDeliver);
+                    ret2 = avcodec_send_packet(m_pAVCtx, &avpkt);
+                }
+
                 if (ret2 < 0)
                 {
                     DbgLog((LOG_TRACE, 50, L"::Decode() - decoding failed despite successfull parsing"));
@@ -2308,10 +2315,9 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
                     continue;
                 }
 
-                // Send current input time to the delivery function
-                out.rtStart = m_pFrame->pkt_dts;
                 m_rtStartInputCache = AV_NOPTS_VALUE;
                 m_bUpdateTimeCache = TRUE;
+                hr = DecodeReceive(hrDeliver);
             }
             else
             {
@@ -2331,193 +2337,34 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
 
             CopyMediaSideDataFF(&avpkt, &pFFSideData);
 
-            int used_bytes = avcodec_decode_audio4(m_pAVCtx, m_pFrame, &got_frame, &avpkt);
+            int ret2 = avcodec_send_packet(m_pAVCtx, &avpkt);
 
-            if (used_bytes < 0)
+            // decoder wants us to drain it first
+            if (ret2 == AVERROR(EAGAIN))
+            {
+                DecodeReceive(hrDeliver);
+                ret2 = avcodec_send_packet(m_pAVCtx, &avpkt);
+            }
+
+            if (ret2 < 0)
             {
                 av_packet_unref(&avpkt);
                 goto fail;
             }
-            else if (used_bytes == 0 && !got_frame)
-            {
-                DbgLog((LOG_TRACE, 50, L"::Decode() - could not process buffer, starving?"));
-                av_packet_unref(&avpkt);
-                break;
-            }
-            buffsize -= used_bytes;
-            pDataBuffer += used_bytes;
-            consumed += used_bytes;
 
-            // Send current input time to the delivery function
-            out.rtStart = m_pFrame->pkt_dts;
+
+            if (!bFlush)
+            {
+                pDataBuffer += buffsize;
+                consumed += buffsize;
+                buffsize = 0;
+            }
+
             m_rtStartInput = AV_NOPTS_VALUE;
+            hr = DecodeReceive(hrDeliver);
         }
 
         av_packet_unref(&avpkt);
-
-        // Channel re-mapping and sample format conversion
-        if (got_frame)
-        {
-            ASSERT(m_pFrame->nb_samples > 0);
-            out.wChannels = m_pAVCtx->channels;
-            out.dwSamplesPerSec = m_pAVCtx->sample_rate;
-            if (m_pAVCtx->channel_layout)
-                out.dwChannelMask = get_lav_channel_layout(m_pAVCtx->channel_layout);
-            else
-                out.dwChannelMask = get_channel_mask(out.wChannels);
-
-            out.nSamples = m_pFrame->nb_samples;
-            DWORD dwPCMSize = out.nSamples * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
-            DWORD dwPCMSizeAligned =
-                FFALIGN(out.nSamples, 32) * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
-
-            if (m_pFrame->decode_error_flags & FF_DECODE_ERROR_INVALID_BITSTREAM)
-            {
-                if (m_DecodeLayout != out.dwChannelMask)
-                {
-                    DbgLog(
-                        (LOG_TRACE, 50, L"::Decode() - Corrupted audio frame with channel layout change, dropping."));
-                    av_frame_unref(m_pFrame);
-                    continue;
-                }
-            }
-
-            switch (m_pAVCtx->sample_fmt)
-            {
-            case AV_SAMPLE_FMT_U8:
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
-                out.sfFormat = SampleFormat_U8;
-                break;
-            case AV_SAMPLE_FMT_S16:
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
-                out.sfFormat = SampleFormat_16;
-                break;
-            case AV_SAMPLE_FMT_S32:
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
-                out.sfFormat = SampleFormat_32;
-                out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
-                break;
-            case AV_SAMPLE_FMT_FLT:
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
-                out.sfFormat = SampleFormat_FP32;
-                break;
-            case AV_SAMPLE_FMT_DBL: {
-                out.bBuffer->Allocate(dwPCMSizeAligned / 2);
-                out.bBuffer->SetSize(dwPCMSize / 2);
-                float *pDataOut = (float *)(out.bBuffer->Ptr());
-
-                for (size_t i = 0; i < out.nSamples; ++i)
-                {
-                    for (int ch = 0; ch < out.wChannels; ++ch)
-                    {
-                        *pDataOut = (float)((double *)m_pFrame->data[0])[ch + i * m_pAVCtx->channels];
-                        pDataOut++;
-                    }
-                }
-            }
-                out.sfFormat = SampleFormat_FP32;
-                break;
-            // Planar Formats
-            case AV_SAMPLE_FMT_U8P: {
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->SetSize(dwPCMSize);
-                uint8_t *pOut = (uint8_t *)(out.bBuffer->Ptr());
-
-                for (size_t i = 0; i < out.nSamples; ++i)
-                {
-                    for (int ch = 0; ch < out.wChannels; ++ch)
-                    {
-                        *pOut++ = ((uint8_t *)m_pFrame->extended_data[ch])[i];
-                    }
-                }
-            }
-                out.sfFormat = SampleFormat_U8;
-                break;
-            case AV_SAMPLE_FMT_S16P: {
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->SetSize(dwPCMSize);
-                int16_t *pOut = (int16_t *)(out.bBuffer->Ptr());
-
-                for (size_t i = 0; i < out.nSamples; ++i)
-                {
-                    for (int ch = 0; ch < out.wChannels; ++ch)
-                    {
-                        *pOut++ = ((int16_t *)m_pFrame->extended_data[ch])[i];
-                    }
-                }
-            }
-                out.sfFormat = SampleFormat_16;
-                break;
-            case AV_SAMPLE_FMT_S32P: {
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->SetSize(dwPCMSize);
-                int32_t *pOut = (int32_t *)(out.bBuffer->Ptr());
-
-                for (size_t i = 0; i < out.nSamples; ++i)
-                {
-                    for (int ch = 0; ch < out.wChannels; ++ch)
-                    {
-                        *pOut++ = ((int32_t *)m_pFrame->extended_data[ch])[i];
-                    }
-                }
-            }
-                out.sfFormat = SampleFormat_32;
-                out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
-                break;
-            case AV_SAMPLE_FMT_FLTP: {
-                out.bBuffer->Allocate(dwPCMSizeAligned);
-                out.bBuffer->SetSize(dwPCMSize);
-                float *pOut = (float *)(out.bBuffer->Ptr());
-
-                for (size_t i = 0; i < out.nSamples; ++i)
-                {
-                    for (int ch = 0; ch < out.wChannels; ++ch)
-                    {
-                        *pOut++ = ((float *)m_pFrame->extended_data[ch])[i];
-                    }
-                }
-            }
-                out.sfFormat = SampleFormat_FP32;
-                break;
-            case AV_SAMPLE_FMT_DBLP: {
-                out.bBuffer->Allocate(dwPCMSizeAligned / 2);
-                out.bBuffer->SetSize(dwPCMSize / 2);
-                float *pOut = (float *)(out.bBuffer->Ptr());
-
-                for (size_t i = 0; i < out.nSamples; ++i)
-                {
-                    for (int ch = 0; ch < out.wChannels; ++ch)
-                    {
-                        *pOut++ = (float)((double *)m_pFrame->extended_data[ch])[i];
-                    }
-                }
-            }
-                out.sfFormat = SampleFormat_FP32;
-                break;
-            default: assert(FALSE); break;
-            }
-            av_frame_unref(m_pFrame);
-            hr = S_OK;
-
-            m_DecodeFormat = out.sfFormat == SampleFormat_32 && out.wBitsPerSample > 0 && out.wBitsPerSample <= 24
-                                 ? (out.wBitsPerSample <= 16 ? SampleFormat_16 : SampleFormat_24)
-                                 : out.sfFormat;
-            m_DecodeLayout = out.dwChannelMask;
-
-            if (SUCCEEDED(PostProcess(&out)))
-            {
-                *hrDeliver = QueueOutput(out);
-                if (FAILED(*hrDeliver))
-                {
-                    hr = S_FALSE;
-                    break;
-                }
-            }
-        }
     }
 
     av_free(tmpProcessBuf);
@@ -2525,6 +2372,183 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
 fail:
     av_free(tmpProcessBuf);
     return E_FAIL;
+}
+
+HRESULT CLAVAudio::DecodeReceive(HRESULT *hrDeliver)
+{
+    BufferDetails out;
+
+    while (1)
+    {
+        int ret = avcodec_receive_frame(m_pAVCtx, m_pFrame);
+        if (ret == AVERROR(EAGAIN))
+            return S_OK;
+        else if (ret < 0)
+            return E_FAIL;
+
+        // Send current input time to the delivery function
+        out.rtStart = m_pFrame->pkt_dts;
+
+        // Channel re-mapping and sample format conversion
+        ASSERT(m_pFrame->nb_samples > 0);
+        out.wChannels = m_pAVCtx->channels;
+        out.dwSamplesPerSec = m_pAVCtx->sample_rate;
+        if (m_pAVCtx->channel_layout)
+            out.dwChannelMask = get_lav_channel_layout(m_pAVCtx->channel_layout);
+        else
+            out.dwChannelMask = get_channel_mask(out.wChannels);
+
+        out.nSamples = m_pFrame->nb_samples;
+        DWORD dwPCMSize = out.nSamples * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
+        DWORD dwPCMSizeAligned =
+            FFALIGN(out.nSamples, 32) * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
+
+        if (m_pFrame->decode_error_flags & FF_DECODE_ERROR_INVALID_BITSTREAM)
+        {
+            if (m_DecodeLayout != out.dwChannelMask)
+            {
+                DbgLog((LOG_TRACE, 50, L"::Decode() - Corrupted audio frame with channel layout change, dropping."));
+                av_frame_unref(m_pFrame);
+                continue;
+            }
+        }
+
+        switch (m_pAVCtx->sample_fmt)
+        {
+        case AV_SAMPLE_FMT_U8:
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
+            out.sfFormat = SampleFormat_U8;
+            break;
+        case AV_SAMPLE_FMT_S16:
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
+            out.sfFormat = SampleFormat_16;
+            break;
+        case AV_SAMPLE_FMT_S32:
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
+            out.sfFormat = SampleFormat_32;
+            out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
+            break;
+        case AV_SAMPLE_FMT_FLT:
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->Append(m_pFrame->data[0], dwPCMSize);
+            out.sfFormat = SampleFormat_FP32;
+            break;
+        case AV_SAMPLE_FMT_DBL: {
+            out.bBuffer->Allocate(dwPCMSizeAligned / 2);
+            out.bBuffer->SetSize(dwPCMSize / 2);
+            float *pDataOut = (float *)(out.bBuffer->Ptr());
+
+            for (size_t i = 0; i < out.nSamples; ++i)
+            {
+                for (int ch = 0; ch < out.wChannels; ++ch)
+                {
+                    *pDataOut = (float)((double *)m_pFrame->data[0])[ch + i * m_pAVCtx->channels];
+                    pDataOut++;
+                }
+            }
+        }
+            out.sfFormat = SampleFormat_FP32;
+            break;
+        // Planar Formats
+        case AV_SAMPLE_FMT_U8P: {
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->SetSize(dwPCMSize);
+            uint8_t *pOut = (uint8_t *)(out.bBuffer->Ptr());
+
+            for (size_t i = 0; i < out.nSamples; ++i)
+            {
+                for (int ch = 0; ch < out.wChannels; ++ch)
+                {
+                    *pOut++ = ((uint8_t *)m_pFrame->extended_data[ch])[i];
+                }
+            }
+        }
+            out.sfFormat = SampleFormat_U8;
+            break;
+        case AV_SAMPLE_FMT_S16P: {
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->SetSize(dwPCMSize);
+            int16_t *pOut = (int16_t *)(out.bBuffer->Ptr());
+
+            for (size_t i = 0; i < out.nSamples; ++i)
+            {
+                for (int ch = 0; ch < out.wChannels; ++ch)
+                {
+                    *pOut++ = ((int16_t *)m_pFrame->extended_data[ch])[i];
+                }
+            }
+        }
+            out.sfFormat = SampleFormat_16;
+            break;
+        case AV_SAMPLE_FMT_S32P: {
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->SetSize(dwPCMSize);
+            int32_t *pOut = (int32_t *)(out.bBuffer->Ptr());
+
+            for (size_t i = 0; i < out.nSamples; ++i)
+            {
+                for (int ch = 0; ch < out.wChannels; ++ch)
+                {
+                    *pOut++ = ((int32_t *)m_pFrame->extended_data[ch])[i];
+                }
+            }
+        }
+            out.sfFormat = SampleFormat_32;
+            out.wBitsPerSample = m_pAVCtx->bits_per_raw_sample;
+            break;
+        case AV_SAMPLE_FMT_FLTP: {
+            out.bBuffer->Allocate(dwPCMSizeAligned);
+            out.bBuffer->SetSize(dwPCMSize);
+            float *pOut = (float *)(out.bBuffer->Ptr());
+
+            for (size_t i = 0; i < out.nSamples; ++i)
+            {
+                for (int ch = 0; ch < out.wChannels; ++ch)
+                {
+                    *pOut++ = ((float *)m_pFrame->extended_data[ch])[i];
+                }
+            }
+        }
+            out.sfFormat = SampleFormat_FP32;
+            break;
+        case AV_SAMPLE_FMT_DBLP: {
+            out.bBuffer->Allocate(dwPCMSizeAligned / 2);
+            out.bBuffer->SetSize(dwPCMSize / 2);
+            float *pOut = (float *)(out.bBuffer->Ptr());
+
+            for (size_t i = 0; i < out.nSamples; ++i)
+            {
+                for (int ch = 0; ch < out.wChannels; ++ch)
+                {
+                    *pOut++ = (float)((double *)m_pFrame->extended_data[ch])[i];
+                }
+            }
+        }
+            out.sfFormat = SampleFormat_FP32;
+            break;
+        default: assert(FALSE); break;
+        }
+        av_frame_unref(m_pFrame);
+
+        m_DecodeFormat = out.sfFormat == SampleFormat_32 && out.wBitsPerSample > 0 && out.wBitsPerSample <= 24
+                             ? (out.wBitsPerSample <= 16 ? SampleFormat_16 : SampleFormat_24)
+                             : out.sfFormat;
+        m_DecodeLayout = out.dwChannelMask;
+
+        if (SUCCEEDED(PostProcess(&out)))
+        {
+            *hrDeliver = QueueOutput(out);
+            if (FAILED(*hrDeliver))
+            {
+                return S_FALSE;
+            }
+        }
+    }
+
+    return S_OK;
 }
 
 HRESULT CLAVAudio::GetDeliveryBuffer(IMediaSample **pSample, BYTE **pData)
