@@ -1063,6 +1063,63 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
         }
     }
 
+    // flush textures to black
+    if (surface_format == DXGI_FORMAT_NV12 || surface_format == DXGI_FORMAT_P010 || surface_format == DXGI_FORMAT_P016)
+    {
+        D3D11_TEXTURE2D_DESC FlushTexDesc{};
+        FlushTexDesc.Width = m_dwSurfaceWidth;
+        FlushTexDesc.Height = m_dwSurfaceHeight;
+        FlushTexDesc.MipLevels = 1;
+        FlushTexDesc.ArraySize = 1;
+        FlushTexDesc.Format = surface_format;
+        FlushTexDesc.SampleDesc.Count = 1;
+        FlushTexDesc.Usage = D3D11_USAGE_STAGING;
+        FlushTexDesc.BindFlags = 0;
+        FlushTexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        FlushTexDesc.MiscFlags = 0;
+
+        ID3D11Texture2D *pFlushTexture = NULL;
+        if (SUCCEEDED(pDeviceContext->device->CreateTexture2D(&FlushTexDesc, NULL, &pFlushTexture)))
+        {
+            D3D11_MAPPED_SUBRESOURCE Resource{};
+            if (SUCCEEDED(pDeviceContext->device_context->Map(pFlushTexture, 0, D3D11_MAP_WRITE, 0, &Resource)))
+            {
+                BYTE *pLuma = (BYTE *)Resource.pData;
+                BYTE *pChroma = (BYTE *)Resource.pData + Resource.RowPitch * m_dwSurfaceHeight;
+                DWORD dwChromaHeight = AV_CEIL_RSHIFT((int)m_dwSurfaceHeight, 1);
+
+                // zero out Luma
+                memset(pLuma, 0, Resource.RowPitch * m_dwSurfaceHeight);
+
+                // set Chroma to half
+                if (surface_format == DXGI_FORMAT_NV12)
+                {
+                    memset(pChroma, 0x80, Resource.RowPitch * dwChromaHeight);
+                }
+                else
+                {
+                    uint32_t *pChroma32 = (uint32_t *)pChroma;
+                    ptrdiff_t nRowPitch32 = Resource.RowPitch / 4;
+                    for (ptrdiff_t i = 0; i < dwChromaHeight; i++)
+                    {
+                        for (ptrdiff_t j = 0; j < nRowPitch32; j++)
+                        {
+                            pChroma32[i * nRowPitch32 + j] = 0x80008000;
+                        }
+                    }
+                }
+                pDeviceContext->device_context->Unmap(pFlushTexture, 0);
+
+                for (unsigned i = 0; i < m_dwSurfaceCount; i++)
+                {
+                    pDeviceContext->device_context->CopySubresourceRegion(pFramesContext->texture, i, 0, 0, 0,
+                                                                          pFlushTexture, 0, NULL);
+                }
+            }
+            SafeRelease(&pFlushTexture);
+        }
+    }
+
     // create the decoder
     hr = pDeviceContext->video_device->CreateVideoDecoder(&desc, &decoder_config, &m_pDecoder);
     if (FAILED(hr))
