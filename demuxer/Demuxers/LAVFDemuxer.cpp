@@ -3111,6 +3111,32 @@ STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue, in
     if (stream >= (int)m_avFormat->nb_streams)
         return E_INVALIDARG;
 
+    if (_stricmp(key, "rotate") == 0 && stream >= 0)
+    {
+        size_t size = 0;
+        uint8_t *matrix = av_stream_get_side_data(m_avFormat->streams[stream], AV_PKT_DATA_DISPLAYMATRIX, &size);
+        if (matrix && size == (9*sizeof(int32_t)))
+        {
+            double dRotation = av_display_rotation_get((const int32_t *)matrix);
+            int nRotation = -lrint(dRotation);
+
+            // normalize rotation to 0-360
+            while (nRotation < 0)
+                nRotation += 360;
+
+            while (nRotation >= 360)
+                nRotation -= 360;
+
+            char buf[34] = {0};
+            sprintf_s(buf, "%d", nRotation);
+            *pbstrValue = ConvertCharToBSTR(buf);
+            if (*pbstrValue == nullptr)
+                return E_OUTOFMEMORY;
+
+            return S_OK;
+        }
+    }
+
     AVDictionaryEntry *entry = av_dict_get(stream >= 0 ? m_avFormat->streams[stream]->metadata : m_avFormat->metadata,
                                            key, nullptr, AV_DICT_IGNORE_SUFFIX);
     if (!entry || !entry->value || entry->value[0] == '\0')
