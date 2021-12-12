@@ -2402,19 +2402,23 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
         // Every present stream gets one point, if it appears to be valid, it gets 4
         // Every present video stream has also video resolution score: width x height.
         // Valid video streams have a width and height, valid audio streams have a channel count.
+        // Total program bitrate is used as a tiebreaker.
         // We search for "good" program with highest score.
         DWORD dwScore = 0;                       // Stream found: 1, stream valid: 4
         DWORD dwVideoResolutionProgramScore = 0; // Score = width x height
+        DWORD dwProgramBitrate = 0;              // Total bitrate of the program
         for (unsigned int i = 0; i < m_avFormat->nb_programs; ++i)
         {
-            if (m_avFormat->programs[i]->nb_stream_indexes > 0)
+            AVProgram *program = m_avFormat->programs[i];
+            if (program->nb_stream_indexes > 0)
             {
                 DWORD dwVideoScore = 0;
                 DWORD dwVideoResolutionScore = 0;
                 DWORD dwAudioScore = 0;
-                for (unsigned k = 0; k < m_avFormat->programs[i]->nb_stream_indexes; ++k)
+                DWORD dwBitrate = 0;
+                for (unsigned k = 0; k < program->nb_stream_indexes; ++k)
                 {
-                    unsigned streamIdx = m_avFormat->programs[i]->stream_index[k];
+                    unsigned streamIdx = program->stream_index[k];
                     AVStream *st = m_avFormat->streams[streamIdx];
                     if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
                     {
@@ -2437,17 +2441,25 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
                     }
                 }
 
+                AVDictionaryEntry *dict = av_dict_get(program->metadata, "variant_bitrate", nullptr, 0);
+                if (dict && dict->value)
+                    dwBitrate = atoll(dict->value);
+
                 // Check the score of the previously found stream
                 // In addition, we always require a valid video stream (or none), a invalid one is not allowed.
-                DbgLog((LOG_TRACE, 10, L"  -> Program %d with score: %d (video), %d (video resolution), %d (audio)", i,
-                        dwVideoScore, dwVideoResolutionScore, dwAudioScore));
+                DbgLog((LOG_TRACE, 10,
+                        L"  -> Program %d with score: %ld (video), %ld (video resolution), %ld (audio), %ld (bitrate)",
+                        i, dwVideoScore, dwVideoResolutionScore, dwAudioScore, dwBitrate));
                 DWORD dwVideoAndAudioScore = dwVideoScore + dwAudioScore;
                 if (dwVideoScore != 1 &&
                     (dwVideoAndAudioScore > dwScore ||
-                     (dwVideoAndAudioScore == dwScore && dwVideoResolutionScore > dwVideoResolutionProgramScore)))
+                     (dwVideoAndAudioScore == dwScore && dwVideoResolutionScore > dwVideoResolutionProgramScore) ||
+                     (dwVideoAndAudioScore == dwScore && dwVideoResolutionScore == dwVideoResolutionProgramScore &&
+                      dwBitrate > dwProgramBitrate)))
                 {
                     dwScore = dwVideoAndAudioScore;
                     dwVideoResolutionProgramScore = dwVideoResolutionScore;
+                    dwProgramBitrate = dwBitrate;
                     m_program = i;
                 }
             }
