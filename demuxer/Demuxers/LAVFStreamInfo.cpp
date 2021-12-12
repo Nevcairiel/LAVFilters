@@ -59,15 +59,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
 
     if (avstream->codecpar->channels == 0 || avstream->codecpar->sample_rate == 0)
     {
-        if (avstream->codecpar->codec_id == AV_CODEC_ID_AAC && avstream->codecpar->bit_rate)
-        {
-            if (!avstream->codecpar->channels)
-                avstream->codecpar->channels = 2;
-            if (!avstream->codecpar->sample_rate)
-                avstream->codecpar->sample_rate = 48000;
-        }
-        else
-            return E_FAIL;
+        return E_FAIL;
     }
 
     // use the variant bitrate for the stream if only one stream is available (applies to some radio streams)
