@@ -541,29 +541,25 @@ HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
             av_opt_set_int(m_swrContext, "internal_sample_fmt", AV_SAMPLE_FMT_FLTP, 0);
 
             // Create Matrix
-            int in_ch = buffer->wChannels;
-            int out_ch = av_get_channel_layout_nb_channels(dwMixingLayout);
-            double *matrix_dbl = (double *)av_mallocz(64 * 64 * sizeof(*matrix_dbl));
+            double matrix_dbl[64][64]{};
 
             const double center_mix_level = (double)m_settings.MixingCenterLevel / 10000.0;
             const double surround_mix_level = (double)m_settings.MixingSurroundLevel / 10000.0;
             const double lfe_mix_level =
                 (double)m_settings.MixingLFELevel / 10000.0 / (dwMixingLayout == AV_CH_LAYOUT_MONO ? 1.0 : M_SQRT1_2);
             ret = swr_build_matrix(buffer->dwChannelMask, dwMixingLayout, center_mix_level, surround_mix_level,
-                                   lfe_mix_level, bNormalize ? 1.0 : INT_MAX, 0, matrix_dbl, in_ch,
+                                   lfe_mix_level, bNormalize ? 1.0 : INT_MAX, 0, (double *)matrix_dbl, 64,
                                    (AVMatrixEncoding)m_settings.MixingMode, NULL);
             if (ret < 0)
             {
                 DbgLog((LOG_ERROR, 10,
                         L"swr_build_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d",
                         buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
-                av_free(matrix_dbl);
                 goto setuperr;
             }
 
             // Set Matrix on the context
-            ret = swr_set_matrix(m_swrContext, matrix_dbl, in_ch);
-            av_free(matrix_dbl);
+            ret = swr_set_matrix(m_swrContext, (double *)matrix_dbl, 64);
             if (ret < 0)
             {
                 DbgLog((LOG_ERROR, 10,
