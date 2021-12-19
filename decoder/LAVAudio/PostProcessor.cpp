@@ -540,33 +540,17 @@ HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
                            !bNormalize && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
             av_opt_set_int(m_swrContext, "internal_sample_fmt", AV_SAMPLE_FMT_FLTP, 0);
 
-            // Create Matrix
-            double matrix_dbl[64][64]{};
-
+            // setup matrix parameters
             const double center_mix_level = (double)m_settings.MixingCenterLevel / 10000.0;
             const double surround_mix_level = (double)m_settings.MixingSurroundLevel / 10000.0;
             const double lfe_mix_level =
                 (double)m_settings.MixingLFELevel / 10000.0 / (dwMixingLayout == AV_CH_LAYOUT_MONO ? 1.0 : M_SQRT1_2);
-            ret = swr_build_matrix(buffer->dwChannelMask, dwMixingLayout, center_mix_level, surround_mix_level,
-                                   lfe_mix_level, bNormalize ? 1.0 : INT_MAX, 0, (double *)matrix_dbl, 64,
-                                   (AVMatrixEncoding)m_settings.MixingMode, NULL);
-            if (ret < 0)
-            {
-                DbgLog((LOG_ERROR, 10,
-                        L"swr_build_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d",
-                        buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
-                goto setuperr;
-            }
 
-            // Set Matrix on the context
-            ret = swr_set_matrix(m_swrContext, (double *)matrix_dbl, 64);
-            if (ret < 0)
-            {
-                DbgLog((LOG_ERROR, 10,
-                        L"swr_set_matrix failed, layout in: %x, out: %x, sample fmt in: %d, out: %d",
-                        buffer->dwChannelMask, dwMixingLayout, buffer->sfFormat, m_sfRemixFormat));
-                goto setuperr;
-            }
+            av_opt_set_double(m_swrContext, "center_mix_level", center_mix_level, 0);
+            av_opt_set_double(m_swrContext, "surround_mix_level", surround_mix_level, 0);
+            av_opt_set_double(m_swrContext, "lfe_mix_level", lfe_mix_level, 0);
+            av_opt_set_double(m_swrContext, "rematrix_maxval", bNormalize ? 1.0 : 0.0, 0);
+            av_opt_set_int(m_swrContext, "matrix_encoding", (AVMatrixEncoding)m_settings.MixingMode, 0);
         }
 
         // Open Resample Context
