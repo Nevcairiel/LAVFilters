@@ -70,7 +70,6 @@ configure() (
     --disable-encoders              \
     --disable-devices               \
     --disable-programs              \
-    --disable-debug                 \
     --disable-doc                   \
     --enable-avisynth               \
     --enable-d3d11va                \
