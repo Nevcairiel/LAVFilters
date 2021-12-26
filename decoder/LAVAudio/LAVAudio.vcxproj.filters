@@ -48,9 +48,6 @@
     <ClCompile Include="PostProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DTSDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BitstreamMAT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

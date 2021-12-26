@@ -73,8 +73,6 @@ struct BufferDetails
     ~BufferDetails() { delete bBuffer; }
 };
 
-struct DTSDecoder;
-
 class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     : public CTransformFilter
     , public ISpecifyPropertyPages2
@@ -242,13 +240,6 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     void ActivateDTSHDMuxing();
     DTSBitstreamMode GetDTSHDBitstreamMode();
 
-    HRESULT InitDTSDecoder();
-    HRESULT FreeDTSDecoder();
-    HRESULT FlushDTSDecoder(BOOL bReopen = FALSE);
-    HRESULT DecodeDTS(const BYTE *const p, int buffsize, int &consumed, HRESULT *hrDeliver);
-    int SafeDTSDecode(BYTE *pInput, int len, BYTE *pOutput, int unk1, int unk2, int *pBitdepth, int *pChannels,
-                      int *pCoreSampleRate, int *pUnk4, int *pHDSampleRate, int *pUnk5, int *pProfile);
-
     HRESULT CheckChannelLayoutConformity(DWORD dwLayout);
     HRESULT Create51Conformity(DWORD dwLayout);
     HRESULT Create61Conformity(DWORD dwLayout);
@@ -350,11 +341,6 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
 
     FloatingAverage<REFERENCE_TIME> m_faJitter{50};
     REFERENCE_TIME m_JitterLimit = MAX_JITTER_DESYNC;
-
-    HMODULE m_hDllExtraDecoder = nullptr;
-    DTSDecoder *m_pDTSDecoderContext = nullptr;
-    unsigned m_DTSBitDepth = 0;
-    unsigned m_DTSDecodeChannels = 0;
 
     DWORD m_DecodeLayout = 0;
     DWORD m_DecodeLayoutSanified = 0;

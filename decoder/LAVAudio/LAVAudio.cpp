@@ -108,12 +108,6 @@ CLAVAudio::~CLAVAudio()
     ffmpeg_shutdown();
 
     ShutdownBitstreaming();
-
-    if (m_hDllExtraDecoder)
-    {
-        FreeLibrary(m_hDllExtraDecoder);
-        m_hDllExtraDecoder = nullptr;
-    }
 }
 
 STDMETHODIMP CLAVAudio::CreateTrayIcon()
@@ -438,8 +432,6 @@ void CLAVAudio::ffmpeg_shutdown()
     }
 
     FreeBitstreamContext();
-
-    FreeDTSDecoder();
 
     m_nCodecId = AV_CODEC_ID_NONE;
 }
@@ -1062,15 +1054,7 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     // Prefer bits_per_raw_sample if set, but if not, try to do a better guess with bits per coded sample
     int bits = m_pAVCtx->bits_per_raw_sample ? m_pAVCtx->bits_per_raw_sample : m_pAVCtx->bits_per_coded_sample;
 
-    LAVAudioSampleFormat lav_sample_fmt;
-    if (m_pDTSDecoderContext)
-    {
-        bits = m_DTSBitDepth;
-        lav_sample_fmt = (m_DTSBitDepth == 24) ? SampleFormat_24 : SampleFormat_16;
-    }
-    else
-        lav_sample_fmt = get_lav_sample_fmt(sample_fmt, bits);
-
+    LAVAudioSampleFormat lav_sample_fmt = get_lav_sample_fmt(sample_fmt, bits);
     if (m_settings.MixingEnabled)
     {
         if (nChannels != av_get_channel_layout_nb_channels(m_settings.MixingLayout) &&
@@ -1361,11 +1345,6 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
 
         if (wfe)
             CreateBitstreamContext(codec, wfe);
-    }
-
-    if (codec == AV_CODEC_ID_DTS)
-    {
-        InitDTSDecoder();
     }
 
     m_pAVCodec = nullptr;
@@ -1777,8 +1756,6 @@ HRESULT CLAVAudio::FlushDecoder()
         avcodec_flush_buffers(m_pAVCtx);
     }
 
-    FlushDTSDecoder();
-
     m_bJustFlushed = TRUE;
 
     return S_OK;
@@ -2108,10 +2085,7 @@ HRESULT CLAVAudio::ProcessBuffer(IMediaSample *pMediaSample, BOOL bEOF)
     {
         // Decoding
         // Consume the buffer data
-        if (m_pDTSDecoderContext)
-            hr2 = DecodeDTS(p, buffer_size, consumed, &hr);
-        else
-            hr2 = Decode(p, buffer_size, consumed, &hr, pMediaSample);
+        hr2 = Decode(p, buffer_size, consumed, &hr, pMediaSample);
         // FAILED - throw away the data
         if (FAILED(hr2))
         {
