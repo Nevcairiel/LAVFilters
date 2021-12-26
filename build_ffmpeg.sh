@@ -50,6 +50,7 @@ configure() (
     --disable-static                \
     --enable-gpl                    \
     --enable-version3               \
+    --disable-autodetect            \
     --enable-w32threads             \
     --disable-demuxer=matroska      \
     --disable-filters               \
@@ -59,17 +60,6 @@ configure() (
     --enable-muxer=spdif            \
     --disable-bsfs                  \
     --enable-bsf=extract_extradata,vp9_superframe_split \
-    --disable-cuda                  \
-    --disable-cuda-llvm             \
-    --disable-cuvid                 \
-    --disable-nvenc                 \
-    --disable-mediafoundation       \
-    --enable-libdav1d               \
-    --enable-libspeex               \
-    --enable-libopencore-amrnb      \
-    --enable-libopencore-amrwb      \
-    --enable-swresample             \
-    --enable-avisynth               \
     --disable-avdevice              \
     --disable-postproc              \
     --disable-encoders              \
@@ -77,10 +67,18 @@ configure() (
     --disable-programs              \
     --disable-debug                 \
     --disable-doc                   \
-    --disable-schannel              \
+    --enable-avisynth               \
+    --enable-bzlib                  \
+    --enable-d3d11va                \
+    --enable-dxva2                  \
     --enable-gnutls                 \
     --enable-gmp                    \
+    --enable-libdav1d               \
+    --enable-libspeex               \
+    --enable-libopencore-amrnb      \
+    --enable-libopencore-amrwb      \
     --enable-libxml2                \
+    --enable-zlib                   \
     --build-suffix=-lav             \
     --arch=${arch}"
 

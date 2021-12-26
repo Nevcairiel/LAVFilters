@@ -55,6 +55,7 @@ configure() (
     --disable-static                \
     --enable-gpl                    \
     --enable-version3               \
+    --disable-autodetect            \
     --enable-w32threads             \
     --disable-demuxer=matroska      \
     --disable-filters               \
@@ -64,19 +65,18 @@ configure() (
     --enable-muxer=spdif            \
     --disable-bsfs                  \
     --enable-bsf=extract_extradata,vp9_superframe_split \
-    --disable-cuda                  \
-    --disable-cuda-llvm             \
-    --disable-cuvid                 \
-    --disable-nvenc                 \
-    --disable-mediafoundation       \
-    --enable-swresample             \
-    --enable-avisynth               \
     --disable-avdevice              \
     --disable-postproc              \
     --disable-encoders              \
     --disable-devices               \
     --disable-programs              \
+    --disable-debug                 \
     --disable-doc                   \
+    --enable-avisynth               \
+    --enable-d3d11va                \
+    --enable-dxva2                  \
+    --enable-schannel               \
+    --enable-zlib                   \
     --build-suffix=-lav             \
     --arch=${arch}"
 
