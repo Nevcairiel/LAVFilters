@@ -125,6 +125,106 @@ struct MediaSideDataHDR10Plus
 };
 #pragma pack(pop)
 
+// {D25D4BA9-2318-4B61-B872-09267DB81FE0}
+DEFINE_GUID(IID_MediaSideDataDOVIMetadata, 0xd25d4ba9, 0x2318, 0x4b61, 0xb8, 0x72, 0x9, 0x26, 0x7d, 0xb8, 0x1f, 0xe0);
+
+#pragma pack(push, 1)
+// Dolby Vision metadata
+// Refer to the specification for the meaning of the fields
+struct MediaSideDataDOVIMetadata
+{
+    struct
+    {
+        unsigned int rpu_type;
+        unsigned int rpu_format;
+        unsigned int vdr_rpu_profile;
+        unsigned int vdr_rpu_level;
+        unsigned int chroma_resampling_explicit_filter_flag;
+        unsigned int coef_data_type; /* informative, lavc always converts to fixed */
+        unsigned int coef_log2_denom;
+        unsigned int vdr_rpu_normalized_idc;
+        unsigned int bl_video_full_range_flag;
+        unsigned int bl_bit_depth; /* [8, 16] */
+        unsigned int el_bit_depth; /* [8, 16] */
+        unsigned int vdr_bit_depth; /* [8, 16] */
+        unsigned int spatial_resampling_filter_flag;
+        unsigned int el_spatial_resampling_filter_flag;
+        unsigned int disable_residual_flag;
+    } Header;
+
+    struct
+    {
+        unsigned int vdr_rpu_id;
+        unsigned int mapping_color_space;
+        unsigned int mapping_chroma_format_idc;
+
+        struct
+        {
+#define LAV_DOVI_MAX_PIECES 8
+            unsigned int num_pivots;                 /* [2, 9] */
+            unsigned int pivots[LAV_DOVI_MAX_PIECES + 1]; /* sorted ascending */
+            int mapping_idc[LAV_DOVI_MAX_PIECES];         /* 0 polynomial, 1 mmr */
+
+            /* polynomial */
+            unsigned int poly_order[LAV_DOVI_MAX_PIECES]; /* [1, 2] */
+            LONGLONG poly_coef[LAV_DOVI_MAX_PIECES][3];    /* x^0, x^1, x^2 */
+
+            /* mmr */
+            unsigned int mmr_order[LAV_DOVI_MAX_PIECES]; /* [1, 3] */
+            LONGLONG mmr_constant[LAV_DOVI_MAX_PIECES];
+            LONGLONG mmr_coef[LAV_DOVI_MAX_PIECES][3 /* order - 1 */][7];
+        } curves[3]; /* per component */
+
+        /* Non-linear inverse quantization */
+        int nlq_method_idc; // -1 none, 0 linear dz
+        unsigned int num_x_partitions;
+        unsigned int num_y_partitions;
+        struct
+        {
+            unsigned int nlq_offset;
+            ULONGLONG vdr_in_max;
+
+            /* linear dz */
+            ULONGLONG linear_deadzone_slope;
+            ULONGLONG linear_deadzone_threshold;
+        } nlq[3]; /* per component */
+    } Mapping;
+
+    struct
+    {
+        unsigned int dm_metadata_id;
+        unsigned int scene_refresh_flag;
+
+        /**
+         * Coefficients of the custom Dolby Vision IPT-PQ matrices. These are to be
+         * used instead of the matrices indicated by the frame's colorspace tags.
+         * The output of rgb_to_lms_matrix is to be fed into a BT.2020 LMS->RGB
+         * matrix based on a Hunt-Pointer-Estevez transform, but without any
+         * crosstalk. (See the definition of the ICtCp colorspace for more
+         * information.)
+         */
+        double ycc_to_rgb_matrix[9]; /* before PQ linearization */
+        double ycc_to_rgb_offset[3]; /* input offset of neutral value */
+        double rgb_to_lms_matrix[9]; /* after PQ linearization */
+
+        /**
+         * Extra signal metadata (see Dolby patents for more info).
+         */
+        unsigned int signal_eotf;
+        unsigned int signal_eotf_param0;
+        unsigned int signal_eotf_param1;
+        unsigned int signal_eotf_param2;
+        unsigned int signal_bit_depth;
+        unsigned int signal_color_space;
+        unsigned int signal_chroma_format;
+        unsigned int signal_full_range_flag; /* [0, 3] */
+        unsigned int source_min_pq;
+        unsigned int source_max_pq;
+        unsigned int source_diagonal;
+    } ColorMetadata;
+};
+#pragma pack(pop)
+
 // -----------------------------------------------------------------
 // 3D Plane Offset Side Data
 // -----------------------------------------------------------------

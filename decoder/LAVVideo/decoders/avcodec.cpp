@@ -39,6 +39,7 @@ extern "C"
 #include "libavutil/pixdesc.h"
 #include "libavutil/mastering_display_metadata.h"
 #include "libavutil/hdr_dynamic_metadata.h"
+#include "libavutil/dovi_meta.h"
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1355,6 +1356,15 @@ send_packet:
             {
                 DbgLog((LOG_TRACE, 10, L"::Decode(): Found HDR10+ data of an unexpected size (%d)", sdHDR10Plus->size));
             }
+        }
+
+        AVFrameSideData *sdDOVI = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_DOVI_METADATA);
+        if (sdDOVI)
+        {
+            AVDOVIMetadata *metadata = (AVDOVIMetadata *)sdDOVI->data;
+            MediaSideDataDOVIMetadata *hdr = (MediaSideDataDOVIMetadata *)AddLAVFrameSideData(
+                pOutFrame, IID_MediaSideDataDOVIMetadata, sizeof(MediaSideDataDOVIMetadata));
+            processFFDOVIData(hdr, metadata);
         }
 
         AVFrameSideData *sdCC = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_A53_CC);
