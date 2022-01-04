@@ -505,80 +505,67 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         }
         else if (codec == AV_CODEC_ID_AV1)
         {
-            // read ISOBMFF-style header
-            if (extralen >= 4)
+            extra = (uint8_t *)av_mallocz(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
+            getExtraData(*pmt, extra, nullptr);
+
+            // ISOBMFF start marker, invalid in OBU syntax
+            if (extralen >= 4 && extra[0] == 0x81)
             {
-                extra = (uint8_t *)av_mallocz(extralen + AV_INPUT_BUFFER_PADDING_SIZE);
-                getExtraData(*pmt, extra, nullptr);
+                CByteParser av1(extra, extralen);
+                av1.BitSkip(8);
 
-                // ISOBMFF start marker, invalid in OBU syntax
-                if (extra[0] == 0x81)
+                m_pAVCtx->profile = av1.BitRead(3);
+                av1.BitSkip(5); // level idx
+
+                av1.BitSkip(1); // tier
+                int high_bitdepth = av1.BitRead(1);
+                int twelve_bit = av1.BitRead(1);
+                int monochrome = av1.BitRead(1);
+                int chroma_x = av1.BitRead(1);
+                int chroma_y = av1.BitRead(1);
+                av1.BitSkip(2); // chroma sample position
+
+                // determine pixel format
+                if (m_pAVCtx->profile == FF_PROFILE_AV1_MAIN)
                 {
-                    CByteParser av1(extra, extralen);
-                    av1.BitSkip(8);
-
-                    m_pAVCtx->profile = av1.BitRead(3);
-                    av1.BitSkip(5); // level idx
-
-                    av1.BitSkip(1); // tier
-                    int high_bitdepth = av1.BitRead(1);
-                    int twelve_bit = av1.BitRead(1);
-                    int monochrome = av1.BitRead(1);
-                    int chroma_x = av1.BitRead(1);
-                    int chroma_y = av1.BitRead(1);
-                    av1.BitSkip(2); // chroma sample position
-
-                    // determine pixel format
-                    if (m_pAVCtx->profile == FF_PROFILE_AV1_MAIN)
+                    if (!monochrome)
                     {
-                        if (!monochrome)
-                        {
-                            if (chroma_x && chroma_y)
-                            {
-                                if (!high_bitdepth)
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P;
-                                else if (!twelve_bit)
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P10;
-                                else
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P12;
-                            }
-                            else if (chroma_x && !chroma_y)
-                            {
-                                if (!high_bitdepth)
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV422P;
-                                else if (!twelve_bit)
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV422P10;
-                                else
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV422P12;
-                            }
-                            else if (!chroma_x && !chroma_y)
-                            {
-                                if (!high_bitdepth)
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV444P;
-                                else if (!twelve_bit)
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV444P10;
-                                else
-                                    m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV444P12;
-                            }
-                        }
-                        else
+                        if (chroma_x && chroma_y)
                         {
                             if (!high_bitdepth)
-                                m_pAVCtx->pix_fmt = AV_PIX_FMT_GRAY8;
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P;
                             else if (!twelve_bit)
-                                m_pAVCtx->pix_fmt = AV_PIX_FMT_GRAY10;
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P10;
                             else
-                                m_pAVCtx->pix_fmt = AV_PIX_FMT_GRAY12;
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV420P12;
+                        }
+                        else if (chroma_x && !chroma_y)
+                        {
+                            if (!high_bitdepth)
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV422P;
+                            else if (!twelve_bit)
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV422P10;
+                            else
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV422P12;
+                        }
+                        else if (!chroma_x && !chroma_y)
+                        {
+                            if (!high_bitdepth)
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV444P;
+                            else if (!twelve_bit)
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV444P10;
+                            else
+                                m_pAVCtx->pix_fmt = AV_PIX_FMT_YUV444P12;
                         }
                     }
-
-                    memmove(extra, extra + 4, extralen - 4);
-                    extralen -= 4;
-
-                    // if nothing remains, just free it
-                    if (extralen == 0)
+                    else
                     {
-                        av_freep(&extra);
+                        if (!high_bitdepth)
+                            m_pAVCtx->pix_fmt = AV_PIX_FMT_GRAY8;
+                        else if (!twelve_bit)
+                            m_pAVCtx->pix_fmt = AV_PIX_FMT_GRAY10;
+                        else
+                            m_pAVCtx->pix_fmt = AV_PIX_FMT_GRAY12;
                     }
                 }
             }
