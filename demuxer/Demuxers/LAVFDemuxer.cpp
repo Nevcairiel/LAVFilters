@@ -350,6 +350,9 @@ trynoformat:
     av_dict_set(&options, "reconnect", "1", 0);         // for http, reconnect if we get disconnected
     av_dict_set(&options, "skip_clear", "1", 0);        // mpegts program handling
 
+    // send global side data to the decoder
+    av_format_inject_global_side_data(m_avFormat);
+
     if (rtsp_transport != nullptr)
     {
         av_dict_set(&options, "rtsp_transport", rtsp_transport, 0);
