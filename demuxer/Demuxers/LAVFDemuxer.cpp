@@ -1639,7 +1639,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
             int text_size = pPacket->GetDataSize();
 
             // allocate size for id/settings
-            int pkt_size = text_size + id_size + 2 + settings_size + 2;
+            int pkt_size = text_size + (int)id_size + 2 + (int)settings_size + 2;
             pPacket->SetDataSize(pkt_size);
 
             uint8_t *data = pPacket->GetData();
@@ -1669,8 +1669,8 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         uint8_t *paramchange = av_packet_get_side_data(&pkt, AV_PKT_DATA_PARAM_CHANGE, &paramchange_size);
         if ((sidedata && sidedata_size) || (paramchange && paramchange_size))
         {
-            CreatePacketMediaType(pPacket, stream->codecpar->codec_id, sidedata, sidedata_size, paramchange,
-                                  paramchange_size);
+            CreatePacketMediaType(pPacket, stream->codecpar->codec_id, sidedata, (int)sidedata_size, paramchange,
+                                  (int)paramchange_size);
         }
 
         pPacket->bSyncPoint = pkt.flags & AV_PKT_FLAG_KEY;
@@ -2446,7 +2446,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
                 AVDictionaryEntry *dict = av_dict_get(program->metadata, "variant_bitrate", nullptr, 0);
                 if (dict && dict->value)
-                    dwBitrate = atoll(dict->value);
+                    dwBitrate = atol(dict->value);
 
                 // Check the score of the previously found stream
                 // In addition, we always require a valid video stream (or none), a invalid one is not allowed.

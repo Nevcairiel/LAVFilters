@@ -101,7 +101,7 @@ STDMETHODIMP CCCOutputPin::DeliverCCData(BYTE *pDataIn, size_t size, REFERENCE_T
         ALLOCATOR_PROPERTIES props, actual;
         CHECK_HR(hr = m_pAllocator->GetProperties(&props));
         // Give us 2 times the requested size, so we don't resize every time
-        props.cbBuffer = size * 2;
+        props.cbBuffer = (long)(size * 2);
         if (props.cBuffers > 1)
         {
             CHECK_HR(hr = __super::DeliverBeginFlush());
