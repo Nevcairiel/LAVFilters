@@ -43,9 +43,8 @@ extern "C" {
 typedef struct Dav1dContext Dav1dContext;
 typedef struct Dav1dRef Dav1dRef;
 
-#define DAV1D_MAX_FRAME_THREADS 256
-#define DAV1D_MAX_TILE_THREADS 64
-#define DAV1D_MAX_POSTFILTER_THREADS 256
+#define DAV1D_MAX_THREADS 256
+#define DAV1D_MAX_FRAME_DELAY 256
 
 typedef struct Dav1dLogger {
     void *cookie; ///< Custom data to pass to the callback.
@@ -60,16 +59,15 @@ typedef struct Dav1dLogger {
 } Dav1dLogger;
 
 typedef struct Dav1dSettings {
-    int n_frame_threads;
-    int n_tile_threads;
+    int n_threads; ///< number of threads (0 = auto)
+    int max_frame_delay; ///< Set to 1 for low-latency decoding (0 = auto)
     int apply_grain;
     int operating_point; ///< select an operating point for scalable AV1 bitstreams (0 - 31)
     int all_layers; ///< output all spatial layers of a scalable AV1 biststream
     unsigned frame_size_limit; ///< maximum frame size, in pixels (0 = unlimited)
     Dav1dPicAllocator allocator; ///< Picture allocator callback.
     Dav1dLogger logger; ///< Logger callback.
-    int n_postfilter_threads;
-    uint8_t reserved[28]; ///< reserved for future use
+    uint8_t reserved[32]; ///< reserved for future use
 } Dav1dSettings;
 
 /**
@@ -105,7 +103,12 @@ DAV1D_API int dav1d_open(Dav1dContext **c_out, const Dav1dSettings *s);
  * @param buf The data to be parser.
  * @param sz  Size of the data.
  *
- * @return 0 on success, or < 0 (a negative DAV1D_ERR code) on error.
+ * @return
+ *                  0: Success, and out is filled with the parsed Sequence Header
+ *                     OBU parameters.
+ *  DAV1D_ERR(ENOENT): No Sequence Header OBUs were found in the buffer.
+ *  other negative DAV1D_ERR codes: Invalid data in the buffer, invalid passed-in
+ *                                  arguments, and other errors during parsing.
  *
  * @note It is safe to feed this function data containing other OBUs than a
  *       Sequence Header, as they will simply be ignored. If there is more than
@@ -182,6 +185,27 @@ DAV1D_API int dav1d_send_data(Dav1dContext *c, Dav1dData *in);
  * @endcode
  */
 DAV1D_API int dav1d_get_picture(Dav1dContext *c, Dav1dPicture *out);
+
+/**
+ * Apply film grain to a previously decoded picture. If the picture contains no
+ * film grain metadata, then this function merely returns a new reference.
+ *
+ * @param   c Input decoder instance.
+ * @param out Output frame. The caller assumes ownership of the returned
+ *            reference.
+ * @param  in Input frame. No ownership is transferred.
+ *
+ * @return
+ *         0: Success, and a frame is returned.
+ *  other negative DAV1D_ERR codes: Error due to lack of memory or because of
+ *                                  invalid passed-in arguments.
+ *
+ * @note If `Dav1dSettings.apply_grain` is true, film grain was already applied
+ *       by `dav1d_get_picture`, and so calling this function leads to double
+ *       application of film grain. Users should only call this when needed.
+ */
+DAV1D_API int dav1d_apply_grain(Dav1dContext *c, Dav1dPicture *out,
+                                const Dav1dPicture *in);
 
 /**
  * Close a decoder instance and free all associated memory.
