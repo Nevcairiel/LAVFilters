@@ -1204,11 +1204,6 @@ STDMETHODIMP CLAVSplitter::SetPositionsInternal(void *caller, LONGLONG *pCurrent
         }
     }
 
-    if (m_rtCurrent == rtCurrent && m_rtStop == rtStop)
-    {
-        return S_OK;
-    }
-
     if (m_rtLastStart == rtCurrent && m_rtLastStop == rtStop && m_LastSeekers.find(caller) == m_LastSeekers.end())
     {
         m_LastSeekers.insert(caller);
