@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 // -----------------------------------------------------------------
 // Interface to exchange binary side data
 // -----------------------------------------------------------------
@@ -125,8 +127,8 @@ struct MediaSideDataHDR10Plus
 };
 #pragma pack(pop)
 
-// {D25D4BA9-2318-4B61-B872-09267DB81FE0}
-DEFINE_GUID(IID_MediaSideDataDOVIMetadata, 0xd25d4ba9, 0x2318, 0x4b61, 0xb8, 0x72, 0x9, 0x26, 0x7d, 0xb8, 0x1f, 0xe0);
+// {277EE779-13F4-434E-BDEC-3D6F8C0E15D2}
+DEFINE_GUID(IID_MediaSideDataDOVIMetadata, 0x277ee779, 0x13f4, 0x434e, 0xbd, 0xec, 0x3d, 0x6f, 0x8c, 0xe, 0x15, 0xd2);
 
 #pragma pack(push, 1)
 // Dolby Vision metadata
@@ -135,65 +137,65 @@ struct MediaSideDataDOVIMetadata
 {
     struct
     {
-        unsigned int rpu_type;
-        unsigned int rpu_format;
-        unsigned int vdr_rpu_profile;
-        unsigned int vdr_rpu_level;
-        unsigned int chroma_resampling_explicit_filter_flag;
-        unsigned int coef_data_type; /* informative, lavc always converts to fixed */
-        unsigned int coef_log2_denom;
-        unsigned int vdr_rpu_normalized_idc;
-        unsigned int bl_video_full_range_flag;
-        unsigned int bl_bit_depth; /* [8, 16] */
-        unsigned int el_bit_depth; /* [8, 16] */
-        unsigned int vdr_bit_depth; /* [8, 16] */
-        unsigned int spatial_resampling_filter_flag;
-        unsigned int el_spatial_resampling_filter_flag;
-        unsigned int disable_residual_flag;
+        uint8_t rpu_type;
+        uint16_t rpu_format;
+        uint8_t vdr_rpu_profile;
+        uint8_t vdr_rpu_level;
+        uint8_t chroma_resampling_explicit_filter_flag;
+        uint8_t coef_data_type; /* informative, lavc always converts to fixed */
+        uint8_t coef_log2_denom;
+        uint8_t vdr_rpu_normalized_idc;
+        uint8_t bl_video_full_range_flag;
+        uint8_t bl_bit_depth;  /* [8, 16] */
+        uint8_t el_bit_depth;  /* [8, 16] */
+        uint8_t vdr_bit_depth; /* [8, 16] */
+        uint8_t spatial_resampling_filter_flag;
+        uint8_t el_spatial_resampling_filter_flag;
+        uint8_t disable_residual_flag;
     } Header;
 
     struct
     {
-        unsigned int vdr_rpu_id;
-        unsigned int mapping_color_space;
-        unsigned int mapping_chroma_format_idc;
+        uint8_t vdr_rpu_id;
+        uint8_t mapping_color_space;
+        uint8_t mapping_chroma_format_idc;
 
         struct
         {
 #define LAV_DOVI_MAX_PIECES 8
-            unsigned int num_pivots;                 /* [2, 9] */
-            unsigned int pivots[LAV_DOVI_MAX_PIECES + 1]; /* sorted ascending */
-            int mapping_idc[LAV_DOVI_MAX_PIECES];         /* 0 polynomial, 1 mmr */
+            uint8_t num_pivots;                           /* [2, 9] */
+            uint16_t pivots[LAV_DOVI_MAX_PIECES + 1]; /* sorted ascending */
+            uint8_t mapping_idc[LAV_DOVI_MAX_PIECES];     /* 0 polynomial, 1 mmr */
 
             /* polynomial */
-            unsigned int poly_order[LAV_DOVI_MAX_PIECES]; /* [1, 2] */
-            LONGLONG poly_coef[LAV_DOVI_MAX_PIECES][3];    /* x^0, x^1, x^2 */
+            uint8_t poly_order[LAV_DOVI_MAX_PIECES];    /* [1, 2] */
+            int64_t poly_coef[LAV_DOVI_MAX_PIECES][3]; /* x^0, x^1, x^2 */
 
             /* mmr */
-            unsigned int mmr_order[LAV_DOVI_MAX_PIECES]; /* [1, 3] */
-            LONGLONG mmr_constant[LAV_DOVI_MAX_PIECES];
-            LONGLONG mmr_coef[LAV_DOVI_MAX_PIECES][3 /* order - 1 */][7];
+            uint8_t mmr_order[LAV_DOVI_MAX_PIECES]; /* [1, 3] */
+            int64_t mmr_constant[LAV_DOVI_MAX_PIECES];
+            int64_t mmr_coef[LAV_DOVI_MAX_PIECES][3 /* order - 1 */][7];
         } curves[3]; /* per component */
 
         /* Non-linear inverse quantization */
-        int nlq_method_idc; // -1 none, 0 linear dz
-        unsigned int num_x_partitions;
-        unsigned int num_y_partitions;
+        uint8_t nlq_method_idc; // -1 none, 0 linear dz
+        uint32_t num_x_partitions;
+        uint32_t num_y_partitions;
         struct
         {
-            unsigned int nlq_offset;
-            ULONGLONG vdr_in_max;
+            uint16_t nlq_offset;
+            uint64_t vdr_in_max;
 
             /* linear dz */
-            ULONGLONG linear_deadzone_slope;
-            ULONGLONG linear_deadzone_threshold;
+            uint64_t linear_deadzone_slope;
+            uint64_t linear_deadzone_threshold;
         } nlq[3]; /* per component */
     } Mapping;
 
     struct
     {
-        unsigned int dm_metadata_id;
-        unsigned int scene_refresh_flag;
+        uint8_t dm_metadata_id;
+        uint8_t scene_refresh_flag;
 
         /**
          * Coefficients of the custom Dolby Vision IPT-PQ matrices. These are to be
@@ -210,17 +212,17 @@ struct MediaSideDataDOVIMetadata
         /**
          * Extra signal metadata (see Dolby patents for more info).
          */
-        unsigned int signal_eotf;
-        unsigned int signal_eotf_param0;
-        unsigned int signal_eotf_param1;
-        unsigned int signal_eotf_param2;
-        unsigned int signal_bit_depth;
-        unsigned int signal_color_space;
-        unsigned int signal_chroma_format;
-        unsigned int signal_full_range_flag; /* [0, 3] */
-        unsigned int source_min_pq;
-        unsigned int source_max_pq;
-        unsigned int source_diagonal;
+        uint16_t signal_eotf;
+        uint16_t signal_eotf_param0;
+        uint16_t signal_eotf_param1;
+        uint32_t signal_eotf_param2;
+        uint8_t signal_bit_depth;
+        uint8_t signal_color_space;
+        uint8_t signal_chroma_format;
+        uint8_t signal_full_range_flag; /* [0, 3] */
+        uint16_t source_min_pq;
+        uint16_t source_max_pq;
+        uint16_t source_diagonal;
     } ColorMetadata;
 };
 #pragma pack(pop)
