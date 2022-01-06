@@ -20,22 +20,23 @@
 #pragma once
 
 // {17989414-C927-4D73-AB6C-19DF37602AC4}
-DEFINE_GUID(IID_IGraphRebuildDelegate, 
-0x17989414, 0xc927, 0x4d73, 0xab, 0x6c, 0x19, 0xdf, 0x37, 0x60, 0x2a, 0xc4);
+DEFINE_GUID(IID_IGraphRebuildDelegate, 0x17989414, 0xc927, 0x4d73, 0xab, 0x6c, 0x19, 0xdf, 0x37, 0x60, 0x2a, 0xc4);
 
 interface __declspec(uuid("17989414-C927-4D73-AB6C-19DF37602AC4")) IGraphRebuildDelegate : public IUnknown
 {
-  // Called by the splitter to let the player know that a certain pin needs to be rebuild.
-  //
-  // This function is called on any stream or title changes that would cause the content of the pin to change.
-  // The Splitter will stop the graph prior to this call, and it will return the graph to its previous state afterwards.
-  //
-  // When this function is called, the pin will already have the new media types set, so the usual functions to query the media types can be used.
-  // EnmuMediaTypes is OK (or any wrappers of this in the base classes), ConnectionMediaType is not OK, for obvious reasons.
-  //
-  // Following return values are supported:
-  // S_OK    - The player took complete control over the rebuild, the splitter will do no further actions regarding the pin
-  // S_FALSE - The player may or may not have changed the pin, and the splitter is instructed to send a media type with the next packet.
-  // E_FAIL  - The player failed, and the splitter should try to rebuild the pin
-  STDMETHOD(RebuildPin)(IFilterGraph *pGraph, IPin *pPin) = 0;
+    // Called by the splitter to let the player know that a certain pin needs to be rebuild.
+    //
+    // This function is called on any stream or title changes that would cause the content of the pin to change.
+    // The Splitter will stop the graph prior to this call, and it will return the graph to its previous state
+    // afterwards.
+    //
+    // When this function is called, the pin will already have the new media types set, so the usual functions to query
+    // the media types can be used. EnmuMediaTypes is OK (or any wrappers of this in the base classes),
+    // ConnectionMediaType is not OK, for obvious reasons.
+    //
+    // Following return values are supported:
+    // S_OK    - The player took complete control over the rebuild, the splitter will do no further actions regarding
+    // the pin S_FALSE - The player may or may not have changed the pin, and the splitter is instructed to send a media
+    // type with the next packet. E_FAIL  - The player failed, and the splitter should try to rebuild the pin
+    STDMETHOD(RebuildPin)(IFilterGraph * pGraph, IPin * pPin) = 0;
 };

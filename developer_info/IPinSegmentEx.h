@@ -10,5 +10,5 @@
 // new segment afterwards.
 interface __declspec(uuid("8B81E022-52C7-4B89-9F11-ACFD063AABB4")) IPinSegmentEx : public IUnknown
 {
-  virtual HRESULT STDMETHODCALLTYPE EndOfSegment(void) = 0;
+    virtual HRESULT STDMETHODCALLTYPE EndOfSegment(void) = 0;
 };

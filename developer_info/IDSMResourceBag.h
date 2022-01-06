@@ -19,13 +19,12 @@
  */
 #pragma once
 
-interface __declspec(uuid("EBAFBCBE-BDE0-489A-9789-05D5692E3A93"))
-IDSMResourceBag :
-public IUnknown {
-	STDMETHOD_(DWORD, ResGetCount)() PURE;
-	STDMETHOD(ResGet)(DWORD iIndex, BSTR * ppName, BSTR * ppDesc, BSTR * ppMime, BYTE** ppData, DWORD * pDataLen, DWORD_PTR * pTag) PURE;
-	STDMETHOD(ResSet)(DWORD iIndex, LPCWSTR pName, LPCWSTR pDesc, LPCWSTR pMime, const BYTE * pData, DWORD len, DWORD_PTR tag) PURE;
-	STDMETHOD(ResAppend)(LPCWSTR pName, LPCWSTR pDesc, LPCWSTR pMime, BYTE * pData, DWORD len, DWORD_PTR tag) PURE;
-	STDMETHOD(ResRemoveAt)(DWORD iIndex) PURE;
-	STDMETHOD(ResRemoveAll)(DWORD_PTR tag) PURE;
+interface __declspec(uuid("EBAFBCBE-BDE0-489A-9789-05D5692E3A93")) IDSMResourceBag : public IUnknown
+{
+    STDMETHOD_(DWORD, ResGetCount)() PURE;
+    STDMETHOD(ResGet)(DWORD iIndex, BSTR * ppName, BSTR * ppDesc, BSTR * ppMime, BYTE * *ppData, DWORD * pDataLen, DWORD_PTR * pTag) PURE;
+    STDMETHOD(ResSet)(DWORD iIndex, LPCWSTR pName, LPCWSTR pDesc, LPCWSTR pMime, const BYTE *pData, DWORD len, DWORD_PTR tag) PURE;
+    STDMETHOD(ResAppend)(LPCWSTR pName, LPCWSTR pDesc, LPCWSTR pMime, BYTE * pData, DWORD len, DWORD_PTR tag) PURE;
+    STDMETHOD(ResRemoveAt)(DWORD iIndex) PURE;
+    STDMETHOD(ResRemoveAll)(DWORD_PTR tag) PURE;
 };

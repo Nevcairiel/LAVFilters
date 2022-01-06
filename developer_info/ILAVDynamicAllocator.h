@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2010-2017 Hendrik Leppkes
+ *      Copyright (C) 2010-2021 Hendrik Leppkes
  *      http://www.1f0.de
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -20,11 +20,10 @@
 #pragma once
 
 // {8FBB906B-D1DB-4528-9498-563241CCD43D}
-DEFINE_GUID(IID_ILAVDynamicAllocator, 
-0x8fbb906b, 0xd1db, 0x4528, 0x94, 0x98, 0x56, 0x32, 0x41, 0xcc, 0xd4, 0x3d);
+DEFINE_GUID(IID_ILAVDynamicAllocator, 0x8fbb906b, 0xd1db, 0x4528, 0x94, 0x98, 0x56, 0x32, 0x41, 0xcc, 0xd4, 0x3d);
 
 interface __declspec(uuid("8FBB906B-D1DB-4528-9498-563241CCD43D")) ILAVDynamicAllocator : public IUnknown
 {
-  // Query wether this allocator is using dynamic allocation of samples and will not run out of samples
-  STDMETHOD_(BOOL,IsDynamicAllocator)() PURE;
+    // Query wether this allocator is using dynamic allocation of samples and will not run out of samples
+    STDMETHOD_(BOOL, IsDynamicAllocator)() PURE;
 };
