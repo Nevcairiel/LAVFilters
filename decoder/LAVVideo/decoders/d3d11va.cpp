@@ -19,7 +19,7 @@
 
 #include "stdafx.h"
 #include "d3d11va.h"
-#include "d3d11/ID3DVideoMemoryConfiguration.h"
+#include "ID3DVideoMemoryConfiguration.h"
 #include "dxva2/dxva_common.h"
 
 ILAVDecoder *CreateDecoderD3D11()

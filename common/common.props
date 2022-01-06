@@ -13,7 +13,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)common\includes;$(SolutionDir)common\baseclasses;$(SolutionDir)ffmpeg;$(SolutionDir)libbluray\src;$(SolutionDir)common\DSUtilLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)include;$(SolutionDir)common\includes;$(SolutionDir)common\baseclasses;$(SolutionDir)ffmpeg;$(SolutionDir)libbluray\src;$(SolutionDir)common\DSUtilLite;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:inline,referenceBinding,rvalueCast,throwingNew,ternary %(AdditionalOptions)</AdditionalOptions>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>

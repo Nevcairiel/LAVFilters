@@ -100,19 +100,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\includes\common_defines.h" />
-    <ClInclude Include="..\..\common\includes\IBufferInfo.h" />
-    <ClInclude Include="..\..\common\includes\IDSMResourceBag.h" />
-    <ClInclude Include="..\..\common\includes\IGraphRebuildDelegate.h" />
-    <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h" />
-    <ClInclude Include="..\..\common\includes\ILAVDynamicAllocator.h" />
-    <ClInclude Include="..\..\common\includes\ILAVPinInfo.h" />
-    <ClInclude Include="..\..\common\includes\ISpecifyPropertyPages2.h" />
-    <ClInclude Include="..\..\common\includes\IStreamSourceControl.h" />
-    <ClInclude Include="..\..\common\includes\ITrackInfo.h" />
-    <ClInclude Include="..\..\common\includes\LAVSplitterSettings.h" />
     <ClInclude Include="..\..\common\includes\LAVSplitterSettingsInternal.h" />
     <ClInclude Include="..\..\common\includes\moreuuids.h" />
     <ClInclude Include="..\..\common\includes\version.h" />
+    <ClInclude Include="..\..\include\IBitRateInfo.h" />
+    <ClInclude Include="..\..\include\IBufferInfo.h" />
+    <ClInclude Include="..\..\include\IDSMResourceBag.h" />
+    <ClInclude Include="..\..\include\IGraphRebuildDelegate.h" />
+    <ClInclude Include="..\..\include\IKeyFrameInfo.h" />
+    <ClInclude Include="..\..\include\ILAVDynamicAllocator.h" />
+    <ClInclude Include="..\..\include\IPinSegmentEx.h" />
+    <ClInclude Include="..\..\include\ISpecifyPropertyPages2.h" />
+    <ClInclude Include="..\..\include\IStreamSourceControl.h" />
+    <ClInclude Include="..\..\include\ITrackInfo.h" />
+    <ClInclude Include="..\..\include\LAVSplitterSettings.h" />
     <ClInclude Include="InputPin.h" />
     <ClInclude Include="LAVSplitterTrayIcon.h" />
     <ClInclude Include="PacketAllocator.h" />

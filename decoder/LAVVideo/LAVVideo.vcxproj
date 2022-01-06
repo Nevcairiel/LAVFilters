@@ -136,15 +136,16 @@
     <ClCompile Include="VideoSettingsProp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\includes\IMediaSideData.h" />
-    <ClInclude Include="..\..\common\includes\IPinSegmentEx.h" />
     <ClInclude Include="..\..\common\includes\SubRenderIntf.h" />
+    <ClInclude Include="..\..\include\ID3DVideoMemoryConfiguration.h" />
+    <ClInclude Include="..\..\include\IMediaSample3D.h" />
+    <ClInclude Include="..\..\include\IMediaSideData.h" />
+    <ClInclude Include="..\..\include\LAVVideoSettings.h" />
     <ClInclude Include="CCOutputPin.h" />
     <ClInclude Include="decoders\avcodec.h" />
     <ClInclude Include="decoders\cuvid.h" />
     <ClInclude Include="decoders\d3d11va.h" />
     <ClInclude Include="decoders\d3d11\D3D11SurfaceAllocator.h" />
-    <ClInclude Include="decoders\d3d11\ID3DVideoMemoryConfiguration.h" />
     <ClInclude Include="decoders\DecBase.h" />
     <ClInclude Include="decoders\dxva2dec.h" />
     <ClInclude Include="decoders\dxva2\DXVA2SurfaceAllocator.h" />
@@ -156,7 +157,6 @@
     <ClInclude Include="DecodeManager.h" />
     <ClInclude Include="LAVPixFmtConverter.h" />
     <ClInclude Include="LAVVideo.h" />
-    <ClInclude Include="LAVVideoSettings.h" />
     <ClInclude Include="Media.h" />
     <ClInclude Include="parsers\AnnexBConverter.h" />
     <ClInclude Include="parsers\H264SequenceParser.h" />

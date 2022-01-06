@@ -99,9 +99,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\LAVAudioSettings.h" />
     <ClInclude Include="BitstreamParser.h" />
     <ClInclude Include="LAVAudio.h" />
-    <ClInclude Include="LAVAudioSettings.h" />
     <ClInclude Include="AudioSettingsProp.h" />
     <ClInclude Include="Media.h" />
     <ClInclude Include="parser\dts.h" />

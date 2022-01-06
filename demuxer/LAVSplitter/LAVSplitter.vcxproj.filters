@@ -68,12 +68,6 @@
     <ClInclude Include="LAVSplitter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\IKeyFrameInfo.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\includes\LAVSplitterSettings.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\includes\moreuuids.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
@@ -86,22 +80,7 @@
     <ClInclude Include="InputPin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\ITrackInfo.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\includes\LAVSplitterSettingsInternal.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\includes\IGraphRebuildDelegate.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\includes\ILAVPinInfo.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\includes\IBufferInfo.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\includes\ISpecifyPropertyPages2.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="PacketAllocator.h">
@@ -110,16 +89,40 @@
     <ClInclude Include="LAVSplitterTrayIcon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\IStreamSourceControl.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\includes\common_defines.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\IDSMResourceBag.h">
+    <ClInclude Include="..\..\include\IBitRateInfo.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\ILAVDynamicAllocator.h">
+    <ClInclude Include="..\..\include\IBufferInfo.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IDSMResourceBag.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IGraphRebuildDelegate.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IKeyFrameInfo.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ILAVDynamicAllocator.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IPinSegmentEx.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ISpecifyPropertyPages2.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IStreamSourceControl.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ITrackInfo.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\LAVSplitterSettings.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>

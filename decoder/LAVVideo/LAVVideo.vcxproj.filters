@@ -200,9 +200,6 @@
     <ClInclude Include="VideoSettingsProp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LAVVideoSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="parsers\VC1HeaderParser.h">
       <Filter>Header Files\parsers</Filter>
     </ClInclude>
@@ -275,9 +272,6 @@
     <ClInclude Include="decoders\msdk_mvc.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\IMediaSideData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DecodeManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -287,17 +281,23 @@
     <ClInclude Include="decoders\d3d11va.h">
       <Filter>Header Files\decoders</Filter>
     </ClInclude>
-    <ClInclude Include="decoders\d3d11\ID3DVideoMemoryConfiguration.h">
-      <Filter>Header Files\decoders\d3d11</Filter>
-    </ClInclude>
     <ClInclude Include="decoders\d3d11\D3D11SurfaceAllocator.h">
       <Filter>Header Files\decoders\d3d11</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\includes\IPinSegmentEx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CCOutputPin.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IMediaSample3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\IMediaSideData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\LAVVideoSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\ID3DVideoMemoryConfiguration.h">
+      <Filter>Header Files\decoders\d3d11</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -62,9 +62,6 @@
     <ClInclude Include="LAVAudio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LAVAudioSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AudioSettingsProp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -81,6 +78,9 @@
       <Filter>Header Files\parser</Filter>
     </ClInclude>
     <ClInclude Include="PostProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\LAVAudioSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
