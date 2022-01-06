@@ -1282,8 +1282,8 @@ STDMETHODIMP CLAVSplitter::ReselectSubs(int streamId)
     const CBaseDemuxer::stream *subtitleStream = m_pDemuxer->SelectSubtitleStream(subtitleSelectors, audioLanguage);
     if (subtitleStream)
     {
-        long lIndex = m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::video)->size() +
-                      m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::audio)->size();
+        long lIndex = (long)m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::video)->size() +
+                      (long)m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::audio)->size();
 
         auto subpics = m_pDemuxer->GetStreams(CBaseDemuxer::StreamType::subpic);
         for (int i = 0; i < subpics->size(); i++)

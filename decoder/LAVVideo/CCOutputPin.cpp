@@ -121,7 +121,7 @@ STDMETHODIMP CCCOutputPin::DeliverCCData(BYTE *pDataIn, size_t size, REFERENCE_T
     memcpy(pData, pDataIn, size);
 
     // set properties
-    CHECK_HR(hr = pSample->SetActualDataLength(size));
+    CHECK_HR(hr = pSample->SetActualDataLength((long)size));
     CHECK_HR(hr = pSample->SetTime(rtTime != AV_NOPTS_VALUE ? &rtTime : nullptr,
                                    rtTime != AV_NOPTS_VALUE ? &rtTime : nullptr));
     CHECK_HR(hr = pSample->SetMediaTime(nullptr, nullptr));

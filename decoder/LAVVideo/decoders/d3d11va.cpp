@@ -1042,7 +1042,7 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
         av_freep(&m_pOutputViews);
     }
 
-    m_pOutputViews = (ID3D11VideoDecoderOutputView **)av_mallocz_array(m_dwSurfaceCount, sizeof(*m_pOutputViews));
+    m_pOutputViews = (ID3D11VideoDecoderOutputView **)av_calloc(m_dwSurfaceCount, sizeof(*m_pOutputViews));
     m_nOutputViews = m_dwSurfaceCount;
 
     // allocate output views for the frames
