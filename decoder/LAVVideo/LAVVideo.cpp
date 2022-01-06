@@ -2196,6 +2196,18 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
         }
     }
 
+    if (pFrame->flags & (LAV_FRAME_FLAG_END_OF_SEQUENCE | LAV_FRAME_FLAG_REDRAW))
+    {
+        IMediaSideData *pMediaSideData = nullptr;
+        if (SUCCEEDED(hr = pSampleOut->QueryInterface(&pMediaSideData)))
+        {
+            DWORD dwControlFlags = MediaSideDataControlFlags_EndOfSequence;
+            pMediaSideData->SetSideData(IID_MediaSideDataControlFlags, (const BYTE *)&dwControlFlags, sizeof(dwControlFlags));
+
+            SafeRelease(&pMediaSideData);
+        }
+    }
+
     if (pFrame->format != LAVPixFmt_DXVA2 && pFrame->format != LAVPixFmt_D3D11)
     {
         long required = m_PixFmtConverter.GetImageSize(pBIH->biWidth, abs(pBIH->biHeight));

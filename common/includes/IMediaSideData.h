@@ -255,3 +255,16 @@ struct MediaSideData3DOffset
 DEFINE_GUID(IID_MediaSideDataEIA608CC, 0x40fefd7f, 0x85dd, 0x4335, 0xa8, 0x4, 0x8a, 0x33, 0xb0, 0xbf, 0x7b, 0x81);
 
 // There is no struct definition. The data is supplied as a list of 3 byte CC data packets (control byte + cc_data1/2)
+
+// -----------------------------------------------------------------
+// Media Control Flags
+// -----------------------------------------------------------------
+
+// {B5411CE3-3B21-4FD6-80A8-CE682969F795}
+DEFINE_GUID(IID_MediaSideDataControlFlags, 0xb5411ce3, 0x3b21, 0x4fd6, 0x80, 0xa8, 0xce, 0x68, 0x29, 0x69, 0xf7, 0x95);
+
+// No struct definition, just a single DWORD for additional flags
+enum MediaSideDataControlFlags
+{
+    MediaSideDataControlFlags_EndOfSequence = (1 << 0),
+};
