@@ -22,6 +22,8 @@
 #include "ID3DVideoMemoryConfiguration.h"
 #include "dxva2/dxva_common.h"
 
+#include <d3d11_1.h>
+
 ILAVDecoder *CreateDecoderD3D11()
 {
     return new CDecD3D11();
@@ -1066,53 +1068,68 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
     // flush textures to black
     if (surface_format == DXGI_FORMAT_NV12 || surface_format == DXGI_FORMAT_P010 || surface_format == DXGI_FORMAT_P016)
     {
-        D3D11_TEXTURE2D_DESC FlushTexDesc{};
-        FlushTexDesc.Width = m_dwSurfaceWidth;
-        FlushTexDesc.Height = m_dwSurfaceHeight;
-        FlushTexDesc.MipLevels = 1;
-        FlushTexDesc.ArraySize = 1;
-        FlushTexDesc.Format = surface_format;
-        FlushTexDesc.SampleDesc.Count = 1;
-        FlushTexDesc.Usage = D3D11_USAGE_DEFAULT;
-        FlushTexDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
-        FlushTexDesc.CPUAccessFlags = 0;
-        FlushTexDesc.MiscFlags = 0;
-
-        ID3D11Texture2D *pFlushTexture = NULL;
-        if (SUCCEEDED(pDeviceContext->device->CreateTexture2D(&FlushTexDesc, NULL, &pFlushTexture)))
+        ID3D11DeviceContext1 *pDeviceContext1 = nullptr;
+        if (SUCCEEDED(hr = pDeviceContext->device_context->QueryInterface(&pDeviceContext1)))
         {
-            D3D11_RENDER_TARGET_VIEW_DESC rtvDesc{};
-            rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-            rtvDesc.Format = surface_format;
-
-            ID3D11RenderTargetView *pRTV = nullptr;
-
-            // clear the Luma channel to zero
-            rtvDesc.Format = (surface_format == DXGI_FORMAT_NV12) ? DXGI_FORMAT_R8_UNORM : DXGI_FORMAT_R16_UNORM;
-            if (SUCCEEDED(hr = pDeviceContext->device->CreateRenderTargetView(pFlushTexture, &rtvDesc, &pRTV)))
+            for (int i = 0; i < m_nOutputViews; i++)
             {
-                const FLOAT ClearYUV[4] = { 0.0f };
-                pDeviceContext->device_context->ClearRenderTargetView(pRTV, ClearYUV);
-                SafeRelease(&pRTV);
+                // clear the Luma channel to zero and Chroma channel to half
+                // for both P010/P016, the full 16-bit range value needs to be used due to the nature of their memory layout
+                float fChromaBlack = (surface_format == DXGI_FORMAT_NV12) ? 128.0f : 32768.0f;
+                const FLOAT ClearYUV[4] = {0.0f, fChromaBlack, fChromaBlack, 0.0f};
+                pDeviceContext1->ClearView(m_pOutputViews[i], ClearYUV, nullptr, 0);
             }
+            SafeRelease(&pDeviceContext1);
+        }
+        else
+        {
+            D3D11_TEXTURE2D_DESC FlushTexDesc{};
+            FlushTexDesc.Width = m_dwSurfaceWidth;
+            FlushTexDesc.Height = m_dwSurfaceHeight;
+            FlushTexDesc.MipLevels = 1;
+            FlushTexDesc.ArraySize = 1;
+            FlushTexDesc.Format = surface_format;
+            FlushTexDesc.SampleDesc.Count = 1;
+            FlushTexDesc.Usage = D3D11_USAGE_DEFAULT;
+            FlushTexDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+            FlushTexDesc.CPUAccessFlags = 0;
+            FlushTexDesc.MiscFlags = 0;
 
-            // clear the Chroma channel to half
-            rtvDesc.Format = (surface_format == DXGI_FORMAT_NV12) ? DXGI_FORMAT_R8G8_UNORM : DXGI_FORMAT_R16G16_UNORM;
-            if (SUCCEEDED(hr = pDeviceContext->device->CreateRenderTargetView(pFlushTexture, &rtvDesc, &pRTV)))
+            ID3D11Texture2D *pFlushTexture = NULL;
+            if (SUCCEEDED(pDeviceContext->device->CreateTexture2D(&FlushTexDesc, NULL, &pFlushTexture)))
             {
-                const FLOAT ClearYUV[4] = { 0.5f, 0.5f, 0.0f, 0.0f };
-                pDeviceContext->device_context->ClearRenderTargetView(pRTV, ClearYUV);
-                SafeRelease(&pRTV);
-            }
+                D3D11_RENDER_TARGET_VIEW_DESC rtvDesc{};
+                rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+                rtvDesc.Format = surface_format;
 
-            // update all surfaces with the flush color
-            for (unsigned i = 0; i < m_dwSurfaceCount; i++)
-            {
-                pDeviceContext->device_context->CopySubresourceRegion(pFramesContext->texture, i, 0, 0, 0,
-                                                                      pFlushTexture, 0, NULL);
-            }
-            SafeRelease(&pFlushTexture);
+                ID3D11RenderTargetView *pRTV = nullptr;
 
+                // clear the Luma channel to zero
+                rtvDesc.Format = (surface_format == DXGI_FORMAT_NV12) ? DXGI_FORMAT_R8_UNORM : DXGI_FORMAT_R16_UNORM;
+                if (SUCCEEDED(hr = pDeviceContext->device->CreateRenderTargetView(pFlushTexture, &rtvDesc, &pRTV)))
+                {
+                    const FLOAT ClearYUV[4] = { 0.0f };
+                    pDeviceContext->device_context->ClearRenderTargetView(pRTV, ClearYUV);
+                    SafeRelease(&pRTV);
+                }
+
+                // clear the Chroma channel to half
+                rtvDesc.Format = (surface_format == DXGI_FORMAT_NV12) ? DXGI_FORMAT_R8G8_UNORM : DXGI_FORMAT_R16G16_UNORM;
+                if (SUCCEEDED(hr = pDeviceContext->device->CreateRenderTargetView(pFlushTexture, &rtvDesc, &pRTV)))
+                {
+                    const FLOAT ClearYUV[4] = { 0.5f, 0.5f, 0.0f, 0.0f };
+                    pDeviceContext->device_context->ClearRenderTargetView(pRTV, ClearYUV);
+                    SafeRelease(&pRTV);
+                }
+
+                // update all surfaces with the flush color
+                for (unsigned i = 0; i < m_dwSurfaceCount; i++)
+                {
+                    pDeviceContext->device_context->CopySubresourceRegion(pFramesContext->texture, i, 0, 0, 0,
+                                                                          pFlushTexture, 0, NULL);
+                }
+                SafeRelease(&pFlushTexture);
+            }
             // flush all pending work
             pDeviceContext->device_context->Flush();
         }
