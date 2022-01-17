@@ -1134,9 +1134,10 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
                 }
                 SafeRelease(&pFlushTexture);
             }
-            // flush all pending work
-            pDeviceContext->device_context->Flush();
         }
+
+        // flush all pending work
+        pDeviceContext->device_context->Flush();
     }
 
     // create the decoder
