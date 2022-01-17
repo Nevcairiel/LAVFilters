@@ -1068,8 +1068,12 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
     // flush textures to black
     if (surface_format == DXGI_FORMAT_NV12 || surface_format == DXGI_FORMAT_P010 || surface_format == DXGI_FORMAT_P016)
     {
+        D3D11_FEATURE_DATA_D3D11_OPTIONS d3d11Options{};
+        pDeviceContext->device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS, &d3d11Options,
+                                                    sizeof(D3D11_FEATURE_DATA_D3D11_OPTIONS));
+
         ID3D11DeviceContext1 *pDeviceContext1 = nullptr;
-        if (SUCCEEDED(hr = pDeviceContext->device_context->QueryInterface(&pDeviceContext1)))
+        if (d3d11Options.ClearView && SUCCEEDED(hr = pDeviceContext->device_context->QueryInterface(&pDeviceContext1)))
         {
             for (int i = 0; i < m_nOutputViews; i++)
             {
