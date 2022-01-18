@@ -58,16 +58,35 @@ typedef struct Dav1dLogger {
     void (*callback)(void *cookie, const char *format, va_list ap);
 } Dav1dLogger;
 
+enum Dav1dInloopFilterType {
+    DAV1D_INLOOPFILTER_NONE        = 0,
+    DAV1D_INLOOPFILTER_DEBLOCK     = 1 << 0,
+    DAV1D_INLOOPFILTER_CDEF        = 1 << 1,
+    DAV1D_INLOOPFILTER_RESTORATION = 1 << 2,
+    DAV1D_INLOOPFILTER_ALL = DAV1D_INLOOPFILTER_DEBLOCK |
+                             DAV1D_INLOOPFILTER_CDEF |
+                             DAV1D_INLOOPFILTER_RESTORATION,
+};
+
 typedef struct Dav1dSettings {
-    int n_threads; ///< number of threads (0 = auto)
-    int max_frame_delay; ///< Set to 1 for low-latency decoding (0 = auto)
-    int apply_grain;
-    int operating_point; ///< select an operating point for scalable AV1 bitstreams (0 - 31)
-    int all_layers; ///< output all spatial layers of a scalable AV1 biststream
-    unsigned frame_size_limit; ///< maximum frame size, in pixels (0 = unlimited)
+    int n_threads; ///< number of threads (0 = number of logical cores in host system, default 0)
+    int max_frame_delay; ///< Set to 1 for low-latency decoding (0 = ceil(sqrt(n_threads)), default 0)
+    int apply_grain; ///< whether to apply film grain on output frames (default 1)
+    int operating_point; ///< select an operating point for scalable AV1 bitstreams (0 - 31, default 0)
+    int all_layers; ///< output all spatial layers of a scalable AV1 biststream (default 1)
+    unsigned frame_size_limit; ///< maximum frame size, in pixels (0 = unlimited, default 0)
     Dav1dPicAllocator allocator; ///< Picture allocator callback.
     Dav1dLogger logger; ///< Logger callback.
-    uint8_t reserved[32]; ///< reserved for future use
+    int strict_std_compliance; ///< whether to abort decoding on standard compliance violations
+                               ///< that don't affect actual bitstream decoding (e.g. inconsistent
+                               ///< or invalid metadata, default 0)
+    int output_invisible_frames; ///< output invisibly coded frames (in coding order) in addition
+                                 ///< to all visible frames. Because of show-existing-frame, this
+                                 ///< means some frames may appear twice (once when coded,
+                                 ///< once when shown, default 0)
+    enum Dav1dInloopFilterType inloop_filters; ///< postfilters to enable during decoding (default
+                                               ///< DAV1D_INLOOPFILTER_ALL)
+    uint8_t reserved[20]; ///< reserved for future use
 } Dav1dSettings;
 
 /**
