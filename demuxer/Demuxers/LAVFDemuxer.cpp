@@ -348,6 +348,7 @@ trynoformat:
     av_dict_set(&options, "icy", "1", 0);               // request ICY metadata
     av_dict_set(&options, "advanced_editlist", "0", 0); // disable broken mov editlist handling
     av_dict_set(&options, "reconnect", "1", 0);         // for http, reconnect if we get disconnected
+    av_dict_set(&options, "referer", fileName, 0);      // for http, send self as referer
     av_dict_set(&options, "skip_clear", "1", 0);        // mpegts program handling
 
     // send global side data to the decoder
