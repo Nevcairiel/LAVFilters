@@ -428,13 +428,14 @@ rsa_sec_decrypt(const struct rsa_public_key *pub,
 	        size_t length, uint8_t *message,
 	        const mpz_t gibberish);
 
-/* Compute x, the e:th root of m. Calling it with x == m is allowed. */
+/* Compute x, the e:th root of m. Calling it with x == m is allowed.
+   It is required that 0 <= m < n. */
 void
 rsa_compute_root(const struct rsa_private_key *key,
 		 mpz_t x, const mpz_t m);
 
 /* Safer variant, using RSA blinding, and checking the result after
-   CRT. */
+   CRT. It is required that 0 <= m < n. */
 int
 rsa_compute_root_tr(const struct rsa_public_key *pub,
 		    const struct rsa_private_key *key,
