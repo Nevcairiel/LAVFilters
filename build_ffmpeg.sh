@@ -80,7 +80,11 @@ configure() (
     --enable-libxml2                \
     --enable-zlib                   \
     --build-suffix=-lav             \
-    --arch=${arch}"
+    --arch=${arch}                  \
+    --nm=${cross_prefix}gcc-nm      \
+    --ar=${cross_prefix}gcc-ar      \
+    --ranlib=${cross_prefix}gcc-ranlib \
+    --enable-lto"
 
   EXTRA_CFLAGS="-fno-tree-vectorize -D_WIN32_WINNT=0x0600 -DWINVER=0x0600"
   EXTRA_LDFLAGS=""
