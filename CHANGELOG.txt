@@ -1,6 +1,24 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.76.0 - 2022/01/22
+LAV Splitter
+- NEW: Added an option to re-evaluate subtitle stream selection when the audio language changes
+- NEW: Improved advanced subtitle selection syntax with negated flags (positive and negative flags can now be combined for more flexible selection)
+- Changed: Improved variant/stream selection in DASH and HLS streams
+- Changed: Video streams with the highest bitrate are preferred (if equal resolution)
+
+LAV Video
+- NEW: Support for passing DoVi metadata to video renderers
+- NEW: BobWeaver (BWDIF) software deinterlacer (a blend of YADIF and Weston, focusing on their individual strengths)
+- NEW: Support for FIC screen capture video
+- Changed: D3D11 video surfaces are flushed to black before decoding, avoiding green artifacts
+- Changed: D3D11 devices are created up to feature level 12.1
+
+LAV Audio
+- Fixed: TrueHD bitstreaming could result in A/V sync issues or drop-outs
+- Removed: Support for the external DTS decoder (dtsdecoderdll.dll) has been removed
+
 0.75.1 - 2021/06/21
 LAV Splitter
 - Changed: AV1 files with no extradata will now generate a format header with stream information for decoders to use
