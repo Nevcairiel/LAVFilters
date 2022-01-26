@@ -371,10 +371,6 @@ STDMETHODIMP CDecDXVA2::LoadDXVA2Functions()
     return S_OK;
 }
 
-#define VEND_ID_ATI 0x1002
-#define VEND_ID_NVIDIA 0x10DE
-#define VEND_ID_INTEL 0x8086
-
 static const struct
 {
     unsigned id;

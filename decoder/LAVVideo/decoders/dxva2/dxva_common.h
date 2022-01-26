@@ -22,6 +22,10 @@
 /* Align dimensions for hardware and codec requirements */
 DWORD dxva_align_dimensions(AVCodecID codec, DWORD dim);
 
+#define VEND_ID_ATI 0x1002
+#define VEND_ID_NVIDIA 0x10DE
+#define VEND_ID_INTEL 0x8086
+
 /* hardware mode description */
 typedef struct
 {
