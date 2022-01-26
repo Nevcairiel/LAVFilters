@@ -1072,8 +1072,12 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
         pDeviceContext->device->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS, &d3d11Options,
                                                     sizeof(D3D11_FEATURE_DATA_D3D11_OPTIONS));
 
+        // XXX: The ClearView path does not function properly on Intel GPUs for P010
+        // Investigation has shown that contrary to the documentation, Intel transforms the color information,
+        // instead of treating the values like integral floats, as required.
         ID3D11DeviceContext1 *pDeviceContext1 = nullptr;
-        if (d3d11Options.ClearView && SUCCEEDED(hr = pDeviceContext->device_context->QueryInterface(&pDeviceContext1)))
+        if (m_AdapterDesc.VendorId != VEND_ID_INTEL && d3d11Options.ClearView &&
+            SUCCEEDED(hr = pDeviceContext->device_context->QueryInterface(&pDeviceContext1)))
         {
             for (int i = 0; i < m_nOutputViews; i++)
             {
