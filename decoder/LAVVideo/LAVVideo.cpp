@@ -1146,13 +1146,20 @@ HRESULT CLAVVideo::StartStreaming()
                     strVersion));
 
             // only support madVR for now, and only recent versions (anything before 0.89.10 crashes)
-            if (strName && strVersion && wcscmp(strName, L"madVR") == 0)
+            if (strName && strVersion)
             {
-                int major, minor, build, rev;
-                if (swscanf_s(strVersion, L"%d.%d.%d.%d", &major, &minor, &build, &rev) == 4)
+                if (wcscmp(strName, L"madVR") == 0)
                 {
-                    if (major > 0 || (major == 0 && (minor > 89 || (minor == 89 && build >= 10))))
-                        bFoundConsumer = true;
+                    int major, minor, build, rev;
+                    if (swscanf_s(strVersion, L"%d.%d.%d.%d", &major, &minor, &build, &rev) == 4)
+                    {
+                        if (major > 0 || (major == 0 && (minor > 89 || (minor == 89 && build >= 10))))
+                            bFoundConsumer = true;
+                    }
+                }
+                else if (wcscmp(strName, L"JRVR") == 0)
+                {
+                    bFoundConsumer = true;
                 }
             }
 
