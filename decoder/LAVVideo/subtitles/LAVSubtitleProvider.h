@@ -29,6 +29,8 @@ typedef struct LAVSubtitleProviderContext
     LPWSTR name;      ///< name of the Provider
     LPWSTR version;   ///< Version of the Provider
     LPWSTR yuvMatrix; ///< YUV Matrix
+    LPWSTR outputLevels; ///< RGB output levels
+    LPWSTR primaries; ///< Color Primaries
 
     bool combineBitmaps; ///< Control if the provider combines all bitmaps into one
     bool isBitmap;

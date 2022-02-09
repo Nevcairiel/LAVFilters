@@ -36,12 +36,17 @@ static const SubRenderOption options[] = {
   { "name",           OFFSET(name),            SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "version",        OFFSET(version),         SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "yuvMatrix",      OFFSET(yuvMatrix),       SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
+  { "outputLevels",   OFFSET(outputLevels),    SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
+  { "colorPrimaries", OFFSET(primaries),       SROPT_TYPE_STRING, SROPT_FLAG_READONLY },
   { "isBitmap",       OFFSET(isBitmap),        SROPT_TYPE_BOOL,   SROPT_FLAG_READONLY },
   { "isMovable",      OFFSET(isMovable),       SROPT_TYPE_BOOL,   SROPT_FLAG_READONLY },
   { "combineBitmaps", OFFSET(combineBitmaps),  SROPT_TYPE_BOOL,   0                   },
   { 0 }
 };
 // clang-format on
+
+#define COLOR_PRIM_NTSC _T("601_525")
+#define COLOR_PRIM_PAL  _T("601_625")
 
 CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsumer *pConsumer)
   : CSubRenderOptionsImpl(::options, &context)
@@ -55,6 +60,8 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
   context.name = TEXT(LAV_VIDEO);
   context.version = TEXT(LAV_VERSION_STR);
   context.yuvMatrix = _T("None");
+  context.outputLevels = _T("PC");
+  context.primaries = COLOR_PRIM_NTSC;
   context.isBitmap = true;
   context.isMovable = true;
   AddRef();
@@ -135,6 +142,12 @@ STDMETHODIMP CLAVSubtitleProvider::RequestFrame(REFERENCE_TIME start, REFERENCE_
       m_pAVCtx->height = videoSize.cy;
     }
   }
+
+  // update primaries based on the video dimensions
+  if (m_pAVCtx->height == 480)
+      this->context.primaries = COLOR_PRIM_NTSC;
+  else if (m_pAVCtx->height == 576)
+      this->context.primaries = COLOR_PRIM_PAL;
 
   RECT outputRect;
   ::SetRect(&outputRect, 0, 0, m_pAVCtx->width, m_pAVCtx->height);
