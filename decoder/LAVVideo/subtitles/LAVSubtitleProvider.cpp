@@ -54,7 +54,7 @@ CLAVSubtitleProvider::CLAVSubtitleProvider(CLAVVideo *pLAVVideo, ISubRenderConsu
   ZeroMemory(&context, sizeof(context));
   context.name = TEXT(LAV_VIDEO);
   context.version = TEXT(LAV_VERSION_STR);
-  context.yuvMatrix = _T("PC.601");
+  context.yuvMatrix = _T("None");
   context.isBitmap = true;
   context.isMovable = true;
   AddRef();
