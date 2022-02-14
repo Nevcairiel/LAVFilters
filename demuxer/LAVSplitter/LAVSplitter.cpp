@@ -1725,9 +1725,9 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
             std::string token = "*:" + lang;
             if (m_settings.subtitleMode == LAVSubtitleMode_ForcedOnly || bNoLanguage)
             {
-                tokenList.push_back(token + "|f");
                 if (m_settings.subtitleMode == LAVSubtitleMode_Default)
                     tokenList.push_back(token + "|d");
+                tokenList.push_back(token + "|f");
             }
             else
             {
@@ -1737,9 +1737,9 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
         }
 
         // Add fallbacks (forced/default)
-        tokenList.push_back("*:*|f");
         if (m_settings.subtitleMode == LAVSubtitleMode_Default)
             tokenList.push_back("*:*|d");
+        tokenList.push_back("*:*|f");
     }
     else if (m_settings.subtitleMode == LAVSubtitleMode_Advanced)
     {
