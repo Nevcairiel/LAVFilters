@@ -1732,7 +1732,8 @@ std::list<CSubtitleSelector> CLAVSplitter::GetSubtitleSelectors()
             else
             {
                 tokenList.push_back(token + "|d");
-                tokenList.push_back(token + "|!h");
+                tokenList.push_back(token + "|!hf");
+                tokenList.push_back(token + "|f");
             }
         }
 
