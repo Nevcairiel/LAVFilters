@@ -1,6 +1,15 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.76.1 - 2022/02/28
+LAV Splitter
+- Changed: When requesting a HTTP URL, the URL itself is send as a referrer to increase compatibility
+- Fixed: The priority of "Default" subtitle tracks in MKV files was wrong when a forced track was present
+
+LAV Video
+- Changed: Improved color reporting for DVD menus/subtitles
+- Fixed: D3D11 surface clearing did not work properly on Intel GPUs
+
 0.76.0 - 2022/01/22
 LAV Splitter
 - NEW: Added an option to re-evaluate subtitle stream selection when the audio language changes
