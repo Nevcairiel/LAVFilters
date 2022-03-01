@@ -20,6 +20,8 @@
 #include "stdafx.h"
 #include "LAVAudio.h"
 
+#include <ks.h>
+#include <ksmedia.h>
 #include <MMReg.h>
 
 #include "moreuuids.h"
@@ -304,25 +306,23 @@ const char *find_codec_override(AVCodecID codec)
     return nullptr;
 }
 
-// clang-format off
 // Default Channel to Speaker Map
 static const scmap_t m_scmap_default[] = {
-  //    FL  FR  FC  LFe BL  BR  FLC FRC
-  {1, 0},		// Mono			M1, 0
-  {2, 0},		// Stereo		FL, FR
-  {3, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER},															// 3/0			FL, FR, FC
-  {4, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY},										// 3/1			FL, FR, FC, Surround
-  {5, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT},						// 3/2			FL, FR, FC, BL, BR
-  {6, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT},// 3/2+LFe		FL, FR, FC, BL, BR, LFe
-  {7, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT|SPEAKER_BACK_CENTER},	// 3/4			FL, FR, FC, BL, Bls, Brs, BR
-  {8, SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT|SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY|SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT|SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT},// 3/4+LFe		FL, FR, FC, BL, Bls, Brs, BR, LFe
+    // FL  FR  FC  LFe BL  BR  FLC FRC
+    {1, KSAUDIO_SPEAKER_MONO},    // Mono       M1, 0
+    {2, KSAUDIO_SPEAKER_STEREO},  // Stereo     FL, FR
+    {3, KSAUDIO_SPEAKER_3POINT0}, // 3/0        FL, FR, FC
+    {4, KSAUDIO_SPEAKER_3POINT1}, // 3/1        FL, FR, FC, Surround
+    {5, KSAUDIO_SPEAKER_5POINT0}, // 3/2        FL, FR, FC, BL, BR
+    {6, KSAUDIO_SPEAKER_5POINT1}, // 3/2+LFe    FL, FR, FC, BL, BR, LFe
+    {7, KSAUDIO_SPEAKER_7POINT0}, // 3/4        FL, FR, FC, BL, Bls, Brs, BR
+    {8, KSAUDIO_SPEAKER_7POINT1}, // 3/4+LFe    FL, FR, FC, BL, Bls, Brs, BR, LFe
 };
-// clang-format on
 
 DWORD get_channel_mask(int num_channels)
 {
     if (num_channels < 1 || num_channels > 8)
-        return 0;
+        return KSAUDIO_SPEAKER_DIRECTOUT;
     return m_scmap_default[num_channels - 1].dwChannelMask;
 }
 
