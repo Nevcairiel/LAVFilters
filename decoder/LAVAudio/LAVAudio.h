@@ -63,9 +63,9 @@ struct BufferDetails
     LAVAudioSampleFormat sfFormat = SampleFormat_16; // Sample Format
     WORD wBitsPerSample = 0;                         // Bits per sample
     DWORD dwSamplesPerSec = 0;                       // Samples per second
-    unsigned nSamples = 0;   // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
-    WORD wChannels = 0;      // Number of channels
-    DWORD dwChannelMask = 0; // channel mask
+    unsigned nSamples = 0;        // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
+    WORD wChannels = 0;           // Number of channels
+    uint64_t ui64ChannelMask = 0; // channel mask
     REFERENCE_TIME rtStart = AV_NOPTS_VALUE; // Start Time of the buffer
     BOOL bPlanar = FALSE;                    // Planar (not used)
 
@@ -139,7 +139,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     // ILAVAudioStatus
     STDMETHODIMP_(BOOL) IsSampleFormatSupported(LAVAudioSampleFormat sfCheck);
     STDMETHODIMP GetDecodeDetails(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate,
-                                  DWORD *pChannelMask);
+                                  uint64_t *pChannelMask);
     STDMETHODIMP GetOutputDetails(const char **pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask);
     STDMETHODIMP EnableVolumeStats();
     STDMETHODIMP DisableVolumeStats();
@@ -193,7 +193,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     void ffmpeg_shutdown();
 
     CMediaType CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels,
-                               DWORD dwChannelMask, WORD wBitsPerSample = 0) const;
+                               uint64_t dwChannelMask, WORD wBitsPerSample = 0) const;
     HRESULT ReconnectOutput(long cbBuffer, CMediaType &mt);
     HRESULT ProcessBuffer(IMediaSample *pMediaSample, BOOL bEOF = FALSE);
     HRESULT Decode(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver, IMediaSample *pMediaSample);
@@ -276,11 +276,11 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     LAVAudioSampleFormat m_DecodeFormat = SampleFormat_16;
     LAVAudioSampleFormat m_MixingInputFormat = SampleFormat_None;
     LAVAudioSampleFormat m_FallbackFormat = SampleFormat_None;
-    DWORD m_dwOverrideMixer = 0;
+    uint64_t m_dwOverrideMixer = 0;
 
     SwrContext *m_swrContext = nullptr;
     LAVAudioSampleFormat m_sfRemixFormat = SampleFormat_None;
-    DWORD m_dwRemixLayout = 0;
+    uint64_t m_ui64RemixLayout = 0;
     BOOL m_bAVResampleFailed = FALSE;
     BOOL m_bMixingSettingsChanged = FALSE;
 
@@ -342,12 +342,12 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     FloatingAverage<REFERENCE_TIME> m_faJitter{50};
     REFERENCE_TIME m_JitterLimit = MAX_JITTER_DESYNC;
 
-    DWORD m_DecodeLayout = 0;
-    DWORD m_DecodeLayoutSanified = 0;
-    DWORD m_MixingInputLayout = 0;
+    uint64_t m_DecodeLayout = 0;
+    uint64_t m_DecodeLayoutSanified = 0;
+    uint64_t m_MixingInputLayout = 0;
     BOOL m_bChannelMappingRequired = FALSE;
 
-    DWORD m_SuppressLayout = 0;
+    uint64_t m_SuppressLayout = 0;
 
     ExtendedChannelMap m_ChannelMap;
     int m_ChannelMapOutputChannels = 0;

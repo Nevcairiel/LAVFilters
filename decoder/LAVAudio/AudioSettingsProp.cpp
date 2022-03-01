@@ -919,13 +919,13 @@ HRESULT CLAVAudioStatusProp::OnActivate()
     const char *decodeFormat = nullptr;
     int nDecodeChannels = 0;
     int nDecodeSampleRate = 0;
-    DWORD dwDecodeChannelMask;
+    uint64_t ui64DecodeChannelMask;
     hr = m_pAudioStatus->GetDecodeDetails(&codec, &decodeFormat, &nDecodeChannels, &nDecodeSampleRate,
-                                          &dwDecodeChannelMask);
+                                          &ui64DecodeChannelMask);
     if (SUCCEEDED(hr))
     {
         WCHAR buffer[100];
-        _snwprintf_s(buffer, _TRUNCATE, L"%d / 0x%x", nDecodeChannels, dwDecodeChannelMask);
+        _snwprintf_s(buffer, _TRUNCATE, L"%d / 0x%" PRIx64, nDecodeChannels, ui64DecodeChannelMask);
         SendDlgItemMessage(m_Dlg, IDC_INPUT_CHANNEL, WM_SETTEXT, 0, (LPARAM)buffer);
 
         _snwprintf_s(buffer, _TRUNCATE, L"%d", nDecodeSampleRate);

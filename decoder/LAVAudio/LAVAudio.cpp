@@ -851,7 +851,7 @@ BOOL CLAVAudio::IsSampleFormatSupported(LAVAudioSampleFormat sfCheck)
 }
 
 HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFormat, int *pnChannels, int *pSampleRate,
-                                    DWORD *pChannelMask)
+                                    uint64_t *pChannelMask)
 {
     if (!m_pInput || m_pInput->IsConnected() == FALSE || !m_pAVCtx)
     {
@@ -952,7 +952,9 @@ HRESULT CLAVAudio::GetOutputDetails(const char **pOutputFormat, int *pnChannels,
     }
     if (pChannelMask)
     {
-        *pChannelMask = m_OutputQueue.dwChannelMask;
+        // More than 8 output channels are not supported
+        ASSERT(m_OutputQueue.ui64ChannelMask <= DWORD_MAX);
+        *pChannelMask = DWORD(m_OutputQueue.ui64ChannelMask);
     }
     return S_OK;
 }
@@ -1158,7 +1160,7 @@ done:
 }
 
 CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD nSamplesPerSec, WORD nChannels,
-                                      DWORD dwChannelMask, WORD wBitsPerSample) const
+                                      uint64_t ui64ChannelMask, WORD wBitsPerSample) const
 {
     CMediaType mt;
 
@@ -1183,24 +1185,26 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
     wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
     wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
-    if (dwChannelMask == 0 && (wfe->wBitsPerSample > 16 || wfe->nSamplesPerSec > 48000))
+    if (ui64ChannelMask == 0 && (wfe->wBitsPerSample > 16 || wfe->nSamplesPerSec > 48000))
     {
-        dwChannelMask = nChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
+        ui64ChannelMask = nChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
     }
 
     // Dont use a channel mask for "default" mono/stereo sources
     if ((outputFormat == SampleFormat_FP32 || wfe->wBitsPerSample <= 16) && wfe->nSamplesPerSec <= 48000 &&
-        ((nChannels == 1 && dwChannelMask == SPEAKER_FRONT_CENTER) ||
-         (nChannels == 2 && dwChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT))))
+        ((nChannels == 1 && ui64ChannelMask == SPEAKER_FRONT_CENTER) ||
+         (nChannels == 2 && ui64ChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT))))
     {
-        dwChannelMask = 0;
+        ui64ChannelMask = 0;
     }
 
-    if (dwChannelMask)
+    if (ui64ChannelMask)
     {
         wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
         wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
-        wfex.dwChannelMask = dwChannelMask;
+        // More than 8 output channels are not supported
+        ASSERT(ui64ChannelMask <= DWORD_MAX);
+        wfex.dwChannelMask = DWORD(ui64ChannelMask);
         if (wBitsPerSample > 0 && (outputFormat == SampleFormat_24 || outputFormat == SampleFormat_32))
         {
             WORD wBpp = wBitsPerSample;
@@ -2372,9 +2376,9 @@ HRESULT CLAVAudio::DecodeReceive(HRESULT *hrDeliver)
         out.wChannels = m_pAVCtx->channels;
         out.dwSamplesPerSec = m_pAVCtx->sample_rate;
         if (m_pAVCtx->channel_layout)
-            out.dwChannelMask = get_lav_channel_layout(m_pAVCtx->channel_layout);
+            out.ui64ChannelMask = m_pAVCtx->channel_layout;
         else
-            out.dwChannelMask = get_channel_mask(out.wChannels);
+            out.ui64ChannelMask = uint64_t(get_channel_mask(out.wChannels));
 
         out.nSamples = m_pFrame->nb_samples;
         DWORD dwPCMSize = out.nSamples * out.wChannels * av_get_bytes_per_sample(m_pAVCtx->sample_fmt);
@@ -2383,7 +2387,7 @@ HRESULT CLAVAudio::DecodeReceive(HRESULT *hrDeliver)
 
         if (m_pFrame->decode_error_flags & FF_DECODE_ERROR_INVALID_BITSTREAM)
         {
-            if (m_DecodeLayout != out.dwChannelMask)
+            if (m_DecodeLayout != out.ui64ChannelMask)
             {
                 DbgLog((LOG_TRACE, 50, L"::Decode() - Corrupted audio frame with channel layout change, dropping."));
                 av_frame_unref(m_pFrame);
@@ -2514,7 +2518,7 @@ HRESULT CLAVAudio::DecodeReceive(HRESULT *hrDeliver)
         m_DecodeFormat = out.sfFormat == SampleFormat_32 && out.wBitsPerSample > 0 && out.wBitsPerSample <= 24
                              ? (out.wBitsPerSample <= 16 ? SampleFormat_16 : SampleFormat_24)
                              : out.sfFormat;
-        m_DecodeLayout = out.dwChannelMask;
+        m_DecodeLayout = out.ui64ChannelMask;
 
         if (SUCCEEDED(PostProcess(&out)))
         {
@@ -2557,14 +2561,15 @@ HRESULT CLAVAudio::QueueOutput(BufferDetails &buffer)
     HRESULT hr = S_OK;
     if (m_OutputQueue.wChannels != buffer.wChannels || m_OutputQueue.sfFormat != buffer.sfFormat ||
         m_OutputQueue.dwSamplesPerSec != buffer.dwSamplesPerSec ||
-        m_OutputQueue.dwChannelMask != buffer.dwChannelMask || m_OutputQueue.wBitsPerSample != buffer.wBitsPerSample)
+        m_OutputQueue.ui64ChannelMask != buffer.ui64ChannelMask ||
+        m_OutputQueue.wBitsPerSample != buffer.wBitsPerSample)
     {
         if (m_OutputQueue.nSamples > 0)
             FlushOutput();
 
         m_OutputQueue.sfFormat = buffer.sfFormat;
         m_OutputQueue.wChannels = buffer.wChannels;
-        m_OutputQueue.dwChannelMask = buffer.dwChannelMask;
+        m_OutputQueue.ui64ChannelMask = buffer.ui64ChannelMask;
         m_OutputQueue.dwSamplesPerSec = buffer.dwSamplesPerSec;
         m_OutputQueue.wBitsPerSample = buffer.wBitsPerSample;
     }
@@ -2625,7 +2630,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
     if (m_bFlushing)
         return S_FALSE;
 
-    CMediaType mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask,
+    CMediaType mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, buffer.wChannels, buffer.ui64ChannelMask,
                                     buffer.wBitsPerSample);
     WAVEFORMATEX *wfe = (WAVEFORMATEX *)mt.Format();
 
@@ -2711,7 +2716,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
         {
             if (buffer.sfFormat != SampleFormat_16)
             {
-                mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask,
+                mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, buffer.wChannels, buffer.ui64ChannelMask,
                                      16);
                 hr = m_pOutput->GetConnected()->QueryAccept(&mt);
                 if (hr == S_OK)
@@ -2722,11 +2727,11 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
                 }
             }
             // Try 5.1 back fallback format
-            if (buffer.dwChannelMask == AV_CH_LAYOUT_5POINT1)
+            if (buffer.ui64ChannelMask == AV_CH_LAYOUT_5POINT1)
             {
                 DbgLog((LOG_TRACE, 1, L"-> Trying to fallback to 5.1 back"));
-                buffer.dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
-                mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, buffer.wChannels, buffer.dwChannelMask,
+                buffer.ui64ChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+                mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, buffer.wChannels, buffer.ui64ChannelMask,
                                      buffer.wBitsPerSample);
                 goto retry_qa;
             }
@@ -2735,32 +2740,34 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
             {
                 WAVEFORMATEX *wfeCurrent = (WAVEFORMATEX *)m_pOutput->CurrentMediaType().Format();
                 WORD wChannels = wfeCurrent->nChannels;
-                DWORD dwChannelMask = 0;
+                uint64_t ui64ChannelMask = 0;
                 if (wfeCurrent->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
                 {
                     WAVEFORMATEXTENSIBLE *wfex = (WAVEFORMATEXTENSIBLE *)wfeCurrent;
-                    dwChannelMask = wfex->dwChannelMask;
+                    ui64ChannelMask = uint64_t(wfex->dwChannelMask);
                 }
                 else
                 {
-                    dwChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
+                    ui64ChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
                 }
-                if (buffer.wChannels != wfeCurrent->nChannels || buffer.dwChannelMask != dwChannelMask)
+                // More than 8 output channels are not supported
+                ASSERT(ui64ChannelMask <= DWORD_MAX);
+                if (buffer.wChannels != wfeCurrent->nChannels || buffer.ui64ChannelMask != ui64ChannelMask)
                 {
-                    mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, wChannels, dwChannelMask,
+                    mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, wChannels, ui64ChannelMask,
                                          buffer.wBitsPerSample);
                     hr = m_pOutput->GetConnected()->QueryAccept(&mt);
                     if (hr != S_OK)
                     {
-                        mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, dwChannelMask, 16);
+                        mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, wChannels, ui64ChannelMask, 16);
                         hr = m_pOutput->GetConnected()->QueryAccept(&mt);
                         if (hr == S_OK)
                             m_FallbackFormat = SampleFormat_16;
                     }
                     if (hr == S_OK)
                     {
-                        DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%x", dwChannelMask));
-                        m_dwOverrideMixer = dwChannelMask;
+                        DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout 0x%" PRIx64, ui64ChannelMask));
+                        m_dwOverrideMixer = ui64ChannelMask;
                         m_bMixingSettingsChanged = TRUE;
                         // Mix to the new layout
                         PerformAVRProcessing(&buffer);

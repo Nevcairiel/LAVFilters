@@ -22,8 +22,8 @@
 // {4158A22B-6553-45D0-8069-24716F8FF171}
 DEFINE_GUID(IID_ILAVAudioSettings, 0x4158a22b, 0x6553, 0x45d0, 0x80, 0x69, 0x24, 0x71, 0x6f, 0x8f, 0xf1, 0x71);
 
-// {A668B8F2-BA87-4F63-9D41-768F7DE9C50E}
-DEFINE_GUID(IID_ILAVAudioStatus, 0xa668b8f2, 0xba87, 0x4f63, 0x9d, 0x41, 0x76, 0x8f, 0x7d, 0xe9, 0xc5, 0xe);
+// {DE9CFF9E-5885-459E-8BFB-5A3FF38E2A32}
+DEFINE_GUID(IID_ILAVAudioStatus, 0xde9cff9e, 0x5885, 0x459e, 0x8b, 0xfb, 0x5a, 0x3f, 0xf3, 0x8e, 0x2a, 0x32);
 
 // Codecs supported in the LAV Audio configuration
 // Codecs not listed here cannot be turned off. You can request codecs to be added to this list, if you wish.
@@ -203,14 +203,14 @@ interface __declspec(uuid("4158A22B-6553-45D0-8069-24716F8FF171")) ILAVAudioSett
 
 // LAV Audio Status Interface
 // Get the current playback stats
-interface __declspec(uuid("A668B8F2-BA87-4F63-9D41-768F7DE9C50E")) ILAVAudioStatus : public IUnknown
+interface __declspec(uuid("DE9CFF9E-5885-459E-8BFB-5A3FF38E2A32")) ILAVAudioStatus : public IUnknown
 {
     // Check if the given sample format is supported by the current playback chain
     STDMETHOD_(BOOL, IsSampleFormatSupported)(LAVAudioSampleFormat sfCheck) = 0;
 
     // Get details about the current decoding format
     STDMETHOD(GetDecodeDetails)
-    (LPCSTR * pCodec, LPCSTR * pDecodeFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
+    (LPCSTR * pCodec, LPCSTR * pDecodeFormat, int *pnChannels, int *pSampleRate, uint64_t *pChannelMask) = 0;
 
     // Get details about the current output format
     STDMETHOD(GetOutputDetails)(LPCSTR * pOutputFormat, int *pnChannels, int *pSampleRate, DWORD *pChannelMask) = 0;
