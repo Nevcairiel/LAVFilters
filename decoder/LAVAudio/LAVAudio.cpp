@@ -1553,7 +1553,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     }
 
     // Some sanity checks
-    if (m_pAVCtx->channels > 8)
+    if (m_pAVCtx->channels > 64)
     {
         return VFW_E_UNSUPPORTED_AUDIO;
     }
