@@ -195,6 +195,26 @@ WAVEFORMATEXFFMPEG *CLAVFAudioHelper::CreateWVFMTEX_FF(const AVStream *avstream,
     return wfex_ff;
 }
 
+WAVEFORMATEXFFMPEG *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM_FF(const AVStream *avstream, ULONG *size, const GUID subtype, ULONG *samplesize)
+{
+    WAVEFORMATEXTENSIBLE *wvfmt = CreateWFMTEX_RAW_PCM(avstream, size, subtype, samplesize);
+    if (!wvfmt)
+        return nullptr;
+
+    const size_t diff_size = sizeof(WAVEFORMATEXFFMPEG) - sizeof(WAVEFORMATEX);
+    WAVEFORMATEXFFMPEG *wfex_ff = (WAVEFORMATEXFFMPEG *)CoTaskMemAlloc(diff_size + *size);
+    if (!wfex_ff)
+        return nullptr;
+    memset(wfex_ff, 0, sizeof(WAVEFORMATEXFFMPEG));
+    memcpy(&wfex_ff->wfex, wvfmt, *size);
+
+    wfex_ff->nCodecId = avstream->codecpar->codec_id;
+    CoTaskMemFree(wvfmt);
+
+    *size = sizeof(WAVEFORMATEXFFMPEG) + wfex_ff->wfex.cbSize;
+    return wfex_ff;
+}
+
 WAVEFORMATEX_HDMV_LPCM *CLAVFAudioHelper::CreateWVFMTEX_LPCM(const AVStream *avstream, ULONG *size)
 {
     WAVEFORMATEX *wvfmt = CreateWVFMTEX(avstream, size);

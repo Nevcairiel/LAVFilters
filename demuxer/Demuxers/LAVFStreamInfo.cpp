@@ -81,6 +81,12 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
     CMediaType mtype =
         g_AudioHelper.initAudioType(avstream->codecpar, avstream->codecpar->codec_tag, m_containerFormat);
 
+    // The Raw PCM type is used for PCM streams which do not already have their own Extensible header
+    // If the codec_tag already equals extensible, it'll be used copied as-is and we assume a valid extensible header
+    // exists in extradata
+    bool bUseRawPCMType = (mtype.subtype == MEDIASUBTYPE_PCM || mtype.subtype == MEDIASUBTYPE_IEEE_FLOAT) &&
+                          (avstream->codecpar->codec_tag != WAVE_FORMAT_EXTENSIBLE || avstream->codecpar->extradata_size < 22);
+
     if (mtype.formattype == FORMAT_WaveFormatEx)
     {
         // Special Logic for the MPEG1 Audio Formats (MP1, MP2)
@@ -94,8 +100,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
             mtypes.push_back(mtype);
             mtype.subtype = MEDIASUBTYPE_HDMV_LPCM_AUDIO;
         }
-        else if ((mtype.subtype == MEDIASUBTYPE_PCM || mtype.subtype == MEDIASUBTYPE_IEEE_FLOAT) &&
-                 avstream->codecpar->codec_tag != WAVE_FORMAT_EXTENSIBLE)
+        else if (bUseRawPCMType)
         {
             // Create raw PCM media type
             mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWFMTEX_RAW_PCM(avstream, &mtype.cbFormat, mtype.subtype,
@@ -206,7 +211,10 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
     ff_mtype.majortype = MEDIATYPE_Audio;
     ff_mtype.subtype = MEDIASUBTYPE_FFMPEG_AUDIO;
     ff_mtype.formattype = FORMAT_WaveFormatExFFMPEG;
-    ff_mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWVFMTEX_FF(avstream, &ff_mtype.cbFormat);
+    if (bUseRawPCMType)
+        ff_mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWFMTEX_RAW_PCM_FF(avstream, &ff_mtype.cbFormat, mtype.subtype, &ff_mtype.lSampleSize);
+    else
+        ff_mtype.pbFormat = (BYTE *)g_AudioHelper.CreateWVFMTEX_FF(avstream, &ff_mtype.cbFormat);
     mtypes.push_back(ff_mtype);
 
     return S_OK;
