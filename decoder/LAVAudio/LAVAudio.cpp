@@ -58,6 +58,8 @@ extern "C"
 #include "lavf_log.h"
 #endif
 
+static DWORD get_lav_channel_layout(uint64_t layout);
+
 extern HINSTANCE g_hInst;
 
 // Constructor
@@ -1042,7 +1044,9 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 
     const int nSamplesPerSec = m_pAVCtx->sample_rate;
     int nChannels = m_pAVCtx->channels;
-    DWORD dwChannelMask = get_channel_mask(nChannels);
+    DWORD dwChannelMask = get_lav_channel_layout(m_pAVCtx->channel_layout);
+    if (dwChannelMask == 0)
+        dwChannelMask = get_channel_mask(nChannels);
 
     AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE)
                                     ? m_pAVCtx->sample_fmt
@@ -1385,10 +1389,10 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
         }
     }
 
-    DWORD nSamples, nBytesPerSec;
+    DWORD nSamples, nBytesPerSec, nChannelMask;
     WORD nChannels, nBitsPerSample, nBlockAlign;
     audioFormatTypeHandler((BYTE *)format, &format_type, &nSamples, &nChannels, &nBitsPerSample, &nBlockAlign,
-                           &nBytesPerSec);
+                           &nBytesPerSec, &nChannelMask);
 
     size_t extralen = 0;
     getExtraData((BYTE *)format, &format_type, formatlen, nullptr, &extralen);
@@ -1397,6 +1401,7 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     m_pAVCtx->thread_type = 0;
     m_pAVCtx->sample_rate = nSamples;
     m_pAVCtx->channels = nChannels;
+    m_pAVCtx->channel_layout = nChannelMask;
     m_pAVCtx->bit_rate = nBytesPerSec << 3;
     m_pAVCtx->bits_per_coded_sample = nBitsPerSample;
     m_pAVCtx->block_align = nBlockAlign;

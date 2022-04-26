@@ -734,13 +734,14 @@ done:
 }
 
 void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *pnSamples, WORD *pnChannels,
-                            WORD *pnBitsPerSample, WORD *pnBlockAlign, DWORD *pnBytesPerSec)
+                            WORD *pnBitsPerSample, WORD *pnBlockAlign, DWORD *pnBytesPerSec, DWORD *pnChannelMask)
 {
     DWORD nSamples = 0;
     WORD nChannels = 0;
     WORD nBitsPerSample = 0;
     WORD nBlockAlign = 0;
     DWORD nBytesPerSec = 0;
+    DWORD nChannelMask = 0;
 
     if (!format)
         goto done;
@@ -753,6 +754,12 @@ void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *p
         nBitsPerSample = wfex->wBitsPerSample;
         nBlockAlign = wfex->nBlockAlign;
         nBytesPerSec = wfex->nAvgBytesPerSec;
+
+        if (wfex->wFormatTag == WAVE_FORMAT_EXTENSIBLE && wfex->cbSize >= 22)
+        {
+            WAVEFORMATEXTENSIBLE *wfexs = (WAVEFORMATEXTENSIBLE *)wfex;
+            nChannelMask = wfexs->dwChannelMask;
+        }
     }
     else if (*formattype == FORMAT_VorbisFormat2)
     {
@@ -773,6 +780,8 @@ done:
         *pnBlockAlign = nBlockAlign;
     if (pnBytesPerSec)
         *pnBytesPerSec = nBytesPerSec;
+    if (pnChannelMask)
+        *pnChannelMask = nChannelMask;
 }
 
 void getExtraData(const AM_MEDIA_TYPE &mt, BYTE *extra, size_t *extralen)

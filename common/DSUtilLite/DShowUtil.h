@@ -158,7 +158,7 @@ void videoFormatTypeHandler(const BYTE *format, const GUID *formattype, BITMAPIN
                             REFERENCE_TIME *prtAvgTime = nullptr, DWORD *pDwAspectX = nullptr,
                             DWORD *pDwAspectY = nullptr);
 void audioFormatTypeHandler(const BYTE *format, const GUID *formattype, DWORD *pnSamples, WORD *pnChannels,
-                            WORD *pnBitsPerSample, WORD *pnBlockAlign, DWORD *pnBytesPerSec);
+                            WORD *pnBitsPerSample, WORD *pnBlockAlign, DWORD *pnBytesPerSec, DWORD *pnChannelMask);
 void getExtraData(const AM_MEDIA_TYPE &mt, BYTE *extra, size_t *extralen);
 void getExtraData(const BYTE *format, const GUID *formattype, const size_t formatlen, BYTE *extra, size_t *extralen);
 

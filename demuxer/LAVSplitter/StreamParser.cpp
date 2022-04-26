@@ -519,7 +519,7 @@ HRESULT CStreamParser::ParsePlanarPCM(Packet *pPacket)
     CMediaType mt = m_pPin->GetActiveMediaType();
 
     WORD nChannels = 0, nBPS = 0, nBlockAlign = 0;
-    audioFormatTypeHandler(mt.Format(), mt.FormatType(), nullptr, &nChannels, &nBPS, &nBlockAlign, nullptr);
+    audioFormatTypeHandler(mt.Format(), mt.FormatType(), nullptr, &nChannels, &nBPS, &nBlockAlign, nullptr, nullptr);
 
     // Mono needs no special handling
     if (nChannels == 1)
