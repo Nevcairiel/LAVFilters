@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30011.22
-MinimumVisualStudioVersion = 15.0.27428.2037
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 16.0.30011.22
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LAVSplitter", "demuxer\LAVSplitter\LAVSplitter.vcxproj", "{F475F86F-3F7F-4B1D-82A6-078339F599FD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0A058024-41F4-4509-97D2-803A1806CE86} = {0A058024-41F4-4509-97D2-803A1806CE86}
