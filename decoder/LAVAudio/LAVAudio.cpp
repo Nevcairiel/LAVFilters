@@ -978,7 +978,7 @@ HRESULT CLAVAudio::GetChannelVolumeAverage(WORD nChannel, float *pfDb)
     {
         return E_UNEXPECTED;
     }
-    if (nChannel >= m_OutputQueue.wChannels || nChannel >= 8)
+    if (nChannel >= m_OutputQueue.wChannels || nChannel >= MAX_VOLUME_STAT_CHANNEL)
     {
         return E_INVALIDARG;
     }

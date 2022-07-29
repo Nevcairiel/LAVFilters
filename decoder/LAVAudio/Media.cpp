@@ -583,7 +583,7 @@ void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
         }
     }
 
-    for (int ch = 0; ch < buffer.wChannels; ++ch)
+    for (int ch = 0; ch < min(buffer.wChannels, MAX_VOLUME_STAT_CHANNEL); ++ch)
     {
         if (fChAvg[ch] > FLT_EPSILON)
         {
