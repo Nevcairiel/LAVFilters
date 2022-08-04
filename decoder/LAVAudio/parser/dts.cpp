@@ -30,10 +30,10 @@ extern "C"
 #pragma warning(disable : 4305)
 #include "libavcodec/avcodec.h"
 #include "libavcodec/get_bits.h"
+#include "libavcodec/dca_sample_rate_tab.h"
 #pragma warning(pop)
 
     extern int avpriv_dca_convert_bitstream(const uint8_t *src, int src_size, uint8_t *dst, int max_size);
-    extern __declspec(dllimport) const uint32_t avpriv_dca_sample_rates[16];
 };
 
 #include "dts.h"
@@ -265,7 +265,7 @@ int parse_dts_header(DTSParserContext *pContext, DTSHeader *pHeader, uint8_t *pB
         pHeader->FrameSize = get_bits(gb, 14) + 1;      /* Primary (core) Frame Size */
         pHeader->ChannelLayout = get_bits(gb, 6);       /* Channel configuration */
         unsigned sample_index = get_bits(gb, 4);        /* Sample frequency index */
-        pHeader->SampleRate = avpriv_dca_sample_rates[sample_index];
+        pHeader->SampleRate = ff_dca_sample_rates[sample_index];
         skip_bits(gb, 5);                /* Bitrate index */
         skip_bits1(gb);                  /* Down mix */
         skip_bits1(gb);                  /* Dynamic range */
