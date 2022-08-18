@@ -1484,6 +1484,7 @@ HRESULT CDecDXVA2::AdditionaDecoderInit()
     }
 
     m_pAVCtx->thread_count = 1;
+    m_pAVCtx->thread_type = 0;
     m_pAVCtx->hwaccel_context = ctx;
     m_pAVCtx->get_format = get_dxva2_format;
     m_pAVCtx->get_buffer2 = get_dxva2_buffer;
