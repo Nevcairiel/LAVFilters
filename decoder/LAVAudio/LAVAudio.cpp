@@ -2778,7 +2778,7 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
                 }
                 else
                 {
-                    dwChannelMask = wChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
+                    dwChannelMask = get_channel_mask(wChannels);
                 }
                 if (buffer.layout.nb_channels != wfeCurrent->nChannels || buffer.layout.u.mask != dwChannelMask)
                 {
