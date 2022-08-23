@@ -585,8 +585,10 @@ HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
     if (!m_swrContext)
     {
         DbgLog((LOG_ERROR, 10, L"swresample context missing?"));
-        return E_FAIL;
+        goto setuperr;
     }
+
+    av_channel_layout_uninit(&chMixingLayout);
 
     LAVAudioSampleFormat bufferFormat =
         (m_sfRemixFormat == SampleFormat_24) ? SampleFormat_32 : m_sfRemixFormat; // avresample always outputs 32-bit
@@ -616,6 +618,7 @@ HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
 setuperr:
     swr_free(&m_swrContext);
     m_bAVResampleFailed = TRUE;
+    av_channel_layout_uninit(&chMixingLayout);
     return E_FAIL;
 }
 
@@ -755,5 +758,6 @@ HRESULT CLAVAudio::PostProcess(BufferDetails *buffer)
         Truncate32Buffer(buffer);
     }
 
+    av_channel_layout_uninit(&chMixingLayout);
     return S_OK;
 }
