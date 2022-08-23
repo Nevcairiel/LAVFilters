@@ -855,13 +855,12 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
                 }
                 else if (avstream->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
                 {
-                    if (avstream->codecpar->channels == 0)
+                    if (avstream->codecpar->ch_layout.nb_channels == 0)
                     {
-                        avstream->codecpar->channels = (stream->format == BLURAY_AUDIO_FORMAT_MONO)
-                                                           ? 1
-                                                           : (stream->format == BLURAY_AUDIO_FORMAT_STEREO) ? 2 : 6;
-                        avstream->codecpar->channel_layout =
-                            av_get_default_channel_layout(avstream->codecpar->channels);
+                        av_channel_layout_default(&avstream->codecpar->ch_layout,
+                                                  (stream->format == BLURAY_AUDIO_FORMAT_MONO)     ? 1
+                                                  : (stream->format == BLURAY_AUDIO_FORMAT_STEREO) ? 2
+                                                                                                   : 6);
                         avstream->codecpar->sample_rate =
                             (stream->rate == BLURAY_AUDIO_RATE_96 || stream->rate == BLURAY_AUDIO_RATE_96_COMBO)
                                 ? 96000

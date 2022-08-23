@@ -57,12 +57,15 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
         avstream->codecpar->codec_tag = av_codec_get_tag(mp_wav_taglists, avstream->codecpar->codec_id);
     }
 
-    if (avstream->codecpar->channels == 0 || avstream->codecpar->sample_rate == 0)
+    if (avstream->codecpar->ch_layout.nb_channels == 0 || avstream->codecpar->sample_rate == 0)
     {
         if (avstream->codecpar->codec_id == AV_CODEC_ID_AAC && avstream->codecpar->bit_rate)
         {
-            if (!avstream->codecpar->channels)
-                avstream->codecpar->channels = 2;
+            if (!avstream->codecpar->ch_layout.nb_channels)
+            {
+                avstream->codecpar->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
+                avstream->codecpar->ch_layout.nb_channels = 2;
+            }
             if (!avstream->codecpar->sample_rate)
                 avstream->codecpar->sample_rate = 48000;
         }

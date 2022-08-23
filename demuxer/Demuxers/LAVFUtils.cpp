@@ -34,7 +34,7 @@ static int64_t get_bit_rate(const AVCodecParameters *par)
     case AVMEDIA_TYPE_ATTACHMENT: bit_rate = par->bit_rate; break;
     case AVMEDIA_TYPE_AUDIO:
         bit_rate =
-            par->bit_rate ? par->bit_rate : par->sample_rate * par->channels * av_get_bits_per_sample(par->codec_id);
+            par->bit_rate ? par->bit_rate : par->sample_rate * par->ch_layout.nb_channels * av_get_bits_per_sample(par->codec_id);
         break;
     default: bit_rate = 0; break;
     }
@@ -357,11 +357,11 @@ std::string lavf_get_stream_description(const AVStream *pStream)
         {
             buf << ", " << par->sample_rate << " Hz";
         }
-        if (par->channels)
+        if (par->ch_layout.nb_channels)
         {
             // Get channel layout
-            char channel[32];
-            av_get_channel_layout_string(channel, 32, par->channels, par->channel_layout);
+            char channel[64] = {0};
+            av_channel_layout_describe(&par->ch_layout, channel, sizeof(channel));
             buf << ", " << channel;
         }
         // Sample Format

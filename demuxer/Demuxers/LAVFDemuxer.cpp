@@ -2212,7 +2212,7 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackExtendedInfo(UINT aTrackIdx, void *pSt
 
         pTEIA->Size = sizeof(*pTEIA);
         pTEIA->BitDepth = st->codecpar->bits_per_coded_sample;
-        pTEIA->Channels = st->codecpar->channels;
+        pTEIA->Channels = st->codecpar->ch_layout.nb_channels;
         pTEIA->OutputSamplingFrequency = (FLOAT)st->codecpar->sample_rate;
         pTEIA->SamplingFreq = (FLOAT)st->codecpar->sample_rate;
     }
@@ -2439,7 +2439,7 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
                     }
                     else if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && dwAudioScore < 4)
                     {
-                        if (st->codecpar->channels != 0)
+                        if (st->codecpar->ch_layout.nb_channels != 0)
                             dwAudioScore = 4;
                         else
                             dwAudioScore = 1;
@@ -2957,8 +2957,8 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
                         continue;
 
                     // First, check number of channels
-                    int old_num_chans = old_stream->codecpar->channels;
-                    int new_num_chans = new_stream->codecpar->channels;
+                    int old_num_chans = old_stream->codecpar->ch_layout.nb_channels;
+                    int new_num_chans = new_stream->codecpar->ch_layout.nb_channels;
                     if (new_num_chans > old_num_chans)
                     {
                         best = *sit;

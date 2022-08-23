@@ -135,7 +135,7 @@ WAVEFORMATEX *CLAVFAudioHelper::CreateWVFMTEX(const AVStream *avstream, ULONG *s
 
     wvfmt->wFormatTag = avstream->codecpar->codec_tag;
 
-    wvfmt->nChannels = avstream->codecpar->channels ? avstream->codecpar->channels : 2;
+    wvfmt->nChannels = avstream->codecpar->ch_layout.nb_channels ? avstream->codecpar->ch_layout.nb_channels : 2;
     wvfmt->nSamplesPerSec = avstream->codecpar->sample_rate ? avstream->codecpar->sample_rate : 48000;
     wvfmt->nAvgBytesPerSec = (DWORD)(avstream->codecpar->bit_rate / 8);
 
@@ -225,19 +225,23 @@ WAVEFORMATEX_HDMV_LPCM *CLAVFAudioHelper::CreateWVFMTEX_LPCM(const AVStream *avs
 
     lpcm->cbSize = sizeof(WAVEFORMATEX_HDMV_LPCM) - sizeof(WAVEFORMATEX);
     BYTE channel_conf = 0;
-    switch (avstream->codecpar->channel_layout)
+    if (avstream->codecpar->ch_layout.order == AV_CHANNEL_ORDER_NATIVE)
     {
-    case AV_CH_LAYOUT_MONO: channel_conf = 1; break;
-    case AV_CH_LAYOUT_STEREO: channel_conf = 3; break;
-    case AV_CH_LAYOUT_SURROUND: channel_conf = 4; break;
-    case AV_CH_LAYOUT_2_1: channel_conf = 5; break;
-    case AV_CH_LAYOUT_4POINT0: channel_conf = 6; break;
-    case AV_CH_LAYOUT_2_2: channel_conf = 7; break;
-    case AV_CH_LAYOUT_5POINT0: channel_conf = 8; break;
-    case AV_CH_LAYOUT_5POINT1: channel_conf = 9; break;
-    case AV_CH_LAYOUT_7POINT0: channel_conf = 10; break;
-    case AV_CH_LAYOUT_7POINT1: channel_conf = 11; break;
-    default: channel_conf = 0;
+
+        switch (avstream->codecpar->ch_layout.u.mask)
+        {
+        case AV_CH_LAYOUT_MONO: channel_conf = 1; break;
+        case AV_CH_LAYOUT_STEREO: channel_conf = 3; break;
+        case AV_CH_LAYOUT_SURROUND: channel_conf = 4; break;
+        case AV_CH_LAYOUT_2_1: channel_conf = 5; break;
+        case AV_CH_LAYOUT_4POINT0: channel_conf = 6; break;
+        case AV_CH_LAYOUT_2_2: channel_conf = 7; break;
+        case AV_CH_LAYOUT_5POINT0: channel_conf = 8; break;
+        case AV_CH_LAYOUT_5POINT1: channel_conf = 9; break;
+        case AV_CH_LAYOUT_7POINT0: channel_conf = 10; break;
+        case AV_CH_LAYOUT_7POINT1: channel_conf = 11; break;
+        default: channel_conf = 0;
+        }
     }
     lpcm->channel_conf = channel_conf;
 
@@ -257,7 +261,7 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
 
     WAVEFORMATEX *wfe = &wfex->Format;
     wfe->wFormatTag = (WORD)subtype.Data1;
-    wfe->nChannels = avstream->codecpar->channels;
+    wfe->nChannels = avstream->codecpar->ch_layout.nb_channels;
     wfe->nSamplesPerSec = avstream->codecpar->sample_rate;
     if (avstream->codecpar->format == AV_SAMPLE_FMT_S32 && avstream->codecpar->bits_per_raw_sample > 0)
     {
@@ -272,21 +276,33 @@ WAVEFORMATEXTENSIBLE *CLAVFAudioHelper::CreateWFMTEX_RAW_PCM(const AVStream *avs
     wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
     wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
+    bool bUseExtensible = false;
+
     DWORD dwChannelMask = 0;
-    if ((wfe->wBitsPerSample > 16 || wfe->nSamplesPerSec > 48000) && wfe->nChannels <= 2)
+    if (wfe->nChannels > 2)
     {
-        dwChannelMask = wfe->nChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
-    }
-    else if (wfe->nChannels > 2)
-    {
-        dwChannelMask = (DWORD)avstream->codecpar->channel_layout;
+        bUseExtensible = true;
+
+        if (avstream->codecpar->ch_layout.order == AV_CHANNEL_ORDER_NATIVE)
+            dwChannelMask = (DWORD)avstream->codecpar->ch_layout.u.mask;
+
         if (!dwChannelMask)
         {
-            dwChannelMask = (DWORD)av_get_default_channel_layout(wfe->nChannels);
+            AVChannelLayout Layout{};
+            av_channel_layout_default(&Layout, wfe->nChannels);
+            dwChannelMask = (DWORD)Layout.u.mask;
         }
+
+        if (dwChannelMask && av_popcount(dwChannelMask) != wfe->nChannels)
+            dwChannelMask = 0;
+    }
+    else if ((wfe->wBitsPerSample > 16 || wfe->nSamplesPerSec > 48000) && wfe->nChannels <= 2)
+    {
+        bUseExtensible = true;
+        dwChannelMask = wfe->nChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
     }
 
-    if (dwChannelMask)
+    if (bUseExtensible)
     {
         wfex->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
         wfex->Format.cbSize = sizeof(*wfex) - sizeof(wfex->Format);
@@ -325,7 +341,7 @@ MPEG1WAVEFORMAT *CLAVFAudioHelper::CreateMP1WVFMT(const AVStream *avstream, ULON
     memcpy(&mpwvfmt->wfx, wvfmt, sizeof(WAVEFORMATEX));
 
     mpwvfmt->dwHeadBitrate = (DWORD)avstream->codecpar->bit_rate;
-    mpwvfmt->fwHeadMode = avstream->codecpar->channels == 1 ? ACM_MPEG_SINGLECHANNEL : ACM_MPEG_DUALCHANNEL;
+    mpwvfmt->fwHeadMode = avstream->codecpar->ch_layout.nb_channels == 1 ? ACM_MPEG_SINGLECHANNEL : ACM_MPEG_DUALCHANNEL;
     mpwvfmt->fwHeadLayer = (avstream->codecpar->codec_id == AV_CODEC_ID_MP1) ? ACM_MPEG_LAYER1 : ACM_MPEG_LAYER2;
 
     if (avstream->codecpar->sample_rate == 0)
@@ -352,7 +368,7 @@ VORBISFORMAT *CLAVFAudioHelper::CreateVorbis(const AVStream *avstream, ULONG *si
         return nullptr;
     memset(vfmt, 0, sizeof(VORBISFORMAT));
 
-    vfmt->nChannels = avstream->codecpar->channels;
+    vfmt->nChannels = avstream->codecpar->ch_layout.nb_channels;
     vfmt->nSamplesPerSec = avstream->codecpar->sample_rate;
     vfmt->nAvgBitsPerSec = (DWORD)avstream->codecpar->bit_rate;
     vfmt->nMinBitsPerSec = vfmt->nMaxBitsPerSec = (DWORD)-1;
@@ -393,7 +409,7 @@ VORBISFORMAT2 *CLAVFAudioHelper::CreateVorbis2(const AVStream *avstream, ULONG *
             return nullptr;
         memset(pvf2, 0, sizeof(VORBISFORMAT2));
 
-        pvf2->Channels = avstream->codecpar->channels;
+        pvf2->Channels = avstream->codecpar->ch_layout.nb_channels;
         pvf2->SamplesPerSec = avstream->codecpar->sample_rate;
         pvf2->BitsPerSample = get_bits_per_sample(avstream->codecpar);
 
