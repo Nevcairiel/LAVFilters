@@ -1197,20 +1197,20 @@ CMediaType CLAVAudio::CreateMediaType(LAVAudioSampleFormat outputFormat, DWORD n
     wfe->nBlockAlign = wfe->nChannels * wfe->wBitsPerSample / 8;
     wfe->nAvgBytesPerSec = wfe->nSamplesPerSec * wfe->nBlockAlign;
 
-    if (dwChannelMask == 0 && (wfe->wBitsPerSample > 16 || wfe->nSamplesPerSec > 48000))
-    {
-        dwChannelMask = nChannels == 2 ? (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT) : SPEAKER_FRONT_CENTER;
-    }
+    BOOL bUseExtensible = FALSE;
 
-    // Dont use a channel mask for "default" mono/stereo sources
-    if ((outputFormat == SampleFormat_FP32 || wfe->wBitsPerSample <= 16) && wfe->nSamplesPerSec <= 48000 &&
-        ((nChannels == 1 && dwChannelMask == SPEAKER_FRONT_CENTER) ||
-         (nChannels == 2 && dwChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT))))
-    {
-        dwChannelMask = 0;
-    }
+    // non-standard mono/stereo
+    if (dwChannelMask != 0 && (nChannels == 1 && dwChannelMask != KSAUDIO_SPEAKER_MONO ||
+                               nChannels == 2 && dwChannelMask != KSAUDIO_SPEAKER_STEREO))
+        bUseExtensible = TRUE;
+    else if (nChannels > 2) // more then two channels
+        bUseExtensible = TRUE;
+    else if (wfe->wBitsPerSample > 16 && outputFormat != SampleFormat_FP32) // high bitdepth integer
+        bUseExtensible = TRUE;
+    else if (wfe->nSamplesPerSec > 48000) // high sample rate
+        bUseExtensible = TRUE;
 
-    if (dwChannelMask)
+    if (bUseExtensible)
     {
         wfex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
         wfex.Format.cbSize = sizeof(wfex) - sizeof(wfex.Format);
