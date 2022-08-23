@@ -76,32 +76,32 @@ Additionally to the syntax above, the following flags can be appended to the sub
  - "f" for forced subtitles
  - "h" for hearing impaired
  - "n" for normal streams (not default, forced, or impaired).
-In addition, you can also check for the absence of flags by preceeding the flags with with a "!".
+In addition, you can also check for the absence of flags by preceding the flags with a "!".
 The advanced rules can be combined into a complete logic for subtitle selection by just appending them, separated with a comma or a space.
 The rules will always be parsed from left to right, the first match taking precedence.
 
 Example: (basic flag usage)
   "*:*|f"
 Explanation:
-  On any audio language, load any subtitles that is flagged forced.
+  On any audio language, load any subtitles that are flagged forced.
 
 Example: (basic ruleset)
   "eng:eng|f eng:ger|f eng:off *:eng *:ger"
 Explanation:
-  If the audio is English, load an English or a German forced subtitle track, otherwise turn subtitles off.
+  If the audio is English, load an English or a German forced subtitle track, otherwise, turn subtitles off.
   If the audio is not English, load English or German subtitles.
 
 Example: (flag usage with negation)
   "jpn:ger|d!f"
 Explanation:
-  On Japanese language, load German subtitles that have the default-flag but not together with forced-flag.
-  This is usefull when you have files where the default and forced flags are set together.
+  In the Japanese language, load German subtitles that have the default-flag but not together with forced-flag.
+  This is useful when you have files where the default and forced flags are set together.
 
 Example: (advanced ruleset for files with multiple audio and subtitle-tracks)
   "jpn:ger|d!f  jpn:ger|!f  jpn:ger  ger:ger|f  ger:eng|f  ger:*|f"
 Explanation:
   On Japanese audio, try to load German full subs (default but not forced), then unforced, and at last any german subs if there are no unforced subs.
-  On German audio load only forced subs in the following order: german, english, any
+  On German audio load only forced subs in the following order: German, English, any.
 
 BluRay Support
 =============================
