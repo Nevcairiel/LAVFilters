@@ -91,6 +91,8 @@ void CLAVSubtitleProvider::CloseDecoder()
     av_parser_close(m_pParser);
     m_pParser = nullptr;
   }
+
+  av_packet_free(&m_pSubtitlePacket);
 }
 
 STDMETHODIMP CLAVSubtitleProvider::SetConsumer(ISubRenderConsumer *pConsumer)
@@ -246,6 +248,8 @@ STDMETHODIMP CLAVSubtitleProvider::Flush()
   context.isMovable = true;
   m_pLAVVideo->SetInDVDMenu(false);
 
+  av_packet_free(&m_pSubtitlePacket);
+
   return S_OK;
 }
 
@@ -278,8 +282,8 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
 {
   ASSERT(m_pAVCtx);
 
-  AVPacket avpkt;
-  av_init_packet(&avpkt);
+  if (m_pSubtitlePacket == nullptr)
+      m_pSubtitlePacket = av_packet_alloc();
 
   AVSubtitle sub;
   memset(&sub, 0, sizeof(sub));
@@ -314,12 +318,12 @@ STDMETHODIMP CLAVSubtitleProvider::Decode(BYTE *buf, int buflen, REFERENCE_TIME 
       }
 
       if (pOut_size > 0) {
-        avpkt.data = pOut;
-        avpkt.size = pOut_size;
-        avpkt.pts = rtStart;
-        avpkt.duration = 0;
+        m_pSubtitlePacket->data = pOut;
+        m_pSubtitlePacket->size = pOut_size;
+        m_pSubtitlePacket->pts = rtStart;
+        m_pSubtitlePacket->duration = 0;
 
-        int ret = avcodec_decode_subtitle2(m_pAVCtx, &sub, &got_sub, &avpkt);
+        int ret = avcodec_decode_subtitle2(m_pAVCtx, &sub, &got_sub, m_pSubtitlePacket);
         if (ret < 0) {
           DbgLog((LOG_TRACE, 50, L"CLAVSubtitleProvider::Decode - decoding failed despite successfull parsing"));
           got_sub = 0;

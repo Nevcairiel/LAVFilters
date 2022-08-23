@@ -1205,8 +1205,8 @@ send_packet:
         if (m_bFFReordering)
         {
             rtStart = m_pFrame->pts;
-            if (m_pFrame->pkt_duration)
-                rtStop = m_pFrame->pts + m_pFrame->pkt_duration;
+            if (m_pFrame->duration)
+                rtStop = m_pFrame->pts + m_pFrame->duration;
             else
                 rtStop = AV_NOPTS_VALUE;
         }

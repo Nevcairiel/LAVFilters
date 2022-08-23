@@ -120,6 +120,8 @@ class CLAVSubtitleProvider
     ULONGLONG m_SubPicId = 0;
     BOOL m_bComposit = TRUE;
 
+    AVPacket *m_pSubtitlePacket = nullptr;
+
     std::list<CLAVSubRect *> m_SubFrames;
 
     struct _AM_PROPERTY_SPHLI *m_pHLI = nullptr;

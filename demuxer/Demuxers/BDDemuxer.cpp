@@ -463,12 +463,12 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
     int ret, count = 0;
     bool found = (rtBase == Packet::INVALID_TIME);
 
-    AVPacket mvcPacket = {0};
-    av_init_packet(&mvcPacket);
+    AVPacket *pMVCPacket = av_packet_alloc();
 
     while (count < MVC_DEMUX_COUNT)
     {
-        ret = av_read_frame(m_MVCFormatContext, &mvcPacket);
+        av_packet_unref(pMVCPacket);
+        ret = av_read_frame(m_MVCFormatContext, pMVCPacket);
 
         if (ret == AVERROR(EINTR) || ret == AVERROR(EAGAIN))
         {
@@ -479,19 +479,18 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
             DbgLog((LOG_TRACE, 10, L"EOF reading MVC extension data"));
             break;
         }
-        else if (mvcPacket.size <= 0 || mvcPacket.stream_index != m_MVCStreamIndex)
+        else if (pMVCPacket->size <= 0 || pMVCPacket->stream_index != m_MVCStreamIndex)
         {
-            av_packet_unref(&mvcPacket);
             continue;
         }
         else
         {
-            AVStream *stream = m_MVCFormatContext->streams[mvcPacket.stream_index];
+            AVStream *stream = m_MVCFormatContext->streams[pMVCPacket->stream_index];
 
             REFERENCE_TIME rtDTS =
-                m_lavfDemuxer->ConvertTimestampToRT(mvcPacket.dts, stream->time_base.num, stream->time_base.den);
+                m_lavfDemuxer->ConvertTimestampToRT(pMVCPacket->dts, stream->time_base.num, stream->time_base.den);
             REFERENCE_TIME rtPTS =
-                m_lavfDemuxer->ConvertTimestampToRT(mvcPacket.pts, stream->time_base.num, stream->time_base.den);
+                m_lavfDemuxer->ConvertTimestampToRT(pMVCPacket->pts, stream->time_base.num, stream->time_base.den);
 
             if (rtBase == Packet::INVALID_TIME || rtDTS == Packet::INVALID_TIME)
             {
@@ -502,7 +501,6 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
                 DbgLog((LOG_TRACE, 10,
                         L"CBDDemuxer::FillMVCExtensionQueue(): Dropping MVC extension at %I64d, base is %I64d", rtDTS,
                         rtBase));
-                av_packet_unref(&mvcPacket);
                 continue;
             }
             else if (rtDTS == rtBase)
@@ -513,20 +511,21 @@ STDMETHODIMP CBDDemuxer::FillMVCExtensionQueue(REFERENCE_TIME rtBase)
             Packet *pPacket = new Packet();
             if (!pPacket)
             {
-                av_packet_unref(&mvcPacket);
+                av_packet_free(&pMVCPacket);
                 return E_OUTOFMEMORY;
             }
 
-            pPacket->SetPacket(&mvcPacket);
+            pPacket->SetPacket(pMVCPacket);
             pPacket->rtDTS = rtDTS;
             pPacket->rtPTS = rtPTS;
 
             m_lavfDemuxer->QueueMVCExtension(pPacket);
-            av_packet_unref(&mvcPacket);
 
             count++;
         }
     };
+
+    av_packet_free(&pMVCPacket);
 
     if (found)
         return S_OK;
