@@ -1300,12 +1300,12 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
 
     if (codec == AV_CODEC_ID_DTS || codec == AV_CODEC_ID_TRUEHD)
     {
-        m_faJitter.SetNumSamples(200);
+        m_faJitter.SetNumSamples(256);
         m_JitterLimit = MAX_JITTER_DESYNC * 10;
     }
     else
     {
-        m_faJitter.SetNumSamples(50);
+        m_faJitter.SetNumSamples(64);
         m_JitterLimit = MAX_JITTER_DESYNC;
     }
 
