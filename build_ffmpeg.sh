@@ -59,7 +59,7 @@ configure() (
     --disable-muxers                \
     --enable-muxer=spdif            \
     --disable-bsfs                  \
-    --enable-bsf=extract_extradata,vp9_superframe_split,av1_frame_split \
+    --enable-bsf=extract_extradata  \
     --disable-avdevice              \
     --disable-postproc              \
     --disable-encoders              \
