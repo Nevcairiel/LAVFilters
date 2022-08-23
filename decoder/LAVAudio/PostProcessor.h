@@ -44,5 +44,4 @@ inline void ExtChMapClear(ExtendedChannelMap *map)
     }
 }
 
-HRESULT ChannelMapping(BufferDetails *pcm, unsigned uOutChannels, const ChannelMap map);
 HRESULT ExtendedChannelMapping(BufferDetails *pcm, unsigned uOutChannels, const ExtendedChannelMap extMap);

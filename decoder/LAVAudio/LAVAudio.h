@@ -66,13 +66,16 @@ struct BufferDetails
     WORD wBitsPerSample = 0;                         // Bits per sample
     DWORD dwSamplesPerSec = 0;                       // Samples per second
     unsigned nSamples = 0;   // Samples in the buffer (every sample is sizeof(sfFormat) * nChannels in the buffer)
-    WORD wChannels = 0;      // Number of channels
-    DWORD dwChannelMask = 0; // channel mask
+    AVChannelLayout layout{};
     REFERENCE_TIME rtStart = AV_NOPTS_VALUE; // Start Time of the buffer
     BOOL bPlanar = FALSE;                    // Planar (not used)
 
     BufferDetails() { bBuffer = new GrowableArray<BYTE>(); };
-    ~BufferDetails() { delete bBuffer; }
+    ~BufferDetails()
+    {
+        delete bBuffer;
+        av_channel_layout_uninit(&layout);
+    }
 };
 
 class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
@@ -242,7 +245,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     void ActivateDTSHDMuxing();
     DTSBitstreamMode GetDTSHDBitstreamMode();
 
-    HRESULT CheckChannelLayoutConformity(DWORD dwLayout);
+    HRESULT CheckChannelLayoutConformity(AVChannelLayout *layout);
     HRESULT Create51Conformity(DWORD dwLayout);
     HRESULT Create61Conformity(DWORD dwLayout);
     HRESULT Create71Conformity(DWORD dwLayout);
@@ -278,11 +281,11 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     LAVAudioSampleFormat m_DecodeFormat = SampleFormat_16;
     LAVAudioSampleFormat m_MixingInputFormat = SampleFormat_None;
     LAVAudioSampleFormat m_FallbackFormat = SampleFormat_None;
-    DWORD m_dwOverrideMixer = 0;
+    AVChannelLayout m_chOverrideMixer{};
 
     SwrContext *m_swrContext = nullptr;
     LAVAudioSampleFormat m_sfRemixFormat = SampleFormat_None;
-    DWORD m_dwRemixLayout = 0;
+    AVChannelLayout m_chRemixLayout{};
     BOOL m_bAVResampleFailed = FALSE;
     BOOL m_bMixingSettingsChanged = FALSE;
 
@@ -344,16 +347,18 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     FloatingAverage<REFERENCE_TIME> m_faJitter{50};
     REFERENCE_TIME m_JitterLimit = MAX_JITTER_DESYNC;
 
-    DWORD m_DecodeLayout = 0;
-    DWORD m_DecodeLayoutSanified = 0;
-    DWORD m_MixingInputLayout = 0;
+    AVChannelLayout m_DecodeLayout{};
+    AVChannelLayout m_DecodeLayoutSanified{};
+    AVChannelLayout m_MixingInputLayout{};
     BOOL m_bChannelMappingRequired = FALSE;
 
-    DWORD m_SuppressLayout = 0;
+    AVChannelLayout m_SuppressLayout{};
 
     ExtendedChannelMap m_ChannelMap;
-    int m_ChannelMapOutputChannels = 0;
-    DWORD m_ChannelMapOutputLayout = 0;
+    AVChannelLayout m_ChannelMapOutputLayout{};
+
+    AVPacket *m_pDecodePacket = nullptr;
+    AVPacket *m_pBitstreamPacket = nullptr;
 
     // TrueHD Bitstreaming
     struct

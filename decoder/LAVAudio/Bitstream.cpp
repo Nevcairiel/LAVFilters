@@ -132,7 +132,8 @@ HRESULT CLAVAudio::CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe)
     }
     st->codecpar->codec_id = codec;
     st->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-    st->codecpar->channels = wfe->nChannels;
+    st->codecpar->ch_layout.order = AV_CHANNEL_ORDER_UNSPEC;
+    st->codecpar->ch_layout.nb_channels = wfe->nChannels;
     st->codecpar->sample_rate = wfe->nSamplesPerSec;
 
     ret = avformat_write_header(m_avBSContext, nullptr);
@@ -201,6 +202,8 @@ HRESULT CLAVAudio::FreeBitstreamContext()
         avformat_free_context(m_avBSContext);
     }
     m_avBSContext = nullptr;
+
+    av_packet_free(&m_pBitstreamPacket);
 
     // Dump any remaining data
     m_bsOutput.SetSize(0);
@@ -324,9 +327,10 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
     int ret = 0;
     BOOL bFlush = (pDataBuffer == nullptr);
 
-    AVPacket avpkt;
-    av_init_packet(&avpkt);
-    avpkt.duration = 1;
+    if (m_pBitstreamPacket == nullptr)
+        m_pBitstreamPacket = av_packet_alloc();
+
+    m_pBitstreamPacket->duration = 1;
 
     consumed = 0;
     while (buffsize > 0)
@@ -395,11 +399,11 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
                         ActivateDTSHDMuxing();
                 }
 
-                avpkt.data = pOut;
-                avpkt.size = pOut_size;
+                m_pBitstreamPacket->data = pOut;
+                m_pBitstreamPacket->size = pOut_size;
 
                 // Write SPDIF muxed frame
-                ret = av_write_frame(m_avBSContext, &avpkt);
+                ret = av_write_frame(m_avBSContext, m_pBitstreamPacket);
                 if (ret < 0)
                 {
                     DbgLog((LOG_ERROR, 20, "::Bitstream(): av_write_frame returned error code (%d)", -ret));

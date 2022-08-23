@@ -572,10 +572,10 @@ void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
     const BYTE bSampleSize = get_byte_per_sample(buffer.sfFormat);
     const DWORD dwSamplesPerChannel = buffer.nSamples;
     const BYTE *pBuffer = buffer.bBuffer->Ptr();
-    float *const fChAvg = (float *)calloc(buffer.wChannels, sizeof(float));
+    float *const fChAvg = (float *)calloc(buffer.layout.nb_channels, sizeof(float));
     for (DWORD i = 0; i < dwSamplesPerChannel; ++i)
     {
-        for (WORD ch = 0; ch < buffer.wChannels; ++ch)
+        for (WORD ch = 0; ch < buffer.layout.nb_channels; ++ch)
         {
             const float fSample = get_sample_from_buffer<float>(pBuffer, buffer.sfFormat);
             fChAvg[ch] += fSample * fSample;
@@ -583,7 +583,7 @@ void CLAVAudio::UpdateVolumeStats(const BufferDetails &buffer)
         }
     }
 
-    for (int ch = 0; ch < min(buffer.wChannels, MAX_VOLUME_STAT_CHANNEL); ++ch)
+    for (int ch = 0; ch < min(buffer.layout.nb_channels, MAX_VOLUME_STAT_CHANNEL); ++ch)
     {
         if (fChAvg[ch] > FLT_EPSILON)
         {
