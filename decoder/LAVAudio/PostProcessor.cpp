@@ -126,7 +126,29 @@ static inline void Silence(BYTE *pBuffer, LAVAudioSampleFormat sfSampleFormat)
 
 //
 // Extended Channel Remapping Processor
-// Same functionality as ChannelMapping, except that a factor can be applied to all PCM samples.
+//
+// This function can process a PCM buffer of any sample format, and remap the channels
+// into any arbitrary layout and channel count.
+//
+// The samples are copied byte-by-byte, without any conversion or loss.
+//
+// The ExtendedChannelMap is assumed to always have at least uOutChannels valid entries.
+// Its layout is in output format:
+//      Map[0] is the first output channel, and should contain the index in the source stream (or -1 for silence)
+//      Map[1] is the second output channel
+//
+// Source channels can be applied multiple times to the Destination, but multiple Source channels cannot be merged into one channel.
+// Note that when copying one source channel into multiple destinations, you always want to reduce its volume.
+// You can either do this in a second step, or use the factor documented below
+//
+// Examples:
+// 5.1 Input Buffer, following map will extract the Center channel, and return it as Mono:
+// uOutChannels == 1; map = {2}
+//
+// Mono Input Buffer, Convert to Stereo
+// uOutChannels == 2; map = {0, 0}
+//
+// Additionally, a factor can be applied to all PCM samples
 //
 // For optimization, the factor cannot be freely specified.
 // Factors -1, 0, 1 are ignored.

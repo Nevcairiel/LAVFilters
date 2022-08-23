@@ -21,8 +21,6 @@
 
 struct BufferDetails;
 
-typedef int ChannelMap[8];
-
 typedef struct ExtendedChannelMap_s
 {
     int idx;
