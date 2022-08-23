@@ -198,6 +198,9 @@ HRESULT ExtendedChannelMapping(BufferDetails *pcm, const unsigned uOutChannels, 
     // Apply changes to buffer
     delete pcm->bBuffer;
     pcm->bBuffer = out;
+    av_channel_layout_uninit(&pcm->layout);
+    pcm->layout.order = AV_CHANNEL_ORDER_UNSPEC;
+    pcm->layout.nb_channels = uOutChannels;
 
     return S_OK;
 }
