@@ -1101,6 +1101,11 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
 
     if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && iPosition > 1 && iPosition < 4)
         dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
+    else if (nChannels > 8 && iPosition > 1 && iPosition < 4) // more then 8 channel, offer a downmix to 8 channel
+    {
+        nChannels = 8;
+        dwChannelMask = AV_CH_LAYOUT_7POINT1;
+    }
     else if (iPosition > 1)
         return VFW_S_NO_MORE_ITEMS;
 
@@ -2764,6 +2769,33 @@ HRESULT CLAVAudio::Deliver(BufferDetails &buffer)
                                      (DWORD)buffer.layout.u.mask,
                                      buffer.wBitsPerSample);
                 goto retry_qa;
+            }
+            // more then 8 channel, try 7.1 fallback format
+            if (buffer.layout.nb_channels > 8)
+            {
+                DbgLog((LOG_TRACE, 1, L"-> Trying to fallback to 7.1 (have more then 8 channel)"));
+                mt = CreateMediaType(buffer.sfFormat, buffer.dwSamplesPerSec, 8,
+                                     (DWORD)AV_CH_LAYOUT_7POINT1, buffer.wBitsPerSample);
+
+                hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+
+                if (hr != S_OK)
+                {
+                    mt = CreateMediaType(SampleFormat_16, buffer.dwSamplesPerSec, 8, AV_CH_LAYOUT_7POINT1, 16);
+                    hr = m_pOutput->GetConnected()->QueryAccept(&mt);
+                    if (hr == S_OK)
+                        m_FallbackFormat = SampleFormat_16;
+                }
+
+                if (hr == S_OK)
+                {
+                    DbgLog((LOG_TRACE, 1, L"-> Override Mixing to layout to 7.1"));
+                    av_channel_layout_uninit(&m_chOverrideMixer);
+                    av_channel_layout_from_mask(&m_chOverrideMixer, AV_CH_LAYOUT_7POINT1);
+                    m_bMixingSettingsChanged = TRUE;
+                    // Mix to the new layout
+                    PerformAVRProcessing(&buffer);
+                }
             }
             // If a 16-bit fallback isn't enough, try to retain current channel layout as well
             if (hr != S_OK)
