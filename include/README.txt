@@ -17,8 +17,8 @@ The order to query the streams is the same as returned by IAMStreamSelect::Info
 IGraphRebuildDelegate
 ---------------------------------------------
 IGraphRebuildDelegate is not an interface implemented by LAV Splitter itself.
-It is designed to offer the ability to take over the graph-building process from the player`s side.
-It only exports one function which LAV Splitter will call when a stream change happens on the user`s requests,
+It is designed to offer the ability to take over the graph-building process from the player's side.
+It only exports one function which LAV Splitter will call when a stream change happens on the user's requests,
 and then the player can take care of the graph changes itself instead of relying on LAV Splitter to do it.
 
 To use IGraphRebuildDelegate, the player needs to implement it, and share the implementing class with LAV Splitter
