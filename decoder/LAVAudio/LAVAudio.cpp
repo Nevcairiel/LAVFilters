@@ -44,6 +44,7 @@ extern "C"
 {
 #define AVCODEC_X86_MATHOPS_H
 #include "libavformat/spdif.h"
+#include "libavcodec/flac_parse.h"
 #include "libavcodec/flac.h"
 #include "libavcodec/mpegaudiodecheader.h"
 
@@ -1530,10 +1531,10 @@ HRESULT CLAVAudio::ffmpeg_init(AVCodecID codec, const void *format, const GUID f
     // This tag is used to store non-standard channel layouts in FLAC files, see LAV-8 / Issue 342
     if (codec == AV_CODEC_ID_FLAC)
     {
-        enum FLACExtradataFormat format;
         uint8_t *streaminfo;
-        ret = ff_flac_is_extradata_valid(m_pAVCtx, &format, &streaminfo);
-        if (ret && format == FLAC_EXTRADATA_FORMAT_FULL_HEADER)
+        ret = ff_flac_is_extradata_valid(m_pAVCtx, &streaminfo);
+        // full FLAC header
+        if (ret && AV_RL32(m_pAVCtx->extradata) == MKTAG('f','L','a','C'))
         {
             AVDictionary *metadata = nullptr;
             int metadata_last = 0, metadata_type, metadata_size;
