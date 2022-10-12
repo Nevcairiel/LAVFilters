@@ -87,11 +87,12 @@ configure() (
     EXTRA_CFLAGS="${EXTRA_CFLAGS} -MDd"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -NODEFAULTLIB:libcmt"
   else
+    OPTIONS="${OPTIONS} --disable-debug"
     EXTRA_CFLAGS="${EXTRA_CFLAGS} -MD"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -NODEFAULTLIB:libcmt"
   fi
 
-  sh configure --toolchain=msvc --x86asmexe=yasm --extra-cflags="${EXTRA_CFLAGS}" --extra-ldflags="${EXTRA_LDFLAGS}" ${OPTIONS}
+  sh configure --toolchain=msvc --extra-cflags="${EXTRA_CFLAGS}" --extra-ldflags="${EXTRA_LDFLAGS}" ${OPTIONS}
 )
 
 build() (
