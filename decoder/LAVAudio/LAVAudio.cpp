@@ -2309,6 +2309,8 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
                 m_pDecodePacket->data = pOut;
                 m_pDecodePacket->size = pOut_size;
                 m_pDecodePacket->dts = m_rtStartInputCache;
+                m_pDecodePacket->pts = m_rtStartInputCache;
+                m_pDecodePacket->time_base = m_pAVCtx->pkt_timebase;
 
                 CopyMediaSideDataFF(m_pDecodePacket, &pFFSideData);
 
@@ -2348,6 +2350,8 @@ HRESULT CLAVAudio::Decode(const BYTE *pDataBuffer, int buffsize, int &consumed, 
             m_pDecodePacket->data = (uint8_t *)pDataBuffer;
             m_pDecodePacket->size = buffsize;
             m_pDecodePacket->dts = m_rtStartInput;
+            m_pDecodePacket->pts = m_rtStartInput;
+            m_pDecodePacket->time_base = m_pAVCtx->pkt_timebase;
 
             CopyMediaSideDataFF(m_pDecodePacket, &pFFSideData);
 
@@ -2401,7 +2405,7 @@ HRESULT CLAVAudio::DecodeReceive(HRESULT *hrDeliver)
             return E_FAIL;
 
         // Send current input time to the delivery function
-        out.rtStart = m_pFrame->pkt_dts;
+        out.rtStart = m_pFrame->pts;
 
         // Channel re-mapping and sample format conversion
         ASSERT(m_pFrame->nb_samples > 0);
