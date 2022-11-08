@@ -29,12 +29,12 @@ class CBitstreamParser
     CBitstreamParser();
     ~CBitstreamParser();
 
-    HRESULT Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+    HRESULT Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize);
     void Reset();
 
   private:
     HRESULT ParseDTS(BYTE *pBuffer, DWORD dwSize);
-    HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext);
+    HRESULT ParseAC3(BYTE *pBuffer, DWORD dwSize);
     HRESULT ParseTrueHD(BYTE *pBuffer, DWORD dwSize);
 
   public:

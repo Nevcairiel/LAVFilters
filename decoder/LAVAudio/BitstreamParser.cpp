@@ -20,7 +20,11 @@
 #include "stdafx.h"
 #include "BitstreamParser.h"
 
-#include "libavcodec/aac_ac3_parser.h"
+extern "C"
+{
+#define AVCODEC_X86_MATHOPS_H
+#include "libavcodec/ac3_parser_internal.h"
+}
 
 #include "parser/dts.h"
 
@@ -45,13 +49,13 @@ void CBitstreamParser::Reset()
     memset(&m_DTSHeader, 0, sizeof(m_DTSHeader));
 }
 
-HRESULT CBitstreamParser::Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize, void *pParserContext)
+HRESULT CBitstreamParser::Parse(AVCodecID codec, BYTE *pBuffer, DWORD dwSize)
 {
     switch (codec)
     {
     case AV_CODEC_ID_DTS: return ParseDTS(pBuffer, dwSize);
     case AV_CODEC_ID_AC3:
-    case AV_CODEC_ID_EAC3: return ParseAC3(pBuffer, dwSize, pParserContext);
+    case AV_CODEC_ID_EAC3: return ParseAC3(pBuffer, dwSize);
     case AV_CODEC_ID_TRUEHD: return ParseTrueHD(pBuffer, dwSize);
     }
     return S_OK;
@@ -73,14 +77,16 @@ HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
     return S_OK;
 }
 
-HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize, void *pParserContext)
+HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize)
 {
-    AACAC3ParseContext *ctx = (AACAC3ParseContext *)pParserContext;
+    AC3HeaderInfo *hdr = NULL;
+    if (avpriv_ac3_parse_header(&hdr, pBuffer, dwSize) >= 0)
+    {
+        m_dwSampleRate = hdr->sample_rate;
 
-    m_dwSampleRate = ctx->sample_rate;
-
-    // E-AC3 always combines 6 blocks, resulting in 1536 samples
-    m_dwSamples = (ctx->codec_id == AV_CODEC_ID_EAC3) ? (6 * 256) : ctx->samples;
+        // E-AC3 always combines 6 blocks, resulting in 1536 samples
+        m_dwSamples = (hdr->bitstream_id > 10) ? (6 * 256) : (hdr->num_blocks * 256);
+    }
 
     return S_OK;
 }

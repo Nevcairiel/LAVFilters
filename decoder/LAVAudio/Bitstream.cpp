@@ -372,7 +372,7 @@ HRESULT CLAVAudio::Bitstream(const BYTE *pDataBuffer, int buffsize, int &consume
 
         if (pOut_size > 0)
         {
-            hr = m_bsParser.Parse(m_nCodecId, pOut, pOut_size, m_pParser->priv_data);
+            hr = m_bsParser.Parse(m_nCodecId, pOut, pOut_size);
             if (FAILED(hr))
             {
                 continue;
