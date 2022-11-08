@@ -2076,7 +2076,23 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID *pFormat, REFERENCE_TIME *pKF
             if (m_bMP4)
             {
                 MOVStreamContext *sc = (MOVStreamContext *)stream->priv_data;
-                timestamp += (sc->min_corrected_pts + sc->dts_shift);
+                if (i < sc->sample_offsets_count)
+                    timestamp += (sc->sample_offsets[i] + sc->dts_shift);
+                else if (sc->ctts_count)
+                {
+                    int k = 0;
+                    for (uint32_t l = 0; l < sc->ctts_count; l++)
+                    {
+                        k += sc->ctts_data[l].count;
+                        if (k > i)
+                        {
+                            timestamp += (sc->ctts_data[l].duration + sc->dts_shift);
+                            break;
+                        }
+                    }
+                }
+                else
+                    timestamp += (sc->min_corrected_pts + sc->dts_shift);
             }
 
             pKFs[nKFs] = ConvertTimestampToRT(timestamp, stream->time_base.num, stream->time_base.den);
