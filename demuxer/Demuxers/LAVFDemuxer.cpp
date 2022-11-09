@@ -2062,6 +2062,10 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID *pFormat, REFERENCE_TIME *pKF
     UINT nKFsMax = nKFs;
     nKFs = 0;
 
+    // CTTS counter for MP4
+    int ctts_sample_counter = 0;
+    uint32_t ctts_index = 0;
+
     AVStream *stream = m_avFormat->streams[m_dActiveStreams[video]];
     int nb_indexes = avformat_index_get_entries_count(stream);
     for (int i = 0; i < nb_indexes && nKFs < nKFsMax; i++)
@@ -2080,14 +2084,20 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID *pFormat, REFERENCE_TIME *pKF
                     timestamp += (sc->sample_offsets[i] + sc->dts_shift);
                 else if (sc->ctts_count)
                 {
-                    int k = 0;
-                    for (uint32_t l = 0; l < sc->ctts_count; l++)
+                    if (ctts_sample_counter > i)
                     {
-                        k += sc->ctts_data[l].count;
-                        if (k > i)
+                        timestamp += (sc->ctts_data[ctts_index].duration + sc->dts_shift);
+                    }
+                    else
+                    {
+                        for (; ctts_index < sc->ctts_count; ctts_index++)
                         {
-                            timestamp += (sc->ctts_data[l].duration + sc->dts_shift);
-                            break;
+                            ctts_sample_counter += sc->ctts_data[ctts_index].count;
+                            if (ctts_sample_counter > i)
+                            {
+                                timestamp += (sc->ctts_data[ctts_index].duration + sc->dts_shift);
+                                break;
+                            }
                         }
                     }
                 }
