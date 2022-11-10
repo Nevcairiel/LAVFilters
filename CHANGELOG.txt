@@ -1,5 +1,12 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.77.0 - 2022/11/10
+LAV Splitter
+- Fixed: Improved handling of multichannel PCM channel assignments
+- Fixed: MP4 Keyframe information could be wrong
+
+LAV Audio
+- NEW: Support for audio with more then 8 channel, including automatic downmixing if required
 
 0.76.1 - 2022/02/28
 LAV Splitter
