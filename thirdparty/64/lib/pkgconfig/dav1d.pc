@@ -1,9 +1,9 @@
 prefix=.
-libdir=${prefix}/lib
 includedir=${prefix}/include
+libdir=${prefix}/lib
 
 Name: libdav1d
 Description: AV1 decoding library
-Version: 0.9.2
+Version: 1.0.0
 Libs: -L${libdir} -ldav1d
 Cflags: -I${includedir}

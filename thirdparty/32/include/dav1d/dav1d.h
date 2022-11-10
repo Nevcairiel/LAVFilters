@@ -126,7 +126,7 @@ DAV1D_API int dav1d_open(Dav1dContext **c_out, const Dav1dSettings *s);
  *                  0: Success, and out is filled with the parsed Sequence Header
  *                     OBU parameters.
  *  DAV1D_ERR(ENOENT): No Sequence Header OBUs were found in the buffer.
- *  other negative DAV1D_ERR codes: Invalid data in the buffer, invalid passed-in
+ *  Other negative DAV1D_ERR codes: Invalid data in the buffer, invalid passed-in
  *                                  arguments, and other errors during parsing.
  *
  * @note It is safe to feed this function data containing other OBUs than a
@@ -137,7 +137,8 @@ DAV1D_API int dav1d_parse_sequence_header(Dav1dSequenceHeader *out,
                                           const uint8_t *buf, const size_t sz);
 
 /**
- * Feed bitstream data to the decoder.
+ * Feed bitstream data to the decoder, in the form of one or multiple AV1
+ * Open Bitstream Units (OBUs).
  *
  * @param   c Input decoder instance.
  * @param  in Input bitstream data. On success, ownership of the reference is
@@ -148,8 +149,9 @@ DAV1D_API int dav1d_parse_sequence_header(Dav1dSequenceHeader *out,
  *  DAV1D_ERR(EAGAIN): The data can't be consumed. dav1d_get_picture() should
  *                     be called to get one or more frames before the function
  *                     can consume new data.
- *  other negative DAV1D_ERR codes: Error during decoding or because of invalid
- *                                  passed-in arguments.
+ *  Other negative DAV1D_ERR codes: Error during decoding or because of invalid
+ *                                  passed-in arguments. The reference remains
+ *                                  owned by the caller.
  */
 DAV1D_API int dav1d_send_data(Dav1dContext *c, Dav1dData *in);
 
@@ -164,7 +166,7 @@ DAV1D_API int dav1d_send_data(Dav1dContext *c, Dav1dData *in);
  *         0: Success, and a frame is returned.
  *  DAV1D_ERR(EAGAIN): Not enough data to output a frame. dav1d_send_data()
  *                     should be called with new input.
- *  other negative DAV1D_ERR codes: Error during decoding or because of invalid
+ *  Other negative DAV1D_ERR codes: Error during decoding or because of invalid
  *                                  passed-in arguments.
  *
  * @note To drain buffered frames from the decoder (i.e. on end of stream),
@@ -216,7 +218,7 @@ DAV1D_API int dav1d_get_picture(Dav1dContext *c, Dav1dPicture *out);
  *
  * @return
  *         0: Success, and a frame is returned.
- *  other negative DAV1D_ERR codes: Error due to lack of memory or because of
+ *  Other negative DAV1D_ERR codes: Error due to lack of memory or because of
  *                                  invalid passed-in arguments.
  *
  * @note If `Dav1dSettings.apply_grain` is true, film grain was already applied
@@ -273,6 +275,34 @@ enum Dav1dEventFlags {
  *
  */
 DAV1D_API int dav1d_get_event_flags(Dav1dContext *c, enum Dav1dEventFlags *flags);
+
+/**
+ * Retrieve the user-provided metadata associated with the input data packet
+ * for the last decoding error reported to the user, i.e. a negative return
+ * value (not EAGAIN) from dav1d_send_data() or dav1d_get_picture().
+ *
+ * @param   c Input decoder instance.
+ * @param out Output Dav1dDataProps. On success, the caller assumes ownership of
+ *            the returned reference.
+ *
+ * @return 0 on success, or < 0 (a negative DAV1D_ERR code) on error.
+ */
+DAV1D_API int dav1d_get_decode_error_data_props(Dav1dContext *c, Dav1dDataProps *out);
+
+/**
+ * Get the decoder delay, which is the number of internally buffered frames, not
+ * including reference frames.
+ * This value is guaranteed to be >= 1 and <= max_frame_delay.
+ *
+ * @param s Input settings context.
+ *
+ * @return Decoder frame delay on success, or < 0 (a negative DAV1D_ERR code) on
+ *         error.
+ *
+ * @note The returned delay is valid only for a Dav1dContext initialized with the
+ *       provided Dav1dSettings.
+ */
+DAV1D_API int dav1d_get_frame_delay(const Dav1dSettings *s);
 
 # ifdef __cplusplus
 }
