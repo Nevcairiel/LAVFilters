@@ -2,6 +2,7 @@ LAV DirectShow Filters Changelog
 ===================================
 
 0.77.1 - 2022/11/15
+LAV Splitter
 - Fixed: More MP4 keyframe information fixes
 
 0.77.0 - 2022/11/10
