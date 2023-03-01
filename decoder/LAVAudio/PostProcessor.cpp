@@ -556,8 +556,8 @@ HRESULT CLAVAudio::PerformAVRProcessing(BufferDetails *buffer)
             ASSERT(chMixingLayout.order == AV_CHANNEL_ORDER_NATIVE);
 
             BOOL bNormalize = !!(m_settings.MixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX);
-            av_opt_set_int(m_swrContext, "clip_protection",
-                           !bNormalize && (m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION), 0);
+            BOOL bClipProtection = !!(m_settings.MixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION);
+            av_opt_set_int(m_swrContext, "clip_protection", !bNormalize && bClipProtection, 0);
             av_opt_set_int(m_swrContext, "internal_sample_fmt", AV_SAMPLE_FMT_FLTP, 0);
 
             // setup matrix parameters
