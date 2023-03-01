@@ -314,9 +314,9 @@ static const scmap_t m_scmap_default[] = {
     {3, KSAUDIO_SPEAKER_3POINT0}, // 3/0        FL, FR, FC
     {4, KSAUDIO_SPEAKER_3POINT1}, // 3/1        FL, FR, FC, Surround
     {5, KSAUDIO_SPEAKER_5POINT0}, // 3/2        FL, FR, FC, BL, BR
-    {6, KSAUDIO_SPEAKER_5POINT1}, // 3/2+LFe    FL, FR, FC, BL, BR, LFe
+    {6, KSAUDIO_SPEAKER_5POINT1_SURROUND}, // 3/2+LFe    FL, FR, FC, SL, SR, LFe
     {7, KSAUDIO_SPEAKER_7POINT0}, // 3/4        FL, FR, FC, BL, Bls, Brs, BR
-    {8, KSAUDIO_SPEAKER_7POINT1}, // 3/4+LFe    FL, FR, FC, BL, Bls, Brs, BR, LFe
+    {8, KSAUDIO_SPEAKER_7POINT1_SURROUND}, // 3/4+LFe    FL, FR, FC, BL, BR, SL, SR, LFe
 };
 
 DWORD get_channel_mask(int num_channels)
