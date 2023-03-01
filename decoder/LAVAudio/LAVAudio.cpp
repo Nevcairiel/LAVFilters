@@ -1096,6 +1096,12 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
         }
     }
 
+    // possible format combinations:
+    // 0: original
+    // 1: 16-bit integer fallback
+    // 2: alternate channel layout/count (5.1 back, or downmix to 8 channel)
+    // 3: alternate channel layout, 16-bit
+
     // map to legacy 5.1 if user requested
     if (dwChannelMask == AV_CH_LAYOUT_5POINT1 && m_settings.Output51Legacy)
         dwChannelMask = AV_CH_LAYOUT_5POINT1_BACK;
