@@ -117,6 +117,14 @@ std::string get_codec_name(const AVCodecParameters *par)
     {
         profile = "DTS Express";
     }
+    else if (id == AV_CODEC_ID_EAC3 && par->profile == FF_PROFILE_EAC3_DDP_ATMOS)
+    {
+        profile = "atmos";
+    }
+    else if (id == AV_CODEC_ID_TRUEHD && par->profile == FF_PROFILE_TRUEHD_ATMOS)
+    {
+        profile = "atmos";
+    }
 
     if (id == AV_CODEC_ID_H264 && profile)
     {
