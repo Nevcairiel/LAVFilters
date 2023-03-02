@@ -313,11 +313,11 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream *avstream, ULONG *
     int num = vih->bmiHeader.biWidth, den = vih->bmiHeader.biHeight;
     if (r.den > 0 && r.num > 0)
     {
-        av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, INT_MAX);
+        av_reduce(&num, &den, (int64_t)r.num * num, (int64_t)r.den * den, UINT16_MAX);
     }
     else if (rc.den > 0 && rc.num > 0)
     {
-        av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, INT_MAX);
+        av_reduce(&num, &den, (int64_t)rc.num * num, (int64_t)rc.den * den, UINT16_MAX);
     }
     else
     {
