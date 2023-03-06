@@ -1344,6 +1344,13 @@ send_packet:
             processFFDOVIData(hdr, metadata);
         }
 
+        AVFrameSideData *sdDOVIRPU = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_DOVI_RPU_BUFFER);
+        if (sdDOVIRPU)
+        {
+            BYTE *pDVRPU = AddLAVFrameSideData(pOutFrame, IID_MediaSideDataDOVIRPU, sdDOVIRPU->size);
+            memcpy(pDVRPU, sdDOVIRPU->data, sdDOVIRPU->size);
+        }
+
         AVFrameSideData *sdCC = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_A53_CC);
         if (sdCC)
         {
