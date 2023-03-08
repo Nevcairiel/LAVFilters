@@ -1,6 +1,17 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.77.2 - 2023/03/08
+LAV Splitter
+- NEW: Added identification for spatial/immersive audio extensions (Atmos, DTS:X)
+- Changed: More reasonable rounding for odd aspect ratios, avoiding issues with some video pipelines
+- Fixed: Improved compatibility with some FTP servers
+
+LAV Audio
+- Fixed: Restored the default channel layouts for 5.1 and 7.1 to the correct layout (accidentally changed in 0.77, causing some playback issues)
+- Fixed: Some TrueHD files would not decode correctly
+- Fixed: Clipping protection did not engage when using Integer output
+
 0.77.1 - 2022/11/15
 LAV Splitter
 - Fixed: More MP4 keyframe information fixes
