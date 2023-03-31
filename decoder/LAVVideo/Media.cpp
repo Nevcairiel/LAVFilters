@@ -738,15 +738,13 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
     break;
   // Values from newer Windows SDK (MediaFoundation)
   case AVCOL_PRI_BT2020:
-    fmt.VideoPrimaries = (DXVA2_VideoPrimaries)9;
+    fmt.VideoPrimaries = MFVideoPrimaries_BT2020;
     break;
   case AVCOL_PRI_SMPTE428:
-    // XYZ
-    fmt.VideoPrimaries = (DXVA2_VideoPrimaries)10;
+    fmt.VideoPrimaries = MFVideoPrimaries_XYZ;
     break;
   case AVCOL_PRI_SMPTE431:
-    // DCI-P3
-    fmt.VideoPrimaries = (DXVA2_VideoPrimaries)11;
+    fmt.VideoPrimaries = MFVideoPrimaries_DCI_P3;
     break;
   }
 
@@ -765,7 +763,7 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
   // Values from newer Windows SDK (MediaFoundation)
   case AVCOL_SPC_BT2020_CL:
   case AVCOL_SPC_BT2020_NCL:
-    fmt.VideoTransferMatrix = (DXVA2_VideoTransferMatrix)4;
+    fmt.VideoTransferMatrix = MFVideoTransferMatrix_BT2020_10;
     break;
   // Custom values, not official standard, but understood by madVR
   case AVCOL_SPC_FCC:
@@ -806,10 +804,10 @@ void fillDXVAExtFormat(DXVA2_ExtendedFormat &fmt, int range, int primaries, int 
     break;
   // Values from newer Windows SDK (MediaFoundation)
   case AVCOL_TRC_SMPTEST2084:
-    fmt.VideoTransferFunction = 15;
+    fmt.VideoTransferFunction = MFVideoTransFunc_2084;
     break;
-  case AVCOL_TRC_ARIB_STD_B67: // HLG
-    fmt.VideoTransferFunction = 16;
+  case AVCOL_TRC_ARIB_STD_B67:
+    fmt.VideoTransferFunction = MFVideoTransFunc_HLG;
     break;
   }
 
