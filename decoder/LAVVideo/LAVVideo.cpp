@@ -2027,6 +2027,10 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
     // Process stream-level sidedata and attach it to the frame if necessary
     if (m_SideData.Mastering.has_colorspace)
     {
+        // preserve HLG setting, as the container can often indicate the corresponding SDR format
+        if (pFrame->ext_format.VideoTransferFunction == MFVideoTransFunc_HLG)
+            m_SideData.Mastering.color_trc = AVCOL_TRC_ARIB_STD_B67;
+
         fillDXVAExtFormat(pFrame->ext_format, m_SideData.Mastering.color_range - 1,
                           m_SideData.Mastering.color_primaries, m_SideData.Mastering.colorspace,
                           m_SideData.Mastering.color_trc, m_SideData.Mastering.chroma_location, false);
