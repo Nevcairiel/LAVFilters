@@ -37,7 +37,7 @@ pick the one with the best quality.
 Audio stream selection offers some flexibility, specifically you can configure your preferred languages.
 The language configuration is straightforward. Just enter a list of 3-letter language codes (ISO 639-2),
 separated by comma or space.
-For example: "eng ger fre". This would try to select a stream matching one of these languages,
+For example: `eng ger fre`. This would try to select a stream matching one of these languages,
 in the order you specified them. First, check if an English track is present, and only if not,
 go to German, and after that, go to French.
 
@@ -62,17 +62,17 @@ languages, no subtitles will be activated. In addition, subtitles flagged "defau
 The advanced mode lets you write your own combinations of rules with a special syntax. It also allows selecting subtitles
 based on the audio language of the file.
 
-The base syntax is simple, it always requires a pair of audio and subtitle language, separated by a colon, for example: "eng:ger"
+The base syntax is simple, it always requires a pair of audio and subtitle language, separated by a colon, for example: `eng:ger`
 In this example, LAV Splitter would select German subtitles if English audio was found.
 
-Instead of language codes, the advanced mode supports two special cases: "*" and "off".
-When you specify "\*" for a language code, it'll match everything. For example "*:eng"  will activate English subtitles, independent
-of the audio language. The reverse is also possible: "eng:*" will activate any subtitles when the audio is English.
+Instead of language codes, the advanced mode supports two special cases: "\*" and "off".
+When you specify "\*" for a language code, it'll match everything. For example `*:eng`  will activate English subtitles, independent
+of the audio language. The reverse is also possible: `eng:*` will activate any subtitles when the audio is English.
 
 The "off" flag is only valid for the subtitle language, and it instructs LAV Splitter to turn the subtitles off.
-So "eng:off" means that when the audio is English, the subtitles will be deactivated.
+So `eng:off` means that when the audio is English, the subtitles will be deactivated.
 
-Additionally to the syntax above, the following flags can be appended to the subtitle token separated by a pipe symbol ("|"):
+Additionally to the syntax above, the following flags can be appended to the subtitle token separated by a pipe symbol (`|`):
  - `d` for default subtitles
  - `f` for forced subtitles
  - `h` for hearing impaired
