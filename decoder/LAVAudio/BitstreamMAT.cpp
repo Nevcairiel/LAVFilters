@@ -181,9 +181,19 @@ void CLAVAudio::MATFlushPacket(HRESULT *hrDeliver)
     {
         ASSERT(m_bsOutput.GetCount() == 61440);
 
+        // normal number of samples per frame
+        uint16_t frame_samples = 40 << (m_TrueHDMATState.ratebits & 7);
+        int nMATSamples = (frame_samples * 24);
+
         // Deliver MAT packet to the audio renderer
         *hrDeliver = DeliverBitstream(m_nCodecId, m_bsOutput.Ptr(), m_bsOutput.GetCount(), m_rtStartInputCache,
-                                      m_rtStopInputCache, true, m_TrueHDMATState.nSamples);
+                                      m_rtStopInputCache, true, m_TrueHDMATState.nSamplesOffset);
+
+        // we expect 24 frames per MAT frame, so calculate an offset from that
+        // this is done after delivery, because it modifies the duration of the frame, eg. the start of the next frame
+        if (nMATSamples != m_TrueHDMATState.nSamples)
+            m_TrueHDMATState.nSamplesOffset += m_TrueHDMATState.nSamples - nMATSamples;
+
         m_bsOutput.SetSize(0);
         m_TrueHDMATState.nSamples = 0;
     }
@@ -290,6 +300,7 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
     {
         // only start streaming on a major sync frame
         m_rtBitstreamCache = AV_NOPTS_VALUE;
+        m_TrueHDMATState.nSamplesOffset = 0;
         return S_FALSE;
     }
 
@@ -304,6 +315,7 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
         {
             DbgLog((LOG_TRACE, 10, _T("BitstreamTrueHD(): Detected a stream discontinuity, reseting framesize cache")));
             m_TrueHDMATState.prev_frametime_valid = false;
+            m_TrueHDMATState.nSamplesOffset = 0;
             space_size = 40 * (64 >> (m_TrueHDMATState.ratebits & 7));
         }
         m_TrueHDMATState.output_timing = output_timing;

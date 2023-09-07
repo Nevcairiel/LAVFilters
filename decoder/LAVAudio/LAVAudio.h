@@ -232,7 +232,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
 
     HRESULT Bitstream(const BYTE *p, int buffsize, int &consumed, HRESULT *hrDeliver);
     HRESULT DeliverBitstream(AVCodecID codec, const BYTE *buffer, DWORD dwSize, REFERENCE_TIME rtStartInput,
-                             REFERENCE_TIME rtStopInput, BOOL bSwap = false, DWORD dwSamples = 0);
+                             REFERENCE_TIME rtStopInput, BOOL bSwap = false, int nSamplesOffset = 0);
 
     HRESULT BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliver);
     void MATWriteHeader();
@@ -376,6 +376,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
 
         DWORD padding = 0;
         DWORD nSamples = 0;
+        int nSamplesOffset = 0;
     } m_TrueHDMATState;
 
     struct
