@@ -176,7 +176,9 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream *avstream, ULONG *si
         return nullptr;
     memset(pvi, 0, sizeof(VIDEOINFOHEADER));
     // Get the frame rate
-    REFERENCE_TIME r_avg = 0, avg_avg = 0, tb_avg = 0;
+    const AVCodecDescriptor *desc = avcodec_descriptor_get(avstream->codecpar->codec_id);
+    bool fields = (desc && (desc->props & AV_CODEC_PROP_FIELDS));
+    REFERENCE_TIME r_avg = 0, avg_avg = 0, codec_avg = 0;
     if (avstream->r_frame_rate.den > 0 && avstream->r_frame_rate.num > 0)
     {
         r_avg = av_rescale(DSHOW_TIME_BASE, avstream->r_frame_rate.den, avstream->r_frame_rate.num);
@@ -185,31 +187,28 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream *avstream, ULONG *si
     {
         avg_avg = av_rescale(DSHOW_TIME_BASE, avstream->avg_frame_rate.den, avstream->avg_frame_rate.num);
     }
-    AVRational codec_tb{};
-    int codec_ticks = 0;
-    av_lav_stream_get_timing_info(avstream, &codec_tb, &codec_ticks);
-    if (codec_tb.den > 0 && codec_tb.num > 0 && codec_ticks > 0)
+    if (avstream->codecpar->framerate.den > 0 && avstream->codecpar->framerate.num > 0)
     {
-        tb_avg = av_rescale(DSHOW_TIME_BASE, codec_tb.num * codec_ticks, codec_tb.den);
+        codec_avg = av_rescale(DSHOW_TIME_BASE, avstream->codecpar->framerate.den, avstream->codecpar->framerate.num);
     }
 
-    DbgLog((LOG_TRACE, 10, L"CreateVIH: r_avg: %I64d, avg_avg: %I64d, tb_avg: %I64d", r_avg, avg_avg, tb_avg));
+    DbgLog((LOG_TRACE, 10, L"CreateVIH: r_avg: %I64d, avg_avg: %I64d, tb_avg: %I64d", r_avg, avg_avg, codec_avg));
     if (r_avg >= MIN_TIME_PER_FRAME && r_avg <= MAX_TIME_PER_FRAME)
         pvi->AvgTimePerFrame = r_avg;
     else if (avg_avg >= MIN_TIME_PER_FRAME && avg_avg <= MAX_TIME_PER_FRAME)
         pvi->AvgTimePerFrame = avg_avg;
-    else if (tb_avg >= MIN_TIME_PER_FRAME && tb_avg <= MAX_TIME_PER_FRAME)
-        pvi->AvgTimePerFrame = tb_avg;
+    else if (codec_avg >= MIN_TIME_PER_FRAME && codec_avg <= MAX_TIME_PER_FRAME)
+        pvi->AvgTimePerFrame = codec_avg;
     else
         pvi->AvgTimePerFrame = r_avg;
 
-    if ((container == "matroska" || container == "mp4") && r_avg && tb_avg &&
+    if ((container == "matroska" || container == "mp4") && r_avg && codec_avg &&
         (avstream->codecpar->codec_id == AV_CODEC_ID_H264 || avstream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO))
     {
-        float factor = (float)r_avg / (float)tb_avg;
+        float factor = (float)r_avg / (float)codec_avg;
         if ((factor > 0.4 && factor < 0.6) || (factor > 1.9 && factor < 2.1))
         {
-            pvi->AvgTimePerFrame = tb_avg;
+            pvi->AvgTimePerFrame = codec_avg;
         }
     }
 
