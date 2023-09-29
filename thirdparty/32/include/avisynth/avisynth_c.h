@@ -2,6 +2,7 @@
 // Copyright 2003 Kevin Atkinson
 
 // Copyright 2020 AviSynth+ project
+// Actual C Interface version follows the global Avisynth+ IF version numbers.
 
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -53,24 +54,37 @@
 //         Example#1: e.g. avs_is_444 will call the existing avs_is_yv24 instead
 //         Example#2: avs_bits_per_component will return 8 for all colorspaces (Classic Avisynth supports only 8 bits/pixel)
 //         Thus the Avisynth+ specific API functions are safely callable even when connected to classic Avisynth DLL
-// 202002xx  non-Windows friendly additions
-// 20200305  avs_vsprintf parameter type change: (void *) to va_list
-// 20200330: (remove test SIZETMOD define for clarity)
-// 20200513: user must use explicite #define AVS26_FALLBACK_SIMULATION for having fallback helpers in dynamic loaded library section
-// 20200513: Follow AviSynth+ V8 interface additions
-//           AVS_VideoFrame struct extended with placeholder for frame property pointer
-//           avs_subframe_planar_a
-//           avs_copy_frame_props
-//           avs_get_frame_props_ro, avs_get_frame_props_rw
-//           avs_prop_num_keys, avs_prop_get_key, avs_prop_num_elements, avs_prop_get_type, avs_prop_get_data_size
-//           avs_prop_get_int, avs_prop_get_float, avs_prop_get_data, avs_prop_get_clip, avs_prop_get_frame, avs_prop_get_int_array, avs_prop_get_float_array
-//           avs_prop_set_int, avs_prop_set_float, avs_prop_set_data, avs_prop_set_clip, avs_prop_set_frame, avs_prop_set_int_array, avs_prop_set_float_array
-//           avs_prop_delete_key, avs_clear_map
-//           avs_new_video_frame_p, avs_new_video_frame_p_a
-//           avs_get_env_property (internal system properties), AVS_AEP_xxx (AvsEnvProperty) enums
-//           avs_get_var_try, avs_get_var_bool, avs_get_var_int, avs_get_var_double, avs_get_var_string, avs_get_var_long
-//           avs_pool_allocate, avs_pool_free
-
+// 2002xx  non-Windows friendly additions
+// 200305  avs_vsprintf parameter type change: (void *) to va_list
+// 200330: (remove test SIZETMOD define for clarity)
+// 200513: user must use explicite #define AVS26_FALLBACK_SIMULATION for having fallback helpers in dynamic loaded library section
+// 200513: Follow AviSynth+ V8 interface additions
+//         AVS_VideoFrame struct extended with placeholder for frame property pointer
+//         avs_subframe_planar_a
+//         avs_copy_frame_props
+//         avs_get_frame_props_ro, avs_get_frame_props_rw
+//         avs_prop_num_keys, avs_prop_get_key, avs_prop_num_elements, avs_prop_get_type, avs_prop_get_data_size
+//         avs_prop_get_int, avs_prop_get_float, avs_prop_get_data, avs_prop_get_clip, avs_prop_get_frame, avs_prop_get_int_array, avs_prop_get_float_array
+//         avs_prop_set_int, avs_prop_set_float, avs_prop_set_data, avs_prop_set_clip, avs_prop_set_frame, avs_prop_set_int_array, avs_prop_set_float_array
+//         avs_prop_delete_key, avs_clear_map
+//         avs_new_video_frame_p, avs_new_video_frame_p_a
+//         avs_get_env_property (internal system properties), AVS_AEP_xxx (AvsEnvProperty) enums
+//         avs_get_var_try, avs_get_var_bool, avs_get_var_int, avs_get_var_double, avs_get_var_string, avs_get_var_long
+//         avs_pool_allocate, avs_pool_free
+// 2021:   Follow AviSynth+ V9 interface additions
+//         avs_is_property_writable, avs_make_property_writable
+//         Add enum AVISYNTHPLUS_INTERFACE_BUGFIX_VERSION (AVISYNTH_INTERFACE_VERSION still exists)
+//         Add enum AVS_AEP_HOST_SYSTEM_ENDIANNESS to system property request types (avs_get_env_property)
+//         Add enums AVS_AEP_INTERFACE_VERSION and AVS_AEP_INTERFACE_BUGFIX for direct interface version system property request types (avs_get_env_property)
+//         Bugfix 9.1: fix avs_prop_get_data
+// 2023:   Follow AviSynth+ V10 interface additions
+//         Add enum AVS_DEFAULT_PLANE (as 0) to plane constants 
+//         prop_src argument now const in avs_new_video_frame_p and avs_new_video_frame_p_a (no change in use)
+//         Add pixel_type to struct AVS_VideoFrame
+//         Add avs_video_frame_get_pixel_type and avs_video_frame_amend_pixel_type for getting and setting AVS_VideoFrame pixel_type
+//         Additional AviSynth+ V10 interface additions:
+//         Add enum AVS_SPEAKER_xxx, AVS_IT_SPEAKER_xxx
+//         audio channel mask support avs_is_channel_mask_known, avs_set_channel_mask, avs_get_channel_mask
 
 #ifndef __AVISYNTH_C__
 #define __AVISYNTH_C__
@@ -85,103 +99,109 @@
 // Constants
 //
 
-#ifndef __AVISYNTH_9_H__
+#ifndef __AVISYNTH_10_H__
 enum {
   AVISYNTH_INTERFACE_CLASSIC_VERSION = 6,
-  AVISYNTH_INTERFACE_VERSION = 9,
-  AVISYNTHPLUS_INTERFACE_BUGFIX_VERSION = 1 // reset to zero whenever the normal interface version bumps
+  AVISYNTH_INTERFACE_VERSION = 10,
+  AVISYNTHPLUS_INTERFACE_BUGFIX_VERSION = 0 // reset to zero whenever the normal interface version bumps
 };
 #endif
 
-enum {AVS_SAMPLE_INT8  = 1<<0,
-      AVS_SAMPLE_INT16 = 1<<1,
-      AVS_SAMPLE_INT24 = 1<<2,
-      AVS_SAMPLE_INT32 = 1<<3,
-      AVS_SAMPLE_FLOAT = 1<<4};
-
-enum {AVS_PLANAR_Y=1<<0,
-      AVS_PLANAR_U=1<<1,
-      AVS_PLANAR_V=1<<2,
-      AVS_PLANAR_ALIGNED=1<<3,
-      AVS_PLANAR_Y_ALIGNED=AVS_PLANAR_Y|AVS_PLANAR_ALIGNED,
-      AVS_PLANAR_U_ALIGNED=AVS_PLANAR_U|AVS_PLANAR_ALIGNED,
-      AVS_PLANAR_V_ALIGNED=AVS_PLANAR_V|AVS_PLANAR_ALIGNED,
-      AVS_PLANAR_A=1<<4,
-      AVS_PLANAR_R=1<<5,
-      AVS_PLANAR_G=1<<6,
-      AVS_PLANAR_B=1<<7,
-      AVS_PLANAR_A_ALIGNED=AVS_PLANAR_A|AVS_PLANAR_ALIGNED,
-      AVS_PLANAR_R_ALIGNED=AVS_PLANAR_R|AVS_PLANAR_ALIGNED,
-      AVS_PLANAR_G_ALIGNED=AVS_PLANAR_G|AVS_PLANAR_ALIGNED,
-      AVS_PLANAR_B_ALIGNED=AVS_PLANAR_B|AVS_PLANAR_ALIGNED};
-
-  // Colorspace properties.
 enum {
-    AVS_CS_YUVA = 1 << 27,
-    AVS_CS_BGR = 1 << 28,
-    AVS_CS_YUV = 1 << 29,
-    AVS_CS_INTERLEAVED = 1 << 30,
-    AVS_CS_PLANAR = 1 << 31,
+  AVS_SAMPLE_INT8  = 1 << 0,
+  AVS_SAMPLE_INT16 = 1 << 1,
+  AVS_SAMPLE_INT24 = 1 << 2,
+  AVS_SAMPLE_INT32 = 1 << 3,
+  AVS_SAMPLE_FLOAT = 1 << 4
+};
 
-    AVS_CS_SHIFT_SUB_WIDTH = 0,
-    AVS_CS_SHIFT_SUB_HEIGHT = 8,
-    AVS_CS_SHIFT_SAMPLE_BITS = 16,
+enum {
+  AVS_DEFAULT_PLANE = 0,
+  AVS_PLANAR_Y = 1 << 0,
+  AVS_PLANAR_U = 1 << 1,
+  AVS_PLANAR_V = 1 << 2,
+  AVS_PLANAR_ALIGNED = 1 << 3,
+  AVS_PLANAR_Y_ALIGNED = AVS_PLANAR_Y | AVS_PLANAR_ALIGNED,
+  AVS_PLANAR_U_ALIGNED = AVS_PLANAR_U | AVS_PLANAR_ALIGNED,
+  AVS_PLANAR_V_ALIGNED = AVS_PLANAR_V | AVS_PLANAR_ALIGNED,
+  AVS_PLANAR_A = 1 << 4,
+  AVS_PLANAR_R = 1 << 5,
+  AVS_PLANAR_G = 1 << 6,
+  AVS_PLANAR_B = 1 << 7,
+  AVS_PLANAR_A_ALIGNED = AVS_PLANAR_A | AVS_PLANAR_ALIGNED,
+  AVS_PLANAR_R_ALIGNED = AVS_PLANAR_R | AVS_PLANAR_ALIGNED,
+  AVS_PLANAR_G_ALIGNED = AVS_PLANAR_G | AVS_PLANAR_ALIGNED,
+  AVS_PLANAR_B_ALIGNED = AVS_PLANAR_B | AVS_PLANAR_ALIGNED
+};
 
-    AVS_CS_SUB_WIDTH_MASK = 7 << AVS_CS_SHIFT_SUB_WIDTH,
-    AVS_CS_SUB_WIDTH_1 = 3 << AVS_CS_SHIFT_SUB_WIDTH, // YV24
-    AVS_CS_SUB_WIDTH_2 = 0 << AVS_CS_SHIFT_SUB_WIDTH, // YV12, I420, YV16
-    AVS_CS_SUB_WIDTH_4 = 1 << AVS_CS_SHIFT_SUB_WIDTH, // YUV9, YV411
+// Colorspace properties.
+enum {
+  AVS_CS_YUVA = 1 << 27,
+  AVS_CS_BGR = 1 << 28,
+  AVS_CS_YUV = 1 << 29,
+  AVS_CS_INTERLEAVED = 1 << 30,
+  AVS_CS_PLANAR = 1 << 31,
 
-    AVS_CS_VPLANEFIRST = 1 << 3, // YV12, YV16, YV24, YV411, YUV9
-    AVS_CS_UPLANEFIRST = 1 << 4, // I420
+  AVS_CS_SHIFT_SUB_WIDTH = 0,
+  AVS_CS_SHIFT_SUB_HEIGHT = 8,
+  AVS_CS_SHIFT_SAMPLE_BITS = 16,
 
-    AVS_CS_SUB_HEIGHT_MASK = 7 << AVS_CS_SHIFT_SUB_HEIGHT,
-    AVS_CS_SUB_HEIGHT_1 = 3 << AVS_CS_SHIFT_SUB_HEIGHT, // YV16, YV24, YV411
-    AVS_CS_SUB_HEIGHT_2 = 0 << AVS_CS_SHIFT_SUB_HEIGHT, // YV12, I420
-    AVS_CS_SUB_HEIGHT_4 = 1 << AVS_CS_SHIFT_SUB_HEIGHT, // YUV9
+  AVS_CS_SUB_WIDTH_MASK = 7 << AVS_CS_SHIFT_SUB_WIDTH,
+  AVS_CS_SUB_WIDTH_1 = 3 << AVS_CS_SHIFT_SUB_WIDTH, // YV24
+  AVS_CS_SUB_WIDTH_2 = 0 << AVS_CS_SHIFT_SUB_WIDTH, // YV12, I420, YV16
+  AVS_CS_SUB_WIDTH_4 = 1 << AVS_CS_SHIFT_SUB_WIDTH, // YUV9, YV411
 
-    AVS_CS_SAMPLE_BITS_MASK = 7 << AVS_CS_SHIFT_SAMPLE_BITS,
-    AVS_CS_SAMPLE_BITS_8 = 0 << AVS_CS_SHIFT_SAMPLE_BITS,
-    AVS_CS_SAMPLE_BITS_10 = 5 << AVS_CS_SHIFT_SAMPLE_BITS,
-    AVS_CS_SAMPLE_BITS_12 = 6 << AVS_CS_SHIFT_SAMPLE_BITS,
-    AVS_CS_SAMPLE_BITS_14 = 7 << AVS_CS_SHIFT_SAMPLE_BITS,
-    AVS_CS_SAMPLE_BITS_16 = 1 << AVS_CS_SHIFT_SAMPLE_BITS,
-    AVS_CS_SAMPLE_BITS_32 = 2 << AVS_CS_SHIFT_SAMPLE_BITS,
+  AVS_CS_VPLANEFIRST = 1 << 3, // YV12, YV16, YV24, YV411, YUV9
+  AVS_CS_UPLANEFIRST = 1 << 4, // I420
 
-    AVS_CS_PLANAR_MASK = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV | AVS_CS_BGR | AVS_CS_YUVA | AVS_CS_SAMPLE_BITS_MASK | AVS_CS_SUB_HEIGHT_MASK | AVS_CS_SUB_WIDTH_MASK,
-    AVS_CS_PLANAR_FILTER = ~(AVS_CS_VPLANEFIRST | AVS_CS_UPLANEFIRST),
+  AVS_CS_SUB_HEIGHT_MASK = 7 << AVS_CS_SHIFT_SUB_HEIGHT,
+  AVS_CS_SUB_HEIGHT_1 = 3 << AVS_CS_SHIFT_SUB_HEIGHT, // YV16, YV24, YV411
+  AVS_CS_SUB_HEIGHT_2 = 0 << AVS_CS_SHIFT_SUB_HEIGHT, // YV12, I420
+  AVS_CS_SUB_HEIGHT_4 = 1 << AVS_CS_SHIFT_SUB_HEIGHT, // YUV9
 
-    AVS_CS_RGB_TYPE  = 1 << 0,
-    AVS_CS_RGBA_TYPE = 1 << 1,
+  AVS_CS_SAMPLE_BITS_MASK = 7 << AVS_CS_SHIFT_SAMPLE_BITS,
+  AVS_CS_SAMPLE_BITS_8 = 0 << AVS_CS_SHIFT_SAMPLE_BITS,
+  AVS_CS_SAMPLE_BITS_10 = 5 << AVS_CS_SHIFT_SAMPLE_BITS,
+  AVS_CS_SAMPLE_BITS_12 = 6 << AVS_CS_SHIFT_SAMPLE_BITS,
+  AVS_CS_SAMPLE_BITS_14 = 7 << AVS_CS_SHIFT_SAMPLE_BITS,
+  AVS_CS_SAMPLE_BITS_16 = 1 << AVS_CS_SHIFT_SAMPLE_BITS,
+  AVS_CS_SAMPLE_BITS_32 = 2 << AVS_CS_SHIFT_SAMPLE_BITS,
 
-    AVS_CS_GENERIC_YUV420  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2,  // 4:2:0 planar
-    AVS_CS_GENERIC_YUV422  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_2,  // 4:2:2 planar
-    AVS_CS_GENERIC_YUV444  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_1,  // 4:4:4 planar
-    AVS_CS_GENERIC_Y       = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV,                                             // Y only (4:0:0)
-    AVS_CS_GENERIC_RGBP    = AVS_CS_PLANAR | AVS_CS_BGR | AVS_CS_RGB_TYPE,                                                // planar RGB
-    AVS_CS_GENERIC_RGBAP   = AVS_CS_PLANAR | AVS_CS_BGR | AVS_CS_RGBA_TYPE,                                               // planar RGBA
-    AVS_CS_GENERIC_YUVA420 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2, // 4:2:0:A planar
-    AVS_CS_GENERIC_YUVA422 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_2, // 4:2:2:A planar
-    AVS_CS_GENERIC_YUVA444 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_1 }; // 4:4:4:A planar
+  AVS_CS_PLANAR_MASK = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV | AVS_CS_BGR | AVS_CS_YUVA
+                       | AVS_CS_SAMPLE_BITS_MASK | AVS_CS_SUB_WIDTH_MASK | AVS_CS_SUB_HEIGHT_MASK,
+  AVS_CS_PLANAR_FILTER = ~(AVS_CS_VPLANEFIRST | AVS_CS_UPLANEFIRST),
 
+  AVS_CS_RGB_TYPE  = 1 << 0,
+  AVS_CS_RGBA_TYPE = 1 << 1,
 
-  // Specific color formats
+  AVS_CS_GENERIC_YUV444  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_1 | AVS_CS_SUB_HEIGHT_1,  // 4:4:4 planar
+  AVS_CS_GENERIC_YUV422  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_2 | AVS_CS_SUB_HEIGHT_1,  // 4:2:2 planar
+  AVS_CS_GENERIC_YUV420  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_2 | AVS_CS_SUB_HEIGHT_2,  // 4:2:0 planar
+  AVS_CS_GENERIC_Y       = AVS_CS_PLANAR | AVS_CS_INTERLEAVED | AVS_CS_YUV,                                             // Y only (4:0:0)
+  AVS_CS_GENERIC_RGBP    = AVS_CS_PLANAR | AVS_CS_BGR | AVS_CS_RGB_TYPE,                                                // planar RGB
+  AVS_CS_GENERIC_RGBAP   = AVS_CS_PLANAR | AVS_CS_BGR | AVS_CS_RGBA_TYPE,                                               // planar RGBA
+  AVS_CS_GENERIC_YUVA444 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_1 | AVS_CS_SUB_HEIGHT_1, // 4:4:4:A planar
+  AVS_CS_GENERIC_YUVA422 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_2 | AVS_CS_SUB_HEIGHT_1, // 4:2:2:A planar
+  AVS_CS_GENERIC_YUVA420 = AVS_CS_PLANAR | AVS_CS_YUVA | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_2 | AVS_CS_SUB_HEIGHT_2  // 4:2:0:A planar
+};
+
+// Specific color formats
 enum {
   AVS_CS_UNKNOWN = 0,
   AVS_CS_BGR24 = AVS_CS_RGB_TYPE  | AVS_CS_BGR | AVS_CS_INTERLEAVED,
   AVS_CS_BGR32 = AVS_CS_RGBA_TYPE | AVS_CS_BGR | AVS_CS_INTERLEAVED,
-  AVS_CS_YUY2 = 1<<2 | AVS_CS_YUV | AVS_CS_INTERLEAVED,
-  //  AVS_CS_YV12  = 1<<3  Reserved
-  //  AVS_CS_I420  = 1<<4  Reserved
-  AVS_CS_RAW32 = 1<<5 | AVS_CS_INTERLEAVED,
+  AVS_CS_YUY2 = 1 << 2 | AVS_CS_YUV | AVS_CS_INTERLEAVED,
+  // AVS_CS_YV12 = 1 << 3   Reserved
+  // AVS_CS_I420 = 1 << 4   Reserved
+  AVS_CS_RAW32 = 1 << 5 | AVS_CS_INTERLEAVED,
 
   AVS_CS_YV24  = AVS_CS_GENERIC_YUV444 | AVS_CS_SAMPLE_BITS_8,  // YUV 4:4:4 planar
   AVS_CS_YV16  = AVS_CS_GENERIC_YUV422 | AVS_CS_SAMPLE_BITS_8,  // YUV 4:2:2 planar
   AVS_CS_YV12  = AVS_CS_GENERIC_YUV420 | AVS_CS_SAMPLE_BITS_8,  // YUV 4:2:0 planar
-  AVS_CS_I420  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_UPLANEFIRST | AVS_CS_SUB_HEIGHT_2 | AVS_CS_SUB_WIDTH_2,  // YUV 4:2:0 planar
+  AVS_CS_I420  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_UPLANEFIRST | AVS_CS_SUB_WIDTH_2 | AVS_CS_SUB_HEIGHT_2,  // YUV 4:2:0 planar
   AVS_CS_IYUV  = AVS_CS_I420,
-  AVS_CS_YV411 = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_1 | AVS_CS_SUB_WIDTH_4,  // YUV 4:1:1 planar
-  AVS_CS_YUV9  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_VPLANEFIRST | AVS_CS_SUB_HEIGHT_4 | AVS_CS_SUB_WIDTH_4,  // YUV 4:1:0 planar
+  AVS_CS_YV411 = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_4 | AVS_CS_SUB_HEIGHT_1,  // YUV 4:1:1 planar
+  AVS_CS_YUV9  = AVS_CS_PLANAR | AVS_CS_YUV | AVS_CS_SAMPLE_BITS_8 | AVS_CS_VPLANEFIRST | AVS_CS_SUB_WIDTH_4 | AVS_CS_SUB_HEIGHT_4,  // YUV 4:1:0 planar
   AVS_CS_Y8    = AVS_CS_GENERIC_Y | AVS_CS_SAMPLE_BITS_8,       // Y   4:0:0 planar
 
   //-------------------------
@@ -258,31 +278,94 @@ enum {
   AVS_CS_YUVA444PS  = AVS_CS_GENERIC_YUVA444 | AVS_CS_SAMPLE_BITS_32,  // YUVA 4:4:4 32bit samples
   AVS_CS_YUVA422PS  = AVS_CS_GENERIC_YUVA422 | AVS_CS_SAMPLE_BITS_32,  // YUVA 4:2:2 32bit samples
   AVS_CS_YUVA420PS  = AVS_CS_GENERIC_YUVA420 | AVS_CS_SAMPLE_BITS_32,  // YUVA 4:2:0 32bit samples
+};
 
+// AvsChannelMask enum: Unshifted channel mask constants like in WAVEFORMATEXTENSIBLE
+// in AvsImageTypeFlags they are shifted by 4 bits
+enum {
+  AVS_MASK_SPEAKER_FRONT_LEFT = 0x1,
+  AVS_MASK_SPEAKER_FRONT_RIGHT = 0x2,
+  AVS_MASK_SPEAKER_FRONT_CENTER = 0x4,
+  AVS_MASK_SPEAKER_LOW_FREQUENCY = 0x8,
+  AVS_MASK_SPEAKER_BACK_LEFT = 0x10,
+  AVS_MASK_SPEAKER_BACK_RIGHT = 0x20,
+  AVS_MASK_SPEAKER_FRONT_LEFT_OF_CENTER = 0x40,
+  AVS_MASK_SPEAKER_FRONT_RIGHT_OF_CENTER = 0x80,
+  AVS_MASK_SPEAKER_BACK_CENTER = 0x100,
+  AVS_MASK_SPEAKER_SIDE_LEFT = 0x200,
+  AVS_MASK_SPEAKER_SIDE_RIGHT = 0x400,
+  AVS_MASK_SPEAKER_TOP_CENTER = 0x800,
+  AVS_MASK_SPEAKER_TOP_FRONT_LEFT = 0x1000,
+  AVS_MASK_SPEAKER_TOP_FRONT_CENTER = 0x2000,
+  AVS_MASK_SPEAKER_TOP_FRONT_RIGHT = 0x4000,
+  AVS_MASK_SPEAKER_TOP_BACK_LEFT = 0x8000,
+  AVS_MASK_SPEAKER_TOP_BACK_CENTER = 0x10000,
+  AVS_MASK_SPEAKER_TOP_BACK_RIGHT = 0x20000,
+  // Bit mask locations used up for the above positions
+  AVS_MASK_SPEAKER_DEFINED = 0x0003FFFF,
+  // Bit mask locations reserved for future use
+  AVS_MASK_SPEAKER_RESERVED = 0x7FFC0000,
+  // Used to specify that any possible permutation of speaker configurations
+  // Due to lack of available bits this one is put differently into image_type
+  AVS_MASK_SPEAKER_ALL = 0x80000000
+};
+
+// AvsImageTypeFlags
+enum {
+  AVS_IT_BFF = 1 << 0,
+  AVS_IT_TFF = 1 << 1,
+  AVS_IT_FIELDBASED = 1 << 2,
+
+  // Audio channel mask support
+  AVS_IT_HAS_CHANNELMASK = 1 << 3,
+  // shifted by 4 bits compared to WAVEFORMATEXTENSIBLE dwChannelMask
+  // otherwise same as AvsChannelMask
+  AVS_IT_SPEAKER_FRONT_LEFT = 0x1 << 4,
+  AVS_IT_SPEAKER_FRONT_RIGHT = 0x2 << 4,
+  AVS_IT_SPEAKER_FRONT_CENTER = 0x4 << 4,
+  AVS_IT_SPEAKER_LOW_FREQUENCY = 0x8 << 4,
+  AVS_IT_SPEAKER_BACK_LEFT = 0x10 << 4,
+  AVS_IT_SPEAKER_BACK_RIGHT = 0x20 << 4,
+  AVS_IT_SPEAKER_FRONT_LEFT_OF_CENTER = 0x40 << 4,
+  AVS_IT_SPEAKER_FRONT_RIGHT_OF_CENTER = 0x80 << 4,
+  AVS_IT_SPEAKER_BACK_CENTER = 0x100 << 4,
+  AVS_IT_SPEAKER_SIDE_LEFT = 0x200 << 4,
+  AVS_IT_SPEAKER_SIDE_RIGHT = 0x400 << 4,
+  AVS_IT_SPEAKER_TOP_CENTER = 0x800 << 4,
+  AVS_IT_SPEAKER_TOP_FRONT_LEFT = 0x1000 << 4,
+  AVS_IT_SPEAKER_TOP_FRONT_CENTER = 0x2000 << 4,
+  AVS_IT_SPEAKER_TOP_FRONT_RIGHT = 0x4000 << 4,
+  AVS_IT_SPEAKER_TOP_BACK_LEFT = 0x8000 << 4,
+  AVS_IT_SPEAKER_TOP_BACK_CENTER = 0x10000 << 4,
+  AVS_IT_SPEAKER_TOP_BACK_RIGHT = 0x20000 << 4,
+  // End of officially defined speaker bits
+  // The next one is special, since cannot shift SPEAKER_ALL 0x80000000 further.
+  // Set mask and get mask handles it.
+  AVS_IT_SPEAKER_ALL = 0x40000 << 4,
+  // Mask for the defined 18 bits + SPEAKER_ALL
+  AVS_IT_SPEAKER_BITS_MASK = (AVS_MASK_SPEAKER_DEFINED << 4) | AVS_IT_SPEAKER_ALL,
+  AVS_IT_NEXT_AVAILABLE = 1 << 23
 };
 
 enum {
-  AVS_IT_BFF = 1<<0,
-  AVS_IT_TFF = 1<<1,
-  AVS_IT_FIELDBASED = 1<<2};
+  AVS_FILTER_TYPE = 1,
+  AVS_FILTER_INPUT_COLORSPACE = 2,
+  AVS_FILTER_OUTPUT_TYPE = 9,
+  AVS_FILTER_NAME = 4,
+  AVS_FILTER_AUTHOR = 5,
+  AVS_FILTER_VERSION = 6,
+  AVS_FILTER_ARGS = 7,
+  AVS_FILTER_ARGS_INFO = 8,
+  AVS_FILTER_ARGS_DESCRIPTION = 10,
+  AVS_FILTER_DESCRIPTION = 11
+};
 
-enum {
-  AVS_FILTER_TYPE=1,
-  AVS_FILTER_INPUT_COLORSPACE=2,
-  AVS_FILTER_OUTPUT_TYPE=9,
-  AVS_FILTER_NAME=4,
-  AVS_FILTER_AUTHOR=5,
-  AVS_FILTER_VERSION=6,
-  AVS_FILTER_ARGS=7,
-  AVS_FILTER_ARGS_INFO=8,
-  AVS_FILTER_ARGS_DESCRIPTION=10,
-  AVS_FILTER_DESCRIPTION=11};
-
-enum {  //SUBTYPES
-  AVS_FILTER_TYPE_AUDIO=1,
-  AVS_FILTER_TYPE_VIDEO=2,
-  AVS_FILTER_OUTPUT_TYPE_SAME=3,
-  AVS_FILTER_OUTPUT_TYPE_DIFFERENT=4};
+enum {  // SUBTYPES
+  AVS_FILTER_TYPE_AUDIO = 1,
+  AVS_FILTER_TYPE_VIDEO = 2,
+  AVS_FILTER_OUTPUT_TYPE_SAME = 3,
+  AVS_FILTER_OUTPUT_TYPE_DIFFERENT = 4
+};
 
 enum {
   // New 2.6 explicitly defined cache hints.
@@ -295,41 +378,48 @@ enum {
   AVS_CACHE_GET_WINDOW = 31, // Get the current window h_span.
   AVS_CACHE_GET_RANGE = 32, // Get the current generic frame range.
 
+  // Set Audio cache mode and answers to CACHE_GETCHILD_AUDIO_MODE
   AVS_CACHE_AUDIO = 50, // Explicitly do cache audio, X byte cache.
   AVS_CACHE_AUDIO_NOTHING = 51, // Explicitly do not cache audio.
   AVS_CACHE_AUDIO_NONE = 52, // Audio cache off (auto mode), X byte initial cache.
+  AVS_CACHE_AUDIO_AUTO_START_OFF = 52, // synonym
   AVS_CACHE_AUDIO_AUTO = 53, // Audio cache on (auto mode), X byte initial cache.
+  AVS_CACHE_AUDIO_AUTO_START_ON = 53, // synonym
 
+  // These just returns actual value if clip is cached
   AVS_CACHE_GET_AUDIO_POLICY = 70, // Get the current audio policy.
   AVS_CACHE_GET_AUDIO_SIZE = 71, // Get the current audio cache size.
 
-  AVS_CACHE_PREFETCH_FRAME = 100, // Queue request to prefetch frame N.
-  AVS_CACHE_PREFETCH_GO = 101, // Action video prefetches.
+  AVS_CACHE_PREFETCH_FRAME = 100, // n/a Queue request to prefetch frame N.
+  AVS_CACHE_PREFETCH_GO = 101, // n/a Action video prefetches.
 
-  AVS_CACHE_PREFETCH_AUDIO_BEGIN = 120, // Begin queue request transaction to prefetch audio (take critical section).
-  AVS_CACHE_PREFETCH_AUDIO_STARTLO = 121, // Set low 32 bits of start.
-  AVS_CACHE_PREFETCH_AUDIO_STARTHI = 122, // Set high 32 bits of start.
-  AVS_CACHE_PREFETCH_AUDIO_COUNT = 123, // Set low 32 bits of length.
-  AVS_CACHE_PREFETCH_AUDIO_COMMIT = 124, // Enqueue request transaction to prefetch audio (release critical section).
-  AVS_CACHE_PREFETCH_AUDIO_GO = 125, // Action audio prefetches.
+  AVS_CACHE_PREFETCH_AUDIO_BEGIN = 120, // n/a Begin queue request transaction to prefetch audio (take critical section).
+  AVS_CACHE_PREFETCH_AUDIO_STARTLO = 121, // n/a Set low 32 bits of start.
+  AVS_CACHE_PREFETCH_AUDIO_STARTHI = 122, // n/a Set high 32 bits of start.
+  AVS_CACHE_PREFETCH_AUDIO_COUNT = 123, // n/a Set low 32 bits of length.
+  AVS_CACHE_PREFETCH_AUDIO_COMMIT = 124, // n/a Enqueue request transaction to prefetch audio (release critical section).
+  AVS_CACHE_PREFETCH_AUDIO_GO = 125, // n/a Action audio prefetches.
 
-  AVS_CACHE_GETCHILD_CACHE_MODE = 200, // Cache ask Child for desired video cache mode.
-  AVS_CACHE_GETCHILD_CACHE_SIZE = 201, // Cache ask Child for desired video cache size.
+  AVS_CACHE_GETCHILD_CACHE_MODE = 200, // n/a Cache ask Child for desired video cache mode.
+  AVS_CACHE_GETCHILD_CACHE_SIZE = 201, // n/a Cache ask Child for desired video cache size.
+
+  // Filters are queried about their desired audio cache mode.
+  // Child can answer them with CACHE_AUDIO_xxx
   AVS_CACHE_GETCHILD_AUDIO_MODE = 202, // Cache ask Child for desired audio cache mode.
   AVS_CACHE_GETCHILD_AUDIO_SIZE = 203, // Cache ask Child for desired audio cache size.
 
-  AVS_CACHE_GETCHILD_COST = 220, // Cache ask Child for estimated processing cost.
-  AVS_CACHE_COST_ZERO = 221, // Child response of zero cost (ptr arithmetic only).
-  AVS_CACHE_COST_UNIT = 222, // Child response of unit cost (less than or equal 1 full frame blit).
-  AVS_CACHE_COST_LOW = 223, // Child response of light cost. (Fast)
-  AVS_CACHE_COST_MED = 224, // Child response of medium cost. (Real time)
-  AVS_CACHE_COST_HI = 225, // Child response of heavy cost. (Slow)
+  AVS_CACHE_GETCHILD_COST = 220, // n/a Cache ask Child for estimated processing cost.
+  AVS_CACHE_COST_ZERO = 221, // n/a Child response of zero cost (ptr arithmetic only).
+  AVS_CACHE_COST_UNIT = 222, // n/a Child response of unit cost (less than or equal 1 full frame blit).
+  AVS_CACHE_COST_LOW = 223, // n/a Child response of light cost. (Fast)
+  AVS_CACHE_COST_MED = 224, // n/a Child response of medium cost. (Real time)
+  AVS_CACHE_COST_HI = 225, // n/a Child response of heavy cost. (Slow)
 
-  AVS_CACHE_GETCHILD_THREAD_MODE = 240, // Cache ask Child for thread safety.
-  AVS_CACHE_THREAD_UNSAFE = 241, // Only 1 thread allowed for all instances. 2.5 filters default!
-  AVS_CACHE_THREAD_CLASS = 242, // Only 1 thread allowed for each instance. 2.6 filters default!
-  AVS_CACHE_THREAD_SAFE = 243, //  Allow all threads in any instance.
-  AVS_CACHE_THREAD_OWN = 244, // Safe but limit to 1 thread, internally threaded.
+  AVS_CACHE_GETCHILD_THREAD_MODE = 240, // n/a Cache ask Child for thread safety.
+  AVS_CACHE_THREAD_UNSAFE = 241, // n/a Only 1 thread allowed for all instances. 2.5 filters default!
+  AVS_CACHE_THREAD_CLASS = 242, // n/a Only 1 thread allowed for each instance. 2.6 filters default!
+  AVS_CACHE_THREAD_SAFE = 243, // n/a Allow all threads in any instance.
+  AVS_CACHE_THREAD_OWN = 244, // n/a Safe but limit to 1 thread, internally threaded.
 
   AVS_CACHE_GETCHILD_ACCESS_COST = 260, // Cache ask Child for preferred access pattern.
   AVS_CACHE_ACCESS_RAND = 261, // Filter is access order agnostic.
@@ -346,10 +436,12 @@ enum {
   AVS_CACHE_GET_SIZE = 506,
   AVS_CACHE_GET_REQUESTED_CAP = 507,
   AVS_CACHE_GET_CAPACITY = 508,
-  AVS_CACHE_GET_MTMODE = 509,
+  AVS_CACHE_GET_MTMODE = 509,                 // Filters specify their desired MT mode, see enum MtMode
 
+  // By returning IS_CACHE_ANS to IS_CACHE_REQ, we tell the caller we are a cache
   AVS_CACHE_IS_CACHE_REQ = 510,
   AVS_CACHE_IS_CACHE_ANS = 511,
+  // By returning IS_MTGUARD_ANS to IS_MTGUARD_REQ, we tell the caller we are an mt guard
   AVS_CACHE_IS_MTGUARD_REQ = 512,
   AVS_CACHE_IS_MTGUARD_ANS = 513,
 
@@ -359,7 +451,6 @@ enum {
   AVS_CACHE_GET_CHILD_DEV_TYPE = 602,    // Device types a fitler can receive
 
   AVS_CACHE_USER_CONSTANTS = 1000       // Smaller values are reserved for the core
-
 };
 
 
@@ -390,8 +481,7 @@ enum {
 };
 
 // AvsEnvProperty for avs_get_env_property
-enum
-{
+enum {
   AVS_AEP_PHYSICAL_CPUS = 1,
   AVS_AEP_LOGICAL_CPUS = 2,
   AVS_AEP_THREADPOOL_THREADS = 3,
@@ -450,7 +540,8 @@ typedef struct AVS_VideoInfo {
   int nchannels;
 
   // Image type properties
-
+  // BFF, TFF, FIELDBASED. Also used for storing Channel Mask
+  // Manipulate it through the channelmask interface calls 
   int image_type;
 } AVS_VideoInfo;
 
@@ -631,6 +722,13 @@ AVSC_API(int, avs_component_size)(const AVS_VideoInfo * p);
 
 AVSC_API(int, avs_bits_per_component)(const AVS_VideoInfo * p);
 
+// V10
+AVSC_API(bool, avs_is_channel_mask_known)(const AVS_VideoInfo* p);
+
+AVSC_API(void, avs_set_channel_mask)(const AVS_VideoInfo* p, bool isChannelMaskKnown, unsigned int dwChannelMask);
+
+AVSC_API(unsigned int, avs_get_channel_mask)(const AVS_VideoInfo* p);
+
 // end of Avisynth+ specific
 
 /////////////////////////////////////////////////////////////////////
@@ -660,12 +758,14 @@ typedef struct AVS_VideoFrameBuffer {
 
 // VideoFrame holds a "window" into a VideoFrameBuffer.
 
-// AVS_VideoFrame is laid out identically to IVideoFrame
+// AVS_VideoFrame is laid out identically to VideoFrame
 // DO NOT USE THIS STRUCTURE DIRECTLY
 typedef struct AVS_VideoFrame {
   volatile long refcount;
   AVS_VideoFrameBuffer * vfb;
   int offset;
+  // DO NOT USE THEM DIRECTLY
+  // Use avs_get_pitch_p, avs_get_row_size_p, avs_get_height_p
   int pitch, row_size, height;
   int offsetU, offsetV;
   int pitchUV;  // U&V offsets are from top of picture.
@@ -675,7 +775,10 @@ typedef struct AVS_VideoFrame {
   // AVS+ extension, avisynth.h: class does not break plugins if appended here
   int offsetA;
   int pitchA, row_sizeA; // 4th alpha plane support, pitch and row_size is 0 is none
-  void* properties; // frame properties
+  void* properties; // interface V8: frame properties
+  // DO NOT USE DIRECTLY
+  // Use avs_video_frame_get_pixel_type (and avs_video_frame_amend_pixel_type in special cases)
+  int pixel_type; // Interface V10: an automatically maintained copy from AVS_VideoInfo
 } AVS_VideoFrame;
 
 // Access functions for AVS_VideoFrame
@@ -697,6 +800,11 @@ AVSC_API(BYTE *, avs_get_write_ptr_p)(const AVS_VideoFrame * p, int plane);
 AVSC_API(void, avs_release_video_frame)(AVS_VideoFrame *);
 // makes a shallow copy of a video frame
 AVSC_API(AVS_VideoFrame *, avs_copy_video_frame)(AVS_VideoFrame *);
+
+// V10
+AVSC_API(int, avs_video_frame_get_pixel_type)(const AVS_VideoFrame* p);
+// V10
+AVSC_API(void, avs_video_frame_amend_pixel_type)(AVS_VideoFrame* p, int new_pixel_type);
 
 // no API for these, inline helper functions
 #ifndef AVSC_NO_DECLSPEC
@@ -1060,6 +1168,7 @@ AVSC_API(char, avs_prop_get_type)(AVS_ScriptEnvironment* p, const AVS_Map* map, 
 // see AVS_GETPROPERROR_... enums
 AVSC_API(int64_t, avs_prop_get_int)(AVS_ScriptEnvironment* p, const AVS_Map* map, const char* key, int index, int* error);
 AVSC_API(double, avs_prop_get_float)(AVS_ScriptEnvironment* p, const AVS_Map* map, const char* key, int index, int* error);
+// Note: avs_prop_get_data was fixed in interface V9.1
 AVSC_API(const char*, avs_prop_get_data)(AVS_ScriptEnvironment* p, const AVS_Map* map, const char* key, int index, int* error);
 AVSC_API(int, avs_prop_get_data_size)(AVS_ScriptEnvironment* p, const AVS_Map* map, const char* key, int index, int* error);
 AVSC_API(AVS_Clip*, avs_prop_get_clip)(AVS_ScriptEnvironment* p, const AVS_Map* map, const char* key, int index, int* error);
@@ -1083,11 +1192,11 @@ AVSC_API(void, avs_clear_map)(AVS_ScriptEnvironment* p, AVS_Map* map);
 
 // with frame property source
 AVSC_API(AVS_VideoFrame*, avs_new_video_frame_p)(AVS_ScriptEnvironment*,
-  const AVS_VideoInfo* vi, AVS_VideoFrame* propSrc);
+  const AVS_VideoInfo* vi, const AVS_VideoFrame* prop_src);
 
 // with frame property source
 AVSC_API(AVS_VideoFrame*, avs_new_video_frame_p_a)(AVS_ScriptEnvironment*,
-  const AVS_VideoInfo* vi, AVS_VideoFrame* propSrc, int align);
+  const AVS_VideoInfo* vi, const AVS_VideoFrame* prop_src, int align);
 
 // Generic query to ask for various system properties, see AVS_AEP_xxx enums
 AVSC_API(size_t, avs_get_env_property)(AVS_ScriptEnvironment*, int avs_aep_prop);
@@ -1139,9 +1248,9 @@ typedef struct AVS_Library AVS_Library;
 // e.g. "AVSC_DECLARE_FUNC(avs_add_function);"
 // is a shortcut for "avs_add_function_func avs_add_function;"
 
-// Note: AVSC_INLINE functions which call into API,
-// are guarded by #ifndef AVSC_NO_DECLSPEC
-// They should call the appropriate library-> API entry
+// Note: AVSC_INLINE functions, which call into API,
+// are guarded by #ifndef AVSC_NO_DECLSPEC.
+// They should call the appropriate library-> API entry.
 
 struct AVS_Library {
   HMODULE handle;
@@ -1280,6 +1389,16 @@ struct AVS_Library {
   // V9
   AVSC_DECLARE_FUNC(avs_is_property_writable);
   AVSC_DECLARE_FUNC(avs_make_property_writable);
+
+  // V10
+  AVSC_DECLARE_FUNC(avs_video_frame_get_pixel_type);
+  AVSC_DECLARE_FUNC(avs_video_frame_amend_pixel_type);
+
+  // V10
+  AVSC_DECLARE_FUNC(avs_is_channel_mask_known);
+  AVSC_DECLARE_FUNC(avs_set_channel_mask);
+  AVSC_DECLARE_FUNC(avs_get_channel_mask);
+
 };
 
 #undef AVSC_DECLARE_FUNC
@@ -1517,6 +1636,19 @@ avs_bits_per_component    constant 8 (8 bits/component)
 
   AVSC_LOAD_FUNC(avs_pool_allocate);
   AVSC_LOAD_FUNC(avs_pool_free);
+
+  // V9
+  AVSC_LOAD_FUNC(avs_make_property_writable);
+  AVSC_LOAD_FUNC(avs_is_property_writable);
+
+  // V10
+  AVSC_LOAD_FUNC(avs_video_frame_get_pixel_type);
+  AVSC_LOAD_FUNC(avs_video_frame_amend_pixel_type);
+
+  // V10
+  AVSC_LOAD_FUNC(avs_is_channel_mask_known);
+  AVSC_LOAD_FUNC(avs_set_channel_mask);
+  AVSC_LOAD_FUNC(avs_get_channel_mask);
 
 #undef __AVSC_STRINGIFY
 #undef AVSC_STRINGIFY

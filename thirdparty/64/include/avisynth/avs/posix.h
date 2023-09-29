@@ -66,6 +66,8 @@
 
 #define InterlockedIncrement(x) __sync_add_and_fetch((x), 1)
 #define InterlockedDecrement(x) __sync_sub_and_fetch((x), 1)
+#define InterlockedExchangeAdd(x, v) __sync_add_and_fetch((x), (v))
+
 #define MulDiv(nNumber, nNumerator, nDenominator)   (int32_t) (((int64_t) (nNumber) * (int64_t) (nNumerator) + (int64_t) ((nDenominator)/2)) / (int64_t) (nDenominator))
 
 #ifndef TRUE

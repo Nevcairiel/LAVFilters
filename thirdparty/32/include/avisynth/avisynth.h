@@ -23,7 +23,19 @@
 //           Interface Version to 8 (classic 2.6 = 6)
 // 20200527  Add IScriptEnvironment_Avs25, used internally
 // 20200607  AVS frame property enums to match existing Avisynth enum style
-// 202112xx  pre V9-MakePropertyWritable, IsPropertyWritable
+// 202112xx  V9-MakePropertyWritable, IsPropertyWritable
+// 2023      V10
+//           prop_src parameter made as const in NewVideoFrameP (non-breaking cosmetics)
+//           Add all enums of public C++ API a name
+//           Add DEFAULT_PLANE as 0 to AvsPlane enum
+//           Made `VideoFrameBuffer` destructor public
+//           Introduce pixel_type to VideoFrame struct
+//           VideoFrame::GetPixelType,VideoFrame::AmendPixelType
+//           AVSValue::GetType
+//           Add enum AvsChannelMask::MASK_SPEAKER_xxx, AvsImageTypeFlags::IT_SPEAKER_xxx
+//           Audio channel mask support for VideoInfo: 
+//           Use 20 bits in VideoInfo::image_type for channel mask mapping
+//           IsChannelMaskKnown, SetChannelMask, GetChannelMask in VideoInfo
 
 // http://www.avisynth.org
 
@@ -60,8 +72,8 @@
 // graphical user interfaces.
 
 
-#ifndef __AVISYNTH_9_H__
-#define __AVISYNTH_9_H__
+#ifndef __AVISYNTH_10_H__
+#define __AVISYNTH_10_H__
 
 #include "avs/config.h"
 #include "avs/capi.h"
@@ -90,12 +102,12 @@
 //         and use it:
 //           if (has_at_least_v8) dst = env->NewVideoFrameP(vi, &src); else dst = env->NewVideoFrame(vi);
 
-enum {
+enum AvsVersion {
   AVISYNTH_CLASSIC_INTERFACE_VERSION_25 = 3,
   AVISYNTH_CLASSIC_INTERFACE_VERSION_26BETA = 5,
   AVISYNTH_CLASSIC_INTERFACE_VERSION = 6,
-  AVISYNTH_INTERFACE_VERSION = 9,
-  AVISYNTHPLUS_INTERFACE_BUGFIX_VERSION = 1 // reset to zero whenever the normal interface version bumps
+  AVISYNTH_INTERFACE_VERSION = 10,
+  AVISYNTHPLUS_INTERFACE_BUGFIX_VERSION = 0 // reset to zero whenever the normal interface version bumps
 };
 
 /* Compiler-specific crap */
@@ -140,29 +152,32 @@ enum {
 // information that does not depend on the frame number).  The GetVideoInfo
 // method in IClip returns this struct.
 
-enum {SAMPLE_INT8  = 1<<0,
-      SAMPLE_INT16 = 1<<1,
-      SAMPLE_INT24 = 1<<2,    // Int24 is a very stupid thing to code, but it's supported by some hardware.
-      SAMPLE_INT32 = 1<<3,
-      SAMPLE_FLOAT = 1<<4};
+enum AvsSampleType {
+  SAMPLE_INT8  = 1 << 0,
+  SAMPLE_INT16 = 1 << 1,
+  SAMPLE_INT24 = 1 << 2,  // Int24 is a very stupid thing to code, but it's supported by some hardware.
+  SAMPLE_INT32 = 1 << 3,
+  SAMPLE_FLOAT = 1 << 4
+};
 
-enum {
-   PLANAR_Y=1<<0,
-   PLANAR_U=1<<1,
-   PLANAR_V=1<<2,
-   PLANAR_ALIGNED=1<<3,
-   PLANAR_Y_ALIGNED=PLANAR_Y|PLANAR_ALIGNED,
-   PLANAR_U_ALIGNED=PLANAR_U|PLANAR_ALIGNED,
-   PLANAR_V_ALIGNED=PLANAR_V|PLANAR_ALIGNED,
-   PLANAR_A=1<<4,
-   PLANAR_R=1<<5,
-   PLANAR_G=1<<6,
-   PLANAR_B=1<<7,
-   PLANAR_A_ALIGNED=PLANAR_A|PLANAR_ALIGNED,
-   PLANAR_R_ALIGNED=PLANAR_R|PLANAR_ALIGNED,
-   PLANAR_G_ALIGNED=PLANAR_G|PLANAR_ALIGNED,
-   PLANAR_B_ALIGNED=PLANAR_B|PLANAR_ALIGNED,
-  };
+enum AvsPlane {
+  DEFAULT_PLANE = 0,
+  PLANAR_Y = 1 << 0,
+  PLANAR_U = 1 << 1,
+  PLANAR_V = 1 << 2,
+  PLANAR_ALIGNED = 1 << 3,
+  PLANAR_Y_ALIGNED = PLANAR_Y | PLANAR_ALIGNED,
+  PLANAR_U_ALIGNED = PLANAR_U | PLANAR_ALIGNED,
+  PLANAR_V_ALIGNED = PLANAR_V | PLANAR_ALIGNED,
+  PLANAR_A = 1 << 4,
+  PLANAR_R = 1 << 5,
+  PLANAR_G = 1 << 6,
+  PLANAR_B = 1 << 7,
+  PLANAR_A_ALIGNED = PLANAR_A | PLANAR_ALIGNED,
+  PLANAR_R_ALIGNED = PLANAR_R | PLANAR_ALIGNED,
+  PLANAR_G_ALIGNED = PLANAR_G | PLANAR_ALIGNED,
+  PLANAR_B_ALIGNED = PLANAR_B | PLANAR_ALIGNED,
+};
 
 class AvisynthError /* exception */ {
 public:
@@ -179,6 +194,19 @@ enum AvsDeviceType {
   DEV_TYPE_CPU = 1,
   DEV_TYPE_CUDA = 2,
   DEV_TYPE_ANY = 0xFFFF
+};
+
+enum AvsValueType {
+  VALUE_TYPE_UNDEFINED = 'v',
+  VALUE_TYPE_BOOL = 'b',
+  VALUE_TYPE_INT = 'i',
+  VALUE_TYPE_LONG = 'l',
+  VALUE_TYPE_FLOAT = 'f',
+  VALUE_TYPE_DOUBLE = 'd',
+  VALUE_TYPE_STRING = 's',
+  VALUE_TYPE_CLIP = 'c',
+  VALUE_TYPE_FUNCTION = 'n',
+  VALUE_TYPE_ARRAY = 'a'
 };
 
 /* Forward references */
@@ -410,11 +438,22 @@ struct AVS_Linkage {
   // end class PDevice
 
   // V9: VideoFrame helper
-  bool              (VideoFrame::* IsPropertyWritable)() const;
+  bool          (VideoFrame::*IsPropertyWritable)() const;
+
+  // V10
+  int           (VideoFrame::*VideoFrame_GetPixelType)() const;
+  void          (VideoFrame::*VideoFrame_AmendPixelType)(int new_pixel_type);
+  void          (VideoFrameBuffer::*VideoFrameBuffer_DESTRUCTOR)();
+  AvsValueType  (AVSValue::*AVSValue_GetType)() const;
+
+  // V10.1
+  bool          (VideoInfo::* IsChannelMaskKnown)() const;
+  void          (VideoInfo::* SetChannelMask)(bool isChannelMaskKnown, unsigned int dwChannelMask);
+  unsigned int  (VideoInfo::* GetChannelMask)() const;
 
   /**********************************************************************/
   // Reserve pointer space for Avisynth+
-  void          (VideoInfo::* reserved2[64 - 24])();
+  void          (VideoInfo::* reserved2[64 - 31])();
   /**********************************************************************/
 
   // AviSynth Neo additions
@@ -422,7 +461,7 @@ struct AVS_Linkage {
   // As of V8 most PDevice, PFunction linkage entries are moved to standard avs+ place.
   /**********************************************************************/
 
-  // this part should be identical with AVS_Linkage entries in interface.cpp
+  // This part should be identical with AVS_Linkage entries in interface.cpp
 };
 
 #if defined(BUILDING_AVSCORE) || defined(AVS_STATIC_LIB)
@@ -447,17 +486,17 @@ extern const AVS_Linkage* AVS_linkage;
 # endif
 
 # define AVS_BakedCode(arg) { arg ; }
-# define AVS_LinkCall(arg)  !AVS_linkage || offsetof(AVS_Linkage, arg) >= AVS_linkage->Size ?     0 : (this->*(AVS_linkage->arg))
-# define AVS_LinkCall_Void(arg)  !AVS_linkage || offsetof(AVS_Linkage, arg) >= AVS_linkage->Size ?     (void)0 : (this->*(AVS_linkage->arg))
-# define AVS_LinkCallV(arg) !AVS_linkage || offsetof(AVS_Linkage, arg) >= AVS_linkage->Size ? *this : (this->*(AVS_linkage->arg))
+# define AVS_LinkCall(arg)  !AVS_linkage || offsetof(AVS_Linkage, arg) >= (size_t)AVS_linkage->Size ?     0 : (this->*(AVS_linkage->arg))
+# define AVS_LinkCall_Void(arg)  !AVS_linkage || offsetof(AVS_Linkage, arg) >= (size_t)AVS_linkage->Size ?     (void)0 : (this->*(AVS_linkage->arg))
+# define AVS_LinkCallV(arg) !AVS_linkage || offsetof(AVS_Linkage, arg) >= (size_t)AVS_linkage->Size ? *this : (this->*(AVS_linkage->arg))
 // Helper macros for fallback option when a function does not exists
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object)->*(ptrToMember))
 #define AVS_LinkCallOpt(arg, argOpt)  !AVS_linkage ? 0 : \
-                                      ( offsetof(AVS_Linkage, arg) >= AVS_linkage->Size ? \
-                                        (offsetof(AVS_Linkage, argOpt) >= AVS_linkage->Size ? 0 : CALL_MEMBER_FN(this, AVS_linkage->argOpt)() ) : \
+                                      ( offsetof(AVS_Linkage, arg) >= (size_t)AVS_linkage->Size ? \
+                                        (offsetof(AVS_Linkage, argOpt) >= (size_t)AVS_linkage->Size ? 0 : CALL_MEMBER_FN(this, AVS_linkage->argOpt)() ) : \
                                         CALL_MEMBER_FN(this, AVS_linkage->arg)() )
 // AVS_LinkCallOptDefault puts automatically () only after arg
-# define AVS_LinkCallOptDefault(arg, argDefaultValue)  !AVS_linkage || offsetof(AVS_Linkage, arg) >= AVS_linkage->Size ? (argDefaultValue) : ((this->*(AVS_linkage->arg))())
+# define AVS_LinkCallOptDefault(arg, argDefaultValue)  !AVS_linkage || offsetof(AVS_Linkage, arg) >= (size_t)AVS_linkage->Size ? (argDefaultValue) : ((this->*(AVS_linkage->arg))())
 
 #endif
 
@@ -493,96 +532,125 @@ public:
   void DESTRUCTOR();
 #endif
 };
+
+// Unshifted channel mask constants like in WAVEFORMATEXTENSIBLE
+// in AvsImageTypeFlags they are shifted by 4 bits
+enum AvsChannelMask {
+  MASK_SPEAKER_FRONT_LEFT = 0x1,
+  MASK_SPEAKER_FRONT_RIGHT = 0x2,
+  MASK_SPEAKER_FRONT_CENTER = 0x4,
+  MASK_SPEAKER_LOW_FREQUENCY = 0x8,
+  MASK_SPEAKER_BACK_LEFT = 0x10,
+  MASK_SPEAKER_BACK_RIGHT = 0x20,
+  MASK_SPEAKER_FRONT_LEFT_OF_CENTER = 0x40,
+  MASK_SPEAKER_FRONT_RIGHT_OF_CENTER = 0x80,
+  MASK_SPEAKER_BACK_CENTER = 0x100,
+  MASK_SPEAKER_SIDE_LEFT = 0x200,
+  MASK_SPEAKER_SIDE_RIGHT = 0x400,
+  MASK_SPEAKER_TOP_CENTER = 0x800,
+  MASK_SPEAKER_TOP_FRONT_LEFT = 0x1000,
+  MASK_SPEAKER_TOP_FRONT_CENTER = 0x2000,
+  MASK_SPEAKER_TOP_FRONT_RIGHT = 0x4000,
+  MASK_SPEAKER_TOP_BACK_LEFT = 0x8000,
+  MASK_SPEAKER_TOP_BACK_CENTER = 0x10000,
+  MASK_SPEAKER_TOP_BACK_RIGHT = 0x20000,
+  // Bit mask locations used up for the above positions
+  MASK_SPEAKER_DEFINED = 0x0003FFFF,
+  // Bit mask locations reserved for future use
+  MASK_SPEAKER_RESERVED = 0x7FFC0000,
+  // Used to specify that any possible permutation of speaker configurations
+  // Due to lack of available bits this one is put differently into image_type
+  MASK_SPEAKER_ALL = 0x80000000
+};
+
 struct VideoInfo {
-  int width, height;    // width=0 means no video
+  int width, height;    // width 0 means no video
   unsigned fps_numerator, fps_denominator;
   int num_frames;
-  // This is more extensible than previous versions. More properties can be added seeminglesly.
+  // This is more extensible than previous versions. More properties can be added seamlessly.
 
   // Colorspace properties.
-/*
-
-Planar match mask  1111.1000.0000.0111.0000.0111.0000.0111
-Planar signature   10xx.1000.0000.00xx.0000.00xx.00xx.00xx ?
-Planar signature   10xx.1000.0000.0xxx.0000.00xx.000x.x0xx ? *new
-Planar filter mask 1111.1111.1111.1111.1111.1111.1110.0111 (typo from old header fixed)
-
-pixel_type mapping
-==================
-pixel_type bit-map PIYB.Z000.0???.0SSS.0000.0???.????.????
-        planar YUV            CCC            HHH.000u.vWWW
-     planar RGB(A)            CCC                       AR
-         nonplanar            CCC            000.00wx xyAR
-Legend
-======
-Planar YUV:
-  Code Bits Remark
-  W    0-2  Planar Width Subsampling bits
-            Use (X+1) & 3 for GetPlaneWidthSubsampling
-              000 => 1        YV12, YV16, YUV420, YUV422
-              001 => 2        YV411, YUV9
-              010 => reserved
-              011 => 0        YV24, YUV444, RGBP
-              1xx => reserved
-  v    3    VPlaneFirst YV12, YV16, YV24, YV411, YUV9
-  u    4    UPlaneFirst I420
-  H    7-9  Planar Height Subsampling bits
-            Use ((X>>8)+1) & 3 for GetPlaneHeightSubsampling
-              000 => 1        YV12, YUV420
-              001 => 2        YUV9
-              010 => reserved
-              011 => 0        YV16, YV24, YV411, YUV422, YUV444, RGBP
-              1xx => reserved
-
-Planar RGB
- Code Bits Remark
-   R   0   BGR,  (with SSS bits for 8/16 bit/sample or float)
-   A   1   BGRA, (with SSS bits for 8/16 bit/sample or float)
-
-
-Not Planar, Interleaved (I flag)
-Code Bits Remark
-  R   0   BGR24, and BGRx in future (with SSS bits for 8/16 bit/sample or float)
-  A   1   BGR32, and BGRAx in future (with SSS bits for 8/16 bit/sample or float)
-  y   2   YUY2
-  x   3-4 reserved
-  w   5   Raw32
-
-General
-Code Bits Remark
-  S 16-18 Sample resolution bits
-          000 => 8
-          001 => 16
-          010 => 32 (float)
-          011,100 => reserved
-          101 => 10 bits
-          110 => 12 bits
-          111 => 14 bits
-for packed RGB(A): only 8 and 16 bits are valid
-
-Other YV12 specific (not used?)
-  C 20-22 Chroma Placement values 0-4 see CS_xxx_CHROMA_PLACEMENT
-
-Color family and layout
-                       Packed      Planar               Planar  Planar
-Code Bits Remark       RGB/RGBA     YUV  YUY2  Y_Grey  RGB/RGBA  YUVA
-  R   0                  1/0         -    0      -       1/0       -
-  A   1                  0/1         -    0      -       0/1       -
-  y   2                   -          -    1      -        0        -
-  Z  27   YUVA            0          0    0      0        1        1
-  B  28   BGR             1          0    0      0        1*       0
-  Y  29   YUV             0          1    1      1        0        0
-  I  30   Interleaved     1          0    1      1        0        0
-  P  31   Planar          0          1    0      1        1        1
-* Planar RGB plane order: G,B,R(,A)
-
-*/
-enum {
-    CS_YUVA = 1<<27,
-    CS_BGR = 1<<28,
-    CS_YUV = 1<<29,
-    CS_INTERLEAVED = 1<<30,
-    CS_PLANAR = 1<<31,
+  /*
+    Planar match mask  1111.1000.0000.0111.0000.0111.0000.0111
+    Planar signature   10xx.1000.0000.00xx.0000.00xx.00xx.00xx ?
+    Planar signature   10xx.1000.0000.0xxx.0000.00xx.000x.x0xx ? *new
+    Planar filter mask 1111.1111.1111.1111.1111.1111.1110.0111 (typo from old header fixed)
+    
+    pixel_type mapping
+    ==================
+    pixel_type bit-map PIYB.Z000.0???.0SSS.0000.0???.????.????
+            planar YUV            CCC            HHH.000u.vWWW
+         planar RGB(A)            CCC                       AR
+             nonplanar            CCC            000.00wx xyAR
+    Legend
+    ======
+    Planar YUV:
+      Code Bits Remark
+      W    0-2  Planar Width Subsampling bits
+                Use (X+1) & 3 for GetPlaneWidthSubsampling
+                  000 => 1        YV12, YV16, YUV420, YUV422
+                  001 => 2        YV411, YUV9
+                  010 => reserved
+                  011 => 0        YV24, YUV444, RGBP
+                  1xx => reserved
+      v    3    VPlaneFirst YV12, YV16, YV24, YV411, YUV9
+      u    4    UPlaneFirst I420
+      H    7-9  Planar Height Subsampling bits
+                Use ((X>>8)+1) & 3 for GetPlaneHeightSubsampling
+                  000 => 1        YV12, YUV420
+                  001 => 2        YUV9
+                  010 => reserved
+                  011 => 0        YV16, YV24, YV411, YUV422, YUV444, RGBP
+                  1xx => reserved
+    
+    Planar RGB
+     Code Bits Remark
+       R   0   BGR,  (with SSS bits for 8/16 bit/sample or float)
+       A   1   BGRA, (with SSS bits for 8/16 bit/sample or float)
+    
+    
+    Not Planar, Interleaved (I flag)
+    Code Bits Remark
+      R   0   BGR24, and BGRx in future (with SSS bits for 8/16 bit/sample or float)
+      A   1   BGR32, and BGRAx in future (with SSS bits for 8/16 bit/sample or float)
+      y   2   YUY2
+      x   3-4 reserved
+      w   5   Raw32
+    
+    General
+    Code Bits Remark
+      S 16-18 Sample resolution bits
+              000 => 8
+              001 => 16
+              010 => 32 (float)
+              011,100 => reserved
+              101 => 10 bits
+              110 => 12 bits
+              111 => 14 bits
+    for packed RGB(A): only 8 and 16 bits are valid
+    
+    Other YV12 specific (will never be used)
+      C  20-23 Chroma Placement values 0-4; see CS_xxx_CHROMA_PLACEMENT
+    
+    Color family and layout
+                           Packed      Planar               Planar  Planar
+    Code Bits Remark       RGB/RGBA     YUV  YUY2  Y_Grey  RGB/RGBA  YUVA
+      R   0                  1/0         -    0      -       1/0       -
+      A   1                  0/1         -    0      -       0/1       -
+      y   2                   -          -    1      -        0        -
+      Z  27   YUVA            0          0    0      0        1        1
+      B  28   BGR             1          0    0      0        1*       0
+      Y  29   YUV             0          1    1      1        0        0
+      I  30   Interleaved     1          0    1      1        0        0
+      P  31   Planar          0          1    0      1        1        1
+    * Planar RGB plane order: G,B,R(,A)
+  */
+  enum AvsColorFormat {
+    CS_YUVA        = 1 << 27,
+    CS_BGR         = 1 << 28,
+    CS_YUV         = 1 << 29,
+    CS_INTERLEAVED = 1 << 30,
+    CS_PLANAR      = 1 << 31,
 
     CS_Shift_Sub_Width   =  0,
     CS_Shift_Sub_Height  =  8,
@@ -609,9 +677,9 @@ enum {
     CS_Sample_Bits_16    = 1 << CS_Shift_Sample_Bits,
     CS_Sample_Bits_32    = 2 << CS_Shift_Sample_Bits,
 
-    CS_PLANAR_MASK       = CS_PLANAR | CS_INTERLEAVED | CS_YUV | CS_BGR | CS_YUVA | CS_Sample_Bits_Mask
-    | CS_Sub_Height_Mask | CS_Sub_Width_Mask,
-    CS_PLANAR_FILTER     = ~( CS_VPlaneFirst | CS_UPlaneFirst ),
+    CS_PLANAR_MASK       = CS_PLANAR | CS_INTERLEAVED | CS_YUV | CS_BGR | CS_YUVA
+                           | CS_Sample_Bits_Mask | CS_Sub_Width_Mask | CS_Sub_Height_Mask,
+    CS_PLANAR_FILTER     = ~(CS_VPlaneFirst | CS_UPlaneFirst),
 
     CS_RGB_TYPE  = 1 << 0,
     CS_RGBA_TYPE = 1 << 1,
@@ -621,31 +689,31 @@ enum {
 
     CS_BGR24 = CS_RGB_TYPE  | CS_BGR | CS_INTERLEAVED,
     CS_BGR32 = CS_RGBA_TYPE | CS_BGR | CS_INTERLEAVED,
-    CS_YUY2  = 1<<2 | CS_YUV | CS_INTERLEAVED,
-    //  CS_YV12  = 1<<3  Reserved
-    //  CS_I420  = 1<<4  Reserved
-    CS_RAW32 = 1<<5 | CS_INTERLEAVED,
+    CS_YUY2  = 1 << 2 | CS_YUV | CS_INTERLEAVED,
+    //  CS_YV12  = 1 << 3  Reserved
+    //  CS_I420  = 1 << 4  Reserved
+    CS_RAW32 = 1 << 5 | CS_INTERLEAVED,
 
-    //  YV12 must be 0xA000008 2.5 Baked API will see all new planar as YV12
-    //  I420 must be 0xA000010
+    //  YV12 must be 0xA0000008. v2.5 Baked API will see all new planar as YV12.
+    //  I420 must be 0xA0000010.
 
-    CS_GENERIC_YUV420  = CS_PLANAR | CS_YUV | CS_VPlaneFirst | CS_Sub_Height_2 | CS_Sub_Width_2,  // 4:2:0 planar
-    CS_GENERIC_YUV422  = CS_PLANAR | CS_YUV | CS_VPlaneFirst | CS_Sub_Height_1 | CS_Sub_Width_2,  // 4:2:2 planar
-    CS_GENERIC_YUV444  = CS_PLANAR | CS_YUV | CS_VPlaneFirst | CS_Sub_Height_1 | CS_Sub_Width_1,  // 4:4:4 planar
+    CS_GENERIC_YUV444  = CS_PLANAR | CS_YUV | CS_VPlaneFirst | CS_Sub_Width_1 | CS_Sub_Height_1,  // 4:4:4 planar
+    CS_GENERIC_YUV422  = CS_PLANAR | CS_YUV | CS_VPlaneFirst | CS_Sub_Width_2 | CS_Sub_Height_1,  // 4:2:2 planar
+    CS_GENERIC_YUV420  = CS_PLANAR | CS_YUV | CS_VPlaneFirst | CS_Sub_Width_2 | CS_Sub_Height_2,  // 4:2:0 planar
     CS_GENERIC_Y       = CS_PLANAR | CS_INTERLEAVED | CS_YUV,                                     // Y only (4:0:0)
     CS_GENERIC_RGBP    = CS_PLANAR | CS_BGR | CS_RGB_TYPE,                                        // planar RGB. Though name is RGB but plane order G,B,R
     CS_GENERIC_RGBAP   = CS_PLANAR | CS_BGR | CS_RGBA_TYPE,                                       // planar RGBA
-    CS_GENERIC_YUVA420 = CS_PLANAR | CS_YUVA | CS_VPlaneFirst | CS_Sub_Height_2 | CS_Sub_Width_2, // 4:2:0:A planar
-    CS_GENERIC_YUVA422 = CS_PLANAR | CS_YUVA | CS_VPlaneFirst | CS_Sub_Height_1 | CS_Sub_Width_2, // 4:2:2:A planar
-    CS_GENERIC_YUVA444 = CS_PLANAR | CS_YUVA | CS_VPlaneFirst | CS_Sub_Height_1 | CS_Sub_Width_1, // 4:4:4:A planar
+    CS_GENERIC_YUVA444 = CS_PLANAR | CS_YUVA | CS_VPlaneFirst | CS_Sub_Width_1 | CS_Sub_Height_1, // 4:4:4:A planar
+    CS_GENERIC_YUVA422 = CS_PLANAR | CS_YUVA | CS_VPlaneFirst | CS_Sub_Width_2 | CS_Sub_Height_1, // 4:2:2:A planar
+    CS_GENERIC_YUVA420 = CS_PLANAR | CS_YUVA | CS_VPlaneFirst | CS_Sub_Width_2 | CS_Sub_Height_2, // 4:2:0:A planar
 
     CS_YV24  = CS_GENERIC_YUV444 | CS_Sample_Bits_8,  // YVU 4:4:4 planar
     CS_YV16  = CS_GENERIC_YUV422 | CS_Sample_Bits_8,  // YVU 4:2:2 planar
     CS_YV12  = CS_GENERIC_YUV420 | CS_Sample_Bits_8,  // YVU 4:2:0 planar
-    CS_I420  = CS_PLANAR | CS_YUV | CS_Sample_Bits_8 | CS_UPlaneFirst | CS_Sub_Height_2 | CS_Sub_Width_2,  // YUV 4:2:0 planar
+    CS_I420  = CS_PLANAR | CS_YUV | CS_Sample_Bits_8 | CS_UPlaneFirst | CS_Sub_Width_2 | CS_Sub_Height_2,  // YUV 4:2:0 planar
     CS_IYUV  = CS_I420,
-    CS_YUV9  = CS_PLANAR | CS_YUV | CS_Sample_Bits_8 | CS_VPlaneFirst | CS_Sub_Height_4 | CS_Sub_Width_4,  // YUV 4:1:0 planar
-    CS_YV411 = CS_PLANAR | CS_YUV | CS_Sample_Bits_8 | CS_VPlaneFirst | CS_Sub_Height_1 | CS_Sub_Width_4,  // YUV 4:1:1 planar
+    CS_YUV9  = CS_PLANAR | CS_YUV | CS_Sample_Bits_8 | CS_VPlaneFirst | CS_Sub_Width_4 | CS_Sub_Height_4,  // YUV 4:1:0 planar
+    CS_YV411 = CS_PLANAR | CS_YUV | CS_Sample_Bits_8 | CS_VPlaneFirst | CS_Sub_Width_4 | CS_Sub_Height_1,  // YUV 4:1:1 planar
 
     CS_Y8    = CS_GENERIC_Y | CS_Sample_Bits_8,                                                            // Y   4:0:0 planar
 
@@ -726,29 +794,56 @@ enum {
     CS_YUVA444PS  = CS_GENERIC_YUVA444 | CS_Sample_Bits_32,  // YUVA 4:4:4 32bit samples
     CS_YUVA422PS  = CS_GENERIC_YUVA422 | CS_Sample_Bits_32,  // YUVA 4:2:2 32bit samples
     CS_YUVA420PS  = CS_GENERIC_YUVA420 | CS_Sample_Bits_32,  // YUVA 4:2:0 32bit samples
-
   };
 
   int pixel_type;                // changed to int as of 2.5
-
 
   int audio_samples_per_second;   // 0 means no audio
   int sample_type;                // as of 2.5
   int64_t num_audio_samples;      // changed as of 2.5
   int nchannels;                  // as of 2.5
 
-  // Imagetype properties
-
+  // BFF, TFF, FIELDBASED. Also used for storing Channel Mask
   int image_type;
 
-  enum {
-    IT_BFF = 1<<0,
-    IT_TFF = 1<<1,
-    IT_FIELDBASED = 1<<2
+  enum AvsImageTypeFlags {
+    IT_BFF = 1 << 0,
+    IT_TFF = 1 << 1,
+    IT_FIELDBASED = 1 << 2,
+
+    // Audio channel mask support
+    IT_HAS_CHANNELMASK = 1 << 3,
+    // shifted by 4 bits compared to WAVEFORMATEXTENSIBLE dwChannelMask
+    // otherwise same as AvsChannelMask
+    IT_SPEAKER_FRONT_LEFT = 0x1 << 4,
+    IT_SPEAKER_FRONT_RIGHT = 0x2 << 4,
+    IT_SPEAKER_FRONT_CENTER = 0x4 << 4,
+    IT_SPEAKER_LOW_FREQUENCY = 0x8 << 4,
+    IT_SPEAKER_BACK_LEFT = 0x10 << 4,
+    IT_SPEAKER_BACK_RIGHT = 0x20 << 4,
+    IT_SPEAKER_FRONT_LEFT_OF_CENTER = 0x40 << 4,
+    IT_SPEAKER_FRONT_RIGHT_OF_CENTER = 0x80 << 4,
+    IT_SPEAKER_BACK_CENTER = 0x100 << 4,
+    IT_SPEAKER_SIDE_LEFT = 0x200 << 4,
+    IT_SPEAKER_SIDE_RIGHT = 0x400 << 4,
+    IT_SPEAKER_TOP_CENTER = 0x800 << 4,
+    IT_SPEAKER_TOP_FRONT_LEFT = 0x1000 << 4,
+    IT_SPEAKER_TOP_FRONT_CENTER = 0x2000 << 4,
+    IT_SPEAKER_TOP_FRONT_RIGHT = 0x4000 << 4,
+    IT_SPEAKER_TOP_BACK_LEFT = 0x8000 << 4,
+    IT_SPEAKER_TOP_BACK_CENTER = 0x10000 << 4,
+    IT_SPEAKER_TOP_BACK_RIGHT = 0x20000 << 4,
+    // End of officially defined speaker bits
+    // The next one is special, since cannot shift SPEAKER_ALL 0x80000000 further.
+    // Set mask and get mask handles it.
+    IT_SPEAKER_ALL = 0x40000 << 4,
+    // Mask for the defined 18 bits + SPEAKER_ALL
+    IT_SPEAKER_BITS_MASK = (AvsChannelMask::MASK_SPEAKER_DEFINED << 4) | IT_SPEAKER_ALL,
+    IT_NEXT_AVAILABLE = 1 << 23
   };
 
   // Chroma placement bits 20 -> 23  ::FIXME:: Really want a Class to support this
-  enum {
+  enum AvsChromaPlacement {
     CS_UNKNOWN_CHROMA_PLACEMENT = 0 << 20,
     CS_MPEG1_CHROMA_PLACEMENT   = 1 << 20,
     CS_MPEG2_CHROMA_PLACEMENT   = 2 << 20,
@@ -784,7 +879,7 @@ enum {
   bool IsVPlaneFirst() const AVS_BakedCode(return AVS_LinkCall(IsVPlaneFirst)())  // Don't use this
   // Will not work on planar images, but will return only luma planes
   int BytesFromPixels(int pixels) const AVS_BakedCode(return AVS_LinkCall(BytesFromPixels)(pixels))
-  int RowSize(int plane = 0) const AVS_BakedCode(return AVS_LinkCall(RowSize)(plane))
+  int RowSize(int plane = DEFAULT_PLANE) const AVS_BakedCode(return AVS_LinkCall(RowSize)(plane))
   int BMPSize() const AVS_BakedCode(return AVS_LinkCall(BMPSize)())
 
   int64_t AudioSamplesFromFrames(int frames) const AVS_BakedCode(return AVS_LinkCall(AudioSamplesFromFrames)(frames))
@@ -863,6 +958,11 @@ enum {
   // Planar RGBA?
   bool IsPlanarRGBA() const AVS_BakedCode( return AVS_LinkCallOptDefault(IsPlanarRGBA, false) )
 
+  // v10.1 interface: audio channel masks
+  bool IsChannelMaskKnown() const AVS_BakedCode(return AVS_LinkCallOptDefault(IsChannelMaskKnown, false) )
+  void SetChannelMask(bool isChannelMaskKnown, unsigned int dwChannelMask) AVS_BakedCode(AVS_LinkCall_Void(SetChannelMask)(isChannelMaskKnown, dwChannelMask))
+  unsigned int GetChannelMask() const AVS_BakedCode(return AVS_LinkCallOptDefault(GetChannelMask, 0) )
+
 }; // end struct VideoInfo
 
 
@@ -892,9 +992,10 @@ class VideoFrameBuffer {
 protected:
   VideoFrameBuffer(int size, int margin, Device* device);
   VideoFrameBuffer();
-  ~VideoFrameBuffer();
 
 public:
+  ~VideoFrameBuffer() AVS_BakedCode(AVS_LinkCall_Void(VideoFrameBuffer_DESTRUCTOR)())
+
   const BYTE* GetReadPtr() const AVS_BakedCode( return AVS_LinkCall(VFBGetReadPtr)() )
   BYTE* GetWritePtr() AVS_BakedCode( return AVS_LinkCall(VFBGetWritePtr)() )
   int GetDataSize() const AVS_BakedCode( return AVS_LinkCall(GetDataSize)() )
@@ -903,8 +1004,12 @@ public:
 
 // Ensure VideoFrameBuffer cannot be publicly assigned
 private:
-    VideoFrameBuffer& operator=(const VideoFrameBuffer&);
+  VideoFrameBuffer& operator=(const VideoFrameBuffer&);
 
+#ifdef BUILDING_AVSCORE
+public:
+    void DESTRUCTOR();  /* Damn compiler won't allow taking the address of reserved constructs, make a dummy interlude */
+#endif
 }; // end class VideoFrameBuffer
 
 
@@ -963,6 +1068,9 @@ class VideoFrame {
 
   AVSMap *properties;
 
+  // this one is changable by AmendPixelType in rare cases
+  int pixel_type; // V10 - Copy from VideoInfo
+
   friend class PVideoFrame;
   void AddRef();
   void Release();
@@ -970,20 +1078,20 @@ class VideoFrame {
   friend class ScriptEnvironment;
   friend class Cache;
 
-  VideoFrame(VideoFrameBuffer* _vfb, AVSMap* avsmap, int _offset, int _pitch, int _row_size, int _height);
-  VideoFrame(VideoFrameBuffer* _vfb, AVSMap* avsmap, int _offset, int _pitch, int _row_size, int _height, int _offsetU, int _offsetV, int _pitchUV, int _row_sizeUV, int _heightUV);
+  VideoFrame(VideoFrameBuffer* _vfb, AVSMap* avsmap, int _offset, int _pitch, int _row_size, int _height, int _pixel_type);
+  VideoFrame(VideoFrameBuffer* _vfb, AVSMap* avsmap, int _offset, int _pitch, int _row_size, int _height, int _offsetU, int _offsetV, int _pitchUV, int _row_sizeUV, int _heightUV, int _pixel_type);
   // for Alpha
-  VideoFrame(VideoFrameBuffer* _vfb, AVSMap* avsmap, int _offset, int _pitch, int _row_size, int _height, int _offsetU, int _offsetV, int _pitchUV, int _row_sizeUV, int _heightUV, int _offsetA);
+  VideoFrame(VideoFrameBuffer* _vfb, AVSMap* avsmap, int _offset, int _pitch, int _row_size, int _height, int _offsetU, int _offsetV, int _pitchUV, int _row_sizeUV, int _heightUV, int _offsetA, int _pixel_type);
   void* operator new(size_t size);
 // TESTME: OFFSET U/V may be switched to what could be expected from AVI standard!
 public:
-  int GetPitch(int plane=0) const AVS_BakedCode( return AVS_LinkCall(GetPitch)(plane) )
-  int GetRowSize(int plane=0) const AVS_BakedCode( return AVS_LinkCall(GetRowSize)(plane) )
-  int GetHeight(int plane=0) const AVS_BakedCode( return AVS_LinkCall(GetHeight)(plane) )
+  int GetPitch(int plane = DEFAULT_PLANE) const AVS_BakedCode( return AVS_LinkCall(GetPitch)(plane) )
+  int GetRowSize(int plane = DEFAULT_PLANE) const AVS_BakedCode( return AVS_LinkCall(GetRowSize)(plane) )
+  int GetHeight(int plane = DEFAULT_PLANE) const AVS_BakedCode( return AVS_LinkCall(GetHeight)(plane) )
 
   // generally you shouldn't use these three
   VideoFrameBuffer* GetFrameBuffer() const AVS_BakedCode( return AVS_LinkCall(GetFrameBuffer)() )
-  int GetOffset(int plane=0) const AVS_BakedCode( return AVS_LinkCall(GetOffset)(plane) )
+  int GetOffset(int plane = DEFAULT_PLANE) const AVS_BakedCode( return AVS_LinkCall(GetOffset)(plane) )
 
   // in plugins use env->SubFrame() -- because implementation code is only available inside avisynth.dll. Doh!
   VideoFrame* Subframe(int rel_offset, int new_pitch, int new_row_size, int new_height) const;
@@ -991,9 +1099,9 @@ public:
   // for Alpha
   VideoFrame* Subframe(int rel_offset, int new_pitch, int new_row_size, int new_height, int rel_offsetU, int rel_offsetV, int pitchUV, int rel_offsetA) const;
 
-  const BYTE* GetReadPtr(int plane=0) const AVS_BakedCode( return AVS_LinkCall(VFGetReadPtr)(plane) )
+  const BYTE* GetReadPtr(int plane = DEFAULT_PLANE) const AVS_BakedCode( return AVS_LinkCall(VFGetReadPtr)(plane) )
   bool IsWritable() const AVS_BakedCode( return AVS_LinkCall(IsWritable)() )
-  BYTE* GetWritePtr(int plane=0) const AVS_BakedCode( return AVS_LinkCall(VFGetWritePtr)(plane) )
+  BYTE* GetWritePtr(int plane = DEFAULT_PLANE) const AVS_BakedCode( return AVS_LinkCall(VFGetWritePtr)(plane) )
 
   AVSMap& getProperties() AVS_BakedCode(return AVS_LinkCallOptDefault(getProperties, (AVSMap&)*(AVSMap*)0))
   const AVSMap& getConstProperties() AVS_BakedCode(return AVS_LinkCallOptDefault(getConstProperties, (const AVSMap&)*(const AVSMap*)0))
@@ -1007,6 +1115,13 @@ public:
   bool IsPropertyWritable() const AVS_BakedCode(return AVS_LinkCall(IsPropertyWritable)())
 
   ~VideoFrame() AVS_BakedCode( AVS_LinkCall_Void(VideoFrame_DESTRUCTOR)() )
+
+  int GetPixelType() const AVS_BakedCode(return AVS_LinkCall(VideoFrame_GetPixelType)())
+  // Changes the color format metadata on this frame. Using it on a frame that isn't writable leads
+  // to an inconsistent state, because other filters depend on it. So, use MakeWritable() before.
+  // Only for rare cases where a plugin makes frame bytes pose as another color format.
+  void AmendPixelType(int new_pixel_type) AVS_BakedCode(return AVS_LinkCall_Void(VideoFrame_AmendPixelType)(new_pixel_type))
+
 #ifdef BUILDING_AVSCORE
 public:
   void DESTRUCTOR();  /* Damn compiler won't allow taking the address of reserved constructs, make a dummy interlude */
@@ -1023,55 +1138,62 @@ enum CachePolicyHint {
   // do not use them in new plugins
 
   // New 2.6 explicitly defined cache hints.
-  CACHE_NOTHING=10, // Do not cache video.
-  CACHE_WINDOW=11, // Hard protect upto X frames within a range of X from the current frame N.
-  CACHE_GENERIC=12, // LRU cache upto X frames.
-  CACHE_FORCE_GENERIC=13, // LRU cache upto X frames, override any previous CACHE_WINDOW.
+  CACHE_NOTHING = 10, // Do not cache video.
+  CACHE_WINDOW = 11, // Hard protect upto X frames within a range of X from the current frame N.
+  CACHE_GENERIC = 12, // LRU cache upto X frames.
+  CACHE_FORCE_GENERIC = 13, // LRU cache upto X frames, override any previous CACHE_WINDOW.
 
-  CACHE_GET_POLICY=30, // Get the current policy.
-  CACHE_GET_WINDOW=31, // Get the current window h_span.
-  CACHE_GET_RANGE=32, // Get the current generic frame range.
+  CACHE_GET_POLICY = 30, // Get the current policy.
+  CACHE_GET_WINDOW = 31, // Get the current window h_span.
+  CACHE_GET_RANGE = 32, // Get the current generic frame range.
 
-  CACHE_AUDIO=50, // Explicitly cache audio, X byte cache.
-  CACHE_AUDIO_NOTHING=51, // Explicitly do not cache audio.
-  CACHE_AUDIO_NONE=52, // Audio cache off (auto mode), X byte intial cache.
-  CACHE_AUDIO_AUTO=53, // Audio cache on (auto mode), X byte intial cache.
+  // Set Audio cache mode and answers to CACHE_GETCHILD_AUDIO_MODE
+  CACHE_AUDIO = 50, // Explicitly cache audio, X byte cache.
+  CACHE_AUDIO_NOTHING = 51, // Explicitly do not cache audio.
+  CACHE_AUDIO_NONE = 52, // Audio cache off (auto mode), X byte initial cache.
+  CACHE_AUDIO_AUTO_START_OFF = 52, // synonym
+  CACHE_AUDIO_AUTO = 53, // Audio cache on (auto mode), X byte initial cache.
+  CACHE_AUDIO_AUTO_START_ON = 53, // synonym
 
-  CACHE_GET_AUDIO_POLICY=70, // Get the current audio policy.
-  CACHE_GET_AUDIO_SIZE=71, // Get the current audio cache size.
+  // These just returns actual value if clip is cached
+  CACHE_GET_AUDIO_POLICY = 70, // Get the current audio policy.
+  CACHE_GET_AUDIO_SIZE = 71, // Get the current audio cache size.
 
-  CACHE_PREFETCH_FRAME=100, // Queue request to prefetch frame N.
-  CACHE_PREFETCH_GO=101, // Action video prefetches.
+  CACHE_PREFETCH_FRAME = 100, // n/a Queue request to prefetch frame N.
+  CACHE_PREFETCH_GO = 101, // n/a Action video prefetches.
 
-  CACHE_PREFETCH_AUDIO_BEGIN=120, // Begin queue request transaction to prefetch audio (take critical section).
-  CACHE_PREFETCH_AUDIO_STARTLO=121, // Set low 32 bits of start.
-  CACHE_PREFETCH_AUDIO_STARTHI=122, // Set high 32 bits of start.
-  CACHE_PREFETCH_AUDIO_COUNT=123, // Set low 32 bits of length.
-  CACHE_PREFETCH_AUDIO_COMMIT=124, // Enqueue request transaction to prefetch audio (release critical section).
-  CACHE_PREFETCH_AUDIO_GO=125, // Action audio prefetches.
+  CACHE_PREFETCH_AUDIO_BEGIN = 120, // n/a Begin queue request transaction to prefetch audio (take critical section).
+  CACHE_PREFETCH_AUDIO_STARTLO = 121, // n/a Set low 32 bits of start.
+  CACHE_PREFETCH_AUDIO_STARTHI = 122, // n/a Set high 32 bits of start.
+  CACHE_PREFETCH_AUDIO_COUNT = 123, // n/a Set low 32 bits of length.
+  CACHE_PREFETCH_AUDIO_COMMIT = 124, // n/a Enqueue request transaction to prefetch audio (release critical section).
+  CACHE_PREFETCH_AUDIO_GO = 125, // n/a Action audio prefetches.
 
-  CACHE_GETCHILD_CACHE_MODE=200, // Cache ask Child for desired video cache mode.
-  CACHE_GETCHILD_CACHE_SIZE=201, // Cache ask Child for desired video cache size.
-  CACHE_GETCHILD_AUDIO_MODE=202, // Cache ask Child for desired audio cache mode.
-  CACHE_GETCHILD_AUDIO_SIZE=203, // Cache ask Child for desired audio cache size.
+  CACHE_GETCHILD_CACHE_MODE = 200, // n/a Cache ask Child for desired video cache mode.
+  CACHE_GETCHILD_CACHE_SIZE = 201, // n/a Cache ask Child for desired video cache size.
 
-  CACHE_GETCHILD_COST=220, // Cache ask Child for estimated processing cost.
-    CACHE_COST_ZERO=221, // Child response of zero cost (ptr arithmetic only).
-    CACHE_COST_UNIT=222, // Child response of unit cost (less than or equal 1 full frame blit).
-    CACHE_COST_LOW=223, // Child response of light cost. (Fast)
-    CACHE_COST_MED=224, // Child response of medium cost. (Real time)
-    CACHE_COST_HI=225, // Child response of heavy cost. (Slow)
+  // Filters are queried about their desired audio cache mode.
+  // Child can answer them with CACHE_AUDIO_xxx
+  CACHE_GETCHILD_AUDIO_MODE = 202, // Cache ask Child for desired audio cache mode.
+  CACHE_GETCHILD_AUDIO_SIZE = 203, // Cache ask Child for desired audio cache size.
 
-  CACHE_GETCHILD_THREAD_MODE=240, // Cache ask Child for thread safetyness.
-    CACHE_THREAD_UNSAFE=241, // Only 1 thread allowed for all instances. 2.5 filters default!
-    CACHE_THREAD_CLASS=242, // Only 1 thread allowed for each instance. 2.6 filters default!
-    CACHE_THREAD_SAFE=243, //  Allow all threads in any instance.
-    CACHE_THREAD_OWN=244, // Safe but limit to 1 thread, internally threaded.
+  CACHE_GETCHILD_COST = 220, // n/a Cache ask Child for estimated processing cost.
+    CACHE_COST_ZERO = 221, // n/a Child response of zero cost (ptr arithmetic only).
+    CACHE_COST_UNIT = 222, // n/a Child response of unit cost (less than or equal 1 full frame blit).
+    CACHE_COST_LOW = 223, // n/a Child response of light cost. (Fast)
+    CACHE_COST_MED = 224, // n/a Child response of medium cost. (Real time)
+    CACHE_COST_HI = 225, // n/a Child response of heavy cost. (Slow)
 
-  CACHE_GETCHILD_ACCESS_COST=260, // Cache ask Child for preferred access pattern.
-    CACHE_ACCESS_RAND=261, // Filter is access order agnostic.
-    CACHE_ACCESS_SEQ0=262, // Filter prefers sequential access (low cost)
-    CACHE_ACCESS_SEQ1=263, // Filter needs sequential access (high cost)
+  CACHE_GETCHILD_THREAD_MODE = 240, // n/a Cache ask Child for thread safetyness.
+    CACHE_THREAD_UNSAFE = 241, // n/a Only 1 thread allowed for all instances. 2.5 filters default!
+    CACHE_THREAD_CLASS = 242, // n/a Only 1 thread allowed for each instance. 2.6 filters default!
+    CACHE_THREAD_SAFE = 243, // n/a Allow all threads in any instance.
+    CACHE_THREAD_OWN = 244, // n/a Safe but limit to 1 thread, internally threaded.
+
+  CACHE_GETCHILD_ACCESS_COST = 260, // n/a Cache ask Child for preferred access pattern.
+    CACHE_ACCESS_RAND = 261, // n/a Filter is access order agnostic.
+    CACHE_ACCESS_SEQ0 = 262, // n/a Filter prefers sequential access (low cost)
+    CACHE_ACCESS_SEQ1 = 263, // n/a Filter needs sequential access (high cost)
 
   CACHE_AVSPLUS_CONSTANTS = 500,    // Smaller values are reserved for classic Avisynth
 
@@ -1083,20 +1205,21 @@ enum CachePolicyHint {
   CACHE_GET_SIZE,
   CACHE_GET_REQUESTED_CAP,
   CACHE_GET_CAPACITY,
-  CACHE_GET_MTMODE,
+  CACHE_GET_MTMODE,                 // Filters specify their desired MT mode, see enum MtMode
 
+  // By returning IS_CACHE_ANS to IS_CACHE_REQ, we tell the caller we are a cache
   CACHE_IS_CACHE_REQ,
   CACHE_IS_CACHE_ANS,
+  // By returning IS_MTGUARD_ANS to IS_MTGUARD_REQ, we tell the caller we are an mt guard
   CACHE_IS_MTGUARD_REQ,
   CACHE_IS_MTGUARD_ANS,
 
   CACHE_AVSPLUS_CUDA_CONSTANTS = 600,
 
-  CACHE_GET_DEV_TYPE,           // Device types a filter can return
-  CACHE_GET_CHILD_DEV_TYPE,    // Device types a fitler can receive
+  CACHE_GET_DEV_TYPE,          // Device types a filter can return
+  CACHE_GET_CHILD_DEV_TYPE,    // Device types a filter can receive
 
   CACHE_USER_CONSTANTS = 1000       // Smaller values are reserved for the core
-
 };
 
 // Base class for all filters.
@@ -1213,7 +1336,7 @@ public:
 //  bool IsLong() const;
   bool IsFloat() const AVS_BakedCode( return AVS_LinkCall(IsFloat)() )
   bool IsString() const AVS_BakedCode( return AVS_LinkCall(IsString)() )
-  bool IsArray() const AVS_BakedCode(return AVS_LinkCall(IsArray)())
+  bool IsArray() const AVS_BakedCode( return AVS_LinkCall(IsArray)() )
   bool IsFunction() const AVS_BakedCode( return AVS_LinkCall(IsFunction)() )
 
   PClip AsClip() const AVS_BakedCode( return AVS_LinkCall(AsClip)() )
@@ -1256,6 +1379,10 @@ private:
   };
 
   void Assign(const AVSValue* src, bool init);
+
+public:
+  AvsValueType GetType() const AVS_BakedCode( return AVS_LinkCallOptDefault(AVSValue_GetType, VALUE_TYPE_UNDEFINED) )
+
 #ifdef BUILDING_AVSCORE
 public:
   void            CONSTRUCTOR0();  /* Damn compiler won't allow taking the address of reserved constructs, make a dummy interlude */
@@ -1304,7 +1431,7 @@ public:
   void __stdcall GetAudio(void* buf, int64_t start, int64_t count, IScriptEnvironment* env) { child->GetAudio(buf, start, count, env); }
   const VideoInfo& __stdcall GetVideoInfo() { return vi; }
   bool __stdcall GetParity(int n) { return child->GetParity(n); }
-  int __stdcall SetCacheHints(int cachehints, int frame_range) { AVS_UNUSED(cachehints); AVS_UNUSED(frame_range); return 0; };  // We do not pass cache requests upwards, only to the next filter.
+  int __stdcall SetCacheHints(int cachehints, int frame_range) { AVS_UNUSED(cachehints); AVS_UNUSED(frame_range); return 0; }  // We do not pass cache requests upwards, only to the next filter.
 };
 
 
@@ -1353,8 +1480,7 @@ public:
 #include "avs/cpuid.h"
 
 // IScriptEnvironment GetEnvProperty
-enum AvsEnvProperty
-{
+enum AvsEnvProperty {
   AEP_PHYSICAL_CPUS = 1,
   AEP_LOGICAL_CPUS = 2,
   AEP_THREADPOOL_THREADS = 3,
@@ -1374,14 +1500,22 @@ enum AvsEnvProperty
   AEP_GETFRAME_RECURSIVE = 922,
 };
 
-// IScriptEnvironment Allocate
-enum AvsAllocType
-{
+// IScriptEnvironment::Allocate()
+enum AvsAllocType {
   AVS_NORMAL_ALLOC = 1,
   AVS_POOLED_ALLOC = 2
 };
 
 
+// Important note (Windows, MSVC): 
+// When extending IScriptEnvironment, do not declare existing names again
+// with different parameters. Methods with the same name will be grouped 
+// together in the vtable. This results in shifting all vtable method pointers
+// after such grouping and breaks all plugins who expect the old order.
+// E.g. ApplyMessage will be called instead of GetAVSLinkage.
+// As long as the declaration is compatible with COM interop, the order of 
+// declaration is sequential. But if not, overloads in the same class are grouped
+// together in the vtable in the reverse order of declaration.
 class IScriptEnvironment {
 public:
   virtual ~IScriptEnvironment() {}
@@ -1406,17 +1540,17 @@ public:
 
   virtual void __stdcall AddFunction(const char* name, const char* params, ApplyFunc apply, void* user_data) = 0;
   virtual bool __stdcall FunctionExists(const char* name) = 0;
-  virtual AVSValue __stdcall Invoke(const char* name, const AVSValue args, const char* const* arg_names=0) = 0;
+  virtual AVSValue __stdcall Invoke(const char* name, const AVSValue args, const char* const* arg_names = 0) = 0;
 
   virtual AVSValue __stdcall GetVar(const char* name) = 0;
   virtual bool __stdcall SetVar(const char* name, const AVSValue& val) = 0;
   virtual bool __stdcall SetGlobalVar(const char* name, const AVSValue& val) = 0;
 
-  virtual void __stdcall PushContext(int level=0) = 0;
+  virtual void __stdcall PushContext(int level = 0) = 0;
   virtual void __stdcall PopContext() = 0;
 
-  // note v8: deprecated in most cases, use NewVideoFrameP is possible
-  virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi, int align=FRAME_ALIGN) = 0;
+  // note v8: use NewVideoFrameP is possible
+  virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi, int align = FRAME_ALIGN) = 0;
 
   virtual bool __stdcall MakeWritable(PVideoFrame* pvf) = 0;
 
@@ -1436,9 +1570,10 @@ public:
   virtual void* __stdcall ManageCache(int key, void* data) = 0;
 
   enum PlanarChromaAlignmentMode {
-            PlanarChromaAlignmentOff,
-            PlanarChromaAlignmentOn,
-            PlanarChromaAlignmentTest };
+    PlanarChromaAlignmentOff,
+    PlanarChromaAlignmentOn,
+    PlanarChromaAlignmentTest
+  };
 
   virtual bool __stdcall PlanarChromaAlignment(PlanarChromaAlignmentMode key) = 0;
 
@@ -1496,12 +1631,7 @@ public:
   virtual void __stdcall clearMap(AVSMap* map) = 0;
 
   // NewVideoFrame with frame property source.
-  virtual PVideoFrame __stdcall NewVideoFrameP(const VideoInfo& vi, PVideoFrame* propSrc, int align = FRAME_ALIGN) = 0;
-
-  // Note: do not declare existing names like 'NewVideoFrame' again with different parameters since MSVC will reorder it
-  // in the vtable and group it together with the first NewVideoFrame variant.
-  // This results in shifting all vtable method pointers after NewVideoFrame and breaks all plugins who expect the old order.
-  // E.g. ApplyMessage will be called instead of GetAVSLinkage
+  virtual PVideoFrame __stdcall NewVideoFrameP(const VideoInfo& vi, const PVideoFrame* prop_src, int align = FRAME_ALIGN) = 0;
 
   // Generic query to ask for various system properties
   virtual size_t  __stdcall GetEnvProperty(AvsEnvProperty prop) = 0;
@@ -1538,7 +1668,7 @@ public:
   // V9
   virtual bool __stdcall MakePropertyWritable(PVideoFrame* pvf) = 0;
 
-}; // end class IScriptEnvironment. Order is important.
+}; // end class IScriptEnvironment. Order is important. Avoid overloads with the same name.
 
 // used internally
 class IScriptEnvironment_Avs25 {
@@ -1621,8 +1751,7 @@ public:
 }; // end class IScriptEnvironment_Avs25. Order is important.
 
 
-enum MtMode
-{
+enum MtMode {
   MT_INVALID = 0,
   MT_NICE_FILTER = 1,
   MT_MULTI_INSTANCE = 2,
@@ -1780,8 +1909,8 @@ public:
   virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi) = 0; // current device is used
   virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi, const PDevice& device) = 0;
   // as above but with property sources
-  virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi, PVideoFrame *propSrc) = 0; // current device is used + frame property source
-  virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi, const PDevice& device, PVideoFrame* propSrc) = 0; // current device is used + frame property source
+  virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi, const PVideoFrame *prop_src) = 0; // current device is used + frame property source
+  virtual PVideoFrame __stdcall NewVideoFrame(const VideoInfo& vi, const PDevice& device, const PVideoFrame* prop_src) = 0; // current device is used + frame property source
 
   // Frame related operations
   virtual bool __stdcall MakeWritable(PVideoFrame* pvf) = 0;
@@ -1878,7 +2007,7 @@ struct PNeoEnv {
 #if defined(BUILDING_AVSCORE) || defined(AVS_STATIC_LIB)
     ;
 #else
-  : p(!AVS_linkage || offsetof(AVS_Linkage, GetNeoEnv) >= AVS_linkage->Size ? 0 : AVS_linkage->GetNeoEnv(env)) { }
+  : p(!AVS_linkage || offsetof(AVS_Linkage, GetNeoEnv) >= (size_t)AVS_linkage->Size ? 0 : AVS_linkage->GetNeoEnv(env)) { }
 #endif
 
   int operator!() const { return !p; }
@@ -1921,4 +2050,4 @@ AVSC_API(IScriptEnvironment2*, CreateScriptEnvironment2)(int version = AVISYNTH_
 
 #pragma pack(pop)
 
-#endif //__AVISYNTH_9_H__
+#endif //__AVISYNTH_10_H__
