@@ -1174,7 +1174,7 @@ send_packet:
         // This determines if a frame is artifact free and can be delivered.
         if (m_bResumeAtKeyFrame && m_bWaitingForKeyFrame && ret >= 0)
         {
-            if (m_pFrame->key_frame)
+            if (m_pFrame->flags & AV_FRAME_FLAG_KEY)
             {
                 DbgLog((LOG_TRACE, 50, L"::Decode() - Found Key-Frame, resuming decoding at %I64d", m_pFrame->pts));
                 m_bWaitingForKeyFrame = FALSE;
@@ -1245,7 +1245,7 @@ send_packet:
         pOutFrame->height = m_pFrame->height;
         pOutFrame->aspect_ratio = display_aspect_ratio;
         pOutFrame->repeat = m_pFrame->repeat_pict;
-        pOutFrame->key_frame = m_pFrame->key_frame;
+        pOutFrame->key_frame = !!(m_pFrame->flags & AV_FRAME_FLAG_KEY);
         pOutFrame->frame_type = av_get_picture_type_char(m_pFrame->pict_type);
         pOutFrame->ext_format = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
 
@@ -1254,7 +1254,7 @@ send_packet:
         else if (m_nSoftTelecine > 0)
             m_nSoftTelecine--;
 
-        if (m_pFrame->interlaced_frame || (!m_pAVCtx->progressive_sequence &&
+        if ((m_pFrame->flags & AV_FRAME_FLAG_INTERLACED) || (!m_pAVCtx->progressive_sequence &&
                                            (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO)))
         {
             if (!m_nSoftTelecine)
@@ -1267,13 +1267,13 @@ send_packet:
         bool bAggressiveFlag =
             (m_iInterlaced == 1 && m_pSettings->GetDeinterlacingMode() == DeintMode_Aggressive) && !m_nSoftTelecine;
 
-        pOutFrame->interlaced =
-            (m_pFrame->interlaced_frame || bAggressiveFlag || m_pSettings->GetDeinterlacingMode() == DeintMode_Force) &&
+        pOutFrame->interlaced = ((m_pFrame->flags & AV_FRAME_FLAG_INTERLACED) || bAggressiveFlag ||
+                                 m_pSettings->GetDeinterlacingMode() == DeintMode_Force) &&
             !(m_pSettings->GetDeinterlacingMode() == DeintMode_Disable);
 
         LAVDeintFieldOrder fo = m_pSettings->GetDeintFieldOrder();
         pOutFrame->tff =
-            (fo == DeintFieldOrder_Auto) ? m_pFrame->top_field_first : (fo == DeintFieldOrder_TopFieldFirst);
+            (fo == DeintFieldOrder_Auto) ? !!(m_pFrame->flags & AV_FRAME_FLAG_TOP_FIELD_FIRST) : (fo == DeintFieldOrder_TopFieldFirst);
 
         pOutFrame->rtStart = rtStart;
         pOutFrame->rtStop = rtStop;
@@ -1514,7 +1514,8 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
 STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
 {
     if (m_pAVCtx->time_base.den && m_pAVCtx->time_base.num)
-        return (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) * m_pAVCtx->ticks_per_frame;
+        return (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) *
+               ((m_pAVCtx->codec_descriptor && m_pAVCtx->codec_descriptor->props & AV_CODEC_PROP_FIELDS) ? 2 : 1);
     return 0;
 }
 
