@@ -194,8 +194,8 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
             in_frame->height = pFrame->height;
             in_frame->format = ff_pixfmt;
             in_frame->pts = pFrame->rtStart;
-            in_frame->interlaced_frame = pFrame->interlaced;
-            in_frame->top_field_first = pFrame->tff;
+            in_frame->flags |= pFrame->interlaced ? AV_FRAME_FLAG_INTERLACED : 0;
+            in_frame->flags |= pFrame->tff ? AV_FRAME_FLAG_TOP_FIELD_FIRST : 0;
             in_frame->sample_aspect_ratio = pFrame->aspect_ratio;
 
             if (refcountedFrame)
@@ -259,7 +259,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
             outFrame->width = out_frame->width;
             outFrame->height = out_frame->height;
             outFrame->aspect_ratio = out_frame->sample_aspect_ratio;
-            outFrame->tff = out_frame->top_field_first;
+            outFrame->tff = !!(out_frame->flags & AV_FRAME_FLAG_TOP_FIELD_FIRST);
 
             REFERENCE_TIME pts = av_rescale(out_frame->pts, m_pFilterBufferSink->inputs[0]->time_base.num * 10000000LL,
                                             m_pFilterBufferSink->inputs[0]->time_base.den);
