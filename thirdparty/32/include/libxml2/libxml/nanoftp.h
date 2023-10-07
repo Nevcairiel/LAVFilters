@@ -1,7 +1,8 @@
 /*
  * Summary: minimal FTP implementation
  * Description: minimal FTP implementation allowing to fetch resources
- *              like external subset.
+ *              like external subset. This module is DEPRECATED, do not
+ *              use any of its functions.
  *
  * Copy: See Copyright for the status of this software.
  *
@@ -16,7 +17,7 @@
 #ifdef LIBXML_FTP_ENABLED
 
 /* Needed for portability to Windows 64 bits */
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32)
 #include <winsock2.h>
 #else
 /**
@@ -78,80 +79,102 @@ typedef void (*ftpDataCallback) (void *userData,
 /*
  * Init
  */
-XMLPUBFUN void XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void
 	xmlNanoFTPInit		(void);
-XMLPUBFUN void XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void
 	xmlNanoFTPCleanup	(void);
 
 /*
  * Creating/freeing contexts.
  */
-XMLPUBFUN void * XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void *
 	xmlNanoFTPNewCtxt	(const char *URL);
-XMLPUBFUN void XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void
 	xmlNanoFTPFreeCtxt	(void * ctx);
-XMLPUBFUN void * XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void *
 	xmlNanoFTPConnectTo	(const char *server,
 				 int port);
 /*
  * Opening/closing session connections.
  */
-XMLPUBFUN void * XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void *
 	xmlNanoFTPOpen		(const char *URL);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPConnect	(void *ctx);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPClose		(void *ctx);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPQuit		(void *ctx);
-XMLPUBFUN void XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void
 	xmlNanoFTPScanProxy	(const char *URL);
-XMLPUBFUN void XMLCALL
+XML_DEPRECATED
+XMLPUBFUN void
 	xmlNanoFTPProxy		(const char *host,
 				 int port,
 				 const char *user,
 				 const char *passwd,
 				 int type);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPUpdateURL	(void *ctx,
 				 const char *URL);
 
 /*
  * Rather internal commands.
  */
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPGetResponse	(void *ctx);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPCheckResponse	(void *ctx);
 
 /*
  * CD/DIR/GET handlers.
  */
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPCwd		(void *ctx,
 				 const char *directory);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPDele		(void *ctx,
 				 const char *file);
 
-XMLPUBFUN SOCKET XMLCALL
+XML_DEPRECATED
+XMLPUBFUN SOCKET
 	xmlNanoFTPGetConnection	(void *ctx);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPCloseConnection(void *ctx);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPList		(void *ctx,
 				 ftpListCallback callback,
 				 void *userData,
 				 const char *filename);
-XMLPUBFUN SOCKET XMLCALL
+XML_DEPRECATED
+XMLPUBFUN SOCKET
 	xmlNanoFTPGetSocket	(void *ctx,
 				 const char *filename);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPGet		(void *ctx,
 				 ftpDataCallback callback,
 				 void *userData,
 				 const char *filename);
-XMLPUBFUN int XMLCALL
+XML_DEPRECATED
+XMLPUBFUN int
 	xmlNanoFTPRead		(void *ctx,
 				 void *dest,
 				 int len);
