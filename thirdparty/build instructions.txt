@@ -22,10 +22,12 @@ make
 dav1d
 
 32-bit
-meson build32 --prefix .. --buildtype release --default-library static && ninja -C build32
+export CC=gcc
+export CXX=g++
+meson setup build32 --prefix .. --buildtype release --default-library static && ninja -C build32
 
 64-bit
-meson build64 --prefix .. --buildtype release --default-library static --cross-file x86_64-mingw64-cross.txt
+meson setup build64 --prefix .. --buildtype release --default-library static --cross-file x86_64-mingw64-cross.txt
 
 ----------------------------------------------
 gnutls & deps
