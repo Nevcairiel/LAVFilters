@@ -285,4 +285,5 @@ gnutls_ocsp_resp_list_import2(gnutls_ocsp_resp_t **ocsps,
 }
 #endif
 /* *INDENT-ON* */
-#endif				/* GNUTLS_OCSP_H */
+
+#endif /* GNUTLS_OCSP_H */

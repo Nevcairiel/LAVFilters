@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef __GNUTLS_ABSTRACT_H
-#define __GNUTLS_ABSTRACT_H
+#ifndef GNUTLS_ABSTRACT_H
+#define GNUTLS_ABSTRACT_H
 
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
@@ -388,6 +388,9 @@ int gnutls_privkey_status(gnutls_privkey_t key);
  * @GNUTLS_PRIVKEY_FLAG_EXPORT_COMPAT: Keys generated or imported as provable require an extended format which cannot be read by previous versions
  *   of gnutls or other applications. By setting this flag the key will be exported in a backwards compatible way,
  *   even if the information about the seed used will be lost.
+ * @GNUTLS_PRIVKEY_FLAG_RSA_PSS_FIXED_SALT_LENGTH: When making an RSA-PSS
+ *   signature, use the salt whose length is equal to the digest length, as
+ *   mandated in RFC 8446 4.2.3.
  *
  * Enumeration of different certificate import flags.
  */
@@ -400,7 +403,8 @@ typedef enum gnutls_privkey_flags {
 	GNUTLS_PRIVKEY_FLAG_EXPORT_COMPAT = 1 << 6,
 	GNUTLS_PRIVKEY_SIGN_FLAG_RSA_PSS = 1 << 7,
 	GNUTLS_PRIVKEY_FLAG_REPRODUCIBLE = 1 << 8,
-	GNUTLS_PRIVKEY_FLAG_CA = 1 << 9
+	GNUTLS_PRIVKEY_FLAG_CA = 1 << 9,
+	GNUTLS_PRIVKEY_FLAG_RSA_PSS_FIXED_SALT_LENGTH = 1 << 10
 } gnutls_privkey_flags_t;
 
 int gnutls_privkey_import_pkcs11(gnutls_privkey_t pkey,
@@ -746,7 +750,7 @@ typedef int gnutls_certificate_retrieve_function3(
 				gnutls_session_t,
 				const struct gnutls_cert_retr_st *info,
 				gnutls_pcert_st **certs,
-				unsigned int *pcert_length,
+				unsigned int *certs_length,
 				gnutls_ocsp_data_st **ocsp,
 				unsigned int *ocsp_length,
 				gnutls_privkey_t *privkey,
@@ -774,4 +778,5 @@ gnutls_pubkey_print(gnutls_pubkey_t pubkey,
 }
 #endif
 /* *INDENT-ON* */
-#endif
+
+#endif /* GNUTLS_ABSTRACT_H */

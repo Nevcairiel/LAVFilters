@@ -377,4 +377,5 @@ int gnutls_certificate_set_openpgp_keyring_file
 }
 #endif
 /* *INDENT-ON* */
-#endif				/* GNUTLS_OPENPGP_H */
+
+#endif /* GNUTLS_OPENPGP_H */

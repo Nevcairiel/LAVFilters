@@ -22,8 +22,8 @@
 
 /* Typedefs for more compatibility with older GnuTLS. */
 
-#ifndef _GNUTLS_COMPAT_H
-#define _GNUTLS_COMPAT_H
+#ifndef GNUTLS_COMPAT_H
+#define GNUTLS_COMPAT_H
 
 /* *INDENT-OFF* */
 #ifdef __cplusplus
@@ -243,4 +243,4 @@ int gnutls_priority_compression_list(gnutls_priority_t pcache,
 #endif
 /* *INDENT-ON* */
 
-#endif				/* _GNUTLS_COMPAT_H */
+#endif /* GNUTLS_COMPAT_H */

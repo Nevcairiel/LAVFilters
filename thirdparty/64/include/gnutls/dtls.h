@@ -89,4 +89,5 @@ unsigned int gnutls_record_get_discarded(gnutls_session_t session);
 }
 #endif
 /* *INDENT-ON* */
-#endif				/* GNUTLS_DTLS_H */
+
+#endif /* GNUTLS_DTLS_H */

@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef __GNUTLS_PKCS11_H
-#define __GNUTLS_PKCS11_H
+#ifndef GNUTLS_PKCS11_H
+#define GNUTLS_PKCS11_H
 
 #include <stdarg.h>
 #include <gnutls/gnutls.h>
@@ -34,7 +34,7 @@ extern "C" {
 #endif
 /* *INDENT-ON* */
 
-#define GNUTLS_PKCS11_MAX_PIN_LEN 32
+#define GNUTLS_PKCS11_MAX_PIN_LEN 256
 
 /**
  * gnutls_pkcs11_token_callback_t:
@@ -510,4 +510,5 @@ gnutls_pkcs11_copy_attached_extension(const char *token_url,
 }
 #endif
 /* *INDENT-ON* */
-#endif
+
+#endif /* GNUTLS_PKCS11_H */

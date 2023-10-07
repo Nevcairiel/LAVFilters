@@ -46,11 +46,13 @@ extern "C" {
 #define sha256_init nettle_sha256_init
 #define sha256_update nettle_sha256_update
 #define sha256_digest nettle_sha256_digest
+#define sha256_compress nettle_sha256_compress
 #define sha384_init nettle_sha384_init
 #define sha384_digest nettle_sha384_digest
 #define sha512_init nettle_sha512_init
 #define sha512_update nettle_sha512_update
 #define sha512_digest nettle_sha512_digest
+#define sha512_compress nettle_sha512_compress
 #define sha512_224_init   nettle_sha512_224_init
 #define sha512_224_digest nettle_sha512_224_digest
 #define sha512_256_init   nettle_sha512_256_init
@@ -91,6 +93,8 @@ sha256_digest(struct sha256_ctx *ctx,
 	      size_t length,
 	      uint8_t *digest);
 
+void
+sha256_compress(uint32_t *state, const uint8_t *input);
 
 /* SHA224, a truncated SHA256 with different initial state. */
 
@@ -138,6 +142,8 @@ sha512_digest(struct sha512_ctx *ctx,
 	      size_t length,
 	      uint8_t *digest);
 
+void
+sha512_compress(uint64_t *state, const uint8_t *input);
 
 /* SHA384, a truncated SHA512 with different initial state. */
 
@@ -186,7 +192,7 @@ void
 sha512_256_digest(struct sha512_256_ctx *ctx,
                   size_t length,
                   uint8_t *digest);
-  
+
 #ifdef __cplusplus
 }
 #endif

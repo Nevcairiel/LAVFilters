@@ -33,9 +33,8 @@
  * The low level cipher functionality is in gnutls/crypto.h.
  */
 
-
-#ifndef GNUTLS_H
-#define GNUTLS_H
+#ifndef GNUTLS_GNUTLS_H
+#define GNUTLS_GNUTLS_H
 
 /* Get ssize_t. */
 #include <sys/types.h>
@@ -52,13 +51,13 @@ extern "C" {
 #endif
 /* *INDENT-ON* */
 
-#define GNUTLS_VERSION "3.6.16"
+#define GNUTLS_VERSION "3.7.10"
 
 #define GNUTLS_VERSION_MAJOR 3
-#define GNUTLS_VERSION_MINOR 6
-#define GNUTLS_VERSION_PATCH 16
+#define GNUTLS_VERSION_MINOR 7
+#define GNUTLS_VERSION_PATCH 10
 
-#define GNUTLS_VERSION_NUMBER 0x030610
+#define GNUTLS_VERSION_NUMBER 0x03070a
 
 #define GNUTLS_CIPHER_RIJNDAEL_128_CBC GNUTLS_CIPHER_AES_128_CBC
 #define GNUTLS_CIPHER_RIJNDAEL_256_CBC GNUTLS_CIPHER_AES_256_CBC
@@ -128,6 +127,8 @@ extern "C" {
  *                             cipher-stealing requires to know where the message actually terminates
  *                             in order to be able to compute where the stealing occurs.
  * @GNUTLS_CIPHER_GOST28147_TC26Z_CNT: GOST 28147-89 (Magma) cipher in CNT mode with TC26 Z S-box.
+ * @GNUTLS_CIPHER_MAGMA_CTR_ACPKM: GOST R 34.12-2015 (Magma) cipher in CTR-ACPKM mode.
+ * @GNUTLS_CIPHER_KUZNYECHIK_CTR_ACPKM: GOST R 34.12-2015 (Kuznyechik) cipher in CTR-ACPKM mode.
  * @GNUTLS_CIPHER_IDEA_PGP_CFB: IDEA in CFB mode (placeholder - unsupported).
  * @GNUTLS_CIPHER_3DES_PGP_CFB: 3DES in CFB mode (placeholder - unsupported).
  * @GNUTLS_CIPHER_CAST5_PGP_CFB: CAST5 in CFB mode (placeholder - unsupported).
@@ -188,6 +189,8 @@ typedef enum gnutls_cipher_algorithm {
 	GNUTLS_CIPHER_AES_128_SIV = 37,
 	GNUTLS_CIPHER_AES_256_SIV = 38,
 	GNUTLS_CIPHER_AES_192_GCM = 39,
+	GNUTLS_CIPHER_MAGMA_CTR_ACPKM = 40,
+	GNUTLS_CIPHER_KUZNYECHIK_CTR_ACPKM = 41,
 
 	/* used only for PGP internals. Ignored in TLS/SSL
 	 */
@@ -310,6 +313,8 @@ typedef enum {
  * @GNUTLS_MAC_GOST28147_TC26Z_IMIT: The GOST 28147-89 working in IMIT mode with TC26 Z S-box.
  * @GNUTLS_MAC_SHAKE_128: Reserved; unimplemented.
  * @GNUTLS_MAC_SHAKE_256: Reserved; unimplemented.
+ * @GNUTLS_MAC_MAGMA_OMAC: GOST R 34.12-2015 (Magma) in OMAC (CMAC) mode.
+ * @GNUTLS_MAC_KUZNYECHIK_OMAC: GOST R 34.12-2015 (Kuznyechik) in OMAC (CMAC) mode.
  *
  * Enumeration of different Message Authentication Code (MAC)
  * algorithms.
@@ -345,7 +350,9 @@ typedef enum {
 	GNUTLS_MAC_AES_GMAC_256 = 207,
 	GNUTLS_MAC_GOST28147_TC26Z_IMIT = 208,
 	GNUTLS_MAC_SHAKE_128 = 209,
-	GNUTLS_MAC_SHAKE_256 = 210
+	GNUTLS_MAC_SHAKE_256 = 210,
+	GNUTLS_MAC_MAGMA_OMAC = 211,
+	GNUTLS_MAC_KUZNYECHIK_OMAC = 212
 } gnutls_mac_algorithm_t;
 
 /**
@@ -401,7 +408,7 @@ typedef enum {
   /* exported for other gnutls headers. This is the maximum number of
    * algorithms (ciphers, kx or macs).
    */
-#define GNUTLS_MAX_ALGORITHM_NUM 64
+#define GNUTLS_MAX_ALGORITHM_NUM 128
 #define GNUTLS_MAX_SESSION_ID_SIZE 32
 
 
@@ -411,6 +418,8 @@ typedef enum {
  * @GNUTLS_COMP_NULL: The NULL compression method (no compression).
  * @GNUTLS_COMP_DEFLATE: The DEFLATE compression method from zlib.
  * @GNUTLS_COMP_ZLIB: Same as %GNUTLS_COMP_DEFLATE.
+ * @GNUTLS_COMP_BROTLI: Brotli compression method.
+ * @GNUTLS_COMP_ZSTD: Zstandard compression method.
  *
  * Enumeration of different TLS compression methods.
  */
@@ -418,7 +427,9 @@ typedef enum {
 	GNUTLS_COMP_UNKNOWN = 0,
 	GNUTLS_COMP_NULL = 1,
 	GNUTLS_COMP_DEFLATE = 2,
-	GNUTLS_COMP_ZLIB = GNUTLS_COMP_DEFLATE
+	GNUTLS_COMP_ZLIB = GNUTLS_COMP_DEFLATE,
+	GNUTLS_COMP_BROTLI = 3,
+	GNUTLS_COMP_ZSTD = 4
 } gnutls_compression_method_t;
 
 
@@ -438,9 +449,12 @@ typedef enum {
  *   finish; similarly to false start the handshake will be completed once data are received by the
  *   client, while the server is able to transmit sooner. This is not enabled by default as it could
  *   break certain existing server assumptions and use-cases. Since 3.6.4.
- * @GNUTLS_ENABLE_EARLY_DATA: Under TLS1.3 allow the server to receive early data sent as part of the initial ClientHello (0-RTT). This is not enabled by default as early data has weaker security properties than other data. Since 3.6.5.
+ * @GNUTLS_ENABLE_EARLY_DATA: Under TLS1.3 allow the server to receive early data sent as part of the initial ClientHello (0-RTT).
+ *   This can also be used to explicitly indicate that the client will send early data.
+ *   This is not enabled by default as early data has weaker security properties than other data. Since 3.6.5.
  * @GNUTLS_FORCE_CLIENT_CERT: When in client side and only a single cert is specified, send that certificate irrespective of the issuers expected by the server. Since 3.5.0.
  * @GNUTLS_NO_TICKETS: Flag to indicate that the session should not use resumption with session tickets.
+ * @GNUTLS_NO_TICKETS_TLS12: Flag to indicate that the session should not use resumption with session tickets. This flag only has effect if TLS 1.2 is used.
  * @GNUTLS_KEY_SHARE_TOP3: Generate key shares for the top-3 different groups which are enabled.
  *   That is, as each group is associated with a key type (EC, finite field, x25519), generate
  *   three keys using %GNUTLS_PK_DH, %GNUTLS_PK_EC, %GNUTLS_PK_ECDH_X25519 if all of them are enabled.
@@ -468,11 +482,10 @@ typedef enum {
  *    since gnutls_record_recv() could be interrupted when sending when this flag is enabled.
  *    Note this flag may not be used if you are using the same session for sending and receiving
  *    in different threads.
- * @GNUTLS_ENABLE_EARLY_DATA: Under TLS1.3 allow the server to receive early data sent as part of the initial ClientHello (0-RTT). 
- *    This is not enabled by default as early data has weaker security properties than other data. Since 3.6.5.
  * @GNUTLS_ENABLE_RAWPK: Allows raw public-keys to be negotiated during the handshake. Since 3.6.6.
  * @GNUTLS_NO_AUTO_SEND_TICKET: Under TLS1.3 disable auto-sending of
  *    session tickets during the handshake.
+ * @GNUTLS_NO_END_OF_EARLY_DATA: Under TLS1.3 suppress sending EndOfEarlyData message. Since 3.7.2.
  *
  * Enumeration of different flags for gnutls_init() function. All the flags
  * can be combined except @GNUTLS_SERVER and @GNUTLS_CLIENT which are mutually
@@ -504,7 +517,9 @@ typedef enum {
 	GNUTLS_ENABLE_RAWPK = (1<<18),
 	GNUTLS_AUTO_REAUTH = (1<<19),
 	GNUTLS_ENABLE_EARLY_DATA = (1<<20),
-	GNUTLS_NO_AUTO_SEND_TICKET = (1<<21)
+	GNUTLS_NO_AUTO_SEND_TICKET = (1<<21),
+	GNUTLS_NO_END_OF_EARLY_DATA = (1<<22),
+	GNUTLS_NO_TICKETS_TLS12 = (1<<23)
 } gnutls_init_flags_t;
 
 /* compatibility defines (previous versions of gnutls
@@ -631,6 +646,7 @@ typedef enum {
  * @GNUTLS_HANDSHAKE_FINISHED: Finished.
  * @GNUTLS_HANDSHAKE_CERTIFICATE_STATUS: Certificate status (OCSP).
  * @GNUTLS_HANDSHAKE_KEY_UPDATE: TLS1.3 key update message.
+ * @GNUTLS_HANDSHAKE_COMPRESSED_CERTIFICATE_PKT: Compressed certificate packet.
  * @GNUTLS_HANDSHAKE_SUPPLEMENTAL: Supplemental.
  * @GNUTLS_HANDSHAKE_CHANGE_CIPHER_SPEC: Change Cipher Spec.
  * @GNUTLS_HANDSHAKE_CLIENT_HELLO_V2: SSLv2 Client Hello.
@@ -656,6 +672,7 @@ typedef enum {
 	GNUTLS_HANDSHAKE_CERTIFICATE_STATUS = 22,
 	GNUTLS_HANDSHAKE_SUPPLEMENTAL = 23,
 	GNUTLS_HANDSHAKE_KEY_UPDATE = 24,
+	GNUTLS_HANDSHAKE_COMPRESSED_CERTIFICATE_PKT = 25,
 	GNUTLS_HANDSHAKE_CHANGE_CIPHER_SPEC = 254,
 	GNUTLS_HANDSHAKE_CLIENT_HELLO_V2 = 1024,
 	GNUTLS_HANDSHAKE_HELLO_RETRY_REQUEST = 1025,
@@ -692,7 +709,7 @@ const char
  * @GNUTLS_CERT_UNEXPECTED_OWNER: The owner is not the expected one.
  * @GNUTLS_CERT_MISMATCH: The certificate presented isn't the expected one (TOFU)
  * @GNUTLS_CERT_PURPOSE_MISMATCH: The certificate or an intermediate does not match the intended purpose (extended key usage).
- * @GNUTLS_CERT_MISSING_OCSP_STATUS: The certificate requires the server to send the certifiate status, but no status was received.
+ * @GNUTLS_CERT_MISSING_OCSP_STATUS: The certificate requires the server to send the certificate status, but no status was received.
  * @GNUTLS_CERT_INVALID_OCSP_STATUS: The received OCSP status response is invalid.
  * @GNUTLS_CERT_UNKNOWN_CRIT_EXTENSIONS: The certificate has extensions marked as critical which are not supported.
  *
@@ -1151,11 +1168,15 @@ typedef enum {
 /**
  * gnutls_channel_binding_t:
  * @GNUTLS_CB_TLS_UNIQUE: "tls-unique" (RFC 5929) channel binding
+ * @GNUTLS_CB_TLS_SERVER_END_POINT: "tls-server-end-point" (RFC 5929) channel binding
+ * @GNUTLS_CB_TLS_EXPORTER: "tls-exporter" (RFC 9266) channel binding
  *
- * Enumeration of support channel binding types.
+ * Enumeration of supported channel binding types.
  */
 typedef enum {
-	GNUTLS_CB_TLS_UNIQUE
+	GNUTLS_CB_TLS_UNIQUE,
+	GNUTLS_CB_TLS_SERVER_END_POINT,
+	GNUTLS_CB_TLS_EXPORTER
 } gnutls_channel_binding_t;
 
 /**
@@ -1218,6 +1239,11 @@ typedef struct {
 	unsigned char *data;
 	unsigned int size;
 } gnutls_datum_t;
+
+typedef struct gnutls_library_config_st {
+	const char *name;
+	const char *value;
+} gnutls_library_config_st;
 
 
 typedef struct gnutls_params_st {
@@ -1286,14 +1312,17 @@ gnutls_group_t gnutls_group_get(gnutls_session_t session);
 
 /* get information on the current session */
 gnutls_cipher_algorithm_t gnutls_cipher_get(gnutls_session_t session);
+gnutls_cipher_algorithm_t gnutls_early_cipher_get(gnutls_session_t session);
 gnutls_kx_algorithm_t gnutls_kx_get(gnutls_session_t session);
 gnutls_mac_algorithm_t gnutls_mac_get(gnutls_session_t session);
 gnutls_digest_algorithm_t gnutls_prf_hash_get(const gnutls_session_t session);
+gnutls_digest_algorithm_t
+gnutls_early_prf_hash_get(const gnutls_session_t session);
 gnutls_certificate_type_t
 gnutls_certificate_type_get(gnutls_session_t session);
 gnutls_certificate_type_t
 gnutls_certificate_type_get2(gnutls_session_t session,
-								gnutls_ctype_target_t target);
+			     gnutls_ctype_target_t target);
 
 int gnutls_sign_algorithm_get(gnutls_session_t session);
 int gnutls_sign_algorithm_get_client(gnutls_session_t session);
@@ -1422,6 +1451,17 @@ const char *
 				 gnutls_mac_algorithm_t * mac,
 				 gnutls_protocol_t * min_version);
 
+  /* functions for run-time enablement of algorithms */
+int gnutls_ecc_curve_set_enabled(gnutls_ecc_curve_t curve,
+				 unsigned int enabled);
+int gnutls_sign_set_secure(gnutls_sign_algorithm_t sign, unsigned int secure);
+int gnutls_sign_set_secure_for_certs(gnutls_sign_algorithm_t sign,
+				     unsigned int secure);
+int gnutls_digest_set_secure(gnutls_digest_algorithm_t dig,
+			     unsigned int secure);
+int gnutls_protocol_set_enabled(gnutls_protocol_t version,
+				unsigned int enabled);
+
   /* error functions */
 int gnutls_error_is_fatal(int error) __GNUTLS_CONST__;
 int gnutls_error_to_alert(int err, int *level);
@@ -1487,6 +1527,8 @@ ssize_t gnutls_record_send2(gnutls_session_t session, const void *data,
 ssize_t gnutls_record_send_range(gnutls_session_t session,
 				 const void *data, size_t data_size,
 				 const gnutls_range_st * range);
+ssize_t gnutls_record_send_file(gnutls_session_t session, int fd,
+		off_t *offset, size_t count);
 ssize_t gnutls_record_recv(gnutls_session_t session, void *data,
 			   size_t data_size);
 
@@ -1692,6 +1734,13 @@ int gnutls_srtp_set_mki(gnutls_session_t session,
 			const gnutls_datum_t * mki);
 int gnutls_srtp_get_mki(gnutls_session_t session, gnutls_datum_t * mki);
 
+/* COMPRESS_CERTIFICATE extension, RFC8879 */
+gnutls_compression_method_t
+gnutls_compress_certificate_get_selected_method(gnutls_session_t session);
+int gnutls_compress_certificate_set_methods(gnutls_session_t session,
+					    const gnutls_compression_method_t * methods,
+					    size_t methods_len);
+
 /* ALPN TLS extension */
 
 /**
@@ -1776,6 +1825,9 @@ const char *
 	gnutls_cipher_suite_get_name(gnutls_kx_algorithm_t kx_algorithm,
 				     gnutls_cipher_algorithm_t cipher_algorithm,
 				     gnutls_mac_algorithm_t mac_algorithm) __GNUTLS_CONST__;
+
+const char *
+gnutls_ciphersuite_get(gnutls_session_t session) __GNUTLS_CONST__;
 
 /* get the currently used protocol version */
 gnutls_protocol_t gnutls_protocol_get_version(gnutls_session_t session);
@@ -2257,6 +2309,8 @@ int gnutls_certificate_set_rawpk_key_file(gnutls_certificate_credentials_t cred,
 int gnutls_global_init(void);
 void gnutls_global_deinit(void);
 
+const gnutls_library_config_st *gnutls_get_library_config(void);
+
   /**
    * gnutls_time_func:
    * @t: where to store time.
@@ -2695,6 +2749,7 @@ gnutls_psk_set_server_params_function(gnutls_psk_server_credentials_t
  * @GNUTLS_SAN_REGISTERED_ID: RegisteredID.
  * @GNUTLS_SAN_OTHERNAME_XMPP: Virtual SAN, used by certain functions for convenience.
  * @GNUTLS_SAN_OTHERNAME_KRB5PRINCIPAL: Virtual SAN, used by certain functions for convenience.
+ * @GNUTLS_SAN_OTHERNAME_MSUSERPRINCIPAL: Virtual SAN, used by certain functions for convenience.
  *
  * Enumeration of different subject alternative names types.
  */
@@ -2711,7 +2766,8 @@ typedef enum gnutls_x509_subject_alt_name_t {
 	   that they are represented by an otherName value and an OID.
 	   Used by gnutls_x509_crt_get_subject_alt_othername_oid.  */
 	GNUTLS_SAN_OTHERNAME_XMPP = 1000,
-	GNUTLS_SAN_OTHERNAME_KRB5PRINCIPAL
+	GNUTLS_SAN_OTHERNAME_KRB5PRINCIPAL,
+	GNUTLS_SAN_OTHERNAME_MSUSERPRINCIPAL
 } gnutls_x509_subject_alt_name_t;
 
 struct gnutls_openpgp_crt_int;
@@ -3188,6 +3244,101 @@ void gnutls_anti_replay_set_add_function(gnutls_anti_replay_t,
 void gnutls_anti_replay_set_ptr(gnutls_anti_replay_t, void *ptr);
 
 
+/**
+ * gnutls_record_encryption_level_t:
+ * @GNUTLS_ENCRYPTION_LEVEL_INITIAL: initial level that doesn't involve any
+ *    encryption
+ * @GNUTLS_ENCRYPTION_LEVEL_EARLY: early traffic secret is installed
+ * @GNUTLS_ENCRYPTION_LEVEL_HANDSHAKE: handshake traffic secret is installed
+ * @GNUTLS_ENCRYPTION_LEVEL_APPLICATION: application traffic secret is installed
+ *
+ * Enumeration of different levels of record encryption currently in place.
+ * This is used by gnutls_handshake_set_read_function() and
+ * gnutls_handshake_write().
+ *
+ * Since: 3.7.0
+ */
+typedef enum {
+	GNUTLS_ENCRYPTION_LEVEL_INITIAL,
+	GNUTLS_ENCRYPTION_LEVEL_EARLY,
+	GNUTLS_ENCRYPTION_LEVEL_HANDSHAKE,
+	GNUTLS_ENCRYPTION_LEVEL_APPLICATION
+} gnutls_record_encryption_level_t;
+
+  /**
+   * gnutls_handshake_read_func:
+   * @session: the current session
+   * @htype: the type of the handshake message (#gnutls_handshake_description_t)
+   * @level: #gnutls_record_encryption_level_t
+   * @data: the (const) data that was being sent
+   * @data_size: the size of data
+   *
+   * Function prototype for handshake intercepting hooks. It is set using
+   * gnutls_handshake_set_read_function().
+   *
+   * Returns: Non zero on error.
+   * Since: 3.7.0
+   */
+typedef int (*gnutls_handshake_read_func) (gnutls_session_t session,
+					   gnutls_record_encryption_level_t level,
+					   gnutls_handshake_description_t htype,
+					   const void *data, size_t data_size);
+
+void
+gnutls_handshake_set_read_function(gnutls_session_t session,
+				   gnutls_handshake_read_func func);
+
+int
+gnutls_handshake_write(gnutls_session_t session,
+		       gnutls_record_encryption_level_t level,
+		       const void *data, size_t data_size);
+
+  /**
+   * gnutls_handshake_secret_func:
+   * @session: the current session
+   * @level: the encryption level
+   * @secret_read: the secret used for reading, can be %NULL if not set
+   * @secret_write: the secret used for writing, can be %NULL if not set
+   * @secret_size: the size of the secrets
+   *
+   * Function prototype for secret hooks. It is set using
+   * gnutls_handshake_set_secret_function().
+   *
+   * Returns: Non zero on error.
+   * Since: 3.7.0
+   */
+typedef int (*gnutls_handshake_secret_func) (gnutls_session_t session,
+					     gnutls_record_encryption_level_t level,
+					     const void *secret_read,
+					     const void *secret_write,
+					     size_t secret_size);
+
+void
+gnutls_handshake_set_secret_function(gnutls_session_t session,
+				     gnutls_handshake_secret_func func);
+
+  /**
+   * gnutls_alert_read_func:
+   * @session: the current session
+   * @level: #gnutls_record_encryption_level_t
+   * @alert_level: the level of the alert
+   * @alert_desc: the alert description
+   *
+   * Function prototype for alert intercepting hooks. It is set using
+   * gnutls_alert_set_read_function().
+   *
+   * Returns: Non zero on error.
+   * Since: 3.7.0
+   */
+typedef int (*gnutls_alert_read_func) (gnutls_session_t session,
+				       gnutls_record_encryption_level_t level,
+				       gnutls_alert_level_t alert_level,
+				       gnutls_alert_description_t alert_desc);
+
+void
+gnutls_alert_set_read_function(gnutls_session_t session,
+			       gnutls_alert_read_func func);
+
 /* FIPS140-2 related functions */
 unsigned gnutls_fips140_mode_enabled(void);
 
@@ -3228,6 +3379,47 @@ void gnutls_fips140_set_mode(gnutls_fips_mode_t mode, unsigned flags);
 	if (gnutls_fips140_mode_enabled()) \
 		gnutls_fips140_set_mode(GNUTLS_FIPS140_STRICT, GNUTLS_FIPS140_SET_MODE_THREAD); \
 	} while(0)
+
+typedef struct gnutls_fips140_context_st *gnutls_fips140_context_t;
+
+int gnutls_fips140_context_init(gnutls_fips140_context_t *context);
+void gnutls_fips140_context_deinit(gnutls_fips140_context_t context);
+
+/**
+ * gnutls_fips140_operation_state_t:
+ * @GNUTLS_FIPS140_OP_INITIAL: no previous operation has done
+ * @GNUTLS_FIPS140_OP_APPROVED: the previous operation was FIPS approved
+ * @GNUTLS_FIPS140_OP_NOT_APPROVED: the previous operation was not FIPS approved
+ * @GNUTLS_FIPS140_OP_ERROR: the previous operation caused an error regardless of FIPS
+ *
+ * The FIPS operation state set by the preceding operation.
+ *
+ * There are state transition rules among the enum values:
+ * - When the context is attached to a thread, it will be set to reset
+ *   to the %GNUTLS_FIPS140_OP_INITIAL state
+ * - From the %GNUTLS_FIPS140_OP_INITIAL state, the context can
+ *   transition to either %GNUTLS_FIPS140_OP_APPROVED,
+ *   %GNUTLS_FIPS140_OP_NOT_APPROVED, or %GNUTLS_FIPS140_OP_ERROR
+ * - From the %GNUTLS_FIPS140_OP_APPROVED state, the context can
+ *   transition to %GNUTLS_FIPS140_OP_NOT_APPROVED
+ * - All other transitions are prohibited.
+ *
+ * Since: 3.7.3
+ */
+typedef enum {
+        GNUTLS_FIPS140_OP_INITIAL,
+        GNUTLS_FIPS140_OP_APPROVED,
+        GNUTLS_FIPS140_OP_NOT_APPROVED,
+        GNUTLS_FIPS140_OP_ERROR
+} gnutls_fips140_operation_state_t;
+
+gnutls_fips140_operation_state_t
+gnutls_fips140_get_operation_state(gnutls_fips140_context_t context);
+
+int gnutls_fips140_push_context(gnutls_fips140_context_t context);
+int gnutls_fips140_pop_context(void);
+
+int gnutls_fips140_run_self_tests(void);
 
   /* Gnutls error codes. The mapping to a TLS alert is also shown in
    * comments.
@@ -3490,4 +3682,4 @@ void gnutls_fips140_set_mode(gnutls_fips_mode_t mode, unsigned flags);
 
 #include <gnutls/compat.h>
 
-#endif				/* GNUTLS_H */
+#endif /* GNUTLS_GNUTLS_H */

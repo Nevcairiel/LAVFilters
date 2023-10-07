@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef __GNUTLS_URLS_H
-#define __GNUTLS_URLS_H
+#ifndef GNUTLS_URLS_H
+#define GNUTLS_URLS_H
 
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
@@ -74,4 +74,5 @@ int gnutls_register_custom_url(const gnutls_custom_url_st *st);
 }
 #endif
 /* *INDENT-ON* */
-#endif
+
+#endif /* GNUTLS_URLS_H */

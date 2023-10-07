@@ -153,4 +153,5 @@ int gnutls_pkcs7_print_signature_info(gnutls_pkcs7_signature_info_st * info,
 }
 #endif
 /* *INDENT-ON* */
-#endif				/* GNUTLS_PKCS7_H */
+
+#endif /* GNUTLS_PKCS7_H */

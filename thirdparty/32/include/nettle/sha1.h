@@ -44,6 +44,7 @@ extern "C" {
 #define sha1_init nettle_sha1_init
 #define sha1_update nettle_sha1_update
 #define sha1_digest nettle_sha1_digest
+#define sha1_compress nettle_sha1_compress
 
 /* SHA1 */
 
@@ -76,11 +77,12 @@ sha1_digest(struct sha1_ctx *ctx,
 	    size_t length,
 	    uint8_t *digest);
 
-/* Internal compression function. STATE points to 5 uint32_t words,
+/* SHA1 compression function. STATE points to 5 uint32_t words,
    and DATA points to 64 bytes of input data, possibly unaligned. */
 void
-nettle_sha1_compress(uint32_t *state, const uint8_t *data);
+sha1_compress(uint32_t *state, const uint8_t *data);
 
+/* Old name, for backwards compatibility. */
 #define _nettle_sha1_compress nettle_sha1_compress
 
 #ifdef __cplusplus

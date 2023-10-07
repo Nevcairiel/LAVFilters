@@ -193,6 +193,9 @@ void
 ccm_aes128_digest(struct ccm_aes128_ctx *ctx,
 		  size_t length, uint8_t *digest);
 
+/* FIXME: For next API/ABI break: first argument should be const
+   struct aes128_ctx *, and similarly for other ccm_*_message
+   functions below. */
 void
 ccm_aes128_encrypt_message(struct ccm_aes128_ctx *ctx,
 			   size_t nlength, const uint8_t *nonce,

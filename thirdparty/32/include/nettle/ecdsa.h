@@ -53,7 +53,7 @@ extern "C" {
 /* High level ECDSA functions.
  *
  * A public key is represented as a struct ecc_point, and a private
- * key as a struct ecc_scalar. FIXME: Introduce some aliases? */
+ * key as a struct ecc_scalar. */
 void
 ecdsa_sign (const struct ecc_scalar *key,
 	    void *random_ctx, nettle_random_func *random,

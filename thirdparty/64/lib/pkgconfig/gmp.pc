@@ -6,6 +6,6 @@ libdir=${exec_prefix}/lib
 Name: GNU MP
 Description: GNU Multiple Precision Arithmetic Library
 URL: https://gmplib.org
-Version: 6.2.1
+Version: 6.3.0
 Cflags: -I${includedir}
 Libs: -L${libdir} -lgmp

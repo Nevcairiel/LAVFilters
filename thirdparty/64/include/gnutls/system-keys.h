@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef __GNUTLS_SYSTEM_KEYS_H
-#define __GNUTLS_SYSTEM_KEYS_H
+#ifndef GNUTLS_SYSTEM_KEYS_H
+#define GNUTLS_SYSTEM_KEYS_H
 
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
@@ -60,4 +60,5 @@ int gnutls_system_key_add_x509(gnutls_x509_crt_t crt, gnutls_x509_privkey_t priv
 }
 #endif
 /* *INDENT-ON* */
-#endif
+
+#endif /* GNUTLS_SYSTEM_KEYS_H */

@@ -6,6 +6,6 @@ includedir=${prefix}/include
 Name: Nettle
 Description: Nettle low-level cryptographic library (symmetric algorithms)
 URL: http://www.lysator.liu.se/~nisse/nettle
-Version: 3.7.3
+Version: 3.9.1
 Libs: -L${libdir} -lnettle
 Cflags: -I${includedir}

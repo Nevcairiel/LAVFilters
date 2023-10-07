@@ -35,6 +35,7 @@
 #define NETTLE_CBC_H_INCLUDED
 
 #include "nettle-types.h"
+#include "aes.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +44,9 @@ extern "C" {
 /* Name mangling */
 #define cbc_encrypt nettle_cbc_encrypt
 #define cbc_decrypt nettle_cbc_decrypt
+#define cbc_aes128_encrypt nettle_cbc_aes128_encrypt
+#define cbc_aes192_encrypt nettle_cbc_aes192_encrypt
+#define cbc_aes256_encrypt nettle_cbc_aes256_encrypt
 
 void
 cbc_encrypt(const void *ctx, nettle_cipher_func *f,
@@ -78,6 +82,18 @@ memcpy((ctx)->iv, (data), sizeof((ctx)->iv))
 		 (nettle_cipher_func *) (f),		\
 		 sizeof((self)->iv), (self)->iv,	\
 		 (length), (dst), (src)))
+
+void
+cbc_aes128_encrypt(const struct aes128_ctx *ctx, uint8_t *iv,
+		   size_t length, uint8_t *dst, const uint8_t *src);
+
+void
+cbc_aes192_encrypt(const struct aes192_ctx *ctx, uint8_t *iv,
+		   size_t length, uint8_t *dst, const uint8_t *src);
+
+void
+cbc_aes256_encrypt(const struct aes256_ctx *ctx, uint8_t *iv,
+		   size_t length, uint8_t *dst, const uint8_t *src);
 
 #ifdef __cplusplus
 }

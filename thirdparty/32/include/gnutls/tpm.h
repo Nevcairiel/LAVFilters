@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef __GNUTLS_TPM_H
-#define __GNUTLS_TPM_H
+#ifndef GNUTLS_TPM_H
+#define GNUTLS_TPM_H
 
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
@@ -76,4 +76,5 @@ int gnutls_tpm_privkey_delete(const char *url, const char *srk_password);
 }
 #endif
 /* *INDENT-ON* */
-#endif
+
+#endif /* GNUTLS_TPM_H */

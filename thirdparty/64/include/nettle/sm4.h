@@ -1,9 +1,6 @@
-/* version.h
+/* sm4.h
 
-   Information about library version.
-
-   Copyright (C) 2015 Red Hat, Inc.
-   Copyright (C) 2015 Niels Möller
+   Copyright (C) 2022 Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
 
    This file is part of GNU Nettle.
 
@@ -32,33 +29,41 @@
    not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef NETTLE_VERSION_H_INCLUDED
-#define NETTLE_VERSION_H_INCLUDED
+#ifndef NETTLE_SM4_H_INCLUDED
+#define NETTLE_SM4_H_INCLUDED
+
+#include "nettle-types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Individual version numbers in decimal */
-#define NETTLE_VERSION_MAJOR 3
-#define NETTLE_VERSION_MINOR 9
+/* Name mangling */
+#define sm4_set_encrypt_key nettle_sm4_set_encrypt_key
+#define sm4_set_decrypt_key nettle_sm4_set_decrypt_key
+#define sm4_crypt nettle_sm4_crypt
 
-#define NETTLE_USE_MINI_GMP 0
+#define SM4_BLOCK_SIZE 16
+#define SM4_KEY_SIZE 16
 
-/* We need a preprocessor constant for GMP_NUMB_BITS, simply using
-   sizeof(mp_limb_t) * CHAR_BIT is not good enough. */
-#if NETTLE_USE_MINI_GMP
-# define GMP_NUMB_BITS n/a
-#endif
+struct sm4_ctx
+{
+  uint32_t rkey[32];
+};
 
-int
-nettle_version_major (void);
+void
+sm4_set_encrypt_key(struct sm4_ctx *ctx, const uint8_t *key);
 
-int
-nettle_version_minor (void);
+void
+sm4_set_decrypt_key(struct sm4_ctx *ctx, const uint8_t *key);
+
+void
+sm4_crypt(const struct sm4_ctx *context,
+	  size_t length, uint8_t *dst,
+	  const uint8_t *src);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* NETTLE_VERSION_H_INCLUDED */
+#endif /* NETTLE_SM4_H_INCLUDED */

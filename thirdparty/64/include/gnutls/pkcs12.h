@@ -145,4 +145,5 @@ int gnutls_pkcs12_bag_set_friendly_name(gnutls_pkcs12_bag_t bag,
 }
 #endif
 /* *INDENT-ON* */
-#endif				/* GNUTLS_PKCS12_H */
+
+#endif /* GNUTLS_PKCS12_H */

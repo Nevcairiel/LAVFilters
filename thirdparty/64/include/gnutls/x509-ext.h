@@ -199,9 +199,26 @@ int gnutls_x509_ext_export_tlsfeatures(gnutls_x509_tlsfeatures_t f,
 
 int gnutls_x509_tlsfeatures_add(gnutls_x509_tlsfeatures_t f, unsigned int feature);
 
+typedef struct gnutls_x509_ct_scts_st *gnutls_x509_ct_scts_t;
+
+int gnutls_x509_ext_ct_scts_init(gnutls_x509_ct_scts_t * scts);
+void gnutls_x509_ext_ct_scts_deinit(gnutls_x509_ct_scts_t scts);
+int gnutls_x509_ext_ct_import_scts(const gnutls_datum_t * ext,
+				   gnutls_x509_ct_scts_t scts, unsigned int flags);
+int gnutls_x509_ext_ct_export_scts(const gnutls_x509_ct_scts_t scts, gnutls_datum_t * ext);
+int gnutls_x509_ct_sct_get_version(const gnutls_x509_ct_scts_t scts, unsigned idx,
+				   unsigned int *version_out);
+int gnutls_x509_ct_sct_get(const gnutls_x509_ct_scts_t scts,
+			   unsigned idx,
+			   time_t *timestamp,
+			   gnutls_datum_t *logid,
+			   gnutls_sign_algorithm_t *sigalg,
+			   gnutls_datum_t *signature);
+
 /* *INDENT-OFF* */
 #ifdef __cplusplus
 }
 #endif
 /* *INDENT-ON* */
-#endif				/* GNUTLS_X509_H */
+
+#endif /* GNUTLS_X509_EXT_H */

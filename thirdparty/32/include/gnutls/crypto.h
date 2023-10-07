@@ -49,6 +49,28 @@ int gnutls_cipher_encrypt2(gnutls_cipher_hd_t handle,
 			   const void *text, size_t textlen,
 			   void *ciphertext, size_t ciphertextlen);
 
+/**
+ * gnutls_cipher_flags_t:
+ * @GNUTLS_CIPHER_PADDING_PKCS7: Flag to indicate PKCS#7 padding
+ *
+ * Enumeration of flags to control block cipher padding, used by
+ * gnutls_cipher_encrypt3() and gnutls_cipher_decrypt3().
+ *
+ * Since: 3.7.7
+ */
+typedef enum gnutls_cipher_flags_t {
+	GNUTLS_CIPHER_PADDING_PKCS7 = 1
+} gnutls_cipher_flags_t;
+
+int gnutls_cipher_encrypt3(gnutls_cipher_hd_t handle,
+			   const void *ptext, size_t ptext_len,
+			   void *ctext, size_t *ctext_len,
+			   unsigned flags);
+int gnutls_cipher_decrypt3(gnutls_cipher_hd_t handle,
+			   const void *ctext, size_t ctext_len,
+			   void *ptext, size_t *ptext_len,
+			   unsigned flags);
+
 void gnutls_cipher_set_iv(gnutls_cipher_hd_t handle, void *iv,
 			  size_t ivlen);
 
@@ -69,6 +91,10 @@ typedef struct api_aead_cipher_hd_st *gnutls_aead_cipher_hd_t;
 int gnutls_aead_cipher_init(gnutls_aead_cipher_hd_t * handle,
 			    gnutls_cipher_algorithm_t cipher,
 			    const gnutls_datum_t * key);
+
+int gnutls_aead_cipher_set_key(gnutls_aead_cipher_hd_t handle,
+			       const gnutls_datum_t *key);
+
 int
 gnutls_aead_cipher_decrypt(gnutls_aead_cipher_hd_t handle,
 			   const void *nonce, size_t nonce_len,
@@ -297,4 +323,5 @@ int gnutls_decode_gost_rs_value(const gnutls_datum_t * sig_value, gnutls_datum_t
 }
 #endif
 /* *INDENT-ON* */
-#endif
+
+#endif /* GNUTLS_CRYPTO_H */

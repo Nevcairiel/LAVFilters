@@ -89,6 +89,8 @@ extern const struct nettle_cipher nettle_arctwo64;
 extern const struct nettle_cipher nettle_arctwo128;
 extern const struct nettle_cipher nettle_arctwo_gutmann128;
 
+extern const struct nettle_cipher nettle_sm4;
+
 struct nettle_hash
 {
   const char *name;
@@ -145,6 +147,7 @@ extern const struct nettle_hash nettle_sha3_384;
 extern const struct nettle_hash nettle_sha3_512;
 extern const struct nettle_hash nettle_streebog256;
 extern const struct nettle_hash nettle_streebog512;
+extern const struct nettle_hash nettle_sm3;
 
 struct nettle_mac
 {
@@ -197,6 +200,7 @@ extern const struct nettle_aead nettle_gcm_aes192;
 extern const struct nettle_aead nettle_gcm_aes256;
 extern const struct nettle_aead nettle_gcm_camellia128;
 extern const struct nettle_aead nettle_gcm_camellia256;
+extern const struct nettle_aead nettle_gcm_sm4;
 extern const struct nettle_aead nettle_eax_aes128;
 extern const struct nettle_aead nettle_chacha_poly1305;
 
@@ -290,6 +294,7 @@ extern const struct nettle_mac nettle_hmac_sha384;
 extern const struct nettle_mac nettle_hmac_sha512;
 extern const struct nettle_mac nettle_hmac_streebog256;
 extern const struct nettle_mac nettle_hmac_streebog512;
+extern const struct nettle_mac nettle_hmac_sm3;
 
 #ifdef __cplusplus
 }
