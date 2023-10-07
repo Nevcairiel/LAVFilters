@@ -12,11 +12,11 @@ make
 Speex:
 
 32-bit:
-./configure --enable-sse --enable-static --disable-shared
+./configure --prefix=$PREFIX --enable-sse --enable-static --disable-shared
 make
 
 64-bit:
-./configure --host=x86_64-w64-mingw32 --enable-sse --enable-static --disable-shared
+./configure --prefix=$PREFIX --host=x86_64-w64-mingw32 --enable-sse --enable-static --disable-shared
 
 ----------------------------------------------
 dav1d

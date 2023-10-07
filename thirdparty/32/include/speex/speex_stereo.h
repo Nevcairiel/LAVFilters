@@ -61,7 +61,7 @@ typedef struct SpeexStereoState {
 #define SPEEX_STEREO_STATE_INIT {1,.5,1,1,0,0}
 
 /** Initialise/create a stereo stereo state */
-SpeexStereoState *speex_stereo_state_init();
+SpeexStereoState *speex_stereo_state_init(void);
 
 /** Reset/re-initialise an already allocated stereo state */
 void speex_stereo_state_reset(SpeexStereoState *stereo);
