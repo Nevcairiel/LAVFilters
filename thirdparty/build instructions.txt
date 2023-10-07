@@ -1,11 +1,11 @@
 opencore-amr:
 
 32-bit:
-./configure --enable-static --disable-shared --disable-amrnb-encoder
+./configure --prefix=$PREFIX --enable-static --disable-shared --disable-amrnb-encoder
 make
 
 64-bit:
-./configure --host=x86_64-w64-mingw32 --enable-static --disable-shared --disable-amrnb-encoder
+./configure --prefix=$PREFIX --host=x86_64-w64-mingw32 --enable-static --disable-shared --disable-amrnb-encoder
 make
 
 ----------------------------------------------
