@@ -80,6 +80,9 @@ In addition, you can also check for the absence of flags by preceding the flags 
 The advanced rules can be combined into a complete logic for subtitle selection by just appending them, separated with a comma or a space.
 The rules will always be parsed from left to right, the first match taking precedence.
 
+Finally, the rules can match the name of a stream, with some limitations. Only single words can be matched, as spaces are a separator for the next token.
+A text match can be added to the end of the token with an @ sign.
+
 Example: (basic flag usage)
   "*:*|f"
 Explanation:
@@ -102,6 +105,11 @@ Example: (advanced ruleset for files with multiple audio and subtitle-tracks)
 Explanation:
   On Japanese audio, try to load German full subs (default but not forced), then unforced, and at last any german subs if there are no unforced subs.
   On German audio load only forced subs in the following order: German, English, any.
+
+Example: (text match)
+  "*:eng@Forced"
+Explanation:
+  On any audio, select english subtitle streams with "Forced" in the stream title.
 
 BluRay Support
 =============================
