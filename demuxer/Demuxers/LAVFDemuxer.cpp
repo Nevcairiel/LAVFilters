@@ -3007,6 +3007,14 @@ static inline bool does_language_match(std::string selector, std::string selecte
     return (selector == "*" || selector == selectee);
 }
 
+// ugly hack to only convert ascii to lower case, as there is no proper unicode function for utf-8 in std::string
+static inline char asciitolower(char in)
+{
+    if (in <= 'Z' && in >= 'A')
+        return in - ('Z' - 'z');
+    return in;
+}
+
 // Select the best subtitle stream
 const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtitleSelector> subtitleSelectors,
                                                                std::string audioLanguage)
@@ -3026,14 +3034,29 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectSubtitleStream(std::list<CSubtit
         if (it->subtitleLanguage == "off")
             break;
 
+        // lower-case version of the trackname query
+        std::string subtitleTrackNameQueryLower = it->subtitleTrackName;
+        if (subtitleTrackNameQueryLower.empty() == false)
+            std::transform(subtitleTrackNameQueryLower.begin(), subtitleTrackNameQueryLower.end(),
+                           subtitleTrackNameQueryLower.begin(), asciitolower);
+
         std::deque<stream>::iterator sit;
         for (sit = streams->begin(); sit != streams->end(); sit++)
         {
             if (sit->pid == NO_SUBTITLE_PID)
                 continue;
 
-            if (!it->subtitleTrackName.empty() && sit->trackName.find(it->subtitleTrackName) == std::string::npos)
-                continue;
+
+
+            if (!subtitleTrackNameQueryLower.empty())
+            {
+                // create lowercase version of the track name
+                std::string trackNameLower = sit->trackName;
+                std::transform(trackNameLower.begin(), trackNameLower.end(), trackNameLower.begin(), asciitolower);
+
+                if (trackNameLower.find(subtitleTrackNameQueryLower) == std::string::npos)
+                    continue;
+            }
 
             if (sit->pid == FORCED_SUBTITLE_PID)
             {
