@@ -257,8 +257,11 @@ const char *lavf_get_stream_title(const AVStream *pStream)
     else if (AVDictionaryEntry *dictEntry = av_dict_get(pStream->metadata, "handler_name", nullptr, 0))
     {
         title = dictEntry->value;
-        if (strcmp(title, "GPAC ISO Video Handler") == 0 || strcmp(title, "VideoHandler") == 0 ||
-            strcmp(title, "GPAC ISO Audio Handler") == 0 || strcmp(title, "GPAC Streaming Text Handler") == 0)
+        if (strcmp(title, "GPAC ISO Video Handler") == 0 ||
+            strcmp(title, "GPAC ISO Audio Handler") == 0 ||
+            strcmp(title, "VideoHandler") == 0 ||
+            strcmp(title, "SoundHandler") == 0 ||
+            strcmp(title, "GPAC Streaming Text Handler") == 0)
             title = nullptr;
     }
 
