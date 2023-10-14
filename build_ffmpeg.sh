@@ -5,6 +5,8 @@ archdir=Win32
 clean_build=true
 cross_prefix=
 
+CV2PDB=../thirdparty/contrib/cv2pdb.exe
+
 for opt in "$@"
 do
     case "$opt" in
@@ -30,13 +32,17 @@ make_dirs() (
 )
 
 copy_libs() (
-  # install -s --strip-program=${cross_prefix}strip lib*/*-lav-*.dll ../bin_${archdir}
-  cp lib*/*-lav-*.dll ../bin_${archdir}
-  ${cross_prefix}strip ../bin_${archdir}/*-lav-*.dll
-  cp -u lib*/*.lib ../bin_${archdir}/lib
+  # copy and process .dll/.pdb
+  for file in lib*/*-lav-*.dll; do
+    file_basename=$(basename $file)
+    file_pdb=$(basename $file .dll).pdb
+    ${CV2PDB} -p${file_pdb} ${file} ../bin_${archdir}d/${file_basename}
+    cp ../bin_${archdir}d/${file_basename} ../bin_${archdir}/
+    cp ../bin_${archdir}d/${file_pdb} ../bin_${archdir}/
+  done
 
-  cp lib*/*-lav-*.dll ../bin_${archdir}d
-  ${cross_prefix}strip ../bin_${archdir}d/*-lav-*.dll
+  # copy lib files
+  cp -u lib*/*.lib ../bin_${archdir}/lib
   cp -u lib*/*.lib ../bin_${archdir}d/lib
 )
 
@@ -80,15 +86,16 @@ configure() (
     --enable-libxml2                \
     --enable-zlib                   \
     --build-suffix=-lav             \
+    --disable-stripping             \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-fno-tree-vectorize -D_WIN32_WINNT=0x0600 -DWINVER=0x0600"
+  EXTRA_CFLAGS="-fno-tree-vectorize -D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -gdwarf-5"
   EXTRA_LDFLAGS=""
   PKG_CONFIG_PREFIX_DIR=""
   if [ "${arch}" == "x86_64" ]; then
     export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:../thirdparty/64/lib/pkgconfig/"
     OPTIONS="${OPTIONS} --enable-cross-compile --cross-prefix=${cross_prefix} --target-os=mingw32 --pkg-config=pkg-config"
-    EXTRA_CFLAGS="${EXTRA_CFLAGS} -I../thirdparty/64/include"
+    EXTRA_CFLAGS="${EXTRA_CFLAGS} -I../thirdparty/64/include -fno-omit-frame-pointer"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -L../thirdparty/64/lib"
     PKG_CONFIG_PREFIX_DIR="--define-variable=prefix=../thirdparty/64"
   else
