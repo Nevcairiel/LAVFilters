@@ -770,7 +770,11 @@ int CDecD3D11::get_d3d11_buffer(struct AVCodecContext *c, AVFrame *frame, int fl
             CD3D11MediaSample *pD3D11Sample = dynamic_cast<CD3D11MediaSample *>(pSample);
 
             // fill the frame from the sample, including a reference to the sample
-            pD3D11Sample->GetAVFrameBuffer(frame);
+            if (FAILED(pD3D11Sample->GetAVFrameBuffer(frame)))
+            {
+                pD3D11Sample->Release();
+                return -1;
+            }
 
             frame->width = c->coded_width;
             frame->height = c->coded_height;
