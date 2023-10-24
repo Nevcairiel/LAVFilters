@@ -1513,6 +1513,9 @@ STDMETHODIMP CDecAvcodec::ConvertPixFmt(AVFrame *pFrame, LAVFrame *pOutFrame)
 
 STDMETHODIMP_(REFERENCE_TIME) CDecAvcodec::GetFrameDuration()
 {
+    if (m_pAVCtx->framerate.den && m_pAVCtx->framerate.num)
+        return (REF_SECOND_MULT * m_pAVCtx->framerate.den / m_pAVCtx->framerate.num);
+
     if (m_pAVCtx->time_base.den && m_pAVCtx->time_base.num)
         return (REF_SECOND_MULT * m_pAVCtx->time_base.num / m_pAVCtx->time_base.den) *
                ((m_pAVCtx->codec_descriptor && m_pAVCtx->codec_descriptor->props & AV_CODEC_PROP_FIELDS) ? 2 : 1);
