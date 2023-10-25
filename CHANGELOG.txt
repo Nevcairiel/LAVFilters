@@ -1,6 +1,20 @@
 LAV DirectShow Filters Changelog
 ===================================
 
+0.78.0 - 2023/10/25
+LAV Splitter
+- NEW: Added identification of DTS:X in DTS HD-HRA streams
+- NEW: Support for various stream flags in Matroska containers (Hearing Impaired, and more)
+- Changed: Text-based subtitle selection now uses case-insensitive matches (ASCII characters only)
+- Fixed: Many stream titles in MP4 files weren't being read properly
+
+LAV Video
+- NEW: Support for decoding SMC video
+- Fixed: HLG video streams could have their HLG flag overriden in some circumstances
+
+LAV Audio
+- Fixed: TrueHD bitstreaming of Atmos tracks could cause output timestamps to be off, confusing some audio renderers
+
 0.77.2 - 2023/03/08
 LAV Splitter
 - NEW: Added identification for spatial/immersive audio extensions (Atmos, DTS:X)
