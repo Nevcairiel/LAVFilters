@@ -193,10 +193,16 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream *avstream, ULONG *si
     }
 
     DbgLog((LOG_TRACE, 10, L"CreateVIH: r_avg: %I64d, avg_avg: %I64d, tb_avg: %I64d", r_avg, avg_avg, codec_avg));
-    if (r_avg >= MIN_TIME_PER_FRAME && r_avg <= MAX_TIME_PER_FRAME)
+    if (avg_avg >= MIN_TIME_PER_FRAME && avg_avg <= MAX_TIME_PER_FRAME)
+    {
+        // prefer the more accurate r_avg when its close to the average
+        if (abs(r_avg - avg_avg) < 10000)
+            pvi->AvgTimePerFrame = r_avg;
+        else
+            pvi->AvgTimePerFrame = avg_avg;
+    }
+    else if (r_avg >= MIN_TIME_PER_FRAME && r_avg <= MAX_TIME_PER_FRAME)
         pvi->AvgTimePerFrame = r_avg;
-    else if (avg_avg >= MIN_TIME_PER_FRAME && avg_avg <= MAX_TIME_PER_FRAME)
-        pvi->AvgTimePerFrame = avg_avg;
     else if (codec_avg >= MIN_TIME_PER_FRAME && codec_avg <= MAX_TIME_PER_FRAME)
         pvi->AvgTimePerFrame = codec_avg;
     else
