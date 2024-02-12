@@ -350,6 +350,7 @@ trynoformat:
     av_dict_set(&options, "reconnect", "1", 0);         // for http, reconnect if we get disconnected
     av_dict_set(&options, "referer", fileName, 0);      // for http, send self as referer
     av_dict_set(&options, "skip_clear", "1", 0);        // mpegts program handling
+    av_dict_set(&options, "max_reload", "7", 0);        // playlist reloading for HLS
 
     // send global side data to the decoder
     av_format_inject_global_side_data(m_avFormat);
