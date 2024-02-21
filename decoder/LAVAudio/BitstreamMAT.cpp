@@ -22,12 +22,16 @@
 #include "stdafx.h"
 #include "LAVAudio.h"
 
+#pragma warning(push)
+#pragma warning(disable : 4101)
+#pragma warning(disable : 5033)
 extern "C"
 {
 #include "libavformat/spdif.h"
 #define AVCODEC_X86_MATHOPS_H
 #include "libavcodec/get_bits.h"
 }
+#pragma warning(pop)
 
 #define MAT_BUFFER_SIZE (61440)
 #define MAT_BUFFER_LIMIT (MAT_BUFFER_SIZE - 24 /* MAT end code size */)

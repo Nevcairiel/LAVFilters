@@ -28,6 +28,7 @@ extern "C"
 #pragma warning(disable : 4101)
 #pragma warning(disable : 4244)
 #pragma warning(disable : 4305)
+#pragma warning(disable : 5033)
 #include "libavcodec/avcodec.h"
 #include "libavcodec/get_bits.h"
 #include "libavcodec/dca_sample_rate_tab.h"

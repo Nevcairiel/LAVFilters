@@ -22,6 +22,7 @@
 
 #pragma warning(push)
 #pragma warning(disable : 4101)
+#pragma warning(disable : 5033)
 extern "C"
 {
 #define AVCODEC_X86_MATHOPS_H
