@@ -1,9 +1,9 @@
 [submodule "ffmpeg"]
 	path = ffmpeg
-	url = git://git.1f0.de/ffmpeg.git
+	url = https://gitea.1f0.de/LAV/FFmpeg.git
 [submodule "libbluray"]
 	path = libbluray
-	url = git://git.1f0.de/libbluray.git
+	url = https://gitea.1f0.de/LAV/libbluray.git
 [submodule "qsdecoder"]
 	path = qsdecoder
-	url = git://git.1f0.de/qsdecoder.git
+	url = https://gitea.1f0.de/LAV/qsdecoder.git

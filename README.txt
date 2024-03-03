@@ -127,20 +127,20 @@ Compiling is pretty straightforward using VS2019 (included project files).
 Older versions of Visual Studio are not officially supported, but may still work.
 
 It does, however, require that you build your own ffmpeg and libbluray.
-You need to place the full ffmpeg package in a directory called "ffmpeg" in the 
-main source directory (the directory this file was in). There are scripts to 
+You need to place the full ffmpeg package in a directory called "ffmpeg" in the
+main source directory (the directory this file was in). There are scripts to
 build a proper ffmpeg included.
 
-I recommend using my fork of ffmpeg, as it includes additional patches for 
+I recommend using my fork of ffmpeg, as it includes additional patches for
 media compatibility:
-https://git.1f0.de/gitweb?p=ffmpeg.git;a=summary
+https://gitea.1f0.de/LAV/FFmpeg
 
 libbluray is compiled with the MSVC project files, however, a specially modified
 version of libbluray is required. Similar to ffmpeg, just place the full tree
 inside the "libbluray" directory in the main directory.
 
 You can get the modified version here:
-https://git.1f0.de/gitweb?p=libbluray.git;a=summary
+https://gitea.1f0.de/LAV/libbluray
 
 Feedback
 =============================
