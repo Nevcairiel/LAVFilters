@@ -1106,7 +1106,7 @@ STDMETHODIMP CLAVFDemuxer::GetTitleInfo(int idx, REFERENCE_TIME *rtDuration, WCH
 
 STDMETHODIMP_(int) CLAVFDemuxer::GetNumTitles()
 {
-    if (!m_bMatroska || !m_avFormat)
+    if (!m_bMatroska || !m_avFormat || !m_avFormat->priv_data || !m_avFormat->iformat || strcmp(m_avFormat->iformat->name, "matroska") != 0)
         return 0;
     return av_mkv_get_num_editions(m_avFormat);
 }
