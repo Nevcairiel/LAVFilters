@@ -58,6 +58,7 @@ static FormatMapping video_map[] = {
   { AV_CODEC_ID_VP9,        &MEDIASUBTYPE_VP90,         MKTAG('V','P','9','0'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_AV1,        &MEDIASUBTYPE_AV01,         MKTAG('A','V','0','1'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_CFHD,       &MEDIASUBTYPE_CFHD,         MKTAG('C','F','H','D'), &FORMAT_VideoInfo2 },
+  { AV_CODEC_ID_VVC,        &MEDIASUBTYPE_VVC1,         MKTAG('V','V','C','1'), &FORMAT_MPEG2Video },
 };
 // clang-format on
 
@@ -448,6 +449,12 @@ MPEG2VIDEOINFO *CLAVFVideoHelper::CreateMPEG2VI(const AVStream *avstream, ULONG 
             if (ret < 0)
                 bCopyUntouched = TRUE;
         }
+        else if (avstream->codecpar->codec_id == AV_CODEC_ID_VVC)
+        {
+            int ret = ProcessVVCExtradata(extradata, extra, mp2vi);
+            if (ret < 0)
+                bCopyUntouched = TRUE;
+        }
         else if (avstream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO)
         {
             CExtradataParser parser = CExtradataParser(extradata, extra);
@@ -540,6 +547,15 @@ HRESULT CLAVFVideoHelper::ProcessH264MVCExtradata(BYTE *extradata, int extradata
 }
 
 HRESULT CLAVFVideoHelper::ProcessHEVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi)
+{
+    if (extradata[0] || extradata[1] || extradata[2] > 1 && extradata_size > 25)
+    {
+        mp2vi->dwFlags = (extradata[21] & 3) + 1;
+    }
+    return -1;
+}
+
+HRESULT CLAVFVideoHelper::ProcessVVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi)
 {
     if (extradata[0] || extradata[1] || extradata[2] > 1 && extradata_size > 25)
     {

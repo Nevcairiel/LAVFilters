@@ -54,6 +54,9 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_HM10, AV_CODEC_ID_HEVC },
   { &MEDIASUBTYPE_H265, AV_CODEC_ID_HEVC },
 
+  // VVC
+  { &MEDIASUBTYPE_VVC1, AV_CODEC_ID_VVC },
+
   // MPEG1/2
   { &MEDIASUBTYPE_MPEG1Payload, AV_CODEC_ID_MPEG1VIDEO },
   { &MEDIASUBTYPE_MPEG1Video,   AV_CODEC_ID_MPEG1VIDEO },
@@ -327,6 +330,8 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_HVC1 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_HM10 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_H265 },
+
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_VVC1 },
 
   // MPEG1/2
   { &MEDIATYPE_Video, &MEDIASUBTYPE_MPEG1Payload },
@@ -675,6 +680,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_CFHD }},                                                // Codec_CineformHD
   { 1, { AV_CODEC_ID_MAGICYUV }},                                            // Codec_MagicYUV
   { 1, { AV_CODEC_ID_AV1 }},                                                 // Codec_AV1
+  { 1, { AV_CODEC_ID_VVC }},                                                 // Codec_AV1
 };
 // clang-format off
 

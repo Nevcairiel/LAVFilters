@@ -74,6 +74,7 @@ class CLAVFVideoHelper
     HRESULT ProcessH264Extradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi, BOOL bConvertToAVC1);
     HRESULT ProcessH264MVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
     HRESULT ProcessHEVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
+    HRESULT ProcessVVCExtradata(BYTE *extradata, int extradata_size, MPEG2VIDEOINFO *mp2vi);
 };
 
 extern CLAVFVideoHelper g_VideoHelper;
