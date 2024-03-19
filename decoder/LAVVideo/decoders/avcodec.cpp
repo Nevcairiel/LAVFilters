@@ -784,10 +784,9 @@ STDMETHODIMP CDecAvcodec::DestroyDecoder()
                 m_pCallback->SetX264Build((int)x264build);
         }
 
-        avcodec_close(m_pAVCtx);
         av_freep(&m_pAVCtx->hwaccel_context);
         av_freep(&m_pAVCtx->extradata);
-        av_freep(&m_pAVCtx);
+        avcodec_free_context(&m_pAVCtx);
     }
     av_frame_free(&m_pFrame);
 

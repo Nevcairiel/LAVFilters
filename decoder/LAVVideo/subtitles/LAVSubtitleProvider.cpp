@@ -84,8 +84,7 @@ void CLAVSubtitleProvider::CloseDecoder()
   if (m_pAVCtx) {
     if (m_pAVCtx->extradata)
       av_freep(&m_pAVCtx->extradata);
-    avcodec_close(m_pAVCtx);
-    av_freep(&m_pAVCtx);
+    avcodec_free_context(&m_pAVCtx);
   }
   if (m_pParser) {
     av_parser_close(m_pParser);

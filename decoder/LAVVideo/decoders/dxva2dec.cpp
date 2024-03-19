@@ -35,6 +35,8 @@
 extern "C"
 {
     #include "libavutil/imgutils.h"
+    #define FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG 1
+    #define FF_DXVA2_WORKAROUND_INTEL_CLEARVIDEO 2
 }
 
 ////////////////////////////////////////////////////////////////////////////////

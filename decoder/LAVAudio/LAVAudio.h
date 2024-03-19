@@ -223,7 +223,7 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
     BOOL IsBitstreaming(AVCodecID codec);
     HRESULT InitBitstreaming();
     HRESULT ShutdownBitstreaming();
-    static int BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size);
+    static int BSWriteBuffer(void *opaque, const uint8_t *buf, int buf_size);
 
     HRESULT CreateBitstreamContext(AVCodecID codec, WAVEFORMATEX *wfe);
     HRESULT UpdateBitstreamContext();

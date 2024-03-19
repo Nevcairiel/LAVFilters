@@ -82,7 +82,7 @@ HRESULT CLAVAudio::ShutdownBitstreaming()
 }
 
 // Static function for the AVIO context that writes the buffer into our own output buffer
-int CLAVAudio::BSWriteBuffer(void *opaque, uint8_t *buf, int buf_size)
+int CLAVAudio::BSWriteBuffer(void *opaque, const uint8_t *buf, int buf_size)
 {
     CLAVAudio *filter = (CLAVAudio *)opaque;
     filter->m_bsOutput.Append(buf, buf_size);

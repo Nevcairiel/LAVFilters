@@ -418,9 +418,8 @@ void CLAVAudio::ffmpeg_shutdown()
     m_pAVCodec = nullptr;
     if (m_pAVCtx)
     {
-        avcodec_close(m_pAVCtx);
         av_freep(&m_pAVCtx->extradata);
-        av_freep(&m_pAVCtx);
+        avcodec_free_context(&m_pAVCtx);
     }
     av_frame_free(&m_pFrame);
     av_packet_free(&m_pDecodePacket);

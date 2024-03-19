@@ -3166,8 +3166,8 @@ STDMETHODIMP CLAVFDemuxer::GetSideData(DWORD dwStream, GUID guidType, const BYTE
         if (!pStream)
             return E_FAIL;
 
-        pStream->SideData.side_data = m_avFormat->streams[dwStream]->side_data;
-        pStream->SideData.side_data_elems = m_avFormat->streams[dwStream]->nb_side_data;
+        pStream->SideData.side_data = m_avFormat->streams[dwStream]->codecpar->coded_side_data;
+        pStream->SideData.side_data_elems = m_avFormat->streams[dwStream]->codecpar->nb_coded_side_data;
         *pData = (BYTE *)&pStream->SideData;
         *pSize = sizeof(pStream->SideData);
 
@@ -3187,11 +3187,13 @@ STDMETHODIMP CLAVFDemuxer::GetBSTRMetadata(const char *key, BSTR *pbstrValue, in
 
     if (_stricmp(key, "rotate") == 0 && stream >= 0)
     {
-        size_t size = 0;
-        uint8_t *matrix = av_stream_get_side_data(m_avFormat->streams[stream], AV_PKT_DATA_DISPLAYMATRIX, &size);
-        if (matrix && size == (9*sizeof(int32_t)))
+        const AVPacketSideData *sd = av_packet_side_data_get(
+            m_avFormat->streams[stream]->codecpar->coded_side_data,
+            m_avFormat->streams[stream]->codecpar->nb_coded_side_data, AV_PKT_DATA_DISPLAYMATRIX);
+
+        if (sd && sd->size == (9*sizeof(int32_t)))
         {
-            double dRotation = av_display_rotation_get((const int32_t *)matrix);
+            double dRotation = av_display_rotation_get((const int32_t *)sd->data);
             int nRotation = -lrint(dRotation);
 
             // normalize rotation to 0-360
