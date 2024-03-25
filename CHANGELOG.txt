@@ -1,5 +1,14 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.79.0 - 2024/03/25
+LAV Splitter
+- NEW: Support for demuxing VVC video
+- Changed: Updated language lists to support all relevant language codes
+- Changed: Improved resilience of streaming HLS
+- Changed: Tweaked frame rate detection logic
+
+LAV Video:
+- NEW: Support for decoding VVC video
 
 0.78.0 - 2023/10/25
 LAV Splitter
