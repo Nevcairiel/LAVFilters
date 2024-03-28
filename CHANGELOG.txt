@@ -1,5 +1,9 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.79.1 - 2024/03/28
+LAV Video
+- Fixed: Resolved a glitch when playing HEVC video
+
 0.79.0 - 2024/03/25
 LAV Splitter
 - NEW: Support for demuxing VVC video
