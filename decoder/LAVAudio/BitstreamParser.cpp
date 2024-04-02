@@ -83,13 +83,14 @@ HRESULT CBitstreamParser::ParseDTS(BYTE *pBuffer, DWORD dwSize)
 
 HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize)
 {
-    AC3HeaderInfo *hdr = NULL;
-    if (avpriv_ac3_parse_header(&hdr, pBuffer, dwSize) >= 0)
+    AC3HeaderInfo hdr{};
+    AC3HeaderInfo *phdr = &hdr;
+    if (avpriv_ac3_parse_header(&phdr, pBuffer, dwSize) >= 0)
     {
-        m_dwSampleRate = hdr->sample_rate;
+        m_dwSampleRate = hdr.sample_rate;
 
         // E-AC3 always combines 6 blocks, resulting in 1536 samples
-        m_dwSamples = (hdr->bitstream_id > 10) ? (6 * 256) : (hdr->num_blocks * 256);
+        m_dwSamples = (hdr.bitstream_id > 10) ? (6 * 256) : (hdr.num_blocks * 256);
     }
     else
     {
