@@ -91,6 +91,11 @@ HRESULT CBitstreamParser::ParseAC3(BYTE *pBuffer, DWORD dwSize)
         // E-AC3 always combines 6 blocks, resulting in 1536 samples
         m_dwSamples = (hdr->bitstream_id > 10) ? (6 * 256) : (hdr->num_blocks * 256);
     }
+    else
+    {
+        if (m_dwSampleRate == 0) // not seen a valid frame yet, error out
+            return E_FAIL;
+    }
 
     return S_OK;
 }
