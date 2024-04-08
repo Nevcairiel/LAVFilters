@@ -1,5 +1,13 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.79.2 - 2024/04/08
+LAV Splitter
+- Fixed: Buffering media from a high latency source was slower then expected (since 0.79)
+
+LAV Audio
+- Fixed: Bitstream AC3 audio could fallback to PCM on streams that start with a corrupt audio frame (since 0.78)
+- Fixed: Resolved a memory leak when bitstreaming AC3
+
 0.79.1 - 2024/03/28
 LAV Video
 - Fixed: Resolved a glitch when playing HEVC video

@@ -4,7 +4,7 @@
 
 #define LAV_VERSION_MAJOR     0
 #define LAV_VERSION_MINOR    79
-#define LAV_VERSION_REVISION  1
+#define LAV_VERSION_REVISION  2
 
 /////////////////////////////////////////////////////////
 #ifndef ISPP_INCLUDED
