@@ -303,7 +303,7 @@ static int _ConvertSMVer2CoresDrvApi(int major, int minor)
     sSMtoCores nGpuArchCoresPerSM[] = {{0x10, 8},   {0x11, 8},   {0x12, 8},   {0x13, 8},   {0x20, 32},
                                        {0x21, 48},  {0x30, 192}, {0x32, 192}, {0x35, 192}, {0x37, 192},
                                        {0x50, 128}, {0x52, 128}, {0x61, 128}, {0x70, 64} , {0x75, 64},
-                                       {0x80, 128}, {0x86, 128},
+                                       {0x80, 128}, {0x86, 128}, {0x89, 128},
                                        {-1, -1}};
 
     int index = 0;
