@@ -116,6 +116,16 @@ const dxva_mode_t dxva_modes[] = {
   /* HEVC / H.265 */
   { "HEVC / H.265 variable-length decoder, main",                                   &DXVA_ModeHEVC_VLD_Main,                AV_CODEC_ID_HEVC, prof_hevc_main },
   { "HEVC / H.265 variable-length decoder, main10",                                 &DXVA_ModeHEVC_VLD_Main10,              AV_CODEC_ID_HEVC, prof_hevc_main10 },
+  { "HEVC / H.265 variable-length decoder, main12",                                 &DXVA_ModeHEVC_VLD_Main12,              0 },
+  { "HEVC / H.265 variable-length decoder, main10 422",                             &DXVA_ModeHEVC_VLD_Main10_422,          0 },
+  { "HEVC / H.265 variable-length decoder, main12 422",                             &DXVA_ModeHEVC_VLD_Main12_422,          0 },
+  { "HEVC / H.265 variable-length decoder, main 444",                               &DXVA_ModeHEVC_VLD_Main_444,            0 },
+  { "HEVC / H.265 variable-length decoder, main10 extended",                        &DXVA_ModeHEVC_VLD_Main10_Ext,          0 },
+  { "HEVC / H.265 variable-length decoder, main10 444",                             &DXVA_ModeHEVC_VLD_Main10_444,          0 },
+  { "HEVC / H.265 variable-length decoder, main12 444",                             &DXVA_ModeHEVC_VLD_Main12_444,          0 },
+  { "HEVC / H.265 variable-length decoder, main16",                                 &DXVA_ModeHEVC_VLD_Main16,              0 },
+  { "HEVC / H.265 variable-length decoder, monochrome",                             &DXVA_ModeHEVC_VLD_Monochrome,          0 },
+  { "HEVC / H.265 variable-length decoder, monochrome10",                           &DXVA_ModeHEVC_VLD_Monochrome10,        0 },
 
   /* VP8/9 */
   { "VP9 variable-length decoder, profile 0",                                       &DXVA_ModeVP9_VLD_Profile0,             AV_CODEC_ID_VP9, prof_vp9_0 },
