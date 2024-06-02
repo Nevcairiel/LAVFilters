@@ -1026,6 +1026,119 @@ void processFFDOVIData(MediaSideDataDOVIMetadata* sd, const AVDOVIMetadata* ff)
 #undef RPU_HDR
 #undef RPU_MAP
 #undef RPU_COLOR
+
+    int LAVExtIdx = 0;
+    for (int i = 0; i < ff->num_ext_blocks; i++)
+    {
+        AVDOVIDmData *ext = av_dovi_get_ext(ff, i);
+        auto lavext = &sd->Extensions[LAVExtIdx];
+
+        lavext->level = ext->level;
+        switch (ext->level)
+        {
+        case 1:
+            lavext->Level1.min_pq = ext->l1.min_pq;
+            lavext->Level1.max_pq = ext->l1.max_pq;
+            lavext->Level1.avg_pq = ext->l1.avg_pq;
+            break;
+        case 2:
+            lavext->Level2.target_max_pq = ext->l2.target_max_pq;
+            lavext->Level2.trim_slope = ext->l2.trim_slope;
+            lavext->Level2.trim_offset = ext->l2.trim_offset;
+            lavext->Level2.trim_power = ext->l2.trim_power;
+            lavext->Level2.trim_chroma_weight = ext->l2.trim_chroma_weight;
+            lavext->Level2.trim_saturation_gain = ext->l2.trim_saturation_gain;
+            lavext->Level2.ms_weight = ext->l2.ms_weight;
+            break;
+        case 3:
+            lavext->Level3.min_pq_offset = ext->l3.min_pq_offset;
+            lavext->Level3.max_pq_offset = ext->l3.max_pq_offset;
+            lavext->Level3.avg_pq_offset = ext->l3.avg_pq_offset;
+            break;
+        case 4:
+            lavext->Level4.anchor_pq = ext->l4.anchor_pq;
+            lavext->Level4.anchor_power = ext->l4.anchor_power;
+            break;
+        case 5:
+            lavext->Level5.left_offset = ext->l5.left_offset;
+            lavext->Level5.right_offset = ext->l5.right_offset;
+            lavext->Level5.top_offset = ext->l5.top_offset;
+            lavext->Level5.bottom_offset = ext->l5.bottom_offset;
+            break;
+        case 6:
+            lavext->Level6.max_luminance = ext->l6.max_luminance;
+            lavext->Level6.min_luminance = ext->l6.min_luminance;
+            lavext->Level6.max_cll = ext->l6.max_cll;
+            lavext->Level6.max_fall = ext->l6.max_fall;
+            break;
+        case 8:
+            lavext->Level8.target_display_index = ext->l8.target_display_index;
+            lavext->Level8.trim_slope = ext->l8.trim_slope;
+            lavext->Level8.trim_offset = ext->l8.trim_offset;
+            lavext->Level8.trim_power = ext->l8.trim_power;
+            lavext->Level8.trim_chroma_weight = ext->l8.trim_chroma_weight;
+            lavext->Level8.trim_saturation_gain = ext->l8.trim_saturation_gain;
+            lavext->Level8.ms_weight = ext->l8.ms_weight;
+            lavext->Level8.target_mid_contrast = ext->l8.target_mid_contrast;
+            lavext->Level8.clip_trim = ext->l8.clip_trim;
+            for (int j = 0; j < 6; j++) {
+                lavext->Level8.saturation_vector_field[j] = ext->l8.saturation_vector_field[j];
+                lavext->Level8.hue_vector_field[j] = ext->l8.hue_vector_field[j];
+            }
+            break;
+        case 9:
+            lavext->Level9.source_primary_index = ext->l9.source_primary_index;
+            lavext->Level9.white_point_x = av_q2d(ext->l9.source_display_primaries.wp.x);
+            lavext->Level9.white_point_y = av_q2d(ext->l9.source_display_primaries.wp.y);
+            lavext->Level9.display_primaries_x[0] = av_q2d(ext->l9.source_display_primaries.prim.r.x);
+            lavext->Level9.display_primaries_x[1] = av_q2d(ext->l9.source_display_primaries.prim.g.x);
+            lavext->Level9.display_primaries_x[2] = av_q2d(ext->l9.source_display_primaries.prim.b.x);
+            lavext->Level9.display_primaries_y[0] = av_q2d(ext->l9.source_display_primaries.prim.r.y);
+            lavext->Level9.display_primaries_y[1] = av_q2d(ext->l9.source_display_primaries.prim.g.y);
+            lavext->Level9.display_primaries_y[2] = av_q2d(ext->l9.source_display_primaries.prim.b.y);
+            break;
+        case 10:
+            lavext->Level10.target_display_index = ext->l10.target_display_index;
+            lavext->Level10.target_max_pq = ext->l10.target_max_pq;
+            lavext->Level10.target_min_pq = ext->l10.target_min_pq;
+            lavext->Level10.target_primary_index = ext->l10.target_primary_index;
+            lavext->Level10.white_point_x = av_q2d(ext->l10.target_display_primaries.wp.x);
+            lavext->Level10.white_point_y = av_q2d(ext->l10.target_display_primaries.wp.y);
+            lavext->Level10.display_primaries_x[0] = av_q2d(ext->l10.target_display_primaries.prim.r.x);
+            lavext->Level10.display_primaries_x[1] = av_q2d(ext->l10.target_display_primaries.prim.g.x);
+            lavext->Level10.display_primaries_x[2] = av_q2d(ext->l10.target_display_primaries.prim.b.x);
+            lavext->Level10.display_primaries_y[0] = av_q2d(ext->l10.target_display_primaries.prim.r.y);
+            lavext->Level10.display_primaries_y[1] = av_q2d(ext->l10.target_display_primaries.prim.g.y);
+            lavext->Level10.display_primaries_y[2] = av_q2d(ext->l10.target_display_primaries.prim.b.y);
+            break;
+        case 11:
+            lavext->Level11.content_type = ext->l11.content_type;
+            lavext->Level11.whitepoint = ext->l11.whitepoint;
+            lavext->Level11.reference_mode_flag = ext->l11.reference_mode_flag;
+            lavext->Level11.sharpness = ext->l11.sharpness;
+            lavext->Level11.noise_reduction = ext->l11.noise_reduction;
+            lavext->Level11.mpeg_noise_reduction = ext->l11.mpeg_noise_reduction;
+            lavext->Level11.frame_rate_conversion = ext->l11.frame_rate_conversion;
+            lavext->Level11.brightness = ext->l11.brightness;
+            lavext->Level11.color = ext->l11.color;
+            break;
+        case 254:
+            lavext->Level254.dm_mode = ext->l254.dm_mode;
+            lavext->Level254.dm_version_index = ext->l254.dm_version_index;
+            break;
+        default:
+            lavext->level = 0; /* reset level, unknown/not implemented extension */
+            break;
+        }
+
+        /* if the block is valid/recognized, go to the next one */
+        if (lavext->level > 0)
+            LAVExtIdx++;
+
+        /* only 32 blocks are allowed, sanity check here */
+        if (LAVExtIdx >= LAV_DOVI_MAX_EXTENSIONS)
+            break;
+    }
 }
 
 extern "C" const uint8_t *avpriv_find_start_code(const uint8_t *p, const uint8_t *end, uint32_t *state);

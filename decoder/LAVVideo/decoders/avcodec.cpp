@@ -1339,8 +1339,16 @@ send_packet:
         {
             AVDOVIMetadata *metadata = (AVDOVIMetadata *)sdDOVI->data;
             MediaSideDataDOVIMetadata *hdr = (MediaSideDataDOVIMetadata *)AddLAVFrameSideData(
-                pOutFrame, IID_MediaSideDataDOVIMetadata, sizeof(MediaSideDataDOVIMetadata));
+                pOutFrame, IID_MediaSideDataDOVIMetadataV2, sizeof(MediaSideDataDOVIMetadata));
             processFFDOVIData(hdr, metadata);
+
+            #pragma warning(push)
+            #pragma warning(disable: 4996)
+            // legacy format without extensions
+            BYTE *hdrLegacy = (BYTE *)AddLAVFrameSideData(
+                pOutFrame, IID_MediaSideDataDOVIMetadata, offsetof(MediaSideDataDOVIMetadata, Extensions));
+            memcpy(hdrLegacy, hdr, offsetof(MediaSideDataDOVIMetadata, Extensions));
+            #pragma warning(pop)
         }
 
         AVFrameSideData *sdDOVIRPU = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_DOVI_RPU_BUFFER);

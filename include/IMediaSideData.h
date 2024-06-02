@@ -131,11 +131,18 @@ struct MediaSideDataHDR10Plus
 DEFINE_GUID(IID_MediaSideDataDOVIRPU, 0xbae40e6c, 0x5b93, 0x4170, 0x90, 0xcc, 0x5d, 0x5f, 0x2, 0xa2, 0x96, 0x38);
 
 // {277EE779-13F4-434E-BDEC-3D6F8C0E15D2}
-DEFINE_GUID(IID_MediaSideDataDOVIMetadata, 0x277ee779, 0x13f4, 0x434e, 0xbd, 0xec, 0x3d, 0x6f, 0x8c, 0xe, 0x15, 0xd2);
+DEFINE_GUID([[deprecated]] IID_MediaSideDataDOVIMetadata, 0x277ee779, 0x13f4, 0x434e, 0xbd, 0xec, 0x3d, 0x6f, 0x8c, 0xe, 0x15, 0xd2);
+
+// {F1949F1C-7474-4F0F-B110-FB734C08851D}
+DEFINE_GUID(IID_MediaSideDataDOVIMetadataV2, 0xf1949f1c, 0x7474, 0x4f0f, 0xb1, 0x10, 0xfb, 0x73, 0x4c, 0x8, 0x85, 0x1d);
 
 #pragma pack(push, 1)
 // Dolby Vision metadata
 // Refer to the specification for the meaning of the fields
+// Note: This structure may be extended towards the end if needed, do not rely on a fixed size, but rather a minimum size
+// Version History
+//  - Version 1, Header/Mapping/ColorMetadata
+//  - Version 2, Extensions (ensure the V2 metadata GUID is used above for this to be valid)
 struct MediaSideDataDOVIMetadata
 {
     struct
@@ -166,12 +173,12 @@ struct MediaSideDataDOVIMetadata
         struct
         {
 #define LAV_DOVI_MAX_PIECES 8
-            uint8_t num_pivots;                           /* [2, 9] */
+            uint8_t num_pivots;                       /* [2, 9] */
             uint16_t pivots[LAV_DOVI_MAX_PIECES + 1]; /* sorted ascending */
-            uint8_t mapping_idc[LAV_DOVI_MAX_PIECES];     /* 0 polynomial, 1 mmr */
+            uint8_t mapping_idc[LAV_DOVI_MAX_PIECES]; /* 0 polynomial, 1 mmr */
 
             /* polynomial */
-            uint8_t poly_order[LAV_DOVI_MAX_PIECES];    /* [1, 2] */
+            uint8_t poly_order[LAV_DOVI_MAX_PIECES];   /* [1, 2] */
             int64_t poly_coef[LAV_DOVI_MAX_PIECES][3]; /* x^0, x^1, x^2 */
 
             /* mmr */
@@ -227,6 +234,116 @@ struct MediaSideDataDOVIMetadata
         uint16_t source_max_pq;
         uint16_t source_diagonal;
     } ColorMetadata;
+
+    #define LAV_DOVI_MAX_EXTENSIONS 32
+    struct
+    {
+        uint8_t level;
+        union {
+            struct
+            {
+                /* L1 Per-frame brightness metadata */
+                uint16_t min_pq;
+                uint16_t max_pq;
+                uint16_t avg_pq;
+            } Level1;
+            struct
+            {
+                uint16_t target_max_pq;
+                uint16_t trim_slope;
+                uint16_t trim_offset;
+                uint16_t trim_power;
+                uint16_t trim_chroma_weight;
+                uint16_t trim_saturation_gain;
+                int16_t ms_weight;
+            } Level2;
+            struct
+            {
+                uint16_t min_pq_offset;
+                uint16_t max_pq_offset;
+                uint16_t avg_pq_offset;
+            } Level3;
+            struct
+            {
+                uint16_t anchor_pq;
+                uint16_t anchor_power;
+            } Level4;
+            struct
+            {
+                /* Active area definition */
+                uint16_t left_offset;
+                uint16_t right_offset;
+                uint16_t top_offset;
+                uint16_t bottom_offset;
+            } Level5;
+            struct
+            {
+                /* Static HDR10 metadata */
+                uint16_t max_luminance;
+                uint16_t min_luminance;
+                uint16_t max_cll;
+                uint16_t max_fall;
+            } Level6;
+            /* level 7 is currently unused */
+            struct
+            {
+                /* Extended version of level 2 */
+                uint8_t target_display_index;
+                uint16_t trim_slope;
+                uint16_t trim_offset;
+                uint16_t trim_power;
+                uint16_t trim_chroma_weight;
+                uint16_t trim_saturation_gain;
+                uint16_t ms_weight;
+                uint16_t target_mid_contrast;
+                uint16_t clip_trim;
+                uint8_t saturation_vector_field[6];
+                uint8_t hue_vector_field[6];
+            } Level8;
+            struct
+            {
+                /* Source display characteristics */
+                uint8_t source_primary_index;
+                double white_point_x;
+                double white_point_y;
+                /* primaries are in R-G-B order */
+                double display_primaries_x[3];
+                double display_primaries_y[3];
+            } Level9;
+            struct
+            {
+                /* Target display characteristics */
+                uint8_t target_display_index;
+                uint16_t target_max_pq;
+                uint16_t target_min_pq;
+                uint8_t target_primary_index;
+                double white_point_x;
+                double white_point_y;
+                /* primaries are in R-G-B order */
+                double display_primaries_x[3];
+                double display_primaries_y[3];
+            } Level10;
+            struct
+            {
+                uint8_t content_type;
+                uint8_t whitepoint;
+                uint8_t reference_mode_flag;
+                uint8_t sharpness;
+                uint8_t noise_reduction;
+                uint8_t mpeg_noise_reduction;
+                uint8_t frame_rate_conversion;
+                uint8_t brightness;
+                uint8_t color;
+            } Level11;
+            struct
+            {
+                /* DMv2 info block, always present in samples with DMv2 metadata */
+                uint8_t dm_mode;
+                uint8_t dm_version_index;
+            } Level254;
+            uint8_t Reserved[128]; /* reserve space for a fixed size of the extension block */
+        };
+    } Extensions[LAV_DOVI_MAX_EXTENSIONS];
 };
 #pragma pack(pop)
 
