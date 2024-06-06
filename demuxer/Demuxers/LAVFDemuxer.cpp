@@ -355,14 +355,19 @@ trynoformat:
     if (pszUserAgent)
     {
         char *strUserAgent = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, pszUserAgent, -1);
-        av_dict_set(&options, "user_agent", strUserAgent, 0);
+        if (strUserAgent && *strUserAgent) // if valid, and non-empty
+            av_dict_set(&options, "user_agent", strUserAgent, 0);
+
+        SAFE_CO_FREE(strUserAgent);
     }
 
     if (pszReferrer != NULL)
     {
         char *strReferrer = CoTaskGetMultiByteFromWideChar(CP_UTF8, 0, pszReferrer, -1);
-        av_dict_set(&options, "referer", strReferrer, 0);
-        SAFE_CO_FREE(fileName);
+        if (strReferrer && *strReferrer) // if valid, and non-empty
+            av_dict_set(&options, "referer", strReferrer, 0);
+
+        SAFE_CO_FREE(strReferrer);
     }
     else
     {
