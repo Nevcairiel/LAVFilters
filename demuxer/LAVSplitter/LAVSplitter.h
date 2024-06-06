@@ -34,6 +34,7 @@
 #include "LAVSplitterSettingsInternal.h"
 #include "SettingsProp.h"
 #include "IBufferInfo.h"
+#include "IURLSourceFilterLAV.h"
 
 #include "ISpecifyPropertyPages2.h"
 
@@ -57,6 +58,7 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     , public CCritSec
     , protected CAMThread
     , public IFileSourceFilter
+    , public IURLSourceFilterLAV
     , public IMediaSeeking
     , public IAMStreamSelect
     , public IAMOpenProgress
@@ -87,6 +89,9 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     // IFileSourceFilter
     STDMETHODIMP Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE *pmt);
     STDMETHODIMP GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt);
+
+    // IURLSourceFilterLAV
+    STDMETHODIMP LoadURL(LPCOLESTR pszURL, LPCOLESTR pszUserAgent, LPCOLESTR pszReferrer);
 
     // IMediaSeeking
     STDMETHODIMP GetCapabilities(DWORD *pCapabilities);

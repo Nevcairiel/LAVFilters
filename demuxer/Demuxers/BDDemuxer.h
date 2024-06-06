@@ -48,7 +48,7 @@ class CBDDemuxer
     }
 
     // CBaseDemuxer
-    STDMETHODIMP Open(LPCOLESTR pszFileName);
+    STDMETHODIMP Open(LPCOLESTR pszFileName, LPCOLESTR pszUserAgent = NULL, LPCOLESTR pszReferrer = NULL);
     STDMETHODIMP Start();
     REFERENCE_TIME GetDuration() const;
     STDMETHODIMP GetNextPacket(Packet **ppPacket) { return m_lavfDemuxer->GetNextPacket(ppPacket); }

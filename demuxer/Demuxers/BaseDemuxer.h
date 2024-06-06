@@ -87,7 +87,7 @@ class CBaseDemuxer : public CUnknown
     // Demuxing Methods (pure virtual)
 
     // Open the file
-    virtual STDMETHODIMP Open(LPCOLESTR pszFileName) = 0;
+    virtual STDMETHODIMP Open(LPCOLESTR pszFileName, LPCOLESTR pszUserAgent = NULL, LPCOLESTR pszReferrer = NULL) = 0;
     // Start the demuxer
     virtual STDMETHODIMP Start() { return E_NOTIMPL; }
     // Abort opening the file

@@ -181,7 +181,7 @@ STDMETHODIMP CBDDemuxer::NonDelegatingQueryInterface(REFIID riid, void **ppv)
 
 /////////////////////////////////////////////////////////////////////////////
 // Demuxer Functions
-STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName)
+STDMETHODIMP CBDDemuxer::Open(LPCOLESTR pszFileName, LPCOLESTR pszUserAgent, LPCOLESTR pszReferrer)
 {
     CAutoLock lock(m_pLock);
     HRESULT hr = S_OK;

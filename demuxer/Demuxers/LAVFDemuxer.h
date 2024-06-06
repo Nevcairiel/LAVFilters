@@ -69,7 +69,7 @@ class CLAVFDemuxer
     }
 
     // CBaseDemuxer
-    STDMETHODIMP Open(LPCOLESTR pszFileName);
+    STDMETHODIMP Open(LPCOLESTR pszFileName, LPCOLESTR pszUserAgent = NULL, LPCOLESTR pszReferrer = NULL);
     STDMETHODIMP Start();
     STDMETHODIMP AbortOpening(int mode = 1, int timeout = 0);
     REFERENCE_TIME GetDuration() const;
@@ -154,7 +154,8 @@ class CLAVFDemuxer
     STDMETHODIMP Write(LPCOLESTR pszPropName, VARIANT *pVar);
 
     STDMETHODIMP OpenInputStream(AVIOContext *byteContext, LPCOLESTR pszFileName = nullptr,
-                                 const char *format = nullptr, BOOL bForce = FALSE, BOOL bFileSource = FALSE);
+                                 const char *format = nullptr, BOOL bForce = FALSE, BOOL bFileSource = FALSE,
+                                 LPCOLESTR pszUserAgent = NULL, LPCOLESTR pszReferrer = NULL);
     STDMETHODIMP SeekByte(int64_t pos, int flags);
 
     AVStream *GetAVStreamByPID(int pid);

@@ -613,6 +613,35 @@ STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE *pmt)
     return InitDemuxer();
 }
 
+STDMETHODIMP CLAVSplitter::LoadURL(LPCOLESTR pszURL, LPCOLESTR pszUserAgent, LPCOLESTR pszReferrer)
+{
+    HRESULT hr;
+    CheckPointer(pszURL, E_POINTER);
+    if (m_State != State_Stopped)
+        return E_UNEXPECTED;
+
+    // Check if blacklisted
+    if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVF_REGISTRY_KEY L"\\Blacklist"))
+        return E_FAIL;
+
+    // Close, just in case we're being re-used
+    Close();
+
+    m_fileName = std::wstring(pszURL);
+
+    DbgLog((LOG_TRACE, 10, L"::LoadURL(): Opening URL '%s'", pszURL));
+
+    m_pDemuxer = new CLAVFDemuxer(this, this);
+    if (FAILED(hr = m_pDemuxer->Open(pszURL)))
+    {
+        SAFE_DELETE(m_pDemuxer);
+        return hr;
+    }
+    m_pDemuxer->AddRef();
+
+    return InitDemuxer();
+}
+
 // Get the currently loaded file
 STDMETHODIMP CLAVSplitter::GetCurFile(LPOLESTR *ppszFileName, AM_MEDIA_TYPE *pmt)
 {
@@ -2211,5 +2240,5 @@ STDMETHODIMP CLAVSplitterSource::NonDelegatingQueryInterface(REFIID riid, void *
 
     *ppv = nullptr;
 
-    return QI(IFileSourceFilter) QI(IAMOpenProgress) __super::NonDelegatingQueryInterface(riid, ppv);
+    return QI(IFileSourceFilter) QI(IURLSourceFilterLAV) QI(IAMOpenProgress) __super::NonDelegatingQueryInterface(riid, ppv);
 }
