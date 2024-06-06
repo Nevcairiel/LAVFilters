@@ -575,47 +575,11 @@ STDMETHODIMP CLAVSplitter::BreakInputConnection()
 // IFileSourceFilter
 STDMETHODIMP CLAVSplitter::Load(LPCOLESTR pszFileName, const AM_MEDIA_TYPE *pmt)
 {
-    CheckPointer(pszFileName, E_POINTER);
-    if (m_State != State_Stopped)
-        return E_UNEXPECTED;
-
-    // Check if blacklisted
-    if (!m_bRuntimeConfig && CheckApplicationBlackList(LAVF_REGISTRY_KEY L"\\Blacklist"))
-        return E_FAIL;
-
-    // Close, just in case we're being re-used
-    Close();
-
-    m_fileName = std::wstring(pszFileName);
-
-    HRESULT hr = S_OK;
-    SAFE_DELETE(m_pDemuxer);
-    LPWSTR extension = PathFindExtensionW(pszFileName);
-
-    DbgLog((LOG_TRACE, 10, L"::Load(): Opening file '%s' (extension: %s)", pszFileName, extension));
-
-    // BDMV uses the BD demuxer, everything else LAVF
-    if (_wcsicmp(extension, L".bdmv") == 0 || _wcsicmp(extension, L".mpls") == 0)
-    {
-        m_pDemuxer = new CBDDemuxer(this, this);
-    }
-    else
-    {
-        m_pDemuxer = new CLAVFDemuxer(this, this);
-    }
-    if (FAILED(hr = m_pDemuxer->Open(pszFileName)))
-    {
-        SAFE_DELETE(m_pDemuxer);
-        return hr;
-    }
-    m_pDemuxer->AddRef();
-
-    return InitDemuxer();
+    return LoadURL(pszFileName, NULL, NULL);
 }
 
 STDMETHODIMP CLAVSplitter::LoadURL(LPCOLESTR pszURL, LPCOLESTR pszUserAgent, LPCOLESTR pszReferrer)
 {
-    HRESULT hr;
     CheckPointer(pszURL, E_POINTER);
     if (m_State != State_Stopped)
         return E_UNEXPECTED;
@@ -629,10 +593,22 @@ STDMETHODIMP CLAVSplitter::LoadURL(LPCOLESTR pszURL, LPCOLESTR pszUserAgent, LPC
 
     m_fileName = std::wstring(pszURL);
 
-    DbgLog((LOG_TRACE, 10, L"::LoadURL(): Opening URL '%s'", pszURL));
+    HRESULT hr = S_OK;
+    SAFE_DELETE(m_pDemuxer);
+    LPWSTR extension = PathFindExtensionW(pszURL);
 
-    m_pDemuxer = new CLAVFDemuxer(this, this);
-    if (FAILED(hr = m_pDemuxer->Open(pszURL)))
+    DbgLog((LOG_TRACE, 10, L"::Load(): Opening file '%s' (extension: %s)", pszURL, extension));
+
+    // BDMV uses the BD demuxer, everything else LAVF
+    if (_wcsicmp(extension, L".bdmv") == 0 || _wcsicmp(extension, L".mpls") == 0)
+    {
+        m_pDemuxer = new CBDDemuxer(this, this);
+    }
+    else
+    {
+        m_pDemuxer = new CLAVFDemuxer(this, this);
+    }
+    if (FAILED(hr = m_pDemuxer->Open(pszURL, pszUserAgent, pszReferrer)))
     {
         SAFE_DELETE(m_pDemuxer);
         return hr;
