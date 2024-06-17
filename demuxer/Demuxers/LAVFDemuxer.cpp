@@ -242,6 +242,14 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
         *fileName = 0;
     }
 
+    // handle pipe
+    if (_strnicmp("pipe://stdin", fileName, 12) == 0)
+    {
+        // convert pipe://stdin to pipe:0
+        fileName[5] = '0';
+        fileName[6] = 0;
+    }
+
     if (_strnicmp("mms:", fileName, 4) == 0)
     {
         memmove(fileName + 1, fileName, strlen(fileName));
