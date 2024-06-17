@@ -846,7 +846,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateSubtitleMediaType(AVFormatContext *avctx, AV
 
         return S_OK;
     }
-    else
+    else if (avstream->codecpar->extradata && extra > 0)
     {
         memcpy(mtype.pbFormat + sizeof(SUBTITLEINFO), avstream->codecpar->extradata, extra);
     }
