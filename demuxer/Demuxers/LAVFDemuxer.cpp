@@ -242,8 +242,8 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
         *fileName = 0;
     }
 
-    // handle pipe
-    if (_strnicmp("pipe://stdin", fileName, 12) == 0)
+    // handle pipe, we only support stdin pipes
+    if (_strnicmp("pipe://", fileName, 7) == 0)
     {
         // convert pipe://stdin to pipe:0
         fileName[5] = '0';
