@@ -43,9 +43,7 @@ extern "C"
 
     enum AVCodecID ff_get_pcm_codec_id(int bps, int flt, int be, int sflags);
 #include "libavformat/isom.h"
-
-    AVChapter *avpriv_new_chapter(AVFormatContext *s, int id, AVRational time_base, int64_t start, int64_t end,
-                                  const char *title);
+#include "libavformat/demux.h"
 }
 
 #ifdef DEBUG
