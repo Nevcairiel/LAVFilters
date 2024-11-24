@@ -1,0 +1,25 @@
+            - 名稱：設定 Node.js 環境
+  使用：actions/setup-node@v4.1.0
+  和：
+    # 在 npmrc 中設定always-auth。
+    always-auth: # 可選，預設為 false
+    # 要使用的版本的版本規格。範例：12.x、10.15.1、>=10.15.0。
+    節點版本: # 可選
+    # 包含要使用的版本的版本規範的檔案。範例：package.json、.nvmrc、.node-version、.tool-versions。
+    節點版本檔: # 可選
+    # Node 使用的目標架構。範例：x86、x64。預設使用系統架構。
+    架構：# 可選
+    # 如果您希望操作檢查符合版本規範的最新可用版本，請設定此選項。
+    檢查最新: # 可選
+    # 用於設定身份驗證的可選註冊表。將在專案層級 .npmrc 和 .yarnrc 檔案中設定登錄，並設定驗證以從 env.NODE_AUTH_TOKEN 讀取。
+    註冊表 url: # 可選
+    # 針對範圍註冊表進行身份驗證的可選範圍。使用 GitHub Packages 註冊表 (https://npm.pkg.github.com/) 時將回退至儲存庫擁有者。
+    範圍：#可選
+    # 用於從節點版本中擷取節點發行版。由於存在預設值，因此使用者通常不會提供該預設值。在 github.com 上執行此操作時，預設值就足夠了。在 GHES 上運行時，如果遇到速率限制，您可以傳遞 github.com 的個人存取權杖。
+    token: # 可選，預設為 ${{ github.server_url == 'https://github.com' && github.token || '' }}
+    # 用於指定一個套件管理器在預設目錄中進行快取。支援的值：npm、yarn、pnpm。
+    快取: # 可選
+    # 用於指定依賴檔案的路徑：package-lock.json、yarn.lock等。
+    快取依賴路徑: # 可選
+          
+          
