@@ -1,0 +1,44 @@
+            - 名稱：安裝 Java JDK
+  使用：actions/setup-java@v4.5.0
+  和：
+    # 要設定的 Java 版本。採用整體或 semver Java 版本。請參閱 README 文件中支援的語法範例
+    java-version: # 可選
+    # `.java-version` 檔案的路徑。請參閱 README 文件中支援的語法範例
+    java-version-file: # 可選
+    # Java 發行版。請參閱 README 文件中支援的發行版列表
+    分配：
+    # 套件類型（jdk、jre、jdk+fx、jre+fx）
+    java-package: # 可選，預設是jdk
+    # 套件的架構（預設為動作運行器的架構）
+    架構：# 可選
+    # 壓縮後的JDK所在路徑
+    jdk檔: # 可選
+    # 如果您希望操作檢查符合版本規範的最新可用版本，請設定此選項
+    檢查最新: # 可選
+    # pom.xml 檔案中的 distributionManagement 儲存庫的 ID。預設是`github`
+    server-id: # 可選，預設為 github
+    # 用於對 Apache Maven 儲存庫進行驗證的使用者名稱的環境變數名稱。預設為 $GITHUB_ACTOR
+    server-username: # 可選，預設為 GITHUB_ACTOR
+    # 用於對 Apache Maven 儲存庫進行驗證的密碼或令牌的環境變數名稱。預設為 $GITHUB_TOKEN
+    server-password: # 可選，預設為 GITHUB_TOKEN
+    # 將寫入 settings.xml 檔案的路徑。預設為~/.m2。
+    設定路徑: # 可選
+    # 覆蓋settings.xml 檔案（如果存在）。預設值為“true”。
+    overwrite-settings: # 可選，預設為 true
+    # 要匯入的 GPG 私鑰。預設為空字串。
+    gpg-私鑰: # 可選
+    # GPG 私鑰密碼的環境變數名稱。預設值為 $GPG_PASSPHRASE。
+    gpg-passphrase: # 可選
+    # 用於快取相依性的建置平台的名稱。它可以是“maven”、“gradle”或“sbt”。
+    快取: # 可選
+    # 依賴檔案的路徑：pom.xml、build.gradle、build.sbt 等。如果省略此選項，則該操作將在整個儲存庫中搜尋依賴項檔案。此選項支援通配符和檔案名稱清單以快取多個相依性。
+    快取依賴路徑: # 可選
+    # 將作業狀態傳遞給發佈作業步驟的解決方法。此變數不適用於手動設定
+    job-status: # 可選，預設為 ${{ job.status }}
+    # 用於在取得 github.com 上託管的版本清單時進行身份驗證的令牌，例如 OpenJDK 的 Microsoft Build。在 github.com 上執行此操作時，預設值就足夠了。在 GHES 上運行時，如果遇到速率限制，您可以傳遞 github.com 的個人存取權杖。
+    token: # 可選，預設為 ${{ github.server_url == 'https://github.com' && github.token || '' }}
+    # 如果不需要預設名稱“${distribution}_${java-version}”，則為 Maven 工具鏈 ID 的名稱。請參閱進階用法檔案中支援的語法範例
+    mvn-toolchain-id: # 可選
+    # Maven 工具鏈供應商的名稱（如果不需要預設名稱「${distribution}」）。請參閱進階用法檔案中支援的語法範例
+    mvn-toolchain-vendor: # 可選
+          
