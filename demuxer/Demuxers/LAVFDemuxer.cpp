@@ -2986,6 +2986,10 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectAudioStream(std::list<std::strin
                 AVStream *old_stream = m_avFormat->streams[best->pid];
                 AVStream *new_stream = m_avFormat->streams[(*sit)->pid];
 
+                // ignore streams with an unknown codec
+                if (new_stream->codecpar->codec_id == AV_CODEC_ID_NONE)
+                    continue;
+
                 int check_nb_f = av_lav_stream_codec_info_nb_frames(new_stream);
                 int best_nb_f = av_lav_stream_codec_info_nb_frames(old_stream);
                 if (m_bRM && (check_nb_f > 0 && best_nb_f <= 0))
