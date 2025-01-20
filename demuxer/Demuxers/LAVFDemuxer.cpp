@@ -2111,17 +2111,17 @@ STDMETHODIMP CLAVFDemuxer::GetKeyFrames(const GUID *pFormat, REFERENCE_TIME *pKF
                 MOVStreamContext *sc = (MOVStreamContext *)stream->priv_data;
                 if (i < sc->sample_offsets_count)
                     timestamp += (sc->sample_offsets[i] + sc->dts_shift);
-                else if (sc->ctts_count)
+                else if (sc->tts_count)
                 {
                     // find the next CTTS entry, if needed
-                    while (ctts_sample_counter <= i && ctts_index < sc->ctts_count)
+                    while (ctts_sample_counter <= i && ctts_index < sc->tts_count)
                     {
-                        ctts_sample_counter += sc->ctts_data[ctts_index++].count;
+                        ctts_sample_counter += sc->tts_data[ctts_index++].count;
                     }
 
                     // apply the CTTS offset to the timestamp
                     if (ctts_sample_counter > i)
-                        timestamp += (sc->ctts_data[ctts_index - 1].duration + sc->dts_shift);
+                        timestamp += (sc->tts_data[ctts_index - 1].offset + sc->dts_shift);
                     else
                         timestamp += (sc->min_corrected_pts + sc->dts_shift);
                 }
