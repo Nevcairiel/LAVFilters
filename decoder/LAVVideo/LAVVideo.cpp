@@ -738,6 +738,10 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
                 {
                     m_SideData.ContentLight = *(AVContentLightMetadata *)sd->data;
                 }
+                else if (sd->type == AV_PKT_DATA_X264_BUILD && sd->size == 4 && codec == AV_CODEC_ID_H264)
+                {
+                    SetX264Build(*(int *)sd->data);
+                }
             }
         }
 
