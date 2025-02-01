@@ -303,6 +303,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_BMP,  AV_CODEC_ID_BMP   },
   { &MEDIASUBTYPE_GIF,  AV_CODEC_ID_GIF   },
   { &MEDIASUBTYPE_TGA,  AV_CODEC_ID_TARGA },
+  { &MEDIASUBTYPE_WEBP, AV_CODEC_ID_WEBP },
 
   // Special raw formats
   { &MEDIASUBTYPE_v210, AV_CODEC_ID_V210 },
@@ -583,6 +584,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BMP  },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_GIF  },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_TGA  },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_WEBP },
 
   // Special raw formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_v210 },

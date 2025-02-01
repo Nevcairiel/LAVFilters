@@ -53,6 +53,7 @@ const AVCodecTag mp_bmp_tags[] = {
   { AV_CODEC_ID_VMDVIDEO,          MKTAG('V', 'M', 'D', 'V')},
   { AV_CODEC_ID_WS_VQA,            MKTAG('V', 'Q', 'A', 'V')},
   { AV_CODEC_ID_XAN_WC3,           MKTAG('W', 'C', '3', 'V')},
+  { AV_CODEC_ID_WEBP,              MKTAG('W', 'E', 'B', 'P')},
   { AV_CODEC_ID_NONE,              0}
 };
 // clang-format on
