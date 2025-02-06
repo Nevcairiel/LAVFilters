@@ -1467,6 +1467,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         m_avFormat->pb->eof_reached = 0;
     }
 
+    m_timeOpening = time(nullptr);
     int result = 0;
     try
     {
@@ -1476,6 +1477,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     {
         // ignore..
     }
+    m_timeOpening = 0;
 
     if (result == AVERROR(EINTR) || result == AVERROR(EAGAIN))
     {
