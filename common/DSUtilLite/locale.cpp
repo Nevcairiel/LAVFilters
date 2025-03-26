@@ -438,7 +438,7 @@ static struct
         {"Spanish", "spa", "es", "esp", MAKELCID(MAKELANGID(LANG_SPANISH, SUBLANG_DEFAULT), SORT_DEFAULT)},
         {"Sardinian", "srd", "sc"},
         {"Sranan Tongo", "srn", nullptr},
-        {"Serbian", "srp", "sr", "scc", MAKELCID(MAKELANGID(LANG_SERBIAN, SUBLANG_DEFAULT), SORT_DEFAULT)},
+        {"Serbian", "srp", "sr", "scc", MAKELCID(MAKELANGID(LANG_SERBIAN_NEUTRAL, SUBLANG_DEFAULT), SORT_DEFAULT)},
         {"Serer", "srr", nullptr},
         {"Nilo-Saharan (Other)", "ssa", nullptr},
         {"Swati", "ssw", "ss"},
