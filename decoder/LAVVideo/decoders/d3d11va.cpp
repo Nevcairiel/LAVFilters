@@ -533,7 +533,7 @@ STDMETHODIMP CDecD3D11::BreakConnect()
     return S_OK;
 }
 
-STDMETHODIMP CDecD3D11::InitDecoder(AVCodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecD3D11::InitDecoder(AVCodecID codec, const CMediaType *pmt, const MediaSideDataFFMpeg *pSideData)
 {
     HRESULT hr = S_OK;
     DbgLog((LOG_TRACE, 10, L"CDecD3D11::InitDecoder(): Initializing D3D11 decoder"));
@@ -551,7 +551,7 @@ STDMETHODIMP CDecD3D11::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         m_DisplayDelay /= 2;
 
     // Initialize ffmpeg
-    hr = CDecAvcodec::InitDecoder(codec, pmt);
+    hr = CDecAvcodec::InitDecoder(codec, pmt, pSideData);
     if (FAILED(hr))
         return hr;
 

@@ -299,7 +299,7 @@ STDMETHODIMP CDecAvcodec::Init()
     return S_OK;
 }
 
-STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt, const MediaSideDataFFMpeg *pSideData)
 {
     DestroyDecoder();
     DbgLog((LOG_TRACE, 10, L"Initializing ffmpeg for codec %S", avcodec_get_name(codec)));
@@ -661,9 +661,30 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
         }
     }
 
+    // side data
+    if (pSideData && pSideData->side_data_elems > 0)
+    {
+        m_pAVCtx->coded_side_data =(AVPacketSideData *)av_calloc(pSideData->side_data_elems, sizeof(*pSideData->side_data));
+        if (m_pAVCtx->coded_side_data == nullptr)
+            return E_OUTOFMEMORY;
+
+        for (int i = 0; i < pSideData->side_data_elems; i++)
+        {
+            const AVPacketSideData *src_sd = &pSideData->side_data[i];
+            AVPacketSideData *dst_sd = &m_pAVCtx->coded_side_data[i];
+
+            dst_sd->data = (uint8_t *)av_memdup(src_sd->data, src_sd->size);
+            if (!dst_sd->data)
+                return E_OUTOFMEMORY;
+
+            dst_sd->type = src_sd->type;
+            dst_sd->size = src_sd->size;
+            m_pAVCtx->nb_coded_side_data++;
+        }
+    }
+
     // codec-specific options
     AVDictionary *options = nullptr;
-
 
     // workaround for old/broken x264 streams
     int nX264Build = m_pCallback->GetX264Build();
@@ -1470,7 +1491,7 @@ STDMETHODIMP CDecAvcodec::Flush()
     if (!(m_pCallback->GetDecodeFlags() & LAV_VIDEO_DEC_FLAG_DVD) &&
         (m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO))
     {
-        CDecAvcodec::InitDecoder(m_nCodecId, &m_pCallback->GetInputMediaType());
+        CDecAvcodec::InitDecoder(m_nCodecId, &m_pCallback->GetInputMediaType(), nullptr);
     }
 
     return __super::Flush();

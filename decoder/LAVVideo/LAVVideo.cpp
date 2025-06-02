@@ -716,17 +716,17 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 
     // Read and store stream-level sidedata
     IMediaSideData *pPinSideData = nullptr;
+    MediaSideDataFFMpeg *pSideDataFFmpeg = nullptr;
     hr = FindPinIntefaceInGraph(m_pInput, __uuidof(IMediaSideData), (void **)&pPinSideData);
     if (SUCCEEDED(hr))
     {
-        MediaSideDataFFMpeg *pSideData = nullptr;
         size_t size = 0;
-        hr = pPinSideData->GetSideData(IID_MediaSideDataFFMpeg, (const BYTE **)&pSideData, &size);
+        hr = pPinSideData->GetSideData(IID_MediaSideDataFFMpeg, (const BYTE **)&pSideDataFFmpeg, &size);
         if (SUCCEEDED(hr) && size == sizeof(MediaSideDataFFMpeg))
         {
-            for (int i = 0; i < pSideData->side_data_elems; i++)
+            for (int i = 0; i < pSideDataFFmpeg->side_data_elems; i++)
             {
-                AVPacketSideData *sd = &pSideData->side_data[i];
+                AVPacketSideData *sd = &pSideDataFFmpeg->side_data[i];
 
                 // Display Mastering metadata, including color info
                 if (sd->type == AV_PKT_DATA_MASTERING_DISPLAY_METADATA &&
@@ -817,7 +817,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
 
     SAFE_CO_FREE(pszExtension);
 
-    hr = m_Decoder.CreateDecoder(pmt, codec);
+    hr = m_Decoder.CreateDecoder(pmt, codec, pSideDataFFmpeg);
     if (FAILED(hr))
     {
         DbgLog((LOG_TRACE, 10, L"-> Decoder creation failed"));

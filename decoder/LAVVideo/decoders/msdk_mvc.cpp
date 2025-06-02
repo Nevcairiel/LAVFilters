@@ -175,7 +175,7 @@ void CDecMSDKMVC::DestroyDecoder(bool bFull)
     }
 }
 
-STDMETHODIMP CDecMSDKMVC::InitDecoder(AVCodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecMSDKMVC::InitDecoder(AVCodecID codec, const CMediaType *pmt, const MediaSideDataFFMpeg *pSideData)
 {
     if (codec != AV_CODEC_ID_H264_MVC)
         return E_UNEXPECTED;

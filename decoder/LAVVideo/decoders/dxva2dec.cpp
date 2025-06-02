@@ -930,7 +930,7 @@ STDMETHODIMP CDecDXVA2::Init()
     return S_OK;
 }
 
-STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt, const MediaSideDataFFMpeg *pSideData)
 {
     HRESULT hr = S_OK;
     DbgLog((LOG_TRACE, 10, L"CDecDXVA2::InitDecoder(): Initializing DXVA2 decoder"));
@@ -976,7 +976,7 @@ STDMETHODIMP CDecDXVA2::InitDecoder(AVCodecID codec, const CMediaType *pmt)
     m_bFailHWDecode = FALSE;
 
     DbgLog((LOG_TRACE, 10, L"-> Creation of DXVA2 decoder successful, initializing ffmpeg"));
-    hr = CDecAvcodec::InitDecoder(codec, pmt);
+    hr = CDecAvcodec::InitDecoder(codec, pmt, pSideData);
     if (FAILED(hr))
     {
         return hr;

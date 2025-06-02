@@ -40,6 +40,7 @@ STDMETHODIMP CDecodeManager::Close()
 {
     CAutoLock decoderLock(this);
     SAFE_DELETE(m_pDecoder);
+    FreeSideDataCache();
 
     return S_OK;
 }
@@ -79,7 +80,40 @@ ILAVDecoder *CDecodeManager::CreateHWAccelDecoder(LAVHWAccel hwAccel)
     return pDecoder;
 }
 
-STDMETHODIMP CDecodeManager::CreateDecoder(const CMediaType *pmt, AVCodecID codec)
+STDMETHODIMP CDecodeManager::CreateSideDataCache(const MediaSideDataFFMpeg* pSideData)
+{
+    FreeSideDataCache();
+
+    if (pSideData && pSideData->side_data_elems > 0)
+    {
+        m_SideDataCache.side_data = (AVPacketSideData *)av_calloc(pSideData->side_data_elems, sizeof(*m_SideDataCache.side_data));
+        if (m_SideDataCache.side_data == nullptr)
+            return E_OUTOFMEMORY;
+
+        for (int i = 0; i < pSideData->side_data_elems; i++)
+        {
+            const AVPacketSideData *src_sd = &pSideData->side_data[i];
+            AVPacketSideData *dst_sd = &m_SideDataCache.side_data[i];
+
+            dst_sd->data = (uint8_t *)av_memdup(src_sd->data, src_sd->size);
+            if (!dst_sd->data)
+                return E_OUTOFMEMORY;
+
+            dst_sd->type = src_sd->type;
+            dst_sd->size = src_sd->size;
+            m_SideDataCache.side_data_elems++;
+        }
+    }
+
+    return S_OK;
+}
+
+void CDecodeManager::FreeSideDataCache()
+{
+    av_packet_side_data_free(&m_SideDataCache.side_data, &m_SideDataCache.side_data_elems);
+}
+
+STDMETHODIMP CDecodeManager::CreateDecoder(const CMediaType *pmt, AVCodecID codec, const MediaSideDataFFMpeg *pSideData)
 {
     CAutoLock decoderLock(this);
 
@@ -96,11 +130,13 @@ STDMETHODIMP CDecodeManager::CreateDecoder(const CMediaType *pmt, AVCodecID code
     BITMAPINFOHEADER *pBMI = nullptr;
     videoFormatTypeHandler(*pmt, &pBMI);
 
+    CreateSideDataCache(pSideData);
+
     // Try reusing the current HW decoder
     if (m_pDecoder && m_bHWDecoder && !m_bHWDecoderFailed && HWFORMAT_ENABLED && HWRESOLUTION_ENABLED)
     {
         DbgLog((LOG_TRACE, 10, L"-> Trying to re-use old HW Decoder"));
-        hr = m_pDecoder->InitDecoder(codec, pmt);
+        hr = m_pDecoder->InitDecoder(codec, pmt, &m_SideDataCache);
         goto done;
     }
     SAFE_DELETE(m_pDecoder);
@@ -142,7 +178,7 @@ softwaredec:
         goto done;
     }
 
-    hr = m_pDecoder->InitDecoder(codec, pmt);
+    hr = m_pDecoder->InitDecoder(codec, pmt, pSideData);
     if (FAILED(hr))
     {
         DbgLog((LOG_TRACE, 10, L"-> Init Decoder failed (hr: 0x%x)", hr));
@@ -205,7 +241,7 @@ STDMETHODIMP CDecodeManager::Decode(IMediaSample *pSample)
         }
 
         CMediaType &mt = m_pLAVVideo->GetInputMediaType();
-        hr = CreateDecoder(&mt, m_Codec);
+        hr = CreateDecoder(&mt, m_Codec, &m_SideDataCache);
 
         if (SUCCEEDED(hr))
         {
@@ -257,7 +293,7 @@ STDMETHODIMP CDecodeManager::PostConnect(IPin *pPin)
         {
             m_bHWDecoderFailed = TRUE;
             CMediaType &mt = m_pLAVVideo->GetInputMediaType();
-            hr = CreateDecoder(&mt, m_Codec);
+            hr = CreateDecoder(&mt, m_Codec, &m_SideDataCache);
         }
     }
     return hr;

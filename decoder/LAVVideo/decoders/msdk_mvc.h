@@ -55,7 +55,7 @@ class CDecMSDKMVC : public CDecBase
     virtual ~CDecMSDKMVC();
 
     // ILAVDecoder
-    STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt);
+    STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt, const MediaSideDataFFMpeg *pSideData);
     STDMETHODIMP Decode(const BYTE *buffer, int buflen, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, BOOL bSyncPoint,
                         BOOL bDiscontinuity, IMediaSample *pSample);
     STDMETHODIMP Flush();

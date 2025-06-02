@@ -148,7 +148,7 @@ static GUID VerifySubtype(AVCodecID codec, GUID subtype)
     }
 }
 
-STDMETHODIMP CDecWMV9MFT::InitDecoder(AVCodecID codec, const CMediaType *pmt)
+STDMETHODIMP CDecWMV9MFT::InitDecoder(AVCodecID codec, const CMediaType *pmt, const MediaSideDataFFMpeg *pSideData)
 {
     HRESULT hr = S_OK;
     DbgLog((LOG_TRACE, 10, L"CDecWMV9MFT::InitDecoder(): Initializing WMV9 MFT decoder"));
