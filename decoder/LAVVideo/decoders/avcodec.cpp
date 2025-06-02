@@ -504,7 +504,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt)
                 av1.BitSkip(2); // chroma sample position
 
                 // determine pixel format
-                if (m_pAVCtx->profile == FF_PROFILE_AV1_MAIN)
+                if (m_pAVCtx->profile == AV_PROFILE_AV1_MAIN)
                 {
                     if (!monochrome)
                     {

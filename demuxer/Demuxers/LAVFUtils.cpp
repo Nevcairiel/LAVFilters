@@ -117,11 +117,11 @@ std::string get_codec_name(const AVCodecParameters *par)
     {
         profile = "DTS Express";
     }
-    else if (id == AV_CODEC_ID_EAC3 && par->profile == FF_PROFILE_EAC3_DDP_ATMOS)
+    else if (id == AV_CODEC_ID_EAC3 && par->profile == AV_PROFILE_EAC3_DDP_ATMOS)
     {
         profile = "atmos";
     }
-    else if (id == AV_CODEC_ID_TRUEHD && par->profile == FF_PROFILE_TRUEHD_ATMOS)
+    else if (id == AV_CODEC_ID_TRUEHD && par->profile == AV_PROFILE_TRUEHD_ATMOS)
     {
         profile = "atmos";
     }
@@ -129,7 +129,7 @@ std::string get_codec_name(const AVCodecParameters *par)
     if (id == AV_CODEC_ID_H264 && profile)
     {
         codec_name << nice_name << " " << tolower(profile);
-        if (par->level && par->level != FF_LEVEL_UNKNOWN && par->level < 1000)
+        if (par->level && par->level != AV_LEVEL_UNKNOWN && par->level < 1000)
         {
             char l_buf[5];
             sprintf_s(l_buf, "%.1f", par->level / 10.0);
@@ -139,7 +139,7 @@ std::string get_codec_name(const AVCodecParameters *par)
     else if (id == AV_CODEC_ID_HEVC && profile)
     {
         codec_name << nice_name << " " << tolower(profile);
-        if (par->level && par->level != FF_LEVEL_UNKNOWN && par->level < 1000)
+        if (par->level && par->level != AV_LEVEL_UNKNOWN && par->level < 1000)
         {
             char l_buf[5];
             sprintf_s(l_buf, "%.1f", par->level / 30.0);
@@ -149,7 +149,7 @@ std::string get_codec_name(const AVCodecParameters *par)
     else if (id == AV_CODEC_ID_VC1 && profile)
     {
         codec_name << nice_name << " " << tolower(profile);
-        if (par->level != FF_LEVEL_UNKNOWN)
+        if (par->level != AV_LEVEL_UNKNOWN)
         {
             codec_name << " L" << par->level;
         }
@@ -241,7 +241,7 @@ static bool show_sample_fmt(const AVCodecParameters *par)
     }
 
     // Lossless DTS
-    if (codec_id == AV_CODEC_ID_DTS && par->profile == FF_PROFILE_DTS_HD_MA)
+    if (codec_id == AV_CODEC_ID_DTS && par->profile == AV_PROFILE_DTS_HD_MA)
         return true;
 
     return false;
@@ -326,7 +326,7 @@ std::string lavf_get_stream_description(const AVStream *pStream)
         {
             buf << ", " << (bitrate / 1000) << " kb/s";
         }
-        if (par->codec_id == AV_CODEC_ID_H264 && par->profile == FF_PROFILE_H264_STEREO_HIGH)
+        if (par->codec_id == AV_CODEC_ID_H264 && par->profile == AV_PROFILE_H264_STEREO_HIGH)
         {
             AVDictionaryEntry *entry = av_dict_get(pStream->metadata, "stereo_mode", nullptr, 0);
             if (entry && strcmp(entry->value, "mvc_lr") == 0)

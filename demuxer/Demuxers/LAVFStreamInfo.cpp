@@ -139,7 +139,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateAudioMediaType(AVFormatContext *avctx, AVStr
             else if (avstream->codecpar->codec_id == AV_CODEC_ID_DTS)
             {
                 wvfmt->wFormatTag = WAVE_FORMAT_DTS2;
-                if (avstream->codecpar->profile >= FF_PROFILE_DTS_HD_HRA)
+                if (avstream->codecpar->profile >= AV_PROFILE_DTS_HD_HRA)
                 {
                     mtype.subtype = MEDIASUBTYPE_DTS_HD;
                     mtypes.push_back(mtype);
@@ -413,7 +413,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
             AV_WB8(extra + 4, 1);  // version
             AV_WB24(extra + 5, 0); // flags
             AV_WB8(extra + 8, avstream->codecpar->profile);
-            AV_WB8(extra + 9, avstream->codecpar->level == FF_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level);
+            AV_WB8(extra + 9, avstream->codecpar->level == AV_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level);
             AV_WB8(extra + 10, get_pixel_bitdepth((AVPixelFormat)avstream->codecpar->format) << 4 |
                                    get_vpcC_chroma(avstream->codecpar) << 1 |
                                    (avstream->codecpar->color_range == AVCOL_RANGE_JPEG));
@@ -427,7 +427,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
             VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
 
             // check if extradata is missing, and we have some basic information to share
-            if (vih2->bmiHeader.biSize == sizeof(BITMAPINFOHEADER) && avstream->codecpar->profile != FF_PROFILE_UNKNOWN)
+            if (vih2->bmiHeader.biSize == sizeof(BITMAPINFOHEADER) && avstream->codecpar->profile != AV_PROFILE_UNKNOWN)
             {
                 // if not, generate some
                 mtype.ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + 4);
@@ -436,8 +436,8 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
 
                 BYTE *extra = mtype.pbFormat + sizeof(VIDEOINFOHEADER2);
                 AV_WB8(extra, 0x81);  // version
-                AV_WB8(extra + 1, (avstream->codecpar->profile == FF_PROFILE_UNKNOWN ? 0 : avstream->codecpar->profile) << 5
-                                    | (avstream->codecpar->level == FF_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level));
+                AV_WB8(extra + 1, (avstream->codecpar->profile == AV_PROFILE_UNKNOWN ? 0 : avstream->codecpar->profile) << 5 |
+                                      (avstream->codecpar->level == AV_LEVEL_UNKNOWN ? 0 : avstream->codecpar->level));
 
                 int bpp = get_pixel_bitdepth((AVPixelFormat)avstream->codecpar->format);
                 AV_WB8(extra + 2, (0 << 7) | // seq_tier

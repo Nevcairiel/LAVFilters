@@ -67,7 +67,6 @@ configure() (
     --disable-bsfs                  \
     --enable-bsf=extract_extradata  \
     --disable-avdevice              \
-    --disable-postproc              \
     --disable-encoders              \
     --disable-devices               \
     --disable-programs              \

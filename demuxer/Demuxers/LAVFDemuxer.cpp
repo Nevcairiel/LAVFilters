@@ -381,9 +381,6 @@ trynoformat:
         av_dict_set(&options, "referer", fileName, 0); // for http, send self as referer if none was specified explicitly
     }
 
-    // send global side data to the decoder
-    av_format_inject_global_side_data(m_avFormat);
-
     if (rtsp_transport != nullptr)
     {
         av_dict_set(&options, "rtsp_transport", rtsp_transport, 0);
@@ -2863,19 +2860,19 @@ static int audio_codec_priority(const AVCodecParameters *par)
         {
             priority = 7;
 
-            if (par->profile == FF_PROFILE_DTS_EXPRESS)
+            if (par->profile == AV_PROFILE_DTS_EXPRESS)
             {
                 priority -= 1;
             }
-            else if (par->profile == FF_PROFILE_DTS_HD_MA)
+            else if (par->profile == AV_PROFILE_DTS_HD_MA)
             {
                 priority += 3;
             }
-            else if (par->profile == FF_PROFILE_DTS_HD_HRA)
+            else if (par->profile == AV_PROFILE_DTS_HD_HRA)
             {
                 priority += 2;
             }
-            else if (par->profile >= FF_PROFILE_DTS_ES)
+            else if (par->profile >= AV_PROFILE_DTS_ES)
             {
                 priority += 1;
             }

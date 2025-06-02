@@ -293,7 +293,7 @@ CLAVAudio::DTSBitstreamMode CLAVAudio::GetDTSHDBitstreamMode()
     if (!m_bsParser.m_bDTSHD)
         return DTS_Core;
 
-    if (m_pAVCtx->profile == FF_PROFILE_DTS_HD_HRA)
+    if (m_pAVCtx->profile == AV_PROFILE_DTS_HD_HRA)
         return DTS_HDHR;
 
     return DTS_HDMA;

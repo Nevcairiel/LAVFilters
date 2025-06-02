@@ -1324,8 +1324,8 @@ STDMETHODIMP CDecCuvid::CheckHEVCSequence(const BYTE *buffer, int buflen, int *b
     {
         DbgLog((LOG_TRACE, 10, L"-> SPS found"));
         if (hevcParser.sps.chroma > 1 || hevcParser.sps.bitdepth > 12 ||
-            !(hevcParser.sps.profile <= FF_PROFILE_HEVC_MAIN_10 ||
-              (hevcParser.sps.profile == FF_PROFILE_HEVC_REXT &&
+            !(hevcParser.sps.profile <= AV_PROFILE_HEVC_MAIN_10 ||
+              (hevcParser.sps.profile == AV_PROFILE_HEVC_REXT &&
                hevcParser.sps.rext_profile == HEVC_REXT_PROFILE_MAIN_12)))
         {
             DbgLog((LOG_TRACE, 10, L"  -> SPS indicates video incompatible with CUVID, aborting (profile: %d)",

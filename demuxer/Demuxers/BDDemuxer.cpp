@@ -869,9 +869,9 @@ void CBDDemuxer::ProcessClipInfo(CLPI_CL *clpi, bool overwrite)
                         if (avstream->codecpar->codec_id == AV_CODEC_ID_DTS)
                         {
                             if (stream->coding_type == BLURAY_STREAM_TYPE_AUDIO_DTSHD)
-                                avstream->codecpar->profile = FF_PROFILE_DTS_HD_HRA;
+                                avstream->codecpar->profile = AV_PROFILE_DTS_HD_HRA;
                             else if (stream->coding_type == BLURAY_STREAM_TYPE_AUDIO_DTSHD_MASTER)
-                                avstream->codecpar->profile = FF_PROFILE_DTS_HD_MA;
+                                avstream->codecpar->profile = AV_PROFILE_DTS_HD_MA;
                         }
                     }
                 }

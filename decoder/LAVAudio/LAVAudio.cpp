@@ -897,7 +897,7 @@ HRESULT CLAVAudio::GetDecodeDetails(const char **pCodec, const char **pDecodeFor
         {
             if (m_pAVCodec)
             {
-                if (m_nCodecId == AV_CODEC_ID_DTS && m_pAVCtx && m_pAVCtx->profile != FF_PROFILE_UNKNOWN)
+                if (m_nCodecId == AV_CODEC_ID_DTS && m_pAVCtx && m_pAVCtx->profile != AV_PROFILE_UNKNOWN)
                 {
                     static const char *DTSProfiles[] = {nullptr,     nullptr,      "dts",       "dts-es",
                                                         "dts 96/24", "dts-hd hra", "dts-hd ma", "dts express"};

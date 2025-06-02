@@ -44,15 +44,15 @@ DWORD dxva_align_dimensions(AVCodecID codec, DWORD dim)
 DXVA2 Codec Mappings, as defined by VLC
 */
 
-static const int prof_mpeg2_main[] = { FF_PROFILE_MPEG2_SIMPLE, FF_PROFILE_MPEG2_MAIN, FF_PROFILE_UNKNOWN };
-static const int prof_h264_high[] = { FF_PROFILE_H264_CONSTRAINED_BASELINE, FF_PROFILE_H264_MAIN, FF_PROFILE_H264_HIGH, FF_PROFILE_UNKNOWN };
-static const int prof_hevc_main[] = { FF_PROFILE_HEVC_MAIN, FF_PROFILE_UNKNOWN };
-static const int prof_hevc_main10[] = { FF_PROFILE_HEVC_MAIN_10, FF_PROFILE_UNKNOWN };
-static const int prof_vp9_0[] = { FF_PROFILE_VP9_0, FF_PROFILE_UNKNOWN };
-static const int prof_vp9_2_10bit[] = { FF_PROFILE_VP9_2, FF_PROFILE_UNKNOWN };
-static const int prof_av1_0[] = {FF_PROFILE_AV1_MAIN, FF_PROFILE_UNKNOWN};
-static const int prof_av1_1[] = {FF_PROFILE_AV1_HIGH, FF_PROFILE_UNKNOWN};
-static const int prof_av1_2[] = {FF_PROFILE_AV1_PROFESSIONAL, FF_PROFILE_UNKNOWN};
+static const int prof_mpeg2_main[] = { AV_PROFILE_MPEG2_SIMPLE, AV_PROFILE_MPEG2_MAIN, AV_PROFILE_UNKNOWN };
+static const int prof_h264_high[] = { AV_PROFILE_H264_CONSTRAINED_BASELINE, AV_PROFILE_H264_MAIN, AV_PROFILE_H264_HIGH, AV_PROFILE_UNKNOWN };
+static const int prof_hevc_main[] = { AV_PROFILE_HEVC_MAIN, AV_PROFILE_UNKNOWN };
+static const int prof_hevc_main10[] = { AV_PROFILE_HEVC_MAIN_10, AV_PROFILE_UNKNOWN };
+static const int prof_vp9_0[] = { AV_PROFILE_VP9_0, AV_PROFILE_UNKNOWN };
+static const int prof_vp9_2_10bit[] = { AV_PROFILE_VP9_2, AV_PROFILE_UNKNOWN };
+static const int prof_av1_0[] = {AV_PROFILE_AV1_MAIN, AV_PROFILE_UNKNOWN};
+static const int prof_av1_1[] = {AV_PROFILE_AV1_HIGH, AV_PROFILE_UNKNOWN};
+static const int prof_av1_2[] = {AV_PROFILE_AV1_PROFESSIONAL, AV_PROFILE_UNKNOWN};
 
 /* XXX Preferred modes must come first */
 // clang-format off
@@ -164,16 +164,16 @@ int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profil
   if (mode->codec != codec)
     return 0;
 
-  if (mode->profiles && profile != FF_PROFILE_UNKNOWN)
+  if (mode->profiles && profile != AV_PROFILE_UNKNOWN)
   {
-    for (int i = 0; mode->profiles[i] != FF_PROFILE_UNKNOWN; i++)
+    for (int i = 0; mode->profiles[i] != AV_PROFILE_UNKNOWN; i++)
     {
       if (mode->profiles[i] == profile)
         return 1;
     }
 
     /* hevc main and main10 are very similar, and in some cases streams can be flagged as main10, but actually contain 8-bit content */
-    if (codec == AV_CODEC_ID_HEVC && mode->profiles[0] == FF_PROFILE_HEVC_MAIN && profile == FF_PROFILE_HEVC_MAIN_10 && b8Bit)
+    if (codec == AV_CODEC_ID_HEVC && mode->profiles[0] == AV_PROFILE_HEVC_MAIN && profile == AV_PROFILE_HEVC_MAIN_10 && b8Bit)
         return 1;
 
     return 0;
@@ -200,7 +200,7 @@ int check_dxva_codec_profile(const AVCodecContext *ctx, int hwpixfmt)
         return 1;
 
     // check h264 profile
-    if (codec == AV_CODEC_ID_H264 && profile != FF_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(profile))
+    if (codec == AV_CODEC_ID_H264 && profile != AV_PROFILE_UNKNOWN && !H264_CHECK_PROFILE(profile))
         return 1;
 
     // H.264 Level 5.1 ref frame limits
@@ -209,7 +209,7 @@ int check_dxva_codec_profile(const AVCodecContext *ctx, int hwpixfmt)
         return 1;
 
     // check wmv/vc1 profile
-    if ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && profile == FF_PROFILE_VC1_COMPLEX)
+    if ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && profile == AV_PROFILE_VC1_COMPLEX)
         return 1;
 
     // check hevc profile/pixfmt
@@ -221,7 +221,7 @@ int check_dxva_codec_profile(const AVCodecContext *ctx, int hwpixfmt)
         return 1;
 
     // check av1 profile/pixfmt
-    if (codec == AV_CODEC_ID_AV1 && (profile != FF_PROFILE_AV1_MAIN || (pix_fmt != AV_PIX_FMT_YUV420P  && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
+    if (codec == AV_CODEC_ID_AV1 && (profile != AV_PROFILE_AV1_MAIN || (pix_fmt != AV_PIX_FMT_YUV420P  && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
         return 1;
 
     return 0;
