@@ -2108,7 +2108,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
 
     if (m_PixFmtConverter.SetInputFmt(pFrame->sw_format, pFrame->bpp) || m_bForceFormatNegotiation)
     {
-        DbgLog((LOG_TRACE, 10, L"::Decode(): Changed input pixel format to %d (%d bpp)", pFrame->format, pFrame->bpp));
+        DbgLog((LOG_TRACE, 10, L"::Decode(): Changed input pixel format to %d (%d bpp, hw: %d)", pFrame->sw_format, pFrame->bpp, (pFrame->format != pFrame->sw_format)));
 
         CMediaType &mt = m_pOutput->CurrentMediaType();
 
@@ -2314,6 +2314,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
             pFrame->data[0] = pDataOut;
             pFrame->stride[0] = strideBytes;
             pFrame->format = pixFmt;
+            pFrame->sw_format = pixFmt;
             pFrame->bpp = 8;
             pFrame->flags |= LAV_FRAME_FLAG_BUFFER_MODIFY;
             m_SubtitleConsumer->ProcessFrame(pFrame);
