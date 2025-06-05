@@ -857,7 +857,7 @@ HRESULT CLAVVideo::CheckDirectMode()
 
     GUID outputSubtype = m_pOutput->CurrentMediaType().subtype;
 
-    BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P016 || pix == LAVPixFmt_YUY2 || pix == LAVPixFmt_AYUV || pix == LAVPixFmt_Y410 || pix == LAVPixFmt_Y416);
+    BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P016 || pix == LAVPixFmt_YUY2 || pix == LAVPixFmt_Y216 || pix == LAVPixFmt_AYUV || pix == LAVPixFmt_Y410 || pix == LAVPixFmt_Y416);
     if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced(FALSE) && m_settings.SWDeintMode != SWDeintMode_None)
         bDirect = FALSE;
     else if (pix == LAVPixFmt_NV12 && outputSubtype != MEDIASUBTYPE_NV12 && outputSubtype != MEDIASUBTYPE_YV12)
@@ -866,6 +866,8 @@ HRESULT CLAVVideo::CheckDirectMode()
              outputSubtype != MEDIASUBTYPE_NV12)
         bDirect = FALSE;
     else if (pix == LAVPixFmt_YUY2 && outputSubtype != MEDIASUBTYPE_YUY2)
+        bDirect = FALSE;
+    else if (pix == LAVPixFmt_Y216 && outputSubtype != MEDIASUBTYPE_P210 && outputSubtype != MEDIASUBTYPE_P216)
         bDirect = FALSE;
     else if (pix == LAVPixFmt_AYUV && outputSubtype != MEDIASUBTYPE_AYUV)
         bDirect = FALSE;
