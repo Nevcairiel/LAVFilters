@@ -21,8 +21,11 @@
 #include "d3d11va.h"
 #include "ID3DVideoMemoryConfiguration.h"
 #include "dxva2/dxva_common.h"
+#include "moreuuids.h"
 
 #include <d3d11_1.h>
+
+#define FF_DXVA2_WORKAROUND_NVIDIA_HEVC_420P12 3
 
 ILAVDecoder *CreateDecoderD3D11()
 {
@@ -123,10 +126,46 @@ static DXGI_FORMAT d3d11va_map_sw_to_hw_format(enum AVPixelFormat pix_fmt)
 {
     switch (pix_fmt)
     {
+    case AV_PIX_FMT_YUV444P: return DXGI_FORMAT_AYUV;
+    case AV_PIX_FMT_YUV444P10: return DXGI_FORMAT_Y410;
+    case AV_PIX_FMT_YUV444P12:
+    case AV_PIX_FMT_YUV444P14:
+    case AV_PIX_FMT_YUV444P16: return DXGI_FORMAT_Y416;
+
+    case AV_PIX_FMT_YUV422P: return DXGI_FORMAT_YUY2;
+    case AV_PIX_FMT_YUV422P10: return DXGI_FORMAT_Y210;
+    case AV_PIX_FMT_YUV422P12:
+    case AV_PIX_FMT_YUV422P14:
+    case AV_PIX_FMT_YUV422P16: return DXGI_FORMAT_Y216;
+
+    case AV_PIX_FMT_YUV420P12:
+    case AV_PIX_FMT_YUV420P14:
+    case AV_PIX_FMT_YUV420P16:
+    case AV_PIX_FMT_P012:
+    case AV_PIX_FMT_P016: return DXGI_FORMAT_P016;
     case AV_PIX_FMT_YUV420P10:
     case AV_PIX_FMT_P010: return DXGI_FORMAT_P010;
     case AV_PIX_FMT_NV12:
     default: return DXGI_FORMAT_NV12;
+    }
+}
+
+static LAVPixelFormat d3d11va_map_hw_to_lav_format(DXGI_FORMAT dxgiFormat)
+{
+    switch (dxgiFormat)
+    {
+    case DXGI_FORMAT_AYUV: return LAVPixFmt_AYUV;
+    case DXGI_FORMAT_Y410: return LAVPixFmt_Y410;
+    case DXGI_FORMAT_Y416: return LAVPixFmt_Y416;
+
+    case DXGI_FORMAT_YUY2: return LAVPixFmt_YUY2;
+    case DXGI_FORMAT_Y210: return LAVPixFmt_Y216;
+    case DXGI_FORMAT_Y216: return LAVPixFmt_Y216;
+
+    case DXGI_FORMAT_P010: return LAVPixFmt_P016;
+    case DXGI_FORMAT_P016: return LAVPixFmt_P016;
+    case DXGI_FORMAT_NV12: return LAVPixFmt_NV12;
+    default: ASSERT(0); return LAVPixFmt_NV12;
     }
 }
 
@@ -447,7 +486,13 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
         CMediaType mt = m_pCallback->GetOutputMediaType();
         if ((m_SurfaceFormat == DXGI_FORMAT_NV12 && mt.subtype != MEDIASUBTYPE_NV12) ||
             (m_SurfaceFormat == DXGI_FORMAT_P010 && mt.subtype != MEDIASUBTYPE_P010) ||
-            (m_SurfaceFormat == DXGI_FORMAT_P016 && mt.subtype != MEDIASUBTYPE_P016))
+            (m_SurfaceFormat == DXGI_FORMAT_P016 && mt.subtype != MEDIASUBTYPE_P016) ||
+            (m_SurfaceFormat == DXGI_FORMAT_AYUV && mt.subtype != MEDIASUBTYPE_AYUV) ||
+            (m_SurfaceFormat == DXGI_FORMAT_Y410 && mt.subtype != MEDIASUBTYPE_Y410) ||
+            (m_SurfaceFormat == DXGI_FORMAT_Y416 && mt.subtype != MEDIASUBTYPE_Y416) ||
+            (m_SurfaceFormat == DXGI_FORMAT_YUY2 && mt.subtype != MEDIASUBTYPE_YUY2) ||
+            (m_SurfaceFormat == DXGI_FORMAT_Y210 && mt.subtype != MEDIASUBTYPE_Y210) ||
+            (m_SurfaceFormat == DXGI_FORMAT_Y216 && mt.subtype != MEDIASUBTYPE_Y216))
         {
             DbgLog((LOG_ERROR, 10, L"-> Connection is not the appropriate pixel format for D3D11 Native"));
 
@@ -457,8 +502,16 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
 
     // verify hardware support
     {
+        int level = 0;
+        if (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC)
+        {
+            int64_t value = 0;
+            if (av_opt_get_int(m_pAVCtx->priv_data, "rext_profile", 0, &value) >= 0)
+                level = value;
+        }
+
         GUID guidConversion = GUID_NULL;
-        hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, m_SurfaceFormat, &guidConversion);
+        hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, level, m_SurfaceFormat, &guidConversion);
         if (FAILED(hr))
         {
             goto fail;
@@ -607,6 +660,9 @@ STDMETHODIMP CDecD3D11::FillHWContext(AVD3D11VAContext *ctx)
     ctx->context_mutex = pDeviceContext->lock_ctx;
 
     ctx->workaround = 0;
+
+    if (m_AdapterDesc.VendorId == VEND_ID_NVIDIA)
+        ctx->workaround = FF_DXVA2_WORKAROUND_NVIDIA_HEVC_420P12;
 
     return S_OK;
 }
@@ -804,9 +860,13 @@ STDMETHODIMP CDecD3D11::ReInitD3D11Decoder(AVCodecContext *c)
     if (m_bReadBackFallback == false && m_pAllocator == nullptr)
         return E_FAIL;
 
+    DXGI_FORMAT surfaceFormatToTest = d3d11va_map_sw_to_hw_format(c->sw_pix_fmt);
+    if (surfaceFormatToTest == DXGI_FORMAT_P016 && m_bP016ToP010Fallback)
+        surfaceFormatToTest = DXGI_FORMAT_P010;
+
     if (m_pDecoder == nullptr || m_dwSurfaceWidth != dxva_align_dimensions(c->codec_id, c->coded_width) ||
         m_dwSurfaceHeight != dxva_align_dimensions(c->codec_id, c->coded_height) ||
-        m_SurfaceFormat != d3d11va_map_sw_to_hw_format(c->sw_pix_fmt))
+        m_SurfaceFormat != surfaceFormatToTest)
     {
         AVD3D11VADeviceContext *pDeviceContext =
             (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
@@ -858,7 +918,7 @@ STDMETHODIMP CDecD3D11::ReInitD3D11Decoder(AVCodecContext *c)
     return S_OK;
 }
 
-STDMETHODIMP CDecD3D11::FindVideoServiceConversion(AVCodecID codec, int profile, DXGI_FORMAT surface_format,
+STDMETHODIMP CDecD3D11::FindVideoServiceConversion(AVCodecID codec, int profile, int level, DXGI_FORMAT &surface_format,
                                                    GUID *input)
 {
     AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
@@ -866,6 +926,8 @@ STDMETHODIMP CDecD3D11::FindVideoServiceConversion(AVCodecID codec, int profile,
 
     UINT nProfiles = pDeviceContext->video_device->GetVideoDecoderProfileCount();
     GUID *guid_list = (GUID *)av_malloc_array(nProfiles, sizeof(*guid_list));
+
+    m_bP016ToP010Fallback = false;
 
     DbgLog((LOG_TRACE, 10, L"-> Enumerating supported D3D11 modes (count: %d)", nProfiles));
     for (UINT i = 0; i < nProfiles; i++)
@@ -895,7 +957,7 @@ STDMETHODIMP CDecD3D11::FindVideoServiceConversion(AVCodecID codec, int profile,
     for (unsigned i = 0; dxva_modes[i].name; i++)
     {
         const dxva_mode_t *mode = &dxva_modes[i];
-        if (!check_dxva_mode_compatibility(mode, codec, profile, (surface_format == DXGI_FORMAT_NV12)))
+        if (!check_dxva_mode_compatibility(mode, codec, profile, level, (surface_format == DXGI_FORMAT_NV12)))
             continue;
 
         BOOL supported = FALSE;
@@ -908,6 +970,17 @@ STDMETHODIMP CDecD3D11::FindVideoServiceConversion(AVCodecID codec, int profile,
 
         DbgLog((LOG_TRACE, 10, L"-> Trying to use '%S'", mode->name));
         hr = pDeviceContext->video_device->CheckVideoDecoderFormat(mode->guid, surface_format, &supported);
+        // some high bitdepth decoders only accept P010, despite the memory layout otherwise being identical
+        if (SUCCEEDED(hr) && !supported && surface_format == DXGI_FORMAT_P016)
+        {
+            hr = pDeviceContext->video_device->CheckVideoDecoderFormat(mode->guid, DXGI_FORMAT_P010, &supported);
+
+            if (SUCCEEDED(hr) && supported)
+            {
+                surface_format = DXGI_FORMAT_P010;
+                m_bP016ToP010Fallback = true;
+            }
+        }
         if (SUCCEEDED(hr) && supported)
         {
             *input = *mode->guid;
@@ -985,7 +1058,17 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
     // find a decoder configuration
     GUID profileGUID = GUID_NULL;
     DXGI_FORMAT surface_format = d3d11va_map_sw_to_hw_format(m_pAVCtx->sw_pix_fmt);
-    hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, surface_format, &profileGUID);
+
+    // codec sub-level
+    int level = 0;
+    if (m_pAVCtx->codec_id == AV_CODEC_ID_HEVC)
+    {
+        int64_t value = 0;
+        if (av_opt_get_int(m_pAVCtx->priv_data, "rext_profile", 0, &value) >= 0)
+            level = value;
+    }
+
+    hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, level, surface_format, &profileGUID);
     if (FAILED(hr))
     {
         DbgLog((LOG_ERROR, 10, L"-> No video service profile found"));
@@ -1029,7 +1112,7 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
     }
 
     // allocate a new frames context for the dimensions and format
-    hr = AllocateFramesContext(m_dwSurfaceWidth, m_dwSurfaceHeight, m_pAVCtx->sw_pix_fmt, m_dwSurfaceCount,
+    hr = AllocateFramesContext(m_dwSurfaceWidth, m_dwSurfaceHeight, m_SurfaceFormat, m_dwSurfaceCount,
                                &m_pFramesCtx);
     if (FAILED(hr))
     {
@@ -1160,7 +1243,28 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
     return S_OK;
 }
 
-STDMETHODIMP CDecD3D11::AllocateFramesContext(int width, int height, AVPixelFormat format, int nSurfaces,
+static AVPixelFormat s_GetAVD3D11PixelFormat(DXGI_FORMAT format)
+{
+    switch (format)
+    {
+    case DXGI_FORMAT_NV12: return AV_PIX_FMT_NV12;
+    case DXGI_FORMAT_P010: return AV_PIX_FMT_P010;
+    case DXGI_FORMAT_P016: return AV_PIX_FMT_P016;
+
+    case DXGI_FORMAT_YUY2: return AV_PIX_FMT_YUYV422;
+    case DXGI_FORMAT_Y210: return AV_PIX_FMT_Y210;
+    case DXGI_FORMAT_Y216: return AV_PIX_FMT_Y216;
+
+    case DXGI_FORMAT_AYUV: return AV_PIX_FMT_VUYX;
+    case DXGI_FORMAT_Y410: return AV_PIX_FMT_XV30;
+    case DXGI_FORMAT_Y416: return AV_PIX_FMT_XV48;
+    }
+
+    ASSERT(0);
+    return AV_PIX_FMT_NV12;
+}
+
+STDMETHODIMP CDecD3D11::AllocateFramesContext(int width, int height, DXGI_FORMAT format, int nSurfaces,
                                               AVBufferRef **ppFramesCtx)
 {
     ASSERT(m_pAVCtx);
@@ -1178,7 +1282,7 @@ STDMETHODIMP CDecD3D11::AllocateFramesContext(int width, int height, AVPixelForm
 
     AVHWFramesContext *pFrames = (AVHWFramesContext *)(*ppFramesCtx)->data;
     pFrames->format = AV_PIX_FMT_D3D11;
-    pFrames->sw_format = (format == AV_PIX_FMT_YUV420P10) ? AV_PIX_FMT_P010 : AV_PIX_FMT_NV12;
+    pFrames->sw_format = s_GetAVD3D11PixelFormat(format);
     pFrames->width = width;
     pFrames->height = height;
     pFrames->initial_pool_size = nSurfaces;
@@ -1274,8 +1378,7 @@ HRESULT CDecD3D11::DeliverD3D11Readback(LAVFrame *pFrame)
     pFrame->priv_data = dst;
     GetPixelFormat(&pFrame->format, &pFrame->bpp);
 
-    ASSERT((dst->format == AV_PIX_FMT_NV12 && pFrame->format == LAVPixFmt_NV12) ||
-           (dst->format == AV_PIX_FMT_P010 && pFrame->format == LAVPixFmt_P016));
+    ASSERT(getFFPixelFormatFromLAV(pFrame->format, pFrame->bpp) == dst->format);
 
     for (int i = 0; i < 4; i++)
     {
@@ -1394,13 +1497,19 @@ STDMETHODIMP CDecD3D11::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
 {
     // Output is always NV12 or P010
     if (pPix)
-        *pPix = m_bReadBackFallback == false
-                    ? LAVPixFmt_D3D11
-                    : ((m_SurfaceFormat == DXGI_FORMAT_P010 || m_SurfaceFormat == DXGI_FORMAT_P016) ? LAVPixFmt_P016
-                                                                                                    : LAVPixFmt_NV12);
+        *pPix = m_bReadBackFallback == false ? LAVPixFmt_D3D11 : d3d11va_map_hw_to_lav_format(m_SurfaceFormat);
 
     if (pBpp)
-        *pBpp = (m_SurfaceFormat == DXGI_FORMAT_P016) ? 16 : (m_SurfaceFormat == DXGI_FORMAT_P010 ? 10 : 8);
+        *pBpp = (m_SurfaceFormat == DXGI_FORMAT_NV12 || m_SurfaceFormat == DXGI_FORMAT_YUY2 ||
+                 m_SurfaceFormat == DXGI_FORMAT_AYUV)
+                    ? 8
+                : (m_SurfaceFormat == DXGI_FORMAT_P010 || m_SurfaceFormat == DXGI_FORMAT_Y210 ||
+                   m_SurfaceFormat == DXGI_FORMAT_Y410)
+                    ? 10
+                : (m_SurfaceFormat == DXGI_FORMAT_P016 || m_SurfaceFormat == DXGI_FORMAT_Y216 ||
+                   m_SurfaceFormat == DXGI_FORMAT_Y416)
+                    ? 16
+                    : 8;
 
     return S_OK;
 }

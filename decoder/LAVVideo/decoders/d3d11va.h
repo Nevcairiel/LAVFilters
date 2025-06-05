@@ -31,6 +31,7 @@ extern "C"
 #include "libavutil/hwcontext.h"
 #include "libavutil/hwcontext_d3d11va.h"
 #include "libavcodec/d3d11va.h"
+#include "libavcodec/h265_rext_profiles.h"
 }
 
 #define D3D11_QUEUE_SURFACES 4
@@ -89,10 +90,10 @@ class CDecD3D11 : public CDecAvcodec
 
     STDMETHODIMP CreateD3D11Device(UINT nDeviceIndex, ID3D11Device **ppDevice, DXGI_ADAPTER_DESC *pDesc);
     STDMETHODIMP CreateD3D11Decoder();
-    STDMETHODIMP AllocateFramesContext(int width, int height, AVPixelFormat format, int nSurfaces,
+    STDMETHODIMP AllocateFramesContext(int width, int height, DXGI_FORMAT format, int nSurfaces,
                                        AVBufferRef **pFramesCtx);
 
-    STDMETHODIMP FindVideoServiceConversion(AVCodecID codec, int profile, DXGI_FORMAT surface_format, GUID *input);
+    STDMETHODIMP FindVideoServiceConversion(AVCodecID codec, int profile, int level, DXGI_FORMAT &surface_format, GUID *input);
     STDMETHODIMP FindDecoderConfiguration(const D3D11_VIDEO_DECODER_DESC *desc, D3D11_VIDEO_DECODER_CONFIG *pConfig);
 
     STDMETHODIMP FillHWContext(AVD3D11VAContext *ctx);
@@ -122,6 +123,8 @@ class CDecD3D11 : public CDecAvcodec
     BOOL m_bReadBackFallback = FALSE;
     BOOL m_bDirect = FALSE;
     BOOL m_bFailHWDecode = FALSE;
+
+    BOOL m_bP016ToP010Fallback = FALSE;
 
     ID3D11Texture2D *m_pD3D11StagingTexture = nullptr;
 

@@ -33,12 +33,13 @@ typedef struct
     const GUID *guid;
     int codec;
     const int *profiles;
+    const int level;
 } dxva_mode_t;
 
 extern const dxva_mode_t dxva_modes[];
 
 const dxva_mode_t *get_dxva_mode_from_guid(const GUID *guid);
-int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile, bool b8Bit);
+int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile, int level, bool b8Bit);
 
 int check_dxva_codec_profile(const AVCodecContext *ctx, int hwpixfmt);
 

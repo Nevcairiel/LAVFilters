@@ -37,6 +37,7 @@ extern "C"
     #include "libavutil/imgutils.h"
     #define FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG 1
     #define FF_DXVA2_WORKAROUND_INTEL_CLEARVIDEO 2
+    #define FF_DXVA2_WORKAROUND_NVIDIA_HEVC_420P12 3
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -467,7 +468,7 @@ HRESULT CDecDXVA2::FindVideoServiceConversion(AVCodecID codec, int profile, D3DF
     for (unsigned i = 0; dxva_modes[i].name; i++)
     {
         const dxva_mode_t *mode = &dxva_modes[i];
-        if (!check_dxva_mode_compatibility(mode, codec, profile, (suggestedOutput == FOURCC_NV12)))
+        if (!check_dxva_mode_compatibility(mode, codec, profile, 0, (suggestedOutput == FOURCC_NV12)))
             continue;
 
         BOOL supported = FALSE;

@@ -21,6 +21,11 @@
 #include "dxva_common.h"
 #include "moreuuids.h"
 
+extern "C"
+{
+#include "libavcodec/h265_rext_profiles.h"
+};
+
 #define DXVA_SURFACE_BASE_ALIGN 16
 
 DWORD dxva_align_dimensions(AVCodecID codec, DWORD dim)
@@ -48,6 +53,7 @@ static const int prof_mpeg2_main[] = { AV_PROFILE_MPEG2_SIMPLE, AV_PROFILE_MPEG2
 static const int prof_h264_high[] = { AV_PROFILE_H264_CONSTRAINED_BASELINE, AV_PROFILE_H264_MAIN, AV_PROFILE_H264_HIGH, AV_PROFILE_UNKNOWN };
 static const int prof_hevc_main[] = { AV_PROFILE_HEVC_MAIN, AV_PROFILE_UNKNOWN };
 static const int prof_hevc_main10[] = { AV_PROFILE_HEVC_MAIN_10, AV_PROFILE_UNKNOWN };
+static const int prof_hevc_rext[] = {AV_PROFILE_HEVC_REXT, AV_PROFILE_UNKNOWN};
 static const int prof_vp9_0[] = { AV_PROFILE_VP9_0, AV_PROFILE_UNKNOWN };
 static const int prof_vp9_2_10bit[] = { AV_PROFILE_VP9_2, AV_PROFILE_UNKNOWN };
 static const int prof_av1_0[] = {AV_PROFILE_AV1_MAIN, AV_PROFILE_UNKNOWN};
@@ -116,14 +122,14 @@ const dxva_mode_t dxva_modes[] = {
   /* HEVC / H.265 */
   { "HEVC / H.265 variable-length decoder, main",                                   &DXVA_ModeHEVC_VLD_Main,                AV_CODEC_ID_HEVC, prof_hevc_main },
   { "HEVC / H.265 variable-length decoder, main10",                                 &DXVA_ModeHEVC_VLD_Main10,              AV_CODEC_ID_HEVC, prof_hevc_main10 },
-  { "HEVC / H.265 variable-length decoder, main12",                                 &DXVA_ModeHEVC_VLD_Main12,              0 },
-  { "HEVC / H.265 variable-length decoder, main10 422",                             &DXVA_ModeHEVC_VLD_Main10_422,          0 },
-  { "HEVC / H.265 variable-length decoder, main12 422",                             &DXVA_ModeHEVC_VLD_Main12_422,          0 },
-  { "HEVC / H.265 variable-length decoder, main 444",                               &DXVA_ModeHEVC_VLD_Main_444,            0 },
+  { "HEVC / H.265 variable-length decoder, main12",                                 &DXVA_ModeHEVC_VLD_Main12,              AV_CODEC_ID_HEVC, prof_hevc_rext, FF_HEVC_REXT_PROFILE_MAIN_12 },
+  { "HEVC / H.265 variable-length decoder, main10 422",                             &DXVA_ModeHEVC_VLD_Main10_422,          AV_CODEC_ID_HEVC, prof_hevc_rext, FF_HEVC_REXT_PROFILE_MAIN422_10 },
+  { "HEVC / H.265 variable-length decoder, main12 422",                             &DXVA_ModeHEVC_VLD_Main12_422,          AV_CODEC_ID_HEVC, prof_hevc_rext, FF_HEVC_REXT_PROFILE_MAIN422_12 },
+  { "HEVC / H.265 variable-length decoder, main 444",                               &DXVA_ModeHEVC_VLD_Main_444,            AV_CODEC_ID_HEVC, prof_hevc_rext, FF_HEVC_REXT_PROFILE_MAIN444 },
   { "HEVC / H.265 variable-length decoder, main10 extended",                        &DXVA_ModeHEVC_VLD_Main10_Ext,          0 },
-  { "HEVC / H.265 variable-length decoder, main10 444",                             &DXVA_ModeHEVC_VLD_Main10_444,          0 },
-  { "HEVC / H.265 variable-length decoder, main12 444",                             &DXVA_ModeHEVC_VLD_Main12_444,          0 },
-  { "HEVC / H.265 variable-length decoder, main16",                                 &DXVA_ModeHEVC_VLD_Main16,              0 },
+  { "HEVC / H.265 variable-length decoder, main10 444",                             &DXVA_ModeHEVC_VLD_Main10_444,          AV_CODEC_ID_HEVC, prof_hevc_rext, FF_HEVC_REXT_PROFILE_MAIN444_10 },
+  { "HEVC / H.265 variable-length decoder, main12 444",                             &DXVA_ModeHEVC_VLD_Main12_444,          AV_CODEC_ID_HEVC, prof_hevc_rext, FF_HEVC_REXT_PROFILE_MAIN444_12 },
+  { "HEVC / H.265 variable-length decoder, main16",                                 &DXVA_ModeHEVC_VLD_Main16,              AV_CODEC_ID_HEVC, prof_hevc_rext, FF_HEVC_REXT_PROFILE_MAIN444_16 },
   { "HEVC / H.265 variable-length decoder, monochrome",                             &DXVA_ModeHEVC_VLD_Monochrome,          0 },
   { "HEVC / H.265 variable-length decoder, monochrome10",                           &DXVA_ModeHEVC_VLD_Monochrome10,        0 },
 
@@ -159,7 +165,7 @@ const dxva_mode_t *get_dxva_mode_from_guid(const GUID *guid)
   return nullptr;
 }
 
-int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile, bool b8Bit)
+int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profile, int level, bool b8Bit)
 {
   if (mode->codec != codec)
     return 0;
@@ -168,8 +174,8 @@ int check_dxva_mode_compatibility(const dxva_mode_t *mode, int codec, int profil
   {
     for (int i = 0; mode->profiles[i] != AV_PROFILE_UNKNOWN; i++)
     {
-      if (mode->profiles[i] == profile)
-        return 1;
+        if (mode->profiles[i] == profile && (mode->level == 0 || mode->level == level))
+            return 1;
     }
 
     /* hevc main and main10 are very similar, and in some cases streams can be flagged as main10, but actually contain 8-bit content */
@@ -210,10 +216,6 @@ int check_dxva_codec_profile(const AVCodecContext *ctx, int hwpixfmt)
 
     // check wmv/vc1 profile
     if ((codec == AV_CODEC_ID_WMV3 || codec == AV_CODEC_ID_VC1) && profile == AV_PROFILE_VC1_COMPLEX)
-        return 1;
-
-    // check hevc profile/pixfmt
-    if (codec == AV_CODEC_ID_HEVC && (!HEVC_CHECK_PROFILE(profile) || (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P && pix_fmt != AV_PIX_FMT_YUV420P10 && pix_fmt != hwpixfmt && pix_fmt != AV_PIX_FMT_NONE)))
         return 1;
 
     // check vp9 profile/pixfmt
