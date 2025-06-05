@@ -603,7 +603,7 @@ DECLARE_CONV_FUNC_IMPL(convert_p010_nv12_sse2)
     return S_OK;
 }
 
-DECLARE_CONV_FUNC_IMPL(convert_y210_p210)
+DECLARE_CONV_FUNC_IMPL(convert_y210_p210_sse4)
 {
     const ptrdiff_t inStride = srcStride[0];
     const ptrdiff_t outStride = dstStride[0];

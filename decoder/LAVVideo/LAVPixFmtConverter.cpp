@@ -494,9 +494,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
             convert = &CLAVPixFmtConverter::convert_p010_nv12_sse2;
         }
         else if (m_InputPixFmt == LAVPixFmt_Y216 &&
-                 (m_OutputPixFmt == LAVOutPixFmt_P210 || m_OutputPixFmt == LAVOutPixFmt_P216))
+                 (m_OutputPixFmt == LAVOutPixFmt_P210 || m_OutputPixFmt == LAVOutPixFmt_P216) &&
+                  (cpu & AV_CPU_FLAG_SSE4))
         {
-            convert = &CLAVPixFmtConverter::convert_y210_p210;
+            convert = &CLAVPixFmtConverter::convert_y210_p210_sse4;
         }
     }
 
@@ -555,8 +556,6 @@ void CLAVPixFmtConverter::SelectConvertFunctionDirect()
     {
         if (cpu & AV_CPU_FLAG_SSE4)
             convert_direct = &CLAVPixFmtConverter::convert_y210_p210_direct_sse4;
-        else if (cpu & AV_CPU_FLAG_SSE2)
-            convert_direct = &CLAVPixFmtConverter::convert_y210_p210;
     }
 
     if (convert_direct != nullptr)
