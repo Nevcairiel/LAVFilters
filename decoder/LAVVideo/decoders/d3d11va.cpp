@@ -1419,10 +1419,14 @@ static bool d3d11_direct_lock(LAVFrame *pFrame, LAVDirectBuffer *pBuffer)
     }
 
     pBuffer->data[0] = (BYTE *)map.pData;
-    pBuffer->data[1] = pBuffer->data[0] + desc.Height * map.RowPitch;
-
     pBuffer->stride[0] = map.RowPitch;
-    pBuffer->stride[1] = map.RowPitch;
+
+    // semi-packed formats have a second plane
+    if (desc.Format == DXGI_FORMAT_NV12 || desc.Format == DXGI_FORMAT_P010 || desc.Format == DXGI_FORMAT_P016)
+    {
+        pBuffer->data[1] = pBuffer->data[0] + desc.Height * map.RowPitch;
+        pBuffer->stride[1] = map.RowPitch;
+    }
 
     return true;
 }
