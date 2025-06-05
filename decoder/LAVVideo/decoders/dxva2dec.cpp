@@ -1634,7 +1634,7 @@ HRESULT CDecDXVA2::DeliverDXVA2Frame(LAVFrame *pFrame)
             return S_FALSE;
         }
 
-        GetPixelFormat(&pFrame->format, &pFrame->bpp);
+        GetPixelFormat(&pFrame->format, &pFrame->bpp, &pFrame->sw_format);
         Deliver(pFrame);
     }
     else
@@ -1655,7 +1655,7 @@ HRESULT CDecDXVA2::DeliverDXVA2Frame(LAVFrame *pFrame)
     return S_OK;
 }
 
-STDMETHODIMP CDecDXVA2::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
+STDMETHODIMP CDecDXVA2::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware)
 {
     // Output is always NV12 or P010
     if (pPix)
@@ -1668,6 +1668,9 @@ STDMETHODIMP CDecDXVA2::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
     }
     if (pBpp)
         *pBpp = (m_eSurfaceFormat == FOURCC_P016) ? 16 : ((m_eSurfaceFormat == FOURCC_P010) ? 10 : 8);
+    if (pPixSoftware)
+        *pPixSoftware =
+            (m_eSurfaceFormat == FOURCC_P010 || m_eSurfaceFormat == FOURCC_P016) ? LAVPixFmt_P016 : LAVPixFmt_NV12;
     return S_OK;
 }
 
@@ -1675,7 +1678,7 @@ __forceinline bool CDecDXVA2::CopyFrame(LAVFrame *pFrame)
 {
     HRESULT hr;
     LPDIRECT3DSURFACE9 pSurface = (LPDIRECT3DSURFACE9)pFrame->data[3];
-    GetPixelFormat(&pFrame->format, &pFrame->bpp);
+    GetPixelFormat(&pFrame->format, &pFrame->bpp, &pFrame->sw_format);
 
     D3DSURFACE_DESC surfaceDesc;
     pSurface->GetDesc(&surfaceDesc);
@@ -1757,7 +1760,7 @@ static void direct_unlock(LAVFrame *pFrame)
 
 bool CDecDXVA2::DeliverDirect(LAVFrame *pFrame)
 {
-    GetPixelFormat(&pFrame->format, &pFrame->bpp);
+    GetPixelFormat(&pFrame->format, &pFrame->bpp, &pFrame->sw_format);
     pFrame->direct = true;
     pFrame->direct_lock = direct_lock;
     pFrame->direct_unlock = direct_unlock;

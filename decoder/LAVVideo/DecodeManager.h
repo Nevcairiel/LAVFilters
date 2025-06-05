@@ -64,7 +64,7 @@ class CDecodeManager : protected CCritSec
     {
         return m_pDecoder ? m_pDecoder->IsInterlaced(bAllowGuess) : TRUE;
     }
-    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
+    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware)
     {
         if (m_pDecoder == NULL)
         {
@@ -72,11 +72,13 @@ class CDecodeManager : protected CCritSec
                 *pPix = LAVPixFmt_None;
             if (pBpp)
                 *pBpp = 8;
+            if (pPixSoftware)
+                *pPixSoftware = LAVPixFmt_None;
 
             return S_FALSE;
         }
 
-        return m_pDecoder->GetPixelFormat(pPix, pBpp);
+        return m_pDecoder->GetPixelFormat(pPix, pBpp, pPixSoftware);
     }
     STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration()
     {

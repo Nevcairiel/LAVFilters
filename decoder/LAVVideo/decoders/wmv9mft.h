@@ -66,7 +66,7 @@ class CDecWMV9MFT : public CDecBase
                         BOOL bDiscontinuity, IMediaSample *pSample);
     STDMETHODIMP Flush();
     STDMETHODIMP EndOfStream();
-    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
+    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware);
     STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
     STDMETHODIMP_(const WCHAR *) GetDecoderName() { return L"wmv9 mft"; }
     STDMETHODIMP HasThreadSafeBuffers() { return S_OK; }

@@ -1350,7 +1350,7 @@ HRESULT CDecD3D11::DeliverD3D11Frame(LAVFrame *pFrame)
         pFrame->data[0] = pAVFrame->data[3];
         pFrame->data[1] = pFrame->data[2] = pFrame->data[3] = nullptr;
 
-        GetPixelFormat(&pFrame->format, &pFrame->bpp);
+        GetPixelFormat(&pFrame->format, &pFrame->bpp, &pFrame->sw_format);
 
         Deliver(pFrame);
     }
@@ -1376,7 +1376,7 @@ HRESULT CDecD3D11::DeliverD3D11Readback(LAVFrame *pFrame)
 
     // and store the dst frame in LAVFrame
     pFrame->priv_data = dst;
-    GetPixelFormat(&pFrame->format, &pFrame->bpp);
+    GetPixelFormat(&pFrame->format, &pFrame->bpp, &pFrame->sw_format);
 
     ASSERT(getFFPixelFormatFromLAV(pFrame->format, pFrame->bpp) == dst->format);
 
@@ -1484,7 +1484,7 @@ HRESULT CDecD3D11::DeliverD3D11ReadbackDirect(LAVFrame *pFrame)
     pFrame->priv_data = c;
     pFrame->destruct = d3d11_direct_free;
 
-    GetPixelFormat(&pFrame->format, &pFrame->bpp);
+    GetPixelFormat(&pFrame->format, &pFrame->bpp, &pFrame->sw_format);
 
     pFrame->direct = true;
     pFrame->direct_lock = d3d11_direct_lock;
@@ -1493,7 +1493,7 @@ HRESULT CDecD3D11::DeliverD3D11ReadbackDirect(LAVFrame *pFrame)
     return Deliver(pFrame);
 }
 
-STDMETHODIMP CDecD3D11::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
+STDMETHODIMP CDecD3D11::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware)
 {
     // Output is always NV12 or P010
     if (pPix)
@@ -1510,6 +1510,9 @@ STDMETHODIMP CDecD3D11::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
                    m_SurfaceFormat == DXGI_FORMAT_Y416)
                     ? 16
                     : 8;
+
+    if (pPixSoftware)
+        *pPixSoftware = d3d11va_map_hw_to_lav_format(m_SurfaceFormat);
 
     return S_OK;
 }

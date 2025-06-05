@@ -60,12 +60,14 @@ class CDecMSDKMVC : public CDecBase
                         BOOL bDiscontinuity, IMediaSample *pSample);
     STDMETHODIMP Flush();
     STDMETHODIMP EndOfStream();
-    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
+    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware)
     {
         if (pPix)
             *pPix = LAVPixFmt_NV12;
         if (pBpp)
             *pBpp = 8;
+        if (pPixSoftware)
+            *pPixSoftware = LAVPixFmt_NV12;
         return S_OK;
     }
     STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess) { return FALSE; }

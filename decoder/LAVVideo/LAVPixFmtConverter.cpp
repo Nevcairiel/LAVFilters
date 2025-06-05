@@ -187,29 +187,13 @@ LAVOutPixFmts CLAVPixFmtConverter::GetOutputBySubtype(const GUID *guid)
     return LAVOutPixFmt_None;
 }
 
-static bool IsDXVAPixFmt(LAVPixelFormat inputFormat, LAVOutPixFmts outputFormat, int bpp)
-{
-    if (inputFormat != LAVPixFmt_DXVA2 && inputFormat != LAVPixFmt_D3D11)
-        return false;
-
-    if (bpp == 8 && outputFormat == LAVOutPixFmt_NV12)
-        return true;
-    else if (bpp == 10 && outputFormat == LAVOutPixFmt_P010)
-        return true;
-    else if (bpp == 12 && outputFormat == LAVOutPixFmt_P016)
-        return true;
-
-    return false;
-}
-
 int CLAVPixFmtConverter::GetFilteredFormatCount()
 {
     LAV_INOUT_PIXFMT_MAP *pixFmtMap = lookupFormatMap(m_InputPixFmt, m_InBpp);
     int count = 0;
     for (int i = 0; i < LAVOutPixFmt_NB; ++i)
     {
-        if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) ||
-            IsDXVAPixFmt(m_InputPixFmt, pixFmtMap->lav_pix_fmts[i], m_InBpp))
+        if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
             count++;
     }
 
@@ -225,8 +209,7 @@ LAVOutPixFmts CLAVPixFmtConverter::GetFilteredFormat(int index)
     int actualIndex = -1;
     for (int i = 0; i < LAVOutPixFmt_NB; ++i)
     {
-        if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]) ||
-            IsDXVAPixFmt(m_InputPixFmt, pixFmtMap->lav_pix_fmts[i], m_InBpp))
+        if (m_pSettings->GetPixelFormat(pixFmtMap->lav_pix_fmts[i]))
             actualIndex++;
         if (index == actualIndex)
             return pixFmtMap->lav_pix_fmts[i];

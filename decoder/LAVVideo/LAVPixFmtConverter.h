@@ -72,6 +72,7 @@ class CLAVPixFmtConverter
 
     BOOL SetInputFmt(enum LAVPixelFormat pixfmt, int bpp)
     {
+        ASSERT(pixfmt != LAVPixFmt_D3D11 && pixfmt != LAVPixFmt_DXVA2);
         if (m_InputPixFmt != pixfmt || m_InBpp != bpp)
         {
             m_InputPixFmt = pixfmt;

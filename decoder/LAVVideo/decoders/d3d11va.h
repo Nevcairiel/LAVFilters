@@ -47,7 +47,7 @@ class CDecD3D11 : public CDecAvcodec
     // ILAVDecoder
     STDMETHODIMP Check();
     STDMETHODIMP InitDecoder(AVCodecID codec, const CMediaType *pmt, const MediaSideDataFFMpeg *pSideData);
-    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
+    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware);
     STDMETHODIMP Flush();
     STDMETHODIMP EndOfStream();
 

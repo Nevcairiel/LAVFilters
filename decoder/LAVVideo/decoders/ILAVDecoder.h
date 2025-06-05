@@ -123,6 +123,7 @@ typedef struct LAVFrame
     ptrdiff_t stride[4]; ///< stride of the planes (in bytes)
 
     LAVPixelFormat format; ///< pixel format of the frame
+    LAVPixelFormat sw_format;
     int bpp;               ///< bits per pixel, only meaningful for YUV420bX, YUV422bX or YUV444bX
 
     REFERENCE_TIME rtStart; ///< start time of the frame. unset if AV_NOPTS_VALUE
@@ -389,7 +390,7 @@ interface ILAVDecoder
      *
      * @return the pixel format used in the decoding process
      */
-    STDMETHOD(GetPixelFormat)(LAVPixelFormat * pPix, int *pBpp) PURE;
+    STDMETHOD(GetPixelFormat)(LAVPixelFormat * pPix, int *pBpp, LAVPixelFormat *pPixSoftware) PURE;
 
     /**
      * Get the frame duration.

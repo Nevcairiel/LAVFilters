@@ -827,12 +827,12 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     // Get avg time per frame
     videoFormatTypeHandler(pmt->Format(), pmt->FormatType(), nullptr, &m_rtAvgTimePerFrame);
 
-    LAVPixelFormat pix;
+    LAVPixelFormat pix, sw_pixfmt;
     int bpp;
-    m_Decoder.GetPixelFormat(&pix, &bpp);
+    m_Decoder.GetPixelFormat(&pix, &bpp, &sw_pixfmt);
 
     // Set input on the converter, and force negotiation if needed
-    if (m_PixFmtConverter.SetInputFmt(pix, bpp) && m_pOutput->IsConnected())
+    if (m_PixFmtConverter.SetInputFmt(sw_pixfmt, bpp) && m_pOutput->IsConnected())
         m_bForceFormatNegotiation = TRUE;
 
     if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12)
@@ -853,7 +853,7 @@ HRESULT CLAVVideo::CheckDirectMode()
 {
     LAVPixelFormat pix;
     int bpp;
-    m_Decoder.GetPixelFormat(&pix, &bpp);
+    m_Decoder.GetPixelFormat(&pix, &bpp, nullptr);
 
     GUID outputSubtype = m_pOutput->CurrentMediaType().subtype;
 
@@ -1105,7 +1105,7 @@ HRESULT CLAVVideo::CompleteConnect(PIN_DIRECTION dir, IPin *pReceivePin)
             if (bFailNonDXVA)
             {
                 LAVPixelFormat fmt;
-                m_Decoder.GetPixelFormat(&fmt, nullptr);
+                m_Decoder.GetPixelFormat(&fmt, nullptr, nullptr);
 
                 if (fmt != LAVPixFmt_DXVA2)
                 {
@@ -2106,7 +2106,7 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
         height = 1080;
     }
 
-    if (m_PixFmtConverter.SetInputFmt(pFrame->format, pFrame->bpp) || m_bForceFormatNegotiation)
+    if (m_PixFmtConverter.SetInputFmt(pFrame->sw_format, pFrame->bpp) || m_bForceFormatNegotiation)
     {
         DbgLog((LOG_TRACE, 10, L"::Decode(): Changed input pixel format to %d (%d bpp)", pFrame->format, pFrame->bpp));
 

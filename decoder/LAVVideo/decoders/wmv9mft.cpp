@@ -567,6 +567,7 @@ STDMETHODIMP CDecWMV9MFT::ProcessOutput()
 
     MFGetAttributeSize(pMTOut, MF_MT_FRAME_SIZE, (UINT32 *)&pFrame->width, (UINT32 *)&pFrame->height);
     pFrame->format = m_OutPixFmt;
+    pFrame->sw_format = pFrame->format;
 
     AVRational pixel_aspect_ratio = {1, 1};
     MFGetAttributeRatio(pMTOut, MF_MT_PIXEL_ASPECT_RATIO, (UINT32 *)&pixel_aspect_ratio.num,
@@ -732,12 +733,14 @@ STDMETHODIMP CDecWMV9MFT::EndOfStream()
     return S_OK;
 }
 
-STDMETHODIMP CDecWMV9MFT::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
+STDMETHODIMP CDecWMV9MFT::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware)
 {
     if (pPix)
         *pPix = (m_OutPixFmt != LAVPixFmt_None) ? m_OutPixFmt : LAVPixFmt_NV12;
     if (pBpp)
         *pBpp = 8;
+    if (pPixSoftware)
+        *pPixSoftware = (m_OutPixFmt != LAVPixFmt_None) ? m_OutPixFmt : LAVPixFmt_NV12;
     return S_OK;
 }
 

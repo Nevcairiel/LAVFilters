@@ -48,7 +48,7 @@ class CDecCuvid : public CDecBase
                         BOOL bDiscontinuity, IMediaSample *pSample);
     STDMETHODIMP Flush();
     STDMETHODIMP EndOfStream();
-    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp);
+    STDMETHODIMP GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware);
     STDMETHODIMP_(REFERENCE_TIME) GetFrameDuration();
     STDMETHODIMP_(BOOL) IsInterlaced(BOOL bAllowGuess);
     STDMETHODIMP_(const WCHAR *) GetDecoderName() { return L"cuvid"; }

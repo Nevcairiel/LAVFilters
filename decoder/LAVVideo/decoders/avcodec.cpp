@@ -1308,6 +1308,7 @@ send_packet:
 
         PixelFormatMapping map = getPixFmtMapping((AVPixelFormat)m_pFrame->format);
         pOutFrame->format = map.lavpixfmt;
+        pOutFrame->sw_format = pOutFrame->format;
         pOutFrame->bpp = map.bpp;
 
         if (m_nCodecId == AV_CODEC_ID_MPEG2VIDEO || m_nCodecId == AV_CODEC_ID_MPEG1VIDEO)
@@ -1511,7 +1512,7 @@ STDMETHODIMP CDecAvcodec::EndOfStream()
     return S_OK;
 }
 
-STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
+STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp, LAVPixelFormat *pPixSoftware)
 {
     AVPixelFormat pixfmt = m_pAVCtx ? m_pAVCtx->pix_fmt : AV_PIX_FMT_NONE;
     PixelFormatMapping mapping = getPixFmtMapping(pixfmt);
@@ -1519,6 +1520,8 @@ STDMETHODIMP CDecAvcodec::GetPixelFormat(LAVPixelFormat *pPix, int *pBpp)
         *pPix = mapping.lavpixfmt;
     if (pBpp)
         *pBpp = mapping.bpp;
+    if (pPixSoftware)
+        *pPixSoftware = mapping.lavpixfmt;
     return S_OK;
 }
 
