@@ -34,6 +34,10 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
     {4, 1, {1}, {1}},             ///< LAVPixFmt_RGB32
     {4, 1, {1}, {1}},             ///< LAVPixFmt_ARGB32
     {6, 1, {1}, {1}},             ///< LAVPixFmt_RGB48
+    {4, 1, {1}, {1}},             ///< LAVPixFmt_AYUV
+    {4, 1, {1}, {1}},             ///< LAVPixFmt_Y410
+    {8, 1, {1}, {1}},             ///< LAVPixFmt_Y416
+    {8, 1, {1}, {1}},             ///< LAVPixFmt_Y216
 };
 
 LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt)
@@ -50,7 +54,8 @@ static struct
     {LAVPixFmt_YUV444, AV_PIX_FMT_YUV444P}, {LAVPixFmt_NV12, AV_PIX_FMT_NV12},
     {LAVPixFmt_YUY2, AV_PIX_FMT_YUYV422},   {LAVPixFmt_RGB24, AV_PIX_FMT_BGR24},
     {LAVPixFmt_RGB32, AV_PIX_FMT_BGRA},     {LAVPixFmt_ARGB32, AV_PIX_FMT_BGRA},
-    {LAVPixFmt_RGB48, AV_PIX_FMT_RGB48LE},
+    {LAVPixFmt_RGB48, AV_PIX_FMT_RGB48LE},  {LAVPixFmt_AYUV, AV_PIX_FMT_VUYX},
+    {LAVPixFmt_Y410, AV_PIX_FMT_XV30},      {LAVPixFmt_Y416, AV_PIX_FMT_XV48},
 };
 
 AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
@@ -90,6 +95,7 @@ AVPixelFormat getFFPixelFormatFromLAV(LAVPixelFormat pixFmt, int bpp)
                                                     : ((bpp == 14) ? AV_PIX_FMT_YUV444P14LE : AV_PIX_FMT_YUV444P16LE)));
             break;
         case LAVPixFmt_P016: fmt = (bpp <= 10) ? AV_PIX_FMT_P010LE : AV_PIX_FMT_P016LE; break;
+        case LAVPixFmt_Y216: fmt = (bpp <= 10) ? AV_PIX_FMT_Y210 : AV_PIX_FMT_Y216; break;
         default: ASSERT(0);
         }
     }

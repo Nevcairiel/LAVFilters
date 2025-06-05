@@ -54,6 +54,12 @@ typedef enum LAVPixelFormat {
     LAVPixFmt_ARGB32,      ///< ARGB32, in BGRA order
     LAVPixFmt_RGB48,       ///< RGB48, in RGB order (16-bit per pixel)
 
+    /* HW formats */
+    LAVPixFmt_AYUV,        ///< AYUV, 4:4:4 8-bit
+    LAVPixFmt_Y410,        ///< Y410, 4:4:4 10-bit packed into 32-bit, AVYU order (A is 2 bit)
+    LAVPixFmt_Y416,        ///< Y416, 4:4:4 16-bit, AVYU order
+    LAVPixFmt_Y216,        ///< Y210/Y216, 4:2:2, 10 to 16-bit packed into 64-bit, Y0/U/Y1/V
+
     LAVPixFmt_DXVA2,       ///< DXVA2 Surface
     LAVPixFmt_D3D11,       ///< D3D11 Surface
 

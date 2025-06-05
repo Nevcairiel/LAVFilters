@@ -95,11 +95,18 @@ static LAV_INOUT_PIXFMT_MAP lav_pixfmt_map[] = {
 
   { LAVPixFmt_YUV422bX, 10, { PIXOUT_422_10, PIXOUT_422_16, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
   { LAVPixFmt_YUV422bX, 16, { PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
+
+  { LAVPixFmt_Y216,     10, { PIXOUT_422_10, PIXOUT_422_16, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
+  { LAVPixFmt_Y216,     16, { PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_RGB_8, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
   
   // 4:4:4
   { LAVPixFmt_YUV444,    8, { PIXOUT_444_8, PIXOUT_444_10, PIXOUT_444_16, PIXOUT_RGB_16, PIXOUT_RGB_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
   { LAVPixFmt_YUV444bX, 10, { PIXOUT_444_10, PIXOUT_444_16, PIXOUT_444_8, PIXOUT_RGB_16, PIXOUT_RGB_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
   { LAVPixFmt_YUV444bX, 16, { PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_RGB_16, PIXOUT_RGB_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
+
+  { LAVPixFmt_AYUV,      8, { PIXOUT_444_8, PIXOUT_444_10, PIXOUT_444_16, PIXOUT_RGB_16, PIXOUT_RGB_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
+  { LAVPixFmt_Y410,     10, { PIXOUT_444_10, PIXOUT_444_16, PIXOUT_444_8, PIXOUT_RGB_16, PIXOUT_RGB_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
+  { LAVPixFmt_Y416,     16, { PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_RGB_16, PIXOUT_RGB_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
 
   // RGB
   { LAVPixFmt_RGB24,  8,    { LAVOutPixFmt_RGB24, LAVOutPixFmt_RGB32, PIXOUT_RGB_16, PIXOUT_444_16, PIXOUT_444_10, PIXOUT_444_8, PIXOUT_422_16, PIXOUT_422_10, PIXOUT_422_8, PIXOUT_420_16, PIXOUT_420_10, PIXOUT_420_8 } },
@@ -124,10 +131,10 @@ LAVOutPixFmtDesc lav_pixfmt_desc[] = {
   { MEDIASUBTYPE_AYUV,  32, 4, 0, { 1 }, { 1 } },                    // AYUV (packed)
   { MEDIASUBTYPE_P010,  24, 2, 2, { 1, 2 }, { 1, 1 } },              // P010
   { MEDIASUBTYPE_P210,  32, 2, 2, { 1, 1 }, { 1, 1 } },              // P210
-  { FOURCCMap('014Y'),  32, 4, 0, { 1 }, { 1 }  },                   // Y410 (packed)
+  { MEDIASUBTYPE_Y410,  32, 4, 0, { 1 }, { 1 }  },                   // Y410 (packed)
   { MEDIASUBTYPE_P016,  24, 2, 2, { 1, 2 }, { 1, 1 } },              // P016
   { MEDIASUBTYPE_P216,  32, 2, 2, { 1, 1 }, { 1, 1 } },              // P216
-  { FOURCCMap('614Y'),  64, 8, 0, { 1 }, { 1 } },                    // Y416 (packed)
+  { MEDIASUBTYPE_Y416,  64, 8, 0, { 1 }, { 1 } },                    // Y416 (packed)
   { MEDIASUBTYPE_RGB32, 32, 4, 0, { 1 }, { 1 } },                    // RGB32
   { MEDIASUBTYPE_RGB24, 24, 3, 0, { 1 }, { 1 } },                    // RGB24
   { FOURCCMap('012v'),  24, 4, 0, { 1 }, { 1 } },                    // v210 (packed)
@@ -368,6 +375,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
               (m_InputPixFmt == LAVPixFmt_RGB32 || m_InputPixFmt == LAVPixFmt_ARGB32)) ||
              (m_OutputPixFmt == LAVOutPixFmt_RGB24 && m_InputPixFmt == LAVPixFmt_RGB24) ||
              (m_OutputPixFmt == LAVOutPixFmt_RGB48 && m_InputPixFmt == LAVPixFmt_RGB48) ||
+             (m_OutputPixFmt == LAVOutPixFmt_YUY2 && m_InputPixFmt == LAVPixFmt_YUY2) ||
+             (m_OutputPixFmt == LAVOutPixFmt_AYUV && m_InputPixFmt == LAVPixFmt_AYUV) ||
+             (m_OutputPixFmt == LAVOutPixFmt_Y410 && m_InputPixFmt == LAVPixFmt_Y410) ||
+             (m_OutputPixFmt == LAVOutPixFmt_Y416 && m_InputPixFmt == LAVPixFmt_Y416) ||
              (m_OutputPixFmt == LAVOutPixFmt_NV12 && m_InputPixFmt == LAVPixFmt_NV12) ||
              ((m_OutputPixFmt == LAVOutPixFmt_P010 || m_OutputPixFmt == LAVOutPixFmt_P016) &&
               m_InputPixFmt == LAVPixFmt_P016))
