@@ -1644,9 +1644,9 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
             NotifyEvent(EC_VIDEO_SIZE_CHANGED, MAKELPARAM(width, height), 0);
 
         hr = S_OK;
-    }
 
-    CheckDirectMode();
+        CheckDirectMode();
+    }
 
     return hr;
 }
