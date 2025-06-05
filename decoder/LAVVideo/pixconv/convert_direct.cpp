@@ -25,7 +25,7 @@
 #include "pixconv_sse2_templates.h"
 
 // This function is only designed for NV12-like pixel formats, like NV12, P010, P016, ...
-DECLARE_CONV_FUNC_IMPL(plane_copy_direct_sse4)
+DECLARE_CONV_FUNC_IMPL(plane_copy_direct_nv12_sse4)
 {
     const ptrdiff_t inStride = srcStride[0];
     const ptrdiff_t outStride = dstStride[0];
@@ -90,6 +90,55 @@ DECLARE_CONV_FUNC_IMPL(plane_copy_direct_sse4)
         {
             PIXCONV_LOAD_ALIGNED(xmm0, uv + i);
             PIXCONV_PUT_STREAM(duv + i, xmm0);
+        }
+    }
+
+    return S_OK;
+}
+
+DECLARE_CONV_FUNC_IMPL(plane_copy_direct_sse4)
+{
+    LAVOutPixFmtDesc desc = lav_pixfmt_desc[outputFormat];
+
+    const int widthBytes = width * desc.codedbytes;
+    const int planes = max(desc.planes, 1);
+
+    ptrdiff_t line, plane;
+
+    for (plane = 0; plane < planes; plane++)
+    {
+        const int planeWidth = widthBytes / desc.planeWidth[plane];
+        const int planeHeight = height / desc.planeHeight[plane];
+        const ptrdiff_t srcPlaneStride = srcStride[plane];
+        const ptrdiff_t dstPlaneStride = dstStride[plane];
+        const uint8_t *const srcBuf = src[plane];
+        uint8_t *const dstBuf = dst[plane];
+
+        for (line = 0; line < planeHeight; ++line)
+        {
+            const uint8_t *const srcLinePtr = srcBuf + line * srcPlaneStride;
+            uint8_t *const dstLinePtr = dstBuf + line * dstPlaneStride;
+            __m128i r1, r2, r3, r4;
+            ptrdiff_t i;
+            for (i = 0; i < (planeWidth - 63); i += 64)
+            {
+                PIXCONV_STREAM_LOAD(r1, srcLinePtr + i + 0)
+                PIXCONV_STREAM_LOAD(r2, srcLinePtr + i + 16);
+                PIXCONV_STREAM_LOAD(r3, srcLinePtr + i + 32);
+                PIXCONV_STREAM_LOAD(r4, srcLinePtr + i + 48);
+
+                _ReadWriteBarrier();
+
+                PIXCONV_PUT_STREAM(dstLinePtr + i + 0, r1);
+                PIXCONV_PUT_STREAM(dstLinePtr + i + 16, r2);
+                PIXCONV_PUT_STREAM(dstLinePtr + i + 32, r3);
+                PIXCONV_PUT_STREAM(dstLinePtr + i + 48, r4);
+            }
+            for (; i < planeWidth; i += 16)
+            {
+                PIXCONV_STREAM_LOAD(r1, srcLinePtr + i);
+                PIXCONV_PUT_STREAM(dstLinePtr + i, r1);
+            }
         }
     }
 

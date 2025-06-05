@@ -855,15 +855,23 @@ HRESULT CLAVVideo::CheckDirectMode()
     int bpp;
     m_Decoder.GetPixelFormat(&pix, &bpp);
 
-    BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P016);
+    GUID outputSubtype = m_pOutput->CurrentMediaType().subtype;
+
+    BOOL bDirect = (pix == LAVPixFmt_NV12 || pix == LAVPixFmt_P016 || pix == LAVPixFmt_YUY2 || pix == LAVPixFmt_AYUV || pix == LAVPixFmt_Y410 || pix == LAVPixFmt_Y416);
     if (pix == LAVPixFmt_NV12 && m_Decoder.IsInterlaced(FALSE) && m_settings.SWDeintMode != SWDeintMode_None)
         bDirect = FALSE;
-    else if (pix == LAVPixFmt_NV12 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12 &&
-             m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_YV12)
+    else if (pix == LAVPixFmt_NV12 && outputSubtype != MEDIASUBTYPE_NV12 && outputSubtype != MEDIASUBTYPE_YV12)
         bDirect = FALSE;
-    else if (pix == LAVPixFmt_P016 && m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P010 &&
-             m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_P016 &&
-             m_pOutput->CurrentMediaType().subtype != MEDIASUBTYPE_NV12)
+    else if (pix == LAVPixFmt_P016 && outputSubtype != MEDIASUBTYPE_P010 && outputSubtype != MEDIASUBTYPE_P016 &&
+             outputSubtype != MEDIASUBTYPE_NV12)
+        bDirect = FALSE;
+    else if (pix == LAVPixFmt_YUY2 && outputSubtype != MEDIASUBTYPE_YUY2)
+        bDirect = FALSE;
+    else if (pix == LAVPixFmt_AYUV && outputSubtype != MEDIASUBTYPE_AYUV)
+        bDirect = FALSE;
+    else if (pix == LAVPixFmt_Y410 && outputSubtype != MEDIASUBTYPE_Y410)
+        bDirect = FALSE;
+    else if (pix == LAVPixFmt_Y416 && outputSubtype != MEDIASUBTYPE_Y416)
         bDirect = FALSE;
     else if (m_SubtitleConsumer && m_SubtitleConsumer->HasProvider())
         bDirect = FALSE;
@@ -1637,6 +1645,8 @@ HRESULT CLAVVideo::ReconnectOutput(int width, int height, AVRational ar, DXVA2_E
 
         hr = S_OK;
     }
+
+    CheckDirectMode();
 
     return hr;
 }
