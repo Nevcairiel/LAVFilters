@@ -37,7 +37,7 @@ static LAVPixFmtDesc lav_pixfmt_desc[] = {
     {4, 1, {1}, {1}},             ///< LAVPixFmt_AYUV
     {4, 1, {1}, {1}},             ///< LAVPixFmt_Y410
     {8, 1, {1}, {1}},             ///< LAVPixFmt_Y416
-    {8, 1, {1}, {1}},             ///< LAVPixFmt_Y216
+    {4, 1, {1}, {1}},             ///< LAVPixFmt_Y216
 };
 
 LAVPixFmtDesc getPixelFormatDesc(LAVPixelFormat pixFmt)
