@@ -507,7 +507,7 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
         {
             int64_t value = 0;
             if (av_opt_get_int(m_pAVCtx->priv_data, "rext_profile", 0, &value) >= 0)
-                level = value;
+                level = (int)value;
         }
 
         GUID guidConversion = GUID_NULL;
@@ -1065,7 +1065,7 @@ STDMETHODIMP CDecD3D11::CreateD3D11Decoder()
     {
         int64_t value = 0;
         if (av_opt_get_int(m_pAVCtx->priv_data, "rext_profile", 0, &value) >= 0)
-            level = value;
+            level = (int)value;
     }
 
     hr = FindVideoServiceConversion(m_pAVCtx->codec_id, m_pAVCtx->profile, level, surface_format, &profileGUID);
