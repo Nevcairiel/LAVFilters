@@ -1457,18 +1457,32 @@ HRESULT CDecD3D11::DeliverD3D11ReadbackDirect(LAVFrame *pFrame)
     AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
     AVFrame *src = (AVFrame *)pFrame->priv_data;
 
+    D3D11_TEXTURE2D_DESC videoTexDesc{};
+    ((ID3D11Texture2D *)src->data[0])->GetDesc(&videoTexDesc);
+
+    // validate the properties of the staging texture to match the video texture, re-create if needed
+    if (m_pD3D11StagingTexture)
+    {
+        D3D11_TEXTURE2D_DESC stagingTexDesc{};
+        m_pD3D11StagingTexture->GetDesc(&stagingTexDesc);
+
+        if (stagingTexDesc.Width != videoTexDesc.Width || stagingTexDesc.Height != videoTexDesc.Height ||
+            stagingTexDesc.Format != videoTexDesc.Format)
+            SafeRelease(&m_pD3D11StagingTexture);
+    }
+
+    // (re-)create the staging texture
     if (m_pD3D11StagingTexture == nullptr)
     {
-        D3D11_TEXTURE2D_DESC texDesc = {0};
-        ((ID3D11Texture2D *)src->data[0])->GetDesc(&texDesc);
+        D3D11_TEXTURE2D_DESC stagingTexDesc = videoTexDesc;
 
-        texDesc.ArraySize = 1;
-        texDesc.Usage = D3D11_USAGE_STAGING;
-        texDesc.BindFlags = 0;
-        texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-        texDesc.MiscFlags = 0;
+        stagingTexDesc.ArraySize = 1;
+        stagingTexDesc.Usage = D3D11_USAGE_STAGING;
+        stagingTexDesc.BindFlags = 0;
+        stagingTexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+        stagingTexDesc.MiscFlags = 0;
 
-        HRESULT hr = pDeviceContext->device->CreateTexture2D(&texDesc, nullptr, &m_pD3D11StagingTexture);
+        HRESULT hr = pDeviceContext->device->CreateTexture2D(&stagingTexDesc, nullptr, &m_pD3D11StagingTexture);
         if (FAILED(hr))
         {
             ReleaseFrame(&pFrame);
