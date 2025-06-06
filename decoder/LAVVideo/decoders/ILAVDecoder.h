@@ -92,6 +92,8 @@ typedef struct LAVDirectBuffer
 {
     BYTE *data[4];       ///< pointer to the picture planes
     ptrdiff_t stride[4]; ///< stride of the planes (in bytes)
+
+    UINT Width, Height;  ///< width/height of the locked texture
 } LAVDirectBuffer;
 
 typedef struct LAVFrameSideData

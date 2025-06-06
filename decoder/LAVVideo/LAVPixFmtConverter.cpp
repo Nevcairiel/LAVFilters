@@ -628,7 +628,7 @@ HRESULT CLAVPixFmtConverter::ConvertDirect(LAVFrame *pFrame, uint8_t *dst, int w
     planeHeight = max(height, planeHeight);
     ASSERT(pFrame->direct && pFrame->direct_lock && pFrame->direct_unlock);
 
-    LAVDirectBuffer buffer;
+    LAVDirectBuffer buffer{};
     if (pFrame->direct_lock(pFrame, &buffer))
     {
         uint8_t *dstArray[4] = {0};

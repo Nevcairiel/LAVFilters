@@ -1418,6 +1418,9 @@ static bool d3d11_direct_lock(LAVFrame *pFrame, LAVDirectBuffer *pBuffer)
         return false;
     }
 
+    pBuffer->Width = desc.Width;
+    pBuffer->Height = desc.Height;
+
     pBuffer->data[0] = (BYTE *)map.pData;
     pBuffer->stride[0] = map.RowPitch;
 

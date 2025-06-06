@@ -1743,6 +1743,9 @@ static bool direct_lock(LAVFrame *pFrame, LAVDirectBuffer *pBuffer)
 
     memset(pBuffer, 0, sizeof(*pBuffer));
 
+    pBuffer->Width = surfaceDesc.Width;
+    pBuffer->Height = surfaceDesc.Height;
+
     pBuffer->data[0] = (BYTE *)LockedRect.pBits;
     pBuffer->data[1] = pBuffer->data[0] + surfaceDesc.Height * LockedRect.Pitch;
 
