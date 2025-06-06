@@ -177,9 +177,7 @@ VIDEOINFOHEADER *CLAVFVideoHelper::CreateVIH(const AVStream *avstream, ULONG *si
     if (!pvi)
         return nullptr;
     memset(pvi, 0, sizeof(VIDEOINFOHEADER));
-    // Get the frame rate
-    const AVCodecDescriptor *desc = avcodec_descriptor_get(avstream->codecpar->codec_id);
-    bool fields = (desc && (desc->props & AV_CODEC_PROP_FIELDS));
+
     REFERENCE_TIME r_avg = 0, avg_avg = 0, codec_avg = 0;
     if (avstream->r_frame_rate.den > 0 && avstream->r_frame_rate.num > 0)
     {
