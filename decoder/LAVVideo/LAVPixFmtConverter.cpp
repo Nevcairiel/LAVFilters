@@ -498,6 +498,7 @@ void CLAVPixFmtConverter::SelectConvertFunction()
                   (cpu & AV_CPU_FLAG_SSE4))
         {
             convert = &CLAVPixFmtConverter::convert_y210_p210_sse4;
+            m_RequiredAlignment = 4; // alignment of four pixel gives us a byte alignment of 16, the absolute minimum requirement
         }
     }
 

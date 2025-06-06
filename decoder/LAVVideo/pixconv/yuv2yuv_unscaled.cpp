@@ -609,7 +609,6 @@ DECLARE_CONV_FUNC_IMPL(convert_y210_p210_sse4)
     const ptrdiff_t outStride = dstStride[0];
 
     const ptrdiff_t byteWidth = width << 2;
-    const ptrdiff_t stride = min(FFALIGN(byteWidth, 64), min(inStride, outStride << 1));
 
     ptrdiff_t line, i;
     __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
@@ -620,7 +619,7 @@ DECLARE_CONV_FUNC_IMPL(convert_y210_p210_sse4)
         const uint8_t *srcLine = src[0] + line * inStride;
         uint8_t *dstY = dst[0] + line * dstStride[0];
         uint8_t *dstUV = dst[1] + line * dstStride[1];
-        for (i = 0; i < (stride - 63); i += 64)
+        for (i = 0; i < (byteWidth - 63); i += 64)
         {
             PIXCONV_LOAD_ALIGNED(xmm0, srcLine + i + 0); // Y0 U Y1 V
             PIXCONV_LOAD_ALIGNED(xmm1, srcLine + i + 16);
@@ -650,6 +649,19 @@ DECLARE_CONV_FUNC_IMPL(convert_y210_p210_sse4)
 
             PIXCONV_PUT_STREAM(dstUV + (i >> 1) + 0, xmm6);
             PIXCONV_PUT_STREAM(dstUV + (i >> 1) + 16, xmm4);
+        }
+
+        // process left-over pixel
+        for (; i < (byteWidth - 7); i += 8)
+        {
+            const uint16_t *pixel = (const uint16_t *)(srcLine + i);
+            uint16_t *out_y = (uint16_t *)(dstY + (i >> 1));
+            uint16_t *out_uv = (uint16_t *)(dstUV + (i >> 1));
+
+            out_y [0] = pixel[0];
+            out_uv[0] = pixel[1];
+            out_y [1] = pixel[2];
+            out_uv[1] = pixel[3];
         }
     }
 
