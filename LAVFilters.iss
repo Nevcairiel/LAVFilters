@@ -117,7 +117,6 @@ Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Paramet
 Name: {group}\LAV Video Configuration;           Filename: rundll32.exe; Parameters: """{app}\x64\LAVVideo.ax"",OpenConfiguration"; WorkingDir: {app}\x64; IconFilename: {app}\x64\LAVVideo.ax; IconIndex: 0; Tasks: icons; Components: lavvideo64 AND NOT lavvideo32
 Name: {group}\Visit LAV Filters Home Page;       Filename: "https://1f0.de/"; Tasks: icons
 Name: {group}\Visit LAV Filters on Doom9;        Filename: "https://forum.doom9.org/showthread.php?t=156191"; Tasks: icons
-Name: {group}\Uninstall LAV Filters;             Filename: {uninstallexe}; Tasks: icons
 
 [Registry]
 Root: HKCU; Subkey: Software\LAV;                  Flags: uninsdeletekeyifempty
