@@ -25,7 +25,7 @@
 
 #include <d3d11_1.h>
 
-#define FF_DXVA2_WORKAROUND_NVIDIA_HEVC_420P12 3
+#define FF_DXVA2_WORKAROUND_NVIDIA_HEVC_420P12 4
 
 ILAVDecoder *CreateDecoderD3D11()
 {
