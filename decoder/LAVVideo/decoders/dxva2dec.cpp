@@ -37,7 +37,7 @@ extern "C"
     #include "libavutil/imgutils.h"
     #define FF_DXVA2_WORKAROUND_SCALING_LIST_ZIGZAG 1
     #define FF_DXVA2_WORKAROUND_INTEL_CLEARVIDEO 2
-    #define FF_DXVA2_WORKAROUND_NVIDIA_HEVC_420P12 3
+    #define FF_DXVA2_WORKAROUND_NVIDIA_HEVC_420P12 4
 }
 
 ////////////////////////////////////////////////////////////////////////////////
