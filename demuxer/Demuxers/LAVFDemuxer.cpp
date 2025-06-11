@@ -358,6 +358,7 @@ trynoformat:
     av_dict_set(&options, "reconnect", "1", 0);         // for http, reconnect if we get disconnected
     av_dict_set(&options, "skip_clear", "1", 0);        // mpegts program handling
     av_dict_set(&options, "max_reload", "7", 0);        // playlist reloading for HLS
+    av_dict_set(&options, "extension_picky", "0", 0);   // less strict HLS parsing
 
     if (pszUserAgent)
     {
