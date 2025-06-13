@@ -197,6 +197,9 @@ class CLAVPixFmtConverter
     DECLARE_CONV_FUNC(convert_p010_nv12_direct_sse4);
     DECLARE_CONV_FUNC(convert_y210_p210_direct_sse4);
 
+    DECLARE_CONV_FUNC(convert_yuy2_yv16_sse2);
+    DECLARE_CONV_FUNC(convert_yuy2_yv16_direct_sse4);
+
     DECLARE_CONV_FUNC(convert_yuv_rgb);
     const RGBCoeffs *getRGBCoeffs(int width, int height);
     void InitRGBConvDispatcher();

@@ -500,6 +500,10 @@ void CLAVPixFmtConverter::SelectConvertFunction()
             convert = &CLAVPixFmtConverter::convert_y210_p210_sse4;
             m_RequiredAlignment = 4; // alignment of four pixel gives us a byte alignment of 16, the absolute minimum requirement
         }
+        else if (m_InputPixFmt == LAVPixFmt_YUY2 && m_OutputPixFmt == LAVOutPixFmt_YV16)
+        {
+            convert = &CLAVPixFmtConverter::convert_yuy2_yv16_sse2;
+        }
     }
 
     if (convert == nullptr)
@@ -558,6 +562,13 @@ void CLAVPixFmtConverter::SelectConvertFunctionDirect()
         if (cpu & AV_CPU_FLAG_SSE4)
             convert_direct = &CLAVPixFmtConverter::convert_y210_p210_direct_sse4;
     }
+    else if (m_InputPixFmt == LAVPixFmt_YUY2 && m_OutputPixFmt == LAVOutPixFmt_YV16)
+    {
+        if (cpu & AV_CPU_FLAG_SSE4)
+            convert_direct = &CLAVPixFmtConverter::convert_yuy2_yv16_direct_sse4;
+        else if (cpu & AV_CPU_FLAG_SSE2)
+            convert_direct = &CLAVPixFmtConverter::convert_yuy2_yv16_sse2;
+    }
 
     if (convert_direct != nullptr)
         m_bDirectMode = TRUE;
@@ -615,7 +626,7 @@ HRESULT CLAVPixFmtConverter::Convert(const BYTE *const src[4], const ptrdiff_t s
 
 BOOL CLAVPixFmtConverter::IsDirectModeSupported(uintptr_t dst, ptrdiff_t stride)
 {
-    const int stride_align = (m_OutputPixFmt == LAVOutPixFmt_YV12 ? 32 : 16);
+    const int stride_align = ((m_OutputPixFmt == LAVOutPixFmt_YV12 || m_OutputPixFmt == LAVOutPixFmt_YV16) ? 32 : 16);
     if (FFALIGN(stride, stride_align) != stride || (dst % 16u))
         return false;
     return m_bDirectMode;

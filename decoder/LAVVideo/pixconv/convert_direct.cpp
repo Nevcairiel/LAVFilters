@@ -435,3 +435,67 @@ DECLARE_CONV_FUNC_IMPL(convert_y210_p210_direct_sse4)
 
     return S_OK;
 }
+
+DECLARE_CONV_FUNC_IMPL(convert_yuy2_yv16_direct_sse4)
+{
+    const ptrdiff_t inStride = srcStride[0];
+    const ptrdiff_t outStride = dstStride[0];
+
+    const ptrdiff_t byteWidth = width << 1;
+    const ptrdiff_t stride = min(FFALIGN(byteWidth, 64), min(inStride, outStride << 1));
+
+    ptrdiff_t line, i;
+    __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+    xmm7 = _mm_set1_epi16(0x00FF);
+
+    for (line = 0; line < height; line++)
+    {
+        const uint8_t *srcLine = src[0] + line * inStride;
+        uint8_t *dstY = dst[0] + line * dstStride[0];
+        uint8_t *dstV = dst[1] + line * dstStride[1];
+        uint8_t *dstU = dst[2] + line * dstStride[2];
+        for (i = 0; i < (stride - 63); i += 64)
+        {
+            PIXCONV_STREAM_LOAD(xmm0, srcLine + i + 0); // Y0 U Y1 V
+            PIXCONV_STREAM_LOAD(xmm1, srcLine + i + 16);
+            PIXCONV_STREAM_LOAD(xmm2, srcLine + i + 32);
+            PIXCONV_STREAM_LOAD(xmm3, srcLine + i + 48);
+
+            _ReadWriteBarrier();
+
+            // extract Y
+            xmm4 = _mm_and_si128(xmm0, xmm7);
+            xmm5 = _mm_and_si128(xmm1, xmm7);
+            xmm6 = _mm_packus_epi16(xmm4, xmm5);
+
+            xmm4 = _mm_and_si128(xmm2, xmm7);
+            xmm5 = _mm_and_si128(xmm3, xmm7);
+            xmm4 = _mm_packus_epi16(xmm4, xmm5);
+
+            PIXCONV_PUT_STREAM(dstY + (i >> 1) + 0, xmm6);
+            PIXCONV_PUT_STREAM(dstY + (i >> 1) + 16, xmm4);
+
+            // extract UV
+            xmm4 = _mm_srli_epi16(xmm0, 8);
+            xmm5 = _mm_srli_epi16(xmm1, 8);
+            xmm0 = _mm_packus_epi16(xmm4, xmm5);
+
+            xmm4 = _mm_srli_epi16(xmm2, 8);
+            xmm5 = _mm_srli_epi16(xmm3, 8);
+            xmm1 = _mm_packus_epi16(xmm4, xmm5);
+
+            // split into U/V
+            xmm4 = _mm_srli_epi16(xmm0, 8);
+            xmm5 = _mm_srli_epi16(xmm1, 8);
+            xmm0 = _mm_and_si128(xmm0, xmm7);
+            xmm1 = _mm_and_si128(xmm1, xmm7);
+            xmm0 = _mm_packus_epi16(xmm0, xmm1);
+            xmm4 = _mm_packus_epi16(xmm4, xmm5);
+
+            PIXCONV_PUT_STREAM(dstU + (i >> 2), xmm0);
+            PIXCONV_PUT_STREAM(dstV + (i >> 2), xmm4);
+        }
+    }
+
+    return S_OK;
+}

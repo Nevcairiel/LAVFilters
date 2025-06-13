@@ -865,7 +865,7 @@ HRESULT CLAVVideo::CheckDirectMode()
     else if (pix == LAVPixFmt_P016 && outputSubtype != MEDIASUBTYPE_P010 && outputSubtype != MEDIASUBTYPE_P016 &&
              outputSubtype != MEDIASUBTYPE_NV12)
         bDirect = FALSE;
-    else if (pix == LAVPixFmt_YUY2 && outputSubtype != MEDIASUBTYPE_YUY2)
+    else if (pix == LAVPixFmt_YUY2 && outputSubtype != MEDIASUBTYPE_YUY2 && outputSubtype != MEDIASUBTYPE_YV16)
         bDirect = FALSE;
     else if (pix == LAVPixFmt_Y216 && outputSubtype != MEDIASUBTYPE_P210 && outputSubtype != MEDIASUBTYPE_P216)
         bDirect = FALSE;
