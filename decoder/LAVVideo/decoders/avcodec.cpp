@@ -55,23 +55,24 @@ ILAVDecoder *CreateDecoderAVCodec()
 // Create DXVA2 Extended Flags from a AVFrame and AVCodecContext
 ////////////////////////////////////////////////////////////////////////////////
 
-static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVCodecContext *ctx, AVFrame *frame)
+static DXVA2_ExtendedFormat GetDXVA2ExtendedFlags(AVFrame *frame)
 {
     DXVA2_ExtendedFormat fmt;
     ZeroMemory(&fmt, sizeof(fmt));
 
-    fillDXVAExtFormat(fmt, -1, ctx->color_primaries, ctx->colorspace, ctx->color_trc, ctx->chroma_sample_location);
+    fillDXVAExtFormat(fmt, -1, frame->color_primaries, frame->colorspace, frame->color_trc, frame->chroma_location);
 
     if (frame->format == AV_PIX_FMT_XYZ12LE || frame->format == AV_PIX_FMT_XYZ12BE)
         fmt.VideoPrimaries = DXVA2_VideoPrimaries_BT709;
 
     // Color Range, 0-255 or 16-235
-    BOOL ffFullRange = (ctx->color_range == AVCOL_RANGE_JPEG) || frame->format == AV_PIX_FMT_YUVJ420P ||
+    BOOL ffFullRange = (frame->color_range == AVCOL_RANGE_JPEG) || frame->format == AV_PIX_FMT_YUVJ420P ||
                        frame->format == AV_PIX_FMT_YUVJ422P || frame->format == AV_PIX_FMT_YUVJ444P ||
                        frame->format == AV_PIX_FMT_YUVJ440P || frame->format == AV_PIX_FMT_YUVJ411P;
     fmt.NominalRange =
         ffFullRange ? DXVA2_NominalRange_0_255
-                    : (ctx->color_range == AVCOL_RANGE_MPEG) ? DXVA2_NominalRange_16_235 : DXVA2_NominalRange_Unknown;
+                       : (frame->color_range == AVCOL_RANGE_MPEG) ? DXVA2_NominalRange_16_235
+                                                                  : DXVA2_NominalRange_Unknown;
 
     return fmt;
 }
@@ -1275,7 +1276,7 @@ send_packet:
         pOutFrame->repeat = m_pFrame->repeat_pict;
         pOutFrame->key_frame = !!(m_pFrame->flags & AV_FRAME_FLAG_KEY);
         pOutFrame->frame_type = av_get_picture_type_char(m_pFrame->pict_type);
-        pOutFrame->ext_format = GetDXVA2ExtendedFlags(m_pAVCtx, m_pFrame);
+        pOutFrame->ext_format = GetDXVA2ExtendedFlags(m_pFrame);
 
         if ((m_nCodecId == AV_CODEC_ID_H264 || m_nCodecId == AV_CODEC_ID_MPEG2VIDEO) && m_pFrame->repeat_pict)
             m_nSoftTelecine = 2;
