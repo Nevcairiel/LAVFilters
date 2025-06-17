@@ -27,8 +27,6 @@
 #include "DShowUtil.h"
 #include "version.h"
 
-#define LANG_BUFFER_SIZE 256
-
 CLAVSplitterSettingsProp::CLAVSplitterSettingsProp(LPUNKNOWN pUnk, HRESULT *phr)
     : CBaseDSPropPage(NAME("LAVF Settings"), pUnk, IDD_PROPPAGE_LAVFSETTINGS, IDS_PAGE_TITLE)
 {

@@ -28,6 +28,8 @@ DEFINE_GUID(CLSID_LAVSplitterSettingsProp, 0xa19de2f2, 0x2f74, 0x4927, 0x84, 0x3
 // {56904B22-091C-4459-A2E6-B1F4F946B55F}
 DEFINE_GUID(CLSID_LAVSplitterFormatsProp, 0x56904b22, 0x91c, 0x4459, 0xa2, 0xe6, 0xb1, 0xf4, 0xf9, 0x46, 0xb5, 0x5f);
 
+#define LANG_BUFFER_SIZE 16384
+
 class CLAVSplitterSettingsProp : public CBaseDSPropPage
 {
   public:
@@ -80,8 +82,8 @@ class CLAVSplitterSettingsProp : public CBaseDSPropPage
     BOOL m_TrayIcon;
 
     LAVSubtitleMode m_selectedSubMode;
-    WCHAR m_subLangBuffer[256];
-    WCHAR m_advSubBuffer[256];
+    WCHAR m_subLangBuffer[LANG_BUFFER_SIZE];
+    WCHAR m_advSubBuffer[LANG_BUFFER_SIZE];
 
     WCHAR stringBuffer[256];
 };
