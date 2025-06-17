@@ -67,19 +67,6 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
             m_filterHeight = pFrame->height;
 
             char args[512];
-            enum AVPixelFormat pix_fmts[3];
-
-            if (ff_pixfmt == AV_PIX_FMT_NV12)
-            {
-                pix_fmts[0] = AV_PIX_FMT_NV12;
-                pix_fmts[1] = AV_PIX_FMT_YUV420P;
-            }
-            else
-            {
-                pix_fmts[0] = ff_pixfmt;
-                pix_fmts[1] = AV_PIX_FMT_NONE;
-            }
-            pix_fmts[2] = AV_PIX_FMT_NONE;
 
             const AVFilter *buffersrc = avfilter_get_by_name("buffer");
             const AVFilter *buffersink = avfilter_get_by_name("buffersink");
@@ -119,7 +106,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
             }
 
             /* set allowed pixfmts on the output */
-            av_opt_set_int_list(m_pFilterBufferSink->priv, "pix_fmts", pix_fmts, AV_PIX_FMT_NONE, 0);
+            av_opt_set(m_pFilterBufferSink->priv, "pixel_formats", (ff_pixfmt == AV_PIX_FMT_NV12) ? "nv12,yuv420p" : "yuv420p", 0);
 
             /* Endpoints for the filter graph. */
             outputs->name = av_strdup("in");
