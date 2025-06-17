@@ -94,8 +94,9 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
                 goto deliver;
             }
 
-            ret =
-                avfilter_graph_create_filter(&m_pFilterBufferSink, buffersink, "out", nullptr, nullptr, m_pFilterGraph);
+            ret = avfilter_graph_create_filter(&m_pFilterBufferSink, buffersink, "out",
+                                               (ff_pixfmt == AV_PIX_FMT_NV12) ? "pixel_formats=nv12,yuv420p" : "pixel_formats=yuv420p", nullptr,
+                                               m_pFilterGraph);
             if (ret < 0)
             {
                 DbgLog((LOG_TRACE, 10, L"::Filter()(init) Creating the buffer sink filter failed with code %d", ret));
@@ -104,9 +105,6 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
                 avfilter_graph_free(&m_pFilterGraph);
                 goto deliver;
             }
-
-            /* set allowed pixfmts on the output */
-            av_opt_set(m_pFilterBufferSink->priv, "pixel_formats", (ff_pixfmt == AV_PIX_FMT_NV12) ? "nv12,yuv420p" : "yuv420p", 0);
 
             /* Endpoints for the filter graph. */
             outputs->name = av_strdup("in");
