@@ -138,6 +138,11 @@ static const FFMPEG_SUBTYPE_MAP lavc_audio_codecs[] = {
   { &MEDIASUBTYPE_ATRAC3,       AV_CODEC_ID_ATRAC3   },
   { &MEDIASUBTYPE_ATRC,         AV_CODEC_ID_ATRAC3   },
   { &MEDIASUBTYPE_ATRAC3P,      AV_CODEC_ID_ATRAC3P  },
+  { &MEDIASUBTYPE_IMA_WAV,      AV_CODEC_ID_ADPCM_IMA_WAV },
+  { &MEDIASUBTYPE_G726,         AV_CODEC_ID_ADPCM_G726 },
+  { &MEDIASUBTYPE_729A,         AV_CODEC_ID_G729     },
+  { &MEDIASUBTYPE_G729,         AV_CODEC_ID_G729     },
+  { &MEDIASUBTYPE_IMC,          AV_CODEC_ID_IMC      },
 
   // Special LAVFSplitter interface
   { &MEDIASUBTYPE_FFMPEG_AUDIO, AV_CODEC_ID_NONE     },
@@ -257,6 +262,11 @@ const AMOVIESETUP_MEDIATYPE CLAVAudio::sudPinTypesIn[] = {
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_ATRAC3       },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_ATRC         },
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_ATRAC3P      },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_IMA_WAV      },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_G726         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_729A         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_G729         },
+  { &MEDIATYPE_Audio, &MEDIASUBTYPE_IMC          },
 
   // Special LAVFSplitter interface
   { &MEDIATYPE_Audio, &MEDIASUBTYPE_FFMPEG_AUDIO },
@@ -687,6 +697,8 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_TRUESPEECH }},                   // CC_Truespeech
   { 1, { AV_CODEC_ID_TAK }},                          // CC_TAK
   { 3, { AV_CODEC_ID_ATRAC1, AV_CODEC_ID_ATRAC3, AV_CODEC_ID_ATRAC3P }, "atrac", "ATRAC (Adaptive TRansform Acoustic Coding)"}, // CC_ATRAC
+  { 3, { AV_CODEC_ID_ADPCM_IMA_WAV, AV_CODEC_ID_ADPCM_G726, AV_CODEC_ID_G729 }, "adpcm", "ADPCM (adaptive differential pcm)"},  // CC_ADPCM
+  { 1, { AV_CODEC_ID_IMC }},                          // CC_IMC
 };
 // clang-format on
 
