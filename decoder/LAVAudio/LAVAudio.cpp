@@ -1064,9 +1064,17 @@ HRESULT CLAVAudio::GetMediaType(int iPosition, CMediaType *pMediaType)
     if (dwChannelMask == 0)
         dwChannelMask = get_channel_mask(nChannels);
 
-    AVSampleFormat sample_fmt = (m_pAVCtx->sample_fmt != AV_SAMPLE_FMT_NONE)
-                                    ? m_pAVCtx->sample_fmt
-                                    : (m_pAVCodec->sample_fmts ? m_pAVCodec->sample_fmts[0] : AV_SAMPLE_FMT_NONE);
+    AVSampleFormat sample_fmt = m_pAVCtx->sample_fmt;
+    if (sample_fmt == AV_SAMPLE_FMT_NONE)
+    {
+        int num_configs = 0;
+        const enum AVSampleFormat *SampleFormats = NULL;
+        int ret = avcodec_get_supported_config(m_pAVCtx, m_pAVCodec, AV_CODEC_CONFIG_SAMPLE_FORMAT, 0, (const void **)&SampleFormats, &num_configs);
+
+        if (ret >= 0 && num_configs > 0 && SampleFormats)
+            sample_fmt = SampleFormats[0];
+    }
+
     if (sample_fmt == AV_SAMPLE_FMT_NONE)
         sample_fmt = AV_SAMPLE_FMT_S32; // this gets mapped to S16/S24/S32 in get_lav_sample_fmt based on the bits per sample
 
