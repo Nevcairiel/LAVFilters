@@ -1,5 +1,26 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.80.0 - 2025/06/20
+LAV Splitter
+- NEW: Introduced the IURLSourceFilterLAV interface to allow opening URLs with custom user agent and referrer
+- NEW: Added support for WebP images
+- Changed: Increased the length of the advanced subtitle selection field, so its no longer cut off after 255 characters
+- Changed: Improved buffering behavior on badly interleaved video files
+- Fixed: Audio streams with an unknown/unsupported codec are no longer selected for playback, as long as others are present
+- Fixed: Improved accuracy of reported FPS from AviSynth scripts
+
+LAV Video
+- NEW: D3D11 support for HEVC 4:2:2 and 4:4:4 hardware decoding
+- NEW: Dolby Vision extension metadata is exported for renderers to use
+- Changed: Added additional media types to support more video streams
+- Changed: Updated dav1d for significant AV1 decoding improvements
+- Fixed: Improved handling of H.264 4:4:4 files encoded by certain versions of x264
+- Fixed: VP9 DXVA2/D3D11 decoding could result in artifacts on some clips
+- Fixed: Decoding ProRes reports more accurate color details
+
+LAV Audio
+- Changed: Added support for additional ADPCM audio codecs
+
 0.79.2 - 2024/04/08
 LAV Splitter
 - Fixed: Buffering media from a high latency source was slower then expected (since 0.79)
