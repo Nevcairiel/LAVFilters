@@ -99,7 +99,7 @@ Source: bin_x64\LAVFilters.Dependencies.manifest; DestDir: {app}\x64; Flags: 64b
 Source: bin_x64\IntelQuickSyncDecoder.dll; DestDir: {app}\x64; Flags: 64bit ignoreversion restartreplace uninsrestartdelete; Components: lavvideo64
 
 Source: COPYING;                       DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
-Source: README.txt;                    DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
+Source: README.md;                     DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 Source: CHANGELOG.txt;                 DestDir: {app};     Flags: ignoreversion restartreplace uninsrestartdelete
 
 Source: thirdparty\contrib\7za.exe;    DestDir: {tmp};     Flags: dontcopy
