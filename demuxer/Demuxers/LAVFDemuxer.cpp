@@ -3166,6 +3166,10 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
         (m_bAVI || (m_bMP4 && st->priv_data && ((MOVStreamContext *)st->priv_data)->ctts_count == 0)))
         dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
 
+    if (st->codecpar->codec_id == AV_CODEC_ID_VVC &&
+        (m_bAVI || (m_bMP4 && st->priv_data && ((MOVStreamContext *)st->priv_data)->ctts_count == 0)))
+        dwFlags |= LAV_STREAM_FLAG_ONLY_DTS;
+
     if (m_bMatroska && (st->codecpar->codec_id == AV_CODEC_ID_RV30 || st->codecpar->codec_id == AV_CODEC_ID_RV40))
         dwFlags |= LAV_STREAM_FLAG_RV34_MKV;
 
