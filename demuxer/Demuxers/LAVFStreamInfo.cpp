@@ -427,7 +427,7 @@ STDMETHODIMP CLAVFStreamInfo::CreateVideoMediaType(AVFormatContext *avctx, AVStr
             VIDEOINFOHEADER2 *vih2 = (VIDEOINFOHEADER2 *)mtype.pbFormat;
 
             // check if extradata is missing, and we have some basic information to share
-            if (vih2->bmiHeader.biSize == sizeof(BITMAPINFOHEADER) && avstream->codecpar->profile != AV_PROFILE_UNKNOWN)
+            if ((vih2->bmiHeader.biSize <= sizeof(BITMAPINFOHEADER) + 4 || ((mtype.pbFormat + sizeof(VIDEOINFOHEADER2))[0] != 0x81)) && avstream->codecpar->profile != AV_PROFILE_UNKNOWN)
             {
                 // if not, generate some
                 mtype.ReallocFormatBuffer(sizeof(VIDEOINFOHEADER2) + 4);
