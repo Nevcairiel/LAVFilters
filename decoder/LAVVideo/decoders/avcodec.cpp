@@ -261,7 +261,8 @@ static struct PixelFormatMapping getPixFmtMapping(AVPixelFormat pixfmt)
     }
 
     if (result.lavpixfmt != LAVPixFmt_YUV420bX && result.lavpixfmt != LAVPixFmt_YUV422bX &&
-        result.lavpixfmt != LAVPixFmt_YUV444bX)
+        result.lavpixfmt != LAVPixFmt_YUV444bX && result.lavpixfmt != LAVPixFmt_P016 &&
+        result.lavpixfmt != LAVPixFmt_Y216)
         result.bpp = 8;
 
     return result;
