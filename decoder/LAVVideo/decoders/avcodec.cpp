@@ -92,52 +92,18 @@ static struct PixelFormatMapping
 } ff_pix_map[] = {
     {AV_PIX_FMT_YUV420P, LAVPixFmt_YUV420, FALSE},
     {AV_PIX_FMT_YUYV422, LAVPixFmt_YUY2, FALSE},
-    {AV_PIX_FMT_RGB24, LAVPixFmt_RGB32, TRUE},
     {AV_PIX_FMT_BGR24, LAVPixFmt_RGB24, FALSE},
     {AV_PIX_FMT_YUV422P, LAVPixFmt_YUV422, FALSE},
     {AV_PIX_FMT_YUV444P, LAVPixFmt_YUV444, FALSE},
-    {AV_PIX_FMT_YUV410P, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_YUV411P, LAVPixFmt_YUV422, TRUE},
-    {AV_PIX_FMT_GRAY8, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_MONOWHITE, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_MONOBLACK, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_PAL8, LAVPixFmt_RGB32, TRUE},
     {AV_PIX_FMT_YUVJ420P, LAVPixFmt_YUV420, FALSE},
     {AV_PIX_FMT_YUVJ422P, LAVPixFmt_YUV422, FALSE},
     {AV_PIX_FMT_YUVJ444P, LAVPixFmt_YUV444, FALSE},
-    {AV_PIX_FMT_UYVY422, LAVPixFmt_YUV422, TRUE},
-    {AV_PIX_FMT_UYYVYY411, LAVPixFmt_YUV422, TRUE},
-    {AV_PIX_FMT_BGR8, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_BGR4, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_BGR4_BYTE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB8, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB4, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB4_BYTE, LAVPixFmt_RGB32, TRUE},
+
     {AV_PIX_FMT_NV12, LAVPixFmt_NV12, FALSE},
     {AV_PIX_FMT_NV21, LAVPixFmt_NV12, TRUE},
 
-    {AV_PIX_FMT_ARGB, LAVPixFmt_ARGB32, TRUE},
-    {AV_PIX_FMT_RGBA, LAVPixFmt_ARGB32, TRUE},
-    {AV_PIX_FMT_ABGR, LAVPixFmt_ARGB32, TRUE},
     {AV_PIX_FMT_BGRA, LAVPixFmt_ARGB32, FALSE},
-
-    {AV_PIX_FMT_GRAY16BE, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_GRAY16LE, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_YUV440P, LAVPixFmt_YUV444, TRUE},
-    {AV_PIX_FMT_YUVJ440P, LAVPixFmt_YUV444, TRUE},
-    {AV_PIX_FMT_YUVA420P, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_RGB48BE, LAVPixFmt_RGB48, TRUE},
     {AV_PIX_FMT_RGB48LE, LAVPixFmt_RGB48, FALSE},
-
-    {AV_PIX_FMT_RGB565BE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB565LE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB555BE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB555LE, LAVPixFmt_RGB32, TRUE},
-
-    {AV_PIX_FMT_BGR565BE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_BGR565LE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_BGR555BE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_BGR555LE, LAVPixFmt_RGB32, TRUE},
 
     {AV_PIX_FMT_YUV420P16LE, LAVPixFmt_YUV420bX, FALSE, 16},
     {AV_PIX_FMT_YUV420P16BE, LAVPixFmt_YUV420bX, TRUE, 16},
@@ -145,14 +111,6 @@ static struct PixelFormatMapping
     {AV_PIX_FMT_YUV422P16BE, LAVPixFmt_YUV422bX, TRUE, 16},
     {AV_PIX_FMT_YUV444P16LE, LAVPixFmt_YUV444bX, FALSE, 16},
     {AV_PIX_FMT_YUV444P16BE, LAVPixFmt_YUV444bX, TRUE, 16},
-
-    {AV_PIX_FMT_RGB444LE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB444BE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_BGR444LE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_BGR444BE, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_YA8, LAVPixFmt_YUV420, TRUE},
-    {AV_PIX_FMT_BGR48BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_BGR48LE, LAVPixFmt_RGB48, TRUE},
 
     {AV_PIX_FMT_YUV420P9BE, LAVPixFmt_YUV420bX, TRUE, 9},
     {AV_PIX_FMT_YUV420P9LE, LAVPixFmt_YUV420bX, FALSE, 9},
@@ -167,16 +125,6 @@ static struct PixelFormatMapping
     {AV_PIX_FMT_YUV422P9BE, LAVPixFmt_YUV422bX, TRUE, 9},
     {AV_PIX_FMT_YUV422P9LE, LAVPixFmt_YUV422bX, FALSE, 9},
 
-    {AV_PIX_FMT_GBRP, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_GBRP9BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP9LE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP10BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP10LE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP16BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP16LE, LAVPixFmt_RGB48, TRUE},
-
-    {AV_PIX_FMT_YUVA422P, LAVPixFmt_YUV422, TRUE},
-    {AV_PIX_FMT_YUVA444P, LAVPixFmt_YUV444, TRUE},
     {AV_PIX_FMT_YUVA420P9BE, LAVPixFmt_YUV420bX, TRUE, 9},
     {AV_PIX_FMT_YUVA420P9LE, LAVPixFmt_YUV420bX, FALSE, 9},
     {AV_PIX_FMT_YUVA422P9BE, LAVPixFmt_YUV422bX, TRUE, 9},
@@ -196,28 +144,6 @@ static struct PixelFormatMapping
     {AV_PIX_FMT_YUVA444P16BE, LAVPixFmt_YUV444bX, TRUE, 16},
     {AV_PIX_FMT_YUVA444P16LE, LAVPixFmt_YUV444bX, FALSE, 16},
 
-    {AV_PIX_FMT_XYZ12LE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_XYZ12BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_NV16, LAVPixFmt_YUV422, TRUE},
-    {AV_PIX_FMT_NV20LE, LAVPixFmt_YUV422bX, TRUE, 10},
-    {AV_PIX_FMT_NV20BE, LAVPixFmt_YUV422bX, TRUE, 10},
-
-    {AV_PIX_FMT_RGBA64BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_RGBA64LE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_BGRA64BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_BGRA64LE, LAVPixFmt_RGB48, TRUE},
-
-    {AV_PIX_FMT_NV16, LAVPixFmt_YUV422, TRUE},
-    {AV_PIX_FMT_YA16BE, LAVPixFmt_YUV420bX, TRUE, 16},
-    {AV_PIX_FMT_YA16LE, LAVPixFmt_YUV420bX, TRUE, 16},
-
-    {AV_PIX_FMT_GBRAP, LAVPixFmt_ARGB32, TRUE},
-    {AV_PIX_FMT_GBRAP16BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRAP16LE, LAVPixFmt_RGB48, TRUE},
-
-    {AV_PIX_FMT_0RGB, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_RGB0, LAVPixFmt_RGB32, TRUE},
-    {AV_PIX_FMT_0BGR, LAVPixFmt_RGB32, TRUE},
     {AV_PIX_FMT_BGR0, LAVPixFmt_RGB32, FALSE},
 
     {AV_PIX_FMT_YUV420P12BE, LAVPixFmt_YUV420bX, TRUE, 12},
@@ -232,27 +158,38 @@ static struct PixelFormatMapping
     {AV_PIX_FMT_YUV444P12LE, LAVPixFmt_YUV444bX, FALSE, 12},
     {AV_PIX_FMT_YUV444P14BE, LAVPixFmt_YUV444bX, TRUE, 14},
     {AV_PIX_FMT_YUV444P14LE, LAVPixFmt_YUV444bX, FALSE, 14},
-    {AV_PIX_FMT_GBRP12BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP12LE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP14BE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_GBRP14LE, LAVPixFmt_RGB48, TRUE},
-    {AV_PIX_FMT_YUVJ411P, LAVPixFmt_YUV422, TRUE},
-
-    {AV_PIX_FMT_YUV440P10LE, LAVPixFmt_YUV444bX, TRUE, 10},
-    {AV_PIX_FMT_YUV440P10BE, LAVPixFmt_YUV444bX, TRUE, 10},
-    {AV_PIX_FMT_YUV440P12LE, LAVPixFmt_YUV444bX, TRUE, 12},
-    {AV_PIX_FMT_YUV440P12BE, LAVPixFmt_YUV444bX, TRUE, 12},
 
     {AV_PIX_FMT_P010LE, LAVPixFmt_P016, FALSE, 10},
-    {AV_PIX_FMT_P012LE, LAVPixFmt_P016, FALSE, 12},
+    {AV_PIX_FMT_P010BE, LAVPixFmt_P016, TRUE, 10},
+
     {AV_PIX_FMT_P016LE, LAVPixFmt_P016, FALSE, 16},
+    {AV_PIX_FMT_P016BE, LAVPixFmt_P016, TRUE, 16},
 
-    {AV_PIX_FMT_VUYX, LAVPixFmt_AYUV, FALSE, 8},
-    {AV_PIX_FMT_XV30, LAVPixFmt_Y410, FALSE, 10},
-    {AV_PIX_FMT_XV48, LAVPixFmt_Y416, FALSE, 10},
+    {AV_PIX_FMT_YUVA422P12BE, LAVPixFmt_YUV422bX, TRUE, 12},
+    {AV_PIX_FMT_YUVA422P12LE, LAVPixFmt_YUV422bX, FALSE, 12},
+    {AV_PIX_FMT_YUVA444P12BE, LAVPixFmt_YUV444bX, TRUE, 12},
+    {AV_PIX_FMT_YUVA444P12LE, LAVPixFmt_YUV444bX, FALSE, 12},
 
-    {AV_PIX_FMT_Y210, LAVPixFmt_Y216, FALSE, 10},
-    {AV_PIX_FMT_Y216, LAVPixFmt_Y216, FALSE, 16},
+    {AV_PIX_FMT_Y210BE, LAVPixFmt_Y216, TRUE, 10},
+    {AV_PIX_FMT_Y210LE, LAVPixFmt_Y216, FALSE, 10},
+
+    {AV_PIX_FMT_VUYA, LAVPixFmt_AYUV, FALSE},
+    {AV_PIX_FMT_VUYX, LAVPixFmt_AYUV, FALSE},
+
+    {AV_PIX_FMT_P012LE, LAVPixFmt_P016, FALSE, 12},
+    {AV_PIX_FMT_P012BE, LAVPixFmt_P016, TRUE, 12},
+
+    {AV_PIX_FMT_Y212BE, LAVPixFmt_Y216, TRUE, 12},
+    {AV_PIX_FMT_Y212LE, LAVPixFmt_Y216, FALSE, 12},
+
+    {AV_PIX_FMT_XV30BE, LAVPixFmt_Y410, TRUE, 10},
+    {AV_PIX_FMT_XV30LE, LAVPixFmt_Y410, FALSE, 10},
+
+    {AV_PIX_FMT_XV48BE, LAVPixFmt_Y416, TRUE, 10},
+    {AV_PIX_FMT_XV48LE, LAVPixFmt_Y416, FALSE, 10},
+
+    {AV_PIX_FMT_Y216BE, LAVPixFmt_Y216, TRUE, 16},
+    {AV_PIX_FMT_Y216LE, LAVPixFmt_Y216, FALSE, 16},
 
     {AV_PIX_FMT_DXVA2_VLD, LAVPixFmt_DXVA2, FALSE},
     {AV_PIX_FMT_D3D11, LAVPixFmt_D3D11, FALSE},
@@ -266,7 +203,7 @@ static AVCodecID ff_interlace_capable[] = {AV_CODEC_ID_DNXHD,  AV_CODEC_ID_DVVID
 static struct PixelFormatMapping getPixFmtMapping(AVPixelFormat pixfmt)
 {
     const PixelFormatMapping def = {pixfmt, LAVPixFmt_YUV420, TRUE, 8};
-    PixelFormatMapping result = def;
+    PixelFormatMapping result = { AV_PIX_FMT_NONE };
     for (int i = 0; i < countof(ff_pix_map); i++)
     {
         if (ff_pix_map[i].ffpixfmt == pixfmt)
@@ -275,6 +212,54 @@ static struct PixelFormatMapping getPixFmtMapping(AVPixelFormat pixfmt)
             break;
         }
     }
+
+    // use a heuristic if there was no perfect match
+    if (result.ffpixfmt == AV_PIX_FMT_NONE)
+    {
+        const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(pixfmt);
+        if (desc == nullptr)
+        {
+            result = def;
+        }
+        else
+        {
+            // RGB formats (or PAL)
+            if (desc->flags & (AV_PIX_FMT_FLAG_RGB | AV_PIX_FMT_FLAG_PAL))
+            {
+                if (desc->comp[0].depth > 8)
+                    result = {pixfmt, LAVPixFmt_RGB48, TRUE};
+                else
+                    result = {pixfmt, LAVPixFmt_RGB32, TRUE};
+            }
+            else
+            {
+                // 420 and 410 (and gray)
+                if ((desc->log2_chroma_w && desc->log2_chroma_h) || desc->nb_components == 1)
+                {
+                    if (desc->comp[0].depth > 8)
+                        result = {pixfmt, LAVPixFmt_YUV420bX, TRUE, desc->comp[0].depth};
+                    else
+                        result = {pixfmt, LAVPixFmt_YUV420, TRUE};
+                }
+                else if (desc->log2_chroma_w) // 422 and 411
+                {
+                    if (desc->comp[0].depth > 8)
+                        result = {pixfmt, LAVPixFmt_YUV422bX, TRUE, desc->comp[0].depth};
+                    else
+                        result = {pixfmt, LAVPixFmt_YUV422, TRUE};
+                }
+                else // 444 and others
+                {
+                    if (desc->comp[0].depth > 8)
+                        result = {pixfmt, LAVPixFmt_YUV444bX, TRUE, desc->comp[0].depth};
+                    else
+                        result = {pixfmt, LAVPixFmt_YUV444, TRUE};
+                }
+            }
+
+        }
+    }
+
     if (result.lavpixfmt != LAVPixFmt_YUV420bX && result.lavpixfmt != LAVPixFmt_YUV422bX &&
         result.lavpixfmt != LAVPixFmt_YUV444bX)
         result.bpp = 8;
