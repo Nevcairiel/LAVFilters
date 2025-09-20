@@ -236,6 +236,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
             outFrame->format = (out_frame->format == AV_PIX_FMT_YUV420P)
                                    ? LAVPixFmt_YUV420
                                    : (out_frame->format == AV_PIX_FMT_YUV422P) ? LAVPixFmt_YUV422 : LAVPixFmt_NV12;
+            outFrame->sw_format = outFrame->format;
             outFrame->bpp = pFrame->bpp;
             outFrame->ext_format = pFrame->ext_format;
             outFrame->avgFrameDuration = pFrame->avgFrameDuration;
