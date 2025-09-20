@@ -1769,6 +1769,7 @@ STDMETHODIMP CLAVVideo::AllocateFrame(LAVFrame **ppFrame)
     ZeroMemory(*ppFrame, sizeof(LAVFrame));
 
     // Set some defaults
+    (*ppFrame)->sw_format = LAVPixFmt_None;
     (*ppFrame)->bpp = 8;
     (*ppFrame)->rtStart = AV_NOPTS_VALUE;
     (*ppFrame)->rtStop = AV_NOPTS_VALUE;
