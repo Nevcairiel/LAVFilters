@@ -60,6 +60,7 @@ static FormatMapping video_map[] = {
   { AV_CODEC_ID_CFHD,       &MEDIASUBTYPE_CFHD,         MKTAG('C','F','H','D'), &FORMAT_VideoInfo2 },
   { AV_CODEC_ID_VVC,        &MEDIASUBTYPE_VVC1,         MKTAG('V','V','C','1'), &FORMAT_MPEG2Video },
   { AV_CODEC_ID_WEBP,       &MEDIASUBTYPE_WEBP,         MKTAG('W','E','B','P'), &FORMAT_VideoInfo2 },
+  { AV_CODEC_ID_APV,        &MEDIASUBTYPE_APV1,         MKTAG('A','P','V','1'), &FORMAT_VideoInfo2 },
 };
 // clang-format on
 

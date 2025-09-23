@@ -324,6 +324,7 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
   { &MEDIASUBTYPE_DXDI, AV_CODEC_ID_DXV },
   { &MEDIASUBTYPE_ARBC, AV_CODEC_ID_ARBC },
   { &MEDIASUBTYPE_KGV1, AV_CODEC_ID_KGV1 },
+  { &MEDIASUBTYPE_APV1, AV_CODEC_ID_APV },
 
   // Game Formats
   { &MEDIASUBTYPE_BIKI, AV_CODEC_ID_BINKVIDEO  },
@@ -643,6 +644,7 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
   { &MEDIATYPE_Video, &MEDIASUBTYPE_DXDI },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_ARBC },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_KGV1 },
+  { &MEDIATYPE_Video, &MEDIASUBTYPE_APV1 },
 
   // Game Formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_BIKI },
@@ -760,6 +762,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_VVC }},                                                 // Codec_VVC
   { 1, { AV_CODEC_ID_VP4 }},                                                 // Codec_VP4
   { 1, { AV_CODEC_ID_FIC }},                                                 // Codec_FIC
+  { 1, { AV_CODEC_ID_APV }},                                                 // Codec_APV
 };
 // clang-format off
 
