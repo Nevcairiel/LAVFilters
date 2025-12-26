@@ -96,6 +96,17 @@ template <class T> class GrowableArray
         return S_OK;
     }
 
+    HRESULT AppendZero(DWORD dwSize)
+    {
+        HRESULT hr = S_OK;
+        DWORD old = GetCount();
+        hr = SetSize(old + dwSize);
+        if (SUCCEEDED(hr))
+            memset(m_pArray + old, 0, dwSize);
+
+        return S_OK;
+    }
+
     void Consume(DWORD dwSize)
     {
         ASSERT(dwSize <= m_count);

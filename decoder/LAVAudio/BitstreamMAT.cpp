@@ -90,14 +90,7 @@ void CLAVAudio::MATWritePadding()
 {
     if (m_TrueHDMATState.padding > 0)
     {
-        // allocate padding (on the stack of possible)
-        BYTE *padding = (BYTE *)_malloca(m_TrueHDMATState.padding);
-
-        memset(padding, 0, m_TrueHDMATState.padding);
-        int remaining = MATFillDataBuffer(padding, m_TrueHDMATState.padding, true);
-
-        // free the padding block
-        _freea(padding);
+        int remaining = MATFillDataBuffer(nullptr, m_TrueHDMATState.padding, true);
 
         // not all padding could be written to the buffer, write it later
         if (remaining >= 0)
@@ -113,14 +106,20 @@ void CLAVAudio::MATWritePadding()
     }
 }
 
-void CLAVAudio::MATAppendData(const BYTE *p, int size)
+void CLAVAudio::MATAppendData(const BYTE * const p, int size)
 {
-    m_bsOutput.Append(p, size);
+    if (p)
+        m_bsOutput.Append(p, size);
+    else
+        m_bsOutput.AppendZero(size);
+
     m_TrueHDMATState.mat_framesize += size;
 }
 
-int CLAVAudio::MATFillDataBuffer(const BYTE *p, int size, bool padding)
+int CLAVAudio::MATFillDataBuffer(const BYTE *const p, int size, bool padding)
 {
+    ASSERT(p || padding);
+
     if (m_bsOutput.GetCount() >= MAT_BUFFER_LIMIT)
         return size;
 
@@ -147,7 +146,7 @@ int CLAVAudio::MATFillDataBuffer(const BYTE *p, int size, bool padding)
         // write remaining data after the MAT marker
         if (remaining > 0)
         {
-            remaining = MATFillDataBuffer(p + nBytesBefore, remaining, padding);
+            return MATFillDataBuffer(p ? p + nBytesBefore : nullptr, remaining, padding);
         }
 
         return remaining;
