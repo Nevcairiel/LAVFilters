@@ -377,6 +377,8 @@ class __declspec(uuid("E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491")) CLAVAudio
         DWORD padding = 0;
         DWORD nSamples = 0;
         int nSamplesOffset = 0;
+
+        int nOutputTimeOffset = 0;
     } m_TrueHDMATState;
 
     struct

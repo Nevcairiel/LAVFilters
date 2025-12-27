@@ -318,8 +318,23 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
         {
             DbgLog((LOG_TRACE, 10, _T("BitstreamTrueHD(): Detected a stream discontinuity, reseting framesize cache")));
             m_TrueHDMATState.prev_frametime_valid = false;
-            m_TrueHDMATState.nSamplesOffset = 0;
             space_size = 40 * (64 >> (m_TrueHDMATState.ratebits & 7));
+
+            // the output timing is always one frame ahead for buffering reasons, so deduct one frame worth
+            uint32_t prev_output = (uint16_t)(output_timing - frame_samples);
+            if (prev_output < frame_time) // wrap around, output is always in front of frame time
+                prev_output += UINT16_MAX;
+
+            // get the offset of this frame, so we can compare to the previous frame, and determine the amount of padding that needs to be inserted
+            int currentFrameOutputOffset = (prev_output - frame_time);
+
+            // the previous offset should never be smaller then the incoming offset, or we will lack the reserved space
+            ASSERT(m_TrueHDMATState.nOutputTimeOffset >= currentFrameOutputOffset);
+            if (m_TrueHDMATState.nOutputTimeOffset >= currentFrameOutputOffset)
+                m_TrueHDMATState.padding += (m_TrueHDMATState.nOutputTimeOffset - currentFrameOutputOffset) * (64 >> (m_TrueHDMATState.ratebits & 7));
+
+            DbgLog((LOG_TRACE, 10, _T("BitstreamTrueHD(): Carrying forward %d padding (offset %d - %d)"),
+                    m_TrueHDMATState.padding, m_TrueHDMATState.nOutputTimeOffset, currentFrameOutputOffset));
         }
         m_TrueHDMATState.output_timing = output_timing;
         m_TrueHDMATState.output_timing_valid = true;
@@ -337,6 +352,16 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
         space_size = FFALIGN(m_TrueHDMATState.prev_mat_framesize, (64 >> (m_TrueHDMATState.ratebits & 7)));
 
     m_TrueHDMATState.padding += (space_size - m_TrueHDMATState.prev_mat_framesize);
+
+    // record the offset of frame time to output time, which is used to verify the size of the padding on discontinuities
+    if (m_TrueHDMATState.output_timing_valid)
+    {
+        uint32_t prev_output = (uint16_t)(m_TrueHDMATState.output_timing - frame_samples);
+        if (prev_output < frame_time) // wrap around, output is always in front of frame time
+            prev_output += UINT16_MAX;
+
+        m_TrueHDMATState.nOutputTimeOffset = (prev_output - frame_time);
+    }
 
     // store frame time of the previous frame
     m_TrueHDMATState.prev_frametime = frame_time;
