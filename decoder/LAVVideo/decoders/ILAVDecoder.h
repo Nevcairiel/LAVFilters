@@ -60,7 +60,8 @@ typedef enum LAVPixelFormat {
     LAVPixFmt_Y416,        ///< Y416, 4:4:4 16-bit, AVYU order
     LAVPixFmt_Y216,        ///< Y210/Y216, 4:2:2, 10 to 16-bit packed into 64-bit, Y0/U/Y1/V
 
-    LAVPixFmt_DXVA2,       ///< DXVA2 Surface
+    LAVPixFmt_HWFormats,
+    LAVPixFmt_DXVA2 = LAVPixFmt_HWFormats, ///< DXVA2 Surface
     LAVPixFmt_D3D11,       ///< D3D11 Surface
 
     LAVPixFmt_NB,          ///< number of formats
@@ -201,6 +202,11 @@ BYTE *AddLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t size);
  * Get a side data entry from the frame by its type
  */
 BYTE *GetLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t *pSize);
+
+/**
+ * Validate that the frame has the correct number of allocated buffers
+ */
+bool ValidateLAVFrameBuffers(LAVFrame *pFrame);
 
 typedef struct LAVPinInfo
 {

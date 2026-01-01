@@ -297,3 +297,25 @@ BYTE *GetLAVFrameSideData(LAVFrame *pFrame, GUID guidType, size_t *pSize)
 
     return NULL;
 }
+
+bool ValidateLAVFrameBuffers(LAVFrame* pFrame)
+{
+    if (pFrame->format >= LAVPixFmt_HWFormats)
+        return true;
+
+    if (pFrame->format <= LAVPixFmt_None)
+        return false;
+
+    LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
+    for (int i = 0; i < desc.planes; i++)
+    {
+        if (pFrame->data[i] == nullptr)
+            return false;
+
+        ptrdiff_t min_linesize = (pFrame->width / desc.planeWidth[i]) * desc.codedbytes;
+        if (pFrame->stride[i] < min_linesize)
+            return false;
+    }
+
+    return true;
+}

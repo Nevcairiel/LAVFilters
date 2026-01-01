@@ -1881,6 +1881,12 @@ STDMETHODIMP CLAVVideo::Deliver(LAVFrame *pFrame)
         return S_FALSE;
     }
 
+    if (ValidateLAVFrameBuffers(pFrame) == false)
+    {
+        ReleaseFrame(&pFrame);
+        return S_FALSE;
+    }
+
     if (pFrame->rtStart == AV_NOPTS_VALUE)
     {
         pFrame->rtStart = m_rtPrevStop;
