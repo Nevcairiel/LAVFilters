@@ -306,6 +306,10 @@ bool ValidateLAVFrameBuffers(LAVFrame* pFrame)
     if (pFrame->format <= LAVPixFmt_None)
         return false;
 
+    // direct doesn't use the pointers, but will provide them through callbacks
+    if (pFrame->direct)
+        return true;
+
     LAVPixFmtDesc desc = getPixelFormatDesc(pFrame->format);
     for (int i = 0; i < desc.planes; i++)
     {
