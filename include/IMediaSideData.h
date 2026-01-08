@@ -328,12 +328,6 @@ struct MediaSideDataDOVIMetadata
                 uint8_t content_type;
                 uint8_t whitepoint;
                 uint8_t reference_mode_flag;
-                uint8_t sharpness;
-                uint8_t noise_reduction;
-                uint8_t mpeg_noise_reduction;
-                uint8_t frame_rate_conversion;
-                uint8_t brightness;
-                uint8_t color;
             } Level11;
             struct
             {

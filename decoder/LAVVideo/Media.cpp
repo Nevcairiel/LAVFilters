@@ -1197,12 +1197,6 @@ void processFFDOVIData(MediaSideDataDOVIMetadata* sd, const AVDOVIMetadata* ff)
             lavext->Level11.content_type = ext->l11.content_type;
             lavext->Level11.whitepoint = ext->l11.whitepoint;
             lavext->Level11.reference_mode_flag = ext->l11.reference_mode_flag;
-            lavext->Level11.sharpness = ext->l11.sharpness;
-            lavext->Level11.noise_reduction = ext->l11.noise_reduction;
-            lavext->Level11.mpeg_noise_reduction = ext->l11.mpeg_noise_reduction;
-            lavext->Level11.frame_rate_conversion = ext->l11.frame_rate_conversion;
-            lavext->Level11.brightness = ext->l11.brightness;
-            lavext->Level11.color = ext->l11.color;
             break;
         case 254:
             lavext->Level254.dm_mode = ext->l254.dm_mode;
