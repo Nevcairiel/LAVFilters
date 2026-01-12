@@ -1,5 +1,19 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.81.0 - 2026/01/12
+LAV Splitter
+- NEW: Support for APV (Advanced Professional Video) video streams
+- Fixed: VVC in MP4 without CTTS did not play properly
+- Fixed: AV1 streams with invalid metadata did not get handled correctly
+
+LAV Video
+- NEW: Support for decoding APV (Advanced Professional Video)
+- Changed: Re-designed pixel format mapping to be based on a heuristic rather then hard-coded, improving support for rarely-used formats
+- Fixed: Deinterlacing of 4:2:2 videos was broken in 0.80
+
+LAV Audio
+- Fixed: Bitstreaming TrueHD from Blu-rays with seamless branching could result in out-of-sync audio, or a noticeable gap
+
 0.80.0 - 2025/06/20
 LAV Splitter
 - NEW: Introduced the IURLSourceFilterLAV interface to allow opening URLs with custom user agent and referrer
