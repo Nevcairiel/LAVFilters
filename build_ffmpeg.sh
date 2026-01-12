@@ -134,7 +134,7 @@ fi
 ## Only if configure succeeded, actually build
 if ! $clean_build || [ ${CONFIGRETVAL} -eq 0 ]; then
   build &&
-  copy_libs
+  copy_libs || exit 1
 fi
 
 cd ..
