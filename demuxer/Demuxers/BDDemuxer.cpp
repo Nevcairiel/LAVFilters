@@ -928,7 +928,7 @@ STDMETHODIMP CBDDemuxer::get_ExSeekCapabilities(long *pExCapabilities)
 {
     CheckPointer(pExCapabilities, E_POINTER);
     *pExCapabilities = AM_EXSEEK_CANSEEK;
-    if (m_pTitle->chapter_count > 1)
+    if (m_pTitle && m_pTitle->chapter_count > 1)
         *pExCapabilities |= AM_EXSEEK_MARKERSEEK;
     return S_OK;
 }
@@ -936,6 +936,7 @@ STDMETHODIMP CBDDemuxer::get_ExSeekCapabilities(long *pExCapabilities)
 STDMETHODIMP CBDDemuxer::get_MarkerCount(long *pMarkerCount)
 {
     CheckPointer(pMarkerCount, E_POINTER);
+    CheckPointer(m_pTitle, E_UNEXPECTED);
     *pMarkerCount = (long)m_pTitle->chapter_count;
     return S_OK;
 }
@@ -943,6 +944,7 @@ STDMETHODIMP CBDDemuxer::get_MarkerCount(long *pMarkerCount)
 STDMETHODIMP CBDDemuxer::get_CurrentMarker(long *pCurrentMarker)
 {
     CheckPointer(pCurrentMarker, E_POINTER);
+    CheckPointer(m_pBD, E_UNEXPECTED);
     *pCurrentMarker = bd_get_current_chapter(m_pBD) + 1;
     return E_FAIL;
 }
