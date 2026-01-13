@@ -1504,7 +1504,9 @@ STDMETHODIMP CLAVSplitter::Count(DWORD *pcStreams)
     *pcStreams = 0;
     for (int i = 0; i < CBaseDemuxer::unknown; i++)
     {
-        *pcStreams += (DWORD)m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i)->size();
+        CBaseDemuxer::CStreamList* pStreamList = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
+        if (pStreamList)
+            *pcStreams += (DWORD)pStreamList->size();
     }
 
     int num_titles = m_pDemuxer->GetNumTitles();
@@ -1526,6 +1528,9 @@ STDMETHODIMP CLAVSplitter::Enable(long lIndex, DWORD dwFlags)
     for (i = 0, j = 0; i < CBaseDemuxer::unknown; i++)
     {
         CBaseDemuxer::CStreamList *streams = m_pDemuxer->GetStreams((CBaseDemuxer::StreamType)i);
+        if (!streams)
+            continue;
+
         int cnt = (int)streams->size();
 
         if (lIndex >= j && lIndex < j + cnt)
