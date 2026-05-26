@@ -1344,6 +1344,15 @@ send_packet:
                 MediaSideDataHDR10Plus *hdr = (MediaSideDataHDR10Plus *)AddLAVFrameSideData(
                     pOutFrame, IID_MediaSideDataHDR10Plus, sizeof(MediaSideDataHDR10Plus));
                 processFFHDR10PlusData(hdr, metadata, m_pFrame->width, m_pFrame->height);
+
+                #pragma warning(push)
+                #pragma warning(disable : 4996)
+                // legacy format without the version info
+                size_t offset = offsetof(MediaSideDataHDR10Plus, num_windows);
+                BYTE *hdrLegacy = (BYTE *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR10PlusOld,
+                                                              sizeof(MediaSideDataHDR10Plus) - offset);
+                memcpy(hdrLegacy, ((BYTE *)hdr) + offset, sizeof(MediaSideDataHDR10Plus) - offset);
+                #pragma warning(pop)
             }
             else
             {

@@ -947,6 +947,9 @@ void processFFHDR10PlusData(MediaSideDataHDR10Plus *sd, AVDynamicHDRPlus *ff, in
   if (ff->num_windows > 3)
     return;
 
+  sd->itu_t_t35_country_code = ff->itu_t_t35_country_code;
+  sd->application_version = ff->application_version;
+
   sd->num_windows = ff->num_windows;
   for (int i = 0; i < ff->num_windows; i++)
   {
