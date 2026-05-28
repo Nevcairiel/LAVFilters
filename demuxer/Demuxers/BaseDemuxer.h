@@ -60,6 +60,7 @@ class CBaseDemuxer : public CUnknown
         video,
         audio,
         subpic,
+        video_el, // video enhancement layer
         unknown
     };
 
@@ -160,6 +161,7 @@ class CBaseDemuxer : public CUnknown
 
     // Select the best video stream
     virtual const stream *SelectVideoStream() = 0;
+    virtual const stream *SelectVideoELStream(DWORD dwVideoStreamPID) = 0;
 
     // Select the best audio stream
     virtual const stream *SelectAudioStream(std::list<std::string> prefLanguages) = 0;

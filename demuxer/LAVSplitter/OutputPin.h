@@ -126,7 +126,7 @@ class CLAVOutputPin
 
     CMediaType &GetActiveMediaType() { return m_mt; }
 
-    BOOL IsVideoPin() { return m_pinType == CBaseDemuxer::video; }
+    BOOL IsVideoPin() { return m_pinType == CBaseDemuxer::video || m_pinType == CBaseDemuxer::video_el; }
     BOOL IsAudioPin() { return m_pinType == CBaseDemuxer::audio; }
     BOOL IsSubtitlePin() { return m_pinType == CBaseDemuxer::subpic; }
     CBaseDemuxer::StreamType GetPinType() { return m_pinType; }

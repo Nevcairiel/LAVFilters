@@ -198,4 +198,11 @@ interface __declspec(uuid("774A919D-EA95-4A87-8A1E-F48ABE8499C7")) ILAVFSettings
 
     // Query if LAV Splitter should reselect subs based on given rules when audio stream is changed
     STDMETHOD_(BOOL, GetStreamSwitchReselectSubtitles)() = 0;
+
+    // Set if video Enhancement Layer streams should be demuxed and exposed as a separate pin
+    // This setting is not saved and needs to be set before opening a file.
+    STDMETHOD(SetDemuxVideoEnhancementLayers)(BOOL bEnabled) = 0;
+
+    // Query if video Enhancement Layer streams should be demuxed and exposed as a separate pin
+    STDMETHOD_(BOOL, GetDemuxVideoEnhancementLayers)() = 0;
 };

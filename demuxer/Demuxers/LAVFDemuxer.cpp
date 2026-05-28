@@ -1009,7 +1009,7 @@ HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
         AVStream *st = m_avFormat->streams[idx];
         if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
-            st->discard = (m_dActiveStreams[video] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
+            st->discard = (m_dActiveStreams[video] == idx || m_dActiveStreams[video_el] == idx) ? AVDISCARD_DEFAULT : AVDISCARD_ALL;
 
             // don't discard h264 mvc streams
             if (m_bH264MVCCombine && st->codecpar->codec_id == AV_CODEC_ID_H264_MVC)
@@ -2151,6 +2151,7 @@ const CBaseDemuxer::stream *CLAVFDemuxer::GetStreamFromTotalIdx(size_t index) co
     size_t count_v = m_streams[video].size();
     size_t count_a = m_streams[audio].size();
     size_t count_s = m_streams[subpic].size();
+    size_t count_el = m_streams[video_el].size();
     if (index >= count_v)
     {
         index -= count_v;
@@ -2160,7 +2161,12 @@ const CBaseDemuxer::stream *CLAVFDemuxer::GetStreamFromTotalIdx(size_t index) co
             index -= count_a;
             type = subpic;
             if (index >= count_s)
-                return nullptr;
+            {
+                index -= count_s;
+                type = video_el;
+                if (index >= count_el)
+                    return nullptr;
+            }
         }
     }
 
@@ -2174,7 +2180,7 @@ STDMETHODIMP_(UINT) CLAVFDemuxer::GetTrackCount()
     if (!m_avFormat)
         return 0;
 
-    size_t count = m_streams[video].size() + m_streams[audio].size() + m_streams[subpic].size();
+    size_t count = m_streams[video].size() + m_streams[audio].size() + m_streams[subpic].size() + m_streams[video_el].size();
 
     return (UINT)count;
 }
@@ -2191,7 +2197,7 @@ STDMETHODIMP_(BOOL) CLAVFDemuxer::GetTrackInfo(UINT aTrackIdx, struct TrackEleme
     pStructureToFill->Size = sizeof(*pStructureToFill);
 
     const stream *st = GetStreamFromTotalIdx(aTrackIdx);
-    if (!st || st->pid < 0 || st->pid == NO_SUBTITLE_PID)
+    if (!st || st->pid < 0 || (st->pid >= m_avFormat->nb_streams && !(st->pid == FORCED_SUBTITLE_PID)))
         return FALSE;
 
     if (st->pid == FORCED_SUBTITLE_PID)
@@ -2843,6 +2849,11 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
     }
 
     return best;
+}
+
+const CBaseDemuxer::stream* CLAVFDemuxer::SelectVideoELStream(DWORD dwVideoStreamPID)
+{
+    return NULL;
 }
 
 static int audio_codec_priority(const AVCodecParameters *par)

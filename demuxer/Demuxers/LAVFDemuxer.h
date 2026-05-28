@@ -88,6 +88,7 @@ class CLAVFDemuxer
 
     // Select the best video stream
     const stream *SelectVideoStream();
+    const stream *SelectVideoELStream(DWORD dwVideoStreamPID);
     // Select the best audio stream
     const stream *SelectAudioStream(std::list<std::string> prefLanguages);
     // Select the best subtitle stream

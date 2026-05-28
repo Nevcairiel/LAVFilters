@@ -76,12 +76,20 @@ void CBaseDemuxer::CreatePGSForcedSubtitleStream()
 // CStreamList
 const WCHAR *CBaseDemuxer::CStreamList::ToStringW(int type)
 {
-    return type == video ? L"Video" : type == audio ? L"Audio" : type == subpic ? L"Subtitle" : L"Unknown";
+    return   type == video    ? L"Video"
+           : type == audio    ? L"Audio"
+           : type == subpic   ? L"Subtitle"
+           : type == video_el ? L"EL"
+           : L"Unknown";
 }
 
 const CHAR *CBaseDemuxer::CStreamList::ToString(int type)
 {
-    return type == video ? "Video" : type == audio ? "Audio" : type == subpic ? "Subtitle" : "Unknown";
+    return   type == video    ? "Video"
+           : type == audio    ? "Audio"
+           : type == subpic   ? "Subtitle"
+           : type == video_el ? "EL"
+           : "Unknown";
 }
 
 CBaseDemuxer::stream *CBaseDemuxer::CStreamList::FindStream(DWORD pid)

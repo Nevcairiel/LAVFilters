@@ -101,6 +101,10 @@ class CBDDemuxer
     }
 
     const stream *SelectVideoStream() { return m_lavfDemuxer->SelectVideoStream(); }
+    const stream *SelectVideoELStream(DWORD dwVideoStreamPID)
+    {
+        return m_lavfDemuxer->SelectVideoELStream(dwVideoStreamPID);
+    }
     const stream *SelectAudioStream(std::list<std::string> prefLanguages)
     {
         return m_lavfDemuxer->SelectAudioStream(prefLanguages);

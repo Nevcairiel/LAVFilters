@@ -181,6 +181,8 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     STDMETHODIMP_(DWORD) GetMaxQueueSize();
     STDMETHODIMP SetStreamSwitchReselectSubtitles(BOOL bEnabled);
     STDMETHODIMP_(BOOL) GetStreamSwitchReselectSubtitles();
+    STDMETHODIMP SetDemuxVideoEnhancementLayers(BOOL bEnabled);
+    STDMETHODIMP_(BOOL) GetDemuxVideoEnhancementLayers();
 
     // ILAVSplitterSettingsInternal
     STDMETHODIMP_(LPCSTR) GetInputFormat()
@@ -341,6 +343,8 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
         DWORD QueueMaxPackets;
         DWORD QueueMaxMemSize;
         DWORD NetworkAnalysisDuration;
+
+        BOOL DemuxEnhancementLayer;
 
         std::map<std::string, BOOL> formats;
     } m_settings;
