@@ -30,7 +30,7 @@
 #include <vector>
 #include <sstream>
 
-CLAVFStreamInfo::CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char *containerFormat, HRESULT &hr)
+CLAVFStreamInfo::CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char *containerFormat, HRESULT &hr, bool bIsVideoELStream)
     : CStreamInfo()
     , m_containerFormat(containerFormat)
 {
@@ -42,7 +42,7 @@ CLAVFStreamInfo::CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, con
     default: hr = E_FAIL; break;
     }
 
-    codecInfo = lavf_get_stream_description(avstream);
+    codecInfo = lavf_get_stream_description(avstream, bIsVideoELStream);
 }
 
 CLAVFStreamInfo::~CLAVFStreamInfo()

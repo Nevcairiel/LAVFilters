@@ -27,7 +27,7 @@
 class CLAVFStreamInfo : public CStreamInfo
 {
   public:
-    CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char *containerFormat, HRESULT &hr);
+    CLAVFStreamInfo(AVFormatContext *avctx, AVStream *avstream, const char *containerFormat, HRESULT &hr, bool bIsVideoELStream);
     ~CLAVFStreamInfo();
 
     STDMETHODIMP CreateAudioMediaType(AVFormatContext *avctx, AVStream *avstream);

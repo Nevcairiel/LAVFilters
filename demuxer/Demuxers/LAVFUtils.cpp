@@ -264,7 +264,7 @@ const char *lavf_get_stream_title(const AVStream *pStream)
     return title;
 }
 
-std::string lavf_get_stream_description(const AVStream *pStream)
+std::string lavf_get_stream_description(const AVStream *pStream, bool bIsVideoELStream)
 {
     AVCodecParameters *par = pStream->codecpar;
 
@@ -294,7 +294,10 @@ std::string lavf_get_stream_description(const AVStream *pStream)
     switch (par->codec_type)
     {
     case AVMEDIA_TYPE_VIDEO:
-        buf << "V: ";
+        if (bIsVideoELStream)
+            buf << "EL: ";
+        else
+            buf << "V: ";
         // Title/Language
         if (title && lang)
         {

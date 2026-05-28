@@ -2418,7 +2418,35 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     const char *title = lavf_get_stream_title(pStream);
     if (title)
         s.trackName = title;
-    s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr);
+
+    // determine if the stream is an EL stream
+    bool bIsVideoELStream = false;
+    if (pStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+    {
+        if (m_avFormat->nb_stream_groups > 0 && m_avFormat->stream_groups)
+        {
+            for (unsigned int i = 0; i < m_avFormat->nb_stream_groups; i++)
+            {
+                if (m_avFormat->stream_groups[i]->type == AV_STREAM_GROUP_PARAMS_LAYERED_VIDEO)
+                {
+                    unsigned int el_idx = m_avFormat->stream_groups[i]->params.layered_video->el_index;
+                    if (m_avFormat->stream_groups[i]->nb_streams > 1)
+                    {
+                        for (unsigned int k = 0; k < m_avFormat->stream_groups[i]->nb_streams; k++)
+                        {
+                            if (el_idx == k && m_avFormat->stream_groups[i]->streams[k]->index == streamId)
+                            {
+                                bIsVideoELStream = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr, bIsVideoELStream);
 
     if (hr != S_OK)
     {
@@ -2429,7 +2457,12 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
 
     switch (pStream->codecpar->codec_type)
     {
-    case AVMEDIA_TYPE_VIDEO: m_streams[video].push_back(s); break;
+    case AVMEDIA_TYPE_VIDEO:
+        if (bIsVideoELStream)
+            m_streams[video_el].push_back(s);
+        else
+            m_streams[video].push_back(s);
+        break;
     case AVMEDIA_TYPE_AUDIO: m_streams[audio].push_back(s); break;
     case AVMEDIA_TYPE_SUBTITLE: m_streams[subpic].push_back(s); break;
     default:

@@ -30,7 +30,7 @@ struct FormatMapping
 const char *get_stream_language(const AVStream *pStream);
 std::string get_codec_name(const AVCodecParameters *par);
 const char *lavf_get_stream_title(const AVStream *pStream);
-std::string lavf_get_stream_description(const AVStream *pStream);
+std::string lavf_get_stream_description(const AVStream *pStream, bool bIsVideoELStream);
 
 #define LAVF_DISPOSITION_SUB_STREAM 0x10000
 #define LAVF_DISPOSITION_SECONDARY_AUDIO 0x20000
