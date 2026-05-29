@@ -44,6 +44,8 @@ extern "C"
     enum AVCodecID ff_get_pcm_codec_id(int bps, int flt, int be, int sflags);
 #include "libavformat/isom.h"
 #include "libavformat/demux.h"
+#include "libavutil/dovi_meta.h"
+#include "libavcodec/bsf.h"
 }
 
 #ifdef DEBUG
@@ -961,6 +963,10 @@ void CLAVFDemuxer::CleanupAVFormat()
         avformat_close_input(&m_avFormat);
     }
     SAFE_CO_FREE(m_stOrigParser);
+
+    if (m_DOVI.bsf)
+        av_bsf_free(&m_DOVI.bsf);
+    memset(&m_DOVI, 0, sizeof(m_DOVI));
 }
 
 AVStream *CLAVFDemuxer::GetAVStreamByPID(int pid)
@@ -1456,7 +1462,7 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
     bool bReturnEmpty = false;
 
     // Read packet
-    AVPacket pkt;
+    AVPacket pkt{};
     Packet *pPacket = nullptr;
 
     // assume we are not eof
@@ -1465,10 +1471,23 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         m_avFormat->pb->eof_reached = 0;
     }
 
+    // try to read from the DOVI BSF
+    if (m_DOVI.bBSFSplit && m_DOVI.bsf)
+    {
+        if (av_bsf_receive_packet(m_DOVI.bsf, &pkt) < 0)
+            pkt.data = nullptr;
+        else
+            pkt.stream_index = m_DOVI.nELStreamId;
+    }
+
     int result = 0;
     try
     {
-        DBG_TIMING("av_read_frame", 30, result = av_read_frame(m_avFormat, &pkt))
+        // if the packet is empty, read from actual file
+        if (pkt.data == nullptr)
+        {
+            DBG_TIMING("av_read_frame", 30, result = av_read_frame(m_avFormat, &pkt))
+        }
     }
     catch (...)
     {
@@ -1526,6 +1545,17 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         {
             av_packet_unref(&pkt);
             return S_FALSE;
+        }
+
+        if (m_DOVI.bBSFSplit && m_DOVI.bsf && pkt.stream_index == m_DOVI.nBLStreamId)
+        {
+            // copy the packet, as the BSF will take ownership of this ref
+            AVPacket pkt_bsf{};
+            if (av_packet_ref(&pkt_bsf, &pkt) >= 0)
+            {
+                if (av_bsf_send_packet(m_DOVI.bsf, &pkt_bsf) < 0)
+                    av_packet_unref(&pkt_bsf);
+            }
         }
 
         pPacket = new Packet();
@@ -1915,6 +1945,8 @@ void CLAVFDemuxer::FlushOnSeek()
     // Flush MVC extensions on seek (no-op if empty)
     FlushMVCExtensionQueue();
 
+    if (m_DOVI.bsf)
+        av_bsf_flush(m_DOVI.bsf);
 }
 
 const char *CLAVFDemuxer::GetContainerFormat() const
@@ -2379,7 +2411,7 @@ STDMETHODIMP CLAVFDemuxer::Write(LPCOLESTR pszPropName, VARIANT *pVar)
 
 /////////////////////////////////////////////////////////////////////////////
 // Internal Functions
-STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
+STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer)
 {
     HRESULT hr = S_OK;
     AVStream *pStream = m_avFormat->streams[streamId];
@@ -2417,8 +2449,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
         s.trackName = title;
 
     // determine if the stream is an EL stream
-    bool bIsVideoELStream = false;
-    if (pStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+    if (bIsVideoEnhancementLayer == false && pStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
     {
         if (m_avFormat->nb_stream_groups > 0 && m_avFormat->stream_groups)
         {
@@ -2433,7 +2464,8 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
                         {
                             if (el_idx == k && m_avFormat->stream_groups[i]->streams[k]->index == streamId)
                             {
-                                bIsVideoELStream = true;
+                                bIsVideoEnhancementLayer = true;
+
                                 break;
                             }
                         }
@@ -2443,7 +2475,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
         }
     }
 
-    s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr, bIsVideoELStream);
+    s.streamInfo = new CLAVFStreamInfo(m_avFormat, pStream, m_pszInputFormat, hr, bIsVideoEnhancementLayer);
 
     if (hr != S_OK)
     {
@@ -2455,7 +2487,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId)
     switch (pStream->codecpar->codec_type)
     {
     case AVMEDIA_TYPE_VIDEO:
-        if (bIsVideoELStream)
+        if (bIsVideoEnhancementLayer)
             m_streams[video_el].push_back(s);
         else
             m_streams[video].push_back(s);
@@ -2689,6 +2721,70 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
             delete[] offsets;
         }
     }
+
+    if (m_pSettings->GetDemuxVideoEnhancementLayers() && m_streams[video_el].empty())
+    {
+        for (unsigned int i = 0; i < nbIndex; ++i)
+        {
+            unsigned int streamIdx = bProgram ? m_avFormat->programs[m_program]->stream_index[i] : i;
+            AVStream *st = m_avFormat->streams[streamIdx];
+
+            if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+            {
+                const AVPacketSideData *data = av_packet_side_data_get(st->codecpar->coded_side_data, st->codecpar->nb_coded_side_data, AV_PKT_DATA_DOVI_CONF);
+                if (data)
+                {
+                    AVDOVIDecoderConfigurationRecord *dovi = (AVDOVIDecoderConfigurationRecord *)data->data;
+                    if (dovi->dv_profile == 7 && dovi->el_present_flag)
+                    {
+                        CreateDOVIEnhancementLayerSubStream(streamIdx);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return S_OK;
+}
+
+STDMETHODIMP CLAVFDemuxer::CreateDOVIEnhancementLayerSubStream(DWORD dwParentStream)
+{
+    const AVBitStreamFilter *dovi_bsf = av_bsf_get_by_name("dovi_split");
+    if (dovi_bsf == NULL)
+        return E_UNEXPECTED;
+
+    AVStream *bl_st = m_avFormat->streams[dwParentStream];
+
+    int ret = av_bsf_alloc(dovi_bsf, &m_DOVI.bsf);
+    if (ret < 0)
+        return E_FAIL;
+
+    // set mode for the EL stream, we want the EL and the RPU data
+    av_opt_set(m_DOVI.bsf, "mode", "el+rpu", AV_OPT_SEARCH_CHILDREN);
+
+    // copy parameters
+    avcodec_parameters_copy(m_DOVI.bsf->par_in, bl_st->codecpar);
+    m_DOVI.bsf->time_base_in = bl_st->time_base;
+
+    ret = av_bsf_init(m_DOVI.bsf);
+    if (ret < 0)
+    {
+        av_bsf_free(&m_DOVI.bsf);
+        return E_FAIL;
+    }
+
+    // create fake stream for the Enhancement Layer
+    AVStream *el_st = avformat_new_stream(m_avFormat, NULL);
+    avcodec_parameters_copy(el_st->codecpar, m_DOVI.bsf->par_out);
+
+    // track it
+    AddStream(el_st->index, true);
+
+    // setup DOVI properties
+    m_DOVI.bBSFSplit = true;
+    m_DOVI.nBLStreamId = dwParentStream;
+    m_DOVI.nELStreamId = el_st->index;
 
     return S_OK;
 }

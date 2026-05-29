@@ -34,6 +34,7 @@
 
 class FormatInfo;
 class CBDDemuxer;
+struct AVBSFContext;
 
 #define FFMPEG_FILE_BUFFER_SIZE 32768 // default reading size for ffmpeg
 class CLAVFDemuxer
@@ -169,7 +170,7 @@ class CLAVFDemuxer
     void AddMPEGTSStream(int pid, uint32_t stream_type);
 
   private:
-    STDMETHODIMP AddStream(int streamId);
+    STDMETHODIMP AddStream(int streamId, bool bIsVideoEnhancementLayer = false);
     STDMETHODIMP CreateStreams();
     STDMETHODIMP InitAVFormat(LPCOLESTR pszFileName, BOOL bForce);
     void CleanupAVFormat();
@@ -198,6 +199,9 @@ class CLAVFDemuxer
     STDMETHODIMP QueueMVCExtension(Packet *pPacket);
     STDMETHODIMP FlushMVCExtensionQueue();
     STDMETHODIMP CombineMVCBaseExtension(Packet *pBasePacket);
+
+
+    STDMETHODIMP CreateDOVIEnhancementLayerSubStream(DWORD dwParentStream);
 
   private:
     friend class CBDDemuxer;
@@ -241,4 +245,15 @@ class CLAVFDemuxer
     int m_Abort = 0;
     time_t m_timeAbort = 0;
     time_t m_timeOpening = 0;
+
+    struct
+    {
+        AVBSFContext *bsf = NULL;
+
+        int nBLStreamId = -1;
+        int nELStreamId = -1;
+
+        bool bBSFSplit = false;
+        bool bRPUMerge = false;
+    } m_DOVI{};
 };
