@@ -200,8 +200,12 @@ class CLAVFDemuxer
     STDMETHODIMP FlushMVCExtensionQueue();
     STDMETHODIMP CombineMVCBaseExtension(Packet *pBasePacket);
 
-
     STDMETHODIMP CreateDOVIEnhancementLayerSubStream(DWORD dwParentStream);
+    STDMETHODIMP FlushDOVIRPUMergeQueues();
+
+    STDMETHODIMP FetchDOVIPacket(Packet **ppPacket);
+    STDMETHODIMP CombineDOVIRPU(Packet *pPacket);
+    Packet *CreateRPUPacketFromEL(Packet *pPacketEL);
 
   private:
     friend class CBDDemuxer;
@@ -253,7 +257,14 @@ class CLAVFDemuxer
         int nBLStreamId = -1;
         int nELStreamId = -1;
 
+        int nBLNALSize = -1;
+        int nELNALSize = -1;
+
         bool bBSFSplit = false;
         bool bRPUMerge = false;
+
+        std::deque<Packet *> queueBLPackets;
+        std::deque<Packet *> queueRPU;
+        std::deque<Packet *> queueMergedPackets;
     } m_DOVI{};
 };

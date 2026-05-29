@@ -29,6 +29,7 @@
 #include "LAVSplitterSettingsInternal.h"
 
 #include "moreuuids.h"
+#include "H264Nalu.h"
 
 extern "C"
 {
@@ -964,9 +965,9 @@ void CLAVFDemuxer::CleanupAVFormat()
     }
     SAFE_CO_FREE(m_stOrigParser);
 
+    FlushDOVIRPUMergeQueues();
     if (m_DOVI.bsf)
         av_bsf_free(&m_DOVI.bsf);
-    memset(&m_DOVI, 0, sizeof(m_DOVI));
 }
 
 AVStream *CLAVFDemuxer::GetAVStreamByPID(int pid)
@@ -1019,6 +1020,10 @@ HRESULT CLAVFDemuxer::SetActiveStream(StreamType type, int pid)
 
             // don't discard h264 mvc streams
             if (m_bH264MVCCombine && st->codecpar->codec_id == AV_CODEC_ID_H264_MVC)
+                st->discard = AVDISCARD_DEFAULT;
+
+            // don't discard the DOVI EL stream if we're merging
+            if (m_DOVI.bRPUMerge && idx == m_DOVI.nELStreamId)
                 st->discard = AVDISCARD_DEFAULT;
         }
         else if (st->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
@@ -1471,6 +1476,17 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         m_avFormat->pb->eof_reached = 0;
     }
 
+    // fetch any queued DOVI packets
+    if (m_DOVI.bRPUMerge)
+    {
+        HRESULT hr = FetchDOVIPacket(&pPacket);
+        if (hr == S_OK && pPacket)
+        {
+            *ppPacket = pPacket;
+            return S_OK;
+        }
+    }
+
     // try to read from the DOVI BSF
     if (m_DOVI.bBSFSplit && m_DOVI.bsf)
     {
@@ -1539,6 +1555,10 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
 
         // Accept H264 MVC streams, as they get combined with the base stream later
         if (m_bH264MVCCombine && stream->codecpar->codec_id == AV_CODEC_ID_H264_MVC)
+            streamActive = TRUE;
+
+        // DOVI merge
+        if (m_DOVI.bRPUMerge && pkt.stream_index == m_DOVI.nELStreamId)
             streamActive = TRUE;
 
         if (!streamActive)
@@ -1780,6 +1800,18 @@ STDMETHODIMP CLAVFDemuxer::GetNextPacket(Packet **ppPacket)
         }
     }
 
+    if (m_DOVI.bRPUMerge && pPacket && (pPacket->StreamId == m_DOVI.nBLStreamId || pPacket->StreamId == m_DOVI.nELStreamId))
+    {
+        HRESULT hr = CombineDOVIRPU(pPacket);
+
+        // can't return a packet now, as data is missing
+        if (hr == S_FALSE)
+        {
+            pPacket = NULL;
+            bReturnEmpty = true;
+        }
+    }
+
     if (bReturnEmpty && !pPacket)
     {
         return S_FALSE;
@@ -1858,6 +1890,171 @@ STDMETHODIMP CLAVFDemuxer::CombineMVCBaseExtension(Packet *pBasePacket)
     DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineMVCBaseExtension(): Ran out of extension packets for base %I64d",
             pBasePacket->rtDTS));
     return S_FALSE;
+}
+
+STDMETHODIMP CLAVFDemuxer::FetchDOVIPacket(Packet** ppPacket)
+{
+    CheckPointer(ppPacket, E_POINTER);
+
+    if (m_DOVI.queueMergedPackets.empty() == false)
+    {
+        *ppPacket = m_DOVI.queueMergedPackets.front();
+        m_DOVI.queueMergedPackets.pop_front();
+
+        return S_OK;
+    }
+
+    return S_FALSE;
+}
+
+STDMETHODIMP CLAVFDemuxer::CombineDOVIRPU(Packet *pPacket)
+{
+    CheckPointer(pPacket, E_POINTER);
+    if (pPacket->StreamId == m_DOVI.nBLStreamId)
+    {
+        while (!m_DOVI.queueRPU.empty())
+        {
+            Packet *pPacketRPU = m_DOVI.queueRPU.front();
+            if (pPacketRPU->rtDTS == pPacket->rtDTS || pPacket->rtDTS == Packet::INVALID_TIME ||
+                pPacketRPU->rtDTS == Packet::INVALID_TIME)
+            {
+                if (pPacket->Append(pPacketRPU) < 0)
+                    return E_OUTOFMEMORY;
+
+                m_DOVI.queueRPU.pop_front();
+                delete pPacketRPU;
+
+                return S_OK;
+            }
+            else if (pPacketRPU->rtDTS < pPacket->rtDTS)
+            {
+                DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineDOVIRPU(): Dropping RPU %I64d, base is %I64d",
+                        pPacketRPU->rtDTS, pPacket->rtDTS));
+                m_DOVI.queueRPU.pop_front();
+                delete pPacketRPU;
+            }
+            else if (pPacketRPU->rtDTS > pPacket->rtDTS)
+            {
+                DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineDOVIRPU(): No RPU for base %I64d, next RPU is %I64d",
+                        pPacket->rtDTS, pPacketRPU->rtDTS));
+                return S_OK;
+            }
+        }
+
+        // nothing to merge yet, queue BL packet
+        m_DOVI.queueBLPackets.push_back(pPacket);
+        return S_FALSE;
+    }
+    else if (pPacket->StreamId == m_DOVI.nELStreamId)
+    {
+        Packet *pPacketRPU = CreateRPUPacketFromEL(pPacket);
+        while (!m_DOVI.queueBLPackets.empty())
+        {
+            Packet *pPacketBL = m_DOVI.queueBLPackets.front();
+            if (pPacket->rtDTS == pPacketBL->rtDTS || pPacketBL->rtDTS == Packet::INVALID_TIME ||
+                pPacket->rtDTS == Packet::INVALID_TIME)
+            {
+                if (pPacketRPU)
+                {
+                    if (pPacketBL->Append(pPacketRPU) < 0)
+                    {
+                        delete pPacketRPU;
+                        return E_OUTOFMEMORY;
+                    }
+                }
+
+                m_DOVI.queueBLPackets.pop_front();
+                m_DOVI.queueMergedPackets.push_back(pPacketBL);
+
+                delete pPacketRPU;
+                return S_OK;
+            }
+            else if (pPacket->rtDTS < pPacketBL->rtDTS)
+            {
+                DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineDOVIRPU(): Dropping RPU %I64d, base is %I64d",
+                        pPacket->rtDTS, pPacketBL->rtDTS));
+                delete pPacketRPU;
+                return S_OK;
+            }
+            else if (pPacket->rtDTS > pPacketBL->rtDTS)
+            {
+                DbgLog((LOG_TRACE, 10, L"CLAVFDemuxer::CombineDOVIRPU(): No RPU for base %I64d, next RPU is %I64d",
+                        pPacketBL->rtDTS, pPacket->rtDTS));
+
+                m_DOVI.queueBLPackets.pop_front();
+                m_DOVI.queueMergedPackets.push_back(pPacketBL);
+            }
+        }
+
+        // queue RPU for the next BL, this case should not usually happen as RPUs come after BLs
+        if (pPacketRPU)
+            m_DOVI.queueRPU.push_back(pPacketRPU);
+        return S_OK;
+    }
+
+    return E_UNEXPECTED;
+}
+
+Packet* CLAVFDemuxer::CreateRPUPacketFromEL(Packet* pPacketEL)
+{
+    if (m_DOVI.nBLNALSize < 0 || m_DOVI.nELNALSize < 0)
+        return NULL;
+
+    int nBLHeaderSize = m_DOVI.nBLNALSize > 0 ? m_DOVI.nBLNALSize : 4;
+
+    CH265Nalu Nalu;
+    Nalu.SetBuffer(pPacketEL->GetData(), pPacketEL->GetDataSize(), m_DOVI.nELNALSize);
+    while (Nalu.ReadNext())
+    {
+        if (Nalu.GetType() == 62) // RPU
+        {
+            int nDataSize = (int)Nalu.GetDataLength();
+
+            Packet *pRPUPacket = new Packet();
+
+            pRPUPacket->SetDataSize(nDataSize + nBLHeaderSize);
+            BYTE *dst = pRPUPacket->GetData();
+
+            switch (m_DOVI.nBLNALSize)
+            {
+            case 0: AV_WB32(dst, 1); break;
+            case 1: AV_WB8(dst, nDataSize); break;
+            case 2: AV_WB16(dst, nDataSize); break;
+            case 3: AV_WB24(dst, nDataSize); break;
+            case 4: AV_WB32(dst, nDataSize); break;
+            }
+
+            memcpy(dst + nBLHeaderSize, Nalu.GetDataBuffer(), nDataSize);
+
+            pRPUPacket->CopyProperties(pPacketEL);
+            return pRPUPacket;
+        }
+    }
+
+    return NULL;
+}
+
+STDMETHODIMP CLAVFDemuxer::FlushDOVIRPUMergeQueues()
+{
+    for (auto it = m_DOVI.queueBLPackets.begin(); it != m_DOVI.queueBLPackets.end(); it++)
+    {
+        delete (*it);
+    }
+    m_DOVI.queueBLPackets.clear();
+
+    for (auto it = m_DOVI.queueRPU.begin(); it != m_DOVI.queueRPU.end(); it++)
+    {
+        delete (*it);
+    }
+    m_DOVI.queueRPU.clear();
+
+    for (auto it = m_DOVI.queueMergedPackets.begin(); it != m_DOVI.queueMergedPackets.end(); it++)
+    {
+        delete (*it);
+    }
+    m_DOVI.queueMergedPackets.clear();
+
+    return S_OK;
 }
 
 STDMETHODIMP CLAVFDemuxer::Seek(REFERENCE_TIME rTime)
@@ -1944,6 +2141,9 @@ void CLAVFDemuxer::FlushOnSeek()
 
     // Flush MVC extensions on seek (no-op if empty)
     FlushMVCExtensionQueue();
+
+    // Flush DOVI
+    FlushDOVIRPUMergeQueues();
 
     if (m_DOVI.bsf)
         av_bsf_flush(m_DOVI.bsf);
@@ -2409,6 +2609,16 @@ STDMETHODIMP CLAVFDemuxer::Write(LPCOLESTR pszPropName, VARIANT *pVar)
     return E_NOTIMPL;
 }
 
+static int s_GetHEVCNALSize(const BYTE *extradata, int extradata_size)
+{
+    if (extradata[0] || extradata[1] || extradata[2] > 1 && extradata_size > 25)
+    {
+        return (extradata[21] & 3) + 1;
+    }
+
+    return 0;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // Internal Functions
 STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer)
@@ -2458,13 +2668,25 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer
                 if (m_avFormat->stream_groups[i]->type == AV_STREAM_GROUP_PARAMS_LAYERED_VIDEO)
                 {
                     unsigned int el_idx = m_avFormat->stream_groups[i]->params.layered_video->el_index;
-                    if (m_avFormat->stream_groups[i]->nb_streams > 1)
+                    if (m_avFormat->stream_groups[i]->nb_streams == 2)
                     {
                         for (unsigned int k = 0; k < m_avFormat->stream_groups[i]->nb_streams; k++)
                         {
                             if (el_idx == k && m_avFormat->stream_groups[i]->streams[k]->index == streamId)
                             {
                                 bIsVideoEnhancementLayer = true;
+
+                                // EL should always be after BL, we can only guess its DOVI here based on it being HEVC
+                                if (m_avFormat->stream_groups[i]->streams[0]->codecpar->codec_id == AV_CODEC_ID_HEVC && m_avFormat->stream_groups[i]->streams[1]->codecpar->codec_id == AV_CODEC_ID_HEVC)
+                                {
+                                    m_DOVI.nBLStreamId = m_avFormat->stream_groups[i]->streams[0]->index;
+                                    m_DOVI.nELStreamId = streamId;
+
+                                    m_DOVI.nBLNALSize = s_GetHEVCNALSize(m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata, m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata_size);
+                                    m_DOVI.nELNALSize = s_GetHEVCNALSize(m_avFormat->streams[streamId]->codecpar->extradata, m_avFormat->streams[streamId]->codecpar->extradata_size);
+
+                                    m_DOVI.bRPUMerge = true;
+                                }
 
                                 break;
                             }
