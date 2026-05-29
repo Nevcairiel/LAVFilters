@@ -82,7 +82,7 @@ configure() (
   EXTRA_LDFLAGS=""
 
   if $debug ; then
-    OPTIONS="${OPTIONS} --enable-debug"
+    OPTIONS="${OPTIONS} --enable-debug --disable-optimizations"
     EXTRA_CFLAGS="${EXTRA_CFLAGS} -MDd"
     EXTRA_LDFLAGS="${EXTRA_LDFLAGS} -NODEFAULTLIB:libcmt"
   else
