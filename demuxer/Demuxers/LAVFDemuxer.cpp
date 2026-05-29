@@ -1879,16 +1879,7 @@ retry:
         }
     }
 
-    for (unsigned i = 0; i < m_avFormat->nb_streams; i++)
-    {
-        init_parser(m_avFormat, m_avFormat->streams[i]);
-        UpdateParserFlags(m_avFormat->streams[i]);
-    }
-
-    m_bVC1SeenTimestamp = FALSE;
-
-    // Flush MVC extensions on seek (no-op if empty)
-    FlushMVCExtensionQueue();
+    FlushOnSeek();
 
     return S_OK;
 }
@@ -1901,6 +1892,18 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
         DbgLog((LOG_ERROR, 1, L"::SeekByte() -- Seek failed"));
     }
 
+    FlushOnSeek();
+
+    return S_OK;
+}
+
+STDMETHODIMP CLAVFDemuxer::Reset()
+{
+    return SeekByte(0, AVSEEK_FLAG_ANY);
+}
+
+void CLAVFDemuxer::FlushOnSeek()
+{
     for (unsigned i = 0; i < m_avFormat->nb_streams; i++)
     {
         init_parser(m_avFormat, m_avFormat->streams[i]);
@@ -1912,12 +1915,6 @@ STDMETHODIMP CLAVFDemuxer::SeekByte(int64_t pos, int flags)
     // Flush MVC extensions on seek (no-op if empty)
     FlushMVCExtensionQueue();
 
-    return S_OK;
-}
-
-STDMETHODIMP CLAVFDemuxer::Reset()
-{
-    return SeekByte(0, AVSEEK_FLAG_ANY);
 }
 
 const char *CLAVFDemuxer::GetContainerFormat() const

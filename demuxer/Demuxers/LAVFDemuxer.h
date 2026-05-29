@@ -175,6 +175,8 @@ class CLAVFDemuxer
     void CleanupAVFormat();
     void UpdateParserFlags(AVStream *st);
 
+    void FlushOnSeek();
+
     REFERENCE_TIME ConvertTimestampToRT(int64_t pts, int num, int den,
                                         int64_t starttime = (int64_t)AV_NOPTS_VALUE) const;
     int64_t ConvertRTToTimestamp(REFERENCE_TIME timestamp, int num, int den,
