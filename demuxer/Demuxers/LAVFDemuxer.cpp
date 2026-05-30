@@ -2661,37 +2661,29 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer
     // determine if the stream is an EL stream
     if (bIsVideoEnhancementLayer == false && pStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
     {
-        if (m_avFormat->nb_stream_groups > 0 && m_avFormat->stream_groups)
+        for (unsigned int i = 0; i < m_avFormat->nb_stream_groups; i++)
         {
-            for (unsigned int i = 0; i < m_avFormat->nb_stream_groups; i++)
+            if (m_avFormat->stream_groups[i]->type == AV_STREAM_GROUP_PARAMS_LAYERED_VIDEO &&
+                m_avFormat->stream_groups[i]->nb_streams == 2)
             {
-                if (m_avFormat->stream_groups[i]->type == AV_STREAM_GROUP_PARAMS_LAYERED_VIDEO)
+                unsigned int el_idx = m_avFormat->stream_groups[i]->params.layered_video->el_index;
+                if (m_avFormat->stream_groups[i]->streams[el_idx]->index == streamId)
                 {
-                    unsigned int el_idx = m_avFormat->stream_groups[i]->params.layered_video->el_index;
-                    if (m_avFormat->stream_groups[i]->nb_streams == 2)
+                    bIsVideoEnhancementLayer = true;
+
+                    // EL should always be after BL, we can only guess its DOVI here based on it being HEVC
+                    if (m_avFormat->stream_groups[i]->streams[0]->codecpar->codec_id == AV_CODEC_ID_HEVC && m_avFormat->stream_groups[i]->streams[1]->codecpar->codec_id == AV_CODEC_ID_HEVC)
                     {
-                        for (unsigned int k = 0; k < m_avFormat->stream_groups[i]->nb_streams; k++)
-                        {
-                            if (el_idx == k && m_avFormat->stream_groups[i]->streams[k]->index == streamId)
-                            {
-                                bIsVideoEnhancementLayer = true;
+                        m_DOVI.nBLStreamId = m_avFormat->stream_groups[i]->streams[0]->index;
+                        m_DOVI.nELStreamId = streamId;
 
-                                // EL should always be after BL, we can only guess its DOVI here based on it being HEVC
-                                if (m_avFormat->stream_groups[i]->streams[0]->codecpar->codec_id == AV_CODEC_ID_HEVC && m_avFormat->stream_groups[i]->streams[1]->codecpar->codec_id == AV_CODEC_ID_HEVC)
-                                {
-                                    m_DOVI.nBLStreamId = m_avFormat->stream_groups[i]->streams[0]->index;
-                                    m_DOVI.nELStreamId = streamId;
+                        m_DOVI.nBLNALSize = s_GetHEVCNALSize(m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata, m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata_size);
+                        m_DOVI.nELNALSize = s_GetHEVCNALSize(m_avFormat->streams[streamId]->codecpar->extradata, m_avFormat->streams[streamId]->codecpar->extradata_size);
 
-                                    m_DOVI.nBLNALSize = s_GetHEVCNALSize(m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata, m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata_size);
-                                    m_DOVI.nELNALSize = s_GetHEVCNALSize(m_avFormat->streams[streamId]->codecpar->extradata, m_avFormat->streams[streamId]->codecpar->extradata_size);
-
-                                    m_DOVI.bRPUMerge = true;
-                                }
-
-                                break;
-                            }
-                        }
+                        m_DOVI.bRPUMerge = true;
                     }
+
+                    break;
                 }
             }
         }
