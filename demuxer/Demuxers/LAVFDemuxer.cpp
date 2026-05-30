@@ -2667,6 +2667,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer
                 m_avFormat->stream_groups[i]->nb_streams == 2)
             {
                 unsigned int el_idx = m_avFormat->stream_groups[i]->params.layered_video->el_index;
+                unsigned int bl_idx = !el_idx;
                 if (m_avFormat->stream_groups[i]->streams[el_idx]->index == streamId)
                 {
                     bIsVideoEnhancementLayer = true;
@@ -2674,11 +2675,15 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer
                     // EL should always be after BL, we can only guess its DOVI here based on it being HEVC
                     if (m_avFormat->stream_groups[i]->streams[0]->codecpar->codec_id == AV_CODEC_ID_HEVC && m_avFormat->stream_groups[i]->streams[1]->codecpar->codec_id == AV_CODEC_ID_HEVC)
                     {
-                        m_DOVI.nBLStreamId = m_avFormat->stream_groups[i]->streams[0]->index;
+                        m_DOVI.nBLStreamId = m_avFormat->stream_groups[i]->streams[bl_idx]->index;
                         m_DOVI.nELStreamId = streamId;
 
-                        m_DOVI.nBLNALSize = s_GetHEVCNALSize(m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata, m_avFormat->stream_groups[i]->streams[0]->codecpar->extradata_size);
-                        m_DOVI.nELNALSize = s_GetHEVCNALSize(m_avFormat->streams[streamId]->codecpar->extradata, m_avFormat->streams[streamId]->codecpar->extradata_size);
+                        m_DOVI.nBLNALSize =
+                            s_GetHEVCNALSize(m_avFormat->streams[m_DOVI.nBLStreamId]->codecpar->extradata,
+                                             m_avFormat->streams[m_DOVI.nBLStreamId]->codecpar->extradata_size);
+                        m_DOVI.nELNALSize =
+                            s_GetHEVCNALSize(m_avFormat->streams[m_DOVI.nELStreamId]->codecpar->extradata,
+                                             m_avFormat->streams[m_DOVI.nELStreamId]->codecpar->extradata_size);
 
                         m_DOVI.bRPUMerge = true;
                     }
