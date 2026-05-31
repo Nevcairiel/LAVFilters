@@ -2663,7 +2663,7 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer
     {
         for (unsigned int i = 0; i < m_avFormat->nb_stream_groups; i++)
         {
-            if (m_avFormat->stream_groups[i]->type == AV_STREAM_GROUP_PARAMS_LAYERED_VIDEO &&
+            if (m_avFormat->stream_groups[i]->type == AV_STREAM_GROUP_PARAMS_DOLBY_VISION &&
                 m_avFormat->stream_groups[i]->nb_streams == 2)
             {
                 unsigned int el_idx = m_avFormat->stream_groups[i]->params.layered_video->el_index;
@@ -2672,21 +2672,17 @@ STDMETHODIMP CLAVFDemuxer::AddStream(int streamId, bool bIsVideoEnhancementLayer
                 {
                     bIsVideoEnhancementLayer = true;
 
-                    // EL should always be after BL, we can only guess its DOVI here based on it being HEVC
-                    if (m_avFormat->stream_groups[i]->streams[0]->codecpar->codec_id == AV_CODEC_ID_HEVC && m_avFormat->stream_groups[i]->streams[1]->codecpar->codec_id == AV_CODEC_ID_HEVC)
-                    {
-                        m_DOVI.nBLStreamId = m_avFormat->stream_groups[i]->streams[bl_idx]->index;
-                        m_DOVI.nELStreamId = streamId;
+                    m_DOVI.nBLStreamId = m_avFormat->stream_groups[i]->streams[bl_idx]->index;
+                    m_DOVI.nELStreamId = streamId;
 
-                        m_DOVI.nBLNALSize =
-                            s_GetHEVCNALSize(m_avFormat->streams[m_DOVI.nBLStreamId]->codecpar->extradata,
-                                             m_avFormat->streams[m_DOVI.nBLStreamId]->codecpar->extradata_size);
-                        m_DOVI.nELNALSize =
-                            s_GetHEVCNALSize(m_avFormat->streams[m_DOVI.nELStreamId]->codecpar->extradata,
-                                             m_avFormat->streams[m_DOVI.nELStreamId]->codecpar->extradata_size);
+                    m_DOVI.nBLNALSize =
+                        s_GetHEVCNALSize(m_avFormat->streams[m_DOVI.nBLStreamId]->codecpar->extradata,
+                                         m_avFormat->streams[m_DOVI.nBLStreamId]->codecpar->extradata_size);
+                    m_DOVI.nELNALSize =
+                        s_GetHEVCNALSize(m_avFormat->streams[m_DOVI.nELStreamId]->codecpar->extradata,
+                                         m_avFormat->streams[m_DOVI.nELStreamId]->codecpar->extradata_size);
 
-                        m_DOVI.bRPUMerge = true;
-                    }
+                    m_DOVI.bRPUMerge = true;
 
                     break;
                 }
@@ -2980,7 +2976,7 @@ STDMETHODIMP CLAVFDemuxer::CreateDOVIEnhancementLayerSubStream(DWORD dwParentStr
         return E_FAIL;
 
     // set mode for the EL stream, we want the EL and the RPU data
-    av_opt_set(m_DOVI.bsf, "mode", "el+rpu", AV_OPT_SEARCH_CHILDREN);
+    av_opt_set(m_DOVI.bsf, "mode", "el_rpu", AV_OPT_SEARCH_CHILDREN);
 
     // copy parameters
     avcodec_parameters_copy(m_DOVI.bsf->par_in, bl_st->codecpar);
