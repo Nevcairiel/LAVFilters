@@ -2937,7 +2937,8 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
         }
     }
 
-    if (m_pSettings->GetDemuxVideoEnhancementLayers() && m_streams[video_el].empty())
+    auto pLayerConfig = dynamic_cast<ILAVFSettingsEnhancementLayers *>(m_pSettings);
+    if (pLayerConfig && pLayerConfig->GetDemuxVideoEnhancementLayers() && m_streams[video_el].empty())
     {
         for (unsigned int i = 0; i < nbIndex; ++i)
         {

@@ -334,7 +334,7 @@ STDMETHODIMP CLAVSplitter::NonDelegatingQueryInterface(REFIID riid, void **ppv)
     }
 
     return QI(IMediaSeeking) QI(IAMStreamSelect) QI(ISpecifyPropertyPages) QI(ISpecifyPropertyPages2) QI2(ILAVFSettings)
-        QI2(ILAVFSettingsInternal) QI(IObjectWithSite) QI(IBufferInfo) __super::NonDelegatingQueryInterface(riid, ppv);
+        QI2(ILAVFSettingsInternal) QI2(ILAVFSettingsEnhancementLayers) QI(IObjectWithSite) QI(IBufferInfo) __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
 // ISpecifyPropertyPages2

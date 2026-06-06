@@ -63,6 +63,7 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     , public IAMStreamSelect
     , public IAMOpenProgress
     , public ILAVFSettingsInternal
+    , public ILAVFSettingsEnhancementLayers
     , public ISpecifyPropertyPages2
     , public IObjectWithSite
     , public IBufferInfo
@@ -181,6 +182,8 @@ class __declspec(uuid("171252A0-8820-4AFE-9DF8-5C92B2D66B04")) CLAVSplitter
     STDMETHODIMP_(DWORD) GetMaxQueueSize();
     STDMETHODIMP SetStreamSwitchReselectSubtitles(BOOL bEnabled);
     STDMETHODIMP_(BOOL) GetStreamSwitchReselectSubtitles();
+
+    // ILAVFSettingsEnhancementLayers
     STDMETHODIMP SetDemuxVideoEnhancementLayers(BOOL bEnabled);
     STDMETHODIMP_(BOOL) GetDemuxVideoEnhancementLayers();
 
