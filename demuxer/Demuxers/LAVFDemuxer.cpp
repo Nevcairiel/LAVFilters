@@ -3201,6 +3201,10 @@ const CBaseDemuxer::stream *CLAVFDemuxer::SelectVideoStream()
 
 const CBaseDemuxer::stream* CLAVFDemuxer::SelectVideoELStream(DWORD dwVideoStreamPID)
 {
+    CStreamList *streams = GetStreams(video_el);
+    if (streams->empty() == false)
+        return &streams->front();
+
     return NULL;
 }
 
