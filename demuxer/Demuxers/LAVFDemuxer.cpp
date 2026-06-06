@@ -2993,6 +2993,13 @@ STDMETHODIMP CLAVFDemuxer::CreateDOVIEnhancementLayerSubStream(DWORD dwParentStr
     AVStream *el_st = avformat_new_stream(m_avFormat, NULL);
     avcodec_parameters_copy(el_st->codecpar, m_DOVI.bsf->par_out);
 
+    // copy timing related properties
+    el_st->time_base = bl_st->time_base;
+    el_st->start_time = bl_st->start_time;
+    el_st->pts_wrap_bits = bl_st->pts_wrap_bits;
+    el_st->avg_frame_rate = bl_st->avg_frame_rate;
+    el_st->r_frame_rate = bl_st->r_frame_rate;
+
     // track it
     AddStream(el_st->index, true);
 
