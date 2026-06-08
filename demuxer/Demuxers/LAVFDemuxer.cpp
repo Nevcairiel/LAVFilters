@@ -2966,6 +2966,9 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
 
 STDMETHODIMP CLAVFDemuxer::CreateDOVIEnhancementLayerSubStream(DWORD dwParentStream)
 {
+    if (!m_bMatroska && !m_bMP4) // creating faux streams is kinda dangerous
+        return E_UNEXPECTED;
+
     const AVBitStreamFilter *dovi_bsf = av_bsf_get_by_name("dovi_split");
     if (dovi_bsf == NULL)
         return E_UNEXPECTED;
@@ -2993,6 +2996,12 @@ STDMETHODIMP CLAVFDemuxer::CreateDOVIEnhancementLayerSubStream(DWORD dwParentStr
     // create fake stream for the Enhancement Layer
     AVStream *el_st = avformat_new_stream(m_avFormat, NULL);
     avcodec_parameters_copy(el_st->codecpar, m_DOVI.bsf->par_out);
+
+    // setup faux per-stream data for MP4/MOV
+    if (m_bMP4)
+    {
+        el_st->priv_data = av_mallocz(sizeof(MOVStreamContext));
+    }
 
     // copy timing related properties
     el_st->time_base = bl_st->time_base;
@@ -3516,6 +3525,10 @@ STDMETHODIMP_(DWORD) CLAVFDemuxer::GetStreamFlags(DWORD dwStream)
 {
     if (!m_avFormat || dwStream >= m_avFormat->nb_streams)
         return 0;
+
+    // redirect to the original stream
+    if (m_bMP4 && m_DOVI.bBSFSplit && dwStream == m_DOVI.nELStreamId)
+        dwStream = m_DOVI.nBLStreamId;
 
     DWORD dwFlags = 0;
     AVStream *st = m_avFormat->streams[dwStream];
