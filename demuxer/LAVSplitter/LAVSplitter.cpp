@@ -713,8 +713,7 @@ STDMETHODIMP CLAVSplitter::InitDemuxer()
         const CBaseDemuxer::stream *videoELStream = m_pDemuxer->SelectVideoELStream(videoStream->pid);
         if (videoELStream)
         {
-            CLAVOutputPin *pPin = new CLAVOutputPin(videoELStream->streamInfo->mtypes,
-                                                    CBaseDemuxer::CStreamList::ToStringW(CBaseDemuxer::video_el), this,
+            CLAVOutputPin *pPin = new CLAVOutputPin(videoELStream->streamInfo->mtypes, L"~EL", this,
                                                     this, &hr, CBaseDemuxer::video_el, m_pDemuxer->GetContainerFormat());
             if (SUCCEEDED(hr))
             {
