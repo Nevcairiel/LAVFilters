@@ -31,43 +31,17 @@
 /* Get socklen_t */
 #include <sys/socket.h>
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* *INDENT-ON* */
 
-/**
- * gnutls_transport_ktls_enable_flags_t:
- * @GNUTLS_KTLS_RECV: ktls enabled for recv function.
- * @GNUTLS_KTLS_SEND: ktls enabled for send function.
- * @GNUTLS_KTLS_DUPLEX: ktls enabled for both recv and send functions.
- *
- * Flag enumeration of ktls enable status for recv and send functions.
- * This is used by gnutls_transport_is_ktls_enabled().
- *
- * Since: 3.7.3
- */
-typedef enum {
-	GNUTLS_KTLS_RECV = 1 << 0,
-	GNUTLS_KTLS_SEND = 1 << 1,
-	GNUTLS_KTLS_DUPLEX = GNUTLS_KTLS_RECV | GNUTLS_KTLS_SEND,
-} gnutls_transport_ktls_enable_flags_t;
+void gnutls_transport_set_fastopen(gnutls_session_t session, int fd,
+				   struct sockaddr *connect_addr,
+				   socklen_t connect_addrlen,
+				   unsigned int flags);
 
-
-gnutls_transport_ktls_enable_flags_t
-gnutls_transport_is_ktls_enabled(gnutls_session_t session);
-
-void gnutls_transport_set_fastopen(gnutls_session_t session,
-                                   int fd,
-                                   struct sockaddr *connect_addr,
-                                   socklen_t connect_addrlen,
-                                   unsigned int flags);
-
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 }
 #endif
-/* *INDENT-ON* */
 
 #endif /* GNUTLS_SOCKET_H */

@@ -1,9 +1,4 @@
-/* version.h
-
-   Information about library version.
-
-   Copyright (C) 2015 Red Hat, Inc.
-   Copyright (C) 2015 Niels Möller
+/* drbg-ctr.h
 
    This file is part of GNU Nettle.
 
@@ -32,33 +27,43 @@
    not, see http://www.gnu.org/licenses/.
 */
 
-#ifndef NETTLE_VERSION_H_INCLUDED
-#define NETTLE_VERSION_H_INCLUDED
+#ifndef NETTLE_DRBG_CTR_H_INCLUDED
+#define NETTLE_DRBG_CTR_H_INCLUDED
+
+#include "nettle-types.h"
+
+#include "aes.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/* Individual version numbers in decimal */
-#define NETTLE_VERSION_MAJOR 3
-#define NETTLE_VERSION_MINOR 10
+/* Namespace mangling */
+#define drbg_ctr_aes256_init nettle_drbg_ctr_aes256_init
+#define drbg_ctr_aes256_random nettle_drbg_ctr_aes256_random
 
-#define NETTLE_USE_MINI_GMP 0
+#define DRBG_CTR_AES256_SEED_SIZE (AES_BLOCK_SIZE + AES256_KEY_SIZE)
 
-/* We need a preprocessor constant for GMP_NUMB_BITS, simply using
-   sizeof(mp_limb_t) * CHAR_BIT is not good enough. */
-#if NETTLE_USE_MINI_GMP
-# define GMP_NUMB_BITS n/a
-#endif
+struct drbg_ctr_aes256_ctx
+{
+  struct aes256_ctx key;
+  union nettle_block16 V;
+};
 
-int
-nettle_version_major (void);
+/* Initialize using DRBG_CTR_AES256_SEED_SIZE bytes of
+   SEED_MATERIAL.  */
+void
+drbg_ctr_aes256_init (struct drbg_ctr_aes256_ctx *ctx,
+		      uint8_t *seed_material);
 
-int
-nettle_version_minor (void);
+/* Output N bytes of random data into DST.  */
+void
+drbg_ctr_aes256_random (struct drbg_ctr_aes256_ctx *ctx,
+			size_t n, uint8_t *dst);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* NETTLE_VERSION_H_INCLUDED */
+#endif /* NETTLE_DRBG_CTR_H_INCLUDED */

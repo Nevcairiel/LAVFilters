@@ -41,7 +41,7 @@ extern "C" {
 
 /* Individual version numbers in decimal */
 #define NETTLE_VERSION_MAJOR 3
-#define NETTLE_VERSION_MINOR 9
+#define NETTLE_VERSION_MINOR 10
 
 #define NETTLE_USE_MINI_GMP 0
 

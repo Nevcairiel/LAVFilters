@@ -42,6 +42,10 @@ extern "C" {
 
 /* Name mangling */
 #define sha3_permute nettle_sha3_permute
+#define sha3_128_init nettle_sha3_128_init
+#define sha3_128_update nettle_sha3_128_update
+#define sha3_128_shake nettle_sha3_128_shake
+#define sha3_128_shake_output nettle_sha3_128_shake_output
 #define sha3_224_init nettle_sha3_224_init
 #define sha3_224_update nettle_sha3_224_update
 #define sha3_224_digest nettle_sha3_224_digest
@@ -49,6 +53,7 @@ extern "C" {
 #define sha3_256_update nettle_sha3_256_update
 #define sha3_256_digest nettle_sha3_256_digest
 #define sha3_256_shake nettle_sha3_256_shake
+#define sha3_256_shake_output nettle_sha3_256_shake_output
 #define sha3_384_init nettle_sha3_384_init
 #define sha3_384_update nettle_sha3_384_update
 #define sha3_384_digest nettle_sha3_384_digest
@@ -78,6 +83,9 @@ sha3_permute (struct sha3_state *state);
    The "rate" is the width - capacity, or width - 2 * (digest
    size). */
 
+#define SHA3_128_DIGEST_SIZE 16
+#define SHA3_128_BLOCK_SIZE 168
+
 #define SHA3_224_DIGEST_SIZE 28
 #define SHA3_224_BLOCK_SIZE 144
 
@@ -95,6 +103,31 @@ sha3_permute (struct sha3_state *state);
 #define SHA3_256_DATA_SIZE SHA3_256_BLOCK_SIZE
 #define SHA3_384_DATA_SIZE SHA3_384_BLOCK_SIZE
 #define SHA3_512_DATA_SIZE SHA3_512_BLOCK_SIZE
+
+struct sha3_128_ctx
+{
+  struct sha3_state state;
+  unsigned index;
+  uint8_t block[SHA3_128_BLOCK_SIZE];
+};
+
+void
+sha3_128_init (struct sha3_128_ctx *ctx);
+
+void
+sha3_128_update (struct sha3_128_ctx *ctx,
+		 size_t length,
+		 const uint8_t *data);
+
+void
+sha3_128_shake (struct sha3_128_ctx *ctx,
+		size_t length,
+		uint8_t *digest);
+
+void
+sha3_128_shake_output (struct sha3_128_ctx *ctx,
+		       size_t length,
+		       uint8_t *digest);
 
 struct sha3_224_ctx
 {
@@ -142,6 +175,13 @@ void
 sha3_256_shake(struct sha3_256_ctx *ctx,
 	       size_t length,
 	       uint8_t *digest);
+
+/* Unlike sha3_256_shake, this function can be called multiple times
+   to retrieve output from shake256 in an incremental manner */
+void
+sha3_256_shake_output(struct sha3_256_ctx *ctx,
+		      size_t length,
+		      uint8_t *digest);
 
 struct sha3_384_ctx
 {

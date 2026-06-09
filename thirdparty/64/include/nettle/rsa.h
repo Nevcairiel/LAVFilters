@@ -88,6 +88,12 @@ extern "C" {
 #define rsa_encrypt nettle_rsa_encrypt
 #define rsa_decrypt nettle_rsa_decrypt
 #define rsa_decrypt_tr nettle_rsa_decrypt_tr
+#define rsa_oaep_sha256_encrypt nettle_rsa_oaep_sha256_encrypt
+#define rsa_oaep_sha256_decrypt nettle_rsa_oaep_sha256_decrypt
+#define rsa_oaep_sha384_encrypt nettle_rsa_oaep_sha384_encrypt
+#define rsa_oaep_sha384_decrypt nettle_rsa_oaep_sha384_decrypt
+#define rsa_oaep_sha512_encrypt nettle_rsa_oaep_sha512_encrypt
+#define rsa_oaep_sha512_decrypt nettle_rsa_oaep_sha512_decrypt
 #define rsa_sec_decrypt nettle_rsa_sec_decrypt
 #define rsa_compute_root nettle_rsa_compute_root
 #define rsa_compute_root_tr nettle_rsa_compute_root_tr
@@ -389,8 +395,6 @@ rsa_pss_sha512_verify_digest(const struct rsa_public_key *key,
 
 
 /* RSA encryption, using PKCS#1 */
-/* These functions uses the v1.5 padding. What should the v2 (OAEP)
- * functions be called? */
 
 /* Returns 1 on success, 0 on failure, which happens if the
  * message is too long for the key. */
@@ -427,6 +431,53 @@ rsa_sec_decrypt(const struct rsa_public_key *pub,
 	        void *random_ctx, nettle_random_func *random,
 	        size_t length, uint8_t *message,
 	        const mpz_t gibberish);
+
+/* RSA encryption, using OAEP */
+
+int
+rsa_oaep_sha256_encrypt (const struct rsa_public_key *key,
+			 void *random_ctx, nettle_random_func *random,
+			 size_t label_length, const uint8_t *label,
+			 size_t length, const uint8_t * message,
+			 uint8_t *ciphertext);
+
+int
+rsa_oaep_sha256_decrypt (const struct rsa_public_key *pub,
+			 const struct rsa_private_key *key,
+			 void *random_ctx, nettle_random_func *random,
+			 size_t label_length, const uint8_t *label,
+			 size_t *length, uint8_t *message,
+			 const uint8_t *ciphertext);
+
+int
+rsa_oaep_sha384_encrypt (const struct rsa_public_key *key,
+			 void *random_ctx, nettle_random_func *random,
+			 size_t label_length, const uint8_t *label,
+			 size_t length, const uint8_t * message,
+			 uint8_t *ciphertext);
+
+int
+rsa_oaep_sha384_decrypt (const struct rsa_public_key *pub,
+			 const struct rsa_private_key *key,
+			 void *random_ctx, nettle_random_func *random,
+			 size_t label_length, const uint8_t *label,
+			 size_t *length, uint8_t *message,
+			 const uint8_t *ciphertext);
+
+int
+rsa_oaep_sha512_encrypt (const struct rsa_public_key *key,
+			 void *random_ctx, nettle_random_func *random,
+			 size_t label_length, const uint8_t *label,
+			 size_t length, const uint8_t *message,
+			 uint8_t *ciphertext);
+
+int
+rsa_oaep_sha512_decrypt (const struct rsa_public_key *pub,
+			 const struct rsa_private_key *key,
+			 void *random_ctx, nettle_random_func *random,
+			 size_t label_length, const uint8_t *label,
+			 size_t *length, uint8_t *message,
+			 const uint8_t *ciphertext);
 
 /* Compute x, the e:th root of m. Calling it with x == m is allowed.
    It is required that 0 <= m < n. */

@@ -29,11 +29,9 @@
 
 #include <gnutls/gnutls.h>
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* *INDENT-ON* */
 
 #define GNUTLS_COOKIE_KEY_SIZE 16
 
@@ -66,28 +64,24 @@ typedef struct {
 	unsigned int hsk_write_seq;
 } gnutls_dtls_prestate_st;
 
-int gnutls_dtls_cookie_send(gnutls_datum_t * key,
-			    void *client_data,
+int gnutls_dtls_cookie_send(gnutls_datum_t *key, void *client_data,
 			    size_t client_data_size,
-			    gnutls_dtls_prestate_st * prestate,
+			    gnutls_dtls_prestate_st *prestate,
 			    gnutls_transport_ptr_t ptr,
 			    gnutls_push_func push_func);
 
-int gnutls_dtls_cookie_verify(gnutls_datum_t * key,
-			      void *client_data,
+int gnutls_dtls_cookie_verify(gnutls_datum_t *key, void *client_data,
 			      size_t client_data_size, void *_msg,
 			      size_t msg_size,
-			      gnutls_dtls_prestate_st * prestate);
+			      gnutls_dtls_prestate_st *prestate);
 
 void gnutls_dtls_prestate_set(gnutls_session_t session,
-			      gnutls_dtls_prestate_st * prestate);
+			      gnutls_dtls_prestate_st *prestate);
 
 unsigned int gnutls_record_get_discarded(gnutls_session_t session);
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 }
 #endif
-/* *INDENT-ON* */
 
 #endif /* GNUTLS_DTLS_H */

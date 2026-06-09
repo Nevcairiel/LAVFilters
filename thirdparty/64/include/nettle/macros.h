@@ -180,6 +180,7 @@ do {						\
    length and data. */
 #define MD_UPDATE(ctx, length, data, f, incr)				\
   do {									\
+    if (!length) goto __md_done;					\
     if ((ctx)->index)							\
       {									\
 	/* Try to fill partial block */					\

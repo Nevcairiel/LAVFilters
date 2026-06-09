@@ -31,34 +31,29 @@
  * they will be requested through the pin callbacks.
  */
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* *INDENT-ON* */
 
 struct system_key_iter_st;
 typedef struct system_key_iter_st *gnutls_system_key_iter_t;
 
 void gnutls_system_key_iter_deinit(gnutls_system_key_iter_t iter);
-int
-gnutls_system_key_iter_get_info(gnutls_system_key_iter_t *iter,
-			       unsigned cert_type /* gnutls_certificate_type_t */,
-			       char **cert_url,
-			       char **key_url,
-			       char **label,
-			       gnutls_datum_t *der,
-			       unsigned int flags);
+int gnutls_system_key_iter_get_info(gnutls_system_key_iter_t *iter,
+				    unsigned cert_type
+				    /* gnutls_certificate_type_t */,
+				    char **cert_url, char **key_url,
+				    char **label, gnutls_datum_t *der,
+				    unsigned int flags);
 
 int gnutls_system_key_delete(const char *cert_url, const char *key_url);
 
-int gnutls_system_key_add_x509(gnutls_x509_crt_t crt, gnutls_x509_privkey_t privkey,
-				const char *label, char **cert_url, char **key_url);
+int gnutls_system_key_add_x509(gnutls_x509_crt_t crt,
+			       gnutls_x509_privkey_t privkey, const char *label,
+			       char **cert_url, char **key_url);
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 }
 #endif
-/* *INDENT-ON* */
 
 #endif /* GNUTLS_SYSTEM_KEYS_H */

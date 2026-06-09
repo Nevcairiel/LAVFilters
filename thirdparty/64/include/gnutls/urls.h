@@ -31,17 +31,15 @@
  * keys and certificates.
  */
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* *INDENT-ON* */
 
 typedef int (*gnutls_privkey_import_url_func)(gnutls_privkey_t pkey,
-					       const char *url, unsigned flags);
+					      const char *url, unsigned flags);
 
 typedef int (*gnutls_x509_crt_import_url_func)(gnutls_x509_crt_t pkey,
-					        const char *url, unsigned flags);
+					       const char *url, unsigned flags);
 
 /* The following callbacks are optional */
 
@@ -53,8 +51,10 @@ typedef int (*gnutls_pubkey_import_url_func)(gnutls_pubkey_t pkey,
  * the initial certificate URL and the certificate to find its issuer, and must
  * return zero and the DER encoding of the issuer's certificate. If not available,
  * it should return GNUTLS_E_REQUESTED_DATA_NOT_AVAILABLE. */
-typedef int (*gnutls_get_raw_issuer_func)(const char *url, gnutls_x509_crt_t crt,
-					  gnutls_datum_t *issuer_der, unsigned flags);
+typedef int (*gnutls_get_raw_issuer_func)(const char *url,
+					  gnutls_x509_crt_t crt,
+					  gnutls_datum_t *issuer_der,
+					  unsigned flags);
 
 typedef struct gnutls_custom_url_st {
 	const char *name;
@@ -69,10 +69,8 @@ typedef struct gnutls_custom_url_st {
 
 int gnutls_register_custom_url(const gnutls_custom_url_st *st);
 
-/* *INDENT-OFF* */
 #ifdef __cplusplus
 }
 #endif
-/* *INDENT-ON* */
 
 #endif /* GNUTLS_URLS_H */
