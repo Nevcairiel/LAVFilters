@@ -203,7 +203,6 @@ static LPCWSTR wszImageExtensions[] = {
     L".tga",                     // TGA
     L".bmp",                     // BMP
     L".j2c",                     // JPEG2000
-    L".webp",                    // WebP
 };
 
 static LPCWSTR wszBlockedExtensions[] = {L".ifo", L".bup"};
