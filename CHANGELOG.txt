@@ -1,5 +1,15 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.82.0 - 2026/06/10
+LAV Splitter
+- NEW: Support for demuxing Dolby Vision Enhancement Layer streams
+- NEW: Support for Animated WebP images
+- Changed: When demuxing Blu-ray discs, Dolby Vision metadata is available on the primary video stream
+
+LAV Video
+- NEW: Support for Animated WebP images
+- Changed: Hardware decoding support for DVDs has been removed
+
 0.81.0 - 2026/01/12
 LAV Splitter
 - NEW: Support for APV (Advanced Professional Video) video streams
