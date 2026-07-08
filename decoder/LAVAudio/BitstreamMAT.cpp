@@ -318,7 +318,7 @@ HRESULT CLAVAudio::BitstreamTrueHD(const BYTE *p, int buffsize, HRESULT *hrDeliv
         {
             DbgLog((LOG_TRACE, 10, _T("BitstreamTrueHD(): Detected a stream discontinuity, reseting framesize cache")));
             m_TrueHDMATState.prev_frametime_valid = false;
-            space_size = 40 * (64 >> (m_TrueHDMATState.ratebits & 7));
+            space_size = frame_samples * (64 >> (m_TrueHDMATState.ratebits & 7));
 
             // the output timing is always one frame ahead for buffering reasons, so deduct one frame worth
             uint32_t prev_output = (uint16_t)(output_timing - frame_samples);
