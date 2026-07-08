@@ -346,7 +346,6 @@ static const FFMPEG_SUBTYPE_MAP lavc_video_codecs[] = {
 
   // Special raw formats
   { &MEDIASUBTYPE_v210, AV_CODEC_ID_V210 },
-  { &MEDIASUBTYPE_v410, AV_CODEC_ID_V410 },
   { &MEDIASUBTYPE_LAV_RAWVIDEO, AV_CODEC_ID_RAWVIDEO },
 };
 
@@ -667,7 +666,6 @@ const AMOVIESETUP_MEDIATYPE CLAVVideo::sudPinTypesIn[] = {
 
   // Special raw formats
   { &MEDIATYPE_Video, &MEDIASUBTYPE_v210 },
-  { &MEDIATYPE_Video, &MEDIASUBTYPE_v410 },
   { &MEDIATYPE_Video, &MEDIASUBTYPE_LAV_RAWVIDEO },
 };
 const UINT CLAVVideo::sudPinTypesInCount = countof(CLAVVideo::sudPinTypesIn);
@@ -746,7 +744,7 @@ static codec_config_t m_codec_config[] = {
   { 1, { AV_CODEC_ID_VCR1 }},                                                // Codec_VCR1
   { 1, { AV_CODEC_ID_SNOW }},                                                // Codec_Snow
   { 1, { AV_CODEC_ID_FFV1 }},                                                // Codec_FFV1
-  { 2, { AV_CODEC_ID_V210, AV_CODEC_ID_V410 }, "v210/v410", "v210/v410 uncompressed"}, // Codec_v210
+  { 2, { AV_CODEC_ID_V210 }, "v210", "v210 uncompressed"},                   // Codec_v210
   { 1, { AV_CODEC_ID_JPEG2000 }},                                            // Codec_JPEG2000
   { 1, { AV_CODEC_ID_VMNC }},                                                // Codec_VMNC
   { 1, { AV_CODEC_ID_FLIC }},                                                // Codec_FLIC
