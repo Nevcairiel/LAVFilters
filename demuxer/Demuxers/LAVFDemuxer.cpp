@@ -2610,7 +2610,7 @@ STDMETHODIMP CLAVFDemuxer::Write(LPCOLESTR pszPropName, VARIANT *pVar)
 
 static int s_GetHEVCNALSize(const BYTE *extradata, int extradata_size)
 {
-    if (extradata && extradata_size > 25 && (extradata[0] || extradata[1] || extradata[2] > 1))
+    if (extradata && extradata_size >= 23 && (extradata[0] || extradata[1] || extradata[2] > 1))
     {
         return (extradata[21] & 3) + 1;
     }
