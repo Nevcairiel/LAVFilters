@@ -78,7 +78,7 @@ configure() (
     --build-suffix=-lav             \
     --arch=${arch}"
 
-  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0600 -DWINVER=0x0600 -Zo -GS- -I../thirdparty/$archincdir/include/"
+  EXTRA_CFLAGS="-D_WIN32_WINNT=0x0601 -DWINVER=0x0601 -Zo -GS- -I../thirdparty/$archincdir/include/"
   EXTRA_LDFLAGS=""
 
   if $debug ; then
