@@ -29,6 +29,27 @@ interface __declspec(uuid("2BB66002-46B7-4F13-9036-7053328742BE")) ID3D11Decoder
 };
 
 // -----------------------------------------------------------------
+// Control D3D11 Texture flags used by the decoder
+// -----------------------------------------------------------------
+// This interface allows the video renderer to control the Bind and
+// Misc flags used by the video textures, for sharing and access.
+//
+// If this interface is not provided, decoders should provide SRV
+// Bind Flags, and SHARED Misc flags.
+//
+// If the interface is provided, no implicit flags other then DECODER
+// should be added.
+interface __declspec(uuid("1F084C92-2A5A-472C-BFA9-D30E40B80C00")) ID3D11DecoderTextureConfiguration : public IUnknown
+{
+    // Get the Bind flags to be used for the textures created by the decoder
+    // Note that the DECODER bind is always used, as its mandatory
+    virtual UINT STDMETHODCALLTYPE GetD3D11TextureBindFlags() = 0;
+
+    // Get the Misc flags to be used for the textures created by the decoder
+    virtual UINT STDMETHODCALLTYPE GetD3D11TextureMiscFlags() = 0;
+};
+
+// -----------------------------------------------------------------
 // Media Sample to hold a D3D11 texture
 // -----------------------------------------------------------------
 // D3D11 textures used for decoding are typically array-textures,
