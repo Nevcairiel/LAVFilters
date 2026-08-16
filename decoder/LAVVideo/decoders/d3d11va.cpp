@@ -463,6 +463,9 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
     AVD3D11VADeviceContext *pDeviceContext = (AVD3D11VADeviceContext *)((AVHWDeviceContext *)m_pDevCtx->data)->hwctx;
     pDeviceContext->device = pD3D11Device;
 
+    pDeviceContext->BindFlags = D3D11_BIND_DECODER | D3D11_BIND_SHADER_RESOURCE;
+    pDeviceContext->MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+
     // finalize the context
     int ret = av_hwdevice_ctx_init(m_pDevCtx);
     if (ret < 0)
@@ -540,8 +543,8 @@ STDMETHODIMP CDecD3D11::PostConnect(IPin *pPin)
         texDesc.Format = m_SurfaceFormat;
         texDesc.SampleDesc.Count = 1;
         texDesc.Usage = D3D11_USAGE_DEFAULT;
-        texDesc.BindFlags = D3D11_BIND_DECODER | D3D11_BIND_SHADER_RESOURCE;
-        texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+        texDesc.BindFlags = pDeviceContext->BindFlags;
+        texDesc.MiscFlags = pDeviceContext->MiscFlags;
 
         hr = pD3D11Device->CreateTexture2D(&texDesc, nullptr, nullptr);
         if (FAILED(hr))
@@ -1286,10 +1289,6 @@ STDMETHODIMP CDecD3D11::AllocateFramesContext(int width, int height, DXGI_FORMAT
     pFrames->width = width;
     pFrames->height = height;
     pFrames->initial_pool_size = nSurfaces;
-
-    AVD3D11VAFramesContext *pFramesHWContext = (AVD3D11VAFramesContext *)pFrames->hwctx;
-    pFramesHWContext->BindFlags |= D3D11_BIND_DECODER | D3D11_BIND_SHADER_RESOURCE;
-    pFramesHWContext->MiscFlags |= D3D11_RESOURCE_MISC_SHARED;
 
     int ret = av_hwframe_ctx_init(*ppFramesCtx);
     if (ret < 0)
