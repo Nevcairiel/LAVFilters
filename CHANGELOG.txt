@@ -1,5 +1,12 @@
 LAV DirectShow Filters Changelog
 ===================================
+0.83.0 - 2026/08/17
+LAV Splitter
+- Fixed: Various stability improvements for Dolby Vision Enhancement Layer processing
+
+LAV Audio
+- Fixed: Minor timing corrections for TrueHD Atmos bitstreaming
+
 0.82.0 - 2026/06/10
 LAV Splitter
 - NEW: Support for demuxing Dolby Vision Enhancement Layer streams
