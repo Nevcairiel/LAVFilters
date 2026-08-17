@@ -3,6 +3,7 @@ LAV DirectShow Filters Changelog
 0.83.0 - 2026/08/17
 LAV Splitter
 - Fixed: Various stability improvements for Dolby Vision Enhancement Layer processing
+- Fixed: Matroska files would only show the first 64 tracks
 
 LAV Audio
 - Fixed: Minor timing corrections for TrueHD Atmos bitstreaming
