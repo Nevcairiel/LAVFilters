@@ -337,6 +337,13 @@ VIDEOINFOHEADER2 *CLAVFVideoHelper::CreateVIH2(const AVStream *avstream, ULONG *
     vih2->bmiHeader.biSize = sizeof(BITMAPINFOHEADER) + extra;
 
     vih2->dwInterlaceFlags = 0;
+    if (avstream->codecpar->codec_id == AV_CODEC_ID_V210 && avstream->codecpar->field_order > AV_FIELD_PROGRESSIVE)
+    {
+        vih2->dwInterlaceFlags = AMINTERLACE_IsInterlaced | AMINTERLACE_FieldPatBothRegular |
+                                AMINTERLACE_DisplayModeBobOrWeave;
+        if (avstream->codecpar->field_order == AV_FIELD_TT || avstream->codecpar->field_order == AV_FIELD_TB)
+            vih2->dwInterlaceFlags |= AMINTERLACE_Field1First;
+    }
     vih2->dwCopyProtectFlags = 0;
     vih2->dwControlFlags = 0;
     vih2->dwReserved2 = 0;
