@@ -345,8 +345,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt, co
             biRealWidth = vih2->rcTarget.right;
             biRealHeight = vih2->rcTarget.bottom;
         }
-        // The v210 decoder needs the container's field order to flag its decoded frames.
-        if (codec == AV_CODEC_ID_V210 && (vih2->dwInterlaceFlags & AMINTERLACE_IsInterlaced))
+        // Uncompressed decoders need the container's field order to flag their decoded frames.
+        if ((codec == AV_CODEC_ID_V210 || codec == AV_CODEC_ID_RAWVIDEO) &&
+            (vih2->dwInterlaceFlags & AMINTERLACE_IsInterlaced))
             m_pAVCtx->field_order = (vih2->dwInterlaceFlags & AMINTERLACE_Field1First) ? AV_FIELD_TT : AV_FIELD_BB;
     }
 
@@ -724,7 +725,7 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt, co
         }
     }
 
-    if (codec == AV_CODEC_ID_V210 && m_pAVCtx->field_order > AV_FIELD_PROGRESSIVE)
+    if ((codec == AV_CODEC_ID_V210 || codec == AV_CODEC_ID_RAWVIDEO) && m_pAVCtx->field_order > AV_FIELD_PROGRESSIVE)
         m_iInterlaced = 1;
 
     // Detect chroma and interlaced
