@@ -162,6 +162,18 @@ std::string get_codec_name(const AVCodecParameters *par)
     {
         codec_name << tolower(profile);
     }
+    else if (id == AV_CODEC_ID_AAC && profile)
+    {
+        if (par->profile == AV_PROFILE_AAC_HE || par->profile == AV_PROFILE_AAC_HE_V2 || par->profile == AV_PROFILE_AAC_USAC)
+        {
+            codec_name << tolower(profile);
+        }
+        else
+        {
+            codec_name << desc->name;
+            codec_name << " " << tolower(profile);
+        }
+    }
     else if (nice_name)
     {
         codec_name << nice_name;
