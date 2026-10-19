@@ -345,6 +345,10 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt, co
             biRealWidth = vih2->rcTarget.right;
             biRealHeight = vih2->rcTarget.bottom;
         }
+        // Uncompressed decoders need the container's field order to flag their decoded frames.
+        if ((codec == AV_CODEC_ID_V210 || codec == AV_CODEC_ID_RAWVIDEO) &&
+            (vih2->dwInterlaceFlags & AMINTERLACE_IsInterlaced))
+            m_pAVCtx->field_order = (vih2->dwInterlaceFlags & AMINTERLACE_Field1First) ? AV_FIELD_TT : AV_FIELD_BB;
     }
 
     m_pAVCtx->codec_id = codec;
@@ -720,6 +724,9 @@ STDMETHODIMP CDecAvcodec::InitDecoder(AVCodecID codec, const CMediaType *pmt, co
             break;
         }
     }
+
+    if ((codec == AV_CODEC_ID_V210 || codec == AV_CODEC_ID_RAWVIDEO) && m_pAVCtx->field_order > AV_FIELD_PROGRESSIVE)
+        m_iInterlaced = 1;
 
     // Detect chroma and interlaced
     if (m_pAVCtx->extradata && m_pAVCtx->extradata_size)
