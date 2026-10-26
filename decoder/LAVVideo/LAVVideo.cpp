@@ -2073,7 +2073,8 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
         if (hdr == nullptr)
             hdr = (MediaSideDataHDR *)AddLAVFrameSideData(pFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
 
-        processFFHDRData(hdr, &m_SideData.Mastering);
+        if (hdr)
+            processFFHDRData(hdr, &m_SideData.Mastering);
     }
 
     if (m_SideData.ContentLight.MaxCLL && m_SideData.ContentLight.MaxFALL)
@@ -2097,8 +2098,11 @@ HRESULT CLAVVideo::DeliverToRenderer(LAVFrame *pFrame)
             hdr = (MediaSideDataHDRContentLightLevel *)AddLAVFrameSideData(
                 pFrame, IID_MediaSideDataHDRContentLightLevel, sizeof(MediaSideDataHDRContentLightLevel));
 
-        hdr->MaxCLL = m_SideData.ContentLight.MaxCLL;
-        hdr->MaxFALL = m_SideData.ContentLight.MaxFALL;
+        if (hdr)
+        {
+            hdr->MaxCLL = m_SideData.ContentLight.MaxCLL;
+            hdr->MaxFALL = m_SideData.ContentLight.MaxFALL;
+        }
     }
 
     // Collect width/height

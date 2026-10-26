@@ -95,14 +95,14 @@ std::wstring CRegistry::ReadString(LPCTSTR pszKey, HRESULT &hr)
 
     if (lRet == ERROR_SUCCESS)
     {
-        // Alloc Buffer to fit the data
-        WCHAR *buffer = (WCHAR *)CoTaskMemAlloc(dwSize);
+        // Alloc Buffer to fit the data, plus a terminator in case the stored string lacks one
+        WCHAR *buffer = (WCHAR *)CoTaskMemAlloc(dwSize + sizeof(WCHAR));
         if (!buffer)
         {
             hr = E_OUTOFMEMORY;
             return result;
         }
-        memset(buffer, 0, dwSize);
+        memset(buffer, 0, dwSize + sizeof(WCHAR));
         lRet = RegQueryValueEx(*m_key, pszKey, nullptr, nullptr, (LPBYTE)buffer, &dwSize);
         result = std::wstring(buffer);
         CoTaskMemFree(buffer);
