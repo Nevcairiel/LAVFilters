@@ -55,6 +55,8 @@ class CH264Nalu
     size_t m_nSize = 0;
     int m_nNALSize = 0;
 
+    size_t m_nNALHeaderSize = 1;
+
     bool MoveToNextAnnexBStartcode();
     bool MoveToNextRTPStartcode();
 
@@ -84,7 +86,7 @@ class CH265Nalu : public CH264Nalu
 {
   public:
     CH265Nalu()
-        : CH264Nalu(){};
+        : CH264Nalu() { m_nNALHeaderSize = 2; }
     bool ReadNext();
 };
 

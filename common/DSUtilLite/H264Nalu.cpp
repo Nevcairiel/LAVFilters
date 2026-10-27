@@ -74,43 +74,51 @@ bool CH264Nalu::MoveToNextRTPStartcode()
 
 bool CH264Nalu::ReadNext()
 {
-    if (m_nCurPos >= m_nSize)
-        return false;
-
-    if ((m_nNALSize != 0) && (m_nCurPos == m_nNextRTP))
+    while (m_nCurPos < m_nSize)
     {
-        if (m_nCurPos + m_nNALSize >= m_nSize)
-            return false;
-        // RTP Nalu type : (XX XX) XX XX NAL..., with XX XX XX XX or XX XX equal to NAL size
-        m_nNALStartPos = m_nCurPos;
-        m_nNALDataPos = m_nCurPos + m_nNALSize;
+        if ((m_nNALSize != 0) && (m_nCurPos == m_nNextRTP))
+        {
+            if (m_nCurPos + m_nNALSize >= m_nSize)
+                return false;
+            // RTP Nalu type : (XX XX) XX XX NAL..., with XX XX XX XX or XX XX equal to NAL size
+            m_nNALStartPos = m_nCurPos;
+            m_nNALDataPos = m_nCurPos + m_nNALSize;
 
-        // Read Length code from the buffer
-        unsigned nTemp = 0;
-        for (int i = 0; i < m_nNALSize; i++)
-            nTemp = (nTemp << 8) + m_pBuffer[m_nCurPos++];
+            // Read Length code from the buffer
+            unsigned nTemp = 0;
+            for (int i = 0; i < m_nNALSize; i++)
+                nTemp = (nTemp << 8) + m_pBuffer[m_nCurPos++];
 
-        m_nNextRTP += nTemp + m_nNALSize;
-        MoveToNextRTPStartcode();
+            // clamp the NAL to the end of the buffer, so the position can't overflow
+            const size_t nRemaining = m_nSize - m_nCurPos;
+            m_nNextRTP = m_nCurPos + (nTemp < nRemaining ? nTemp : nRemaining);
+            MoveToNextRTPStartcode();
+        }
+        else
+        {
+            // Remove trailing bits
+            while (m_pBuffer[m_nCurPos] == 0x00 && ((*((DWORD *)(m_pBuffer + m_nCurPos)) & 0x00FFFFFF) != 0x00010000))
+                m_nCurPos++;
+
+            // AnnexB Nalu : 00 00 01 NAL...
+            m_nNALStartPos = m_nCurPos;
+            m_nCurPos += 3;
+            m_nNALDataPos = m_nCurPos;
+            MoveToNextAnnexBStartcode();
+        }
+
+        // check if the NAL is big enough for at least a header, and skip it if not
+        if (GetDataLength() < m_nNALHeaderSize)
+            continue;
+
+        forbidden_bit = (m_pBuffer[m_nNALDataPos] >> 7) & 1;
+        nal_reference_idc = (m_pBuffer[m_nNALDataPos] >> 5) & 3;
+        nal_unit_type = (NALU_TYPE)(m_pBuffer[m_nNALDataPos] & 0x1f);
+
+        return true;
     }
-    else
-    {
-        // Remove trailing bits
-        while (m_pBuffer[m_nCurPos] == 0x00 && ((*((DWORD *)(m_pBuffer + m_nCurPos)) & 0x00FFFFFF) != 0x00010000))
-            m_nCurPos++;
 
-        // AnnexB Nalu : 00 00 01 NAL...
-        m_nNALStartPos = m_nCurPos;
-        m_nCurPos += 3;
-        m_nNALDataPos = m_nCurPos;
-        MoveToNextAnnexBStartcode();
-    }
-
-    forbidden_bit = (m_pBuffer[m_nNALDataPos] >> 7) & 1;
-    nal_reference_idc = (m_pBuffer[m_nNALDataPos] >> 5) & 3;
-    nal_unit_type = (NALU_TYPE)(m_pBuffer[m_nNALDataPos] & 0x1f);
-
-    return true;
+    return false;
 }
 
 bool CH265Nalu::ReadNext()
