@@ -253,7 +253,16 @@ STDMETHODIMP CLAVFDemuxer::OpenInputStream(AVIOContext *byteContext, LPCOLESTR p
 
     if (_strnicmp("mms:", fileName, 4) == 0)
     {
-        memmove(fileName + 1, fileName, strlen(fileName));
+        // the string grows by one char, make room for it and the terminator
+        size_t len = strlen(fileName);
+        char *newFileName = (char *)CoTaskMemRealloc(fileName, len + 2);
+        if (newFileName == NULL)
+        {
+            SAFE_CO_FREE(fileName);
+            return E_OUTOFMEMORY;
+        }
+        fileName = newFileName;
+        memmove(fileName + 1, fileName, len + 1);
         memcpy(fileName, "mmsh", 4);
     }
 
@@ -410,12 +419,12 @@ trynoformat:
 
     if (rtmp_prameters != nullptr)
     {
-        char buff[4100];
+        // copy into a buffer sized to fit, the parameters can be of any length
+        std::vector<char> buff(rtmp_prameters + 1, rtmp_prameters + strlen(rtmp_prameters + 1) + 2);
         char *next_token = nullptr;
         bool bSwfVerify = false;
 
-        strcpy_s(buff, rtmp_prameters + 1);
-        const char *token = strtok_s(buff, " ", &next_token);
+        const char *token = strtok_s(buff.data(), " ", &next_token);
         while (token)
         {
             for (size_t i = 0; i < _countof(rtmpParametersTranslate); i++)
@@ -549,7 +558,10 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
 
     CLPI_CL *cl = bd_read_clpi(path);
     if (!cl)
+    {
+        CoTaskMemFree(path);
         return E_FAIL;
+    }
 
     // Clip Info was found, add the language metadata to the AVStreams
     for (unsigned i = 0; i < cl->program.num_prog; ++i)
@@ -585,7 +597,10 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
 
         BLURAY *bd = bd_open(path, nullptr);
         if (!bd)
+        {
+            CoTaskMemFree(path);
             return S_FALSE;
+        }
 
         uint32_t nTitles = bd_get_titles(bd, TITLES_RELEVANT, 0);
         BOOL found = FALSE;
@@ -622,6 +637,7 @@ HRESULT CLAVFDemuxer::CheckBDM2TSCPLI(LPCOLESTR pszFileName)
         bd_close(bd);
     }
 
+    CoTaskMemFree(path);
     return S_OK;
 }
 
@@ -2934,24 +2950,16 @@ STDMETHODIMP CLAVFDemuxer::CreateStreams()
             pg_sequences.sort();
             pg_sequences.unique();
 
-            size_t size = pg_sequences.size() * 4;
-            char *offsets = new char[size];
-            offsets[0] = 0;
-
-            // Append all offsets to the string
+            // the values come from file metadata and can be of any length
+            std::string offsets;
             for (auto it = pg_sequences.begin(); it != pg_sequences.end(); it++)
             {
-                size_t len = strlen(offsets);
-                if (len > 0)
-                {
-                    offsets[len] = ',';
-                    len++;
-                }
-                strcpy_s(offsets + len, size - len, it->c_str());
+                if (!offsets.empty())
+                    offsets += ',';
+                offsets += *it;
             }
 
-            av_dict_set(&m_avFormat->metadata, "pg_offset_sequences", offsets, 0);
-            delete[] offsets;
+            av_dict_set(&m_avFormat->metadata, "pg_offset_sequences", offsets.c_str(), 0);
         }
     }
 

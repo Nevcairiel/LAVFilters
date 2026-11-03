@@ -35,7 +35,7 @@ int Packet::SetDataSize(int len)
     if (len < 0)
         return -1;
 
-    if (len <= GetDataSize())
+    if (m_Packet && len <= m_Packet->size)
     {
         av_shrink_packet(m_Packet, len);
         return 0;
@@ -112,7 +112,10 @@ bool Packet::CopyProperties(const Packet *src)
     rtPTS = src->rtPTS;
     rtDTS = src->rtDTS;
     if (src->pmt)
+    {
+        DeleteMediaType(pmt);
         pmt = CreateMediaType(src->pmt);
+    }
     dwFlags = src->dwFlags;
 
     return true;

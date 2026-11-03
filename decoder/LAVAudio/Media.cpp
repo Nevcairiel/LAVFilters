@@ -475,6 +475,8 @@ void CLAVAudio::CreateDVDLPCMHeader(BYTE *const pBuf, const WAVEFORMATEX *const 
 
 HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen)
 {
+    // Note: extra is padded with AV_INPUT_BUFFER_PADDING_SIZE, so reading the fixed-size fields is safe
+    const uint8_t *const end = extra + extralen;
     const uint8_t *fmt = extra + 4;
     uint16_t version = AV_RB16(fmt);
     fmt += 2;
@@ -483,7 +485,7 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen
         DbgLog((LOG_TRACE, 10, L"RealAudio Header version 3 unsupported"));
         return VFW_E_UNSUPPORTED_AUDIO;
     }
-    else if (version == 4 || version == 5 && extralen > 50)
+    else if ((version == 4 || version == 5) && extralen > 50)
     {
         // main format block
         fmt += 2; // word - unused (always 0)
@@ -511,10 +513,16 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen
         // Tag info in v4
         if (version == 4)
         {
+            if (fmt >= end)
+                return VFW_E_UNSUPPORTED_AUDIO;
             int len = *fmt++;
             m_raData.deint_id = AV_RB32(fmt);
+            if (len >= end - fmt)
+                return VFW_E_UNSUPPORTED_AUDIO;
             fmt += len;
             len = *fmt++;
+            if (len > end - fmt)
+                return VFW_E_UNSUPPORTED_AUDIO;
             fmt += len;
         }
         else if (version == 5)
@@ -527,7 +535,7 @@ HRESULT CLAVAudio::ParseRealAudioHeader(const BYTE *extra, const size_t extralen
         if (version == 5)
             fmt++;
 
-        size_t ra_extralen = min((size_t)((extra + extralen) - (fmt + 4)), AV_RB32(fmt));
+        size_t ra_extralen = (end - fmt >= 4) ? min((size_t)(end - (fmt + 4)), (size_t)AV_RB32(fmt)) : 0;
         if (ra_extralen > 0)
         {
             m_pAVCtx->extradata_size = (int)ra_extralen;

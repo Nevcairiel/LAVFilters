@@ -1309,7 +1309,8 @@ send_packet:
                 AVMasteringDisplayMetadata *metadata = (AVMasteringDisplayMetadata *)sdHDR->data;
                 MediaSideDataHDR *hdr =
                     (MediaSideDataHDR *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR, sizeof(MediaSideDataHDR));
-                processFFHDRData(hdr, metadata);
+                if (hdr)
+                    processFFHDRData(hdr, metadata);
             }
             else
             {
@@ -1325,8 +1326,11 @@ send_packet:
                 AVContentLightMetadata *metadata = (AVContentLightMetadata *)sdHDRContentLightLevel->data;
                 MediaSideDataHDRContentLightLevel *hdr = (MediaSideDataHDRContentLightLevel *)AddLAVFrameSideData(
                     pOutFrame, IID_MediaSideDataHDRContentLightLevel, sizeof(MediaSideDataHDRContentLightLevel));
-                hdr->MaxCLL = metadata->MaxCLL;
-                hdr->MaxFALL = metadata->MaxFALL;
+                if (hdr)
+                {
+                    hdr->MaxCLL = metadata->MaxCLL;
+                    hdr->MaxFALL = metadata->MaxFALL;
+                }
             }
             else
             {
@@ -1343,16 +1347,20 @@ send_packet:
                 AVDynamicHDRPlus *metadata = (AVDynamicHDRPlus *)sdHDR10Plus->data;
                 MediaSideDataHDR10Plus *hdr = (MediaSideDataHDR10Plus *)AddLAVFrameSideData(
                     pOutFrame, IID_MediaSideDataHDR10Plus, sizeof(MediaSideDataHDR10Plus));
-                processFFHDR10PlusData(hdr, metadata, m_pFrame->width, m_pFrame->height);
+                if (hdr)
+                {
+                    processFFHDR10PlusData(hdr, metadata, m_pFrame->width, m_pFrame->height);
 
-                #pragma warning(push)
-                #pragma warning(disable : 4996)
-                // legacy format without the version info
-                size_t offset = offsetof(MediaSideDataHDR10Plus, num_windows);
-                BYTE *hdrLegacy = (BYTE *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR10PlusOld,
-                                                              sizeof(MediaSideDataHDR10Plus) - offset);
-                memcpy(hdrLegacy, ((BYTE *)hdr) + offset, sizeof(MediaSideDataHDR10Plus) - offset);
-                #pragma warning(pop)
+                    #pragma warning(push)
+                    #pragma warning(disable : 4996)
+                    // legacy format without the version info
+                    size_t offset = offsetof(MediaSideDataHDR10Plus, num_windows);
+                    BYTE *hdrLegacy = (BYTE *)AddLAVFrameSideData(pOutFrame, IID_MediaSideDataHDR10PlusOld,
+                                                                  sizeof(MediaSideDataHDR10Plus) - offset);
+                    if (hdrLegacy)
+                        memcpy(hdrLegacy, ((BYTE *)hdr) + offset, sizeof(MediaSideDataHDR10Plus) - offset);
+                    #pragma warning(pop)
+                }
             }
             else
             {
@@ -1366,29 +1374,35 @@ send_packet:
             AVDOVIMetadata *metadata = (AVDOVIMetadata *)sdDOVI->data;
             MediaSideDataDOVIMetadata *hdr = (MediaSideDataDOVIMetadata *)AddLAVFrameSideData(
                 pOutFrame, IID_MediaSideDataDOVIMetadataV2, sizeof(MediaSideDataDOVIMetadata));
-            processFFDOVIData(hdr, metadata);
+            if (hdr)
+            {
+                processFFDOVIData(hdr, metadata);
 
-            #pragma warning(push)
-            #pragma warning(disable: 4996)
-            // legacy format without extensions
-            BYTE *hdrLegacy = (BYTE *)AddLAVFrameSideData(
-                pOutFrame, IID_MediaSideDataDOVIMetadata, offsetof(MediaSideDataDOVIMetadata, Extensions));
-            memcpy(hdrLegacy, hdr, offsetof(MediaSideDataDOVIMetadata, Extensions));
-            #pragma warning(pop)
+                #pragma warning(push)
+                #pragma warning(disable: 4996)
+                // legacy format without extensions
+                BYTE *hdrLegacy = (BYTE *)AddLAVFrameSideData(
+                    pOutFrame, IID_MediaSideDataDOVIMetadata, offsetof(MediaSideDataDOVIMetadata, Extensions));
+                if (hdrLegacy)
+                    memcpy(hdrLegacy, hdr, offsetof(MediaSideDataDOVIMetadata, Extensions));
+                #pragma warning(pop)
+            }
         }
 
         AVFrameSideData *sdDOVIRPU = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_DOVI_RPU_BUFFER);
         if (sdDOVIRPU)
         {
             BYTE *pDVRPU = AddLAVFrameSideData(pOutFrame, IID_MediaSideDataDOVIRPU, sdDOVIRPU->size);
-            memcpy(pDVRPU, sdDOVIRPU->data, sdDOVIRPU->size);
+            if (pDVRPU)
+                memcpy(pDVRPU, sdDOVIRPU->data, sdDOVIRPU->size);
         }
 
         AVFrameSideData *sdCC = av_frame_get_side_data(m_pFrame, AV_FRAME_DATA_A53_CC);
         if (sdCC)
         {
             BYTE *CC = AddLAVFrameSideData(pOutFrame, IID_MediaSideDataEIA608CC, sdCC->size);
-            memcpy(CC, sdCC->data, sdCC->size);
+            if (CC)
+                memcpy(CC, sdCC->data, sdCC->size);
         }
 
         if (map.conversion)
