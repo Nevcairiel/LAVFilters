@@ -380,8 +380,9 @@ STDMETHODIMP CLAVSplitter::CreatePage(const GUID &guid, IPropertyPage **ppPage)
 // IObjectWithSite
 STDMETHODIMP CLAVSplitter::SetSite(IUnknown *pUnkSite)
 {
-    // AddRef to store it for later
-    pUnkSite->AddRef();
+    // Retain the new site before releasing the old one, which may be the same object.
+    if (pUnkSite)
+        pUnkSite->AddRef();
 
     // Release the old one
     SafeRelease(&m_pSite);
@@ -401,15 +402,8 @@ STDMETHODIMP CLAVSplitter::GetSite(REFIID riid, void **ppvSite)
         return E_FAIL;
     }
 
-    IUnknown *pSite = nullptr;
-    HRESULT hr = m_pSite->QueryInterface(riid, (void **)&pSite);
-    if (SUCCEEDED(hr) && pSite)
-    {
-        pSite->AddRef();
-        *ppvSite = pSite;
-        return S_OK;
-    }
-    return E_NOINTERFACE;
+    // QueryInterface supplies the reference owned by the caller.
+    return m_pSite->QueryInterface(riid, ppvSite);
 }
 
 // IBufferInfo
