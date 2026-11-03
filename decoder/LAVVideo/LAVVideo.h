@@ -311,6 +311,7 @@ class __declspec(uuid("EE30215D-164F-4A92-A4EB-9D4C13390F9F")) CLAVVideo
     AVFilterContext *m_pFilterBufferSink = nullptr;
 
     LAVPixelFormat m_filterPixFmt = LAVPixFmt_None;
+    int m_filterBpp = 0;
     int m_filterWidth = 0;
     int m_filterHeight = 0;
     LAVFrame m_FilterPrevFrame;
