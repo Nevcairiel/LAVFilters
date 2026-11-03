@@ -45,7 +45,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     if (m_Decoder.IsInterlaced(FALSE) && m_settings.DeintMode != DeintMode_Disable &&
         m_settings.SWDeintMode != SWDeintMode_None &&
         ((bFlush && m_pFilterGraph) || pFrame->format == LAVPixFmt_YUV420 || pFrame->format == LAVPixFmt_YUV422 ||
-         pFrame->format == LAVPixFmt_NV12 || (pFrame->format == LAVPixFmt_YUV422bX && pFrame->bpp == 10)))
+         pFrame->format == LAVPixFmt_NV12 || pFrame->format == LAVPixFmt_YUV422bX))
     {
         AVPixelFormat ff_pixfmt = bFlush ? AV_PIX_FMT_NONE : getFFPixelFormatFromLAV(pFrame->format, pFrame->bpp);
 

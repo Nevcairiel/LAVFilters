@@ -830,8 +830,7 @@ HRESULT CLAVVideo::CreateDecoder(const CMediaType *pmt)
     if (m_PixFmtConverter.SetInputFmt(sw_pixfmt, bpp) && m_pOutput->IsConnected())
         m_bForceFormatNegotiation = TRUE;
 
-    if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12 ||
-        (pix == LAVPixFmt_YUV422bX && bpp == 10))
+    if (pix == LAVPixFmt_YUV420 || pix == LAVPixFmt_YUV422 || pix == LAVPixFmt_NV12 || pix == LAVPixFmt_YUV422bX)
         m_filterPixFmt = pix;
 
     if (m_settings.bCCOutputPinEnabled && !bDVDPlayback &&
