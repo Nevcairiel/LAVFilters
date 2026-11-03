@@ -231,11 +231,10 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
                 rtDuration >>= 1;
 
             // Copy most settings over
-            outFrame->format = (out_frame->format == AV_PIX_FMT_YUV420P)
-                                   ? LAVPixFmt_YUV420
-                                   : (out_frame->format == AV_PIX_FMT_YUV422P)
-                                         ? LAVPixFmt_YUV422
-                                         : (out_frame->format == AV_PIX_FMT_YUV422P10LE) ? LAVPixFmt_YUV422bX : LAVPixFmt_NV12;
+            AVPixelFormatMapping map = getFFToLAVPixFmtMapping((AVPixelFormat)out_frame->format);
+            ASSERT(map.conversion == false);
+            outFrame->format = map.lavpixfmt;
+            outFrame->bpp = map.bpp;
             outFrame->sw_format = outFrame->format;
             outFrame->bpp = pFrame->bpp;
             outFrame->ext_format = pFrame->ext_format;
