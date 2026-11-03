@@ -90,7 +90,7 @@ static string GetCueParam(string line, bool firstWord = false)
 static REFERENCE_TIME ParseCueIndex(string line, int &index)
 {
     int m, s, f, ret;
-    ret = sscanf_s(line.c_str(), " INDEX %d %d:%d:%d", &index, &m, &s, &f);
+    ret = sscanf_s(GetCueParam(line).c_str(), "%d %d:%d:%d", &index, &m, &s, &f);
     if (ret == 4)
         return (m * 60i64 + s) * 10000000i64 + (f * 10000000i64 / 75);
 
