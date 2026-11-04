@@ -49,13 +49,13 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     {
         AVPixelFormat ff_pixfmt = bFlush ? AV_PIX_FMT_NONE : getFFPixelFormatFromLAV(pFrame->format, pFrame->bpp);
 
-        // Deliver delayed frames with the old depth before reconfiguring the graph.
-        if (!bFlush && m_pFilterGraph && pFrame->bpp != m_filterBpp)
-            Filter(GetFlushFrame());
-
         if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->bpp != m_filterBpp ||
                         pFrame->width != m_filterWidth || pFrame->height != m_filterHeight))
         {
+            // Deliver delayed frames with the old format before reconfiguring the graph.
+            if (m_pFilterGraph)
+                Filter(GetFlushFrame());
+
             DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing software deinterlacing filter..."));
             if (m_pFilterGraph)
             {
