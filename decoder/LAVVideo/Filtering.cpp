@@ -49,9 +49,13 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
     {
         AVPixelFormat ff_pixfmt = bFlush ? AV_PIX_FMT_NONE : getFFPixelFormatFromLAV(pFrame->format, pFrame->bpp);
 
-        if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->width != m_filterWidth ||
-                        pFrame->height != m_filterHeight))
+        if (!bFlush && (!m_pFilterGraph || pFrame->format != m_filterPixFmt || pFrame->bpp != m_filterBpp ||
+                        pFrame->width != m_filterWidth || pFrame->height != m_filterHeight))
         {
+            // Deliver delayed frames with the old format before reconfiguring the graph.
+            if (m_pFilterGraph)
+                Filter(GetFlushFrame());
+
             DbgLog((LOG_TRACE, 10, L":Filter()(init) Initializing software deinterlacing filter..."));
             if (m_pFilterGraph)
             {
@@ -61,6 +65,7 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
             }
 
             m_filterPixFmt = pFrame->format;
+            m_filterBpp = pFrame->bpp;
             m_filterWidth = pFrame->width;
             m_filterHeight = pFrame->height;
 
@@ -206,8 +211,14 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
         else
         {
             if (!m_FilterPrevFrame.height) // if height is not set, the frame is most likely not valid
+            {
+                ReleaseFrame(&pFrame);
                 return S_OK;
+            }
             *pFrame = m_FilterPrevFrame;
+            // The saved frame only supplies metadata and does not own its side data.
+            pFrame->side_data = nullptr;
+            pFrame->side_data_count = 0;
         }
 
         if ((ret = av_buffersrc_write_frame(m_pFilterBufferSrc, in_frame)) < 0)
@@ -269,7 +280,8 @@ HRESULT CLAVVideo::Filter(LAVFrame *pFrame)
 
             hrDeliver = DeliverToRenderer(outFrame);
         }
-        if (!refcountedFrame)
+        // Flush frames are not retained by an input AVFrame.
+        if (bFlush || !refcountedFrame)
             ReleaseFrame(&pFrame);
         av_frame_free(&in_frame);
         av_frame_free(&out_frame);
